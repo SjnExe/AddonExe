@@ -68,7 +68,7 @@ function initializeManagers() {
     clearExpiredPunishments();
     clearOldResolvedReports();
     clearExpiredCooldowns();
-    clearExpiredPayments();
+    economyManager.clearExpiredPayments();
 }
 
 /**
