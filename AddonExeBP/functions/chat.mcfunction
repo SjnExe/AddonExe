@@ -1,1 +1,0 @@
-scriptevent exe:toggle_chat_log

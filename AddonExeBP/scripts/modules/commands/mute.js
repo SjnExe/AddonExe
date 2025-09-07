@@ -112,10 +112,24 @@ commandManager.register({
                 return;
             }
         }
-        removePunishment(targetId);
+        const success = removePunishment(targetId);
+
+        if (!success) {
+            player.sendMessage(`§cPlayer "${targetName}" is not currently muted.`);
+            if (!player.isConsole) playSound(player, 'note.bass');
+            return;
+        }
+
         player.sendMessage(`§aSuccessfully unmuted ${targetName}.`);
         if (!player.isConsole) {
             playSound(player, 'random.orb');
+        }
+
+        // Attempt to notify the player if they are online
+        const targetPlayer = findPlayerByName(targetName);
+        if (targetPlayer) {
+            targetPlayer.sendMessage('§aYou have been unmuted and can now chat again.');
+            playSound(targetPlayer, 'random.levelup');
         }
     }
 });

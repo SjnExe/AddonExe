@@ -4,8 +4,8 @@ import { playSoundFromConfig } from '../../core/utils.js';
 import { errorLog } from '../../core/errorLogger.js';
 
 commandManager.register({
-    name: 'xsave',
-    aliases: ['save'],
+    name: 'save',
+    slashName: 'xsave',
     description: 'Manually saves all server data to disk.',
     category: 'Administration',
     permissionLevel: 1, // Admins only
@@ -21,7 +21,7 @@ commandManager.register({
             }
         } catch (e) {
             player.sendMessage(`§cAn error occurred during save: ${e.message}`);
-            errorLog(`[/x:save] Manual save failed: ${e.stack}`);
+            errorLog(`[/save] Manual save failed: ${e.stack}`);
         }
     }
 });
