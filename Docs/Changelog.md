@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-09-07
+
+This version introduces a major performance overhaul for the bounty system, a new global command cooldown system, and several new features, fixes, and documentation improvements.
+
+### ✨ Features
+
+- **Bounty System Overhaul**: The bounty system has been completely rewritten for performance. It now uses a centralized manager (`bountyManager`) to track active bounties in memory, eliminating the lag spikes that occurred on servers with large player histories when viewing the bounty list.
+- **Bounty Claiming**: The previously missing feature to claim bounties has been implemented. When a player with a bounty is killed by another player, the bounty is now correctly paid out to the killer.
+- **Command Cooldown System**: A new system has been integrated into the `commandManager` to allow any command to have an optional, configurable cooldown period to prevent spam. The `/spawn` command is the first to use this new system.
+- **New Ranks Added**: Added three new ranks to the default configuration: `VIP`, `Donator`, and `Verified`. These can be assigned to players via tags.
+- **`/rank` Command Enhancements**:
+    - Running `/rank` with no arguments now displays a list of all available ranks.
+    - The command now provides in-game suggestions for the "set" and "remove" actions, improving usability for admins.
+
+### 🐛 Bug Fixes
+
+-   Fixed a critical startup crash (`ReferenceError: clearExpiredPayments`) caused by an incorrect function call during initialization.
+-   Corrected several linting warnings by removing unused imports from the UI manager.
+
+### 📚 Documentation
+
+-   **Command Documentation**: Updated `Docs/Commands.md` to clearly explain the difference between slash commands (`/`) and chat commands (`!`), especially regarding how they handle multi-word arguments with quotes.
+-   **Features Documentation**: Added details about the hidden world seed anti-cheat feature to `Docs/FeaturesOverview.md`.
+
 ## [0.1.0] - 2025-09-06
 
 This is the second public release of AddonExe, introducing a wide range of features and a comprehensive command system to enhance server management and gameplay.
