@@ -14,8 +14,6 @@
  * @property {Object.<string, HomeLocation>} homes
  * @property {number} balance
  * @property {Object.<string, number>} kitCooldowns
- * @property {number} bounty
- * @property {Object.<string, number>} bounties
  * @property {boolean} xrayNotifications
  * @property {HomeLocation | null} lastDeathLocation
  * @property {boolean} [needsSave] - Internal flag for the auto-saver.
@@ -298,8 +296,6 @@ export function getOrCreatePlayer(player) {
         homes: {},
         balance: config.economy.startingBalance,
         kitCooldowns: {},
-        bounty: config.playerDefaults.bounty,
-        bounties: {},
         xrayNotifications: config.playerDefaults.xrayNotifications,
         lastDeathLocation: null,
         needsSave: true // New data should be saved on the next cycle
@@ -379,36 +375,6 @@ export function setPlayerRank(playerId, rankId, permissionLevel) {
 }
 
 /**
- * Adds to a player's bounty.
- * @param {string} playerId
- * @param {number} amount
- */
-export function incrementPlayerBounty(playerId, amount) {
-    const pData = getPlayer(playerId);
-    if (pData) {
-        pData.bounty = (pData.bounty || 0) + amount;
-        pData.needsSave = true;
-    }
-}
-
-/**
- * Adds to the record of bounties a player has placed on another.
- * @param {string} sourcePlayerId The player placing the bounty.
- * @param {string} targetPlayerId The player receiving the bounty.
- * @param {number} amount The amount of the bounty.
- */
-export function addPlayerBountyContribution(sourcePlayerId, targetPlayerId, amount) {
-    const pData = getPlayer(sourcePlayerId);
-    if (pData) {
-        if (!pData.bounties) {
-            pData.bounties = {};
-        }
-        pData.bounties[targetPlayerId] = (pData.bounties[targetPlayerId] || 0) + amount;
-        pData.needsSave = true;
-    }
-}
-
-/**
  * Sets or updates a player's home location.
  * @param {string} playerId
  * @param {string} homeName
@@ -473,19 +439,6 @@ export function setKitCooldown(playerId, kitName, timestamp) {
     const pData = getPlayer(playerId);
     if (pData) {
         pData.kitCooldowns[kitName] = timestamp;
-        pData.needsSave = true;
-    }
-}
-
-/**
- * Sets a player's bounty.
- * @param {string} playerId
- * @param {number} amount
- */
-export function setPlayerBounty(playerId, amount) {
-    const pData = getPlayer(playerId);
-    if (pData) {
-        pData.bounty = amount;
         pData.needsSave = true;
     }
 }

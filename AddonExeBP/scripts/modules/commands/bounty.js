@@ -1,6 +1,7 @@
 import { commandManager } from './commandManager.js';
 import * as economyManager from '../../core/economyManager.js';
-import { getPlayer, incrementPlayerBounty, addPlayerBountyContribution, getAllPlayerNameIdMap, loadPlayerData } from '../../core/playerDataManager.js';
+import * as bountyManager from '../../core/bountyManager.js';
+import { getPlayer } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { world } from '@minecraft/server';
 import { findPlayerByName } from '../utils/playerUtils.js';
@@ -28,19 +29,14 @@ commandManager.register({
             return;
         }
 
-        const targetData = getPlayer(targetPlayer.id);
-        if (!targetData) {
-            player.sendMessage('§cCould not find player data.');
-            return;
-        }
-
-        if (targetData.bounty === 0) {
+        const targetBounty = bountyManager.getBounty(targetPlayer.id);
+        if (!targetBounty) {
             player.sendMessage('§cThis player has no bounty on them.');
             return;
         }
 
-        if (amount > targetData.bounty) {
-            player.sendMessage('§cYou cannot remove more than the bounty amount ($' + targetData.bounty.toFixed(2) + ').');
+        if (amount > targetBounty.amount) {
+            player.sendMessage(`§cYou cannot remove more than the bounty amount ($${targetBounty.amount.toFixed(2)}).`);
             return;
         }
 
@@ -51,8 +47,8 @@ commandManager.register({
 
         const result = economyManager.removeBalance(player.id, amount);
         if (result) {
-            incrementPlayerBounty(targetPlayer.id, -amount);
-            player.sendMessage('§aYou have removed $' + amount.toFixed(2) + ' from ' + targetPlayer.name + "'s bounty.");
+            bountyManager.incrementBounty(targetPlayer.id, -amount);
+            player.sendMessage(`§aYou have removed $${amount.toFixed(2)} from ${targetPlayer.name}'s bounty.`);
         } else {
             player.sendMessage('§cFailed to remove bounty.');
         }
@@ -73,27 +69,25 @@ function placeBounty(player, targetPlayer, amount) {
         player.sendMessage(`§cInvalid amount. The minimum bounty is $${config.economy.minimumBounty}.`);
         return;
     }
-    const sourceData = getPlayer(player.id);
-    if (!sourceData) {
-        player.sendMessage('§cCould not find your player data.');
-        return;
-    }
+
     if (economyManager.getBalance(player.id) < amount) {
         player.sendMessage('§cYou do not have enough money for this bounty.');
         return;
     }
+
+    // Ensure the target player has data, which is needed by the bounty manager
     const targetData = getPlayer(targetPlayer.id);
     if (!targetData) {
-        player.sendMessage('§cCould not find the target player\'s data.');
+        player.sendMessage('§cCould not find the target player\'s data. They may need to join the server first.');
         return;
     }
+
     const result = economyManager.removeBalance(player.id, amount);
     if (result) {
-        incrementPlayerBounty(targetPlayer.id, amount);
-        addPlayerBountyContribution(player.id, targetPlayer.id, amount);
+        bountyManager.incrementBounty(targetPlayer.id, amount);
 
-        player.sendMessage('§aYou have placed a bounty of §e$' + amount + '§a on ' + targetPlayer.name + '.');
-        world.sendMessage('§cSomeone has placed a bounty of §e$' + amount + '§c on ' + targetPlayer.name + '!');
+        player.sendMessage(`§aYou have placed a bounty of §e$${amount}§a on ${targetPlayer.name}.`);
+        world.sendMessage(`§cSomeone has placed a bounty of §e$${amount}§c on ${targetPlayer.name}!`);
     } else {
         player.sendMessage('§cFailed to place bounty.');
     }
@@ -142,30 +136,22 @@ commandManager.register({
     execute: (player, args) => {
         if (args.target && args.target.length > 0) {
             const targetPlayer = args.target[0];
-            const targetData = getPlayer(targetPlayer.id);
-            if (!targetData) {
-                player.sendMessage('§cCould not find player data.');
+            const bounty = bountyManager.getBounty(targetPlayer.id);
+            if (!bounty) {
+                player.sendMessage(`§aThere is no bounty on ${targetPlayer.name}.`);
                 return;
             }
-            player.sendMessage('§aBounty on ' + targetPlayer.name + ': §e$' + targetData.bounty.toFixed(2));
+            player.sendMessage(`§aBounty on ${targetPlayer.name}: §e$${bounty.amount.toFixed(2)}`);
         } else {
             let message = '§a--- All Player Bounties ---\n';
-            const playerNameIdMap = getAllPlayerNameIdMap();
-            const bounties = [];
+            const allBounties = Array.from(bountyManager.getAllBounties().values());
 
-            for (const [, playerId] of playerNameIdMap.entries()) {
-                const pData = getPlayer(playerId) ?? loadPlayerData(playerId);
-                if (pData && pData.bounty > 0) {
-                    bounties.push({ name: pData.name, bounty: pData.bounty });
-                }
-            }
-
-            if (bounties.length === 0) {
+            if (allBounties.length === 0) {
                 message += '§7No active bounties.';
             } else {
-                bounties.sort((a, b) => b.bounty - a.bounty);
-                for (const bounty of bounties) {
-                    message += `§e${bounty.name}§r: $${bounty.bounty.toFixed(2)}\n`;
+                allBounties.sort((a, b) => b.amount - a.amount);
+                for (const bounty of allBounties) {
+                    message += `§e${bounty.name}§r: $${bounty.amount.toFixed(2)}\n`;
                 }
             }
             player.sendMessage(message.trim());

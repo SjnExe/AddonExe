@@ -11,6 +11,7 @@ import * as utils from './utils.js';
 import { getValueFromPath } from './objectUtils.js';
 import * as punishmentManager from './punishmentManager.js';
 import * as reportManager from './reportManager.js';
+import * as bountyManager from './bountyManager.js';
 
 export const uiActionFunctions = {};
 
@@ -253,10 +254,11 @@ function addPanelBody(form, player, panelId, context) {
         if (!pData || !rank) {
             form.body('§cCould not retrieve your stats.');
         } else {
+            const bounty = bountyManager.getBounty(player.id)?.amount ?? 0;
             const statsBody = [
                 `§fRank: §r${rank.chatFormatting?.nameColor ?? '§7'}${rank.name}`,
                 `§fBalance: §a$${pData.balance.toFixed(2)}`,
-                `§fBounty on you: §e$${pData.bounty.toFixed(2)}`
+                `§fBounty on you: §e$${bounty.toFixed(2)}`
             ].join('\n');
             form.body(statsBody);
         }
@@ -286,27 +288,14 @@ async function buildBountyListForm(title) {
     const form = new ActionFormData().title(title);
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-    const playerNameIdMap = getAllPlayerNameIdMap();
-    const bounties = [];
+    const allBounties = Array.from(bountyManager.getAllBounties().values());
 
-    // This could be slow if there are many players who have ever joined.
-    // A better implementation would be a dedicated bounty manager.
-    for (const [playerName, playerId] of playerNameIdMap.entries()) {
-        const pData = getPlayer(playerId) ?? loadPlayerData(playerId);
-        if (pData && pData.bounty > 0) {
-            // Find the original casing for the player name if possible
-            const onlinePlayer = getPlayerFromCache(playerId);
-            const displayName = onlinePlayer ? onlinePlayer.name : playerName;
-            bounties.push({ name: displayName, bounty: pData.bounty });
-        }
-    }
-
-    if (bounties.length === 0) {
+    if (allBounties.length === 0) {
         form.body('§aThere are currently no active bounties.');
     } else {
-        bounties.sort((a, b) => b.bounty - a.bounty); // Sort descending by bounty amount
-        for (const bounty of bounties) {
-            form.button(`${bounty.name}\n§e$${bounty.bounty.toFixed(2)}`);
+        allBounties.sort((a, b) => b.amount - a.amount); // Sort descending by bounty amount
+        for (const bounty of allBounties) {
+            form.button(`${bounty.name}\n§e$${bounty.amount.toFixed(2)}`);
         }
     }
     return form;
