@@ -1,12 +1,11 @@
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { panelDefinitions } from './panelLayoutConfig.js';
 import { configPanelSchema } from './configPanelSchema.js';
-import { getPlayer, getPlayerIdByName, loadPlayerData, getAllPlayerNameIdMap } from './playerDataManager.js';
+import { getPlayer, getPlayerIdByName, loadPlayerData } from './playerDataManager.js';
 import { getConfig, updateMultipleConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import { getPlayerRank } from './rankManager.js';
-import { getPlayerFromCache } from './playerCache.js';
 import * as utils from './utils.js';
 import { getValueFromPath } from './objectUtils.js';
 import * as punishmentManager from './punishmentManager.js';

@@ -10,10 +10,21 @@ Commands in AddonExe are primarily run using native slash commands, which suppor
 > - The chat-based `!` prefix is not supported in the console.
 
 > [!NOTE]
+> **Slash Commands vs. Chat Commands**
+>
+> There are two ways to run commands, and they have important differences:
+> 1.  **Slash Commands (e.g., `/ban`)**
+>     - These are native Minecraft commands registered by the addon.
+>     - They support in-game argument suggestions and validation.
+>     - **Arguments with spaces MUST be enclosed in double quotes.** For example: `/ban "Player Name" "Griefing the server"`.
+> 2.  **Chat Commands (e.g., `!ban`)**
+>     - These are a convenient fallback, processed from chat messages.
+>     - They are more lenient and can also use **double or single quotes** for arguments with spaces. For example: `!ban "Player Name" 'Griefing the server'`.
+>
+> **Other Important Notes:**
 > - To use slash commands, you must **enable cheats** in your world settings.
 > - Some commands have an `x` prefix (e.g., `/xhelp`) to avoid conflicts with built-in Minecraft commands.
 > - The `exe:` namespace can be used as a fallback for non-'x' commands if other addons have conflicting command names (e.g. `/exe:status`).
-> - For convenience, most commands can also be run using a chat-based prefix, which defaults to `!` (e.g., `!help`). When using chat commands, arguments with spaces must be enclosed in `"double quotes"`.
 > - Angle brackets `< >` denote required parameters. Square brackets `[ ]` denote optional parameters.
 
 ---

@@ -79,4 +79,13 @@ This document provides a detailed breakdown of the features available in AddonEx
 - Sounds can be enabled/disabled and their sound ID, volume, and pitch can be configured.
 - *Key Configs: `config.js` (under the `soundEvents` section)*
 
+---
+
+## III. Security & Anti-Cheat
+
+### A. Hidden World Seed
+- **Description:** The addon's resource pack automatically hides the world seed from the in-game settings menu.
+- **Purpose:** This is a security measure to prevent players from using the world seed in third-party tools to find ore locations, biomes, or structures, which is a common form of cheating.
+- **Configuration:** This feature is enabled by default and cannot be configured due to limitations in Minecraft's addon APIs.
+
 This overview covers the primary features. For specific configuration options and command usage, please refer to the linked detailed documentation within the `Docs` folder.

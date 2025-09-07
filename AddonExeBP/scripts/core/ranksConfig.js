@@ -59,6 +59,48 @@ export const rankDefinitions = [
         ]
     },
     {
+        id: 'donator',
+        name: 'Donator',
+        permissionLevel: 850,
+        chatFormatting: {
+            prefixText: '§8[§dDonator§8] ',
+            nameColor: '§d',
+            messageColor: '§f'
+        },
+        nametagPrefix: '§dDonator',
+        conditions: [
+            { type: 'hasTag', value: 'donator' }
+        ]
+    },
+    {
+        id: 'vip',
+        name: 'VIP',
+        permissionLevel: 800,
+        chatFormatting: {
+            prefixText: '§8[§6VIP§8] ',
+            nameColor: '§6',
+            messageColor: '§f'
+        },
+        nametagPrefix: '§6VIP',
+        conditions: [
+            { type: 'hasTag', value: 'vip' }
+        ]
+    },
+    {
+        id: 'verified',
+        name: 'Verified',
+        permissionLevel: 200,
+        chatFormatting: {
+            prefixText: '§8[§bVerified§8] ',
+            nameColor: '§b',
+            messageColor: '§f'
+        },
+        nametagPrefix: '§bVerified',
+        conditions: [
+            { type: 'hasTag', value: 'verified' }
+        ]
+    },
+    {
         id: 'member',
         name: 'Member',
         permissionLevel: 1024, // Default permission level
