@@ -261,10 +261,17 @@ class CommandManager {
             };
         }
 
-        return {
+        const formattedParam = {
             name: param.name,
             type: type
         };
+
+        if (param.enumOptions && Array.isArray(param.enumOptions)) {
+            // This is how you define an enum for a string parameter
+            formattedParam.enumOptions = param.enumOptions;
+        }
+
+        return formattedParam;
     }
 
     /**

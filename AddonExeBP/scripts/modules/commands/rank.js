@@ -11,7 +11,7 @@ commandManager.register({
     permissionLevel: 1, // Admin and above
     allowConsole: true,
     parameters: [
-        { name: 'action', type: 'string', description: 'The action: "set", "remove", or leave blank to list ranks.', optional: true },
+        { name: 'action', type: 'string', description: 'The action to perform.', enumOptions: ['set', 'remove'], optional: true },
         { name: 'target', type: 'player', description: 'The player to set the rank for.', optional: true },
         { name: 'rankId', type: 'string', description: 'The ID of the rank to set.', optional: true }
     ],
