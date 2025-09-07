@@ -116,7 +116,7 @@ commandManager.register({
 
         if (!success) {
             player.sendMessage(`§cPlayer "${targetName}" is not currently muted.`);
-            if (!player.isConsole) playSound(player, 'note.bass');
+            if (!player.isConsole) {playSound(player, 'note.bass');}
             return;
         }
 
