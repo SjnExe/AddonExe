@@ -50,7 +50,7 @@ export const config = {
         teleportWarmupSeconds: 10
     },
     chat: {
-        logToConsole: false
+        logToConsole: true
     },
     economy: {
         enabled: true,
@@ -120,6 +120,7 @@ export const config = {
         'copyinv': { enabled: true },
         'deathcoords': { enabled: true },
         'debug': { enabled: true },
+        'ecwipe': { enabled: true },
         'delhome': { enabled: true },
         'freeze': { enabled: true },
         'gm': { enabled: true },
