@@ -7,7 +7,8 @@ import { commandManager } from '../modules/commands/commandManager.js';
 import { getPunishment, loadPunishments, clearExpiredPunishments } from './punishmentManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
-import { clearExpiredPayments } from './economyManager.js';
+import * as economyManager from './economyManager.js';
+import * as bountyManager from './bountyManager.js';
 import { showPanel } from './uiManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
@@ -53,6 +54,7 @@ function loadPersistentData() {
     loadPunishments();
     loadReports();
     loadCooldowns();
+    bountyManager.loadBounties();
     playerDataManager.initializeLeaderboard();
 }
 
@@ -86,7 +88,7 @@ function checkConfiguration() {
  */
 function startSystemTimers() {
     // Periodically clear expired payment confirmations
-    system.runInterval(clearExpiredPayments, 6000); // 5 minutes
+    system.runInterval(economyManager.clearExpiredPayments, 6000); // 5 minutes
     // Rank updates are now handled by events (e.g., !admin command)
     debugLog('[AddonExe] System timers started.');
 }
@@ -233,24 +235,42 @@ world.afterEvents.itemUse.subscribe((event) => {
 });
 
 world.afterEvents.entityDie?.subscribe((event) => {
-    const { deadEntity } = event;
+    const { deadEntity, damageCause } = event;
     if (deadEntity.typeId !== 'minecraft:player') {
         return;
     }
 
-    const player = deadEntity;
+    const deadPlayer = deadEntity;
     const config = getConfig();
 
+    // --- Bounty Claim Logic ---
+    // Check if the entity that killed the player was another player
+    const killer = damageCause.damagingEntity;
+    if (killer && killer.typeId === 'minecraft:player' && killer.id !== deadPlayer.id) {
+        const bounty = bountyManager.getBounty(deadPlayer.id);
+        if (bounty && bounty.amount > 0) {
+            // A bounty exists, award it to the killer
+            economyManager.addBalance(killer.id, bounty.amount);
+            bountyManager.removeBounty(deadPlayer.id);
+
+            // Announce the bounty claim
+            world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
+            debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
+        }
+    }
+
+
+    // --- Death Coords Logic ---
     if (config.playerInfo.enableDeathCoords) {
-        const pData = playerDataManager.getPlayer(player.id);
+        const pData = playerDataManager.getPlayer(deadPlayer.id);
         if (pData) {
             const deathLocation = {
-                x: player.location.x,
-                y: player.location.y,
-                z: player.location.z,
-                dimensionId: player.dimension.id
+                x: deadPlayer.location.x,
+                y: deadPlayer.location.y,
+                z: deadPlayer.location.z,
+                dimensionId: deadPlayer.dimension.id
             };
-            playerDataManager.setPlayerLastDeathLocation(player.id, deathLocation);
+            playerDataManager.setPlayerLastDeathLocation(deadPlayer.id, deathLocation);
         }
     }
 });
