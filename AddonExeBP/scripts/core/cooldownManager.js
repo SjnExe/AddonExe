@@ -64,35 +64,47 @@ export function clearExpiredCooldowns() {
     }
 }
 
-function getCooldownKey(playerId, commandName) {
-    return `${playerId}:${commandName}`;
+function getCooldownKey(playerId, identifier) {
+    return `${playerId}:${identifier}`;
 }
 
 /**
- * Sets a cooldown for a player for a specific command.
+ * Sets a cooldown for a player for a specific command defined in the config.
  * @param {import('@minecraft/server').Player} player
- * @param {'tpa' | 'home' | 'spawn'} commandName
+ * @param {string} commandName The name of the command (must have a section in config.js).
  */
 export function setCooldown(player, commandName) {
     const config = getConfig();
     const commandConfig = config[commandName];
     if (!commandConfig || !commandConfig.cooldownSeconds) {return;}
 
-    const key = getCooldownKey(player.id, commandName);
-    const cooldownMs = commandConfig.cooldownSeconds * 1000;
-    cooldowns.set(key, Date.now() + cooldownMs);
-    needsSave = true;
-    saveCooldowns(); // Save immediately to ensure persistence
+    const cooldownSeconds = commandConfig.cooldownSeconds;
+    setCooldownCustom(player.id, commandName, cooldownSeconds);
 }
 
 /**
- * Gets the remaining cooldown for a player for a specific command.
- * @param {import('@minecraft/server').Player} player
- * @param {'tpa' | 'home' | 'spawn'} commandName
+ * Sets a custom cooldown for a player for a specific identifier.
+ * @param {string} playerId
+ * @param {string} identifier A unique name for the cooldown (e.g., a command name).
+ * @param {number} durationSeconds The length of the cooldown in seconds.
+ */
+export function setCooldownCustom(playerId, identifier, durationSeconds) {
+    if (durationSeconds <= 0) {return;}
+    const key = getCooldownKey(playerId, identifier);
+    const cooldownMs = durationSeconds * 1000;
+    cooldowns.set(key, Date.now() + cooldownMs);
+    needsSave = true;
+    // Cooldowns are saved periodically, no need to save immediately unless critical.
+}
+
+/**
+ * Gets the remaining cooldown for a player for a specific identifier.
+ * @param {string} playerId
+ * @param {string} identifier A unique name for the cooldown (e.g., a command name).
  * @returns {number} Remaining cooldown in seconds, or 0 if available.
  */
-export function getCooldown(player, commandName) {
-    const key = getCooldownKey(player.id, commandName);
+export function getCooldown(playerId, identifier) {
+    const key = getCooldownKey(playerId, identifier);
     const expiry = cooldowns.get(key);
 
     if (!expiry) {return 0;}

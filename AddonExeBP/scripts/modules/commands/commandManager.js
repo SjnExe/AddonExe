@@ -6,6 +6,7 @@ import {
 import { getPlayer } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { errorLog } from '../../core/errorLogger.js';
+import { getCooldown, setCooldownCustom } from '../../core/cooldownManager.js';
 
 /**
  * Manages the registration and execution of both slash and chat commands.
@@ -80,6 +81,14 @@ class CommandManager {
             }
 
             // Player execution
+            if (command.cooldownSeconds && command.cooldownSeconds > 0) {
+                const remainingCooldown = getCooldown(player.id, command.name);
+                if (remainingCooldown > 0) {
+                    player.sendMessage(`§cYou must wait ${remainingCooldown} more second(s) to use this command.`);
+                    return;
+                }
+            }
+
             const pData = getPlayer(player.id);
             if (!pData || pData.permissionLevel > command.permissionLevel) {
                 player.sendMessage('§cYou do not have permission to use this command.');
@@ -89,6 +98,9 @@ class CommandManager {
             system.run(() => {
                 try {
                     command.execute(player, parsedArgs);
+                    if (command.cooldownSeconds && command.cooldownSeconds > 0) {
+                        setCooldownCustom(player.id, command.name, command.cooldownSeconds);
+                    }
                 } catch (error) {
                     if (getConfig().debug) {
                         errorLog(`[CommandManager] Error executing slash command '${name}': ${error.stack}`);
@@ -163,6 +175,14 @@ class CommandManager {
             return true;
         }
 
+        if (command.cooldownSeconds && command.cooldownSeconds > 0) {
+            const remainingCooldown = getCooldown(player.id, command.name);
+            if (remainingCooldown > 0) {
+                player.sendMessage(`§cYou must wait ${remainingCooldown} more second(s) to use this command.`);
+                return true;
+            }
+        }
+
         const pData = getPlayer(player.id);
         if (!pData || pData.permissionLevel > command.permissionLevel) {
             player.sendMessage('§cYou do not have permission to use this command.');
@@ -197,6 +217,9 @@ class CommandManager {
         system.run(() => {
             try {
                 command.execute(player, parsedArgs);
+                if (command.cooldownSeconds && command.cooldownSeconds > 0) {
+                    setCooldownCustom(player.id, command.name, command.cooldownSeconds);
+                }
             } catch (error) {
                 if (getConfig().debug) {
                     errorLog(`[CommandManager] Error executing chat command '${command.name}': ${error.stack}`);
