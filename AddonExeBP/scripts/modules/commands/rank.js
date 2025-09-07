@@ -11,24 +11,40 @@ commandManager.register({
     permissionLevel: 1, // Admin and above
     allowConsole: true,
     parameters: [
-        { name: 'action', type: 'string', description: 'The action to perform: "set" or "remove".' },
-        { name: 'target', type: 'player', description: 'The player to set the rank for.' },
-        { name: 'rankId', type: 'string', description: 'The ID of the rank to set.' }
+        { name: 'action', type: 'string', description: 'The action to perform.', enumOptions: ['set', 'remove'], optional: true },
+        { name: 'target', type: 'player', description: 'The player to set the rank for.', optional: true },
+        { name: 'rankId', type: 'string', description: 'The ID of the rank to set.', optional: true }
     ],
     execute: (player, args) => {
         const { action, target, rankId } = args;
+
+        if (!action) {
+            // No action specified, list all ranks
+            let message = '§a--- Available Ranks ---\n';
+            rankDefinitions.forEach(rank => {
+                message += `§e${rank.name}§r (ID: §b${rank.id}§r, Perms: §6${rank.permissionLevel}§r)\n`;
+            });
+            player.sendMessage(message.trim());
+            return;
+        }
+
         const subcommands = ['set', 'remove'];
         if (!subcommands.includes(action.toLowerCase())) {
-            player.sendMessage('§cUsage: /rank <set|remove> <playerName> <rankId>');
+            player.sendMessage('§cInvalid action. Use "set" or "remove", or no action to list ranks.');
             return;
         }
 
         const actionLC = action.toLowerCase();
 
         if (!target || target.length === 0) {
-            player.sendMessage('§cPlayer not found.');
+            player.sendMessage('§cYou must specify a target player for this action.');
             return;
         }
+        if (!rankId) {
+            player.sendMessage('§cYou must specify a rank ID for this action.');
+            return;
+        }
+
         const targetPlayer = target[0];
 
         if (rankId.toLowerCase() === 'owner' || rankId.toLowerCase() === 'admin' || rankId.toLowerCase() === 'member') {
