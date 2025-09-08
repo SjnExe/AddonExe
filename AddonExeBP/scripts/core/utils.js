@@ -151,7 +151,7 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
                 player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
             } catch {}
         }
-    }, { entityTypes: ['minecraft:player'] }); // Optimization: only listen for player hurt events
+    });
 
     player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 

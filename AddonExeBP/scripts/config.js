@@ -63,7 +63,7 @@ export const config = {
     playerInfo: {
         enableWelcomer: true,
         // Available placeholders: {playerName}, {serverName}, {discordLink}, {websiteLink}. Use \n for a new line.
-        welcomeMessage: 'Welcome, {playerName}, to {serverName}!\nUse /h or !h to see commands.',
+        welcomeMessage: 'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r or §e!h§r to see commands.',
         notifyAdminOnNewPlayer: true,
         enableDeathCoords: true,
         deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.'
