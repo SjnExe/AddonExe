@@ -41,7 +41,7 @@ There are a few ways to grant admin permissions, with different results:
 For the best experience, especially for server owners who need to configure the addon, we recommend a manual installation. This ensures you can easily access the configuration files.
 
 1.  **Download the Addon:**
-    -   Go to the [**GitHub Releases**](https://github.com/SjnExe/AddonExe/releases) page and download the latest `.mcaddon` file.
+    -   Go to the [**GitHub Releases**](https://github.com/SjnExe/AddonExe/releases/latest) page and download the latest `.mcaddon` file.
 
 2.  **Extract the Packs:**
     -   Do **not** open the `.mcaddon` file directly. Instead, rename it to end in `.zip` (e.g., `AddonExe.mcaddon` -> `AddonExe.zip`).

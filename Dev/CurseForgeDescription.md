@@ -45,7 +45,7 @@ We recommend the following manual installation method, as it makes future config
 
 ### For All Platforms (Windows, iOS, Android)
 
-1.  **Download:** Grab the latest `.mcaddon` file from the [**GitHub Releases**](https://github.com/SjnExe/AddonExe/releases).
+1.  **Download:** Grab the latest `.mcaddon` file from the [**GitHub Releases**](https://github.com/SjnExe/AddonExe/releases/latest).
 2.  **Extract the Packs:**
     - Do **not** open the `.mcaddon` file directly. Instead, rename it to end in `.zip` (e.g., `AddonExe.mcaddon` -> `AddonExe.zip`).
     - Unzip the file. Inside, you will find two folders: `AddonExeBP` (the Behavior Pack) and `AddonExeRP` (the Resource Pack).
