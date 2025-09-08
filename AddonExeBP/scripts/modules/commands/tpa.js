@@ -1,7 +1,6 @@
 import { commandManager } from './commandManager.js';
 import { createRequest, acceptRequest, denyRequest, cancelRequest, getOutgoingRequest, getIncomingRequest } from '../../core/tpaManager.js';
 import { getConfig } from '../../core/configManager.js';
-import { getCooldown, setCooldown } from '../../core/cooldownManager.js';
 import { playSound } from '../../core/utils.js';
 
 commandManager.register({
@@ -10,6 +9,7 @@ commandManager.register({
     aliases: ['tprequest', 'asktp', 'requesttp'],
     category: 'TPA System',
     permissionLevel: 1024, // Everyone
+    cooldownSeconds: getConfig().tpa.cooldownSeconds,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to send the request to.' }
     ],
@@ -18,12 +18,6 @@ commandManager.register({
         const config = getConfig();
         if (!config.tpa.enabled) {
             player.sendMessage('§cThe TPA system is currently disabled.');
-            return;
-        }
-
-        const cooldown = getCooldown(player, 'tpa');
-        if (cooldown > 0) {
-            player.sendMessage(`§cYou must wait ${cooldown} more seconds before sending another TPA request.`);
             return;
         }
 
@@ -42,7 +36,6 @@ commandManager.register({
         const result = createRequest(player, targetPlayer, 'tpa');
 
         if (result.success) {
-            setCooldown(player, 'tpa');
             player.sendMessage(`§aTPA request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`);
             targetPlayer.sendMessage(`§a${player.name} has requested to teleport to you. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`);
         } else {
@@ -57,6 +50,7 @@ commandManager.register({
     aliases: ['tphere', 'tprequesthere'],
     category: 'TPA System',
     permissionLevel: 1024, // Everyone
+    cooldownSeconds: getConfig().tpa.cooldownSeconds,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to send the request to.' }
     ],

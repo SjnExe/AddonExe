@@ -30,7 +30,7 @@ export const config = {
     tpa: {
         enabled: true,
         requestTimeoutSeconds: 60,
-        cooldownSeconds: 300, // 5 minutes
+        cooldownSeconds: 30,
         teleportWarmupSeconds: 10
     },
     homes: {
@@ -63,7 +63,7 @@ export const config = {
     playerInfo: {
         enableWelcomer: true,
         // Available placeholders: {playerName}, {serverName}, {discordLink}, {websiteLink}. Use \n for a new line.
-        welcomeMessage: 'Welcome, {playerName}, to {serverName}!',
+        welcomeMessage: 'Welcome, {playerName}, to {serverName}!\nUse !h or !help to see available commands.',
         notifyAdminOnNewPlayer: true,
         enableDeathCoords: true,
         deathCoordsMessage: '§7You died at X: {x}, Y: {y}, Z: {z} in dimension {dimensionId}.'
