@@ -63,10 +63,10 @@ export const config = {
     playerInfo: {
         enableWelcomer: true,
         // Available placeholders: {playerName}, {serverName}, {discordLink}, {websiteLink}. Use \n for a new line.
-        welcomeMessage: 'Welcome, {playerName}, to {serverName}!\nUse !h or !help to see available commands.',
+        welcomeMessage: 'Welcome, {playerName}, to {serverName}!\nUse /h or !h to see commands.',
         notifyAdminOnNewPlayer: true,
         enableDeathCoords: true,
-        deathCoordsMessage: '§7You died at X: {x}, Y: {y}, Z: {z} in dimension {dimensionId}.'
+        deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.'
     },
 
     // --- Player Defaults ---
