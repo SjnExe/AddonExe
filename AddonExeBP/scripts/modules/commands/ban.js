@@ -126,6 +126,26 @@ commandManager.register({
             return;
         }
 
+        // --- Permission Checks ---
+        if (!player.isConsole) {
+            if (player.id === targetId) {
+                player.sendMessage('§cYou cannot unban yourself.');
+                return;
+            }
+            const executorData = getPlayer(player.id);
+            // Load the offline player's data for the check
+            const targetData = loadPlayerData(targetId);
+
+            if (!executorData || !targetData) {
+                player.sendMessage('§cCould not retrieve player data for permission check.');
+                return;
+            }
+            if (executorData.permissionLevel >= targetData.permissionLevel) {
+                player.sendMessage('§cYou cannot unban a player with the same or higher rank than you.');
+                return;
+            }
+        }
+
         removePunishment(targetId);
         player.sendMessage(`§aSuccessfully unbanned ${targetName}. They can now rejoin the server.`);
         if (!player.isConsole) {

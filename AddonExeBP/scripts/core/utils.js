@@ -128,12 +128,35 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
     let remainingSeconds = durationSeconds;
     const initialLocation = player.location;
     const dimension = player.dimension;
+    let intervalId; // To hold the interval ID
+    let hurtListener; // To hold the event handler function
 
-    player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move!`);
+    const cleanup = () => {
+        if (intervalId !== undefined) {
+            system.clearRun(intervalId);
+            intervalId = undefined; // Prevent multiple clears
+        }
+        if (hurtListener) {
+            system.afterEvents.entityHurt.unsubscribe(hurtListener);
+            hurtListener = null; // Prevent multiple unsubscribes
+        }
+    };
 
-    const intervalId = system.runInterval(() => {
+    hurtListener = system.afterEvents.entityHurt.subscribe(event => {
+        // We only care if the player being teleported is the one who got hurt.
+        if (event.hurtEntity.id === player.id) {
+            cleanup();
+            try {
+                // Use a try-catch in case the player is dead/offline after the hurt event.
+                player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
+            } catch {}
+        }
+    }, { entityTypes: ['minecraft:player'] }); // Optimization: only listen for player hurt events
+
+    player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
+
+    intervalId = system.runInterval(() => {
         try {
-            // Player might have logged off. The try-catch will prevent a crash.
             const currentLocation = player.location;
 
             // Check if player moved
@@ -144,7 +167,7 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
             );
 
             if (distanceMoved > 1.5 || player.dimension.id !== dimension.id) {
-                system.clearRun(intervalId);
+                cleanup();
                 player.onScreenDisplay.setActionBar('§cTeleport canceled because you moved.');
                 return;
             }
@@ -155,13 +178,13 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
                 const color = getCountdownColor(remainingSeconds);
                 player.onScreenDisplay.setActionBar(`${color}Teleporting in ${remainingSeconds}...`);
             } else {
-                system.clearRun(intervalId);
+                cleanup();
                 player.onScreenDisplay.setActionBar('§aTeleporting...');
                 onWarmupComplete();
             }
         } catch {
             // This will catch errors if the player object becomes invalid (e.g., player logs off)
-            system.clearRun(intervalId);
+            cleanup();
         }
     }, 20); // Run every second
 }

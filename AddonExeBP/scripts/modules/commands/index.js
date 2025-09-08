@@ -30,6 +30,7 @@ const commandFiles = [
     'kick.js',
     'ban.js',         // Contains /unban, /offlineban
     'mute.js',        // Contains /unmute
+    'offlinemute.js',
     'freeze.js',
     'vanish.js',
     'clear.js',
