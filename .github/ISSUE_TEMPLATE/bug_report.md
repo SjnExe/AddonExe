@@ -11,7 +11,7 @@ assignees: ''
 
 **Before Submitting:**
 - [ ] I have searched existing [GitHub Issues](https://github.com/SjnExe/AddonExe/issues) to ensure this bug has not already been reported.
-- [ ] I am using the latest version of the AddonExe (check [Releases](https://github.com/SjnExe/AddonExe/releases)).
+- [ ] I am using the latest version of the AddonExe (check [Releases](https://github.com/SjnExe/AddonExe/releases/latest)).
 - [ ] I have reviewed the [Troubleshooting Guide](https://github.com/SjnExe/AddonExe/blob/main/Docs/Troubleshooting.md) and the issue persists.
 - [ ] I have disabled other behavior packs to ensure this is not a conflict, or I have identified a specific conflict.
 

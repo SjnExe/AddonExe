@@ -5,7 +5,7 @@
 <div align="center">
 
 [![Latest Release](https://img.shields.io/github/v/release/SjnExe/AddonExe?label=latest%20version&display_name=tag&style=for-the-badge)](https://github.com/SjnExe/AddonExe/releases/latest)
-[![GitHub All Releases](https://img.shields.io/github/downloads/SjnExe/AddonExe/total?style=for-the-badge)](https://github.com/SjnExe/AddonExe/releases)
+[![GitHub All Releases](https://img.shields.io/github/downloads/SjnExe/AddonExe/total?style=for-the-badge)](https://github.com/SjnExe/AddonExe/releases/latest)
 ![Minecraft BE Version](https://img.shields.io/badge/Minecraft_BE-1.21.100%2B-brightgreen?style=for-the-badge&logo=minecraft)
 [![GitHub Issues](https://img.shields.io/github/issues/SjnExe/AddonExe?style=for-the-badge&logo=github)](https://github.com/SjnExe/AddonExe/issues)
 [![Status: Stable Release](https://img.shields.io/badge/Status-Stable%20Release-green?style=for-the-badge)](https://github.com/SjnExe/AddonExe/releases/latest)
@@ -82,7 +82,7 @@ This addon is packed with features to keep your server clean:
 
 We recommend the following manual installation method, as it makes future configuration much easier.
 
-1.  **Download:** Grab the latest `.mcaddon` file from our [**GitHub Releases**](https://github.com/SjnExe/AddonExe/releases).
+1.  **Download:** Grab the latest `.mcaddon` file from our [**GitHub Releases**](https://github.com/SjnExe/AddonExe/releases/latest).
 2.  **Extract the Packs (Recommended Method):**
     - Do **not** open the `.mcaddon` file directly. Instead, rename it to end in `.zip` (e.g., `AddonExe.mcaddon` -> `AddonExe.zip`).
     - Unzip the file. Inside, you will find two folders: `AddonExeBP` (the Behavior Pack) and `AddonExeRP` (the Resource Pack).

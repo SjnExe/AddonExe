@@ -79,4 +79,14 @@ export function initializeDataManager() {
     } else {
         debugLog('[DataManager] Auto-save is disabled.');
     }
+
+    // Add a handler to save all data before the script shuts down
+    system.beforeEvents.watchdogTerminate.subscribe(event => {
+        // eslint-disable-next-line no-console
+        console.log('[DataManager] Watchdog termination detected. Attempting to save all data...');
+        event.cancel = false; // This is a best-effort save, we don't want to prevent termination
+        saveAllData({ log: true });
+        // eslint-disable-next-line no-console
+        console.log('[DataManager] Final save attempt complete.');
+    });
 }
