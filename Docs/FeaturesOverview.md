@@ -16,7 +16,7 @@ This document provides a detailed breakdown of the features available in AddonEx
   - **For Admins & Owners:**
     - **Enhanced Player Management:** Provides a list of online players, sorted by rank and name. Each player's name is clearly marked with `(Owner)`, `(Admin)`, and `(You)` suffixes for easy identification. Selecting a player opens a dedicated menu with a wide range of moderation actions like Kick, Ban, Mute, Freeze, Vanish, Inventory Management, and Teleportation.
   - **For Regular Players:** Shows user-specific info like personal stats, server rules, and useful links.
-- **Comprehensive Slash Commands:** A full suite of slash commands offers granular control over all features and administrative actions. Most also have a chat-based fallback (e.g., `!panel`). (See [Commands List](Commands.md) for a complete reference).
+- **Comprehensive Slash Commands:** A full suite of slash commands offers granular control over all features and administrative actions. These can be run in-game, from the server console, or using a chat-based fallback (e.g., `!panel`). (See [Commands List](Commands.md) for a complete reference).
 - **Persistent Player Data:** Active mutes and bans are saved using Minecraft's dynamic properties, ensuring they persist across player sessions and server restarts.
 
 ### B. Flexible Rank System

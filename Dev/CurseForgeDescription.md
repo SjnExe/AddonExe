@@ -20,7 +20,7 @@
 - 🛠️ **Powerful Admin & Moderation Tools:**
   - A universal, dynamic in-game UI panel (`/panel`) that shows each player only the buttons they are permitted to see.
   - Perform a wide range of actions: Kick, Ban/Unban, Mute/Unmute, Freeze, View/Clear Inventory, Teleport.
-  - Extensive slash commands for all administrative functions.
+  - Extensive slash commands for all administrative functions, which can also be run directly from the server console.
 - 💾 **Persistent Player Data Management:**
   - Mutes and bans are saved across player sessions using dynamic properties.
 - ⚙️ **Highly Configurable System:**
