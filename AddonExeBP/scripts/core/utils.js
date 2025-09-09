@@ -128,35 +128,21 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
     let remainingSeconds = durationSeconds;
     const initialLocation = player.location;
     const dimension = player.dimension;
-    let intervalId; // To hold the interval ID
-    let hurtListener; // To hold the event handler function
+    let initialHealth;
 
-    const cleanup = () => {
-        if (intervalId !== undefined) {
-            system.clearRun(intervalId);
-            intervalId = undefined; // Prevent multiple clears
-        }
-        if (hurtListener) {
-            system.afterEvents.entityHurt.unsubscribe(hurtListener);
-            hurtListener = null; // Prevent multiple unsubscribes
-        }
-    };
-
-    hurtListener = system.afterEvents.entityHurt.subscribe(event => {
-        // We only care if the player being teleported is the one who got hurt.
-        if (event.hurtEntity.id === player.id) {
-            cleanup();
-            try {
-                // Use a try-catch in case the player is dead/offline after the hurt event.
-                player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
-            } catch {}
-        }
-    });
+    try {
+        // Getting health can fail if the entity is not a player or if the component is not available for some reason.
+        initialHealth = player.getComponent('health').currentValue;
+    } catch {
+        errorLog(`[Warmup] Could not get initial health for ${player.name}. Proceeding without damage check.`);
+        initialHealth = Infinity; // Set to infinity to make the damage check always pass
+    }
 
     player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 
-    intervalId = system.runInterval(() => {
+    const intervalId = system.runInterval(() => {
         try {
+            // Player might have logged off. The try-catch will prevent a crash.
             const currentLocation = player.location;
 
             // Check if player moved
@@ -167,8 +153,16 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
             );
 
             if (distanceMoved > 1.5 || player.dimension.id !== dimension.id) {
-                cleanup();
+                system.clearRun(intervalId);
                 player.onScreenDisplay.setActionBar('§cTeleport canceled because you moved.');
+                return;
+            }
+
+            // Check for damage
+            const currentHealth = player.getComponent('health').currentValue;
+            if (currentHealth < initialHealth) {
+                system.clearRun(intervalId);
+                player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
                 return;
             }
 
@@ -178,13 +172,13 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
                 const color = getCountdownColor(remainingSeconds);
                 player.onScreenDisplay.setActionBar(`${color}Teleporting in ${remainingSeconds}...`);
             } else {
-                cleanup();
+                system.clearRun(intervalId);
                 player.onScreenDisplay.setActionBar('§aTeleporting...');
                 onWarmupComplete();
             }
         } catch {
             // This will catch errors if the player object becomes invalid (e.g., player logs off)
-            cleanup();
+            system.clearRun(intervalId);
         }
     }, 20); // Run every second
 }

@@ -130,30 +130,11 @@ async function buildPanelForm(player, panelId, context) {
     if (panelId === 'playerActionsPanel') {
         panelDef.parentPanelId = context.fromPanel || 'mainPanel';
         const form = new ActionFormData().title(title);
-        addPanelBody(form, player, panelId, context); // This will add the player info
+        addPanelBody(form, player, panelId, context);
 
-        const config = getConfig();
-        const allItems = getMenuItems(panelDef, pData.permissionLevel);
-
-        for (const item of allItems) {
-            if (item.id === '__back__') {
-                form.button(item.text, item.icon);
-                continue;
-            }
-
-            const commandName = item.id;
-            if (config.commandSettings[commandName]?.enabled === false) {
-                continue; // Don't show button if command is disabled
-            }
-
-            // Admin commands are only shown if coming from the management panel
-            if (context.fromPanel === 'playerManagementPanel' && item.permissionLevel < 1024) {
-                form.button(item.text, item.icon);
-            }
-            // Public commands are only shown if coming from the public list
-            else if (context.fromPanel === 'playerListPanel' && item.permissionLevel >= 1024) {
-                form.button(item.text, item.icon);
-            }
+        const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
+        for (const item of visibleItems) {
+            form.button(item.text, item.icon);
         }
         return form;
     }
@@ -277,6 +258,36 @@ async function handleFormResponse(player, panelId, response, context) {
         return showPanel(player, 'configCategoryPanel');
     }
 
+    // For the dynamic player actions panel, we must re-calculate the visible items to get the correct selection.
+    if (panelId === 'playerActionsPanel') {
+        const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
+        const selectedItem = visibleItems[response.selection];
+        if (!selectedItem) {
+            debugLog(`[UIManager] Invalid selection ${response.selection} on panel '${panelId}' by ${player.name}.`);
+            return;
+        }
+        // Now that we have the correct item, we can proceed with the standard action handling.
+        debugLog(`[UIManager] Player ${player.name} selected item '${selectedItem.id}' on panel '${panelId}'. Action: ${selectedItem.actionType}`);
+        if (selectedItem.id === '__back__') {
+            return showPanel(player, selectedItem.actionValue, context);
+        }
+        if (selectedItem.actionType === 'openPanel') {
+            return showPanel(player, selectedItem.actionValue, context);
+        } else if (selectedItem.actionType === 'functionCall') {
+            const actionFunction = uiActionFunctions[selectedItem.actionValue];
+            if (actionFunction) {
+                debugLog(`[UIManager] Calling UI action function: ${selectedItem.actionValue}`);
+                const shouldReload = await actionFunction(player, context, panelId);
+                if (shouldReload) {
+                    showPanel(player, panelId, context);
+                }
+            } else {
+                debugLog(`[UIManager] ERROR: UI action function '${selectedItem.actionValue}' not found.`);
+            }
+        }
+        return; // End of specific handling for this panel
+    }
+
     const panelDef = panelDefinitions[panelId];
     const menuItems = getMenuItems(panelDef, pData.permissionLevel);
     const selectedItem = menuItems[response.selection];
@@ -308,6 +319,31 @@ async function handleFormResponse(player, panelId, response, context) {
 }
 
 // --- Helper & Builder Functions ---
+
+function getVisiblePlayerActionItems(context, permissionLevel) {
+    const panelDef = panelDefinitions.playerActionsPanel;
+    const config = getConfig();
+    const allItems = getMenuItems(panelDef, permissionLevel);
+    let visibleItems = [];
+
+    for (const item of allItems) {
+        if (item.id === '__back__') {
+            visibleItems.push(item);
+            continue;
+        }
+        const commandName = item.id;
+        if (config.commandSettings[commandName]?.enabled === false) {
+            continue;
+        }
+        if (context.fromPanel === 'playerManagementPanel' && item.permissionLevel < 1024) {
+            visibleItems.push(item);
+        } else if (context.fromPanel === 'playerListPanel' && item.permissionLevel >= 1024) {
+            visibleItems.push(item);
+        }
+    }
+    return visibleItems;
+}
+
 function getMenuItems(panelDef, permissionLevel) {
     const items = (panelDef.items || []).filter(item => permissionLevel <= item.permissionLevel).sort((a, b) => (a.sortId || 0) - (b.sortId || 0));
     if (panelDef.parentPanelId) {
