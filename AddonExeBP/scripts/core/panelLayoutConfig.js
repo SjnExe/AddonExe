@@ -234,8 +234,8 @@ export const panelDefinitions = {
             { id: 'mute', text: '§6Mute', icon: 'textures/ui/mute_on.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'mutePlayer' },
             { id: 'unmute', text: '§aUnmute', icon: 'textures/ui/mute_off.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'unmutePlayer' },
             { id: 'ban', text: '§4Ban', icon: 'textures/ui/hammer_l.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'banPlayer' },
-            { id: 'freeze', text: '§bFreeze', icon: 'textures/ui/scaffolding.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'freezePlayer' },
-            { id: 'unfreeze', text: '§bUnfreeze', icon: 'textures/ui/scaffolding.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
+            { id: 'freeze', text: '§bFreeze', icon: 'textures/ui/icon_lock.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'freezePlayer' },
+            { id: 'unfreeze', text: '§bUnfreeze', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
 
             // Player Actions (sorted)
             { id: 'tpa', text: '§eTPA', icon: 'textures/gui/controls/jump.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer', sortId: 10 },
