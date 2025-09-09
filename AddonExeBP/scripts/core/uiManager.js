@@ -412,7 +412,7 @@ uiActionFunctions['clearReport'] = (player, context) => {
 };
 
 uiActionFunctions['showUnbanForm'] = async (player) => {
-    const form = new ModalFormData().title('Unban Player').textField('Player Name', 'Enter the name of the player to unban');
+    const form = new ModalFormData().title('Unban Player').textField('Player Name', 'Enter the name of the player to unban', { placeholderText: 'Enter player name' });
     const response = await utils.uiWait(player, form);
     if (!response || response.canceled) return true;
     const [targetName] = response.formValues;
@@ -425,7 +425,7 @@ uiActionFunctions['showUnbanForm'] = async (player) => {
 };
 
 uiActionFunctions['showUnmuteForm'] = async (player) => {
-    const form = new ModalFormData().title('Unmute Player').textField('Player Name', 'Enter the name of the player to unmute');
+    const form = new ModalFormData().title('Unmute Player').textField('Player Name', 'Enter the name of the player to unmute', { placeholderText: 'Enter player name' });
     const response = await utils.uiWait(player, form);
     if (!response || response.canceled) return true;
     const [targetName] = response.formValues;
@@ -440,6 +440,22 @@ uiActionFunctions['showUnmuteForm'] = async (player) => {
 
 // --- Player Action Functions ---
 
+uiActionFunctions['removeBounty'] = async (player, context) => {
+    const { targetPlayerId, targetPlayerName } = context;
+    const existingBounty = bountyManager.getBounty(targetPlayerId);
+
+    if (!existingBounty) {
+        player.sendMessage(`§c${targetPlayerName} does not have an active bounty.`);
+        return true; // Reload the panel
+    }
+
+    bountyManager.removeBounty(targetPlayerId);
+    player.sendMessage(`§aSuccessfully removed the bounty from ${targetPlayerName}.`);
+    world.sendMessage(`§aThe bounty on ${targetPlayerName} has been removed!`);
+
+    return true; // Reload the panel to reflect the change
+};
+
 uiActionFunctions['kickPlayer'] = async (player, context) => {
     const { targetPlayerId, targetPlayerName } = context;
     const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
@@ -447,7 +463,7 @@ uiActionFunctions['kickPlayer'] = async (player, context) => {
         player.sendMessage(`§c${targetPlayerName} is not online.`);
         return true;
     }
-    const form = new ModalFormData().title(`Kick ${targetPlayerName}`).textField('Reason', 'Enter reason for kicking', 'No reason provided.');
+    const form = new ModalFormData().title(`Kick ${targetPlayerName}`).textField('Reason', 'Enter reason for kicking', { defaultValue: 'No reason provided.' });
     const response = await utils.uiWait(player, form);
     if (response && !response.canceled) {
         const [reason] = response.formValues;
@@ -463,7 +479,7 @@ uiActionFunctions['mutePlayer'] = async (player, context) => {
         player.sendMessage(`§c${targetPlayerName} is not online. Use /offlinemute instead.`);
         return true;
     }
-    const form = new ModalFormData().title(`Mute ${targetPlayerName}`).textField('Duration', 'e.g., 30m, 2h, 7d. Default: perm', 'perm').textField('Reason', 'Enter reason for muting', 'No reason provided.');
+    const form = new ModalFormData().title(`Mute ${targetPlayerName}`).textField('Duration', 'e.g., 30m, 2h, 7d. Default: perm', { defaultValue: 'perm' }).textField('Reason', 'Enter reason for muting', { defaultValue: 'No reason provided.' });
     const response = await utils.uiWait(player, form);
     if (response && !response.canceled) {
         const [duration, reason] = response.formValues;
@@ -474,7 +490,7 @@ uiActionFunctions['mutePlayer'] = async (player, context) => {
 
 uiActionFunctions['banPlayer'] = async (player, context) => {
     const { targetPlayerId, targetPlayerName } = context;
-    const form = new ModalFormData().title(`Ban ${targetPlayerName}`).textField('Duration', 'e.g., 30m, 2h, 7d. Default: perm', 'perm').textField('Reason', 'Enter reason for banning', 'No reason provided.');
+    const form = new ModalFormData().title(`Ban ${targetPlayerName}`).textField('Duration', 'e.g., 30m, 2h, 7d. Default: perm', { defaultValue: 'perm' }).textField('Reason', 'Enter reason for banning', { defaultValue: 'No reason provided.' });
     const response = await utils.uiWait(player, form);
     if (response && !response.canceled) {
         const [duration, reason] = response.formValues;
@@ -534,7 +550,7 @@ uiActionFunctions['tpaherePlayer'] = async (player, context) => {
 
 uiActionFunctions['bountyPlayer'] = async (player, context) => {
     const { targetPlayerId, targetPlayerName } = context;
-    const form = new ModalFormData().title(`Set Bounty on ${targetPlayerName}`).textField('Amount', 'Enter the bounty amount');
+    const form = new ModalFormData().title(`Set Bounty on ${targetPlayerName}`).textField('Amount', 'Enter the bounty amount', { placeholderText: 'Enter amount' });
     const response = await utils.uiWait(player, form);
     if (response && !response.canceled) {
         const [amountStr] = response.formValues;
@@ -567,7 +583,7 @@ uiActionFunctions['bountyPlayer'] = async (player, context) => {
 
 uiActionFunctions['reportPlayer'] = async (player, context) => {
     const { targetPlayerId, targetPlayerName } = context;
-    const form = new ModalFormData().title(`Report ${targetPlayerName}`).textField('Reason for report:', 'Enter the reason here');
+    const form = new ModalFormData().title(`Report ${targetPlayerName}`).textField('Reason for report:', 'Enter the reason here', { placeholderText: 'Enter the reason here' });
     const response = await utils.uiWait(player, form);
     if (response.canceled) {
         player.sendMessage('§cReport canceled.');

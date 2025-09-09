@@ -206,6 +206,7 @@ export const panelDefinitions = {
             { id: 'kick', text: '§cKick', icon: 'textures/ui/hammer_l.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'kickPlayer' },
             { id: 'mute', text: '§6Mute', icon: 'textures/ui/mute_button.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'mutePlayer' },
             { id: 'ban', text: '§4Ban', icon: 'textures/ui/icon_lock.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'banPlayer' },
+            { id: 'removeBounty', text: '§cRemove Bounty', icon: 'textures/ui/trash.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'removeBounty' },
             { id: 'tpa', text: '§aRequest Teleport (TPA)', icon: 'textures/ui/move_arrow.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer' },
             { id: 'tpahere', text: '§aRequest Teleport (TPAHere)', icon: 'textures/ui/move_arrow.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaherePlayer' },
             { id: 'bounty', text: '§eSet Bounty', icon: 'textures/items/gold_ingot.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'bountyPlayer' },
