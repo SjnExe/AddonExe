@@ -172,15 +172,17 @@ export const panelDefinitions = {
                 icon: 'textures/ui/check.png',
                 permissionLevel: 1,
                 actionType: 'functionCall',
-                actionValue: 'showUnbanForm'
+                actionValue: 'showUnbanForm',
+                sortId: 10
             },
             {
                 id: 'unmutePlayer',
                 text: '§aUnmute Player',
-                icon: 'textures/ui/check.png',
+                icon: 'textures/ui/sound_on.png',
                 permissionLevel: 1,
                 actionType: 'functionCall',
-                actionValue: 'showUnmuteForm'
+                actionValue: 'showUnmuteForm',
+                sortId: 20
             }
         ]
     },
@@ -199,19 +201,47 @@ export const panelDefinitions = {
         parentPanelId: 'mainPanel',
         items: [] // This will be populated dynamically by uiManager
     },
+    bountyActionsPanel: {
+        title: '§l§6Bounty Actions§r',
+        parentPanelId: 'playerActionsPanel',
+        items: [
+            {
+                id: 'setBounty',
+                text: '§eSet Bounty',
+                icon: 'textures/ui/realms_green_check.png',
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'bountyPlayer',
+                sortId: 10
+            },
+            {
+                id: 'removePlayerBounty',
+                text: '§cRemove Bounty',
+                icon: 'textures/ui/cancel.png',
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'removePlayerBounty',
+                sortId: 20
+            }
+        ]
+    },
     playerActionsPanel: {
         title: '§l§e{playerName}§r', // Title will be dynamic
         parentPanelId: 'mainPanel', // This will be dynamically overridden by the manager
         items: [
-            { id: 'kick', text: '§cKick', icon: 'textures/ui/hammer_l.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'kickPlayer' },
-            { id: 'mute', text: '§6Mute', icon: 'textures/ui/mute_button.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'mutePlayer' },
-            { id: 'ban', text: '§4Ban', icon: 'textures/ui/icon_lock.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'banPlayer' },
-            { id: 'removeBounty', text: '§cRemove Bounty', icon: 'textures/ui/trash.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'removeBounty' },
-            { id: 'removePlayerBounty', text: '§cRemove Bounty', icon: 'textures/ui/trash.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'removePlayerBounty' },
-            { id: 'tpa', text: '§eRequest Teleport (TPA)', icon: 'textures/ui/move_arrow.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer' },
-            { id: 'tpahere', text: '§9Request Teleport (TPAHere)', icon: 'textures/ui/move_arrow.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaherePlayer' },
-            { id: 'bounty', text: '§eSet Bounty', icon: 'textures/items/gold_ingot.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'bountyPlayer' },
-            { id: 'report', text: '§cReport Player', icon: 'textures/ui/WarningGlyph', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'reportPlayer' }
+            // Admin Actions
+            { id: 'kick', text: '§cKick', icon: 'textures/ui/cancel.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'kickPlayer' },
+            { id: 'mute', text: '§6Mute', icon: 'textures/ui/mute_on.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'mutePlayer' },
+            { id: 'unmute', text: '§aUnmute', icon: 'textures/ui/mute_off.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'unmutePlayer' },
+            { id: 'ban', text: '§4Ban', icon: 'textures/ui/hammer_l.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'banPlayer' },
+            { id: 'freeze', text: '§bFreeze', icon: 'textures/ui/icon_lock.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'freezePlayer' },
+            { id: 'unfreeze', text: '§bUnfreeze', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
+
+            // Player Actions (sorted)
+            { id: 'tpa', text: '§eTPA', icon: 'textures/gui/controls/jump.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer', sortId: 10 },
+            { id: 'tpahere', text: '§9TPAHere', icon: 'textures/gui/controls/sneak.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaherePlayer', sortId: 20 },
+            { id: 'bounty', text: '§6Bounty', icon: 'textures/items/netherite_sword.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'bountyActionsPanel', sortId: 30 },
+            { id: 'report', text: '§cReport Player', icon: 'textures/ui/WarningGlyph', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'reportPlayer', sortId: 40 }
         ]
     }
 };
