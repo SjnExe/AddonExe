@@ -128,15 +128,21 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
     let remainingSeconds = durationSeconds;
     const initialLocation = player.location;
     const dimension = player.dimension;
+    let initialHealth;
 
-    player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move!`);
+    try {
+        initialHealth = player.getComponent('health').currentValue;
+    } catch {
+        errorLog(`[Warmup] Could not get initial health for ${player.name}. Proceeding without damage check.`);
+        initialHealth = Infinity;
+    }
+
+    player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 
     const intervalId = system.runInterval(() => {
         try {
-            // Player might have logged off. The try-catch will prevent a crash.
             const currentLocation = player.location;
 
-            // Check if player moved
             const distanceMoved = Math.sqrt(
                 Math.pow(currentLocation.x - initialLocation.x, 2) +
                 Math.pow(currentLocation.y - initialLocation.y, 2) +
@@ -146,6 +152,13 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
             if (distanceMoved > 1.5 || player.dimension.id !== dimension.id) {
                 system.clearRun(intervalId);
                 player.onScreenDisplay.setActionBar('§cTeleport canceled because you moved.');
+                return;
+            }
+
+            const currentHealth = player.getComponent('health').currentValue;
+            if (currentHealth < initialHealth) {
+                system.clearRun(intervalId);
+                player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
                 return;
             }
 
@@ -160,10 +173,9 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
                 onWarmupComplete();
             }
         } catch {
-            // This will catch errors if the player object becomes invalid (e.g., player logs off)
             system.clearRun(intervalId);
         }
-    }, 20); // Run every second
+    }, 20);
 }
 
 /**

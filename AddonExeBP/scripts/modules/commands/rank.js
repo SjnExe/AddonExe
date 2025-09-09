@@ -2,6 +2,7 @@ import { commandManager } from './commandManager.js';
 import { playSound } from '../../core/utils.js';
 import { rankDefinitions } from '../../core/ranksConfig.js';
 import { updatePlayerRank } from '../../core/main.js';
+import { getPlayer } from '../../core/playerDataManager.js';
 import { errorLog } from '../../core/errorLogger.js';
 
 commandManager.register({
@@ -69,6 +70,36 @@ commandManager.register({
         }
 
         const rankTag = tagCondition.value;
+
+        // --- Permission Checks ---
+        // Console can do anything
+        if (!player.isConsole) {
+            const executorData = getPlayer(player.id);
+            const targetData = getPlayer(targetPlayer.id);
+
+            if (!executorData || !targetData) {
+                player.sendMessage('§cCould not retrieve player data for permission check.');
+                playSound(player, 'note.bass');
+                return;
+            }
+
+            // Exception for self-ranking
+            const isSelfRank = player.id === targetPlayer.id;
+
+            // 1. Hierarchy Check: Can't modify someone of same or higher rank, unless it's yourself.
+            if (!isSelfRank && executorData.permissionLevel >= targetData.permissionLevel) {
+                player.sendMessage('§cYou cannot change the rank of a player with the same or higher rank than you.');
+                playSound(player, 'note.bass');
+                return;
+            }
+
+            // 2. Privilege Escalation Check: Can't grant a rank more powerful than your own.
+            if (actionLC === 'set' && executorData.permissionLevel >= rankDef.permissionLevel) {
+                player.sendMessage(`§cYou cannot set a player's rank to '${rankDef.name}' as it is the same or higher rank than your own.`);
+                playSound(player, 'note.bass');
+                return;
+            }
+        }
 
         try {
             if (actionLC === 'set') {

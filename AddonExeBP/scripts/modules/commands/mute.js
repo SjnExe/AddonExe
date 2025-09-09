@@ -4,7 +4,7 @@ import { addPunishment, removePunishment } from '../../core/punishmentManager.js
 import { parseDuration, playSound } from '../../core/utils.js';
 import { findPlayerByName } from '../utils/playerUtils.js';
 
-function mutePlayer(player, targetPlayer, duration, reason) {
+export function mutePlayer(player, targetPlayer, duration, reason) {
     if (!targetPlayer) {
         player.sendMessage('§cPlayer not found.');
         playSound(player, 'note.bass');
@@ -78,6 +78,50 @@ commandManager.register({
     }
 });
 
+export function unmutePlayer(player, targetName) {
+    const targetId = getPlayerIdByName(targetName);
+
+    if (!targetId) {
+        player.sendMessage(`§cPlayer "${targetName}" has never joined the server or name is misspelled.`);
+        return;
+    }
+    if (!player.isConsole) {
+        if (targetId === player.id) {
+            player.sendMessage('§cYou cannot unmute yourself.');
+            return;
+        }
+        const executorData = getPlayer(player.id);
+        const targetData = loadPlayerData(targetId);
+        if (!executorData || !targetData) {
+            player.sendMessage('§cCould not retrieve player data for permission check.');
+            return;
+        }
+        if (executorData.permissionLevel >= targetData.permissionLevel) {
+            player.sendMessage('§cYou cannot unmute a player with the same or higher rank than you.');
+            return;
+        }
+    }
+    const success = removePunishment(targetId);
+
+    if (!success) {
+        player.sendMessage(`§cPlayer "${targetName}" is not currently muted.`);
+        if (!player.isConsole) {playSound(player, 'note.bass');}
+        return;
+    }
+
+    player.sendMessage(`§aSuccessfully unmuted ${targetName}.`);
+    if (!player.isConsole) {
+        playSound(player, 'random.orb');
+    }
+
+    // Attempt to notify the player if they are online
+    const targetPlayer = findPlayerByName(targetName);
+    if (targetPlayer) {
+        targetPlayer.sendMessage('§aYou have been unmuted and can now chat again.');
+        playSound(targetPlayer, 'random.levelup');
+    }
+}
+
 commandManager.register({
     name: 'unmute',
     description: 'Unmutes a player.',
@@ -89,47 +133,6 @@ commandManager.register({
         { name: 'target', type: 'string', description: 'The name of the player to unmute.' }
     ],
     execute: (player, args) => {
-        const { target: targetName } = args;
-        const targetId = getPlayerIdByName(targetName);
-
-        if (!targetId) {
-            player.sendMessage(`§cPlayer "${targetName}" has never joined the server or name is misspelled.`);
-            return;
-        }
-        if (!player.isConsole) {
-            if (targetId === player.id) {
-                player.sendMessage('§cYou cannot unmute yourself.');
-                return;
-            }
-            const executorData = getPlayer(player.id);
-            const targetData = loadPlayerData(targetId);
-            if (!executorData || !targetData) {
-                player.sendMessage('§cCould not retrieve player data for permission check.');
-                return;
-            }
-            if (executorData.permissionLevel >= targetData.permissionLevel) {
-                player.sendMessage('§cYou cannot unmute a player with the same or higher rank than you.');
-                return;
-            }
-        }
-        const success = removePunishment(targetId);
-
-        if (!success) {
-            player.sendMessage(`§cPlayer "${targetName}" is not currently muted.`);
-            if (!player.isConsole) {playSound(player, 'note.bass');}
-            return;
-        }
-
-        player.sendMessage(`§aSuccessfully unmuted ${targetName}.`);
-        if (!player.isConsole) {
-            playSound(player, 'random.orb');
-        }
-
-        // Attempt to notify the player if they are online
-        const targetPlayer = findPlayerByName(targetName);
-        if (targetPlayer) {
-            targetPlayer.sendMessage('§aYou have been unmuted and can now chat again.');
-            playSound(targetPlayer, 'random.levelup');
-        }
+        unmutePlayer(player, args.target);
     }
 });
