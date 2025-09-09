@@ -219,6 +219,11 @@ async function handleFormResponse(player, panelId, response, context) {
         if (selectedItem.id === '__back__') {
             return showPanel(player, context.fromPanel || 'mainPanel', context);
         }
+
+        if (selectedItem.actionType === 'openPanel') {
+            return showPanel(player, selectedItem.actionValue, context);
+        }
+
         const actionFunction = uiActionFunctions[selectedItem.actionValue];
         if (actionFunction) {
             const shouldReload = await actionFunction(player, context, panelId);
