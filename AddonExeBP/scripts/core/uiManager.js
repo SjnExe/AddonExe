@@ -598,3 +598,50 @@ uiActionFunctions['reportPlayer'] = async (player, context) => {
     player.sendMessage('§aReport submitted. Thank you for your help.');
     return true;
 };
+
+uiActionFunctions['removePlayerBounty'] = async (player, context) => {
+    const { targetPlayerId, targetPlayerName } = context;
+    const targetBounty = bountyManager.getBounty(targetPlayerId);
+
+    if (!targetBounty) {
+        player.sendMessage(`§c${targetPlayerName} does not have an active bounty.`);
+        return true;
+    }
+
+    const form = new ModalFormData()
+        .title(`Remove Bounty from ${targetPlayerName}`)
+        .textField(`Bounty Amount: $${targetBounty.amount.toFixed(2)}\nEnter amount to remove:`, 'Enter amount');
+
+    const response = await utils.uiWait(player, form);
+
+    if (response && !response.canceled) {
+        const [amountStr] = response.formValues;
+        const amount = Number(amountStr);
+
+        if (isNaN(amount) || amount <= 0) {
+            player.sendMessage('§cInvalid amount. Please enter a positive number.');
+            return true;
+        }
+
+        if (amount > targetBounty.amount) {
+            player.sendMessage(`§cYou cannot remove more than the bounty amount ($${targetBounty.amount.toFixed(2)}).`);
+            return true;
+        }
+
+        if (economyManager.getBalance(player.id) < amount) {
+            player.sendMessage('§cYou dont have enough money for this!');
+            return true;
+        }
+
+        const result = economyManager.removeBalance(player.id, amount);
+        if (result) {
+            bountyManager.incrementBounty(targetPlayerId, -amount);
+            player.sendMessage(`§aYou have removed $${amount.toFixed(2)} from ${targetPlayerName}'s bounty.`);
+            world.sendMessage(`§a${player.name} has removed $${amount.toFixed(2)} from ${targetPlayerName}'s bounty!`);
+        } else {
+            player.sendMessage('§cFailed to remove bounty.');
+        }
+    }
+
+    return true; // Reload the panel
+};
