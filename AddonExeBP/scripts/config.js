@@ -36,7 +36,7 @@ export const config = {
     homes: {
         enabled: true,
         maxHomes: 5,
-        cooldownSeconds: 300, // 5 minutes
+        cooldownSeconds: 60, // 1 minute
         teleportWarmupSeconds: 10
     },
     kits: {

@@ -11,6 +11,7 @@
  * @property {number} permissionLevel - The minimum permission level required to see this button.
  * @property {'openPanel' | 'functionCall'} actionType - The action to perform when clicked.
  * @property {string} actionValue - The ID of the panel to open or the function to call.
+ * @property {number} [sortId] - An optional number to control the order of items. Lower numbers appear first.
  */
 
 /**
@@ -34,15 +35,8 @@ export const panelDefinitions = {
                 icon: 'textures/ui/WarningGlyph',
                 permissionLevel: 1,
                 actionType: 'openPanel',
-                actionValue: 'reportListPanel'
-            },
-            {
-                id: 'config',
-                text: '§3Config',
-                icon: 'textures/ui/settings_glyph_color_2x',
-                permissionLevel: 0, // Owner only
-                actionType: 'openPanel',
-                actionValue: 'configCategoryPanel'
+                actionValue: 'reportListPanel',
+                sortId: 10
             },
             {
                 id: 'playerManagement',
@@ -51,7 +45,7 @@ export const panelDefinitions = {
                 permissionLevel: 1, // Admin only
                 actionType: 'openPanel',
                 actionValue: 'playerManagementPanel',
-                sortId: 15 // To place it near the top for admins
+                sortId: 15
             },
             {
                 id: 'moderation',
@@ -59,15 +53,26 @@ export const panelDefinitions = {
                 icon: 'textures/ui/hammer_l.png',
                 permissionLevel: 1,
                 actionType: 'openPanel',
-                actionValue: 'moderationPanel'
+                actionValue: 'moderationPanel',
+                sortId: 20
+            },
+            {
+                id: 'config',
+                text: '§3Config',
+                icon: 'textures/ui/settings_glyph_color_2x',
+                permissionLevel: 0, // Owner only
+                actionType: 'openPanel',
+                actionValue: 'configCategoryPanel',
+                sortId: 30
             },
             {
                 id: 'bountyList',
-                text: '§cBounty List',
+                text: '§6Bounty List',
                 icon: 'textures/items/netherite_sword.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
-                actionValue: 'bountyListPanel'
+                actionValue: 'bountyListPanel',
+                sortId: 40
             },
             {
                 id: 'playerList',
@@ -76,7 +81,7 @@ export const panelDefinitions = {
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',
                 actionValue: 'playerListPanel',
-                sortId: 45 // Place it after bounties
+                sortId: 45
             },
             {
                 id: 'rules',
@@ -84,7 +89,8 @@ export const panelDefinitions = {
                 icon: 'textures/items/book_enchanted.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
-                actionValue: 'showRules'
+                actionValue: 'showRules',
+                sortId: 50
             },
             {
                 id: 'myStats',
@@ -92,7 +98,8 @@ export const panelDefinitions = {
                 icon: 'textures/ui/profile_glyph_color.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
-                actionValue: 'myStatsPanel'
+                actionValue: 'myStatsPanel',
+                sortId: 60
             },
             {
                 id: 'helpfulLinks',
@@ -100,7 +107,8 @@ export const panelDefinitions = {
                 icon: 'textures/items/chain',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
-                actionValue: 'helpfulLinksPanel'
+                actionValue: 'helpfulLinksPanel',
+                sortId: 70
             }
         ]
     },
@@ -140,7 +148,7 @@ export const panelDefinitions = {
         ]
     },
     bountyListPanel: {
-        title: '§l§cBounty List§r',
+        title: '§l§6Bounty List§r',
         parentPanelId: 'mainPanel',
         items: [] // This will be populated dynamically by uiManager
     },
@@ -165,6 +173,14 @@ export const panelDefinitions = {
                 permissionLevel: 1,
                 actionType: 'functionCall',
                 actionValue: 'showUnbanForm'
+            },
+            {
+                id: 'unmutePlayer',
+                text: '§aUnmute Player',
+                icon: 'textures/ui/check.png',
+                permissionLevel: 1,
+                actionType: 'functionCall',
+                actionValue: 'showUnmuteForm'
             }
         ]
     },

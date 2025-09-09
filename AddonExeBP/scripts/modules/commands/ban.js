@@ -6,7 +6,7 @@ import { parseDuration, playSoundFromConfig } from '../../core/utils.js';
 import { findPlayerByName } from '../utils/playerUtils.js';
 import { errorLog } from '../../core/errorLogger.js';
 
-function banPlayer(player, targetPlayer, duration, reason) {
+export function banPlayer(player, targetPlayer, duration, reason) {
     // Console execution does not have a player object with an id
     if (player && player.id === targetPlayer.id) {
         player.sendMessage('§cYou cannot ban yourself.');
@@ -107,6 +107,41 @@ commandManager.register({
     }
 });
 
+export function unbanPlayer(player, targetName) {
+    const targetId = getPlayerIdByName(targetName);
+
+    if (!targetId) {
+        player.sendMessage(`§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`);
+        return;
+    }
+
+    // --- Permission Checks ---
+    if (!player.isConsole) {
+        if (player.id === targetId) {
+            player.sendMessage('§cYou cannot unban yourself.');
+            return;
+        }
+        const executorData = getPlayer(player.id);
+        // Load the offline player's data for the check
+        const targetData = loadPlayerData(targetId);
+
+        if (!executorData || !targetData) {
+            player.sendMessage('§cCould not retrieve player data for permission check.');
+            return;
+        }
+        if (executorData.permissionLevel >= targetData.permissionLevel) {
+            player.sendMessage('§cYou cannot unban a player with the same or higher rank than you.');
+            return;
+        }
+    }
+
+    removePunishment(targetId);
+    player.sendMessage(`§aSuccessfully unbanned ${targetName}. They can now rejoin the server.`);
+    if (!player.isConsole) {
+        playSoundFromConfig(player, 'adminNotificationReceived');
+    }
+}
+
 commandManager.register({
     name: 'unban',
     aliases: ['pardon'],
@@ -118,43 +153,11 @@ commandManager.register({
         { name: 'target', type: 'string', description: 'The name of the player to unban.' }
     ],
     execute: (player, args) => {
-        const targetName = args.target;
-        const targetId = getPlayerIdByName(targetName);
-
-        if (!targetId) {
-            player.sendMessage(`§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`);
-            return;
-        }
-
-        // --- Permission Checks ---
-        if (!player.isConsole) {
-            if (player.id === targetId) {
-                player.sendMessage('§cYou cannot unban yourself.');
-                return;
-            }
-            const executorData = getPlayer(player.id);
-            // Load the offline player's data for the check
-            const targetData = loadPlayerData(targetId);
-
-            if (!executorData || !targetData) {
-                player.sendMessage('§cCould not retrieve player data for permission check.');
-                return;
-            }
-            if (executorData.permissionLevel >= targetData.permissionLevel) {
-                player.sendMessage('§cYou cannot unban a player with the same or higher rank than you.');
-                return;
-            }
-        }
-
-        removePunishment(targetId);
-        player.sendMessage(`§aSuccessfully unbanned ${targetName}. They can now rejoin the server.`);
-        if (!player.isConsole) {
-            playSoundFromConfig(player, 'adminNotificationReceived');
-        }
+        unbanPlayer(player, args.target);
     }
 });
 
-function offlineBanPlayer(player, targetId, targetName, duration, reason) {
+export function offlineBanPlayer(player, targetId, targetName, duration, reason) {
     if (!player.isConsole) {
         if (player.id === targetId) {
             player.sendMessage('§cYou cannot ban yourself.');

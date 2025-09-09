@@ -131,21 +131,18 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
     let initialHealth;
 
     try {
-        // Getting health can fail if the entity is not a player or if the component is not available for some reason.
         initialHealth = player.getComponent('health').currentValue;
     } catch {
         errorLog(`[Warmup] Could not get initial health for ${player.name}. Proceeding without damage check.`);
-        initialHealth = Infinity; // Set to infinity to make the damage check always pass
+        initialHealth = Infinity;
     }
 
     player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 
     const intervalId = system.runInterval(() => {
         try {
-            // Player might have logged off. The try-catch will prevent a crash.
             const currentLocation = player.location;
 
-            // Check if player moved
             const distanceMoved = Math.sqrt(
                 Math.pow(currentLocation.x - initialLocation.x, 2) +
                 Math.pow(currentLocation.y - initialLocation.y, 2) +
@@ -158,7 +155,6 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
                 return;
             }
 
-            // Check for damage
             const currentHealth = player.getComponent('health').currentValue;
             if (currentHealth < initialHealth) {
                 system.clearRun(intervalId);
@@ -177,10 +173,9 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
                 onWarmupComplete();
             }
         } catch {
-            // This will catch errors if the player object becomes invalid (e.g., player logs off)
             system.clearRun(intervalId);
         }
-    }, 20); // Run every second
+    }, 20);
 }
 
 /**
