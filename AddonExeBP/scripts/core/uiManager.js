@@ -83,6 +83,31 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    // Handle dynamic shop panels before falling back to static definitions
+    if (panelId.startsWith('shopCategoryPanel_')) {
+        const category = panelId.replace('shopCategoryPanel_', '');
+        const form = new ActionFormData().title(`§l§aShop - ${category}`);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        buildShopCategoryPanel(form, { ...context, category, page: context.page || 1 });
+        return form;
+    }
+    if (panelId.startsWith('shopItemListPanel_')) {
+        const parts = panelId.replace('shopItemListPanel_', '').split('_');
+        const category = parts[0];
+        const subCategory = parts.slice(1).join('_');
+        const form = new ActionFormData().title(`§l§aShop - ${subCategory}`);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        buildShopItemListPanel(form, { ...context, category, subCategory, page: context.page || 1 });
+        return form;
+    }
+    if (panelId.startsWith('editShopCategoryPanel_')) {
+        const category = panelId.replace('editShopCategoryPanel_', '');
+        const form = new ActionFormData().title(`§l§bEdit - ${category}`);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        buildEditShopCategoryPanel(form, { ...context, category, page: context.page || 1 });
+        return form;
+    }
+
     const panelDef = panelDefinitions[panelId];
     if (!panelDef) {
         debugLog(`[UIManager] Panel definition not found for '${panelId}'.`);
@@ -106,42 +131,17 @@ async function buildPanelForm(player, panelId, context) {
     if (panelId === 'playerManagementPanel') {return buildPlayerManagementForm(title);}
     if (panelId === 'playerListPanel') {return buildPlayerListForm(title);}
 
-    // --- Shop Panels ---
     if (panelId === 'shopMainPanel') {
         const form = new ActionFormData().title(title);
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
         buildShopMainPanel(form, context);
         return form;
     }
-    if (panelId.startsWith('shopCategoryPanel_')) {
-        const category = panelId.replace('shopCategoryPanel_', '');
-        const form = new ActionFormData().title(`§l§aShop - ${category}`);
-        form.button('§l§8< Back', 'textures/gui/controls/left.png');
-        buildShopCategoryPanel(form, { ...context, category, page: context.page || 1 });
-        return form;
-    }
-    if (panelId.startsWith('shopItemListPanel_')) {
-        const parts = panelId.replace('shopItemListPanel_', '').split('_');
-        const category = parts[0];
-        const subCategory = parts.slice(1).join('_');
-        const form = new ActionFormData().title(`§l§aShop - ${subCategory}`);
-        form.button('§l§8< Back', 'textures/gui/controls/left.png');
-        buildShopItemListPanel(form, { ...context, category, subCategory, page: context.page || 1 });
-        return form;
-    }
-
     // --- Admin Edit Shop Panels ---
     if (panelId === 'editShopMainPanel') {
         const form = new ActionFormData().title(title);
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
         buildEditShopMainPanel(form);
-        return form;
-    }
-    if (panelId.startsWith('editShopCategoryPanel_')) {
-        const category = panelId.replace('editShopCategoryPanel_', '');
-        const form = new ActionFormData().title(`§l§bEdit - ${category}`);
-        form.button('§l§8< Back', 'textures/gui/controls/left.png');
-        buildEditShopCategoryPanel(form, { ...context, category, page: context.page || 1 });
         return form;
     }
 
