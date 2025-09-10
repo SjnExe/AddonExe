@@ -14,7 +14,10 @@ This document provides a detailed breakdown of the features available in AddonEx
 
 - **Universal UI Panel:** Accessible via `/panel`. The panel item can also be crafted by any player. It provides a graphical user interface whose content and available actions dynamically adapt based on user permissions.
   - **For Admins & Owners:**
-    - **Enhanced Player Management:** Provides a list of online players, sorted by rank and name. Each player's name is clearly marked with `(Owner)`, `(Admin)`, and `(You)` suffixes for easy identification. Selecting a player opens a dedicated menu with a wide range of moderation actions like Kick, Ban, Mute, Freeze, Vanish, Inventory Management, and Teleportation.
+    - **Enhanced Player Management:** Provides lists of both online and offline players. Selecting a player opens a dedicated actions menu. This menu is now context-aware:
+      - **From the Player List (online players):** Provides player-to-player interaction options like TPA, TPAHere, and a new Bounty sub-panel for placing or removing bounties.
+      - **From the Player Management list (all players):** Provides a full suite of moderation tools, including Kick, Ban, Mute, Unmute, and the new Freeze/Unfreeze actions.
+    The UI has been updated with clearer icons and a more logical button layout to improve usability for admins.
   - **For Regular Players:** Shows user-specific info like personal stats, server rules, and useful links.
 - **Comprehensive Slash Commands:** A full suite of slash commands offers granular control over all features and administrative actions. These can be run in-game, from the server console, or using a chat-based fallback (e.g., `!panel`). (See [Commands List](Commands.md) for a complete reference).
 - **Persistent Player Data:** Active mutes and bans are saved using Minecraft's dynamic properties, ensuring they persist across player sessions and server restarts.

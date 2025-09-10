@@ -176,8 +176,8 @@ export const panelDefinitions = {
             },
             {
                 id: 'unmutePlayer',
-                text: '§aUnmute Player',
-                icon: 'textures/ui/check.png',
+                text: '§2Unmute Player',
+                icon: 'textures/ui/mute_off.png',
                 permissionLevel: 1,
                 actionType: 'functionCall',
                 actionValue: 'showUnmuteForm'

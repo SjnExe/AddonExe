@@ -119,7 +119,9 @@ Commands available to Admins and above.
 - **/unmute <target>**
   - Unmutes a player.
 - **/freeze <target>**
-  - Freezes or unfreezes a player.
+  - Freezes a player, preventing them from moving.
+- **/unfreeze <target>**
+  - Unfreezes a player, allowing them to move again.
 
 ### Player Management
 - **/invsee <target> [page]**
