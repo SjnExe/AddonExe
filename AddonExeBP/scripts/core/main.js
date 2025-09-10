@@ -198,8 +198,8 @@ world.afterEvents.playerSpawn.subscribe(async (event) => {
         playerCache.addAdminToXrayCache(player.id);
     }
 
-    // Check for a death location to message the player, then clear it.
-    if (pData.lastDeathLocation) {
+    // Check for a death location to message the player.
+    if (pData.lastDeathLocation && !pData.deathNotificationSent) {
         const location = pData.lastDeathLocation;
         const config = getConfig();
         const context = {
@@ -211,8 +211,8 @@ world.afterEvents.playerSpawn.subscribe(async (event) => {
         const message = formatString(config.playerInfo.deathCoordsMessage, context);
         player.sendMessage(message);
 
-        // Clear the death location so it's not sent again on the next join
-        playerDataManager.setPlayerLastDeathLocation(player.id, null);
+        // Mark the notification as sent to prevent spamming, but keep the data for /deathcoords.
+        playerDataManager.setDeathNotificationSent(player.id, true);
     }
 });
 
@@ -245,17 +245,19 @@ world.afterEvents.entityDie?.subscribe((event) => {
 
     // --- Bounty Claim Logic ---
     // Check if the entity that killed the player was another player
-    const killer = damageCause.damagingEntity;
-    if (killer && killer.typeId === 'minecraft:player' && killer.id !== deadPlayer.id) {
-        const bounty = bountyManager.getBounty(deadPlayer.id);
-        if (bounty && bounty.amount > 0) {
-            // A bounty exists, award it to the killer
-            economyManager.addBalance(killer.id, bounty.amount);
-            bountyManager.removeBounty(deadPlayer.id);
+    if (damageCause) {
+        const killer = damageCause.damagingEntity;
+        if (killer && killer.typeId === 'minecraft:player' && killer.id !== deadPlayer.id) {
+            const bounty = bountyManager.getBounty(deadPlayer.id);
+            if (bounty && bounty.amount > 0) {
+                // A bounty exists, award it to the killer
+                economyManager.addBalance(killer.id, bounty.amount);
+                bountyManager.removeBounty(deadPlayer.id);
 
-            // Announce the bounty claim
-            world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
-            debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
+                // Announce the bounty claim
+                world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
+                debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
+            }
         }
     }
 
