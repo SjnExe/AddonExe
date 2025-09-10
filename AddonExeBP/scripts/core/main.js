@@ -198,8 +198,8 @@ world.afterEvents.playerSpawn.subscribe(async (event) => {
         playerCache.addAdminToXrayCache(player.id);
     }
 
-    // Check for a death location to message the player, then clear it.
-    if (pData.lastDeathLocation) {
+    // Check for a death location to message the player.
+    if (pData.lastDeathLocation && !pData.deathNotificationSent) {
         const location = pData.lastDeathLocation;
         const config = getConfig();
         const context = {
@@ -211,8 +211,8 @@ world.afterEvents.playerSpawn.subscribe(async (event) => {
         const message = formatString(config.playerInfo.deathCoordsMessage, context);
         player.sendMessage(message);
 
-        // Clear the death location so it's not sent again on the next join
-        playerDataManager.setPlayerLastDeathLocation(player.id, null);
+        // Mark the notification as sent to prevent spamming, but keep the data for /deathcoords.
+        playerDataManager.setDeathNotificationSent(player.id, true);
     }
 });
 

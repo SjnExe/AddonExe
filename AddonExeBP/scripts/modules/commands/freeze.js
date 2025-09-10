@@ -1,5 +1,29 @@
 import { commandManager } from './commandManager.js';
-import { getPlayer } from '../../core/playerDataManager.js';
+
+const FROZEN_TAG = 'frozen';
+
+export function freezePlayer(executor, targetPlayer) {
+    if (targetPlayer.hasTag(FROZEN_TAG)) {
+        executor.sendMessage(`§ePlayer ${targetPlayer.name} is already frozen.`);
+        return;
+    }
+    targetPlayer.addTag(FROZEN_TAG);
+    targetPlayer.addEffect('slowness', 2000000, { amplifier: 255, showParticles: false });
+    const announcer = executor.isConsole ? 'the Console' : executor.name;
+    executor.sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`);
+    targetPlayer.sendMessage(`§cYou have been frozen by ${announcer}.`);
+}
+
+export function unfreezePlayer(executor, targetPlayer) {
+    if (!targetPlayer.hasTag(FROZEN_TAG)) {
+        executor.sendMessage(`§ePlayer ${targetPlayer.name} is not frozen.`);
+        return;
+    }
+    targetPlayer.removeTag(FROZEN_TAG);
+    targetPlayer.removeEffect('slowness');
+    executor.sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`);
+    targetPlayer.sendMessage('§aYou have been unfrozen.');
+}
 
 const FROZEN_TAG = 'frozen';
 
