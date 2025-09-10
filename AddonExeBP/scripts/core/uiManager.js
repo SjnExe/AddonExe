@@ -2,7 +2,7 @@ import { world } from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { panelDefinitions } from './panelLayoutConfig.js';
 import { configPanelSchema } from './configPanelSchema.js';
-import { getPlayer, getPlayerIdByName, loadPlayerData, getAllPlayerNameIdMap } from './playerDataManager.js';
+import { getPlayer, loadPlayerData, getAllPlayerNameIdMap } from './playerDataManager.js';
 import { getConfig, updateMultipleConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
@@ -10,7 +10,6 @@ import * as rankManager from './rankManager.js';
 import * as playerCache from './playerCache.js';
 import * as utils from './utils.js';
 import { getValueFromPath } from './objectUtils.js';
-import * as punishmentManager from './punishmentManager.js';
 import * as reportManager from './reportManager.js';
 import * as bountyManager from './bountyManager.js';
 import * as economyManager from './economyManager.js';
@@ -18,6 +17,7 @@ import * as tpaManager from './tpaManager.js';
 import { kickPlayer } from '../modules/commands/kick.js';
 import { mutePlayer, unmutePlayer } from '../modules/commands/mute.js';
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '../modules/commands/ban.js';
+import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 
 
 export const uiActionFunctions = {};
@@ -98,10 +98,10 @@ async function buildPanelForm(player, panelId, context) {
         title = config.serverName || panelDef.title;
     }
 
-    if (panelId === 'bountyListPanel') return buildBountyListForm(title);
-    if (panelId === 'reportListPanel') return buildReportListForm(title);
-    if (panelId === 'playerManagementPanel') return buildPlayerManagementForm(title);
-    if (panelId === 'playerListPanel') return buildPlayerListForm(title);
+    if (panelId === 'bountyListPanel') {return buildBountyListForm(title);}
+    if (panelId === 'reportListPanel') {return buildReportListForm(title);}
+    if (panelId === 'playerManagementPanel') {return buildPlayerManagementForm(title);}
+    if (panelId === 'playerListPanel') {return buildPlayerListForm(title);}
 
     if (panelId === 'configCategoryPanel') {
         const form = new ActionFormData().title(title);
@@ -138,22 +138,22 @@ async function buildPanelForm(player, panelId, context) {
 async function handleFormResponse(player, panelId, response, context) {
     debugLog(`[UIManager] Handling form response for panel '${panelId}' from ${player.name}. Selection: ${response.selection}`);
     const pData = getPlayer(player.id);
-    if (!pData) return;
+    if (!pData) {return;}
 
     if (panelId === 'bountyListPanel') {
         return showPanel(player, 'mainPanel');
     }
 
     if (panelId === 'reportListPanel') {
-        if (response.selection === 0) return showPanel(player, 'mainPanel');
+        if (response.selection === 0) {return showPanel(player, 'mainPanel');}
         const reports = reportManager.getAllReports().filter(r => r.status === 'open' || r.status === 'assigned').sort((a, b) => a.timestamp - b.timestamp);
         const selectedReport = reports[response.selection - 1];
-        if (selectedReport) return showPanel(player, 'reportActionsPanel', { ...context, targetReport: selectedReport });
+        if (selectedReport) {return showPanel(player, 'reportActionsPanel', { ...context, targetReport: selectedReport });}
         return;
     }
 
     if (panelId === 'playerManagementPanel') {
-        if (response.selection === 0) return showPanel(player, 'mainPanel');
+        if (response.selection === 0) {return showPanel(player, 'mainPanel');}
         const playerEntries = Array.from(getAllPlayerNameIdMap().entries()).sort((a, b) => a[0].localeCompare(b[0]));
         const selectedEntry = playerEntries[response.selection - 1];
         if (selectedEntry) {
@@ -166,7 +166,7 @@ async function handleFormResponse(player, panelId, response, context) {
     }
 
     if (panelId === 'playerListPanel') {
-        if (response.selection === 0) return showPanel(player, 'mainPanel');
+        if (response.selection === 0) {return showPanel(player, 'mainPanel');}
         const onlinePlayers = playerCache.getAllPlayersFromCache().sort((a, b) => a.name.localeCompare(b.name));
         const selectedPlayer = onlinePlayers[response.selection - 1];
         if (selectedPlayer) {
@@ -176,21 +176,21 @@ async function handleFormResponse(player, panelId, response, context) {
     }
 
     if (panelId === 'configCategoryPanel') {
-        if (response.selection === 0) return showPanel(player, 'mainPanel');
+        if (response.selection === 0) {return showPanel(player, 'mainPanel');}
         const selectedCategory = configPanelSchema[response.selection - 1];
-        if (selectedCategory) return showPanel(player, `config_${selectedCategory.id}`);
+        if (selectedCategory) {return showPanel(player, `config_${selectedCategory.id}`);}
         return;
     }
 
     if (panelId.startsWith('config_')) {
         const categoryId = panelId.replace('config_', '');
         const category = configPanelSchema.find(c => c.id === categoryId);
-        if (!category) return;
+        if (!category) {return;}
         const newValues = response.formValues;
         const updates = {};
         let validationFailed = false;
         category.settings.forEach((setting, index) => {
-            if (validationFailed) return;
+            if (validationFailed) {return;}
             let newValue = newValues[index];
             if (setting.type === 'dropdown') {
                 newValue = setting.options[newValue];
@@ -205,7 +205,7 @@ async function handleFormResponse(player, panelId, response, context) {
             }
             updates[setting.key] = newValue;
         });
-        if (validationFailed) return showPanel(player, panelId);
+        if (validationFailed) {return showPanel(player, panelId);}
         updateMultipleConfig(updates);
         player.sendMessage(`§aSuccessfully saved settings for ${category.title}§a.`);
         return showPanel(player, 'configCategoryPanel');
@@ -214,15 +214,24 @@ async function handleFormResponse(player, panelId, response, context) {
     if (panelId === 'playerActionsPanel') {
         const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
         const selectedItem = visibleItems[response.selection];
-        if (!selectedItem) return;
+        if (!selectedItem) {
+            return;
+        }
 
         if (selectedItem.id === '__back__') {
             return showPanel(player, context.fromPanel || 'mainPanel', context);
         }
+
+        if (selectedItem.actionType === 'openPanel') {
+            return showPanel(player, selectedItem.actionValue, context);
+        }
+
         const actionFunction = uiActionFunctions[selectedItem.actionValue];
         if (actionFunction) {
             const shouldReload = await actionFunction(player, context, panelId);
-            if (shouldReload) showPanel(player, panelId, context);
+            if (shouldReload) {
+                showPanel(player, panelId, context);
+            }
         }
         return;
     }
@@ -230,15 +239,15 @@ async function handleFormResponse(player, panelId, response, context) {
     const panelDef = panelDefinitions[panelId];
     const menuItems = getMenuItems(panelDef, pData.permissionLevel);
     const selectedItem = menuItems[response.selection];
-    if (!selectedItem) return;
+    if (!selectedItem) {return;}
 
-    if (selectedItem.id === '__back__') return showPanel(player, selectedItem.actionValue, context);
-    if (selectedItem.actionType === 'openPanel') return showPanel(player, selectedItem.actionValue, context);
+    if (selectedItem.id === '__back__') {return showPanel(player, selectedItem.actionValue, context);}
+    if (selectedItem.actionType === 'openPanel') {return showPanel(player, selectedItem.actionValue, context);}
     if (selectedItem.actionType === 'functionCall') {
         const actionFunction = uiActionFunctions[selectedItem.actionValue];
         if (actionFunction) {
             const shouldReload = await actionFunction(player, context, panelId);
-            if (shouldReload) showPanel(player, panelId, context);
+            if (shouldReload) {showPanel(player, panelId, context);}
         }
     }
 }
@@ -256,7 +265,7 @@ function getVisiblePlayerActionItems(context, permissionLevel) {
             continue;
         }
         const commandName = item.id;
-        if (config.commandSettings[commandName]?.enabled === false) continue;
+        if (config.commandSettings[commandName]?.enabled === false) {continue;}
         if (context.fromPanel === 'playerManagementPanel' && item.permissionLevel < 1024) {
             visibleItems.push(item);
         } else if (context.fromPanel === 'playerListPanel' && item.permissionLevel >= 1024) {
@@ -414,7 +423,7 @@ uiActionFunctions['clearReport'] = (player, context) => {
 uiActionFunctions['showUnbanForm'] = async (player) => {
     const form = new ModalFormData().title('Unban Player').textField('Player Name', 'Enter the name of the player to unban', { placeholderText: 'Enter player name' });
     const response = await utils.uiWait(player, form);
-    if (!response || response.canceled) return true;
+    if (!response || response.canceled) {return true;}
     const [targetName] = response.formValues;
     if (!targetName) {
         player.sendMessage('§cYou must enter a player name.');
@@ -427,7 +436,7 @@ uiActionFunctions['showUnbanForm'] = async (player) => {
 uiActionFunctions['showUnmuteForm'] = async (player) => {
     const form = new ModalFormData().title('Unmute Player').textField('Player Name', 'Enter the name of the player to unmute', { placeholderText: 'Enter player name' });
     const response = await utils.uiWait(player, form);
-    if (!response || response.canceled) return true;
+    if (!response || response.canceled) {return true;}
     const [targetName] = response.formValues;
     if (!targetName) {
         player.sendMessage('§cYou must enter a player name.');
@@ -469,6 +478,34 @@ uiActionFunctions['kickPlayer'] = async (player, context) => {
         const [reason] = response.formValues;
         kickPlayer(player, targetPlayer, reason);
     }
+    return true;
+};
+
+uiActionFunctions['freezePlayer'] = async (player, context) => {
+    const { targetPlayerId, targetPlayerName } = context;
+    const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
+    if (!targetPlayer) {
+        player.sendMessage(`§c${targetPlayerName} is not online.`);
+        return true;
+    }
+    freezePlayer(player, targetPlayer);
+    return true;
+};
+
+uiActionFunctions['unfreezePlayer'] = async (player, context) => {
+    const { targetPlayerId, targetPlayerName } = context;
+    const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
+    if (!targetPlayer) {
+        player.sendMessage(`§c${targetPlayerName} is not online.`);
+        return true;
+    }
+    unfreezePlayer(player, targetPlayer);
+    return true;
+};
+
+uiActionFunctions['unmutePlayer'] = async (player, context) => {
+    const { targetPlayerName } = context;
+    unmutePlayer(player, targetPlayerName);
     return true;
 };
 

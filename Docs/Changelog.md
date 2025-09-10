@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-09-10
+
+This version introduces a significant overhaul of the player management UI, adds new moderation features, and includes several critical bug fixes for core gameplay systems.
+
+### ✨ Features
+
+- **Player Management UI Overhaul**: The player action panel has been revamped with new icons, buttons, and a clearer separation between admin actions and player-to-player actions.
+- **Freeze/Unfreeze Functionality**: Admins can now freeze and unfreeze players. This is available as UI buttons in the Player Management panel and as new `/freeze` and `/unfreeze` commands.
+- **Bounty Sub-Panel**: The "Bounty" button in the Player List now opens a dedicated sub-panel, allowing users to either set a new bounty or remove an existing one.
+
+### 🐛 Bug Fixes
+
+- **Teleport on Damage**: Fixed a critical bug where teleportation warmups (for TPA, `/home`, `/spawn`) would not cancel when the player took damage. The system now uses a reliable event-based check.
+- **Death Event Crash**: Fixed a server script crash that occurred when a player died from non-combat sources (e.g., fall damage, `/kill` command).
+- **`/deathcoords` Command**: Fixed a race condition that made the `/deathcoords` command unreliable. The command now correctly shows the last death location even after the player has respawned.
+- **UI Panel Navigation**: Fixed a bug where buttons configured to open a new panel in the player actions UI would not work.
+
+### 🎨 Changes
+
+- **New Icons**: Updated the icons for Kick, Ban, Mute, Unmute, Freeze, Unfreeze, TPA, TPAHere, and Bounty buttons for better visual clarity.
+- **Button Order**: The buttons in the Player List actions panel are now in a more logical order: TPA, TPAHere, Bounty, Report.
+
 ## [0.3.0] - 2025-09-07
 
 This version introduces a major performance overhaul for the bounty system, a new global command cooldown system, and several new features, fixes, and documentation improvements.

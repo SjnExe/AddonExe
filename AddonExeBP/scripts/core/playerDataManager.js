@@ -16,6 +16,7 @@
  * @property {Object.<string, number>} kitCooldowns
  * @property {boolean} xrayNotifications
  * @property {HomeLocation | null} lastDeathLocation
+ * @property {boolean} deathNotificationSent
  * @property {boolean} [needsSave] - Internal flag for the auto-saver.
  */
 
@@ -298,6 +299,7 @@ export function getOrCreatePlayer(player) {
         kitCooldowns: {},
         xrayNotifications: config.playerDefaults.xrayNotifications,
         lastDeathLocation: null,
+        deathNotificationSent: true, // Default to true to prevent message on first spawn
         needsSave: true // New data should be saved on the next cycle
     };
     activePlayerData.set(player.id, newPlayerData);
@@ -465,6 +467,24 @@ export function setPlayerLastDeathLocation(playerId, location) {
     const pData = getPlayer(playerId);
     if (pData) {
         pData.lastDeathLocation = location;
+        // If a new location is being set, it means the player has died,
+        // so we need to reset the notification flag.
+        if (location) {
+            pData.deathNotificationSent = false;
+        }
+        pData.needsSave = true;
+    }
+}
+
+/**
+ * Sets the flag indicating whether the death notification has been sent.
+ * @param {string} playerId
+ * @param {boolean} status
+ */
+export function setDeathNotificationSent(playerId, status) {
+    const pData = getPlayer(playerId);
+    if (pData) {
+        pData.deathNotificationSent = status;
         pData.needsSave = true;
     }
 }

@@ -1,74 +1,68 @@
 import { commandManager } from './commandManager.js';
-import { getPlayer } from '../../core/playerDataManager.js';
+
+const FROZEN_TAG = 'frozen';
+
+export function freezePlayer(executor, targetPlayer) {
+    if (targetPlayer.hasTag(FROZEN_TAG)) {
+        executor.sendMessage(`§ePlayer ${targetPlayer.name} is already frozen.`);
+        return;
+    }
+    targetPlayer.addTag(FROZEN_TAG);
+    targetPlayer.addEffect('slowness', 2000000, { amplifier: 255, showParticles: false });
+    const announcer = executor.isConsole ? 'the Console' : executor.name;
+    executor.sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`);
+    targetPlayer.sendMessage(`§cYou have been frozen by ${announcer}.`);
+}
+
+export function unfreezePlayer(executor, targetPlayer) {
+    if (!targetPlayer.hasTag(FROZEN_TAG)) {
+        executor.sendMessage(`§ePlayer ${targetPlayer.name} is not frozen.`);
+        return;
+    }
+    targetPlayer.removeTag(FROZEN_TAG);
+    targetPlayer.removeEffect('slowness');
+    executor.sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`);
+    targetPlayer.sendMessage('§aYou have been unfrozen.');
+}
 
 commandManager.register({
     name: 'freeze',
-    description: 'Freezes or unfreezes a player.',
+    description: 'Freezes a player, preventing them from moving.',
     category: 'Moderation',
-    permissionLevel: 1, // Admin only
+    permissionLevel: 1,
     allowConsole: true,
     parameters: [
-        { name: 'target', type: 'player', description: 'The player to freeze or unfreeze.' },
-        { name: 'state', type: 'string', description: 'Set to "on" to freeze or "off" to unfreeze. Toggles if omitted.', optional: true }
+        { name: 'target', type: 'player', description: 'The player to freeze.' }
     ],
     execute: (player, args) => {
-        const { target, state } = args;
-
-        if (!target || target.length === 0) {
+        const targetPlayer = args.target[0];
+        if (!targetPlayer) {
             player.sendMessage('§cPlayer not found.');
             return;
         }
-
-        const targetPlayer = target[0];
-
-        if (!player.isConsole) {
-            if (player.id === targetPlayer.id) {
-                player.sendMessage('§cYou cannot freeze yourself.');
-                return;
-            }
-
-            const executorData = getPlayer(player.id);
-            const targetData = getPlayer(targetPlayer.id);
-
-            if (!executorData || !targetData) {
-                player.sendMessage('§cCould not retrieve player data for permission check.');
-                return;
-            }
-
-            if (executorData.permissionLevel >= targetData.permissionLevel) {
-                player.sendMessage('§cYou cannot freeze a player with the same or higher rank than you.');
-                return;
-            }
+        if (!player.isConsole && player.id === targetPlayer.id) {
+            player.sendMessage('§cYou cannot freeze yourself.');
+            return;
         }
+        freezePlayer(player, targetPlayer);
+    }
+});
 
-        const action = state ? state.toLowerCase() : 'toggle';
-        const frozenTag = 'frozen';
-        const isFrozen = targetPlayer.hasTag(frozenTag);
-
-        let freeze;
-        if (action === 'on') {freeze = true;}
-        else if (action === 'off') {freeze = false;}
-        else {freeze = !isFrozen;}
-
-        if (freeze) {
-            if (isFrozen) {
-                player.sendMessage(`§ePlayer ${targetPlayer.name} is already frozen.`);
-                return;
-            }
-            targetPlayer.addTag(frozenTag);
-            targetPlayer.addEffect('slowness', 2000000, { amplifier: 255, showParticles: false });
-            const announcer = player.isConsole ? 'the Console' : 'an admin';
-            player.sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`);
-            targetPlayer.sendMessage(`§cYou have been frozen by ${announcer}.`);
-        } else {
-            if (!isFrozen) {
-                player.sendMessage(`§ePlayer ${targetPlayer.name} is not frozen.`);
-                return;
-            }
-            targetPlayer.removeTag(frozenTag);
-            targetPlayer.removeEffect('slowness');
-            player.sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`);
-            targetPlayer.sendMessage('§aYou have been unfrozen.');
+commandManager.register({
+    name: 'unfreeze',
+    description: 'Unfreezes a player, allowing them to move again.',
+    category: 'Moderation',
+    permissionLevel: 1,
+    allowConsole: true,
+    parameters: [
+        { name: 'target', type: 'player', description: 'The player to unfreeze.' }
+    ],
+    execute: (player, args) => {
+        const targetPlayer = args.target[0];
+        if (!targetPlayer) {
+            player.sendMessage('§cPlayer not found.');
+            return;
         }
+        unfreezePlayer(player, targetPlayer);
     }
 });
