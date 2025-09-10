@@ -1,4 +1,4 @@
-import { ItemStack, Enchantment, ItemTypes } from '@minecraft/server';
+import { ItemStack, ItemTypes } from '@minecraft/server';
 import * as economyManager from './economyManager.js';
 import { getShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
@@ -28,12 +28,12 @@ function createShopItemStack(itemId, quantity) {
     // Handle enchantments
     if (itemInfo.enchantment) {
         try {
-            const enchantments = itemStack.getComponent('minecraft:enchantments');
-            const enchantmentType = Enchantment.find(itemInfo.enchantment.id);
-            if (enchantmentType) {
-                enchantments.addEnchantment(new Enchantment(enchantmentType, itemInfo.enchantment.level));
-            } else {
-                errorLog(`[ShopManager] Invalid enchantment type: ${itemInfo.enchantment.id}`);
+            const enchantable = itemStack.getComponent('minecraft:enchantable');
+            if (enchantable) {
+                enchantable.addEnchantment({
+                    type: itemInfo.enchantment.id,
+                    level: itemInfo.enchantment.level
+                });
             }
         } catch (e) {
             errorLog(`[ShopManager] Failed to apply enchantment for ${itemId}: ${e}`);
