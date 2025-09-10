@@ -172,17 +172,15 @@ export const panelDefinitions = {
                 icon: 'textures/ui/check.png',
                 permissionLevel: 1,
                 actionType: 'functionCall',
-                actionValue: 'showUnbanForm',
-                sortId: 10
+                actionValue: 'showUnbanForm'
             },
             {
                 id: 'unmutePlayer',
                 text: '§aUnmute Player',
-                icon: 'textures/ui/sound_on.png',
+                icon: 'textures/ui/check.png',
                 permissionLevel: 1,
                 actionType: 'functionCall',
-                actionValue: 'showUnmuteForm',
-                sortId: 20
+                actionValue: 'showUnmuteForm'
             }
         ]
     },
@@ -229,7 +227,7 @@ export const panelDefinitions = {
         title: '§l§e{playerName}§r', // Title will be dynamic
         parentPanelId: 'mainPanel', // This will be dynamically overridden by the manager
         items: [
-            // Admin Actions
+            // Admin Actions (for Player Management panel) - permissionLevel < 1024
             { id: 'kick', text: '§cKick', icon: 'textures/ui/cancel.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'kickPlayer' },
             { id: 'mute', text: '§6Mute', icon: 'textures/ui/mute_on.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'mutePlayer' },
             { id: 'unmute', text: '§aUnmute', icon: 'textures/ui/mute_off.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'unmutePlayer' },
@@ -237,7 +235,7 @@ export const panelDefinitions = {
             { id: 'freeze', text: '§bFreeze', icon: 'textures/ui/icon_lock.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'freezePlayer' },
             { id: 'unfreeze', text: '§bUnfreeze', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
 
-            // Player Actions (sorted)
+            // Player Actions (for Player List panel) - permissionLevel >= 1024
             { id: 'tpa', text: '§eTPA', icon: 'textures/gui/controls/jump.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer', sortId: 10 },
             { id: 'tpahere', text: '§9TPAHere', icon: 'textures/gui/controls/sneak.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaherePlayer', sortId: 20 },
             { id: 'bounty', text: '§6Bounty', icon: 'textures/items/netherite_sword.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'bountyActionsPanel', sortId: 30 },

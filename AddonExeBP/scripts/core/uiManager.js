@@ -214,7 +214,9 @@ async function handleFormResponse(player, panelId, response, context) {
     if (panelId === 'playerActionsPanel') {
         const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
         const selectedItem = visibleItems[response.selection];
-        if (!selectedItem) {return;}
+        if (!selectedItem) {
+            return;
+        }
 
         if (selectedItem.id === '__back__') {
             return showPanel(player, context.fromPanel || 'mainPanel', context);
@@ -227,7 +229,9 @@ async function handleFormResponse(player, panelId, response, context) {
         const actionFunction = uiActionFunctions[selectedItem.actionValue];
         if (actionFunction) {
             const shouldReload = await actionFunction(player, context, panelId);
-            if (shouldReload) {showPanel(player, panelId, context);}
+            if (shouldReload) {
+                showPanel(player, panelId, context);
+            }
         }
         return;
     }
