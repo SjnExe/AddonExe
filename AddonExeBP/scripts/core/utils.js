@@ -1,4 +1,4 @@
-import { system } from '@minecraft/server';
+import { system, world } from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { errorLog } from './errorLogger.js';
 
@@ -126,26 +126,46 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
     }
 
     let remainingSeconds = durationSeconds;
-    const initialLocation = player.location;
-    const dimension = player.dimension;
+    const initialLocation = { x: player.location.x, y: player.location.y, z: player.location.z };
+    const dimensionId = player.dimension.id;
+    let intervalId = null;
+    let hurtListener = null;
 
-    player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move!`);
+    const cleanup = () => {
+        if (intervalId !== null) {
+            system.clearRun(intervalId);
+            intervalId = null;
+        }
+        if (hurtListener) {
+            world.afterEvents.entityHurt.unsubscribe(hurtListener);
+            hurtListener = null;
+        }
+    };
 
-    const intervalId = system.runInterval(() => {
+    hurtListener = world.afterEvents.entityHurt.subscribe(event => {
+        if (event.hurtEntity.id === player.id) {
+            player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
+            cleanup();
+        }
+    }, { entityTypes: ['minecraft:player'] });
+
+    player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
+
+    intervalId = system.runInterval(() => {
         try {
-            // Player might have logged off. The try-catch will prevent a crash.
+            // It's possible the player was killed or disconnected, which would invalidate the object.
+            // A simple property access will throw if the player object is no longer valid.
             const currentLocation = player.location;
 
-            // Check if player moved
             const distanceMoved = Math.sqrt(
                 Math.pow(currentLocation.x - initialLocation.x, 2) +
                 Math.pow(currentLocation.y - initialLocation.y, 2) +
                 Math.pow(currentLocation.z - initialLocation.z, 2)
             );
 
-            if (distanceMoved > 1.5 || player.dimension.id !== dimension.id) {
-                system.clearRun(intervalId);
+            if (distanceMoved > 1.5 || player.dimension.id !== dimensionId) {
                 player.onScreenDisplay.setActionBar('§cTeleport canceled because you moved.');
+                cleanup();
                 return;
             }
 
@@ -155,15 +175,15 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
                 const color = getCountdownColor(remainingSeconds);
                 player.onScreenDisplay.setActionBar(`${color}Teleporting in ${remainingSeconds}...`);
             } else {
-                system.clearRun(intervalId);
                 player.onScreenDisplay.setActionBar('§aTeleporting...');
+                cleanup();
                 onWarmupComplete();
             }
-        } catch {
-            // This will catch errors if the player object becomes invalid (e.g., player logs off)
-            system.clearRun(intervalId);
+        } catch (e) {
+            errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${e}`);
+            cleanup();
         }
-    }, 20); // Run every second
+    }, 20);
 }
 
 /**

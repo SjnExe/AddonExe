@@ -5,7 +5,7 @@ import { playSound } from '../../core/utils.js';
 import { findPlayerByName } from '../utils/playerUtils.js';
 import { errorLog } from '../../core/errorLogger.js';
 
-function kickPlayer(player, targetPlayer, reason) {
+export function kickPlayer(player, targetPlayer, reason) {
     if (!targetPlayer) {
         player.sendMessage('§cPlayer not found.');
         if (!player.isConsole) {playSound(player, 'note.bass');}
