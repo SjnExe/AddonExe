@@ -51,7 +51,22 @@ This document provides a detailed breakdown of the features available in AddonEx
 - **New Player Balance:** New players start with a configurable amount of money.
 - *Key Configs: `config.js` (under the `economy` section)*
 
-### C. Homes System
+### C. In-Game Shop System
+
+- A fully-featured, GUI-based shop accessible via the `/shop` command or the main panel.
+- **Player Features:**
+  - Browse items through a categorized and paginated UI.
+  - Buy and sell items with specified quantities.
+  - Use `/buy` and `/sell` to open a filtered view of the shop.
+- **Admin Features:**
+  - Access an "Edit Shop" panel to manage the shop's inventory.
+  - Enable or disable any item from a master list (`itemsConfig.js`).
+  - Set custom buy and sell prices for each item. Setting a price to -1 or 0 disables that action.
+- **Configuration:**
+  - The master list of all potential shop items is defined in `AddonExeBP/scripts/core/itemsConfig.js`.
+  - The active shop configuration is saved to the world and persists across restarts.
+
+### D. Homes System
 
 - Allows players to set a limited number of "homes" they can teleport back to.
 - **Commands:** `/sethome`, `/home`, `/delhome`, `/homes`.

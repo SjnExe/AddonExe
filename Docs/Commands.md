@@ -100,6 +100,14 @@ Commands available to all players by default.
 - **/removebounty <amount> [target]**
   - Removes a portion of a bounty from a player.
 
+### Shop System
+- **/shop**
+  - Opens the main shop interface.
+- **/buy**
+  - Opens the shop interface filtered to only show buyable items.
+- **/sell**
+  - Opens the shop interface filtered to only show sellable items.
+
 ---
 
 ## Moderation Commands
