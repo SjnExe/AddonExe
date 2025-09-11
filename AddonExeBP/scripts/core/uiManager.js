@@ -280,43 +280,58 @@ async function handleFormResponse(player, panelId, response, context) {
         const masterItem = allItems[itemId];
         const shopItem = shopConfig.items[itemId];
 
-        const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
-        modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
+        const canBuy = view !== 'sell' && shopItem.buyPrice > 0;
+        const canSell = view !== 'buy' && shopItem.sellPrice > 0;
 
-        const options = [];
-        if (view !== 'sell' && shopItem.buyPrice > 0) {
-            options.push(`Buy ($${shopItem.buyPrice})`);
-        }
-        if (view !== 'buy' && shopItem.sellPrice > 0) {
-            options.push(`Sell ($${shopItem.sellPrice})`);
-        }
-
-        if (options.length === 0) {
+        if (!canBuy && !canSell) {
             player.sendMessage('§cThis item cannot be bought or sold currently.');
             return showPanel(player, panelId, context);
         }
 
-        modal.dropdown('Action', options, { defaultValueIndex: 0 });
+        const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
+        let action;
+        let hasDropdown = false;
+
+        if (canBuy && canSell) {
+            modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
+            const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
+            modal.dropdown('Action', options, { defaultValueIndex: 0 });
+            hasDropdown = true;
+        } else if (canBuy) {
+            modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', { defaultValue: '1' });
+            action = 'buy';
+        } else { // canSell
+            modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', { defaultValue: '1' });
+            action = 'sell';
+        }
+
         const modalResponse = await utils.uiWait(player, modal);
 
         if (modalResponse.canceled) {
             return showPanel(player, panelId, context);
         }
 
-        const [amountStr, actionIndex] = modalResponse.formValues;
-        const amount = parseInt(amountStr, 10);
+        let amount;
+        if (hasDropdown) {
+            const [amountStr, actionIndex] = modalResponse.formValues;
+            amount = parseInt(amountStr, 10);
+            const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
+            const selectedActionString = options[actionIndex];
+            action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
+        } else {
+            const [amountStr] = modalResponse.formValues;
+            amount = parseInt(amountStr, 10);
+        }
+
         if (isNaN(amount) || amount <= 0) {
             player.sendMessage('§cInvalid amount.');
             return showPanel(player, panelId, context);
         }
 
-        const selectedActionString = options[actionIndex];
-        const action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
-
         let result;
         if (action === 'buy') {
             result = shopManager.buyItem(player, itemId, amount);
-        } else {
+        } else { // action === 'sell'
             result = shopManager.sellItem(player, itemId, amount);
         }
         player.sendMessage(result.message);
@@ -567,11 +582,11 @@ function buildShopCategoryPanel(form, context) {
             const shopItem = shopConfig.items[entry.id];
             let priceString = '';
             if (view === 'buy' && shopItem.buyPrice > 0) {
-                priceString = `§aBuy: $${shopItem.buyPrice}`;
+                priceString = `§2Buy: $${shopItem.buyPrice}`;
             } else if (view === 'sell' && shopItem.sellPrice > 0) {
                 priceString = `§cSell: $${shopItem.sellPrice}`;
             } else {
-                const buy = shopItem.buyPrice > 0 ? `§aB: $${shopItem.buyPrice}` : '';
+                const buy = shopItem.buyPrice > 0 ? `§2B: $${shopItem.buyPrice}` : '';
                 const sell = shopItem.sellPrice > 0 ? `§cS: $${shopItem.sellPrice}` : '';
                 priceString = [buy, sell].filter(Boolean).join(' ');
             }
@@ -601,11 +616,11 @@ function buildShopItemListPanel(form, context) {
         const shopItem = shopConfig.items[itemId];
         let priceString = '';
         if (view === 'buy' && shopItem.buyPrice > 0) {
-            priceString = `§aBuy: $${shopItem.buyPrice}`;
+            priceString = `§2Buy: $${shopItem.buyPrice}`;
         } else if (view === 'sell' && shopItem.sellPrice > 0) {
             priceString = `§cSell: $${shopItem.sellPrice}`;
         } else {
-            const buy = shopItem.buyPrice > 0 ? `§aB: $${shopItem.buyPrice}` : '';
+            const buy = shopItem.buyPrice > 0 ? `§2B: $${shopItem.buyPrice}` : '';
             const sell = shopItem.sellPrice > 0 ? `§cS: $${shopItem.sellPrice}` : '';
             priceString = [buy, sell].filter(Boolean).join(' ');
         }
@@ -623,20 +638,22 @@ function buildEditShopMainPanel(form) {
 }
 
 function buildEditShopCategoryPanel(form, context) {
-    const { category, page = 1 } = context;
+    const { category } = context;
     const shopConfig = getShopConfig();
 
     const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
 
-    const paginatedItems = getPaginatedItems(itemsInCategory, page);
+    if (itemsInCategory.length === 0) {
+        form.body('§cNo items found in this category.');
+        return;
+    }
 
-    for (const itemId of paginatedItems) {
+    for (const itemId of itemsInCategory) {
         const masterItem = allItems[itemId];
         const shopItem = shopConfig.items[itemId];
-        const status = shopItem ? '§a[Enabled]' : '§c[Disabled]';
+        const status = shopItem ? '§2[Enabled]' : '§c[Disabled]';
         form.button(`${masterItem.displayName ?? itemId}\n${status}`, masterItem.icon);
     }
-    addPaginationButtons(form, page, itemsInCategory.length);
 }
 
 

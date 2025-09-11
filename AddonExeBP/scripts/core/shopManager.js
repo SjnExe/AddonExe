@@ -1,4 +1,4 @@
-import { ItemStack, ItemTypes } from '@minecraft/server';
+import { ItemStack, ItemTypes, EnchantmentTypes } from '@minecraft/server';
 import * as economyManager from './economyManager.js';
 import { getShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
@@ -31,7 +31,7 @@ function createShopItemStack(itemId, quantity) {
             const enchantable = itemStack.getComponent('minecraft:enchantable');
             if (enchantable) {
                 enchantable.addEnchantment({
-                    type: itemInfo.enchantment.id,
+                    type: EnchantmentTypes.get(itemInfo.enchantment.id),
                     level: itemInfo.enchantment.level
                 });
             }
@@ -132,7 +132,7 @@ export function buyItem(player, itemId, quantity) {
         }
     }
 
-    return { success: true, message: `§aSuccessfully purchased ${finalQuantity}x ${masterItem.displayName ?? itemId} for §e$${finalCost.toFixed(2)}§a.` };
+    return { success: true, message: `§2Successfully purchased ${finalQuantity}x ${masterItem.displayName ?? itemId} for §e$${finalCost.toFixed(2)}§2.` };
 }
 
 /**
@@ -187,5 +187,5 @@ export function sellItem(player, itemId, quantity) {
     const totalGain = sellPrice * quantity;
     economyManager.addBalance(player.id, totalGain);
 
-    return { success: true, message: `§aSuccessfully sold ${quantity}x ${masterItem.displayName ?? itemId} for §e$${totalGain.toFixed(2)}§a.` };
+    return { success: true, message: `§2Successfully sold ${quantity}x ${masterItem.displayName ?? itemId} for §e$${totalGain.toFixed(2)}§2.` };
 }
