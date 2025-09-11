@@ -105,7 +105,7 @@ export function buyItem(player, itemId, quantity) {
 
     // Immediately remove what was added to make this a check, not a final transaction.
     if (amountAdded > 0) {
-        player.runCommandAsync(`clear "${player.name}" ${itemStackForTest.typeId.replace('minecraft:', '')} 0 ${amountAdded}`);
+        player.runCommand(`clear "${player.name}" ${itemStackForTest.typeId.replace('minecraft:', '')} 0 ${amountAdded}`);
     }
 
     // If the full quantity was not "added" during the test, there isn't enough space.
@@ -174,7 +174,7 @@ export function sellItem(player, itemId, quantity) {
     }
 
     // Remove items
-    player.runCommandAsync(`clear "${player.name}" ${masterItem.icon.replace('minecraft:', '')} 0 ${quantity}`);
+    player.runCommand(`clear "${player.name}" ${masterItem.icon.replace('minecraft:', '')} 0 ${quantity}`);
 
     // Success
     const totalGain = sellPrice * quantity;
