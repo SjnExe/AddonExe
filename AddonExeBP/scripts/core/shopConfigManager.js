@@ -1,5 +1,6 @@
 import { world } from '@minecraft/server';
 import { shopConfig as defaultShopConfig } from './shopConfig.js';
+import { config as mainDefaultConfig } from '../config.js'; // Import main config
 import { errorLog } from './errorLogger.js';
 import { deepMerge } from './objectUtils.js';
 
@@ -32,30 +33,30 @@ export function loadShopConfig() {
             userSavedConfig = deepMerge({}, newDefaultConfig);
         }
 
-        let lastLoadedConfig;
+        let lastLoadedMainConfig;
         try {
             // This might not exist on first load after this feature is added.
-            lastLoadedConfig = lastLoadedConfigStr ? JSON.parse(lastLoadedConfigStr) : null;
+            lastLoadedMainConfig = lastLoadedConfigStr ? JSON.parse(lastLoadedConfigStr) : null;
         } catch {
-            errorLog('[ShopConfigManager] Could not parse last loaded shop config.');
-            lastLoadedConfig = null;
+            errorLog('[ShopConfigManager] Could not parse last loaded main config version.');
+            lastLoadedMainConfig = null;
         }
 
         // The user's saved config is the source of truth.
         currentShopConfig = userSavedConfig;
 
-        // Check for version change to see if the addon was updated.
-        if (!lastLoadedConfig || lastLoadedConfig.version !== newDefaultConfig.version) {
+        // Check for version change to see if the addon was updated, using the main config's version.
+        if (!lastLoadedMainConfig || lastLoadedMainConfig.version !== mainDefaultConfig.version) {
             // Scenario: Addon has been updated.
             // We keep the user's config as is, preserving their shop setup.
             // The main purpose of this block is just to acknowledge the update.
-            errorLog('[ShopConfigManager] Addon update detected. Preserving existing shop settings.');
+            errorLog('[ShopConfigManager] Addon update detected based on main config version. Preserving existing shop settings.');
         }
     }
 
     // After all logic, the 'last loaded' config must be updated to the new default structure
-    // for the *next* startup's comparison.
-    const lastLoadedConfigToSave = deepMerge({}, newDefaultConfig);
+    // for the *next* startup's comparison. This should store the main config version.
+    const lastLoadedConfigToSave = { version: mainDefaultConfig.version };
 
     saveShopConfig();
 
