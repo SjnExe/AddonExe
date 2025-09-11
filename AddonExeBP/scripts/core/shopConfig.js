@@ -19,22 +19,5 @@
  */
 export const shopConfig = {
     version: '1.0.0',
-    items: {
-        diamond: {
-            buyPrice: 1000,
-            sellPrice: 500
-        },
-        ironIngot: {
-            buyPrice: 50,
-            sellPrice: 25
-        },
-        totemOfUndying: {
-            buyPrice: 5000,
-            sellPrice: 2500
-        },
-        enchantMending: {
-            buyPrice: 8000,
-            sellPrice: -1
-        }
-    }
+    items: {}
 };

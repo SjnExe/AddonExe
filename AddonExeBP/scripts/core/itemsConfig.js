@@ -109,28 +109,79 @@ export const items = {
         displayName: 'Enchanted Golden Apple'
     },
 
-    // == Building Blocks ==
+    // == Logs ==
     oakLog: {
         icon: 'minecraft:oak_log',
         buyPrice: 20,
         sellPrice: 10,
-        category: 'Building Blocks',
+        category: 'Logs',
         displayName: 'Oak Log'
     },
     spruceLog: {
         icon: 'minecraft:spruce_log',
         buyPrice: 20,
         sellPrice: 10,
-        category: 'Building Blocks',
+        category: 'Logs',
         displayName: 'Spruce Log'
     },
     birchLog: {
         icon: 'minecraft:birch_log',
         buyPrice: 20,
         sellPrice: 10,
-        category: 'Building Blocks',
+        category: 'Logs',
         displayName: 'Birch Log'
     },
+    jungleLog: {
+        icon: 'minecraft:jungle_log',
+        buyPrice: 20,
+        sellPrice: 10,
+        category: 'Logs',
+        displayName: 'Jungle Log'
+    },
+    acaciaLog: {
+        icon: 'minecraft:acacia_log',
+        buyPrice: 20,
+        sellPrice: 10,
+        category: 'Logs',
+        displayName: 'Acacia Log'
+    },
+    darkOakLog: {
+        icon: 'minecraft:dark_oak_log',
+        buyPrice: 20,
+        sellPrice: 10,
+        category: 'Logs',
+        displayName: 'Dark Oak Log'
+    },
+    mangroveLog: {
+        icon: 'minecraft:mangrove_log',
+        buyPrice: 20,
+        sellPrice: 10,
+        category: 'Logs',
+        displayName: 'Mangrove Log'
+    },
+    cherryLog: {
+        icon: 'minecraft:cherry_log',
+        buyPrice: 20,
+        sellPrice: 10,
+        category: 'Logs',
+        displayName: 'Cherry Log'
+    },
+    crimsonStem: {
+        icon: 'minecraft:crimson_stem',
+        buyPrice: 25,
+        sellPrice: 12,
+        category: 'Logs',
+        displayName: 'Crimson Stem'
+    },
+    warpedStem: {
+        icon: 'minecraft:warped_stem',
+        buyPrice: 25,
+        sellPrice: 12,
+        category: 'Logs',
+        displayName: 'Warped Stem'
+    },
+
+    // == Building Blocks ==
     stone: {
         icon: 'minecraft:stone',
         buyPrice: 10,
@@ -165,6 +216,36 @@ export const items = {
         icon: 'minecraft:glass',
         buyPrice: 15,
         sellPrice: 5,
+        category: 'Building Blocks'
+    },
+    terracotta: {
+        icon: 'minecraft:terracotta',
+        buyPrice: 10,
+        sellPrice: 5,
+        category: 'Building Blocks'
+    },
+    white_concrete: {
+        icon: 'minecraft:white_concrete',
+        buyPrice: 20,
+        sellPrice: 10,
+        category: 'Building Blocks'
+    },
+    stone_bricks: {
+        icon: 'minecraft:stone_bricks',
+        buyPrice: 12,
+        sellPrice: 6,
+        category: 'Building Blocks'
+    },
+    obsidian: {
+        icon: 'minecraft:obsidian',
+        buyPrice: 100,
+        sellPrice: 50,
+        category: 'Building Blocks'
+    },
+    glowstone: {
+        icon: 'minecraft:glowstone',
+        buyPrice: 80,
+        sellPrice: 40,
         category: 'Building Blocks'
     },
 
