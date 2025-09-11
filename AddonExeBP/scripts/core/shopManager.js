@@ -116,9 +116,13 @@ export function buyItem(player, itemId, quantity) {
     // If we are here, the test passed. Now do the real transaction.
     economyManager.removeBalance(player.id, totalCost);
 
-    // Give the items again, this time for real.
-    const finalItemStack = createShopItemStack(itemId, quantity);
-    inventory.addItem(finalItemStack);
+    // Give the items one by one to avoid the stack bug in the beta API.
+    for (let i = 0; i < quantity; i++) {
+        const singleItemStack = createShopItemStack(itemId, 1);
+        if (singleItemStack) {
+            inventory.addItem(singleItemStack);
+        }
+    }
 
     return { success: true, message: `§aSuccessfully purchased ${quantity}x ${masterItem.displayName ?? itemId} for §e$${totalCost.toFixed(2)}§a.` };
 }
