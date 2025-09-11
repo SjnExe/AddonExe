@@ -9,7 +9,13 @@
             1,
             21,
             100
-        ]
+        ],
+        "base_game_version": [
+            1,
+            21,
+            0
+        ],
+        "lock_template_options": true
     },
     "modules": [
         {

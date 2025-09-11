@@ -1,5 +1,6 @@
 import { world, system } from '@minecraft/server';
 import { loadConfig, getConfig, updateConfig, reloadConfig } from './configManager.js';
+import { loadShopConfig } from './shopConfigManager.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
@@ -99,6 +100,7 @@ function startSystemTimers() {
 function initializeAddon() {
     debugLog('[AddonExe] Initializing addon...');
     const isFirstInit = loadConfig();
+    loadShopConfig();
     if (!isFirstInit) {
         reloadConfig();
     }
