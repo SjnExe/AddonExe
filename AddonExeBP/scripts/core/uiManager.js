@@ -281,7 +281,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const shopItem = shopConfig.items[itemId];
 
         const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
-        modal.textField('Amount', 'Enter the amount', '1');
+        modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
 
         const options = [];
         if (view !== 'sell' && shopItem.buyPrice > 0) {
@@ -349,9 +349,9 @@ async function handleFormResponse(player, panelId, response, context) {
             const shopItem = shopConfig.items[selection];
 
             const editForm = new ModalFormData().title(masterItem.displayName ?? selection);
-            editForm.toggle('Enable in Shop', !!shopItem);
-            editForm.textField('Buy Price (-1 to disable)', 'Buy Price', `${shopItem?.buyPrice ?? masterItem.buyPrice}`);
-            editForm.textField('Sell Price (-1 to disable)', 'Sell Price', `${shopItem?.sellPrice ?? masterItem.sellPrice}`);
+            editForm.toggle('Enable in Shop', { defaultValue: !!shopItem });
+            editForm.textField('Buy Price (-1 to disable)', 'Buy Price', { defaultValue: `${shopItem?.buyPrice ?? masterItem.buyPrice}` });
+            editForm.textField('Sell Price (-1 to disable)', 'Sell Price', { defaultValue: `${shopItem?.sellPrice ?? masterItem.sellPrice}` });
 
             const editResponse = await utils.uiWait(player, editForm);
             if (editResponse.canceled) { return showPanel(player, panelId, context); }
