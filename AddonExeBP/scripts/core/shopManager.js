@@ -93,24 +93,33 @@ export function buyItem(player, itemId, quantity) {
 
     debugLog(`[ShopManager] Attempting to give ${player.name} item ${itemId} with quantity ${itemStack.amount}`);
     const inventory = player.getComponent('inventory').container;
-    const remainder = inventory.addItem(itemStack);
 
-    if (remainder) {
-        // Inventory is full, return the items that couldn't be added.
-        inventory.addItem(remainder); // Add back the remainder
-        const amountAdded = quantity - remainder.amount;
-        if (amountAdded > 0) {
-            // If some items were added, we need to charge for them and then refund the rest.
-            // For simplicity, we will just reject the whole transaction if it's not a full success.
-            // First, remove the items that were added.
-            inventory.removeItem(itemStack);
-            return { success: false, message: '§cYour inventory is too full to complete this purchase.' };
-        }
-        return { success: false, message: '§cYour inventory is full.' };
+    // Due to bugs in the beta API's addItem, we will do a "dry run" to check for space first.
+    const itemStackForTest = createShopItemStack(itemId, quantity);
+    if (!itemStackForTest) {
+        return { success: false, message: '§cThere was an error creating the item. Please report this to an admin.' };
     }
 
-    // Success
+    const remainder = inventory.addItem(itemStackForTest);
+    const amountAdded = quantity - (remainder?.amount ?? 0);
+
+    // Immediately remove what was added to make this a check, not a final transaction.
+    if (amountAdded > 0) {
+        player.runCommandAsync(`clear "${player.name}" ${itemStackForTest.typeId.replace('minecraft:', '')} 0 ${amountAdded}`);
+    }
+
+    // If the full quantity was not "added" during the test, there isn't enough space.
+    if (amountAdded < quantity) {
+        return { success: false, message: '§cYour inventory does not have enough space for this purchase.' };
+    }
+
+    // If we are here, the test passed. Now do the real transaction.
     economyManager.removeBalance(player.id, totalCost);
+
+    // Give the items again, this time for real.
+    const finalItemStack = createShopItemStack(itemId, quantity);
+    inventory.addItem(finalItemStack);
+
     return { success: true, message: `§aSuccessfully purchased ${quantity}x ${masterItem.displayName ?? itemId} for §e$${totalCost.toFixed(2)}§a.` };
 }
 
@@ -165,8 +174,7 @@ export function sellItem(player, itemId, quantity) {
     }
 
     // Remove items
-    const itemStackToRemove = new ItemStack(itemType, quantity);
-    inventory.removeItem(itemStackToRemove);
+    player.runCommandAsync(`clear "${player.name}" ${masterItem.icon.replace('minecraft:', '')} 0 ${quantity}`);
 
     // Success
     const totalGain = sellPrice * quantity;
