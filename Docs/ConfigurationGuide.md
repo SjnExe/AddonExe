@@ -104,6 +104,28 @@ This file controls the layout, buttons, and actions of the `/panel` user interfa
   - Change button text, icons, and required permission levels.
   - Link buttons to specific actions (like running a command or opening another panel).
 
+### `itemsConfig.js` - Master Shop Item List
+This file defines all possible items that can be sold in the shop. It serves as a master list from which admins can enable items. **Requires a server restart to apply changes.**
+
+- **File:** `AddonExeBP/scripts/core/itemsConfig.js`
+- **Purpose:**
+  - Define a comprehensive list of all items you might ever want to sell.
+  - For each item, you can set a default buy price, sell price, category, and icon.
+  - Enchanted books can be defined with their specific enchantment type and level.
+- **Note:** This file only defines what *can* be in the shop. To actually make an item available for players to buy or sell, an admin must enable it through the in-game "Edit Shop" panel.
+
+### In-Game Shop Configuration
+Unlike other systems, the shop's active inventory and prices are configured entirely in-game by an admin. This allows for live updates without restarting the server.
+
+- **Command:** `/panel` -> "Edit Shop" button
+- **Permission:** Admin
+- **How it Works:**
+  - Admins can browse all items defined in `itemsConfig.js` through a categorized UI.
+  - For each item, an admin can:
+    - **Toggle it on/off:** An item must be enabled to appear in the player-facing shop.
+    - **Set Buy/Sell Prices:** Admins can override the default prices from `itemsConfig.js`. Setting a price to `0` or `-1` will disable the buy or sell option for that item, respectively.
+- **Data Persistence:** The shop configuration is saved to the world's data and will persist across server restarts. The loading system is also designed to preserve your shop setup even when the addon is updated.
+
 > [!IMPORTANT]
 > **Cheat Detection Configuration Coming Soon**
 >
