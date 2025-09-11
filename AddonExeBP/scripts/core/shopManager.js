@@ -3,6 +3,7 @@ import * as economyManager from './economyManager.js';
 import { getShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
 import { errorLog } from './errorLogger.js';
+import { debugLog } from './logger.js';
 
 /**
  * Creates an ItemStack for a given item ID, handling enchantments.
@@ -36,7 +37,7 @@ function createShopItemStack(itemId, quantity) {
                 });
             }
         } catch (e) {
-            errorLog(`[ShopManager] Failed to apply enchantment for ${itemId}: ${e}`);
+            errorLog(`[ShopManager] Failed to apply enchantment for ${itemId}:`, e);
         }
     }
 
