@@ -45,7 +45,6 @@ function createShopItemStack(itemId, quantity) {
         itemStack.nameTag = `§r${itemInfo.displayName}`;
     }
 
-
     return itemStack;
 }
 
@@ -79,27 +78,21 @@ export function buyItem(player, itemId, quantity) {
         return { success: false, message: '§cBuying enchanted books is temporarily disabled.' };
     }
 
-    const totalCost = buyPrice * quantity;
+    const initialCost = buyPrice * quantity;
     const playerBalance = economyManager.getBalance(player.id);
 
-    if (playerBalance < totalCost) {
-        return { success: false, message: `§cInsufficient funds. You need §e$${totalCost.toFixed(2)}§c.` };
+    if (playerBalance < initialCost) {
+        return { success: false, message: `§cInsufficient funds. You need §e$${initialCost.toFixed(2)}§c to attempt this purchase.` };
     }
 
-    const itemStack = createShopItemStack(itemId, quantity);
-    if (!itemStack) {
-        return { success: false, message: '§cThere was an error creating the item. Please report this to an admin.' };
-    }
-
-    debugLog(`[ShopManager] Attempting to give ${player.name} item ${itemId} with quantity ${itemStack.amount}`);
     const inventory = player.getComponent('inventory').container;
-    const itemStackTemplate = createShopItemStack(itemId, 1); // Template for checking type and stack size
+    const itemStackTemplate = createShopItemStack(itemId, 1);
 
     if (!itemStackTemplate) {
         return { success: false, message: '§cThere was an error creating the item. Please report this to an admin.' };
     }
 
-    // Proper inventory space check
+    // 1. Calculate true available space in inventory
     let spaceFound = 0;
     const maxStackSize = itemStackTemplate.maxAmount;
 
@@ -113,29 +106,39 @@ export function buyItem(player, itemId, quantity) {
             }
         }
     } else { // Item is not stackable
-        for (let i = 0; i < inventory.size; i++) {
-            if (!inventory.getItem(i)) {
-                spaceFound++;
-            }
-        }
+        // We assume emptySlotsCount exists. If not, this will need a manual loop.
+        spaceFound = inventory.emptySlotsCount;
     }
 
-    if (spaceFound < quantity) {
-        return { success: false, message: `§cYou do not have enough inventory space. You can only fit ${spaceFound} more.` };
+    // 2. Validate and adjust quantity based on space
+    if (spaceFound === 0) {
+        return { success: false, message: '§cYou have no space for this item.' };
     }
 
-    // All checks passed. Now do the real transaction.
-    economyManager.removeBalance(player.id, totalCost);
+    let finalQuantity = quantity;
+    if (finalQuantity > spaceFound) {
+        player.sendMessage(`§eNotice: You only have space for ${spaceFound}. Buying that amount instead.`);
+        finalQuantity = spaceFound;
+    }
 
-    // Give the items one by one to avoid the stack bug in the beta API.
-    for (let i = 0; i < quantity; i++) {
+    // 3. Recalculate cost and perform final transaction
+    const finalCost = buyPrice * finalQuantity;
+    if (playerBalance < finalCost) {
+        // This can happen if the adjusted quantity is still too expensive, though unlikely if the initial check passed.
+        return { success: false, message: `§cInsufficient funds. You need §e$${finalCost.toFixed(2)}§c to buy ${finalQuantity}.` };
+    }
+
+    economyManager.removeBalance(player.id, finalCost);
+
+    // 4. Give items one by one to avoid stack bugs
+    for (let i = 0; i < finalQuantity; i++) {
         const singleItemStack = createShopItemStack(itemId, 1);
         if (singleItemStack) {
             inventory.addItem(singleItemStack);
         }
     }
 
-    return { success: true, message: `§aSuccessfully purchased ${quantity}x ${masterItem.displayName ?? itemId} for §e$${totalCost.toFixed(2)}§a.` };
+    return { success: true, message: `§aSuccessfully purchased ${finalQuantity}x ${masterItem.displayName ?? itemId} for §e$${finalCost.toFixed(2)}§a.` };
 }
 
 /**
