@@ -6,7 +6,6 @@
  *
  * The structure for the saved config will be:
  * {
- *   version: "1.0.0", // To handle future migrations
  *   items: {
  *     // Example of an enabled item. The key corresponds to a key in itemsConfig.js.
  *     // "diamond": {
