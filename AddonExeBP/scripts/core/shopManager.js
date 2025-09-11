@@ -93,27 +93,38 @@ export function buyItem(player, itemId, quantity) {
 
     debugLog(`[ShopManager] Attempting to give ${player.name} item ${itemId} with quantity ${itemStack.amount}`);
     const inventory = player.getComponent('inventory').container;
+    const itemStackTemplate = createShopItemStack(itemId, 1); // Template for checking type and stack size
 
-    // Due to bugs in the beta API's addItem, we will do a "dry run" to check for space first.
-    const itemStackForTest = createShopItemStack(itemId, quantity);
-    if (!itemStackForTest) {
+    if (!itemStackTemplate) {
         return { success: false, message: '§cThere was an error creating the item. Please report this to an admin.' };
     }
 
-    const remainder = inventory.addItem(itemStackForTest);
-    const amountAdded = quantity - (remainder?.amount ?? 0);
+    // Proper inventory space check
+    let spaceFound = 0;
+    const maxStackSize = itemStackTemplate.maxAmount;
 
-    // Immediately remove what was added to make this a check, not a final transaction.
-    if (amountAdded > 0) {
-        player.runCommand(`clear "${player.name}" ${itemStackForTest.typeId.replace('minecraft:', '')} 0 ${amountAdded}`);
+    if (maxStackSize > 1) { // Item is stackable
+        for (let i = 0; i < inventory.size; i++) {
+            const item = inventory.getItem(i);
+            if (!item) {
+                spaceFound += maxStackSize;
+            } else if (item.isStackableWith(itemStackTemplate)) {
+                spaceFound += maxStackSize - item.amount;
+            }
+        }
+    } else { // Item is not stackable
+        for (let i = 0; i < inventory.size; i++) {
+            if (!inventory.getItem(i)) {
+                spaceFound++;
+            }
+        }
     }
 
-    // If the full quantity was not "added" during the test, there isn't enough space.
-    if (amountAdded < quantity) {
-        return { success: false, message: '§cYour inventory does not have enough space for this purchase.' };
+    if (spaceFound < quantity) {
+        return { success: false, message: `§cYou do not have enough inventory space. You can only fit ${spaceFound} more.` };
     }
 
-    // If we are here, the test passed. Now do the real transaction.
+    // All checks passed. Now do the real transaction.
     economyManager.removeBalance(player.id, totalCost);
 
     // Give the items one by one to avoid the stack bug in the beta API.
