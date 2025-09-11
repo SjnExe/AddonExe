@@ -280,43 +280,59 @@ async function handleFormResponse(player, panelId, response, context) {
         const masterItem = allItems[itemId];
         const shopItem = shopConfig.items[itemId];
 
-        const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
-        modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
+        const canBuy = view !== 'sell' && shopItem.buyPrice > 0;
+        const canSell = view !== 'buy' && shopItem.sellPrice > 0;
 
-        const options = [];
-        if (view !== 'sell' && shopItem.buyPrice > 0) {
-            options.push(`Buy ($${shopItem.buyPrice})`);
-        }
-        if (view !== 'buy' && shopItem.sellPrice > 0) {
-            options.push(`Sell ($${shopItem.sellPrice})`);
-        }
-
-        if (options.length === 0) {
+        if (!canBuy && !canSell) {
             player.sendMessage('§cThis item cannot be bought or sold currently.');
             return showPanel(player, panelId, context);
         }
 
-        modal.dropdown('Action', options, { defaultValueIndex: 0 });
+        const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
+        modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
+
+        let action;
+        let hasDropdown = false;
+
+        if (canBuy && canSell) {
+            const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
+            modal.dropdown('Action', options, { defaultValueIndex: 0 });
+            hasDropdown = true;
+        } else if (canBuy) {
+            modal.body(`§fPrice: §a$${shopItem.buyPrice} §fper item.`);
+            action = 'buy';
+        } else { // canSell
+            modal.body(`§fPrice: §c$${shopItem.sellPrice} §fper item.`);
+            action = 'sell';
+        }
+
         const modalResponse = await utils.uiWait(player, modal);
 
         if (modalResponse.canceled) {
             return showPanel(player, panelId, context);
         }
 
-        const [amountStr, actionIndex] = modalResponse.formValues;
-        const amount = parseInt(amountStr, 10);
+        let amount;
+        if (hasDropdown) {
+            const [amountStr, actionIndex] = modalResponse.formValues;
+            amount = parseInt(amountStr, 10);
+            const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
+            const selectedActionString = options[actionIndex];
+            action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
+        } else {
+            const [amountStr] = modalResponse.formValues;
+            amount = parseInt(amountStr, 10);
+        }
+
         if (isNaN(amount) || amount <= 0) {
             player.sendMessage('§cInvalid amount.');
             return showPanel(player, panelId, context);
         }
 
-        const selectedActionString = options[actionIndex];
-        const action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
-
         let result;
         if (action === 'buy') {
             result = shopManager.buyItem(player, itemId, amount);
-        } else {
+        } else { // action === 'sell'
             result = shopManager.sellItem(player, itemId, amount);
         }
         player.sendMessage(result.message);

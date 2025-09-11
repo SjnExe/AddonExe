@@ -1,4 +1,4 @@
-import { ItemStack, ItemTypes } from '@minecraft/server';
+import { ItemStack, ItemTypes, EnchantmentTypes } from '@minecraft/server';
 import * as economyManager from './economyManager.js';
 import { getShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
@@ -31,7 +31,7 @@ function createShopItemStack(itemId, quantity) {
             const enchantable = itemStack.getComponent('minecraft:enchantable');
             if (enchantable) {
                 enchantable.addEnchantment({
-                    type: itemInfo.enchantment.id,
+                    type: EnchantmentTypes.get(itemInfo.enchantment.id),
                     level: itemInfo.enchantment.level
                 });
             }

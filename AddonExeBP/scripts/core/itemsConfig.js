@@ -170,7 +170,7 @@ export const items = {
     enchantUnbreaking3: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 4000,
-        sellPrice: 1000,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'General',
         displayName: 'Unbreaking III',
@@ -181,7 +181,7 @@ export const items = {
     enchantSharpness5: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 5000,
-        sellPrice: 1500,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Sword',
         displayName: 'Sharpness V',
@@ -190,7 +190,7 @@ export const items = {
     enchantLooting3: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 3000,
-        sellPrice: 800,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Sword',
         displayName: 'Looting III',
@@ -199,7 +199,7 @@ export const items = {
     enchantFireAspect2: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 2000,
-        sellPrice: 500,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Sword',
         displayName: 'Fire Aspect II',
@@ -210,7 +210,7 @@ export const items = {
     enchantProtection4: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 4500,
-        sellPrice: 1200,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Armour',
         displayName: 'Protection IV',
@@ -219,7 +219,7 @@ export const items = {
     enchantFeatherFalling4: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 3500,
-        sellPrice: 900,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Armour',
         displayName: 'Feather Falling IV',
@@ -230,7 +230,7 @@ export const items = {
     enchantEfficiency5: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 5000,
-        sellPrice: 1500,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Tools',
         displayName: 'Efficiency V',
@@ -239,7 +239,7 @@ export const items = {
     enchantFortune3: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 4000,
-        sellPrice: 1000,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Tools',
         displayName: 'Fortune III',
@@ -259,7 +259,7 @@ export const items = {
     enchantPower5: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 5000,
-        sellPrice: 1500,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Bow',
         displayName: 'Power V',
@@ -275,9 +275,10 @@ export const items = {
         enchantment: { id: 'infinity', level: 1 }
     },
     enchantFlame: {
+        _comment: "Note: sellPrice changed from 500 to -1",
         icon: 'minecraft:enchanted_book',
         buyPrice: 2000,
-        sellPrice: 500,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Bow',
         displayName: 'Flame',
@@ -288,7 +289,7 @@ export const items = {
     enchantImpaling5: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 3000,
-        sellPrice: 700,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Trident',
         displayName: 'Impaling V',
@@ -297,7 +298,7 @@ export const items = {
     enchantLoyalty3: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 2500,
-        sellPrice: 600,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Trident',
         displayName: 'Loyalty III',
@@ -315,7 +316,7 @@ export const items = {
     enchantRiptide3: {
         icon: 'minecraft:enchanted_book',
         buyPrice: 3500,
-        sellPrice: 800,
+        sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Trident',
         displayName: 'Riptide III',
