@@ -73,6 +73,11 @@ export function buyItem(player, itemId, quantity) {
         return { success: false, message: '§cThis item cannot be purchased.' };
     }
 
+    // TODO: Re-enable when enchantment API is figured out.
+    if (masterItem.enchantment) {
+        return { success: false, message: '§cBuying enchanted books is temporarily disabled.' };
+    }
+
     const totalCost = buyPrice * quantity;
     const playerBalance = economyManager.getBalance(player.id);
 
@@ -85,6 +90,7 @@ export function buyItem(player, itemId, quantity) {
         return { success: false, message: '§cThere was an error creating the item. Please report this to an admin.' };
     }
 
+    debugLog(`[ShopManager] Attempting to give ${player.name} item ${itemId} with quantity ${itemStack.amount}`);
     const inventory = player.getComponent('inventory').container;
     const remainder = inventory.addItem(itemStack);
 
