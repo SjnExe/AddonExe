@@ -7,7 +7,9 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "lint:report": "eslint . --output-file eslint_report.txt"
+        "lint:report": "eslint . --output-file eslint_report.txt",
+        "validate": "npx mct validate default PRJINT,UNKJSON --display-only",
+        "validate:report": "npx mct validate default PRJINT,UNKJSON -o validation_report"
     },
     "repository": {
         "type": "git",
@@ -24,6 +26,7 @@
     "devDependencies": {
         "@eslint/eslintrc": "^3.3.1",
         "@eslint/js": "^9.35.0",
+        "@minecraft/creator-tools": "^0.14.1",
         "eslint": "^9.35.0",
         "eslint-plugin-jsonc": "^2.20.1",
         "globals": "^16.3.0"

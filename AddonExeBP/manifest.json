@@ -9,7 +9,11 @@
             21,
             100
         ],
-        "version": [1, 0, 0]
+        "version": [
+            1,
+            0,
+            0
+        ]
     },
     "modules": [
         {
@@ -37,17 +41,11 @@
             "version": "2.1.0-beta"
         },
         {
-            "module_name": "@minecraft/server-gametest",
-            "version": "1.0.0-beta"
-        },
-        {
             "uuid": "9dca0c93-f6ec-4701-a74c-a774600640a4",
             "version": [1, 0, 0]
         }
     ],
-    "capabilities": [
-        "script_eval"
-    ],
+    "capabilities": [],
     "metadata": {
         "authors": [
             "§6Sjn.exe§r"
