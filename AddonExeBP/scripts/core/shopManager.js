@@ -132,7 +132,7 @@ export function buyItem(player, itemId, quantity) {
         }
     }
 
-    return { success: true, message: `§aSuccessfully purchased ${finalQuantity}x ${masterItem.displayName ?? itemId} for §e$${finalCost.toFixed(2)}§a.` };
+    return { success: true, message: `§2Successfully purchased ${finalQuantity}x ${masterItem.displayName ?? itemId} for §e$${finalCost.toFixed(2)}§2.` };
 }
 
 /**
@@ -187,5 +187,5 @@ export function sellItem(player, itemId, quantity) {
     const totalGain = sellPrice * quantity;
     economyManager.addBalance(player.id, totalGain);
 
-    return { success: true, message: `§aSuccessfully sold ${quantity}x ${masterItem.displayName ?? itemId} for §e$${totalGain.toFixed(2)}§a.` };
+    return { success: true, message: `§2Successfully sold ${quantity}x ${masterItem.displayName ?? itemId} for §e$${totalGain.toFixed(2)}§2.` };
 }

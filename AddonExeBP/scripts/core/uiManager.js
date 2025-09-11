@@ -289,20 +289,19 @@ async function handleFormResponse(player, panelId, response, context) {
         }
 
         const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
-        modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
-
         let action;
         let hasDropdown = false;
 
         if (canBuy && canSell) {
+            modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
             const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
             modal.dropdown('Action', options, { defaultValueIndex: 0 });
             hasDropdown = true;
         } else if (canBuy) {
-            modal.body(`§fPrice: §a$${shopItem.buyPrice} §fper item.`);
+            modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', { defaultValue: '1' });
             action = 'buy';
         } else { // canSell
-            modal.body(`§fPrice: §c$${shopItem.sellPrice} §fper item.`);
+            modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', { defaultValue: '1' });
             action = 'sell';
         }
 
@@ -583,11 +582,11 @@ function buildShopCategoryPanel(form, context) {
             const shopItem = shopConfig.items[entry.id];
             let priceString = '';
             if (view === 'buy' && shopItem.buyPrice > 0) {
-                priceString = `§aBuy: $${shopItem.buyPrice}`;
+                priceString = `§2Buy: $${shopItem.buyPrice}`;
             } else if (view === 'sell' && shopItem.sellPrice > 0) {
                 priceString = `§cSell: $${shopItem.sellPrice}`;
             } else {
-                const buy = shopItem.buyPrice > 0 ? `§aB: $${shopItem.buyPrice}` : '';
+                const buy = shopItem.buyPrice > 0 ? `§2B: $${shopItem.buyPrice}` : '';
                 const sell = shopItem.sellPrice > 0 ? `§cS: $${shopItem.sellPrice}` : '';
                 priceString = [buy, sell].filter(Boolean).join(' ');
             }
@@ -617,11 +616,11 @@ function buildShopItemListPanel(form, context) {
         const shopItem = shopConfig.items[itemId];
         let priceString = '';
         if (view === 'buy' && shopItem.buyPrice > 0) {
-            priceString = `§aBuy: $${shopItem.buyPrice}`;
+            priceString = `§2Buy: $${shopItem.buyPrice}`;
         } else if (view === 'sell' && shopItem.sellPrice > 0) {
             priceString = `§cSell: $${shopItem.sellPrice}`;
         } else {
-            const buy = shopItem.buyPrice > 0 ? `§aB: $${shopItem.buyPrice}` : '';
+            const buy = shopItem.buyPrice > 0 ? `§2B: $${shopItem.buyPrice}` : '';
             const sell = shopItem.sellPrice > 0 ? `§cS: $${shopItem.sellPrice}` : '';
             priceString = [buy, sell].filter(Boolean).join(' ');
         }
@@ -649,7 +648,7 @@ function buildEditShopCategoryPanel(form, context) {
     for (const itemId of paginatedItems) {
         const masterItem = allItems[itemId];
         const shopItem = shopConfig.items[itemId];
-        const status = shopItem ? '§a[Enabled]' : '§c[Disabled]';
+        const status = shopItem ? '§2[Enabled]' : '§c[Disabled]';
         form.button(`${masterItem.displayName ?? itemId}\n${status}`, masterItem.icon);
     }
     addPaginationButtons(form, page, itemsInCategory.length);
