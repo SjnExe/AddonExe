@@ -3,7 +3,6 @@ import * as economyManager from './economyManager.js';
 import { getShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
 import { errorLog } from './errorLogger.js';
-import { debugLog } from './logger.js';
 
 /**
  * Creates an ItemStack for a given item ID, handling enchantments.
@@ -71,11 +70,6 @@ export function buyItem(player, itemId, quantity) {
     const buyPrice = shopItem.buyPrice;
     if (buyPrice <= 0) {
         return { success: false, message: '§cThis item cannot be purchased.' };
-    }
-
-    // TODO: Re-enable when enchantment API is figured out.
-    if (masterItem.enchantment) {
-        return { success: false, message: '§cBuying enchanted books is temporarily disabled.' };
     }
 
     const initialCost = buyPrice * quantity;
@@ -164,11 +158,6 @@ export function sellItem(player, itemId, quantity) {
     const sellPrice = shopItem.sellPrice;
     if (sellPrice <= 0) {
         return { success: false, message: '§cThis item cannot be sold.' };
-    }
-
-    // For now, we will not support selling enchanted books due to complexity.
-    if (masterItem.enchantment) {
-        return { success: false, message: '§cSelling enchanted books is not supported at this time.' };
     }
 
     const inventory = player.getComponent('inventory').container;
