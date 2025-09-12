@@ -224,13 +224,13 @@ export const items = {
         sellPrice: 5,
         category: 'Building Blocks'
     },
-    white_concrete: {
+    whiteConcrete: {
         icon: 'minecraft:white_concrete',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Building Blocks'
     },
-    stone_bricks: {
+    stoneBricks: {
         icon: 'minecraft:stone_bricks',
         buyPrice: 12,
         sellPrice: 6,
@@ -441,7 +441,7 @@ export const items = {
         enchantment: { id: 'infinity', level: 1 }
     },
     enchantFlame: {
-        _comment: "Note: sellPrice changed from 500 to -1",
+        _comment: 'Note: sellPrice changed from 500 to -1',
         icon: 'minecraft:enchanted_book',
         buyPrice: 2000,
         sellPrice: -1,
