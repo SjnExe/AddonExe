@@ -19,55 +19,64 @@ export const items = {
         icon: 'minecraft:diamond',
         buyPrice: 1000,
         sellPrice: 500,
-        category: 'Ores & Minerals'
+        category: 'Ores & Minerals',
+        displayName: 'Diamond'
     },
     emerald: {
         icon: 'minecraft:emerald',
         buyPrice: 800,
         sellPrice: 400,
-        category: 'Ores & Minerals'
+        category: 'Ores & Minerals',
+        displayName: 'Emerald'
     },
     goldIngot: {
         icon: 'minecraft:gold_ingot',
         buyPrice: 100,
         sellPrice: 50,
-        category: 'Ores & Minerals'
+        category: 'Ores & Minerals',
+        displayName: 'Gold Ingot'
     },
     ironIngot: {
         icon: 'minecraft:iron_ingot',
         buyPrice: 50,
         sellPrice: 25,
-        category: 'Ores & Minerals'
+        category: 'Ores & Minerals',
+        displayName: 'Iron Ingot'
     },
     netheriteIngot: {
         icon: 'minecraft:netherite_ingot',
         buyPrice: 10000,
         sellPrice: 5000,
-        category: 'Ores & Minerals'
+        category: 'Ores & Minerals',
+        displayName: 'Netherite Ingot'
     },
     netheriteScrap: {
         icon: 'minecraft:netherite_scrap',
         buyPrice: 2000,
         sellPrice: 1000,
-        category: 'Ores & Minerals'
+        category: 'Ores & Minerals',
+        displayName: 'Netherite Scrap'
     },
     ancientDebris: {
         icon: 'minecraft:ancient_debris',
         buyPrice: 1800,
         sellPrice: 900,
-        category: 'Ores & Minerals'
+        category: 'Ores & Minerals',
+        displayName: 'Ancient Debris'
     },
     lapisLazuli: {
         icon: 'minecraft:lapis_lazuli',
         buyPrice: 20,
         sellPrice: 10,
-        category: 'Ores & Minerals'
+        category: 'Ores & Minerals',
+        displayName: 'Lapis Lazuli'
     },
     quartz: {
         icon: 'minecraft:quartz',
         buyPrice: 30,
         sellPrice: 15,
-        category: 'Ores & Minerals'
+        category: 'Ores & Minerals',
+        displayName: 'Quartz'
     },
 
     // == Special Items ==
@@ -75,31 +84,36 @@ export const items = {
         icon: 'minecraft:totem_of_undying',
         buyPrice: 5000,
         sellPrice: 2500,
-        category: 'Special Items'
+        category: 'Special Items',
+        displayName: 'Totem Of Undying'
     },
     netherStar: {
         icon: 'minecraft:nether_star',
         buyPrice: 20000,
         sellPrice: -1, // Cannot be sold
-        category: 'Special Items'
+        category: 'Special Items',
+        displayName: 'Nether Star'
     },
     shulkerShell: {
         icon: 'minecraft:shulker_shell',
         buyPrice: 750,
         sellPrice: 300,
-        category: 'Special Items'
+        category: 'Special Items',
+        displayName: 'Shulker Shell'
     },
     elytra: {
         icon: 'minecraft:elytra',
         buyPrice: 15000,
         sellPrice: -1,
-        category: 'Special Items'
+        category: 'Special Items',
+        displayName: 'Elytra'
     },
     witherSkeletonSkull: {
         icon: 'minecraft:wither_skeleton_skull',
         buyPrice: 8000,
         sellPrice: 2000,
-        category: 'Special Items'
+        category: 'Special Items',
+        displayName: 'Wither Skeleton Skull'
     },
     enchantedGoldenApple: {
         icon: 'minecraft:enchanted_golden_apple',
@@ -186,67 +200,78 @@ export const items = {
         icon: 'minecraft:stone',
         buyPrice: 10,
         sellPrice: 5,
-        category: 'Building Blocks'
+        category: 'Building Blocks',
+        displayName: 'Stone'
     },
     cobblestone: {
         icon: 'minecraft:cobblestone',
         buyPrice: 5,
         sellPrice: 1,
-        category: 'Building Blocks'
+        category: 'Building Blocks',
+        displayName: 'Cobblestone'
     },
     dirt: {
         icon: 'minecraft:dirt',
         buyPrice: 2,
         sellPrice: 1,
-        category: 'Building Blocks'
+        category: 'Building Blocks',
+        displayName: 'Dirt'
     },
     sand: {
         icon: 'minecraft:sand',
         buyPrice: 5,
         sellPrice: 2,
-        category: 'Building Blocks'
+        category: 'Building Blocks',
+        displayName: 'Sand'
     },
     gravel: {
         icon: 'minecraft:gravel',
         buyPrice: 5,
         sellPrice: 2,
-        category: 'Building Blocks'
+        category: 'Building Blocks',
+        displayName: 'Gravel'
     },
     glass: {
         icon: 'minecraft:glass',
         buyPrice: 15,
         sellPrice: 5,
-        category: 'Building Blocks'
+        category: 'Building Blocks',
+        displayName: 'Glass'
     },
     terracotta: {
         icon: 'minecraft:terracotta',
         buyPrice: 10,
         sellPrice: 5,
-        category: 'Building Blocks'
+        category: 'Building Blocks',
+        displayName: 'Terracotta'
     },
     whiteConcrete: {
         icon: 'minecraft:white_concrete',
         buyPrice: 20,
         sellPrice: 10,
-        category: 'Building Blocks'
+        category: 'Building Blocks',
+        displayName: 'White Concrete'
     },
     stoneBricks: {
         icon: 'minecraft:stone_bricks',
         buyPrice: 12,
         sellPrice: 6,
-        category: 'Building Blocks'
+        category: 'Building Blocks',
+        displayName: 'Stone Bricks'
     },
     obsidian: {
         icon: 'minecraft:obsidian',
         buyPrice: 100,
         sellPrice: 50,
-        category: 'Building Blocks'
+        category: 'Building Blocks',
+        displayName: 'Obsidian'
     },
     glowstone: {
         icon: 'minecraft:glowstone',
         buyPrice: 80,
         sellPrice: 40,
-        category: 'Building Blocks'
+        category: 'Building Blocks',
+        displayName: 'Glowstone'
     },
 
     // == Food ==
@@ -254,7 +279,8 @@ export const items = {
         icon: 'minecraft:steak',
         buyPrice: 20,
         sellPrice: 10,
-        category: 'Food'
+        category: 'Food',
+        displayName: 'Steak'
     },
     cookedPorkchop: {
         icon: 'minecraft:cooked_porkchop',
@@ -267,7 +293,8 @@ export const items = {
         icon: 'minecraft:bread',
         buyPrice: 15,
         sellPrice: 5,
-        category: 'Food'
+        category: 'Food',
+        displayName: 'Bread'
     },
     goldenCarrot: {
         icon: 'minecraft:golden_carrot',
@@ -282,44 +309,51 @@ export const items = {
         icon: 'minecraft:wheat',
         buyPrice: 5,
         sellPrice: 2,
-        category: 'Farming'
+        category: 'Farming',
+        displayName: 'Wheat'
     },
     carrot: {
         icon: 'minecraft:carrot',
         buyPrice: 5,
         sellPrice: 2,
-        category: 'Farming'
+        category: 'Farming',
+        displayName: 'Carrot'
     },
     potato: {
         icon: 'minecraft:potato',
         buyPrice: 5,
         sellPrice: 2,
-        category: 'Farming'
+        category: 'Farming',
+        displayName: 'Potato'
     },
     melonSlice: {
         icon: 'minecraft:melon_slice',
         buyPrice: 3,
         sellPrice: 1,
-        category: 'Farming'
+        category: 'Farming',
+        displayName: 'Melon Slice'
     },
     pumpkin: {
         icon: 'minecraft:pumpkin',
         buyPrice: 10,
         sellPrice: 5,
-        category: 'Farming'
+        category: 'Farming',
+        displayName: 'Pumpkin'
     },
     sugarCane: {
         icon: 'minecraft:sugar_cane',
         buyPrice: 8,
         sellPrice: 4,
-        category: 'Farming'
+        category: 'Farming',
+        displayName: 'Sugar Cane'
     },
     netherWart: {
         icon: 'minecraft:nether_wart',
         buyPrice: 25,
         sellPrice: 10,
         category: 'Farming',
-        subCategory: 'Potions'
+        subCategory: 'Potions',
+        displayName: 'Nether Wart'
     },
 
     // == Enchantment Books ==

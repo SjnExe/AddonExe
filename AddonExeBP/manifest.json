@@ -4,10 +4,8 @@
         "name": "§l§cAddon§6Exe §2BP§r",
         "description": "§aThe core behavior pack for AddonExe, a powerful server management and moderation tool. By Sjn.exe. Version §uv1.0.0§r",
         "uuid": "1564bfa3-6796-4b67-826a-03ca1ac2f3c1",
-        "version": [1,0,0],
-        "min_engine_version": [1,21,100],
-        "base_game_version": [1,21,100],
-        "lock_template_options": true
+        "version": [1, 0, 0],
+        "min_engine_version": [1,21,100]
     },
     "modules": [
         {
