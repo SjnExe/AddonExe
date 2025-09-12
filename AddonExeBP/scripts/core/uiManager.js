@@ -576,7 +576,7 @@ function buildShopCategoryPanel(form, context) {
 
     for (const entry of paginatedEntries) {
         if (entry.type === 'subCategory') {
-            form.button(`§e${entry.id}`, 'textures/gui/folder_glyph.png');
+            form.button(`§e${entry.id}`, 'textures/gui/folder_glyph');
         } else {
             const masterItem = allItems[entry.id];
             const shopItem = shopConfig.items[entry.id];
@@ -633,7 +633,7 @@ function buildShopItemListPanel(form, context) {
 function buildEditShopMainPanel(form) {
     const categories = [...new Set(Object.values(allItems).map(item => item.category))];
     for (const category of categories.sort()) {
-        form.button(category, 'textures/gui/folder_glyph.png');
+        form.button(category, 'textures/gui/folder_glyph');
     }
 }
 
