@@ -81,7 +81,7 @@ export const items = {
 
     // == Special Items ==
     totemOfUndying: {
-        icon: 'textures/items/totem_of_undying',
+        icon: 'textures/items/totem',
         buyPrice: 5000,
         sellPrice: 2500,
         category: 'Special Items',
@@ -116,7 +116,7 @@ export const items = {
         displayName: 'Wither Skeleton Skull'
     },
     enchantedGoldenApple: {
-        icon: 'textures/items/apple_golden_enchanted',
+        icon: 'textures/items/apple_golden',
         buyPrice: 25000,
         sellPrice: -1,
         category: 'Special Items',
