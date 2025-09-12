@@ -7,6 +7,14 @@
         "tags": [
             "crafting_table"
         ],
+        "unlock": [
+            {
+                "item": "minecraft:stick"
+            },
+            {
+                "tag": "minecraft:planks"
+            }
+        ],
         "ingredients": [
             {
                 "item": "minecraft:stick"

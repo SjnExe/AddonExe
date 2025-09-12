@@ -112,7 +112,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'shop',
-                text: '§aShop',
+                text: '§2Shop',
                 icon: 'textures/items/emerald.png',
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',
@@ -121,7 +121,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'editShop',
-                text: '§bEdit Shop',
+                text: '§eEdit Shop',
                 icon: 'textures/ui/editIcon.png',
                 permissionLevel: 1, // Admin only
                 actionType: 'openPanel',
