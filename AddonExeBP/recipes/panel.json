@@ -4,6 +4,9 @@
         "description": {
             "identifier": "exe:panel_recipe"
         },
+        "tags": [
+            "crafting_table"
+        ],
         "unlock": [
             {
                 "item": "minecraft:stick"
