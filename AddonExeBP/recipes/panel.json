@@ -1,9 +1,13 @@
 {
-    "format_version": "1.21.0",
+    "format_version": "1.21.100",
     "minecraft:recipe_shapeless": {
         "description": {
             "identifier": "exe:panel_recipe"
         },
+        "tags": [
+            "crafting_table",
+            "crafting_screen"
+        ],
         "unlock": [
             {
                 "item": "minecraft:stick"
