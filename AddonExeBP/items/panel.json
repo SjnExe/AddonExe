@@ -13,6 +13,12 @@
             "minecraft:display_name": {
                 "value": "§l§bPanel§r"
             },
+            "minecraft:lore": {
+                "value": [
+                    "§r§7Right-click to open",
+                    "§r§7From AddonExe"
+                ]
+            },
             "minecraft:hand_equipped": true,
             "minecraft:can_destroy_in_creative": false,
             "minecraft:stacked_by_data": true,
