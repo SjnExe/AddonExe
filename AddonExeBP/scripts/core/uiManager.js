@@ -86,7 +86,7 @@ async function buildPanelForm(player, panelId, context) {
     // Handle dynamic shop panels before falling back to static definitions
     if (panelId.startsWith('shopCategoryPanel_')) {
         const category = panelId.replace('shopCategoryPanel_', '');
-        const form = new ActionFormData().title(`§l§aShop - ${category}`);
+        const form = new ActionFormData().title(`§l§2Shop - ${category}`);
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
         buildShopCategoryPanel(form, { ...context, category, page: context.page || 1 });
         return form;
@@ -95,14 +95,14 @@ async function buildPanelForm(player, panelId, context) {
         const parts = panelId.replace('shopItemListPanel_', '').split('_');
         const category = parts[0];
         const subCategory = parts.slice(1).join('_');
-        const form = new ActionFormData().title(`§l§aShop - ${subCategory}`);
+        const form = new ActionFormData().title(`§l§2Shop - ${subCategory}`);
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
         buildShopItemListPanel(form, { ...context, category, subCategory, page: context.page || 1 });
         return form;
     }
     if (panelId.startsWith('editShopCategoryPanel_')) {
         const category = panelId.replace('editShopCategoryPanel_', '');
-        const form = new ActionFormData().title(`§l§bEdit - ${category}`);
+        const form = new ActionFormData().title(`§l§eEdit - ${category}`);
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
         buildEditShopCategoryPanel(form, { ...context, category, page: context.page || 1 });
         return form;
