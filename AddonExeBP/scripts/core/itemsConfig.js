@@ -58,14 +58,14 @@ export const items = {
         displayName: 'Netherite Scrap'
     },
     ancientDebris: {
-        icon: 'textures/items/ancient_debris_side',
+        icon: 'textures/blocks/ancient_debris_side',
         buyPrice: 1800,
         sellPrice: 900,
         category: 'Ores & Minerals',
         displayName: 'Ancient Debris'
     },
     lapisLazuli: {
-        icon: 'textures/items/lapis_lazuli',
+        icon: 'textures/items/lapis',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Ores & Minerals',
@@ -109,7 +109,7 @@ export const items = {
         displayName: 'Elytra'
     },
     witherSkeletonSkull: {
-        icon: 'textures/items/skull_wither',
+        icon: 'textures/items/skull_wither_skeleton',
         buyPrice: 8000,
         sellPrice: 2000,
         category: 'Special Items',
@@ -181,14 +181,14 @@ export const items = {
         displayName: 'Cherry Log'
     },
     crimsonStem: {
-        icon: 'textures/blocks/crimson_stem_side',
+        icon: 'textures/blocks/crimson_stem',
         buyPrice: 25,
         sellPrice: 12,
         category: 'Logs',
         displayName: 'Crimson Stem'
     },
     warpedStem: {
-        icon: 'textures/blocks/warped_stem_side',
+        icon: 'textures/blocks/warped_stem',
         buyPrice: 25,
         sellPrice: 12,
         category: 'Logs',
@@ -334,7 +334,7 @@ export const items = {
         displayName: 'Melon Slice'
     },
     pumpkin: {
-        icon: 'textures/blocks/pumpkin_face_off',
+        icon: 'textures/blocks/pumpkin_side',
         buyPrice: 10,
         sellPrice: 5,
         category: 'Farming',
