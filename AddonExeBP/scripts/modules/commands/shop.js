@@ -1,7 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { showPanel } from '../../core/uiManager.js';
 import * as shopManager from '../../core/shopManager.js';
-import { allItems } from '../../core/itemsConfig.js';
+import { items as allItems } from '../../core/itemsConfig.js';
 
 commandManager.register({
     name: 'shop',
