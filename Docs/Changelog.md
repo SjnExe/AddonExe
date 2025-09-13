@@ -15,7 +15,7 @@ This version introduces critical security fixes, bug fixes, and stability improv
 
 ### 🐛 Bug Fixes
 
-- **Shop `sell` and `/sellhand` Reliability**: Replaced the unreliable `/clear` command in the shop's selling logic with a direct, robust inventory manipulation method. This ensures that selling items, especially via `/sellhand`, works correctly for all item types, including unstackable ones.
+- **`/sellhand` for Unstackable Items**: Disabled the `/sellhand` command for unstackable items to prevent issues with the underlying `/clear` command. The command will now show an error message if used with an unstackable item.
 - **Punishment Data Loss on Crash**: Fixed a critical bug where punishments (bans/mutes) could be lost if the server crashed. Punishments are now saved to disk immediately upon being issued or removed, instead of waiting for the next auto-save cycle.
 
 ### 🎨 Changes

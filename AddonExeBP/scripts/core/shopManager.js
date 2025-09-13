@@ -180,25 +180,8 @@ export function sellItem(player, itemId, quantity) {
         return { success: false, message: `§cYou do not have enough of this item. You only have ${count}.` };
     }
 
-    // Remove items from inventory
-    let amountToRemove = quantity;
-    for (let i = 0; i < inventory.size; i++) {
-        if (amountToRemove === 0) {break;}
-
-        const item = inventory.getItem(i);
-        if (item && item.typeId === itemType.id) {
-            if (item.amount <= amountToRemove) {
-                // Remove the whole stack
-                inventory.setItem(i, undefined);
-                amountToRemove -= item.amount;
-            } else {
-                // Decrease the stack amount
-                item.amount -= amountToRemove;
-                inventory.setItem(i, item);
-                amountToRemove = 0;
-            }
-        }
-    }
+    // Remove items
+    player.runCommand(`clear "${player.name}" ${masterItem.icon.replace('minecraft:', '')} 0 ${quantity}`);
 
     // Success
     const totalGain = sellPrice * quantity;
