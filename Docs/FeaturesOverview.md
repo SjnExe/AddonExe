@@ -58,6 +58,7 @@ This document provides a detailed breakdown of the features available in AddonEx
   - Browse items through a categorized and paginated UI.
   - Buy and sell items with specified quantities.
   - Use `/buy` and `/sell` to open a filtered view of the shop.
+  - Quickly sell the item in your hand with `/sellhand`.
 - **Admin Features:**
   - Access an "Edit Shop" panel to manage the shop's inventory.
   - Enable or disable any item from a master list (`itemsConfig.js`).

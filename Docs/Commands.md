@@ -107,6 +107,9 @@ Commands available to all players by default.
   - Opens the shop interface filtered to only show buyable items.
 - **/sell**
   - Opens the shop interface filtered to only show sellable items.
+- **/sellhand**
+  - Sells the item currently in your main hand.
+  - *Chat Alias: `!sellhand` or `!sh`*
 
 ---
 
