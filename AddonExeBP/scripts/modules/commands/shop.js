@@ -72,7 +72,7 @@ commandManager.register({
 
         // Find the shop item key from the item's typeId
         const itemTypeId = item.typeId;
-        const shopItemKey = Object.keys(allItems).find(key => allItems[key].icon === itemTypeId);
+        const shopItemKey = Object.keys(allItems).find(key => allItems[key].itemId === itemTypeId);
 
         if (!shopItemKey) {
             return player.sendMessage("§cYou can't sell this item to the shop.");

@@ -17,9 +17,9 @@ function createShopItemStack(itemId, quantity) {
         return null;
     }
 
-    const itemType = ItemTypes.get(itemInfo.icon);
+    const itemType = ItemTypes.get(itemInfo.itemId);
     if (!itemType) {
-        errorLog(`[ShopManager] Could not find item type for icon: ${itemInfo.icon}`);
+        errorLog(`[ShopManager] Could not find item type for itemId: ${itemInfo.itemId}`);
         return null;
     }
 
@@ -161,7 +161,7 @@ export function sellItem(player, itemId, quantity) {
     }
 
     const inventory = player.getComponent('inventory').container;
-    const itemType = ItemTypes.get(masterItem.icon);
+    const itemType = ItemTypes.get(masterItem.itemId);
     if (!itemType) {
         return { success: false, message: '§cInternal server error: Item type not found.' };
     }
@@ -181,7 +181,7 @@ export function sellItem(player, itemId, quantity) {
     }
 
     // Remove items
-    player.runCommand(`clear "${player.name}" ${masterItem.icon.replace('minecraft:', '')} 0 ${quantity}`);
+    player.runCommand(`clear "${player.name}" ${masterItem.itemId.replace('minecraft:', '')} 0 ${quantity}`);
 
     // Success
     const totalGain = sellPrice * quantity;
