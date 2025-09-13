@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-09-13
+
+### ✨ Features
+
+- **Shop System**: A comprehensive shop system has been added, allowing players to buy and sell items through a user-friendly UI.
+  - `/shop`: Opens the main shop panel.
+  - `/buy`: Opens the buy category in the shop.
+  - `/sell`: Opens the sell category in the shop.
+  - `/sellhand` (alias `/sh`): Quickly sells the item held in the main hand.
+
 ## [0.4.0] - 2025-09-10
 
 This version introduces a significant overhaul of the player management UI, adds new moderation features, and includes several critical bug fixes for core gameplay systems.
