@@ -10,7 +10,7 @@ commandManager.register({
     name: 'removebounty',
     aliases: ['rbounty', 'delbounty', '-bounty'],
     description: 'Removes a bounty from a player using your money.',
-    category: 'Economy',
+    category: 'Bounty System',
     permissionLevel: 1024, // Everyone
     parameters: [
         { name: 'amount', type: 'float', description: 'The amount to remove from the bounty.' },
@@ -97,7 +97,7 @@ commandManager.register({
     name: 'bounty',
     description: 'Place a bounty on a player.',
     aliases: ['setbounty', 'addbounty', '+bounty', 'abounty'],
-    category: 'Economy',
+    category: 'Bounty System',
     permissionLevel: 1024, // Everyone
     parameters: [
         { name: 'target', type: 'player', description: 'The player to place a bounty on.' },
@@ -127,7 +127,7 @@ commandManager.register({
     name: 'listbounty',
     aliases: ['lbounty', 'bounties', 'bountylist', 'showbounties', 'hitlist'],
     description: 'Lists all active bounties or a specific player\'s bounty.',
-    category: 'Economy',
+    category: 'Bounty System',
     permissionLevel: 1024, // Everyone
     allowConsole: true,
     parameters: [

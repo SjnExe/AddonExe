@@ -24,6 +24,7 @@ function showCategorizedHelp(player, userPermissionLevel, isConsole) {
         'Moderation',
         'Economy',
         'Shop System',
+        'Bounty System',
         'Home System',
         'TPA System',
         'General'
