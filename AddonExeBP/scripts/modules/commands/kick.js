@@ -34,7 +34,8 @@ export function kickPlayer(player, targetPlayer, reason) {
     }
 
     try {
-        const commandToRun = `kick "${targetPlayer.name}" ${reason}`;
+        const sanitizedReason = reason.replace(/"/g, '\\"');
+        const commandToRun = `kick "${targetPlayer.name}" ${sanitizedReason}`;
         if (player.isConsole) {
             // For console, run the command in the overworld.
             world.getDimension('overworld').runCommand(commandToRun);

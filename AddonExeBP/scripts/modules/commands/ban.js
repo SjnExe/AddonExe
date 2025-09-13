@@ -47,7 +47,8 @@ export function banPlayer(player, targetPlayer, duration, reason) {
         playSoundFromConfig(player, 'adminNotificationReceived');
         try {
             // Player can run kick command
-            player.runCommand(`kick "${targetPlayer.name}" You have been banned ${durationText}. Reason: ${reason}`);
+            const sanitizedReason = reason.replace(/"/g, '\\"');
+            player.runCommand(`kick "${targetPlayer.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
         } catch (error) {
             player.sendMessage(`§eWarning: Could not kick ${targetPlayer.name} after banning. They will be kicked on next join.`);
             errorLog(`[/x:ban] Failed to run kick command for ${targetPlayer.name} after banning:`, error);
@@ -55,7 +56,8 @@ export function banPlayer(player, targetPlayer, duration, reason) {
     } else {
         // For console, run the command in the overworld.
         try {
-            const command = `kick "${targetPlayer.name}" You have been banned ${durationText}. Reason: ${reason}`;
+            const sanitizedReason = reason.replace(/"/g, '\\"');
+            const command = `kick "${targetPlayer.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`;
             world.getDimension('overworld').runCommand(command);
         } catch (error) {
             // This outer catch is for unexpected errors.
@@ -195,7 +197,8 @@ export function offlineBanPlayer(player, targetId, targetName, duration, reason)
     }
 
     try {
-        player.runCommand(`kick "${targetName}" You have been banned ${durationText}. Reason: ${reason}`);
+        const sanitizedReason = reason.replace(/"/g, '\\"');
+        player.runCommand(`kick "${targetName}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
     } catch {
         // Player is likely offline, which is fine.
     }
