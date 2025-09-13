@@ -7,7 +7,7 @@ commandManager.register({
     name: 'shop',
     description: 'Opens the server shop.',
     aliases: [],
-    category: 'Economy',
+    category: 'Shop System',
     permissionLevel: 1024, // Everyone
     allowConsole: false,
     disableSlashCommand: false,
@@ -21,7 +21,7 @@ commandManager.register({
     name: 'buy',
     description: 'Opens the shop to buy items.',
     aliases: [],
-    category: 'Economy',
+    category: 'Shop System',
     permissionLevel: 1024, // Everyone
     allowConsole: false,
     disableSlashCommand: false,
@@ -35,7 +35,7 @@ commandManager.register({
     name: 'sell',
     description: 'Opens the shop to sell items.',
     aliases: [],
-    category: 'Economy',
+    category: 'Shop System',
     permissionLevel: 1024, // Everyone
     allowConsole: false,
     disableSlashCommand: false,
@@ -49,7 +49,7 @@ commandManager.register({
     name: 'sellhand',
     description: 'Sells the item currently in your main hand.',
     aliases: ['sh'],
-    category: 'Economy',
+    category: 'Shop System',
     permissionLevel: 1024, // Everyone
     allowConsole: false,
     disableSlashCommand: false,
