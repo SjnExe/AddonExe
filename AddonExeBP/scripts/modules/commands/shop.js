@@ -65,9 +65,14 @@ commandManager.register({
             return player.sendMessage("§cYou aren't holding anything.");
         }
 
+        // Check if the item is unstackable
+        if (item.maxAmount === 1) {
+            return player.sendMessage("§cYou cannot use /sellhand for unstackable items. Please use the shop UI instead.");
+        }
+
         // Find the shop item key from the item's typeId
         const itemTypeId = item.typeId;
-        const shopItemKey = Object.keys(allItems).find(key => allItems[key].icon === itemTypeId);
+        const shopItemKey = Object.keys(allItems).find(key => allItems[key].itemId === itemTypeId);
 
         if (!shopItemKey) {
             return player.sendMessage("§cYou can't sell this item to the shop.");

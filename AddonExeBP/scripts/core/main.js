@@ -167,7 +167,8 @@ world.afterEvents.playerSpawn.subscribe(async (event) => {
         // A system.run is still good practice to ensure the command runs in a clean context after the spawn event.
         system.run(() => {
             try {
-                world.getDimension('overworld').runCommand(`kick "${player.name}" You have been banned ${durationText}. Reason: ${punishment.reason}`);
+                const sanitizedReason = punishment.reason.replace(/"/g, '\\"');
+                world.getDimension('overworld').runCommand(`kick "${player.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
             } catch (error) {
                 errorLog(`[BanCheck] Failed to kick banned player ${player.name}:`, error);
             }
