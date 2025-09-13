@@ -7,13 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.0] - 2025-09-13
 
-### ✨ Features
+This version introduces critical security fixes, bug fixes, and stability improvements to the core addon systems.
 
-- **Shop System**: A comprehensive shop system has been added, allowing players to buy and sell items through a user-friendly UI.
-  - `/shop`: Opens the main shop panel.
-  - `/buy`: Opens the buy category in the shop.
-  - `/sell`: Opens the sell category in the shop.
-  - `/sellhand` (alias `/sh`): Quickly sells the item held in the main hand.
+### 🔒 Security
+
+- **Punishment Reason Sanitization**: Fixed a command injection vulnerability where a ban or kick `reason` containing special characters (e.g., double quotes) could break the `kick` command. This fix prevents the kick-on-ban and kick-on-join-when-banned mechanisms from failing.
+
+### 🐛 Bug Fixes
+
+- **`/sellhand` for Unstackable Items**: Disabled the `/sellhand` command for unstackable items to prevent issues with the underlying `/clear` command. The command will now show an error message if used with an unstackable item.
+- **Punishment Data Loss on Crash**: Fixed a critical bug where punishments (bans/mutes) could be lost if the server crashed. Punishments are now saved to disk immediately upon being issued or removed, instead of waiting for the next auto-save cycle.
+
+### 🎨 Changes
+
+- **Punishment Manager Save Interval**: The punishment manager now correctly uses the `autoSaveIntervalSeconds` value from the main configuration file for its periodic saving, instead of a hardcoded 5-minute interval.
 
 ## [0.4.0] - 2025-09-10
 
