@@ -1,6 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { showPanel } from '../../core/uiManager.js';
 import * as shopManager from '../../core/shopManager.js';
+import { items as allItems } from '../../core/itemsConfig.js';
 
 commandManager.register({
     name: 'shop',
@@ -64,11 +65,25 @@ commandManager.register({
             return player.sendMessage("§cYou aren't holding anything.");
         }
 
-        const result = shopManager.sellItem(player, item.typeId, item.amount);
+        // Find the shop item key from the item's typeId
+        const itemTypeId = item.typeId;
+        const shopItemKey = Object.keys(allItems).find(key => allItems[key].icon === itemTypeId);
+
+        if (!shopItemKey) {
+            return player.sendMessage("§cYou can't sell this item to the shop.");
+        }
+
+        const result = shopManager.sellItem(player, shopItemKey, item.amount);
         player.sendMessage(result.message);
 
         if (result.success) {
-            equipment.setEquipment('Mainhand', undefined);
+            // We can't just clear the slot, because the sellItem function uses /clear,
+            // which might not clear the exact item stack if there are multiple unstackable items.
+            // A safer approach is to just let the /clear in sellItem handle it.
+            // The user will have to manually move another item into their hand if they wish to sell again.
+            // This is a limitation of the current /clear command usage.
+            // A better implementation would be to remove the item directly from the container,
+            // but that is a larger refactor.
         }
     }
 });
