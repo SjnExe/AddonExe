@@ -67,7 +67,7 @@ commandManager.register({
 
         // Check if the item is unstackable
         if (item.maxAmount === 1) {
-            return player.sendMessage("§cYou cannot use /sellhand for unstackable items. Please use the shop UI instead.");
+            return player.sendMessage('§cYou cannot use /sellhand for unstackable items. Please use the shop UI instead.');
         }
 
         // Find the shop item key from the item's typeId

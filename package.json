@@ -8,8 +8,8 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "lint:report": "eslint . --output-file eslint_report.txt",
-        "validate": "npx mct validate default PRJINT,UNKJSON --display-only",
-        "validate:report": "npx mct validate default PRJINT,UNKJSON -o validation_report"
+        "validate": "npx mct validate default PRJINT,UNKJSON,pathlength,BASEGAMEVER100,CHKMANIF105 --display-only",
+        "validate:report": "npx mct validate default PRJINT,UNKJSON,pathlength,BASEGAMEVER100,CHKMANIF105 -o validation_report"
     },
     "repository": {
         "type": "git",
@@ -29,6 +29,6 @@
         "@minecraft/creator-tools": "^0.14.1",
         "eslint": "^9.35.0",
         "eslint-plugin-jsonc": "^2.20.1",
-        "globals": "^16.3.0"
+        "globals": "^16.4.0"
     }
 }
