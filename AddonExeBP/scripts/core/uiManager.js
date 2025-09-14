@@ -21,6 +21,7 @@ import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 import * as shopManager from './shopManager.js';
 import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
+import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
 
 
 export const uiActionFunctions = {};
@@ -357,7 +358,25 @@ async function handleFormResponse(player, panelId, response, context) {
         const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
         const paginatedItems = getPaginatedItems(itemsInCategory, page);
 
-        const selection = paginatedItems[response.selection - 1];
+        const selectionIndex = response.selection - 1;
+
+        // Handle pagination
+        if (selectionIndex >= paginatedItems.length) {
+            let newPage = page;
+            const totalPages = Math.ceil(itemsInCategory.length / ITEMS_PER_PAGE);
+            const hasPrev = page > 1;
+            const hasNext = page < totalPages;
+            let buttonIndex = selectionIndex - paginatedItems.length;
+
+            if (hasPrev && buttonIndex === 0) {
+                newPage--;
+            } else if (hasNext) {
+                newPage++;
+            }
+            return showPanel(player, panelId, { ...context, page: newPage });
+        }
+
+        const selection = paginatedItems[selectionIndex];
         if (selection) {
             const masterItem = allItems[selection];
             const shopConfig = getShopConfig();
@@ -517,10 +536,10 @@ function getPaginatedItems(items, page) {
 function addPaginationButtons(form, page, totalItems) {
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
     if (page > 1) {
-        form.button('§7< Previous');
+        form.button('§e< Previous');
     }
     if (page < totalPages) {
-        form.button('§7Next >');
+        form.button('§eNext >');
     }
 }
 
@@ -547,7 +566,7 @@ function buildShopMainPanel(form, context) {
     }
 
     for (const category of validCategories) {
-        form.button(category);
+        form.button(category, shopCategoryIcons[category]);
     }
 }
 
@@ -576,7 +595,8 @@ function buildShopCategoryPanel(form, context) {
 
     for (const entry of paginatedEntries) {
         if (entry.type === 'subCategory') {
-            form.button(`§e${entry.id}`, 'textures/gui/folder_glyph');
+            const icon = shopSubCategoryIcons[entry.id] || 'textures/gui/folder_glyph';
+            form.button(`§e${entry.id}`, icon);
         } else {
             const masterItem = allItems[entry.id];
             const shopItem = shopConfig.items[entry.id];
@@ -633,12 +653,13 @@ function buildShopItemListPanel(form, context) {
 function buildEditShopMainPanel(form) {
     const categories = [...new Set(Object.values(allItems).map(item => item.category))];
     for (const category of categories.sort()) {
-        form.button(category, 'textures/gui/folder_glyph');
+        const icon = shopCategoryIcons[category] || 'textures/gui/folder_glyph';
+        form.button(category, icon);
     }
 }
 
 function buildEditShopCategoryPanel(form, context) {
-    const { category } = context;
+    const { category, page = 1 } = context;
     const shopConfig = getShopConfig();
 
     const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
@@ -648,12 +669,16 @@ function buildEditShopCategoryPanel(form, context) {
         return;
     }
 
-    for (const itemId of itemsInCategory) {
+    const paginatedItems = getPaginatedItems(itemsInCategory, page);
+
+    for (const itemId of paginatedItems) {
         const masterItem = allItems[itemId];
         const shopItem = shopConfig.items[itemId];
         const status = shopItem ? '§2[Enabled]' : '§c[Disabled]';
         form.button(`${masterItem.displayName ?? itemId}\n${status}`, masterItem.icon);
     }
+
+    addPaginationButtons(form, page, itemsInCategory.length);
 }
 
 

@@ -74,7 +74,7 @@ export const items = {
     },
     lapisLazuli: {
         itemId: 'minecraft:lapis_lazuli',
-        icon: 'textures/items/lapis_lazuli',
+        icon: 'textures/blocks/lapis_ore',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Ores & Minerals',
@@ -124,7 +124,7 @@ export const items = {
     },
     witherSkeletonSkull: {
         itemId: 'minecraft:wither_skeleton_skull',
-        icon: 'textures/items/skull_wither',
+        icon: 'textures/items/spawn_eggs/spawn_egg_wither_skeleton',
         buyPrice: 8000,
         sellPrice: 2000,
         category: 'Special Items',
@@ -132,7 +132,7 @@ export const items = {
     },
     enchantedGoldenApple: {
         itemId: 'minecraft:enchanted_golden_apple',
-        icon: 'textures/items/apple_golden_enchanted',
+        icon: 'textures/items/apple_golden',
         buyPrice: 25000,
         sellPrice: -1,
         category: 'Special Items',
@@ -142,7 +142,7 @@ export const items = {
     // == Logs ==
     oakLog: {
         itemId: 'minecraft:oak_log',
-        icon: 'textures/blocks/log_oak',
+        icon: 'textures/blocks/log_oak_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -150,7 +150,7 @@ export const items = {
     },
     spruceLog: {
         itemId: 'minecraft:spruce_log',
-        icon: 'textures/blocks/log_spruce',
+        icon: 'textures/blocks/log_spruce_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -158,7 +158,7 @@ export const items = {
     },
     birchLog: {
         itemId: 'minecraft:birch_log',
-        icon: 'textures/blocks/log_birch',
+        icon: 'textures/blocks/log_birch_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -166,7 +166,7 @@ export const items = {
     },
     jungleLog: {
         itemId: 'minecraft:jungle_log',
-        icon: 'textures/blocks/log_jungle',
+        icon: 'textures/blocks/log_jungle_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -174,7 +174,7 @@ export const items = {
     },
     acaciaLog: {
         itemId: 'minecraft:acacia_log',
-        icon: 'textures/blocks/log_acacia',
+        icon: 'textures/blocks/log_acacia_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -182,7 +182,7 @@ export const items = {
     },
     darkOakLog: {
         itemId: 'minecraft:dark_oak_log',
-        icon: 'textures/blocks/log_dark_oak',
+        icon: 'textures/blocks/log_big_oak_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -190,7 +190,7 @@ export const items = {
     },
     mangroveLog: {
         itemId: 'minecraft:mangrove_log',
-        icon: 'textures/blocks/log_mangrove',
+        icon: 'textures/blocks/mangrove_log_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -198,7 +198,7 @@ export const items = {
     },
     cherryLog: {
         itemId: 'minecraft:cherry_log',
-        icon: 'textures/blocks/log_cherry',
+        icon: 'textures/blocks/cherry_log_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -206,7 +206,7 @@ export const items = {
     },
     crimsonStem: {
         itemId: 'minecraft:crimson_stem',
-        icon: 'textures/blocks/crimson_stem_side',
+        icon: 'textures/blocks/huge_fungus/crimson_log_top',
         buyPrice: 25,
         sellPrice: 12,
         category: 'Logs',
@@ -214,7 +214,7 @@ export const items = {
     },
     warpedStem: {
         itemId: 'minecraft:warped_stem',
-        icon: 'textures/blocks/warped_stem_side',
+        icon: 'textures/blocks/huge_fungus/warped_stem_top',
         buyPrice: 25,
         sellPrice: 12,
         category: 'Logs',
@@ -310,6 +310,30 @@ export const items = {
         category: 'Building Blocks',
         displayName: 'Glowstone'
     },
+    netherrack: {
+        itemId: 'minecraft:netherrack',
+        icon: 'textures/blocks/netherrack',
+        buyPrice: 5,
+        sellPrice: 1,
+        category: 'Building Blocks',
+        displayName: 'Netherrack'
+    },
+    endStone: {
+        itemId: 'minecraft:end_stone',
+        icon: 'textures/blocks/end_stone',
+        buyPrice: 10,
+        sellPrice: 2,
+        category: 'Building Blocks',
+        displayName: 'End Stone'
+    },
+    purpurBlock: {
+        itemId: 'minecraft:purpur_block',
+        icon: 'textures/blocks/purpur_block',
+        buyPrice: 15,
+        sellPrice: 5,
+        category: 'Building Blocks',
+        displayName: 'Purpur Block'
+    },
 
     // == Food ==
     steak: {
@@ -343,6 +367,30 @@ export const items = {
         sellPrice: 40,
         category: 'Food',
         displayName: 'Golden Carrot'
+    },
+    cookedSalmon: {
+        itemId: 'minecraft:cooked_salmon',
+        icon: 'textures/items/fish_salmon_cooked',
+        buyPrice: 20,
+        sellPrice: 10,
+        category: 'Food',
+        displayName: 'Cooked Salmon'
+    },
+    cookedCod: {
+        itemId: 'minecraft:cooked_cod',
+        icon: 'textures/items/fish_cooked',
+        buyPrice: 20,
+        sellPrice: 10,
+        category: 'Food',
+        displayName: 'Cooked Cod'
+    },
+    chorusFruit: {
+        itemId: 'minecraft:chorus_fruit',
+        icon: 'textures/items/chorus_fruit',
+        buyPrice: 50,
+        sellPrice: 25,
+        category: 'Food',
+        displayName: 'Chorus Fruit'
     },
 
     // == Farming ==
@@ -586,5 +634,69 @@ export const items = {
         subCategory: 'Trident',
         displayName: 'Riptide III',
         enchantment: { id: 'riptide', level: 3 }
+    },
+
+    // Mace
+    enchantDensity5: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 5000,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Mace',
+        displayName: 'Density V',
+        enchantment: { id: 'density', level: 5 }
+    },
+    enchantBreach4: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 4000,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Mace',
+        displayName: 'Breach IV',
+        enchantment: { id: 'breach', level: 4 }
+    },
+    enchantWindBurst3: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 6000,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Mace',
+        displayName: 'Wind Burst III',
+        enchantment: { id: 'wind_burst', level: 3 }
+    },
+
+    // Crossbow
+    enchantMultishot1: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 4000,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Crossbow',
+        displayName: 'Multishot',
+        enchantment: { id: 'multishot', level: 1 }
+    },
+    enchantPiercing4: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 4500,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Crossbow',
+        displayName: 'Piercing IV',
+        enchantment: { id: 'piercing', level: 4 }
+    },
+    enchantQuickCharge3: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 3500,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Crossbow',
+        displayName: 'Quick Charge III',
+        enchantment: { id: 'quick_charge', level: 3 }
     }
 };

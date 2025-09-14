@@ -85,7 +85,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'rules',
-                text: '§eRules',
+                text: '§cRules',
                 icon: 'textures/items/book_enchanted.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -121,7 +121,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'editShop',
-                text: '§eEdit Shop',
+                text: '§3Edit Shop',
                 icon: 'textures/ui/editIcon.png',
                 permissionLevel: 1, // Admin only
                 actionType: 'openPanel',

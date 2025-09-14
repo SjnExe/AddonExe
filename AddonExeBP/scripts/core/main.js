@@ -14,6 +14,7 @@ import { showPanel } from './uiManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import * as playerCache from './playerCache.js';
+import { findPlayerByName } from './playerCache.js';
 import { startRestart } from './restartManager.js';
 import { formatString } from './utils.js';
 import '../modules/commands/index.js';
@@ -249,17 +250,20 @@ world.afterEvents.entityDie?.subscribe((event) => {
     // --- Bounty Claim Logic ---
     // Check if the entity that killed the player was another player
     if (damageCause) {
-        const killer = damageCause.damagingEntity;
-        if (killer && killer.typeId === 'minecraft:player' && killer.id !== deadPlayer.id) {
-            const bounty = bountyManager.getBounty(deadPlayer.id);
-            if (bounty && bounty.amount > 0) {
-                // A bounty exists, award it to the killer
-                economyManager.addBalance(killer.id, bounty.amount);
-                bountyManager.removeBounty(deadPlayer.id);
+        const killerEntity = damageCause.damagingEntity;
+        if (killerEntity && killerEntity.typeId === 'minecraft:player') {
+            const killer = findPlayerByName(killerEntity.name);
+            if (killer && killer.id !== deadPlayer.id) {
+                const bounty = bountyManager.getBounty(deadPlayer.id);
+                if (bounty && bounty.amount > 0) {
+                    // A bounty exists, award it to the killer
+                    economyManager.addBalance(killer.id, bounty.amount);
+                    bountyManager.removeBounty(deadPlayer.id);
 
-                // Announce the bounty claim
-                world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
-                debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
+                    // Announce the bounty claim
+                    world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
+                    debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
+                }
             }
         }
     }
