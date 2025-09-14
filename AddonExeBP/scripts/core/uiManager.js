@@ -635,7 +635,8 @@ function buildShopItemListPanel(form, context) {
 function buildEditShopMainPanel(form) {
     const categories = [...new Set(Object.values(allItems).map(item => item.category))];
     for (const category of categories.sort()) {
-        form.button(category, 'textures/gui/folder_glyph');
+        const icon = shopCategoryIcons[category] || 'textures/gui/folder_glyph';
+        form.button(category, icon);
     }
 }
 

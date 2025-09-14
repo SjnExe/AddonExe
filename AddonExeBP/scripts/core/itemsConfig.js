@@ -370,7 +370,7 @@ export const items = {
     },
     cookedSalmon: {
         itemId: 'minecraft:cooked_salmon',
-        icon: 'textures/items/salmon_cooked',
+        icon: 'textures/items/fish_salmon_cooked',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Food',
@@ -378,7 +378,7 @@ export const items = {
     },
     cookedCod: {
         itemId: 'minecraft:cooked_cod',
-        icon: 'textures/items/cod_cooked',
+        icon: 'textures/items/fish_cooked',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Food',
