@@ -53,14 +53,14 @@ export function kickPlayer(player, targetPlayer, reason) {
 }
 
 commandManager.register({
-    name: 'xkick',
+    name: 'kick',
+    slashName: 'xkick',
     description: 'Kicks a player from the server.',
-    aliases: ['boot', 'kick'],
+    aliases: ['boot'],
     category: 'Moderation',
     permissionLevel: 1, // Admins only
     allowConsole: true,
     disableSlashCommand: false,
-    disabledSlashAliases: ['kick'],
     parameters: [
         { name: 'target', type: 'string', description: 'The name of the player to kick.' },
         { name: 'reason', type: 'text', description: 'The reason for kicking the player.', optional: true }

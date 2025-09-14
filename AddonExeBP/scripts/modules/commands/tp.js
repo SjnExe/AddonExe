@@ -2,13 +2,13 @@ import { commandManager } from './commandManager.js';
 import { findPlayerByName } from '../utils/playerUtils.js';
 
 commandManager.register({
-    name: 'xtp',
-    aliases: ['teleport', 'tp'],
+    name: 'tp',
+    slashName: 'xtp',
+    aliases: ['teleport'],
     description: 'Teleports a player to another player or to coordinates.',
     category: 'General',
     permissionLevel: 1, // Admins only
     disableSlashCommand: false,
-    disabledSlashAliases: ['teleport', 'tp'],
     parameters: [
         { name: 'arg1', type: 'string', description: 'Target player or destination player/X-coordinate.' },
         { name: 'arg2', type: 'string', description: 'Destination player or Y-coordinate.', optional: true },

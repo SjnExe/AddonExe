@@ -3,7 +3,7 @@ export const config = {
     version: [1, 0, 0], // This will be replaced by the release workflow
     ownerPlayerNames: ['Your•Name•Here'], // Default : ['Your•Name•Here']
     adminTag: 'admin',
-    commandPrefix: '§§', // An unlikely prefix to avoid chat command conflicts
+    commandPrefix: '!',
     serverName: '§cServerExe',
     defaultGamemode: 'survival',
     debug: false,
