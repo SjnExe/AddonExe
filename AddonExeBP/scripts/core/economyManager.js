@@ -1,4 +1,5 @@
-import { getPlayer, setPlayerBalance, incrementPlayerBalance } from './playerDataManager.js';
+import { getPlayer, setPlayerBalance, incrementPlayerBalance, getOrCreatePlayer } from './playerDataManager.js';
+import { getPlayerFromCache } from './playerCache.js';
 import { getConfig } from './configManager.js';
 import { world } from '@minecraft/server';
 
@@ -42,7 +43,7 @@ export function clearExpiredPayments() {
     for (const [playerId, payment] of pendingPayments.entries()) {
         if (now - payment.timestamp > timeout) {
             pendingPayments.delete(playerId);
-            const player = world.getPlayer(playerId);
+            const player = getPlayerFromCache(playerId); // Use cache instead of world.getPlayer
             if (player) {
                 player.sendMessage('§cYour pending payment has expired.');
             }
@@ -69,10 +70,15 @@ export function setBalance(playerId, amount) {
 
 export function addBalance(playerId, amount) {
     if (amount < 0) {return false;}
-    const pData = getPlayer(playerId);
-    if (!pData) {
+    const player = getPlayerFromCache(playerId);
+    if (!player) {
+        // This can happen if the player logs off in the same tick as the event.
+        // Or if this is called for an offline player.
+        // For now, we'll just fail silently. A more robust system might queue the payment.
         return false;
     }
+    // Ensure data is loaded before trying to modify it
+    getOrCreatePlayer(player);
     incrementPlayerBalance(playerId, amount);
     return true;
 }

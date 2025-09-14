@@ -91,7 +91,9 @@ commandManager.register({
     description: 'Accepts an incoming TPA request.',
     category: 'TPA System',
     permissionLevel: 1024, // Everyone
-    parameters: [],
+    parameters: [
+        { name: 'player', type: 'player', description: 'The player whose request you want to accept.', optional: true }
+    ],
     execute: (player, args) => {
         const config = getConfig();
         if (!config.tpa.enabled) {
@@ -99,7 +101,8 @@ commandManager.register({
             return;
         }
 
-        acceptRequest(player);
+        const targetPlayer = args.player ? args.player[0] : null;
+        acceptRequest(player, targetPlayer?.name);
     }
 });
 
@@ -109,7 +112,9 @@ commandManager.register({
     description: 'Denies an incoming TPA request.',
     category: 'TPA System',
     permissionLevel: 1024, // Everyone
-    parameters: [],
+    parameters: [
+        { name: 'player', type: 'player', description: 'The player whose request you want to deny.', optional: true }
+    ],
     execute: (player, args) => {
         const config = getConfig();
         if (!config.tpa.enabled) {
@@ -117,7 +122,8 @@ commandManager.register({
             return;
         }
 
-        denyRequest(player);
+        const targetPlayer = args.player ? args.player[0] : null;
+        denyRequest(player, targetPlayer?.name);
     }
 });
 
