@@ -2,12 +2,13 @@ import { commandManager } from './commandManager.js';
 import { findPlayerByName } from '../utils/playerUtils.js';
 
 commandManager.register({
-    name: 'tp',
-    aliases: ['teleport'],
+    name: 'xtp',
+    aliases: ['teleport', 'tp'],
     description: 'Teleports a player to another player or to coordinates.',
     category: 'General',
     permissionLevel: 1, // Admins only
-    disableSlashCommand: true, // This command has a vanilla counterpart
+    disableSlashCommand: false,
+    disabledSlashAliases: ['teleport', 'tp'],
     parameters: [
         { name: 'arg1', type: 'string', description: 'Target player or destination player/X-coordinate.' },
         { name: 'arg2', type: 'string', description: 'Destination player or Y-coordinate.', optional: true },
@@ -18,11 +19,11 @@ commandManager.register({
         const argValues = [args.arg1, args.arg2, args.arg3, args.arg4].filter(arg => arg !== undefined);
 
         if (argValues.length === 0) {
-            player.sendMessage('§cUsage: !tp <target> [destination] OR !tp [target] <x> <y> <z>');
+            player.sendMessage('§cUsage: /xtp <target> [destination] OR /xtp [target] <x> <y> <z>');
             return;
         }
 
-        // Case 1: !tp <destinationPlayer>
+        // Case 1: /xtp <destinationPlayer>
         if (argValues.length === 1) {
             const destinationPlayer = findPlayerByName(argValues[0]);
             if (!destinationPlayer) {
@@ -34,7 +35,7 @@ commandManager.register({
             return;
         }
 
-        // Case 2: !tp <playerToMove> <destinationPlayer>
+        // Case 2: /xtp <playerToMove> <destinationPlayer>
         if (argValues.length === 2) {
             const playerToMove = findPlayerByName(argValues[0]);
             if (!playerToMove) {
@@ -51,7 +52,7 @@ commandManager.register({
             return;
         }
 
-        // Case 3: !tp <x> <y> <z>
+        // Case 3: /xtp <x> <y> <z>
         if (argValues.length === 3) {
             const [x, y, z] = argValues.map(Number);
             if (isNaN(x) || isNaN(y) || isNaN(z)) {
@@ -63,7 +64,7 @@ commandManager.register({
             return;
         }
 
-        // Case 4: !tp <targetPlayer> <x> <y> <z>
+        // Case 4: /xtp <targetPlayer> <x> <y> <z>
         if (argValues.length === 4) {
             const targetPlayer = findPlayerByName(argValues[0]);
             if (!targetPlayer) {
@@ -80,6 +81,6 @@ commandManager.register({
             return;
         }
 
-        player.sendMessage('§cInvalid syntax for !tp command. Too many arguments.');
+        player.sendMessage('§cInvalid syntax for /xtp command. Too many arguments.');
     }
 });

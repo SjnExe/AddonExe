@@ -3,7 +3,7 @@ export const config = {
     version: [1, 0, 0], // This will be replaced by the release workflow
     ownerPlayerNames: ['Your•Name•Here'], // Default : ['Your•Name•Here']
     adminTag: 'admin',
-    commandPrefix: '!',
+    commandPrefix: '§§', // An unlikely prefix to avoid chat command conflicts
     serverName: '§cServerExe',
     defaultGamemode: 'survival',
     debug: false,
@@ -60,10 +60,15 @@ export const config = {
         paymentConfirmationThreshold: 10000, // Payments over this amount require confirmation
         paymentConfirmationTimeout: 60 // Seconds to confirm a payment
     },
+    bounties: {
+        enabled: true,
+        // How long (in seconds) after the last hit from a player that they can still be credited for the kill.
+        bountyCreditTimeoutSeconds: 15
+    },
     playerInfo: {
         enableWelcomer: true,
         // Available placeholders: {playerName}, {serverName}, {discordLink}, {websiteLink}. Use \n for a new line.
-        welcomeMessage: 'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r or §e!h§r to see commands.',
+        welcomeMessage: 'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/help§r to see available commands.',
         notifyAdminOnNewPlayer: true,
         enableDeathCoords: true,
         deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.'

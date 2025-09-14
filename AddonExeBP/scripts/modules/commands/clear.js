@@ -3,13 +3,14 @@ import { playSound } from '../../core/utils.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 
 commandManager.register({
-    name: 'clear',
+    name: 'xclear',
     description: 'Clears the inventory of a player or yourself.',
-    aliases: ['ci', 'clearinv'],
+    aliases: ['ci', 'clearinv', 'clear'], // Keep 'clear' as a chat-only alias
     category: 'Moderation',
     permissionLevel: 1, // Admin-only to prevent accidental self-clearing
     allowConsole: true,
-    disableSlashCommand: true,
+    disableSlashCommand: false,
+    disabledSlashAliases: ['clear'], // Prevent /clear from being registered
     parameters: [
         { name: 'target', type: 'player', description: 'The player whose inventory to clear.', optional: true }
     ],
