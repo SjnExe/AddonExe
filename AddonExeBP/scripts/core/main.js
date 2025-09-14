@@ -292,7 +292,7 @@ world.afterEvents.entityDie?.subscribe((event) => {
         }
 
         const killer = playerCache.getPlayerFromCache(lastHit.attackerId);
-        if (killer && killer.isValid() && killer.id !== deadPlayer.id) {
+        if (killer && killer.isValid && killer.id !== deadPlayer.id) {
             const bounty = bountyManager.getBounty(deadPlayer.id);
             if (bounty && bounty.amount > 0) {
                 economyManager.addBalance(killer.id, bounty.amount);
