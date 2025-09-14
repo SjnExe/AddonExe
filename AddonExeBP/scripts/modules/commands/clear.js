@@ -4,12 +4,13 @@ import { getPlayer } from '../../core/playerDataManager.js';
 
 commandManager.register({
     name: 'clear',
+    slashName: 'xclear',
     description: 'Clears the inventory of a player or yourself.',
     aliases: ['ci', 'clearinv'],
     category: 'Moderation',
     permissionLevel: 1, // Admin-only to prevent accidental self-clearing
     allowConsole: true,
-    disableSlashCommand: true,
+    disableSlashCommand: false,
     parameters: [
         { name: 'target', type: 'player', description: 'The player whose inventory to clear.', optional: true }
     ],

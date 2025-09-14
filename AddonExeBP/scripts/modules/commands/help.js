@@ -40,7 +40,8 @@ function showCategorizedHelp(player, userPermissionLevel, isConsole) {
             commandsShown = true;
             helpMessage += `\n§l§e--- ${categoryName} ---§r`;
             for (const cmd of commands.sort((a, b) => a.name.localeCompare(b.name))) {
-                helpMessage += `\n §b!${cmd.name}§r: ${cmd.description}`;
+                const slashCommand = cmd.slashName || cmd.name;
+                helpMessage += `\n §b/${slashCommand}§r: ${cmd.description}`;
             }
         }
     }
@@ -61,11 +62,10 @@ function showSpecificHelp(player, commandName, isConsole) {
         return;
     }
 
-    let helpMessage = `§a--- Help: !${cmd.name} ---\n`;
+    const slashCommand = cmd.slashName || cmd.name;
+    let helpMessage = `§a--- Help: /${slashCommand} ---\n`;
     helpMessage += `§eDescription§r: ${cmd.description}\n`;
-    if (cmd.aliases && cmd.aliases.length > 0) {
-        helpMessage += `§eAliases§r: ${cmd.aliases.map(a => `!${a}`).join(', ')}\n`;
-    }
+    // Do not show chat-based aliases as we are prioritizing slash commands.
     helpMessage += `§eCategory§r: ${cmd.category || 'General'}\n`;
     helpMessage += `§ePermission Level§r: ${cmd.permissionLevel}`;
 
