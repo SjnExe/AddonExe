@@ -21,6 +21,7 @@ import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 import * as shopManager from './shopManager.js';
 import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
+import { shopCategoryIcons } from './shopCategoryConfig.js';
 
 
 export const uiActionFunctions = {};
@@ -547,7 +548,7 @@ function buildShopMainPanel(form, context) {
     }
 
     for (const category of validCategories) {
-        form.button(category);
+        form.button(category, shopCategoryIcons[category]);
     }
 }
 
