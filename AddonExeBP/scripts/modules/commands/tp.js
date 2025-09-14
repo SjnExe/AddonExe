@@ -5,6 +5,7 @@ commandManager.register({
     name: 'tp',
     slashName: 'xtp',
     aliases: ['teleport'],
+    disabledSlashAliases: ['teleport'],
     description: 'Teleports a player to another player or to coordinates.',
     category: 'General',
     permissionLevel: 1, // Admins only
