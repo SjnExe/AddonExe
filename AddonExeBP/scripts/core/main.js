@@ -264,7 +264,7 @@ world.afterEvents.itemUse.subscribe((event) => {
 });
 
 world.afterEvents.entityDie?.subscribe((event) => {
-    const { deadEntity, damageCause } = event;
+    const { deadEntity } = event;
     if (deadEntity.typeId !== 'minecraft:player') {
         return;
     }
@@ -302,11 +302,11 @@ world.afterEvents.entityDie?.subscribe((event) => {
             }
         }
     } catch (e) {
-        errorLog(`[BountyClaim] A fatal error occurred during bounty processing.`);
+        errorLog('[BountyClaim] A fatal error occurred during bounty processing.');
         // Attempt to stringify the error object for maximum detail.
         try {
             errorLog(`[BountyClaim] Raw Error: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}`);
-        } catch (stringifyError) {
+        } catch {
             errorLog(`[BountyClaim] Could not stringify error object. Message: ${e?.message}`);
         }
         errorLog(`[BountyClaim] Error Stack: ${e?.stack}`);

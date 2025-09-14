@@ -1,7 +1,6 @@
 import { getPlayer, setPlayerBalance, incrementPlayerBalance, getOrCreatePlayer } from './playerDataManager.js';
 import { getPlayerFromCache } from './playerCache.js';
 import { getConfig } from './configManager.js';
-import { world } from '@minecraft/server';
 
 /**
  * @typedef {object} PendingPayment
