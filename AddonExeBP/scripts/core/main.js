@@ -14,7 +14,6 @@ import { showPanel } from './uiManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import * as playerCache from './playerCache.js';
-import { findPlayerByName } from './playerCache.js';
 import { startRestart } from './restartManager.js';
 import { formatString } from './utils.js';
 import '../modules/commands/index.js';
@@ -252,7 +251,7 @@ world.afterEvents.entityDie?.subscribe((event) => {
     if (damageCause) {
         const killerEntity = damageCause.damagingEntity;
         if (killerEntity && killerEntity.typeId === 'minecraft:player') {
-            const killer = findPlayerByName(killerEntity.name);
+            const killer = playerCache.getPlayerFromCache(killerEntity.id);
             if (killer && killer.id !== deadPlayer.id) {
                 const bounty = bountyManager.getBounty(deadPlayer.id);
                 if (bounty && bounty.amount > 0) {
