@@ -243,43 +243,43 @@ world.afterEvents.entityDie?.subscribe((event) => {
         return;
     }
 
+    debugLog(`[BountyDiag] Player ${deadEntity.name} died. Inspecting damageCause...`);
+    try {
+        debugLog(`[BountyDiag] damageCause: ${JSON.stringify(damageCause, null, 2)}`);
+    } catch (e) {
+        debugLog(`[BountyDiag] Could not stringify damageCause. Error: ${e}`);
+        // Log individual properties if stringify fails (due to circular references)
+        if (damageCause) {
+            debugLog(`[BountyDiag] Cause: ${damageCause.cause}`);
+            debugLog(`[BountyDiag] Damaging Entity ID: ${damageCause.damagingEntity?.id}`);
+            debugLog(`[BountyDiag] Damaging Entity Type: ${damageCause.damagingEntity?.typeId}`);
+            debugLog(`[BountyDiag] Projectile Owner ID: ${damageCause.damagingProjectile?.owner?.id}`);
+            debugLog(`[BountyDiag] Projectile Owner Type: ${damageCause.damagingProjectile?.owner?.typeId}`);
+        }
+    }
+
     const deadPlayer = deadEntity;
     const config = getConfig();
 
     // --- Bounty Claim Logic ---
-    try {
-        if (damageCause) {
-            // Determine the actual killer, accounting for projectiles.
-            // The 'owner' property of a projectile is the entity that fired it.
-            let potentialKiller = damageCause.damagingEntity;
-            if (damageCause.damagingProjectile?.owner) {
-                potentialKiller = damageCause.damagingProjectile.owner;
-            }
+    // Check if the entity that killed the player was another player
+    if (damageCause) {
+        const killerEntity = damageCause.damagingEntity;
+        if (killerEntity && killerEntity.typeId === 'minecraft:player') {
+            const killer = playerCache.getPlayerFromCache(killerEntity.id);
+            if (killer && killer.id !== deadPlayer.id) {
+                const bounty = bountyManager.getBounty(deadPlayer.id);
+                if (bounty && bounty.amount > 0) {
+                    // A bounty exists, award it to the killer
+                    economyManager.addBalance(killer.id, bounty.amount);
+                    bountyManager.removeBounty(deadPlayer.id);
 
-            // Verify the killer is a valid, living player and not the victim themselves.
-            // .isValid() checks if the entity object handle is still valid for use.
-            if (potentialKiller && potentialKiller.typeId === 'minecraft:player' && potentialKiller.isValid() && potentialKiller.id !== deadPlayer.id) {
-                // The potentialKiller is an Entity. We use the cache to get the full Player object,
-                // which is needed for things like getting the player's name.
-                const killer = playerCache.getPlayerFromCache(potentialKiller.id);
-
-                // Final check to ensure we have a valid player from the cache.
-                if (killer && killer.isValid()) {
-                    const bounty = bountyManager.getBounty(deadPlayer.id);
-                    if (bounty && bounty.amount > 0) {
-                        // A bounty exists, award it to the killer.
-                        economyManager.addBalance(killer.id, bounty.amount);
-                        bountyManager.removeBounty(deadPlayer.id);
-
-                        // Announce the bounty claim
-                        world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
-                        debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
-                    }
+                    // Announce the bounty claim
+                    world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
+                    debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
                 }
             }
         }
-    } catch (e) {
-        errorLog(`[BountyClaim] An error occurred during bounty processing: ${e?.stack ?? e}`);
     }
 
 
