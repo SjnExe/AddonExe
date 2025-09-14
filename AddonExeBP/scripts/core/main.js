@@ -303,7 +303,14 @@ world.afterEvents.entityDie?.subscribe((event) => {
             }
         }
     } catch (e) {
-        errorLog(`[BountyClaim] An error occurred during bounty processing: ${e?.stack ?? e}`);
+        errorLog(`[BountyClaim] A fatal error occurred during bounty processing.`);
+        // Attempt to stringify the error object for maximum detail.
+        try {
+            errorLog(`[BountyClaim] Raw Error: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}`);
+        } catch (stringifyError) {
+            errorLog(`[BountyClaim] Could not stringify error object. Message: ${e?.message}`);
+        }
+        errorLog(`[BountyClaim] Error Stack: ${e?.stack}`);
     }
 
 
