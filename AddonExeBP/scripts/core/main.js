@@ -242,7 +242,6 @@ world.afterEvents.entityHurt?.subscribe((event) => {
     // Ensure the attacker and victim are both players and not the same person
     if (attacker?.typeId === 'minecraft:player' && attacker.id !== victim.id) {
         lastHitManager.setLastHit(victim.id, attacker.id);
-        debugLog(`[LastHit] Recorded hit from attacker ${attacker.name} to victim ${victim.name}`);
     }
 });
 
