@@ -641,7 +641,7 @@ function buildEditShopMainPanel(form) {
 }
 
 function buildEditShopCategoryPanel(form, context) {
-    const { category } = context;
+    const { category, page = 1 } = context;
     const shopConfig = getShopConfig();
 
     const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
@@ -651,12 +651,16 @@ function buildEditShopCategoryPanel(form, context) {
         return;
     }
 
-    for (const itemId of itemsInCategory) {
+    const paginatedItems = getPaginatedItems(itemsInCategory, page);
+
+    for (const itemId of paginatedItems) {
         const masterItem = allItems[itemId];
         const shopItem = shopConfig.items[itemId];
         const status = shopItem ? '§2[Enabled]' : '§c[Disabled]';
         form.button(`${masterItem.displayName ?? itemId}\n${status}`, masterItem.icon);
     }
+
+    addPaginationButtons(form, page, itemsInCategory.length);
 }
 
 
