@@ -124,7 +124,7 @@ export const items = {
     },
     witherSkeletonSkull: {
         itemId: 'minecraft:wither_skeleton_skull',
-        icon: 'textures/entity/skulls/wither_skeleton',
+        icon: 'textures/items/spawn_eggs/spawn_egg_wither_skeleton',
         buyPrice: 8000,
         sellPrice: 2000,
         category: 'Special Items',
@@ -142,7 +142,7 @@ export const items = {
     // == Logs ==
     oakLog: {
         itemId: 'minecraft:oak_log',
-        icon: 'textures/blocks/log_oak',
+        icon: 'textures/blocks/log_oak_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -150,7 +150,7 @@ export const items = {
     },
     spruceLog: {
         itemId: 'minecraft:spruce_log',
-        icon: 'textures/blocks/log_spruce',
+        icon: 'textures/blocks/log_spruce_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -158,7 +158,7 @@ export const items = {
     },
     birchLog: {
         itemId: 'minecraft:birch_log',
-        icon: 'textures/blocks/log_birch',
+        icon: 'textures/blocks/log_birch_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -166,7 +166,7 @@ export const items = {
     },
     jungleLog: {
         itemId: 'minecraft:jungle_log',
-        icon: 'textures/blocks/log_jungle',
+        icon: 'textures/blocks/log_jungle_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -174,7 +174,7 @@ export const items = {
     },
     acaciaLog: {
         itemId: 'minecraft:acacia_log',
-        icon: 'textures/blocks/log_acacia',
+        icon: 'textures/blocks/log_acacia_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -182,7 +182,7 @@ export const items = {
     },
     darkOakLog: {
         itemId: 'minecraft:dark_oak_log',
-        icon: 'textures/blocks/log_big_oak',
+        icon: 'textures/blocks/log_dark_oak_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -190,7 +190,7 @@ export const items = {
     },
     mangroveLog: {
         itemId: 'minecraft:mangrove_log',
-        icon: 'textures/blocks/mangrove_log_side',
+        icon: 'textures/blocks/mangrove_log_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -198,7 +198,7 @@ export const items = {
     },
     cherryLog: {
         itemId: 'minecraft:cherry_log',
-        icon: 'textures/blocks/cherry_log_side',
+        icon: 'textures/blocks/cherry_log_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -206,7 +206,7 @@ export const items = {
     },
     crimsonStem: {
         itemId: 'minecraft:crimson_stem',
-        icon: 'textures/blocks/huge_fungus/crimson_stem_side',
+        icon: 'textures/blocks/crimson_stem_top',
         buyPrice: 25,
         sellPrice: 12,
         category: 'Logs',
@@ -214,7 +214,7 @@ export const items = {
     },
     warpedStem: {
         itemId: 'minecraft:warped_stem',
-        icon: 'textures/blocks/huge_fungus/warped_stem_side',
+        icon: 'textures/blocks/warped_stem_top',
         buyPrice: 25,
         sellPrice: 12,
         category: 'Logs',
