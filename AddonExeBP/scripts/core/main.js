@@ -220,26 +220,29 @@ world.afterEvents.playerSpawn.subscribe(async (event) => {
     }
 });
 
-// Track player-on-player combat for the bounty system
-world.afterEvents.entityHit.subscribe((event) => {
-    const { entity, hitEntity } = event;
+world.afterEvents.entityHurt?.subscribe((event) => {
+    const { hurtEntity, damageSource } = event;
+    const victim = hurtEntity;
 
-    // Ensure the attacker and victim are both players and they are not the same player
-    if (hitEntity?.typeId === 'minecraft:player' && entity?.typeId === 'minecraft:player' && hitEntity.id !== entity.id) {
-        // We have a PvP melee hit, record it
-        lastHitManager.setLastHit(hitEntity.id, entity.id);
-        debugLog(`[LastHit] Recorded melee hit from attacker ${entity.name} to victim ${hitEntity.name}`);
+    // We only care about players being hurt
+    if (victim?.typeId !== 'minecraft:player') {
+        return;
     }
-});
 
-world.afterEvents.projectileHit.subscribe((event) => {
-    const { projectile, source, hitEntity } = event;
+    // damageSource contains the damaging entity
+    const damagingEntity = damageSource.damagingEntity;
+    if (!damagingEntity) {
+        return; // No damaging entity to attribute the hit to
+    }
 
-    // Ensure the attacker and victim are both players and they are not the same player
-    if (hitEntity?.typeId === 'minecraft:player' && source?.typeId === 'minecraft:player' && hitEntity.id !== source.id) {
-        // We have a PvP projectile hit, record it
-        lastHitManager.setLastHit(hitEntity.id, source.id);
-        debugLog(`[LastHit] Recorded projectile hit from attacker ${source.name} to victim ${hitEntity.name}`);
+    // Determine the actual attacker. If the damage was from a projectile, the
+    // projectile is the damagingEntity, and its 'owner' is the attacker.
+    const attacker = damagingEntity.owner ?? damagingEntity;
+
+    // Ensure the attacker and victim are both players and not the same person
+    if (attacker?.typeId === 'minecraft:player' && attacker.id !== victim.id) {
+        lastHitManager.setLastHit(victim.id, attacker.id);
+        debugLog(`[LastHit] Recorded hit from attacker ${attacker.name} to victim ${victim.name}`);
     }
 });
 
