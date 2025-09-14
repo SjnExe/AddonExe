@@ -182,7 +182,7 @@ export const items = {
     },
     darkOakLog: {
         itemId: 'minecraft:dark_oak_log',
-        icon: 'textures/blocks/log_dark_oak_top',
+        icon: 'textures/blocks/log_big_oak_top',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -206,7 +206,7 @@ export const items = {
     },
     crimsonStem: {
         itemId: 'minecraft:crimson_stem',
-        icon: 'textures/blocks/crimson_stem_top',
+        icon: 'textures/blocks/huge_fungus/crimson_log_top',
         buyPrice: 25,
         sellPrice: 12,
         category: 'Logs',
@@ -214,7 +214,7 @@ export const items = {
     },
     warpedStem: {
         itemId: 'minecraft:warped_stem',
-        icon: 'textures/blocks/warped_stem_top',
+        icon: 'textures/blocks/huge_fungus/warped_stem_top',
         buyPrice: 25,
         sellPrice: 12,
         category: 'Logs',
