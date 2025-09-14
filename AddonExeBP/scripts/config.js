@@ -60,6 +60,11 @@ export const config = {
         paymentConfirmationThreshold: 10000, // Payments over this amount require confirmation
         paymentConfirmationTimeout: 60 // Seconds to confirm a payment
     },
+    bounties: {
+        enabled: true,
+        // How long (in seconds) after the last hit from a player that they can still be credited for the kill.
+        bountyCreditTimeoutSeconds: 15
+    },
     playerInfo: {
         enableWelcomer: true,
         // Available placeholders: {playerName}, {serverName}, {discordLink}, {websiteLink}. Use \n for a new line.

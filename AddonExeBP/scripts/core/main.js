@@ -10,6 +10,7 @@ import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
 import * as economyManager from './economyManager.js';
 import * as bountyManager from './bountyManager.js';
+import * as lastHitManager from './lastHitManager.js';
 import { showPanel } from './uiManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
@@ -219,6 +220,29 @@ world.afterEvents.playerSpawn.subscribe(async (event) => {
     }
 });
 
+// Track player-on-player combat for the bounty system
+world.afterEvents.entityHit.subscribe((event) => {
+    const { entity, hitEntity } = event;
+
+    // Ensure the attacker and victim are both players and they are not the same player
+    if (hitEntity?.typeId === 'minecraft:player' && entity?.typeId === 'minecraft:player' && hitEntity.id !== entity.id) {
+        // We have a PvP melee hit, record it
+        lastHitManager.setLastHit(hitEntity.id, entity.id);
+        debugLog(`[LastHit] Recorded melee hit from attacker ${entity.name} to victim ${hitEntity.name}`);
+    }
+});
+
+world.afterEvents.projectileHit.subscribe((event) => {
+    const { projectile, source, hitEntity } = event;
+
+    // Ensure the attacker and victim are both players and they are not the same player
+    if (hitEntity?.typeId === 'minecraft:player' && source?.typeId === 'minecraft:player' && hitEntity.id !== source.id) {
+        // We have a PvP projectile hit, record it
+        lastHitManager.setLastHit(hitEntity.id, source.id);
+        debugLog(`[LastHit] Recorded projectile hit from attacker ${source.name} to victim ${hitEntity.name}`);
+    }
+});
+
 world.afterEvents.playerLeave.subscribe((event) => {
     playerDataManager.handlePlayerLeave(event.playerId);
     playerCache.removePlayerFromCache(event.playerId);
@@ -243,43 +267,40 @@ world.afterEvents.entityDie?.subscribe((event) => {
         return;
     }
 
-    debugLog(`[BountyDiag] Player ${deadEntity.name} died. Inspecting damageCause...`);
-    try {
-        debugLog(`[BountyDiag] damageCause: ${JSON.stringify(damageCause, null, 2)}`);
-    } catch (e) {
-        debugLog(`[BountyDiag] Could not stringify damageCause. Error: ${e}`);
-        // Log individual properties if stringify fails (due to circular references)
-        if (damageCause) {
-            debugLog(`[BountyDiag] Cause: ${damageCause.cause}`);
-            debugLog(`[BountyDiag] Damaging Entity ID: ${damageCause.damagingEntity?.id}`);
-            debugLog(`[BountyDiag] Damaging Entity Type: ${damageCause.damagingEntity?.typeId}`);
-            debugLog(`[BountyDiag] Projectile Owner ID: ${damageCause.damagingProjectile?.owner?.id}`);
-            debugLog(`[BountyDiag] Projectile Owner Type: ${damageCause.damagingProjectile?.owner?.typeId}`);
-        }
-    }
-
     const deadPlayer = deadEntity;
     const config = getConfig();
 
     // --- Bounty Claim Logic ---
-    // Check if the entity that killed the player was another player
-    if (damageCause) {
-        const killerEntity = damageCause.damagingEntity;
-        if (killerEntity && killerEntity.typeId === 'minecraft:player') {
-            const killer = playerCache.getPlayerFromCache(killerEntity.id);
-            if (killer && killer.id !== deadPlayer.id) {
-                const bounty = bountyManager.getBounty(deadPlayer.id);
-                if (bounty && bounty.amount > 0) {
-                    // A bounty exists, award it to the killer
-                    economyManager.addBalance(killer.id, bounty.amount);
-                    bountyManager.removeBounty(deadPlayer.id);
+    try {
+        const lastHit = lastHitManager.getLastHit(deadPlayer.id);
+        if (!lastHit) {
+            return; // No recent combat data for this player
+        }
 
-                    // Announce the bounty claim
-                    world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
-                    debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
-                }
+        // Clear the last hit data now that the player has died
+        lastHitManager.clearLastHit(deadPlayer.id);
+
+        const timeSinceHit = (Date.now() - lastHit.timestamp) / 1000;
+        const creditTimeout = config.bounties?.bountyCreditTimeoutSeconds ?? 15;
+
+        if (timeSinceHit > creditTimeout) {
+            debugLog(`[BountyClaim] Kill credit for ${deadPlayer.name} expired. Time since last hit: ${timeSinceHit}s`);
+            return; // Hit was too long ago
+        }
+
+        const killer = playerCache.getPlayerFromCache(lastHit.attackerId);
+        if (killer && killer.isValid() && killer.id !== deadPlayer.id) {
+            const bounty = bountyManager.getBounty(deadPlayer.id);
+            if (bounty && bounty.amount > 0) {
+                economyManager.addBalance(killer.id, bounty.amount);
+                bountyManager.removeBounty(deadPlayer.id);
+
+                world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
+                debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
             }
         }
+    } catch (e) {
+        errorLog(`[BountyClaim] An error occurred during bounty processing: ${e?.stack ?? e}`);
     }
 
 
