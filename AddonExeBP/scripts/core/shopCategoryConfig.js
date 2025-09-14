@@ -12,5 +12,12 @@ export const shopCategoryIcons = {
 };
 
 export const shopSubCategoryIcons = {
-    // Example: 'Swords': 'textures/items/diamond_sword'
+    'General': 'textures/items/book_normal',
+    'Sword': 'textures/items/diamond_sword',
+    'Armour': 'textures/items/diamond_chestplate',
+    'Tools': 'textures/items/diamond_pickaxe',
+    'Bow': 'textures/items/bow_standby',
+    'Trident': 'textures/items/trident',
+    'Mace': 'textures/items/mace',
+    'Crossbow': 'textures/items/crossbow_standby'
 };

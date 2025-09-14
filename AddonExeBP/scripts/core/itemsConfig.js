@@ -310,6 +310,30 @@ export const items = {
         category: 'Building Blocks',
         displayName: 'Glowstone'
     },
+    netherrack: {
+        itemId: 'minecraft:netherrack',
+        icon: 'textures/blocks/netherrack',
+        buyPrice: 5,
+        sellPrice: 1,
+        category: 'Building Blocks',
+        displayName: 'Netherrack'
+    },
+    endStone: {
+        itemId: 'minecraft:end_stone',
+        icon: 'textures/blocks/end_stone',
+        buyPrice: 10,
+        sellPrice: 2,
+        category: 'Building Blocks',
+        displayName: 'End Stone'
+    },
+    purpurBlock: {
+        itemId: 'minecraft:purpur_block',
+        icon: 'textures/blocks/purpur_block',
+        buyPrice: 15,
+        sellPrice: 5,
+        category: 'Building Blocks',
+        displayName: 'Purpur Block'
+    },
 
     // == Food ==
     steak: {
@@ -343,6 +367,30 @@ export const items = {
         sellPrice: 40,
         category: 'Food',
         displayName: 'Golden Carrot'
+    },
+    cookedSalmon: {
+        itemId: 'minecraft:cooked_salmon',
+        icon: 'textures/items/salmon_cooked',
+        buyPrice: 20,
+        sellPrice: 10,
+        category: 'Food',
+        displayName: 'Cooked Salmon'
+    },
+    cookedCod: {
+        itemId: 'minecraft:cooked_cod',
+        icon: 'textures/items/cod_cooked',
+        buyPrice: 20,
+        sellPrice: 10,
+        category: 'Food',
+        displayName: 'Cooked Cod'
+    },
+    chorusFruit: {
+        itemId: 'minecraft:chorus_fruit',
+        icon: 'textures/items/chorus_fruit',
+        buyPrice: 50,
+        sellPrice: 25,
+        category: 'Food',
+        displayName: 'Chorus Fruit'
     },
 
     // == Farming ==
@@ -586,5 +634,69 @@ export const items = {
         subCategory: 'Trident',
         displayName: 'Riptide III',
         enchantment: { id: 'riptide', level: 3 }
+    },
+
+    // Mace
+    enchantDensity5: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 5000,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Mace',
+        displayName: 'Density V',
+        enchantment: { id: 'density', level: 5 }
+    },
+    enchantBreach4: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 4000,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Mace',
+        displayName: 'Breach IV',
+        enchantment: { id: 'breach', level: 4 }
+    },
+    enchantWindBurst3: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 6000,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Mace',
+        displayName: 'Wind Burst III',
+        enchantment: { id: 'wind_burst', level: 3 }
+    },
+
+    // Crossbow
+    enchantMultishot1: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 4000,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Crossbow',
+        displayName: 'Multishot',
+        enchantment: { id: 'multishot', level: 1 }
+    },
+    enchantPiercing4: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 4500,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Crossbow',
+        displayName: 'Piercing IV',
+        enchantment: { id: 'piercing', level: 4 }
+    },
+    enchantQuickCharge3: {
+        itemId: 'minecraft:enchanted_book',
+        icon: 'textures/items/book_enchanted',
+        buyPrice: 3500,
+        sellPrice: -1,
+        category: 'Enchantments',
+        subCategory: 'Crossbow',
+        displayName: 'Quick Charge III',
+        enchantment: { id: 'quick_charge', level: 3 }
     }
 };
