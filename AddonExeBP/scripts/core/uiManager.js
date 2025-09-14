@@ -358,7 +358,25 @@ async function handleFormResponse(player, panelId, response, context) {
         const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
         const paginatedItems = getPaginatedItems(itemsInCategory, page);
 
-        const selection = paginatedItems[response.selection - 1];
+        const selectionIndex = response.selection - 1;
+
+        // Handle pagination
+        if (selectionIndex >= paginatedItems.length) {
+            let newPage = page;
+            const totalPages = Math.ceil(itemsInCategory.length / ITEMS_PER_PAGE);
+            const hasPrev = page > 1;
+            const hasNext = page < totalPages;
+            let buttonIndex = selectionIndex - paginatedItems.length;
+
+            if (hasPrev && buttonIndex === 0) {
+                newPage--;
+            } else if (hasNext) {
+                newPage++;
+            }
+            return showPanel(player, panelId, { ...context, page: newPage });
+        }
+
+        const selection = paginatedItems[selectionIndex];
         if (selection) {
             const masterItem = allItems[selection];
             const shopConfig = getShopConfig();
@@ -518,10 +536,10 @@ function getPaginatedItems(items, page) {
 function addPaginationButtons(form, page, totalItems) {
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
     if (page > 1) {
-        form.button('§7< Previous');
+        form.button('§e< Previous');
     }
     if (page < totalPages) {
-        form.button('§7Next >');
+        form.button('§eNext >');
     }
 }
 
