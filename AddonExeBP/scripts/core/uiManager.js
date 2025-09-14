@@ -21,7 +21,7 @@ import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 import * as shopManager from './shopManager.js';
 import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
-import { shopCategoryIcons } from './shopCategoryConfig.js';
+import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
 
 
 export const uiActionFunctions = {};
@@ -577,7 +577,8 @@ function buildShopCategoryPanel(form, context) {
 
     for (const entry of paginatedEntries) {
         if (entry.type === 'subCategory') {
-            form.button(`§e${entry.id}`, 'textures/gui/folder_glyph');
+            const icon = shopSubCategoryIcons[entry.id] || 'textures/gui/folder_glyph';
+            form.button(`§e${entry.id}`, icon);
         } else {
             const masterItem = allItems[entry.id];
             const shopItem = shopConfig.items[entry.id];

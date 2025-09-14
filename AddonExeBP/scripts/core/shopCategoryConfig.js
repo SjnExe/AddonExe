@@ -10,3 +10,7 @@ export const shopCategoryIcons = {
     'Special Items': 'textures/ui/filledStar',
     'Enchantments': 'textures/items/book_enchanted'
 };
+
+export const shopSubCategoryIcons = {
+    // Example: 'Swords': 'textures/items/diamond_sword'
+};
