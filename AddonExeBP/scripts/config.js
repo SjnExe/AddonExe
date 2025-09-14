@@ -89,8 +89,7 @@ export const config = {
             '§e6. §rNo advertising other servers or websites.',
             '§e7. §rKeep conversations in English.',
             '§e8. §rFollow directions from staff members.',
-            '§e9. §rDo not use offensive language, skins, or usernames.',
-            '§e10. §rHave fun and enjoy your time on the server!'
+            '§e9. §rDo not use offensive language, skins, or usernames.'
         ]
     },
 

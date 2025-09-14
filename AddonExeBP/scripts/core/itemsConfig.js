@@ -74,7 +74,7 @@ export const items = {
     },
     lapisLazuli: {
         itemId: 'minecraft:lapis_lazuli',
-        icon: 'textures/items/lapis_lazuli',
+        icon: 'textures/blocks/lapis_ore',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Ores & Minerals',
@@ -124,7 +124,7 @@ export const items = {
     },
     witherSkeletonSkull: {
         itemId: 'minecraft:wither_skeleton_skull',
-        icon: 'textures/items/skull_wither',
+        icon: 'textures/entity/skulls/wither_skeleton',
         buyPrice: 8000,
         sellPrice: 2000,
         category: 'Special Items',
@@ -132,7 +132,7 @@ export const items = {
     },
     enchantedGoldenApple: {
         itemId: 'minecraft:enchanted_golden_apple',
-        icon: 'textures/items/apple_golden_enchanted',
+        icon: 'textures/items/apple_golden',
         buyPrice: 25000,
         sellPrice: -1,
         category: 'Special Items',
@@ -182,7 +182,7 @@ export const items = {
     },
     darkOakLog: {
         itemId: 'minecraft:dark_oak_log',
-        icon: 'textures/blocks/log_dark_oak',
+        icon: 'textures/blocks/log_big_oak',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -190,7 +190,7 @@ export const items = {
     },
     mangroveLog: {
         itemId: 'minecraft:mangrove_log',
-        icon: 'textures/blocks/log_mangrove',
+        icon: 'textures/blocks/mangrove_log_side',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -198,7 +198,7 @@ export const items = {
     },
     cherryLog: {
         itemId: 'minecraft:cherry_log',
-        icon: 'textures/blocks/log_cherry',
+        icon: 'textures/blocks/cherry_log_side',
         buyPrice: 20,
         sellPrice: 10,
         category: 'Logs',
@@ -206,7 +206,7 @@ export const items = {
     },
     crimsonStem: {
         itemId: 'minecraft:crimson_stem',
-        icon: 'textures/blocks/crimson_stem_side',
+        icon: 'textures/blocks/huge_fungus/crimson_stem_side',
         buyPrice: 25,
         sellPrice: 12,
         category: 'Logs',
@@ -214,7 +214,7 @@ export const items = {
     },
     warpedStem: {
         itemId: 'minecraft:warped_stem',
-        icon: 'textures/blocks/warped_stem_side',
+        icon: 'textures/blocks/huge_fungus/warped_stem_side',
         buyPrice: 25,
         sellPrice: 12,
         category: 'Logs',
