@@ -31,6 +31,7 @@
   - Allows players to request teleports to others or summon others, with configurable cooldowns and warmup periods.
 - ✨ **Player & Server Utilities:**
   - **Economy & Bounties:** A simple economy system with player balances, payment commands, and a full bounty system. Includes a high-performance, cached `/baltop` leaderboard.
+  - **In-Game Shop:** A complete GUI-based shop where players can buy and sell items through a categorized interface. Admins can fully customize the shop's inventory and prices from an in-game panel.
   - **Homes:** Allows players to set and teleport to their own personal "homes".
   - **Kits:** A system for players to claim predefined kits of items with cooldowns.
   - **Death Coordinates:** Automatically informs players of their death location upon respawning.
