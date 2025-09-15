@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This version introduces critical security fixes, bug fixes, and stability improvements to the core addon systems.
 
+### ✨ Features
+
+- **In-Game Shop System**: Introduced a comprehensive, GUI-based shop system.
+  - Players can access the shop via the `/shop` command or the main admin panel.
+  - The UI supports browsing categorized items, buying, and selling.
+  - New commands were added for direct access: `/buy` opens the buy view, `/sell` opens the sell view, and `/sellhand` allows for quickly selling the item in the main hand.
+
 ### 🔒 Security
 
 - **Punishment Reason Sanitization**: Fixed a command injection vulnerability where a ban or kick `reason` containing special characters (e.g., double quotes) could break the `kick` command. This fix prevents the kick-on-ban and kick-on-join-when-banned mechanisms from failing.
