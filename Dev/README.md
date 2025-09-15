@@ -65,6 +65,11 @@ Below are links to specific sections particularly relevant for Add-On developmen
   - Contains many useful examples, including for custom commands.
 - **Mojang Minecraft Scripting Libraries**:
   - [https://github.com/Mojang/minecraft-scripting-libraries](https://github.com/Mojang/minecraft-scripting-libraries)
+- **Minecraft Creator Tools Website**:
+  - [https://mctools.dev/](https://mctools.dev/)
+  - A web-based suite of tools for creators, including project starters and a validator.
+- **Official NPM Packages for Minecraft Script APIs**:
+  - [https://www.npmjs.com/~mc-npm](https://www.npmjs.com/~mc-npm)
 
 ## Community Documentation
 

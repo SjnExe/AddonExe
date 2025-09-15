@@ -18,6 +18,10 @@ import { kickPlayer } from '../modules/commands/kick.js';
 import { mutePlayer, unmutePlayer } from '../modules/commands/mute.js';
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '../modules/commands/ban.js';
 import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
+import * as shopManager from './shopManager.js';
+import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
+import { items as allItems } from './itemsConfig.js';
+import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
 
 
 export const uiActionFunctions = {};
@@ -80,6 +84,31 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    // Handle dynamic shop panels before falling back to static definitions
+    if (panelId.startsWith('shopCategoryPanel_')) {
+        const category = panelId.replace('shopCategoryPanel_', '');
+        const form = new ActionFormData().title(`§l§2Shop - ${category}`);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        buildShopCategoryPanel(form, { ...context, category, page: context.page || 1 });
+        return form;
+    }
+    if (panelId.startsWith('shopItemListPanel_')) {
+        const parts = panelId.replace('shopItemListPanel_', '').split('_');
+        const category = parts[0];
+        const subCategory = parts.slice(1).join('_');
+        const form = new ActionFormData().title(`§l§2Shop - ${subCategory}`);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        buildShopItemListPanel(form, { ...context, category, subCategory, page: context.page || 1 });
+        return form;
+    }
+    if (panelId.startsWith('editShopCategoryPanel_')) {
+        const category = panelId.replace('editShopCategoryPanel_', '');
+        const form = new ActionFormData().title(`§l§eEdit - ${category}`);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        buildEditShopCategoryPanel(form, { ...context, category, page: context.page || 1 });
+        return form;
+    }
+
     const panelDef = panelDefinitions[panelId];
     if (!panelDef) {
         debugLog(`[UIManager] Panel definition not found for '${panelId}'.`);
@@ -102,6 +131,20 @@ async function buildPanelForm(player, panelId, context) {
     if (panelId === 'reportListPanel') {return buildReportListForm(title);}
     if (panelId === 'playerManagementPanel') {return buildPlayerManagementForm(title);}
     if (panelId === 'playerListPanel') {return buildPlayerListForm(title);}
+
+    if (panelId === 'shopMainPanel') {
+        const form = new ActionFormData().title(title);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        buildShopMainPanel(form, context);
+        return form;
+    }
+    // --- Admin Edit Shop Panels ---
+    if (panelId === 'editShopMainPanel') {
+        const form = new ActionFormData().title(title);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        buildEditShopMainPanel(form);
+        return form;
+    }
 
     if (panelId === 'configCategoryPanel') {
         const form = new ActionFormData().title(title);
@@ -139,6 +182,234 @@ async function handleFormResponse(player, panelId, response, context) {
     debugLog(`[UIManager] Handling form response for panel '${panelId}' from ${player.name}. Selection: ${response.selection}`);
     const pData = getPlayer(player.id);
     if (!pData) {return;}
+
+    // --- Shop Panel Handlers ---
+    if (panelId === 'shopMainPanel') {
+        if (response.selection === 0) { return showPanel(player, 'mainPanel'); }
+        const shopConfig = getShopConfig();
+        const view = context.view || 'shop';
+        const categories = [...new Set(Object.keys(shopConfig.items).map(id => allItems[id]?.category).filter(Boolean))];
+        const validCategories = categories.filter(category => {
+            return Object.keys(shopConfig.items).some(id => {
+                const masterItem = allItems[id];
+                if (masterItem?.category !== category) {return false;}
+                const shopItem = shopConfig.items[id];
+                if (view === 'buy') {return shopItem.buyPrice > 0;}
+                if (view === 'sell') {return shopItem.sellPrice > 0;}
+                return true;
+            });
+        });
+        const selectedCategory = validCategories[response.selection - 1];
+        if (selectedCategory) {
+            return showPanel(player, `shopCategoryPanel_${selectedCategory}`, context);
+        }
+        return;
+    }
+
+    if (panelId.startsWith('shopCategoryPanel_') || panelId.startsWith('shopItemListPanel_')) {
+        const isItemList = panelId.startsWith('shopItemListPanel_');
+        const prefix = isItemList ? 'shopItemListPanel_' : 'shopCategoryPanel_';
+        const rawId = panelId.replace(prefix, '');
+        const parts = rawId.split('_');
+        const category = parts[0];
+        const subCategory = isItemList ? parts.slice(1).join('_') : undefined;
+        const page = context.page || 1;
+        const view = context.view || 'shop';
+
+        if (response.selection === 0) { // Back button
+            const parentPanel = isItemList ? `shopCategoryPanel_${category}` : 'shopMainPanel';
+            return showPanel(player, parentPanel, { ...context, page: 1 });
+        }
+
+        // Reconstruct the list of entries that was shown to the player
+        const shopConfig = getShopConfig();
+        let allEntries = [];
+        if (isItemList) {
+            const itemsInSubCategory = Object.keys(shopConfig.items).filter(id => {
+                const masterItem = allItems[id];
+                if (masterItem?.category !== category || masterItem?.subCategory !== subCategory) {return false;}
+                const shopItem = shopConfig.items[id];
+                if (view === 'buy') {return shopItem.buyPrice > 0;}
+                if (view === 'sell') {return shopItem.sellPrice > 0;}
+                return true;
+            });
+            allEntries = itemsInSubCategory.map(i => ({ id: i, type: 'item' }));
+        } else { // shopCategoryPanel
+            const itemsInCategory = Object.keys(shopConfig.items).filter(id => {
+                const masterItem = allItems[id];
+                if (masterItem?.category !== category) {return false;}
+                const shopItem = shopConfig.items[id];
+                if (view === 'buy') {return shopItem.buyPrice > 0;}
+                if (view === 'sell') {return shopItem.sellPrice > 0;}
+                return true;
+            });
+            const subCategories = [...new Set(itemsInCategory.map(id => allItems[id].subCategory).filter(Boolean))];
+            const rootItems = itemsInCategory.filter(id => !allItems[id].subCategory);
+            allEntries = [
+                ...subCategories.map(sc => ({ id: sc, type: 'subCategory' })),
+                ...rootItems.map(i => ({ id: i, type: 'item' }))
+            ];
+        }
+
+        const paginatedEntries = getPaginatedItems(allEntries, page);
+        const selectionIndex = response.selection - 1;
+
+        // Handle pagination
+        if (selectionIndex >= paginatedEntries.length) {
+            let newPage = page;
+            const totalPages = Math.ceil(allEntries.length / ITEMS_PER_PAGE);
+            const hasPrev = page > 1;
+            const hasNext = page < totalPages;
+            let buttonIndex = selectionIndex - paginatedEntries.length;
+
+            if (hasPrev && buttonIndex === 0) {
+                newPage--;
+            } else if (hasNext) {
+                newPage++;
+            }
+            return showPanel(player, panelId, { ...context, page: newPage });
+        }
+
+        const selectedEntry = paginatedEntries[selectionIndex];
+
+        if (selectedEntry.type === 'subCategory') {
+            return showPanel(player, `shopItemListPanel_${category}_${selectedEntry.id}`, { ...context, page: 1 });
+        }
+
+        // It's an item
+        const itemId = selectedEntry.id;
+        const masterItem = allItems[itemId];
+        const shopItem = shopConfig.items[itemId];
+
+        const canBuy = view !== 'sell' && shopItem.buyPrice > 0;
+        const canSell = view !== 'buy' && shopItem.sellPrice > 0;
+
+        if (!canBuy && !canSell) {
+            player.sendMessage('§cThis item cannot be bought or sold currently.');
+            return showPanel(player, panelId, context);
+        }
+
+        const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
+        let action;
+        let hasDropdown = false;
+
+        if (canBuy && canSell) {
+            modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
+            const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
+            modal.dropdown('Action', options, { defaultValueIndex: 0 });
+            hasDropdown = true;
+        } else if (canBuy) {
+            modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', { defaultValue: '1' });
+            action = 'buy';
+        } else { // canSell
+            modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', { defaultValue: '1' });
+            action = 'sell';
+        }
+
+        const modalResponse = await utils.uiWait(player, modal);
+
+        if (modalResponse.canceled) {
+            return showPanel(player, panelId, context);
+        }
+
+        let amount;
+        if (hasDropdown) {
+            const [amountStr, actionIndex] = modalResponse.formValues;
+            amount = parseInt(amountStr, 10);
+            const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
+            const selectedActionString = options[actionIndex];
+            action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
+        } else {
+            const [amountStr] = modalResponse.formValues;
+            amount = parseInt(amountStr, 10);
+        }
+
+        if (isNaN(amount) || amount <= 0) {
+            player.sendMessage('§cInvalid amount.');
+            return showPanel(player, panelId, context);
+        }
+
+        let result;
+        if (action === 'buy') {
+            result = shopManager.buyItem(player, itemId, amount);
+        } else { // action === 'sell'
+            result = shopManager.sellItem(player, itemId, amount);
+        }
+        player.sendMessage(result.message);
+
+        return showPanel(player, panelId, context); // Refresh the panel
+    }
+
+    // --- Admin Edit Shop Panel Handlers ---
+    if (panelId === 'editShopMainPanel') {
+        if (response.selection === 0) { return showPanel(player, 'mainPanel'); }
+        const categories = [...new Set(Object.values(allItems).map(item => item.category))].sort();
+        const selectedCategory = categories[response.selection - 1];
+        if (selectedCategory) {
+            return showPanel(player, `editShopCategoryPanel_${selectedCategory}`, context);
+        }
+        return;
+    }
+
+    if (panelId.startsWith('editShopCategoryPanel_')) {
+        if (response.selection === 0) { return showPanel(player, 'editShopMainPanel'); }
+        const category = panelId.replace('editShopCategoryPanel_', '');
+        const page = context.page || 1;
+        const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
+        const paginatedItems = getPaginatedItems(itemsInCategory, page);
+
+        const selectionIndex = response.selection - 1;
+
+        // Handle pagination
+        if (selectionIndex >= paginatedItems.length) {
+            let newPage = page;
+            const totalPages = Math.ceil(itemsInCategory.length / ITEMS_PER_PAGE);
+            const hasPrev = page > 1;
+            const hasNext = page < totalPages;
+            let buttonIndex = selectionIndex - paginatedItems.length;
+
+            if (hasPrev && buttonIndex === 0) {
+                newPage--;
+            } else if (hasNext) {
+                newPage++;
+            }
+            return showPanel(player, panelId, { ...context, page: newPage });
+        }
+
+        const selection = paginatedItems[selectionIndex];
+        if (selection) {
+            const masterItem = allItems[selection];
+            const shopConfig = getShopConfig();
+            const shopItem = shopConfig.items[selection];
+
+            const editForm = new ModalFormData().title(masterItem.displayName ?? selection);
+            editForm.toggle('Enable in Shop', { defaultValue: !!shopItem });
+            editForm.textField('Buy Price (-1 to disable)', 'Buy Price', { defaultValue: `${shopItem?.buyPrice ?? masterItem.buyPrice}` });
+            editForm.textField('Sell Price (-1 to disable)', 'Sell Price', { defaultValue: `${shopItem?.sellPrice ?? masterItem.sellPrice}` });
+
+            const editResponse = await utils.uiWait(player, editForm);
+            if (editResponse.canceled) { return showPanel(player, panelId, context); }
+
+            const [enabled, buyPriceStr, sellPriceStr] = editResponse.formValues;
+            const buyPrice = parseInt(buyPriceStr, 10);
+            const sellPrice = parseInt(sellPriceStr, 10);
+
+            if (isNaN(buyPrice) || isNaN(sellPrice)) {
+                player.sendMessage('§cInvalid price. Please enter a number.');
+                return showPanel(player, panelId, context);
+            }
+
+            if (enabled) {
+                shopConfig.items[selection] = { buyPrice, sellPrice };
+            } else {
+                delete shopConfig.items[selection];
+            }
+            saveShopConfig();
+            player.sendMessage(`§aSaved settings for ${masterItem.displayName ?? selection}.`);
+        }
+        return showPanel(player, panelId, context);
+    }
+
 
     if (panelId === 'bountyListPanel') {
         return showPanel(player, 'mainPanel');
@@ -251,6 +522,165 @@ async function handleFormResponse(player, panelId, response, context) {
         }
     }
 }
+
+// --- Shop Builder Functions ---
+
+const ITEMS_PER_PAGE = 8; // Number of items to show per page in the shop
+
+function getPaginatedItems(items, page) {
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return items.slice(startIndex, endIndex);
+}
+
+function addPaginationButtons(form, page, totalItems) {
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    if (page > 1) {
+        form.button('§e< Previous');
+    }
+    if (page < totalPages) {
+        form.button('§eNext >');
+    }
+}
+
+function buildShopMainPanel(form, context) {
+    const shopConfig = getShopConfig();
+    const view = context.view || 'shop'; // 'shop', 'buy', or 'sell'
+
+    const categories = [...new Set(Object.keys(shopConfig.items).map(id => allItems[id]?.category).filter(Boolean))];
+
+    const validCategories = categories.filter(category => {
+        return Object.keys(shopConfig.items).some(id => {
+            const masterItem = allItems[id];
+            if (masterItem?.category !== category) {return false;}
+            const shopItem = shopConfig.items[id];
+            if (view === 'buy') {return shopItem.buyPrice > 0;}
+            if (view === 'sell') {return shopItem.sellPrice > 0;}
+            return true;
+        });
+    });
+
+    if (validCategories.length === 0) {
+        form.body('§cThe shop is currently empty.');
+        return;
+    }
+
+    for (const category of validCategories) {
+        form.button(category, shopCategoryIcons[category]);
+    }
+}
+
+function buildShopCategoryPanel(form, context) {
+    const { category, page = 1, view = 'shop' } = context;
+    const shopConfig = getShopConfig();
+
+    const itemsInCategory = Object.keys(shopConfig.items).filter(id => {
+        const masterItem = allItems[id];
+        if (masterItem?.category !== category) {return false;}
+        const shopItem = shopConfig.items[id];
+        if (view === 'buy') {return shopItem.buyPrice > 0;}
+        if (view === 'sell') {return shopItem.sellPrice > 0;}
+        return true;
+    });
+
+    const subCategories = [...new Set(itemsInCategory.map(id => allItems[id].subCategory).filter(Boolean))];
+    const rootItems = itemsInCategory.filter(id => !allItems[id].subCategory);
+
+    const allEntries = [
+        ...subCategories.map(sc => ({ id: sc, type: 'subCategory' })),
+        ...rootItems.map(i => ({ id: i, type: 'item' }))
+    ];
+
+    const paginatedEntries = getPaginatedItems(allEntries, page);
+
+    for (const entry of paginatedEntries) {
+        if (entry.type === 'subCategory') {
+            const icon = shopSubCategoryIcons[entry.id] || 'textures/gui/folder_glyph';
+            form.button(`§e${entry.id}`, icon);
+        } else {
+            const masterItem = allItems[entry.id];
+            const shopItem = shopConfig.items[entry.id];
+            let priceString = '';
+            if (view === 'buy' && shopItem.buyPrice > 0) {
+                priceString = `§2Buy: $${shopItem.buyPrice}`;
+            } else if (view === 'sell' && shopItem.sellPrice > 0) {
+                priceString = `§cSell: $${shopItem.sellPrice}`;
+            } else {
+                const buy = shopItem.buyPrice > 0 ? `§2B: $${shopItem.buyPrice}` : '';
+                const sell = shopItem.sellPrice > 0 ? `§cS: $${shopItem.sellPrice}` : '';
+                priceString = [buy, sell].filter(Boolean).join(' ');
+            }
+            form.button(`${masterItem.displayName ?? entry.id}\n${priceString}`, masterItem.icon);
+        }
+    }
+    addPaginationButtons(form, page, allEntries.length);
+}
+
+function buildShopItemListPanel(form, context) {
+    const { category, subCategory, page = 1, view = 'shop' } = context;
+    const shopConfig = getShopConfig();
+
+    const itemsInSubCategory = Object.keys(shopConfig.items).filter(id => {
+        const masterItem = allItems[id];
+        if (masterItem?.category !== category || masterItem?.subCategory !== subCategory) {return false;}
+        const shopItem = shopConfig.items[id];
+        if (view === 'buy') {return shopItem.buyPrice > 0;}
+        if (view === 'sell') {return shopItem.sellPrice > 0;}
+        return true;
+    });
+
+    const paginatedItems = getPaginatedItems(itemsInSubCategory, page);
+
+    for (const itemId of paginatedItems) {
+        const masterItem = allItems[itemId];
+        const shopItem = shopConfig.items[itemId];
+        let priceString = '';
+        if (view === 'buy' && shopItem.buyPrice > 0) {
+            priceString = `§2Buy: $${shopItem.buyPrice}`;
+        } else if (view === 'sell' && shopItem.sellPrice > 0) {
+            priceString = `§cSell: $${shopItem.sellPrice}`;
+        } else {
+            const buy = shopItem.buyPrice > 0 ? `§2B: $${shopItem.buyPrice}` : '';
+            const sell = shopItem.sellPrice > 0 ? `§cS: $${shopItem.sellPrice}` : '';
+            priceString = [buy, sell].filter(Boolean).join(' ');
+        }
+        form.button(`${masterItem.displayName ?? itemId}\n${priceString}`, masterItem.icon);
+    }
+    addPaginationButtons(form, page, itemsInSubCategory.length);
+}
+
+// --- Admin Edit Shop Builder Functions ---
+function buildEditShopMainPanel(form) {
+    const categories = [...new Set(Object.values(allItems).map(item => item.category))];
+    for (const category of categories.sort()) {
+        const icon = shopCategoryIcons[category] || 'textures/gui/folder_glyph';
+        form.button(category, icon);
+    }
+}
+
+function buildEditShopCategoryPanel(form, context) {
+    const { category, page = 1 } = context;
+    const shopConfig = getShopConfig();
+
+    const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
+
+    if (itemsInCategory.length === 0) {
+        form.body('§cNo items found in this category.');
+        return;
+    }
+
+    const paginatedItems = getPaginatedItems(itemsInCategory, page);
+
+    for (const itemId of paginatedItems) {
+        const masterItem = allItems[itemId];
+        const shopItem = shopConfig.items[itemId];
+        const status = shopItem ? '§2[Enabled]' : '§c[Disabled]';
+        form.button(`${masterItem.displayName ?? itemId}\n${status}`, masterItem.icon);
+    }
+
+    addPaginationButtons(form, page, itemsInCategory.length);
+}
+
 
 // --- Helper & Builder Functions ---
 

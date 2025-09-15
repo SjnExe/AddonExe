@@ -1,9 +1,9 @@
 import { world, system } from '@minecraft/server';
+import { getConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 
 const punishmentDbKey = 'exe:punishments';
-const saveIntervalTicks = 6000; // Every 5 minutes (20 ticks/sec * 60 sec/min * 5 min)
 
 /**
  * @typedef {'mute' | 'ban'} PunishmentType
@@ -83,6 +83,7 @@ function savePunishments() {
 export function addPunishment(playerId, punishment) {
     punishments.set(playerId, punishment);
     needsSave = true;
+    savePunishments(); // Save immediately for critical actions
     debugLog(`[PunishmentManager] Added ${punishment.type} for player ${playerId}. Expires: ${new Date(punishment.expires).toLocaleString()}`);
 }
 
@@ -114,6 +115,7 @@ export function getPunishment(playerId) {
 export function removePunishment(playerId) {
     if (punishments.delete(playerId)) {
         needsSave = true;
+        savePunishments(); // Save immediately for critical actions
         debugLog(`[PunishmentManager] Removed punishment for player ${playerId}.`);
     }
 }
@@ -122,4 +124,4 @@ export function removePunishment(playerId) {
 system.runInterval(() => {
     clearExpiredPunishments();
     savePunishments();
-}, saveIntervalTicks);
+}, (getConfig().data?.autoSaveIntervalSeconds ?? 30) * 20);

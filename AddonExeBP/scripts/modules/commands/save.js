@@ -10,6 +10,7 @@ commandManager.register({
     category: 'Administration',
     permissionLevel: 1, // Admins only
     allowConsole: true,
+    disableSlashCommand: false,
     parameters: [],
     execute: (player, args) => {
         player.sendMessage('§aStarting manual data save...');

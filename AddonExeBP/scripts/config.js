@@ -60,10 +60,15 @@ export const config = {
         paymentConfirmationThreshold: 10000, // Payments over this amount require confirmation
         paymentConfirmationTimeout: 60 // Seconds to confirm a payment
     },
+    bounties: {
+        enabled: true,
+        // How long (in seconds) after the last hit from a player that they can still be credited for the kill.
+        bountyCreditTimeoutSeconds: 15
+    },
     playerInfo: {
         enableWelcomer: true,
         // Available placeholders: {playerName}, {serverName}, {discordLink}, {websiteLink}. Use \n for a new line.
-        welcomeMessage: 'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r or §e!h§r to see commands.',
+        welcomeMessage: 'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r to see available commands.',
         notifyAdminOnNewPlayer: true,
         enableDeathCoords: true,
         deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.'
@@ -89,8 +94,7 @@ export const config = {
             '§e6. §rNo advertising other servers or websites.',
             '§e7. §rKeep conversations in English.',
             '§e8. §rFollow directions from staff members.',
-            '§e9. §rDo not use offensive language, skins, or usernames.',
-            '§e10. §rHave fun and enjoy your time on the server!'
+            '§e9. §rDo not use offensive language, skins, or usernames.'
         ]
     },
 
@@ -113,6 +117,7 @@ export const config = {
         'baltop': { enabled: true },
         'ban': { enabled: true },
         'bounty': { enabled: true },
+        'buy': { enabled: true },
         'chattoconsole': { enabled: true },
         'clear': { enabled: true },
         'clearchat': { enabled: true },
@@ -120,8 +125,8 @@ export const config = {
         'copyinv': { enabled: true },
         'deathcoords': { enabled: true },
         'debug': { enabled: true },
-        'ecwipe': { enabled: true },
         'delhome': { enabled: true },
+        'ecwipe': { enabled: true },
         'freeze': { enabled: true },
         'gm': { enabled: true },
         'gma': { enabled: true },
@@ -136,6 +141,7 @@ export const config = {
         'kit': { enabled: true },
         'listbounty': { enabled: true },
         'mute': { enabled: true },
+        'offlineban': { enabled: true },
         'panel': { enabled: true },
         'pay': { enabled: true },
         'payconfirm': { enabled: true },
@@ -147,9 +153,12 @@ export const config = {
         'restart': { enabled: true },
         'rules': { enabled: true },
         'save': { enabled: true },
+        'sell': { enabled: true },
+        'sellhand': { enabled: true },
         'setbalance': { enabled: true },
         'sethome': { enabled: true },
         'setspawn': { enabled: true },
+        'shop': { enabled: true },
         'spawn': { enabled: true },
         'status': { enabled: true },
         'tp': { enabled: true },

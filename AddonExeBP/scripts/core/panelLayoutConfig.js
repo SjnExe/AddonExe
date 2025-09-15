@@ -85,7 +85,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'rules',
-                text: '§eRules',
+                text: '§cRules',
                 icon: 'textures/items/book_enchanted.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -109,8 +109,36 @@ export const panelDefinitions = {
                 actionType: 'openPanel',
                 actionValue: 'helpfulLinksPanel',
                 sortId: 70
+            },
+            {
+                id: 'shop',
+                text: '§2Shop',
+                icon: 'textures/items/emerald.png',
+                permissionLevel: 1024, // Everyone
+                actionType: 'openPanel',
+                actionValue: 'shopMainPanel',
+                sortId: 5
+            },
+            {
+                id: 'editShop',
+                text: '§3Edit Shop',
+                icon: 'textures/ui/editIcon.png',
+                permissionLevel: 1, // Admin only
+                actionType: 'openPanel',
+                actionValue: 'editShopMainPanel',
+                sortId: 25
             }
         ]
+    },
+    shopMainPanel: {
+        title: '§l§aShop Categories§r',
+        parentPanelId: 'mainPanel',
+        items: [] // Dynamically populated by uiManager
+    },
+    editShopMainPanel: {
+        title: '§l§bEdit Shop§r',
+        parentPanelId: 'mainPanel',
+        items: [] // Dynamically populated by uiManager
     },
     reportListPanel: {
         title: '§l§4Active Reports§r',

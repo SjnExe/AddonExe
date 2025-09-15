@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-09-13
+
+This version introduces critical security fixes, bug fixes, and stability improvements to the core addon systems.
+
+### ✨ Features
+
+- **In-Game Shop System**: Introduced a comprehensive, GUI-based shop system.
+  - Players can access the shop via the `/shop` command or the main admin panel.
+  - The UI supports browsing categorized items, buying, and selling.
+  - New commands were added for direct access: `/buy` opens the buy view, `/sell` opens the sell view, and `/sellhand` allows for quickly selling the item in the main hand.
+
+### 🔒 Security
+
+- **Punishment Reason Sanitization**: Fixed a command injection vulnerability where a ban or kick `reason` containing special characters (e.g., double quotes) could break the `kick` command. This fix prevents the kick-on-ban and kick-on-join-when-banned mechanisms from failing.
+
+### 🐛 Bug Fixes
+
+- **`/sellhand` for Unstackable Items**: Disabled the `/sellhand` command for unstackable items to prevent issues with the underlying `/clear` command. The command will now show an error message if used with an unstackable item.
+- **Punishment Data Loss on Crash**: Fixed a critical bug where punishments (bans/mutes) could be lost if the server crashed. Punishments are now saved to disk immediately upon being issued or removed, instead of waiting for the next auto-save cycle.
+
+### 🎨 Changes
+
+- **Punishment Manager Save Interval**: The punishment manager now correctly uses the `autoSaveIntervalSeconds` value from the main configuration file for its periodic saving, instead of a hardcoded 5-minute interval.
+
 ## [0.4.0] - 2025-09-10
 
 This version introduces a significant overhaul of the player management UI, adds new moderation features, and includes several critical bug fixes for core gameplay systems.

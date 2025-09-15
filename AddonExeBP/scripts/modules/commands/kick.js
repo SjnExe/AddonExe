@@ -34,7 +34,8 @@ export function kickPlayer(player, targetPlayer, reason) {
     }
 
     try {
-        const commandToRun = `kick "${targetPlayer.name}" ${reason}`;
+        const sanitizedReason = reason.replace(/"/g, '\\"');
+        const commandToRun = `kick "${targetPlayer.name}" ${sanitizedReason}`;
         if (player.isConsole) {
             // For console, run the command in the overworld.
             world.getDimension('overworld').runCommand(commandToRun);
@@ -53,12 +54,13 @@ export function kickPlayer(player, targetPlayer, reason) {
 
 commandManager.register({
     name: 'kick',
+    slashName: 'xkick',
     description: 'Kicks a player from the server.',
     aliases: ['boot'],
     category: 'Moderation',
     permissionLevel: 1, // Admins only
     allowConsole: true,
-    disableSlashCommand: true,
+    disableSlashCommand: false,
     parameters: [
         { name: 'target', type: 'string', description: 'The name of the player to kick.' },
         { name: 'reason', type: 'text', description: 'The reason for kicking the player.', optional: true }

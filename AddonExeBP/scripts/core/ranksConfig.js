@@ -23,7 +23,7 @@
 
 /** @type {Required<ChatFormatting>} */
 export const defaultChatFormatting = {
-    prefixText: '§8[§7Member§8] ',
+    prefixText: '§8[§8Member§8] ',
     nameColor: '§7',
     messageColor: '§f'
 };
@@ -105,7 +105,7 @@ export const rankDefinitions = [
         name: 'Member',
         permissionLevel: 1024, // Default permission level
         chatFormatting: defaultChatFormatting,
-        nametagPrefix: '§7Member',
+        nametagPrefix: '§8Member',
         conditions: [
             { type: 'default' }
         ]

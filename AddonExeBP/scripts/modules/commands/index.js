@@ -24,6 +24,7 @@ const commandFiles = [
     'pay.js',         // Contains /payconfirm
     'bounty.js',      // Contains /listbounty, /removebounty
     'kit.js',
+    'shop.js',
 
     // --- Moderation Commands ---
     'report.js',      // Contains /reports, /clearreports (admin)

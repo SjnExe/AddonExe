@@ -20,7 +20,7 @@ import { startTeleportWarmup } from './utils.js';
 
 /** @type {Map<string, TpaRequest>} */
 const outgoingRequests = new Map();
-/** @type {Map<string, TpaRequest>} */
+/** @type {Map<string, TpaRequest[]>} */
 const incomingRequests = new Map();
 
 /**
@@ -31,7 +31,16 @@ function clearRequest(request) {
     if (!request) {return;}
     system.clearRun(request.timeoutId);
     outgoingRequests.delete(request.sourcePlayerId);
-    incomingRequests.delete(request.targetPlayerId);
+    const targetRequests = incomingRequests.get(request.targetPlayerId);
+    if (targetRequests) {
+        const index = targetRequests.findIndex(r => r.sourcePlayerId === request.sourcePlayerId);
+        if (index !== -1) {
+            targetRequests.splice(index, 1);
+        }
+        if (targetRequests.length === 0) {
+            incomingRequests.delete(request.targetPlayerId);
+        }
+    }
 }
 
 /**
@@ -45,9 +54,7 @@ export function createRequest(sourcePlayer, targetPlayer, type) {
     if (outgoingRequests.has(sourcePlayer.id)) {
         return { success: false, message: 'You already have an outgoing TPA request. Use !tpacancel to cancel it.' };
     }
-    if (incomingRequests.has(targetPlayer.id)) {
-        return { success: false, message: `${targetPlayer.name} already has a pending TPA request.` };
-    }
+    // This check is no longer needed as we now support multiple incoming requests.
 
     const config = getConfig();
     const timeoutSeconds = config.tpa.requestTimeoutSeconds;
@@ -74,18 +81,32 @@ export function createRequest(sourcePlayer, targetPlayer, type) {
     };
 
     outgoingRequests.set(sourcePlayer.id, request);
-    incomingRequests.set(targetPlayer.id, request);
+    if (!incomingRequests.has(targetPlayer.id)) {
+        incomingRequests.set(targetPlayer.id, []);
+    }
+    incomingRequests.get(targetPlayer.id).push(request);
 
     return { success: true, message: 'TPA request sent.' };
 }
 
 /**
- * Gets a player's incoming TPA request.
+ * Gets a player's incoming TPA request(s).
+ * If a source player name is provided, it returns that specific request.
+ * Otherwise, it returns the most recent request.
  * @param {import('@minecraft/server').Player} player
+ * @param {string} [sourcePlayerName]
  * @returns {TpaRequest | undefined}
  */
-export function getIncomingRequest(player) {
-    return incomingRequests.get(player.id);
+export function getIncomingRequest(player, sourcePlayerName) {
+    const requests = incomingRequests.get(player.id);
+    if (!requests || requests.length === 0) {
+        return undefined;
+    }
+    if (sourcePlayerName) {
+        return requests.find(r => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
+    }
+    // Return the most recent request if no name is specified
+    return requests[requests.length - 1];
 }
 
 /**
@@ -101,10 +122,14 @@ export function getOutgoingRequest(player) {
  * Accepts an incoming TPA request for a player and teleports the relevant party.
  * @param {import('@minecraft/server').Player} player The player accepting the request.
  */
-export function acceptRequest(player) {
-    const request = getIncomingRequest(player);
+export function acceptRequest(player, sourcePlayerName) {
+    const request = getIncomingRequest(player, sourcePlayerName);
     if (!request) {
-        player.sendMessage('§cYou have no incoming TPA requests.');
+        if (sourcePlayerName) {
+            player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
+        } else {
+            player.sendMessage('§cYou have no incoming TPA requests.');
+        }
         return;
     }
 
@@ -161,10 +186,14 @@ export function acceptRequest(player) {
  * Denies an incoming TPA request for a player.
  * @param {import('@minecraft/server').Player} player The player denying the request.
  */
-export function denyRequest(player) {
-    const request = getIncomingRequest(player);
+export function denyRequest(player, sourcePlayerName) {
+    const request = getIncomingRequest(player, sourcePlayerName);
     if (!request) {
-        player.sendMessage('§cYou have no incoming TPA requests.');
+        if (sourcePlayerName) {
+            player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
+        } else {
+            player.sendMessage('§cYou have no incoming TPA requests.');
+        }
         return;
     }
     const sourcePlayer = getPlayerFromCache(request.sourcePlayerId);
