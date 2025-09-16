@@ -84,6 +84,31 @@ This is the primary file for most top-level settings. **Changes to this file can
   - Customize server info like Discord links and rules.
   - Toggle individual commands on or off in the `commandSettings` section.
 
+#### TPA System (`tpa`)
+- **Description:** Manages the player-to-player teleportation request system.
+- **Settings:**
+  - `enabled` (boolean): Toggles the entire TPA feature suite (`/tpa`, `/tpahere`, `/tpaccept`, etc.).
+  - `requestTimeoutSeconds` (number): How long (in seconds) a player has to accept a TPA request before it expires.
+  - `cooldownSeconds` (number): The time a player must wait after a successful teleport before sending a new `/tpa` or `/tpahere` request.
+  - `teleportWarmupSeconds` (number): The time a player must stand still after a TPA request is accepted before they are teleported.
+
+#### Home System (`homes`)
+- **Description:** Configures the personal home system for players.
+- **Settings:**
+  - `enabled` (boolean): Toggles the home system commands (`/home`, `/sethome`, etc.).
+  - `maxHomes` (number): The maximum number of homes a player can set.
+  - `cooldownSeconds` (number): The time a player must wait after using `/home` before they can use it again.
+  - `teleportWarmupSeconds` (number): The time a player must stand still before teleporting to their home.
+
+#### Random Teleport (`rtp`)
+- **Description:** Configures the `/rtp` command for random, safe teleportation.
+- **Settings:**
+  - `enabled` (boolean): Toggles the `/rtp` command.
+  - `minRange` (number): The minimum distance (in blocks) a player will be teleported.
+  - `maxRange` (number): The maximum distance (in blocks) a player can be teleported.
+  - `cooldownSeconds` (number): The time a player must wait after a successful teleport before using `/rtp` again.
+  - `teleportWarmupSeconds` (number): The time a player must stand still before being teleported.
+
 ### `ranksConfig.js` - Ranks & Permissions
 This file defines the entire hierarchy of roles on your server. **Requires a server restart to apply changes.**
 
