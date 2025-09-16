@@ -59,7 +59,6 @@ const sleep = (ticks) => {
 
 async function findSafeLocation(player, minRange, maxRange) {
     const maxAttempts = 10;
-    const dimension = player.dimension;
 
     for (let i = 0; i < maxAttempts; i++) {
         const x = Math.floor(player.location.x + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
@@ -67,26 +66,30 @@ async function findSafeLocation(player, minRange, maxRange) {
         const tickingAreaName = `rtp_${Date.now()}`;
 
         try {
-            await dimension.runCommandAsync(`tickingarea add circle ${x} 64 ${z} 1 ${tickingAreaName}`);
-            await sleep(10);
-            const y = await findHighestSolidBlock(dimension, x, z);
+            // Use the synchronous player.runCommand, which executes in the player's dimension
+            player.runCommand(`tickingarea add circle ${x} 64 ${z} 1 ${tickingAreaName}`);
+
+            // Wait for the command to take effect and the chunk to load
+            await sleep(20); // 1 second delay should be sufficient
+
+            const y = await findHighestSolidBlock(player.dimension, x, z);
             if (y !== null) {
-                const block = dimension.getBlock({ x, y, z });
-                const blockAbove = dimension.getBlock({ x, y: y + 1, z });
-                const blockAbove2 = dimension.getBlock({ x, y: y + 2, z });
+                const block = player.dimension.getBlock({ x, y, z });
+                const blockAbove = player.dimension.getBlock({ x, y: y + 1, z });
+                const blockAbove2 = player.dimension.getBlock({ x, y: y + 2, z });
+
                 if (isSafeBlock(block) && blockAbove && !blockAbove.isSolid && blockAbove2 && !blockAbove2.isSolid) {
+                    // Success, clean up and return
+                    player.runCommand(`tickingarea remove ${tickingAreaName}`);
                     return { x: x + 0.5, y: y + 1, z: z + 0.5 };
                 }
             }
         } catch (error) {
             errorLog(`[RTP] Attempt ${i + 1} at ${x},${z} failed: ${error}`);
-        } finally {
-            try {
-                await dimension.runCommandAsync(`tickingarea remove ${tickingAreaName}`);
-            } catch (e) {
-                // Ignore
-            }
         }
+
+        // Ensure cleanup even on failure
+        player.runCommand(`tickingarea remove ${tickingAreaName}`);
     }
     return null;
 }
@@ -99,7 +102,7 @@ async function findHighestSolidBlock(dimension, x, z) {
                 return y;
             }
         } catch (e) {
-            console.warn(`[RTP] getBlock failed at ${x},${y},${z}: ${e}`);
+            // This shouldn't be hit now, but is a safe fallback
             return null;
         }
     }
