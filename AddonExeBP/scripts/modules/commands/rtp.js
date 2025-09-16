@@ -1,3 +1,4 @@
+import { system } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { setCooldown } from '../../core/cooldownManager.js';
@@ -57,27 +58,45 @@ commandManager.register({
  */
 async function findSafeLocation(player, minRange, maxRange) {
     const maxAttempts = 10;
+    const dimension = player.dimension;
+
     for (let i = 0; i < maxAttempts; i++) {
-        const x = player.location.x + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1);
-        const z = player.location.z + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1);
+        const x = Math.floor(player.location.x + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
+        const z = Math.floor(player.location.z + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
+        const tickingAreaName = `rtp_${Date.now()}`; // Unique name for the ticking area
 
         try {
-            const y = await findHighestSolidBlock(player.dimension, x, z);
+            // Add a ticking area to load the chunk
+            await dimension.runCommandAsync(`tickingarea add circle ${x} 64 ${z} 1 ${tickingAreaName}`);
+
+            // Give it a moment to load
+            await new Promise(resolve => system.runTimeout(resolve, 10)); // Wait 10 ticks (0.5s)
+
+            const y = await findHighestSolidBlock(dimension, x, z);
 
             if (y !== null) {
-                const block = player.dimension.getBlock({ x: Math.floor(x), y: y, z: Math.floor(z) });
-                const blockAbove = player.dimension.getBlock({ x: Math.floor(x), y: y + 1, z: Math.floor(z) });
-                const blockAbove2 = player.dimension.getBlock({ x: Math.floor(x), y: y + 2, z: Math.floor(z) });
+                const block = dimension.getBlock({ x, y, z });
+                const blockAbove = dimension.getBlock({ x, y: y + 1, z });
+                const blockAbove2 = dimension.getBlock({ x, y: y + 2, z });
 
                 if (isSafeBlock(block) && blockAbove && !blockAbove.isSolid && blockAbove2 && !blockAbove2.isSolid) {
-                    return { x: x, y: y + 1, z: z };
+                    // We found a safe spot!
+                    return { x: x + 0.5, y: y + 1, z: z + 0.5 }; // Center the player on the block
                 }
             }
         } catch (error) {
-            // This can happen if the location is unloaded, just try again.
-            errorLog(`[RTP] Attempt ${i + 1} failed: ${error}`);
+            errorLog(`[RTP] Attempt ${i + 1} at ${x},${z} failed: ${error}`);
+        } finally {
+            // ALWAYS remove the ticking area
+            try {
+                await dimension.runCommandAsync(`tickingarea remove ${tickingAreaName}`);
+            } catch (e) {
+                // Ignore errors here, as it might fail if the initial add failed.
+            }
         }
     }
+
+    // If we get here after all attempts, we failed
     return null;
 }
 
@@ -89,19 +108,20 @@ async function findSafeLocation(player, minRange, maxRange) {
  * @returns {Promise<number | null>}
  */
 async function findHighestSolidBlock(dimension, x, z) {
+    // This check should be more reliable now that the chunk is loaded via ticking area.
     for (let y = dimension.heightRange.max; y >= dimension.heightRange.min; y--) {
         try {
-            const block = dimension.getBlock({ x: Math.floor(x), y: y, z: Math.floor(z) });
+            const block = dimension.getBlock({ x, y, z });
             if (block && block.isSolid) {
-                return y;
+                return y; // Found the highest solid block
             }
-        } catch {
-            // Block is not loaded, this is expected in some cases.
-            // We can't check this column, so we'll return null and let the caller try a new location.
+        } catch (e) {
+            // This should no longer be hit if the ticking area works, but as a fallback:
+            errorLog(`[RTP] findHighestSolidBlock failed at ${x},${y},${z} despite ticking area: ${e}`);
             return null;
         }
     }
-    return null;
+    return null; // No solid block found in this column
 }
 
 /**
