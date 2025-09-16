@@ -70,7 +70,7 @@ async function findSafeLocation(player, minRange, maxRange) {
             await dimension.runCommandAsync(`tickingarea add circle ${x} 64 ${z} 1 ${tickingAreaName}`);
 
             // Give it a moment to load
-            await new Promise(resolve => system.runTimeout(resolve, 10)); // Wait 10 ticks (0.5s)
+            await sleep(10); // Wait 10 ticks (0.5s)
 
             const y = await findHighestSolidBlock(dimension, x, z);
 
@@ -143,3 +143,16 @@ function isSafeBlock(block) {
     ];
     return !unsafeBlocks.includes(block.typeId);
 }
+
+/**
+ * Creates a delay for a specified number of ticks.
+ * @param {number} ticks The number of ticks to wait.
+ * @returns {Promise<void>}
+ */
+const sleep = (ticks) => {
+    return new Promise(resolve => {
+        system.runTimeout(() => {
+            resolve();
+        }, ticks);
+    });
+};
