@@ -39,6 +39,13 @@ export const config = {
         cooldownSeconds: 60, // 1 minute
         teleportWarmupSeconds: 10
     },
+    rtp: {
+        enabled: true,
+        minRange: 1000,
+        maxRange: 10000,
+        cooldownSeconds: 600, // 10 minutes
+        teleportWarmupSeconds: 10
+    },
     kits: {
         enabled: false
     },
@@ -151,6 +158,7 @@ export const config = {
         'report': { enabled: true },
         'reports': { enabled: true },
         'restart': { enabled: true },
+        'rtp': { enabled: true },
         'rules': { enabled: true },
         'save': { enabled: true },
         'sell': { enabled: true },
