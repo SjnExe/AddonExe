@@ -14,6 +14,7 @@ commandManager.register({
     category: 'General',
     permissionLevel: 1024, // Everyone
     parameters: [],
+    hasCooldown: true,
     execute: (player, args) => {
         const config = getConfig();
         const spawnLocationStr = world.getDynamicProperty(spawnLocationKey);

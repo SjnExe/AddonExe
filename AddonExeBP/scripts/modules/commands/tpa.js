@@ -9,6 +9,7 @@ commandManager.register({
     aliases: ['tprequest', 'asktp', 'requesttp'],
     category: 'TPA System',
     permissionLevel: 1024, // Everyone
+    hasCooldown: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to send the request to.' }
     ],
@@ -49,6 +50,7 @@ commandManager.register({
     aliases: ['tphere', 'tprequesthere'],
     category: 'TPA System',
     permissionLevel: 1024, // Everyone
+    hasCooldown: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to send the request to.' }
     ],

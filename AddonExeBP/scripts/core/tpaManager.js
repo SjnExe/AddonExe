@@ -1,8 +1,8 @@
 import { system } from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { getPlayerFromCache } from './playerCache.js';
-import { startTeleportWarmup } from './utils.js';
 import { setCooldown } from './cooldownManager.js';
+import { startTeleportWarmup } from './utils.js';
 
 /**
  * @typedef {'tpa' | 'tpahere'} TpaRequestType

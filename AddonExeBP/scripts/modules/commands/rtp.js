@@ -1,7 +1,6 @@
 import { system } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
-import { setCooldown } from '../../core/cooldownManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
 import { errorLog } from '../../core/errorLogger.js';
 
@@ -12,6 +11,7 @@ commandManager.register({
     category: 'General',
     permissionLevel: 1024, // Everyone
     parameters: [],
+    hasCooldown: true,
     execute: (player, args) => {
         const config = getConfig();
         if (!config.rtp.enabled) {
@@ -33,7 +33,6 @@ commandManager.register({
                     try {
                         player.teleport(location);
                         player.sendMessage('§aYou have been teleported to a random location!');
-                        setCooldown(player, 'rtp');
                     } catch (e) {
                         player.sendMessage('§cFailed to teleport to the location. Please try again.');
                         errorLog(`[/x:rtp] Failed to teleport: ${e.stack}`);
@@ -66,8 +65,8 @@ async function findSafeLocation(player, minRange, maxRange) {
         const tickingAreaName = `rtp_${Date.now()}`;
 
         try {
-            // Use the synchronous player.runCommand, which executes in the player's dimension
-            player.runCommand(`tickingarea add circle ${x} 64 ${z} 1 ${tickingAreaName}`);
+            // Use player.dimension.runCommand to run with server permissions in the player's current dimension
+            player.dimension.runCommand(`tickingarea add circle ${x} 64 ${z} 1 ${tickingAreaName}`);
 
             // Wait for the command to take effect and the chunk to load
             await sleep(20); // 1 second delay should be sufficient
@@ -80,7 +79,7 @@ async function findSafeLocation(player, minRange, maxRange) {
 
                 if (isSafeBlock(block) && blockAbove && !blockAbove.isSolid && blockAbove2 && !blockAbove2.isSolid) {
                     // Success, clean up and return
-                    player.runCommand(`tickingarea remove ${tickingAreaName}`);
+                    player.dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
                     return { x: x + 0.5, y: y + 1, z: z + 0.5 };
                 }
             }
@@ -89,7 +88,7 @@ async function findSafeLocation(player, minRange, maxRange) {
         }
 
         // Ensure cleanup even on failure
-        player.runCommand(`tickingarea remove ${tickingAreaName}`);
+        player.dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
     }
     return null;
 }
