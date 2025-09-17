@@ -87,9 +87,33 @@ export function setValueByPath(obj, path, value) {
  * @returns {object} The final, reconciled configuration object.
  */
 export function reconcileConfig(newDefault, oldDefault, userSaved) {
-    // Start with the new default config. This ensures all new properties are present.
-    const finalConfig = deepMerge({}, newDefault);
-    // Then, merge the user's saved settings on top of the new defaults.
-    // This preserves all user customizations while adding any new keys from the default.
-    return deepMerge(finalConfig, userSaved);
+    const finalConfig = {};
+
+    for (const key in newDefault) {
+        const isNewKey = !Object.prototype.hasOwnProperty.call(oldDefault, key);
+        const newDefaultValue = newDefault[key];
+        const oldDefaultValue = oldDefault[key];
+        const userSavedValue = userSaved ? userSaved[key] : undefined;
+        const userHasSavedValue = userSaved && Object.prototype.hasOwnProperty.call(userSaved, key);
+
+        const isObject = (val) => val && typeof val === 'object' && !Array.isArray(val);
+
+        if (isNewKey) {
+            // New property in this version, so add it from the new default config.
+            finalConfig[key] = newDefaultValue;
+        } else if (isObject(newDefaultValue) && isObject(oldDefaultValue)) {
+            // Property is a nested object, so we must recurse.
+            // If the user doesn't have a saved object for this key, pass an empty one to the recursion.
+            const userSavedChild = isObject(userSavedValue) ? userSavedValue : {};
+            finalConfig[key] = reconcileConfig(newDefaultValue, oldDefaultValue, userSavedChild);
+        } else if (!deepEqual(newDefaultValue, oldDefaultValue)) {
+            // The default value itself has changed between versions. Force the new default value.
+            finalConfig[key] = newDefaultValue;
+        } else {
+            // The default value is the same as the last version. Preserve the user's setting.
+            // If the user hasn't customized this specific key, fall back to the new default value.
+            finalConfig[key] = userHasSavedValue ? userSavedValue : newDefaultValue;
+        }
+    }
+    return finalConfig;
 }
