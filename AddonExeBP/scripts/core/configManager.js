@@ -63,9 +63,6 @@ export function loadConfig() {
     saveCurrentConfig();
     saveLastLoadedConfig();
 
-    // eslint-disable-next-line no-console
-    console.warn(`[AddonExe CONFIG DEBUG] Final loaded config: ${JSON.stringify(currentConfig, null, 2)}`);
-
     return isFirstInit;
 }
 

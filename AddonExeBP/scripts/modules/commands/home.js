@@ -12,6 +12,7 @@ commandManager.register({
     category: 'Home System',
     permissionLevel: 1024, // Everyone
     hasCooldown: true,
+    cooldownId: 'homes',
     parameters: [
         { name: 'homeName', type: 'string', description: 'The name of the home to teleport to. Defaults to "home".', optional: true }
     ],
