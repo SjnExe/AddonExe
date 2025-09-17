@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - To Be Decided
+
+This version introduces a new random teleport feature, includes bug fixes for core gameplay systems, and expands the capabilities of the in-game configuration editor.
+
+### ✨ Features
+
+- **Random Teleport (`/rtp`)**: Added a new `/rtp` command that allows players to teleport to a random, safe location in the Overworld. The command has a configurable cooldown and warmup period.
+- **Configuration Editor Expansion**: The in-game config editor now supports modifying more settings, including `rtp`, `deathCoords`, and `bounty`.
+
+### 🐛 Bug Fixes
+
+- **Death Coords**: Fixed a bug where the death coordinates message was not reliably sent to the player upon death.
+
+### 🎨 Changes
+
+- **Dimension-specific RTP**: The `/rtp` command is now restricted to the Overworld to prevent players from using it in unintended dimensions like the Nether or the End.
+
 ## [0.5.0] - 2025-09-15
 
 This version introduces critical security fixes, bug fixes, and stability improvements to the core addon systems.
