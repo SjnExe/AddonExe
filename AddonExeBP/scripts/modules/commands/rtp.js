@@ -19,8 +19,8 @@ commandManager.register({
             return;
         }
 
-        if (player.dimension.id === 'minecraft:nether' || player.dimension.id === 'minecraft:the_end') {
-            player.sendMessage('§cYou cannot use /rtp in this dimension.');
+        if (player.dimension.id !== 'minecraft:overworld') {
+            player.sendMessage('§cYou can only use /rtp in the Overworld.');
             return;
         }
 
