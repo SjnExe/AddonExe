@@ -65,6 +65,70 @@ export const configPanelSchema = [
         ]
     },
     {
+        id: 'kits',
+        title: '§l§dKits System§r',
+        icon: 'textures/ui/inventory_icon',
+        settings: [
+            {
+                key: 'kits.enabled',
+                label: 'Kits Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the /kit command.'
+            }
+        ]
+    },
+    {
+        id: 'bounties',
+        title: '§l§cBounty System§r',
+        icon: 'textures/items/diamond_sword',
+        settings: [
+            {
+                key: 'bounties.enabled',
+                label: 'Bounties Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the bounty system.'
+            },
+            {
+                key: 'bounties.bountyCreditTimeoutSeconds',
+                label: 'Credit Timeout (s)',
+                type: 'textField',
+                description: 'How long a player is credited for a kill after their last hit.'
+            }
+        ]
+    },
+    {
+        id: 'chat',
+        title: '§l§fChat Settings§r',
+        icon: 'textures/ui/chat_bubble',
+        settings: [
+            {
+                key: 'chat.logToConsole',
+                label: 'Log Chat to Console',
+                type: 'toggle',
+                description: 'Prints player chat messages to the server console.'
+            }
+        ]
+    },
+    {
+        id: 'spawn',
+        title: '§l§eSpawn System§r',
+        icon: 'textures/blocks/beacon',
+        settings: [
+            {
+                key: 'spawn.cooldownSeconds',
+                label: 'Cooldown (s)',
+                type: 'textField',
+                description: 'How long a player must wait between using /spawn.'
+            },
+            {
+                key: 'spawn.teleportWarmupSeconds',
+                label: 'Warmup (s)',
+                type: 'textField',
+                description: 'How long a player must stand still before teleporting to spawn.'
+            }
+        ]
+    },
+    {
         id: 'tpa',
         title: '§l§bTPA System§r',
         icon: 'textures/ui/icon_multiplayer',
@@ -120,6 +184,43 @@ export const configPanelSchema = [
             },
             {
                 key: 'homes.teleportWarmupSeconds',
+                label: 'Warmup (s)',
+                type: 'textField',
+                description: 'How long a player must stand still before teleporting.'
+            }
+        ]
+    },
+    {
+        id: 'rtp',
+        title: '§l§9Random Teleport§r',
+        icon: 'textures/items/ender_pearl',
+        settings: [
+            {
+                key: 'rtp.enabled',
+                label: 'RTP Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the /rtp command.'
+            },
+            {
+                key: 'rtp.minRange',
+                label: 'Minimum Range',
+                type: 'textField',
+                description: 'The minimum distance a player can be teleported.'
+            },
+            {
+                key: 'rtp.maxRange',
+                label: 'Maximum Range',
+                type: 'textField',
+                description: 'The maximum distance a player can be teleported.'
+            },
+            {
+                key: 'rtp.cooldownSeconds',
+                label: 'Cooldown (s)',
+                type: 'textField',
+                description: 'How long a player must wait between using /rtp.'
+            },
+            {
+                key: 'rtp.teleportWarmupSeconds',
                 label: 'Warmup (s)',
                 type: 'textField',
                 description: 'How long a player must stand still before teleporting.'

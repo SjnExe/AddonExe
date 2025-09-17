@@ -4,13 +4,15 @@ import { errorLog } from '../../core/errorLogger.js';
 import * as homesManager from '../../core/homesManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
+import { setCooldown } from '../../core/cooldownManager.js';
 
 commandManager.register({
     name: 'home',
     description: 'Teleports you to one of your set homes.',
     category: 'Home System',
     permissionLevel: 1024, // Everyone
-    cooldownSeconds: getConfig().homes.cooldownSeconds,
+    hasCooldown: true,
+    cooldownId: 'homes',
     parameters: [
         { name: 'homeName', type: 'string', description: 'The name of the home to teleport to. Defaults to "home".', optional: true }
     ],
@@ -35,6 +37,7 @@ commandManager.register({
             try {
                 player.teleport(homeLocation, { dimension: world.getDimension(homeLocation.dimensionId) });
                 player.sendMessage(`§aTeleported to home '${homeName}'.`);
+                setCooldown(player, 'homes');
             } catch (e) {
                 player.sendMessage(`§cFailed to teleport. Error: ${e.message}`);
                 errorLog(`[/x:home] Failed to teleport: ${e.stack}`);

@@ -54,6 +54,9 @@ Commands available to all players by default.
 - **/spawn**
   - Teleports you to the world spawn.
   - *Chat Alias: `!spawn`*
+- **/rtp**
+  - Teleports you to a random safe location in the world.
+  - *Chat Alias: `!rtp` or `!randomtp`*
 - **/kit [kitName]**
   - Lists available kits or claims a specific kit.
   - *Chat Alias: `!kit`*

@@ -1,6 +1,7 @@
 import { system } from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { getPlayerFromCache } from './playerCache.js';
+import { setCooldown } from './cooldownManager.js';
 import { startTeleportWarmup } from './utils.js';
 
 /**
@@ -167,6 +168,7 @@ export function acceptRequest(player, sourcePlayerName) {
             freshTarget.sendMessage(`§aTeleported to ${freshSource.name}.`);
             freshSource.sendMessage(`§a${freshTarget.name} has been teleported to you.`);
         }
+        setCooldown(freshSource, 'tpa');
         clearRequest(request);
     };
 
