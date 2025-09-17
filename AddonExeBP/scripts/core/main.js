@@ -205,7 +205,7 @@ world.afterEvents.playerSpawn.subscribe(async (event) => {
     // Check for a death location to message the player after a brief delay.
     system.runTimeout(() => {
         // Re-fetch the player object to ensure it's still valid
-        const freshPlayer = world.getPlayer(player.id);
+        const freshPlayer = world.getAllPlayers().find(p => p.id === player.id);
         if (!freshPlayer) { return; }
 
         // Re-fetch pData in case it was updated in the same tick
