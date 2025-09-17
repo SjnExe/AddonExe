@@ -82,7 +82,8 @@ class CommandManager {
 
             // Player execution
             if (command.hasCooldown) {
-                const remainingCooldown = getCooldown(player.id, command.name);
+                const cooldownId = command.cooldownId || command.name;
+                const remainingCooldown = getCooldown(player.id, cooldownId);
                 if (remainingCooldown > 0) {
                     player.sendMessage(`§cYou must wait ${remainingCooldown} more second(s) to use this command.`);
                     return;
@@ -173,7 +174,8 @@ class CommandManager {
         }
 
         if (command.hasCooldown) {
-            const remainingCooldown = getCooldown(player.id, command.name);
+            const cooldownId = command.cooldownId || command.name;
+            const remainingCooldown = getCooldown(player.id, cooldownId);
             if (remainingCooldown > 0) {
                 player.sendMessage(`§cYou must wait ${remainingCooldown} more second(s) to use this command.`);
                 return true;

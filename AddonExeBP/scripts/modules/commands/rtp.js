@@ -1,6 +1,7 @@
-import { system } from '@minecraft/server';
+import { world } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
+import { setCooldown } from '../../core/cooldownManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
 import { errorLog } from '../../core/errorLogger.js';
 
@@ -10,9 +11,8 @@ commandManager.register({
     description: 'Teleports you to a random safe location in the world.',
     category: 'General',
     permissionLevel: 1024, // Everyone
-    parameters: [],
     hasCooldown: true,
-    execute: (player, args) => {
+    execute: async (player, args) => {
         const config = getConfig();
         if (!config.rtp.enabled) {
             player.sendMessage('§cThe Random Teleport system is currently disabled.');
@@ -21,76 +21,76 @@ commandManager.register({
 
         player.sendMessage('§aFinding a safe location...');
 
-        findSafeLocation(player, config.rtp.minRange, config.rtp.maxRange)
-            .then(location => {
-                if (!location) {
-                    player.sendMessage('§cCould not find a safe location after multiple attempts. Please try again.');
-                    return;
+        try {
+            const location = await findSafeLocation(player, config.rtp.minRange, config.rtp.maxRange);
+            if (!location) {
+                player.sendMessage('§cCould not find a safe location. This may be because no other players are online or in a suitable area.');
+                return;
+            }
+
+            const warmupSeconds = config.rtp.teleportWarmupSeconds;
+            const teleportLogic = () => {
+                try {
+                    player.teleport(location);
+                    player.sendMessage('§aYou have been teleported to a random location!');
+                    setCooldown(player, 'rtp');
+                } catch (e) {
+                    player.sendMessage('§cFailed to teleport to the location. Please try again.');
+                    errorLog(`[/x:rtp] Failed to teleport: ${e.stack}`);
                 }
+            };
 
-                const warmupSeconds = config.rtp.teleportWarmupSeconds;
-                const teleportLogic = () => {
-                    try {
-                        player.teleport(location);
-                        player.sendMessage('§aYou have been teleported to a random location!');
-                    } catch (e) {
-                        player.sendMessage('§cFailed to teleport to the location. Please try again.');
-                        errorLog(`[/x:rtp] Failed to teleport: ${e.stack}`);
-                    }
-                };
-
-                startTeleportWarmup(player, warmupSeconds, teleportLogic, 'a random location');
-            })
-            .catch(error => {
-                player.sendMessage('§cAn unexpected error occurred while finding a safe location.');
-                errorLog(`[RTP] Error in findSafeLocation: ${error}\n${error.stack}`);
-            });
+            startTeleportWarmup(player, warmupSeconds, teleportLogic, 'a random location');
+        } catch (error) {
+            player.sendMessage('§cAn unexpected error occurred while finding a safe location.');
+            errorLog(`[RTP] Error in execute block: ${error}\n${error.stack}`);
+        }
     }
 });
 
-const sleep = (ticks) => {
-    return new Promise(resolve => {
-        system.runTimeout(() => {
-            resolve();
-        }, ticks);
-    });
-};
-
+/**
+ * Finds a random safe location by finding other players and teleporting near them.
+ * @param {import('@minecraft/server').Player} player
+ * @param {number} minRange
+ * @param {number} maxRange
+ * @returns {Promise<import('@minecraft/server').Vector3 | null>}
+ */
 async function findSafeLocation(player, minRange, maxRange) {
-    const maxAttempts = 10;
+    const otherPlayers = world.getAllPlayers().filter(p => p.id !== player.id);
 
-    for (let i = 0; i < maxAttempts; i++) {
-        const x = Math.floor(player.location.x + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
-        const z = Math.floor(player.location.z + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
-        const tickingAreaName = `rtp_${Date.now()}`;
+    if (otherPlayers.length === 0) {
+        return null; // No other players to teleport near
+    }
 
-        try {
-            // Use player.dimension.runCommand to run with server permissions in the player's current dimension
-            player.dimension.runCommand(`tickingarea add circle ${x} 64 ${z} 1 ${tickingAreaName}`);
+    // Shuffle the array of other players to randomize who we pick first
+    for (let i = otherPlayers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [otherPlayers[i], otherPlayers[j]] = [otherPlayers[j], otherPlayers[i]];
+    }
 
-            // Wait for the command to take effect and the chunk to load
-            await sleep(20); // 1 second delay should be sufficient
+    for (const targetPlayer of otherPlayers) {
+        // Try up to 10 times per player to find a spot
+        for (let i = 0; i < 10; i++) {
+            const angle = Math.random() * 2 * Math.PI;
+            const distance = Math.random() * (maxRange - minRange) + minRange;
+            const x = Math.floor(targetPlayer.location.x + distance * Math.cos(angle));
+            const z = Math.floor(targetPlayer.location.z + distance * Math.sin(angle));
 
-            const y = await findHighestSolidBlock(player.dimension, x, z);
+            const y = await findHighestSolidBlock(targetPlayer.dimension, x, z);
+
             if (y !== null) {
-                const block = player.dimension.getBlock({ x, y, z });
-                const blockAbove = player.dimension.getBlock({ x, y: y + 1, z });
-                const blockAbove2 = player.dimension.getBlock({ x, y: y + 2, z });
+                const block = targetPlayer.dimension.getBlock({ x, y, z });
+                const blockAbove = targetPlayer.dimension.getBlock({ x, y: y + 1, z });
+                const blockAbove2 = targetPlayer.dimension.getBlock({ x, y: y + 2, z });
 
                 if (isSafeBlock(block) && blockAbove && !blockAbove.isSolid && blockAbove2 && !blockAbove2.isSolid) {
-                    // Success, clean up and return
-                    player.dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
-                    return { x: x + 0.5, y: y + 1, z: z + 0.5 };
+                    return { x: x + 0.5, y: y + 1, z: z + 0.5 }; // Found a safe spot
                 }
             }
-        } catch (error) {
-            errorLog(`[RTP] Attempt ${i + 1} at ${x},${z} failed: ${error}`);
         }
-
-        // Ensure cleanup even on failure
-        player.dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
     }
-    return null;
+
+    return null; // Failed to find a safe spot near any player
 }
 
 async function findHighestSolidBlock(dimension, x, z) {
@@ -101,7 +101,6 @@ async function findHighestSolidBlock(dimension, x, z) {
                 return y;
             }
         } catch (e) {
-            // This shouldn't be hit now, but is a safe fallback
             return null;
         }
     }

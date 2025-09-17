@@ -51,6 +51,7 @@ commandManager.register({
     category: 'TPA System',
     permissionLevel: 1024, // Everyone
     hasCooldown: true,
+    cooldownId: 'tpa',
     parameters: [
         { name: 'target', type: 'player', description: 'The player to send the request to.' }
     ],
