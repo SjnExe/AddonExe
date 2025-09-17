@@ -53,8 +53,11 @@ async function findSafeLocationAndTeleport(player, minRange, maxRange) {
                 const blockAbove = player.dimension.getBlock({ x, y: y + 1, z });
                 const blockAbove2 = player.dimension.getBlock({ x, y: y + 2, z });
 
-                if (isSafeBlock(block) && blockAbove && !blockAbove.isSolid && blockAbove2 && !blockAbove2.isSolid) {
+                if (isSafeBlock(block) && blockAbove && !blockAbove.isSolid && isSafeBlock(blockAbove) && blockAbove2 && !blockAbove2.isSolid && isSafeBlock(blockAbove2)) {
                     player.dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
+
+                    player.sendMessage('§aSafe location found! Please do not move. Teleportation will begin shortly.');
+                    await sleep(100); // 5 second wait (20 ticks per second)
 
                     const location = { x: x + 0.5, y: y + 1, z: z + 0.5 };
                     const warmupSeconds = getConfig().rtp.teleportWarmupSeconds;
