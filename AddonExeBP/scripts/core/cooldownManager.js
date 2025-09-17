@@ -92,9 +92,11 @@ export function setCooldownCustom(playerId, identifier, durationSeconds) {
     if (durationSeconds <= 0) {return;}
     const key = getCooldownKey(playerId, identifier);
     const cooldownMs = durationSeconds * 1000;
-    cooldowns.set(key, Date.now() + cooldownMs);
+    const expiry = Date.now() + cooldownMs;
+    cooldowns.set(key, expiry);
     needsSave = true;
-    // Cooldowns are saved periodically, no need to save immediately unless critical.
+    // eslint-disable-next-line no-console
+    console.warn(`[COOLDOWN DEBUG] Setting cooldown. Key: "${key}", Duration: ${durationSeconds}s, Expiry: ${expiry}`);
 }
 
 /**
@@ -107,16 +109,24 @@ export function getCooldown(playerId, identifier) {
     const key = getCooldownKey(playerId, identifier);
     const expiry = cooldowns.get(key);
 
+    // eslint-disable-next-line no-console
+    console.warn(`[COOLDOWN DEBUG] Getting cooldown. Key: "${key}", Expiry found: ${expiry}`);
+
     if (!expiry) {return 0;}
 
     const now = Date.now();
     if (now >= expiry) {
         cooldowns.delete(key);
         needsSave = true;
+        // eslint-disable-next-line no-console
+        console.warn(`[COOLDOWN DEBUG] Cooldown expired or is in the past. Returning 0.`);
         return 0;
     }
 
-    return Math.ceil((expiry - now) / 1000);
+    const remaining = Math.ceil((expiry - now) / 1000);
+    // eslint-disable-next-line no-console
+    console.warn(`[COOLDOWN DEBUG] Cooldown active. Remaining: ${remaining}s`);
+    return remaining;
 }
 
 // Periodically clear expired cooldowns and save to the world
