@@ -1,4 +1,4 @@
-import { world, system } from '@minecraft/server';
+import { system } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { setCooldown } from '../../core/cooldownManager.js';
@@ -16,6 +16,11 @@ commandManager.register({
         const config = getConfig();
         if (!config.rtp.enabled) {
             player.sendMessage('§cThe Random Teleport system is currently disabled.');
+            return;
+        }
+
+        if (player.dimension.id === 'minecraft:nether' || player.dimension.id === 'minecraft:the_end') {
+            player.sendMessage('§cYou cannot use /rtp in this dimension.');
             return;
         }
 
@@ -95,7 +100,7 @@ async function findHighestSolidBlock(dimension, x, z) {
             if (block && block.isSolid) {
                 return y;
             }
-        } catch (e) {
+        } catch {
             return null; // Chunk probably not loaded, fail this attempt
         }
     }

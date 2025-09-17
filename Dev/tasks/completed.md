@@ -13,3 +13,10 @@ This document is an archive of completed tasks.
 - Add new commands for accessing the shop.
 - Update all relevant documentation.
 ---
+
+**Task:** Prevent /rtp from being used in the nether or the end dimension.
+**Assignee:** Jules
+**Objectives:**
+- Modified `rtp.js` to add a dimension check.
+- Prevented the `/rtp` command from being used in the nether or the end.
+---
