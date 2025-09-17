@@ -4,7 +4,7 @@ export const config = {
     ownerPlayerNames: ['Your•Name•Here'], // Default : ['Your•Name•Here']
     adminTag: 'admin',
     commandPrefix: '!',
-    serverName: '§cServerExe',
+    serverName: '§cServerExe§r',
     defaultGamemode: 'survival',
     debug: false,
     exeGlobalNotificationsDefaultOn: true,
