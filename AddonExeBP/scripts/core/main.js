@@ -281,6 +281,21 @@ world.afterEvents.entityDie?.subscribe((event) => {
     const deadPlayer = deadEntity;
     const config = getConfig();
 
+    // --- Death Coords Logic ---
+    // This must run before bounty logic, as bounty logic may return early for non-PvP deaths.
+    if (config.playerInfo.enableDeathCoords) {
+        const pData = playerDataManager.getPlayer(deadPlayer.id);
+        if (pData) {
+            const deathLocation = {
+                x: deadPlayer.location.x,
+                y: deadPlayer.location.y,
+                z: deadPlayer.location.z,
+                dimensionId: deadPlayer.dimension.id
+            };
+            playerDataManager.setPlayerLastDeathLocation(deadPlayer.id, deathLocation);
+        }
+    }
+
     // --- Bounty Claim Logic ---
     try {
         const lastHit = lastHitManager.getLastHit(deadPlayer.id);
@@ -319,21 +334,6 @@ world.afterEvents.entityDie?.subscribe((event) => {
             errorLog(`[BountyClaim] Could not stringify error object. Message: ${e?.message}`);
         }
         errorLog(`[BountyClaim] Error Stack: ${e?.stack}`);
-    }
-
-
-    // --- Death Coords Logic ---
-    if (config.playerInfo.enableDeathCoords) {
-        const pData = playerDataManager.getPlayer(deadPlayer.id);
-        if (pData) {
-            const deathLocation = {
-                x: deadPlayer.location.x,
-                y: deadPlayer.location.y,
-                z: deadPlayer.location.z,
-                dimensionId: deadPlayer.dimension.id
-            };
-            playerDataManager.setPlayerLastDeathLocation(deadPlayer.id, deathLocation);
-        }
     }
 });
 
