@@ -98,8 +98,8 @@ export const configPanelSchema = [
     },
     {
         id: 'chat',
-        title: '§l§fChat Settings§r',
-        icon: 'textures/ui/chat_bubble',
+        title: '§l§2Chat Settings§r',
+        icon: 'textures/ui/chat_send',
         settings: [
             {
                 key: 'chat.logToConsole',
