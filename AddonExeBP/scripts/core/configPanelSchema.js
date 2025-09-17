@@ -65,6 +65,70 @@ export const configPanelSchema = [
         ]
     },
     {
+        id: 'kits',
+        title: '§l§dKits System§r',
+        icon: 'textures/ui/inventory_icon',
+        settings: [
+            {
+                key: 'kits.enabled',
+                label: 'Kits Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the /kit command.'
+            }
+        ]
+    },
+    {
+        id: 'bounties',
+        title: '§l§cBounty System§r',
+        icon: 'textures/items/diamond_sword',
+        settings: [
+            {
+                key: 'bounties.enabled',
+                label: 'Bounties Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the bounty system.'
+            },
+            {
+                key: 'bounties.bountyCreditTimeoutSeconds',
+                label: 'Credit Timeout (s)',
+                type: 'textField',
+                description: 'How long a player is credited for a kill after their last hit.'
+            }
+        ]
+    },
+    {
+        id: 'chat',
+        title: '§l§fChat Settings§r',
+        icon: 'textures/ui/chat_bubble',
+        settings: [
+            {
+                key: 'chat.logToConsole',
+                label: 'Log Chat to Console',
+                type: 'toggle',
+                description: 'Prints player chat messages to the server console.'
+            }
+        ]
+    },
+    {
+        id: 'spawn',
+        title: '§l§eSpawn System§r',
+        icon: 'textures/blocks/beacon',
+        settings: [
+            {
+                key: 'spawn.cooldownSeconds',
+                label: 'Cooldown (s)',
+                type: 'textField',
+                description: 'How long a player must wait between using /spawn.'
+            },
+            {
+                key: 'spawn.teleportWarmupSeconds',
+                label: 'Warmup (s)',
+                type: 'textField',
+                description: 'How long a player must stand still before teleporting to spawn.'
+            }
+        ]
+    },
+    {
         id: 'tpa',
         title: '§l§bTPA System§r',
         icon: 'textures/ui/icon_multiplayer',
