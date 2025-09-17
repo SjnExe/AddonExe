@@ -53,7 +53,7 @@ async function findSafeLocationAndTeleport(player, minRange, maxRange) {
                 const blockAbove = player.dimension.getBlock({ x, y: y + 1, z });
                 const blockAbove2 = player.dimension.getBlock({ x, y: y + 2, z });
 
-                if (isSafeBlock(block) && blockAbove && !blockAbove.isSolid && blockAbove2 && !blockAbove2.isSolid) {
+                if (isSafeBlock(block) && blockAbove && !blockAbove.isSolid && isSafeBlock(blockAbove) && blockAbove2 && !blockAbove2.isSolid && isSafeBlock(blockAbove2)) {
                     player.dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
 
                     const location = { x: x + 0.5, y: y + 1, z: z + 0.5 };
