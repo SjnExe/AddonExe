@@ -127,6 +127,43 @@ export const configPanelSchema = [
         ]
     },
     {
+        id: 'rtp',
+        title: '§l§9Random Teleport§r',
+        icon: 'textures/items/ender_pearl',
+        settings: [
+            {
+                key: 'rtp.enabled',
+                label: 'RTP Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the /rtp command.'
+            },
+            {
+                key: 'rtp.minRange',
+                label: 'Minimum Range',
+                type: 'textField',
+                description: 'The minimum distance a player can be teleported.'
+            },
+            {
+                key: 'rtp.maxRange',
+                label: 'Maximum Range',
+                type: 'textField',
+                description: 'The maximum distance a player can be teleported.'
+            },
+            {
+                key: 'rtp.cooldownSeconds',
+                label: 'Cooldown (s)',
+                type: 'textField',
+                description: 'How long a player must wait between using /rtp.'
+            },
+            {
+                key: 'rtp.teleportWarmupSeconds',
+                label: 'Warmup (s)',
+                type: 'textField',
+                description: 'How long a player must stand still before teleporting.'
+            }
+        ]
+    },
+    {
         id: 'economy',
         title: '§l§6Economy System§r',
         icon: 'textures/items/gold_ingot.png',
