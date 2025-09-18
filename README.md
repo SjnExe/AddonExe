@@ -69,6 +69,7 @@ This addon is packed with features to keep your server clean:
   - **Economy & Bounties:** A simple economy system with player balances, payment commands, and a full bounty system.
   - **In-Game Shop:** A fully-featured, GUI-based shop where players can buy and sell items. Admins can configure all items and prices from an in-game panel.
   - **Homes:** Allows players to set and teleport to their own personal "homes".
+  - **Random Teleport (RTP):** A command for players to teleport to a random, safe location in the world.
   - **Kits:** A system for players to claim predefined kits of items with cooldowns.
 
 > [!NOTE]

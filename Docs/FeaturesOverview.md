@@ -76,7 +76,17 @@ This document provides a detailed breakdown of the features available in AddonEx
 - **Max Homes:** The maximum number of homes a player can set is configurable.
 - *Key Configs: `config.js` (under the `homes` section)*
 
-### D. Kits System
+### E. Random Teleport System (RTP)
+
+- Allows players to teleport to a random, safe location in the world to encourage exploration.
+- **Commands:** `/rtp`.
+- **Features:**
+  - Configurable minimum and maximum teleportation range.
+  - Cooldown between uses.
+  - Teleport warmup period to prevent abuse in combat.
+- *Key Configs: `config.js` (under the `rtp` section)*
+
+### F. Kits System
 
 - Allows players to claim predefined kits of items.
 - **Commands:** `/kit`.
@@ -84,13 +94,13 @@ This document provides a detailed breakdown of the features available in AddonEx
 - **Customizable:** Kits are defined in `AddonExeBP/scripts/core/kitsConfig.js`.
 - *Key Configs: `config.js` (under the `kits` section)*
 
-### E. Player Information & Experience
+### G. Player Information & Experience
 - **Customizable Welcome Message:** Automatically greet new players with a configurable message when they first join the server. The message can be customized with placeholders like `{playerName}` and `{serverName}` to create a personalized welcome.
 - **Death Coordinates:** When a player dies, their coordinates are automatically sent to them in a private message upon respawning, making it easy to find their dropped items. This message is also fully customizable.
 - **Server Rules Display:** Players can view server rules using the `/rules` command. The rules are defined as an array of strings in the configuration.
 - *Key Configs: `config.js` (under the `playerInfo` and `serverInfo` sections)*
 
-### F. Customizable Sound Events
+### H. Customizable Sound Events
 - Customize sounds for specific in-game events to provide auditory feedback to players and admins.
 - Events include:
   - Receiving a TPA request.

@@ -4,7 +4,7 @@ export const config = {
     ownerPlayerNames: ['Your•Name•Here'], // Default : ['Your•Name•Here']
     adminTag: 'admin',
     commandPrefix: '!',
-    serverName: '§cServerExe',
+    serverName: '§cServerExe§r',
     defaultGamemode: 'survival',
     debug: false,
     exeGlobalNotificationsDefaultOn: true,
@@ -37,6 +37,13 @@ export const config = {
         enabled: true,
         maxHomes: 5,
         cooldownSeconds: 60, // 1 minute
+        teleportWarmupSeconds: 10
+    },
+    rtp: {
+        enabled: true,
+        minRange: 1000,
+        maxRange: 10000,
+        cooldownSeconds: 600, // 10 minutes
         teleportWarmupSeconds: 10
     },
     kits: {
@@ -151,6 +158,7 @@ export const config = {
         'report': { enabled: true },
         'reports': { enabled: true },
         'restart': { enabled: true },
+        'rtp': { enabled: true },
         'rules': { enabled: true },
         'save': { enabled: true },
         'sell': { enabled: true },

@@ -12,6 +12,7 @@ const commandFiles = [
     'version.js',
     'deathcoords.js',
     'spawn.js',       // Contains /setspawn (admin)
+    'rtp.js',
 
     // --- TPA System ---
     'tpa.js',         // Contains /tpa, /tpahere, /tpaccept, /tpadeny, /tpacancel, /tpastatus

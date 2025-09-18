@@ -202,22 +202,31 @@ world.afterEvents.playerSpawn.subscribe(async (event) => {
         playerCache.addAdminToXrayCache(player.id);
     }
 
-    // Check for a death location to message the player.
-    if (pData.lastDeathLocation && !pData.deathNotificationSent) {
-        const location = pData.lastDeathLocation;
-        const config = getConfig();
-        const context = {
-            x: Math.floor(location.x),
-            y: Math.floor(location.y),
-            z: Math.floor(location.z),
-            dimensionId: location.dimensionId.replace('minecraft:', '')
-        };
-        const message = formatString(config.playerInfo.deathCoordsMessage, context);
-        player.sendMessage(message);
+    // Check for a death location to message the player after a brief delay.
+    system.runTimeout(() => {
+        // Re-fetch the player object to ensure it's still valid
+        const freshPlayer = world.getAllPlayers().find(p => p.id === player.id);
+        if (!freshPlayer) { return; }
 
-        // Mark the notification as sent to prevent spamming, but keep the data for /deathcoords.
-        playerDataManager.setDeathNotificationSent(player.id, true);
-    }
+        // Re-fetch pData in case it was updated in the same tick
+        const freshPData = playerDataManager.getPlayer(player.id);
+
+        if (freshPData && freshPData.lastDeathLocation && !freshPData.deathNotificationSent) {
+            const location = freshPData.lastDeathLocation;
+            const config = getConfig();
+            const context = {
+                x: Math.floor(location.x),
+                y: Math.floor(location.y),
+                z: Math.floor(location.z),
+                dimensionId: location.dimensionId.replace('minecraft:', '')
+            };
+            const message = formatString(config.playerInfo.deathCoordsMessage, context);
+            freshPlayer.sendMessage(message);
+
+            // Mark the notification as sent to prevent spamming, but keep the data for /deathcoords.
+            playerDataManager.setDeathNotificationSent(player.id, true);
+        }
+    }, 1);
 });
 
 world.afterEvents.entityHurt?.subscribe((event) => {
@@ -272,6 +281,21 @@ world.afterEvents.entityDie?.subscribe((event) => {
     const deadPlayer = deadEntity;
     const config = getConfig();
 
+    // --- Death Coords Logic ---
+    // This must run before bounty logic, as bounty logic may return early for non-PvP deaths.
+    if (config.playerInfo.enableDeathCoords) {
+        const pData = playerDataManager.getPlayer(deadPlayer.id);
+        if (pData) {
+            const deathLocation = {
+                x: deadPlayer.location.x,
+                y: deadPlayer.location.y,
+                z: deadPlayer.location.z,
+                dimensionId: deadPlayer.dimension.id
+            };
+            playerDataManager.setPlayerLastDeathLocation(deadPlayer.id, deathLocation);
+        }
+    }
+
     // --- Bounty Claim Logic ---
     try {
         const lastHit = lastHitManager.getLastHit(deadPlayer.id);
@@ -310,21 +334,6 @@ world.afterEvents.entityDie?.subscribe((event) => {
             errorLog(`[BountyClaim] Could not stringify error object. Message: ${e?.message}`);
         }
         errorLog(`[BountyClaim] Error Stack: ${e?.stack}`);
-    }
-
-
-    // --- Death Coords Logic ---
-    if (config.playerInfo.enableDeathCoords) {
-        const pData = playerDataManager.getPlayer(deadPlayer.id);
-        if (pData) {
-            const deathLocation = {
-                x: deadPlayer.location.x,
-                y: deadPlayer.location.y,
-                z: deadPlayer.location.z,
-                dimensionId: deadPlayer.dimension.id
-            };
-            playerDataManager.setPlayerLastDeathLocation(deadPlayer.id, deathLocation);
-        }
     }
 });
 

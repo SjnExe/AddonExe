@@ -3,6 +3,7 @@ import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { playSound, startTeleportWarmup } from '../../core/utils.js';
 import { errorLog } from '../../core/errorLogger.js';
+import { setCooldown } from '../../core/cooldownManager.js';
 
 const spawnLocationKey = 'exe:spawnLocation';
 
@@ -13,7 +14,7 @@ commandManager.register({
     category: 'General',
     permissionLevel: 1024, // Everyone
     parameters: [],
-    cooldownSeconds: getConfig().spawn.cooldownSeconds,
+    hasCooldown: true,
     execute: (player, args) => {
         const config = getConfig();
         const spawnLocationStr = world.getDynamicProperty(spawnLocationKey);
@@ -42,6 +43,7 @@ commandManager.register({
                 player.teleport(spawnLocation, { dimension: dimension });
                 player.sendMessage('§aTeleporting you to spawn...');
                 playSound(player, 'random.orb');
+                setCooldown(player, 'spawn');
             } catch (e) {
                 player.sendMessage('§cFailed to teleport to spawn. The dimension may be invalid or the location unsafe.');
                 errorLog(`[/x:spawn] Failed to teleport: ${e.stack}`);

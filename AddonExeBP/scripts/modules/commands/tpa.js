@@ -9,7 +9,7 @@ commandManager.register({
     aliases: ['tprequest', 'asktp', 'requesttp'],
     category: 'TPA System',
     permissionLevel: 1024, // Everyone
-    cooldownSeconds: getConfig().tpa.cooldownSeconds,
+    hasCooldown: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to send the request to.' }
     ],
@@ -50,7 +50,8 @@ commandManager.register({
     aliases: ['tphere', 'tprequesthere'],
     category: 'TPA System',
     permissionLevel: 1024, // Everyone
-    cooldownSeconds: getConfig().tpa.cooldownSeconds,
+    hasCooldown: true,
+    cooldownId: 'tpa',
     parameters: [
         { name: 'target', type: 'player', description: 'The player to send the request to.' }
     ],

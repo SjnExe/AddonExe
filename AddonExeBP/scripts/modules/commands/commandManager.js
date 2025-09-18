@@ -81,8 +81,9 @@ class CommandManager {
             }
 
             // Player execution
-            if (command.cooldownSeconds && command.cooldownSeconds > 0) {
-                const remainingCooldown = getCooldown(player.id, command.name);
+            if (command.hasCooldown) {
+                const cooldownId = command.cooldownId || command.name;
+                const remainingCooldown = getCooldown(player.id, cooldownId);
                 if (remainingCooldown > 0) {
                     player.sendMessage(`§cYou must wait ${remainingCooldown} more second(s) to use this command.`);
                     return;
@@ -98,9 +99,6 @@ class CommandManager {
             system.run(() => {
                 try {
                     command.execute(player, parsedArgs);
-                    if (command.cooldownSeconds && command.cooldownSeconds > 0) {
-                        setCooldownCustom(player.id, command.name, command.cooldownSeconds);
-                    }
                 } catch (error) {
                     if (getConfig().debug) {
                         errorLog(`[CommandManager] Error executing slash command '${name}': ${error.stack}`);
@@ -175,8 +173,9 @@ class CommandManager {
             return true;
         }
 
-        if (command.cooldownSeconds && command.cooldownSeconds > 0) {
-            const remainingCooldown = getCooldown(player.id, command.name);
+        if (command.hasCooldown) {
+            const cooldownId = command.cooldownId || command.name;
+            const remainingCooldown = getCooldown(player.id, cooldownId);
             if (remainingCooldown > 0) {
                 player.sendMessage(`§cYou must wait ${remainingCooldown} more second(s) to use this command.`);
                 return true;
@@ -217,9 +216,6 @@ class CommandManager {
         system.run(() => {
             try {
                 command.execute(player, parsedArgs);
-                if (command.cooldownSeconds && command.cooldownSeconds > 0) {
-                    setCooldownCustom(player.id, command.name, command.cooldownSeconds);
-                }
             } catch (error) {
                 if (getConfig().debug) {
                     errorLog(`[CommandManager] Error executing chat command '${command.name}': ${error.stack}`);
