@@ -806,14 +806,16 @@ async function buildPlayerManagementForm(title, context) {
         form.button('§e< Previous Page', 'textures/ui/arrow_left.png');
     }
 
-    if (allPlayersMap.size === 0) {
+    if (playerEntries.length === 0) {
         form.body('§cNo player data found.');
     } else {
         const paginatedEntries = getPaginatedItems(playerEntries, page);
-        for (const [name] of paginatedEntries) {
-            // Do NOT load player data here. Just display the name.
-            // Rank prefixes are omitted to avoid loading every player's data.
-            form.button(name);
+        for (const [lowerCaseName, id] of paginatedEntries) {
+            const pData = loadPlayerData(id); // Load data for the player on the current page
+            const rank = pData ? rankManager.getRankById(pData.rankId) : null;
+            const prefix = rank?.chatFormatting?.prefixText ?? '';
+            const properName = pData ? pData.name : lowerCaseName; // Fallback to lowercase name if data fails to load
+            form.button(`${prefix}${properName}`);
         }
     }
 
