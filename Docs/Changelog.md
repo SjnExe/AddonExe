@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.0] - To Be Decided
 
+### 🚀 Performance
+- **Paginated UI Lists**: Implemented pagination for the Player Management, Online Player List, Bounty List, and Report Management UIs. This prevents server lag and crashes when viewing lists with a large number of entries.
+- **Efficient Leaderboard**: The economy leaderboard is now updated dynamically only when a player's balance changes significantly, removing the previous inefficient interval-based updates.
+- **Optimized Data Loading**: Revamped the data loading strategy to prevent the addon from loading all player data at startup, significantly improving server start times.
+
+### 🔒 Reliability
+- **Immediate Data Saving**: Replaced the periodic auto-save system with an immediate-save mechanism. All player data (balances, homes, ranks, etc.) is now saved instantly upon modification, preventing data loss from server crashes.
+
 This version introduces a new random teleport feature, includes bug fixes for core gameplay systems, and expands the capabilities of the in-game configuration editor.
 
 ### ✨ Features
@@ -16,6 +24,7 @@ This version introduces a new random teleport feature, includes bug fixes for co
 
 ### 🐛 Bug Fixes
 
+- **Player Management UI Display**: Fixed an issue where the Player Management list would show player names in lowercase and without their rank prefix.
 - **Death Coords**: Fixed a bug where the death coordinates message was not reliably sent to the player upon death.
 
 ### 🎨 Changes
