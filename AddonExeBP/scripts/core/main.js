@@ -292,9 +292,9 @@ world.afterEvents.playerDimensionChange.subscribe((event) => {
     try {
         // Add a small offset to the return location to prevent teleport loops (especially with End portals)
         const returnLocation = {
-            x: fromLocation.x + 2,
+            x: fromLocation.x + 3,
             y: fromLocation.y,
-            z: fromLocation.z + 2
+            z: fromLocation.z + 3
         };
         player.teleport(returnLocation, { dimension: fromDimension });
         player.sendMessage(`§cThe ${dimensionId} dimension is currently locked.`);
