@@ -191,6 +191,12 @@ Commands for high-level server management.
 - **/rank <set|remove> <target> <rankId>**
   - Manages custom player ranks.
 
+### World Management
+- **/netherlock [true|false]**
+  - Toggles or sets the lock for the Nether dimension.
+- **/endlock [true|false]**
+  - Toggles or sets the lock for the End dimension.
+
 ### Utilities
 - **/chattoconsole**
   - Toggles sending player chat messages to the console.
