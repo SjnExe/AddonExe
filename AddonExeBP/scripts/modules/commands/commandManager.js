@@ -6,7 +6,7 @@ import {
 import { getPlayer } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { errorLog } from '../../core/errorLogger.js';
-import { getCooldown, setCooldownCustom } from '../../core/cooldownManager.js';
+import { getCooldown } from '../../core/cooldownManager.js';
 
 /**
  * Manages the registration and execution of both slash and chat commands.

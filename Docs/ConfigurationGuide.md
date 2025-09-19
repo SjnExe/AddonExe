@@ -109,6 +109,11 @@ This is the primary file for most top-level settings. **Changes to this file can
   - `cooldownSeconds` (number): The time a player must wait after a successful teleport before using `/rtp` again.
   - `teleportWarmupSeconds` (number): The time a player must stand still before being teleported.
 
+#### Dimension Locking (`dimensionLock`)
+- **Description:** Configures the dimension locking feature.
+- **Settings:**
+  - `allowAdminBypass` (boolean): If `true`, players with admin permissions can enter locked dimensions. If `false`, the lock applies to everyone.
+
 ### `ranksConfig.js` - Ranks & Permissions
 This file defines the entire hierarchy of roles on your server. **Requires a server restart to apply changes.**
 

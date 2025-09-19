@@ -2,32 +2,54 @@ import { commandManager } from './commandManager.js';
 
 const FROZEN_TAG = 'frozen';
 
-export function freezePlayer(executor, targetPlayer) {
+/**
+ * Freezes a player by disabling their input permissions.
+ * @param {import('@minecraft/server').Player | { isConsole: true, sendMessage: (msg: string) => void }} executor
+ * @param {import('@minecraft/server').Player} targetPlayer
+ */
+export async function freezePlayer(executor, targetPlayer) {
     if (targetPlayer.hasTag(FROZEN_TAG)) {
         executor.sendMessage(`§ePlayer ${targetPlayer.name} is already frozen.`);
         return;
     }
-    targetPlayer.addTag(FROZEN_TAG);
-    targetPlayer.addEffect('slowness', 2000000, { amplifier: 255, showParticles: false });
-    const announcer = executor.isConsole ? 'the Console' : executor.name;
-    executor.sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`);
-    targetPlayer.sendMessage(`§cYou have been frozen by ${announcer}.`);
+    try {
+        await targetPlayer.runCommandAsync(`inputpermission set @s camera disabled`);
+        await targetPlayer.runCommandAsync(`inputpermission set @s movement disabled`);
+        targetPlayer.addTag(FROZEN_TAG);
+
+        const announcer = executor.isConsole ? 'the Console' : executor.name;
+        executor.sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`);
+        targetPlayer.sendMessage(`§cYou have been frozen by ${announcer}.`);
+    } catch (error) {
+        executor.sendMessage(`§cFailed to freeze ${targetPlayer.name}. They may not have the required permissions or cheats may be disabled.`);
+    }
 }
 
-export function unfreezePlayer(executor, targetPlayer) {
+/**
+ * Unfreezes a player by enabling their input permissions.
+ * @param {import('@minecraft/server').Player | { isConsole: true, sendMessage: (msg: string) => void }} executor
+ * @param {import('@minecraft/server').Player} targetPlayer
+ */
+export async function unfreezePlayer(executor, targetPlayer) {
     if (!targetPlayer.hasTag(FROZEN_TAG)) {
         executor.sendMessage(`§ePlayer ${targetPlayer.name} is not frozen.`);
         return;
     }
-    targetPlayer.removeTag(FROZEN_TAG);
-    targetPlayer.removeEffect('slowness');
-    executor.sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`);
-    targetPlayer.sendMessage('§aYou have been unfrozen.');
+    try {
+        await targetPlayer.runCommandAsync(`inputpermission set @s camera enabled`);
+        await targetPlayer.runCommandAsync(`inputpermission set @s movement enabled`);
+        targetPlayer.removeTag(FROZEN_TAG);
+
+        executor.sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`);
+        targetPlayer.sendMessage('§aYou have been unfrozen.');
+    } catch (error) {
+        executor.sendMessage(`§cFailed to unfreeze ${targetPlayer.name}.`);
+    }
 }
 
 commandManager.register({
     name: 'freeze',
-    description: 'Freezes a player, preventing them from moving.',
+    description: 'Freezes a player, preventing them from moving or looking around.',
     category: 'Moderation',
     permissionLevel: 1,
     allowConsole: true,
@@ -50,7 +72,7 @@ commandManager.register({
 
 commandManager.register({
     name: 'unfreeze',
-    description: 'Unfreezes a player, allowing them to move again.',
+    description: 'Unfreezes a player, allowing them to move and look around again.',
     category: 'Moderation',
     permissionLevel: 1,
     allowConsole: true,
