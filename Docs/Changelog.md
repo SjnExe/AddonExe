@@ -19,8 +19,9 @@ This version introduces a new random teleport feature, includes bug fixes for co
 
 ### ✨ Features
 
+- **Dimension Locking**: Admins can now lock the Nether and End dimensions using the `/netherlock` and `/endlock` commands. A configuration setting allows admins to bypass these locks.
 - **Random Teleport (`/rtp`)**: Added a new `/rtp` command that allows players to teleport to a random, safe location in the Overworld. The command has a configurable cooldown and warmup period.
-- **Configuration Editor Expansion**: The in-game config editor now supports modifying more settings, including `rtp`, `deathCoords`, and `bounty`.
+- **Configuration Editor Expansion**: The in-game config editor now supports modifying more settings, including `rtp`, `deathCoords`, `bounty`, and the new `dimensionLock` bypass.
 
 ### 🐛 Bug Fixes
 

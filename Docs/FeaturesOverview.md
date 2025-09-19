@@ -30,6 +30,12 @@ This document provides a detailed breakdown of the features available in AddonEx
 - For configuration details, see the [Configuration Guide](ConfigurationGuide.md) and [Rank System Documentation](RankSystem.md).
   - *Key Configs: `config.js`, `ranksConfig.js`*
 
+### C. Dimension Locking
+- **Description:** Provides commands for admins to lock or unlock the Nether and End dimensions, preventing players from entering them.
+- **Commands:** `/netherlock [true|false]`, `/endlock [true|false]`.
+- **Admin Bypass:** A configuration option (`dimensionLock.allowAdminBypass`) allows players with admin permissions to enter locked dimensions, which is useful for moderation or server maintenance.
+- **Player Experience:** When a non-admin player attempts to enter a locked dimension, they are instantly teleported back to their previous location and receive a notification message.
+
 ---
 
 ## II. Server Utility & Player Experience Features
