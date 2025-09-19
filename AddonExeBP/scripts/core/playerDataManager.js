@@ -142,31 +142,41 @@ function triggerLeaderboardSave() {
 function updateAndSaveLeaderboard(playerId, pData) {
     const config = getConfig();
     const cacheSize = (config.economy.baltopLimit ?? 10) + 5;
-    const lowestBalanceOnBoard = leaderboardCache.length < cacheSize ? 0 : leaderboardCache[leaderboardCache.length - 1].balance;
+    const lowestBalanceOnBoard = leaderboardCache.length < cacheSize ? 0 : (leaderboardCache[leaderboardCache.length - 1]?.balance ?? 0);
 
-    const playerIsOnBoard = leaderboardCache.some(p => p.playerId === playerId);
+    const existingIndex = leaderboardCache.findIndex(p => p.playerId === playerId);
+    const playerIsOnBoard = existingIndex !== -1;
 
+    // Case 1: Player is not on the board and their balance is too low to get on.
     if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) {
-        // Player is not on the board and their balance isn't high enough to get on.
+        return; // No update needed.
+    }
+
+    // Case 2: Player is on the board.
+    if (playerIsOnBoard) {
+        const oldEntry = leaderboardCache[existingIndex];
+        // If balance hasn't changed, do nothing.
+        if (oldEntry.balance === pData.balance) {
+            return;
+        }
+        // Update the balance and re-sort. A resort is needed in case their rank changed.
+        leaderboardCache.splice(existingIndex, 1);
+        leaderboardCache.push({ playerId: playerId, name: pData.name, balance: pData.balance });
+        leaderboardCache.sort((a, b) => b.balance - a.balance);
+        triggerLeaderboardSave();
         return;
     }
 
-    // Remove the player's old entry if it exists
-    const existingIndex = leaderboardCache.findIndex(p => p.playerId === playerId);
-    if (existingIndex !== -1) {
-        leaderboardCache.splice(existingIndex, 1);
+    // Case 3: Player is not on the board but has enough balance to get on.
+    if (!playerIsOnBoard && pData.balance > lowestBalanceOnBoard) {
+        leaderboardCache.push({ playerId: playerId, name: pData.name, balance: pData.balance });
+        leaderboardCache.sort((a, b) => b.balance - a.balance);
+        // Trim the cache to the correct size
+        if (leaderboardCache.length > cacheSize) {
+            leaderboardCache.length = cacheSize;
+        }
+        triggerLeaderboardSave();
     }
-
-    // Add the new entry and sort
-    leaderboardCache.push({ playerId: playerId, name: pData.name, balance: pData.balance });
-    leaderboardCache.sort((a, b) => b.balance - a.balance);
-
-    // Trim the cache to the correct size
-    if (leaderboardCache.length > cacheSize) {
-        leaderboardCache.length = cacheSize;
-    }
-
-    triggerLeaderboardSave();
 }
 
 /**
@@ -319,6 +329,43 @@ export function getAllPlayerData() {
  */
 export function getAllPlayerNameIdMap() {
     return playerNameIdMap;
+}
+
+
+// --- Dimension Lock State Management ---
+
+const netherLockKey = 'exe:dimensionLock_nether';
+const endLockKey = 'exe:dimensionLock_end';
+
+/**
+ * Gets the lock state for a given dimension.
+ * @param {'nether' | 'end'} dimension
+ * @returns {boolean}
+ */
+export function getLockState(dimension) {
+    const key = dimension === 'nether' ? netherLockKey : endLockKey;
+    try {
+        // Returns the value of the property, or undefined if it doesn't exist.
+        // Coerce to boolean.
+        return !!world.getDynamicProperty(key);
+    } catch {
+        // Property probably doesn't exist yet
+        return false;
+    }
+}
+
+/**
+ * Sets the lock state for a given dimension.
+ * @param {'nether' | 'end'} dimension
+ * @param {boolean} isLocked
+ */
+export function setLockState(dimension, isLocked) {
+    const key = dimension === 'nether' ? netherLockKey : endLockKey;
+    try {
+        world.setDynamicProperty(key, isLocked);
+    } catch {
+        errorLog(`[DimensionLock] Failed to set lock state for ${dimension}.`);
+    }
 }
 
 
