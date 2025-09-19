@@ -24,6 +24,8 @@ import { items as allItems } from './itemsConfig.js';
 import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
 
 
+const itemsPerPage = 8; // Number of items to show per page in the shop
+
 export const uiActionFunctions = {};
 
 // Main entry point for showing a panel.
@@ -257,7 +259,7 @@ async function handleFormResponse(player, panelId, response, context) {
         // Handle pagination
         if (selectionIndex >= paginatedEntries.length) {
             let newPage = page;
-            const totalPages = Math.ceil(allEntries.length / ITEMS_PER_PAGE);
+            const totalPages = Math.ceil(allEntries.length / itemsPerPage);
             const hasPrev = page > 1;
             const hasNext = page < totalPages;
             let buttonIndex = selectionIndex - paginatedEntries.length;
@@ -363,7 +365,7 @@ async function handleFormResponse(player, panelId, response, context) {
         // Handle pagination
         if (selectionIndex >= paginatedItems.length) {
             let newPage = page;
-            const totalPages = Math.ceil(itemsInCategory.length / ITEMS_PER_PAGE);
+            const totalPages = Math.ceil(itemsInCategory.length / itemsPerPage);
             const hasPrev = page > 1;
             const hasNext = page < totalPages;
             let buttonIndex = selectionIndex - paginatedItems.length;
@@ -415,10 +417,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const page = context.page || 1;
         const selection = response.selection;
 
-        // Go back to main menu
-        if (selection === 0) {
-            return showPanel(player, 'mainPanel');
-        }
+        if (selection === 0) { return showPanel(player, 'mainPanel'); }
 
         let allItems = [];
         if (panelId === 'bountyListPanel') {
@@ -432,48 +431,47 @@ async function handleFormResponse(player, panelId, response, context) {
         }
 
         const paginatedItems = getPaginatedItems(allItems, page);
-        const totalPages = Math.ceil(allItems.length / ITEMS_PER_PAGE);
-        const hasPrevButton = page > 1;
-        const hasNextButton = page < totalPages;
+        const totalPages = Math.ceil(allItems.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+
+        const itemStartIndex = hasPrev ? 2 : 1;
+        const itemEndIndex = itemStartIndex + paginatedItems.length - 1;
 
         // Handle Previous button click
-        if (hasPrevButton && selection === 1) {
+        if (hasPrev && selection === 1) {
             return showPanel(player, panelId, { ...context, page: page - 1 });
         }
 
-        // Handle Next button click
-        const nextButtonIndex = 1 + (hasPrevButton ? 1 : 0) + paginatedItems.length;
-        if (hasNextButton && selection === nextButtonIndex) {
-            return showPanel(player, panelId, { ...context, page: page + 1 });
-        }
-
-        // Handle item selection
-        let itemIndex = selection - 1; // Adjust for Back button
-        if (hasPrevButton) {
-            itemIndex--; // Adjust for Previous button
-        }
-
-        if (itemIndex >= 0 && itemIndex < paginatedItems.length) {
-            const selectedItem = paginatedItems[itemIndex];
+        // Handle Item click
+        if (selection >= itemStartIndex && selection <= itemEndIndex) {
+            const selectedItemIndex = selection - itemStartIndex;
+            const selectedItem = paginatedItems[selectedItemIndex];
 
             if (panelId === 'bountyListPanel') {
-                // No action defined for bounty selection yet.
-                // For now, just re-show the same panel.
-                return showPanel(player, panelId, context);
-            } else if (panelId === 'reportListPanel') {
+                return showPanel(player, panelId, context); // No action yet
+            }
+            if (panelId === 'reportListPanel') {
                 return showPanel(player, 'reportActionsPanel', { ...context, targetReport: selectedItem });
-            } else if (panelId === 'playerManagementPanel') {
+            }
+            if (panelId === 'playerManagementPanel') {
                 const [selectedName, selectedId] = selectedItem;
                 const targetData = loadPlayerData(selectedId);
                 const contextName = targetData ? targetData.name : selectedName;
                 return showPanel(player, 'playerActionsPanel', { ...context, targetPlayerName: contextName, targetPlayerId: selectedId, fromPanel: panelId, targetData });
-            } else if (panelId === 'playerListPanel') {
+            }
+            if (panelId === 'playerListPanel') {
                 const targetData = getPlayer(selectedItem.id);
                 return showPanel(player, 'playerActionsPanel', { ...context, targetPlayerName: selectedItem.name, targetPlayerId: selectedItem.id, fromPanel: panelId, targetData });
             }
         }
-        // If we fall through, just show the panel again
-        return showPanel(player, panelId, context);
+
+        // Handle Next button click
+        const nextButtonIndex = itemEndIndex + 1;
+        if (hasNext && selection === nextButtonIndex) {
+            return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+        return showPanel(player, panelId, context); // Fallback
     }
 
     if (panelId === 'configCategoryPanel') {
@@ -555,16 +553,14 @@ async function handleFormResponse(player, panelId, response, context) {
 
 // --- Shop Builder Functions ---
 
-const ITEMS_PER_PAGE = 8; // Number of items to show per page in the shop
-
 function getPaginatedItems(items, page) {
-    const startIndex = (page - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
     return items.slice(startIndex, endIndex);
 }
 
 function addPaginationButtons(form, page, totalItems) {
-    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
         form.button('§e< Previous');
     }
@@ -799,7 +795,7 @@ async function buildPlayerManagementForm(title, context) {
 
     const allPlayersMap = getAllPlayerNameIdMap();
     const playerEntries = Array.from(allPlayersMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-    const totalPages = Math.ceil(playerEntries.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(playerEntries.length / itemsPerPage);
 
     // Add Previous button if not on the first page
     if (page > 1) {
@@ -835,7 +831,7 @@ async function buildPlayerListForm(title, context) {
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
     const onlinePlayers = playerCache.getAllPlayersFromCache().sort((a, b) => a.name.localeCompare(b.name));
-    const totalPages = Math.ceil(onlinePlayers.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(onlinePlayers.length / itemsPerPage);
 
     // Add Previous button if not on the first page
     if (page > 1) {
@@ -870,7 +866,7 @@ async function buildBountyListForm(title, context) {
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
     const allBounties = Array.from(bountyManager.getAllBounties().values()).sort((a, b) => b.amount - a.amount);
-    const totalPages = Math.ceil(allBounties.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(allBounties.length / itemsPerPage);
 
     // Add Previous button if not on the first page
     if (page > 1) {
@@ -902,7 +898,7 @@ function buildReportListForm(title, context) {
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
     const reports = reportManager.getAllReports().filter(r => r.status === 'open' || r.status === 'assigned').sort((a, b) => a.timestamp - b.timestamp);
-    const totalPages = Math.ceil(reports.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(reports.length / itemsPerPage);
 
     // Add Previous button if not on the first page
     if (page > 1) {
