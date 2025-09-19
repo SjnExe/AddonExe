@@ -37,6 +37,25 @@ class CommandManager {
         });
     }
 
+    // --- General Command Management ---
+
+    /**
+     * Registers a new command.
+     * @param {object} commandOptions
+     */
+    register(commandOptions) {
+        const command = { permissionLevel: 0, ...commandOptions };
+        this.commands.push(command);
+
+        if (command.aliases) {
+            for (const alias of command.aliases) {
+                this.aliases.set(alias.toLowerCase(), command.name);
+            }
+        }
+    }
+
+    // --- Slash Command Management ---
+
     /**
      * Registers a single slash command or alias.
      * @param {object} customCommandRegistry The registry object from the startup event.
@@ -144,6 +163,63 @@ class CommandManager {
     }
 
     /**
+     * Formats a parameter for registration with the Minecraft API.
+     * @param {object} param The parameter definition.
+     * @returns {object} The formatted parameter data.
+     * @private
+     */
+    formatParameter(param) {
+        const paramTypeMap = {
+            'player': CustomCommandParamType.PlayerSelector,
+            'string': CustomCommandParamType.String,
+            'text': CustomCommandParamType.String, // For greedy strings
+            'int': CustomCommandParamType.Integer,
+            'float': CustomCommandParamType.Float,
+            'boolean': CustomCommandParamType.Boolean,
+            'block': CustomCommandParamType.BlockType,
+            'item': CustomCommandParamType.ItemType,
+            'position': CustomCommandParamType.Position,
+            'target': CustomCommandParamType.PlayerSelector
+        };
+
+        const type = paramTypeMap[param.type.toLowerCase()];
+
+        if (!type) {
+            errorLog(`[CommandManager] Unknown parameter type '${param.type}' for parameter '${param.name}'. Defaulting to String.`);
+            return {
+                name: param.name,
+                type: CustomCommandParamType.String
+            };
+        }
+
+        const formattedParam = {
+            name: param.name,
+            type: type
+        };
+
+        if (param.enumOptions && Array.isArray(param.enumOptions)) {
+            // This is how you define an enum for a string parameter
+            formattedParam.enumOptions = param.enumOptions;
+        }
+
+        return formattedParam;
+    }
+
+    /**
+     * Translates the numeric permission level to the API's enum.
+     * @param {number} level The numeric permission level.
+     * @returns {CommandPermissionLevel} The corresponding enum value.
+     * @private
+     */
+    translatePermissionLevel(level) {
+        // We will handle all permission checks with our custom rank system.
+        // Registering all commands with 'Any' allows our more granular check to be the single source of truth.
+        return CommandPermissionLevel.Any;
+    }
+
+    // --- Chat Command Management ---
+
+    /**
      * Handles an incoming chat message and schedules it for execution if it's a valid command.
      * @param {import('@minecraft/server').BeforeChatSendEvent} eventData The chat event data.
      * @returns {boolean} `true` if the message was a command, otherwise `false`.
@@ -225,78 +301,6 @@ class CommandManager {
         });
 
         return true;
-    }
-
-    /**
-     * Formats a parameter for registration with the Minecraft API.
-     * @param {object} param The parameter definition.
-     * @returns {object} The formatted parameter data.
-     * @private
-     */
-    formatParameter(param) {
-        const paramTypeMap = {
-            'player': CustomCommandParamType.PlayerSelector,
-            'string': CustomCommandParamType.String,
-            'text': CustomCommandParamType.String, // For greedy strings
-            'int': CustomCommandParamType.Integer,
-            'float': CustomCommandParamType.Float,
-            'boolean': CustomCommandParamType.Boolean,
-            'block': CustomCommandParamType.BlockType,
-            'item': CustomCommandParamType.ItemType,
-            'position': CustomCommandParamType.Position,
-            'target': CustomCommandParamType.PlayerSelector
-        };
-
-        const type = paramTypeMap[param.type.toLowerCase()];
-
-        if (!type) {
-            errorLog(`[CommandManager] Unknown parameter type '${param.type}' for parameter '${param.name}'. Defaulting to String.`);
-            return {
-                name: param.name,
-                type: CustomCommandParamType.String
-            };
-        }
-
-        const formattedParam = {
-            name: param.name,
-            type: type
-        };
-
-        if (param.enumOptions && Array.isArray(param.enumOptions)) {
-            // This is how you define an enum for a string parameter
-            formattedParam.enumOptions = param.enumOptions;
-        }
-
-        return formattedParam;
-    }
-
-    /**
-     * Translates the numeric permission level to the API's enum.
-     * @param {number} level The numeric permission level.
-     * @returns {CommandPermissionLevel} The corresponding enum value.
-     * @private
-     */
-    translatePermissionLevel(level) {
-        if (level > 1000) { // Assuming 1024 is for everyone
-            return CommandPermissionLevel.Any;
-        } else {
-            return CommandPermissionLevel.Admin;
-        }
-    }
-
-    /**
-     * Registers a new command.
-     * @param {object} commandOptions
-     */
-    register(commandOptions) {
-        const command = { permissionLevel: 0, ...commandOptions };
-        this.commands.push(command);
-
-        if (command.aliases) {
-            for (const alias of command.aliases) {
-                this.aliases.set(alias.toLowerCase(), command.name);
-            }
-        }
     }
 }
 

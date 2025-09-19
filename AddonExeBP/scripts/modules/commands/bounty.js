@@ -4,7 +4,7 @@ import * as bountyManager from '../../core/bountyManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { world } from '@minecraft/server';
-import { findPlayerByName } from '../utils/playerUtils.js';
+import { findPlayerByName } from '../../core/playerCache.js';
 
 commandManager.register({
     name: 'removebounty',

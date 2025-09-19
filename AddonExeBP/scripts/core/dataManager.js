@@ -1,5 +1,4 @@
 import { getAllPlayerData, savePlayerData, isNameIdMapDirty, saveNameIdMap } from './playerDataManager.js';
-import { isBountyDataDirty, saveBounties } from './bountyManager.js';
 import { getConfig } from './configManager.js';
 import { system } from '@minecraft/server';
 import { debugLog } from './logger.js';
@@ -22,12 +21,6 @@ export function saveAllData(options = {}) {
     // Save the player name-to-ID map if it's dirty
     if (isNameIdMapDirty) {
         saveNameIdMap(); // This function will log its own success
-        anythingWasSaved = true;
-    }
-
-    // Save active bounties if they are dirty
-    if (isBountyDataDirty) {
-        saveBounties();
         anythingWasSaved = true;
     }
 

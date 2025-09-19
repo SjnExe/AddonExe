@@ -2,7 +2,7 @@ import { commandManager } from './commandManager.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
 import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
 import { parseDuration, playSound } from '../../core/utils.js';
-import { findPlayerByName } from '../utils/playerUtils.js';
+import { findPlayerByName } from '../../core/playerCache.js';
 
 export function mutePlayer(player, targetPlayer, duration, reason) {
     if (!targetPlayer) {

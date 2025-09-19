@@ -73,7 +73,7 @@ export const rankDefinitions = [
         },
         nametagPrefix: '§2Mod §f\n',
         conditions: [
-            { type: 'tag', tag: 'moderator' } // Assign this rank to players with the 'moderator' tag
+            { type: 'hasTag', value: 'moderator' } // Assign this rank to players with the 'moderator' tag
         ]
     },
 
