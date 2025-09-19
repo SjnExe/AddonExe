@@ -1,4 +1,5 @@
 import { commandManager } from './commandManager.js';
+import { errorLog } from '../../core/errorLogger.js';
 
 const FROZEN_TAG = 'frozen';
 
@@ -13,15 +14,17 @@ export async function freezePlayer(executor, targetPlayer) {
         return;
     }
     try {
-        await targetPlayer.runCommandAsync(`inputpermission set @s camera disabled`);
-        await targetPlayer.runCommandAsync(`inputpermission set @s movement disabled`);
+        // Run commands from the dimension (server context) to ensure permissions
+        await targetPlayer.dimension.runCommandAsync(`inputpermission set "${targetPlayer.name}" camera disabled`);
+        await targetPlayer.dimension.runCommandAsync(`inputpermission set "${targetPlayer.name}" movement disabled`);
         targetPlayer.addTag(FROZEN_TAG);
 
         const announcer = executor.isConsole ? 'the Console' : executor.name;
         executor.sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`);
         targetPlayer.sendMessage(`§cYou have been frozen by ${announcer}.`);
     } catch (error) {
-        executor.sendMessage(`§cFailed to freeze ${targetPlayer.name}. They may not have the required permissions or cheats may be disabled.`);
+        executor.sendMessage(`§cFailed to freeze ${targetPlayer.name}.`);
+        errorLog(`[Freeze] Failed to run /inputpermission on ${targetPlayer.name}: ${error}`);
     }
 }
 
@@ -36,14 +39,16 @@ export async function unfreezePlayer(executor, targetPlayer) {
         return;
     }
     try {
-        await targetPlayer.runCommandAsync(`inputpermission set @s camera enabled`);
-        await targetPlayer.runCommandAsync(`inputpermission set @s movement enabled`);
+        // Run commands from the dimension (server context)
+        await targetPlayer.dimension.runCommandAsync(`inputpermission set "${targetPlayer.name}" camera enabled`);
+        await targetPlayer.dimension.runCommandAsync(`inputpermission set "${targetPlayer.name}" movement enabled`);
         targetPlayer.removeTag(FROZEN_TAG);
 
         executor.sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`);
         targetPlayer.sendMessage('§aYou have been unfrozen.');
     } catch (error) {
         executor.sendMessage(`§cFailed to unfreeze ${targetPlayer.name}.`);
+        errorLog(`[Unfreeze] Failed to run /inputpermission on ${targetPlayer.name}: ${error}`);
     }
 }
 
