@@ -25,6 +25,7 @@ This version introduces a new random teleport feature, includes bug fixes for co
 
 ### 🐛 Bug Fixes
 
+- **Freeze Command**: The `/freeze` command has been completely overhauled to use the native `/inputpermission` command. This correctly prevents all player movement, camera rotation, and interactions, fixing a bug where frozen players could still jump and place blocks.
 - **Player Management UI Display**: Fixed an issue where the Player Management list would show player names in lowercase and without their rank prefix.
 - **Death Coords**: Fixed a bug where the death coordinates message was not reliably sent to the player upon death.
 
