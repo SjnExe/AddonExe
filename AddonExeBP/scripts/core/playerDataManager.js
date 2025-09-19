@@ -348,7 +348,7 @@ export function getLockState(dimension) {
         // Returns the value of the property, or undefined if it doesn't exist.
         // Coerce to boolean.
         return !!world.getDynamicProperty(key);
-    } catch (e) {
+    } catch {
         // Property probably doesn't exist yet
         return false;
     }
@@ -363,8 +363,8 @@ export function setLockState(dimension, isLocked) {
     const key = dimension === 'nether' ? netherLockKey : endLockKey;
     try {
         world.setDynamicProperty(key, isLocked);
-    } catch (e) {
-        errorLog(`[DimensionLock] Failed to set lock state for ${dimension}: ${e.stack}`);
+    } catch {
+        errorLog(`[DimensionLock] Failed to set lock state for ${dimension}.`);
     }
 }
 

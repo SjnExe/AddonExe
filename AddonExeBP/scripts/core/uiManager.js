@@ -24,7 +24,7 @@ import { items as allItems } from './itemsConfig.js';
 import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
 
 
-const ITEMS_PER_PAGE = 8; // Number of items to show per page in the shop
+const itemsPerPage = 8; // Number of items to show per page in the shop
 
 export const uiActionFunctions = {};
 
@@ -259,7 +259,7 @@ async function handleFormResponse(player, panelId, response, context) {
         // Handle pagination
         if (selectionIndex >= paginatedEntries.length) {
             let newPage = page;
-            const totalPages = Math.ceil(allEntries.length / ITEMS_PER_PAGE);
+            const totalPages = Math.ceil(allEntries.length / itemsPerPage);
             const hasPrev = page > 1;
             const hasNext = page < totalPages;
             let buttonIndex = selectionIndex - paginatedEntries.length;
@@ -365,7 +365,7 @@ async function handleFormResponse(player, panelId, response, context) {
         // Handle pagination
         if (selectionIndex >= paginatedItems.length) {
             let newPage = page;
-            const totalPages = Math.ceil(itemsInCategory.length / ITEMS_PER_PAGE);
+            const totalPages = Math.ceil(itemsInCategory.length / itemsPerPage);
             const hasPrev = page > 1;
             const hasNext = page < totalPages;
             let buttonIndex = selectionIndex - paginatedItems.length;
@@ -417,7 +417,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const page = context.page || 1;
         const selection = response.selection;
 
-        if (selection === 0) return showPanel(player, 'mainPanel');
+        if (selection === 0) { return showPanel(player, 'mainPanel'); }
 
         let allItems = [];
         if (panelId === 'bountyListPanel') {
@@ -431,7 +431,7 @@ async function handleFormResponse(player, panelId, response, context) {
         }
 
         const paginatedItems = getPaginatedItems(allItems, page);
-        const totalPages = Math.ceil(allItems.length / ITEMS_PER_PAGE);
+        const totalPages = Math.ceil(allItems.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
 
@@ -471,7 +471,6 @@ async function handleFormResponse(player, panelId, response, context) {
         if (hasNext && selection === nextButtonIndex) {
             return showPanel(player, panelId, { ...context, page: page + 1 });
         }
-
         return showPanel(player, panelId, context); // Fallback
     }
 
@@ -555,13 +554,13 @@ async function handleFormResponse(player, panelId, response, context) {
 // --- Shop Builder Functions ---
 
 function getPaginatedItems(items, page) {
-    const startIndex = (page - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
     return items.slice(startIndex, endIndex);
 }
 
 function addPaginationButtons(form, page, totalItems) {
-    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
         form.button('§e< Previous');
     }
@@ -796,7 +795,7 @@ async function buildPlayerManagementForm(title, context) {
 
     const allPlayersMap = getAllPlayerNameIdMap();
     const playerEntries = Array.from(allPlayersMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-    const totalPages = Math.ceil(playerEntries.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(playerEntries.length / itemsPerPage);
 
     // Add Previous button if not on the first page
     if (page > 1) {
@@ -832,7 +831,7 @@ async function buildPlayerListForm(title, context) {
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
     const onlinePlayers = playerCache.getAllPlayersFromCache().sort((a, b) => a.name.localeCompare(b.name));
-    const totalPages = Math.ceil(onlinePlayers.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(onlinePlayers.length / itemsPerPage);
 
     // Add Previous button if not on the first page
     if (page > 1) {
@@ -867,7 +866,7 @@ async function buildBountyListForm(title, context) {
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
     const allBounties = Array.from(bountyManager.getAllBounties().values()).sort((a, b) => b.amount - a.amount);
-    const totalPages = Math.ceil(allBounties.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(allBounties.length / itemsPerPage);
 
     // Add Previous button if not on the first page
     if (page > 1) {
@@ -899,7 +898,7 @@ function buildReportListForm(title, context) {
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
     const reports = reportManager.getAllReports().filter(r => r.status === 'open' || r.status === 'assigned').sort((a, b) => a.timestamp - b.timestamp);
-    const totalPages = Math.ceil(reports.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(reports.length / itemsPerPage);
 
     // Add Previous button if not on the first page
     if (page > 1) {
