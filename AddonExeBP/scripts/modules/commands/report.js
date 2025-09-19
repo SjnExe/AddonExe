@@ -12,13 +12,13 @@ commandManager.register({
     category: 'General',
     permissionLevel: 1024, // Everyone
     parameters: [
-        { name: 'target', type: 'string', description: 'The name of the player to report.' }
+        { name: 'target', type: 'string', description: 'The name of the player to report.', optional: true }
     ],
     execute: async (player, args) => {
         const { target: reportedPlayerName } = args;
 
         if (!reportedPlayerName) {
-            player.sendMessage('§cYou must specify a player to report.');
+            player.sendMessage('§cUsage: /report <targetName>');
             return;
         }
 
