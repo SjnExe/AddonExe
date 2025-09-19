@@ -72,6 +72,9 @@ export const config = {
         // How long (in seconds) after the last hit from a player that they can still be credited for the kill.
         bountyCreditTimeoutSeconds: 15
     },
+    dimensionLock: {
+        allowAdminBypass: true
+    },
     playerInfo: {
         enableWelcomer: true,
         // Available placeholders: {playerName}, {serverName}, {discordLink}, {websiteLink}. Use \n for a new line.

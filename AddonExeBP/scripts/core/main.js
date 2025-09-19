@@ -15,6 +15,7 @@ import { showPanel } from './uiManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import * as playerCache from './playerCache.js';
+import { getLockState } from './playerDataManager.js';
 import { startRestart } from './restartManager.js';
 import { formatString } from './utils.js';
 import '../modules/commands/index.js';
@@ -258,6 +259,42 @@ world.afterEvents.playerLeave.subscribe((event) => {
     playerDataManager.handlePlayerLeave(event.playerId);
     playerCache.removePlayerFromCache(event.playerId);
     debugLog(`[AddonExe] Player ${event.playerName} left.`);
+});
+
+world.afterEvents.playerDimensionChanged.subscribe((event) => {
+    const { player, toDimension, fromLocation } = event;
+    const config = getConfig();
+
+    let dimensionId;
+    if (toDimension.id === 'minecraft:nether') {
+        dimensionId = 'nether';
+    } else if (toDimension.id === 'minecraft:the_end') {
+        dimensionId = 'end';
+    } else {
+        return; // Not a dimension we are locking
+    }
+
+    const isLocked = getLockState(dimensionId);
+    if (!isLocked) {
+        return; // Dimension is not locked
+    }
+
+    // Check for bypass permission
+    if (config.dimensionLock?.allowAdminBypass) {
+        const pData = playerDataManager.getPlayer(player.id);
+        if (pData && pData.permissionLevel <= 1) {
+            debugLog(`[DimensionLock] Allowing admin ${player.name} to enter locked ${dimensionId} dimension.`);
+            return; // Player is an admin and bypass is enabled
+        }
+    }
+
+    // If we reach here, the player must be teleported back
+    try {
+        player.teleport(fromLocation);
+        player.sendMessage(`§cThe ${dimensionId} dimension is currently locked.`);
+    } catch (e) {
+        errorLog(`[DimensionLock] Failed to teleport player ${player.name} from locked dimension: ${e.stack}`);
+    }
 });
 
 // Handle the custom admin panel item being used
