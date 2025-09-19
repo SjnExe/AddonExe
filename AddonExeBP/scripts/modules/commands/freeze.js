@@ -8,15 +8,15 @@ const FROZEN_TAG = 'frozen';
  * @param {import('@minecraft/server').Player | { isConsole: true, sendMessage: (msg: string) => void }} executor
  * @param {import('@minecraft/server').Player} targetPlayer
  */
-export async function freezePlayer(executor, targetPlayer) {
+export function freezePlayer(executor, targetPlayer) {
     if (targetPlayer.hasTag(FROZEN_TAG)) {
         executor.sendMessage(`§ePlayer ${targetPlayer.name} is already frozen.`);
         return;
     }
     try {
         // Run commands from the dimension (server context) to ensure permissions
-        await targetPlayer.dimension.runCommandAsync(`inputpermission set "${targetPlayer.name}" camera disabled`);
-        await targetPlayer.dimension.runCommandAsync(`inputpermission set "${targetPlayer.name}" movement disabled`);
+        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera disabled`);
+        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement disabled`);
         targetPlayer.addTag(FROZEN_TAG);
 
         const announcer = executor.isConsole ? 'the Console' : executor.name;
@@ -33,15 +33,15 @@ export async function freezePlayer(executor, targetPlayer) {
  * @param {import('@minecraft/server').Player | { isConsole: true, sendMessage: (msg: string) => void }} executor
  * @param {import('@minecraft/server').Player} targetPlayer
  */
-export async function unfreezePlayer(executor, targetPlayer) {
+export function unfreezePlayer(executor, targetPlayer) {
     if (!targetPlayer.hasTag(FROZEN_TAG)) {
         executor.sendMessage(`§ePlayer ${targetPlayer.name} is not frozen.`);
         return;
     }
     try {
         // Run commands from the dimension (server context)
-        await targetPlayer.dimension.runCommandAsync(`inputpermission set "${targetPlayer.name}" camera enabled`);
-        await targetPlayer.dimension.runCommandAsync(`inputpermission set "${targetPlayer.name}" movement enabled`);
+        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera enabled`);
+        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement enabled`);
         targetPlayer.removeTag(FROZEN_TAG);
 
         executor.sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`);
