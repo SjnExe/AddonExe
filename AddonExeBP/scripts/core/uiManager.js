@@ -554,8 +554,6 @@ async function handleFormResponse(player, panelId, response, context) {
 
 // --- Shop Builder Functions ---
 
-const ITEMS_PER_PAGE = 8; // Number of items to show per page in the shop
-
 function getPaginatedItems(items, page) {
     const startIndex = (page - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
