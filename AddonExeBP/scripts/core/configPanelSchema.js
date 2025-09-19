@@ -282,5 +282,18 @@ export const configPanelSchema = [
                 description: 'Tells players their coordinates upon respawning after death.'
             }
         ]
+    },
+    {
+        id: 'dimensionLock',
+        title: '§l§5Dimension Locking§r',
+        icon: 'textures/blocks/nether_portal',
+        settings: [
+            {
+                key: 'dimensionLock.allowAdminBypass',
+                label: 'Allow Admin Bypass',
+                type: 'toggle',
+                description: 'If enabled, admins can enter locked dimensions.'
+            }
+        ]
     }
 ];
