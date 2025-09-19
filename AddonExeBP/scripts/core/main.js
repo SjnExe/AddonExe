@@ -261,7 +261,7 @@ world.afterEvents.playerLeave.subscribe((event) => {
     debugLog(`[AddonExe] Player ${event.playerName} left.`);
 });
 
-world.afterEvents.playerDimensionChanged.subscribe((event) => {
+world.afterEvents.playerDimensionChange.subscribe((event) => {
     const { player, toDimension, fromLocation } = event;
     const config = getConfig();
 
