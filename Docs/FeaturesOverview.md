@@ -22,6 +22,11 @@ This document provides a detailed breakdown of the features available in AddonEx
 - **Comprehensive Slash Commands:** A full suite of slash commands offers granular control over all features and administrative actions. These can be run in-game, from the server console, or using a chat-based fallback (e.g., `!panel`). (See [Commands List](Commands.md) for a complete reference).
 - **Persistent Player Data:** Active mutes and bans are saved using Minecraft's dynamic properties, ensuring they persist across player sessions and server restarts.
 
+### B. Moderation Tools
+- **Freeze/Unfreeze:** A robust freeze system that completely immobilizes a player.
+  - **Commands:** `/freeze <target>`, `/unfreeze <target>`.
+  - **Mechanism:** Uses the native `/inputpermission` command to disable both player movement and camera control, preventing all actions including block placement, item use, and interaction. This is a much more effective "hard freeze" than simple slowness effects.
+
 ### B. Flexible Rank System
 
 - Define roles like Owner, Admin, and Member with specific permission levels.
