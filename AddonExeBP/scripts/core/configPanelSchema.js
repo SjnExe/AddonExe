@@ -286,7 +286,7 @@ export const configPanelSchema = [
     {
         id: 'dimensionLock',
         title: '§l§5Dimension Locking§r',
-        icon: 'textures/blocks/nether_portal',
+        icon: 'textures/ui/realmPortalSmall',
         settings: [
             {
                 key: 'dimensionLock.allowAdminBypass',
