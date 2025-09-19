@@ -290,7 +290,13 @@ world.afterEvents.playerDimensionChange.subscribe((event) => {
 
     // If we reach here, the player must be teleported back
     try {
-        player.teleport(fromLocation, { dimension: fromDimension });
+        // Add a small offset to the return location to prevent teleport loops (especially with End portals)
+        const returnLocation = {
+            x: fromLocation.x + 2,
+            y: fromLocation.y,
+            z: fromLocation.z + 2
+        };
+        player.teleport(returnLocation, { dimension: fromDimension });
         player.sendMessage(`§cThe ${dimensionId} dimension is currently locked.`);
     } catch (e) {
         errorLog(`[DimensionLock] Failed to teleport player ${player.name} from locked dimension: ${e.stack}`);
