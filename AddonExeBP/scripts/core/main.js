@@ -262,7 +262,7 @@ world.afterEvents.playerLeave.subscribe((event) => {
 });
 
 world.afterEvents.playerDimensionChange.subscribe((event) => {
-    const { player, toDimension, fromLocation } = event;
+    const { player, toDimension, fromLocation, fromDimension } = event;
     const config = getConfig();
 
     let dimensionId;
@@ -290,7 +290,7 @@ world.afterEvents.playerDimensionChange.subscribe((event) => {
 
     // If we reach here, the player must be teleported back
     try {
-        player.teleport(fromLocation);
+        player.teleport(fromLocation, { dimension: fromDimension });
         player.sendMessage(`§cThe ${dimensionId} dimension is currently locked.`);
     } catch (e) {
         errorLog(`[DimensionLock] Failed to teleport player ${player.name} from locked dimension: ${e.stack}`);
