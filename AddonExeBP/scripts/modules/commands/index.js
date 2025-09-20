@@ -42,7 +42,6 @@ const commandFiles = [
 
     // --- Administration Commands ---
     'dimensionLock.js',
-    'admin.js',
     'debug.js',
     'gamemode.js',
     'rank.js',
