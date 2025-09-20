@@ -1,6 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { playSound } from '../../core/utils.js';
 import { getLockState, setLockState } from '../../core/playerDataManager.js';
+import { updateMultipleConfig } from '../../core/configManager.js';
 
 /**
  * Creates the execution logic for a dimension lock command.
@@ -21,6 +22,10 @@ function createLockCommandExecute(dimension) {
         }
 
         setLockState(dimension, newState);
+
+        // Also update the main config to keep the UI in sync
+        const configKey = `dimensionLock.${dimension}Lock`;
+        updateMultipleConfig({ [configKey]: newState });
 
         const dimensionName = dimension.charAt(0).toUpperCase() + dimension.slice(1);
         const status = newState ? '§cLocked' : '§aUnlocked';

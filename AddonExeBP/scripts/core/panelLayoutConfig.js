@@ -128,21 +128,7 @@ export const panelDefinitions = {
                 actionValue: 'editShopMainPanel',
                 sortId: 25
             },
-            {
-                id: 'kitManagement',
-                text: '§dKit Management',
-                icon: 'textures/ui/inventory_icon',
-                permissionLevel: 1, // Admin only
-                actionType: 'openPanel',
-                actionValue: 'kitManagementPanel',
-                sortId: 26
-            }
         ]
-    },
-    kitManagementPanel: {
-        title: '§l§dKit Management§r',
-        parentPanelId: 'mainPanel',
-        items: [] // Dynamically populated
     },
     shopMainPanel: {
         title: '§l§aShop Categories§r',

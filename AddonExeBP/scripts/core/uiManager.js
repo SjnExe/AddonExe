@@ -112,6 +112,30 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId.startsWith('kitDetailPanel_')) {
+        const kitName = panelId.replace('kitDetailPanel_', '');
+        const config = getConfig();
+        const kit = config.kits.kitDefinitions[kitName];
+
+        if (!kit) {
+            errorLog(`[UIManager] Could not find kit for detail panel: ${kitName}`);
+            return null;
+        }
+
+        const itemSummary = kit.items.map(item => `${item.typeId.replace('minecraft:', '')} x${item.amount}`).join(', ');
+
+        const form = new ModalFormData()
+            .title(`Edit Kit: ${kitName}`)
+            .toggle('Enable this kit', kit.enabled)
+            .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', String(kit.cooldownSeconds));
+
+        // Due to ModalFormData limitations, we can't show a rich list.
+        // We can add a non-interactive element by using a toggle with a descriptive label.
+        form.toggle(`§lItems in this kit:§r\n${itemSummary}`, false);
+
+        return form;
+    }
+
     const panelDef = panelDefinitions[panelId];
     if (!panelDef) {
         debugLog(`[UIManager] Panel definition not found for '${panelId}'.`);
@@ -155,35 +179,15 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
-    if (panelId.startsWith('kitDetailPanel_')) {
-        const kitName = panelId.replace('kitDetailPanel_', '');
-        const config = getConfig();
-        const kit = config.kits.kitDefinitions[kitName];
-
-        if (!kit) {
-            errorLog(`[UIManager] Could not find kit for detail panel: ${kitName}`);
-            return null;
-        }
-
-        const itemSummary = kit.items.map(item => `${item.typeId.replace('minecraft:', '')} x${item.amount}`).join(', ');
-
-        const form = new ModalFormData()
-            .title(`Edit Kit: ${kitName}`)
-            .toggle('Enable this kit', kit.enabled)
-            .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', String(kit.cooldownSeconds));
-
-        // Due to ModalFormData limitations, we can't show a rich list.
-        // We can add a non-interactive element by using a toggle with a descriptive label.
-        form.toggle(`§lItems in this kit:§r\n${itemSummary}`, false);
-
-        return form;
-    }
-
     if (panelId === 'configCategoryPanel') {
         const form = new ActionFormData().title(title);
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
         for (const category of configPanelSchema) {
             form.button(category.title, category.icon);
+        }
+        // Manually add the Kit Management button for admins
+        if (pData.permissionLevel <= 1) {
+            form.button('§dKit Management', 'textures/ui/inventory_icon');
         }
         return form;
     }
@@ -576,9 +580,21 @@ async function handleFormResponse(player, panelId, response, context) {
     }
 
     if (panelId === 'configCategoryPanel') {
-        if (response.selection === 0) {return showPanel(player, 'mainPanel');}
-        const selectedCategory = configPanelSchema[response.selection - 1];
-        if (selectedCategory) {return showPanel(player, `config_${selectedCategory.id}`);}
+        if (response.selection === 0) { return showPanel(player, 'mainPanel'); }
+
+        const selectionIndex = response.selection - 1;
+
+        // Check if the selection is one of the schema-defined categories
+        if (selectionIndex < configPanelSchema.length) {
+            const selectedCategory = configPanelSchema[selectionIndex];
+            if (selectedCategory) { return showPanel(player, `config_${selectedCategory.id}`); }
+        } else {
+            // If it's not in the schema, it must be our manually added Kit Management button
+            // We still do a permission check here just in case something went wrong
+            if (pData.permissionLevel <= 1) {
+                return showPanel(player, 'kitManagementPanel');
+            }
+        }
         return;
     }
 
