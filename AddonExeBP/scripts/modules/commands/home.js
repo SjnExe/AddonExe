@@ -171,9 +171,33 @@ commandManager.register({
             return;
         }
 
-        const homeName = args.homeName || 'home';
+        let homeNameToSet;
 
-        const result = homesManager.setHome(player, homeName);
+        if (args.homeName) {
+            // If a name is provided, use it directly.
+            // The homesManager.setHome function will handle the error for duplicate names.
+            homeNameToSet = args.homeName;
+        } else {
+            // If no name is provided, find the next available "home" name.
+            const existingHomes = new Set(homesManager.listHomes(player).map(h => h.toLowerCase()));
+            let i = 1;
+            let baseName = 'home';
+            homeNameToSet = baseName;
+
+            // If "home" doesn't exist, we'll use it. If it does, find the next number.
+            if (existingHomes.has(homeNameToSet)) {
+                i = 2; // Start checking from home2
+                while (true) {
+                    homeNameToSet = `${baseName}${i}`;
+                    if (!existingHomes.has(homeNameToSet)) {
+                        break;
+                    }
+                    i++;
+                }
+            }
+        }
+
+        const result = homesManager.setHome(player, homeNameToSet);
         player.sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`);
     }
 });
