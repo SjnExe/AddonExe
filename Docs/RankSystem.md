@@ -23,8 +23,8 @@ This is the fastest way to manage your server's staff roles.
 - **➡️ For a summary, see the [F.A.Q.](F.A.Q.md#how-do-i-change-the-server-owner)**
 
 ### Set Server Admin(s)
-- **What it does:** The `adminTag` setting grants the Admin permission level (1) to any player with that tag.
-- **Action:** To make someone an admin, give them the tag: `/tag "PlayerName" add admin`.
+- **What it does:** The `Admin` rank grants the Admin permission level (1).
+- **Action:** To make someone an admin, use the command: `/rank set "PlayerName" admin`.
 - **➡️ For a summary, see the [F.A.Q.](F.A.Q.md#how-do-i-make-myself-an-admin)**
 
 ---
@@ -49,8 +49,8 @@ This file contains the `rankDefinitions` array. Each object in this array is a r
 ### How Conditions Work
 
 The `conditions` array tells the addon who should get the rank.
-- The `Owner` rank has a condition `{ type: 'ownerName' }`, which automatically links it to the `ownerPlayerNames` list in `config.js`.
-- The `Admin` rank has `{ type: 'adminTag' }`, linking it to the `adminTag` in `config.js`.
+- The `Owner` rank has a condition `{ type: 'isOwner' }`, which automatically links it to the `ownerPlayerNames` list in `config.js`.
+- The `Admin` rank has `{ type: 'hasTag', value: 'admin' }`. The `/rank` command automatically manages this tag.
 - The `Member` rank has `{ type: 'default' }`, making it the fallback for everyone else.
 
 ### Example: Adding a "Moderator" Rank

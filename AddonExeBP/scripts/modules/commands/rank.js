@@ -49,9 +49,9 @@ commandManager.register({
 
         const targetPlayer = target[0];
 
-        if (rankId.toLowerCase() === 'owner' || rankId.toLowerCase() === 'admin' || rankId.toLowerCase() === 'member') {
+        if (rankId.toLowerCase() === 'owner' || rankId.toLowerCase() === 'member') {
             player.sendMessage(`§cThe '${rankId}' rank cannot be managed with this command.`);
-            player.sendMessage('§cOwner is set in config.js, Admin is managed with !admin, and Member is the default fallback.');
+            player.sendMessage('§cOwner is set in config.js, and Member is the default fallback rank.');
             playSound(player, 'note.bass');
             return;
         }
