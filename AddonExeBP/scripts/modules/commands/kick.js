@@ -58,7 +58,7 @@ commandManager.register({
     description: 'Kicks a player from the server.',
     aliases: ['boot'],
     category: 'Moderation',
-    permissionLevel: 1, // Admins only
+    permissionLevel: 2, // Admins only
     allowConsole: true,
     disableSlashCommand: false,
     parameters: [

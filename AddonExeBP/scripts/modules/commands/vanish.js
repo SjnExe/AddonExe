@@ -6,7 +6,7 @@ commandManager.register({
     aliases: ['v'],
     description: 'Makes you invisible to other players.',
     category: 'Moderation',
-    permissionLevel: 1, // Admin only
+    permissionLevel: 2, // Admin only
     parameters: [],
     execute: (player, args) => {
         const vanishedTag = 'vanished';

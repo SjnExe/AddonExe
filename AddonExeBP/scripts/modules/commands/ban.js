@@ -71,7 +71,7 @@ commandManager.register({
     name: 'ban',
     description: 'Bans a player for a specified duration with a reason.',
     category: 'Moderation',
-    permissionLevel: 1, // Admins only
+    permissionLevel: 2, // Admins only
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to ban.' },
@@ -149,7 +149,7 @@ commandManager.register({
     aliases: ['pardon'],
     description: 'Unbans a player.',
     category: 'Moderation',
-    permissionLevel: 1, // Admins only
+    permissionLevel: 2, // Admins only
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string', description: 'The name of the player to unban.' }
@@ -209,7 +209,7 @@ commandManager.register({
     aliases: ['oban'],
     description: 'Bans a player who is currently offline.',
     category: 'Moderation',
-    permissionLevel: 1, // Admins only
+    permissionLevel: 2, // Admins only
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string', description: 'The name of the player to ban.' },

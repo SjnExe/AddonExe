@@ -59,6 +59,20 @@ export const rankDefinitions = [
         ]
     },
     {
+        id: 'moderator',
+        name: 'Moderator',
+        permissionLevel: 2,
+        chatFormatting: {
+            prefixText: '§8[§2Mod§8] ',
+            nameColor: '§a',
+            messageColor: '§f'
+        },
+        nametagPrefix: '§2Mod',
+        conditions: [
+            { type: 'hasTag', value: 'moderator' }
+        ]
+    },
+    {
         id: 'donator',
         name: 'Donator',
         permissionLevel: 850,

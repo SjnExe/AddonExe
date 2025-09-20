@@ -51,7 +51,7 @@ commandManager.register({
     description: 'Mutes a player for a specified duration with a reason.',
     aliases: ['silence'],
     category: 'Moderation',
-    permissionLevel: 1, // Admins only
+    permissionLevel: 2, // Admins only
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to mute.' },
@@ -127,7 +127,7 @@ commandManager.register({
     description: 'Unmutes a player.',
     aliases: ['um'],
     category: 'Moderation',
-    permissionLevel: 1, // Admins only
+    permissionLevel: 2, // Admins only
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string', description: 'The name of the player to unmute.' }

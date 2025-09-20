@@ -10,7 +10,7 @@ commandManager.register({
     name: 'report',
     description: 'Reports a player using a UI. The player can be offline.',
     category: 'General',
-    permissionLevel: 1024, // Everyone
+    permissionLevel: 2024, // Everyone
     parameters: [
         { name: 'target', type: 'string', description: 'The name of the player to report.', optional: true }
     ],
@@ -59,7 +59,7 @@ commandManager.register({
     name: 'reports',
     description: 'Views the list of active reports.',
     category: 'Moderation',
-    permissionLevel: 1, // Admin and above
+    permissionLevel: 2, // Admin and above
     parameters: [],
     execute: (player, args) => {
         showPanel(player, 'reportListPanel');
@@ -70,7 +70,7 @@ commandManager.register({
     name: 'clearreports',
     description: 'Clears all active reports.',
     category: 'Moderation',
-    permissionLevel: 1, // Admin and above
+    permissionLevel: 2, // Admin and above
     allowConsole: true,
     parameters: [],
     execute: (player, args) => {

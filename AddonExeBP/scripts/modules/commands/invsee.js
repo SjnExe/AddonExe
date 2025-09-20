@@ -4,7 +4,7 @@ commandManager.register({
     name: 'invsee',
     description: "Views a player's inventory in chat.",
     category: 'Moderation',
-    permissionLevel: 1, // Admin only
+    permissionLevel: 2, // Admin only
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player whose inventory to view.' },

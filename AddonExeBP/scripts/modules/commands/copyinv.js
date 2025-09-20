@@ -6,7 +6,7 @@ commandManager.register({
     name: 'copyinv',
     description: "Copies a player's inventory, replacing your own.",
     category: 'Moderation',
-    permissionLevel: 1, // Admins only
+    permissionLevel: 2, // Admins only
     parameters: [
         { name: 'target', type: 'player', description: 'The player whose inventory to copy.' }
     ],
