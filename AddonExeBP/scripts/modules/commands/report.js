@@ -10,7 +10,7 @@ commandManager.register({
     name: 'report',
     description: 'Reports a player using a UI. The player can be offline.',
     category: 'General',
-    permissionLevel: 2024, // Everyone
+    permissionLevel: 1024, // Everyone
     parameters: [
         { name: 'target', type: 'string', description: 'The name of the player to report.', optional: true }
     ],
