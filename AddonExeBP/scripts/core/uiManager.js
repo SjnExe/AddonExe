@@ -22,7 +22,6 @@ import * as shopManager from './shopManager.js';
 import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
 import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
-import * as kitsManager from './kitsManager.js';
 
 
 const itemsPerPage = 8; // Number of items to show per page in the shop
@@ -499,7 +498,7 @@ async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, 'kitManagementPanel', context);
         }
 
-        const [isEnabled, cooldownStr, _itemDisplay] = response.formValues;
+        const [isEnabled, cooldownStr] = response.formValues;
         const cooldown = Number(cooldownStr);
 
         if (isNaN(cooldown) || cooldown < 0) {

@@ -127,7 +127,7 @@ export const panelDefinitions = {
                 actionType: 'openPanel',
                 actionValue: 'editShopMainPanel',
                 sortId: 25
-            },
+            }
         ]
     },
     shopMainPanel: {

@@ -70,7 +70,7 @@ commandManager.register({
         homeList.forEach(homeName => form.button(homeName));
 
         form.show(player).then(response => {
-            if (response.canceled) return;
+            if (response.canceled) {return;}
             const selectedHome = homeList[response.selection];
             teleportToHome(selectedHome);
         }).catch(e => errorLog(`[/home UI] ${e.stack}`));
@@ -148,7 +148,7 @@ commandManager.register({
         homeList.forEach(homeName => form.button(homeName));
 
         form.show(player).then(response => {
-            if (response.canceled) return;
+            if (response.canceled) {return;}
             const selectedHome = homeList[response.selection];
             deleteHomeByName(selectedHome);
         }).catch(e => errorLog(`[/delhome UI] ${e.stack}`));

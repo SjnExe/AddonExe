@@ -2,6 +2,7 @@ import { ActionFormData } from '@minecraft/server-ui';
 import { commandManager } from './commandManager.js';
 import * as kitsManager from '../../core/kitsManager.js';
 import { getConfig } from '../../core/configManager.js';
+import { errorLog } from '../../core/errorLogger.js';
 
 commandManager.register({
     name: 'kit',
@@ -34,7 +35,7 @@ commandManager.register({
             availableKits.forEach(kit => form.button(kit));
 
             form.show(player).then(response => {
-                if (response.canceled) return;
+                if (response.canceled) {return;}
                 const selectedKit = availableKits[response.selection];
                 const result = kitsManager.giveKit(player, selectedKit);
                 if (result.success) {
@@ -43,7 +44,7 @@ commandManager.register({
                     player.sendMessage(`§c${result.message}`);
                 }
             }).catch(error => {
-                console.error(`[Kit UI] Error showing form: ${error}`);
+                errorLog(`[Kit UI] Error showing form: ${error}`);
             });
             return;
         }
