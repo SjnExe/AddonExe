@@ -157,10 +157,10 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
             // A simple property access will throw if the player object is no longer valid.
             const currentLocation = player.location;
 
-            // We only care about horizontal movement (X and Z axes).
-            // This allows players to jump up and down without canceling the teleport.
+            // Check the 3D distance the player has moved.
             const distanceMoved = Math.sqrt(
                 Math.pow(currentLocation.x - initialLocation.x, 2) +
+                Math.pow(currentLocation.y - initialLocation.y, 2) +
                 Math.pow(currentLocation.z - initialLocation.z, 2)
             );
 
