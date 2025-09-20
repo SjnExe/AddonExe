@@ -55,19 +55,41 @@ function showCategorizedHelp(player, userPermissionLevel, isConsole) {
 }
 
 function showSpecificHelp(player, commandName, isConsole) {
-    const cmd = commandManager.commands.find(c => c.name === commandName || (c.aliases && c.aliases.includes(commandName)));
+    // Find the command by its primary name or any of its aliases
+    const cmd = commandManager.commands.find(c =>
+        c.name === commandName ||
+        (c.slashName && c.slashName === commandName) ||
+        (c.aliases && c.aliases.includes(commandName))
+    );
 
-    if (!cmd || (isConsole && !cmd.allowConsole)) {
-        player.sendMessage(`§cUnknown command: '${commandName}'. Or it cannot be used from the console.`);
+    const pData = isConsole ? null : getPlayer(player.id);
+    const userPermissionLevel = isConsole ? 0 : (pData?.permissionLevel ?? 1024);
+
+    if (!cmd || (isConsole && !cmd.allowConsole) || userPermissionLevel > cmd.permissionLevel) {
+        player.sendMessage(`§cUnknown command: '${commandName}'. Or you do not have permission to view it.`);
         return;
     }
 
     const slashCommand = cmd.slashName || cmd.name;
-    let helpMessage = `§a--- Help: /${slashCommand} ---\n`;
+
+    // Build the parameter string
+    let paramString = '';
+    if (cmd.parameters && cmd.parameters.length > 0) {
+        paramString = ' ' + cmd.parameters.map(p => {
+            const name = p.enumOptions ? p.enumOptions.join('|') : p.name;
+            return p.optional ? `[${name}]` : `<${name}>`;
+        }).join(' ');
+    }
+
+    let helpMessage = `§a--- Help: /${slashCommand} ---§r\n`;
     helpMessage += `§eDescription§r: ${cmd.description}\n`;
-    // Do not show chat-based aliases as we are prioritizing slash commands.
-    helpMessage += `§eCategory§r: ${cmd.category || 'General'}\n`;
-    helpMessage += `§ePermission Level§r: ${cmd.permissionLevel}`;
+    helpMessage += `§eSyntax§r: /${slashCommand}${paramString}\n`;
+
+    if (cmd.aliases && cmd.aliases.length > 0) {
+        helpMessage += `§eAliases§r: ${cmd.aliases.join(', ')}\n`;
+    }
+
+    helpMessage += `§eCategory§r: ${cmd.category || 'General'}`;
 
     player.sendMessage(helpMessage);
 }

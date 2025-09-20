@@ -289,6 +289,18 @@ export const configPanelSchema = [
         icon: 'textures/ui/realmPortalSmall',
         settings: [
             {
+                key: 'dimensionLock.netherLock',
+                label: 'Lock Nether Dimension',
+                type: 'toggle',
+                description: 'Prevents non-admins from entering the Nether.'
+            },
+            {
+                key: 'dimensionLock.endLock',
+                label: 'Lock End Dimension',
+                type: 'toggle',
+                description: 'Prevents non-admins from entering the End.'
+            },
+            {
                 key: 'dimensionLock.allowAdminBypass',
                 label: 'Allow Admin Bypass',
                 type: 'toggle',

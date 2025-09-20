@@ -1,23 +1,32 @@
 import { ItemStack } from '@minecraft/server';
 import { getPlayer, setKitCooldown } from './playerDataManager.js';
-import { kits } from './kitsConfig.js';
+import { getConfig } from './configManager.js';
 import { errorLog } from './errorLogger.js';
 
 /**
- * Gets the definition of a kit.
+ * Gets the definition of a kit from the config.
  * @param {string} kitName The name of the kit.
- * @returns {import('./kitsConfig.js').Kit | undefined}
+ * @returns {object | undefined}
  */
 export function getKit(kitName) {
-    return kits[kitName.toLowerCase()];
+    const config = getConfig();
+    if (!config.kits.kitDefinitions) {
+        return undefined;
+    }
+    return config.kits.kitDefinitions[kitName.toLowerCase()];
 }
 
 /**
- * Lists the names of all available and enabled kits.
+ * Lists the names of all available and enabled kits from the config.
  * @returns {string[]}
  */
 export function listKits() {
-    return Object.keys(kits).filter(kitName => kits[kitName].enabled);
+    const config = getConfig();
+    if (!config.kits.enabled || !config.kits.kitDefinitions) {
+        return [];
+    }
+    const kitDefs = config.kits.kitDefinitions;
+    return Object.keys(kitDefs).filter(kitName => kitDefs[kitName].enabled);
 }
 
 /**
@@ -28,10 +37,10 @@ export function listKits() {
  */
 export function getKitCooldown(player, kitName) {
     const pData = getPlayer(player.id);
-    if (!pData) {return 0;}
+    if (!pData) { return 0; }
 
     const cooldownExpiry = pData.kitCooldowns[kitName.toLowerCase()];
-    if (!cooldownExpiry) {return 0;}
+    if (!cooldownExpiry) { return 0; }
 
     const now = Date.now();
     if (now >= cooldownExpiry) {
@@ -48,8 +57,13 @@ export function getKitCooldown(player, kitName) {
  * @returns {{success: boolean, message: string}}
  */
 export function giveKit(player, kitName) {
-    const kit = getKit(kitName);
+    const config = getConfig();
+    if (!config.kits.enabled) {
+        return { success: false, message: 'The kit system is currently disabled.' };
+    }
+
     const lowerCaseKitName = kitName.toLowerCase();
+    const kit = getKit(lowerCaseKitName);
 
     if (!kit) {
         return { success: false, message: `Kit '${kitName}' does not exist.` };
@@ -71,7 +85,6 @@ export function giveKit(player, kitName) {
 
     const inventory = player.getComponent('minecraft:inventory').container;
 
-    // This is a simplified check. A full check would be much more complex.
     if (inventory.emptySlotsCount < kit.items.length) {
         return { success: false, message: 'You do not have enough inventory space to claim this kit.' };
     }

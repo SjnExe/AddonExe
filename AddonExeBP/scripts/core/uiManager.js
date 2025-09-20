@@ -22,6 +22,7 @@ import * as shopManager from './shopManager.js';
 import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
 import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
+import * as kitsManager from './kitsManager.js';
 
 
 const itemsPerPage = 8; // Number of items to show per page in the shop
@@ -145,6 +146,36 @@ async function buildPanelForm(player, panelId, context) {
         const form = new ActionFormData().title(title);
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
         buildEditShopMainPanel(form);
+        return form;
+    }
+
+    if (panelId === 'kitManagementPanel') {
+        const form = new ActionFormData().title(title);
+        buildKitManagementPanel(form, context);
+        return form;
+    }
+
+    if (panelId.startsWith('kitDetailPanel_')) {
+        const kitName = panelId.replace('kitDetailPanel_', '');
+        const config = getConfig();
+        const kit = config.kits.kitDefinitions[kitName];
+
+        if (!kit) {
+            errorLog(`[UIManager] Could not find kit for detail panel: ${kitName}`);
+            return null;
+        }
+
+        const itemSummary = kit.items.map(item => `${item.typeId.replace('minecraft:', '')} x${item.amount}`).join(', ');
+
+        const form = new ModalFormData()
+            .title(`Edit Kit: ${kitName}`)
+            .toggle('Enable this kit', kit.enabled)
+            .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', String(kit.cooldownSeconds));
+
+        // Due to ModalFormData limitations, we can't show a rich list.
+        // We can add a non-interactive element by using a toggle with a descriptive label.
+        form.toggle(`§lItems in this kit:§r\n${itemSummary}`, false);
+
         return form;
     }
 
@@ -412,6 +443,76 @@ async function handleFormResponse(player, panelId, response, context) {
         return showPanel(player, panelId, context);
     }
 
+    if (panelId === 'kitManagementPanel') {
+        const config = getConfig();
+        const page = context.page || 1;
+        const selection = response.selection;
+
+        // Handle Back button
+        if (selection === 0) { return showPanel(player, 'mainPanel'); }
+
+        // Handle global toggle button
+        if (selection === 1) {
+            const newStatus = !config.kits.enabled;
+            updateMultipleConfig({ 'kits.enabled': newStatus });
+            player.sendMessage(`§aKit system has been ${newStatus ? 'enabled' : 'disabled'}.`);
+            return showPanel(player, 'kitManagementPanel', { ...context, page: 1 }); // Reload
+        }
+
+        const allKits = Object.keys(config.kits.kitDefinitions || {});
+        const paginatedKits = getPaginatedItems(allKits, page);
+        const totalPages = Math.ceil(allKits.length / itemsPerPage);
+
+        const kitStartIndex = 2;
+        const kitEndIndex = kitStartIndex + paginatedKits.length - 1;
+
+        if (selection >= kitStartIndex && selection <= kitEndIndex) {
+            const selectedKitName = paginatedKits[selection - kitStartIndex];
+            return showPanel(player, `kitDetailPanel_${selectedKitName}`, context);
+        }
+
+        // After kit items, check for pagination buttons
+        let currentButtonIndex = kitEndIndex + 1;
+
+        if (page > 1) { // Previous Page button exists
+            if (selection === currentButtonIndex) {
+                return showPanel(player, panelId, { ...context, page: page - 1 });
+            }
+            currentButtonIndex++;
+        }
+        if (page < totalPages) { // Next Page button exists
+            if (selection === currentButtonIndex) {
+                return showPanel(player, panelId, { ...context, page: page + 1 });
+            }
+        }
+
+        return; // Should not be reached
+    }
+
+    if (panelId.startsWith('kitDetailPanel_')) {
+        const kitName = panelId.replace('kitDetailPanel_', '');
+        if (response.canceled) {
+            return showPanel(player, 'kitManagementPanel', context);
+        }
+
+        const [isEnabled, cooldownStr, _itemDisplay] = response.formValues;
+        const cooldown = Number(cooldownStr);
+
+        if (isNaN(cooldown) || cooldown < 0) {
+            player.sendMessage('§cInvalid cooldown. Please enter a non-negative number.');
+            return showPanel(player, panelId, context); // Re-show the detail panel
+        }
+
+        const updates = {
+            [`kits.kitDefinitions.${kitName}.enabled`]: isEnabled,
+            [`kits.kitDefinitions.${kitName}.cooldownSeconds`]: cooldown
+        };
+
+        updateMultipleConfig(updates);
+        player.sendMessage(`§aSuccessfully updated kit '${kitName}'.`);
+
+        return showPanel(player, 'kitManagementPanel', context); // Go back to the list
+    }
 
     if (panelId === 'bountyListPanel' || panelId === 'reportListPanel' || panelId === 'playerManagementPanel' || panelId === 'playerListPanel') {
         const page = context.page || 1;
@@ -1171,7 +1272,7 @@ uiActionFunctions['removePlayerBounty'] = async (player, context) => {
 
     if (!targetBounty) {
         player.sendMessage(`§c${targetPlayerName} does not have an active bounty.`);
-        return true;
+        return true; // Reload the panel
     }
 
     const form = new ModalFormData()
@@ -1211,3 +1312,34 @@ uiActionFunctions['removePlayerBounty'] = async (player, context) => {
 
     return true; // Reload the panel
 };
+
+function buildKitManagementPanel(form, context) {
+    const { page = 1 } = context;
+    const config = getConfig();
+
+    // Add Back button
+    form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+    // Add the global toggle button
+    const isEnabled = config.kits.enabled;
+    const toggleText = isEnabled ? '§aKit System: ENABLED' : '§cKit System: DISABLED';
+    form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
+
+    // Get all kit names and paginate them
+    const allKits = Object.keys(config.kits.kitDefinitions || {});
+
+    if (allKits.length === 0) {
+        form.body('§cNo kits have been defined in the config.');
+        return;
+    }
+
+    const paginatedKits = getPaginatedItems(allKits, page);
+
+    for (const kitName of paginatedKits) {
+        const kit = config.kits.kitDefinitions[kitName];
+        const status = kit.enabled ? '§2[Enabled]' : '§c[Disabled]';
+        form.button(`${kitName}\n${status}`, 'textures/ui/inventory_icon');
+    }
+
+    addPaginationButtons(form, page, allKits.length);
+}
