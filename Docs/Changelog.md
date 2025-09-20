@@ -31,6 +31,7 @@ This version introduces a new random teleport feature, includes bug fixes for co
 
 ### 🎨 Changes
 
+- **Rank Command Refactor**: The `/admin` command has been removed. Its functionality is now integrated into the `/rank` command, which can now be used to grant and revoke the 'Admin' rank. This streamlines rank management into a single, permission-controlled command.
 - **Dimension-specific RTP**: The `/rtp` command is now restricted to the Overworld to prevent players from using it in unintended dimensions like the Nether or the End.
 
 ## [0.5.0] - 2025-09-15
