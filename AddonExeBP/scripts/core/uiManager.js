@@ -22,6 +22,7 @@ import * as shopManager from './shopManager.js';
 import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
 import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
+import { getKitsConfig, saveKitsConfig } from './kitsConfigManager.js';
 
 
 const itemsPerPage = 8; // Number of items to show per page in the shop
@@ -113,8 +114,8 @@ async function buildPanelForm(player, panelId, context) {
 
     if (panelId.startsWith('kitDetailPanel_')) {
         const kitName = panelId.replace('kitDetailPanel_', '');
-        const config = getConfig();
-        const kit = config.kits.kitDefinitions[kitName];
+        const kitsConfig = getKitsConfig();
+        const kit = kitsConfig.kitDefinitions[kitName];
 
         if (!kit) {
             errorLog(`[UIManager] Could not find kit for detail panel: ${kitName}`);
@@ -447,22 +448,23 @@ async function handleFormResponse(player, panelId, response, context) {
     }
 
     if (panelId === 'kitManagementPanel') {
-        const config = getConfig();
+        const mainConfig = getConfig();
+        const kitsConfig = getKitsConfig();
         const page = context.page || 1;
         const selection = response.selection;
 
         // Handle Back button
-        if (selection === 0) { return showPanel(player, 'mainPanel'); }
+        if (selection === 0) { return showPanel(player, 'configCategoryPanel'); }
 
         // Handle global toggle button
         if (selection === 1) {
-            const newStatus = !config.kits.enabled;
+            const newStatus = !mainConfig.kits.enabled;
             updateMultipleConfig({ 'kits.enabled': newStatus });
             player.sendMessage(`§aKit system has been ${newStatus ? 'enabled' : 'disabled'}.`);
             return showPanel(player, 'kitManagementPanel', { ...context, page: 1 }); // Reload
         }
 
-        const allKits = Object.keys(config.kits.kitDefinitions || {});
+        const allKits = Object.keys(kitsConfig.kitDefinitions || {});
         const paginatedKits = getPaginatedItems(allKits, page);
         const totalPages = Math.ceil(allKits.length / itemsPerPage);
 
@@ -498,7 +500,7 @@ async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, 'kitManagementPanel', context);
         }
 
-        const [isEnabled, cooldownStr] = response.formValues;
+        const [isEnabled, cooldownStr, _itemDisplay] = response.formValues;
         const cooldown = Number(cooldownStr);
 
         if (isNaN(cooldown) || cooldown < 0) {
@@ -506,13 +508,13 @@ async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, panelId, context); // Re-show the detail panel
         }
 
-        const updates = {
-            [`kits.kitDefinitions.${kitName}.enabled`]: isEnabled,
-            [`kits.kitDefinitions.${kitName}.cooldownSeconds`]: cooldown
-        };
-
-        updateMultipleConfig(updates);
-        player.sendMessage(`§aSuccessfully updated kit '${kitName}'.`);
+        const kitsConfig = getKitsConfig();
+        if (kitsConfig.kitDefinitions[kitName]) {
+            kitsConfig.kitDefinitions[kitName].enabled = isEnabled;
+            kitsConfig.kitDefinitions[kitName].cooldownSeconds = cooldown;
+            saveKitsConfig();
+            player.sendMessage(`§aSuccessfully updated kit '${kitName}'.`);
+        }
 
         return showPanel(player, 'kitManagementPanel', context); // Go back to the list
     }
@@ -1330,18 +1332,19 @@ uiActionFunctions['removePlayerBounty'] = async (player, context) => {
 
 function buildKitManagementPanel(form, context) {
     const { page = 1 } = context;
-    const config = getConfig();
+    const mainConfig = getConfig();
+    const kitsConfig = getKitsConfig();
 
     // Add Back button
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
     // Add the global toggle button
-    const isEnabled = config.kits.enabled;
+    const isEnabled = mainConfig.kits.enabled;
     const toggleText = isEnabled ? '§aKit System: ENABLED' : '§cKit System: DISABLED';
     form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
 
     // Get all kit names and paginate them
-    const allKits = Object.keys(config.kits.kitDefinitions || {});
+    const allKits = Object.keys(kitsConfig.kitDefinitions || {});
 
     if (allKits.length === 0) {
         form.body('§cNo kits have been defined in the config.');
@@ -1351,7 +1354,7 @@ function buildKitManagementPanel(form, context) {
     const paginatedKits = getPaginatedItems(allKits, page);
 
     for (const kitName of paginatedKits) {
-        const kit = config.kits.kitDefinitions[kitName];
+        const kit = kitsConfig.kitDefinitions[kitName];
         const status = kit.enabled ? '§2[Enabled]' : '§c[Disabled]';
         form.button(`${kitName}\n${status}`, 'textures/ui/inventory_icon');
     }

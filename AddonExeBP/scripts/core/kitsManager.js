@@ -1,6 +1,7 @@
 import { ItemStack } from '@minecraft/server';
 import { getPlayer, setKitCooldown } from './playerDataManager.js';
 import { getConfig } from './configManager.js';
+import { getKitsConfig } from './kitsConfigManager.js';
 import { errorLog } from './errorLogger.js';
 
 /**
@@ -9,11 +10,11 @@ import { errorLog } from './errorLogger.js';
  * @returns {object | undefined}
  */
 export function getKit(kitName) {
-    const config = getConfig();
-    if (!config.kits.kitDefinitions) {
+    const kitsConfig = getKitsConfig();
+    if (!kitsConfig.kitDefinitions) {
         return undefined;
     }
-    return config.kits.kitDefinitions[kitName.toLowerCase()];
+    return kitsConfig.kitDefinitions[kitName.toLowerCase()];
 }
 
 /**
@@ -21,11 +22,12 @@ export function getKit(kitName) {
  * @returns {string[]}
  */
 export function listKits() {
-    const config = getConfig();
-    if (!config.kits.enabled || !config.kits.kitDefinitions) {
+    const mainConfig = getConfig();
+    const kitsConfig = getKitsConfig();
+    if (!mainConfig.kits.enabled || !kitsConfig.kitDefinitions) {
         return [];
     }
-    const kitDefs = config.kits.kitDefinitions;
+    const kitDefs = kitsConfig.kitDefinitions;
     return Object.keys(kitDefs).filter(kitName => kitDefs[kitName].enabled);
 }
 
@@ -57,8 +59,8 @@ export function getKitCooldown(player, kitName) {
  * @returns {{success: boolean, message: string}}
  */
 export function giveKit(player, kitName) {
-    const config = getConfig();
-    if (!config.kits.enabled) {
+    const mainConfig = getConfig();
+    if (!mainConfig.kits.enabled) {
         return { success: false, message: 'The kit system is currently disabled.' };
     }
 
