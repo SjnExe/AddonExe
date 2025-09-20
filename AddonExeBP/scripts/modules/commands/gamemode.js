@@ -66,7 +66,9 @@ function setGamemode(player, gamemode, target) {
 }
 
 commandManager.register({
-    name: 'gm',
+    name: 'gamemode',
+    slashName: 'xgamemode',
+    aliases: ['gm'],
     description: 'Sets your or another player\'s gamemode.',
     category: 'General',
     permissionLevel: 1,
