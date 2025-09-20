@@ -7,22 +7,24 @@ import { errorLog } from '../../core/errorLogger.js';
 
 commandManager.register({
     name: 'rank',
-    description: 'Sets a player\'s rank by adding or removing the associated tag.',
+    description: 'Manages player ranks. Lists all ranks if no arguments are given.',
     category: 'Administration',
     permissionLevel: 1, // Admin and above
     allowConsole: true,
     parameters: [
-        { name: 'action', type: 'string', description: 'The action to perform.', enumOptions: ['set', 'remove'], optional: true },
+        { name: 'action', type: 'string', description: 'The action to perform.', enumOptions: ['set', 'remove', 'list'], optional: true },
         { name: 'target', type: 'player', description: 'The player to set the rank for.', optional: true },
         { name: 'rankId', type: 'string', description: 'The ID of the rank to set.', optional: true }
     ],
     execute: (player, args) => {
         const { action, target, rankId } = args;
+        const usageMessage = '§cUsage: /rank <set|remove> <target> <rankId>\n§cUsage: /rank (lists all ranks)';
 
-        if (!action) {
+        if (!action || action.toLowerCase() === 'list') {
             // No action specified, list all ranks
-            let message = '§a--- Available Ranks ---\n';
-            rankDefinitions.forEach(rank => {
+            let message = '§a--- Available Ranks (Most to Least Powerful) ---\n';
+            const sortedRanks = [...rankDefinitions].sort((a, b) => a.permissionLevel - b.permissionLevel);
+            sortedRanks.forEach(rank => {
                 message += `§e${rank.name}§r (ID: §b${rank.id}§r, Perms: §6${rank.permissionLevel}§r)\n`;
             });
             player.sendMessage(message.trim());
@@ -30,19 +32,18 @@ commandManager.register({
         }
 
         const subcommands = ['set', 'remove'];
-        if (!subcommands.includes(action.toLowerCase())) {
-            player.sendMessage('§cInvalid action. Use "set" or "remove", or no action to list ranks.');
+        const actionLC = action.toLowerCase();
+        if (!subcommands.includes(actionLC)) {
+            player.sendMessage(usageMessage);
             return;
         }
 
-        const actionLC = action.toLowerCase();
-
         if (!target || target.length === 0) {
-            player.sendMessage('§cYou must specify a target player for this action.');
+            player.sendMessage(usageMessage);
             return;
         }
         if (!rankId) {
-            player.sendMessage('§cYou must specify a rank ID for this action.');
+            player.sendMessage(usageMessage);
             return;
         }
 
