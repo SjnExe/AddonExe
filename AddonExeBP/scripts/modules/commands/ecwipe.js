@@ -9,7 +9,7 @@ commandManager.register({
     description: "Clears a player's Ender Chest.",
     aliases: ['clearec', 'ecclear'],
     category: 'Moderation',
-    permissionLevel: 1, // Admin and above
+    permissionLevel: 2, // Admin and above
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string', description: 'The player whose Ender Chest to clear.', optional: true }

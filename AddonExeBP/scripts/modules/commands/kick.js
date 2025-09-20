@@ -2,7 +2,7 @@ import { world } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { playSound } from '../../core/utils.js';
-import { findPlayerByName } from '../utils/playerUtils.js';
+import { findPlayerByName } from '../../core/playerCache.js';
 import { errorLog } from '../../core/errorLogger.js';
 
 export function kickPlayer(player, targetPlayer, reason) {
@@ -58,7 +58,7 @@ commandManager.register({
     description: 'Kicks a player from the server.',
     aliases: ['boot'],
     category: 'Moderation',
-    permissionLevel: 1, // Admins only
+    permissionLevel: 2, // Admins only
     allowConsole: true,
     disableSlashCommand: false,
     parameters: [

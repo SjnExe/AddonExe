@@ -56,7 +56,7 @@ commandManager.register({
     name: 'freeze',
     description: 'Freezes a player, preventing them from moving or looking around.',
     category: 'Moderation',
-    permissionLevel: 1,
+    permissionLevel: 2,
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to freeze.' }
@@ -79,7 +79,7 @@ commandManager.register({
     name: 'unfreeze',
     description: 'Unfreezes a player, allowing them to move and look around again.',
     category: 'Moderation',
-    permissionLevel: 1,
+    permissionLevel: 2,
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to unfreeze.' }

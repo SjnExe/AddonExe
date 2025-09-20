@@ -59,7 +59,7 @@ commandManager.register({
     name: 'reports',
     description: 'Views the list of active reports.',
     category: 'Moderation',
-    permissionLevel: 1, // Admin and above
+    permissionLevel: 2, // Admin and above
     parameters: [],
     execute: (player, args) => {
         showPanel(player, 'reportListPanel');
@@ -70,7 +70,7 @@ commandManager.register({
     name: 'clearreports',
     description: 'Clears all active reports.',
     category: 'Moderation',
-    permissionLevel: 1, // Admin and above
+    permissionLevel: 2, // Admin and above
     allowConsole: true,
     parameters: [],
     execute: (player, args) => {

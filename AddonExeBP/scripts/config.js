@@ -87,8 +87,7 @@ export const config = {
     // --- Player Defaults ---
     playerDefaults: {
         rankId: 'member',
-        permissionLevel: 1024,
-        bounty: 0
+        permissionLevel: 1024
     },
 
     // --- Server Information ---
