@@ -1,4 +1,5 @@
 import { world } from '@minecraft/server';
+import { ActionFormData } from '@minecraft/server-ui';
 import { commandManager } from './commandManager.js';
 import { errorLog } from '../../core/errorLogger.js';
 import * as homesManager from '../../core/homesManager.js';
@@ -23,28 +24,56 @@ commandManager.register({
             return;
         }
 
-        const homeName = args.homeName || 'home';
-        const homeLocation = homesManager.getHome(player, homeName);
+        const teleportToHome = (homeName) => {
+            const homeLocation = homesManager.getHome(player, homeName);
+            if (!homeLocation) {
+                // This case should ideally not be hit if homes are validated before calling
+                player.sendMessage(`§cHome '${homeName}' not found.`);
+                return;
+            }
 
-        if (!homeLocation) {
-            player.sendMessage(`§cHome '${homeName}' not found. Use /homes to see your list of homes.`);
+            const warmupSeconds = config.homes.teleportWarmupSeconds;
+            const teleportLogic = () => {
+                try {
+                    player.teleport(homeLocation, { dimension: world.getDimension(homeLocation.dimensionId) });
+                    player.sendMessage(`§aTeleported to home '${homeName}'.`);
+                    setCooldown(player, 'homes');
+                } catch (e) {
+                    player.sendMessage(`§cFailed to teleport. Error: ${e.message}`);
+                    errorLog(`[/x:home] Failed to teleport: ${e.stack}`);
+                }
+            };
+            startTeleportWarmup(player, warmupSeconds, teleportLogic, `home '${homeName}'`);
+        };
+
+        if (args.homeName) {
+            teleportToHome(args.homeName);
             return;
         }
 
-        const warmupSeconds = config.homes.teleportWarmupSeconds;
+        const homeList = homesManager.listHomes(player);
 
-        const teleportLogic = () => {
-            try {
-                player.teleport(homeLocation, { dimension: world.getDimension(homeLocation.dimensionId) });
-                player.sendMessage(`§aTeleported to home '${homeName}'.`);
-                setCooldown(player, 'homes');
-            } catch (e) {
-                player.sendMessage(`§cFailed to teleport. Error: ${e.message}`);
-                errorLog(`[/x:home] Failed to teleport: ${e.stack}`);
-            }
-        };
+        if (homeList.length === 0) {
+            player.sendMessage('§cYou have no homes set. Use /sethome <name> to create one.');
+            return;
+        }
 
-        startTeleportWarmup(player, warmupSeconds, teleportLogic, `home '${homeName}'`);
+        if (homeList.length === 1) {
+            teleportToHome(homeList[0]);
+            return;
+        }
+
+        const form = new ActionFormData()
+            .title('Teleport to Home')
+            .body('Select a home to teleport to:');
+
+        homeList.forEach(homeName => form.button(homeName));
+
+        form.show(player).then(response => {
+            if (response.canceled) return;
+            const selectedHome = homeList[response.selection];
+            teleportToHome(selectedHome);
+        }).catch(e => errorLog(`[/home UI] ${e.stack}`));
     }
 });
 
@@ -77,11 +106,11 @@ commandManager.register({
 commandManager.register({
     name: 'delhome',
     aliases: ['remhome', 'deletehome', 'rmhome', '-home'],
-    description: 'Deletes one of your set homes.',
+    description: 'Deletes one of your set homes. Leave name blank to choose from a list.',
     category: 'Home System',
     permissionLevel: 1024, // Everyone
     parameters: [
-        { name: 'homeName', type: 'string', description: 'The name of the home to delete.' }
+        { name: 'homeName', type: 'string', description: 'The name of the home to delete. Leave blank to choose from a list.', optional: true }
     ],
     execute: (player, args) => {
         const config = getConfig();
@@ -90,10 +119,39 @@ commandManager.register({
             return;
         }
 
-        const { homeName } = args;
+        const deleteHomeByName = (homeName) => {
+            const result = homesManager.deleteHome(player, homeName);
+            player.sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`);
+        };
 
-        const result = homesManager.deleteHome(player, homeName);
-        player.sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`);
+        if (args.homeName) {
+            deleteHomeByName(args.homeName);
+            return;
+        }
+
+        const homeList = homesManager.listHomes(player);
+
+        if (homeList.length === 0) {
+            player.sendMessage('§cYou have no homes to delete.');
+            return;
+        }
+
+        if (homeList.length === 1) {
+            deleteHomeByName(homeList[0]);
+            return;
+        }
+
+        const form = new ActionFormData()
+            .title('Delete a Home')
+            .body('Select a home to delete:');
+
+        homeList.forEach(homeName => form.button(homeName));
+
+        form.show(player).then(response => {
+            if (response.canceled) return;
+            const selectedHome = homeList[response.selection];
+            deleteHomeByName(selectedHome);
+        }).catch(e => errorLog(`[/delhome UI] ${e.stack}`));
     }
 });
 
@@ -113,9 +171,33 @@ commandManager.register({
             return;
         }
 
-        const homeName = args.homeName || 'home';
+        let homeNameToSet;
 
-        const result = homesManager.setHome(player, homeName);
+        if (args.homeName) {
+            // If a name is provided, use it directly.
+            // The homesManager.setHome function will handle the error for duplicate names.
+            homeNameToSet = args.homeName;
+        } else {
+            // If no name is provided, find the next available "home" name.
+            const existingHomes = new Set(homesManager.listHomes(player).map(h => h.toLowerCase()));
+            let i = 1;
+            let baseName = 'home';
+            homeNameToSet = baseName;
+
+            // If "home" doesn't exist, we'll use it. If it does, find the next number.
+            if (existingHomes.has(homeNameToSet)) {
+                i = 2; // Start checking from home2
+                while (true) {
+                    homeNameToSet = `${baseName}${i}`;
+                    if (!existingHomes.has(homeNameToSet)) {
+                        break;
+                    }
+                    i++;
+                }
+            }
+        }
+
+        const result = homesManager.setHome(player, homeNameToSet);
         player.sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`);
     }
 });

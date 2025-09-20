@@ -13,11 +13,18 @@ export function setHome(player, homeName) {
         return { success: false, message: 'Could not find your player data.' };
     }
 
-    const config = getConfig();
-    const homeCount = Object.keys(pData.homes).length;
     const lowerCaseHomeName = homeName.toLowerCase();
 
-    if (homeCount >= config.homes.maxHomes && !pData.homes[lowerCaseHomeName]) {
+    // Prevent overwriting an existing home
+    if (pData.homes[lowerCaseHomeName]) {
+        return { success: false, message: `You already have a home named '${homeName}'. Use /delhome to remove it first.` };
+    }
+
+    const config = getConfig();
+    const homeCount = Object.keys(pData.homes).length;
+
+    // Check if the player has reached the maximum number of homes
+    if (homeCount >= config.homes.maxHomes) {
         return { success: false, message: `You have reached the maximum number of homes (${config.homes.maxHomes}).` };
     }
 
