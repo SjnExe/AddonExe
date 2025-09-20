@@ -167,8 +167,6 @@ Commands available to Admins and above.
 Commands for high-level server management.
 
 ### Core Management
-- **/admin <target> <add|remove>**
-  - Adds or removes a player from the Admin rank.
 - **/xreload**
   - Reloads the addon configuration.
   - *Chat Alias: `!reload`*
