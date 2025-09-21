@@ -134,6 +134,8 @@ async function buildPanelForm(player, panelId, context) {
         // We can add a non-interactive element by using a toggle with a descriptive label.
         form.toggle(`§lItems in this kit:§r\n${itemSummary}`, { defaultValue: false });
 
+        form.submitButton("§l§2Save and Close");
+
         return form;
     }
 
