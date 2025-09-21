@@ -122,17 +122,11 @@ async function buildPanelForm(player, panelId, context) {
             return null;
         }
 
-        const itemSummary = kit.items.map(item => `${item.typeId.replace('minecraft:', '')} x${item.amount}`).join(', ');
-
         const form = new ModalFormData()
             .title(`Edit Kit: ${kitName}`)
             .toggle('Enable this kit', { defaultValue: kit.enabled })
             .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', { defaultValue: String(kit.cooldownSeconds) })
             .textField('Permission Level', '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.', { defaultValue: String(kit.permissionLevel ?? 1024) });
-
-        // Due to ModalFormData limitations, we can't show a rich list.
-        // We can add a non-interactive element by using a toggle with a descriptive label.
-        form.toggle(`§lItems in this kit:§r\n${itemSummary}`, { defaultValue: false });
 
         form.submitButton("§l§2Save and Close");
 
