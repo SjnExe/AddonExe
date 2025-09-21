@@ -16,9 +16,9 @@ export async function loadShopMasterConfigs(forceReload = false) {
     }
 
     try {
-        const itemsModule = await import('./itemsConfig.js?v=' + Date.now());
+        const itemsModule = await import('./itemsConfig.js');
         loadedItemsConfig = itemsModule.items;
-        const categoryModule = await import('./shopCategoryConfig.js?v=' + Date.now());
+        const categoryModule = await import('./shopCategoryConfig.js');
         loadedCategoryIcons = categoryModule.shopCategoryIcons;
         loadedSubCategoryIcons = categoryModule.shopSubCategoryIcons;
         // eslint-disable-next-line no-console

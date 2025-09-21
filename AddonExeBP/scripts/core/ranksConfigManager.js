@@ -13,7 +13,7 @@ export async function loadRanksConfig(forceReload = false) {
     }
 
     try {
-        const module = await import('./ranksConfig.js?v=' + Date.now());
+        const module = await import('./ranksConfig.js');
         loadedRanksConfig = { rankDefinitions: module.rankDefinitions };
         // eslint-disable-next-line no-console
         console.log('[RanksConfigManager] Successfully loaded/reloaded ranksConfig.js');
