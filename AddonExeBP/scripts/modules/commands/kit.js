@@ -22,9 +22,9 @@ commandManager.register({
         const { kitName } = args;
 
         if (!kitName) {
-            const availableKits = kitsManager.listKits();
+            const availableKits = kitsManager.listKits(player);
             if (availableKits.length === 0) {
-                player.sendMessage('§cThere are no kits available.');
+                player.sendMessage('§cThere are no kits available for you.');
                 return;
             }
 

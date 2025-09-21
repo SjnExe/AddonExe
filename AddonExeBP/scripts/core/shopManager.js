@@ -1,8 +1,11 @@
 import { ItemStack, ItemTypes, EnchantmentTypes } from '@minecraft/server';
 import * as economyManager from './economyManager.js';
 import { getShopConfig } from './shopConfigManager.js';
-import { items as allItems } from './itemsConfig.js';
+import { getItemsConfig, loadShopMasterConfigs } from './shopMasterConfigManager.js';
 import { errorLog } from './errorLogger.js';
+
+// Re-export for other modules to use
+export { loadShopMasterConfigs };
 
 /**
  * Creates an ItemStack for a given item ID, handling enchantments.
@@ -11,6 +14,7 @@ import { errorLog } from './errorLogger.js';
  * @returns {ItemStack | null}
  */
 function createShopItemStack(itemId, quantity) {
+    const allItems = getItemsConfig();
     const itemInfo = allItems[itemId];
     if (!itemInfo) {
         errorLog(`[ShopManager] Could not find item info for ID: ${itemId}`);
@@ -60,6 +64,7 @@ export function buyItem(player, itemId, quantity) {
     }
 
     const shopConfig = getShopConfig();
+    const allItems = getItemsConfig();
     const shopItem = shopConfig.items[itemId];
     const masterItem = allItems[itemId];
 
@@ -148,6 +153,7 @@ export function sellItem(player, itemId, quantity) {
     }
 
     const shopConfig = getShopConfig();
+    const allItems = getItemsConfig();
     const shopItem = shopConfig.items[itemId];
     const masterItem = allItems[itemId];
 

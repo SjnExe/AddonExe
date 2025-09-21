@@ -115,12 +115,15 @@ The AddonExe is structured to be modular and configurable. Here's a high-level o
     - `economyManager.js`: Handles all economy-related logic, including balances and bounties.
     - `homesManager.js`: Manages player homes.
     - `kitsManager.js`: Manages the player kit system.
+    - `shopManager.js`: Handles the logic for buying and selling items.
     - `reportManager.js`: Manages player-submitted reports.
     - `tpaManager.js`: Manages the Teleport Ask (TPA/TPAHere) system.
     - `uiManager.js`: Core module for displaying all UI panels and forms.
     - `panelLayoutConfig.js`: Defines the structure, content, and actions for all dynamic UI panels.
     - `ranksConfig.js`: Defines the properties of all available ranks.
     - `kitsConfig.js`: Defines the content and properties of all available kits.
+    - `itemsConfig.js`: Defines the master list of all items that can be in the shop.
+    - `shopCategoryConfig.js`: Defines the icons for shop categories.
     - `logger.js`: A simple, centralized logger for debug messages.
     - `utils.js`: A collection of general utility functions.
   - **`modules/`**: Contains feature-specific logic, separated from the core managers.

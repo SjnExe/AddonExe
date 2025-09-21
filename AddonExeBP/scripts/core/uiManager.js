@@ -20,8 +20,7 @@ import { banPlayer, offlineBanPlayer, unbanPlayer } from '../modules/commands/ba
 import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 import * as shopManager from './shopManager.js';
 import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
-import { items as allItems } from './itemsConfig.js';
-import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
+import { getItemsConfig, getCategoryIcons, getSubCategoryIcons } from './shopMasterConfigManager.js';
 import { getKitsConfig, saveKitsConfig } from './kitsConfigManager.js';
 
 
@@ -127,7 +126,8 @@ async function buildPanelForm(player, panelId, context) {
         const form = new ModalFormData()
             .title(`Edit Kit: ${kitName}`)
             .toggle('Enable this kit', kit.enabled)
-            .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', String(kit.cooldownSeconds));
+            .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', String(kit.cooldownSeconds))
+            .textField('Permission Level', '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.', String(kit.permissionLevel ?? 1024));
 
         // Due to ModalFormData limitations, we can't show a rich list.
         // We can add a non-interactive element by using a toggle with a descriptive label.
@@ -224,6 +224,7 @@ async function handleFormResponse(player, panelId, response, context) {
     if (panelId === 'shopMainPanel') {
         if (response.selection === 0) { return showPanel(player, 'mainPanel'); }
         const shopConfig = getShopConfig();
+        const allItems = getItemsConfig();
         const view = context.view || 'shop';
         const categories = [...new Set(Object.keys(shopConfig.items).map(id => allItems[id]?.category).filter(Boolean))];
         const validCategories = categories.filter(category => {
@@ -260,6 +261,7 @@ async function handleFormResponse(player, panelId, response, context) {
 
         // Reconstruct the list of entries that was shown to the player
         const shopConfig = getShopConfig();
+        const allItems = getItemsConfig();
         let allEntries = [];
         if (isItemList) {
             const itemsInSubCategory = Object.keys(shopConfig.items).filter(id => {
@@ -380,6 +382,7 @@ async function handleFormResponse(player, panelId, response, context) {
     // --- Admin Edit Shop Panel Handlers ---
     if (panelId === 'editShopMainPanel') {
         if (response.selection === 0) { return showPanel(player, 'mainPanel'); }
+        const allItems = getItemsConfig();
         const categories = [...new Set(Object.values(allItems).map(item => item.category))].sort();
         const selectedCategory = categories[response.selection - 1];
         if (selectedCategory) {
@@ -392,6 +395,7 @@ async function handleFormResponse(player, panelId, response, context) {
         if (response.selection === 0) { return showPanel(player, 'editShopMainPanel'); }
         const category = panelId.replace('editShopCategoryPanel_', '');
         const page = context.page || 1;
+        const allItems = getItemsConfig();
         const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
         const paginatedItems = getPaginatedItems(itemsInCategory, page);
 
@@ -415,6 +419,7 @@ async function handleFormResponse(player, panelId, response, context) {
 
         const selection = paginatedItems[selectionIndex];
         if (selection) {
+            const allItems = getItemsConfig();
             const masterItem = allItems[selection];
             const shopConfig = getShopConfig();
             const shopItem = shopConfig.items[selection];
@@ -501,18 +506,25 @@ async function handleFormResponse(player, panelId, response, context) {
         }
 
         // The last form value is the decorative item display, which we ignore.
-        const [isEnabled, cooldownStr] = response.formValues;
+        const [isEnabled, cooldownStr, permissionLevelStr] = response.formValues;
         const cooldown = Number(cooldownStr);
+        const permissionLevel = Number(permissionLevelStr);
 
         if (isNaN(cooldown) || cooldown < 0) {
             player.sendMessage('§cInvalid cooldown. Please enter a non-negative number.');
             return showPanel(player, panelId, context); // Re-show the detail panel
         }
+        if (isNaN(permissionLevel) || permissionLevel < 0) {
+            player.sendMessage('§cInvalid permission level. Please enter a non-negative number.');
+            return showPanel(player, panelId, context);
+        }
+
 
         const kitsConfig = getKitsConfig();
         if (kitsConfig.kitDefinitions[kitName]) {
             kitsConfig.kitDefinitions[kitName].enabled = isEnabled;
             kitsConfig.kitDefinitions[kitName].cooldownSeconds = cooldown;
+            kitsConfig.kitDefinitions[kitName].permissionLevel = permissionLevel;
             saveKitsConfig();
             player.sendMessage(`§aSuccessfully updated kit '${kitName}'.`);
         }
@@ -690,6 +702,8 @@ function addPaginationButtons(form, page, totalItems) {
 
 function buildShopMainPanel(form, context) {
     const shopConfig = getShopConfig();
+    const allItems = getItemsConfig();
+    const shopCategoryIcons = getCategoryIcons();
     const view = context.view || 'shop'; // 'shop', 'buy', or 'sell'
 
     const categories = [...new Set(Object.keys(shopConfig.items).map(id => allItems[id]?.category).filter(Boolean))];
@@ -718,6 +732,8 @@ function buildShopMainPanel(form, context) {
 function buildShopCategoryPanel(form, context) {
     const { category, page = 1, view = 'shop' } = context;
     const shopConfig = getShopConfig();
+    const allItems = getItemsConfig();
+    const shopSubCategoryIcons = getSubCategoryIcons();
 
     const itemsInCategory = Object.keys(shopConfig.items).filter(id => {
         const masterItem = allItems[id];
@@ -764,6 +780,7 @@ function buildShopCategoryPanel(form, context) {
 function buildShopItemListPanel(form, context) {
     const { category, subCategory, page = 1, view = 'shop' } = context;
     const shopConfig = getShopConfig();
+    const allItems = getItemsConfig();
 
     const itemsInSubCategory = Object.keys(shopConfig.items).filter(id => {
         const masterItem = allItems[id];
@@ -796,6 +813,8 @@ function buildShopItemListPanel(form, context) {
 
 // --- Admin Edit Shop Builder Functions ---
 function buildEditShopMainPanel(form) {
+    const allItems = getItemsConfig();
+    const shopCategoryIcons = getCategoryIcons();
     const categories = [...new Set(Object.values(allItems).map(item => item.category))];
     for (const category of categories.sort()) {
         const icon = shopCategoryIcons[category] || 'textures/gui/folder_glyph';
@@ -806,6 +825,7 @@ function buildEditShopMainPanel(form) {
 function buildEditShopCategoryPanel(form, context) {
     const { category, page = 1 } = context;
     const shopConfig = getShopConfig();
+    const allItems = getItemsConfig();
 
     const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
 

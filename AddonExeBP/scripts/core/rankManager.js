@@ -1,4 +1,4 @@
-import { rankDefinitions } from './ranksConfig.js';
+import { getRanksConfig, loadRanksConfig } from './ranksConfigManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 
@@ -39,12 +39,30 @@ const conditionEvaluators = {
 };
 
 /**
- * Initializes the rank manager by sorting ranks.
+ * Sorts the ranks from the configuration for efficient lookup.
  */
-export function initialize() {
-    sortedRanks = [...rankDefinitions].sort((a, b) => a.permissionLevel - b.permissionLevel);
-    debugLog(`[RankManager] Initialized ${sortedRanks.length} ranks.`);
+function sortRanks() {
+    const ranks = getRanksConfig().rankDefinitions || [];
+    sortedRanks = [...ranks].sort((a, b) => a.permissionLevel - b.permissionLevel);
+    debugLog(`[RankManager] Initialized and sorted ${sortedRanks.length} ranks.`);
 }
+
+/**
+ * Initializes the rank manager by loading and sorting ranks.
+ */
+export async function initialize() {
+    await loadRanksConfig();
+    sortRanks();
+}
+
+/**
+ * Reloads the ranks configuration and re-sorts the ranks.
+ */
+export async function reloadRanks() {
+    await loadRanksConfig(true); // Force reload
+    sortRanks();
+}
+
 
 /**
  * Gets the rank for a given player by evaluating conditions.
@@ -91,5 +109,6 @@ export function getPlayerRank(player, config) {
  * @returns {import('./ranksConfig.js').RankDefinition | undefined}
  */
 export function getRankById(rankId) {
+    const rankDefinitions = getRanksConfig().rankDefinitions || [];
     return rankDefinitions.find(rank => rank.id === rankId);
 }

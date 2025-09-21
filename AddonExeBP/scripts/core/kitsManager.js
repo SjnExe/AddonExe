@@ -18,17 +18,28 @@ export function getKit(kitName) {
 }
 
 /**
- * Lists the names of all available and enabled kits from the config.
+ * Lists the names of all available and enabled kits for a given player.
+ * @param {import('@minecraft/server').Player} player The player to check permissions for.
  * @returns {string[]}
  */
-export function listKits() {
+export function listKits(player) {
     const mainConfig = getConfig();
     const kitsConfig = getKitsConfig();
     if (!mainConfig.kits.enabled || !kitsConfig.kitDefinitions) {
         return [];
     }
+
+    const pData = getPlayer(player.id);
+    if (!pData) { return []; }
+
     const kitDefs = kitsConfig.kitDefinitions;
-    return Object.keys(kitDefs).filter(kitName => kitDefs[kitName].enabled);
+    return Object.keys(kitDefs).filter(kitName => {
+        const kit = kitDefs[kitName];
+        if (!kit.enabled) { return false; }
+        // If permissionLevel is not defined or null, it's available to everyone.
+        const requiredPermission = kit.permissionLevel ?? 1024;
+        return pData.permissionLevel <= requiredPermission;
+    });
 }
 
 /**
@@ -75,14 +86,20 @@ export function giveKit(player, kitName) {
         return { success: false, message: `Kit '${kitName}' is currently disabled.` };
     }
 
-    const remainingCooldown = getKitCooldown(player, lowerCaseKitName);
-    if (remainingCooldown > 0) {
-        return { success: false, message: `You must wait ${remainingCooldown} more seconds to claim this kit.` };
-    }
-
     const pData = getPlayer(player.id);
     if (!pData) {
         return { success: false, message: 'Could not find your player data.' };
+    }
+
+    // Check permissions
+    const requiredPermission = kit.permissionLevel ?? 1024;
+    if (pData.permissionLevel > requiredPermission) {
+        return { success: false, message: 'You do not have permission to claim this kit.' };
+    }
+
+    const remainingCooldown = getKitCooldown(player, lowerCaseKitName);
+    if (remainingCooldown > 0) {
+        return { success: false, message: `You must wait ${remainingCooldown} more seconds to claim this kit.` };
     }
 
     const inventory = player.getComponent('minecraft:inventory').container;
