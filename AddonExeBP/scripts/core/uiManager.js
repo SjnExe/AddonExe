@@ -187,7 +187,7 @@ async function buildPanelForm(player, panelId, context) {
         }
         // Manually add the Kit Management button for admins
         if (pData.permissionLevel <= 1) {
-            form.button('§dKit Management', 'textures/ui/inventory_icon');
+            form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
         }
         return form;
     }

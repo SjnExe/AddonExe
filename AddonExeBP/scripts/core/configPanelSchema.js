@@ -65,19 +65,6 @@ export const configPanelSchema = [
         ]
     },
     {
-        id: 'kits',
-        title: '§l§dKits System§r',
-        icon: 'textures/ui/inventory_icon',
-        settings: [
-            {
-                key: 'kits.enabled',
-                label: 'Kits Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the /kit command.'
-            }
-        ]
-    },
-    {
         id: 'bounties',
         title: '§l§cBounty System§r',
         icon: 'textures/items/diamond_sword',
