@@ -2,6 +2,7 @@ import { world } from '@minecraft/server';
 import { kitsConfig as defaultKitsConfig } from './kitsConfig.js';
 import { config as mainDefaultConfig } from '../config.js';
 import { errorLog } from './errorLogger.js';
+import { debugLog } from './logger.js';
 import { deepMerge } from './objectUtils.js';
 
 const currentKitsConfigKey = 'exe:kitsConfig:current';
@@ -48,8 +49,16 @@ export function loadKitsConfig() {
         // without overwriting existing, user-modified kits.
         if (!lastLoadedMainConfig || lastLoadedMainConfig.version !== mainDefaultConfig.version) {
             errorLog('[KitsConfigManager] Addon update detected. Merging new default kits into user config.');
-            const mergedKitDefinitions = deepMerge(newDefaultConfig.kitDefinitions, userSavedConfig.kitDefinitions);
-            currentKitsConfig.kitDefinitions = mergedKitDefinitions;
+            const userKits = userSavedConfig.kitDefinitions || {};
+            const defaultKits = newDefaultConfig.kitDefinitions || {};
+            for (const kitName in defaultKits) {
+                if (!Object.prototype.hasOwnProperty.call(userKits, kitName)) {
+                    // This is a new kit from the update, add it to the user's config.
+                    userKits[kitName] = defaultKits[kitName];
+                    debugLog(`[KitsConfigManager] Added new default kit: ${kitName}`);
+                }
+            }
+            currentKitsConfig.kitDefinitions = userKits;
         }
     }
 

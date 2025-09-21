@@ -217,6 +217,11 @@ export const panelDefinitions = {
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated by uiManager
     },
+    kitManagementPanel: {
+        title: '§l§dKit System§r',
+        parentPanelId: 'configCategoryPanel',
+        items: [] // Dynamically populated by uiManager
+    },
     playerManagementPanel: {
         title: '§l§4Player Management§r',
         parentPanelId: 'mainPanel',

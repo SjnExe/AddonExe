@@ -126,12 +126,13 @@ async function buildPanelForm(player, panelId, context) {
 
         const form = new ModalFormData()
             .title(`Edit Kit: ${kitName}`)
-            .toggle('Enable this kit', kit.enabled)
-            .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', String(kit.cooldownSeconds));
+            .toggle('Enable this kit', { defaultValue: kit.enabled })
+            .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', String(kit.cooldownSeconds))
+            .textField('Permission Level', '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.', String(kit.permissionLevel ?? 1024));
 
         // Due to ModalFormData limitations, we can't show a rich list.
         // We can add a non-interactive element by using a toggle with a descriptive label.
-        form.toggle(`§lItems in this kit:§r\n${itemSummary}`, false);
+        form.toggle(`§lItems in this kit:§r\n${itemSummary}`, { defaultValue: false });
 
         return form;
     }
@@ -187,7 +188,7 @@ async function buildPanelForm(player, panelId, context) {
         }
         // Manually add the Kit Management button for admins
         if (pData.permissionLevel <= 1) {
-            form.button('§dKit Management', 'textures/ui/inventory_icon');
+            form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
         }
         return form;
     }
@@ -501,18 +502,25 @@ async function handleFormResponse(player, panelId, response, context) {
         }
 
         // The last form value is the decorative item display, which we ignore.
-        const [isEnabled, cooldownStr] = response.formValues;
+        const [isEnabled, cooldownStr, permissionLevelStr] = response.formValues;
         const cooldown = Number(cooldownStr);
+        const permissionLevel = Number(permissionLevelStr);
 
         if (isNaN(cooldown) || cooldown < 0) {
             player.sendMessage('§cInvalid cooldown. Please enter a non-negative number.');
             return showPanel(player, panelId, context); // Re-show the detail panel
         }
+        if (isNaN(permissionLevel) || permissionLevel < 0) {
+            player.sendMessage('§cInvalid permission level. Please enter a non-negative number.');
+            return showPanel(player, panelId, context);
+        }
+
 
         const kitsConfig = getKitsConfig();
         if (kitsConfig.kitDefinitions[kitName]) {
             kitsConfig.kitDefinitions[kitName].enabled = isEnabled;
             kitsConfig.kitDefinitions[kitName].cooldownSeconds = cooldown;
+            kitsConfig.kitDefinitions[kitName].permissionLevel = permissionLevel;
             saveKitsConfig();
             player.sendMessage(`§aSuccessfully updated kit '${kitName}'.`);
         }
@@ -690,6 +698,8 @@ function addPaginationButtons(form, page, totalItems) {
 
 function buildShopMainPanel(form, context) {
     const shopConfig = getShopConfig();
+    const allItems = getItemsConfig();
+    const shopCategoryIcons = getCategoryIcons();
     const view = context.view || 'shop'; // 'shop', 'buy', or 'sell'
 
     const categories = [...new Set(Object.keys(shopConfig.items).map(id => allItems[id]?.category).filter(Boolean))];
@@ -718,6 +728,8 @@ function buildShopMainPanel(form, context) {
 function buildShopCategoryPanel(form, context) {
     const { category, page = 1, view = 'shop' } = context;
     const shopConfig = getShopConfig();
+    const allItems = getItemsConfig();
+    const shopSubCategoryIcons = getSubCategoryIcons();
 
     const itemsInCategory = Object.keys(shopConfig.items).filter(id => {
         const masterItem = allItems[id];
@@ -764,6 +776,7 @@ function buildShopCategoryPanel(form, context) {
 function buildShopItemListPanel(form, context) {
     const { category, subCategory, page = 1, view = 'shop' } = context;
     const shopConfig = getShopConfig();
+    const allItems = getItemsConfig();
 
     const itemsInSubCategory = Object.keys(shopConfig.items).filter(id => {
         const masterItem = allItems[id];
@@ -796,6 +809,8 @@ function buildShopItemListPanel(form, context) {
 
 // --- Admin Edit Shop Builder Functions ---
 function buildEditShopMainPanel(form) {
+    const allItems = getItemsConfig();
+    const shopCategoryIcons = getCategoryIcons();
     const categories = [...new Set(Object.values(allItems).map(item => item.category))];
     for (const category of categories.sort()) {
         const icon = shopCategoryIcons[category] || 'textures/gui/folder_glyph';
@@ -806,6 +821,7 @@ function buildEditShopMainPanel(form) {
 function buildEditShopCategoryPanel(form, context) {
     const { category, page = 1 } = context;
     const shopConfig = getShopConfig();
+    const allItems = getItemsConfig();
 
     const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
 
@@ -1341,7 +1357,7 @@ function buildKitManagementPanel(form, context) {
 
     // Add the global toggle button
     const isEnabled = mainConfig.kits.enabled;
-    const toggleText = isEnabled ? '§aKit System: ENABLED' : '§cKit System: DISABLED';
+    const toggleText = isEnabled ? '§2Kit System: ENABLED' : '§cKit System: DISABLED';
     form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
 
     // Get all kit names and paginate them
