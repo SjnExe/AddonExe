@@ -122,17 +122,13 @@ async function buildPanelForm(player, panelId, context) {
             return null;
         }
 
-        const itemSummary = kit.items.map(item => `${item.typeId.replace('minecraft:', '')} x${item.amount}`).join(', ');
-
         const form = new ModalFormData()
             .title(`Edit Kit: ${kitName}`)
             .toggle('Enable this kit', { defaultValue: kit.enabled })
-            .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', String(kit.cooldownSeconds))
-            .textField('Permission Level', '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.', String(kit.permissionLevel ?? 1024));
+            .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', { defaultValue: String(kit.cooldownSeconds) })
+            .textField('Permission Level', '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.', { defaultValue: String(kit.permissionLevel ?? 1024) });
 
-        // Due to ModalFormData limitations, we can't show a rich list.
-        // We can add a non-interactive element by using a toggle with a descriptive label.
-        form.toggle(`§lItems in this kit:§r\n${itemSummary}`, { defaultValue: false });
+        form.submitButton("§l§2Save and Close");
 
         return form;
     }
@@ -698,8 +694,6 @@ function addPaginationButtons(form, page, totalItems) {
 
 function buildShopMainPanel(form, context) {
     const shopConfig = getShopConfig();
-    const allItems = getItemsConfig();
-    const shopCategoryIcons = getCategoryIcons();
     const view = context.view || 'shop'; // 'shop', 'buy', or 'sell'
 
     const categories = [...new Set(Object.keys(shopConfig.items).map(id => allItems[id]?.category).filter(Boolean))];
@@ -728,8 +722,6 @@ function buildShopMainPanel(form, context) {
 function buildShopCategoryPanel(form, context) {
     const { category, page = 1, view = 'shop' } = context;
     const shopConfig = getShopConfig();
-    const allItems = getItemsConfig();
-    const shopSubCategoryIcons = getSubCategoryIcons();
 
     const itemsInCategory = Object.keys(shopConfig.items).filter(id => {
         const masterItem = allItems[id];
@@ -776,7 +768,6 @@ function buildShopCategoryPanel(form, context) {
 function buildShopItemListPanel(form, context) {
     const { category, subCategory, page = 1, view = 'shop' } = context;
     const shopConfig = getShopConfig();
-    const allItems = getItemsConfig();
 
     const itemsInSubCategory = Object.keys(shopConfig.items).filter(id => {
         const masterItem = allItems[id];
@@ -809,8 +800,6 @@ function buildShopItemListPanel(form, context) {
 
 // --- Admin Edit Shop Builder Functions ---
 function buildEditShopMainPanel(form) {
-    const allItems = getItemsConfig();
-    const shopCategoryIcons = getCategoryIcons();
     const categories = [...new Set(Object.values(allItems).map(item => item.category))];
     for (const category of categories.sort()) {
         const icon = shopCategoryIcons[category] || 'textures/gui/folder_glyph';
@@ -821,7 +810,6 @@ function buildEditShopMainPanel(form) {
 function buildEditShopCategoryPanel(form, context) {
     const { category, page = 1 } = context;
     const shopConfig = getShopConfig();
-    const allItems = getItemsConfig();
 
     const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
 
@@ -1085,7 +1073,7 @@ uiActionFunctions['clearReport'] = (player, context) => {
 };
 
 uiActionFunctions['showUnbanForm'] = async (player) => {
-    const form = new ModalFormData().title('Unban Player').textField('Player Name', 'Enter the name of the player to unban', { placeholderText: 'Enter player name' });
+    const form = new ModalFormData().title('Unban Player').textField('Player Name', 'Enter player name');
     const response = await utils.uiWait(player, form);
     if (!response || response.canceled) {return true;}
     const [targetName] = response.formValues;
@@ -1098,7 +1086,7 @@ uiActionFunctions['showUnbanForm'] = async (player) => {
 };
 
 uiActionFunctions['showUnmuteForm'] = async (player) => {
-    const form = new ModalFormData().title('Unmute Player').textField('Player Name', 'Enter the name of the player to unmute', { placeholderText: 'Enter player name' });
+    const form = new ModalFormData().title('Unmute Player').textField('Player Name', 'Enter player name');
     const response = await utils.uiWait(player, form);
     if (!response || response.canceled) {return true;}
     const [targetName] = response.formValues;
@@ -1251,7 +1239,7 @@ uiActionFunctions['tpaherePlayer'] = async (player, context) => {
 
 uiActionFunctions['bountyPlayer'] = async (player, context) => {
     const { targetPlayerId, targetPlayerName } = context;
-    const form = new ModalFormData().title(`Set Bounty on ${targetPlayerName}`).textField('Amount', 'Enter the bounty amount', { placeholderText: 'Enter amount' });
+    const form = new ModalFormData().title(`Set Bounty on ${targetPlayerName}`).textField('Amount', 'Enter amount');
     const response = await utils.uiWait(player, form);
     if (response && !response.canceled) {
         const [amountStr] = response.formValues;
@@ -1284,7 +1272,7 @@ uiActionFunctions['bountyPlayer'] = async (player, context) => {
 
 uiActionFunctions['reportPlayer'] = async (player, context) => {
     const { targetPlayerId, targetPlayerName } = context;
-    const form = new ModalFormData().title(`Report ${targetPlayerName}`).textField('Reason for report:', 'Enter the reason here', { placeholderText: 'Enter the reason here' });
+    const form = new ModalFormData().title(`Report ${targetPlayerName}`).textField('Reason for report:', 'Enter the reason here');
     const response = await utils.uiWait(player, form);
     if (response.canceled) {
         player.sendMessage('§cReport canceled.');
