@@ -500,7 +500,8 @@ async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, 'kitManagementPanel', context);
         }
 
-        const [isEnabled, cooldownStr, _itemDisplay] = response.formValues;
+        // The last form value is the decorative item display, which we ignore.
+        const [isEnabled, cooldownStr] = response.formValues;
         const cooldown = Number(cooldownStr);
 
         if (isNaN(cooldown) || cooldown < 0) {
