@@ -2,8 +2,6 @@ import { world } from '@minecraft/server';
 import { config as defaultConfig } from '../config.js';
 import { errorLog } from './errorLogger.js';
 import { deepEqual, deepMerge, setValueByPath, reconcileConfig } from './objectUtils.js';
-import { reloadRanks } from './rankManager.js';
-import { loadShopMasterConfigs } from './shopMasterConfigManager.js';
 
 const currentConfigKey = 'exe:config:current';
 const lastLoadedConfigKey = 'exe:config:lastLoaded';
@@ -129,26 +127,6 @@ export function reloadConfig() {
     saveLastLoadedConfig();
     // eslint-disable-next-line no-console
     console.log('[ConfigManager] Configuration reloaded and reconciled.');
-}
-
-/**
- * Reloads all addon configurations from their source files.
- */
-export async function reloadAllConfigs() {
-    // eslint-disable-next-line no-console
-    console.log('[ConfigManager] Reloading all configurations...');
-
-    // 1. Reload main config.js
-    reloadConfig();
-
-    // 2. Reload ranksConfig.js
-    await reloadRanks();
-
-    // 3. Reload shop master configs (itemsConfig.js, shopCategoryConfig.js)
-    await loadShopMasterConfigs(true);
-
-    // eslint-disable-next-line no-console
-    console.log('[ConfigManager] All configurations reloaded.');
 }
 
 /**

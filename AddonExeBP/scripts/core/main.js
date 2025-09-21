@@ -1,7 +1,6 @@
 import { world, system } from '@minecraft/server';
-import { loadConfig, getConfig, updateConfig } from './configManager.js';
+import { loadConfig, getConfig, updateConfig, reloadConfig } from './configManager.js';
 import { loadShopConfig } from './shopConfigManager.js';
-import { loadShopMasterConfigs } from './shopMasterConfigManager.js';
 import { loadKitsConfig } from './kitsConfigManager.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
@@ -66,9 +65,9 @@ function loadPersistentData() {
 /**
  * Initializes all core managers and performs startup data clearing.
  */
-async function initializeManagers() {
+function initializeManagers() {
     debugLog('[AddonExe] Initializing managers...');
-    await rankManager.initialize();
+    rankManager.initialize();
     // Clear any expired data on startup
     clearExpiredPunishments();
     clearOldResolvedReports();
@@ -101,16 +100,17 @@ function startSystemTimers() {
 /**
  * Main entry point for addon initialization.
  */
-async function initializeAddon() {
+function initializeAddon() {
     debugLog('[AddonExe] Initializing addon...');
-    loadConfig();
+    const isFirstInit = loadConfig();
     loadShopConfig();
     loadKitsConfig();
-    await loadShopMasterConfigs();
-
+    if (!isFirstInit) {
+        reloadConfig();
+    }
     dataManager.initializeDataManager();
     loadPersistentData();
-    await initializeManagers();
+    initializeManagers();
     checkConfiguration();
 
     startSystemTimers();

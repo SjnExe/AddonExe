@@ -20,7 +20,8 @@ import { banPlayer, offlineBanPlayer, unbanPlayer } from '../modules/commands/ba
 import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 import * as shopManager from './shopManager.js';
 import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
-import { getItemsConfig, getCategoryIcons, getSubCategoryIcons } from './shopMasterConfigManager.js';
+import { items as allItems } from './itemsConfig.js';
+import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
 import { getKitsConfig, saveKitsConfig } from './kitsConfigManager.js';
 
 
@@ -125,13 +126,13 @@ async function buildPanelForm(player, panelId, context) {
 
         const form = new ModalFormData()
             .title(`Edit Kit: ${kitName}`)
-            .toggle('Enable this kit', kit.enabled)
+            .toggle('Enable this kit', { defaultValue: kit.enabled })
             .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', String(kit.cooldownSeconds))
             .textField('Permission Level', '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.', String(kit.permissionLevel ?? 1024));
 
         // Due to ModalFormData limitations, we can't show a rich list.
         // We can add a non-interactive element by using a toggle with a descriptive label.
-        form.toggle(`§lItems in this kit:§r\n${itemSummary}`, false);
+        form.toggle(`§lItems in this kit:§r\n${itemSummary}`, { defaultValue: false });
 
         return form;
     }
@@ -224,7 +225,6 @@ async function handleFormResponse(player, panelId, response, context) {
     if (panelId === 'shopMainPanel') {
         if (response.selection === 0) { return showPanel(player, 'mainPanel'); }
         const shopConfig = getShopConfig();
-        const allItems = getItemsConfig();
         const view = context.view || 'shop';
         const categories = [...new Set(Object.keys(shopConfig.items).map(id => allItems[id]?.category).filter(Boolean))];
         const validCategories = categories.filter(category => {
@@ -261,7 +261,6 @@ async function handleFormResponse(player, panelId, response, context) {
 
         // Reconstruct the list of entries that was shown to the player
         const shopConfig = getShopConfig();
-        const allItems = getItemsConfig();
         let allEntries = [];
         if (isItemList) {
             const itemsInSubCategory = Object.keys(shopConfig.items).filter(id => {
@@ -382,7 +381,6 @@ async function handleFormResponse(player, panelId, response, context) {
     // --- Admin Edit Shop Panel Handlers ---
     if (panelId === 'editShopMainPanel') {
         if (response.selection === 0) { return showPanel(player, 'mainPanel'); }
-        const allItems = getItemsConfig();
         const categories = [...new Set(Object.values(allItems).map(item => item.category))].sort();
         const selectedCategory = categories[response.selection - 1];
         if (selectedCategory) {
@@ -395,7 +393,6 @@ async function handleFormResponse(player, panelId, response, context) {
         if (response.selection === 0) { return showPanel(player, 'editShopMainPanel'); }
         const category = panelId.replace('editShopCategoryPanel_', '');
         const page = context.page || 1;
-        const allItems = getItemsConfig();
         const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
         const paginatedItems = getPaginatedItems(itemsInCategory, page);
 
@@ -419,7 +416,6 @@ async function handleFormResponse(player, panelId, response, context) {
 
         const selection = paginatedItems[selectionIndex];
         if (selection) {
-            const allItems = getItemsConfig();
             const masterItem = allItems[selection];
             const shopConfig = getShopConfig();
             const shopItem = shopConfig.items[selection];
@@ -1361,7 +1357,7 @@ function buildKitManagementPanel(form, context) {
 
     // Add the global toggle button
     const isEnabled = mainConfig.kits.enabled;
-    const toggleText = isEnabled ? '§aKit System: ENABLED' : '§cKit System: DISABLED';
+    const toggleText = isEnabled ? '§2Kit System: ENABLED' : '§cKit System: DISABLED';
     form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
 
     // Get all kit names and paginate them

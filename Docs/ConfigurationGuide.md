@@ -47,22 +47,26 @@ For more advanced control over permissions and visual styles, you can edit the r
 
 ## 🔄 Reloading the Configuration
 
-AddonExe features a powerful hot-reloading system that allows you to apply most configuration changes without restarting your server.
+AddonExe features a smart reloading system to apply configuration changes without needing to restart your server.
 
 - **Command:** `/xreload` (or `!reload` in chat)
 - **Permission:** Admin
 
-### What Can Be Reloaded?
-The `/xreload` command will instantly reload changes from the following files:
-- `config.js` (for main settings and feature toggles)
-- `ranksConfig.js` (for all rank definitions and permissions)
-- `itemsConfig.js` (for the master list of shop items)
-- `shopCategoryConfig.js` (for shop category icons)
+### How it Works
+The addon uses a two-state configuration system to prevent accidental loss of in-game changes (like a player's balance set via a command).
 
-This means you can add new ranks, change permissions, or add new item types to the shop's master list and see the changes in-game immediately after running `/xreload`.
+1.  **Live Config:** This is the configuration currently being used by the addon. It can be modified by in-game commands.
+2.  **Last Loaded Config:** This is a snapshot of the `config.js` file from the last time the server started or `/xreload` was used.
 
-> [!NOTE]
-> For structural changes to the UI in `panelLayoutConfig.js`, a full server restart is still required.
+When you run `/xreload`, the addon compares the current `config.js` file on disk to the `Last Loaded Config`.
+
+-   **If a setting has been changed in the file:** The addon will update the live config with the new value from the file. This means changes in the file always take priority.
+-   **If a setting has NOT been changed in the file:** The addon will leave the live config value untouched, preserving any changes made through in-game commands.
+
+After the reload, a new snapshot is taken, and the process repeats on the next `/xreload`.
+
+> [!IMPORTANT]
+> The `/xreload` command applies to settings in `config.js`. For structural changes in other files like `ranksConfig.js`, `panelLayoutConfig.js`, and `kitsConfig.js`, a full server restart is required to ensure they are applied correctly.
 
 ---
 
@@ -111,7 +115,7 @@ This is the primary file for most top-level settings. **Changes to this file can
   - `allowAdminBypass` (boolean): If `true`, players with admin permissions can enter locked dimensions. If `false`, the lock applies to everyone.
 
 ### `ranksConfig.js` - Ranks & Permissions
-This file defines the entire hierarchy of roles on your server. **Changes can be reloaded with `/xreload`**.
+This file defines the entire hierarchy of roles on your server. **Requires a server restart to apply changes.**
 
 - **File:** `AddonExeBP/scripts/core/ranksConfig.js`
 - **Purpose:**
@@ -134,7 +138,7 @@ This file controls the layout, buttons, and actions of the `/panel` user interfa
 The kit system is configured through a combination of a master file (`kitsConfig.js`) and an in-game management panel.
 
 - **`kitsConfig.js` - Master Kit List**
-  - This file defines all possible kits that can be available. It serves as a master list that populates the in-game "Kit Management" panel. You should edit this file to add new kits or change the items within a kit.
+  - This file defines all possible kits that can be available. It serves as a master list that populates the in-game "Kit Management" panel. You should edit this file to add new kits or change the items within a kit. **Requires a server restart to apply changes.**
   - **File:** `AddonExeBP/scripts/core/kitsConfig.js`
   - **Purpose:**
     - Define a comprehensive list of all kits you want on your server.
@@ -142,8 +146,8 @@ The kit system is configured through a combination of a master file (`kitsConfig
   - **Note:** While you can define kits here, managing their live properties (like enabling/disabling, cooldowns, and permissions) is done in-game.
 
 - **In-Game Kit Management**
-  - The live settings for kits are configured in-game by an admin. This allows for live updates without restarting the server or running a command.
-  - **Command:** `/panel` -> "Config" -> "Kit Management"
+  - The live settings for kits are configured in-game by an admin. This allows for live updates without restarting the server.
+  - **Command:** `/panel` -> "Config" -> "§l§dKit System§r"
   - **Permission:** Admin
   - **How it Works:**
     - Admins can see a list of all kits defined in `kitsConfig.js`.
@@ -156,7 +160,7 @@ The kit system is configured through a combination of a master file (`kitsConfig
 The shop system is configured through a combination of files and in-game actions.
 
 - **`itemsConfig.js` - Master Shop Item List**
-  - This file defines all possible items that can be sold in the shop. It serves as a master list from which admins can enable items. **Changes can be reloaded with `/xreload`**.
+  - This file defines all possible items that can be sold in the shop. It serves as a master list from which admins can enable items. **Requires a server restart to apply changes.**
   - **File:** `AddonExeBP/scripts/core/itemsConfig.js`
   - **Purpose:**
     - Define a comprehensive list of all items you might ever want to sell.
@@ -165,7 +169,7 @@ The shop system is configured through a combination of files and in-game actions
   - **Note:** This file only defines what *can* be in the shop. To actually make an item available for players to buy or sell, an admin must enable it through the in-game "Edit Shop" panel.
 
 - **`shopCategoryConfig.js` - Shop Category Icons**
-  - This file defines the icons used for each category and sub-category in the shop UI. **Changes can be reloaded with `/xreload`**.
+  - This file defines the icons used for each category and sub-category in the shop UI. **Requires a server restart to apply changes.**
   - **File:** `AddonExeBP/scripts/core/shopCategoryConfig.js`
   - **Purpose:**
     - Assign a specific texture path to each category name (e.g., 'Building Blocks', 'Ores & Minerals').
