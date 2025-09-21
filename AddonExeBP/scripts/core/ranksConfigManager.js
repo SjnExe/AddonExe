@@ -1,4 +1,4 @@
-import { ranksConfig as defaultRanksConfig } from './ranksConfig.js';
+import { rankDefinitions as defaultRankDefinitions } from './ranksConfig.js';
 import { errorLog } from './errorLogger.js';
 
 let loadedRanksConfig = null;
@@ -14,26 +14,26 @@ export async function loadRanksConfig(forceReload = false) {
 
     try {
         const module = await import('./ranksConfig.js?v=' + Date.now());
-        loadedRanksConfig = module.ranksConfig;
+        loadedRanksConfig = { rankDefinitions: module.rankDefinitions };
         // eslint-disable-next-line no-console
         console.log('[RanksConfigManager] Successfully loaded/reloaded ranksConfig.js');
     } catch (e) {
         errorLog('[RanksConfigManager] Failed to reload ranksConfig.js. Using stale or default config.', e);
         if (!loadedRanksConfig) {
-            loadedRanksConfig = defaultRanksConfig;
+            loadedRanksConfig = { rankDefinitions: defaultRankDefinitions };
         }
     }
 }
 
 /**
  * Gets the currently loaded ranks configuration.
- * @returns {object}
+ * @returns {{rankDefinitions: import('./ranksConfig.js').RankDefinition[]}}
  */
 export function getRanksConfig() {
     if (!loadedRanksConfig) {
         // This should not happen in normal flow as main.js will call loadRanksConfig at startup.
         errorLog('[RanksConfigManager] getRanksConfig called before config was loaded!');
-        return defaultRanksConfig;
+        return { rankDefinitions: defaultRankDefinitions };
     }
     return loadedRanksConfig;
 }
