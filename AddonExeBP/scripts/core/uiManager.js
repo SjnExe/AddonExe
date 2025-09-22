@@ -241,30 +241,41 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
-    if (panelId === 'configCategoryPanel' || panelId === 'configResetPanel') {
+    if (panelId === 'configCategoryPanel') {
         const form = new ActionFormData().title(title);
-        const menuItems = getMenuItems(panelDef, pData.permissionLevel);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        for (const category of configPanelSchema) {
+            form.button(category.title, category.icon);
+        }
+        if (pData.permissionLevel <= 1) {
+            form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
+        }
+        if (pData.permissionLevel === 0) {
+            form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
+        }
+        return form;
+    }
 
-        if (menuItems.length > 0 && menuItems[0].id === '__back__') {
-            form.button(menuItems[0].text, menuItems[0].icon);
+    if (panelId === 'configResetPanel') {
+        const page = context.page || 1;
+        const form = new ActionFormData().title(`${title} (Page ${page})`);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+        const resettableSystems = [
+            ...configPanelSchema.map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+            { id: 'kits', title: 'Kit System', icon: 'textures/ui/inventory_icon' }
+        ];
+        const paginatedSystems = getPaginatedItems(resettableSystems, page);
+
+        for (const system of paginatedSystems) {
+            form.button(`§cReset ${system.title}`, system.icon);
         }
 
-        if (panelId === 'configCategoryPanel') {
-            for (const category of configPanelSchema) {
-                form.button(category.title, category.icon);
-            }
-            if (pData.permissionLevel <= 1) {
-                form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
-            }
-            if (pData.permissionLevel === 0) {
-                form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
-            }
-        } else { // configResetPanel
-            for (const category of configPanelSchema) {
-                form.button(category.title, category.icon);
-            }
+        if (page >= Math.ceil(resettableSystems.length / itemsPerPage)) {
             form.button('§l§cReset All Systems', 'textures/ui/trash');
         }
+
+        addPaginationButtons(form, page, resettableSystems.length);
         return form;
     }
 
@@ -321,25 +332,74 @@ async function handleFormResponse(player, panelId, response, context) {
     }
 
     if (panelId === 'configResetPanel') {
-        if (selection === 0) { return showPanel(player, 'configCategoryPanel'); }
+        const page = context.page || 1;
+        const resettableSystems = [
+            ...configPanelSchema.map(c => ({ id: c.id, title: c.title })),
+            { id: 'kits', title: 'Kit System' }
+        ];
 
-        const selectionIndex = selection - 1;
-        const categories = configPanelSchema.map(c => c.id);
-        const selectedCategory = selectionIndex < categories.length ? categories[selectionIndex] : 'all';
-
-        const confirmForm = new ModalFormData()
-            .title(`§l§cConfirm Reset: ${selectedCategory}`)
-            .textField('Type "CONFIRM" to proceed.', 'This action cannot be undone.');
-
-        const confirmResponse = await utils.uiWait(player, confirmForm);
-        if (confirmResponse.canceled || confirmResponse.formValues[0] !== 'CONFIRM') {
-            player.sendMessage('§cReset canceled.');
-            return showPanel(player, 'configResetPanel');
+        if (selection === 0) { // Back button
+            return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
         }
 
-        const result = resetConfigSection(selectedCategory);
-        player.sendMessage(`§a${result.message}`);
-        return showPanel(player, 'configResetPanel');
+        const paginatedSystems = getPaginatedItems(resettableSystems, page);
+        const selectionIndex = selection - 1;
+
+        if (selectionIndex < paginatedSystems.length) {
+            const selectedSystem = paginatedSystems[selectionIndex];
+            const confirmForm = new ActionFormData()
+                .title(`Confirm Reset: ${selectedSystem.title}`)
+                .body(`This action cannot be undone. Are you sure you want to reset the ${selectedSystem.title} configuration to its default values?`)
+                .button('§cYes, Reset', 'textures/ui/check')
+                .button('§2No, Cancel', 'textures/ui/cancel');
+
+            const confirmResponse = await utils.uiWait(player, confirmForm);
+            if (confirmResponse.canceled || confirmResponse.selection === 1) {
+                player.sendMessage('§aReset canceled.');
+                return showPanel(player, 'configResetPanel', { ...context, page });
+            }
+
+            const result = resetConfigSection(selectedSystem.id);
+            player.sendMessage(`§a${result.message}`);
+            return showPanel(player, 'configResetPanel', { ...context, page: 1 });
+        }
+
+        let buttonIndex = selectionIndex - paginatedSystems.length;
+
+        const totalPages = Math.ceil(resettableSystems.length / itemsPerPage);
+
+        if (page >= totalPages) {
+            if (buttonIndex === 0) {
+                const confirmForm = new ActionFormData()
+                    .title('Confirm Reset All')
+                    .body('This action cannot be undone. Are you sure you want to reset ALL system configurations to their default values?')
+                    .button('§cYes, Reset All', 'textures/ui/trash')
+                    .button('§2No, Cancel', 'textures/ui/cancel');
+
+                const confirmResponse = await utils.uiWait(player, confirmForm);
+                if (confirmResponse.canceled || confirmResponse.selection === 1) {
+                    player.sendMessage('§aReset canceled.');
+                    return showPanel(player, 'configResetPanel', { ...context, page });
+                }
+
+                const result = resetConfigSection('all');
+                player.sendMessage(`§a${result.message}`);
+                return showPanel(player, 'configResetPanel', { ...context, page: 1 });
+            }
+            buttonIndex--;
+        }
+
+        // Handle pagination
+        const hasPrev = page > 1;
+
+        if (hasPrev && buttonIndex === 0) {
+            return showPanel(player, panelId, { ...context, page: page - 1 });
+        }
+        if (buttonIndex >= 0) { // Should be next page
+            return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+
+        return;
     }
 
     if (panelId.startsWith('shopCategoryPanel_') || panelId.startsWith('shopItemListPanel_')) {
