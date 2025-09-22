@@ -3,8 +3,10 @@ import { commandManager } from './commandManager.js';
 import * as kitsManager from '../../core/kitsManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { errorLog } from '../../core/errorLogger.js';
-import { createKit } from '../../core/kitAdminManager.js';
+import { createKit, getAllKits } from '../../core/kitAdminManager.js';
 import { addItemToKit } from '../../core/kitItemsManager.js';
+import { formatCooldown } from '../../core/utils.js';
+import { showPanel } from '../../core/uiManager.js';
 
 commandManager.register({
     name: 'kit',
@@ -34,12 +36,21 @@ commandManager.register({
                 .title('Available Kits')
                 .body('Select a kit to claim:');
 
-            availableKits.forEach(kit => form.button(kit));
+            availableKits.forEach(kit => {
+                let buttonText = kit.name;
+                if (kit.price > 0) {
+                    buttonText += ` - $${kit.price}`;
+                }
+                if (kit.cooldown > 0) {
+                    buttonText += ` - Cooldown: ${formatCooldown(kit.cooldown)}`;
+                }
+                form.button(buttonText, kit.icon);
+            });
 
             form.show(player).then(response => {
-                if (response.canceled) {return;}
-                const selectedKit = availableKits[response.selection];
-                const result = kitsManager.giveKit(player, selectedKit);
+                if (response.canceled) { return; }
+                const selectedKitName = availableKits[response.selection].name;
+                const result = kitsManager.giveKit(player, selectedKitName);
                 if (result.success) {
                     player.sendMessage(`§a${result.message}`);
                 } else {
@@ -64,18 +75,27 @@ commandManager.register({
 
 commandManager.register({
     name: 'addkit',
-    description: 'Create a new kit from your inventory.',
+    description: 'Create a new kit from your inventory and open the editor.',
     permissionLevel: 1, // Admins only
     allowConsole: false,
     parameters: [
-        { name: 'kitName', type: 'string', description: 'The name of the kit to create.' }
+        { name: 'kitName', type: 'string', description: 'The name for the new kit. Leave blank to auto-generate.', optional: true }
     ],
     execute: (player, args) => {
-        const { kitName } = args;
+        let { kitName } = args;
+
+        if (!kitName) {
+            const allKits = getAllKits();
+            let i = 1;
+            kitName = 'kit';
+            while (allKits[kitName]) {
+                i++;
+                kitName = `kit${i}`;
+            }
+        }
 
         const inventory = player.getComponent('minecraft:inventory').container;
         const items = [];
-        // Player inventory is slots 0-35.
         for (let i = 0; i < 36; i++) {
             const item = inventory.getItem(i);
             if (item) {
@@ -97,10 +117,12 @@ commandManager.register({
             return player.sendMessage(`§c${createResult.message}`);
         }
 
+        const lowerCaseKitName = kitName.toLowerCase();
         for (const item of items) {
-            addItemToKit(kitName, item);
+            addItemToKit(lowerCaseKitName, item);
         }
 
-        player.sendMessage(`§aSuccessfully created kit '${kitName}' with ${items.length} item stacks.`);
+        player.sendMessage(`§aSuccessfully created kit '${lowerCaseKitName}'. Opening editor...`);
+        showPanel(player, `kitActionMenu_${lowerCaseKitName}`);
     }
 });
