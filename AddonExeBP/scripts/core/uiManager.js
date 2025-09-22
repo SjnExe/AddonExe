@@ -220,11 +220,6 @@ async function buildPanelForm(player, panelId, context) {
     if (panelId === 'reportListPanel') {return buildReportListForm(title, context);}
     if (panelId === 'playerManagementPanel') {return buildPlayerManagementForm(title, context);}
     if (panelId === 'playerListPanel') {return buildPlayerListForm(title, context);}
-    if (panelId === 'configResetPanel') {
-        const form = new ActionFormData().title('§l§cReset Configuration');
-        buildConfigResetPanel(form);
-        return form;
-    }
 
     if (panelId === 'shopMainPanel') {
         const form = new ActionFormData().title(title);
@@ -246,18 +241,29 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
-    if (panelId === 'configCategoryPanel') {
+    if (panelId === 'configCategoryPanel' || panelId === 'configResetPanel') {
         const form = new ActionFormData().title(title);
-        form.button('§l§8< Back', 'textures/gui/controls/left.png');
-        for (const category of configPanelSchema) {
-            form.button(category.title, category.icon);
+        const menuItems = getMenuItems(panelDef, pData.permissionLevel);
+
+        if (menuItems.length > 0 && menuItems[0].id === '__back__') {
+            form.button(menuItems[0].text, menuItems[0].icon);
         }
-        // Manually add the Kit Management button for admins
-        if (pData.permissionLevel <= 1) {
-            form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
-        }
-        if (pData.permissionLevel === 0) {
-            form.button('§l§cReset Settings§r', 'textures/ui/undo');
+
+        if (panelId === 'configCategoryPanel') {
+            for (const category of configPanelSchema) {
+                form.button(category.title, category.icon);
+            }
+            if (pData.permissionLevel <= 1) {
+                form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
+            }
+            if (pData.permissionLevel === 0) {
+                form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
+            }
+        } else { // configResetPanel
+            for (const category of configPanelSchema) {
+                form.button(category.title, category.icon);
+            }
+            form.button('§l§cReset All Systems', 'textures/ui/trash');
         }
         return form;
     }
@@ -312,6 +318,28 @@ async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, `shopCategoryPanel_${selectedCategory}`, context);
         }
         return;
+    }
+
+    if (panelId === 'configResetPanel') {
+        if (selection === 0) { return showPanel(player, 'configCategoryPanel'); }
+
+        const selectionIndex = selection - 1;
+        const categories = configPanelSchema.map(c => c.id);
+        const selectedCategory = selectionIndex < categories.length ? categories[selectionIndex] : 'all';
+
+        const confirmForm = new ModalFormData()
+            .title(`§l§cConfirm Reset: ${selectedCategory}`)
+            .textField('Type "CONFIRM" to proceed.', 'This action cannot be undone.');
+
+        const confirmResponse = await utils.uiWait(player, confirmForm);
+        if (confirmResponse.canceled || confirmResponse.formValues[0] !== 'CONFIRM') {
+            player.sendMessage('§cReset canceled.');
+            return showPanel(player, 'configResetPanel');
+        }
+
+        const result = resetConfigSection(selectedCategory);
+        player.sendMessage(`§a${result.message}`);
+        return showPanel(player, 'configResetPanel');
     }
 
     if (panelId.startsWith('shopCategoryPanel_') || panelId.startsWith('shopItemListPanel_')) {
@@ -847,44 +875,38 @@ async function handleFormResponse(player, panelId, response, context) {
     }
 
     if (panelId === 'configCategoryPanel') {
-        if (selection === 0) { return showPanel(player, 'mainPanel'); }
+        let buttonCount = 0;
+        // Back button is at index 0
+        if (selection === buttonCount) {
+            return showPanel(player, 'mainPanel');
+        }
+        buttonCount++;
 
-        const selectionIndex = selection - 1;
-        const kitManagementIndex = configPanelSchema.length;
-        const resetIndex = pData.permissionLevel <= 1 ? kitManagementIndex + 1 : -1;
-
-        if (selectionIndex < configPanelSchema.length) {
-            const selectedCategory = configPanelSchema[selectionIndex];
+        // Category buttons
+        if (selection < buttonCount + configPanelSchema.length) {
+            const selectedCategory = configPanelSchema[selection - buttonCount];
             if (selectedCategory) { return showPanel(player, `config_${selectedCategory.id}`); }
-        } else if (pData.permissionLevel <= 1 && selectionIndex === kitManagementIndex) {
-            return showPanel(player, 'kitManagementPanel');
-        } else if (pData.permissionLevel === 0 && selectionIndex === resetIndex) {
-            return showPanel(player, 'configResetPanel');
+            return;
+        }
+        buttonCount += configPanelSchema.length;
+
+        // Kit Management button
+        if (pData.permissionLevel <= 1) {
+            if (selection === buttonCount) {
+                return showPanel(player, 'kitManagementPanel');
+            }
+            buttonCount++;
+        }
+
+        // Reset Settings button
+        if (pData.permissionLevel === 0) {
+            if (selection === buttonCount) {
+                return showPanel(player, 'configResetPanel');
+            }
         }
         return;
     }
 
-    if (panelId === 'configResetPanel') {
-        if (selection === 0) { return showPanel(player, 'configCategoryPanel'); }
-
-        const selectionIndex = selection - 1;
-        const categories = configPanelSchema.map(c => c.id);
-        const selectedCategory = selectionIndex < categories.length ? categories[selectionIndex] : 'all';
-
-        const confirmForm = new ModalFormData()
-            .title(`§l§cConfirm Reset: ${selectedCategory}`)
-            .textField('Type "CONFIRM" to proceed.', 'This action cannot be undone.');
-
-        const confirmResponse = await utils.uiWait(player, confirmForm);
-        if (confirmResponse.canceled || confirmResponse.formValues[0] !== 'CONFIRM') {
-            player.sendMessage('§cReset canceled.');
-            return showPanel(player, 'configResetPanel');
-        }
-
-        const result = resetConfigSection(selectedCategory);
-        player.sendMessage(`§a${result.message}`);
-        return showPanel(player, 'configResetPanel');
-    }
 
     if (panelId.startsWith('config_')) {
         const categoryId = panelId.replace('config_', '');
@@ -1226,14 +1248,6 @@ async function buildPlayerManagementForm(title, context) {
     }
 
     return form;
-}
-
-function buildConfigResetPanel(form) {
-    form.button('§l§8< Back', 'textures/gui/controls/left.png');
-    for (const category of configPanelSchema) {
-        form.button(category.title, category.icon);
-    }
-    form.button('§l§cReset All Systems', 'textures/ui/trash');
 }
 
 async function buildPlayerListForm(title, context) {

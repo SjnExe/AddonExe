@@ -41,7 +41,7 @@ function showKitList(player, page) {
         if (kit.cooldown > 0) {
             buttonText += ` - Cooldown: ${formatCooldown(kit.cooldown)}`;
         }
-        form.button(buttonText, kit.icon);
+        form.button(buttonText, kit.icon || 'textures/ui/inventory_icon');
     });
 
     if (page > 1) {
@@ -75,7 +75,8 @@ function showKitList(player, page) {
             return; // Should not happen
         }
 
-        const selectedKitName = kitsToShow[selectedIndex].name;
+        const selectedKitIndex = startIndex + selectedIndex;
+        const selectedKitName = availableKits[selectedKitIndex].name;
         const result = kitsManager.giveKit(player, selectedKitName);
         if (result.success) {
             player.sendMessage(`§a${result.message}`);

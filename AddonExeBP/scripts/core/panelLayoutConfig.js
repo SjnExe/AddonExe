@@ -135,6 +135,11 @@ export const panelDefinitions = {
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated by uiManager
     },
+    configResetPanel: {
+        title: '§l§cReset Configuration§r',
+        parentPanelId: 'configCategoryPanel',
+        items: [] // Dynamically populated by uiManager
+    },
     editShopMainPanel: {
         title: '§l§bEdit Shop§r',
         parentPanelId: 'mainPanel',
