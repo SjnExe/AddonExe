@@ -8,6 +8,85 @@ import { addItemToKit } from '../../core/kitItemsManager.js';
 import { formatCooldown } from '../../core/utils.js';
 import { showPanel } from '../../core/uiManager.js';
 
+const KITS_PER_PAGE = 8;
+
+/**
+ * Shows a paginated list of available kits to the player.
+ * @param {import('@minecraft/server').Player} player The player to show the list to.
+ * @param {number} page The page number to display (1-based).
+ */
+function showKitList(player, page) {
+    const availableKits = kitsManager.listKits(player);
+    if (availableKits.length === 0) {
+        player.sendMessage('§cThere are no kits available for you.');
+        return;
+    }
+
+    const totalPages = Math.ceil(availableKits.length / KITS_PER_PAGE);
+    page = Math.max(1, Math.min(page, totalPages)); // Clamp page number
+
+    const startIndex = (page - 1) * KITS_PER_PAGE;
+    const endIndex = startIndex + KITS_PER_PAGE;
+    const kitsToShow = availableKits.slice(startIndex, endIndex);
+
+    const form = new ActionFormData()
+        .title(`Available Kits (Page ${page}/${totalPages})`)
+        .body('Select a kit to claim:');
+
+    kitsToShow.forEach(kit => {
+        let buttonText = kit.name;
+        if (kit.price > 0) {
+            buttonText += ` - $${kit.price}`;
+        }
+        if (kit.cooldown > 0) {
+            buttonText += ` - Cooldown: ${formatCooldown(kit.cooldown)}`;
+        }
+        form.button(buttonText, kit.icon);
+    });
+
+    if (page > 1) {
+        form.button('§e< Previous Page');
+    }
+    if (page < totalPages) {
+        form.button('§eNext Page >');
+    }
+
+    form.show(player).then(response => {
+        if (response.canceled) { return; }
+
+        const selection = response.selection;
+        let selectedIndex = selection;
+
+        if (selection >= kitsToShow.length) {
+            let buttonIndex = selection - kitsToShow.length;
+            if (page > 1) {
+                if (buttonIndex === 0) {
+                    showKitList(player, page - 1);
+                    return;
+                }
+                buttonIndex--;
+            }
+            if (page < totalPages) {
+                if (buttonIndex === 0) {
+                    showKitList(player, page + 1);
+                    return;
+                }
+            }
+            return; // Should not happen
+        }
+
+        const selectedKitName = kitsToShow[selectedIndex].name;
+        const result = kitsManager.giveKit(player, selectedKitName);
+        if (result.success) {
+            player.sendMessage(`§a${result.message}`);
+        } else {
+            player.sendMessage(`§c${result.message}`);
+        }
+    }).catch(error => {
+        errorLog(`[Kit UI] Error showing form: ${error}`);
+    });
+}
+
 commandManager.register({
     name: 'kit',
     description: 'Claims a specific kit. Leave blank to see a list of available kits.',
@@ -26,39 +105,7 @@ commandManager.register({
         const { kitName } = args;
 
         if (!kitName) {
-            const availableKits = kitsManager.listKits(player);
-            if (availableKits.length === 0) {
-                player.sendMessage('§cThere are no kits available for you.');
-                return;
-            }
-
-            const form = new ActionFormData()
-                .title('Available Kits')
-                .body('Select a kit to claim:');
-
-            availableKits.forEach(kit => {
-                let buttonText = kit.name;
-                if (kit.price > 0) {
-                    buttonText += ` - $${kit.price}`;
-                }
-                if (kit.cooldown > 0) {
-                    buttonText += ` - Cooldown: ${formatCooldown(kit.cooldown)}`;
-                }
-                form.button(buttonText, kit.icon);
-            });
-
-            form.show(player).then(response => {
-                if (response.canceled) { return; }
-                const selectedKitName = availableKits[response.selection].name;
-                const result = kitsManager.giveKit(player, selectedKitName);
-                if (result.success) {
-                    player.sendMessage(`§a${result.message}`);
-                } else {
-                    player.sendMessage(`§c${result.message}`);
-                }
-            }).catch(error => {
-                errorLog(`[Kit UI] Error showing form: ${error}`);
-            });
+            showKitList(player, 1);
             return;
         }
 

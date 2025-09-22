@@ -3,7 +3,7 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { panelDefinitions } from './panelLayoutConfig.js';
 import { configPanelSchema } from './configPanelSchema.js';
 import { getPlayer, loadPlayerData, getAllPlayerNameIdMap } from './playerDataManager.js';
-import { getConfig, updateMultipleConfig } from './configManager.js';
+import { getConfig, updateMultipleConfig, resetConfigSection } from './configManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import * as rankManager from './rankManager.js';
@@ -220,6 +220,11 @@ async function buildPanelForm(player, panelId, context) {
     if (panelId === 'reportListPanel') {return buildReportListForm(title, context);}
     if (panelId === 'playerManagementPanel') {return buildPlayerManagementForm(title, context);}
     if (panelId === 'playerListPanel') {return buildPlayerListForm(title, context);}
+    if (panelId === 'configResetPanel') {
+        const form = new ActionFormData().title('§l§cReset Configuration');
+        buildConfigResetPanel(form);
+        return form;
+    }
 
     if (panelId === 'shopMainPanel') {
         const form = new ActionFormData().title(title);
@@ -250,6 +255,9 @@ async function buildPanelForm(player, panelId, context) {
         // Manually add the Kit Management button for admins
         if (pData.permissionLevel <= 1) {
             form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
+        }
+        if (pData.permissionLevel === 0) {
+            form.button('§l§cReset Settings§r', 'textures/ui/undo');
         }
         return form;
     }
@@ -842,19 +850,40 @@ async function handleFormResponse(player, panelId, response, context) {
         if (selection === 0) { return showPanel(player, 'mainPanel'); }
 
         const selectionIndex = selection - 1;
+        const kitManagementIndex = configPanelSchema.length;
+        const resetIndex = pData.permissionLevel <= 1 ? kitManagementIndex + 1 : -1;
 
-        // Check if the selection is one of the schema-defined categories
         if (selectionIndex < configPanelSchema.length) {
             const selectedCategory = configPanelSchema[selectionIndex];
             if (selectedCategory) { return showPanel(player, `config_${selectedCategory.id}`); }
-        } else {
-            // If it's not in the schema, it must be our manually added Kit Management button
-            // We still do a permission check here just in case something went wrong
-            if (pData.permissionLevel <= 1) {
-                return showPanel(player, 'kitManagementPanel');
-            }
+        } else if (pData.permissionLevel <= 1 && selectionIndex === kitManagementIndex) {
+            return showPanel(player, 'kitManagementPanel');
+        } else if (pData.permissionLevel === 0 && selectionIndex === resetIndex) {
+            return showPanel(player, 'configResetPanel');
         }
         return;
+    }
+
+    if (panelId === 'configResetPanel') {
+        if (selection === 0) { return showPanel(player, 'configCategoryPanel'); }
+
+        const selectionIndex = selection - 1;
+        const categories = configPanelSchema.map(c => c.id);
+        const selectedCategory = selectionIndex < categories.length ? categories[selectionIndex] : 'all';
+
+        const confirmForm = new ModalFormData()
+            .title(`§l§cConfirm Reset: ${selectedCategory}`)
+            .textField('Type "CONFIRM" to proceed.', 'This action cannot be undone.');
+
+        const confirmResponse = await utils.uiWait(player, confirmForm);
+        if (confirmResponse.canceled || confirmResponse.formValues[0] !== 'CONFIRM') {
+            player.sendMessage('§cReset canceled.');
+            return showPanel(player, 'configResetPanel');
+        }
+
+        const result = resetConfigSection(selectedCategory);
+        player.sendMessage(`§a${result.message}`);
+        return showPanel(player, 'configResetPanel');
     }
 
     if (panelId.startsWith('config_')) {
@@ -1197,6 +1226,14 @@ async function buildPlayerManagementForm(title, context) {
     }
 
     return form;
+}
+
+function buildConfigResetPanel(form) {
+    form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    for (const category of configPanelSchema) {
+        form.button(category.title, category.icon);
+    }
+    form.button('§l§cReset All Systems', 'textures/ui/trash');
 }
 
 async function buildPlayerListForm(title, context) {

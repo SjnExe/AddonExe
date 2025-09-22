@@ -1,7 +1,7 @@
 import { world } from '@minecraft/server';
 import { config as defaultConfig } from '../config.js';
 import { errorLog } from './errorLogger.js';
-import { deepEqual, deepMerge, setValueByPath, reconcileConfig } from './objectUtils.js';
+import { deepClone, deepEqual, deepMerge, setValueByPath, reconcileConfig } from './objectUtils.js';
 
 const currentConfigKey = 'exe:config:current';
 const lastLoadedConfigKey = 'exe:config:lastLoaded';
@@ -141,4 +141,29 @@ export function updateMultipleConfig(updates) {
         setValueByPath(currentConfig, path, updates[path]);
     }
     saveCurrentConfig();
+}
+
+/**
+ * Resets a section of the configuration to its default values.
+ * @param {string} sectionKey The key of the config section to reset (e.g., 'tpa', 'homes'). Use 'all' to reset everything.
+ * @returns {{success: boolean, message: string}}
+ */
+export function resetConfigSection(sectionKey) {
+    if (!currentConfig) {
+        loadConfig();
+    }
+
+    if (sectionKey === 'all') {
+        currentConfig = deepClone(defaultConfig);
+        saveCurrentConfig();
+        return { success: true, message: 'All configuration settings have been reset to default.' };
+    }
+
+    if (Object.prototype.hasOwnProperty.call(defaultConfig, sectionKey)) {
+        currentConfig[sectionKey] = deepClone(defaultConfig[sectionKey]);
+        saveCurrentConfig();
+        return { success: true, message: `The '${sectionKey}' configuration section has been reset to default.` };
+    } else {
+        return { success: false, message: `Configuration section '${sectionKey}' not found.` };
+    }
 }
