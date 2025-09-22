@@ -263,7 +263,7 @@ async function buildPanelForm(player, panelId, context) {
 
         const resettableSystems = [
             ...configPanelSchema.map(c => ({ id: c.id, title: c.title, icon: c.icon })),
-            { id: 'kits', title: 'Kit System', icon: 'textures/ui/inventory_icon' }
+            { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' }
         ];
         const paginatedSystems = getPaginatedItems(resettableSystems, page);
 
