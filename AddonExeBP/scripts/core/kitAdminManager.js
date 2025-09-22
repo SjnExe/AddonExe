@@ -10,17 +10,25 @@ import { debugLog } from './logger.js';
  * @param {number} [options.price=0] - Cost to claim the kit.
  * @returns {{success: boolean, message: string}} - The result of the operation.
  */
-export function createKit(kitName, icon = 'textures/items/chest', price = 0, options = {}) {
+export function createKit(kitName, options = {}) {
     const config = getKitsConfig();
-    const { cooldown = 3600, permissionLevel = 0 } = options;
+    const lowerCaseKitName = kitName.toLowerCase();
 
-    if (config.kitDefinitions[kitName]) {
+    const {
+        cooldown = 3600,
+        permissionLevel = 1024, // Default to Member
+        price = 0,
+        icon = 'textures/ui/inventory_icon',
+        description = 'A new custom kit.'
+    } = options;
+
+    if (config.kitDefinitions[lowerCaseKitName]) {
         return { success: false, message: `A kit with the name '${kitName}' already exists.` };
     }
 
-    config.kitDefinitions[kitName] = {
-        enabled: true,
-        description: 'A new custom kit.',
+    config.kitDefinitions[lowerCaseKitName] = {
+        enabled: false, // Disabled by default
+        description: description,
         cooldownSeconds: cooldown,
         permissionLevel: permissionLevel,
         price: price,
@@ -29,7 +37,7 @@ export function createKit(kitName, icon = 'textures/items/chest', price = 0, opt
     };
 
     saveKitsConfig();
-    debugLog(`[KitAdminManager] Created new kit: ${kitName}`);
+    debugLog(`[KitAdminManager] Created new kit: ${lowerCaseKitName}`);
     return { success: true, message: `Successfully created kit '${kitName}'.` };
 }
 

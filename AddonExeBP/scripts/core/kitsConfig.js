@@ -18,7 +18,7 @@ export const kitsConfig = {
             enabled: true,
             description: 'A simple food refill.',
             cooldownSeconds: 900, // 15 minutes
-            icon: 'textures/items/cooked_beef',
+            icon: 'textures/items/beef_cooked',
             price: 10,
             items: [
                 { typeId: 'minecraft:cooked_beef', amount: 8 }
@@ -74,7 +74,7 @@ export const kitsConfig = {
             enabled: true,
             description: 'A kit for the creative builder.',
             cooldownSeconds: 86400, // 24 hours
-            icon: 'textures/blocks/oak_planks',
+            icon: 'textures/blocks/planks_oak',
             price: 200,
             items: [
                 { typeId: 'minecraft:oak_log', amount: 64 },

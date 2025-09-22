@@ -156,6 +156,8 @@ async function buildPanelForm(player, panelId, context) {
             .title(`Edit Settings: ${kitName}`)
             .toggle('Enabled', { defaultValue: kit.enabled })
             .textField('Name', 'The name of the kit.', { defaultValue: kitName })
+            .textField('Description', 'A short description of the kit.', { defaultValue: kit.description || '' })
+            .textField('Icon', 'Texture path for the icon (e.g., textures/items/diamond_sword).', { defaultValue: kit.icon || '' })
             .textField('Cooldown (seconds)', 'Time between uses.', { defaultValue: String(kit.cooldownSeconds) })
             .textField('Permission Level', '0=Admin, 1024=Member.', { defaultValue: String(kit.permissionLevel) })
             .textField('Price', 'Cost to claim the kit.', { defaultValue: String(kit.price || 0) });
@@ -592,31 +594,35 @@ async function handleFormResponse(player, panelId, response, context) {
 
 
     if (panelId.startsWith('kitSettingsPanel_')) {
-        const kitName = panelId.replace('kitSettingsPanel_', '');
+        const kitName = panelId.replace('kitSettingsPanel_', ''); // This is the original (lowercase) name
         if (canceled) {
             return showPanel(player, `kitActionMenu_${kitName}`, context);
         }
 
-        const [isEnabled, newKitName, cooldownStr, permissionLevelStr, priceStr] = formValues;
+        const [isEnabled, newKitName, description, icon, cooldownStr, permissionLevelStr, priceStr] = formValues;
+
+        let finalKitName = kitName;
+        // Check if the name has changed (case-insensitive)
+        if (newKitName.toLowerCase() !== kitName) {
+            const renameResult = renameKit(kitName, newKitName);
+            if (!renameResult.success) {
+                player.sendMessage(`§c${renameResult.message}`);
+                // Re-show the panel with the original name
+                return showPanel(player, `kitSettingsPanel_${kitName}`, context);
+            }
+            player.sendMessage(`§aKit '${kitName}' has been renamed to '${newKitName}'.`);
+            finalKitName = newKitName.toLowerCase();
+        }
 
         const newSettings = {
             enabled: isEnabled,
+            description: description,
+            icon: icon,
             cooldownSeconds: Number(cooldownStr),
             permissionLevel: Number(permissionLevelStr),
             price: Number(priceStr)
         };
 
-        let finalKitName = kitName;
-        if (newKitName !== kitName) {
-            const renameResult = renameKit(kitName, newKitName);
-            if (!renameResult.success) {
-                player.sendMessage(`§c${renameResult.message}`);
-                return showPanel(player, panelId, context);
-            }
-            finalKitName = newKitName;
-        }
-
-        // Update the rest of the settings for the kit
         updateKitSettings(finalKitName, newSettings);
 
         player.sendMessage(`§aSuccessfully updated settings for kit '${finalKitName}'.`);

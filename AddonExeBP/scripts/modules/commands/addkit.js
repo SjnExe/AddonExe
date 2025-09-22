@@ -1,23 +1,31 @@
 import { commandManager } from './commandManager.js';
-import { createKit } from '../../core/kitAdminManager.js';
+import { createKit, getAllKits } from '../../core/kitAdminManager.js';
 import { addItemToKit } from '../../core/kitItemsManager.js';
+import { showPanel } from '../../core/uiManager.js';
 
 commandManager.register({
     name: 'addkit',
-    description: 'Create a new kit from your inventory.',
+    description: 'Create a new kit from your inventory and open the editor.',
     permissionLevel: 1, // Admins only
     allowConsole: false,
     parameters: [
-        { name: 'kitName', type: 'string', description: 'The name of the kit to create.' },
-        { name: 'icon', type: 'string', description: 'The icon to use for the kit.', optional: true },
-        { name: 'price', type: 'number', description: 'The price of the kit.', optional: true }
+        { name: 'kitName', type: 'string', description: 'The name for the new kit. Leave blank to auto-generate.', optional: true }
     ],
     execute: (player, args) => {
-        const { kitName, icon, price } = args;
+        let { kitName } = args;
+
+        if (!kitName) {
+            const allKits = getAllKits();
+            let i = 1;
+            kitName = 'kit';
+            while (allKits[kitName]) {
+                i++;
+                kitName = `kit${i}`;
+            }
+        }
 
         const inventory = player.getComponent('minecraft:inventory').container;
         const items = [];
-        // Player inventory is slots 0-35.
         for (let i = 0; i < 36; i++) {
             const item = inventory.getItem(i);
             if (item) {
@@ -34,15 +42,17 @@ commandManager.register({
             return player.sendMessage('§cYour inventory is empty. Cannot create an empty kit.');
         }
 
-        const createResult = createKit(kitName, icon, price);
+        const createResult = createKit(kitName);
         if (!createResult.success) {
             return player.sendMessage(`§c${createResult.message}`);
         }
 
+        const lowerCaseKitName = kitName.toLowerCase();
         for (const item of items) {
-            addItemToKit(kitName, item);
+            addItemToKit(lowerCaseKitName, item);
         }
 
-        player.sendMessage(`§aSuccessfully created kit '${kitName}' with ${items.length} item stacks.`);
+        player.sendMessage(`§aSuccessfully created kit '${lowerCaseKitName}'. Opening editor...`);
+        showPanel(player, `kitActionMenu_${lowerCaseKitName}`);
     }
 });
