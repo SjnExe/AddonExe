@@ -80,3 +80,31 @@ export function getAllKits() {
     const config = getKitsConfig();
     return config.kitDefinitions;
 }
+
+/**
+ * Renames a kit.
+ * @param {string} oldName - The current name of the kit.
+ * @param {string} newName - The new name for the kit.
+ * @returns {{success: boolean, message: string}} - The result of the operation.
+ */
+export function renameKit(oldName, newName) {
+    const config = getKitsConfig();
+    const allKits = config.kitDefinitions;
+
+    if (!allKits[oldName]) {
+        return { success: false, message: `Kit '${oldName}' not found.` };
+    }
+
+    if (allKits[newName]) {
+        return { success: false, message: `A kit with the name '${newName}' already exists.` };
+    }
+
+    // Copy the old kit's data to the new name
+    allKits[newName] = allKits[oldName];
+    // Delete the old kit
+    delete allKits[oldName];
+
+    saveKitsConfig();
+    debugLog(`[KitAdminManager] Renamed kit from '${oldName}' to '${newName}'.`);
+    return { success: true, message: `Successfully renamed kit to '${newName}'.` };
+}

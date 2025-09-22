@@ -23,7 +23,7 @@ import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
 import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
 import { getKitsConfig, saveKitsConfig } from './kitsConfigManager.js';
-import { deleteKit, getAllKits, updateKitSettings } from './kitAdminManager.js';
+import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from './kitAdminManager.js';
 import { addItemToKit, updateItemInKit } from './kitItemsManager.js';
 
 
@@ -543,7 +543,7 @@ async function handleFormResponse(player, panelId, response, context) {
             const price = Number(priceStr);
 
             if (!kitName || isNaN(cooldown) || isNaN(permissionLevel) || isNaN(price)) {
-                player.sendMessage("§cInvalid input. Please check your values.");
+                player.sendMessage('§cInvalid input. Please check your values.');
                 return showPanel(player, 'kitManagementPanel', context);
             }
 
@@ -588,150 +588,8 @@ async function handleFormResponse(player, panelId, response, context) {
         return; // Should not be reached
     }
 
-    if (panelId.startsWith('kitSettingsPanel_')) {
-        const kitName = panelId.replace('kitSettingsPanel_', '');
-        if (response.canceled) {
-            return showPanel(player, `kitActionMenu_${kitName}`, context);
-        }
 
-        const [isEnabled, newKitName, cooldownStr, permissionLevelStr, priceStr] = response.formValues;
 
-        const newSettings = {
-            enabled: isEnabled,
-            cooldownSeconds: Number(cooldownStr),
-            permissionLevel: Number(permissionLevelStr),
-            price: Number(priceStr)
-        };
-
-        let finalKitName = kitName;
-        // Handle name change separately, as it affects the key
-        if (newKitName !== kitName) {
-            const allKits = getAllKits();
-            if (allKits[newKitName]) {
-                player.sendMessage('§cAnother kit with that name already exists.');
-                return showPanel(player, panelId, context);
-            }
-            // Create new kit with new name and settings, copy items, then delete old one
-            const oldKit = allKits[kitName];
-            allKits[newKitName] = { ...oldKit, ...newSettings };
-            delete allKits[kitName];
-            saveKitsConfig();
-            finalKitName = newKitName;
-        } else {
-            updateKitSettings(kitName, newSettings);
-        }
-
-        player.sendMessage(`§aSuccessfully updated settings for kit '${finalKitName}'.`);
-        return showPanel(player, `kitActionMenu_${finalKitName}`, context);
-    }
-
-    if (panelId.startsWith('kitActionMenu_')) {
-        const kitName = panelId.replace('kitActionMenu_', '');
-        const selection = response.selection;
-
-        switch (selection) {
-            case 0: // Edit Settings
-                return showPanel(player, `kitSettingsPanel_${kitName}`, context);
-            case 1: // Edit Items
-                return showPanel(player, `kitItemsPanel_${kitName}`, context);
-            case 2: // Delete Kit
-                // I will add a confirmation dialog here later.
-                // For now, it will just delete the kit.
-                deleteKit(kitName);
-                player.sendMessage(`§aKit '${kitName}' has been deleted.`);
-                return showPanel(player, 'kitManagementPanel', context);
-            case 3: // Back
-                return showPanel(player, 'kitManagementPanel', context);
-        }
-        return;
-    }
-
-    if (panelId.startsWith('kitItemsPanel_')) {
-        const kitName = panelId.replace('kitItemsPanel_', '');
-        const allKits = getAllKits();
-        const kit = allKits[kitName];
-        const page = context.page || 1;
-        const selection = response.selection;
-
-        if (selection === 0) { // Add New Item
-            const form = new ModalFormData()
-                .title('Add New Item')
-                .textField('Item ID', 'e.g., minecraft:diamond')
-                .textField('Amount', 'e.g., 16');
-
-            const addResponse = await utils.uiWait(player, form);
-            if (addResponse.canceled) {
-                return showPanel(player, panelId, context);
-            }
-
-            const [typeId, amountStr] = addResponse.formValues;
-            const amount = Number(amountStr);
-
-            if (!typeId || isNaN(amount) || amount <= 0) {
-                player.sendMessage('§cInvalid item ID or amount.');
-                return showPanel(player, panelId, context);
-            }
-
-            const result = addItemToKit(kitName, { typeId, amount });
-            player.sendMessage(result.message);
-            return showPanel(player, panelId, { ...context, page: 1 });
-        }
-
-        const paginatedItems = getPaginatedItems(kit.items, page);
-        const itemStartIndex = 1;
-        const itemEndIndex = itemStartIndex + paginatedItems.length - 1;
-
-        if (selection >= itemStartIndex && selection <= itemEndIndex) {
-            const selectedItemIndexInPage = selection - itemStartIndex;
-            const selectedItemIndex = ((page - 1) * itemsPerPage) + selectedItemIndexInPage;
-            const selectedItem = kit.items[selectedItemIndex];
-
-            const form = new ModalFormData()
-                .title('Edit Item')
-                .textField('Item ID', 'e.g., minecraft:diamond', { defaultValue: selectedItem.typeId })
-                .textField('Amount', 'Set to 0 to delete.', { defaultValue: String(selectedItem.amount) });
-
-            const editResponse = await utils.uiWait(player, form);
-            if (editResponse.canceled) {
-                return showPanel(player, panelId, context);
-            }
-
-            const [typeId, amountStr] = editResponse.formValues;
-            const amount = Number(amountStr);
-
-            if (!typeId || isNaN(amount)) {
-                player.sendMessage('§cInvalid item ID or amount.');
-                return showPanel(player, panelId, context);
-            }
-
-            const result = updateItemInKit(kitName, selectedItemIndex, { typeId, amount });
-            player.sendMessage(result.message);
-            return showPanel(player, panelId, { ...context, page: 1 }); // Go back to first page
-        }
-
-        // Handle pagination and back button
-        let buttonIndex = itemEndIndex + 1;
-        const totalPages = Math.ceil(kit.items.length / itemsPerPage);
-        const hasPrev = page > 1;
-        const hasNext = page < totalPages;
-
-        if (hasPrev) {
-            if (selection === buttonIndex) {
-                return showPanel(player, panelId, { ...context, page: page - 1 });
-            }
-            buttonIndex++;
-        }
-        if (hasNext) {
-            if (selection === buttonIndex) {
-                return showPanel(player, panelId, { ...context, page: page + 1 });
-            }
-            buttonIndex++;
-        }
-        if (selection === buttonIndex) { // Back button
-            return showPanel(player, `kitActionMenu_${kitName}`, context);
-        }
-        return;
-    }
 
     if (panelId.startsWith('kitSettingsPanel_')) {
         const kitName = panelId.replace('kitSettingsPanel_', '');
@@ -749,22 +607,17 @@ async function handleFormResponse(player, panelId, response, context) {
         };
 
         let finalKitName = kitName;
-        // Handle name change separately, as it affects the key
         if (newKitName !== kitName) {
-            const allKits = getAllKits();
-            if (allKits[newKitName]) {
-                player.sendMessage('§cAnother kit with that name already exists.');
+            const renameResult = renameKit(kitName, newKitName);
+            if (!renameResult.success) {
+                player.sendMessage(`§c${renameResult.message}`);
                 return showPanel(player, panelId, context);
             }
-            // Create new kit with new name and settings, copy items, then delete old one
-            const oldKit = allKits[kitName];
-            allKits[newKitName] = { ...oldKit, ...newSettings };
-            delete allKits[kitName];
-            saveKitsConfig();
             finalKitName = newKitName;
-        } else {
-            updateKitSettings(kitName, newSettings);
         }
+
+        // Update the rest of the settings for the kit
+        updateKitSettings(finalKitName, newSettings);
 
         player.sendMessage(`§aSuccessfully updated settings for kit '${finalKitName}'.`);
         return showPanel(player, `kitActionMenu_${finalKitName}`, context);
@@ -778,12 +631,22 @@ async function handleFormResponse(player, panelId, response, context) {
                 return showPanel(player, `kitSettingsPanel_${kitName}`, context);
             case 1: // Edit Items
                 return showPanel(player, `kitItemsPanel_${kitName}`, context);
-            case 2: // Delete Kit
-                // I will add a confirmation dialog here later.
-                // For now, it will just delete the kit.
-                deleteKit(kitName);
-                player.sendMessage(`§aKit '${kitName}' has been deleted.`);
-                return showPanel(player, 'kitManagementPanel', context);
+            case 2: { // Delete Kit
+                const confirmForm = new ActionFormData()
+                    .title(`Delete Kit: ${kitName}?`)
+                    .body('This action cannot be undone.')
+                    .button('§cYes, delete this kit')
+                    .button('§2No, go back');
+
+                const confirmResponse = await utils.uiWait(player, confirmForm);
+                if (confirmResponse.selection === 0) {
+                    deleteKit(kitName);
+                    player.sendMessage(`§aKit '${kitName}' has been deleted.`);
+                    return showPanel(player, 'kitManagementPanel', context);
+                } else {
+                    return showPanel(player, `kitActionMenu_${kitName}`, context);
+                }
+            }
             case 3: // Back
                 return showPanel(player, 'kitManagementPanel', context);
         }
