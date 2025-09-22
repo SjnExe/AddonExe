@@ -2,6 +2,7 @@ import { ItemStack } from '@minecraft/server';
 import { getPlayer, setKitCooldown } from './playerDataManager.js';
 import { getConfig } from './configManager.js';
 import { getKitsConfig } from './kitsConfigManager.js';
+import * as economyManager from './economyManager.js';
 import { errorLog } from './errorLogger.js';
 
 /**
@@ -102,10 +103,23 @@ export function giveKit(player, kitName) {
         return { success: false, message: `You must wait ${remainingCooldown} more seconds to claim this kit.` };
     }
 
+    // Check for price
+    if (kit.price && kit.price > 0) {
+        const balance = economyManager.getBalance(player.id);
+        if (balance < kit.price) {
+            return { success: false, message: `You cannot afford this kit. It costs $${kit.price}.` };
+        }
+    }
+
     const inventory = player.getComponent('minecraft:inventory').container;
 
     if (inventory.emptySlotsCount < kit.items.length) {
         return { success: false, message: 'You do not have enough inventory space to claim this kit.' };
+    }
+
+    // All checks passed, now charge the player
+    if (kit.price && kit.price > 0) {
+        economyManager.removeBalance(player.id, kit.price);
     }
 
     try {
