@@ -359,6 +359,17 @@ async function handleFormResponse(player, panelId, response, context) {
                 return showPanel(player, 'configResetPanel', { ...context, page });
             }
 
+            const finalConfirmForm = new ModalFormData()
+                .title('Final Confirmation')
+                .textField(`Type "confirm" to reset ${selectedSystem.title}.`, 'Case-insensitive');
+
+            const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
+
+            if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].toLowerCase() !== 'confirm') {
+                player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                return showPanel(player, 'configResetPanel', { ...context, page });
+            }
+
             const result = resetConfigSection(selectedSystem.id);
             player.sendMessage(`§a${result.message}`);
             return showPanel(player, 'configResetPanel', { ...context, page: 1 });
@@ -379,6 +390,17 @@ async function handleFormResponse(player, panelId, response, context) {
                 const confirmResponse = await utils.uiWait(player, confirmForm);
                 if (confirmResponse.canceled || confirmResponse.selection === 1) {
                     player.sendMessage('§aReset canceled.');
+                    return showPanel(player, 'configResetPanel', { ...context, page });
+                }
+
+                const finalConfirmForm = new ModalFormData()
+                    .title('Final Confirmation')
+                    .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive');
+
+                const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
+
+                if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].toLowerCase() !== 'confirm') {
+                    player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                     return showPanel(player, 'configResetPanel', { ...context, page });
                 }
 
