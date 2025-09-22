@@ -127,7 +127,7 @@ async function buildPanelForm(player, panelId, context) {
 
         const form = new ActionFormData()
             .title(`Edit Items: ${kitName}`)
-            .button('§l§a+ Add New Item', 'textures/ui/icon_add');
+            .button('§l§2+ Add New Item', 'textures/ui/color_plus');
 
         const paginatedItems = getPaginatedItems(kit.items, page);
 
@@ -1732,7 +1732,7 @@ function buildKitManagementPanel(form, context) {
     form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
 
     // Add Create New Kit button
-    form.button('§l§a+ Create New Kit', 'textures/ui/icon_add');
+    form.button('§l§2+ Create New Kit', 'textures/ui/color_plus');
 
     // Get all kit names and paginate them
     const allKits = getAllKits();
