@@ -1,6 +1,7 @@
 import { world, system } from '@minecraft/server';
 import { loadConfig, getConfig, updateConfig, reloadConfig } from './configManager.js';
 import { loadShopConfig } from './shopConfigManager.js';
+import { initializeLiveKits } from './kitsConfigManager.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
@@ -15,6 +16,7 @@ import { showPanel } from './uiManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import * as playerCache from './playerCache.js';
+import { getLockState } from './playerDataManager.js';
 import { startRestart } from './restartManager.js';
 import { formatString } from './utils.js';
 import '../modules/commands/index.js';
@@ -102,6 +104,7 @@ function initializeAddon() {
     debugLog('[AddonExe] Initializing addon...');
     const isFirstInit = loadConfig();
     loadShopConfig();
+    initializeLiveKits();
     if (!isFirstInit) {
         reloadConfig();
     }
@@ -258,6 +261,48 @@ world.afterEvents.playerLeave.subscribe((event) => {
     playerDataManager.handlePlayerLeave(event.playerId);
     playerCache.removePlayerFromCache(event.playerId);
     debugLog(`[AddonExe] Player ${event.playerName} left.`);
+});
+
+world.afterEvents.playerDimensionChange.subscribe((event) => {
+    const { player, toDimension, fromLocation, fromDimension } = event;
+    const config = getConfig();
+
+    let dimensionId;
+    if (toDimension.id === 'minecraft:nether') {
+        dimensionId = 'nether';
+    } else if (toDimension.id === 'minecraft:the_end') {
+        dimensionId = 'end';
+    } else {
+        return; // Not a dimension we are locking
+    }
+
+    const isLocked = getLockState(dimensionId);
+    if (!isLocked) {
+        return; // Dimension is not locked
+    }
+
+    // Check for bypass permission
+    if (config.dimensionLock?.allowAdminBypass) {
+        const pData = playerDataManager.getPlayer(player.id);
+        if (pData && pData.permissionLevel <= 1) {
+            debugLog(`[DimensionLock] Allowing admin ${player.name} to enter locked ${dimensionId} dimension.`);
+            return; // Player is an admin and bypass is enabled
+        }
+    }
+
+    // If we reach here, the player must be teleported back
+    try {
+        // Add a small offset to the return location to prevent teleport loops (especially with End portals)
+        const returnLocation = {
+            x: fromLocation.x + 3,
+            y: fromLocation.y,
+            z: fromLocation.z + 3
+        };
+        player.teleport(returnLocation, { dimension: fromDimension });
+        player.sendMessage(`§cThe ${dimensionId} dimension is currently locked.`);
+    } catch (e) {
+        errorLog(`[DimensionLock] Failed to teleport player ${player.name} from locked dimension: ${e.stack}`);
+    }
 });
 
 // Handle the custom admin panel item being used

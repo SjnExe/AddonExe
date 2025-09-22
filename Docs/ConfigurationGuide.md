@@ -109,6 +109,11 @@ This is the primary file for most top-level settings. **Changes to this file can
   - `cooldownSeconds` (number): The time a player must wait after a successful teleport before using `/rtp` again.
   - `teleportWarmupSeconds` (number): The time a player must stand still before being teleported.
 
+#### Dimension Locking (`dimensionLock`)
+- **Description:** Configures the dimension locking feature.
+- **Settings:**
+  - `allowAdminBypass` (boolean): If `true`, players with admin permissions can enter locked dimensions. If `false`, the lock applies to everyone.
+
 ### `ranksConfig.js` - Ranks & Permissions
 This file defines the entire hierarchy of roles on your server. **Requires a server restart to apply changes.**
 
@@ -128,6 +133,28 @@ This file controls the layout, buttons, and actions of the `/panel` user interfa
   - Add, remove, or reorder categories and buttons.
   - Change button text, icons, and required permission levels.
   - Link buttons to specific actions (like running a command or opening another panel).
+
+### Kit System Configuration
+The kit system is configured through a combination of a master file (`kitsConfig.js`) and an in-game management panel.
+
+- **`kitsConfig.js` - Master Kit List**
+  - This file defines all possible kits that can be available. It serves as a master list that populates the in-game "Kit Management" panel. You should edit this file to add new kits or change the items within a kit. **Requires a server restart to apply changes.**
+  - **File:** `AddonExeBP/scripts/core/kitsConfig.js`
+  - **Purpose:**
+    - Define a comprehensive list of all kits you want on your server.
+    - For each kit, you define the `items` it contains. The `enabled` status, `cooldownSeconds`, and `permissionLevel` in this file act as the defaults for when a kit is first loaded.
+  - **Note:** While you can define kits here, managing their live properties (like enabling/disabling, cooldowns, and permissions) is done in-game.
+
+- **In-Game Kit Management**
+  - The live settings for kits are configured in-game by an admin. This allows for live updates without restarting the server.
+  - **Command:** `/panel` -> "Config" -> "§l§dKit System§r"
+  - **Permission:** Admin
+  - **How it Works:**
+    - Admins can see a list of all kits defined in `kitsConfig.js`.
+    - For each kit, an admin can set:
+      - **Enabled/Disabled:** Toggles whether the kit can be claimed.
+      - **Cooldown (seconds):** The time a player must wait between claims.
+      - **Permission Level:** The minimum permission level a player must have to claim the kit (e.g., `0` for Owner, `1` for Admin, `1024` for all Members).
 
 ### Shop System Configuration
 The shop system is configured through a combination of files and in-game actions.

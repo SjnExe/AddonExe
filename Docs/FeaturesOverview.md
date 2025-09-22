@@ -22,6 +22,11 @@ This document provides a detailed breakdown of the features available in AddonEx
 - **Comprehensive Slash Commands:** A full suite of slash commands offers granular control over all features and administrative actions. These can be run in-game, from the server console, or using a chat-based fallback (e.g., `!panel`). (See [Commands List](Commands.md) for a complete reference).
 - **Persistent Player Data:** Active mutes and bans are saved using Minecraft's dynamic properties, ensuring they persist across player sessions and server restarts.
 
+### B. Moderation Tools
+- **Freeze/Unfreeze:** A robust freeze system that completely immobilizes a player.
+  - **Commands:** `/freeze <target>`, `/unfreeze <target>`.
+  - **Mechanism:** Uses the native `/inputpermission` command to disable both player movement and camera control, preventing all actions including block placement, item use, and interaction. This is a much more effective "hard freeze" than simple slowness effects.
+
 ### B. Flexible Rank System
 
 - Define roles like Owner, Admin, and Member with specific permission levels.
@@ -29,6 +34,12 @@ This document provides a detailed breakdown of the features available in AddonEx
 - Customize visual chat prefixes/suffixes and nametag appearances for each rank.
 - For configuration details, see the [Configuration Guide](ConfigurationGuide.md) and [Rank System Documentation](RankSystem.md).
   - *Key Configs: `config.js`, `ranksConfig.js`*
+
+### C. Dimension Locking
+- **Description:** Provides commands for admins to lock or unlock the Nether and End dimensions, preventing players from entering them.
+- **Commands:** `/netherlock [true|false]`, `/endlock [true|false]`.
+- **Admin Bypass:** A configuration option (`dimensionLock.allowAdminBypass`) allows players with admin permissions to enter locked dimensions, which is useful for moderation or server maintenance.
+- **Player Experience:** When a non-admin player attempts to enter a locked dimension, they are instantly teleported back to their previous location and receive a notification message.
 
 ---
 

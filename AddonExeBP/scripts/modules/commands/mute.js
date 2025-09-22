@@ -2,7 +2,7 @@ import { commandManager } from './commandManager.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
 import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
 import { parseDuration, playSound } from '../../core/utils.js';
-import { findPlayerByName } from '../utils/playerUtils.js';
+import { findPlayerByName } from '../../core/playerCache.js';
 
 export function mutePlayer(player, targetPlayer, duration, reason) {
     if (!targetPlayer) {
@@ -51,7 +51,7 @@ commandManager.register({
     description: 'Mutes a player for a specified duration with a reason.',
     aliases: ['silence'],
     category: 'Moderation',
-    permissionLevel: 1, // Admins only
+    permissionLevel: 2, // Admins only
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to mute.' },
@@ -127,7 +127,7 @@ commandManager.register({
     description: 'Unmutes a player.',
     aliases: ['um'],
     category: 'Moderation',
-    permissionLevel: 1, // Admins only
+    permissionLevel: 2, // Admins only
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string', description: 'The name of the player to unmute.' }

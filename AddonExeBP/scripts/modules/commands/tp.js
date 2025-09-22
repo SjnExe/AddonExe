@@ -1,5 +1,5 @@
 import { commandManager } from './commandManager.js';
-import { findPlayerByName } from '../utils/playerUtils.js';
+import { findPlayerByName } from '../../core/playerCache.js';
 
 commandManager.register({
     name: 'tp',

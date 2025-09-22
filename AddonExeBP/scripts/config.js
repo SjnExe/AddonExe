@@ -47,7 +47,7 @@ export const config = {
         teleportWarmupSeconds: 10
     },
     kits: {
-        enabled: false
+        enabled: true
     },
     reports: {
         resolvedReportLifetimeDays: 7
@@ -72,6 +72,11 @@ export const config = {
         // How long (in seconds) after the last hit from a player that they can still be credited for the kill.
         bountyCreditTimeoutSeconds: 15
     },
+    dimensionLock: {
+        allowAdminBypass: true,
+        netherLock: false,
+        endLock: false
+    },
     playerInfo: {
         enableWelcomer: true,
         // Available placeholders: {playerName}, {serverName}, {discordLink}, {websiteLink}. Use \n for a new line.
@@ -84,8 +89,7 @@ export const config = {
     // --- Player Defaults ---
     playerDefaults: {
         rankId: 'member',
-        permissionLevel: 1024,
-        bounty: 0
+        permissionLevel: 1024
     },
 
     // --- Server Information ---

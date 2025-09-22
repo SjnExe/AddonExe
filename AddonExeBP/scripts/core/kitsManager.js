@@ -1,23 +1,46 @@
 import { ItemStack } from '@minecraft/server';
 import { getPlayer, setKitCooldown } from './playerDataManager.js';
-import { kits } from './kitsConfig.js';
+import { getConfig } from './configManager.js';
+import { getKitsConfig } from './kitsConfigManager.js';
+import * as economyManager from './economyManager.js';
 import { errorLog } from './errorLogger.js';
 
 /**
- * Gets the definition of a kit.
+ * Gets the definition of a kit from the config.
  * @param {string} kitName The name of the kit.
- * @returns {import('./kitsConfig.js').Kit | undefined}
+ * @returns {object | undefined}
  */
 export function getKit(kitName) {
-    return kits[kitName.toLowerCase()];
+    const kitsConfig = getKitsConfig();
+    if (!kitsConfig.kitDefinitions) {
+        return undefined;
+    }
+    return kitsConfig.kitDefinitions[kitName.toLowerCase()];
 }
 
 /**
- * Lists the names of all available and enabled kits.
+ * Lists the names of all available and enabled kits for a given player.
+ * @param {import('@minecraft/server').Player} player The player to check permissions for.
  * @returns {string[]}
  */
-export function listKits() {
-    return Object.keys(kits).filter(kitName => kits[kitName].enabled);
+export function listKits(player) {
+    const mainConfig = getConfig();
+    const kitsConfig = getKitsConfig();
+    if (!mainConfig.kits.enabled || !kitsConfig.kitDefinitions) {
+        return [];
+    }
+
+    const pData = getPlayer(player.id);
+    if (!pData) { return []; }
+
+    const kitDefs = kitsConfig.kitDefinitions;
+    return Object.keys(kitDefs).filter(kitName => {
+        const kit = kitDefs[kitName];
+        if (!kit.enabled) { return false; }
+        // If permissionLevel is not defined or null, it's available to everyone.
+        const requiredPermission = kit.permissionLevel ?? 1024;
+        return pData.permissionLevel <= requiredPermission;
+    });
 }
 
 /**
@@ -28,10 +51,10 @@ export function listKits() {
  */
 export function getKitCooldown(player, kitName) {
     const pData = getPlayer(player.id);
-    if (!pData) {return 0;}
+    if (!pData) { return 0; }
 
     const cooldownExpiry = pData.kitCooldowns[kitName.toLowerCase()];
-    if (!cooldownExpiry) {return 0;}
+    if (!cooldownExpiry) { return 0; }
 
     const now = Date.now();
     if (now >= cooldownExpiry) {
@@ -48,8 +71,13 @@ export function getKitCooldown(player, kitName) {
  * @returns {{success: boolean, message: string}}
  */
 export function giveKit(player, kitName) {
-    const kit = getKit(kitName);
+    const mainConfig = getConfig();
+    if (!mainConfig.kits.enabled) {
+        return { success: false, message: 'The kit system is currently disabled.' };
+    }
+
     const lowerCaseKitName = kitName.toLowerCase();
+    const kit = getKit(lowerCaseKitName);
 
     if (!kit) {
         return { success: false, message: `Kit '${kitName}' does not exist.` };
@@ -59,21 +87,39 @@ export function giveKit(player, kitName) {
         return { success: false, message: `Kit '${kitName}' is currently disabled.` };
     }
 
-    const remainingCooldown = getKitCooldown(player, lowerCaseKitName);
-    if (remainingCooldown > 0) {
-        return { success: false, message: `You must wait ${remainingCooldown} more seconds to claim this kit.` };
-    }
-
     const pData = getPlayer(player.id);
     if (!pData) {
         return { success: false, message: 'Could not find your player data.' };
     }
 
+    // Check permissions
+    const requiredPermission = kit.permissionLevel ?? 1024;
+    if (pData.permissionLevel > requiredPermission) {
+        return { success: false, message: 'You do not have permission to claim this kit.' };
+    }
+
+    const remainingCooldown = getKitCooldown(player, lowerCaseKitName);
+    if (remainingCooldown > 0) {
+        return { success: false, message: `You must wait ${remainingCooldown} more seconds to claim this kit.` };
+    }
+
+    // Check for price
+    if (kit.price && kit.price > 0) {
+        const balance = economyManager.getBalance(player.id);
+        if (balance < kit.price) {
+            return { success: false, message: `You cannot afford this kit. It costs $${kit.price}.` };
+        }
+    }
+
     const inventory = player.getComponent('minecraft:inventory').container;
 
-    // This is a simplified check. A full check would be much more complex.
     if (inventory.emptySlotsCount < kit.items.length) {
         return { success: false, message: 'You do not have enough inventory space to claim this kit.' };
+    }
+
+    // All checks passed, now charge the player
+    if (kit.price && kit.price > 0) {
+        economyManager.removeBalance(player.id, kit.price);
     }
 
     try {

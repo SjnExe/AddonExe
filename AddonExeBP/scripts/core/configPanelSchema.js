@@ -65,19 +65,6 @@ export const configPanelSchema = [
         ]
     },
     {
-        id: 'kits',
-        title: '§l§dKits System§r',
-        icon: 'textures/ui/inventory_icon',
-        settings: [
-            {
-                key: 'kits.enabled',
-                label: 'Kits Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the /kit command.'
-            }
-        ]
-    },
-    {
         id: 'bounties',
         title: '§l§cBounty System§r',
         icon: 'textures/items/diamond_sword',
@@ -280,6 +267,31 @@ export const configPanelSchema = [
                 label: 'Enable Death Coords',
                 type: 'toggle',
                 description: 'Tells players their coordinates upon respawning after death.'
+            }
+        ]
+    },
+    {
+        id: 'dimensionLock',
+        title: '§l§5Dimension Locking§r',
+        icon: 'textures/ui/realmPortalSmall',
+        settings: [
+            {
+                key: 'dimensionLock.netherLock',
+                label: 'Lock Nether Dimension',
+                type: 'toggle',
+                description: 'Prevents non-admins from entering the Nether.'
+            },
+            {
+                key: 'dimensionLock.endLock',
+                label: 'Lock End Dimension',
+                type: 'toggle',
+                description: 'Prevents non-admins from entering the End.'
+            },
+            {
+                key: 'dimensionLock.allowAdminBypass',
+                label: 'Allow Admin Bypass',
+                type: 'toggle',
+                description: 'If enabled, admins can enter locked dimensions.'
             }
         ]
     }

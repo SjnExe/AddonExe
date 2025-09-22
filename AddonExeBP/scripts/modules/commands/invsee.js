@@ -4,7 +4,7 @@ commandManager.register({
     name: 'invsee',
     description: "Views a player's inventory in chat.",
     category: 'Moderation',
-    permissionLevel: 1, // Admin only
+    permissionLevel: 2, // Admin only
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player whose inventory to view.' },
@@ -34,15 +34,15 @@ commandManager.register({
             return;
         }
 
-        const ITEMS_PER_PAGE = 10;
-        const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+        const itemsPerPage = 10;
+        const totalPages = Math.ceil(items.length / itemsPerPage);
         let page = (pageArg || 1) - 1;
         if (page < 0 || page >= totalPages) {
             page = 0;
         }
 
-        const startIndex = page * ITEMS_PER_PAGE;
-        const pageItems = items.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+        const startIndex = page * itemsPerPage;
+        const pageItems = items.slice(startIndex, startIndex + itemsPerPage);
 
         let message = `§6Inv: ${targetPlayer.name} (Page ${page + 1}/${totalPages})§r\n`;
         message += pageItems.join('\n');

@@ -167,8 +167,6 @@ Commands available to Admins and above.
 Commands for high-level server management.
 
 ### Core Management
-- **/admin <target> <add|remove>**
-  - Adds or removes a player from the Admin rank.
 - **/xreload**
   - Reloads the addon configuration.
   - *Chat Alias: `!reload`*
@@ -190,6 +188,12 @@ Commands for high-level server management.
   - Sets a player's gamemode.
 - **/rank <set|remove> <target> <rankId>**
   - Manages custom player ranks.
+
+### World Management
+- **/netherlock [true|false]**
+  - Toggles or sets the lock for the Nether dimension.
+- **/endlock [true|false]**
+  - Toggles or sets the lock for the End dimension.
 
 ### Utilities
 - **/chattoconsole**

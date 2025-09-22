@@ -25,12 +25,6 @@ const bountyDataKey = 'exe:bountyData';
 let activeBounties = new Map();
 
 /**
- * A flag indicating that the bounty data has changed and needs to be saved.
- * @type {boolean}
- */
-export let isBountyDataDirty = false;
-
-/**
  * Loads the active bounty list from a dynamic property into memory.
  */
 export function loadBounties() {
@@ -54,13 +48,9 @@ export function loadBounties() {
  * Saves the active bounty list to a dynamic property.
  */
 export function saveBounties() {
-    if (!isBountyDataDirty) {
-        return;
-    }
     try {
         const dataToSave = Array.from(activeBounties.entries());
         world.setDynamicProperty(bountyDataKey, JSON.stringify(dataToSave));
-        isBountyDataDirty = false; // Reset the flag after a successful save
         debugLog('[BountyManager] Saved active bounty data.');
     } catch (e) {
         errorLog(`[BountyManager] Failed to save bounty data: ${e.stack}`);
@@ -109,7 +99,7 @@ export function setBounty(playerId, amount) {
     };
 
     activeBounties.set(playerId, bountyEntry);
-    isBountyDataDirty = true;
+    saveBounties();
     debugLog(`[BountyManager] Set bounty for ${pData.name} to ${amount}.`);
 }
 
@@ -131,7 +121,7 @@ export function incrementBounty(playerId, amountToAdd) {
 export function removeBounty(playerId) {
     if (activeBounties.has(playerId)) {
         activeBounties.delete(playerId);
-        isBountyDataDirty = true;
+        saveBounties();
         debugLog(`[BountyManager] Removed bounty for player ID ${playerId}.`);
     }
 }

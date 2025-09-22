@@ -6,7 +6,7 @@ commandManager.register({
     name: 'xraynotify',
     description: 'Toggles X-Ray notifications for yourself.',
     category: '§4Administration',
-    permissionLevel: 1, // Admin and above
+    permissionLevel: 2, // Admin and above
     parameters: [],
     execute: (player, args) => {
         const pData = getPlayer(player.id);

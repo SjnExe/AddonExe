@@ -1,35 +1,62 @@
 import { commandManager } from './commandManager.js';
+import { errorLog } from '../../core/errorLogger.js';
 
 const FROZEN_TAG = 'frozen';
 
+/**
+ * Freezes a player by disabling their input permissions.
+ * @param {import('@minecraft/server').Player | { isConsole: true, sendMessage: (msg: string) => void }} executor
+ * @param {import('@minecraft/server').Player} targetPlayer
+ */
 export function freezePlayer(executor, targetPlayer) {
     if (targetPlayer.hasTag(FROZEN_TAG)) {
         executor.sendMessage(`§ePlayer ${targetPlayer.name} is already frozen.`);
         return;
     }
-    targetPlayer.addTag(FROZEN_TAG);
-    targetPlayer.addEffect('slowness', 2000000, { amplifier: 255, showParticles: false });
-    const announcer = executor.isConsole ? 'the Console' : executor.name;
-    executor.sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`);
-    targetPlayer.sendMessage(`§cYou have been frozen by ${announcer}.`);
+    try {
+        // Run commands from the dimension (server context) to ensure permissions
+        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera disabled`);
+        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement disabled`);
+        targetPlayer.addTag(FROZEN_TAG);
+
+        const announcer = executor.isConsole ? 'the Console' : executor.name;
+        executor.sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`);
+        targetPlayer.sendMessage(`§cYou have been frozen by ${announcer}.`);
+    } catch (error) {
+        executor.sendMessage(`§cFailed to freeze ${targetPlayer.name}.`);
+        errorLog(`[Freeze] Failed to run /inputpermission on ${targetPlayer.name}: ${error}`);
+    }
 }
 
+/**
+ * Unfreezes a player by enabling their input permissions.
+ * @param {import('@minecraft/server').Player | { isConsole: true, sendMessage: (msg: string) => void }} executor
+ * @param {import('@minecraft/server').Player} targetPlayer
+ */
 export function unfreezePlayer(executor, targetPlayer) {
     if (!targetPlayer.hasTag(FROZEN_TAG)) {
         executor.sendMessage(`§ePlayer ${targetPlayer.name} is not frozen.`);
         return;
     }
-    targetPlayer.removeTag(FROZEN_TAG);
-    targetPlayer.removeEffect('slowness');
-    executor.sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`);
-    targetPlayer.sendMessage('§aYou have been unfrozen.');
+    try {
+        // Run commands from the dimension (server context)
+        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera enabled`);
+        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement enabled`);
+        targetPlayer.removeTag(FROZEN_TAG);
+
+        executor.sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`);
+        targetPlayer.sendMessage('§aYou have been unfrozen.');
+    } catch (error) {
+        executor.sendMessage(`§cFailed to unfreeze ${targetPlayer.name}.`);
+        errorLog(`[Unfreeze] Failed to run /inputpermission on ${targetPlayer.name}: ${error}`);
+    }
 }
 
 commandManager.register({
     name: 'freeze',
-    description: 'Freezes a player, preventing them from moving.',
+    description: 'Freezes a player, preventing them from moving or looking around.',
     category: 'Moderation',
-    permissionLevel: 1,
+    permissionLevel: 2,
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to freeze.' }
@@ -50,9 +77,9 @@ commandManager.register({
 
 commandManager.register({
     name: 'unfreeze',
-    description: 'Unfreezes a player, allowing them to move again.',
+    description: 'Unfreezes a player, allowing them to move and look around again.',
     category: 'Moderation',
-    permissionLevel: 1,
+    permissionLevel: 2,
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'player', description: 'The player to unfreeze.' }

@@ -12,13 +12,13 @@ commandManager.register({
     category: 'General',
     permissionLevel: 1024, // Everyone
     parameters: [
-        { name: 'target', type: 'string', description: 'The name of the player to report.' }
+        { name: 'target', type: 'string', description: 'The name of the player to report.', optional: true }
     ],
     execute: async (player, args) => {
         const { target: reportedPlayerName } = args;
 
         if (!reportedPlayerName) {
-            player.sendMessage('§cYou must specify a player to report.');
+            player.sendMessage('§cUsage: /report <targetName>');
             return;
         }
 
@@ -59,7 +59,7 @@ commandManager.register({
     name: 'reports',
     description: 'Views the list of active reports.',
     category: 'Moderation',
-    permissionLevel: 1, // Admin and above
+    permissionLevel: 2, // Admin and above
     parameters: [],
     execute: (player, args) => {
         showPanel(player, 'reportListPanel');
@@ -70,7 +70,7 @@ commandManager.register({
     name: 'clearreports',
     description: 'Clears all active reports.',
     category: 'Moderation',
-    permissionLevel: 1, // Admin and above
+    permissionLevel: 2, // Admin and above
     allowConsole: true,
     parameters: [],
     execute: (player, args) => {

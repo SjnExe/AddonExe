@@ -33,7 +33,7 @@ export const panelDefinitions = {
                 id: 'reportManagement',
                 text: '§cReport Management',
                 icon: 'textures/ui/WarningGlyph',
-                permissionLevel: 1,
+                permissionLevel: 2,
                 actionType: 'openPanel',
                 actionValue: 'reportListPanel',
                 sortId: 10
@@ -42,7 +42,7 @@ export const panelDefinitions = {
                 id: 'playerManagement',
                 text: '§4Player Management',
                 icon: 'textures/ui/icon_multiplayer.png',
-                permissionLevel: 1, // Admin only
+                permissionLevel: 2, // Admin only
                 actionType: 'openPanel',
                 actionValue: 'playerManagementPanel',
                 sortId: 15
@@ -153,7 +153,7 @@ export const panelDefinitions = {
                 id: 'assignReport',
                 text: '§eAssign to Me',
                 icon: 'textures/ui/profile_glyph_color.png',
-                permissionLevel: 1,
+                permissionLevel: 2,
                 actionType: 'functionCall',
                 actionValue: 'assignReport'
             },
@@ -161,7 +161,7 @@ export const panelDefinitions = {
                 id: 'resolveReport',
                 text: '§2Mark as Resolved',
                 icon: 'textures/ui/check.png',
-                permissionLevel: 1,
+                permissionLevel: 2,
                 actionType: 'functionCall',
                 actionValue: 'resolveReport'
             },
@@ -169,7 +169,7 @@ export const panelDefinitions = {
                 id: 'clearReport',
                 text: '§cClear Report',
                 icon: 'textures/ui/trash.png',
-                permissionLevel: 1,
+                permissionLevel: 2,
                 actionType: 'functionCall',
                 actionValue: 'clearReport'
             }
@@ -217,6 +217,11 @@ export const panelDefinitions = {
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated by uiManager
     },
+    kitManagementPanel: {
+        title: '§l§dKit System§r',
+        parentPanelId: 'configCategoryPanel',
+        items: [] // Dynamically populated by uiManager
+    },
     playerManagementPanel: {
         title: '§l§4Player Management§r',
         parentPanelId: 'mainPanel',
@@ -256,12 +261,12 @@ export const panelDefinitions = {
         parentPanelId: 'mainPanel', // This will be dynamically overridden by the manager
         items: [
             // Admin Actions (for Player Management panel) - permissionLevel < 1024
-            { id: 'kick', text: '§cKick', icon: 'textures/ui/cancel.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'kickPlayer' },
-            { id: 'mute', text: '§6Mute', icon: 'textures/ui/mute_on.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'mutePlayer' },
-            { id: 'unmute', text: '§aUnmute', icon: 'textures/ui/mute_off.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'unmutePlayer' },
-            { id: 'ban', text: '§4Ban', icon: 'textures/ui/hammer_l.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'banPlayer' },
-            { id: 'freeze', text: '§bFreeze', icon: 'textures/ui/icon_lock.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'freezePlayer' },
-            { id: 'unfreeze', text: '§bUnfreeze', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 1, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
+            { id: 'kick', text: '§cKick', icon: 'textures/ui/cancel.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'kickPlayer' },
+            { id: 'mute', text: '§6Mute', icon: 'textures/ui/mute_on.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'mutePlayer' },
+            { id: 'unmute', text: '§aUnmute', icon: 'textures/ui/mute_off.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unmutePlayer' },
+            { id: 'ban', text: '§4Ban', icon: 'textures/ui/hammer_l.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'banPlayer' },
+            { id: 'freeze', text: '§bFreeze', icon: 'textures/ui/icon_lock.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'freezePlayer' },
+            { id: 'unfreeze', text: '§bUnfreeze', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
 
             // Player Actions (for Player List panel) - permissionLevel >= 1024
             { id: 'tpa', text: '§eTPA', icon: 'textures/gui/controls/jump.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer', sortId: 10 },

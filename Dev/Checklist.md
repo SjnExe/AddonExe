@@ -1026,19 +1026,6 @@ The custom font used in the old UI is missing.
 
 This file tracks features that have been discussed but not yet implemented. This can be used to maintain context between development sessions.
 
-## 1. UI-Based Reporting System
-- [x] **Player-side:** Add a "Report Player" button to one of the public-facing panels.
-- [x] **Report Form:** This button should open a form where a player can type a reason for the report.
-- [x] **Admin-side:** Create a "Report Management" panel for admins.
-- [x] **Report List:** The panel should list all active reports.
-- [x] **Report Actions:** Admins should be able to select a report to view details, assign it to themselves, resolve it, or clear it individually.
-- [x] **Commands:** Re-implement the `!report`, `!reports`, and `!clearreports` commands to interact with this new UI system.
-
-## 2. Ore Mining Notification System
-- [x] **Detection:** Create a system that detects when a player mines specific valuable ores (Diamond Ore, Deepslate Diamond Ore, Ancient Debris).
-- [x] **Admin Notification:** When detected, send a notification to online admins.
-- [x] **User Toggle:** Add a command (e.g., `!togglenotifs ore`) for admins to disable or enable these specific notifications for themselves, so they aren't spammed.
-
 ## 3. Dimension Lockdown Commands
 - [ ] **`!endlock` command:** Create a command for admins to prevent players from entering the End dimension.
 - [ ] **`!netherlock` command:** Create a command for admins to prevent players from entering the Nether dimension.

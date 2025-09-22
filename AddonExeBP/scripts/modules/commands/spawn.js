@@ -1,11 +1,9 @@
 import { world } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
-import { getConfig } from '../../core/configManager.js';
+import { getConfig, updateMultipleConfig } from '../../core/configManager.js';
 import { playSound, startTeleportWarmup } from '../../core/utils.js';
 import { errorLog } from '../../core/errorLogger.js';
 import { setCooldown } from '../../core/cooldownManager.js';
-
-const spawnLocationKey = 'exe:spawnLocation';
 
 commandManager.register({
     name: 'spawn',
@@ -17,23 +15,13 @@ commandManager.register({
     hasCooldown: true,
     execute: (player, args) => {
         const config = getConfig();
-        const spawnLocationStr = world.getDynamicProperty(spawnLocationKey);
+        const spawnLocation = config.spawnLocation;
 
-        if (!spawnLocationStr) {
+        if (!spawnLocation || typeof spawnLocation.x !== 'number') {
             player.sendMessage('§cThe server spawn point has not been set by an admin.');
             playSound(player, 'note.bass');
             return;
         }
-
-        let spawnLocation;
-        try {
-            spawnLocation = JSON.parse(spawnLocationStr);
-        } catch (e) {
-            player.sendMessage('§cThe server spawn point is configured incorrectly. Please contact an admin.');
-            errorLog(`[Spawn] Failed to parse spawn location from dynamic property: ${e}`);
-            return;
-        }
-
 
         const warmupSeconds = config.spawn.teleportWarmupSeconds;
 
@@ -95,13 +83,13 @@ commandManager.register({
         }
 
         try {
-            world.setDynamicProperty(spawnLocationKey, JSON.stringify(location));
+            updateMultipleConfig({ 'spawnLocation': location });
             const locationString = `X: ${Math.floor(location.x)}, Y: ${Math.floor(location.y)}, Z: ${Math.floor(location.z)} in ${location.dimensionId.replace('minecraft:', '')}`;
             player.sendMessage(`§aServer spawn point set to: ${locationString}`);
-            if (!player.isConsole) {playSound(player, 'random.orb');}
+            if (!player.isConsole) { playSound(player, 'random.orb'); }
         } catch (e) {
             player.sendMessage('§cFailed to save the new spawn location.');
-            errorLog(`[/x:setspawn] Failed to set dynamic property: ${e.stack}`);
+            errorLog(`[/x:setspawn] Failed to update config: ${e.stack}`);
         }
     }
 });

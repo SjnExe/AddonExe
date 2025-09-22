@@ -139,6 +139,145 @@ export const items = {
         displayName: 'Enchanted Golden Apple'
     },
 
+    // == Tools & Weapons ==
+    diamondSword: {
+        itemId: 'minecraft:diamond_sword',
+        icon: 'textures/items/diamond_sword',
+        buyPrice: 2500,
+        sellPrice: 1000,
+        category: 'Tools & Weapons',
+        subCategory: 'Diamond',
+        displayName: 'Diamond Sword'
+    },
+    diamondPickaxe: {
+        itemId: 'minecraft:diamond_pickaxe',
+        icon: 'textures/items/diamond_pickaxe',
+        buyPrice: 3500,
+        sellPrice: 1200,
+        category: 'Tools & Weapons',
+        subCategory: 'Diamond',
+        displayName: 'Diamond Pickaxe'
+    },
+    diamondAxe: {
+        itemId: 'minecraft:diamond_axe',
+        icon: 'textures/items/diamond_axe',
+        buyPrice: 3500,
+        sellPrice: 1200,
+        category: 'Tools & Weapons',
+        subCategory: 'Diamond',
+        displayName: 'Diamond Axe'
+    },
+    diamondShovel: {
+        itemId: 'minecraft:diamond_shovel',
+        icon: 'textures/items/diamond_shovel',
+        buyPrice: 1500,
+        sellPrice: 600,
+        category: 'Tools & Weapons',
+        subCategory: 'Diamond',
+        displayName: 'Diamond Shovel'
+    },
+    diamondHoe: {
+        itemId: 'minecraft:diamond_hoe',
+        icon: 'textures/items/diamond_hoe',
+        buyPrice: 2500,
+        sellPrice: 1000,
+        category: 'Tools & Weapons',
+        subCategory: 'Diamond',
+        displayName: 'Diamond Hoe'
+    },
+    netheriteSword: {
+        itemId: 'minecraft:netherite_sword',
+        icon: 'textures/items/netherite_sword',
+        buyPrice: 15000,
+        sellPrice: 7500,
+        category: 'Tools & Weapons',
+        subCategory: 'Netherite',
+        displayName: 'Netherite Sword'
+    },
+    netheritePickaxe: {
+        itemId: 'minecraft:netherite_pickaxe',
+        icon: 'textures/items/netherite_pickaxe',
+        buyPrice: 18000,
+        sellPrice: 8000,
+        category: 'Tools & Weapons',
+        subCategory: 'Netherite',
+        displayName: 'Netherite Pickaxe'
+    },
+
+    // == Armor ==
+    diamondHelmet: {
+        itemId: 'minecraft:diamond_helmet',
+        icon: 'textures/items/diamond_helmet',
+        buyPrice: 5000,
+        sellPrice: 2000,
+        category: 'Armor',
+        subCategory: 'Diamond',
+        displayName: 'Diamond Helmet'
+    },
+    diamondChestplate: {
+        itemId: 'minecraft:diamond_chestplate',
+        icon: 'textures/items/diamond_chestplate',
+        buyPrice: 8000,
+        sellPrice: 3500,
+        category: 'Armor',
+        subCategory: 'Diamond',
+        displayName: 'Diamond Chestplate'
+    },
+    diamondLeggings: {
+        itemId: 'minecraft:diamond_leggings',
+        icon: 'textures/items/diamond_leggings',
+        buyPrice: 7000,
+        sellPrice: 3000,
+        category: 'Armor',
+        subCategory: 'Diamond',
+        displayName: 'Diamond Leggings'
+    },
+    diamondBoots: {
+        itemId: 'minecraft:diamond_boots',
+        icon: 'textures/items/diamond_boots',
+        buyPrice: 4000,
+        sellPrice: 1800,
+        category: 'Armor',
+        subCategory: 'Diamond',
+        displayName: 'Diamond Boots'
+    },
+    netheriteHelmet: {
+        itemId: 'minecraft:netherite_helmet',
+        icon: 'textures/items/netherite_helmet',
+        buyPrice: 20000,
+        sellPrice: 10000,
+        category: 'Armor',
+        subCategory: 'Netherite',
+        displayName: 'Netherite Helmet'
+    },
+    netheriteChestplate: {
+        itemId: 'minecraft:netherite_chestplate',
+        icon: 'textures/items/netherite_chestplate',
+        buyPrice: 30000,
+        sellPrice: 15000,
+        category: 'Armor',
+        subCategory: 'Netherite',
+        displayName: 'Netherite Chestplate'
+    },
+    netheriteLeggings: {
+        itemId: 'minecraft:netherite_leggings',
+        icon: 'textures/items/netherite_leggings',
+        buyPrice: 25000,
+        sellPrice: 12000,
+        category: 'Armor',
+        subCategory: 'Netherite',
+        displayName: 'Netherite Leggings'
+    },
+    netheriteBoots: {
+        itemId: 'minecraft:netherite_boots',
+        icon: 'textures/items/netherite_boots',
+        buyPrice: 18000,
+        sellPrice: 9000,
+        category: 'Armor',
+        subCategory: 'Netherite',
+        displayName: 'Netherite Boots'
+    },
+
     // == Logs ==
     oakLog: {
         itemId: 'minecraft:oak_log',
