@@ -636,7 +636,7 @@ async function handleFormResponse(player, panelId, response, context) {
                     .title(`Delete Kit: ${kitName}?`)
                     .body('This action cannot be undone.')
                     .button('§cYes, delete this kit')
-                    .button('§aNo, go back');
+                    .button('§2No, go back');
 
                 const confirmResponse = await utils.uiWait(player, confirmForm);
                 if (confirmResponse.selection === 0) {
