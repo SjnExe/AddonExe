@@ -4,6 +4,8 @@ export const kitsConfig = {
             enabled: true,
             description: 'A basic kit to get you started.',
             cooldownSeconds: 3600, // 1 hour
+            icon: 'textures/items/stone_sword',
+            price: 0,
             items: [
                 { typeId: 'minecraft:stone_sword', amount: 1 },
                 { typeId: 'minecraft:stone_pickaxe', amount: 1 },
@@ -16,14 +18,18 @@ export const kitsConfig = {
             enabled: true,
             description: 'A simple food refill.',
             cooldownSeconds: 900, // 15 minutes
+            icon: 'textures/items/cooked_beef',
+            price: 10,
             items: [
                 { typeId: 'minecraft:cooked_beef', amount: 8 }
             ]
         },
         warrior: {
-            enabled: false,
+            enabled: true,
             description: 'A kit for the aspiring warrior.',
             cooldownSeconds: 86400, // 24 hours
+            icon: 'textures/items/iron_sword',
+            price: 100,
             items: [
                 { typeId: 'minecraft:iron_sword', amount: 1 },
                 { typeId: 'minecraft:iron_helmet', amount: 1 },
@@ -35,9 +41,11 @@ export const kitsConfig = {
             ]
         },
         archer: {
-            enabled: false,
+            enabled: true,
             description: 'A kit for the skilled archer.',
             cooldownSeconds: 86400, // 24 hours
+            icon: 'textures/items/bow_standby',
+            price: 100,
             items: [
                 { typeId: 'minecraft:bow', amount: 1 },
                 { typeId: 'minecraft:arrow', amount: 64 },
@@ -49,9 +57,11 @@ export const kitsConfig = {
             ]
         },
         miner: {
-            enabled: false,
+            enabled: true,
             description: 'A kit for the dedicated miner.',
             cooldownSeconds: 43200, // 12 hours
+            icon: 'textures/items/iron_pickaxe',
+            price: 50,
             items: [
                 { typeId: 'minecraft:iron_pickaxe', amount: 1 },
                 { typeId: 'minecraft:iron_shovel', amount: 1 },
@@ -61,9 +71,11 @@ export const kitsConfig = {
             ]
         },
         builder: {
-            enabled: false,
+            enabled: true,
             description: 'A kit for the creative builder.',
             cooldownSeconds: 86400, // 24 hours
+            icon: 'textures/blocks/oak_planks',
+            price: 200,
             items: [
                 { typeId: 'minecraft:oak_log', amount: 64 },
                 { typeId: 'minecraft:oak_log', amount: 64 },

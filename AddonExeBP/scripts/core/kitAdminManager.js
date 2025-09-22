@@ -10,9 +10,9 @@ import { debugLog } from './logger.js';
  * @param {number} [options.price=0] - Cost to claim the kit.
  * @returns {{success: boolean, message: string}} - The result of the operation.
  */
-export function createKit(kitName, options = {}) {
+export function createKit(kitName, icon = 'textures/items/chest', price = 0, options = {}) {
     const config = getKitsConfig();
-    const { cooldown = 3600, permissionLevel = 0, price = 0 } = options;
+    const { cooldown = 3600, permissionLevel = 0 } = options;
 
     if (config.kitDefinitions[kitName]) {
         return { success: false, message: `A kit with the name '${kitName}' already exists.` };
@@ -24,6 +24,7 @@ export function createKit(kitName, options = {}) {
         cooldownSeconds: cooldown,
         permissionLevel: permissionLevel,
         price: price,
+        icon: icon,
         items: []
     };
 

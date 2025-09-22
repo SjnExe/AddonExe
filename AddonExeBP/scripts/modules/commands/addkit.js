@@ -8,10 +8,12 @@ commandManager.register({
     permissionLevel: 1, // Admins only
     allowConsole: false,
     parameters: [
-        { name: 'kitName', type: 'string', description: 'The name of the kit to create.' }
+        { name: 'kitName', type: 'string', description: 'The name of the kit to create.' },
+        { name: 'icon', type: 'string', description: 'The icon to use for the kit.', optional: true },
+        { name: 'price', type: 'number', description: 'The price of the kit.', optional: true }
     ],
     execute: (player, args) => {
-        const { kitName } = args;
+        const { kitName, icon, price } = args;
 
         const inventory = player.getComponent('minecraft:inventory').container;
         const items = [];
@@ -32,7 +34,7 @@ commandManager.register({
             return player.sendMessage('§cYour inventory is empty. Cannot create an empty kit.');
         }
 
-        const createResult = createKit(kitName);
+        const createResult = createKit(kitName, icon, price);
         if (!createResult.success) {
             return player.sendMessage(`§c${createResult.message}`);
         }

@@ -209,3 +209,30 @@ export function formatString(template, context) {
     }
     return message;
 }
+
+export function formatCooldown(seconds) {
+    if (seconds <= 0) {
+        return 'Ready';
+    }
+
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor(seconds % (3600 * 24) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+
+    let result = '';
+    if (d > 0) {
+        result += `${d}d `;
+    }
+    if (h > 0) {
+        result += `${h}h `;
+    }
+    if (m > 0) {
+        result += `${m}m `;
+    }
+    if (s > 0) {
+        result += `${s}s`;
+    }
+
+    return result.trim();
+}

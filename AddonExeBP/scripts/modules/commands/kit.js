@@ -5,6 +5,7 @@ import { getConfig } from '../../core/configManager.js';
 import { errorLog } from '../../core/errorLogger.js';
 import { createKit } from '../../core/kitAdminManager.js';
 import { addItemToKit } from '../../core/kitItemsManager.js';
+import { formatCooldown } from '../../core/utils.js';
 
 commandManager.register({
     name: 'kit',
@@ -34,12 +35,21 @@ commandManager.register({
                 .title('Available Kits')
                 .body('Select a kit to claim:');
 
-            availableKits.forEach(kit => form.button(kit));
+            availableKits.forEach(kit => {
+                let buttonText = kit.name;
+                if (kit.price > 0) {
+                    buttonText += ` - $${kit.price}`;
+                }
+                if (kit.cooldown > 0) {
+                    buttonText += ` - Cooldown: ${formatCooldown(kit.cooldown)}`;
+                }
+                form.button(buttonText, kit.icon);
+            });
 
             form.show(player).then(response => {
-                if (response.canceled) {return;}
-                const selectedKit = availableKits[response.selection];
-                const result = kitsManager.giveKit(player, selectedKit);
+                if (response.canceled) { return; }
+                const selectedKitName = availableKits[response.selection].name;
+                const result = kitsManager.giveKit(player, selectedKitName);
                 if (result.success) {
                     player.sendMessage(`§a${result.message}`);
                 } else {
