@@ -1,8 +1,5 @@
 import { getKitsConfig, saveKitsConfig } from './kitsConfigManager.js';
-import { errorLog } from './errorLogger.js';
 import { debugLog } from './logger.js';
-
-const MAX_KIT_SLOTS = 36;
 
 /**
  * Creates a new, empty kit with default settings.

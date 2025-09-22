@@ -67,10 +67,10 @@ export function removeItemFromKit(kitName, itemIndex) {
         return { success: false, message: 'Invalid item index.' };
     }
 
-    const removedItem = kit.items.splice(itemIndex, 1);
+    kit.items.splice(itemIndex, 1);
     saveKitsConfig();
     debugLog(`[KitItemsManager] Removed item at index ${itemIndex} from kit ${kitName}`);
-    return { success: true, message: `Item removed successfully.` };
+    return { success: true, message: 'Item removed successfully.' };
 }
 
 /**
