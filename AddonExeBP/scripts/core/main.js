@@ -1,6 +1,7 @@
 import { world, system } from '@minecraft/server';
 import { loadConfig, getConfig, updateConfig, reloadConfig } from './configManager.js';
 import { loadShopConfig } from './shopConfigManager.js';
+import { initializeLiveKits } from './kitsConfigManager.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
@@ -103,6 +104,7 @@ function initializeAddon() {
     debugLog('[AddonExe] Initializing addon...');
     const isFirstInit = loadConfig();
     loadShopConfig();
+    initializeLiveKits();
     if (!isFirstInit) {
         reloadConfig();
     }

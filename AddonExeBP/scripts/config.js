@@ -47,7 +47,7 @@ export const config = {
         teleportWarmupSeconds: 10
     },
     kits: {
-        enabled: false
+        enabled: true
     },
     reports: {
         resolvedReportLifetimeDays: 7
@@ -73,7 +73,9 @@ export const config = {
         bountyCreditTimeoutSeconds: 15
     },
     dimensionLock: {
-        allowAdminBypass: true
+        allowAdminBypass: true,
+        netherLock: false,
+        endLock: false
     },
     playerInfo: {
         enableWelcomer: true,
