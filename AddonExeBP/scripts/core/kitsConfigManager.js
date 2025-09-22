@@ -14,7 +14,7 @@ let currentKitsConfig = null;
  * Loads the kits configuration from world dynamic properties.
  * This should be called once at startup from main.js.
  */
-export function loadKitsConfig() {
+export function initializeLiveKits() {
     const newDefaultConfig = deepMerge({}, defaultKitsConfig);
 
     const userSavedConfigStr = world.getDynamicProperty(currentKitsConfigKey);
@@ -79,7 +79,7 @@ export function loadKitsConfig() {
  */
 export function getKitsConfig() {
     if (!currentKitsConfig) {
-        loadKitsConfig();
+        initializeLiveKits();
     }
     return currentKitsConfig;
 }
