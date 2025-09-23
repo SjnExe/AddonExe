@@ -90,16 +90,12 @@ export function reloadConfig() {
     console.log('[ConfigManager] Reloading configuration...');
     const newDefaultConfig = deepMerge({}, defaultConfig);
 
-    // Reconcile the new file defaults with the last-known defaults and the current user settings.
-    currentConfig = reconcileConfig(newDefaultConfig, lastLoadedConfig, currentConfig);
-
-    // Update the last loaded config to the new default structure for the next comparison.
-    lastLoadedConfig = deepMerge({}, newDefaultConfig);
+    // Re-merge the current (potentially modified by user) config on top of the new defaults
+    currentConfig = deepMerge(newDefaultConfig, currentConfig);
 
     saveCurrentConfig();
-    saveLastLoadedConfig();
     // eslint-disable-next-line no-console
-    console.log('[ConfigManager] Configuration reloaded and reconciled.');
+    console.log('[ConfigManager] Configuration reloaded.');
 }
 
 /**
