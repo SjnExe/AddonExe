@@ -42,8 +42,14 @@ export function loadShopConfig() {
             lastLoadedMainConfig = null;
         }
 
-        // The user's saved config is the source of truth.
-        currentShopConfig = userSavedConfig;
+// Migration check: if the loaded config doesn't have the 'categories' property, it's the old format.
+        if (!userSavedConfig.categories) {
+            errorLog('[ShopConfigManager] Old shop config format detected. Resetting to new default format.');
+            currentShopConfig = deepMerge({}, newDefaultConfig);
+        } else {
+            // The user's saved config is the source of truth.
+            currentShopConfig = userSavedConfig;
+        }
 
         // Check for version change to see if the addon was updated, using the main config's version.
         if (!lastLoadedMainConfig || lastLoadedMainConfig.version !== mainDefaultConfig.version) {
