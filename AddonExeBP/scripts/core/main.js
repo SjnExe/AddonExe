@@ -2,7 +2,7 @@ import { world, system } from '@minecraft/server';
 import { config as defaultConfig } from '../config.js';
 import { loadConfig, getConfig, updateConfig, reloadConfig } from './configManager.js';
 import { loadShopConfig } from './shopConfigManager.js';
-import { loadKitsConfig, initializeLiveKits } from './kitsConfigManager.js';
+import { loadKitsConfig } from './kitsConfigManager.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
@@ -111,7 +111,6 @@ function initializeAddon() {
     const isFirstInit = loadConfig(isMigration);
     loadKitsConfig(isMigration);
     loadShopConfig(isMigration);
-    initializeLiveKits();
 
     if (!isFirstInit && !isMigration) {
         reloadConfig();
