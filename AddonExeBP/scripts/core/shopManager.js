@@ -10,10 +10,9 @@ import { errorLog } from './errorLogger.js';
  * @param {number} quantity The amount of items.
  * @returns {ItemStack | null}
  */
-function createShopItemStack(itemId, quantity) {
-    const itemInfo = allItems[itemId];
+function createShopItemStack(itemInfo, quantity) {
     if (!itemInfo) {
-        errorLog(`[ShopManager] Could not find item info for ID: ${itemId}`);
+        errorLog(`[ShopManager] Could not find item info for creating item stack.`);
         return null;
     }
 
@@ -54,16 +53,31 @@ function createShopItemStack(itemId, quantity) {
  * @param {number} quantity The amount to buy.
  * @returns {{success: boolean, message: string}}
  */
+function findShopItem(itemId) {
+    const shopConfig = getShopConfig();
+    for (const categoryName in shopConfig.categories) {
+        const category = shopConfig.categories[categoryName];
+        if (category.items[itemId]) {
+            return { ...allItems[itemId], ...category.items[itemId] };
+        }
+        for (const subCategoryName in category.subCategories) {
+            const subCategory = category.subCategories[subCategoryName];
+            if (subCategory.items[itemId]) {
+                return { ...allItems[itemId], ...subCategory.items[itemId] };
+            }
+        }
+    }
+    return null;
+}
+
 export function buyItem(player, itemId, quantity) {
     if (quantity <= 0) {
         return { success: false, message: '§cQuantity must be a positive number.' };
     }
 
-    const shopConfig = getShopConfig();
-    const shopItem = shopConfig.items[itemId];
-    const masterItem = allItems[itemId];
+    const shopItem = findShopItem(itemId);
 
-    if (!shopItem || !masterItem) {
+    if (!shopItem) {
         return { success: false, message: '§cThis item is not available in the shop.' };
     }
 
@@ -80,7 +94,7 @@ export function buyItem(player, itemId, quantity) {
     }
 
     const inventory = player.getComponent('inventory').container;
-    const itemStackTemplate = createShopItemStack(itemId, 1);
+    const itemStackTemplate = createShopItemStack(shopItem, 1);
 
     if (!itemStackTemplate) {
         return { success: false, message: '§cThere was an error creating the item. Please report this to an admin.' };
@@ -126,13 +140,13 @@ export function buyItem(player, itemId, quantity) {
 
     // 4. Give items one by one to avoid stack bugs
     for (let i = 0; i < finalQuantity; i++) {
-        const singleItemStack = createShopItemStack(itemId, 1);
+        const singleItemStack = createShopItemStack(shopItem, 1);
         if (singleItemStack) {
             inventory.addItem(singleItemStack);
         }
     }
 
-    return { success: true, message: `§2Successfully purchased ${finalQuantity}x ${masterItem.displayName ?? itemId} for §e$${finalCost.toFixed(2)}§2.` };
+    return { success: true, message: `§2Successfully purchased ${finalQuantity}x ${shopItem.displayName ?? itemId} for §e$${finalCost.toFixed(2)}§2.` };
 }
 
 /**
@@ -147,11 +161,9 @@ export function sellItem(player, itemId, quantity) {
         return { success: false, message: '§cQuantity must be a positive number.' };
     }
 
-    const shopConfig = getShopConfig();
-    const shopItem = shopConfig.items[itemId];
-    const masterItem = allItems[itemId];
+    const shopItem = findShopItem(itemId);
 
-    if (!shopItem || !masterItem) {
+    if (!shopItem) {
         return { success: false, message: '§cThis item cannot be sold to the shop.' };
     }
 
@@ -161,7 +173,7 @@ export function sellItem(player, itemId, quantity) {
     }
 
     const inventory = player.getComponent('inventory').container;
-    const itemType = ItemTypes.get(masterItem.itemId);
+    const itemType = ItemTypes.get(shopItem.itemId);
     if (!itemType) {
         return { success: false, message: '§cInternal server error: Item type not found.' };
     }
@@ -181,11 +193,11 @@ export function sellItem(player, itemId, quantity) {
     }
 
     // Remove items
-    player.runCommand(`clear "${player.name}" ${masterItem.itemId.replace('minecraft:', '')} 0 ${quantity}`);
+    player.runCommand(`clear "${player.name}" ${shopItem.itemId.replace('minecraft:', '')} 0 ${quantity}`);
 
     // Success
     const totalGain = sellPrice * quantity;
     economyManager.addBalance(player.id, totalGain);
 
-    return { success: true, message: `§2Successfully sold ${quantity}x ${masterItem.displayName ?? itemId} for §e$${totalGain.toFixed(2)}§2.` };
+    return { success: true, message: `§2Successfully sold ${quantity}x ${shopItem.displayName ?? itemId} for §e$${totalGain.toFixed(2)}§2.` };
 }
