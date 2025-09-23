@@ -132,7 +132,7 @@ export const panelDefinitions = {
         items: [] // Dynamically populated by uiManager
     },
     shopManagementPanel: {
-        title: '§l§aShop System§r',
+        title: '§l§2Shop System§r',
         parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated by uiManager
     },

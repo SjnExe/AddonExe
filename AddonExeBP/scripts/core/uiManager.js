@@ -234,6 +234,13 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
     // --- Admin Edit Shop Panels ---
+    if (panelId === 'shopManagementPanel') {
+        const panelDef = panelDefinitions[panelId];
+        const title = panelDef.title;
+        const form = new ActionFormData().title(title);
+        buildShopAdminMainPanel(form, context);
+        return form;
+    }
 
     if (panelId === 'kitManagementPanel') {
         const form = new ActionFormData().title(title);
