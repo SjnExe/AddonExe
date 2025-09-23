@@ -54,13 +54,29 @@ function createShopItemStack(itemId, quantity) {
  * @param {number} quantity The amount to buy.
  * @returns {{success: boolean, message: string}}
  */
+function findShopItem(itemId) {
+    const shopConfig = getShopConfig();
+    for (const categoryName in shopConfig.categories) {
+        const category = shopConfig.categories[categoryName];
+        if (category.items[itemId]) {
+            return category.items[itemId];
+        }
+        for (const subCategoryName in category.subCategories) {
+            const subCategory = category.subCategories[subCategoryName];
+            if (subCategory.items[itemId]) {
+                return subCategory.items[itemId];
+            }
+        }
+    }
+    return null;
+}
+
 export function buyItem(player, itemId, quantity) {
     if (quantity <= 0) {
         return { success: false, message: '§cQuantity must be a positive number.' };
     }
 
-    const shopConfig = getShopConfig();
-    const shopItem = shopConfig.items[itemId];
+    const shopItem = findShopItem(itemId);
     const masterItem = allItems[itemId];
 
     if (!shopItem || !masterItem) {
@@ -147,8 +163,7 @@ export function sellItem(player, itemId, quantity) {
         return { success: false, message: '§cQuantity must be a positive number.' };
     }
 
-    const shopConfig = getShopConfig();
-    const shopItem = shopConfig.items[itemId];
+    const shopItem = findShopItem(itemId);
     const masterItem = allItems[itemId];
 
     if (!shopItem || !masterItem) {

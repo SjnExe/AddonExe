@@ -93,3 +93,12 @@ export function saveShopConfig() {
         errorLog('[ShopConfigManager] Failed to save current shop config.', e);
     }
 }
+
+/**
+ * Resets the shop configuration to its default values.
+ */
+export function resetShopConfig() {
+    currentShopConfig = deepMerge({}, defaultShopConfig);
+    saveShopConfig();
+    errorLog('[ShopConfigManager] Shop config has been reset to default.');
+}
