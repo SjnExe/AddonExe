@@ -107,6 +107,19 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId.startsWith('shopAdminCategoryPanel_')) {
+        const categoryName = panelId.replace('shopAdminCategoryPanel_', '');
+        const form = new ActionFormData().title(`Edit: ${categoryName}`);
+        buildShopAdminCategoryPanel(form, { ...context, categoryName, page: context.page || 1 });
+        return form;
+    }
+
+    if (panelId.startsWith('shopAddItemPanel_')) {
+        const form = new ActionFormData().title('Add Item');
+        buildShopAddItemPanel(form, { ...context, page: context.page || 1 });
+        return form;
+    }
+
     if (panelId.startsWith('kitItemsPanel_')) {
         const kitName = panelId.replace('kitItemsPanel_', '');
         const allKits = getAllKits();
@@ -222,25 +235,6 @@ async function buildPanelForm(player, panelId, context) {
     }
     // --- Admin Edit Shop Panels ---
 
-    if (panelId === 'shopManagementPanel') {
-        const form = new ActionFormData().title(title);
-        buildShopAdminMainPanel(form, context);
-        return form;
-    }
-
-    if (panelId.startsWith('shopAdminCategoryPanel_')) {
-        const categoryName = panelId.replace('shopAdminCategoryPanel_', '');
-        const form = new ActionFormData().title(`Edit: ${categoryName}`);
-        buildShopAdminCategoryPanel(form, { ...context, categoryName, page: context.page || 1 });
-        return form;
-    }
-
-    if (panelId.startsWith('shopAddItemPanel_')) {
-        const form = new ActionFormData().title('Add Item');
-        buildShopAddItemPanel(form, { ...context, page: context.page || 1 });
-        return form;
-    }
-
     if (panelId === 'kitManagementPanel') {
         const form = new ActionFormData().title(title);
         buildKitManagementPanel(form, context);
@@ -255,7 +249,7 @@ async function buildPanelForm(player, panelId, context) {
         }
         if (pData.permissionLevel <= 1) {
             form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
-            form.button('§l§aShop System§r', 'textures/items/emerald');
+            form.button('§l§2Shop System§r', 'textures/items/emerald');
         }
         if (pData.permissionLevel === 0) {
             form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
@@ -271,7 +265,7 @@ async function buildPanelForm(player, panelId, context) {
         const resettableSystems = [
             ...configPanelSchema.map(c => ({ id: c.id, title: c.title, icon: c.icon })),
             { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
-            { id: 'shop', title: '§l§aShop System§r', icon: 'textures/items/emerald' }
+            { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' }
         ];
         const paginatedSystems = getPaginatedItems(resettableSystems, page);
 
