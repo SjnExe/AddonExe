@@ -3,7 +3,7 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { panelDefinitions } from './panelLayoutConfig.js';
 import { configPanelSchema } from './configPanelSchema.js';
 import { getPlayer, loadPlayerData, getAllPlayerNameIdMap } from './playerDataManager.js';
-import { getConfig, updateMultipleConfig } from './configManager.js';
+import { getConfig, updateMultipleConfig, resetConfigSection } from './configManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import * as rankManager from './rankManager.js';
@@ -247,10 +247,35 @@ async function buildPanelForm(player, panelId, context) {
         for (const category of configPanelSchema) {
             form.button(category.title, category.icon);
         }
-        // Manually add the Kit Management button for admins
         if (pData.permissionLevel <= 1) {
             form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
         }
+        if (pData.permissionLevel === 0) {
+            form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
+        }
+        return form;
+    }
+
+    if (panelId === 'configResetPanel') {
+        const page = context.page || 1;
+        const form = new ActionFormData().title(`${title} (Page ${page})`);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+        const resettableSystems = [
+            ...configPanelSchema.map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+            { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' }
+        ];
+        const paginatedSystems = getPaginatedItems(resettableSystems, page);
+
+        for (const system of paginatedSystems) {
+            form.button(`§cReset ${system.title}`, system.icon);
+        }
+
+        if (page >= Math.ceil(resettableSystems.length / itemsPerPage)) {
+            form.button('§l§cReset All Systems', 'textures/ui/trash');
+        }
+
+        addPaginationButtons(form, page, resettableSystems.length);
         return form;
     }
 
@@ -303,6 +328,99 @@ async function handleFormResponse(player, panelId, response, context) {
         if (selectedCategory) {
             return showPanel(player, `shopCategoryPanel_${selectedCategory}`, context);
         }
+        return;
+    }
+
+    if (panelId === 'configResetPanel') {
+        const page = context.page || 1;
+        const resettableSystems = [
+            ...configPanelSchema.map(c => ({ id: c.id, title: c.title })),
+            { id: 'kits', title: 'Kit System' }
+        ];
+
+        if (selection === 0) { // Back button
+            return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
+        }
+
+        const paginatedSystems = getPaginatedItems(resettableSystems, page);
+        const selectionIndex = selection - 1;
+
+        if (selectionIndex < paginatedSystems.length) {
+            const selectedSystem = paginatedSystems[selectionIndex];
+            const confirmForm = new ActionFormData()
+                .title(`Confirm Reset: ${selectedSystem.title}`)
+                .body(`This action cannot be undone. Are you sure you want to reset the ${selectedSystem.title} configuration to its default values?`)
+                .button('§cYes, Reset', 'textures/ui/check')
+                .button('§2No, Cancel', 'textures/ui/cancel');
+
+            const confirmResponse = await utils.uiWait(player, confirmForm);
+            if (confirmResponse.canceled || confirmResponse.selection === 1) {
+                player.sendMessage('§aReset canceled.');
+                return showPanel(player, 'configResetPanel', { ...context, page });
+            }
+
+            const finalConfirmForm = new ModalFormData()
+                .title('Final Confirmation')
+                .textField(`Type "confirm" to reset ${selectedSystem.title}.`, 'Case-insensitive');
+
+            const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
+
+            if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].toLowerCase() !== 'confirm') {
+                player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                return showPanel(player, 'configResetPanel', { ...context, page });
+            }
+
+            const result = resetConfigSection(selectedSystem.id);
+            player.sendMessage(`§a${result.message}`);
+            return showPanel(player, 'configResetPanel', { ...context, page: 1 });
+        }
+
+        let buttonIndex = selectionIndex - paginatedSystems.length;
+
+        const totalPages = Math.ceil(resettableSystems.length / itemsPerPage);
+
+        if (page >= totalPages) {
+            if (buttonIndex === 0) {
+                const confirmForm = new ActionFormData()
+                    .title('Confirm Reset All')
+                    .body('This action cannot be undone. Are you sure you want to reset ALL system configurations to their default values?')
+                    .button('§cYes, Reset All', 'textures/ui/trash')
+                    .button('§2No, Cancel', 'textures/ui/cancel');
+
+                const confirmResponse = await utils.uiWait(player, confirmForm);
+                if (confirmResponse.canceled || confirmResponse.selection === 1) {
+                    player.sendMessage('§aReset canceled.');
+                    return showPanel(player, 'configResetPanel', { ...context, page });
+                }
+
+                const finalConfirmForm = new ModalFormData()
+                    .title('Final Confirmation')
+                    .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive');
+
+                const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
+
+                if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].toLowerCase() !== 'confirm') {
+                    player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                    return showPanel(player, 'configResetPanel', { ...context, page });
+                }
+
+                const result = resetConfigSection('all');
+                player.sendMessage(`§a${result.message}`);
+                return showPanel(player, 'configResetPanel', { ...context, page: 1 });
+            }
+            buttonIndex--;
+        }
+
+        // Handle pagination
+        const hasPrev = page > 1;
+
+        if (hasPrev && buttonIndex === 0) {
+            return showPanel(player, panelId, { ...context, page: page - 1 });
+        }
+        if (buttonIndex >= 0) { // Should be next page
+            return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+
         return;
     }
 
@@ -839,23 +957,38 @@ async function handleFormResponse(player, panelId, response, context) {
     }
 
     if (panelId === 'configCategoryPanel') {
-        if (selection === 0) { return showPanel(player, 'mainPanel'); }
+        let buttonCount = 0;
+        // Back button is at index 0
+        if (selection === buttonCount) {
+            return showPanel(player, 'mainPanel');
+        }
+        buttonCount++;
 
-        const selectionIndex = selection - 1;
-
-        // Check if the selection is one of the schema-defined categories
-        if (selectionIndex < configPanelSchema.length) {
-            const selectedCategory = configPanelSchema[selectionIndex];
+        // Category buttons
+        if (selection < buttonCount + configPanelSchema.length) {
+            const selectedCategory = configPanelSchema[selection - buttonCount];
             if (selectedCategory) { return showPanel(player, `config_${selectedCategory.id}`); }
-        } else {
-            // If it's not in the schema, it must be our manually added Kit Management button
-            // We still do a permission check here just in case something went wrong
-            if (pData.permissionLevel <= 1) {
+            return;
+        }
+        buttonCount += configPanelSchema.length;
+
+        // Kit Management button
+        if (pData.permissionLevel <= 1) {
+            if (selection === buttonCount) {
                 return showPanel(player, 'kitManagementPanel');
+            }
+            buttonCount++;
+        }
+
+        // Reset Settings button
+        if (pData.permissionLevel === 0) {
+            if (selection === buttonCount) {
+                return showPanel(player, 'configResetPanel');
             }
         }
         return;
     }
+
 
     if (panelId.startsWith('config_')) {
         const categoryId = panelId.replace('config_', '');

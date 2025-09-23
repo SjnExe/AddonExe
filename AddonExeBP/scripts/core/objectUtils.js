@@ -117,3 +117,12 @@ export function reconcileConfig(newDefault, oldDefault, userSaved) {
     }
     return finalConfig;
 }
+
+/**
+ * Creates a deep clone of a JSON-serializable object.
+ * @param {object} obj The object to clone.
+ * @returns {object} A deep clone of the object.
+ */
+export function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}

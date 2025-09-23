@@ -3,7 +3,7 @@ import { kitsConfig as defaultKitsConfig } from './kitsConfig.js';
 import { config as mainDefaultConfig } from '../config.js';
 import { errorLog } from './errorLogger.js';
 import { debugLog } from './logger.js';
-import { deepMerge } from './objectUtils.js';
+import { deepMerge, deepClone } from './objectUtils.js';
 
 const currentKitsConfigKey = 'exe:kitsConfig:current';
 const lastLoadedKitsConfigKey = 'exe:kitsConfig:lastLoaded';
@@ -97,4 +97,13 @@ export function saveKitsConfig() {
     } catch (e) {
         errorLog('[KitsConfigManager] Failed to save current kits config.', e);
     }
+}
+
+/**
+ * Resets the kits configuration to its default values.
+ */
+export function resetKitsConfig() {
+    currentKitsConfig = deepClone(defaultKitsConfig);
+    saveKitsConfig();
+    debugLog('[KitsConfigManager] Kits configuration has been reset to default.');
 }
