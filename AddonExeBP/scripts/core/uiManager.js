@@ -1337,7 +1337,7 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (selectionIndex < paginatedSystems.length) {
             const selectedSystem = paginatedSystems[selectionIndex];
-            if (selectedSystem.id === 'configResetPanel' || selectedSystem.id === 'rankManagementPanel') {
+            if (['configResetPanel', 'rankManagementPanel', 'kitManagementPanel', 'shopManagementPanel'].includes(selectedSystem.id)) {
                 return showPanel(player, selectedSystem.id, { ...context, page: 1 });
             }
             return showPanel(player, selectedSystem.id, context);
