@@ -1,5 +1,6 @@
 import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
 import { debugLog } from './logger.js';
+import { items } from './itemsConfig.js';
 
 /**
  * Adds a new category to the shop.
@@ -167,12 +168,35 @@ export function setItem(categoryName, subCategoryName, itemId, itemData) {
     targetContainer.items[itemId] = {
         buyPrice: itemData.buyPrice,
         sellPrice: itemData.sellPrice,
-        permissionLevel: itemData.permissionLevel
+        permissionLevel: itemData.permissionLevel,
+        icon: itemData.icon,
+        displayName: itemData.displayName
     };
 
     saveShopConfig();
     debugLog(`[ShopAdminManager] Set item '${itemId}' in '${categoryName}/${subCategoryName || ''}'.`);
     return { success: true, message: `Successfully set item '${itemId}'.` };
+}
+
+/**
+ * Adds a custom item to the in-memory items config.
+ * @param {string} itemId - The unique ID for the new item.
+ * @param {object} itemData - The data for the new item.
+ * @returns {{success: boolean, message: string}}
+ */
+export function addCustomItemToConfig(itemId, itemData) {
+    if (items[itemId]) {
+        return { success: false, message: `An item with the ID '${itemId}' already exists.` };
+    }
+    items[itemId] = {
+        itemId: itemData.itemId,
+        icon: itemData.icon,
+        buyPrice: itemData.buyPrice,
+        sellPrice: itemData.sellPrice,
+        displayName: itemData.displayName,
+        category: 'Custom',
+    };
+    return { success: true, message: 'Custom item added to in-memory config.' };
 }
 
 /**

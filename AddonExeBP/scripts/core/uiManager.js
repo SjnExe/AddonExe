@@ -549,24 +549,51 @@ async function handleFormResponse(player, panelId, response, context) {
         const { categoryName, page = 1 } = context;
         if (selection === 0) { return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context); }
 
+        if (selection === 1) { // Add Custom Item
+            const form = new ModalFormData().title('Add Custom Item')
+                .textField('Item ID (unique key)', 'e.g., custom_sword')
+                .textField('Display Name', 'e.g., Sword of Awesome')
+                .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword')
+                .textField('Icon Path', 'e.g., textures/items/diamond_sword')
+                .textField('Buy Price', '-1 to disable', { defaultValue: '-1' })
+                .textField('Sell Price', '-1 to disable', { defaultValue: '-1' })
+                .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            const [customId, displayName, mcId, icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues;
+            const buyPrice = parseInt(buyPriceStr, 10);
+            const sellPrice = parseInt(sellPriceStr, 10);
+            const permissionLevel = parseInt(permLevelStr, 10);
+
+            if (customId && displayName && mcId && icon && !isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
+                shopAdminManager.addCustomItemToConfig(customId, { itemId: mcId, icon, buyPrice, sellPrice, displayName });
+                shopAdminManager.setItem(categoryName, null, customId, { buyPrice, sellPrice, permissionLevel, icon, displayName });
+                player.sendMessage(`§aSuccessfully added custom item '${displayName}'.`);
+            } else {
+                player.sendMessage('§cInvalid custom item data.');
+            }
+            return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
+        }
+
         const allPossibleItems = Object.keys(allItems);
         const paginatedItems = getPaginatedItems(allPossibleItems, page);
-        const selectedItemId = paginatedItems[selection - 1];
+        const selectedItemId = paginatedItems[selection - 2];
 
         if (selectedItemId) {
             const masterItem = allItems[selectedItemId];
             const form = new ModalFormData().title(`Add ${masterItem.displayName}`)
+                .textField('Icon Path', 'e.g., textures/items/diamond_sword', { defaultValue: masterItem.icon })
                 .textField('Buy Price', '-1 to disable', { defaultValue: `${masterItem.buyPrice}` })
                 .textField('Sell Price', '-1 to disable', { defaultValue: `${masterItem.sellPrice}` })
                 .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
             const response = await utils.uiWait(player, form);
             if (response.canceled) { return showPanel(player, panelId, context); }
-            const [buyPriceStr, sellPriceStr, permLevelStr] = response.formValues;
+            const [icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues;
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
             const permissionLevel = parseInt(permLevelStr, 10);
             if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
-                const result = shopAdminManager.setItem(categoryName, null, selectedItemId, { buyPrice, sellPrice, permissionLevel });
+                const result = shopAdminManager.setItem(categoryName, null, selectedItemId, { buyPrice, sellPrice, permissionLevel, icon });
                 player.sendMessage(result.message);
             }
             return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
@@ -576,7 +603,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const totalPages = Math.ceil(allPossibleItems.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        let buttonIndex = selection - 1 - paginatedItems.length;
+        let buttonIndex = selection - 2 - paginatedItems.length;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;
@@ -1214,7 +1241,9 @@ function buildShopCategoryPanel(form, context) {
         if (entry.type === 'subCategory') {
             form.button(`§e${entry.name}`, entry.icon);
         } else {
-            const masterItem = allItems[entry.id];
+            const masterItem = allItems[entry.id] || {};
+            const displayName = entry.displayName || masterItem.displayName || entry.id;
+            const icon = entry.icon || masterItem.icon;
             let priceString = '';
             if (view === 'buy' && entry.buyPrice > 0) {
                 priceString = `§2Buy: $${entry.buyPrice}`;
@@ -1225,7 +1254,7 @@ function buildShopCategoryPanel(form, context) {
                 const sell = entry.sellPrice > 0 ? `§cS: $${entry.sellPrice}` : '';
                 priceString = [buy, sell].filter(Boolean).join(' ');
             }
-            form.button(`${masterItem.displayName ?? entry.id}\n${priceString}`, masterItem.icon);
+            form.button(`${displayName}\n${priceString}`, icon);
         }
     }
     addPaginationButtons(form, page, allEntries.length);
@@ -1249,7 +1278,9 @@ function buildShopItemListPanel(form, context) {
     const paginatedItems = getPaginatedItems(items, page);
 
     for (const item of paginatedItems) {
-        const masterItem = allItems[item.id];
+        const masterItem = allItems[item.id] || {};
+        const displayName = item.displayName || masterItem.displayName || item.id;
+        const icon = item.icon || masterItem.icon;
         let priceString = '';
         if (view === 'buy' && item.buyPrice > 0) {
             priceString = `§2Buy: $${item.buyPrice}`;
@@ -1260,7 +1291,7 @@ function buildShopItemListPanel(form, context) {
             const sell = item.sellPrice > 0 ? `§cS: $${item.sellPrice}` : '';
             priceString = [buy, sell].filter(Boolean).join(' ');
         }
-        form.button(`${masterItem.displayName ?? item.id}\n${priceString}`, masterItem.icon);
+        form.button(`${displayName}\n${priceString}`, icon);
     }
     addPaginationButtons(form, page, items.length);
 }
@@ -1287,7 +1318,7 @@ function buildShopAdminCategoryPanel(form, context) {
     const { categoryName, page = 1 } = context;
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
-    form.button('§l§a+ Add Subcategory', 'textures/ui/color_plus');
+    form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
 
     const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName];
@@ -1305,8 +1336,10 @@ function buildShopAdminCategoryPanel(form, context) {
 
     for (const entry of paginatedEntries) {
         if (entry.type === 'item') {
-            const masterItem = allItems[entry.id];
-            form.button(`${masterItem.displayName ?? entry.id}`, masterItem.icon);
+            const masterItem = allItems[entry.id] || {};
+            const displayName = entry.displayName || masterItem.displayName || entry.id;
+            const icon = entry.icon || masterItem.icon;
+            form.button(displayName, icon);
         } else { // subCategory
             form.button(`§e${entry.name}`, entry.icon);
         }
@@ -1318,6 +1351,7 @@ function buildShopAdminCategoryPanel(form, context) {
 function buildShopAddItemPanel(form, context) {
     const { page = 1 } = context;
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    form.button('§l§2+ Add Custom Item', 'textures/ui/color_plus');
 
     const allPossibleItems = Object.keys(allItems);
     const paginatedItems = getPaginatedItems(allPossibleItems, page);
