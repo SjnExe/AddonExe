@@ -289,19 +289,33 @@ async function buildPanelForm(player, panelId, context) {
     }
 
     if (panelId === 'configCategoryPanel') {
-        const form = new ActionFormData().title(title);
+        const page = context.page || 1;
+        const form = new ActionFormData().title(`${title} (Page ${page})`);
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
-        for (const category of configPanelSchema) {
-            form.button(category.title, category.icon);
-        }
+
+        let allSystems = [
+            ...configPanelSchema.map(c => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
+        ];
+
         if (pData.permissionLevel <= 1) {
-            form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
-            form.button('§l§2Shop System§r', 'textures/items/emerald');
-            form.button('§l§4Rank System§r', 'textures/ui/permissions_member_star.png');
+            allSystems.push({ id: 'kitManagementPanel', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' });
+            allSystems.push({ id: 'shopManagementPanel', title: '§l§2Shop System§r', icon: 'textures/items/emerald' });
+            allSystems.push({ id: 'rankManagementPanel', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' });
         }
         if (pData.permissionLevel === 0) {
-            form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
+            allSystems.push({ id: 'configResetPanel', title: '§l§cReset Settings§r', icon: 'textures/ui/wysiwyg_reset' });
         }
+
+        // Sort systems alphabetically, ignoring color codes
+        allSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
+
+        const paginatedSystems = getPaginatedItems(allSystems, page);
+
+        for (const system of paginatedSystems) {
+            form.button(system.title, system.icon);
+        }
+
+        addPaginationButtons(form, page, allSystems.length);
         return form;
     }
 
@@ -316,6 +330,7 @@ async function buildPanelForm(player, panelId, context) {
             { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
             { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
         ];
+        resettableSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
         const paginatedSystems = getPaginatedItems(resettableSystems, page);
 
         for (const system of paginatedSystems) {
@@ -379,9 +394,12 @@ async function handleFormResponse(player, panelId, response, context) {
     if (panelId === 'configResetPanel') {
         const page = context.page || 1;
         const resettableSystems = [
-            ...configPanelSchema.map(c => ({ id: c.id, title: c.title })),
-            { id: 'kits', title: 'Kit System' }
+            ...configPanelSchema.map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+            { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
+            { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
+            { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
         ];
+        resettableSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
 
         if (selection === 0) { // Back button
             return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
@@ -1265,44 +1283,43 @@ async function handleFormResponse(player, panelId, response, context) {
     }
 
     if (panelId === 'configCategoryPanel') {
-        let buttonCount = 0;
-        // Back button is at index 0
-        if (selection === buttonCount) {
-            return showPanel(player, 'mainPanel');
-        }
-        buttonCount++;
+        const page = context.page || 1;
+        if (selection === 0) { return showPanel(player, 'mainPanel'); }
 
-        // Category buttons
-        if (selection < buttonCount + configPanelSchema.length) {
-            const selectedCategory = configPanelSchema[selection - buttonCount];
-            if (selectedCategory) { return showPanel(player, `config_${selectedCategory.id}`); }
-            return;
-        }
-        buttonCount += configPanelSchema.length;
-
-        // Admin buttons
+        let allSystems = [
+            ...configPanelSchema.map(c => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
+        ];
         if (pData.permissionLevel <= 1) {
-            if (selection === buttonCount) {
-                return showPanel(player, 'kitManagementPanel');
-            }
-            buttonCount++;
-            if (selection === buttonCount) {
-                return showPanel(player, 'shopManagementPanel');
-            }
-            buttonCount++;
-            if (selection === buttonCount) {
-                return showPanel(player, 'rankManagementPanel');
-            }
-            buttonCount++;
+            allSystems.push({ id: 'kitManagementPanel', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' });
+            allSystems.push({ id: 'shopManagementPanel', title: '§l§2Shop System§r', icon: 'textures/items/emerald' });
+            allSystems.push({ id: 'rankManagementPanel', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' });
+        }
+        if (pData.permissionLevel === 0) {
+            allSystems.push({ id: 'configResetPanel', title: '§l§cReset Settings§r', icon: 'textures/ui/wysiwyg_reset' });
+        }
+        allSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
+
+        const paginatedSystems = getPaginatedItems(allSystems, page);
+        const selectionIndex = selection - 1;
+
+        if (selectionIndex < paginatedSystems.length) {
+            const selectedSystem = paginatedSystems[selectionIndex];
+            return showPanel(player, selectedSystem.id, context);
         }
 
-        // Reset Settings button
-        if (pData.permissionLevel === 0) {
-            if (selection === buttonCount) {
-                return showPanel(player, 'configResetPanel');
-            }
+        // Handle pagination
+        let newPage = page;
+        const totalPages = Math.ceil(allSystems.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+        let buttonIndex = selectionIndex - paginatedSystems.length;
+
+        if (hasPrev && buttonIndex === 0) {
+            newPage--;
+        } else if (hasNext) {
+            newPage++;
         }
-        return;
+        return showPanel(player, panelId, { ...context, page: newPage });
     }
 
 
