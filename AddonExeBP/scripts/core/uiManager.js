@@ -7,6 +7,7 @@ import { getConfig, updateMultipleConfig, resetConfigSection } from './configMan
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import * as rankManager from './rankManager.js';
+import * as rankDb from './rankDb.js';
 import * as playerCache from './playerCache.js';
 import * as utils from './utils.js';
 import { getValueFromPath } from './objectUtils.js';
@@ -248,6 +249,44 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId === 'rankManagementPanel') {
+        const form = new ActionFormData().title('§l§4Rank System');
+        buildRankManagementPanel(form, context);
+        return form;
+    }
+
+    if (panelId === 'addRankPanel') {
+        const form = new ModalFormData().title('§l§2Add New Rank');
+        form.textField('Rank Name', 'e.g., VIP');
+        form.textField('Rank ID (tag)', 'e.g., vip (lowercase, no spaces)');
+        form.textField('Permission Level', '0-1024 (lower is more powerful)');
+        form.textField('Name Color', 'e.g., §6');
+        form.textField('Chat Color', 'e.g., §e');
+        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]');
+        return form;
+    }
+
+    if (panelId === 'editRankPanel') {
+        const rank = rankManager.getRankById(context.rankId);
+        if (!rank) {
+            errorLog(`[UIManager] Edit rank panel: rank with ID ${context.rankId} not found.`);
+            return null;
+        }
+        const isSpecialRank = rank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
+
+        const form = new ModalFormData().title(`§l§3Edit Rank: ${rank.name}`);
+        form.textField('Rank Name', 'e.g., VIP', { defaultValue: rank.name });
+        form.textField('Rank ID (tag)', 'e.g., vip', { defaultValue: rank.id, disabled: isSpecialRank });
+        form.textField('Permission Level', '0-1024', { defaultValue: String(rank.permissionLevel), disabled: isSpecialRank });
+        form.textField('Name Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.nameColor ?? '' });
+        form.textField('Chat Color', 'e.g., §e', { defaultValue: rank.chatFormatting?.messageColor ?? '' });
+        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: rank.chatFormatting?.prefixText ?? '' });
+        if (!isSpecialRank) {
+            form.submitButton('§l§cDelete Rank');
+        }
+        return form;
+    }
+
     if (panelId === 'configCategoryPanel') {
         const form = new ActionFormData().title(title);
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
@@ -257,6 +296,7 @@ async function buildPanelForm(player, panelId, context) {
         if (pData.permissionLevel <= 1) {
             form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
             form.button('§l§2Shop System§r', 'textures/items/emerald');
+            form.button('§l§4Rank System§r', 'textures/ui/permissions_member_star.png');
         }
         if (pData.permissionLevel === 0) {
             form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
@@ -1074,6 +1114,154 @@ async function handleFormResponse(player, panelId, response, context) {
         return showPanel(player, panelId, context); // Fallback
     }
 
+    if (panelId === 'rankManagementPanel') {
+        const page = context.page || 1;
+        // Back button
+        if (selection === 0) { return showPanel(player, 'configCategoryPanel'); }
+        // Add New Rank button
+        if (selection === 1) {
+            return showPanel(player, 'addRankPanel', context);
+        }
+
+        const allRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);
+        const paginatedRanks = getPaginatedItems(allRanks, page);
+        const totalPages = Math.ceil(allRanks.length / itemsPerPage);
+
+        const rankStartIndex = 2;
+        const rankEndIndex = rankStartIndex + paginatedRanks.length - 1;
+
+        if (selection >= rankStartIndex && selection <= rankEndIndex) {
+            const selectedRank = paginatedRanks[selection - rankStartIndex];
+            return showPanel(player, 'editRankPanel', { ...context, rankId: selectedRank.id });
+        }
+
+        // Handle pagination
+        let currentButtonIndex = rankEndIndex + 1;
+        if (page > 1) { // Previous Page
+            if (selection === currentButtonIndex) {
+                return showPanel(player, panelId, { ...context, page: page - 1 });
+            }
+            currentButtonIndex++;
+        }
+        if (page < totalPages) { // Next Page
+            if (selection === currentButtonIndex) {
+                return showPanel(player, panelId, { ...context, page: page + 1 });
+            }
+        }
+        return;
+    }
+
+    if (panelId === 'addRankPanel') {
+        if (canceled) { return showPanel(player, 'rankManagementPanel', context); }
+
+        const [name, id, permLevelStr, nameColor, chatColor, prefix] = formValues;
+        const permissionLevel = parseInt(permLevelStr, 10);
+
+        if (!name || !id || isNaN(permissionLevel)) {
+            player.sendMessage('§cRank Name, ID, and Permission Level are required.');
+            return showPanel(player, panelId, context);
+        }
+        if (permissionLevel === 0) {
+            player.sendMessage('§cPermission level 0 is reserved for the Owner rank.');
+            return showPanel(player, panelId, context);
+        }
+        if (rankManager.getRankById(id)) {
+            player.sendMessage(`§cRank ID '${id}' already exists.`);
+            return showPanel(player, panelId, context);
+        }
+
+        const newRank = {
+            id,
+            name,
+            permissionLevel,
+            chatFormatting: {
+                prefixText: prefix,
+                nameColor: nameColor,
+                messageColor: chatColor
+            },
+            nametagPrefix: prefix, // Assuming prefix is used for nametag as well
+            conditions: [{ type: 'hasTag', value: id }]
+        };
+
+        const result = rankDb.addRank(newRank);
+        player.sendMessage(result.message);
+
+        if (result.success) {
+            rankManager.reloadRanks();
+            return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
+        } else {
+            return showPanel(player, panelId, context);
+        }
+    }
+
+    if (panelId === 'editRankPanel') {
+        const rank = rankManager.getRankById(context.rankId);
+        if (!rank) {
+            player.sendMessage('§cRank not found.');
+            return showPanel(player, 'rankManagementPanel', context);
+        }
+        const isSpecialRank = rank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
+
+        if (canceled) {
+             // If the form has a submit button, "canceled" means the user clicked it (the delete button)
+            if (!isSpecialRank) {
+                const confirmForm = new ActionFormData()
+                    .title(`§cDelete ${rank.name}?`)
+                    .body('This action cannot be undone.')
+                    .button('§cYes, Delete Rank', 'textures/ui/trash')
+                    .button('§aNo, Keep Rank', 'textures/ui/cancel');
+                const confirmResponse = await utils.uiWait(player, confirmForm);
+
+                if (confirmResponse.selection === 0) {
+                    const result = rankDb.deleteRank(rank.id);
+                    player.sendMessage(result.message);
+                    if (result.success) {
+                        rankManager.reloadRanks();
+                    }
+                }
+                return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
+            }
+        }
+
+        const [name, id, permLevelStr, nameColor, chatColor, prefix] = formValues;
+        const permissionLevel = parseInt(permLevelStr, 10);
+
+        if (!name) {
+            player.sendMessage('§cRank Name cannot be empty.');
+            return showPanel(player, panelId, context);
+        }
+        if (isSpecialRank && (id !== rank.id || permissionLevel !== rank.permissionLevel)) {
+            player.sendMessage('§cCannot change the ID or Permission Level of a special rank.');
+            return showPanel(player, panelId, context);
+        }
+        if (!isSpecialRank && permissionLevel === 0) {
+            player.sendMessage('§cPermission level 0 is reserved for the Owner rank.');
+            return showPanel(player, panelId, context);
+        }
+
+        const updatedData = {
+            name,
+            id,
+            permissionLevel,
+            chatFormatting: {
+                prefixText: prefix,
+                nameColor: nameColor,
+                messageColor: chatColor
+            },
+            nametagPrefix: prefix
+        };
+
+        const result = rankDb.updateRank(rank.id, updatedData);
+        player.sendMessage(result.message);
+
+        if (result.success) {
+            rankManager.reloadRanks();
+            return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
+        } else {
+            return showPanel(player, panelId, context);
+        }
+    }
+
     if (panelId === 'configCategoryPanel') {
         let buttonCount = 0;
         // Back button is at index 0
@@ -1090,7 +1278,7 @@ async function handleFormResponse(player, panelId, response, context) {
         }
         buttonCount += configPanelSchema.length;
 
-        // Kit Management button
+        // Admin buttons
         if (pData.permissionLevel <= 1) {
             if (selection === buttonCount) {
                 return showPanel(player, 'kitManagementPanel');
@@ -1098,6 +1286,10 @@ async function handleFormResponse(player, panelId, response, context) {
             buttonCount++;
             if (selection === buttonCount) {
                 return showPanel(player, 'shopManagementPanel');
+            }
+            buttonCount++;
+            if (selection === buttonCount) {
+                return showPanel(player, 'rankManagementPanel');
             }
             buttonCount++;
         }
@@ -1868,6 +2060,30 @@ uiActionFunctions['removePlayerBounty'] = async (player, context) => {
 
     return true; // Reload the panel
 };
+
+function buildRankManagementPanel(form, context) {
+    const { page = 1 } = context;
+    form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    form.button('§l§2+ Add New Rank', 'textures/ui/color_plus');
+
+    const allRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);
+
+    if (allRanks.length === 0) {
+        form.body('§cNo ranks have been defined.');
+        return;
+    }
+
+    const paginatedRanks = getPaginatedItems(allRanks, page);
+
+    for (const rank of paginatedRanks) {
+        const prefix = rank.chatFormatting?.prefixText ?? '';
+        const name = rank.name;
+        const permLevel = rank.permissionLevel;
+        form.button(`${prefix}${name}\n§8(ID: ${rank.id}, Level: ${permLevel})`);
+    }
+
+    addPaginationButtons(form, page, allRanks.length);
+}
 
 function buildKitManagementPanel(form, context) {
     const { page = 1 } = context;

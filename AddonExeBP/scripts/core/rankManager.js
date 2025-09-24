@@ -1,4 +1,4 @@
-import { rankDefinitions } from './ranksConfig.js';
+import * as rankDb from './rankDb.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 
@@ -39,10 +39,20 @@ const conditionEvaluators = {
 };
 
 /**
- * Initializes the rank manager by sorting ranks.
+ * Reloads and sorts the ranks from the database.
+ * This can be called to refresh ranks after they've been modified in the UI.
+ */
+export function reloadRanks() {
+    const allRanks = rankDb.loadRanks();
+    sortedRanks = [...allRanks].sort((a, b) => a.permissionLevel - b.permissionLevel);
+    debugLog(`[RankManager] Reloaded and sorted ${sortedRanks.length} ranks.`);
+}
+
+/**
+ * Initializes the rank manager by loading and sorting ranks.
  */
 export function initialize() {
-    sortedRanks = [...rankDefinitions].sort((a, b) => a.permissionLevel - b.permissionLevel);
+    reloadRanks();
     debugLog(`[RankManager] Initialized ${sortedRanks.length} ranks.`);
 }
 
@@ -86,10 +96,18 @@ export function getPlayerRank(player, config) {
 }
 
 /**
- * Gets a rank definition by its ID.
+ * Gets a rank definition by its ID from the database.
  * @param {string} rankId The ID of the rank to get.
  * @returns {import('./ranksConfig.js').RankDefinition | undefined}
  */
 export function getRankById(rankId) {
-    return rankDefinitions.find(rank => rank.id === rankId);
+    return rankDb.getRankById(rankId);
+}
+
+/**
+ * Gets all rank definitions from the database.
+ * @returns {import('./ranksConfig.js').RankDefinition[]}
+ */
+export function getAllRanks() {
+    return rankDb.getRanks();
 }
