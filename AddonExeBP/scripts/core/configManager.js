@@ -3,67 +3,46 @@ import { config as defaultConfig } from '../config.js';
 import { errorLog } from './errorLogger.js';
 import { deepClone, deepEqual, deepMerge, setValueByPath, reconcileConfig } from './objectUtils.js';
 import { resetKitsConfig } from './kitsConfigManager.js';
+import { resetShopConfig } from './shopConfigManager.js';
 
 const currentConfigKey = 'exe:config:current';
 const lastLoadedConfigKey = 'exe:config:lastLoaded';
 
 let currentConfig = null;
-let lastLoadedConfig = null;
 
 /**
  * Loads the addon's configurations from world dynamic properties.
  * This should only be called once at startup from main.js.
  * @returns {boolean} True if this is the first time the addon is being initialized.
  */
-export function loadConfig() {
+export function loadConfig(isMigration) {
     const newDefaultConfig = deepMerge({}, defaultConfig);
     let isFirstInit = false;
 
     const userSavedConfigStr = world.getDynamicProperty(currentConfigKey);
-    const oldDefaultConfigStr = world.getDynamicProperty(lastLoadedConfigKey);
 
     if (!userSavedConfigStr) {
-        // Scenario: First-time initialization.
         isFirstInit = true;
-        currentConfig = deepMerge({}, newDefaultConfig);
+        currentConfig = newDefaultConfig;
         errorLog('[ConfigManager] No saved config found. Initializing with default values.');
     } else {
-        // Scenario: Subsequent startup. Load all configs.
         let userSavedConfig;
-        let oldDefaultConfig;
         try {
             userSavedConfig = JSON.parse(userSavedConfigStr);
         } catch (e) {
             errorLog('[ConfigManager] Failed to parse user-saved config. It will be reset.', e);
-            userSavedConfig = deepMerge({}, newDefaultConfig);
-        }
-        try {
-            oldDefaultConfig = JSON.parse(oldDefaultConfigStr);
-        } catch {
-            errorLog('[ConfigManager] Could not parse last loaded config. Assuming it is the first load after an update.');
-            oldDefaultConfig = null; // Treat as if the last version is unknown.
+            userSavedConfig = newDefaultConfig;
         }
 
-        // Check for version change to determine which logic to use.
-        if (!oldDefaultConfig || !deepEqual(oldDefaultConfig.version, newDefaultConfig.version)) {
-            // Scenario: Addon has been updated (version is different).
+        if (isMigration) {
             errorLog('[ConfigManager] Version mismatch detected. Migrating config.');
-            // Preserve user's settings by merging them on top of the new defaults.
             currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
         } else {
-            // Scenario: Same version, normal load.
-            // Reconcile changes made directly to config.js file as per user's logic.
-            currentConfig = reconcileConfig(newDefaultConfig, oldDefaultConfig, userSavedConfig);
+            currentConfig = userSavedConfig;
         }
     }
 
-    // After all logic, the 'last loaded' config must be updated to the new default structure
-    // for the *next* startup's comparison.
-    lastLoadedConfig = deepMerge({}, newDefaultConfig);
-
     saveCurrentConfig();
-    saveLastLoadedConfig();
-
     return isFirstInit;
 }
 
@@ -89,13 +68,6 @@ function saveCurrentConfig() {
 /**
  * Saves the last loaded config to its dynamic property.
  */
-function saveLastLoadedConfig() {
-    try {
-        world.setDynamicProperty(lastLoadedConfigKey, JSON.stringify(lastLoadedConfig));
-    } catch (e) {
-        errorLog('[ConfigManager] Failed to save last loaded config.', e);
-    }
-}
 
 /**
  * Updates a specific key in the configuration and saves it.
@@ -118,16 +90,12 @@ export function reloadConfig() {
     console.log('[ConfigManager] Reloading configuration...');
     const newDefaultConfig = deepMerge({}, defaultConfig);
 
-    // Reconcile the new file defaults with the last-known defaults and the current user settings.
-    currentConfig = reconcileConfig(newDefaultConfig, lastLoadedConfig, currentConfig);
-
-    // Update the last loaded config to the new default structure for the next comparison.
-    lastLoadedConfig = deepMerge({}, newDefaultConfig);
+    // Re-merge the current (potentially modified by user) config on top of the new defaults
+    currentConfig = deepMerge(newDefaultConfig, currentConfig);
 
     saveCurrentConfig();
-    saveLastLoadedConfig();
     // eslint-disable-next-line no-console
-    console.log('[ConfigManager] Configuration reloaded and reconciled.');
+    console.log('[ConfigManager] Configuration reloaded.');
 }
 
 /**
@@ -158,12 +126,18 @@ export function resetConfigSection(sectionKey) {
         currentConfig = deepClone(defaultConfig);
         saveCurrentConfig();
         resetKitsConfig();
+        resetShopConfig();
         return { success: true, message: 'All configuration settings have been reset to default.' };
     }
 
     if (sectionKey === 'kits') {
         resetKitsConfig();
         return { success: true, message: 'The \'kits\' configuration section has been reset to default.' };
+    }
+
+    if (sectionKey === 'shop') {
+        resetShopConfig();
+        return { success: true, message: 'The \'shop\' configuration section has been reset to default.' };
     }
 
     if (Object.prototype.hasOwnProperty.call(defaultConfig, sectionKey)) {
