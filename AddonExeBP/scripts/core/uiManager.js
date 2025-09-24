@@ -651,36 +651,6 @@ async function handleFormResponse(player, panelId, response, context) {
             }
             return showPanel(player, panelId, { ...context, page: 1 });
         }
-        if (selection === 3) { // Edit Category
-            const shopConfig = getShopConfig();
-            const category = shopConfig.categories[categoryName];
-            if (!category) {
-                player.sendMessage("§cCategory not found.");
-                return showPanel(player, 'shopManagementPanel', context);
-            }
-            const form = new ModalFormData().title('Edit Category')
-                .textField('Category Name', 'Enter new name', { defaultValue: categoryName })
-                .textField('Icon', 'Enter icon texture path', { defaultValue: category.icon });
-            const response = await utils.uiWait(player, form);
-            if (response.canceled) { return showPanel(player, panelId, context); }
-
-            const [newName, icon] = response.formValues;
-
-            if (!newName) {
-                player.sendMessage("§cCategory name cannot be empty.");
-                return showPanel(player, panelId, context);
-            }
-
-            const result = shopAdminManager.updateCategory(categoryName, { newName, icon });
-            player.sendMessage(result.message);
-
-            if (result.success) {
-                return showPanel(player, `shopAdminCategoryPanel_${newName}`, { ...context, categoryName: newName, page: 1 });
-            } else {
-                return showPanel(player, panelId, context);
-            }
-        }
-
         const shopConfig = getShopConfig();
         const categories = Object.keys(shopConfig.categories).sort();
         const paginatedCategories = getPaginatedItems(categories, page);
@@ -786,10 +756,39 @@ if (panelId.startsWith('shopAdminSubCategoryPanel_')) {
     if (panelId.startsWith('shopAdminCategoryPanel_')) {
         const { categoryName, page = 1 } = context;
         if (selection === 0) { return showPanel(player, 'shopManagementPanel'); }
-        if (selection === 1) { // Add Item
+        if (selection === 1) { // Edit Category
+            const shopConfig = getShopConfig();
+            const category = shopConfig.categories[categoryName];
+            if (!category) {
+                player.sendMessage("§cCategory not found.");
+                return showPanel(player, 'shopManagementPanel', context);
+            }
+            const form = new ModalFormData().title('Edit Category')
+                .textField('Category Name', 'Enter new name', { defaultValue: categoryName })
+                .textField('Icon', 'Enter icon texture path', { defaultValue: category.icon });
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+
+            const [newName, icon] = response.formValues;
+
+            if (!newName) {
+                player.sendMessage("§cCategory name cannot be empty.");
+                return showPanel(player, panelId, context);
+            }
+
+            const result = shopAdminManager.updateCategory(categoryName, { newName, icon });
+            player.sendMessage(result.message);
+
+            if (result.success) {
+                return showPanel(player, `shopAdminCategoryPanel_${newName}`, { ...context, categoryName: newName, page: 1 });
+            } else {
+                return showPanel(player, panelId, context);
+            }
+        }
+        if (selection === 2) { // Add Item
             return showPanel(player, `shopAddItemSearchPanel_${categoryName}`, context);
         }
-        if (selection === 2) { // Add Subcategory
+        if (selection === 3) { // Add Subcategory
             const form = new ModalFormData().title('Add Subcategory').textField('Subcategory Name', 'Enter subcategory name').textField('Icon', 'Enter icon texture path');
             const response = await utils.uiWait(player, form);
             if (response.canceled) { return showPanel(player, panelId, context); }
@@ -1426,9 +1425,9 @@ function buildShopAdminMainPanel(form, context) {
 function buildShopAdminCategoryPanel(form, context) {
     const { categoryName, page = 1 } = context;
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    form.button('§l§eEdit Category', 'textures/ui/icon_setting');
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
     form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
-    form.button('§l§eEdit Category', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName];
