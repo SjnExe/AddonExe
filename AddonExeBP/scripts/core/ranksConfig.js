@@ -73,6 +73,20 @@ export const rankDefinitions = [
         ]
     },
     {
+        id: 'helper',
+        name: 'Helper',
+        permissionLevel: 500,
+        chatFormatting: {
+            prefixText: '§8[§eHelper§8] ',
+            nameColor: '§e',
+            messageColor: '§f'
+        },
+        nametagPrefix: '§eHelper',
+        conditions: [
+            { type: 'hasTag', value: 'helper' }
+        ]
+    },
+    {
         id: 'donator',
         name: 'Donator',
         permissionLevel: 850,
@@ -103,7 +117,7 @@ export const rankDefinitions = [
     {
         id: 'verified',
         name: 'Verified',
-        permissionLevel: 200,
+        permissionLevel: 900,
         chatFormatting: {
             prefixText: '§8[§bVerified§8] ',
             nameColor: '§b',

@@ -215,10 +215,10 @@ async function buildPanelForm(player, panelId, context) {
         const form = new ModalFormData().title('§l§2Add New Rank');
         form.textField('Rank Name', 'e.g., VIP');
         form.textField('Rank ID (tag)', 'e.g., vip (lowercase, no spaces)');
-        form.textField('Permission Level', '0-1024 (lower is more powerful)');
-        form.textField('Name Color', 'e.g., §6');
-        form.textField('Chat Color', 'e.g., §6');
-        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]');
+        form.textField('Permission Level', '0-1024 (lower is more powerful)', { defaultValue: '1024' });
+        form.textField('Name Color', 'e.g., §6', { defaultValue: '§f' });
+        form.textField('Chat Color', 'e.g., §6', { defaultValue: '§f' });
+        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: '§8[§7prefix§8]§r' });
         return form;
     }
 
@@ -239,7 +239,7 @@ async function buildPanelForm(player, panelId, context) {
         form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: rank.chatFormatting?.prefixText ?? '' });
         form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
         if (!isSpecialRank) {
-            form.submitButton('§l§cDelete Rank');
+            form.toggle('§cDelete this rank', false);
         }
         return form;
     }
@@ -1246,27 +1246,30 @@ async function handleFormResponse(player, panelId, response, context) {
         const isSpecialRank = rank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
 
         if (canceled) {
-            // If the form has a submit button, "canceled" means the user clicked it (the delete button)
-            if (!isSpecialRank) {
-                const confirmForm = new ActionFormData()
-                    .title(`§cDelete ${rank.name}?`)
-                    .body('This action cannot be undone.')
-                    .button('§cYes, Delete Rank', 'textures/ui/trash')
-                    .button('§2No, Keep Rank', 'textures/ui/cancel');
-                const confirmResponse = await utils.uiWait(player, confirmForm);
-
-                if (confirmResponse.selection === 0) {
-                    const result = rankDb.deleteRank(rank.id);
-                    player.sendMessage(result.message);
-                    if (result.success) {
-                        rankManager.reloadRanks();
-                    }
-                }
-                return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
-            }
+            return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
         }
 
-        const [name, id, permLevelStr, nameColor, chatColor, prefix] = formValues;
+        const [name, id, permLevelStr, nameColor, chatColor, prefix, nametagPrefix] = formValues;
+        const shouldDelete = !isSpecialRank && formValues[7];
+
+        if (shouldDelete) {
+            const confirmForm = new ActionFormData()
+                .title(`§cDelete ${rank.name}?`)
+                .body('This action cannot be undone.')
+                .button('§cYes, Delete Rank', 'textures/ui/trash')
+                .button('§2No, Keep Rank', 'textures/ui/cancel');
+            const confirmResponse = await utils.uiWait(player, confirmForm);
+
+            if (confirmResponse.selection === 0) {
+                const result = rankDb.deleteRank(rank.id);
+                player.sendMessage(result.message);
+                if (result.success) {
+                    rankManager.reloadRanks();
+                }
+            }
+            return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
+        }
+
         const permissionLevel = parseInt(permLevelStr, 10);
 
         if (!name) {
@@ -1291,7 +1294,7 @@ async function handleFormResponse(player, panelId, response, context) {
                 nameColor: nameColor,
                 messageColor: chatColor
             },
-            nametagPrefix: prefix
+            nametagPrefix: nametagPrefix
         };
 
         const result = rankDb.updateRank(rank.id, updatedData);
