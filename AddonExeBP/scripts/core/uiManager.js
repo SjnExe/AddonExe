@@ -211,6 +211,39 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId === 'addRankPanel') {
+        const form = new ModalFormData().title('§l§2Add New Rank');
+        form.textField('Rank Name', 'e.g., VIP');
+        form.textField('Rank ID (tag)', 'e.g., vip (lowercase, no spaces)');
+        form.textField('Permission Level', '0-1024 (lower is more powerful)');
+        form.textField('Name Color', 'e.g., §6');
+        form.textField('Chat Color', 'e.g., §6');
+        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]');
+        return form;
+    }
+
+    if (panelId === 'editRankPanel') {
+        const rank = rankManager.getRankById(context.rankId);
+        if (!rank) {
+            errorLog(`[UIManager] Edit rank panel: rank with ID ${context.rankId} not found.`);
+            return null;
+        }
+        const isSpecialRank = rank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
+
+        const form = new ModalFormData().title(`§l§3Edit Rank: ${rank.name}`);
+        form.textField('Rank Name', 'e.g., VIP', { defaultValue: rank.name });
+        form.textField('Rank ID (tag)', 'e.g., vip', { defaultValue: rank.id, disabled: isSpecialRank });
+        form.textField('Permission Level', '0-1024', { defaultValue: String(rank.permissionLevel), disabled: isSpecialRank });
+        form.textField('Name Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.nameColor ?? '' });
+        form.textField('Chat Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.messageColor ?? '' });
+        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: rank.chatFormatting?.prefixText ?? '' });
+        form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
+        if (!isSpecialRank) {
+            form.submitButton('§l§cDelete Rank');
+        }
+        return form;
+    }
+
     const panelDef = panelDefinitions[panelId];
     if (!panelDef) {
         debugLog(`[UIManager] Panel definition not found for '${panelId}'.`);
@@ -252,39 +285,6 @@ async function buildPanelForm(player, panelId, context) {
     if (panelId === 'kitManagementPanel') {
         const form = new ActionFormData().title(title);
         buildKitManagementPanel(form, context);
-        return form;
-    }
-
-    if (panelId === 'addRankPanel') {
-        const form = new ModalFormData().title('§l§2Add New Rank');
-        form.textField('Rank Name', 'e.g., VIP');
-        form.textField('Rank ID (tag)', 'e.g., vip (lowercase, no spaces)');
-        form.textField('Permission Level', '0-1024 (lower is more powerful)');
-        form.textField('Name Color', 'e.g., §6');
-        form.textField('Chat Color', 'e.g., §6');
-        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]');
-        return form;
-    }
-
-    if (panelId === 'editRankPanel') {
-        const rank = rankManager.getRankById(context.rankId);
-        if (!rank) {
-            errorLog(`[UIManager] Edit rank panel: rank with ID ${context.rankId} not found.`);
-            return null;
-        }
-        const isSpecialRank = rank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
-
-        const form = new ModalFormData().title(`§l§3Edit Rank: ${rank.name}`);
-        form.textField('Rank Name', 'e.g., VIP', { defaultValue: rank.name });
-        form.textField('Rank ID (tag)', 'e.g., vip', { defaultValue: rank.id, disabled: isSpecialRank });
-        form.textField('Permission Level', '0-1024', { defaultValue: String(rank.permissionLevel), disabled: isSpecialRank });
-        form.textField('Name Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.nameColor ?? '' });
-        form.textField('Chat Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.messageColor ?? '' });
-        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: rank.chatFormatting?.prefixText ?? '' });
-        form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
-        if (!isSpecialRank) {
-            form.submitButton('§l§cDelete Rank');
-        }
         return form;
     }
 
