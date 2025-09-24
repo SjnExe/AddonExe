@@ -105,7 +105,7 @@ function startSystemTimers() {
 function initializeAddon() {
     debugLog('[AddonExe] Initializing addon...');
 
-const newVersion = String(defaultConfig.version);
+    const newVersion = String(defaultConfig.version);
     const lastVersion = world.getDynamicProperty('exe:lastVersion');
     const isMigration = !lastVersion || lastVersion !== newVersion;
 

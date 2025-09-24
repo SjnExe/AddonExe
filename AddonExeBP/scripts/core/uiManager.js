@@ -1205,7 +1205,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const isSpecialRank = rank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
 
         if (canceled) {
-             // If the form has a submit button, "canceled" means the user clicked it (the delete button)
+            // If the form has a submit button, "canceled" means the user clicked it (the delete button)
             if (!isSpecialRank) {
                 const confirmForm = new ActionFormData()
                     .title(`§cDelete ${rank.name}?`)

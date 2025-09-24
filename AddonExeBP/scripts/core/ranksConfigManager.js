@@ -1,6 +1,7 @@
 import { world } from '@minecraft/server';
 import { rankDefinitions as defaultRanks } from './ranksConfig.js';
-import { errorLog, debugLog } from './logger.js';
+import { debugLog } from './logger.js';
+import { errorLog } from './errorLogger.js';
 import { deepMerge } from './objectUtils.js';
 
 const RANKS_CONFIG_KEY = 'exe:ranksConfig';

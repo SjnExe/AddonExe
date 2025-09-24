@@ -194,7 +194,7 @@ export function addCustomItemToConfig(itemId, itemData) {
         buyPrice: itemData.buyPrice,
         sellPrice: itemData.sellPrice,
         displayName: itemData.displayName,
-        category: 'Custom',
+        category: 'Custom'
     };
     return { success: true, message: 'Custom item added to in-memory config.' };
 }
