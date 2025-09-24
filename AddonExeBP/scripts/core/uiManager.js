@@ -120,6 +120,15 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId.startsWith('shopAdminSubCategoryPanel_')) {
+        const parts = panelId.replace('shopAdminSubCategoryPanel_', '').split('_');
+        const categoryName = parts[0];
+        const subCategoryName = parts.slice(1).join('_');
+        const form = new ActionFormData().title(`Edit: ${subCategoryName}`);
+        buildShopAdminSubCategoryPanel(form, { ...context, categoryName, subCategoryName, page: context.page || 1 });
+        return form;
+    }
+
     if (panelId.startsWith('shopAddItemSearchPanel_')) {
         const form = new ModalFormData().title('Search Item');
         form.textField('Search Query', 'Enter item name or ID');
@@ -556,7 +565,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const categoryName = panelId.replace('shopAddItemSearchPanel_', '');
         if (canceled) { return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context); }
         const [searchQuery] = formValues;
-        return showPanel(player, `shopAddItemPanel_${categoryName}`, { ...context, searchQuery });
+        return showPanel(player, `shopAddItemPanel_${categoryName}`, { ...context, searchQuery, page: 1 });
     }
 
     if (panelId.startsWith('shopAddItemPanel_')) {
@@ -642,6 +651,24 @@ async function handleFormResponse(player, panelId, response, context) {
             }
             return showPanel(player, panelId, { ...context, page: 1 });
         }
+        if (selection === 3) { // Edit Category
+            const shopConfig = getShopConfig();
+            const category = shopConfig.categories[categoryName];
+            const form = new ModalFormData().title('Edit Category')
+                .textField('Category Name', 'Enter new name', { defaultValue: categoryName })
+                .textField('Icon', 'Enter icon texture path', { defaultValue: category.icon });
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            const [newName, icon] = response.formValues;
+            if (newName) {
+                const result = shopAdminManager.updateCategory(categoryName, { newName, icon });
+                player.sendMessage(result.message);
+                if (result.success) {
+                    return showPanel(player, `shopAdminCategoryPanel_${newName}`, { ...context, categoryName: newName, page: 1 });
+                }
+            }
+            return showPanel(player, panelId, context);
+        }
 
         const shopConfig = getShopConfig();
         const categories = Object.keys(shopConfig.categories).sort();
@@ -664,6 +691,38 @@ async function handleFormResponse(player, panelId, response, context) {
             newPage++;
         }
         return showPanel(player, panelId, { ...context, page: newPage });
+    }
+
+if (panelId.startsWith('shopAdminSubCategoryPanel_')) {
+        const { categoryName, subCategoryName, page = 1 } = context;
+        if (selection === 0) { return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context); }
+        if (selection === 1) { // Add Item
+            return showPanel(player, `shopAddItemSearchPanel_${categoryName}`, { ...context, subCategoryName });
+        }
+        if (selection === 2) { // Edit Subcategory
+            const shopConfig = getShopConfig();
+            const subCategory = shopConfig.categories[categoryName]?.subCategories[subCategoryName];
+            const form = new ModalFormData().title('Edit Subcategory')
+                .textField('New Name', 'Enter new name', { defaultValue: subCategoryName })
+                .textField('Icon', 'Enter icon texture path', { defaultValue: subCategory.icon });
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            const [newName, icon] = response.formValues;
+            if (newName) {
+                const result = shopAdminManager.renameSubCategory(categoryName, subCategoryName, newName);
+                player.sendMessage(result.message);
+                if (result.success) {
+                    // we need to update the icon separately
+                    const newShopConfig = getShopConfig();
+                    newShopConfig.categories[categoryName].subCategories[newName].icon = icon;
+                    saveShopConfig();
+                    return showPanel(player, `shopAdminSubCategoryPanel_${categoryName}_${newName}`, { ...context, subCategoryName: newName, page: 1 });
+                }
+            }
+            return showPanel(player, panelId, context);
+        }
+
+        // Handle item clicks...
     }
 
     if (panelId.startsWith('shopAdminCategoryPanel_')) {
@@ -690,7 +749,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const subCategories = Object.keys(category.subCategories).sort().map(name => ({ name, ...category.subCategories[name], type: 'subCategory' }));
         const allEntries = [...items, ...subCategories];
         const paginatedEntries = getPaginatedItems(allEntries, page);
-        const selectedEntry = paginatedEntries[selection - 3];
+        const selectedEntry = paginatedEntries[selection - 4];
 
         if (selectedEntry) {
             if (selectedEntry.type === 'item') {
@@ -719,30 +778,7 @@ async function handleFormResponse(player, panelId, response, context) {
                     player.sendMessage(result.message);
                 }
             } else { // subCategory
-                const form = new ActionFormData().title('Edit Subcategory')
-                    .button('Edit', 'textures/ui/icon_setting')
-                    .button('Delete', 'textures/ui/trash');
-                const response = await utils.uiWait(player, form);
-                if (response.canceled) { return showPanel(player, panelId, context); }
-                if (response.selection === 0) { // Edit
-                    const editForm = new ModalFormData().title('Edit Subcategory')
-                        .textField('New Name', 'Enter new name', { defaultValue: selectedEntry.name })
-                        .textField('Icon', 'Enter icon texture path', { defaultValue: selectedEntry.icon });
-                    const editResponse = await utils.uiWait(player, editForm);
-                    if (editResponse.canceled) { return showPanel(player, panelId, context); }
-                    const [newName, icon] = editResponse.formValues;
-                    if (newName) {
-                        const result = shopAdminManager.renameSubCategory(categoryName, selectedEntry.name, newName);
-                        player.sendMessage(result.message);
-                        // we need to update the icon separately
-                        const shopConfig = getShopConfig();
-                        shopConfig.categories[categoryName].subCategories[newName].icon = icon;
-                        saveShopConfig();
-                    }
-                } else { // Delete
-                    const result = shopAdminManager.deleteSubCategory(categoryName, selectedEntry.name);
-                    player.sendMessage(result.message);
-                }
+                return showPanel(player, `shopAdminSubCategoryPanel_${categoryName}_${selectedEntry.name}`, { ...context, subCategoryName: selectedEntry.name, page: 1 });
             }
             return showPanel(player, panelId, { ...context, page: 1 });
         }
@@ -751,7 +787,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const totalPages = Math.ceil(allEntries.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        let buttonIndex = selection - 3 - paginatedEntries.length;
+let buttonIndex = selection - 4 - paginatedEntries.length;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;
@@ -1334,6 +1370,7 @@ function buildShopAdminCategoryPanel(form, context) {
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
     form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
+    form.button('§l§eEdit Category', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName];
@@ -1382,6 +1419,33 @@ function buildShopAddItemPanel(form, context) {
     }
 
     addPaginationButtons(form, page, allPossibleItems.length);
+}
+
+function buildShopAdminSubCategoryPanel(form, context) {
+    const { categoryName, subCategoryName, page = 1 } = context;
+    form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    form.button('§l§2+ Add Item', 'textures/ui/color_plus');
+    form.button('§l§eEdit Subcategory', 'textures/ui/icon_setting');
+
+    const shopConfig = getShopConfig();
+    const subCategory = shopConfig.categories[categoryName]?.subCategories[subCategoryName];
+
+    if (!subCategory) {
+        form.body('§cSubcategory not found.');
+        return;
+    }
+
+    const items = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
+    const paginatedItems = getPaginatedItems(items, page);
+
+    for (const item of paginatedItems) {
+        const masterItem = allItems[item.id] || {};
+        const displayName = item.displayName || masterItem.displayName || item.id;
+        const icon = item.icon || masterItem.icon;
+        form.button(displayName, icon);
+    }
+
+    addPaginationButtons(form, page, items.length);
 }
 
 

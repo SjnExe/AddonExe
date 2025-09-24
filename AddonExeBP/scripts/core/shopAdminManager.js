@@ -31,21 +31,30 @@ export function addCategory(categoryName, icon) {
  * @param {string} newCategoryName - The new name for the category.
  * @returns {{success: boolean, message: string}} - The result of the operation.
  */
-export function renameCategory(oldCategoryName, newCategoryName) {
+export function updateCategory(oldCategoryName, { newName, icon }) {
     const config = getShopConfig();
-    if (!config.categories[oldCategoryName]) {
+    const category = config.categories[oldCategoryName];
+    if (!category) {
         return { success: false, message: `Category '${oldCategoryName}' not found.` };
     }
-    if (config.categories[newCategoryName]) {
-        return { success: false, message: `A category with the name '${newCategoryName}' already exists.` };
+
+    if (newName && oldCategoryName !== newName) {
+        if (config.categories[newName]) {
+            return { success: false, message: `A category with the name '${newName}' already exists.` };
+        }
+        config.categories[newName] = category;
+        delete config.categories[oldCategoryName];
+        debugLog(`[ShopAdminManager] Renamed category from '${oldCategoryName}' to '${newName}'.`);
     }
 
-    config.categories[newCategoryName] = config.categories[oldCategoryName];
-    delete config.categories[oldCategoryName];
+    const finalCategoryName = newName || oldCategoryName;
+    if (icon) {
+        config.categories[finalCategoryName].icon = icon;
+        debugLog(`[ShopAdminManager] Updated icon for category '${finalCategoryName}'.`);
+    }
 
     saveShopConfig();
-    debugLog(`[ShopAdminManager] Renamed category from '${oldCategoryName}' to '${newCategoryName}'.`);
-    return { success: true, message: `Successfully renamed category to '${newCategoryName}'.` };
+    return { success: true, message: `Successfully updated category '${finalCategoryName}'.` };
 }
 
 /**
