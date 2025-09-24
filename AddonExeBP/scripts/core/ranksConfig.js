@@ -117,7 +117,7 @@ export const rankDefinitions = [
     {
         id: 'verified',
         name: 'Verified',
-        permissionLevel: 900,
+        permissionLevel: 700,
         chatFormatting: {
             prefixText: '§8[§bVerified§8] ',
             nameColor: '§b',
