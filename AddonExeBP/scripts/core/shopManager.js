@@ -35,7 +35,7 @@ function createShopItemStack(itemInfo, quantity) {
                 });
             }
         } catch (e) {
-            errorLog(`[ShopManager] Failed to apply enchantment for ${itemId}:`, e);
+            errorLog(`[ShopManager] Failed to apply enchantment for ${itemInfo.itemId}:`, e);
         }
     }
 

@@ -1,11 +1,9 @@
 import { world } from '@minecraft/server';
 import { shopConfig as defaultShopConfig } from './shopConfig.js';
-import { config as mainDefaultConfig } from '../config.js'; // Import main config
 import { errorLog } from './errorLogger.js';
 import { deepMerge } from './objectUtils.js';
 
 const currentShopConfigKey = 'exe:shopConfig:current';
-const lastLoadedShopConfigKey = 'exe:shopConfig:lastLoaded';
 
 let currentShopConfig = null;
 

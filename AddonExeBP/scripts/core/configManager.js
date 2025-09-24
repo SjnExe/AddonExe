@@ -1,13 +1,12 @@
 import { world } from '@minecraft/server';
 import { config as defaultConfig } from '../config.js';
 import { errorLog } from './errorLogger.js';
-import { deepClone, deepEqual, deepMerge, setValueByPath, reconcileConfig } from './objectUtils.js';
+import { deepClone, deepMerge, setValueByPath } from './objectUtils.js';
 import { resetKitsConfig } from './kitsConfigManager.js';
 import { resetShopConfig } from './shopConfigManager.js';
 import { resetRanksConfig } from './ranksConfigManager.js';
 
 const currentConfigKey = 'exe:config:current';
-const lastLoadedConfigKey = 'exe:config:lastLoaded';
 
 let currentConfig = null;
 

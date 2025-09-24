@@ -1,12 +1,10 @@
 import { world } from '@minecraft/server';
 import { kitsConfig as defaultKitsConfig } from './kitsConfig.js';
-import { config as mainDefaultConfig } from '../config.js';
 import { errorLog } from './errorLogger.js';
 import { debugLog } from './logger.js';
 import { deepMerge, deepClone } from './objectUtils.js';
 
 const currentKitsConfigKey = 'exe:kitsConfig:current';
-const lastLoadedKitsConfigKey = 'exe:kitsConfig:lastLoaded';
 
 let currentKitsConfig = null;
 
