@@ -654,20 +654,31 @@ async function handleFormResponse(player, panelId, response, context) {
         if (selection === 3) { // Edit Category
             const shopConfig = getShopConfig();
             const category = shopConfig.categories[categoryName];
+            if (!category) {
+                player.sendMessage("§cCategory not found.");
+                return showPanel(player, 'shopManagementPanel', context);
+            }
             const form = new ModalFormData().title('Edit Category')
                 .textField('Category Name', 'Enter new name', { defaultValue: categoryName })
                 .textField('Icon', 'Enter icon texture path', { defaultValue: category.icon });
             const response = await utils.uiWait(player, form);
             if (response.canceled) { return showPanel(player, panelId, context); }
+
             const [newName, icon] = response.formValues;
-            if (newName) {
-                const result = shopAdminManager.updateCategory(categoryName, { newName, icon });
-                player.sendMessage(result.message);
-                if (result.success) {
-                    return showPanel(player, `shopAdminCategoryPanel_${newName}`, { ...context, categoryName: newName, page: 1 });
-                }
+
+            if (!newName) {
+                player.sendMessage("§cCategory name cannot be empty.");
+                return showPanel(player, panelId, context);
             }
-            return showPanel(player, panelId, context);
+
+            const result = shopAdminManager.updateCategory(categoryName, { newName, icon });
+            player.sendMessage(result.message);
+
+            if (result.success) {
+                return showPanel(player, `shopAdminCategoryPanel_${newName}`, { ...context, categoryName: newName, page: 1 });
+            } else {
+                return showPanel(player, panelId, context);
+            }
         }
 
         const shopConfig = getShopConfig();
