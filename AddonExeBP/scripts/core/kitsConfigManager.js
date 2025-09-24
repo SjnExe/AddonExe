@@ -3,7 +3,7 @@ import { kitsConfig as defaultKitsConfig } from './kitsConfig.js';
 import { config as mainDefaultConfig } from '../config.js';
 import { errorLog } from './errorLogger.js';
 import { debugLog } from './logger.js';
-import { deepMerge } from './objectUtils.js';
+import { deepMerge, deepClone } from './objectUtils.js';
 
 const currentKitsConfigKey = 'exe:kitsConfig:current';
 const lastLoadedKitsConfigKey = 'exe:kitsConfig:lastLoaded';
@@ -14,46 +14,31 @@ let currentKitsConfig = null;
  * Loads the kits configuration from world dynamic properties.
  * This should be called once at startup from main.js.
  */
-export function initializeLiveKits() {
+export function loadKitsConfig(isMigration) {
     const newDefaultConfig = deepMerge({}, defaultKitsConfig);
 
     const userSavedConfigStr = world.getDynamicProperty(currentKitsConfigKey);
-    const lastLoadedConfigStr = world.getDynamicProperty(lastLoadedKitsConfigKey);
 
     if (!userSavedConfigStr) {
-        // Scenario: First-time initialization for the kits.
-        currentKitsConfig = deepMerge({}, newDefaultConfig);
+        currentKitsConfig = newDefaultConfig;
         errorLog('[KitsConfigManager] No saved kits config found. Initializing with default values.');
     } else {
-        // Scenario: Subsequent startup. Load the user's saved config.
         let userSavedConfig;
         try {
             userSavedConfig = JSON.parse(userSavedConfigStr);
         } catch (e) {
             errorLog('[KitsConfigManager] Failed to parse user-saved kits config. It will be reset.', e);
-            userSavedConfig = deepMerge({}, newDefaultConfig);
+            userSavedConfig = newDefaultConfig;
         }
 
-        let lastLoadedMainConfig;
-        try {
-            lastLoadedMainConfig = lastLoadedConfigStr ? JSON.parse(lastLoadedConfigStr) : null;
-        } catch {
-            errorLog('[KitsConfigManager] Could not parse last loaded main config version.');
-            lastLoadedMainConfig = null;
-        }
-
-        // The user's saved config is the source of truth.
         currentKitsConfig = userSavedConfig;
 
-        // On addon update, we should merge in new kits from the default config
-        // without overwriting existing, user-modified kits.
-        if (!lastLoadedMainConfig || lastLoadedMainConfig.version !== mainDefaultConfig.version) {
+        if (isMigration) {
             errorLog('[KitsConfigManager] Addon update detected. Merging new default kits into user config.');
             const userKits = userSavedConfig.kitDefinitions || {};
             const defaultKits = newDefaultConfig.kitDefinitions || {};
             for (const kitName in defaultKits) {
                 if (!Object.prototype.hasOwnProperty.call(userKits, kitName)) {
-                    // This is a new kit from the update, add it to the user's config.
                     userKits[kitName] = defaultKits[kitName];
                     debugLog(`[KitsConfigManager] Added new default kit: ${kitName}`);
                 }
@@ -62,15 +47,7 @@ export function initializeLiveKits() {
         }
     }
 
-    const lastLoadedConfigToSave = { version: mainDefaultConfig.version };
-
     saveKitsConfig();
-
-    try {
-        world.setDynamicProperty(lastLoadedKitsConfigKey, JSON.stringify(lastLoadedConfigToSave));
-    } catch (e) {
-        errorLog('[KitsConfigManager] Failed to save last loaded kits config.', e);
-    }
 }
 
 /**
@@ -79,7 +56,7 @@ export function initializeLiveKits() {
  */
 export function getKitsConfig() {
     if (!currentKitsConfig) {
-        initializeLiveKits();
+        loadKitsConfig();
     }
     return currentKitsConfig;
 }
@@ -97,4 +74,13 @@ export function saveKitsConfig() {
     } catch (e) {
         errorLog('[KitsConfigManager] Failed to save current kits config.', e);
     }
+}
+
+/**
+ * Resets the kits configuration to its default values.
+ */
+export function resetKitsConfig() {
+    currentKitsConfig = deepClone(defaultKitsConfig);
+    saveKitsConfig();
+    debugLog('[KitsConfigManager] Kits configuration has been reset to default.');
 }

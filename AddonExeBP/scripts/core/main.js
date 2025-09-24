@@ -1,7 +1,8 @@
 import { world, system } from '@minecraft/server';
+import { config as defaultConfig } from '../config.js';
 import { loadConfig, getConfig, updateConfig, reloadConfig } from './configManager.js';
 import { loadShopConfig } from './shopConfigManager.js';
-import { initializeLiveKits } from './kitsConfigManager.js';
+import { loadKitsConfig } from './kitsConfigManager.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
@@ -102,12 +103,21 @@ function startSystemTimers() {
  */
 function initializeAddon() {
     debugLog('[AddonExe] Initializing addon...');
-    const isFirstInit = loadConfig();
-    loadShopConfig();
-    initializeLiveKits();
-    if (!isFirstInit) {
+
+const newVersion = String(defaultConfig.version);
+    const lastVersion = world.getDynamicProperty('exe:lastVersion');
+    const isMigration = !lastVersion || lastVersion !== newVersion;
+
+    const isFirstInit = loadConfig(isMigration);
+    loadKitsConfig(isMigration);
+    loadShopConfig(isMigration);
+
+    if (!isFirstInit && !isMigration) {
         reloadConfig();
     }
+
+    world.setDynamicProperty('exe:lastVersion', newVersion);
+
     dataManager.initializeDataManager();
     loadPersistentData();
     initializeManagers();

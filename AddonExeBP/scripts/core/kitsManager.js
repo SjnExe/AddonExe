@@ -4,6 +4,7 @@ import { getConfig } from './configManager.js';
 import { getKitsConfig } from './kitsConfigManager.js';
 import * as economyManager from './economyManager.js';
 import { errorLog } from './errorLogger.js';
+import { formatCooldown } from './utils.js';
 
 /**
  * Gets the definition of a kit from the config.
@@ -19,9 +20,9 @@ export function getKit(kitName) {
 }
 
 /**
- * Lists the names of all available and enabled kits for a given player.
+ * Lists all available and enabled kits for a given player.
  * @param {import('@minecraft/server').Player} player The player to check permissions for.
- * @returns {string[]}
+ * @returns {{name: string, icon: string, price: number, cooldown: number}[]}
  */
 export function listKits(player) {
     const mainConfig = getConfig();
@@ -34,13 +35,22 @@ export function listKits(player) {
     if (!pData) { return []; }
 
     const kitDefs = kitsConfig.kitDefinitions;
-    return Object.keys(kitDefs).filter(kitName => {
-        const kit = kitDefs[kitName];
-        if (!kit.enabled) { return false; }
-        // If permissionLevel is not defined or null, it's available to everyone.
-        const requiredPermission = kit.permissionLevel ?? 1024;
-        return pData.permissionLevel <= requiredPermission;
-    });
+    return Object.keys(kitDefs)
+        .filter(kitName => {
+            const kit = kitDefs[kitName];
+            if (!kit.enabled) { return false; }
+            const requiredPermission = kit.permissionLevel ?? 1024;
+            return pData.permissionLevel <= requiredPermission;
+        })
+        .map(kitName => {
+            const kit = kitDefs[kitName];
+            return {
+                name: kitName,
+                icon: kit.icon,
+                price: kit.price,
+                cooldown: getKitCooldown(player, kitName)
+            };
+        });
 }
 
 /**
@@ -100,7 +110,7 @@ export function giveKit(player, kitName) {
 
     const remainingCooldown = getKitCooldown(player, lowerCaseKitName);
     if (remainingCooldown > 0) {
-        return { success: false, message: `You must wait ${remainingCooldown} more seconds to claim this kit.` };
+        return { success: false, message: `You must wait ${formatCooldown(remainingCooldown)} more to claim this kit.` };
     }
 
     // Check for price

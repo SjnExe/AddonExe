@@ -3,7 +3,7 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { panelDefinitions } from './panelLayoutConfig.js';
 import { configPanelSchema } from './configPanelSchema.js';
 import { getPlayer, loadPlayerData, getAllPlayerNameIdMap } from './playerDataManager.js';
-import { getConfig, updateMultipleConfig } from './configManager.js';
+import { getConfig, updateMultipleConfig, resetConfigSection } from './configManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import * as rankManager from './rankManager.js';
@@ -21,10 +21,10 @@ import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 import * as shopManager from './shopManager.js';
 import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
-import { shopCategoryIcons, shopSubCategoryIcons } from './shopCategoryConfig.js';
 import { getKitsConfig, saveKitsConfig } from './kitsConfigManager.js';
 import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from './kitAdminManager.js';
 import { addItemToKit, updateItemInKit } from './kitItemsManager.js';
+import * as shopAdminManager from './shopAdminManager.js';
 
 
 const itemsPerPage = 8; // Number of items to show per page in the shop
@@ -106,11 +106,32 @@ async function buildPanelForm(player, panelId, context) {
         buildShopItemListPanel(form, { ...context, category, subCategory, page: context.page || 1 });
         return form;
     }
-    if (panelId.startsWith('editShopCategoryPanel_')) {
-        const category = panelId.replace('editShopCategoryPanel_', '');
-        const form = new ActionFormData().title(`§l§eEdit - ${category}`);
-        form.button('§l§8< Back', 'textures/gui/controls/left.png');
-        buildEditShopCategoryPanel(form, { ...context, category, page: context.page || 1 });
+
+    if (panelId.startsWith('shopAdminCategoryPanel_')) {
+        const categoryName = panelId.replace('shopAdminCategoryPanel_', '');
+        const form = new ActionFormData().title(`Edit: ${categoryName}`);
+        buildShopAdminCategoryPanel(form, { ...context, categoryName, page: context.page || 1 });
+        return form;
+    }
+
+    if (panelId.startsWith('shopAddItemPanel_')) {
+        const form = new ActionFormData().title('Add Item');
+        buildShopAddItemPanel(form, { ...context, page: context.page || 1 });
+        return form;
+    }
+
+    if (panelId.startsWith('shopAdminSubCategoryPanel_')) {
+        const parts = panelId.replace('shopAdminSubCategoryPanel_', '').split('_');
+        const categoryName = parts[0];
+        const subCategoryName = parts.slice(1).join('_');
+        const form = new ActionFormData().title(`Edit: ${subCategoryName}`);
+        buildShopAdminSubCategoryPanel(form, { ...context, categoryName, subCategoryName, page: context.page || 1 });
+        return form;
+    }
+
+    if (panelId.startsWith('shopAddItemSearchPanel_')) {
+        const form = new ModalFormData().title('Search Item');
+        form.textField('Search Query', 'Enter item name or ID');
         return form;
     }
 
@@ -156,6 +177,8 @@ async function buildPanelForm(player, panelId, context) {
             .title(`Edit Settings: ${kitName}`)
             .toggle('Enabled', { defaultValue: kit.enabled })
             .textField('Name', 'The name of the kit.', { defaultValue: kitName })
+            .textField('Description', 'A short description of the kit.', { defaultValue: kit.description || '' })
+            .textField('Icon', 'Texture path for the icon (e.g., textures/items/diamond_sword).', { defaultValue: kit.icon || '' })
             .textField('Cooldown (seconds)', 'Time between uses.', { defaultValue: String(kit.cooldownSeconds) })
             .textField('Permission Level', '0=Admin, 1024=Member.', { defaultValue: String(kit.permissionLevel) })
             .textField('Price', 'Cost to claim the kit.', { defaultValue: String(kit.price || 0) });
@@ -226,10 +249,11 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
     // --- Admin Edit Shop Panels ---
-    if (panelId === 'editShopMainPanel') {
+    if (panelId === 'shopManagementPanel') {
+        const panelDef = panelDefinitions[panelId];
+        const title = panelDef.title;
         const form = new ActionFormData().title(title);
-        form.button('§l§8< Back', 'textures/gui/controls/left.png');
-        buildEditShopMainPanel(form);
+        buildShopAdminMainPanel(form, context);
         return form;
     }
 
@@ -245,10 +269,37 @@ async function buildPanelForm(player, panelId, context) {
         for (const category of configPanelSchema) {
             form.button(category.title, category.icon);
         }
-        // Manually add the Kit Management button for admins
         if (pData.permissionLevel <= 1) {
             form.button('§l§dKit System§r', 'textures/ui/inventory_icon');
+            form.button('§l§2Shop System§r', 'textures/items/emerald');
         }
+        if (pData.permissionLevel === 0) {
+            form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
+        }
+        return form;
+    }
+
+    if (panelId === 'configResetPanel') {
+        const page = context.page || 1;
+        const form = new ActionFormData().title(`${title} (Page ${page})`);
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+        const resettableSystems = [
+            ...configPanelSchema.map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+            { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
+            { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' }
+        ];
+        const paginatedSystems = getPaginatedItems(resettableSystems, page);
+
+        for (const system of paginatedSystems) {
+            form.button(`§cReset ${system.title}`, system.icon);
+        }
+
+        if (page >= Math.ceil(resettableSystems.length / itemsPerPage)) {
+            form.button('§l§cReset All Systems', 'textures/ui/trash');
+        }
+
+        addPaginationButtons(form, page, resettableSystems.length);
         return form;
     }
 
@@ -285,22 +336,110 @@ async function handleFormResponse(player, panelId, response, context) {
     if (panelId === 'shopMainPanel') {
         if (selection === 0) { return showPanel(player, 'mainPanel'); }
         const shopConfig = getShopConfig();
-        const view = context.view || 'shop';
-        const categories = [...new Set(Object.keys(shopConfig.items).map(id => allItems[id]?.category).filter(Boolean))];
-        const validCategories = categories.filter(category => {
-            return Object.keys(shopConfig.items).some(id => {
-                const masterItem = allItems[id];
-                if (masterItem?.category !== category) {return false;}
-                const shopItem = shopConfig.items[id];
-                if (view === 'buy') {return shopItem.buyPrice > 0;}
-                if (view === 'sell') {return shopItem.sellPrice > 0;}
-                return true;
-            });
-        });
-        const selectedCategory = validCategories[selection - 1];
-        if (selectedCategory) {
-            return showPanel(player, `shopCategoryPanel_${selectedCategory}`, context);
+        const validCategories = Object.keys(shopConfig.categories).filter(categoryName => {
+            const category = shopConfig.categories[categoryName];
+            const hasItems = Object.keys(category.items).length > 0;
+            const hasSubCategories = Object.keys(category.subCategories).length > 0;
+            return hasItems || hasSubCategories;
+        }).sort();
+        const selectedCategoryName = validCategories[selection - 1];
+        if (selectedCategoryName) {
+            return showPanel(player, `shopCategoryPanel_${selectedCategoryName}`, { ...context, categoryName: selectedCategoryName });
         }
+        return;
+    }
+
+    if (panelId === 'configResetPanel') {
+        const page = context.page || 1;
+        const resettableSystems = [
+            ...configPanelSchema.map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+            { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
+            { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' }
+        ];
+
+        if (selection === 0) { // Back button
+            return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
+        }
+
+        const paginatedSystems = getPaginatedItems(resettableSystems, page);
+        const selectionIndex = selection - 1;
+
+        if (selectionIndex < paginatedSystems.length) {
+            const selectedSystem = paginatedSystems[selectionIndex];
+            const confirmForm = new ActionFormData()
+                .title(`Confirm Reset: ${selectedSystem.title}`)
+                .body(`This action cannot be undone. Are you sure you want to reset the ${selectedSystem.title} configuration to its default values?`)
+                .button('§cYes, Reset', 'textures/ui/check')
+                .button('§2No, Cancel', 'textures/ui/cancel');
+
+            const confirmResponse = await utils.uiWait(player, confirmForm);
+            if (confirmResponse.canceled || confirmResponse.selection === 1) {
+                player.sendMessage('§aReset canceled.');
+                return showPanel(player, 'configResetPanel', { ...context, page });
+            }
+
+            const finalConfirmForm = new ModalFormData()
+                .title('Final Confirmation')
+                .textField(`Type "confirm" to reset ${selectedSystem.title}.`, 'Case-insensitive');
+
+            const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
+
+            if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].toLowerCase() !== 'confirm') {
+                player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                return showPanel(player, 'configResetPanel', { ...context, page });
+            }
+
+            const result = resetConfigSection(selectedSystem.id);
+            player.sendMessage(`§a${result.message}`);
+            return showPanel(player, 'configResetPanel', { ...context, page: 1 });
+        }
+
+        let buttonIndex = selectionIndex - paginatedSystems.length;
+
+        const totalPages = Math.ceil(resettableSystems.length / itemsPerPage);
+
+        if (page >= totalPages) {
+            if (buttonIndex === 0) {
+                const confirmForm = new ActionFormData()
+                    .title('Confirm Reset All')
+                    .body('This action cannot be undone. Are you sure you want to reset ALL system configurations to their default values?')
+                    .button('§cYes, Reset All', 'textures/ui/trash')
+                    .button('§2No, Cancel', 'textures/ui/cancel');
+
+                const confirmResponse = await utils.uiWait(player, confirmForm);
+                if (confirmResponse.canceled || confirmResponse.selection === 1) {
+                    player.sendMessage('§aReset canceled.');
+                    return showPanel(player, 'configResetPanel', { ...context, page });
+                }
+
+                const finalConfirmForm = new ModalFormData()
+                    .title('Final Confirmation')
+                    .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive');
+
+                const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
+
+                if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].toLowerCase() !== 'confirm') {
+                    player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                    return showPanel(player, 'configResetPanel', { ...context, page });
+                }
+
+                const result = resetConfigSection('all');
+                player.sendMessage(`§a${result.message}`);
+                return showPanel(player, 'configResetPanel', { ...context, page: 1 });
+            }
+            buttonIndex--;
+        }
+
+        // Handle pagination
+        const hasPrev = page > 1;
+
+        if (hasPrev && buttonIndex === 0) {
+            return showPanel(player, panelId, { ...context, page: page - 1 });
+        }
+        if (buttonIndex >= 0) { // Should be next page
+            return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+
         return;
     }
 
@@ -309,44 +448,27 @@ async function handleFormResponse(player, panelId, response, context) {
         const prefix = isItemList ? 'shopItemListPanel_' : 'shopCategoryPanel_';
         const rawId = panelId.replace(prefix, '');
         const parts = rawId.split('_');
-        const category = parts[0];
-        const subCategory = isItemList ? parts.slice(1).join('_') : undefined;
+        const categoryName = parts[0];
+        const subCategoryName = isItemList ? parts.slice(1).join('_') : undefined;
         const page = context.page || 1;
         const view = context.view || 'shop';
 
         if (selection === 0) { // Back button
-            const parentPanel = isItemList ? `shopCategoryPanel_${category}` : 'shopMainPanel';
+            const parentPanel = isItemList ? `shopCategoryPanel_${categoryName}` : 'shopMainPanel';
             return showPanel(player, parentPanel, { ...context, page: 1 });
         }
 
         // Reconstruct the list of entries that was shown to the player
         const shopConfig = getShopConfig();
+        const category = shopConfig.categories[categoryName];
         let allEntries = [];
         if (isItemList) {
-            const itemsInSubCategory = Object.keys(shopConfig.items).filter(id => {
-                const masterItem = allItems[id];
-                if (masterItem?.category !== category || masterItem?.subCategory !== subCategory) {return false;}
-                const shopItem = shopConfig.items[id];
-                if (view === 'buy') {return shopItem.buyPrice > 0;}
-                if (view === 'sell') {return shopItem.sellPrice > 0;}
-                return true;
-            });
-            allEntries = itemsInSubCategory.map(i => ({ id: i, type: 'item' }));
+            const subCategory = category.subCategories[subCategoryName];
+            allEntries = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
         } else { // shopCategoryPanel
-            const itemsInCategory = Object.keys(shopConfig.items).filter(id => {
-                const masterItem = allItems[id];
-                if (masterItem?.category !== category) {return false;}
-                const shopItem = shopConfig.items[id];
-                if (view === 'buy') {return shopItem.buyPrice > 0;}
-                if (view === 'sell') {return shopItem.sellPrice > 0;}
-                return true;
-            });
-            const subCategories = [...new Set(itemsInCategory.map(id => allItems[id].subCategory).filter(Boolean))];
-            const rootItems = itemsInCategory.filter(id => !allItems[id].subCategory);
-            allEntries = [
-                ...subCategories.map(sc => ({ id: sc, type: 'subCategory' })),
-                ...rootItems.map(i => ({ id: i, type: 'item' }))
-            ];
+            const subCategories = Object.keys(category.subCategories).sort().map(name => ({ name, ...category.subCategories[name], type: 'subCategory' }));
+            const items = Object.keys(category.items).map(id => ({ id, ...category.items[id], type: 'item' }));
+            allEntries = [...subCategories, ...items];
         }
 
         const paginatedEntries = getPaginatedItems(allEntries, page);
@@ -371,13 +493,13 @@ async function handleFormResponse(player, panelId, response, context) {
         const selectedEntry = paginatedEntries[selectionIndex];
 
         if (selectedEntry.type === 'subCategory') {
-            return showPanel(player, `shopItemListPanel_${category}_${selectedEntry.id}`, { ...context, page: 1 });
+            return showPanel(player, `shopItemListPanel_${categoryName}_${selectedEntry.name}`, { ...context, categoryName, subCategoryName: selectedEntry.name, page: 1 });
         }
 
         // It's an item
         const itemId = selectedEntry.id;
         const masterItem = allItems[itemId];
-        const shopItem = shopConfig.items[itemId];
+        const shopItem = selectedEntry;
 
         const canBuy = view !== 'sell' && shopItem.buyPrice > 0;
         const canSell = view !== 'buy' && shopItem.sellPrice > 0;
@@ -439,73 +561,297 @@ async function handleFormResponse(player, panelId, response, context) {
     }
 
     // --- Admin Edit Shop Panel Handlers ---
-    if (panelId === 'editShopMainPanel') {
-        if (selection === 0) { return showPanel(player, 'mainPanel'); }
-        const categories = [...new Set(Object.values(allItems).map(item => item.category))].sort();
-        const selectedCategory = categories[selection - 1];
-        if (selectedCategory) {
-            return showPanel(player, `editShopCategoryPanel_${selectedCategory}`, context);
-        }
-        return;
+    if (panelId.startsWith('shopAddItemSearchPanel_')) {
+        const categoryName = panelId.replace('shopAddItemSearchPanel_', '');
+        if (canceled) { return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context); }
+        const [searchQuery] = formValues;
+        return showPanel(player, `shopAddItemPanel_${categoryName}`, { ...context, searchQuery, page: 1 });
     }
 
-    if (panelId.startsWith('editShopCategoryPanel_')) {
-        if (selection === 0) { return showPanel(player, 'editShopMainPanel'); }
-        const category = panelId.replace('editShopCategoryPanel_', '');
-        const page = context.page || 1;
-        const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
-        const paginatedItems = getPaginatedItems(itemsInCategory, page);
+    if (panelId.startsWith('shopAddItemPanel_')) {
+        const categoryName = panelId.replace('shopAddItemPanel_', '');
+        const { page = 1 } = context;
+        if (selection === 0) { return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context); }
 
-        const selectionIndex = selection - 1;
-
-        // Handle pagination
-        if (selectionIndex >= paginatedItems.length) {
-            let newPage = page;
-            const totalPages = Math.ceil(itemsInCategory.length / itemsPerPage);
-            const hasPrev = page > 1;
-            const hasNext = page < totalPages;
-            let buttonIndex = selectionIndex - paginatedItems.length;
-
-            if (hasPrev && buttonIndex === 0) {
-                newPage--;
-            } else if (hasNext) {
-                newPage++;
-            }
-            return showPanel(player, panelId, { ...context, page: newPage });
-        }
-
-        const selectedItem = paginatedItems[selectionIndex];
-        if (selectedItem) {
-            const masterItem = allItems[selectedItem];
-            const shopConfig = getShopConfig();
-            const shopItem = shopConfig.items[selectedItem];
-
-            const editForm = new ModalFormData().title(masterItem.displayName ?? selectedItem);
-            editForm.toggle('Enable in Shop', { defaultValue: !!shopItem });
-            editForm.textField('Buy Price (-1 to disable)', 'Buy Price', { defaultValue: `${shopItem?.buyPrice ?? masterItem.buyPrice}` });
-            editForm.textField('Sell Price (-1 to disable)', 'Sell Price', { defaultValue: `${shopItem?.sellPrice ?? masterItem.sellPrice}` });
-
-            const editResponse = await utils.uiWait(player, editForm);
-            if (editResponse.canceled) { return showPanel(player, panelId, context); }
-
-            const [enabled, buyPriceStr, sellPriceStr] = editResponse.formValues;
+        if (selection === 1) { // Add Custom Item
+            const form = new ModalFormData().title('Add Custom Item')
+                .textField('Item ID (unique key)', 'e.g., custom_sword')
+                .textField('Display Name', 'e.g., Sword of Awesome')
+                .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword')
+                .textField('Icon Path', 'e.g., textures/items/diamond_sword')
+                .textField('Buy Price', '-1 to disable', { defaultValue: '-1' })
+                .textField('Sell Price', '-1 to disable', { defaultValue: '-1' })
+                .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            const [customId, displayName, mcId, icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues;
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
+            const permissionLevel = parseInt(permLevelStr, 10);
 
-            if (isNaN(buyPrice) || isNaN(sellPrice)) {
-                player.sendMessage('§cInvalid price. Please enter a number.');
+            if (customId && displayName && mcId && icon && !isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
+                shopAdminManager.addCustomItemToConfig(customId, { itemId: mcId, icon, buyPrice, sellPrice, displayName });
+                shopAdminManager.setItem(categoryName, null, customId, { buyPrice, sellPrice, permissionLevel, icon, displayName });
+                player.sendMessage(`§aSuccessfully added custom item '${displayName}'.`);
+            } else {
+                player.sendMessage('§cInvalid custom item data.');
+            }
+            return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
+        }
+
+        const allPossibleItems = Object.keys(allItems);
+        const paginatedItems = getPaginatedItems(allPossibleItems, page);
+        const selectedItemId = paginatedItems[selection - 2];
+
+        if (selectedItemId) {
+            const masterItem = allItems[selectedItemId];
+            const form = new ModalFormData().title(`Add ${masterItem.displayName}`)
+                .textField('Icon Path', 'e.g., textures/items/diamond_sword', { defaultValue: masterItem.icon })
+                .textField('Buy Price', '-1 to disable', { defaultValue: `${masterItem.buyPrice}` })
+                .textField('Sell Price', '-1 to disable', { defaultValue: `${masterItem.sellPrice}` })
+                .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            const [icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues;
+            const buyPrice = parseInt(buyPriceStr, 10);
+            const sellPrice = parseInt(sellPriceStr, 10);
+            const permissionLevel = parseInt(permLevelStr, 10);
+            if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
+                const result = shopAdminManager.setItem(categoryName, null, selectedItemId, { buyPrice, sellPrice, permissionLevel, icon });
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
+        }
+        // Handle pagination
+        let newPage = page;
+        const totalPages = Math.ceil(allPossibleItems.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+        let buttonIndex = selection - 2 - paginatedItems.length;
+
+        if (hasPrev && buttonIndex === 0) {
+            newPage--;
+        } else if (hasNext) {
+            newPage++;
+        }
+        return showPanel(player, panelId, { ...context, page: newPage });
+    }
+
+    if (panelId === 'shopManagementPanel') {
+        const page = context.page || 1;
+        if (selection === 0) { return showPanel(player, 'configCategoryPanel'); }
+        if (selection === 1) { // Add Category
+            const form = new ModalFormData().title('Add Category').textField('Category Name', 'Enter category name').textField('Icon', 'Enter icon texture path');
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            const [name, icon] = response.formValues;
+            if (name) {
+                const result = shopAdminManager.addCategory(name, icon);
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, panelId, { ...context, page: 1 });
+        }
+        const shopConfig = getShopConfig();
+        const categories = Object.keys(shopConfig.categories).sort();
+        const paginatedCategories = getPaginatedItems(categories, page);
+        const selectedCategoryName = paginatedCategories[selection - 2];
+
+        if (selectedCategoryName) {
+            return showPanel(player, `shopAdminCategoryPanel_${selectedCategoryName}`, { ...context, categoryName: selectedCategoryName });
+        }
+        // Handle pagination
+        let newPage = page;
+        const totalPages = Math.ceil(categories.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+        let buttonIndex = selection - 2 - paginatedCategories.length;
+
+        if (hasPrev && buttonIndex === 0) {
+            newPage--;
+        } else if (hasNext) {
+            newPage++;
+        }
+        return showPanel(player, panelId, { ...context, page: newPage });
+    }
+
+if (panelId.startsWith('shopAdminSubCategoryPanel_')) {
+        const { categoryName, subCategoryName, page = 1 } = context;
+        if (selection === 0) { return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context); }
+        if (selection === 1) { // Add Item
+            return showPanel(player, `shopAddItemSearchPanel_${categoryName}`, { ...context, subCategoryName });
+        }
+        if (selection === 2) { // Edit Subcategory
+            const shopConfig = getShopConfig();
+            const subCategory = shopConfig.categories[categoryName]?.subCategories[subCategoryName];
+            const form = new ModalFormData().title('Edit Subcategory')
+                .textField('New Name', 'Enter new name', { defaultValue: subCategoryName })
+                .textField('Icon', 'Enter icon texture path', { defaultValue: subCategory.icon });
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            const [newName, icon] = response.formValues;
+            if (newName) {
+                const result = shopAdminManager.renameSubCategory(categoryName, subCategoryName, newName);
+                player.sendMessage(result.message);
+                if (result.success) {
+                    // we need to update the icon separately
+                    const newShopConfig = getShopConfig();
+                    newShopConfig.categories[categoryName].subCategories[newName].icon = icon;
+                    saveShopConfig();
+                    return showPanel(player, `shopAdminSubCategoryPanel_${categoryName}_${newName}`, { ...context, subCategoryName: newName, page: 1 });
+                }
+            }
+            return showPanel(player, panelId, context);
+        }
+
+        // Handle item clicks...
+        const shopConfig = getShopConfig();
+        const subCategory = shopConfig.categories[categoryName]?.subCategories[subCategoryName];
+        if (!subCategory) { return; } // Should not happen
+        const items = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
+        const paginatedItems = getPaginatedItems(items, page);
+        const selectedItem = paginatedItems[selection - 3];
+
+        if (selectedItem) {
+            const form = new ActionFormData().title('Edit Item')
+                .button('Edit', 'textures/ui/icon_setting')
+                .button('Delete', 'textures/ui/trash');
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            if (response.selection === 0) { // Edit
+                const editForm = new ModalFormData().title('Edit Item')
+                    .textField('Buy Price', '-1 to disable', { defaultValue: `${selectedItem.buyPrice}` })
+                    .textField('Sell Price', '-1 to disable', { defaultValue: `${selectedItem.sellPrice}` })
+                    .textField('Permission Level', 'e.g., 1024', { defaultValue: `${selectedItem.permissionLevel}` });
+                const editResponse = await utils.uiWait(player, editForm);
+                if (editResponse.canceled) { return showPanel(player, panelId, context); }
+                const [buyPriceStr, sellPriceStr, permLevelStr] = editResponse.formValues;
+                const buyPrice = parseInt(buyPriceStr, 10);
+                const sellPrice = parseInt(sellPriceStr, 10);
+                const permissionLevel = parseInt(permLevelStr, 10);
+                if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
+                    const result = shopAdminManager.setItem(categoryName, subCategoryName, selectedItem.id, { buyPrice, sellPrice, permissionLevel });
+                    player.sendMessage(result.message);
+                }
+            } else { // Delete
+                const result = shopAdminManager.removeItem(categoryName, subCategoryName, selectedItem.id);
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, panelId, { ...context, page: 1 });
+        }
+        // Handle pagination
+        let newPage = page;
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+        let buttonIndex = selection - 3 - paginatedItems.length;
+
+        if (hasPrev && buttonIndex === 0) {
+            newPage--;
+        } else if (hasNext) {
+            newPage++;
+        }
+        return showPanel(player, panelId, { ...context, page: newPage });
+    }
+
+    if (panelId.startsWith('shopAdminCategoryPanel_')) {
+        const { categoryName, page = 1 } = context;
+        if (selection === 0) { return showPanel(player, 'shopManagementPanel'); }
+        if (selection === 1) { // Add Item
+            return showPanel(player, `shopAddItemSearchPanel_${categoryName}`, context);
+        }
+        if (selection === 2) { // Add Subcategory
+            const form = new ModalFormData().title('Add Subcategory').textField('Subcategory Name', 'Enter subcategory name').textField('Icon', 'Enter icon texture path');
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            const [name, icon] = response.formValues;
+            if (name) {
+                const result = shopAdminManager.addSubCategory(categoryName, name, icon);
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, panelId, { ...context, page: 1 });
+        }
+        if (selection === 3) { // Edit Category
+            const shopConfig = getShopConfig();
+            const category = shopConfig.categories[categoryName];
+            if (!category) {
+                player.sendMessage("§cCategory not found.");
+                return showPanel(player, 'shopManagementPanel', context);
+            }
+            const form = new ModalFormData().title('Edit Category')
+                .textField('Category Name', 'Enter new name', { defaultValue: categoryName })
+                .textField('Icon', 'Enter icon texture path', { defaultValue: category.icon });
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+
+            const [newName, icon] = response.formValues;
+
+            if (!newName) {
+                player.sendMessage("§cCategory name cannot be empty.");
                 return showPanel(player, panelId, context);
             }
 
-            if (enabled) {
-                shopConfig.items[selectedItem] = { buyPrice, sellPrice };
+            const result = shopAdminManager.updateCategory(categoryName, { newName, icon });
+            player.sendMessage(result.message);
+
+            if (result.success) {
+                return showPanel(player, `shopAdminCategoryPanel_${newName}`, { ...context, categoryName: newName, page: 1 });
             } else {
-                delete shopConfig.items[selectedItem];
+                return showPanel(player, panelId, context);
             }
-            saveShopConfig();
-            player.sendMessage(`§aSaved settings for ${masterItem.displayName ?? selectedItem}.`);
         }
-        return showPanel(player, panelId, context);
+
+        const shopConfig = getShopConfig();
+        const category = shopConfig.categories[categoryName];
+        const items = Object.keys(category.items).map(id => ({ id, ...category.items[id], type: 'item' }));
+        const subCategories = Object.keys(category.subCategories).sort().map(name => ({ name, ...category.subCategories[name], type: 'subCategory' }));
+        const allEntries = [...items, ...subCategories];
+        const paginatedEntries = getPaginatedItems(allEntries, page);
+        const selectedEntry = paginatedEntries[selection - 4];
+
+        if (selectedEntry) {
+            if (selectedEntry.type === 'item') {
+                const form = new ActionFormData().title('Edit Item')
+                    .button('Edit', 'textures/ui/icon_setting')
+                    .button('Delete', 'textures/ui/trash');
+                const response = await utils.uiWait(player, form);
+                if (response.canceled) { return showPanel(player, panelId, context); }
+                if (response.selection === 0) { // Edit
+                    const editForm = new ModalFormData().title('Edit Item')
+                        .textField('Buy Price', '-1 to disable', { defaultValue: `${selectedEntry.buyPrice}` })
+                        .textField('Sell Price', '-1 to disable', { defaultValue: `${selectedEntry.sellPrice}` })
+                        .textField('Permission Level', 'e.g., 1024', { defaultValue: `${selectedEntry.permissionLevel}` });
+                    const editResponse = await utils.uiWait(player, editForm);
+                    if (editResponse.canceled) { return showPanel(player, panelId, context); }
+                    const [buyPriceStr, sellPriceStr, permLevelStr] = editResponse.formValues;
+                    const buyPrice = parseInt(buyPriceStr, 10);
+                    const sellPrice = parseInt(sellPriceStr, 10);
+                    const permissionLevel = parseInt(permLevelStr, 10);
+                    if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
+                        const result = shopAdminManager.setItem(categoryName, null, selectedEntry.id, { buyPrice, sellPrice, permissionLevel });
+                        player.sendMessage(result.message);
+                    }
+                } else { // Delete
+                    const result = shopAdminManager.removeItem(categoryName, null, selectedEntry.id);
+                    player.sendMessage(result.message);
+                }
+            } else { // subCategory
+                return showPanel(player, `shopAdminSubCategoryPanel_${categoryName}_${selectedEntry.name}`, { ...context, subCategoryName: selectedEntry.name, page: 1 });
+            }
+            return showPanel(player, panelId, { ...context, page: 1 });
+        }
+        // Handle pagination
+        let newPage = page;
+        const totalPages = Math.ceil(allEntries.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+let buttonIndex = selection - 4 - paginatedEntries.length;
+
+        if (hasPrev && buttonIndex === 0) {
+            newPage--;
+        } else if (hasNext) {
+            newPage++;
+        }
+        return showPanel(player, panelId, { ...context, page: newPage });
     }
 
     if (panelId === 'kitManagementPanel') {
@@ -592,31 +938,35 @@ async function handleFormResponse(player, panelId, response, context) {
 
 
     if (panelId.startsWith('kitSettingsPanel_')) {
-        const kitName = panelId.replace('kitSettingsPanel_', '');
+        const kitName = panelId.replace('kitSettingsPanel_', ''); // This is the original (lowercase) name
         if (canceled) {
             return showPanel(player, `kitActionMenu_${kitName}`, context);
         }
 
-        const [isEnabled, newKitName, cooldownStr, permissionLevelStr, priceStr] = formValues;
+        const [isEnabled, newKitName, description, icon, cooldownStr, permissionLevelStr, priceStr] = formValues;
+
+        let finalKitName = kitName;
+        // Check if the name has changed (case-insensitive)
+        if (newKitName.toLowerCase() !== kitName) {
+            const renameResult = renameKit(kitName, newKitName);
+            if (!renameResult.success) {
+                player.sendMessage(`§c${renameResult.message}`);
+                // Re-show the panel with the original name
+                return showPanel(player, `kitSettingsPanel_${kitName}`, context);
+            }
+            player.sendMessage(`§aKit '${kitName}' has been renamed to '${newKitName}'.`);
+            finalKitName = newKitName.toLowerCase();
+        }
 
         const newSettings = {
             enabled: isEnabled,
+            description: description,
+            icon: icon,
             cooldownSeconds: Number(cooldownStr),
             permissionLevel: Number(permissionLevelStr),
             price: Number(priceStr)
         };
 
-        let finalKitName = kitName;
-        if (newKitName !== kitName) {
-            const renameResult = renameKit(kitName, newKitName);
-            if (!renameResult.success) {
-                player.sendMessage(`§c${renameResult.message}`);
-                return showPanel(player, panelId, context);
-            }
-            finalKitName = newKitName;
-        }
-
-        // Update the rest of the settings for the kit
         updateKitSettings(finalKitName, newSettings);
 
         player.sendMessage(`§aSuccessfully updated settings for kit '${finalKitName}'.`);
@@ -833,23 +1183,42 @@ async function handleFormResponse(player, panelId, response, context) {
     }
 
     if (panelId === 'configCategoryPanel') {
-        if (selection === 0) { return showPanel(player, 'mainPanel'); }
+        let buttonCount = 0;
+        // Back button is at index 0
+        if (selection === buttonCount) {
+            return showPanel(player, 'mainPanel');
+        }
+        buttonCount++;
 
-        const selectionIndex = selection - 1;
-
-        // Check if the selection is one of the schema-defined categories
-        if (selectionIndex < configPanelSchema.length) {
-            const selectedCategory = configPanelSchema[selectionIndex];
+        // Category buttons
+        if (selection < buttonCount + configPanelSchema.length) {
+            const selectedCategory = configPanelSchema[selection - buttonCount];
             if (selectedCategory) { return showPanel(player, `config_${selectedCategory.id}`); }
-        } else {
-            // If it's not in the schema, it must be our manually added Kit Management button
-            // We still do a permission check here just in case something went wrong
-            if (pData.permissionLevel <= 1) {
+            return;
+        }
+        buttonCount += configPanelSchema.length;
+
+        // Kit Management button
+        if (pData.permissionLevel <= 1) {
+            if (selection === buttonCount) {
                 return showPanel(player, 'kitManagementPanel');
+            }
+            buttonCount++;
+            if (selection === buttonCount) {
+                return showPanel(player, 'shopManagementPanel');
+            }
+            buttonCount++;
+        }
+
+        // Reset Settings button
+        if (pData.permissionLevel === 0) {
+            if (selection === buttonCount) {
+                return showPanel(player, 'configResetPanel');
             }
         }
         return;
     }
+
 
     if (panelId.startsWith('config_')) {
         const categoryId = panelId.replace('config_', '');
@@ -941,140 +1310,199 @@ function addPaginationButtons(form, page, totalItems) {
 
 function buildShopMainPanel(form, context) {
     const shopConfig = getShopConfig();
-    const view = context.view || 'shop'; // 'shop', 'buy', or 'sell'
 
-    const categories = [...new Set(Object.keys(shopConfig.items).map(id => allItems[id]?.category).filter(Boolean))];
-
-    const validCategories = categories.filter(category => {
-        return Object.keys(shopConfig.items).some(id => {
-            const masterItem = allItems[id];
-            if (masterItem?.category !== category) {return false;}
-            const shopItem = shopConfig.items[id];
-            if (view === 'buy') {return shopItem.buyPrice > 0;}
-            if (view === 'sell') {return shopItem.sellPrice > 0;}
-            return true;
-        });
-    });
+    const validCategories = Object.keys(shopConfig.categories).filter(categoryName => {
+        const category = shopConfig.categories[categoryName];
+        const hasItems = Object.keys(category.items).length > 0;
+        const hasSubCategories = Object.keys(category.subCategories).length > 0;
+        return hasItems || hasSubCategories;
+    }).sort();
 
     if (validCategories.length === 0) {
         form.body('§cThe shop is currently empty.');
         return;
     }
 
-    for (const category of validCategories) {
-        form.button(category, shopCategoryIcons[category]);
+    for (const categoryName of validCategories) {
+        const category = shopConfig.categories[categoryName];
+        form.button(categoryName, category.icon);
     }
 }
 
 function buildShopCategoryPanel(form, context) {
-    const { category, page = 1, view = 'shop' } = context;
+    const { categoryName, page = 1, view = 'shop' } = context;
     const shopConfig = getShopConfig();
+    const category = shopConfig.categories[categoryName];
 
-    const itemsInCategory = Object.keys(shopConfig.items).filter(id => {
-        const masterItem = allItems[id];
-        if (masterItem?.category !== category) {return false;}
-        const shopItem = shopConfig.items[id];
-        if (view === 'buy') {return shopItem.buyPrice > 0;}
-        if (view === 'sell') {return shopItem.sellPrice > 0;}
-        return true;
-    });
+    if (!category) {
+        form.body('§cCategory not found.');
+        return;
+    }
 
-    const subCategories = [...new Set(itemsInCategory.map(id => allItems[id].subCategory).filter(Boolean))];
-    const rootItems = itemsInCategory.filter(id => !allItems[id].subCategory);
+    const subCategories = Object.keys(category.subCategories).sort().map(name => ({ name, ...category.subCategories[name], type: 'subCategory' }));
+    const items = Object.keys(category.items).map(id => ({ id, ...category.items[id], type: 'item' }));
 
-    const allEntries = [
-        ...subCategories.map(sc => ({ id: sc, type: 'subCategory' })),
-        ...rootItems.map(i => ({ id: i, type: 'item' }))
-    ];
-
+    const allEntries = [...subCategories, ...items];
     const paginatedEntries = getPaginatedItems(allEntries, page);
 
     for (const entry of paginatedEntries) {
         if (entry.type === 'subCategory') {
-            const icon = shopSubCategoryIcons[entry.id] || 'textures/gui/folder_glyph';
-            form.button(`§e${entry.id}`, icon);
+            form.button(`§e${entry.name}`, entry.icon);
         } else {
-            const masterItem = allItems[entry.id];
-            const shopItem = shopConfig.items[entry.id];
+            const masterItem = allItems[entry.id] || {};
+            const displayName = entry.displayName || masterItem.displayName || entry.id;
+            const icon = entry.icon || masterItem.icon;
             let priceString = '';
-            if (view === 'buy' && shopItem.buyPrice > 0) {
-                priceString = `§2Buy: $${shopItem.buyPrice}`;
-            } else if (view === 'sell' && shopItem.sellPrice > 0) {
-                priceString = `§cSell: $${shopItem.sellPrice}`;
+            if (view === 'buy' && entry.buyPrice > 0) {
+                priceString = `§2Buy: $${entry.buyPrice}`;
+            } else if (view === 'sell' && entry.sellPrice > 0) {
+                priceString = `§cSell: $${entry.sellPrice}`;
             } else {
-                const buy = shopItem.buyPrice > 0 ? `§2B: $${shopItem.buyPrice}` : '';
-                const sell = shopItem.sellPrice > 0 ? `§cS: $${shopItem.sellPrice}` : '';
+                const buy = entry.buyPrice > 0 ? `§2B: $${entry.buyPrice}` : '';
+                const sell = entry.sellPrice > 0 ? `§cS: $${entry.sellPrice}` : '';
                 priceString = [buy, sell].filter(Boolean).join(' ');
             }
-            form.button(`${masterItem.displayName ?? entry.id}\n${priceString}`, masterItem.icon);
+            form.button(`${displayName}\n${priceString}`, icon);
         }
     }
     addPaginationButtons(form, page, allEntries.length);
 }
 
 function buildShopItemListPanel(form, context) {
-    const { category, subCategory, page = 1, view = 'shop' } = context;
+    const { categoryName, subCategoryName, page = 1, view = 'shop' } = context;
     const shopConfig = getShopConfig();
-
-    const itemsInSubCategory = Object.keys(shopConfig.items).filter(id => {
-        const masterItem = allItems[id];
-        if (masterItem?.category !== category || masterItem?.subCategory !== subCategory) {return false;}
-        const shopItem = shopConfig.items[id];
-        if (view === 'buy') {return shopItem.buyPrice > 0;}
-        if (view === 'sell') {return shopItem.sellPrice > 0;}
-        return true;
-    });
-
-    const paginatedItems = getPaginatedItems(itemsInSubCategory, page);
-
-    for (const itemId of paginatedItems) {
-        const masterItem = allItems[itemId];
-        const shopItem = shopConfig.items[itemId];
-        let priceString = '';
-        if (view === 'buy' && shopItem.buyPrice > 0) {
-            priceString = `§2Buy: $${shopItem.buyPrice}`;
-        } else if (view === 'sell' && shopItem.sellPrice > 0) {
-            priceString = `§cSell: $${shopItem.sellPrice}`;
-        } else {
-            const buy = shopItem.buyPrice > 0 ? `§2B: $${shopItem.buyPrice}` : '';
-            const sell = shopItem.sellPrice > 0 ? `§cS: $${shopItem.sellPrice}` : '';
-            priceString = [buy, sell].filter(Boolean).join(' ');
-        }
-        form.button(`${masterItem.displayName ?? itemId}\n${priceString}`, masterItem.icon);
+    const category = shopConfig.categories[categoryName];
+    if (!category) {
+        form.body('§cCategory not found.');
+        return;
     }
-    addPaginationButtons(form, page, itemsInSubCategory.length);
-}
-
-// --- Admin Edit Shop Builder Functions ---
-function buildEditShopMainPanel(form) {
-    const categories = [...new Set(Object.values(allItems).map(item => item.category))];
-    for (const category of categories.sort()) {
-        const icon = shopCategoryIcons[category] || 'textures/gui/folder_glyph';
-        form.button(category, icon);
-    }
-}
-
-function buildEditShopCategoryPanel(form, context) {
-    const { category, page = 1 } = context;
-    const shopConfig = getShopConfig();
-
-    const itemsInCategory = Object.keys(allItems).filter(id => allItems[id].category === category);
-
-    if (itemsInCategory.length === 0) {
-        form.body('§cNo items found in this category.');
+    const subCategory = category.subCategories[subCategoryName];
+    if (!subCategory) {
+        form.body('§cSubcategory not found.');
         return;
     }
 
-    const paginatedItems = getPaginatedItems(itemsInCategory, page);
+    const items = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
+    const paginatedItems = getPaginatedItems(items, page);
+
+    for (const item of paginatedItems) {
+        const masterItem = allItems[item.id] || {};
+        const displayName = item.displayName || masterItem.displayName || item.id;
+        const icon = item.icon || masterItem.icon;
+        let priceString = '';
+        if (view === 'buy' && item.buyPrice > 0) {
+            priceString = `§2Buy: $${item.buyPrice}`;
+        } else if (view === 'sell' && item.sellPrice > 0) {
+            priceString = `§cSell: $${item.sellPrice}`;
+        } else {
+            const buy = item.buyPrice > 0 ? `§2B: $${item.buyPrice}` : '';
+            const sell = item.sellPrice > 0 ? `§cS: $${item.sellPrice}` : '';
+            priceString = [buy, sell].filter(Boolean).join(' ');
+        }
+        form.button(`${displayName}\n${priceString}`, icon);
+    }
+    addPaginationButtons(form, page, items.length);
+}
+
+// --- Admin Edit Shop Builder Functions ---
+function buildShopAdminMainPanel(form, context) {
+    const { page = 1 } = context;
+    form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    form.button('§l§2+ Add Category', 'textures/ui/color_plus');
+
+    const shopConfig = getShopConfig();
+    const categories = Object.keys(shopConfig.categories).sort();
+    const paginatedCategories = getPaginatedItems(categories, page);
+
+    for (const categoryName of paginatedCategories) {
+        const category = shopConfig.categories[categoryName];
+        form.button(categoryName, category.icon);
+    }
+
+    addPaginationButtons(form, page, categories.length);
+}
+
+function buildShopAdminCategoryPanel(form, context) {
+    const { categoryName, page = 1 } = context;
+    form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    form.button('§l§2+ Add Item', 'textures/ui/color_plus');
+    form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
+    form.button('§l§eEdit Category', 'textures/ui/icon_setting');
+
+    const shopConfig = getShopConfig();
+    const category = shopConfig.categories[categoryName];
+
+    if (!category) {
+        form.body('§cCategory not found.');
+        return;
+    }
+
+    const items = Object.keys(category.items).map(id => ({ id, ...category.items[id], type: 'item' }));
+    const subCategories = Object.keys(category.subCategories).sort().map(name => ({ name, ...category.subCategories[name], type: 'subCategory' }));
+
+    const allEntries = [...items, ...subCategories];
+    const paginatedEntries = getPaginatedItems(allEntries, page);
+
+    for (const entry of paginatedEntries) {
+        if (entry.type === 'item') {
+            const masterItem = allItems[entry.id] || {};
+            const displayName = entry.displayName || masterItem.displayName || entry.id;
+            const icon = entry.icon || masterItem.icon;
+            form.button(displayName, icon);
+        } else { // subCategory
+            form.button(`§e${entry.name}`, entry.icon);
+        }
+    }
+
+    addPaginationButtons(form, page, allEntries.length);
+}
+
+function buildShopAddItemPanel(form, context) {
+    const { page = 1, searchQuery = '' } = context;
+    form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    form.button('§l§2+ Add Custom Item', 'textures/ui/color_plus');
+
+    const lowerCaseQuery = searchQuery.toLowerCase();
+    const allPossibleItems = Object.keys(allItems).filter(id => {
+        const item = allItems[id];
+        return item.displayName.toLowerCase().includes(lowerCaseQuery) || id.toLowerCase().includes(lowerCaseQuery);
+    });
+
+    const paginatedItems = getPaginatedItems(allPossibleItems, page);
 
     for (const itemId of paginatedItems) {
         const masterItem = allItems[itemId];
-        const shopItem = shopConfig.items[itemId];
-        const status = shopItem ? '§2[Enabled]' : '§c[Disabled]';
-        form.button(`${masterItem.displayName ?? itemId}\n${status}`, masterItem.icon);
+        form.button(masterItem.displayName ?? itemId, masterItem.icon);
     }
 
-    addPaginationButtons(form, page, itemsInCategory.length);
+    addPaginationButtons(form, page, allPossibleItems.length);
+}
+
+function buildShopAdminSubCategoryPanel(form, context) {
+    const { categoryName, subCategoryName, page = 1 } = context;
+    form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    form.button('§l§2+ Add Item', 'textures/ui/color_plus');
+    form.button('§l§eEdit Subcategory', 'textures/ui/icon_setting');
+
+    const shopConfig = getShopConfig();
+    const subCategory = shopConfig.categories[categoryName]?.subCategories[subCategoryName];
+
+    if (!subCategory) {
+        form.body('§cSubcategory not found.');
+        return;
+    }
+
+    const items = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
+    const paginatedItems = getPaginatedItems(items, page);
+
+    for (const item of paginatedItems) {
+        const masterItem = allItems[item.id] || {};
+        const displayName = item.displayName || masterItem.displayName || item.id;
+        const icon = item.icon || masterItem.icon;
+        form.button(displayName, icon);
+    }
+
+    addPaginationButtons(form, page, items.length);
 }
 
 

@@ -118,15 +118,6 @@ export const panelDefinitions = {
                 actionType: 'openPanel',
                 actionValue: 'shopMainPanel',
                 sortId: 5
-            },
-            {
-                id: 'editShop',
-                text: '§3Edit Shop',
-                icon: 'textures/ui/editIcon.png',
-                permissionLevel: 1, // Admin only
-                actionType: 'openPanel',
-                actionValue: 'editShopMainPanel',
-                sortId: 25
             }
         ]
     },
@@ -135,9 +126,14 @@ export const panelDefinitions = {
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated by uiManager
     },
-    editShopMainPanel: {
-        title: '§l§bEdit Shop§r',
-        parentPanelId: 'mainPanel',
+    configResetPanel: {
+        title: '§l§cReset Configuration§r',
+        parentPanelId: 'configCategoryPanel',
+        items: [] // Dynamically populated by uiManager
+    },
+    shopManagementPanel: {
+        title: '§l§2Shop System§r',
+        parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated by uiManager
     },
     reportListPanel: {
