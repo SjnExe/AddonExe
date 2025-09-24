@@ -723,6 +723,53 @@ if (panelId.startsWith('shopAdminSubCategoryPanel_')) {
         }
 
         // Handle item clicks...
+        const shopConfig = getShopConfig();
+        const subCategory = shopConfig.categories[categoryName]?.subCategories[subCategoryName];
+        if (!subCategory) { return; } // Should not happen
+        const items = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
+        const paginatedItems = getPaginatedItems(items, page);
+        const selectedItem = paginatedItems[selection - 3];
+
+        if (selectedItem) {
+            const form = new ActionFormData().title('Edit Item')
+                .button('Edit', 'textures/ui/icon_setting')
+                .button('Delete', 'textures/ui/trash');
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            if (response.selection === 0) { // Edit
+                const editForm = new ModalFormData().title('Edit Item')
+                    .textField('Buy Price', '-1 to disable', { defaultValue: `${selectedItem.buyPrice}` })
+                    .textField('Sell Price', '-1 to disable', { defaultValue: `${selectedItem.sellPrice}` })
+                    .textField('Permission Level', 'e.g., 1024', { defaultValue: `${selectedItem.permissionLevel}` });
+                const editResponse = await utils.uiWait(player, editForm);
+                if (editResponse.canceled) { return showPanel(player, panelId, context); }
+                const [buyPriceStr, sellPriceStr, permLevelStr] = editResponse.formValues;
+                const buyPrice = parseInt(buyPriceStr, 10);
+                const sellPrice = parseInt(sellPriceStr, 10);
+                const permissionLevel = parseInt(permLevelStr, 10);
+                if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
+                    const result = shopAdminManager.setItem(categoryName, subCategoryName, selectedItem.id, { buyPrice, sellPrice, permissionLevel });
+                    player.sendMessage(result.message);
+                }
+            } else { // Delete
+                const result = shopAdminManager.removeItem(categoryName, subCategoryName, selectedItem.id);
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, panelId, { ...context, page: 1 });
+        }
+        // Handle pagination
+        let newPage = page;
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+        let buttonIndex = selection - 3 - paginatedItems.length;
+
+        if (hasPrev && buttonIndex === 0) {
+            newPage--;
+        } else if (hasNext) {
+            newPage++;
+        }
+        return showPanel(player, panelId, { ...context, page: newPage });
     }
 
     if (panelId.startsWith('shopAdminCategoryPanel_')) {
