@@ -281,6 +281,7 @@ async function buildPanelForm(player, panelId, context) {
         form.textField('Name Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.nameColor ?? '' });
         form.textField('Chat Color', 'e.g., §e', { defaultValue: rank.chatFormatting?.messageColor ?? '' });
         form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: rank.chatFormatting?.prefixText ?? '' });
+        form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
         if (!isSpecialRank) {
             form.submitButton('§l§cDelete Rank');
         }
@@ -312,7 +313,8 @@ async function buildPanelForm(player, panelId, context) {
         const resettableSystems = [
             ...configPanelSchema.map(c => ({ id: c.id, title: c.title, icon: c.icon })),
             { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
-            { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' }
+            { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
+            { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
         ];
         const paginatedSystems = getPaginatedItems(resettableSystems, page);
 

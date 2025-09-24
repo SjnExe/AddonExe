@@ -3,6 +3,7 @@ import { config as defaultConfig } from '../config.js';
 import { loadConfig, getConfig, updateConfig, reloadConfig } from './configManager.js';
 import { loadShopConfig } from './shopConfigManager.js';
 import { loadKitsConfig } from './kitsConfigManager.js';
+import { loadRanksConfig } from './ranksConfigManager.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
@@ -111,6 +112,7 @@ const newVersion = String(defaultConfig.version);
     const isFirstInit = loadConfig(isMigration);
     loadKitsConfig(isMigration);
     loadShopConfig(isMigration);
+    loadRanksConfig(isMigration);
 
     if (!isFirstInit && !isMigration) {
         reloadConfig();

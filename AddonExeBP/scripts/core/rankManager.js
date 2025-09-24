@@ -1,6 +1,5 @@
-import * as rankDb from './rankDb.js';
-import { debugLog } from './logger.js';
-import { errorLog } from './errorLogger.js';
+import { getRanksConfig } from './ranksConfigManager.js';
+import { debugLog, errorLog } from './errorLogger.js';
 
 let sortedRanks = [];
 
@@ -39,17 +38,18 @@ const conditionEvaluators = {
 };
 
 /**
- * Reloads and sorts the ranks from the database.
+ * Reloads and sorts the ranks from the config manager cache.
  * This can be called to refresh ranks after they've been modified in the UI.
  */
 export function reloadRanks() {
-    const allRanks = rankDb.loadRanks();
+    const allRanks = getRanksConfig().rankDefinitions;
     sortedRanks = [...allRanks].sort((a, b) => a.permissionLevel - b.permissionLevel);
     debugLog(`[RankManager] Reloaded and sorted ${sortedRanks.length} ranks.`);
 }
 
 /**
  * Initializes the rank manager by loading and sorting ranks.
+ * This is called once at startup.
  */
 export function initialize() {
     reloadRanks();
@@ -85,7 +85,7 @@ export function getPlayerRank(player, config) {
     }
 
     // If the configured default rank doesn't exist, log an error and return a minimal, safe fallback.
-    errorLog(`[RankManager] CRITICAL: The configured default rank with id "${config.playerDefaults.rankId}" was not found in ranksConfig.js. Please check your configuration.`);
+    errorLog(`[RankManager] CRITICAL: The configured default rank with id "${config.playerDefaults.rankId}" was not found. Please check your configuration.`);
     return {
         id: 'fallback',
         name: 'Fallback',
@@ -96,18 +96,18 @@ export function getPlayerRank(player, config) {
 }
 
 /**
- * Gets a rank definition by its ID from the database.
+ * Gets a rank definition by its ID.
  * @param {string} rankId The ID of the rank to get.
  * @returns {import('./ranksConfig.js').RankDefinition | undefined}
  */
 export function getRankById(rankId) {
-    return rankDb.getRankById(rankId);
+    return getRanksConfig().rankDefinitions.find(rank => rank.id === rankId);
 }
 
 /**
- * Gets all rank definitions from the database.
+ * Gets all rank definitions.
  * @returns {import('./ranksConfig.js').RankDefinition[]}
  */
 export function getAllRanks() {
-    return rankDb.getRanks();
+    return getRanksConfig().rankDefinitions;
 }
