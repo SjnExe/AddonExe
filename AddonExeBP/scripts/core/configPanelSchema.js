@@ -148,7 +148,7 @@ export const configPanelSchema = [
     },
     {
         id: 'homes',
-        title: '§l§aHome System§r',
+        title: '§l§2Home System§r',
         icon: 'textures/ui/icon_recipe_item',
         settings: [
             {

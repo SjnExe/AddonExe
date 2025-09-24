@@ -205,6 +205,12 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId === 'rankManagementPanel') {
+        const form = new ActionFormData().title('§l§4Rank System');
+        buildRankManagementPanel(form, context);
+        return form;
+    }
+
     const panelDef = panelDefinitions[panelId];
     if (!panelDef) {
         debugLog(`[UIManager] Panel definition not found for '${panelId}'.`);
@@ -246,12 +252,6 @@ async function buildPanelForm(player, panelId, context) {
     if (panelId === 'kitManagementPanel') {
         const form = new ActionFormData().title(title);
         buildKitManagementPanel(form, context);
-        return form;
-    }
-
-    if (panelId === 'rankManagementPanel') {
-        const form = new ActionFormData().title('§l§4Rank System');
-        buildRankManagementPanel(form, context);
         return form;
     }
 
@@ -1337,6 +1337,9 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (selectionIndex < paginatedSystems.length) {
             const selectedSystem = paginatedSystems[selectionIndex];
+            if (selectedSystem.id === 'configResetPanel') {
+                return showPanel(player, selectedSystem.id, { ...context, page: 1 });
+            }
             return showPanel(player, selectedSystem.id, context);
         }
 
