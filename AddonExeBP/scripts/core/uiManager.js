@@ -756,7 +756,21 @@ if (panelId.startsWith('shopAdminSubCategoryPanel_')) {
     if (panelId.startsWith('shopAdminCategoryPanel_')) {
         const { categoryName, page = 1 } = context;
         if (selection === 0) { return showPanel(player, 'shopManagementPanel'); }
-        if (selection === 1) { // Edit Category
+        if (selection === 1) { // Add Item
+            return showPanel(player, `shopAddItemSearchPanel_${categoryName}`, context);
+        }
+        if (selection === 2) { // Add Subcategory
+            const form = new ModalFormData().title('Add Subcategory').textField('Subcategory Name', 'Enter subcategory name').textField('Icon', 'Enter icon texture path');
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            const [name, icon] = response.formValues;
+            if (name) {
+                const result = shopAdminManager.addSubCategory(categoryName, name, icon);
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, panelId, { ...context, page: 1 });
+        }
+        if (selection === 3) { // Edit Category
             const shopConfig = getShopConfig();
             const category = shopConfig.categories[categoryName];
             if (!category) {
@@ -784,20 +798,6 @@ if (panelId.startsWith('shopAdminSubCategoryPanel_')) {
             } else {
                 return showPanel(player, panelId, context);
             }
-        }
-        if (selection === 2) { // Add Item
-            return showPanel(player, `shopAddItemSearchPanel_${categoryName}`, context);
-        }
-        if (selection === 3) { // Add Subcategory
-            const form = new ModalFormData().title('Add Subcategory').textField('Subcategory Name', 'Enter subcategory name').textField('Icon', 'Enter icon texture path');
-            const response = await utils.uiWait(player, form);
-            if (response.canceled) { return showPanel(player, panelId, context); }
-            const [name, icon] = response.formValues;
-            if (name) {
-                const result = shopAdminManager.addSubCategory(categoryName, name, icon);
-                player.sendMessage(result.message);
-            }
-            return showPanel(player, panelId, { ...context, page: 1 });
         }
 
         const shopConfig = getShopConfig();
@@ -1425,9 +1425,9 @@ function buildShopAdminMainPanel(form, context) {
 function buildShopAdminCategoryPanel(form, context) {
     const { categoryName, page = 1 } = context;
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
-    form.button('§l§eEdit Category', 'textures/ui/icon_setting');
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
     form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
+    form.button('§l§eEdit Category', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName];
