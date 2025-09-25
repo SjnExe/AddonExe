@@ -19,6 +19,7 @@ import { kickPlayer } from '../modules/commands/kick.js';
 import { mutePlayer, unmutePlayer } from '../modules/commands/mute.js';
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '../modules/commands/ban.js';
 import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
+import * as rulesManager from './rulesManager.js';
 import * as shopManager from './shopManager.js';
 import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
 import { items as allItems } from './itemsConfig.js';
@@ -239,6 +240,40 @@ async function buildPanelForm(player, panelId, context) {
     if (panelId === 'playerManagementPanel') {return buildPlayerManagementForm(title, context);}
     if (panelId === 'playerListPanel') {return buildPlayerListForm(title, context);}
 
+    if (panelId === 'rulesManagementPanel') {
+        const form = new ActionFormData().title(title);
+        const rules = rulesManager.getRules();
+        form.button('§l§2+ Add Rule', 'textures/ui/color_plus');
+        rules.forEach((rule, index) => {
+            form.button(`${index + 1}. ${rule}`);
+        });
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
+    if (panelId === 'addRulePanel') {
+        const form = new ModalFormData()
+            .title(panelDef.title)
+            .textField('New rule text', 'Enter the new rule');
+        return form;
+    }
+
+    if (panelId === 'ruleActionPanel') {
+        const { ruleIndex } = context;
+        const rules = rulesManager.getRules();
+        const ruleText = rules[ruleIndex] || 'Invalid Rule';
+
+        const form = new ActionFormData()
+            .title(panelDef.title)
+            .body(`Selected Rule: ${ruleText}`)
+            .button('Edit Text', 'textures/ui/icon_edit')
+            .button('Move Up', 'textures/ui/arrow_up')
+            .button('Move Down', 'textures/ui/arrow_down')
+            .button('§cDelete Rule', 'textures/ui/trash')
+            .button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
     if (panelId === 'shopMainPanel') {
         const form = new ActionFormData().title(title);
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
@@ -399,6 +434,88 @@ async function handleFormResponse(player, panelId, response, context) {
     debugLog(`[UIManager] Handling form response for panel '${panelId}' from ${player.name}. Selection: ${selection}`);
     const pData = getPlayer(player.id);
     if (!pData) {return;}
+
+    if (panelId === 'rulesManagementPanel') {
+        const rules = rulesManager.getRules();
+        // "Add Rule" is at index 0
+        if (selection === 0) {
+            return showPanel(player, 'addRulePanel', context);
+        }
+
+        const ruleIndex = selection - 1;
+
+        // Check if a rule button was clicked
+        if (ruleIndex >= 0 && ruleIndex < rules.length) {
+            return showPanel(player, 'ruleActionPanel', { ...context, ruleIndex });
+        }
+
+        // The last button is "Back"
+        if (selection === rules.length + 1) {
+            return showPanel(player, 'mainPanel', context);
+        }
+        return;
+    }
+
+    if (panelId === 'addRulePanel') {
+        if (canceled) {
+            return showPanel(player, 'rulesManagementPanel', context);
+        }
+        const [newRuleText] = formValues;
+        if (newRuleText) {
+            rulesManager.addRule(newRuleText);
+            player.sendMessage('§2Rule added successfully.');
+        }
+        return showPanel(player, 'rulesManagementPanel', context);
+    }
+
+    if (panelId === 'ruleActionPanel') {
+        const { ruleIndex } = context;
+
+        switch (selection) {
+            case 0: { // Edit Text
+                const rules = rulesManager.getRules();
+                const currentText = rules[ruleIndex];
+                const editForm = new ModalFormData()
+                    .title('Edit Rule Text')
+                    .textField('Rule text', 'Enter the new text', { defaultValue: currentText });
+
+                const editResponse = await utils.uiWait(player, editForm);
+                if (editResponse.canceled) {
+                    return showPanel(player, 'ruleActionPanel', context);
+                }
+
+                const [newText] = editResponse.formValues;
+                if (newText) {
+                    rulesManager.editRule(ruleIndex, newText);
+                    player.sendMessage('§2Rule updated successfully.');
+                }
+                return showPanel(player, 'rulesManagementPanel', context);
+            }
+            case 1: // Move Up
+                rulesManager.moveRule(ruleIndex, 'up');
+                return showPanel(player, 'rulesManagementPanel', context);
+            case 2: // Move Down
+                rulesManager.moveRule(ruleIndex, 'down');
+                return showPanel(player, 'rulesManagementPanel', context);
+            case 3: { // Delete Rule
+                const confirmForm = new ActionFormData()
+                    .title('§cConfirm Deletion')
+                    .body('Are you sure you want to delete this rule?')
+                    .button('§cYes, Delete', 'textures/ui/trash')
+                    .button('§2No, Cancel', 'textures/ui/cancel');
+
+                const confirmResponse = await utils.uiWait(player, confirmForm);
+                if (confirmResponse.selection === 0) {
+                    rulesManager.deleteRule(ruleIndex);
+                    player.sendMessage('§2Rule deleted successfully.');
+                }
+                return showPanel(player, 'rulesManagementPanel', context);
+            }
+            case 4: // Back
+                return showPanel(player, 'rulesManagementPanel', context);
+        }
+        return;
+    }
 
     // --- Shop Panel Handlers ---
     if (panelId === 'shopMainPanel') {
@@ -1862,9 +1979,28 @@ function buildReportListForm(title, context) {
 // --- UI Action Functions ---
 
 uiActionFunctions['showRules'] = async (player) => {
-    const config = getConfig();
-    const rulesForm = new ActionFormData().title('§l§6Server Rules').body(config.serverInfo.rules.join('\n')).button('§l§8Close');
-    await utils.uiWait(player, rulesForm);
+    const rules = rulesManager.getRules();
+    const pData = getPlayer(player.id);
+
+    const rulesForm = new ActionFormData()
+        .title('§l§6Server Rules')
+        .body(rules.join('\n'));
+
+    // Add "Edit Rules" button for admins
+    if (pData && pData.permissionLevel <= 1) {
+        rulesForm.button('§l§4Edit Rules', 'textures/ui/icon_setting');
+    }
+
+    rulesForm.button('§l§8Close', 'textures/ui/cancel');
+
+    const response = await utils.uiWait(player, rulesForm);
+
+    if (response.canceled) {return;}
+
+    // If the "Edit Rules" button was shown and clicked
+    if (pData && pData.permissionLevel <= 1 && response.selection === 0) {
+        return showPanel(player, 'rulesManagementPanel');
+    }
 };
 
 uiActionFunctions['assignReport'] = (player, context, panelId) => {
