@@ -1,12 +1,12 @@
 import { world } from '@minecraft/server';
 import { config as defaultConfig } from '../config.js';
 import { errorLog } from './errorLogger.js';
-import { deepClone, deepEqual, deepMerge, setValueByPath, reconcileConfig } from './objectUtils.js';
+import { deepClone, deepMerge, setValueByPath } from './objectUtils.js';
 import { resetKitsConfig } from './kitsConfigManager.js';
 import { resetShopConfig } from './shopConfigManager.js';
+import { resetRanksConfig } from './ranksConfigManager.js';
 
 const currentConfigKey = 'exe:config:current';
-const lastLoadedConfigKey = 'exe:config:lastLoaded';
 
 let currentConfig = null;
 
@@ -126,6 +126,8 @@ export function resetConfigSection(sectionKey) {
         currentConfig = deepClone(defaultConfig);
         saveCurrentConfig();
         resetKitsConfig();
+        resetShopConfig();
+        resetRanksConfig();
         return { success: true, message: 'All configuration settings have been reset to default.' };
     }
 
@@ -137,6 +139,11 @@ export function resetConfigSection(sectionKey) {
     if (sectionKey === 'shop') {
         resetShopConfig();
         return { success: true, message: 'The \'shop\' configuration section has been reset to default.' };
+    }
+
+    if (sectionKey === 'ranks') {
+        resetRanksConfig();
+        return { success: true, message: 'The \'ranks\' configuration section has been reset to default.' };
     }
 
     if (Object.prototype.hasOwnProperty.call(defaultConfig, sectionKey)) {

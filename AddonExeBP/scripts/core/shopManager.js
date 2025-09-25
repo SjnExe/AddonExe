@@ -12,7 +12,7 @@ import { errorLog } from './errorLogger.js';
  */
 function createShopItemStack(itemInfo, quantity) {
     if (!itemInfo) {
-        errorLog(`[ShopManager] Could not find item info for creating item stack.`);
+        errorLog('[ShopManager] Could not find item info for creating item stack.');
         return null;
     }
 
@@ -35,7 +35,7 @@ function createShopItemStack(itemInfo, quantity) {
                 });
             }
         } catch (e) {
-            errorLog(`[ShopManager] Failed to apply enchantment for ${itemId}:`, e);
+            errorLog(`[ShopManager] Failed to apply enchantment for ${itemInfo.itemId}:`, e);
         }
     }
 

@@ -3,6 +3,7 @@ import { config as defaultConfig } from '../config.js';
 import { loadConfig, getConfig, updateConfig, reloadConfig } from './configManager.js';
 import { loadShopConfig } from './shopConfigManager.js';
 import { loadKitsConfig } from './kitsConfigManager.js';
+import { loadRanksConfig } from './ranksConfigManager.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
@@ -104,13 +105,14 @@ function startSystemTimers() {
 function initializeAddon() {
     debugLog('[AddonExe] Initializing addon...');
 
-const newVersion = String(defaultConfig.version);
+    const newVersion = String(defaultConfig.version);
     const lastVersion = world.getDynamicProperty('exe:lastVersion');
     const isMigration = !lastVersion || lastVersion !== newVersion;
 
     const isFirstInit = loadConfig(isMigration);
     loadKitsConfig(isMigration);
     loadShopConfig(isMigration);
+    loadRanksConfig(isMigration);
 
     if (!isFirstInit && !isMigration) {
         reloadConfig();
