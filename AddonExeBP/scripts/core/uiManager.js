@@ -1368,7 +1368,8 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (selectionIndex < paginatedSystems.length) {
             const selectedSystem = paginatedSystems[selectionIndex];
-            return showPanel(player, selectedSystem.id, context);
+            // Reset context to ensure pagination starts from 1 on the new panel
+            return showPanel(player, selectedSystem.id, {});
         }
 
         // Handle pagination
