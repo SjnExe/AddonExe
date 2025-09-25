@@ -1329,8 +1329,11 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (result.success) {
             rankManager.reloadRanks();
-            const fromPanel = isSpecialRank ? 'rankManagementPanel' : `rankActionMenu_${rank.id}`;
-            return showPanel(player, fromPanel, { ...context, page: 1 });
+            // After editing, the rank ID might have changed. We need to use the new ID.
+            const newRankId = isSpecialRank ? rank.id : id;
+            const fromPanel = isSpecialRank ? 'rankManagementPanel' : `rankActionMenu_${newRankId}`;
+            const newContext = { ...context, rankId: newRankId, page: 1 };
+            return showPanel(player, fromPanel, newContext);
         } else {
             return showPanel(player, panelId, context);
         }
