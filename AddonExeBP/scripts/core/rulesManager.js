@@ -1,25 +1,22 @@
-import { getRulesConfig, saveRulesConfig } from './rulesConfig.js';
+import { getConfig, updateMultipleConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 
-let currentRules = [];
-
 /**
- * Loads the rules from the config file into memory.
- */
-function loadRules() {
-    currentRules = getRulesConfig();
-    debugLog('[RulesManager] Rules loaded successfully.');
-}
-
-// Initial load
-loadRules();
-
-/**
- * Gets the current list of rules.
+ * Gets the current list of rules from the main configuration.
  * @returns {string[]} The array of rules.
  */
 export function getRules() {
-    return [...currentRules];
+    const config = getConfig();
+    return config.serverInfo.rules || [];
+}
+
+/**
+ * Saves the entire rules array back to the configuration.
+ * @param {string[]} rules The full array of rules to save.
+ */
+function saveRules(rules) {
+    updateMultipleConfig({ 'serverInfo.rules': rules });
+    debugLog('[RulesManager] Updated rules saved to config.');
 }
 
 /**
@@ -28,8 +25,9 @@ export function getRules() {
  */
 export function addRule(ruleText) {
     if (!ruleText || typeof ruleText !== 'string') {return;}
-    currentRules.push(ruleText);
-    saveRulesConfig(currentRules);
+    const rules = getRules();
+    rules.push(ruleText);
+    saveRules(rules);
     debugLog(`[RulesManager] Added rule: "${ruleText}"`);
 }
 
@@ -39,10 +37,11 @@ export function addRule(ruleText) {
  * @param {string} newText The new text for the rule.
  */
 export function editRule(index, newText) {
-    if (index < 0 || index >= currentRules.length || !newText) {return;}
-    const oldText = currentRules[index];
-    currentRules[index] = newText;
-    saveRulesConfig(currentRules);
+    const rules = getRules();
+    if (index < 0 || index >= rules.length || !newText) {return;}
+    const oldText = rules[index];
+    rules[index] = newText;
+    saveRules(rules);
     debugLog(`[RulesManager] Edited rule at index ${index}: from "${oldText}" to "${newText}"`);
 }
 
@@ -51,9 +50,10 @@ export function editRule(index, newText) {
  * @param {number} index The index of the rule to delete.
  */
 export function deleteRule(index) {
-    if (index < 0 || index >= currentRules.length) {return;}
-    const deletedRule = currentRules.splice(index, 1);
-    saveRulesConfig(currentRules);
+    const rules = getRules();
+    if (index < 0 || index >= rules.length) {return;}
+    const deletedRule = rules.splice(index, 1);
+    saveRules(rules);
     debugLog(`[RulesManager] Deleted rule at index ${index}: "${deletedRule[0]}"`);
 }
 
@@ -63,17 +63,18 @@ export function deleteRule(index) {
  * @param {'up' | 'down'} direction The direction to move the rule.
  */
 export function moveRule(index, direction) {
-    if (index < 0 || index >= currentRules.length) {return;}
+    const rules = getRules();
+    if (index < 0 || index >= rules.length) {return;}
 
     if (direction === 'up') {
         if (index === 0) {return;} // Can't move up if already at the top
-        [currentRules[index - 1], currentRules[index]] = [currentRules[index], currentRules[index - 1]];
+        [rules[index - 1], rules[index]] = [rules[index], rules[index - 1]];
         debugLog(`[RulesManager] Moved rule up at index ${index}`);
     } else if (direction === 'down') {
-        if (index === currentRules.length - 1) {return;} // Can't move down if already at the bottom
-        [currentRules[index], currentRules[index + 1]] = [currentRules[index + 1], currentRules[index]];
+        if (index === rules.length - 1) {return;} // Can't move down if already at the bottom
+        [rules[index], rules[index + 1]] = [rules[index + 1], rules[index]];
         debugLog(`[RulesManager] Moved rule down at index ${index}`);
     }
 
-    saveRulesConfig(currentRules);
+    saveRules(rules);
 }
