@@ -727,7 +727,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const selectedCategoryName = paginatedCategories[selection - 2];
 
         if (selectedCategoryName) {
-            return showPanel(player, `shopAdminCategoryPanel_${selectedCategoryName}`, { ...context, categoryName: selectedCategoryName });
+            return showPanel(player, `shopAdminCategoryPanel_${selectedCategoryName}`, { categoryName: selectedCategoryName });
         }
         // Handle pagination
         let newPage = page;
@@ -898,7 +898,7 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (selection >= kitStartIndex && selection <= kitEndIndex) {
             const selectedKitName = paginatedKits[selection - kitStartIndex];
-            return showPanel(player, `kitActionMenu_${selectedKitName}`, context);
+            return showPanel(player, `kitActionMenu_${selectedKitName}`, {});
         }
 
         // After kit items, check for pagination buttons
@@ -977,13 +977,13 @@ async function handleFormResponse(player, panelId, response, context) {
                 if (confirmResponse.selection === 0) {
                     deleteKit(kitName);
                     player.sendMessage(`§2Kit '${kitName}' has been deleted.`);
-                    return showPanel(player, 'kitManagementPanel', context);
+                    return showPanel(player, 'kitManagementPanel', {});
                 } else {
                     return showPanel(player, `kitActionMenu_${kitName}`, context);
                 }
             }
             case 3: // Back
-                return showPanel(player, 'kitManagementPanel', context);
+                return showPanel(player, 'kitManagementPanel', {});
         }
         return;
     }
