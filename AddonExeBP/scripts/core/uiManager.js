@@ -261,7 +261,9 @@ async function buildPanelForm(player, panelId, context) {
     }
 
     if (panelId === 'rankManagementPanel') {
-        const form = new ActionFormData().title('§l§4Rank System');
+        const panelDef = panelDefinitions[panelId];
+        const title = panelDef.title;
+        const form = new ActionFormData().title(title);
         buildRankManagementPanel(form, context);
         return form;
     }
@@ -725,7 +727,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const selectedCategoryName = paginatedCategories[selection - 2];
 
         if (selectedCategoryName) {
-            return showPanel(player, `shopAdminCategoryPanel_${selectedCategoryName}`, { ...context, categoryName: selectedCategoryName });
+            return showPanel(player, `shopAdminCategoryPanel_${selectedCategoryName}`, { categoryName: selectedCategoryName });
         }
         // Handle pagination
         let newPage = page;
@@ -896,7 +898,7 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (selection >= kitStartIndex && selection <= kitEndIndex) {
             const selectedKitName = paginatedKits[selection - kitStartIndex];
-            return showPanel(player, `kitActionMenu_${selectedKitName}`, context);
+            return showPanel(player, `kitActionMenu_${selectedKitName}`, {});
         }
 
         // After kit items, check for pagination buttons
@@ -975,13 +977,13 @@ async function handleFormResponse(player, panelId, response, context) {
                 if (confirmResponse.selection === 0) {
                     deleteKit(kitName);
                     player.sendMessage(`§2Kit '${kitName}' has been deleted.`);
-                    return showPanel(player, 'kitManagementPanel', context);
+                    return showPanel(player, 'kitManagementPanel', {});
                 } else {
                     return showPanel(player, `kitActionMenu_${kitName}`, context);
                 }
             }
             case 3: // Back
-                return showPanel(player, 'kitManagementPanel', context);
+                return showPanel(player, 'kitManagementPanel', {});
         }
         return;
     }
@@ -1327,8 +1329,11 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (result.success) {
             rankManager.reloadRanks();
-            const fromPanel = isSpecialRank ? 'rankManagementPanel' : `rankActionMenu_${rank.id}`;
-            return showPanel(player, fromPanel, { ...context, page: 1 });
+            // After editing, the rank ID might have changed. We need to use the new ID.
+            const newRankId = isSpecialRank ? rank.id : id;
+            const fromPanel = isSpecialRank ? 'rankManagementPanel' : `rankActionMenu_${newRankId}`;
+            const newContext = { ...context, rankId: newRankId, page: 1 };
+            return showPanel(player, fromPanel, newContext);
         } else {
             return showPanel(player, panelId, context);
         }
@@ -1366,7 +1371,8 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (selectionIndex < paginatedSystems.length) {
             const selectedSystem = paginatedSystems[selectionIndex];
-            return showPanel(player, selectedSystem.id, context);
+            // Reset context to ensure pagination starts from 1 on the new panel
+            return showPanel(player, selectedSystem.id, {});
         }
 
         // Handle pagination

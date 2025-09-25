@@ -218,6 +218,21 @@ export const panelDefinitions = {
         parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated by uiManager
     },
+    rankManagementPanel: {
+        title: '§l§4Rank System§r',
+        parentPanelId: 'configCategoryPanel',
+        items: [] // Dynamically populated by uiManager
+    },
+    editRankPanel: {
+        title: '§l§3Edit Rank§r',
+        parentPanelId: 'rankManagementPanel',
+        items: [] // Dynamically populated by uiManager
+    },
+    addRankPanel: {
+        title: '§l§2Add New Rank§r',
+        parentPanelId: 'rankManagementPanel',
+        items: [] // Dynamically populated by uiManager
+    },
     playerManagementPanel: {
         title: '§l§4Player Management§r',
         parentPanelId: 'mainPanel',
