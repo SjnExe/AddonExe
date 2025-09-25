@@ -101,7 +101,7 @@ function createConfigManager(key, defaultConfig, name) {
         update: updateConfig,
         reload: reloadConfig,
         updateMultiple: updateMultipleConfig,
-        reset: resetConfig,
+        reset: resetConfig
     };
 }
 
