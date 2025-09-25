@@ -266,9 +266,9 @@ async function buildPanelForm(player, panelId, context) {
         const form = new ActionFormData()
             .title(panelDef.title)
             .body(`Selected Rule: ${ruleText}`)
-            .button('Edit Text', 'textures/ui/icon_edit')
-            .button('Move Up', 'textures/ui/arrow_up')
-            .button('Move Down', 'textures/ui/arrow_down')
+            .button('Edit Text', 'textures/ui/editIcon')
+            .button('Move Up', 'textures/gui/controls/up')
+            .button('Move Down', 'textures/gui/controls/down')
             .button('§cDelete Rule', 'textures/ui/trash')
             .button('§l§8< Back', 'textures/gui/controls/left.png');
         return form;
