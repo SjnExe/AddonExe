@@ -285,5 +285,20 @@ export const panelDefinitions = {
             { id: 'bounty', text: '§6Bounty', icon: 'textures/items/netherite_sword.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'bountyActionsPanel', sortId: 30 },
             { id: 'report', text: '§cReport Player', icon: 'textures/ui/WarningGlyph', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'reportPlayer', sortId: 40 }
         ]
+    },
+    rulesManagementPanel: {
+        title: '§l§4Rules Management',
+        parentPanelId: 'mainPanel',
+        items: [] // Dynamically populated
+    },
+    addRulePanel: {
+        title: 'Add New Rule',
+        parentPanelId: 'rulesManagementPanel',
+        items: [] // Modal form, no items needed
+    },
+    ruleActionPanel: {
+        title: 'Manage Rule',
+        parentPanelId: 'rulesManagementPanel',
+        items: [] // Dynamically populated
     }
 };
