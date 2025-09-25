@@ -261,7 +261,9 @@ async function buildPanelForm(player, panelId, context) {
     }
 
     if (panelId === 'rankManagementPanel') {
-        const form = new ActionFormData().title('§l§4Rank System');
+        const panelDef = panelDefinitions[panelId];
+        const title = panelDef.title;
+        const form = new ActionFormData().title(title);
         buildRankManagementPanel(form, context);
         return form;
     }
