@@ -1,143 +1,42 @@
 import { world } from '@minecraft/server';
 import { errorLog } from '../core/errorLogger.js';
 
-// An object to hold our event handlers, categorized by event name
-const handlers = {
-    beforeChatSend: [],
-    playerSpawn: [],
-    entityHurt: [],
-    playerLeave: [],
-    playerDimensionChange: [],
-    itemUse: [],
-    entityDie: [],
-    blockBreak: [],
-    // Add other event types as needed
-};
+// Import all event handlers statically
+import handleBeforeChatSend from './beforeChatSend.js';
+import handlePlayerSpawn from './playerSpawn.js';
+import handleEntityHurt from './entityHurt.js';
+import handlePlayerLeave from './playerLeave.js';
+import handlePlayerDimensionChange from './playerDimensionChange.js';
+import handleItemUse from './itemUse.js';
+import handleEntityDie from './entityDie.js';
+import handleBlockBreak from './blockBreak.js';
 
 /**
- * Dynamically imports all event handler modules from the current directory.
+ * An array of all event handlers and their corresponding event subscriptions.
+ * This approach ensures that all modules are loaded with static imports,
+ * and the subscriptions happen predictably.
  */
-async function loadHandlers() {
-    // Since we can't dynamically browse directories in the script API,
-    // we'll manually list the handlers to import.
-    const handlerModules = [
-        './beforeChatSend.js',
-        './playerSpawn.js',
-        './entityHurt.js',
-        './playerLeave.js',
-        './playerDimensionChange.js',
-        './itemUse.js',
-        './entityDie.js',
-        './blockBreak.js'
-    ];
+const events = [
+    { event: world.beforeEvents.chatSend, handler: handleBeforeChatSend, name: 'beforeChatSend' },
+    { event: world.afterEvents.playerSpawn, handler: handlePlayerSpawn, name: 'playerSpawn' },
+    { event: world.afterEvents.entityHurt, handler: handleEntityHurt, name: 'entityHurt' },
+    { event: world.afterEvents.playerLeave, handler: handlePlayerLeave, name: 'playerLeave' },
+    { event: world.afterEvents.playerDimensionChange, handler: handlePlayerDimensionChange, name: 'playerDimensionChange' },
+    { event: world.afterEvents.itemUse, handler: handleItemUse, name: 'itemUse' },
+    { event: world.afterEvents.entityDie, handler: handleEntityDie, name: 'entityDie' },
+    { event: world.afterEvents.blockBreak, handler: handleBlockBreak, name: 'blockBreak' }
+];
 
-    for (const path of handlerModules) {
+/**
+ * Initializes the event manager by subscribing all handlers to their corresponding world events.
+ * This function is now synchronous.
+ */
+export function initializeEventManager() {
+    for (const { event, handler, name } of events) {
         try {
-            // The imported module should have a default export which is the handler function
-            const { default: handler } = await import(path);
-            // The module should also export the 'eventName' it subscribes to
-            const { eventName } = await import(path);
-
-            if (handler && eventName && handlers[eventName]) {
-                handlers[eventName].push(handler);
-            } else {
-                errorLog(`[EventManager] Invalid handler or missing eventName in ${path}`);
-            }
-        } catch (error) {
-            errorLog(`[EventManager] Failed to load handler from ${path}:`, error);
+            event.subscribe(handler);
+        } catch (e) {
+            errorLog(`[EventManager] Failed to subscribe to event ${name}: ${e.stack}`);
         }
     }
-}
-
-/**
- * Subscribes all loaded handlers to their corresponding world events.
- */
-function subscribeHandlers() {
-    world.beforeEvents.chatSend.subscribe(eventData => {
-        for (const handler of handlers.beforeChatSend) {
-            try {
-                handler(eventData);
-            } catch (e) {
-                errorLog(`[EventManager] Error in beforeChatSend handler: ${e.stack}`);
-            }
-        }
-    });
-
-    world.afterEvents.playerSpawn.subscribe(eventData => {
-        for (const handler of handlers.playerSpawn) {
-            try {
-                handler(eventData);
-            } catch (e) {
-                errorLog(`[EventManager] Error in playerSpawn handler: ${e.stack}`);
-            }
-        }
-    });
-
-    world.afterEvents.entityHurt.subscribe(eventData => {
-        for (const handler of handlers.entityHurt) {
-            try {
-                handler(eventData);
-            } catch (e) {
-                errorLog(`[EventManager] Error in entityHurt handler: ${e.stack}`);
-            }
-        }
-    });
-
-    world.afterEvents.playerLeave.subscribe(eventData => {
-        for (const handler of handlers.playerLeave) {
-            try {
-                handler(eventData);
-            } catch (e) {
-                errorLog(`[EventManager] Error in playerLeave handler: ${e.stack}`);
-            }
-        }
-    });
-
-    world.afterEvents.playerDimensionChange.subscribe(eventData => {
-        for (const handler of handlers.playerDimensionChange) {
-            try {
-                handler(eventData);
-            } catch (e) {
-                errorLog(`[EventManager] Error in playerDimensionChange handler: ${e.stack}`);
-            }
-        }
-    });
-
-    world.afterEvents.itemUse.subscribe(eventData => {
-        for (const handler of handlers.itemUse) {
-            try {
-                handler(eventData);
-            } catch (e) {
-                errorLog(`[EventManager] Error in itemUse handler: ${e.stack}`);
-            }
-        }
-    });
-
-    world.afterEvents.entityDie.subscribe(eventData => {
-        for (const handler of handlers.entityDie) {
-            try {
-                handler(eventData);
-            } catch (e) {
-                errorLog(`[EventManager] Error in entityDie handler: ${e.stack}`);
-            }
-        }
-    });
-
-    world.afterEvents.blockBreak.subscribe(eventData => {
-        for (const handler of handlers.blockBreak) {
-            try {
-                handler(eventData);
-            } catch (e) {
-                errorLog(`[EventManager] Error in blockBreak handler: ${e.stack}`);
-            }
-        }
-    });
-}
-
-/**
- * Initializes the event manager by loading and subscribing all handlers.
- */
-export async function initializeEventManager() {
-    await loadHandlers();
-    subscribeHandlers();
 }

@@ -7,7 +7,7 @@ import { loadRanksConfig } from './ranksConfigManager.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
-import { loadPunishments, clearExpiredPunishments } from './punishmentManager.js';
+import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
 import * as economyManager from './economyManager.js';
@@ -65,6 +65,7 @@ function loadPersistentData() {
 function initializeManagers() {
     debugLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
+    initializePunishmentManager();
     // Clear any expired data on startup
     clearExpiredPunishments();
     clearOldResolvedReports();
@@ -97,7 +98,7 @@ function startSystemTimers() {
 /**
  * Main entry point for addon initialization.
  */
-async function initializeAddon() {
+function initializeAddon() {
     debugLog('[AddonExe] Initializing addon...');
 
     const newVersion = String(defaultConfig.version);
@@ -119,7 +120,7 @@ async function initializeAddon() {
     loadPersistentData();
     initializeManagers();
     checkConfiguration();
-    await initializeEventManager();
+    initializeEventManager();
 
     startSystemTimers();
     debugLog('[AddonExe] Addon initialized successfully.');

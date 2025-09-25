@@ -45,10 +45,7 @@ function createConfigManager(key, defaultConfig, name) {
     }
 
     function getConfig() {
-        if (!currentConfig) {
-            loadConfig(false);
-        }
-        return currentConfig;
+        return currentConfig || defaultConfig;
     }
 
     function saveConfig() {
