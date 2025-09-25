@@ -33,10 +33,16 @@ const events = [
  */
 export function initializeEventManager() {
     for (const { event, handler, name } of events) {
-        try {
-            event.subscribe(handler);
-        } catch (e) {
-            errorLog(`[EventManager] Failed to subscribe to event ${name}: ${e.stack}`);
+        // Check if the event object exists before subscribing.
+        // This handles cases where an event might be behind an experimental flag.
+        if (event) {
+            try {
+                event.subscribe(handler);
+            } catch (e) {
+                errorLog(`[EventManager] Failed to subscribe to event ${name}: ${e.stack}`);
+            }
+        } else {
+            errorLog(`[EventManager] Event '${name}' is not available and was skipped.`);
         }
     }
 }
