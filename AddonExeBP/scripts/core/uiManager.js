@@ -173,6 +173,17 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId.startsWith('rankActionMenu_')) {
+        const rankId = panelId.replace('rankActionMenu_', '');
+        const rank = rankManager.getRankById(rankId);
+        const form = new ActionFormData()
+            .title(`Manage Rank: ${rank.name}`)
+            .button('Edit Rank', 'textures/ui/icon_setting')
+            .button('§cDelete Rank', 'textures/ui/trash')
+            .button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
     if (panelId.startsWith('kitActionMenu_')) {
         const kitName = panelId.replace('kitActionMenu_', '');
         const form = new ActionFormData()
@@ -202,45 +213,6 @@ async function buildPanelForm(player, panelId, context) {
 
         form.submitButton('§l§2Save and Close');
 
-        return form;
-    }
-
-    if (panelId === 'rankManagementPanel') {
-        const form = new ActionFormData().title('§l§4Rank System');
-        buildRankManagementPanel(form, context);
-        return form;
-    }
-
-    if (panelId === 'addRankPanel') {
-        const form = new ModalFormData().title('§l§2Add New Rank');
-        form.textField('Rank Name', 'e.g., VIP');
-        form.textField('Rank ID (tag)', 'e.g., vip (lowercase, no spaces)');
-        form.textField('Permission Level', '0-1024 (lower is more powerful)', { defaultValue: '1024' });
-        form.textField('Name Color', 'e.g., §6', { defaultValue: '§f' });
-        form.textField('Chat Color', 'e.g., §6', { defaultValue: '§f' });
-        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: '§8[§7prefix§8]§r' });
-        return form;
-    }
-
-    if (panelId === 'editRankPanel') {
-        const rank = rankManager.getRankById(context.rankId);
-        if (!rank) {
-            errorLog(`[UIManager] Edit rank panel: rank with ID ${context.rankId} not found.`);
-            return null;
-        }
-        const isSpecialRank = rank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
-
-        const form = new ModalFormData().title(`§l§3Edit Rank: ${rank.name}`);
-        form.textField('Rank Name', 'e.g., VIP', { defaultValue: rank.name });
-        form.textField('Rank ID (tag)', 'e.g., vip', { defaultValue: rank.id, disabled: isSpecialRank });
-        form.textField('Permission Level', '0-1024', { defaultValue: String(rank.permissionLevel), disabled: isSpecialRank });
-        form.textField('Name Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.nameColor ?? '' });
-        form.textField('Chat Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.messageColor ?? '' });
-        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: rank.chatFormatting?.prefixText ?? '' });
-        form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
-        if (!isSpecialRank) {
-            form.toggle('§cDelete this rank', { defaultValue: false });
-        }
         return form;
     }
 
@@ -285,6 +257,42 @@ async function buildPanelForm(player, panelId, context) {
     if (panelId === 'kitManagementPanel') {
         const form = new ActionFormData().title(title);
         buildKitManagementPanel(form, context);
+        return form;
+    }
+
+    if (panelId === 'rankManagementPanel') {
+        const form = new ActionFormData().title('§l§4Rank System');
+        buildRankManagementPanel(form, context);
+        return form;
+    }
+
+    if (panelId === 'addRankPanel') {
+        const form = new ModalFormData().title('§l§2Add New Rank');
+        form.textField('Rank Name', 'e.g., VIP');
+        form.textField('Rank ID (tag)', 'e.g., vip (lowercase, no spaces)');
+        form.textField('Permission Level', '0-1024 (lower is more powerful)');
+        form.textField('Name Color', 'e.g., §6');
+        form.textField('Chat Color', 'e.g., §6');
+        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]');
+        return form;
+    }
+
+    if (panelId === 'editRankPanel') {
+        const rank = rankManager.getRankById(context.rankId);
+        if (!rank) {
+            errorLog(`[UIManager] Edit rank panel: rank with ID ${context.rankId} not found.`);
+            return null;
+        }
+        const isSpecialRank = rank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
+
+        const form = new ModalFormData().title(`§l§3Edit Rank: ${rank.name}`);
+        form.textField('Rank Name', 'e.g., VIP', { defaultValue: rank.name });
+        form.textField('Rank ID (tag)', 'e.g., vip', { defaultValue: rank.id, disabled: isSpecialRank });
+        form.textField('Permission Level', '0-1024', { defaultValue: String(rank.permissionLevel), disabled: isSpecialRank });
+        form.textField('Name Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.nameColor ?? '' });
+        form.textField('Chat Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.messageColor ?? '' });
+        form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: rank.chatFormatting?.prefixText ?? '' });
+        form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
         return form;
     }
 
@@ -1157,6 +1165,36 @@ async function handleFormResponse(player, panelId, response, context) {
         return showPanel(player, panelId, context); // Fallback
     }
 
+    if (panelId.startsWith('rankActionMenu_')) {
+        const rankId = panelId.replace('rankActionMenu_', '');
+        const rank = rankManager.getRankById(rankId);
+
+        switch (selection) {
+            case 0: // Edit Rank
+                return showPanel(player, 'editRankPanel', { ...context, rankId: rank.id });
+            case 1: { // Delete Rank
+                const confirmForm = new ActionFormData()
+                    .title(`§cDelete ${rank.name}?`)
+                    .body('This action cannot be undone.')
+                    .button('§cYes, Delete Rank', 'textures/ui/trash')
+                    .button('§2No, Keep Rank', 'textures/ui/cancel');
+                const confirmResponse = await utils.uiWait(player, confirmForm);
+
+                if (confirmResponse.selection === 0) {
+                    const result = rankDb.deleteRank(rank.id);
+                    player.sendMessage(result.message);
+                    if (result.success) {
+                        rankManager.reloadRanks();
+                    }
+                }
+                return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
+            }
+            case 2: // Back
+                return showPanel(player, 'rankManagementPanel', context);
+        }
+        return;
+    }
+
     if (panelId === 'rankManagementPanel') {
         const page = context.page || 1;
         // Back button
@@ -1175,7 +1213,13 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (selection >= rankStartIndex && selection <= rankEndIndex) {
             const selectedRank = paginatedRanks[selection - rankStartIndex];
-            return showPanel(player, 'editRankPanel', { ...context, rankId: selectedRank.id });
+            const isSpecialRank = selectedRank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
+
+            if (isSpecialRank) {
+                return showPanel(player, 'editRankPanel', { ...context, rankId: selectedRank.id });
+            } else {
+                return showPanel(player, `rankActionMenu_${selectedRank.id}`, { ...context, rankId: selectedRank.id });
+            }
         }
 
         // Handle pagination
@@ -1246,30 +1290,11 @@ async function handleFormResponse(player, panelId, response, context) {
         const isSpecialRank = rank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
 
         if (canceled) {
-            return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
+            const fromPanel = isSpecialRank ? 'rankManagementPanel' : `rankActionMenu_${rank.id}`;
+            return showPanel(player, fromPanel, context);
         }
 
         const [name, id, permLevelStr, nameColor, chatColor, prefix, nametagPrefix] = formValues;
-        const shouldDelete = !isSpecialRank && formValues[7];
-
-        if (shouldDelete) {
-            const confirmForm = new ActionFormData()
-                .title(`§cDelete ${rank.name}?`)
-                .body('This action cannot be undone.')
-                .button('§cYes, Delete Rank', 'textures/ui/trash')
-                .button('§2No, Keep Rank', 'textures/ui/cancel');
-            const confirmResponse = await utils.uiWait(player, confirmForm);
-
-            if (confirmResponse.selection === 0) {
-                const result = rankDb.deleteRank(rank.id);
-                player.sendMessage(result.message);
-                if (result.success) {
-                    rankManager.reloadRanks();
-                }
-            }
-            return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
-        }
-
         const permissionLevel = parseInt(permLevelStr, 10);
 
         if (!name) {
@@ -1302,7 +1327,8 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (result.success) {
             rankManager.reloadRanks();
-            return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
+            const fromPanel = isSpecialRank ? 'rankManagementPanel' : `rankActionMenu_${rank.id}`;
+            return showPanel(player, fromPanel, { ...context, page: 1 });
         } else {
             return showPanel(player, panelId, context);
         }
@@ -1340,9 +1366,6 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (selectionIndex < paginatedSystems.length) {
             const selectedSystem = paginatedSystems[selectionIndex];
-            if (['configResetPanel', 'rankManagementPanel', 'kitManagementPanel', 'shopManagementPanel'].includes(selectedSystem.id)) {
-                return showPanel(player, selectedSystem.id, { ...context, page: 1 });
-            }
             return showPanel(player, selectedSystem.id, context);
         }
 
