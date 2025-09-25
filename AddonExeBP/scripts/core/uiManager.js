@@ -239,7 +239,7 @@ async function buildPanelForm(player, panelId, context) {
         form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: rank.chatFormatting?.prefixText ?? '' });
         form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
         if (!isSpecialRank) {
-            form.toggle('§cDelete this rank', false);
+            form.toggle('§cDelete this rank', { defaultValue: false });
         }
         return form;
     }
