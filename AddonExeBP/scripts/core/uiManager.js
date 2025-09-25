@@ -173,6 +173,17 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId.startsWith('rankActionMenu_')) {
+        const rankId = panelId.replace('rankActionMenu_', '');
+        const rank = rankManager.getRankById(rankId);
+        const form = new ActionFormData()
+            .title(`Manage Rank: ${rank.name}`)
+            .button('Edit Rank', 'textures/ui/icon_setting')
+            .button('§cDelete Rank', 'textures/ui/trash')
+            .button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
     if (panelId.startsWith('kitActionMenu_')) {
         const kitName = panelId.replace('kitActionMenu_', '');
         const form = new ActionFormData()
@@ -282,9 +293,6 @@ async function buildPanelForm(player, panelId, context) {
         form.textField('Chat Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.messageColor ?? '' });
         form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: rank.chatFormatting?.prefixText ?? '' });
         form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
-        if (!isSpecialRank) {
-            form.submitButton('§l§cDelete Rank');
-        }
         return form;
     }
 
@@ -1157,6 +1165,36 @@ async function handleFormResponse(player, panelId, response, context) {
         return showPanel(player, panelId, context); // Fallback
     }
 
+    if (panelId.startsWith('rankActionMenu_')) {
+        const rankId = panelId.replace('rankActionMenu_', '');
+        const rank = rankManager.getRankById(rankId);
+
+        switch (selection) {
+            case 0: // Edit Rank
+                return showPanel(player, 'editRankPanel', { ...context, rankId: rank.id });
+            case 1: { // Delete Rank
+                const confirmForm = new ActionFormData()
+                    .title(`§cDelete ${rank.name}?`)
+                    .body('This action cannot be undone.')
+                    .button('§cYes, Delete Rank', 'textures/ui/trash')
+                    .button('§2No, Keep Rank', 'textures/ui/cancel');
+                const confirmResponse = await utils.uiWait(player, confirmForm);
+
+                if (confirmResponse.selection === 0) {
+                    const result = rankDb.deleteRank(rank.id);
+                    player.sendMessage(result.message);
+                    if (result.success) {
+                        rankManager.reloadRanks();
+                    }
+                }
+                return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
+            }
+            case 2: // Back
+                return showPanel(player, 'rankManagementPanel', context);
+        }
+        return;
+    }
+
     if (panelId === 'rankManagementPanel') {
         const page = context.page || 1;
         // Back button
@@ -1175,7 +1213,13 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (selection >= rankStartIndex && selection <= rankEndIndex) {
             const selectedRank = paginatedRanks[selection - rankStartIndex];
-            return showPanel(player, 'editRankPanel', { ...context, rankId: selectedRank.id });
+            const isSpecialRank = selectedRank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
+
+            if (isSpecialRank) {
+                return showPanel(player, 'editRankPanel', { ...context, rankId: selectedRank.id });
+            } else {
+                return showPanel(player, `rankActionMenu_${selectedRank.id}`, { ...context, rankId: selectedRank.id });
+            }
         }
 
         // Handle pagination
@@ -1246,27 +1290,11 @@ async function handleFormResponse(player, panelId, response, context) {
         const isSpecialRank = rank.conditions.some(c => c.type === 'isOwner' || c.type === 'default');
 
         if (canceled) {
-            // If the form has a submit button, "canceled" means the user clicked it (the delete button)
-            if (!isSpecialRank) {
-                const confirmForm = new ActionFormData()
-                    .title(`§cDelete ${rank.name}?`)
-                    .body('This action cannot be undone.')
-                    .button('§cYes, Delete Rank', 'textures/ui/trash')
-                    .button('§2No, Keep Rank', 'textures/ui/cancel');
-                const confirmResponse = await utils.uiWait(player, confirmForm);
-
-                if (confirmResponse.selection === 0) {
-                    const result = rankDb.deleteRank(rank.id);
-                    player.sendMessage(result.message);
-                    if (result.success) {
-                        rankManager.reloadRanks();
-                    }
-                }
-                return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
-            }
+            const fromPanel = isSpecialRank ? 'rankManagementPanel' : `rankActionMenu_${rank.id}`;
+            return showPanel(player, fromPanel, context);
         }
 
-        const [name, id, permLevelStr, nameColor, chatColor, prefix] = formValues;
+        const [name, id, permLevelStr, nameColor, chatColor, prefix, nametagPrefix] = formValues;
         const permissionLevel = parseInt(permLevelStr, 10);
 
         if (!name) {
@@ -1291,7 +1319,7 @@ async function handleFormResponse(player, panelId, response, context) {
                 nameColor: nameColor,
                 messageColor: chatColor
             },
-            nametagPrefix: prefix
+            nametagPrefix: nametagPrefix
         };
 
         const result = rankDb.updateRank(rank.id, updatedData);
@@ -1299,7 +1327,8 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (result.success) {
             rankManager.reloadRanks();
-            return showPanel(player, 'rankManagementPanel', { ...context, page: 1 });
+            const fromPanel = isSpecialRank ? 'rankManagementPanel' : `rankActionMenu_${rank.id}`;
+            return showPanel(player, fromPanel, { ...context, page: 1 });
         } else {
             return showPanel(player, panelId, context);
         }
