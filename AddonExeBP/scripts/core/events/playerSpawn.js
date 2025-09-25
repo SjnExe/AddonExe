@@ -1,13 +1,13 @@
 import { world, system } from '@minecraft/server';
-import { getPunishment } from '../core/punishmentManager.js';
-import * as playerCache from '../core/playerCache.js';
-import * as playerDataManager from '../core/playerDataManager.js';
-import * as rankManager from '../core/rankManager.js';
-import { updatePlayerRank } from '../core/main.js';
-import { getConfig } from '../core/configManager.js';
-import { formatString } from '../core/utils.js';
-import { errorLog } from '../core/errorLogger.js';
-import { debugLog } from '../core/logger.js';
+import { getPunishment } from '../punishmentManager.js';
+import * as playerCache from '../playerCache.js';
+import * as playerDataManager from '../playerDataManager.js';
+import * as rankManager from '../rankManager.js';
+import { updatePlayerRank } from '../main.js';
+import { getConfig } from '../configManager.js';
+import { formatString } from '../utils.js';
+import { errorLog } from '../errorLogger.js';
+import { debugLog } from '../logger.js';
 
 export const eventName = 'playerSpawn';
 

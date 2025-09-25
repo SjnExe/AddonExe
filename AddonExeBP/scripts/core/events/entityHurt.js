@@ -1,4 +1,4 @@
-import * as lastHitManager from '../core/lastHitManager.js';
+import * as lastHitManager from '../lastHitManager.js';
 
 export const eventName = 'entityHurt';
 

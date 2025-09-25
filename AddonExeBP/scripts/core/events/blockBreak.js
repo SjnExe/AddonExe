@@ -1,4 +1,4 @@
-import * as playerCache from '../core/playerCache.js';
+import * as playerCache from '../playerCache.js';
 
 export const eventName = 'blockBreak';
 

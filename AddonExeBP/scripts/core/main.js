@@ -15,7 +15,7 @@ import * as bountyManager from './bountyManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import { startRestart } from './restartManager.js';
-import { initializeEventManager } from '../events/eventManager.js';
+import { initializeEventManager } from './events/eventManager.js';
 import '../modules/commands/index.js';
 
 /**

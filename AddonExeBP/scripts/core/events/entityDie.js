@@ -1,12 +1,12 @@
 import { world } from '@minecraft/server';
-import * as playerDataManager from '../core/playerDataManager.js';
-import * as lastHitManager from '../core/lastHitManager.js';
-import * as playerCache from '../core/playerCache.js';
-import * as bountyManager from '../core/bountyManager.js';
-import * as economyManager from '../core/economyManager.js';
-import { getConfig } from '../core/configManager.js';
-import { debugLog } from '../core/logger.js';
-import { errorLog } from '../core/errorLogger.js';
+import * as playerDataManager from '../playerDataManager.js';
+import * as lastHitManager from '../lastHitManager.js';
+import * as playerCache from '../playerCache.js';
+import * as bountyManager from '../bountyManager.js';
+import * as economyManager from '../economyManager.js';
+import { getConfig } from '../configManager.js';
+import { debugLog } from '../logger.js';
+import { errorLog } from '../errorLogger.js';
 
 export const eventName = 'entityDie';
 

@@ -1,8 +1,8 @@
-import { getConfig } from '../core/configManager.js';
-import { getLockState } from '../core/playerDataManager.js';
-import * as playerDataManager from '../core/playerDataManager.js';
-import { debugLog } from '../core/logger.js';
-import { errorLog } from '../core/errorLogger.js';
+import { getConfig } from '../configManager.js';
+import { getLockState } from '../playerDataManager.js';
+import * as playerDataManager from '../playerDataManager.js';
+import { debugLog } from '../logger.js';
+import { errorLog } from '../errorLogger.js';
 
 export const eventName = 'playerDimensionChange';
 

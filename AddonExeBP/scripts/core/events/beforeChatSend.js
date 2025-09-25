@@ -1,9 +1,9 @@
 import { world } from '@minecraft/server';
-import { getPunishment } from '../core/punishmentManager.js';
-import { commandManager } from '../modules/commands/commandManager.js';
-import * as playerDataManager from '../core/playerDataManager.js';
-import * as rankManager from '../core/rankManager.js';
-import { getConfig } from '../core/configManager.js';
+import { getPunishment } from '../punishmentManager.js';
+import { commandManager } from '../../modules/commands/commandManager.js';
+import * as playerDataManager from '../playerDataManager.js';
+import * as rankManager from '../rankManager.js';
+import { getConfig } from '../configManager.js';
 
 export const eventName = 'beforeChatSend';
 

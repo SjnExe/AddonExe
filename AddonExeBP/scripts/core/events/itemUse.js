@@ -1,5 +1,5 @@
-import { showPanel } from '../core/uiManager.js';
-import * as playerDataManager from '../core/playerDataManager.js';
+import { showPanel } from '../uiManager.js';
+import * as playerDataManager from '../playerDataManager.js';
 
 export const eventName = 'itemUse';
 
