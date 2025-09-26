@@ -1,8 +1,6 @@
 import createConfigManager from './configManagerFactory.js';
 import { config as defaultConfig } from '../config.js';
-import { resetKitsConfig } from './kitsConfigManager.js';
-import { resetShopConfig } from './shopConfigManager.js';
-import { resetRanksConfig } from './ranksConfigManager.js';
+import { configResetRegistry } from './configurations.js';
 import { deepClone } from './objectUtils.js';
 
 const mainConfigManager = createConfigManager('exe:config:current', defaultConfig, 'Main');
@@ -21,32 +19,20 @@ export const updateMultipleConfig = mainConfigManager.updateMultiple;
 export function resetConfigSection(sectionKey) {
     if (sectionKey === 'all') {
         mainConfigManager.reset();
-        resetKitsConfig();
-        resetShopConfig();
-        resetRanksConfig();
+        Object.values(configResetRegistry).forEach(config => config.reset());
         return { success: true, message: 'All configuration settings have been reset to default.' };
     }
 
-    if (sectionKey === 'kits') {
-        resetKitsConfig();
-        return { success: true, message: 'The \'kits\' configuration section has been reset to default.' };
-    }
-
-    if (sectionKey === 'shop') {
-        resetShopConfig();
-        return { success: true, message: 'The \'shop\' configuration section has been reset to default.' };
-    }
-
-    if (sectionKey === 'ranks') {
-        resetRanksConfig();
-        return { success: true, message: 'The \'ranks\' configuration section has been reset to default.' };
+    if (configResetRegistry[sectionKey]) {
+        configResetRegistry[sectionKey].reset();
+        return { success: true, message: configResetRegistry[sectionKey].message };
     }
 
     if (Object.prototype.hasOwnProperty.call(defaultConfig, sectionKey)) {
         const currentConfig = getConfig();
         const newConfig = deepClone(currentConfig);
         newConfig[sectionKey] = deepClone(defaultConfig[sectionKey]);
-        mainConfigManager.set(newConfig); // Use the 'set' function from the factory
+        mainConfigManager.set(newConfig);
         return { success: true, message: `The '${sectionKey}' configuration section has been reset to default.` };
     } else {
         return { success: false, message: `Configuration section '${sectionKey}' not found.` };

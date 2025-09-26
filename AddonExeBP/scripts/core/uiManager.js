@@ -21,9 +21,8 @@ import { banPlayer, offlineBanPlayer, unbanPlayer } from '../modules/commands/ba
 import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 import * as rulesManager from './rulesManager.js';
 import * as shopManager from './shopManager.js';
-import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
+import { getKitsConfig, saveKitsConfig, getShopConfig, saveShopConfig } from './configurations.js';
 import { items as allItems } from './itemsConfig.js';
-import { getKitsConfig, saveKitsConfig } from './kitsConfigManager.js';
 import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from './kitAdminManager.js';
 import { addItemToKit, updateItemInKit } from './kitItemsManager.js';
 import * as shopAdminManager from './shopAdminManager.js';
