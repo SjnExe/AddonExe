@@ -1,6 +1,6 @@
 import { ItemStack, ItemTypes, EnchantmentTypes } from '@minecraft/server';
 import * as economyManager from './economyManager.js';
-import { getShopConfig } from './shopConfigManager.js';
+import { getShopConfig } from './configurations.js';
 import { items as allItems } from './itemsConfig.js';
 import { errorLog } from './errorLogger.js';
 

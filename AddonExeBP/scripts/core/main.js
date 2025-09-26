@@ -1,9 +1,7 @@
 import { world, system } from '@minecraft/server';
 import { config as defaultConfig } from '../config.js';
 import { loadConfig, getConfig, updateConfig, reloadConfig } from './configManager.js';
-import { loadShopConfig } from './shopConfigManager.js';
-import { loadKitsConfig } from './kitsConfigManager.js';
-import { loadRanksConfig } from './ranksConfigManager.js';
+import { loadShopConfig, loadKitsConfig, loadRanksConfig } from './configurations.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';

@@ -1,4 +1,4 @@
-import { getRanksConfig, saveRanksConfig } from './ranksConfigManager.js';
+import { getRanksConfig, saveRanksConfig } from './configurations.js';
 
 /**
  * Gets all ranks from the config.

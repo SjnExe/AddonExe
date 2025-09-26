@@ -1,4 +1,4 @@
-import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
+import { getShopConfig, saveShopConfig } from './configurations.js';
 import { debugLog } from './logger.js';
 import { items } from './itemsConfig.js';
 

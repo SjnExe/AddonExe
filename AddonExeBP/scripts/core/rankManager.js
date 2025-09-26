@@ -1,4 +1,4 @@
-import { getRanksConfig } from './ranksConfigManager.js';
+import { getRanksConfig } from './configurations.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 
