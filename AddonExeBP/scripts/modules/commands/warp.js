@@ -79,7 +79,7 @@ commandManager.register({
     name: 'addwarp',
     description: 'Creates a new warp at your current location.',
     category: 'Administration',
-    permissionLevel: 0, // Admin
+    permissionLevel: 1, // Admin
     parameters: [
         { name: 'warpName', type: 'string', description: 'The name for the new warp.' }
     ],
@@ -93,7 +93,7 @@ commandManager.register({
     name: 'delwarp',
     description: 'Deletes an existing warp.',
     category: 'Administration',
-    permissionLevel: 0, // Admin
+    permissionLevel: 1, // Admin
     parameters: [
         { name: 'warpName', type: 'string', description: 'The name of the warp to delete. Leave blank to choose from a list.', optional: true }
     ],
