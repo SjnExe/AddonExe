@@ -36,17 +36,32 @@ export function deepEqual(object1, object2) {
  * @returns {object} The merged object.
  */
 export function deepMerge(target, source) {
-    for (const key in source) {
-        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-            if (!target[key]) {
-                Object.assign(target, { [key]: {} });
+    const output = { ...target };
+
+    if (isObject(target) && isObject(source)) {
+        Object.keys(source).forEach(key => {
+            if (isObject(source[key])) {
+                if (!(key in target)) {
+                    Object.assign(output, { [key]: source[key] });
+                } else {
+                    output[key] = deepMerge(target[key], source[key]);
+                }
+            } else {
+                Object.assign(output, { [key]: source[key] });
             }
-            deepMerge(target[key], source[key]);
-        } else {
-            Object.assign(target, { [key]: source[key] });
-        }
+        });
     }
-    return target;
+
+    return output;
+}
+
+/**
+ * Checks if a value is an object.
+ * @param {*} item The value to check.
+ * @returns {boolean} True if the value is an object.
+ */
+function isObject(item) {
+    return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
 /**
@@ -78,6 +93,49 @@ export function setValueByPath(obj, path, value) {
 }
 
 /**
+ * Determines if a key is new in the new default configuration.
+ * @param {string} key The key to check.
+ * @param {object} oldDefault The old default configuration object.
+ * @returns {boolean} True if the key is new.
+ */
+function isNewKey(key, oldDefault) {
+    return !Object.prototype.hasOwnProperty.call(oldDefault, key);
+}
+
+/**
+ * Handles recursive reconciliation for nested objects.
+ * @param {object} newDefaultValue The new default value for the nested object.
+ * @param {object} oldDefaultValue The old default value for the nested object.
+ * @param {object} userSavedValue The user's saved value for the nested object.
+ * @returns {object} The reconciled nested object.
+ */
+function reconcileNestedObject(newDefaultValue, oldDefaultValue, userSavedValue) {
+    const userSavedChild = isObject(userSavedValue) ? userSavedValue : {};
+    return reconcileConfig(newDefaultValue, oldDefaultValue, userSavedChild);
+}
+
+/**
+ * Determines if the default value for a key has changed.
+ * @param {*} newDefaultValue The new default value.
+ * @param {*} oldDefaultValue The old default value.
+ * @returns {boolean} True if the default value has changed.
+ */
+function hasDefaultValueChanged(newDefaultValue, oldDefaultValue) {
+    return !deepEqual(newDefaultValue, oldDefaultValue);
+}
+
+/**
+ * Gets the final value for a key, preserving user settings if the default value has not changed.
+ * @param {*} newDefaultValue The new default value.
+ * @param {*} userSavedValue The user's saved value.
+ * @param {boolean} userHasSavedValue Whether the user has a saved value for this key.
+ * @returns {*} The final value for the key.
+ */
+function getFinalValue(newDefaultValue, userSavedValue, userHasSavedValue) {
+    return userHasSavedValue ? userSavedValue : newDefaultValue;
+}
+
+/**
  * Reconciles three configuration objects based on a specific set of rules for addon updates.
  * - If a setting's default value has changed between versions, the new default is forced.
  * - If a setting's default value is unchanged, the user's custom value is preserved.
@@ -90,39 +148,51 @@ export function reconcileConfig(newDefault, oldDefault, userSaved) {
     const finalConfig = {};
 
     for (const key in newDefault) {
-        const isNewKey = !Object.prototype.hasOwnProperty.call(oldDefault, key);
         const newDefaultValue = newDefault[key];
         const oldDefaultValue = oldDefault[key];
         const userSavedValue = userSaved ? userSaved[key] : undefined;
         const userHasSavedValue = userSaved && Object.prototype.hasOwnProperty.call(userSaved, key);
 
-        const isObject = (val) => val && typeof val === 'object' && !Array.isArray(val);
-
-        if (isNewKey) {
-            // New property in this version, so add it from the new default config.
+        if (isNewKey(key, oldDefault)) {
             finalConfig[key] = newDefaultValue;
         } else if (isObject(newDefaultValue) && isObject(oldDefaultValue)) {
-            // Property is a nested object, so we must recurse.
-            // If the user doesn't have a saved object for this key, pass an empty one to the recursion.
-            const userSavedChild = isObject(userSavedValue) ? userSavedValue : {};
-            finalConfig[key] = reconcileConfig(newDefaultValue, oldDefaultValue, userSavedChild);
-        } else if (!deepEqual(newDefaultValue, oldDefaultValue)) {
-            // The default value itself has changed between versions. Force the new default value.
+            finalConfig[key] = reconcileNestedObject(newDefaultValue, oldDefaultValue, userSavedValue);
+        } else if (hasDefaultValueChanged(newDefaultValue, oldDefaultValue)) {
             finalConfig[key] = newDefaultValue;
         } else {
-            // The default value is the same as the last version. Preserve the user's setting.
-            // If the user hasn't customized this specific key, fall back to the new default value.
-            finalConfig[key] = userHasSavedValue ? userSavedValue : newDefaultValue;
+            finalConfig[key] = getFinalValue(newDefaultValue, userSavedValue, userHasSavedValue);
         }
     }
     return finalConfig;
 }
 
 /**
- * Creates a deep clone of a JSON-serializable object.
- * @param {object} obj The object to clone.
- * @returns {object} A deep clone of the object.
+ * Creates a deep clone of an object.
+ * @param {*} obj The value to clone.
+ * @param {WeakMap} [hash=new WeakMap()] A map to store references to already cloned objects to handle circular references.
+ * @returns {*} A deep clone of the value.
  */
-export function deepClone(obj) {
-    return JSON.parse(JSON.stringify(obj));
+export function deepClone(obj, hash = new WeakMap()) {
+    if (Object(obj) !== obj) {
+        // Primitives are returned directly
+        return obj;
+    }
+    if (hash.has(obj)) {
+        // Handle circular references
+        return hash.get(obj);
+    }
+    if (obj instanceof Date) {
+        return new Date(obj);
+    }
+    if (obj instanceof RegExp) {
+        return new RegExp(obj.source, obj.flags);
+    }
+
+    const result = obj instanceof Array ? [] : Object.create(Object.getPrototypeOf(obj));
+
+    hash.set(obj, result);
+
+    return Object.assign(result, ...Object.keys(obj).map(
+        key => ({ [key]: deepClone(obj[key], hash) })
+    ));
 }
