@@ -24,7 +24,7 @@ export function updatePlayerRank(player) {
     if (!pData) { return; }
 
     const config = getConfig();
-    if (!config) return; // Guard against config not being loaded
+    if (!config) {return;} // Guard against config not being loaded
     const oldRankId = pData.rankId;
     const newRank = rankManager.getPlayerRank(player, config);
 
@@ -142,7 +142,7 @@ system.run(async () => {
 system.afterEvents.scriptEventReceive.subscribe((event) => {
     const { id, sourceEntity } = event;
     const config = getConfig(); // Config should be loaded by the time this event fires.
-    if (!config) return;
+    if (!config) {return;}
 
     switch (id) {
         case 'exe:restart':
