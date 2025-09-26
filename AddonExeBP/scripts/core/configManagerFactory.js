@@ -95,9 +95,9 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                     const mergedConfig = deepClone(userSavedConfig);
 
                     function applyFileChanges(path, fileObj, lastLoadedObj) {
-                        if (!fileObj || typeof fileObj !== 'object') return;
+                        if (!fileObj || typeof fileObj !== 'object') {return;}
                         for (const objKey in fileObj) {
-                            if (!Object.prototype.hasOwnProperty.call(fileObj, objKey)) continue;
+                            if (!Object.prototype.hasOwnProperty.call(fileObj, objKey)) {continue;}
 
                             const currentPath = path ? `${path}.${objKey}` : objKey;
                             const fileValue = fileObj[objKey];
