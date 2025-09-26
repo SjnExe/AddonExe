@@ -9,7 +9,7 @@ import handlePlayerLeave from './playerLeave.js';
 import handlePlayerDimensionChange from './playerDimensionChange.js';
 import handleItemUse from './itemUse.js';
 import handleEntityDie from './entityDie.js';
-import handleBlockBreak from './blockBreak.js';
+import handlePlayerBreakBlock from './playerBreakBlock.js';
 
 /**
  * An array of all event handlers and their corresponding event subscriptions.
@@ -24,7 +24,7 @@ const events = [
     { event: world.afterEvents.playerDimensionChange, handler: handlePlayerDimensionChange, name: 'playerDimensionChange' },
     { event: world.afterEvents.itemUse, handler: handleItemUse, name: 'itemUse' },
     { event: world.afterEvents.entityDie, handler: handleEntityDie, name: 'entityDie' },
-    { event: world.afterEvents.blockBreak, handler: handleBlockBreak, name: 'blockBreak' }
+    { event: world.afterEvents.playerBreakBlock, handler: handlePlayerBreakBlock, name: 'playerBreakBlock' }
 ];
 
 /**
@@ -39,10 +39,11 @@ export function initializeEventManager() {
             try {
                 event.subscribe(handler);
             } catch (e) {
-                errorLog(`[EventManager] Failed to subscribe to event ${name}: ${e.stack}`);
+                // Log the error with more detail for easier debugging in the future.
+                errorLog(`[EventManager] Failed to subscribe to event '${name}'. Error: ${e.message}\nStack: ${e.stack}`);
             }
         } else {
-            errorLog(`[EventManager] Event '${name}' is not available and was skipped.`);
+            errorLog(`[EventManager] Event subscription for '${name}' was skipped because the event is not available in this version of Minecraft.`);
         }
     }
 }
