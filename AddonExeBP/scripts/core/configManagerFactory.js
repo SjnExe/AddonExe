@@ -57,11 +57,7 @@ function createConfigManager(key, defaultConfig, name) {
     }
 
     function updateConfig(updateKey, value) {
-        if (!currentConfig) {
-            loadConfig(false);
-        }
-        currentConfig[updateKey] = value;
-        saveConfig();
+        updateMultipleConfig({ [updateKey]: value });
     }
 
     function setConfig(newConfig) {
@@ -78,9 +74,6 @@ function createConfigManager(key, defaultConfig, name) {
     }
 
     function updateMultipleConfig(updates) {
-        if (!currentConfig) {
-            loadConfig(false);
-        }
         for (const path in updates) {
             setValueByPath(currentConfig, path, updates[path]);
         }

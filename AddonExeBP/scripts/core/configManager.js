@@ -29,10 +29,7 @@ export function resetConfigSection(sectionKey) {
     }
 
     if (Object.prototype.hasOwnProperty.call(defaultConfig, sectionKey)) {
-        const currentConfig = getConfig();
-        const newConfig = deepClone(currentConfig);
-        newConfig[sectionKey] = deepClone(defaultConfig[sectionKey]);
-        mainConfigManager.set(newConfig);
+        mainConfigManager.update(sectionKey, deepClone(defaultConfig[sectionKey]));
         return { success: true, message: `The '${sectionKey}' configuration section has been reset to default.` };
     } else {
         return { success: false, message: `Configuration section '${sectionKey}' not found.` };
