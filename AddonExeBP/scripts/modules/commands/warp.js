@@ -77,14 +77,34 @@ commandManager.register({
 
 commandManager.register({
     name: 'addwarp',
-    description: 'Creates a new warp at your current location.',
+    description: 'Creates a new warp at your current location or at specified coordinates.',
+    aliases: ['setwarp'],
     category: 'Administration',
     permissionLevel: 1, // Admin
     parameters: [
-        { name: 'warpName', type: 'string', description: 'The name for the new warp.' }
+        { name: 'warpName', type: 'string', description: 'The name for the new warp.' },
+        { name: 'x', type: 'number', description: 'The x-coordinate for the warp.', optional: true },
+        { name: 'y', type: 'number', description: 'The y-coordinate for the warp.', optional: true },
+        { name: 'z', type: 'number', description: 'The z-coordinate for the warp.', optional: true }
     ],
     execute: (player, args) => {
-        const result = warpsManager.setWarp(args.warpName, player.location, player.dimension.id);
+        const { warpName, x, y, z } = args;
+        const hasX = x !== undefined && x !== null;
+        const hasY = y !== undefined && y !== null;
+        const hasZ = z !== undefined && z !== null;
+
+        let location;
+
+        if (hasX && hasY && hasZ) {
+            location = { x, y, z };
+        } else if (!hasX && !hasY && !hasZ) {
+            location = player.location;
+        } else {
+            player.sendMessage('§cYou must provide all three coordinates (x, y, z) or none to use your current location.');
+            return;
+        }
+
+        const result = warpsManager.setWarp(warpName, location, player.dimension.id);
         player.sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`);
     }
 });
