@@ -42,7 +42,7 @@ export const config = {
     warps: {
         enabled: true,
         cooldownSeconds: 60, // 1 minute
-        teleportWarmupSeconds: 5
+        teleportWarmupSeconds: 10
     },
     rtp: {
         enabled: true,
