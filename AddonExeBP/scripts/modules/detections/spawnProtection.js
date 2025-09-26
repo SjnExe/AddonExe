@@ -45,7 +45,8 @@ function canBypass(player) {
 
 function initialize() {
     const config = getConfig();
-    const spawnProtectionConfig = config.spawnProtection;
+    // Guard against migration issues where the new section might not exist on old configs
+    const spawnProtectionConfig = config.spawnProtection || { enabled: false };
 
     if (!spawnProtectionConfig.enabled) {
         return;
@@ -92,9 +93,12 @@ function initialize() {
 
     if (spawnProtectionConfig.preventFire) {
         world.beforeEvents.itemUseOn.subscribe((event) => {
-            if (event.itemStack.typeId === 'minecraft:flint_and_steel' || event.itemStack.typeId === 'minecraft:lava_bucket') {
-                if (isWithinSpawnProtection(event.block.location, event.source.dimension.id) && !canBypass(event.source)) {
-                     event.cancel = true;
+            const { source, itemStack } = event;
+            if (!(source instanceof Player)) return;
+
+            if (itemStack.typeId === 'minecraft:flint_and_steel' || itemStack.typeId === 'minecraft:lava_bucket') {
+                if (isWithinSpawnProtection(event.block.location, source.dimension.id) && !canBypass(source)) {
+                    event.cancel = true;
                 }
             }
         });
@@ -107,11 +111,13 @@ function initialize() {
 
             if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) return;
 
+            // PvP Protection
             if (spawnProtectionConfig.preventPvP && hurtEntity instanceof Player && damagingEntity instanceof Player && !canBypass(damagingEntity)) {
                 event.cancel = true;
                 return;
             }
 
+            // PvE Protection (Player getting hurt by non-player)
             if (spawnProtectionConfig.preventPvE && hurtEntity instanceof Player && damagingEntity && !(damagingEntity instanceof Player)) {
                  event.cancel = true;
                  return;
@@ -129,7 +135,10 @@ function initialize() {
 
     if (spawnProtectionConfig.preventItemDropping) {
         world.beforeEvents.itemDrop.subscribe((event) => {
-            if (isWithinSpawnProtection(event.source.location, event.source.dimension.id) && !canBypass(event.source)) {
+            const { source } = event;
+            if (!(source instanceof Player)) return;
+
+            if (isWithinSpawnProtection(source.location, source.dimension.id) && !canBypass(source)) {
                 event.cancel = true;
             }
         });
