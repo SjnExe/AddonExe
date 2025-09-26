@@ -12,16 +12,17 @@ commandManager.register({
     allowConsole: true,
     disableSlashCommand: false,
     parameters: [],
-    execute: (player, args) => {
+    execute: async (player, args) => {
         try {
-            reloadConfig();
+            player.sendMessage('§eReloading configuration...');
+            await reloadConfig();
             player.sendMessage('§aConfiguration reloaded successfully.');
 
             updateAllPlayerRanks();
             player.sendMessage('§aAll online player ranks have been re-evaluated.');
 
         } catch (error) {
-            player.sendMessage('§cFailed to reload configuration.');
+            player.sendMessage('§cFailed to reload configuration. Check the console for errors.');
             errorLog(`[/x:reload] ${error.stack}`);
         }
     }

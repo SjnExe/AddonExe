@@ -1,6 +1,5 @@
 import { world, system } from '@minecraft/server';
-import { config as defaultConfig } from '../config.js';
-import { loadConfig, getConfig, updateConfig, reloadConfig } from './configManager.js';
+import { loadConfig, getConfig, updateConfig } from './configManager.js';
 import { loadShopConfig, loadKitsConfig, loadRanksConfig } from './configurations.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
@@ -22,9 +21,10 @@ import '../modules/commands/index.js';
  */
 export function updatePlayerRank(player) {
     const pData = playerDataManager.getPlayer(player.id);
-    if (!pData) {return;}
+    if (!pData) { return; }
 
     const config = getConfig();
+    if (!config) return; // Guard against config not being loaded
     const oldRankId = pData.rankId;
     const newRank = rankManager.getPlayerRank(player, config);
 
@@ -76,7 +76,8 @@ function initializeManagers() {
  */
 function checkConfiguration() {
     const config = getConfig();
-    if (!config.ownerPlayerNames || config.ownerPlayerNames.length === 0 || config.ownerPlayerNames[0] === 'Your•Name•Here') {
+    // Add a guard in case config hasn't loaded yet, though the init flow should prevent this.
+    if (!config || !config.ownerPlayerNames || config.ownerPlayerNames.length === 0 || config.ownerPlayerNames[0] === 'Your•Name•Here') {
         const warningMessage = '§l§c[AddonExe] WARNING: No owner is configured. Please set `ownerPlayerNames` in `scripts/config.js` to gain access to admin commands.';
         system.runTimeout(() => world.sendMessage(warningMessage), 20);
         errorLog('[AddonExe] No owner configured.');
@@ -96,21 +97,24 @@ function startSystemTimers() {
 /**
  * Main entry point for addon initialization.
  */
-function initializeAddon() {
+async function initializeAddon() {
     debugLog('[AddonExe] Initializing addon...');
 
-    const newVersion = String(defaultConfig.version);
+    // Dynamically import the main config file to get the version number.
+    // This is necessary because we need to know if it's a migration before loading all configs.
+    const { config: tempConfig } = await import(`../config.js?v=${new Date().getTime()}`);
+    const newVersion = String(tempConfig.version);
     const lastVersion = world.getDynamicProperty('exe:lastVersion');
     const isMigration = !lastVersion || lastVersion !== newVersion;
 
-    const isFirstInit = loadConfig(isMigration);
-    loadKitsConfig(isMigration);
-    loadShopConfig(isMigration);
-    loadRanksConfig(isMigration);
-
-    if (!isFirstInit && !isMigration) {
-        reloadConfig();
-    }
+    // Load all configurations with the correct migration flag.
+    const loadPromises = [
+        loadConfig(isMigration),
+        loadKitsConfig(isMigration),
+        loadShopConfig(isMigration),
+        loadRanksConfig(isMigration)
+    ];
+    await Promise.all(loadPromises);
 
     world.setDynamicProperty('exe:lastVersion', newVersion);
 
@@ -125,10 +129,20 @@ function initializeAddon() {
 }
 
 // Run the initialization logic on the next tick after the script is loaded.
-system.run(initializeAddon);
+system.run(async () => {
+    try {
+        await initializeAddon();
+    } catch (e) {
+        errorLog('[AddonExe] A critical error occurred during addon initialization:');
+        errorLog(e.stack);
+        world.sendMessage('§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.');
+    }
+});
 
 system.afterEvents.scriptEventReceive.subscribe((event) => {
     const { id, sourceEntity } = event;
+    const config = getConfig(); // Config should be loaded by the time this event fires.
+    if (!config) return;
 
     switch (id) {
         case 'exe:restart':
@@ -136,7 +150,6 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
             break;
 
         case 'exe:toggle_chat_log': {
-            const config = getConfig();
             const chatConfig = config.chat || { logToConsole: false };
             const newValue = !chatConfig.logToConsole;
             chatConfig.logToConsole = newValue;
@@ -153,7 +166,7 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
 
         case 'exe:grant_admin_self': {
             if (sourceEntity && sourceEntity.addTag) {
-                sourceEntity.addTag(getConfig().adminTag);
+                sourceEntity.addTag(config.adminTag);
                 sourceEntity.sendMessage('§aYou have been promoted to Admin.');
                 updateAllPlayerRanks();
             }
