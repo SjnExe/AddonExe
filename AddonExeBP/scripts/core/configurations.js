@@ -1,11 +1,10 @@
 import createConfigManager from './configManagerFactory.js';
-import { kitsConfig as defaultKitsConfig } from './kitsConfig.js';
-import { shopConfig as defaultShopConfig } from './shopConfig.js';
-import { rankDefinitions as defaultRanks } from './ranksConfig.js';
 
-const kitsConfigManager = createConfigManager('exe:kitsConfig:current', defaultKitsConfig, 'Kits');
-const shopConfigManager = createConfigManager('exe:shopConfig:current', defaultShopConfig, 'Shop');
-const ranksConfigManager = createConfigManager('exe:ranksConfig', { rankDefinitions: defaultRanks }, 'Ranks');
+const kitsConfigManager = createConfigManager('exe:kitsConfig:current', './kitsConfig.js', 'Kits', 'kitsConfig');
+const shopConfigManager = createConfigManager('exe:shopConfig:current', './shopConfig.js', 'Shop', 'shopConfig');
+// The last parameter 'rankDefinitions' is the wrapperKey. It ensures the imported array
+// is wrapped in an object like { rankDefinitions: [...] }, which the addon expects.
+const ranksConfigManager = createConfigManager('exe:ranksConfig', './ranksConfig.js', 'Ranks', 'rankDefinitions', 'rankDefinitions');
 
 export const loadKitsConfig = kitsConfigManager.load;
 export const getKitsConfig = kitsConfigManager.get;
@@ -36,3 +35,13 @@ export const configResetRegistry = {
         message: 'The \'ranks\' configuration section has been reset to default.'
     }
 };
+
+/**
+ * Reloads all configurations that support it.
+ * @returns {Promise<void>}
+ */
+export async function reloadAllConfigs() {
+    // This function is a placeholder for potential future use.
+    // Currently, only the main config is designed for live reloading,
+    // which is handled in the 'reload.js' command file.
+}
