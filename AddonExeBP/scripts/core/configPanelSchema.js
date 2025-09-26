@@ -137,6 +137,90 @@ export const configPanelSchema = [
                 label: 'Warmup (s)',
                 type: 'textField',
                 description: 'How long a player must stand still before teleporting to spawn.'
+            },
+            {
+                key: 'spawnProtection.enabled',
+                label: 'Protection Enabled',
+                type: 'toggle',
+                description: 'Master switch for all spawn protection features.'
+            },
+            {
+                key: 'spawnProtection.protectionRadius',
+                label: 'Protection Radius',
+                type: 'textField',
+                description: 'The radius (in blocks) from spawn to protect.'
+            },
+            {
+                key: 'spawnProtection.allowAdminBypass',
+                label: 'Admin Bypass',
+                type: 'toggle',
+                description: 'Allows admins to bypass all spawn protection rules.'
+            },
+            {
+                key: 'spawnProtection.preventPvP',
+                label: 'Prevent PvP',
+                type: 'toggle',
+                description: 'Prevents players from damaging other players in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventPvE',
+                label: 'Prevent Hostile Damage',
+                type: 'toggle',
+                description: 'Prevents hostile mobs from damaging players in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventMobSpawning',
+                label: 'Prevent Mob Spawning',
+                type: 'toggle',
+                description: 'Prevents hostile mobs from spawning in the protected area.'
+            },
+            {
+                key: 'spawnProtection.preventBlockBreaking',
+                label: 'Prevent Block Breaking',
+                type: 'toggle',
+                description: 'Prevents players from breaking blocks in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventBlockPlacing',
+                label: 'Prevent Block Placing',
+                type: 'toggle',
+                description: 'Prevents players from placing blocks in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventExplosions',
+                label: 'Prevent Explosions',
+                type: 'toggle',
+                description: 'Prevents explosions from destroying blocks in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventBlockInteraction',
+                label: 'Prevent Block Interaction',
+                type: 'toggle',
+                description: 'Prevents interaction with chests, doors, etc., in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventFire',
+                label: 'Prevent Fire',
+                type: 'toggle',
+                description: 'Prevents fire from spreading or being created in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventHungerLoss',
+                label: 'Prevent Hunger Loss',
+                type: 'toggle',
+                description: 'Prevents players from losing hunger in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventItemDropping',
+                label: 'Prevent Item Dropping',
+                type: 'toggle',
+                description: 'Prevents players from dropping items in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventItemPickup',
+                label: 'Prevent Item Pickup',
+                type: 'toggle',
+                description: 'Prevents players from picking up items in spawn.'
             }
         ]
     },

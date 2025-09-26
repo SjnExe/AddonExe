@@ -61,6 +61,22 @@ export const config = {
         cooldownSeconds: 60,
         teleportWarmupSeconds: 10
     },
+    spawnProtection: {
+        enabled: true,
+        protectionRadius: 32,
+        allowAdminBypass: true,
+        preventPvP: true,
+        preventPvE: true,
+        preventMobSpawning: true,
+        preventBlockBreaking: true,
+        preventBlockPlacing: true,
+        preventExplosions: true,
+        preventBlockInteraction: true,
+        preventFire: true,
+        preventHungerLoss: true,
+        preventItemDropping: false,
+        preventItemPickup: false
+    },
     chat: {
         logToConsole: true
     },
