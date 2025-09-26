@@ -2,6 +2,8 @@ import createConfigManager from './configManagerFactory.js';
 
 const kitsConfigManager = createConfigManager('exe:kitsConfig:current', './kitsConfig.js', 'Kits', 'kitsConfig');
 const shopConfigManager = createConfigManager('exe:shopConfig:current', './shopConfig.js', 'Shop', 'shopConfig');
+// The last parameter 'rankDefinitions' is the wrapperKey. It ensures the imported array
+// is wrapped in an object like { rankDefinitions: [...] }, which the addon expects.
 const ranksConfigManager = createConfigManager('exe:ranksConfig', './ranksConfig.js', 'Ranks', 'rankDefinitions', 'rankDefinitions');
 
 export const loadKitsConfig = kitsConfigManager.load;
@@ -39,8 +41,7 @@ export const configResetRegistry = {
  * @returns {Promise<void>}
  */
 export async function reloadAllConfigs() {
-    // Currently, only the main config manager supports reloading,
-    // but this function can be expanded if others do in the future.
-    // The individual managers like kits, shop, etc., are not designed for live reload.
-    // The main config reload is handled separately in main.js.
+    // This function is a placeholder for potential future use.
+    // Currently, only the main config is designed for live reloading,
+    // which is handled in the 'reload.js' command file.
 }

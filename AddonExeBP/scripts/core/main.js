@@ -102,7 +102,7 @@ async function initializeAddon() {
 
     // Dynamically import the main config file to get the version number.
     // This is necessary because we need to know if it's a migration before loading all configs.
-    const { config: tempConfig } = await import(`../config.js?v=${new Date().getTime()}`);
+    const { config: tempConfig } = await import('../config.js');
     const newVersion = String(tempConfig.version);
     const lastVersion = world.getDynamicProperty('exe:lastVersion');
     const isMigration = !lastVersion || lastVersion !== newVersion;
