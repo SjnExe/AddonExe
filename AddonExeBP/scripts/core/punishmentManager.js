@@ -120,8 +120,13 @@ export function removePunishment(playerId) {
     }
 }
 
-// Periodically clear expired punishments and save to the world
-system.runInterval(() => {
-    clearExpiredPunishments();
-    savePunishments();
-}, (getConfig().data?.autoSaveIntervalSeconds ?? 30) * 20);
+/**
+ * Initializes the punishment manager's periodic tasks.
+ */
+export function initializePunishmentManager() {
+    // Periodically clear expired punishments and save to the world
+    system.runInterval(() => {
+        clearExpiredPunishments();
+        savePunishments();
+    }, (getConfig().data?.autoSaveIntervalSeconds ?? 30) * 20);
+}
