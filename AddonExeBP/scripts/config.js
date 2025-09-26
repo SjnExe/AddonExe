@@ -39,6 +39,11 @@ export const config = {
         cooldownSeconds: 60, // 1 minute
         teleportWarmupSeconds: 10
     },
+    warps: {
+        enabled: true,
+        cooldownSeconds: 60, // 1 minute
+        teleportWarmupSeconds: 5
+    },
     rtp: {
         enabled: true,
         minRange: 1000,

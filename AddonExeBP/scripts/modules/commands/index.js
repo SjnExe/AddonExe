@@ -19,6 +19,7 @@ const commandFiles = [
 
     // --- Home System ---
     'home.js',        // Contains /sethome, /delhome, /homes
+    'warp.js',        // Contains /warp, /addwarp, /delwarp
 
     // --- Economy System ---
     'balance.js',     // Contains /baltop

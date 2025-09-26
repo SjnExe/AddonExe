@@ -65,6 +65,31 @@ export const configPanelSchema = [
         ]
     },
     {
+        id: 'warps',
+        title: '§l§dWarp System§r',
+        icon: 'textures/blocks/portal_placeholder',
+        settings: [
+            {
+                key: 'warps.enabled',
+                label: 'Warps Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the entire warp system.'
+            },
+            {
+                key: 'warps.cooldownSeconds',
+                label: 'Cooldown (s)',
+                type: 'textField',
+                description: 'How long a player must wait between using /warp.'
+            },
+            {
+                key: 'warps.teleportWarmupSeconds',
+                label: 'Warmup (s)',
+                type: 'textField',
+                description: 'How long a player must stand still before teleporting.'
+            }
+        ]
+    },
+    {
         id: 'bounties',
         title: '§l§cBounty System§r',
         icon: 'textures/items/diamond_sword',
