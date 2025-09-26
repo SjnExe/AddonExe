@@ -13,7 +13,7 @@ function isWithinSpawnProtection(location, dimensionId) {
     const spawnProtectionConfig = config.spawnProtection;
     const spawnLocation = config.spawnLocation;
 
-    if (!spawnProtectionConfig.enabled || !spawnLocation) {
+    if (!spawnProtectionConfig || !spawnProtectionConfig.enabled || !spawnLocation) {
         return false;
     }
 
@@ -35,7 +35,9 @@ function isWithinSpawnProtection(location, dimensionId) {
  */
 function canBypass(player) {
     const config = getConfig();
-    if (!config.spawnProtection.allowAdminBypass) {
+    const spawnProtectionConfig = config.spawnProtection;
+
+    if (!spawnProtectionConfig || !spawnProtectionConfig.allowAdminBypass) {
         return false;
     }
     const playerRank = getPlayerRank(player, config);
@@ -45,10 +47,9 @@ function canBypass(player) {
 
 function initialize() {
     const config = getConfig();
-    // Guard against migration issues where the new section might not exist on old configs
-    const spawnProtectionConfig = config.spawnProtection || { enabled: false };
+    const spawnProtectionConfig = config.spawnProtection;
 
-    if (!spawnProtectionConfig.enabled) {
+    if (!spawnProtectionConfig || !spawnProtectionConfig.enabled) {
         return;
     }
 
@@ -108,6 +109,9 @@ function initialize() {
         world.beforeEvents.entityHurt.subscribe((event) => {
             const { hurtEntity, damageSource } = event;
             const damagingEntity = damageSource.damagingEntity;
+
+            // Add a guard to ensure the hurt entity and its dimension are valid
+            if (!hurtEntity?.dimension) return;
 
             if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) return;
 
