@@ -1,98 +1,84 @@
-# Configuration Loading, Saving, and Merging Explained
+# Configuration Loading, Saving, and Merging Explained (V2)
 
-This document provides a detailed, technical explanation of how AddonExe's configuration system works. It covers how settings are loaded, saved, and merged in various scenarios, such as during an addon update or when a server administrator manually edits the configuration files.
+This document provides a detailed, technical explanation of how AddonExe's configuration system works. It covers how settings are loaded, saved, and merged in various scenarios, with a focus on preserving manual file edits while maintaining in-game changes.
 
 ## Core Concepts
 
-The configuration system is built on three fundamental components:
+The configuration system is built on four fundamental components:
 
-1.  **Dynamic Properties (`world.getDynamicProperty`, `world.setDynamicProperty`)**: This is Minecraft's native key-value storage system, which persists data within the world file itself. AddonExe uses dynamic properties as its database to store the "live" or "current" configuration that the addon is actively using. Each configuration module (main, kits, shop, ranks) has its own unique key (e.g., `exe:config:current`, `exe:kitsConfig:current`).
+1.  **Current Configuration (Dynamic Property)**: This is Minecraft's native key-value storage (`world.getDynamicProperty`) that persists the "live" or "current" configuration the addon is actively using (e.g., `exe:config:current`). This is modified by in-game commands and actions.
 
-2.  **Default Configuration (In-File)**: These are the `.js` files located in the addon's behavior pack (e.g., `config.js`, `kitsConfig.js`). They serve as the "source of truth" or the base template for the configuration. When the addon is updated, these files are replaced with the new version's defaults.
+2.  **Last Loaded Configuration (Dynamic Property)**: A new, second dynamic property (e.g., `exe:config:current:last_loaded`) that stores a snapshot of the default configuration *as it was on disk* the last time the addon was loaded or reloaded. This acts as a reference to detect manual file changes.
 
-3.  **`ConfigManager` (`configManagerFactory.js`)**: This is the heart of the configuration system. It's a factory that creates a manager for each configuration type. This manager is responsible for all the logic of loading data from dynamic properties, merging it with the default files, and saving it back.
+3.  **Default Configuration (In-File)**: These are the `.js` files in the behavior pack (e.g., `config.js`). They serve as the "source of truth" or the base template for the configuration. Admins can edit these files directly.
+
+4.  **`ConfigManager` (`configManagerFactory.js`)**: The heart of the system. It orchestrates the loading, saving, and complex merging of the three configuration sources.
 
 ---
 
 ## Initial Loading (First Server Run)
 
-When the addon is loaded for the very first time on a new world, the following occurs:
+1.  The `ConfigManager` finds no existing configuration.
+2.  It takes the **Default Configuration** from the `.js` file.
+3.  It saves this default config to **both** the **Current Configuration** and the **Last Loaded Configuration** dynamic properties.
 
-1.  The `ConfigManager` attempts to read the configuration from its designated dynamic property key (e.g., `exe:config:current`).
-2.  It finds nothing, as no configuration has been saved yet.
-3.  The manager then takes the **default configuration** from the corresponding `.js` file (e.g., `config.js`), creates a deep copy of it, and loads it into memory as the `currentConfig`.
-4.  This `currentConfig` is immediately saved back to the dynamic property.
-5.  From this point forward, the addon operates exclusively using this `currentConfig`.
-
-**Outcome**: The server starts with a clean, default configuration that is now stored in the world file.
+**Outcome**: The server starts with a clean, default configuration, and the "last loaded" state is initialized.
 
 ---
 
 ## Configuration Saving
 
-Configuration is saved to the world's dynamic properties in two primary ways:
-
-1.  **Automatic Saving**: Whenever a configuration value is changed (e.g., via an in-game command like `/panel` or an API call), the `ConfigManager`'s `update` or `set` function is called. These functions modify the `currentConfig` in memory and then immediately call `saveConfig()`, which serializes the entire configuration object to a JSON string and writes it to the dynamic property.
-
-2.  **On Load/Reload**: Saving also occurs during the initial load and when the `/xreload` command is executed.
+-   **Current Config**: Saved automatically whenever a setting is changed in-game (e.g., via `/panel`).
+-   **Last Loaded Config**: Saved only during a server start, addon update, or a `/xreload` command. It always reflects the state of the `.js` file at that moment.
 
 ---
 
 ## Scenario 1: Addon Update (Migration Logic)
 
-This is the most critical scenario, designed to preserve user settings across updates.
+This process preserves user settings across updates while adding new features.
 
-1.  **Version Mismatch Detection**: The addon's startup logic detects that the addon version has changed (this is represented by the `isMigration` flag passed to `loadConfig`).
-2.  **Load User's Saved Config**: The `ConfigManager` loads the user's existing configuration from the dynamic property (the one they were using before the update).
-3.  **Load New Default Config**: The manager also loads the **new default configuration** from the updated `.js` files in the behavior pack.
-4.  **The Merge (`deepMerge`)**: This is the key step. The manager merges the two configurations using a "deep merge" process:
-    - It starts with the **new default configuration** as the base.
-    - It then recursively iterates through the user's saved configuration.
-    - If a property exists in the user's config, its value **overwrites** the value from the new default config.
-    - If the new default config has a **new property** that the user's config doesn't have (e.g., a new feature was added), that new property is kept.
-    - If the user's config has a property that was **removed** from the new default config (e.g., a feature was deprecated), that old property is **discarded**.
-5.  **Save Merged Config**: The newly merged configuration becomes the new `currentConfig` and is immediately saved back to the dynamic property.
+1.  **Version Mismatch Detected**: The addon detects it has been updated.
+2.  **Load Configs**: It loads the user's **Current Configuration** (from before the update) and the **New Default Configuration** from the updated `.js` file.
+3.  **The Merge (`deepMerge`)**: The manager performs a standard deep merge:
+    -   It starts with the **New Default Configuration** as the base.
+    -   It merges the user's **Current Configuration** on top, preserving their settings.
+    -   New properties from the update are added; deprecated ones are removed.
+4.  **Save Merged Config**: The result becomes the new **Current Configuration**.
+5.  **Update Last Loaded**: The **New Default Configuration** (from the file) is saved as the new **Last Loaded Configuration**.
 
-**Outcome**: Users keep all their customized settings, while new features are seamlessly added with their default values and old, obsolete settings are cleanly removed.
+**Outcome**: User settings are preserved, new features are added, and the system is primed for the new version.
 
 ---
 
-## Scenario 2: Manual Config File Update (`/xreload`)
+## Scenario 2: Standard Start or Manual Reload (`/xreload`)
 
-This scenario handles the case where an admin manually edits a file like `config.js` and wants to apply the changes without a full server restart.
+This is where the new priority logic shines, protecting manual file edits.
 
-1.  **Command Execution**: An admin runs `/xreload`.
-2.  **Load Live Config**: The `ConfigManager`'s `reload` function is called. It already has the `currentConfig` in memory (this includes any changes made via in-game commands, like a player's balance).
-3.  **Load New Default Config**: The manager loads the **latest version of the default configuration** from the `config.js` file on disk.
-4.  **The Merge (`deepMerge`)**: The merge logic for a reload is slightly different from a migration:
-    - The manager starts with the **new default configuration from the file** as the base.
-    - It then merges the `currentConfig` (from memory) on top of it.
-5.  **Save Merged Config**: The result is saved back to the dynamic property and becomes the new `currentConfig`.
-
-**Why this order?** This ensures that any changes made directly in the `config.js` file will **always take priority**, which is the intended behavior of a reload command. However, because it's a merge, any in-game changes to properties that were *not* touched in the file are preserved.
+1.  **Load All Configs**: The manager loads the **Current Configuration** (with in-game changes), the **Last Loaded Configuration**, and the **Default Configuration** (from the `.js` file on disk).
+2.  **The Priority Merge**: A property-by-property comparison occurs:
+    -   The manager starts with a copy of the **Current Configuration**.
+    -   It then iterates through every property in the **Default Configuration** file.
+    -   For each property, it compares the value in the **Default Configuration** file to the value in the **Last Loaded Configuration**.
+        -   **If the values are different**, it means a server admin has manually edited the file. The file's new value **overwrites** the value in the **Current Configuration**.
+        -   **If the values are the same**, it means the admin has not touched this setting in the file. The **Current Configuration's** value is kept, preserving any in-game changes.
+3.  **Save Merged Config**: The result of this merge becomes the new **Current Configuration**.
+4.  **Update Last Loaded**: The **Default Configuration** (from the file) is saved as the new **Last Loaded Configuration**, setting the baseline for the next load.
 
 **Example**:
--   `currentConfig`: `{ "economy": { "startBalance": 500 } }` (changed in-game)
+-   `Last Loaded Config`: `{ "tpa": { "requestTimeoutSeconds": 60 } }`
+-   `Current Config` (in-game): `{ "tpa": { "requestTimeoutSeconds": 60 }, "economy": { "startBalance": 500 } }`
 -   Admin edits `config.js` to change the TPA timeout: `{ "tpa": { "requestTimeoutSeconds": 30 } }`
--   On `/xreload`, the new file is loaded as the base. The `currentConfig` is merged on top.
--   **Result**: `{ "tpa": { "requestTimeoutSeconds": 30 }, "economy": { "startBalance": 500 } }`. Both the file change and the in-game change are preserved.
-
----
-
-## Handling of Other Config Files (`kits`, `shop`, `ranks`)
-
-The `ConfigurationGuide.md` correctly states that files like `kitsConfig.js`, `shopConfig.js`, and `ranksConfig.js` require a server restart to apply changes. This is because, unlike the main `config.js`, these files are not designed to be reloaded live.
-
--   **Loading**: They follow the same initial loading and migration logic as the main config. On an addon update, their structure is merged to add new kits/items/ranks while preserving any changes the user made (e.g., enabling/disabling kits, changing prices in the shop).
--   **No Reload Command**: There is no equivalent of `/xreload` for these files. The `ConfigManager` instances for these files do not have a `reload` function exposed. Any changes made to these files on disk will only be reflected after a full server restart, which triggers the migration/loading logic.
+-   On `/xreload`:
+    -   The system sees `tpa.requestTimeoutSeconds` is `30` in the file but was `60` in the last load. The file wins.
+    -   The system sees `economy.startBalance` was not changed in the file compared to the last load. The in-game value (`500`) is kept.
+-   **Result**: `{ "tpa": { "requestTimeoutSeconds": 30 }, "economy": { "startBalance": 500 } }`. Both the manual file edit and the separate in-game change are correctly preserved.
 
 ---
 
 ## Summary Table
 
-| Scenario | Starting Point | Source of Truth | Merge Strategy | Result |
+| Scenario | Starting Point | Reference | Merge Strategy | Result |
 | :--- | :--- | :--- | :--- | :--- |
-| **First Run** | No saved config | `config.js` file | None (direct copy) | Default config is loaded and saved. |
-| **Addon Update**| User's old saved config | New `config.js` file | `deepMerge(newDefault, userSaved)` | User settings are preserved, new settings are added, old ones removed. |
-| **`/xreload`** | Live `currentConfig` | Modified `config.js` file | `deepMerge(newDefault, currentConfig)` | File changes take priority, but in-game changes to other settings are preserved. |
-| **Other Files** | (e.g., `kitsConfig.js`) | On server restart | `deepMerge(newDefault, userSaved)` | Structural changes from the file are applied on restart only. |
+| **First Run** | No saved config | `config.js` file | Direct copy | `Current` and `Last Loaded` are both set to the default file config. |
+| **Addon Update**| User's old `Current` config | New `config.js` file | `deepMerge(newDefault, userCurrent)` | User settings are preserved, new settings added. `Last Loaded` is updated to the new file's content. |
+| **Standard/Reload** | User's `Current` config | `Last Loaded` config vs. `config.js` file | Priority merge: file changes overwrite current config; untouched properties remain. | Manual file edits are prioritized, in-game changes are preserved where possible. `Last Loaded` is updated. |
