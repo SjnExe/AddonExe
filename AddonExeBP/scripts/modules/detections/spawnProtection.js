@@ -1,4 +1,5 @@
 import { world, system, Player } from '@minecraft/server';
+import { getSpawnConfig } from '../../core/configurations.js';
 import { getConfig } from '../../core/configManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
 
@@ -9,9 +10,9 @@ import { getPlayerRank } from '../../core/rankManager.js';
  * @returns {boolean} True if the location is within the protected area, false otherwise.
  */
 function isWithinSpawnProtection(location, dimensionId) {
-    const config = getConfig();
-    const spawnProtectionConfig = config.spawnProtection;
-    const spawnLocation = config.spawn ? config.spawn.spawnLocation : null;
+    const spawnConfig = getSpawnConfig();
+    const spawnProtectionConfig = spawnConfig.spawnProtection;
+    const spawnLocation = spawnConfig.spawn ? spawnConfig.spawn.spawnLocation : null;
 
     // Highly defensive check to prevent crashes
     if (
@@ -42,8 +43,9 @@ function isWithinSpawnProtection(location, dimensionId) {
  * @returns {boolean} True if the player can bypass protection, false otherwise.
  */
 function canBypass(player) {
+    const spawnConfig = getSpawnConfig();
     const config = getConfig();
-    const spawnProtectionConfig = config.spawnProtection;
+    const spawnProtectionConfig = spawnConfig.spawnProtection;
 
     if (!spawnProtectionConfig || !spawnProtectionConfig.allowAdminBypass) {
         return false;
@@ -54,8 +56,8 @@ function canBypass(player) {
 }
 
 function initialize() {
-    const config = getConfig();
-    const spawnProtectionConfig = config.spawnProtection;
+    const spawnConfig = getSpawnConfig();
+    const spawnProtectionConfig = spawnConfig.spawnProtection;
 
     // Add a robust check to ensure the config section is a valid object before proceeding
     if (!spawnProtectionConfig || typeof spawnProtectionConfig !== 'object' || !spawnProtectionConfig.enabled) {
@@ -80,7 +82,7 @@ function initialize() {
 
     if (spawnProtectionConfig.preventExplosions) {
         world.beforeEvents.explosion.subscribe((event) => {
-            const spawnDimension = getConfig().spawn.spawnLocation?.dimensionId;
+            const spawnDimension = getSpawnConfig().spawn.spawnLocation?.dimensionId;
             if (!spawnDimension || event.dimension.id !== spawnDimension) {return;}
 
             const initialImpactedBlocks = event.getImpactedBlocks();

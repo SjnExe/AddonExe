@@ -10,7 +10,7 @@ import * as rankManager from './rankManager.js';
 import * as rankDb from './rankDb.js';
 import * as playerCache from './playerCache.js';
 import * as utils from './utils.js';
-import { getValueFromPath } from './objectUtils.js';
+import { getValueFromPath, setValueFromPath } from './objectUtils.js';
 import * as reportManager from './reportManager.js';
 import * as bountyManager from './bountyManager.js';
 import * as economyManager from './economyManager.js';
@@ -21,7 +21,7 @@ import { banPlayer, offlineBanPlayer, unbanPlayer } from '../modules/commands/ba
 import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 import * as rulesManager from './rulesManager.js';
 import * as shopManager from './shopManager.js';
-import { getKitsConfig, saveKitsConfig, getShopConfig, saveShopConfig } from './configurations.js';
+import { getKitsConfig, saveKitsConfig, getShopConfig, saveShopConfig, getSpawnConfig, saveSpawnConfig } from './configurations.js';
 import { items as allItems } from './itemsConfig.js';
 import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from './kitAdminManager.js';
 import { addItemToKit, updateItemInKit } from './kitItemsManager.js';
@@ -29,6 +29,17 @@ import * as shopAdminManager from './shopAdminManager.js';
 
 
 const itemsPerPage = 8; // Number of items to show per page in the shop
+
+const configHandlers = {
+    'main': {
+        get: getConfig,
+        save: (updates) => updateMultipleConfig(updates)
+    },
+    'spawn': {
+        get: getSpawnConfig,
+        save: (config) => saveSpawnConfig(config)
+    }
+};
 
 export const uiActionFunctions = {};
 
@@ -68,7 +79,15 @@ async function buildPanelForm(player, panelId, context) {
         }
         debugLog(`[UIManager] Building config settings form for category: ${categoryId}`);
         const form = new ModalFormData().title(category.title);
-        const config = getConfig();
+
+        const configSource = category.configSource || 'main';
+        const handler = configHandlers[configSource];
+        if (!handler) {
+            errorLog(`[UIManager] No config handler found for source: ${configSource}`);
+            return null;
+        }
+        const config = handler.get();
+
 
         for (const setting of category.settings) {
             const currentValue = getValueFromPath(config, setting.key);
@@ -1510,30 +1529,60 @@ async function handleFormResponse(player, panelId, response, context) {
     if (panelId.startsWith('config_')) {
         const categoryId = panelId.replace('config_', '');
         const category = configPanelSchema.find(c => c.id === categoryId);
-        if (!category) {return;}
+        if (!category) { return; }
+
+        const configSource = category.configSource || 'main';
+        const handler = configHandlers[configSource];
+        if (!handler) {
+            errorLog(`[UIManager] No config handler found for source: ${configSource}`);
+            return;
+        }
+
         const newValues = formValues;
-        const updates = {};
         let validationFailed = false;
-        category.settings.forEach((setting, index) => {
-            if (validationFailed) {return;}
-            let newValue = newValues[index];
+
+        const processAndValidate = (setting, value) => {
             if (setting.type === 'toggle') {
-                newValue = !!newValue;
-            } else if (setting.type === 'dropdown') {
-                newValue = setting.options[newValue];
-            } else if (setting.type === 'textField' && (setting.key.includes('Seconds') || setting.key.includes('Balance') || setting.key.includes('maxHomes') || setting.key.includes('Interval') || setting.key.includes('Radius'))) {
-                const numValue = Number(newValue);
+                return !!value;
+            }
+            if (setting.type === 'dropdown') {
+                return setting.options[value];
+            }
+            if (setting.type === 'textField' && (setting.key.includes('Seconds') || setting.key.includes('Balance') || setting.key.includes('maxHomes') || setting.key.includes('Interval') || setting.key.includes('Radius'))) {
+                const numValue = Number(value);
                 if (isNaN(numValue)) {
                     player.sendMessage(`§cInvalid number provided for ${setting.label}. Changes not saved.`);
                     validationFailed = true;
-                    return;
                 }
-                newValue = numValue;
+                return numValue;
             }
-            updates[setting.key] = newValue;
-        });
-        if (validationFailed) {return showPanel(player, panelId);}
-        updateMultipleConfig(updates);
+            return value;
+        };
+
+        if (configSource === 'main') {
+            const updates = {};
+            category.settings.forEach((setting, index) => {
+                if (validationFailed) { return; }
+                const newValue = processAndValidate(setting, newValues[index]);
+                if (!validationFailed) {
+                    updates[setting.key] = newValue;
+                }
+            });
+            if (validationFailed) { return showPanel(player, panelId); }
+            handler.save(updates);
+        } else {
+            const configToSave = handler.get();
+            category.settings.forEach((setting, index) => {
+                if (validationFailed) { return; }
+                const newValue = processAndValidate(setting, newValues[index]);
+                if (!validationFailed) {
+                    setValueFromPath(configToSave, setting.key, newValue);
+                }
+            });
+            if (validationFailed) { return showPanel(player, panelId); }
+            handler.save(configToSave);
+        }
+
         player.sendMessage(`§2Successfully saved settings for ${category.title}§2.`);
         return showPanel(player, 'configCategoryPanel');
     }

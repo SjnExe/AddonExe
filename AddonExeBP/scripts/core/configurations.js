@@ -2,6 +2,7 @@ import createConfigManager from './configManagerFactory.js';
 
 const kitsConfigManager = createConfigManager('exe:kitsConfig:current', './kitsConfig.js', 'Kits', 'kitsConfig');
 const shopConfigManager = createConfigManager('exe:shopConfig:current', './shopConfig.js', 'Shop', 'shopConfig');
+const spawnConfigManager = createConfigManager('exe:spawnConfig:current', '../spawnConfig.js', 'Spawn', 'spawnConfig');
 // The last parameter 'rankDefinitions' is the wrapperKey. It ensures the imported array
 // is wrapped in an object like { rankDefinitions: [...] }, which the addon expects.
 const ranksConfigManager = createConfigManager('exe:ranksConfig', './ranksConfig.js', 'Ranks', 'rankDefinitions', 'rankDefinitions');
@@ -16,6 +17,11 @@ export const getShopConfig = shopConfigManager.get;
 export const saveShopConfig = shopConfigManager.save;
 export const resetShopConfig = shopConfigManager.reset;
 
+export const loadSpawnConfig = spawnConfigManager.load;
+export const getSpawnConfig = spawnConfigManager.get;
+export const saveSpawnConfig = spawnConfigManager.save;
+export const resetSpawnConfig = spawnConfigManager.reset;
+
 export const loadRanksConfig = ranksConfigManager.load;
 export const getRanksConfig = ranksConfigManager.get;
 export const saveRanksConfig = ranksConfigManager.save;
@@ -29,6 +35,10 @@ export const configResetRegistry = {
     'shop': {
         reset: resetShopConfig,
         message: 'The \'shop\' configuration section has been reset to default.'
+    },
+    'spawn': {
+        reset: resetSpawnConfig,
+        message: 'The \'spawn\' configuration section has been reset to default.'
     },
     'ranks': {
         reset: resetRanksConfig,
