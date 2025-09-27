@@ -124,7 +124,8 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                             const lastLoadedValue = (lastLoadedObj && typeof lastLoadedObj === 'object') ? lastLoadedObj[objKey] : undefined;
 
                             if (typeof fileValue === 'object' && fileValue !== null && !Array.isArray(fileValue)) {
-                                applyFileChanges(currentPath, fileValue, lastLoadedValue?.[objKey]);
+                                // Corrected: The recursive call passes the sub-object directly.
+                                applyFileChanges(currentPath, fileValue, lastLoadedValue);
                             } else if (JSON.stringify(fileValue) !== JSON.stringify(lastLoadedValue)) {
                                 // A change was detected between the new file and the last loaded file.
                                 // The file's value takes priority.
@@ -134,7 +135,11 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                         }
                     }
 
-                    applyFileChanges('', newDefaultConfig, lastLoadedConfig);
+                    // Normalize the new default config by running it through a stringify/parse cycle.
+                    // This ensures its structure and key order match the lastLoadedConfig, preventing false positives.
+                    const normalizedNewDefaultConfig = JSON.parse(JSON.stringify(newDefaultConfig));
+
+                    applyFileChanges('', normalizedNewDefaultConfig, lastLoadedConfig);
                     currentConfig = mergedConfig;
                 }
             }
