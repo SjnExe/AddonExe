@@ -35,6 +35,10 @@ function cleanup() {
  * @param {Function} handler The function to subscribe.
  */
 function subscribe(event, handler) {
+    // Guard against subscribing to events that might not exist in the current API version.
+    if (!event) {
+        return;
+    }
     event.subscribe(handler);
     eventHandlers.push({ event, handler });
 }
@@ -132,7 +136,8 @@ function initialize() {
     if (spawnProtection.preventBlockPlacing) {
         subscribe(world.beforeEvents.playerPlaceBlock, (event) => {
             if (!event.player) return;
-            if (isWithinSpawnProtection(event.block.location, event.dimension.id) && !canBypass(event.player)) {
+            // Corrected: The dimension ID is on event.block.dimension for this event type.
+            if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
         });
@@ -204,9 +209,10 @@ function initialize() {
 
     if (spawnProtection.preventItemPickup) {
         subscribe(world.beforeEvents.itemPickup, (event) => {
-            // Check if the entity picking up the item is a player
-            if (event.player) {
-                 if (isWithinSpawnProtection(event.item.location, event.item.dimension.id) && !canBypass(event.player)) {
+            // Corrected: The entity picking up the item is event.entity, not event.player
+            const player = event.entity;
+            if (player instanceof Player) {
+                 if (isWithinSpawnProtection(event.item.location, event.item.dimension.id) && !canBypass(player)) {
                     event.cancel = true;
                 }
             }
