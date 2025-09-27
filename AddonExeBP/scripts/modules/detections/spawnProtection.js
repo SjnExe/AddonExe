@@ -71,8 +71,11 @@ function initialize() {
 
     if (spawnProtectionConfig.preventExplosions) {
         world.beforeEvents.explosion.subscribe((event) => {
+            const spawnDimension = getConfig().spawnLocation?.dimensionId;
+            if (!spawnDimension || event.dimension.id !== spawnDimension) {return;}
+
             const initialImpactedBlocks = event.getImpactedBlocks();
-            const protectedBlocks = initialImpactedBlocks.filter(block => isWithinSpawnProtection(block.location, block.dimension.id));
+            const protectedBlocks = initialImpactedBlocks.filter(block => isWithinSpawnProtection(block.location, event.dimension.id));
 
             if (protectedBlocks.length > 0) {
                 const finalImpactedBlocks = initialImpactedBlocks.filter(block => !protectedBlocks.includes(block));
