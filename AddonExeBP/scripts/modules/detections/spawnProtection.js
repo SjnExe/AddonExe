@@ -96,9 +96,21 @@ function initialize() {
     if (spawnProtectionConfig.preventFire) {
         world.beforeEvents.itemUseOn.subscribe((event) => {
             try {
-                debugLog(`itemUseOn event triggered. Event data: ${JSON.stringify(event, null, 2)}`);
-                const { source, itemStack } = event;
-                if (!(source instanceof Player)) {return;}
+                const { source, itemStack, block } = event;
+                const sourceId = source ? source.id : 'N/A';
+                const itemId = itemStack ? itemStack.typeId : 'N/A';
+
+                debugLog(`itemUseOn Event Triggered: Source: ${sourceId}, Item: ${itemId}`);
+
+                if (block) {
+                    debugLog(`Block Info: Location: (${block.location.x}, ${block.location.y}, ${block.location.z}), Dimension: ${block.dimension.id}`);
+                } else {
+                    debugLog('Event triggered without a block.');
+                }
+
+                if (!(source instanceof Player)) {
+                    return;
+                }
 
                 if (itemStack.typeId === 'minecraft:flint_and_steel' || itemStack.typeId === 'minecraft:lava_bucket') {
                     if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(source)) {
@@ -106,7 +118,7 @@ function initialize() {
                     }
                 }
             } catch (error) {
-                debugLog(`Error in itemUseOn event: ${error}\n${error.stack}`);
+                debugLog(`A critical error occurred in the itemUseOn event handler: ${error}\n${error.stack}`);
             }
         });
     }
