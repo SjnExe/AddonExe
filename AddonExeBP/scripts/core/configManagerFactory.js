@@ -90,7 +90,14 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
             if (isMigration) {
                 // Scenario 2: Addon Update (Migration)
                 errorLog(`[${name}ConfigManager] Version mismatch detected. Migrating config.`);
-                currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+                // For most configs, we want the new default to take precedence for new/changed properties.
+                // However, for the spawn config, the user's saved location is more important than the default.
+                if (name === 'Spawn') {
+                    // By putting the user's config first, we ensure its values are preserved.
+                    currentConfig = deepMerge(userSavedConfig, newDefaultConfig);
+                } else {
+                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+                }
                 lastLoadedConfig = newDefaultConfig;
                 saveLastLoadedConfig();
             } else {
