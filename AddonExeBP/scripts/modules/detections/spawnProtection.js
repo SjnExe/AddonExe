@@ -50,7 +50,7 @@ function subscribe(event, handler) {
  * @returns {boolean} True if the location is within the protected area.
  */
 function isWithinSpawnProtection(location, dimensionId) {
-    if (!location || !dimensionId) return false;
+    if (!location || !dimensionId) {return false;}
 
     const spawnConfig = getSpawnConfig();
     const spawnProtectionConfig = spawnConfig?.spawnProtection;
@@ -78,7 +78,7 @@ function isWithinSpawnProtection(location, dimensionId) {
  * @returns {boolean} True if the player can bypass protection.
  */
 function canBypass(player) {
-    if (!(player instanceof Player)) return false;
+    if (!(player instanceof Player)) {return false;}
 
     const spawnConfig = getSpawnConfig();
     const mainConfig = getConfig();
@@ -126,7 +126,7 @@ function initialize() {
 
     if (spawnProtection.preventBlockBreaking) {
         subscribe(world.beforeEvents.playerBreakBlock, (event) => {
-            if (!event.player) return;
+            if (!event.player) {return;}
             if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
@@ -135,7 +135,7 @@ function initialize() {
 
     if (spawnProtection.preventBlockPlacing) {
         subscribe(world.beforeEvents.playerPlaceBlock, (event) => {
-            if (!event.player) return;
+            if (!event.player) {return;}
             // Corrected: The dimension ID is on event.block.dimension for this event type.
             if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
@@ -145,7 +145,7 @@ function initialize() {
 
     if (spawnProtection.preventExplosions) {
         subscribe(world.beforeEvents.explosion, (event) => {
-            if (event.dimension.id !== spawnLocation.dimensionId) return;
+            if (event.dimension.id !== spawnLocation.dimensionId) {return;}
             const finalImpactedBlocks = event.getImpactedBlocks().filter(block =>
                 // Corrected: Use the block's dimension, not the event's.
                 !isWithinSpawnProtection(block.location, block.dimension.id)
@@ -156,7 +156,7 @@ function initialize() {
 
     if (spawnProtection.preventBlockInteraction) {
         subscribe(world.beforeEvents.playerInteractWithBlock, (event) => {
-            if (!event.player) return;
+            if (!event.player) {return;}
             if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
@@ -165,7 +165,7 @@ function initialize() {
 
     if (spawnProtection.preventFire) {
         subscribe(world.beforeEvents.itemUseOn, (event) => {
-            if (!(event.source instanceof Player) || !event.block) return;
+            if (!(event.source instanceof Player) || !event.block) {return;}
             const item = event.itemStack;
             if (item.typeId === 'minecraft:flint_and_steel' || item.typeId === 'minecraft:fire_charge') {
                 if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.source)) {
@@ -177,14 +177,14 @@ function initialize() {
 
     if (spawnProtection.preventPvP || spawnProtection.preventPvE) {
         subscribe(world.beforeEvents.entityHurt, (event) => {
-            if (!event.hurtEntity?.dimension) return;
-            if (!isWithinSpawnProtection(event.hurtEntity.location, event.hurtEntity.dimension.id)) return;
+            if (!event.hurtEntity?.dimension) {return;}
+            if (!isWithinSpawnProtection(event.hurtEntity.location, event.hurtEntity.dimension.id)) {return;}
 
             const { hurtEntity, damageSource } = event;
 
             // PvP Protection
             if (spawnProtection.preventPvP && hurtEntity instanceof Player && damageSource.damagingEntity instanceof Player) {
-                if (!canBypass(damageSource.damagingEntity)) event.cancel = true;
+                if (!canBypass(damageSource.damagingEntity)) {event.cancel = true;}
                 return;
             }
 
@@ -213,7 +213,7 @@ function initialize() {
             // Corrected: The entity picking up the item is event.entity, not event.player
             const player = event.entity;
             if (player instanceof Player) {
-                 if (isWithinSpawnProtection(event.item.location, event.item.dimension.id) && !canBypass(player)) {
+                if (isWithinSpawnProtection(event.item.location, event.item.dimension.id) && !canBypass(player)) {
                     event.cancel = true;
                 }
             }
@@ -227,10 +227,10 @@ function initialize() {
         const protection = currentSpawnConfig?.spawnProtection;
         const loc = currentSpawnConfig?.spawn?.spawnLocation;
 
-        if (!protection?.enabled || !loc) return;
+        if (!protection?.enabled || !loc) {return;}
 
         for (const player of world.getAllPlayers()) {
-            if (!isWithinSpawnProtection(player.location, player.dimension.id)) continue;
+            if (!isWithinSpawnProtection(player.location, player.dimension.id)) {continue;}
 
             // Hunger Loss Prevention
             if (protection.preventHungerLoss) {
@@ -244,8 +244,8 @@ function initialize() {
                 const entitiesInSpawn = world.getDimension(loc.dimensionId).getEntities({
                     location: loc,
                     maxDistance: protection.protectionRadius,
-                    families: ["monster"], // Specifically target hostile mobs
-                    excludeFamilies: ["player", "inanimate"],
+                    families: ['monster'], // Specifically target hostile mobs
+                    excludeFamilies: ['player', 'inanimate']
                 });
 
                 for (const entity of entitiesInSpawn) {

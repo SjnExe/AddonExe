@@ -1,4 +1,4 @@
-import { world, system } from '@minecraft/server';
+import { world } from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { saveAllData } from './dataManager.js';
 import { debugLog } from './logger.js';

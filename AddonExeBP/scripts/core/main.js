@@ -186,7 +186,7 @@ system.run(async () => {
 });
 
 system.afterEvents.scriptEventReceive.subscribe((event) => {
-    const { id, sourceEntity, message } = event;
+    const { id, sourceEntity } = event;
 
     // Handle script unload event
     if (id === 'minecraft:script_unload') {

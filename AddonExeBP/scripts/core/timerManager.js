@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+
 import { system } from '@minecraft/server';
 import { debugLog } from './logger.js';
 

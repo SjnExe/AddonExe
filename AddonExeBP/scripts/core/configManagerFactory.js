@@ -115,9 +115,9 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                     // This recursive function compares the new file against the last loaded snapshot
                     // and applies any detected file changes to the merged config.
                     function applyFileChanges(path, fileObj, lastLoadedObj) {
-                        if (!fileObj || typeof fileObj !== 'object') return;
+                        if (!fileObj || typeof fileObj !== 'object') {return;}
                         for (const objKey in fileObj) {
-                            if (!Object.prototype.hasOwnProperty.call(fileObj, objKey)) continue;
+                            if (!Object.prototype.hasOwnProperty.call(fileObj, objKey)) {continue;}
 
                             const currentPath = path ? `${path}.${objKey}` : objKey;
                             const fileValue = fileObj[objKey];
