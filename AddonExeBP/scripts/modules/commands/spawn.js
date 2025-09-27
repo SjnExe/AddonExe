@@ -15,7 +15,7 @@ commandManager.register({
     hasCooldown: true,
     execute: (player, args) => {
         const config = getConfig();
-        const spawnLocation = config.spawnLocation;
+        const spawnLocation = config.spawn.spawnLocation;
 
         if (!spawnLocation || typeof spawnLocation.x !== 'number') {
             player.sendMessage('§cThe server spawn point has not been set by an admin.');
@@ -83,13 +83,22 @@ commandManager.register({
         }
 
         try {
-            updateMultipleConfig({ 'spawnLocation': location });
+            // Update the addon's config first
+            updateMultipleConfig({ 'spawn.spawnLocation': location });
             const locationString = `X: ${Math.floor(location.x)}, Y: ${Math.floor(location.y)}, Z: ${Math.floor(location.z)} in ${location.dimensionId.replace('minecraft:', '')}`;
-            player.sendMessage(`§aServer spawn point set to: ${locationString}`);
+            player.sendMessage(`§aAddon spawn point set to: ${locationString}`);
+
+            // Then, update the world spawn if in the overworld
+            if (location.dimensionId === 'minecraft:overworld') {
+                world.setDefaultSpawnLocation(location);
+                world.getDimension('minecraft:overworld').runCommandAsync('gamerule spawnradius 1');
+                player.sendMessage('§aWorld spawn point and spawn radius have also been updated.');
+            }
+
             if (!player.isConsole) { playSound(player, 'random.orb'); }
         } catch (e) {
             player.sendMessage('§cFailed to save the new spawn location.');
-            errorLog(`[/x:setspawn] Failed to update config: ${e.stack}`);
+            errorLog(`[/x:setspawn] Failed to update config or world spawn: ${e.stack}`);
         }
     }
 });

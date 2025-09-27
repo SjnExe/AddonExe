@@ -1,7 +1,6 @@
 import { world, system, Player } from '@minecraft/server';
 import { getConfig } from '../../core/configManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
-import { debugLog } from '../../core/logger.js';
 
 /**
  * Checks if a location is within the protected spawn area.
@@ -12,7 +11,7 @@ import { debugLog } from '../../core/logger.js';
 function isWithinSpawnProtection(location, dimensionId) {
     const config = getConfig();
     const spawnProtectionConfig = config.spawnProtection;
-    const spawnLocation = config.spawnLocation;
+    const spawnLocation = config.spawn.spawnLocation;
 
     if (!spawnProtectionConfig || !spawnProtectionConfig.enabled || !spawnLocation) {
         return false;
@@ -72,7 +71,7 @@ function initialize() {
 
     if (spawnProtectionConfig.preventExplosions) {
         world.beforeEvents.explosion.subscribe((event) => {
-            const spawnDimension = getConfig().spawnLocation?.dimensionId;
+            const spawnDimension = getConfig().spawn.spawnLocation?.dimensionId;
             if (!spawnDimension || event.dimension.id !== spawnDimension) {return;}
 
             const initialImpactedBlocks = event.getImpactedBlocks();
@@ -95,30 +94,13 @@ function initialize() {
 
     if (spawnProtectionConfig.preventFire) {
         world.beforeEvents.itemUseOn.subscribe((event) => {
-            try {
-                const { source, itemStack, block } = event;
-                const sourceId = source ? source.id : 'N/A';
-                const itemId = itemStack ? itemStack.typeId : 'N/A';
+            const { source, itemStack, block } = event;
+            if (!(source instanceof Player) || !block) {return;}
 
-                debugLog(`itemUseOn Event Triggered: Source: ${sourceId}, Item: ${itemId}`);
-
-                if (block) {
-                    debugLog(`Block Info: Location: (${block.location.x}, ${block.location.y}, ${block.location.z}), Dimension: ${block.dimension.id}`);
-                } else {
-                    debugLog('Event triggered without a block.');
+            if (itemStack.typeId === 'minecraft:flint_and_steel' || itemStack.typeId === 'minecraft:lava_bucket') {
+                if (isWithinSpawnProtection(block.location, block.dimension.id) && !canBypass(source)) {
+                    event.cancel = true;
                 }
-
-                if (!(source instanceof Player)) {
-                    return;
-                }
-
-                if (itemStack.typeId === 'minecraft:flint_and_steel' || itemStack.typeId === 'minecraft:lava_bucket') {
-                    if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(source)) {
-                        event.cancel = true;
-                    }
-                }
-            } catch (error) {
-                debugLog(`A critical error occurred in the itemUseOn event handler: ${error}\n${error.stack}`);
             }
         });
     }
