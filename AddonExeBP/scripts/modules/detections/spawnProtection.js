@@ -58,9 +58,10 @@ function canBypass(player) {
 function initialize() {
     const spawnConfig = getSpawnConfig();
     const spawnProtectionConfig = spawnConfig.spawnProtection;
+    const spawnLocation = spawnConfig.spawn ? spawnConfig.spawn.spawnLocation : null;
 
     // Add a robust check to ensure the config section is a valid object before proceeding
-    if (!spawnProtectionConfig || typeof spawnProtectionConfig !== 'object' || !spawnProtectionConfig.enabled) {
+    if (!spawnProtectionConfig || typeof spawnProtectionConfig !== 'object' || !spawnProtectionConfig.enabled || !spawnLocation) {
         return;
     }
 
