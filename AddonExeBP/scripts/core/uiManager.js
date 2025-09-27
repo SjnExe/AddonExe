@@ -10,7 +10,7 @@ import * as rankManager from './rankManager.js';
 import * as rankDb from './rankDb.js';
 import * as playerCache from './playerCache.js';
 import * as utils from './utils.js';
-import { getValueFromPath, setValueFromPath } from './objectUtils.js';
+import { getValueFromPath, setValueByPath } from './objectUtils.js';
 import * as reportManager from './reportManager.js';
 import * as bountyManager from './bountyManager.js';
 import * as economyManager from './economyManager.js';
@@ -1576,7 +1576,7 @@ async function handleFormResponse(player, panelId, response, context) {
                 if (validationFailed) { return; }
                 const newValue = processAndValidate(setting, newValues[index]);
                 if (!validationFailed) {
-                    setValueFromPath(configToSave, setting.key, newValue);
+                    setValueByPath(configToSave, setting.key, newValue);
                 }
             });
             if (validationFailed) { return showPanel(player, panelId); }
