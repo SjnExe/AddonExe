@@ -52,7 +52,7 @@ commandManager.register({
 
 commandManager.register({
     name: 'setspawn',
-    aliases: ['setworldspawn'],
+    aliases: ['setworldspawn', 'spawnset'],
     disabledSlashAliases: ['setworldspawn'],
     description: 'Sets the server\'s spawn location to your current position or specified coordinates.',
     category: 'Administration',
