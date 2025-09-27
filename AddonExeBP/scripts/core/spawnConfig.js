@@ -4,7 +4,12 @@ export const spawnConfig = {
         cooldownSeconds: 60,
         teleportWarmupSeconds: 10,
         // Default spawn location. Can be set manually here (e.g., { x: 0, y: 100, z: 0, dimensionId: 'minecraft:overworld' }) or with the in-game /setspawn command.
-        spawnLocation: null
+        spawnLocation: {
+            x: null,
+            y: null,
+            z: null,
+            dimensionId: 'minecraft:overworld'
+        }
     },
 
     // --- Spawn Protection Settings ---

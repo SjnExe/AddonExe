@@ -4,6 +4,7 @@ import { getSpawnConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSp
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
+import { cleanupPlayerDataManager } from './playerDataManager.js';
 import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
@@ -12,7 +13,8 @@ import * as bountyManager from './bountyManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import { startRestart } from './restartManager.js';
-import { initializeEventManager } from './events/eventManager.js';
+import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
+import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import '../modules/commands/index.js';
 
@@ -43,6 +45,21 @@ export function updateAllPlayerRanks() {
     for (const player of world.getAllPlayers()) {
         updatePlayerRank(player);
     }
+}
+
+/**
+ * Re-initializes the state for all players currently online.
+ * This is crucial for restoring player data after a script reload.
+ */
+function reinitializeOnlinePlayers() {
+    debugLog(`[AddonExe] Re-initializing state for ${world.getAllPlayers().length} online players...`);
+    for (const player of world.getAllPlayers()) {
+        // Ensure the player's data is loaded into the system
+        playerDataManager.getOrCreatePlayer(player);
+        // Then, update their rank based on the loaded data and config
+        updatePlayerRank(player);
+    }
+    debugLog('[AddonExe] Player re-initialization complete.');
 }
 
 /**
@@ -97,7 +114,7 @@ function checkConfiguration() {
  */
 function startSystemTimers() {
     // Periodically clear expired payment confirmations
-    system.runInterval(economyManager.clearExpiredPayments, 6000); // 5 minutes
+    setTrackedInterval(economyManager.clearExpiredPayments, 6000); // 5 minutes
     // Rank updates are now handled by events (e.g., !admin command)
     debugLog('[AddonExe] System timers started.');
 }
@@ -134,8 +151,27 @@ async function initializeAddon() {
     initializeEventManager();
     initializeSpawnProtection();
 
+    // Restore state for any players who were online during the reload
+    reinitializeOnlinePlayers();
+
     startSystemTimers();
     debugLog('[AddonExe] Addon initialized successfully.');
+}
+
+/**
+ * Cleans up all registered events and timers.
+ * This is essential for a clean script reload.
+ */
+function cleanupAddon() {
+    // Using console.log for raw output that is not affected by logger settings.
+    // This is crucial for debugging script unload.
+    // eslint-disable-next-line no-console
+    console.log('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
+    cleanupPlayerDataManager();
+    cleanupEventManager();
+    cleanupTimers();
+    // eslint-disable-next-line no-console
+    console.log('[AddonExe] Cleanup complete. The script will now unload.');
 }
 
 // Run the initialization logic on the next tick after the script is loaded.
@@ -151,8 +187,16 @@ system.run(async () => {
 
 system.afterEvents.scriptEventReceive.subscribe((event) => {
     const { id, sourceEntity } = event;
-    const config = getConfig(); // Config should be loaded by the time this event fires.
-    if (!config) {return;}
+
+    // Handle script unload event
+    if (id === 'minecraft:script_unload') {
+        cleanupAddon();
+        return;
+    }
+
+    const config = getConfig(); // Config should be loaded by the time this event fires for custom events.
+    if (!config) { return; }
+
 
     switch (id) {
         case 'exe:restart':
