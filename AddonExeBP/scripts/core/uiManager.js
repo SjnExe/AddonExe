@@ -26,6 +26,7 @@ import { items as allItems } from './itemsConfig.js';
 import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from './kitAdminManager.js';
 import { addItemToKit, updateItemInKit } from './kitItemsManager.js';
 import * as shopAdminManager from './shopAdminManager.js';
+import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 
 
 const itemsPerPage = 8; // Number of items to show per page in the shop
@@ -1581,6 +1582,13 @@ async function handleFormResponse(player, panelId, response, context) {
             });
             if (validationFailed) { return showPanel(player, panelId); }
             handler.save(configToSave);
+
+            // If the spawn config was just updated, re-initialize spawn protection
+            // to apply the new settings immediately.
+            if (configSource === 'spawn') {
+                initializeSpawnProtection();
+                player.sendMessage('§aSpawn protection system has been updated based on new settings.');
+            }
         }
 
         player.sendMessage(`§2Successfully saved settings for ${category.title}§2.`);
