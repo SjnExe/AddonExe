@@ -1,27 +1,23 @@
-import { world, system, Player } from '@minecraft/server';
+import { world, system, Player, EntityDamageCause } from '@minecraft/server';
+import { getSpawnConfig } from '../../core/configurations.js';
 import { getConfig } from '../../core/configManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
+import { errorLog } from '../../core/errorLogger.js';
 
 /**
  * Checks if a location is within the protected spawn area.
- * @param {import('@minecraft/server').Vector3} location The location to check.
- * @param {string} dimensionId The dimension of the location.
- * @returns {boolean} True if the location is within the protected area, false otherwise.
+ * @param {import('@minecraft/server').Vector3 | undefined} location The location to check.
+ * @param {string | undefined} dimensionId The dimension of the location.
+ * @returns {boolean} True if the location is within the protected area.
  */
 function isWithinSpawnProtection(location, dimensionId) {
-    const config = getConfig();
-    const spawnProtectionConfig = config.spawnProtection;
-    const spawnLocation = config.spawn ? config.spawn.spawnLocation : null;
+    if (!location || !dimensionId) return false;
 
-    // Highly defensive check to prevent crashes
-    if (
-        !spawnProtectionConfig ||
-        !spawnProtectionConfig.enabled ||
-        !spawnLocation ||
-        typeof spawnLocation.x !== 'number' ||
-        typeof spawnLocation.z !== 'number' ||
-        typeof spawnLocation.dimensionId !== 'string'
-    ) {
+    const spawnConfig = getSpawnConfig();
+    const spawnProtectionConfig = spawnConfig?.spawnProtection;
+    const spawnLocation = spawnConfig?.spawn?.spawnLocation;
+
+    if (!spawnProtectionConfig?.enabled || !spawnLocation?.dimensionId) {
         return false;
     }
 
@@ -32,149 +28,181 @@ function isWithinSpawnProtection(location, dimensionId) {
     const dx = location.x - spawnLocation.x;
     const dz = location.z - spawnLocation.z;
     const distanceSquared = dx * dx + dz * dz;
+    const radiusSquared = spawnProtectionConfig.protectionRadius * spawnProtectionConfig.protectionRadius;
 
-    return distanceSquared <= spawnProtectionConfig.protectionRadius * spawnProtectionConfig.protectionRadius;
+    return distanceSquared <= radiusSquared;
 }
 
 /**
  * Checks if a player can bypass spawn protection.
- * @param {Player} player The player to check.
- * @returns {boolean} True if the player can bypass protection, false otherwise.
+ * @param {Player | undefined} player The player to check.
+ * @returns {boolean} True if the player can bypass protection.
  */
 function canBypass(player) {
-    const config = getConfig();
-    const spawnProtectionConfig = config.spawnProtection;
+    if (!(player instanceof Player)) return false;
 
-    if (!spawnProtectionConfig || !spawnProtectionConfig.allowAdminBypass) {
+    const spawnConfig = getSpawnConfig();
+    const mainConfig = getConfig();
+    const spawnProtectionConfig = spawnConfig?.spawnProtection;
+
+    if (!spawnProtectionConfig?.allowAdminBypass) {
         return false;
     }
-    const playerRank = getPlayerRank(player, config);
-    // Permission level 1 or lower is considered admin/owner
-    return playerRank.permissionLevel <= 1;
+    const playerRank = getPlayerRank(player, mainConfig);
+    return playerRank.permissionLevel <= 1; // Admin or Owner
 }
 
+/**
+ * Registers all spawn protection event listeners based on the current config.
+ */
 function initialize() {
-    const config = getConfig();
-    const spawnProtectionConfig = config.spawnProtection;
-
-    // Add a robust check to ensure the config section is a valid object before proceeding
-    if (!spawnProtectionConfig || typeof spawnProtectionConfig !== 'object' || !spawnProtectionConfig.enabled) {
+    const spawnConfig = getSpawnConfig();
+    if (!spawnConfig) {
+        errorLog('[SpawnProtection] Could not load spawn configuration.', new Error());
         return;
     }
 
-    if (spawnProtectionConfig.preventBlockBreaking) {
+    const { spawn, spawnProtection } = spawnConfig;
+    const spawnLocation = spawn?.spawnLocation;
+
+    if (!spawnProtection?.enabled || !spawnLocation) {
+        // This is the main guard. If protection is off or spawn isn't set, do nothing.
+        return;
+    }
+
+    // --- EVENT-BASED PROTECTIONS ---
+
+    if (spawnProtection.preventBlockBreaking) {
         world.beforeEvents.playerBreakBlock.subscribe((event) => {
-            if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
+            if (!event.player) return;
+            if (isWithinSpawnProtection(event.block.location, event.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
         });
     }
 
-    if (spawnProtectionConfig.preventBlockPlacing) {
+    if (spawnProtection.preventBlockPlacing) {
         world.beforeEvents.playerPlaceBlock.subscribe((event) => {
-            if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
+            if (!event.player) return;
+            if (isWithinSpawnProtection(event.block.location, event.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
         });
     }
 
-    if (spawnProtectionConfig.preventExplosions) {
+    if (spawnProtection.preventExplosions) {
         world.beforeEvents.explosion.subscribe((event) => {
-            const spawnDimension = getConfig().spawn.spawnLocation?.dimensionId;
-            if (!spawnDimension || event.dimension.id !== spawnDimension) {return;}
-
-            const initialImpactedBlocks = event.getImpactedBlocks();
-            const protectedBlocks = initialImpactedBlocks.filter(block => isWithinSpawnProtection(block.location, event.dimension.id));
-
-            if (protectedBlocks.length > 0) {
-                const finalImpactedBlocks = initialImpactedBlocks.filter(block => !protectedBlocks.includes(block));
-                event.setImpactedBlocks(finalImpactedBlocks);
-            }
+            if (event.dimension.id !== spawnLocation.dimensionId) return;
+            const finalImpactedBlocks = event.getImpactedBlocks().filter(block =>
+                !isWithinSpawnProtection(block.location, event.dimension.id)
+            );
+            event.setImpactedBlocks(finalImpactedBlocks);
         });
     }
 
-    if (spawnProtectionConfig.preventBlockInteraction) {
+    if (spawnProtection.preventBlockInteraction) {
         world.beforeEvents.playerInteractWithBlock.subscribe((event) => {
-            if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
+            if (!event.player) return;
+            if (isWithinSpawnProtection(event.block.location, event.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
         });
     }
 
-    if (spawnProtectionConfig.preventFire) {
+    if (spawnProtection.preventFire) {
         world.beforeEvents.itemUseOn.subscribe((event) => {
-            const { source, itemStack, block } = event;
-            if (!(source instanceof Player) || !block) {return;}
-
-            if (itemStack.typeId === 'minecraft:flint_and_steel' || itemStack.typeId === 'minecraft:lava_bucket') {
-                if (isWithinSpawnProtection(block.location, block.dimension.id) && !canBypass(source)) {
+            if (!(event.source instanceof Player) || !event.block) return;
+            const item = event.itemStack;
+            if (item.typeId === 'minecraft:flint_and_steel' || item.typeId === 'minecraft:fire_charge') {
+                if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.source)) {
                     event.cancel = true;
                 }
             }
         });
     }
 
-    if (spawnProtectionConfig.preventPvP || spawnProtectionConfig.preventPvE) {
+    if (spawnProtection.preventPvP || spawnProtection.preventPvE) {
         world.beforeEvents.entityHurt.subscribe((event) => {
+            if (!event.hurtEntity?.dimension) return;
+            if (!isWithinSpawnProtection(event.hurtEntity.location, event.hurtEntity.dimension.id)) return;
+
             const { hurtEntity, damageSource } = event;
-            const damagingEntity = damageSource.damagingEntity;
-
-            // Add a guard to ensure the hurt entity and its dimension are valid
-            if (!hurtEntity?.dimension) {return;}
-
-            if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) {return;}
 
             // PvP Protection
-            if (spawnProtectionConfig.preventPvP && hurtEntity instanceof Player && damagingEntity instanceof Player && !canBypass(damagingEntity)) {
-                event.cancel = true;
+            if (spawnProtection.preventPvP && hurtEntity instanceof Player && damageSource.damagingEntity instanceof Player) {
+                if (!canBypass(damageSource.damagingEntity)) event.cancel = true;
                 return;
             }
 
-            // PvE Protection (Player getting hurt by non-player)
-            if (spawnProtectionConfig.preventPvE && hurtEntity instanceof Player && damagingEntity && !(damagingEntity instanceof Player)) {
-                event.cancel = true;
-                return;
-            }
-        });
-    }
-
-    if (spawnProtectionConfig.preventMobSpawning) {
-        world.beforeEvents.mobSpawn.subscribe((event) => {
-            if (isWithinSpawnProtection(event.location, event.dimension.id)) {
-                event.cancel = true;
-            }
-        });
-    }
-
-    if (spawnProtectionConfig.preventItemDropping) {
-        world.beforeEvents.itemDrop.subscribe((event) => {
-            const { source } = event;
-            if (!(source instanceof Player)) {return;}
-
-            if (isWithinSpawnProtection(source.location, source.dimension.id) && !canBypass(source)) {
-                event.cancel = true;
-            }
-        });
-    }
-
-    if (spawnProtectionConfig.preventItemPickup) {
-        world.beforeEvents.itemPickup.subscribe((event) => {
-            if (isWithinSpawnProtection(event.item.location, event.item.dimension.id) && !canBypass(event.player)) {
-                event.cancel = true;
-            }
-        });
-    }
-
-
-    if (spawnProtectionConfig.preventHungerLoss) {
-        system.runInterval(() => {
-            for (const player of world.getAllPlayers()) {
-                if (isWithinSpawnProtection(player.location, player.dimension.id)) {
-                    player.getComponent('minecraft:food').resetToDefaultValue();
+            // PvE Protection (Player Immortality)
+            if (spawnProtection.preventPvE && hurtEntity instanceof Player) {
+                const bypassCauses = [EntityDamageCause.void, EntityDamageCause.suicide];
+                if (!bypassCauses.includes(damageSource.cause)) {
+                    event.cancel = true;
                 }
             }
-        }, 20); // Run every second
+        });
     }
+
+    if (spawnProtection.preventItemDropping) {
+        world.beforeEvents.itemDrop.subscribe((event) => {
+            if (event.source instanceof Player) {
+                if (isWithinSpawnProtection(event.source.location, event.source.dimension.id) && !canBypass(event.source)) {
+                    event.cancel = true;
+                }
+            }
+        });
+    }
+
+    if (spawnProtection.preventItemPickup) {
+        world.beforeEvents.itemPickup.subscribe((event) => {
+            // Check if the entity picking up the item is a player
+            if (event.player) {
+                 if (isWithinSpawnProtection(event.item.location, event.item.dimension.id) && !canBypass(event.player)) {
+                    event.cancel = true;
+                }
+            }
+        });
+    }
+
+    // --- INTERVAL-BASED PROTECTIONS ---
+
+    system.runInterval(() => {
+        const currentSpawnConfig = getSpawnConfig();
+        const protection = currentSpawnConfig?.spawnProtection;
+        const loc = currentSpawnConfig?.spawn?.spawnLocation;
+
+        if (!protection?.enabled || !loc) return;
+
+        for (const player of world.getAllPlayers()) {
+            if (!isWithinSpawnProtection(player.location, player.dimension.id)) continue;
+
+            // Hunger Loss Prevention
+            if (protection.preventHungerLoss) {
+                player.getComponent('minecraft:food')?.resetToDefaultValue();
+            }
+        }
+
+        // Mob Spawning Prevention (Cleanup Routine)
+        if (protection.preventMobSpawning) {
+            try {
+                const entitiesInSpawn = world.getDimension(loc.dimensionId).getEntities({
+                    location: loc,
+                    maxDistance: protection.protectionRadius,
+                    families: ["monster"], // Specifically target hostile mobs
+                    excludeFamilies: ["player", "inanimate"],
+                });
+
+                for (const entity of entitiesInSpawn) {
+                    if (isWithinSpawnProtection(entity.location, entity.dimension.id)) {
+                        entity.kill();
+                    }
+                }
+            } catch (e) {
+                errorLog(`[SpawnProtection] Error during mob cleanup: ${e}`);
+            }
+        }
+    }, 40); // Run every 2 seconds
 }
 
 export { initialize as initializeSpawnProtection };
