@@ -94,11 +94,11 @@ function initialize() {
 
     if (spawnProtectionConfig.preventFire) {
         world.beforeEvents.itemUseOn.subscribe((event) => {
-            const { source, itemStack } = event;
-            if (!(source instanceof Player)) {return;}
+            const { source, itemStack, block } = event;
+            if (!(source instanceof Player) || !block) {return;}
 
             if (itemStack.typeId === 'minecraft:flint_and_steel' || itemStack.typeId === 'minecraft:lava_bucket') {
-                if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(source)) {
+                if (isWithinSpawnProtection(block.location, block.dimension.id) && !canBypass(source)) {
                     event.cancel = true;
                 }
             }
