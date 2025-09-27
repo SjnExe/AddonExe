@@ -83,9 +83,9 @@ commandManager.register({
     permissionLevel: 1, // Admin
     parameters: [
         { name: 'warpName', type: 'string', description: 'The name for the new warp.' },
-        { name: 'x', type: 'number', description: 'The x-coordinate for the warp.', optional: true },
-        { name: 'y', type: 'number', description: 'The y-coordinate for the warp.', optional: true },
-        { name: 'z', type: 'number', description: 'The z-coordinate for the warp.', optional: true }
+        { name: 'x', type: 'int', description: 'The x-coordinate for the warp.', optional: true },
+        { name: 'y', type: 'int', description: 'The y-coordinate for the warp.', optional: true },
+        { name: 'z', type: 'int', description: 'The z-coordinate for the warp.', optional: true }
     ],
     execute: (player, args) => {
         const { warpName, x, y, z } = args;
