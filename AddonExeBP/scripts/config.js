@@ -6,7 +6,7 @@ export const config = {
     commandPrefix: '!',
     serverName: '§cServerExe§r',
     defaultGamemode: 'survival',
-    debug: false,
+    debug: true,
     exeGlobalNotificationsDefaultOn: true,
 
     // --- Data Management ---

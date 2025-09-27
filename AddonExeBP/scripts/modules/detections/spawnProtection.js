@@ -1,6 +1,7 @@
 import { world, system, Player } from '@minecraft/server';
 import { getConfig } from '../../core/configManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
+import { debugLog } from '../../core/logger.js';
 
 /**
  * Checks if a location is within the protected spawn area.
@@ -94,13 +95,18 @@ function initialize() {
 
     if (spawnProtectionConfig.preventFire) {
         world.beforeEvents.itemUseOn.subscribe((event) => {
-            const { source, itemStack, block } = event;
-            if (!(source instanceof Player) || !block) {return;}
+            try {
+                debugLog(`itemUseOn event triggered. Event data: ${JSON.stringify(event, null, 2)}`);
+                const { source, itemStack } = event;
+                if (!(source instanceof Player)) {return;}
 
-            if (itemStack.typeId === 'minecraft:flint_and_steel' || itemStack.typeId === 'minecraft:lava_bucket') {
-                if (isWithinSpawnProtection(block.location, block.dimension.id) && !canBypass(source)) {
-                    event.cancel = true;
+                if (itemStack.typeId === 'minecraft:flint_and_steel' || itemStack.typeId === 'minecraft:lava_bucket') {
+                    if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(source)) {
+                        event.cancel = true;
+                    }
                 }
+            } catch (error) {
+                debugLog(`Error in itemUseOn event: ${error}\n${error.stack}`);
             }
         });
     }
