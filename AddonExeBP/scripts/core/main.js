@@ -13,6 +13,7 @@ import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
 import { startRestart } from './restartManager.js';
 import { initializeEventManager } from './events/eventManager.js';
+import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import '../modules/commands/index.js';
 
 /**
@@ -123,6 +124,7 @@ async function initializeAddon() {
     initializeManagers();
     checkConfiguration();
     initializeEventManager();
+    initializeSpawnProtection();
 
     startSystemTimers();
     debugLog('[AddonExe] Addon initialized successfully.');
