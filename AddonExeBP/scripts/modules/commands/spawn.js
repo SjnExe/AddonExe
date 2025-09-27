@@ -104,7 +104,7 @@ commandManager.register({
                     player.sendMessage('§cError: Could not set the world spawn point. Check server logs for details.');
                 }
                 try {
-                    world.getDimension('minecraft:overworld').runCommandAsync('gamerule spawnradius 1');
+                    world.getDimension('minecraft:overworld').runCommand('gamerule spawnradius 1');
                     player.sendMessage('§aWorld spawn radius set to 1.');
                 } catch (e) {
                     errorLog(`[/x:setspawn] Failed to set spawnradius gamerule: ${e.stack}`);

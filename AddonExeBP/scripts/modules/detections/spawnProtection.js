@@ -57,7 +57,8 @@ function initialize() {
     const config = getConfig();
     const spawnProtectionConfig = config.spawnProtection;
 
-    if (!spawnProtectionConfig || !spawnProtectionConfig.enabled) {
+    // Add a robust check to ensure the config section is a valid object before proceeding
+    if (!spawnProtectionConfig || typeof spawnProtectionConfig !== 'object' || !spawnProtectionConfig.enabled) {
         return;
     }
 
