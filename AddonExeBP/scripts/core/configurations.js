@@ -2,7 +2,7 @@ import createConfigManager from './configManagerFactory.js';
 
 const kitsConfigManager = createConfigManager('exe:kitsConfig:current', './kitsConfig.js', 'Kits', 'kitsConfig');
 const shopConfigManager = createConfigManager('exe:shopConfig:current', './shopConfig.js', 'Shop', 'shopConfig');
-const spawnConfigManager = createConfigManager('exe:spawnConfig:current', '../spawnConfig.js', 'Spawn', 'spawnConfig');
+const spawnConfigManager = createConfigManager('exe:spawnConfig:current', './spawnConfig.js', 'Spawn', 'spawnConfig');
 // The last parameter 'rankDefinitions' is the wrapperKey. It ensures the imported array
 // is wrapped in an object like { rankDefinitions: [...] }, which the addon expects.
 const ranksConfigManager = createConfigManager('exe:ranksConfig', './ranksConfig.js', 'Ranks', 'rankDefinitions', 'rankDefinitions');

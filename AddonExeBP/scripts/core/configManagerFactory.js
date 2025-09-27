@@ -88,24 +88,19 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
             // --- End Custom Migration Logic ---
 
             if (isMigration) {
-                // Scenario 2: Addon Update (Migration)
+                // Scenario: Addon Update (Migration)
                 errorLog(`[${name}ConfigManager] Version mismatch detected. Migrating config.`);
-                // For most configs, we want the new default to take precedence for new/changed properties.
-                // However, for the spawn config, the user's saved location is more important than the default.
-                if (name === 'Spawn') {
-                    // By putting the user's config first, we ensure its values are preserved.
-                    currentConfig = deepMerge(userSavedConfig, newDefaultConfig);
-                } else {
-                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
-                }
-                lastLoadedConfig = newDefaultConfig;
-                saveLastLoadedConfig();
+                // The new default is the base, user's settings are merged on top.
+                // This preserves their settings while adding new properties from the update.
+                currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
             } else {
-                // Scenario 3: Standard Load / Reload
+                // Scenario: Standard Load / Reload
+                // This logic prioritizes manual file edits over in-game changes.
                 if (!lastLoadedConfigStr) {
-                    errorLog(`[${name}ConfigManager] No last-loaded config found. Treating as migration.`);
+                    // If there's no 'last loaded' snapshot, we can't detect file changes.
+                    // Fallback to a simple merge, treating it like a first-time load for this version.
+                    errorLog(`[${name}ConfigManager] No last-loaded config found. Merging current settings with default.`);
                     currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
-                    lastLoadedConfig = newDefaultConfig;
                 } else {
                     try {
                         lastLoadedConfig = JSON.parse(lastLoadedConfigStr);
@@ -114,21 +109,26 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                         lastLoadedConfig = newDefaultConfig;
                     }
 
+                    // Start with the user's current in-game config as the base.
                     const mergedConfig = deepClone(userSavedConfig);
 
+                    // This recursive function compares the new file against the last loaded snapshot
+                    // and applies any detected file changes to the merged config.
                     function applyFileChanges(path, fileObj, lastLoadedObj) {
-                        if (!fileObj || typeof fileObj !== 'object') {return;}
+                        if (!fileObj || typeof fileObj !== 'object') return;
                         for (const objKey in fileObj) {
-                            if (!Object.prototype.hasOwnProperty.call(fileObj, objKey)) {continue;}
+                            if (!Object.prototype.hasOwnProperty.call(fileObj, objKey)) continue;
 
                             const currentPath = path ? `${path}.${objKey}` : objKey;
                             const fileValue = fileObj[objKey];
                             const lastLoadedValue = (lastLoadedObj && typeof lastLoadedObj === 'object') ? lastLoadedObj[objKey] : undefined;
 
                             if (typeof fileValue === 'object' && fileValue !== null && !Array.isArray(fileValue)) {
-                                applyFileChanges(currentPath, fileValue, lastLoadedValue);
+                                applyFileChanges(currentPath, fileValue, lastLoadedValue?.[objKey]);
                             } else if (JSON.stringify(fileValue) !== JSON.stringify(lastLoadedValue)) {
-                                debugLog(`[${name}ConfigManager] Config change detected for '${currentPath}'. Applying file value.`);
+                                // A change was detected between the new file and the last loaded file.
+                                // The file's value takes priority.
+                                debugLog(`[${name}ConfigManager] Manual file change detected for '${currentPath}'. Applying file value.`);
                                 setValueByPath(mergedConfig, currentPath, fileValue);
                             }
                         }
@@ -136,10 +136,11 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
 
                     applyFileChanges('', newDefaultConfig, lastLoadedConfig);
                     currentConfig = mergedConfig;
-                    lastLoadedConfig = newDefaultConfig;
                 }
-                saveLastLoadedConfig();
             }
+            // After any load/merge scenario, the "last loaded" snapshot is updated to the current file's state.
+            lastLoadedConfig = newDefaultConfig;
+            saveLastLoadedConfig();
         }
 
         saveConfig();

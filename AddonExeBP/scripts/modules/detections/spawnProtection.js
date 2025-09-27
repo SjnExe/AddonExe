@@ -127,7 +127,7 @@ function initialize() {
     if (spawnProtection.preventBlockBreaking) {
         subscribe(world.beforeEvents.playerBreakBlock, (event) => {
             if (!event.player) return;
-            if (isWithinSpawnProtection(event.block.location, event.dimension.id) && !canBypass(event.player)) {
+            if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
         });
@@ -147,7 +147,8 @@ function initialize() {
         subscribe(world.beforeEvents.explosion, (event) => {
             if (event.dimension.id !== spawnLocation.dimensionId) return;
             const finalImpactedBlocks = event.getImpactedBlocks().filter(block =>
-                !isWithinSpawnProtection(block.location, event.dimension.id)
+                // Corrected: Use the block's dimension, not the event's.
+                !isWithinSpawnProtection(block.location, block.dimension.id)
             );
             event.setImpactedBlocks(finalImpactedBlocks);
         });
@@ -156,7 +157,7 @@ function initialize() {
     if (spawnProtection.preventBlockInteraction) {
         subscribe(world.beforeEvents.playerInteractWithBlock, (event) => {
             if (!event.player) return;
-            if (isWithinSpawnProtection(event.block.location, event.dimension.id) && !canBypass(event.player)) {
+            if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
         });
