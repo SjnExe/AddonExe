@@ -4,6 +4,41 @@ import { getConfig } from '../../core/configManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
 import { errorLog } from '../../core/errorLogger.js';
 
+// State variables to hold subscription handles and timer IDs for cleanup
+let eventHandlers = [];
+let intervalId = -1;
+
+/**
+ * Unsubscribes all event handlers and clears timers to allow for re-initialization.
+ */
+function cleanup() {
+    for (const { event, handler } of eventHandlers) {
+        try {
+            event.unsubscribe(handler);
+        } catch (e) {
+            // This might happen if the script reloads and the handler reference is lost.
+            // We log it but don't crash, as the goal is to clean up what we can.
+            errorLog(`[SpawnProtection] Failed to unsubscribe from an event: ${e.message}`);
+        }
+    }
+    eventHandlers = []; // Reset for the next initialization
+
+    if (intervalId !== -1) {
+        system.clearRun(intervalId);
+        intervalId = -1;
+    }
+}
+
+/**
+ * A wrapper for subscribing to events that tracks them for later cleanup.
+ * @param {any} event The event signal object (e.g., world.beforeEvents.playerBreakBlock)
+ * @param {Function} handler The function to subscribe.
+ */
+function subscribe(event, handler) {
+    event.subscribe(handler);
+    eventHandlers.push({ event, handler });
+}
+
 /**
  * Checks if a location is within the protected spawn area.
  * @param {import('@minecraft/server').Vector3 | undefined} location The location to check.
@@ -56,24 +91,37 @@ function canBypass(player) {
  * Registers all spawn protection event listeners based on the current config.
  */
 function initialize() {
+    // Always run cleanup first to remove any existing listeners before re-applying them.
+    // This makes the function safely re-runnable.
+    cleanup();
+
     const spawnConfig = getSpawnConfig();
     if (!spawnConfig) {
-        errorLog('[SpawnProtection] Could not load spawn configuration.', new Error());
+        errorLog('[SpawnProtection] Could not load spawn configuration.');
         return;
     }
 
     const { spawn, spawnProtection } = spawnConfig;
+
+    // Guard 1: Check if the spawnProtection config section exists and is enabled.
+    if (!spawnProtection?.enabled) {
+        // Protection is not configured or is disabled. This is a normal state, so we exit silently.
+        return;
+    }
+
     const spawnLocation = spawn?.spawnLocation;
 
-    if (!spawnProtection?.enabled || !spawnLocation) {
-        // This is the main guard. If protection is off or spawn isn't set, do nothing.
+    // Guard 2: If enabled, check if a spawn point has been set.
+    if (!spawnLocation) {
+        // This is an actionable error. Protection is on, but can't function without a location.
+        errorLog('[SpawnProtection] Spawn protection is enabled, but no spawn location is set. Protection will not be active until /setspawn is used.');
         return;
     }
 
     // --- EVENT-BASED PROTECTIONS ---
 
     if (spawnProtection.preventBlockBreaking) {
-        world.beforeEvents.playerBreakBlock.subscribe((event) => {
+        subscribe(world.beforeEvents.playerBreakBlock, (event) => {
             if (!event.player) return;
             if (isWithinSpawnProtection(event.block.location, event.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
@@ -82,7 +130,7 @@ function initialize() {
     }
 
     if (spawnProtection.preventBlockPlacing) {
-        world.beforeEvents.playerPlaceBlock.subscribe((event) => {
+        subscribe(world.beforeEvents.playerPlaceBlock, (event) => {
             if (!event.player) return;
             if (isWithinSpawnProtection(event.block.location, event.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
@@ -91,7 +139,7 @@ function initialize() {
     }
 
     if (spawnProtection.preventExplosions) {
-        world.beforeEvents.explosion.subscribe((event) => {
+        subscribe(world.beforeEvents.explosion, (event) => {
             if (event.dimension.id !== spawnLocation.dimensionId) return;
             const finalImpactedBlocks = event.getImpactedBlocks().filter(block =>
                 !isWithinSpawnProtection(block.location, event.dimension.id)
@@ -101,7 +149,7 @@ function initialize() {
     }
 
     if (spawnProtection.preventBlockInteraction) {
-        world.beforeEvents.playerInteractWithBlock.subscribe((event) => {
+        subscribe(world.beforeEvents.playerInteractWithBlock, (event) => {
             if (!event.player) return;
             if (isWithinSpawnProtection(event.block.location, event.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
@@ -110,7 +158,7 @@ function initialize() {
     }
 
     if (spawnProtection.preventFire) {
-        world.beforeEvents.itemUseOn.subscribe((event) => {
+        subscribe(world.beforeEvents.itemUseOn, (event) => {
             if (!(event.source instanceof Player) || !event.block) return;
             const item = event.itemStack;
             if (item.typeId === 'minecraft:flint_and_steel' || item.typeId === 'minecraft:fire_charge') {
@@ -122,7 +170,7 @@ function initialize() {
     }
 
     if (spawnProtection.preventPvP || spawnProtection.preventPvE) {
-        world.beforeEvents.entityHurt.subscribe((event) => {
+        subscribe(world.beforeEvents.entityHurt, (event) => {
             if (!event.hurtEntity?.dimension) return;
             if (!isWithinSpawnProtection(event.hurtEntity.location, event.hurtEntity.dimension.id)) return;
 
@@ -145,7 +193,7 @@ function initialize() {
     }
 
     if (spawnProtection.preventItemDropping) {
-        world.beforeEvents.itemDrop.subscribe((event) => {
+        subscribe(world.beforeEvents.itemDrop, (event) => {
             if (event.source instanceof Player) {
                 if (isWithinSpawnProtection(event.source.location, event.source.dimension.id) && !canBypass(event.source)) {
                     event.cancel = true;
@@ -155,7 +203,7 @@ function initialize() {
     }
 
     if (spawnProtection.preventItemPickup) {
-        world.beforeEvents.itemPickup.subscribe((event) => {
+        subscribe(world.beforeEvents.itemPickup, (event) => {
             // Check if the entity picking up the item is a player
             if (event.player) {
                  if (isWithinSpawnProtection(event.item.location, event.item.dimension.id) && !canBypass(event.player)) {
@@ -167,7 +215,7 @@ function initialize() {
 
     // --- INTERVAL-BASED PROTECTIONS ---
 
-    system.runInterval(() => {
+    intervalId = system.runInterval(() => {
         const currentSpawnConfig = getSpawnConfig();
         const protection = currentSpawnConfig?.spawnProtection;
         const loc = currentSpawnConfig?.spawn?.spawnLocation;

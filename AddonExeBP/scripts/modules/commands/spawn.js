@@ -6,6 +6,7 @@ import { playSound, startTeleportWarmup } from '../../core/utils.js';
 import { errorLog } from '../../core/errorLogger.js';
 import { setCooldown } from '../../core/cooldownManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
+import { initializeSpawnProtection } from '../detections/spawnProtection.js';
 
 commandManager.register({
     name: 'spawn',
@@ -96,6 +97,10 @@ commandManager.register({
             saveSpawnConfig(spawnConfig);
             const locationString = `X: ${Math.floor(location.x)}, Y: ${Math.floor(location.y)}, Z: ${Math.floor(location.z)} in ${location.dimensionId.replace('minecraft:', '')}`;
             player.sendMessage(`§aAddon spawn point set to: ${locationString}`);
+
+            // Re-initialize spawn protection to apply any changes immediately
+            initializeSpawnProtection();
+            player.sendMessage('§aSpawn protection system has been updated.');
 
             // Then, update the world spawn if in the overworld
             if (location.dimensionId === 'minecraft:overworld') {
