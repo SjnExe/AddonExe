@@ -165,33 +165,41 @@ function initialize() {
 
     if (spawnProtection.preventFire) {
         subscribe(world.beforeEvents.itemUseOn, (event) => {
-            if (!(event.source instanceof Player) || !event.block) {return;}
+            const player = event.source;
+            if (!(player instanceof Player) || !event.block) {return;}
+
             const item = event.itemStack;
-            if (item.typeId === 'minecraft:flint_and_steel' || item.typeId === 'minecraft:fire_charge') {
-                if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.source)) {
-                    event.cancel = true;
-                }
+            const fireStarters = ['minecraft:flint_and_steel', 'minecraft:fire_charge', 'minecraft:lava_bucket'];
+
+            if (fireStarters.includes(item?.typeId) && isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(player)) {
+                event.cancel = true;
             }
         });
     }
 
     if (spawnProtection.preventPvP || spawnProtection.preventPvE) {
         subscribe(world.beforeEvents.entityHurt, (event) => {
-            if (!event.hurtEntity?.dimension) {return;}
-            if (!isWithinSpawnProtection(event.hurtEntity.location, event.hurtEntity.dimension.id)) {return;}
-
             const { hurtEntity, damageSource } = event;
 
-            // PvP Protection
-            if (spawnProtection.preventPvP && hurtEntity instanceof Player && damageSource.damagingEntity instanceof Player) {
-                if (!canBypass(damageSource.damagingEntity)) {event.cancel = true;}
-                return;
+            // We only care about players being hurt in spawn
+            if (!(hurtEntity instanceof Player) || !hurtEntity.dimension) { return; }
+            if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) { return; }
+
+            const attacker = damageSource.damagingEntity;
+            const isPvp = attacker instanceof Player;
+
+            // Handle PvP: A player is hurting another player
+            if (isPvp && spawnProtection.preventPvP) {
+                if (!canBypass(attacker)) {
+                    event.cancel = true;
+                }
+                return; // PvP handled, no need for PvE check on the same event
             }
 
-            // PvE Protection (Player Immortality)
-            if (spawnProtection.preventPvE && hurtEntity instanceof Player) {
-                const bypassCauses = [EntityDamageCause.void, EntityDamageCause.suicide];
-                if (!bypassCauses.includes(damageSource.cause)) {
+            // Handle PvE: Damage from mobs or environment
+            if (!isPvp && spawnProtection.preventPvE) {
+                const pveBypassCauses = [EntityDamageCause.void, EntityDamageCause.suicide];
+                if (!pveBypassCauses.includes(damageSource.cause)) {
                     event.cancel = true;
                 }
             }
@@ -200,8 +208,9 @@ function initialize() {
 
     if (spawnProtection.preventItemDropping) {
         subscribe(world.beforeEvents.itemDrop, (event) => {
-            if (event.source instanceof Player) {
-                if (isWithinSpawnProtection(event.source.location, event.source.dimension.id) && !canBypass(event.source)) {
+            const player = event.source;
+            if (player instanceof Player) {
+                if (isWithinSpawnProtection(player.location, player.dimension.id) && !canBypass(player)) {
                     event.cancel = true;
                 }
             }
@@ -210,9 +219,9 @@ function initialize() {
 
     if (spawnProtection.preventItemPickup) {
         subscribe(world.beforeEvents.itemPickup, (event) => {
-            // Corrected: The entity picking up the item is event.entity, not event.player
             const player = event.entity;
             if (player instanceof Player) {
+                // Check protection at the item's location, not the player's
                 if (isWithinSpawnProtection(event.item.location, event.item.dimension.id) && !canBypass(player)) {
                     event.cancel = true;
                 }
@@ -229,21 +238,23 @@ function initialize() {
 
         if (!protection?.enabled || !loc) {return;}
 
+        // Guard against running with a null spawn location, which can cause native crashes.
+        if (typeof loc.x !== 'number' || typeof loc.y !== 'number' || typeof loc.z !== 'number') {
+            return;
+        }
+
         for (const player of world.getAllPlayers()) {
-            if (!isWithinSpawnProtection(player.location, player.dimension.id)) {continue;}
+            if (!isWithinSpawnProtection(player.location, player.dimension.id) || canBypass(player)) {continue;}
 
             // Hunger Loss Prevention
             if (protection.preventHungerLoss) {
-                player.getComponent('minecraft:food')?.resetToDefaultValue();
+                // Using setFood is more direct than resetToDefaultValue
+                player.getComponent('minecraft:food')?.setFoodLevel(20);
             }
         }
 
         // Mob Spawning Prevention (Cleanup Routine)
         if (protection.preventMobSpawning) {
-            // Guard against running this with a null spawn location, which causes a native crash.
-            if (typeof loc.x !== 'number' || typeof loc.y !== 'number' || typeof loc.z !== 'number') {
-                return;
-            }
             try {
                 const entitiesInSpawn = world.getDimension(loc.dimensionId).getEntities({
                     location: loc,
@@ -253,8 +264,10 @@ function initialize() {
                 });
 
                 for (const entity of entitiesInSpawn) {
+                    // Double-check the entity is still in spawn before removing
                     if (isWithinSpawnProtection(entity.location, entity.dimension.id)) {
-                        entity.kill();
+                        // Use despawn event to avoid loot drops
+                        entity.triggerEvent('minecraft:despawn');
                     }
                 }
             } catch (e) {
