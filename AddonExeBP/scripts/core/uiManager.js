@@ -1517,9 +1517,11 @@ async function handleFormResponse(player, panelId, response, context) {
         category.settings.forEach((setting, index) => {
             if (validationFailed) {return;}
             let newValue = newValues[index];
-            if (setting.type === 'dropdown') {
+            if (setting.type === 'toggle') {
+                newValue = !!newValue;
+            } else if (setting.type === 'dropdown') {
                 newValue = setting.options[newValue];
-            } else if (setting.type === 'textField' && (setting.key.includes('Seconds') || setting.key.includes('Balance') || setting.key.includes('maxHomes') || setting.key.includes('Interval'))) {
+            } else if (setting.type === 'textField' && (setting.key.includes('Seconds') || setting.key.includes('Balance') || setting.key.includes('maxHomes') || setting.key.includes('Interval') || setting.key.includes('Radius'))) {
                 const numValue = Number(newValue);
                 if (isNaN(numValue)) {
                     player.sendMessage(`§cInvalid number provided for ${setting.label}. Changes not saved.`);

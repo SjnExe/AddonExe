@@ -6,7 +6,7 @@ export const config = {
     commandPrefix: '!',
     serverName: '§cServerExe§r',
     defaultGamemode: 'survival',
-    debug: false,
+    debug: true,
     exeGlobalNotificationsDefaultOn: true,
 
     // --- Data Management ---
@@ -59,7 +59,9 @@ export const config = {
     },
     spawn: {
         cooldownSeconds: 60,
-        teleportWarmupSeconds: 10
+        teleportWarmupSeconds: 10,
+        // Default spawn location. Can be set manually here (e.g., { x: 0, y: 100, z: 0, dimensionId: 'minecraft:overworld' }) or with the in-game /setspawn command.
+        spawnLocation: null
     },
     spawnProtection: {
         enabled: true,
@@ -131,8 +133,6 @@ export const config = {
     },
 
     // --- Miscellaneous ---
-    // Default spawn location. Can be set manually here (e.g., { x: 0, y: 100, z: 0, dimensionId: 'minecraft:overworld' }) or with the in-game /setspawn command.
-    spawnLocation: null,
 
     // --- Sound Events ---
     soundEvents: {

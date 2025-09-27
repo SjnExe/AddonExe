@@ -11,9 +11,17 @@ import { getPlayerRank } from '../../core/rankManager.js';
 function isWithinSpawnProtection(location, dimensionId) {
     const config = getConfig();
     const spawnProtectionConfig = config.spawnProtection;
-    const spawnLocation = config.spawnLocation;
+    const spawnLocation = config.spawn ? config.spawn.spawnLocation : null;
 
-    if (!spawnProtectionConfig || !spawnProtectionConfig.enabled || !spawnLocation) {
+    // Highly defensive check to prevent crashes
+    if (
+        !spawnProtectionConfig ||
+        !spawnProtectionConfig.enabled ||
+        !spawnLocation ||
+        typeof spawnLocation.x !== 'number' ||
+        typeof spawnLocation.z !== 'number' ||
+        typeof spawnLocation.dimensionId !== 'string'
+    ) {
         return false;
     }
 
@@ -49,7 +57,8 @@ function initialize() {
     const config = getConfig();
     const spawnProtectionConfig = config.spawnProtection;
 
-    if (!spawnProtectionConfig || !spawnProtectionConfig.enabled) {
+    // Add a robust check to ensure the config section is a valid object before proceeding
+    if (!spawnProtectionConfig || typeof spawnProtectionConfig !== 'object' || !spawnProtectionConfig.enabled) {
         return;
     }
 
@@ -71,7 +80,7 @@ function initialize() {
 
     if (spawnProtectionConfig.preventExplosions) {
         world.beforeEvents.explosion.subscribe((event) => {
-            const spawnDimension = getConfig().spawnLocation?.dimensionId;
+            const spawnDimension = getConfig().spawn.spawnLocation?.dimensionId;
             if (!spawnDimension || event.dimension.id !== spawnDimension) {return;}
 
             const initialImpactedBlocks = event.getImpactedBlocks();
@@ -94,11 +103,11 @@ function initialize() {
 
     if (spawnProtectionConfig.preventFire) {
         world.beforeEvents.itemUseOn.subscribe((event) => {
-            const { source, itemStack } = event;
-            if (!(source instanceof Player)) {return;}
+            const { source, itemStack, block } = event;
+            if (!(source instanceof Player) || !block) {return;}
 
             if (itemStack.typeId === 'minecraft:flint_and_steel' || itemStack.typeId === 'minecraft:lava_bucket') {
-                if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(source)) {
+                if (isWithinSpawnProtection(block.location, block.dimension.id) && !canBypass(source)) {
                     event.cancel = true;
                 }
             }

@@ -83,6 +83,12 @@ function checkConfiguration() {
         system.runTimeout(() => world.sendMessage(warningMessage), 20);
         errorLog('[AddonExe] No owner configured.');
     }
+
+    if (!config.spawn || !config.spawn.spawnLocation) {
+        const spawnWarning = '§l§e[AddonExe] NOTICE: The server spawn has not been set. Spawn protection and the /spawn command will not function until an admin runs /setspawn.';
+        system.runTimeout(() => world.sendMessage(spawnWarning), 40);
+        errorLog('[AddonExe] Server spawn not set.');
+    }
 }
 
 /**

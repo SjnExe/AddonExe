@@ -72,6 +72,21 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                 userSavedConfig = newDefaultConfig;
             }
 
+            // --- Custom Migration Logic ---
+            // This section can be expanded with more migration steps as needed.
+            if (name === 'Main' && userSavedConfig.spawnLocation && typeof userSavedConfig.spawnLocation === 'object') {
+                debugLog(`[${name}ConfigManager] Migrating legacy spawnLocation to spawn.spawnLocation.`);
+                if (!userSavedConfig.spawn) {
+                    userSavedConfig.spawn = {};
+                }
+                // Only migrate if the new location doesn't already exist with a valid value
+                if (!userSavedConfig.spawn.spawnLocation) {
+                    userSavedConfig.spawn.spawnLocation = deepClone(userSavedConfig.spawnLocation);
+                }
+                delete userSavedConfig.spawnLocation;
+            }
+            // --- End Custom Migration Logic ---
+
             if (isMigration) {
                 // Scenario 2: Addon Update (Migration)
                 errorLog(`[${name}ConfigManager] Version mismatch detected. Migrating config.`);
