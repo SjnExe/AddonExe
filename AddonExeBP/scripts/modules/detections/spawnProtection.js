@@ -13,7 +13,15 @@ function isWithinSpawnProtection(location, dimensionId) {
     const spawnProtectionConfig = config.spawnProtection;
     const spawnLocation = config.spawn ? config.spawn.spawnLocation : null;
 
-    if (!spawnProtectionConfig || !spawnProtectionConfig.enabled || !spawnLocation) {
+    // Highly defensive check to prevent crashes
+    if (
+        !spawnProtectionConfig ||
+        !spawnProtectionConfig.enabled ||
+        !spawnLocation ||
+        typeof spawnLocation.x !== 'number' ||
+        typeof spawnLocation.z !== 'number' ||
+        typeof spawnLocation.dimensionId !== 'string'
+    ) {
         return false;
     }
 

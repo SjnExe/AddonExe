@@ -4,6 +4,7 @@ import { getConfig, updateMultipleConfig } from '../../core/configManager.js';
 import { playSound, startTeleportWarmup } from '../../core/utils.js';
 import { errorLog } from '../../core/errorLogger.js';
 import { setCooldown } from '../../core/cooldownManager.js';
+import { getPlayerRank } from '../../core/rankManager.js';
 
 commandManager.register({
     name: 'spawn',
@@ -18,7 +19,11 @@ commandManager.register({
         const spawnLocation = config.spawn.spawnLocation;
 
         if (!spawnLocation || typeof spawnLocation.x !== 'number') {
-            player.sendMessage('§cThe server spawn point has not been set by an admin.');
+            player.sendMessage('§cThe server spawn point has not been set.');
+            const rank = getPlayerRank(player, config);
+            if (rank.permissionLevel <= 1) { // Is admin or owner
+                player.sendMessage('§eAs an admin, you can set it by running §a/setspawn§e at the desired location.');
+            }
             playSound(player, 'note.bass');
             return;
         }
@@ -90,16 +95,27 @@ commandManager.register({
 
             // Then, update the world spawn if in the overworld
             if (location.dimensionId === 'minecraft:overworld') {
-                const spawnPos = { x: location.x, y: location.y, z: location.z };
-                world.setDefaultSpawnLocation(spawnPos);
-                world.getDimension('minecraft:overworld').runCommandAsync('gamerule spawnradius 1');
-                player.sendMessage('§aWorld spawn point and spawn radius have also been updated.');
+                try {
+                    const spawnPos = { x: location.x, y: location.y, z: location.z };
+                    world.setDefaultSpawnLocation(spawnPos);
+                    player.sendMessage('§aWorld spawn point updated successfully.');
+                } catch (e) {
+                    errorLog(`[/x:setspawn] Failed to set default world spawn: ${e.stack}`);
+                    player.sendMessage('§cError: Could not set the world spawn point. Check server logs for details.');
+                }
+                try {
+                    world.getDimension('minecraft:overworld').runCommandAsync('gamerule spawnradius 1');
+                    player.sendMessage('§aWorld spawn radius set to 1.');
+                } catch (e) {
+                    errorLog(`[/x:setspawn] Failed to set spawnradius gamerule: ${e.stack}`);
+                    player.sendMessage('§cError: Could not set the spawn radius. Check server logs for details.');
+                }
             }
 
             if (!player.isConsole) { playSound(player, 'random.orb'); }
         } catch (e) {
-            player.sendMessage('§cFailed to save the new spawn location.');
-            errorLog(`[/x:setspawn] Failed to update config or world spawn: ${e.stack}`);
+            player.sendMessage('§cAn unexpected error occurred while setting the spawn.');
+            errorLog(`[/x:setspawn] General error: ${e.stack}`);
         }
     }
 });
