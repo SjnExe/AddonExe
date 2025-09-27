@@ -185,26 +185,45 @@ function initialize() {
             if (!(hurtEntity instanceof Player) || !hurtEntity.dimension) { return; }
             if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) { return; }
 
+            // Admins with bypass are immune to spawn protection rules
+            if (canBypass(hurtEntity)) { return; }
+
             const attacker = damageSource.damagingEntity;
-            const isPvp = attacker instanceof Player;
 
             // Handle PvP: A player is hurting another player
-            if (isPvp && spawnProtection.preventPvP) {
+            if (attacker instanceof Player && spawnProtection.preventPvP) {
+                // If the attacker is an admin, let them attack. Otherwise, cancel.
                 if (!canBypass(attacker)) {
                     event.cancel = true;
                 }
                 return; // PvP handled, no need for PvE check on the same event
             }
 
-            // Handle PvE: Damage from mobs or environment
-            if (!isPvp && spawnProtection.preventPvE) {
-                const pveBypassCauses = [EntityDamageCause.void, EntityDamageCause.suicide];
+            // Handle PvE: Damage from mobs or environment to a player
+            if (spawnProtection.preventPvE) {
+                const pveBypassCauses = [
+                    EntityDamageCause.void,
+                    EntityDamageCause.suicide,
+                    EntityDamageCause.entityAttack // Re-check to ensure we didn't miss a PvP case
+                ];
+
+                // If damage is from another player, PvP rules should have already caught it.
+                // But as a fallback, if PvP is OFF but PvE is ON, this will still protect players from each other.
+                if (damageSource.cause === 'entityAttack' && attacker instanceof Player) {
+                    if (spawnProtection.preventPvP && !canBypass(attacker)) {
+                        event.cancel = true;
+                    }
+                    return;
+                }
+
+                // Protect from all other non-bypassable damage sources
                 if (!pveBypassCauses.includes(damageSource.cause)) {
                     event.cancel = true;
                 }
             }
         });
     }
+
 
     if (spawnProtection.preventItemDropping) {
         subscribe(world.beforeEvents.itemDrop, (event) => {
@@ -266,8 +285,8 @@ function initialize() {
                 for (const entity of entitiesInSpawn) {
                     // Double-check the entity is still in spawn before removing
                     if (isWithinSpawnProtection(entity.location, entity.dimension.id)) {
-                        // Use despawn event to avoid loot drops
-                        entity.triggerEvent('minecraft:despawn');
+                        // Teleport mobs to the void to remove them without loot drops
+                        entity.teleport({ x: entity.location.x, y: -128, z: entity.location.z });
                     }
                 }
             } catch (e) {
