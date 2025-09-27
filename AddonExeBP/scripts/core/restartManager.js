@@ -3,9 +3,11 @@ import { getConfig } from './configManager.js';
 import { saveAllData } from './dataManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
+import { setTrackedInterval, clearTrackedInterval, setTrackedTimeout } from './timerManager.js';
 
 let restartInProgress = false;
 let countdownTimer = -1;
+let countdownIntervalId = -1;
 
 /**
  * Starts the server restart sequence.
@@ -27,7 +29,8 @@ export function startRestart(initiator) {
     world.sendMessage(`§l§c[SERVER] Attention! Restart initiated by ${announcer}. The server will restart in ${countdownSeconds} seconds.`);
     initiator.sendMessage('§aYou have initiated the server restart sequence.');
 
-    const countdownInterval = system.runInterval(() => {
+    // Use the tracked interval function
+    countdownIntervalId = setTrackedInterval(() => {
         if (countdownTimer > 0) {
             const message = `§l§cServer restarting in ${countdownTimer}...`;
             // Use action bar for a less intrusive, constant reminder
@@ -43,7 +46,8 @@ export function startRestart(initiator) {
             countdownTimer--;
         } else {
             // Time's up
-            system.clearRun(countdownInterval);
+            clearTrackedInterval(countdownIntervalId); // Use the tracked clear function
+            countdownIntervalId = -1; // Reset ID
             finalizeRestart();
         }
     }, 20); // Run every second
@@ -59,7 +63,7 @@ function finalizeRestart() {
     saveAllData({ log: true });
 
     // Use a short delay to allow the "saving" message to be seen
-    system.runTimeout(() => {
+    setTrackedTimeout(() => {
         debugLog('[RestartManager] Kicking non-admin players.');
         const config = getConfig();
         const kickMessage = config.restart?.kickMessage ?? 'Server is restarting.';

@@ -16,7 +16,7 @@ import handlePlayerBreakBlock from './playerBreakBlock.js';
  * This approach ensures that all modules are loaded with static imports,
  * and the subscriptions happen predictably.
  */
-const events = [
+export const events = [
     { event: world.beforeEvents.chatSend, handler: handleBeforeChatSend, name: 'beforeChatSend' },
     { event: world.afterEvents.playerSpawn, handler: handlePlayerSpawn, name: 'playerSpawn' },
     { event: world.afterEvents.entityHurt, handler: handleEntityHurt, name: 'entityHurt' },
@@ -44,6 +44,23 @@ export function initializeEventManager() {
             }
         } else {
             errorLog(`[EventManager] Event subscription for '${name}' was skipped because the event is not available in this version of Minecraft.`);
+        }
+    }
+}
+
+/**
+ * Unsubscribes all event handlers to prevent duplicates during a script reload.
+ */
+export function cleanupEventManager() {
+    for (const { event, handler, name } of events) {
+        if (event) {
+            try {
+                event.unsubscribe(handler);
+            } catch (e) {
+                // It's possible the handler was never subscribed, so errors here might not be critical.
+                // Log it for debugging purposes but don't treat it as a fatal error.
+                errorLog(`[EventManager] Failed to unsubscribe from event '${name}'. It may have not been subscribed. Error: ${e.message}`);
+            }
         }
     }
 }
