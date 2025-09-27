@@ -125,6 +125,7 @@ export const configPanelSchema = [
         id: 'spawn',
         title: '§l§eSpawn System§r',
         icon: 'textures/blocks/beacon',
+        configSource: 'spawn',
         settings: [
             {
                 key: 'spawn.cooldownSeconds',

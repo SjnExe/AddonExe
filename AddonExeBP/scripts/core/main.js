@@ -1,6 +1,6 @@
 import { world, system } from '@minecraft/server';
 import { loadConfig, getConfig, updateConfig } from './configManager.js';
-import { loadShopConfig, loadKitsConfig, loadRanksConfig } from './configurations.js';
+import { getSpawnConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSpawnConfig } from './configurations.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
@@ -77,14 +77,15 @@ function initializeManagers() {
  */
 function checkConfiguration() {
     const config = getConfig();
+    const spawnConfig = getSpawnConfig();
     // Add a guard in case config hasn't loaded yet, though the init flow should prevent this.
-    if (!config || !config.ownerPlayerNames || config.ownerPlayerNames.length === 0 || config.ownerPlayerNames[0] === 'Your•Name•Here') {
+    if (!config || !config.ownerPlayerNames || !config.ownerPlayerNames.length || config.ownerPlayerNames[0] === 'Your•Name•Here') {
         const warningMessage = '§l§c[AddonExe] WARNING: No owner is configured. Please set `ownerPlayerNames` in `scripts/config.js` to gain access to admin commands.';
         system.runTimeout(() => world.sendMessage(warningMessage), 20);
         errorLog('[AddonExe] No owner configured.');
     }
 
-    if (!config.spawn || !config.spawn.spawnLocation) {
+    if (!spawnConfig.spawn || !spawnConfig.spawn.spawnLocation) {
         const spawnWarning = '§l§e[AddonExe] NOTICE: The server spawn has not been set. Spawn protection and the /spawn command will not function until an admin runs /setspawn.';
         system.runTimeout(() => world.sendMessage(spawnWarning), 40);
         errorLog('[AddonExe] Server spawn not set.');
@@ -119,7 +120,8 @@ async function initializeAddon() {
         loadConfig(isMigration),
         loadKitsConfig(isMigration),
         loadShopConfig(isMigration),
-        loadRanksConfig(isMigration)
+        loadRanksConfig(isMigration),
+        loadSpawnConfig(isMigration)
     ];
     await Promise.all(loadPromises);
 

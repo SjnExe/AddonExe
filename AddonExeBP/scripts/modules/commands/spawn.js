@@ -1,6 +1,7 @@
 import { world } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
-import { getConfig, updateMultipleConfig } from '../../core/configManager.js';
+import { getConfig } from '../../core/configManager.js';
+import { getSpawnConfig, saveSpawnConfig } from '../../core/configurations.js';
 import { playSound, startTeleportWarmup } from '../../core/utils.js';
 import { errorLog } from '../../core/errorLogger.js';
 import { setCooldown } from '../../core/cooldownManager.js';
@@ -16,7 +17,8 @@ commandManager.register({
     hasCooldown: true,
     execute: (player, args) => {
         const config = getConfig();
-        const spawnLocation = config.spawn.spawnLocation;
+        const spawnConfig = getSpawnConfig();
+        const spawnLocation = spawnConfig.spawn.spawnLocation;
 
         if (!spawnLocation || typeof spawnLocation.x !== 'number') {
             player.sendMessage('§cThe server spawn point has not been set.');
@@ -28,7 +30,7 @@ commandManager.register({
             return;
         }
 
-        const warmupSeconds = config.spawn.teleportWarmupSeconds;
+        const warmupSeconds = spawnConfig.spawn.teleportWarmupSeconds;
 
         const teleportLogic = () => {
             try {
@@ -50,7 +52,7 @@ commandManager.register({
 
 commandManager.register({
     name: 'setspawn',
-    aliases: ['setworldspawn'],
+    aliases: ['setworldspawn', 'spawnset'],
     disabledSlashAliases: ['setworldspawn'],
     description: 'Sets the server\'s spawn location to your current position or specified coordinates.',
     category: 'Administration',
@@ -89,7 +91,9 @@ commandManager.register({
 
         try {
             // Update the addon's config first
-            updateMultipleConfig({ 'spawn.spawnLocation': location });
+            const spawnConfig = getSpawnConfig();
+            spawnConfig.spawn.spawnLocation = location;
+            saveSpawnConfig(spawnConfig);
             const locationString = `X: ${Math.floor(location.x)}, Y: ${Math.floor(location.y)}, Z: ${Math.floor(location.z)} in ${location.dimensionId.replace('minecraft:', '')}`;
             player.sendMessage(`§aAddon spawn point set to: ${locationString}`);
 
