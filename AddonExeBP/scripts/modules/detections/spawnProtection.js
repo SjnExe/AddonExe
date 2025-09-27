@@ -240,6 +240,10 @@ function initialize() {
 
         // Mob Spawning Prevention (Cleanup Routine)
         if (protection.preventMobSpawning) {
+            // Guard against running this with a null spawn location, which causes a native crash.
+            if (typeof loc.x !== 'number' || typeof loc.y !== 'number' || typeof loc.z !== 'number') {
+                return;
+            }
             try {
                 const entitiesInSpawn = world.getDimension(loc.dimensionId).getEntities({
                     location: loc,
