@@ -60,7 +60,7 @@ export const panelDefinitions = {
                 id: 'config',
                 text: '§3Config',
                 icon: 'textures/ui/settings_glyph_color_2x',
-                permissionLevel: 0, // Owner only
+                permissionLevel: 1, // Admin and above
                 actionType: 'openPanel',
                 actionValue: 'configCategoryPanel',
                 sortId: 30

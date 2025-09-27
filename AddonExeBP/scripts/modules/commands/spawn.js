@@ -90,7 +90,8 @@ commandManager.register({
 
             // Then, update the world spawn if in the overworld
             if (location.dimensionId === 'minecraft:overworld') {
-                world.setDefaultSpawnLocation(location);
+                const spawnPos = { x: location.x, y: location.y, z: location.z };
+                world.setDefaultSpawnLocation(spawnPos);
                 world.getDimension('minecraft:overworld').runCommandAsync('gamerule spawnradius 1');
                 player.sendMessage('§aWorld spawn point and spawn radius have also been updated.');
             }

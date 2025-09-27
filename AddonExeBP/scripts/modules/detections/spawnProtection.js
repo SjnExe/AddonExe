@@ -11,7 +11,7 @@ import { getPlayerRank } from '../../core/rankManager.js';
 function isWithinSpawnProtection(location, dimensionId) {
     const config = getConfig();
     const spawnProtectionConfig = config.spawnProtection;
-    const spawnLocation = config.spawn.spawnLocation;
+    const spawnLocation = config.spawn ? config.spawn.spawnLocation : null;
 
     if (!spawnProtectionConfig || !spawnProtectionConfig.enabled || !spawnLocation) {
         return false;
