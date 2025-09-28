@@ -1,25 +1,21 @@
 import { world, system } from '@minecraft/server';
-import { config as defaultConfig } from '../config.js';
-import { loadConfig, getConfig, updateConfig, reloadConfig } from './configManager.js';
-import { loadShopConfig } from './shopConfigManager.js';
-import { loadKitsConfig } from './kitsConfigManager.js';
+import { loadConfig, getConfig, updateConfig } from './configManager.js';
+import { getSpawnConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSpawnConfig } from './configurations.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
-import { commandManager } from '../modules/commands/commandManager.js';
-import { getPunishment, loadPunishments, clearExpiredPunishments } from './punishmentManager.js';
+import { cleanupPlayerDataManager } from './playerDataManager.js';
+import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
 import * as economyManager from './economyManager.js';
 import * as bountyManager from './bountyManager.js';
-import * as lastHitManager from './lastHitManager.js';
-import { showPanel } from './uiManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
-import * as playerCache from './playerCache.js';
-import { getLockState } from './playerDataManager.js';
 import { startRestart } from './restartManager.js';
-import { formatString } from './utils.js';
+import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
+import { cleanupTimers, setTrackedInterval } from './timerManager.js';
+import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import '../modules/commands/index.js';
 
 /**
@@ -28,9 +24,10 @@ import '../modules/commands/index.js';
  */
 export function updatePlayerRank(player) {
     const pData = playerDataManager.getPlayer(player.id);
-    if (!pData) {return;}
+    if (!pData) { return; }
 
     const config = getConfig();
+    if (!config) {return;} // Guard against config not being loaded
     const oldRankId = pData.rankId;
     const newRank = rankManager.getPlayerRank(player, config);
 
@@ -45,9 +42,24 @@ export function updatePlayerRank(player) {
  * Iterates through all online players and updates their ranks.
  */
 export function updateAllPlayerRanks() {
-    for (const player of playerCache.getAllPlayersFromCache()) {
+    for (const player of world.getAllPlayers()) {
         updatePlayerRank(player);
     }
+}
+
+/**
+ * Re-initializes the state for all players currently online.
+ * This is crucial for restoring player data after a script reload.
+ */
+function reinitializeOnlinePlayers() {
+    debugLog(`[AddonExe] Re-initializing state for ${world.getAllPlayers().length} online players...`);
+    for (const player of world.getAllPlayers()) {
+        // Ensure the player's data is loaded into the system
+        playerDataManager.getOrCreatePlayer(player);
+        // Then, update their rank based on the loaded data and config
+        updatePlayerRank(player);
+    }
+    debugLog('[AddonExe] Player re-initialization complete.');
 }
 
 /**
@@ -69,6 +81,7 @@ function loadPersistentData() {
 function initializeManagers() {
     debugLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
+    initializePunishmentManager();
     // Clear any expired data on startup
     clearExpiredPunishments();
     clearOldResolvedReports();
@@ -81,10 +94,18 @@ function initializeManagers() {
  */
 function checkConfiguration() {
     const config = getConfig();
-    if (!config.ownerPlayerNames || config.ownerPlayerNames.length === 0 || config.ownerPlayerNames[0] === 'Your•Name•Here') {
+    const spawnConfig = getSpawnConfig();
+    // Add a guard in case config hasn't loaded yet, though the init flow should prevent this.
+    if (!config || !config.ownerPlayerNames || !config.ownerPlayerNames.length || config.ownerPlayerNames[0] === 'Your•Name•Here') {
         const warningMessage = '§l§c[AddonExe] WARNING: No owner is configured. Please set `ownerPlayerNames` in `scripts/config.js` to gain access to admin commands.';
         system.runTimeout(() => world.sendMessage(warningMessage), 20);
         errorLog('[AddonExe] No owner configured.');
+    }
+
+    if (!spawnConfig.spawn || !spawnConfig.spawn.spawnLocation) {
+        const spawnWarning = '§l§e[AddonExe] NOTICE: The server spawn has not been set. Spawn protection and the /spawn command will not function until an admin runs /setspawn.';
+        system.runTimeout(() => world.sendMessage(spawnWarning), 40);
+        errorLog('[AddonExe] Server spawn not set.');
     }
 }
 
@@ -93,7 +114,7 @@ function checkConfiguration() {
  */
 function startSystemTimers() {
     // Periodically clear expired payment confirmations
-    system.runInterval(economyManager.clearExpiredPayments, 6000); // 5 minutes
+    setTrackedInterval(economyManager.clearExpiredPayments, 6000); // 5 minutes
     // Rank updates are now handled by events (e.g., !admin command)
     debugLog('[AddonExe] System timers started.');
 }
@@ -101,20 +122,25 @@ function startSystemTimers() {
 /**
  * Main entry point for addon initialization.
  */
-function initializeAddon() {
+async function initializeAddon() {
     debugLog('[AddonExe] Initializing addon...');
 
-const newVersion = String(defaultConfig.version);
+    // Dynamically import the main config file to get the version number.
+    // This is necessary because we need to know if it's a migration before loading all configs.
+    const { config: tempConfig } = await import('../config.js');
+    const newVersion = String(tempConfig.version);
     const lastVersion = world.getDynamicProperty('exe:lastVersion');
     const isMigration = !lastVersion || lastVersion !== newVersion;
 
-    const isFirstInit = loadConfig(isMigration);
-    loadKitsConfig(isMigration);
-    loadShopConfig(isMigration);
-
-    if (!isFirstInit && !isMigration) {
-        reloadConfig();
-    }
+    // Load all configurations with the correct migration flag.
+    const loadPromises = [
+        loadConfig(isMigration),
+        loadKitsConfig(isMigration),
+        loadShopConfig(isMigration),
+        loadRanksConfig(isMigration),
+        loadSpawnConfig(isMigration)
+    ];
+    await Promise.all(loadPromises);
 
     world.setDynamicProperty('exe:lastVersion', newVersion);
 
@@ -122,325 +148,71 @@ const newVersion = String(defaultConfig.version);
     loadPersistentData();
     initializeManagers();
     checkConfiguration();
+    initializeEventManager();
+    initializeSpawnProtection();
+
+    // Restore state for any players who were online during the reload
+    reinitializeOnlinePlayers();
 
     startSystemTimers();
     debugLog('[AddonExe] Addon initialized successfully.');
 }
 
+/**
+ * Cleans up all registered events and timers.
+ * This is essential for a clean script reload.
+ */
+function cleanupAddon() {
+    // Using console.log for raw output that is not affected by logger settings.
+    // This is crucial for debugging script unload.
+    // eslint-disable-next-line no-console
+    console.log('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
+    cleanupPlayerDataManager();
+    cleanupEventManager();
+    cleanupTimers();
+    // eslint-disable-next-line no-console
+    console.log('[AddonExe] Cleanup complete. The script will now unload.');
+}
+
 // Run the initialization logic on the next tick after the script is loaded.
-system.run(initializeAddon);
-
-// Handle muted players, commands, and chat formatting
-world.beforeEvents.chatSend.subscribe((eventData) => {
-    const player = eventData.sender;
-
-    const punishment = getPunishment(player.id);
-    if (punishment?.type === 'mute') {
-        eventData.cancel = true;
-        const remainingTime = Math.round((punishment.expires - Date.now()) / 1000);
-        const durationText = punishment.expires === Infinity ? 'permanently' : `for another ${remainingTime} seconds`;
-        player.sendMessage(`§cYou are muted ${durationText}. Reason: ${punishment.reason}`);
-        return;
-    }
-
-    const wasCommand = commandManager.handleChatCommand(eventData);
-    if (wasCommand) {return;}
-
-    eventData.cancel = true;
-    const pData = playerDataManager.getPlayer(player.id);
-    if (!pData) {
-        world.sendMessage(`§7${player.name}§r: ${eventData.message}`);
-        return;
-    }
-    const rank = rankManager.getRankById(pData.rankId);
-    const formattedMessage = rank
-        ? `${rank.chatFormatting.prefixText}${rank.chatFormatting.nameColor}${player.name}§r: ${rank.chatFormatting.messageColor}${eventData.message}`
-        : `§7${player.name}§r: ${eventData.message}`;
-
-    // Log to console if enabled
-    if (getConfig().chat?.logToConsole) {
-        // Using a plain-text version for the console log to avoid clutter from formatting codes
-        // eslint-disable-next-line no-console
-        console.log(`<${player.name}> ${eventData.message}`);
-    }
-
-    world.sendMessage(formattedMessage);
-});
-
-world.afterEvents.playerSpawn.subscribe(async (event) => {
-    const { player, initialSpawn } = event;
-    playerCache.addPlayerToCache(player);
-
-    // Ban check
-    const punishment = getPunishment(player.id);
-    if (punishment?.type === 'ban') {
-        const remainingTime = Math.round((punishment.expires - Date.now()) / 1000);
-        const durationText = punishment.expires === Infinity ? 'permanently' : `for another ${remainingTime} seconds`;
-
-        // Use a command-based kick for reliability.
-        // A system.run is still good practice to ensure the command runs in a clean context after the spawn event.
-        system.run(() => {
-            try {
-                const sanitizedReason = punishment.reason.replace(/"/g, '\\"');
-                world.getDimension('overworld').runCommand(`kick "${player.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
-            } catch (error) {
-                errorLog(`[BanCheck] Failed to kick banned player ${player.name}:`, error);
-            }
-        });
-        return;
-    }
-
-    const pData = playerDataManager.getOrCreatePlayer(player);
-    updatePlayerRank(player); // Check and update rank on join
-
-    if (initialSpawn) {
-        const rank = rankManager.getRankById(pData.rankId);
-        debugLog(`[AddonExe] Player ${player.name} joined with rank ${rank?.name ?? 'unknown'}.`);
-
-        const config = getConfig();
-        if (config.playerInfo.enableWelcomer) {
-            const context = {
-                playerName: player.name,
-                serverName: config.serverName,
-                discordLink: config.serverInfo.discordLink,
-                websiteLink: config.serverInfo.websiteLink
-            };
-            const welcomeMessage = formatString(config.playerInfo.welcomeMessage, context);
-            player.sendMessage(welcomeMessage);
-        }
-    }
-
-    // Update X-ray notification cache for admins
-    if (pData.permissionLevel <= 1 && pData.xrayNotifications) {
-        playerCache.addAdminToXrayCache(player.id);
-    }
-
-    // Check for a death location to message the player after a brief delay.
-    system.runTimeout(() => {
-        // Re-fetch the player object to ensure it's still valid
-        const freshPlayer = world.getAllPlayers().find(p => p.id === player.id);
-        if (!freshPlayer) { return; }
-
-        // Re-fetch pData in case it was updated in the same tick
-        const freshPData = playerDataManager.getPlayer(player.id);
-
-        if (freshPData && freshPData.lastDeathLocation && !freshPData.deathNotificationSent) {
-            const location = freshPData.lastDeathLocation;
-            const config = getConfig();
-            const context = {
-                x: Math.floor(location.x),
-                y: Math.floor(location.y),
-                z: Math.floor(location.z),
-                dimensionId: location.dimensionId.replace('minecraft:', '')
-            };
-            const message = formatString(config.playerInfo.deathCoordsMessage, context);
-            freshPlayer.sendMessage(message);
-
-            // Mark the notification as sent to prevent spamming, but keep the data for /deathcoords.
-            playerDataManager.setDeathNotificationSent(player.id, true);
-        }
-    }, 1);
-});
-
-world.afterEvents.entityHurt?.subscribe((event) => {
-    const { hurtEntity, damageSource } = event;
-    const victim = hurtEntity;
-
-    // We only care about players being hurt
-    if (victim?.typeId !== 'minecraft:player') {
-        return;
-    }
-
-    // damageSource contains the damaging entity
-    const damagingEntity = damageSource.damagingEntity;
-    if (!damagingEntity) {
-        return; // No damaging entity to attribute the hit to
-    }
-
-    // Determine the actual attacker. If the damage was from a projectile, the
-    // projectile is the damagingEntity, and its 'owner' is the attacker.
-    const attacker = damagingEntity.owner ?? damagingEntity;
-
-    // Ensure the attacker and victim are both players and not the same person
-    if (attacker?.typeId === 'minecraft:player' && attacker.id !== victim.id) {
-        lastHitManager.setLastHit(victim.id, attacker.id);
-    }
-});
-
-world.afterEvents.playerLeave.subscribe((event) => {
-    playerDataManager.handlePlayerLeave(event.playerId);
-    playerCache.removePlayerFromCache(event.playerId);
-    debugLog(`[AddonExe] Player ${event.playerName} left.`);
-});
-
-world.afterEvents.playerDimensionChange.subscribe((event) => {
-    const { player, toDimension, fromLocation, fromDimension } = event;
-    const config = getConfig();
-
-    let dimensionId;
-    if (toDimension.id === 'minecraft:nether') {
-        dimensionId = 'nether';
-    } else if (toDimension.id === 'minecraft:the_end') {
-        dimensionId = 'end';
-    } else {
-        return; // Not a dimension we are locking
-    }
-
-    const isLocked = getLockState(dimensionId);
-    if (!isLocked) {
-        return; // Dimension is not locked
-    }
-
-    // Check for bypass permission
-    if (config.dimensionLock?.allowAdminBypass) {
-        const pData = playerDataManager.getPlayer(player.id);
-        if (pData && pData.permissionLevel <= 1) {
-            debugLog(`[DimensionLock] Allowing admin ${player.name} to enter locked ${dimensionId} dimension.`);
-            return; // Player is an admin and bypass is enabled
-        }
-    }
-
-    // If we reach here, the player must be teleported back
+system.run(async () => {
     try {
-        // Add a small offset to the return location to prevent teleport loops (especially with End portals)
-        const returnLocation = {
-            x: fromLocation.x + 3,
-            y: fromLocation.y,
-            z: fromLocation.z + 3
-        };
-        player.teleport(returnLocation, { dimension: fromDimension });
-        player.sendMessage(`§cThe ${dimensionId} dimension is currently locked.`);
+        await initializeAddon();
     } catch (e) {
-        errorLog(`[DimensionLock] Failed to teleport player ${player.name} from locked dimension: ${e.stack}`);
-    }
-});
-
-// Handle the custom admin panel item being used
-world.afterEvents.itemUse.subscribe((event) => {
-    const { source: player, itemStack } = event;
-    if (itemStack.typeId === 'exe:panel') {
-        // Player data is still needed for button permissions inside the panel
-        const pData = playerDataManager.getPlayer(player.id);
-        if (pData) {
-            showPanel(player, 'mainPanel');
-        }
-    }
-});
-
-world.afterEvents.entityDie?.subscribe((event) => {
-    const { deadEntity } = event;
-    if (deadEntity.typeId !== 'minecraft:player') {
-        return;
-    }
-
-    const deadPlayer = deadEntity;
-    const config = getConfig();
-
-    // --- Death Coords Logic ---
-    // This must run before bounty logic, as bounty logic may return early for non-PvP deaths.
-    if (config.playerInfo.enableDeathCoords) {
-        const pData = playerDataManager.getPlayer(deadPlayer.id);
-        if (pData) {
-            const deathLocation = {
-                x: deadPlayer.location.x,
-                y: deadPlayer.location.y,
-                z: deadPlayer.location.z,
-                dimensionId: deadPlayer.dimension.id
-            };
-            playerDataManager.setPlayerLastDeathLocation(deadPlayer.id, deathLocation);
-        }
-    }
-
-    // --- Bounty Claim Logic ---
-    try {
-        const lastHit = lastHitManager.getLastHit(deadPlayer.id);
-        if (!lastHit) {
-            return; // No recent combat data for this player
-        }
-
-        // Clear the last hit data now that the player has died
-        lastHitManager.clearLastHit(deadPlayer.id);
-
-        const timeSinceHit = (Date.now() - lastHit.timestamp) / 1000;
-        const creditTimeout = config.bounties?.bountyCreditTimeoutSeconds ?? 15;
-
-        if (timeSinceHit > creditTimeout) {
-            debugLog(`[BountyClaim] Kill credit for ${deadPlayer.name} expired. Time since last hit: ${timeSinceHit}s`);
-            return; // Hit was too long ago
-        }
-
-        const killer = playerCache.getPlayerFromCache(lastHit.attackerId);
-        if (killer && killer.isValid && killer.id !== deadPlayer.id) {
-            const bounty = bountyManager.getBounty(deadPlayer.id);
-            if (bounty && bounty.amount > 0) {
-                economyManager.addBalance(killer.id, bounty.amount);
-                bountyManager.removeBounty(deadPlayer.id);
-
-                world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
-                debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
-            }
-        }
-    } catch (e) {
-        errorLog('[BountyClaim] A fatal error occurred during bounty processing.');
-        // Attempt to stringify the error object for maximum detail.
-        try {
-            errorLog(`[BountyClaim] Raw Error: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}`);
-        } catch {
-            errorLog(`[BountyClaim] Could not stringify error object. Message: ${e?.message}`);
-        }
-        errorLog(`[BountyClaim] Error Stack: ${e?.stack}`);
-    }
-});
-
-world.afterEvents.blockBreak?.subscribe((event) => {
-    const { brokenBlock, player } = event;
-    const valuableOres = [
-        'minecraft:diamond_ore',
-        'minecraft:deepslate_diamond_ore',
-        'minecraft:ancient_debris'
-    ];
-
-    if (valuableOres.includes(brokenBlock.typeId)) {
-        const onlineAdmins = playerCache.getXrayAdmins();
-        if (onlineAdmins.length === 0) {return;}
-
-        const location = brokenBlock.location;
-        const message = `§e${player.name}§r mined §e${brokenBlock.typeId.replace('minecraft:', '')}§r at §bX: ${Math.floor(location.x)}, Y: ${Math.floor(location.y)}, Z: ${Math.floor(location.z)}`;
-
-        onlineAdmins.forEach(admin => {
-            // Don't notify the admin if they are the one mining
-            if (admin.id !== player.id) {
-                admin.sendMessage(message);
-            }
-        });
+        errorLog('[AddonExe] A critical error occurred during addon initialization:');
+        errorLog(e.stack);
+        world.sendMessage('§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.');
     }
 });
 
 system.afterEvents.scriptEventReceive.subscribe((event) => {
     const { id, sourceEntity } = event;
 
+    // Handle script unload event
+    if (id === 'minecraft:script_unload') {
+        cleanupAddon();
+        return;
+    }
+
+    const config = getConfig(); // Config should be loaded by the time this event fires for custom events.
+    if (!config) { return; }
+
+
     switch (id) {
         case 'exe:restart':
-            // The script event can be triggered by a player or a command block.
-            // If it's a player, we can use their entity as the initiator.
-            // If it's a command block, sourceEntity will be undefined.
-            // The startRestart function can handle a null initiator.
             startRestart(sourceEntity);
             break;
 
         case 'exe:toggle_chat_log': {
-            const config = getConfig();
             const chatConfig = config.chat || { logToConsole: false };
             const newValue = !chatConfig.logToConsole;
             chatConfig.logToConsole = newValue;
             updateConfig('chat', chatConfig);
 
             const feedbackMessage = `§aChat-to-console has been ${newValue ? '§aenabled' : '§cdisabled'}§a.`;
-            // Notify the entity that triggered the event, if possible
             if (sourceEntity && sourceEntity.sendMessage) {
                 sourceEntity.sendMessage(feedbackMessage);
             }
-            // Also log it to console for confirmation from non-player sources
             // eslint-disable-next-line no-console
             console.log(`[AddonExe] ${feedbackMessage}`);
             break;
@@ -448,9 +220,8 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
 
         case 'exe:grant_admin_self': {
             if (sourceEntity && sourceEntity.addTag) {
-                sourceEntity.addTag(getConfig().adminTag);
+                sourceEntity.addTag(config.adminTag);
                 sourceEntity.sendMessage('§aYou have been promoted to Admin.');
-                // Update ranks for everyone to ensure changes are reflected
                 updateAllPlayerRanks();
             }
             break;

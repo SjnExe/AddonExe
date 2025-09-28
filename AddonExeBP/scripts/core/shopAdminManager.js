@@ -1,4 +1,4 @@
-import { getShopConfig, saveShopConfig } from './shopConfigManager.js';
+import { getShopConfig, saveShopConfig } from './configurations.js';
 import { debugLog } from './logger.js';
 import { items } from './itemsConfig.js';
 
@@ -31,30 +31,21 @@ export function addCategory(categoryName, icon) {
  * @param {string} newCategoryName - The new name for the category.
  * @returns {{success: boolean, message: string}} - The result of the operation.
  */
-export function updateCategory(oldCategoryName, { newName, icon }) {
+export function renameCategory(oldCategoryName, newCategoryName) {
     const config = getShopConfig();
-    const category = config.categories[oldCategoryName];
-    if (!category) {
+    if (!config.categories[oldCategoryName]) {
         return { success: false, message: `Category '${oldCategoryName}' not found.` };
     }
-
-    if (newName && oldCategoryName !== newName) {
-        if (config.categories[newName]) {
-            return { success: false, message: `A category with the name '${newName}' already exists.` };
-        }
-        config.categories[newName] = category;
-        delete config.categories[oldCategoryName];
-        debugLog(`[ShopAdminManager] Renamed category from '${oldCategoryName}' to '${newName}'.`);
+    if (config.categories[newCategoryName]) {
+        return { success: false, message: `A category with the name '${newCategoryName}' already exists.` };
     }
 
-    const finalCategoryName = newName || oldCategoryName;
-    if (icon) {
-        config.categories[finalCategoryName].icon = icon;
-        debugLog(`[ShopAdminManager] Updated icon for category '${finalCategoryName}'.`);
-    }
+    config.categories[newCategoryName] = config.categories[oldCategoryName];
+    delete config.categories[oldCategoryName];
 
     saveShopConfig();
-    return { success: true, message: `Successfully updated category '${finalCategoryName}'.` };
+    debugLog(`[ShopAdminManager] Renamed category from '${oldCategoryName}' to '${newCategoryName}'.`);
+    return { success: true, message: `Successfully renamed category to '${newCategoryName}'.` };
 }
 
 /**
@@ -203,7 +194,7 @@ export function addCustomItemToConfig(itemId, itemData) {
         buyPrice: itemData.buyPrice,
         sellPrice: itemData.sellPrice,
         displayName: itemData.displayName,
-        category: 'Custom',
+        category: 'Custom'
     };
     return { success: true, message: 'Custom item added to in-memory config.' };
 }
