@@ -107,6 +107,16 @@ export const config = {
             '§e7. §rKeep conversations in English.',
             '§e8. §rFollow directions from staff members.',
             '§e9. §rDo not use offensive language, skins, or usernames.'
+        ],
+        helpfulLinks: [
+            {
+                title: '§9Discord Server',
+                url: 'https://discord.gg/example'
+            },
+            {
+                title: '§aWebsite',
+                url: 'https://example.com'
+            }
         ]
     },
 

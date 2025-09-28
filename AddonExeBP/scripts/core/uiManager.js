@@ -20,6 +20,7 @@ import { mutePlayer, unmutePlayer } from '../modules/commands/mute.js';
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '../modules/commands/ban.js';
 import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 import * as rulesManager from './rulesManager.js';
+import * as helpfulLinksManager from './helpfulLinksManager.js';
 import * as shopManager from './shopManager.js';
 import { getKitsConfig, saveKitsConfig, getShopConfig, saveShopConfig, getSpawnConfig, saveSpawnConfig } from './configurations.js';
 import { items as allItems } from './itemsConfig.js';
@@ -200,6 +201,48 @@ async function buildPanelForm(player, panelId, context) {
             .title(`Manage Rank: ${rank.name}`)
             .button('Edit Rank', 'textures/ui/icon_setting')
             .button('§cDelete Rank', 'textures/ui/trash')
+            .button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
+    if (panelId === 'helpfulLinksManagementPanel') {
+        const form = new ActionFormData().title(title);
+        const links = helpfulLinksManager.getHelpfulLinks();
+        form.button('§l§2+ Add Link', 'textures/ui/color_plus');
+        links.forEach((link, index) => {
+            form.button(`${index + 1}. ${link.title}`);
+        });
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
+    if (panelId === 'addHelpfulLinkPanel') {
+        const form = new ModalFormData()
+            .title(panelDef.title)
+            .textField('Link Title', 'Enter the link title (e.g., Discord)')
+            .textField('Link URL', 'Enter the full URL (e.g., https://discord.gg/example)');
+        return form;
+    }
+
+    if (panelId === 'helpfulLinkActionPanel') {
+        const { linkIndex } = context;
+        const links = helpfulLinksManager.getHelpfulLinks();
+        const link = links[linkIndex];
+
+        if (!link) {
+            errorLog(`[UIManager] Invalid link index for helpfulLinkActionPanel: ${linkIndex}`);
+            showPanel(player, 'helpfulLinksManagementPanel', context);
+            return null;
+        }
+
+
+        const form = new ActionFormData()
+            .title(panelDef.title)
+            .body(`Selected Link:\nTitle: ${link.title}\nURL: ${link.url}`)
+            .button('Edit', 'textures/ui/editIcon')
+            .button('Move Up', 'textures/gui/controls/up')
+            .button('Move Down', 'textures/gui/controls/down')
+            .button('§cDelete Link', 'textures/ui/trash')
             .button('§l§8< Back', 'textures/gui/controls/left.png');
         return form;
     }
@@ -471,6 +514,79 @@ async function handleFormResponse(player, panelId, response, context) {
         // The last button is "Back"
         if (selection === rules.length + 1) {
             return showPanel(player, 'mainPanel', context);
+        }
+        return;
+    }
+
+    if (panelId === 'helpfulLinksManagementPanel') {
+        const links = helpfulLinksManager.getHelpfulLinks();
+        if (selection === 0) {
+            return showPanel(player, 'addHelpfulLinkPanel', context);
+        }
+        const linkIndex = selection - 1;
+        if (linkIndex >= 0 && linkIndex < links.length) {
+            return showPanel(player, 'helpfulLinkActionPanel', { ...context, linkIndex });
+        }
+        if (selection === links.length + 1) {
+            return showPanel(player, 'mainPanel', context);
+        }
+        return;
+    }
+
+    if (panelId === 'addHelpfulLinkPanel') {
+        if (canceled) {
+            return showPanel(player, 'helpfulLinksManagementPanel', context);
+        }
+        const [title, url] = formValues;
+        if (title && url) {
+            helpfulLinksManager.addHelpfulLink(title, url);
+            player.sendMessage('§2Link added successfully.');
+        }
+        return showPanel(player, 'helpfulLinksManagementPanel', context);
+    }
+
+    if (panelId === 'helpfulLinkActionPanel') {
+        const { linkIndex } = context;
+        switch (selection) {
+            case 0: { // Edit
+                const links = helpfulLinksManager.getHelpfulLinks();
+                const currentLink = links[linkIndex];
+                const editForm = new ModalFormData()
+                    .title('Edit Link')
+                    .textField('Link Title', 'Enter the new title', { defaultValue: currentLink.title })
+                    .textField('Link URL', 'Enter the new URL', { defaultValue: currentLink.url });
+                const editResponse = await utils.uiWait(player, editForm);
+                if (editResponse.canceled) {
+                    return showPanel(player, 'helpfulLinkActionPanel', context);
+                }
+                const [newTitle, newUrl] = editResponse.formValues;
+                if (newTitle && newUrl) {
+                    helpfulLinksManager.editHelpfulLink(linkIndex, newTitle, newUrl);
+                    player.sendMessage('§2Link updated successfully.');
+                }
+                return showPanel(player, 'helpfulLinksManagementPanel', context);
+            }
+            case 1: // Move Up
+                helpfulLinksManager.moveHelpfulLink(linkIndex, 'up');
+                return showPanel(player, 'helpfulLinksManagementPanel', context);
+            case 2: // Move Down
+                helpfulLinksManager.moveHelpfulLink(linkIndex, 'down');
+                return showPanel(player, 'helpfulLinksManagementPanel', context);
+            case 3: { // Delete Link
+                const confirmForm = new ActionFormData()
+                    .title('§cConfirm Deletion')
+                    .body('Are you sure you want to delete this link?')
+                    .button('§cYes, Delete', 'textures/ui/trash')
+                    .button('§2No, Cancel', 'textures/ui/cancel');
+                const confirmResponse = await utils.uiWait(player, confirmForm);
+                if (confirmResponse.selection === 0) {
+                    helpfulLinksManager.deleteHelpfulLink(linkIndex);
+                    player.sendMessage('§2Link deleted successfully.');
+                }
+                return showPanel(player, 'helpfulLinksManagementPanel', context);
+            }
+            case 4: // Back
+                return showPanel(player, 'helpfulLinksManagementPanel', context);
         }
         return;
     }
@@ -1881,12 +1997,6 @@ function addPanelBody(form, player, panelId, context) {
             `§fBalance: §2$${pData.balance.toFixed(2)}`,
             `§fBounty on you: §6$${bounty.toFixed(2)}`
         ].join('\n'));
-    } else if (panelId === 'helpfulLinksPanel') {
-        form.body([
-            '§fHere are some helpful links:',
-            `§9Discord: §r${config.serverInfo.discordLink}`,
-            `§1Website: §r${config.serverInfo.websiteLink}`
-        ].join('\n\n'));
     } else if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
         const pData = context.targetData || loadPlayerData(context.targetPlayerId);
         if (!pData) {
@@ -2074,6 +2184,35 @@ uiActionFunctions['showRules'] = async (player) => {
     // If the "Edit Rules" button was shown and clicked
     if (pData && pData.permissionLevel <= 1 && response.selection === 0) {
         return showPanel(player, 'rulesManagementPanel');
+    }
+};
+
+uiActionFunctions['showHelpfulLinks'] = async (player) => {
+    const links = helpfulLinksManager.getHelpfulLinks();
+    const pData = getPlayer(player.id);
+
+    const form = new ActionFormData()
+        .title('§l§9Helpful Links');
+
+    if (links.length === 0) {
+        form.body('§cNo helpful links have been configured by the admin.');
+    } else {
+        const bodyText = links.map(link => `§f${link.title}: §r${link.url}`).join('\n\n');
+        form.body(bodyText);
+    }
+
+    if (pData && pData.permissionLevel <= 1) {
+        form.button('§l§4Edit Links', 'textures/ui/icon_setting');
+    }
+
+    form.button('§l§8Close', 'textures/ui/cancel');
+
+    const response = await utils.uiWait(player, form);
+
+    if (response.canceled) { return; }
+
+    if (pData && pData.permissionLevel <= 1 && response.selection === 0) {
+        return showPanel(player, 'helpfulLinksManagementPanel');
     }
 };
 
