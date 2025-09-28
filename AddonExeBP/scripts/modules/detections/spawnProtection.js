@@ -188,60 +188,6 @@ function initialize() {
         });
     }
 
-    if (spawnProtection.preventPvE) {
-        subscribe(world.beforeEvents.entityHurt, (event) => {
-            const { hurtEntity, damageSource } = event;
-
-            // We only care about players being hurt in spawn
-            if (!(hurtEntity instanceof Player)) { return; }
-
-            // If the player can bypass, they are not protected from PvE damage
-            if (canBypass(hurtEntity)) { return; }
-
-            // Check if the victim is in spawn
-            if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) { return; }
-
-            // If the damage is from another player, the PvP rule handles it.
-            if (damageSource.damagingEntity instanceof Player) { return; }
-
-            // List of damage causes that are always allowed (e.g., commands, void)
-            const allowedCauses = [
-                EntityDamageCause.void,
-                EntityDamageCause.suicide
-            ];
-
-            // If the cause is not in the allowed list, cancel it.
-            // This blocks damage from mobs, projectiles (not from players), fire, lava, fall, etc.
-            if (!allowedCauses.includes(damageSource.cause)) {
-                event.cancel = true;
-            }
-        });
-    }
-
-
-    if (spawnProtection.preventItemDropping) {
-        subscribe(world.beforeEvents.itemRelease, (event) => {
-            const player = event.source;
-            if (player instanceof Player) {
-                if (isWithinSpawnProtection(player.location, player.dimension.id) && !canBypass(player)) {
-                    event.cancel = true;
-                }
-            }
-        });
-    }
-
-    if (spawnProtection.preventItemPickup) {
-        subscribe(world.beforeEvents.itemAcquire, (event) => {
-            const player = event.acquiringEntity;
-            if (player instanceof Player) {
-                // Check protection at the item's location, not the player's
-                if (isWithinSpawnProtection(event.itemStack.location, player.dimension.id) && !canBypass(player)) {
-                    event.cancel = true;
-                }
-            }
-        });
-    }
-
     // --- INTERVAL-BASED PROTECTIONS ---
 
     intervalId = system.runInterval(() => {
@@ -249,25 +195,15 @@ function initialize() {
         const protection = currentSpawnConfig?.spawnProtection;
         const loc = currentSpawnConfig?.spawn?.spawnLocation;
 
-        if (!protection?.enabled || !loc) {return;}
+        if (!protection?.enabled || !loc) { return; }
 
         // Guard against running with a null spawn location, which can cause native crashes.
         if (typeof loc.x !== 'number' || typeof loc.y !== 'number' || typeof loc.z !== 'number') {
             return;
         }
 
-        for (const player of world.getAllPlayers()) {
-            if (!isWithinSpawnProtection(player.location, player.dimension.id) || canBypass(player)) {continue;}
-
-            // Hunger Loss Prevention
-            if (protection.preventHungerLoss) {
-                // Using setFood is more direct than resetToDefaultValue
-                player.getComponent('minecraft:food')?.setFoodLevel(20);
-            }
-        }
-
-        // Mob Spawning Prevention & Testing (Cleanup Routine)
-        if (protection.preventHostileMobSpawning || protection.testDespawnMethod1 || protection.testDespawnMethod2 || protection.testDespawnMethod3) {
+        // Mob Spawning Prevention (Cleanup Routine)
+        if (protection.preventHostileMobSpawning) {
             try {
                 const entitiesInSpawn = world.getDimension(loc.dimensionId).getEntities({
                     location: loc,
@@ -277,36 +213,13 @@ function initialize() {
                 });
 
                 for (const entity of entitiesInSpawn) {
-                    // Double-check the entity is still in spawn before trying to remove it
-                    if (!isWithinSpawnProtection(entity.location, entity.dimension.id)) {
-                        continue;
-                    }
-
-                    // Test methods have priority. Only one method will be used per cycle.
-                    if (protection.testDespawnMethod1) {
+                    // Double-check the entity is still in spawn before removing
+                    if (isWithinSpawnProtection(entity.location, entity.dimension.id)) {
                         entity.remove();
-                    } else if (protection.testDespawnMethod2) {
-                        try {
-                            entity.triggerEvent('minecraft:despawn');
-                        } catch (e) {
-                            // This can fail if the entity doesn't have this event in its definition.
-                            errorLog(`[SpawnProtection] Test 2: Failed to trigger 'minecraft:despawn' on ${entity.typeId}: ${e.message}`);
-                        }
-                    } else if (protection.testDespawnMethod3) {
-                        try {
-                            // Use a precise selector to kill only this specific entity
-                            const { x, y, z } = entity.location;
-                            entity.dimension.runCommand(`kill @e[type=${entity.typeId},x=${Math.floor(x)},y=${Math.floor(y)},z=${Math.floor(z)},r=1,c=1]`);
-                        } catch (e) {
-                            errorLog(`[SpawnProtection] Test 3: Error using /kill command on ${entity.typeId}: ${e.message}`);
-                        }
-                    } else if (protection.preventHostileMobSpawning) {
-                        // Original method: Teleport mobs to the void to remove them without loot drops
-                        entity.teleport({ x: entity.location.x, y: -128, z: entity.location.z });
                     }
                 }
             } catch (e) {
-                errorLog(`[SpawnProtection] Error during mob cleanup/testing routine: ${e}`);
+                errorLog(`[SpawnProtection] Error during mob cleanup: ${e}`);
             }
         }
     }, 40); // Run every 2 seconds

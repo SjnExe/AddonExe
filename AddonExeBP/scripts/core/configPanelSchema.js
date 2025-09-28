@@ -164,34 +164,10 @@ export const configPanelSchema = [
                 description: 'Prevents players from damaging other players in spawn.'
             },
             {
-                key: 'spawnProtection.preventPvE',
-                label: 'Prevent Hostile Damage',
-                type: 'toggle',
-                description: 'Prevents hostile mobs from damaging players in spawn.'
-            },
-            {
                 key: 'spawnProtection.preventHostileMobSpawning',
                 label: 'Prevent Hostile Mob Spawning',
                 type: 'toggle',
-                description: 'Prevents hostile mobs from spawning in the protected area.'
-            },
-            {
-                key: 'spawnProtection.testDespawnMethod1',
-                label: 'Test: Despawn w/ remove()',
-                type: 'toggle',
-                description: 'Test despawning mobs using entity.remove().'
-            },
-            {
-                key: 'spawnProtection.testDespawnMethod2',
-                label: 'Test: Despawn w/ triggerEvent',
-                type: 'toggle',
-                description: 'Test despawning mobs using triggerEvent(\'minecraft:despawn\').'
-            },
-            {
-                key: 'spawnProtection.testDespawnMethod3',
-                label: 'Test: Despawn w/ /kill',
-                type: 'toggle',
-                description: 'Test despawning mobs using the /kill command.'
+                description: 'Removes hostile mobs that spawn in the protected area.'
             },
             {
                 key: 'spawnProtection.preventBlockBreaking',
@@ -216,24 +192,6 @@ export const configPanelSchema = [
                 label: 'Prevent Block Interaction',
                 type: 'toggle',
                 description: 'Prevents interaction with chests, doors, etc., in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventHungerLoss',
-                label: 'Prevent Hunger Loss',
-                type: 'toggle',
-                description: 'Prevents players from losing hunger in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventItemDropping',
-                label: 'Prevent Item Dropping',
-                type: 'toggle',
-                description: 'Prevents players from dropping items in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventItemPickup',
-                label: 'Prevent Item Pickup',
-                type: 'toggle',
-                description: 'Prevents players from picking up items in spawn.'
             }
         ]
     },
