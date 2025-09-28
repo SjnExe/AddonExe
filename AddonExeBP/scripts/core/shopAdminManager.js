@@ -26,6 +26,69 @@ export function addCategory(categoryName, icon) {
 }
 
 /**
+ * Edits a subcategory's name and icon.
+ * @param {string} categoryName - The name of the parent category.
+ * @param {string} oldSubCategoryName - The current name of the subcategory.
+ * @param {string} newSubCategoryName - The new name for the subcategory.
+ * @param {string} newIcon - The new icon for the subcategory.
+ * @returns {{success: boolean, message: string}} - The result of the operation.
+ */
+export function editSubCategory(categoryName, oldSubCategoryName, newSubCategoryName, newIcon) {
+    const config = getShopConfig();
+    const category = config.categories[categoryName];
+    if (!category) {
+        return { success: false, message: `Category '${categoryName}' not found.` };
+    }
+    if (!category.subCategories[oldSubCategoryName]) {
+        return { success: false, message: `Subcategory '${oldSubCategoryName}' not found in '${categoryName}'.` };
+    }
+    if (oldSubCategoryName !== newSubCategoryName && category.subCategories[newSubCategoryName]) {
+        return { success: false, message: `A subcategory with the name '${newSubCategoryName}' already exists in '${categoryName}'.` };
+    }
+
+    const subCategoryData = category.subCategories[oldSubCategoryName];
+    subCategoryData.icon = newIcon;
+
+    if (oldSubCategoryName !== newSubCategoryName) {
+        category.subCategories[newSubCategoryName] = subCategoryData;
+        delete category.subCategories[oldSubCategoryName];
+    }
+
+    saveShopConfig();
+    debugLog(`[ShopAdminManager] Edited subcategory '${oldSubCategoryName}' to '${newSubCategoryName}' in '${categoryName}'.`);
+    return { success: true, message: `Successfully edited subcategory '${newSubCategoryName}'.` };
+}
+
+/**
+ * Edits a category's name and icon.
+ * @param {string} oldCategoryName - The current name of the category.
+ * @param {string} newCategoryName - The new name for the category.
+ * @param {string} newIcon - The new icon for the category.
+ * @returns {{success: boolean, message: string}} - The result of the operation.
+ */
+export function editCategory(oldCategoryName, newCategoryName, newIcon) {
+    const config = getShopConfig();
+    if (!config.categories[oldCategoryName]) {
+        return { success: false, message: `Category '${oldCategoryName}' not found.` };
+    }
+    if (oldCategoryName !== newCategoryName && config.categories[newCategoryName]) {
+        return { success: false, message: `A category with the name '${newCategoryName}' already exists.` };
+    }
+
+    const categoryData = config.categories[oldCategoryName];
+    categoryData.icon = newIcon;
+
+    if (oldCategoryName !== newCategoryName) {
+        config.categories[newCategoryName] = categoryData;
+        delete config.categories[oldCategoryName];
+    }
+
+    saveShopConfig();
+    debugLog(`[ShopAdminManager] Edited category '${oldCategoryName}' to '${newCategoryName}'.`);
+    return { success: true, message: `Successfully edited category '${newCategoryName}'.` };
+}
+
+/**
  * Renames a category.
  * @param {string} oldCategoryName - The current name of the category.
  * @param {string} newCategoryName - The new name for the category.
