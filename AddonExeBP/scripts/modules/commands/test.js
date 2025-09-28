@@ -2,7 +2,8 @@ import { system } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
 import { getConfig } from '../../core/configManager.js';
-import { debugLog, errorLog } from '../../core/logger.js';
+import { debugLog } from '../../core/logger.js';
+import { errorLog } from '../../core/errorLogger.js';
 import { formatName } from '../../core/utils.js';
 
 /**
