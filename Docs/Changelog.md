@@ -19,6 +19,11 @@ This version introduces a new random teleport feature, includes bug fixes for co
 
 ### ✨ Features
 
+- **Warp System**: Added `/warp`, `/setwarp`, and `/delwarp` commands, allowing admins to create and manage public teleportation points. Warps are fully configurable with cooldowns and warmup times.
+- **Spawn Protection**: Implemented a comprehensive spawn protection system to prevent griefing and unauthorized building in the server's spawn area.
+- **Configurable Kit System**: The kit system is now fully configurable in-game, allowing admins to create, edit, and define cooldowns for kits dynamically.
+- **Rank System**: A flexible rank system with customizable permissions and chat formatting.
+- **Shop System**: An in-game shop with a UI for buying and selling items, with prices and item availability configurable by admins.
 - **Dimension Locking**: Admins can now lock the Nether and End dimensions using the `/netherlock` and `/endlock` commands. A configuration setting allows admins to bypass these locks.
 - **Random Teleport (`/rtp`)**: Added a new `/rtp` command that allows players to teleport to a random, safe location in the Overworld. The command has a configurable cooldown and warmup period.
 - **Configuration Editor Expansion**: The in-game config editor now supports modifying more settings, including `rtp`, `deathCoords`, `bounty`, and the new `dimensionLock` bypass.
