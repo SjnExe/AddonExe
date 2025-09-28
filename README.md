@@ -36,7 +36,7 @@ Designed to be robust, highly configurable, and packed with features to ensure f
 ## ✨ Why Choose AddonExe?
 
 - **Scripting Power:** Built entirely with the Minecraft Scripting API, offering flexibility and complex detection logic not always possible with traditional methods.
-- **Comprehensive Detection (Coming Soon):** While currently a powerful moderation tool, a full suite of cheat detections is in active development.
+- **Comprehensive Detection (Under Redevelopment):** While currently a powerful moderation tool, a full suite of cheat detections is being redesigned and will be re-introduced in a future update.
 - **User-Friendly Tools:** Manage your server with ease using an intuitive in-game UI (`/panel`) and extensive slash commands, which can be used in-game, from the server console, or via a chat-based fallback (e.g. `!panel`).
 - **Highly Customizable:** Fine-tune almost every aspect, from feature toggles to command permissions, to perfectly suit your server's needs.
 - **Active Development:** Continuously updated with new features, improvements, and compatibility for the latest Minecraft versions.
@@ -55,7 +55,7 @@ This addon is packed with features to keep your server clean:
     - View online players, sorted by rank and name.
     - Player names are clearly marked with `(Owner)`, `(Admin)`, and `(You)` suffixes.
     - Perform a wide range of actions: Kick, Ban/Unban, Mute/Unmute, Freeze, View/Clear Inventory, Teleport.
-  - **New Commands:** `/clear` (clear inventory), `/ecwipe` (wipe ender chest), `/invsee` (view inventory).
+  - **New Commands:** `/xclear` (clear inventory), `/ecwipe` (wipe ender chest), `/invsee` (view inventory).
   - Extensive slash commands for all administrative functions (Note: a `!` prefix is available as a fallback).
 - 💾 **Persistent Player Data Management:**
   - Mutes and bans are saved across player sessions using dynamic properties.
@@ -73,8 +73,8 @@ This addon is packed with features to keep your server clean:
   - **Kits:** A system for players to claim predefined kits of items with cooldowns.
 
 > [!NOTE]
-> **Cheat Detection Suite Coming Soon!**
-> A comprehensive suite of cheat detections is under active development and will be added in a future update.
+> **Cheat Detection Suite (Under Redevelopment)**
+> A comprehensive suite of cheat detections is being redesigned and will be re-introduced in a future update. The old system has been removed to ensure stability.
 
 ➡️ **Dive Deeper:** For a full list and details of all features, check out our [**Features Overview in the Docs**](Docs/FeaturesOverview.md)!
 
@@ -108,7 +108,7 @@ We recommend the following manual installation method, as it makes future config
       // Example in AddonExeBP/scripts/config.js
       ownerPlayerNames: ['YourNameHere', 'AnotherOwnerName'],
       ```
-    - To apply changes to the owner list on a live server, you must use the `/xreload` command after saving the file.
+    - To apply changes made to `config.js` on a live server, you must use Minecraft's vanilla `/reload` command after saving the file. This reloads all behavior packs and applies your file modifications.
     - **Note:** Failure to set an owner will not lock you out. Admin permissions can still be granted via the `/function admin` command or by giving a player the `admin` tag.
 7.  **🎮 Explore:** Join your world and open the Admin UI. Admins can get the panel item directly by typing `/panel`. Any player can also craft the item using a single stick.
 8.  **🔧 Configure (Optional but Recommended):**

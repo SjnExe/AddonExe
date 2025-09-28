@@ -1,3 +1,1 @@
-# Ongoing Tasks
-
-*(No tasks currently in progress)*
+*(No task is currently ongoing)*
