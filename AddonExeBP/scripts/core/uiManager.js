@@ -170,28 +170,6 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
-    if (panelId === 'helpfulLinksManagementPanel') {
-        const form = new ActionFormData().title(title);
-        const links = helpfulLinksManager.getHelpfulLinks();
-        form.button('§l§2+ Add Link', 'textures/ui/color_plus');
-        links.forEach((link, index) => {
-            form.button(`${index + 1}. ${link.title}`);
-        });
-        form.button('§l§8< Back', 'textures/gui/controls/left.png');
-        return form;
-    }
-
-    if (panelId === 'helpfulLinksManagementPanel') {
-        const form = new ActionFormData().title(title);
-        const links = helpfulLinksManager.getHelpfulLinks();
-        form.button('§l§2+ Add Link', 'textures/ui/color_plus');
-        links.forEach((link, index) => {
-            form.button(`${index + 1}. ${link.title}`);
-        });
-        form.button('§l§8< Back', 'textures/gui/controls/left.png');
-        return form;
-    }
-
     if (panelId.startsWith('kitSettingsPanel_')) {
         const kitName = panelId.replace('kitSettingsPanel_', '');
         const allKits = getAllKits();
@@ -330,17 +308,6 @@ async function buildPanelForm(player, panelId, context) {
         form.button('§l§2+ Add Rule', 'textures/ui/color_plus');
         rules.forEach((rule, index) => {
             form.button(`${index + 1}. ${rule}`);
-        });
-        form.button('§l§8< Back', 'textures/gui/controls/left.png');
-        return form;
-    }
-
-    if (panelId === 'helpfulLinksManagementPanel') {
-        const form = new ActionFormData().title(title);
-        const links = helpfulLinksManager.getHelpfulLinks();
-        form.button('§l§2+ Add Link', 'textures/ui/color_plus');
-        links.forEach((link, index) => {
-            form.button(`${index + 1}. ${link.title}`);
         });
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
         return form;
@@ -551,6 +518,18 @@ async function handleFormResponse(player, panelId, response, context) {
         return;
     }
 
+    if (panelId === 'addRulePanel') {
+        if (canceled) {
+            return showPanel(player, 'rulesManagementPanel', context);
+        }
+        const [newRuleText] = formValues;
+        if (newRuleText) {
+            rulesManager.addRule(newRuleText);
+            player.sendMessage('§2Rule added successfully.');
+        }
+        return showPanel(player, 'rulesManagementPanel', context);
+    }
+
     if (panelId === 'helpfulLinksManagementPanel') {
         const links = helpfulLinksManager.getHelpfulLinks();
         if (selection === 0) {
@@ -622,18 +601,6 @@ async function handleFormResponse(player, panelId, response, context) {
                 return showPanel(player, 'helpfulLinksManagementPanel', context);
         }
         return;
-    }
-
-    if (panelId === 'addRulePanel') {
-        if (canceled) {
-            return showPanel(player, 'rulesManagementPanel', context);
-        }
-        const [newRuleText] = formValues;
-        if (newRuleText) {
-            rulesManager.addRule(newRuleText);
-            player.sendMessage('§2Rule added successfully.');
-        }
-        return showPanel(player, 'rulesManagementPanel', context);
     }
 
     if (panelId === 'ruleActionPanel') {
