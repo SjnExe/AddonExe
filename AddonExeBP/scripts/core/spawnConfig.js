@@ -19,13 +19,16 @@ export const spawnConfig = {
         allowAdminBypass: true,
         preventPvP: true,
         preventPvE: true,
-        preventMobSpawning: true,
+        preventHostileMobSpawning: true,
         preventBlockBreaking: true,
         preventBlockPlacing: true,
         preventExplosions: true,
         preventBlockInteraction: true,
         preventHungerLoss: true,
         preventItemDropping: true,
-        preventItemPickup: true
+        preventItemPickup: true,
+        testDespawnMethod1: false, // Uses entity.remove()
+        testDespawnMethod2: false, // Uses triggerEvent('minecraft:despawn')
+        testDespawnMethod3: false  // Uses /kill command
     }
 };

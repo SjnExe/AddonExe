@@ -170,10 +170,28 @@ export const configPanelSchema = [
                 description: 'Prevents hostile mobs from damaging players in spawn.'
             },
             {
-                key: 'spawnProtection.preventMobSpawning',
-                label: 'Prevent Mob Spawning',
+                key: 'spawnProtection.preventHostileMobSpawning',
+                label: 'Prevent Hostile Mob Spawning',
                 type: 'toggle',
                 description: 'Prevents hostile mobs from spawning in the protected area.'
+            },
+            {
+                key: 'spawnProtection.testDespawnMethod1',
+                label: 'Test: Despawn w/ remove()',
+                type: 'toggle',
+                description: 'Test despawning mobs using entity.remove().'
+            },
+            {
+                key: 'spawnProtection.testDespawnMethod2',
+                label: 'Test: Despawn w/ triggerEvent',
+                type: 'toggle',
+                description: 'Test despawning mobs using triggerEvent(\'minecraft:despawn\').'
+            },
+            {
+                key: 'spawnProtection.testDespawnMethod3',
+                label: 'Test: Despawn w/ /kill',
+                type: 'toggle',
+                description: 'Test despawning mobs using the /kill command.'
             },
             {
                 key: 'spawnProtection.preventBlockBreaking',

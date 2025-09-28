@@ -169,52 +169,58 @@ function initialize() {
     }
 
 
-    if (spawnProtection.preventPvP || spawnProtection.preventPvE) {
+    if (spawnProtection.preventPvP) {
+        subscribe(world.beforeEvents.entityHurt, (event) => {
+            const { hurtEntity, damageSource } = event;
+            const attacker = damageSource.damagingEntity;
+
+            // Check if it's a PvP scenario (player hurting another player)
+            if (!(hurtEntity instanceof Player) || !(attacker instanceof Player)) { return; }
+            if (hurtEntity.id === attacker.id) { return; } // Self-harm is not PvP
+
+            // Check if the victim is in spawn
+            if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) { return; }
+
+            // If the attacker can bypass, allow the damage. Otherwise, cancel it.
+            if (!canBypass(attacker)) {
+                event.cancel = true;
+            }
+        });
+    }
+
+    if (spawnProtection.preventPvE) {
         subscribe(world.beforeEvents.entityHurt, (event) => {
             const { hurtEntity, damageSource } = event;
 
             // We only care about players being hurt in spawn
-            if (!(hurtEntity instanceof Player) || !hurtEntity.dimension) { return; }
-            if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) { return; }
+            if (!(hurtEntity instanceof Player)) { return; }
 
-            // Admins with bypass are immune to spawn protection rules for being hurt
+            // If the player can bypass, they are not protected from PvE damage
             if (canBypass(hurtEntity)) { return; }
 
-            const attacker = damageSource.damagingEntity;
+            // Check if the victim is in spawn
+            if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) { return; }
 
-            // --- PvP Check ---
-            // Is the damage from another player?
-            if (attacker instanceof Player) {
-                // If PvP protection is on, cancel the damage unless the attacker can bypass.
-                if (spawnProtection.preventPvP && !canBypass(attacker)) {
-                    event.cancel = true;
-                }
-                // If PvP is off, we do nothing and let the damage happen.
-                // In either case, we don't need to check PvE for this event.
-                return;
-            }
+            // If the damage is from another player, the PvP rule handles it.
+            if (damageSource.damagingEntity instanceof Player) { return; }
 
-            // --- PvE Check ---
-            // If we reach here, the damage is not from a player.
-            if (spawnProtection.preventPvE) {
-                // List of damage causes that should NOT be prevented (e.g., admin commands, /kill)
-                const allowedCauses = [
-                    EntityDamageCause.void,
-                    EntityDamageCause.suicide
-                ];
+            // List of damage causes that are always allowed (e.g., commands, void)
+            const allowedCauses = [
+                EntityDamageCause.void,
+                EntityDamageCause.suicide
+            ];
 
-                // If the cause is not in the allowed list, cancel it.
-                // This will block damage from mobs, projectiles (not from players), fire, lava, etc.
-                if (!allowedCauses.includes(damageSource.cause)) {
-                    event.cancel = true;
-                }
+            // If the cause is not in the allowed list, cancel it.
+            // This blocks damage from mobs, projectiles (not from players), fire, lava, fall, etc.
+            if (!allowedCauses.includes(damageSource.cause)) {
+                event.cancel = true;
             }
         });
     }
 
 
     if (spawnProtection.preventItemDropping) {
-        subscribe(world.beforeEvents.itemDrop, (event) => {
+        subscribe(world.beforeEvents.itemRelease, (event) => {
             const player = event.source;
             if (player instanceof Player) {
                 if (isWithinSpawnProtection(player.location, player.dimension.id) && !canBypass(player)) {
@@ -225,11 +231,11 @@ function initialize() {
     }
 
     if (spawnProtection.preventItemPickup) {
-        subscribe(world.beforeEvents.itemPickup, (event) => {
-            const player = event.entity;
+        subscribe(world.beforeEvents.itemAcquire, (event) => {
+            const player = event.acquiringEntity;
             if (player instanceof Player) {
                 // Check protection at the item's location, not the player's
-                if (isWithinSpawnProtection(event.item.location, event.item.dimension.id) && !canBypass(player)) {
+                if (isWithinSpawnProtection(event.itemStack.location, player.dimension.id) && !canBypass(player)) {
                     event.cancel = true;
                 }
             }
@@ -260,8 +266,8 @@ function initialize() {
             }
         }
 
-        // Mob Spawning Prevention (Cleanup Routine)
-        if (protection.preventMobSpawning) {
+        // Mob Spawning Prevention & Testing (Cleanup Routine)
+        if (protection.preventHostileMobSpawning || protection.testDespawnMethod1 || protection.testDespawnMethod2 || protection.testDespawnMethod3) {
             try {
                 const entitiesInSpawn = world.getDimension(loc.dimensionId).getEntities({
                     location: loc,
@@ -271,14 +277,36 @@ function initialize() {
                 });
 
                 for (const entity of entitiesInSpawn) {
-                    // Double-check the entity is still in spawn before removing
-                    if (isWithinSpawnProtection(entity.location, entity.dimension.id)) {
-                        // Teleport mobs to the void to remove them without loot drops
+                    // Double-check the entity is still in spawn before trying to remove it
+                    if (!isWithinSpawnProtection(entity.location, entity.dimension.id)) {
+                        continue;
+                    }
+
+                    // Test methods have priority. Only one method will be used per cycle.
+                    if (protection.testDespawnMethod1) {
+                        entity.remove();
+                    } else if (protection.testDespawnMethod2) {
+                        try {
+                            entity.triggerEvent('minecraft:despawn');
+                        } catch (e) {
+                            // This can fail if the entity doesn't have this event in its definition.
+                            errorLog(`[SpawnProtection] Test 2: Failed to trigger 'minecraft:despawn' on ${entity.typeId}: ${e.message}`);
+                        }
+                    } else if (protection.testDespawnMethod3) {
+                        try {
+                            // Use a precise selector to kill only this specific entity
+                            const { x, y, z } = entity.location;
+                            entity.dimension.runCommand(`kill @e[type=${entity.typeId},x=${Math.floor(x)},y=${Math.floor(y)},z=${Math.floor(z)},r=1,c=1]`);
+                        } catch (e) {
+                            errorLog(`[SpawnProtection] Test 3: Error using /kill command on ${entity.typeId}: ${e.message}`);
+                        }
+                    } else if (protection.preventHostileMobSpawning) {
+                        // Original method: Teleport mobs to the void to remove them without loot drops
                         entity.teleport({ x: entity.location.x, y: -128, z: entity.location.z });
                     }
                 }
             } catch (e) {
-                errorLog(`[SpawnProtection] Error during mob cleanup: ${e}`);
+                errorLog(`[SpawnProtection] Error during mob cleanup/testing routine: ${e}`);
             }
         }
     }, 40); // Run every 2 seconds

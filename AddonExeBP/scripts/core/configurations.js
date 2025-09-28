@@ -19,7 +19,7 @@ export const resetShopConfig = shopConfigManager.reset;
 
 export const loadSpawnConfig = spawnConfigManager.load;
 export const getSpawnConfig = spawnConfigManager.get;
-export const saveSpawnConfig = spawnConfigManager.save;
+export const saveSpawnConfig = spawnConfigManager.set;
 export const resetSpawnConfig = spawnConfigManager.reset;
 
 export const loadRanksConfig = ranksConfigManager.load;
