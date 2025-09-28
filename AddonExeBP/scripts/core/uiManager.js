@@ -1549,11 +1549,27 @@ async function handleFormResponse(player, panelId, response, context) {
             if (setting.type === 'dropdown') {
                 return setting.options[value];
             }
-            if (setting.type === 'textField' && (setting.key.includes('Seconds') || setting.key.includes('Balance') || setting.key.includes('maxHomes') || setting.key.includes('Interval') || setting.key.includes('Radius'))) {
+
+            const isNumericField = setting.key.includes('Seconds') ||
+                                   setting.key.includes('Balance') ||
+                                   setting.key.includes('maxHomes') ||
+                                   setting.key.includes('Interval') ||
+                                   setting.key.includes('Radius') ||
+                                   setting.key.endsWith('.x') ||
+                                   setting.key.endsWith('.y') ||
+                                   setting.key.endsWith('.z');
+
+            if (setting.type === 'textField' && isNumericField) {
+                // For coordinate fields, an empty string should be treated as null (not set).
+                if (value.trim() === '' && (setting.key.endsWith('.x') || setting.key.endsWith('.y') || setting.key.endsWith('.z'))) {
+                    return null;
+                }
+
                 const numValue = Number(value);
                 if (isNaN(numValue)) {
                     player.sendMessage(`§cInvalid number provided for ${setting.label}. Changes not saved.`);
                     validationFailed = true;
+                    return value; // Return original invalid value to prevent further errors
                 }
                 return numValue;
             }

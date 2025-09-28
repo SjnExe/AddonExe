@@ -140,6 +140,24 @@ export const configPanelSchema = [
                 description: 'How long a player must stand still before teleporting to spawn.'
             },
             {
+                key: 'spawn.spawnLocation.x',
+                label: 'Spawn X Coordinate',
+                type: 'textField',
+                description: 'Leave blank or set with /setspawn.'
+            },
+            {
+                key: 'spawn.spawnLocation.y',
+                label: 'Spawn Y Coordinate',
+                type: 'textField',
+                description: 'Leave blank or set with /setspawn.'
+            },
+            {
+                key: 'spawn.spawnLocation.z',
+                label: 'Spawn Z Coordinate',
+                type: 'textField',
+                description: 'Leave blank or set with /setspawn.'
+            },
+            {
                 key: 'spawnProtection.enabled',
                 label: 'Protection Enabled',
                 type: 'toggle',
