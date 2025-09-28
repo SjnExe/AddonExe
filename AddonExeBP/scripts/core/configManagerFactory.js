@@ -115,20 +115,22 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                     // This recursive function compares the new file against the last loaded snapshot
                     // and applies any detected file changes to the merged config.
                     function applyFileChanges(path, fileObj, lastLoadedObj) {
-                        if (!fileObj || typeof fileObj !== 'object') {return;}
-                        for (const objKey in fileObj) {
-                            if (!Object.prototype.hasOwnProperty.call(fileObj, objKey)) {continue;}
+                        if (!fileObj || typeof fileObj !== 'object') { return; }
 
-                            const currentPath = path ? `${path}.${objKey}` : objKey;
-                            const fileValue = fileObj[objKey];
-                            const lastLoadedValue = (lastLoadedObj && typeof lastLoadedObj === 'object') ? lastLoadedObj[objKey] : undefined;
+                        for (const key in fileObj) {
+                            if (!Object.prototype.hasOwnProperty.call(fileObj, key)) { continue; }
 
-                            if (typeof fileValue === 'object' && fileValue !== null && !Array.isArray(fileValue)) {
-                                // Corrected: The recursive call passes the sub-object directly.
+                            const currentPath = path ? `${path}.${key}` : key;
+                            const fileValue = fileObj[key];
+                            const lastLoadedValue = (lastLoadedObj && typeof lastLoadedObj === 'object') ? lastLoadedObj[key] : undefined;
+
+                            // If the value in the new file is an object, and the last loaded value was also an object, we recurse.
+                            if (typeof fileValue === 'object' && fileValue !== null && !Array.isArray(fileValue) &&
+                                typeof lastLoadedValue === 'object' && lastLoadedValue !== null && !Array.isArray(lastLoadedValue)) {
                                 applyFileChanges(currentPath, fileValue, lastLoadedValue);
                             } else if (JSON.stringify(fileValue) !== JSON.stringify(lastLoadedValue)) {
-                                // A change was detected between the new file and the last loaded file.
-                                // The file's value takes priority.
+                                // Otherwise, if the values are different in any way (including type changes),
+                                // we update the config with the new value from the file.
                                 debugLog(`[${name}ConfigManager] Manual file change detected for '${currentPath}'. Applying file value.`);
                                 setValueByPath(mergedConfig, currentPath, fileValue);
                             }

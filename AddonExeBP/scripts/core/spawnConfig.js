@@ -18,14 +18,10 @@ export const spawnConfig = {
         protectionRadius: 32,
         allowAdminBypass: true,
         preventPvP: true,
-        preventPvE: true,
-        preventMobSpawning: true,
+        preventHostileMobSpawning: true,
         preventBlockBreaking: true,
         preventBlockPlacing: true,
         preventExplosions: true,
-        preventBlockInteraction: true,
-        preventHungerLoss: true,
-        preventItemDropping: true,
-        preventItemPickup: true
+        preventBlockInteraction: true
     }
 };

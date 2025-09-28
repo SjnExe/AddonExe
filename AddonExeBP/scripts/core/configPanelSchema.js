@@ -140,6 +140,24 @@ export const configPanelSchema = [
                 description: 'How long a player must stand still before teleporting to spawn.'
             },
             {
+                key: 'spawn.spawnLocation.x',
+                label: 'Spawn X Coordinate',
+                type: 'textField',
+                description: 'Leave blank or set with /setspawn.'
+            },
+            {
+                key: 'spawn.spawnLocation.y',
+                label: 'Spawn Y Coordinate',
+                type: 'textField',
+                description: 'Leave blank or set with /setspawn.'
+            },
+            {
+                key: 'spawn.spawnLocation.z',
+                label: 'Spawn Z Coordinate',
+                type: 'textField',
+                description: 'Leave blank or set with /setspawn.'
+            },
+            {
                 key: 'spawnProtection.enabled',
                 label: 'Protection Enabled',
                 type: 'toggle',
@@ -164,16 +182,10 @@ export const configPanelSchema = [
                 description: 'Prevents players from damaging other players in spawn.'
             },
             {
-                key: 'spawnProtection.preventPvE',
-                label: 'Prevent Hostile Damage',
+                key: 'spawnProtection.preventHostileMobSpawning',
+                label: 'Prevent Hostile Mob Spawning',
                 type: 'toggle',
-                description: 'Prevents hostile mobs from damaging players in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventMobSpawning',
-                label: 'Prevent Mob Spawning',
-                type: 'toggle',
-                description: 'Prevents hostile mobs from spawning in the protected area.'
+                description: 'Removes hostile mobs that spawn in the protected area.'
             },
             {
                 key: 'spawnProtection.preventBlockBreaking',
@@ -198,24 +210,6 @@ export const configPanelSchema = [
                 label: 'Prevent Block Interaction',
                 type: 'toggle',
                 description: 'Prevents interaction with chests, doors, etc., in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventHungerLoss',
-                label: 'Prevent Hunger Loss',
-                type: 'toggle',
-                description: 'Prevents players from losing hunger in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventItemDropping',
-                label: 'Prevent Item Dropping',
-                type: 'toggle',
-                description: 'Prevents players from dropping items in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventItemPickup',
-                label: 'Prevent Item Pickup',
-                type: 'toggle',
-                description: 'Prevents players from picking up items in spawn.'
             }
         ]
     },
