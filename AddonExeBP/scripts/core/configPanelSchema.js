@@ -200,12 +200,6 @@ export const configPanelSchema = [
                 description: 'Prevents interaction with chests, doors, etc., in spawn.'
             },
             {
-                key: 'spawnProtection.preventFire',
-                label: 'Prevent Fire',
-                type: 'toggle',
-                description: 'Prevents fire from spreading or being created in spawn.'
-            },
-            {
                 key: 'spawnProtection.preventHungerLoss',
                 label: 'Prevent Hunger Loss',
                 type: 'toggle',
