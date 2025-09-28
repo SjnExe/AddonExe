@@ -1,17 +1,23 @@
+<div align="center">
+
 # AddonExe for Minecraft BE
 
-**The ultimate scripting-based solution for your Minecraft Bedrock Edition world!** Designed to be robust, highly configurable, and packed with features to ensure fair and fun gameplay.
+**The ultimate scripting-based solution for your Minecraft Bedrock Edition world!**
+Designed to be robust, highly configurable, and packed with features to ensure fair and fun gameplay.
+
+</div>
 
 ---
 
 ## ✨ Why Choose AddonExe?
 
-- **Scripting Power:** Built entirely with the Minecraft Scripting API, offering flexibility and complex detection logic not always possible with traditional methods.
-- **User-Friendly Tools:** Manage your server with ease using an intuitive in-game UI (`/panel`) and extensive slash commands.
+- **Scripting Power:** Built entirely with the Minecraft Scripting API, offering flexibility and complex logic not always possible with traditional methods.
+- **Comprehensive Detection (Under Redevelopment):** While currently a powerful moderation tool, a full suite of cheat detections is being redesigned and will be re-introduced in a future update.
+- **User-Friendly Tools:** Manage your server with ease using an intuitive in-game UI (`/panel`) and extensive slash commands, which can be used in-game, from the server console, or via a chat-based fallback (e.g., `!panel`).
 - **Highly Customizable:** Fine-tune almost every aspect, from feature toggles to command permissions, to perfectly suit your server's needs.
 - **Active Development:** Continuously updated with new features, improvements, and compatibility for the latest Minecraft versions.
 - **Open & Documented:** With clear documentation and an open codebase, understand how it works and even contribute!
-- **Enhanced Stability:** Includes robust error handling to prevent script-related server crashes.
+- **Enhanced Stability:** Includes robust error handling and a watchdog to prevent script-related server crashes, ensuring a more stable experience.
 
 ---
 
@@ -30,11 +36,15 @@
 - 📞 **Teleport Request System (TPA/TPAHere):**
   - Allows players to request teleports to others or summon others, with configurable cooldowns and warmup periods.
 - ✨ **Player & Server Utilities:**
-  - **Economy & Bounties:** A simple economy system with player balances, payment commands, and a full bounty system. Includes a high-performance, cached `/baltop` leaderboard.
-  - **In-Game Shop:** A complete GUI-based shop where players can buy and sell items through a categorized interface. Admins can fully customize the shop's inventory and prices from an in-game panel.
+  - **Economy & Bounties:** A simple economy system with player balances, payment commands, and a full bounty system.
+  - **In-Game Shop:** A complete GUI-based shop where players can buy and sell items.
   - **Homes:** Allows players to set and teleport to their own personal "homes".
   - **Kits:** A system for players to claim predefined kits of items with cooldowns.
-  - **Death Coordinates:** Automatically informs players of their death location upon respawning.
+  - **Random Teleport (RTP):** A command for players to teleport to a random, safe location.
+
+> [!NOTE]
+> **Cheat Detection Suite (Under Redevelopment)**
+> A comprehensive suite of cheat detections is being redesigned and will be re-introduced in a future update. The old system has been removed to ensure stability.
 
 ➡️ **For a full list and details of all features, check out our [Features Overview](https://github.com/SjnExe/AddonExe/blob/exe/Docs/FeaturesOverview.md)!**
 
@@ -86,7 +96,7 @@ After installing, you **must** set yourself as the owner to access admin command
     // Example in AddonExeBP/scripts/config.js
     ownerPlayerNames: ['YourNameHere', 'AnotherOwnerName'],
     ```
-4.  Save the file. If your server is live, run the `/reload` command in-game.
+4.  Save the file. If your server is live, run Minecraft's vanilla `/reload` command to apply the changes.
 
 ➡️ For a detailed guide on all settings, see our [**Configuration Guide**](https://github.com/SjnExe/AddonExe/blob/exe/Docs/ConfigurationGuide.md).
 

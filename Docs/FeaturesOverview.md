@@ -53,14 +53,15 @@ This document provides a detailed breakdown of the features available in AddonEx
 ### A. Warp System
 - **Description:** Allows admins to create, manage, and delete public warp points that players can teleport to.
 - **Commands:**
-  - `/warp [warpName]`: Teleports the player to the specified warp. If no name is provided, opens a UI to select from a list.
-  - `/setwarp <warpName>`: Creates a new warp at the admin's current location.
-  - `/delwarp [warpName]`: Deletes a warp. If no name is provided, opens a UI to select from a list.
+  - `/warp [warpName]`: Teleports the player to the specified warp.
+  - `/addwarp <warpName>`: Creates a new warp at the admin's current location. (Alias: `/setwarp`)
+  - `/delwarp [warpName]`: Deletes a warp.
 - **Configuration:** Features a configurable cooldown and teleport warmup period to prevent abuse.
 
 ### B. Teleport Request System (TPA/TPAHere)
 
 - Allows players to request teleports to other players (`/tpa <playerName>`) or request others to teleport to them (`/tpahere <playerName>`).
+- Players can respond to requests using `/tpaccept` and `/tpadeny`, and cancel their own requests with `/tpacancel`.
 - Features include:
   - Configurable request timeout periods.
   - Cooldowns between sending requests.
