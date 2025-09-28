@@ -65,6 +65,31 @@ export const configPanelSchema = [
         ]
     },
     {
+        id: 'warps',
+        title: '§l§dWarp System§r',
+        icon: 'textures/blocks/portal_placeholder',
+        settings: [
+            {
+                key: 'warps.enabled',
+                label: 'Warps Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the entire warp system.'
+            },
+            {
+                key: 'warps.cooldownSeconds',
+                label: 'Cooldown (s)',
+                type: 'textField',
+                description: 'How long a player must wait between using /warp.'
+            },
+            {
+                key: 'warps.teleportWarmupSeconds',
+                label: 'Warmup (s)',
+                type: 'textField',
+                description: 'How long a player must stand still before teleporting.'
+            }
+        ]
+    },
+    {
         id: 'bounties',
         title: '§l§cBounty System§r',
         icon: 'textures/items/diamond_sword',
@@ -100,6 +125,7 @@ export const configPanelSchema = [
         id: 'spawn',
         title: '§l§eSpawn System§r',
         icon: 'textures/blocks/beacon',
+        configSource: 'spawn',
         settings: [
             {
                 key: 'spawn.cooldownSeconds',
@@ -112,6 +138,78 @@ export const configPanelSchema = [
                 label: 'Warmup (s)',
                 type: 'textField',
                 description: 'How long a player must stand still before teleporting to spawn.'
+            },
+            {
+                key: 'spawn.spawnLocation.x',
+                label: 'Spawn X Coordinate',
+                type: 'textField',
+                description: 'Leave blank or set with /setspawn.'
+            },
+            {
+                key: 'spawn.spawnLocation.y',
+                label: 'Spawn Y Coordinate',
+                type: 'textField',
+                description: 'Leave blank or set with /setspawn.'
+            },
+            {
+                key: 'spawn.spawnLocation.z',
+                label: 'Spawn Z Coordinate',
+                type: 'textField',
+                description: 'Leave blank or set with /setspawn.'
+            },
+            {
+                key: 'spawnProtection.enabled',
+                label: 'Protection Enabled',
+                type: 'toggle',
+                description: 'Master switch for all spawn protection features.'
+            },
+            {
+                key: 'spawnProtection.protectionRadius',
+                label: 'Protection Radius',
+                type: 'textField',
+                description: 'The radius (in blocks) from spawn to protect.'
+            },
+            {
+                key: 'spawnProtection.allowAdminBypass',
+                label: 'Admin Bypass',
+                type: 'toggle',
+                description: 'Allows admins to bypass all spawn protection rules.'
+            },
+            {
+                key: 'spawnProtection.preventPvP',
+                label: 'Prevent PvP',
+                type: 'toggle',
+                description: 'Prevents players from damaging other players in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventHostileMobSpawning',
+                label: 'Prevent Hostile Mob Spawning',
+                type: 'toggle',
+                description: 'Removes hostile mobs that spawn in the protected area.'
+            },
+            {
+                key: 'spawnProtection.preventBlockBreaking',
+                label: 'Prevent Block Breaking',
+                type: 'toggle',
+                description: 'Prevents players from breaking blocks in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventBlockPlacing',
+                label: 'Prevent Block Placing',
+                type: 'toggle',
+                description: 'Prevents players from placing blocks in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventExplosions',
+                label: 'Prevent Explosions',
+                type: 'toggle',
+                description: 'Prevents explosions from destroying blocks in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventBlockInteraction',
+                label: 'Prevent Block Interaction',
+                type: 'toggle',
+                description: 'Prevents interaction with chests, doors, etc., in spawn.'
             }
         ]
     },
@@ -148,7 +246,7 @@ export const configPanelSchema = [
     },
     {
         id: 'homes',
-        title: '§l§aHome System§r',
+        title: '§l§2Home System§r',
         icon: 'textures/ui/icon_recipe_item',
         settings: [
             {

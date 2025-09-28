@@ -41,11 +41,24 @@ This document provides a detailed breakdown of the features available in AddonEx
 - **Admin Bypass:** A configuration option (`dimensionLock.allowAdminBypass`) allows players with admin permissions to enter locked dimensions, which is useful for moderation or server maintenance.
 - **Player Experience:** When a non-admin player attempts to enter a locked dimension, they are instantly teleported back to their previous location and receive a notification message.
 
+### D. Spawn Protection
+- **Description:** A comprehensive system to protect the world's spawn area from griefing.
+- **Protection Features:** Prevents unauthorized players from breaking blocks, placing blocks, opening chests, or using items within a configurable radius of the world spawn.
+- **Admin Bypass:** Players with admin permissions can bypass all spawn protection restrictions.
+
 ---
 
 ## II. Server Utility & Player Experience Features
 
-### A. Teleport Request System (TPA/TPAHere)
+### A. Warp System
+- **Description:** Allows admins to create, manage, and delete public warp points that players can teleport to.
+- **Commands:**
+  - `/warp [warpName]`: Teleports the player to the specified warp. If no name is provided, opens a UI to select from a list.
+  - `/setwarp <warpName>`: Creates a new warp at the admin's current location.
+  - `/delwarp [warpName]`: Deletes a warp. If no name is provided, opens a UI to select from a list.
+- **Configuration:** Features a configurable cooldown and teleport warmup period to prevent abuse.
+
+### B. Teleport Request System (TPA/TPAHere)
 
 - Allows players to request teleports to other players (`/tpa <playerName>`) or request others to teleport to them (`/tpahere <playerName>`).
 - Features include:
@@ -54,7 +67,7 @@ This document provides a detailed breakdown of the features available in AddonEx
   - Teleport warmup period, during which movement or taking damage can cancel the teleport.
   - *Key Configs: `config.js` (under the `tpa` section)*
 
-### B. Economy & Bounty System
+### C. Economy & Bounty System
 
 - A simple economy system that allows players to have balances and transfer money.
 - A full player-driven bounty system to place bounties on other players.
@@ -62,7 +75,7 @@ This document provides a detailed breakdown of the features available in AddonEx
 - **New Player Balance:** New players start with a configurable amount of money.
 - *Key Configs: `config.js` (under the `economy` section)*
 
-### C. In-Game Shop System
+### D. In-Game Shop System
 
 - A fully-featured, GUI-based shop accessible via the `/shop` command or the main panel.
 - **Player Features:**
@@ -80,14 +93,14 @@ This document provides a detailed breakdown of the features available in AddonEx
   - The active shop configuration (which items are enabled and their current prices) is saved to the world's dynamic properties and persists across restarts. This is modified via the in-game editor.
   - *Key Configs: `itemsConfig.js`, `shopCategoryConfig.js` (for setup); world data (for live prices)*
 
-### D. Homes System
+### E. Homes System
 
 - Allows players to set a limited number of "homes" they can teleport back to.
 - **Commands:** `/sethome`, `/home`, `/delhome`, `/homes`.
 - **Max Homes:** The maximum number of homes a player can set is configurable.
 - *Key Configs: `config.js` (under the `homes` section)*
 
-### E. Random Teleport System (RTP)
+### F. Random Teleport System (RTP)
 
 - Allows players to teleport to a random, safe location in the world to encourage exploration.
 - **Commands:** `/rtp`.
@@ -97,7 +110,7 @@ This document provides a detailed breakdown of the features available in AddonEx
   - Teleport warmup period to prevent abuse in combat.
 - *Key Configs: `config.js` (under the `rtp` section)*
 
-### F. Kits System
+### G. Kits System
 
 - Allows players to claim predefined kits of items.
 - **Commands:** `/kit`.
@@ -105,13 +118,13 @@ This document provides a detailed breakdown of the features available in AddonEx
 - **Customizable:** Kits are defined in `AddonExeBP/scripts/core/kitsConfig.js`.
 - *Key Configs: `config.js` (under the `kits` section)*
 
-### G. Player Information & Experience
+### H. Player Information & Experience
 - **Customizable Welcome Message:** Automatically greet new players with a configurable message when they first join the server. The message can be customized with placeholders like `{playerName}` and `{serverName}` to create a personalized welcome.
 - **Death Coordinates:** When a player dies, their coordinates are automatically sent to them in a private message upon respawning, making it easy to find their dropped items. This message is also fully customizable.
 - **Server Rules Display:** Players can view server rules using the `/rules` command. The rules are defined as an array of strings in the configuration.
 - *Key Configs: `config.js` (under the `playerInfo` and `serverInfo` sections)*
 
-### H. Customizable Sound Events
+### I. Customizable Sound Events
 - Customize sounds for specific in-game events to provide auditory feedback to players and admins.
 - Events include:
   - Receiving a TPA request.

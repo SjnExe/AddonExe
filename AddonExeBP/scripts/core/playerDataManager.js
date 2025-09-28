@@ -54,6 +54,20 @@ let playerIdNameMap = new Map();
 /** A flag indicating that the name-to-ID map has changed and needs to be saved. */
 export let isNameIdMapDirty = false;
 
+/**
+ * Resets all in-memory caches and state variables.
+ * This is crucial for ensuring a clean state after a script reload.
+ */
+export function cleanupPlayerDataManager() {
+    leaderboardCache = [];
+    isLeaderboardDirty = false;
+    isSaveOnCooldown = false;
+    activePlayerData.clear();
+    playerNameIdMap.clear();
+    playerIdNameMap.clear();
+    isNameIdMapDirty = false;
+    debugLog('[PlayerDataManager] All in-memory caches have been cleared.');
+}
 
 /**
  * Saves the player name-to-ID map to a dynamic property.

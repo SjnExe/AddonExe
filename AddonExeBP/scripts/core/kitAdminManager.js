@@ -1,4 +1,4 @@
-import { getKitsConfig, saveKitsConfig } from './kitsConfigManager.js';
+import { getKitsConfig, saveKitsConfig } from './configurations.js';
 import { debugLog } from './logger.js';
 
 /**

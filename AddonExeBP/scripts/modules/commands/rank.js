@@ -1,6 +1,6 @@
 import { commandManager } from './commandManager.js';
 import { playSound } from '../../core/utils.js';
-import { rankDefinitions } from '../../core/ranksConfig.js';
+import * as rankManager from '../../core/rankManager.js';
 import { updatePlayerRank } from '../../core/main.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { errorLog } from '../../core/errorLogger.js';
@@ -23,7 +23,7 @@ commandManager.register({
         if (!action || action.toLowerCase() === 'list') {
             // No action specified, list all ranks
             let message = '§a--- Available Ranks (Most to Least Powerful) ---\n';
-            const sortedRanks = [...rankDefinitions].sort((a, b) => a.permissionLevel - b.permissionLevel);
+            const sortedRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);
             sortedRanks.forEach(rank => {
                 message += `§e${rank.name}§r (ID: §b${rank.id}§r, Perms: §6${rank.permissionLevel}§r)\n`;
             });
@@ -56,7 +56,7 @@ commandManager.register({
             return;
         }
 
-        const rankDef = rankDefinitions.find(r => r.id === rankId.toLowerCase());
+        const rankDef = rankManager.getRankById(rankId.toLowerCase());
         if (!rankDef) {
             player.sendMessage(`§cRank ID '${rankId}' not found in configuration.`);
             playSound(player, 'note.bass');

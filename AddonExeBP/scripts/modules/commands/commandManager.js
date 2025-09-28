@@ -13,7 +13,7 @@ import { getCooldown } from '../../core/cooldownManager.js';
  */
 class CommandManager {
     constructor() {
-        this.commands = [];
+        this.commands = new Map();
         this.aliases = new Map();
         this.prefix = 'exe'; // Namespace for all custom commands
 
@@ -22,7 +22,7 @@ class CommandManager {
                 if (command.disableSlashCommand) {return;}
 
                 // Register the primary command name
-                this.registerSlashCommand(customCommandRegistry, command, command.slashName || command.name);
+                this._registerSlashCommand(customCommandRegistry, command, command.slashName || command.name);
 
                 // Register all aliases as separate slash commands
                 if (command.aliases) {
@@ -30,14 +30,12 @@ class CommandManager {
                         if (command.disabledSlashAliases && command.disabledSlashAliases.includes(alias)) {
                             return; // Skip slash command registration for this alias
                         }
-                        this.registerSlashCommand(customCommandRegistry, command, alias);
+                        this._registerSlashCommand(customCommandRegistry, command, alias);
                     });
                 }
             });
         });
     }
-
-    // --- General Command Management ---
 
     /**
      * Registers a new command.
@@ -45,16 +43,73 @@ class CommandManager {
      */
     register(commandOptions) {
         const command = { permissionLevel: 0, ...commandOptions };
-        this.commands.push(command);
+        this.commands.set(command.name.toLowerCase(), command);
 
         if (command.aliases) {
             for (const alias of command.aliases) {
-                this.aliases.set(alias.toLowerCase(), command.name);
+                this.aliases.set(alias.toLowerCase(), command.name.toLowerCase());
             }
         }
     }
 
-    // --- Slash Command Management ---
+    /**
+     * The core command execution logic, shared by slash and chat commands.
+     * @param {import('@minecraft/server').Player | object} executor The player or a console identifier.
+     * @param {object} command The command to execute.
+     * @param {object} args The parsed arguments for the command.
+     * @private
+     */
+    _executeCommand(executor, command, args) {
+        const isPlayer = !!executor.id; // Check if it's a player or console object
+
+        // --- Console Execution ---
+        if (!isPlayer) {
+            if (!command.allowConsole) {
+                console.warn(`[CommandManager] Command '${command.name}' cannot be run from the console.`); // eslint-disable-line no-console
+                return;
+            }
+            system.run(() => {
+                try {
+                    command.execute(executor, args);
+                } catch (error) {
+                    console.error(`[CommandManager] Error executing console command '${command.name}': ${error.stack}`); // eslint-disable-line no-console
+                }
+            });
+            return;
+        }
+
+        // --- Player Execution ---
+        const player = executor;
+
+        // Cooldown Check
+        if (command.hasCooldown) {
+            const cooldownId = command.cooldownId || command.name;
+            const remainingCooldown = getCooldown(player.id, cooldownId);
+            if (remainingCooldown > 0) {
+                player.sendMessage(`§cYou must wait ${remainingCooldown} more second(s) to use this command.`);
+                return;
+            }
+        }
+
+        // Permission Check
+        const pData = getPlayer(player.id);
+        if (!pData || pData.permissionLevel > command.permissionLevel) {
+            player.sendMessage('§cYou do not have permission to use this command.');
+            return;
+        }
+
+        // Execute Command
+        system.run(() => {
+            try {
+                command.execute(player, args);
+            } catch (error) {
+                if (getConfig().debug) {
+                    errorLog(`[CommandManager] Error executing command '${command.name}' for player '${player.name}': ${error.stack}`);
+                }
+                player.sendMessage('§cAn unexpected error occurred while running this command.');
+            }
+        });
+    }
 
     /**
      * Registers a single slash command or alias.
@@ -63,77 +118,27 @@ class CommandManager {
      * @param {string} name The name to register (either primary or an alias).
      * @private
      */
-    registerSlashCommand(customCommandRegistry, command, name) {
+    _registerSlashCommand(customCommandRegistry, command, name) {
         const commandData = this.prepareCommandData(command, name);
 
-        const commandCallback = (origin, ...args) => {
-            const player = origin.sourceEntity;
+        const commandCallback = (origin, ...rawArgs) => {
+            const executor = origin.sourceEntity || { isConsole: true, sendMessage: (msg) => console.log(msg.replace(/§[0-9a-fklmnor]/g, '')) }; // eslint-disable-line no-console
 
-            // Prepare arguments regardless of executor
-            const mandatoryParams = command.parameters?.filter(p => !p.optional) || [];
-            const optionalParams = command.parameters?.filter(p => p.optional) || [];
-            const allParams = [...mandatoryParams, ...optionalParams];
+            // Prepare arguments
+            const allParams = (command.parameters || []);
             const parsedArgs = {};
             for (let i = 0; i < allParams.length; i++) {
-                if (args[i] !== undefined) {
-                    parsedArgs[allParams[i].name] = args[i];
+                if (rawArgs[i] !== undefined) {
+                    parsedArgs[allParams[i].name] = rawArgs[i];
                 }
             }
-
-            if (!player) {
-                // Console execution
-                if (!command.allowConsole) {
-                    // Using console.warn is appropriate for server-side messages.
-                    console.warn(`[CommandManager] Command '${name}' cannot be run from the console.`); // eslint-disable-line no-console
-                    return;
-                }
-                // Bypassing permission check for console
-                system.run(() => {
-                    try {
-                        // Pass a special identifier for the console executor
-                        command.execute({ isConsole: true, sendMessage: (msg) => console.log(msg.replace(/§[0-9a-fklmnor]/g, '')) }, parsedArgs); // eslint-disable-line no-console
-                    } catch (error) {
-                        console.error(`[CommandManager] Error executing console command '${name}': ${error.stack}`); // eslint-disable-line no-console
-                    }
-                });
-                return;
-            }
-
-            // Player execution
-            if (command.hasCooldown) {
-                const cooldownId = command.cooldownId || command.name;
-                const remainingCooldown = getCooldown(player.id, cooldownId);
-                if (remainingCooldown > 0) {
-                    player.sendMessage(`§cYou must wait ${remainingCooldown} more second(s) to use this command.`);
-                    return;
-                }
-            }
-
-            const pData = getPlayer(player.id);
-            if (!pData || pData.permissionLevel > command.permissionLevel) {
-                player.sendMessage('§cYou do not have permission to use this command.');
-                return;
-            }
-
-            system.run(() => {
-                try {
-                    command.execute(player, parsedArgs);
-                } catch (error) {
-                    if (getConfig().debug) {
-                        errorLog(`[CommandManager] Error executing slash command '${name}': ${error.stack}`);
-                    }
-                    player.sendMessage('§cAn unexpected error occurred while running this command.');
-                }
-            });
+            this._executeCommand(executor, command, parsedArgs);
         };
 
         try {
             customCommandRegistry.registerCommand(commandData, commandCallback);
         } catch (e) {
-            // We expect an error if an alias conflicts with a vanilla command, which is fine.
-            if (e.toString().includes('already in use')) {
-                // Do nothing, this is expected for some aliases.
-            } else {
+            if (!e.toString().includes('already in use')) {
                 if (getConfig().debug) {
                     errorLog(`[CommandManager] Failed to register slash command '${name}':`, e);
                 }
@@ -231,57 +236,44 @@ class CommandManager {
 
         eventData.cancel = true;
 
+        // Using a regex to split by spaces while respecting quoted strings.
         const commandString = message.slice(config.commandPrefix.length).trim();
-        // Regex to split by spaces, but keep quoted text (single or double) together.
         const rawArgs = commandString.match(/"[^"]*"|'[^']*'|\S+/g) || [];
         if (rawArgs.length === 0) {return true;}
 
-        const cleanedArgs = rawArgs.map(arg => (arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'")) ? arg.slice(1, -1) : arg);
+        const cleanedArgs = rawArgs.map(arg =>
+            (arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'"))
+                ? arg.slice(1, -1)
+                : arg
+        );
         let commandName = cleanedArgs.shift().toLowerCase();
 
-        if (this.aliases.has(commandName)) {
-            commandName = this.aliases.get(commandName);
-        }
-        const command = this.commands.find(c => c.name === commandName);
+        // Resolve alias to primary command name
+        commandName = this.aliases.get(commandName) || commandName;
+        const command = this.commands.get(commandName);
 
         if (!command) {
             player.sendMessage(`§cUnknown command: ${commandName}`);
             return true;
         }
 
-        if (command.hasCooldown) {
-            const cooldownId = command.cooldownId || command.name;
-            const remainingCooldown = getCooldown(player.id, cooldownId);
-            if (remainingCooldown > 0) {
-                player.sendMessage(`§cYou must wait ${remainingCooldown} more second(s) to use this command.`);
-                return true;
-            }
-        }
-
-        const pData = getPlayer(player.id);
-        if (!pData || pData.permissionLevel > command.permissionLevel) {
-            player.sendMessage('§cYou do not have permission to use this command.');
-            return true;
-        }
-
+        // --- Argument Parsing ---
         const parsedArgs = {};
         const paramDefs = command.parameters || [];
         let currentArgIndex = 0;
 
-        for (let i = 0; i < paramDefs.length; i++) {
-            const paramDef = paramDefs[i];
-
+        for (const paramDef of paramDefs) {
             if (currentArgIndex >= cleanedArgs.length) {
                 if (!paramDef.optional) {
                     player.sendMessage(`§cMissing required argument: ${paramDef.name}.`);
-                    return true;
+                    return true; // Stop execution
                 }
                 break; // No more args to process
             }
 
-            if (paramDef.type === 'text') { // Greedy parameter
+            if (paramDef.type === 'text') { // Greedy parameter (consumes the rest)
                 parsedArgs[paramDef.name] = cleanedArgs.slice(currentArgIndex).join(' ');
-                currentArgIndex = cleanedArgs.length; // Consume rest
+                currentArgIndex = cleanedArgs.length; // Mark all as consumed
                 break;
             } else {
                 parsedArgs[paramDef.name] = cleanedArgs[currentArgIndex];
@@ -289,16 +281,8 @@ class CommandManager {
             }
         }
 
-        system.run(() => {
-            try {
-                command.execute(player, parsedArgs);
-            } catch (error) {
-                if (getConfig().debug) {
-                    errorLog(`[CommandManager] Error executing chat command '${command.name}': ${error.stack}`);
-                }
-                player.sendMessage('§cAn unexpected error occurred while running this command.');
-            }
-        });
+        // Defer to the centralized execution method
+        this._executeCommand(player, command, parsedArgs);
 
         return true;
     }

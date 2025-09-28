@@ -7,7 +7,7 @@ commandManager.register({
     aliases: ['teleport'],
     disabledSlashAliases: ['teleport'],
     description: 'Teleports a player to another player or to coordinates.',
-    category: 'General',
+    category: 'Moderation',
     permissionLevel: 1, // Admins only
     disableSlashCommand: false,
     parameters: [

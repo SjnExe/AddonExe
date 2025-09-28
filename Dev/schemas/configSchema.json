@@ -98,20 +98,33 @@
                 "enabled": { "type": "boolean" }
             }
         },
+        "spawn": {
+            "type": "object",
+            "description": "Settings for the /spawn command and spawn protection.",
+            "properties": {
+                "cooldownSeconds": {
+                    "type": "number"
+                },
+                "teleportWarmupSeconds": {
+                    "type": "number"
+                },
+                "spawnLocation": {
+                    "type": ["object", "null"],
+                    "description": "Default spawn location. Can be set manually here or with the in-game /setspawn command.",
+                    "properties": {
+                        "x": { "type": "number" },
+                        "y": { "type": "number" },
+                        "z": { "type": "number" },
+                        "dimensionId": { "type": "string" }
+                    }
+                }
+            }
+        },
         "economy": {
             "type": "object",
             "properties": {
                 "enabled": { "type": "boolean" },
                 "startingBalance": { "type": "number" }
-            }
-        },
-        "spawnLocation": {
-            "type": ["object", "null"],
-            "properties": {
-                "x": { "type": "number" },
-                "y": { "type": "number" },
-                "z": { "type": "number" },
-                "dimension": { "type": "string" }
             }
         },
         "serverInfo": {

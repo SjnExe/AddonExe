@@ -60,7 +60,7 @@ export const panelDefinitions = {
                 id: 'config',
                 text: '§3Config',
                 icon: 'textures/ui/settings_glyph_color_2x',
-                permissionLevel: 0, // Owner only
+                permissionLevel: 1, // Admin and above
                 actionType: 'openPanel',
                 actionValue: 'configCategoryPanel',
                 sortId: 30
@@ -218,6 +218,21 @@ export const panelDefinitions = {
         parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated by uiManager
     },
+    rankManagementPanel: {
+        title: '§l§4Rank System§r',
+        parentPanelId: 'configCategoryPanel',
+        items: [] // Dynamically populated by uiManager
+    },
+    editRankPanel: {
+        title: '§l§3Edit Rank§r',
+        parentPanelId: 'rankManagementPanel',
+        items: [] // Dynamically populated by uiManager
+    },
+    addRankPanel: {
+        title: '§l§2Add New Rank§r',
+        parentPanelId: 'rankManagementPanel',
+        items: [] // Dynamically populated by uiManager
+    },
     playerManagementPanel: {
         title: '§l§4Player Management§r',
         parentPanelId: 'mainPanel',
@@ -270,5 +285,20 @@ export const panelDefinitions = {
             { id: 'bounty', text: '§6Bounty', icon: 'textures/items/netherite_sword.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'bountyActionsPanel', sortId: 30 },
             { id: 'report', text: '§cReport Player', icon: 'textures/ui/WarningGlyph', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'reportPlayer', sortId: 40 }
         ]
+    },
+    rulesManagementPanel: {
+        title: '§l§4Rules Management',
+        parentPanelId: 'mainPanel',
+        items: [] // Dynamically populated
+    },
+    addRulePanel: {
+        title: 'Add New Rule',
+        parentPanelId: 'rulesManagementPanel',
+        items: [] // Modal form, no items needed
+    },
+    ruleActionPanel: {
+        title: 'Manage Rule',
+        parentPanelId: 'rulesManagementPanel',
+        items: [] // Dynamically populated
     }
 };

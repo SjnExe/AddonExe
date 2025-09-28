@@ -6,7 +6,7 @@ export const config = {
     commandPrefix: '!',
     serverName: '§cServerExe§r',
     defaultGamemode: 'survival',
-    debug: false,
+    debug: true,
     exeGlobalNotificationsDefaultOn: true,
 
     // --- Data Management ---
@@ -39,6 +39,11 @@ export const config = {
         cooldownSeconds: 60, // 1 minute
         teleportWarmupSeconds: 10
     },
+    warps: {
+        enabled: true,
+        cooldownSeconds: 60, // 1 minute
+        teleportWarmupSeconds: 10
+    },
     rtp: {
         enabled: true,
         minRange: 1000,
@@ -51,10 +56,6 @@ export const config = {
     },
     reports: {
         resolvedReportLifetimeDays: 7
-    },
-    spawn: {
-        cooldownSeconds: 60,
-        teleportWarmupSeconds: 10
     },
     chat: {
         logToConsole: true
@@ -110,8 +111,6 @@ export const config = {
     },
 
     // --- Miscellaneous ---
-    // Default spawn location. Can be set manually here (e.g., { x: 0, y: 100, z: 0, dimensionId: 'minecraft:overworld' }) or with the in-game /setspawn command.
-    spawnLocation: null,
 
     // --- Sound Events ---
     soundEvents: {

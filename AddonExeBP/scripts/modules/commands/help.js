@@ -4,7 +4,8 @@ import { getPlayer } from '../../core/playerDataManager.js';
 function showCategorizedHelp(player, userPermissionLevel, isConsole) {
     const categorizedCommands = {};
 
-    let commandList = commandManager.commands;
+    // Get commands from the Map and convert to an array to be able to filter and iterate
+    let commandList = Array.from(commandManager.commands.values());
     if (isConsole) {
         commandList = commandList.filter(cmd => cmd.allowConsole);
     }
@@ -55,12 +56,19 @@ function showCategorizedHelp(player, userPermissionLevel, isConsole) {
 }
 
 function showSpecificHelp(player, commandName, isConsole) {
-    // Find the command by its primary name or any of its aliases
-    const cmd = commandManager.commands.find(c =>
-        c.name === commandName ||
-        (c.slashName && c.slashName === commandName) ||
-        (c.aliases && c.aliases.includes(commandName))
-    );
+    // Resolve alias to primary command name, then look up the command
+    const realCommandName = commandManager.aliases.get(commandName) || commandName;
+    let cmd = commandManager.commands.get(realCommandName);
+
+    // If not found, it might be a unique slash command name, so we have to iterate to find it.
+    if (!cmd) {
+        for (const command of commandManager.commands.values()) {
+            if (command.slashName && command.slashName.toLowerCase() === commandName) {
+                cmd = command;
+                break;
+            }
+        }
+    }
 
     const pData = isConsole ? null : getPlayer(player.id);
     const userPermissionLevel = isConsole ? 0 : (pData?.permissionLevel ?? 1024);

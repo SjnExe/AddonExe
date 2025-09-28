@@ -124,6 +124,7 @@ commandManager.register({
 commandManager.register({
     name: 'addkit',
     description: 'Create a new kit from your inventory and open the editor.',
+    category: 'Administration',
     permissionLevel: 1, // Admins only
     allowConsole: false,
     parameters: [

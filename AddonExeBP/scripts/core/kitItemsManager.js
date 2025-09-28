@@ -1,4 +1,4 @@
-import { getKitsConfig, saveKitsConfig } from './kitsConfigManager.js';
+import { getKitsConfig, saveKitsConfig } from './configurations.js';
 import { errorLog } from './errorLogger.js';
 import { debugLog } from './logger.js';
 import { ItemStack } from '@minecraft/server';

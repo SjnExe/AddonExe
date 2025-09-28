@@ -1,7 +1,7 @@
 import { ItemStack } from '@minecraft/server';
 import { getPlayer, setKitCooldown } from './playerDataManager.js';
 import { getConfig } from './configManager.js';
-import { getKitsConfig } from './kitsConfigManager.js';
+import { getKitsConfig } from './configurations.js';
 import * as economyManager from './economyManager.js';
 import { errorLog } from './errorLogger.js';
 import { formatCooldown } from './utils.js';

@@ -2,6 +2,7 @@ import { getAllPlayerData, savePlayerData, isNameIdMapDirty, saveNameIdMap } fro
 import { getConfig } from './configManager.js';
 import { system } from '@minecraft/server';
 import { debugLog } from './logger.js';
+import { setTrackedInterval } from './timerManager.js';
 
 /**
  * Saves all "dirty" data to world properties.
@@ -61,7 +62,8 @@ export function initializeDataManager() {
 
     if (autoSaveIntervalSeconds > 0) {
         const intervalTicks = autoSaveIntervalSeconds * 20; // 20 ticks/sec
-        system.runInterval(() => {
+        // Use the tracked interval to ensure it's cleaned up on reload
+        setTrackedInterval(() => {
             debugLog('[DataManager] Auto-save triggered by interval.');
             const wasAnythingSaved = saveAllData({ log: false }); // Don't spam logs for auto-saves
             if (wasAnythingSaved) {
