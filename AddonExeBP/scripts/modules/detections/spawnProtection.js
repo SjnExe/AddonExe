@@ -50,13 +50,18 @@ function subscribe(event, handler) {
  * @returns {boolean} True if the location is within the protected area.
  */
 function isWithinSpawnProtection(location, dimensionId) {
-    if (!location || !dimensionId) {return false;}
+    if (!location || !dimensionId) { return false; }
 
     const spawnConfig = getSpawnConfig();
     const spawnProtectionConfig = spawnConfig?.spawnProtection;
     const spawnLocation = spawnConfig?.spawn?.spawnLocation;
 
-    if (!spawnProtectionConfig?.enabled || !spawnLocation?.dimensionId) {
+    // Protection is disabled or the spawn location has not been set yet.
+    if (!spawnProtectionConfig?.enabled ||
+        !spawnLocation?.dimensionId ||
+        typeof spawnLocation.x !== 'number' ||
+        typeof spawnLocation.y !== 'number' ||
+        typeof spawnLocation.z !== 'number') {
         return false;
     }
 
