@@ -169,69 +169,21 @@ function initialize() {
     }
 
 
-    if (spawnProtection.preventPvP || spawnProtection.preventPvE) {
+    if (spawnProtection.preventPvP) {
         subscribe(world.beforeEvents.entityHurt, (event) => {
             const { hurtEntity, damageSource } = event;
-
-            // We only care about players being hurt in spawn
-            if (!(hurtEntity instanceof Player) || !hurtEntity.dimension) { return; }
-            if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) { return; }
-
-            // Admins with bypass are immune to spawn protection rules for being hurt
-            if (canBypass(hurtEntity)) { return; }
-
             const attacker = damageSource.damagingEntity;
 
-            // --- PvP Check ---
-            // Is the damage from another player?
-            if (attacker instanceof Player) {
-                // If PvP protection is on, cancel the damage unless the attacker can bypass.
-                if (spawnProtection.preventPvP && !canBypass(attacker)) {
-                    event.cancel = true;
-                }
-                // If PvP is off, we do nothing and let the damage happen.
-                // In either case, we don't need to check PvE for this event.
-                return;
-            }
+            // Check if it's a PvP scenario (player hurting another player)
+            if (!(hurtEntity instanceof Player) || !(attacker instanceof Player)) { return; }
+            if (hurtEntity.id === attacker.id) { return; } // Self-harm is not PvP
 
-            // --- PvE Check ---
-            // If we reach here, the damage is not from a player.
-            if (spawnProtection.preventPvE) {
-                // List of damage causes that should NOT be prevented (e.g., admin commands, /kill)
-                const allowedCauses = [
-                    EntityDamageCause.void,
-                    EntityDamageCause.suicide
-                ];
+            // Check if the victim is in spawn
+            if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) { return; }
 
-                // If the cause is not in the allowed list, cancel it.
-                // This will block damage from mobs, projectiles (not from players), fire, lava, etc.
-                if (!allowedCauses.includes(damageSource.cause)) {
-                    event.cancel = true;
-                }
-            }
-        });
-    }
-
-
-    if (spawnProtection.preventItemDropping) {
-        subscribe(world.beforeEvents.itemDrop, (event) => {
-            const player = event.source;
-            if (player instanceof Player) {
-                if (isWithinSpawnProtection(player.location, player.dimension.id) && !canBypass(player)) {
-                    event.cancel = true;
-                }
-            }
-        });
-    }
-
-    if (spawnProtection.preventItemPickup) {
-        subscribe(world.beforeEvents.itemPickup, (event) => {
-            const player = event.entity;
-            if (player instanceof Player) {
-                // Check protection at the item's location, not the player's
-                if (isWithinSpawnProtection(event.item.location, event.item.dimension.id) && !canBypass(player)) {
-                    event.cancel = true;
-                }
+            // If the attacker can bypass, allow the damage. Otherwise, cancel it.
+            if (!canBypass(attacker)) {
+                event.cancel = true;
             }
         });
     }
@@ -243,25 +195,15 @@ function initialize() {
         const protection = currentSpawnConfig?.spawnProtection;
         const loc = currentSpawnConfig?.spawn?.spawnLocation;
 
-        if (!protection?.enabled || !loc) {return;}
+        if (!protection?.enabled || !loc) { return; }
 
         // Guard against running with a null spawn location, which can cause native crashes.
         if (typeof loc.x !== 'number' || typeof loc.y !== 'number' || typeof loc.z !== 'number') {
             return;
         }
 
-        for (const player of world.getAllPlayers()) {
-            if (!isWithinSpawnProtection(player.location, player.dimension.id) || canBypass(player)) {continue;}
-
-            // Hunger Loss Prevention
-            if (protection.preventHungerLoss) {
-                // Using setFood is more direct than resetToDefaultValue
-                player.getComponent('minecraft:food')?.setFoodLevel(20);
-            }
-        }
-
         // Mob Spawning Prevention (Cleanup Routine)
-        if (protection.preventMobSpawning) {
+        if (protection.preventHostileMobSpawning) {
             try {
                 const entitiesInSpawn = world.getDimension(loc.dimensionId).getEntities({
                     location: loc,
@@ -273,8 +215,7 @@ function initialize() {
                 for (const entity of entitiesInSpawn) {
                     // Double-check the entity is still in spawn before removing
                     if (isWithinSpawnProtection(entity.location, entity.dimension.id)) {
-                        // Teleport mobs to the void to remove them without loot drops
-                        entity.teleport({ x: entity.location.x, y: -128, z: entity.location.z });
+                        entity.remove();
                     }
                 }
             } catch (e) {
