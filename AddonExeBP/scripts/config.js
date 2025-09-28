@@ -2,7 +2,6 @@ export const config = {
     // --- System & Core Settings ---
     version: [1, 0, 0], // This will be replaced by the release workflow
     ownerPlayerNames: ['Your•Name•Here'], // Default : ['Your•Name•Here']
-    adminTag: 'admin',
     commandPrefix: '!',
     serverName: '§cServerExe§r',
     defaultGamemode: 'survival',
@@ -107,6 +106,16 @@ export const config = {
             '§e7. §rKeep conversations in English.',
             '§e8. §rFollow directions from staff members.',
             '§e9. §rDo not use offensive language, skins, or usernames.'
+        ],
+        helpfulLinks: [
+            {
+                title: '§9Discord Server',
+                url: 'https://discord.gg/example'
+            },
+            {
+                title: '§aWebsite',
+                url: 'https://example.com'
+            }
         ]
     },
 

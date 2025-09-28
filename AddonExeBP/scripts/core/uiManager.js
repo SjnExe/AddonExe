@@ -20,6 +20,7 @@ import { mutePlayer, unmutePlayer } from '../modules/commands/mute.js';
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '../modules/commands/ban.js';
 import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 import * as rulesManager from './rulesManager.js';
+import * as helpfulLinksManager from './helpfulLinksManager.js';
 import * as shopManager from './shopManager.js';
 import { getKitsConfig, saveKitsConfig, getShopConfig, saveShopConfig, getSpawnConfig, saveSpawnConfig } from './configurations.js';
 import { items as allItems } from './itemsConfig.js';
@@ -141,6 +142,33 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId.startsWith('shopAdminCategoryActionPanel_')) {
+        const categoryName = panelId.replace('shopAdminCategoryActionPanel_', '');
+        const form = new ActionFormData()
+            .title(`Manage Category: ${categoryName}`)
+            .button('Edit', 'textures/ui/icon_setting')
+            .button('§cDelete', 'textures/ui/trash')
+            .button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
+    if (panelId.startsWith('shopAdminSubCategoryItemPanel_')) {
+        const { categoryName, subCategoryName } = context;
+        const form = new ActionFormData().title(`Edit: ${categoryName} > ${subCategoryName}`);
+        buildShopAdminSubCategoryItemPanel(form, { ...context, page: context.page || 1 });
+        return form;
+    }
+
+    if (panelId.startsWith('shopAdminSubCategoryActionPanel_')) {
+        const { subCategoryName } = context;
+        const form = new ActionFormData()
+            .title(`Manage Subcategory: ${subCategoryName}`)
+            .button('Edit', 'textures/ui/icon_setting')
+            .button('§cDelete', 'textures/ui/trash')
+            .button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
     if (panelId.startsWith('kitItemsPanel_')) {
         const kitName = panelId.replace('kitItemsPanel_', '');
         const allKits = getAllKits();
@@ -200,6 +228,51 @@ async function buildPanelForm(player, panelId, context) {
             .title(`Manage Rank: ${rank.name}`)
             .button('Edit Rank', 'textures/ui/icon_setting')
             .button('§cDelete Rank', 'textures/ui/trash')
+            .button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
+    if (panelId === 'helpfulLinksManagementPanel') {
+        const panelDef = panelDefinitions[panelId];
+        const form = new ActionFormData().title(panelDef.title);
+        const links = helpfulLinksManager.getHelpfulLinks();
+        form.button('§l§2+ Add Link', 'textures/ui/color_plus');
+        links.forEach((link, index) => {
+            form.button(`${index + 1}. ${link.title}`);
+        });
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
+    if (panelId === 'addHelpfulLinkPanel') {
+        const panelDef = panelDefinitions[panelId];
+        const form = new ModalFormData()
+            .title(panelDef.title)
+            .textField('Link Title', 'Enter the link title (e.g., Discord)')
+            .textField('Link URL', 'Enter the full URL (e.g., https://discord.gg/example)');
+        return form;
+    }
+
+    if (panelId === 'helpfulLinkActionPanel') {
+        const panelDef = panelDefinitions[panelId];
+        const { linkIndex } = context;
+        const links = helpfulLinksManager.getHelpfulLinks();
+        const link = links[linkIndex];
+
+        if (!link) {
+            errorLog(`[UIManager] Invalid link index for helpfulLinkActionPanel: ${linkIndex}`);
+            showPanel(player, 'helpfulLinksManagementPanel', context);
+            return null;
+        }
+
+
+        const form = new ActionFormData()
+            .title(panelDef.title)
+            .body(`Selected Link:\nTitle: ${link.title}\nURL: ${link.url}`)
+            .button('Edit', 'textures/ui/editIcon')
+            .button('Move Up', 'textures/gui/controls/up')
+            .button('Move Down', 'textures/gui/controls/down')
+            .button('§cDelete Link', 'textures/ui/trash')
             .button('§l§8< Back', 'textures/gui/controls/left.png');
         return form;
     }
@@ -485,6 +558,79 @@ async function handleFormResponse(player, panelId, response, context) {
             player.sendMessage('§2Rule added successfully.');
         }
         return showPanel(player, 'rulesManagementPanel', context);
+    }
+
+    if (panelId === 'helpfulLinksManagementPanel') {
+        const links = helpfulLinksManager.getHelpfulLinks();
+        if (selection === 0) {
+            return showPanel(player, 'addHelpfulLinkPanel', context);
+        }
+        const linkIndex = selection - 1;
+        if (linkIndex >= 0 && linkIndex < links.length) {
+            return showPanel(player, 'helpfulLinkActionPanel', { ...context, linkIndex });
+        }
+        if (selection === links.length + 1) {
+            return showPanel(player, 'mainPanel', context);
+        }
+        return;
+    }
+
+    if (panelId === 'addHelpfulLinkPanel') {
+        if (canceled) {
+            return showPanel(player, 'helpfulLinksManagementPanel', context);
+        }
+        const [title, url] = formValues;
+        if (title && url) {
+            helpfulLinksManager.addHelpfulLink(title, url);
+            player.sendMessage('§2Link added successfully.');
+        }
+        return showPanel(player, 'helpfulLinksManagementPanel', context);
+    }
+
+    if (panelId === 'helpfulLinkActionPanel') {
+        const { linkIndex } = context;
+        switch (selection) {
+            case 0: { // Edit
+                const links = helpfulLinksManager.getHelpfulLinks();
+                const currentLink = links[linkIndex];
+                const editForm = new ModalFormData()
+                    .title('Edit Link')
+                    .textField('Link Title', 'Enter the new title', { defaultValue: currentLink.title })
+                    .textField('Link URL', 'Enter the new URL', { defaultValue: currentLink.url });
+                const editResponse = await utils.uiWait(player, editForm);
+                if (editResponse.canceled) {
+                    return showPanel(player, 'helpfulLinkActionPanel', context);
+                }
+                const [newTitle, newUrl] = editResponse.formValues;
+                if (newTitle && newUrl) {
+                    helpfulLinksManager.editHelpfulLink(linkIndex, newTitle, newUrl);
+                    player.sendMessage('§2Link updated successfully.');
+                }
+                return showPanel(player, 'helpfulLinksManagementPanel', context);
+            }
+            case 1: // Move Up
+                helpfulLinksManager.moveHelpfulLink(linkIndex, 'up');
+                return showPanel(player, 'helpfulLinksManagementPanel', context);
+            case 2: // Move Down
+                helpfulLinksManager.moveHelpfulLink(linkIndex, 'down');
+                return showPanel(player, 'helpfulLinksManagementPanel', context);
+            case 3: { // Delete Link
+                const confirmForm = new ActionFormData()
+                    .title('§cConfirm Deletion')
+                    .body('Are you sure you want to delete this link?')
+                    .button('§cYes, Delete', 'textures/ui/trash')
+                    .button('§2No, Cancel', 'textures/ui/cancel');
+                const confirmResponse = await utils.uiWait(player, confirmForm);
+                if (confirmResponse.selection === 0) {
+                    helpfulLinksManager.deleteHelpfulLink(linkIndex);
+                    player.sendMessage('§2Link deleted successfully.');
+                }
+                return showPanel(player, 'helpfulLinksManagementPanel', context);
+            }
+            case 4: // Back
+                return showPanel(player, 'helpfulLinksManagementPanel', context);
+        }
+        return;
     }
 
     if (panelId === 'ruleActionPanel') {
@@ -897,14 +1043,17 @@ async function handleFormResponse(player, panelId, response, context) {
             }
             return showPanel(player, panelId, { ...context, page: 1 });
         }
+        if (selection === 3) { // Edit Category
+            return showPanel(player, `shopAdminCategoryActionPanel_${categoryName}`, context);
+        }
 
         const shopConfig = getShopConfig();
         const category = shopConfig.categories[categoryName];
-        const items = Object.keys(category.items).map(id => ({ id, ...category.items[id], type: 'item' }));
         const subCategories = Object.keys(category.subCategories).sort().map(name => ({ name, ...category.subCategories[name], type: 'subCategory' }));
-        const allEntries = [...items, ...subCategories];
+        const items = Object.keys(category.items).map(id => ({ id, ...category.items[id], type: 'item' }));
+        const allEntries = [...subCategories, ...items];
         const paginatedEntries = getPaginatedItems(allEntries, page);
-        const selectedEntry = paginatedEntries[selection - 3];
+        const selectedEntry = paginatedEntries[selection - 4];
 
         if (selectedEntry) {
             if (selectedEntry.type === 'item') {
@@ -933,30 +1082,7 @@ async function handleFormResponse(player, panelId, response, context) {
                     player.sendMessage(result.message);
                 }
             } else { // subCategory
-                const form = new ActionFormData().title('Edit Subcategory')
-                    .button('Edit', 'textures/ui/icon_setting')
-                    .button('Delete', 'textures/ui/trash');
-                const response = await utils.uiWait(player, form);
-                if (response.canceled) { return showPanel(player, panelId, context); }
-                if (response.selection === 0) { // Edit
-                    const editForm = new ModalFormData().title('Edit Subcategory')
-                        .textField('New Name', 'Enter new name', { defaultValue: selectedEntry.name })
-                        .textField('Icon', 'Enter icon texture path', { defaultValue: selectedEntry.icon });
-                    const editResponse = await utils.uiWait(player, editForm);
-                    if (editResponse.canceled) { return showPanel(player, panelId, context); }
-                    const [newName, icon] = editResponse.formValues;
-                    if (newName) {
-                        const result = shopAdminManager.renameSubCategory(categoryName, selectedEntry.name, newName);
-                        player.sendMessage(result.message);
-                        // we need to update the icon separately
-                        const shopConfig = getShopConfig();
-                        shopConfig.categories[categoryName].subCategories[newName].icon = icon;
-                        saveShopConfig();
-                    }
-                } else { // Delete
-                    const result = shopAdminManager.deleteSubCategory(categoryName, selectedEntry.name);
-                    player.sendMessage(result.message);
-                }
+                return showPanel(player, `shopAdminSubCategoryItemPanel_${selectedEntry.name}`, { ...context, subCategoryName: selectedEntry.name });
             }
             return showPanel(player, panelId, { ...context, page: 1 });
         }
@@ -965,7 +1091,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const totalPages = Math.ceil(allEntries.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        let buttonIndex = selection - 3 - paginatedEntries.length;
+        let buttonIndex = selection - 4 - paginatedEntries.length;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;
@@ -973,6 +1099,130 @@ async function handleFormResponse(player, panelId, response, context) {
             newPage++;
         }
         return showPanel(player, panelId, { ...context, page: newPage });
+    }
+
+    if (panelId.startsWith('shopAdminCategoryActionPanel_')) {
+        const categoryName = panelId.replace('shopAdminCategoryActionPanel_', '');
+        const { page = 1 } = context;
+
+        if (selection === 0) { // Edit
+            const shopConfig = getShopConfig();
+            const category = shopConfig.categories[categoryName];
+            const form = new ModalFormData().title('Edit Category')
+                .textField('Category Name', 'Enter new name', { defaultValue: categoryName })
+                .textField('Icon', 'Enter icon texture path', { defaultValue: category.icon });
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context); }
+            const [newName, newIcon] = response.formValues;
+            if (newName) {
+                const result = shopAdminManager.editCategory(categoryName, newName, newIcon);
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
+        }
+        if (selection === 1) { // Delete
+            const confirmForm = new ActionFormData().title('Confirm Deletion').body('Are you sure?').button('§cYes, Delete').button('§2No, Cancel');
+            const response = await utils.uiWait(player, confirmForm);
+            if (response.selection === 0) {
+                const result = shopAdminManager.deleteCategory(categoryName);
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
+        }
+        if (selection === 2) { // Back
+            return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
+        }
+    }
+
+    if (panelId.startsWith('shopAdminSubCategoryItemPanel_')) {
+        const { categoryName, subCategoryName, page = 1 } = context;
+        if (selection === 0) { return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context); }
+        if (selection === 1) { // Add Item
+            return showPanel(player, `shopAddItemPanel_${categoryName}`, { ...context, subCategoryName });
+        }
+        if (selection === 2) { // Edit Subcategory
+            return showPanel(player, `shopAdminSubCategoryActionPanel_${subCategoryName}`, context);
+        }
+
+        const shopConfig = getShopConfig();
+        const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
+        const items = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
+        const paginatedItems = getPaginatedItems(items, page);
+        const selectedItem = paginatedItems[selection - 3];
+
+        if (selectedItem) {
+            const form = new ActionFormData().title('Edit Item')
+                .button('Edit', 'textures/ui/icon_setting')
+                .button('Delete', 'textures/ui/trash');
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, panelId, context); }
+            if (response.selection === 0) { // Edit
+                const editForm = new ModalFormData().title('Edit Item')
+                    .textField('Buy Price', '-1 to disable', { defaultValue: `${selectedItem.buyPrice}` })
+                    .textField('Sell Price', '-1 to disable', { defaultValue: `${selectedItem.sellPrice}` })
+                    .textField('Permission Level', 'e.g., 1024', { defaultValue: `${selectedItem.permissionLevel}` });
+                const editResponse = await utils.uiWait(player, editForm);
+                if (editResponse.canceled) { return showPanel(player, panelId, context); }
+                const [buyPriceStr, sellPriceStr, permLevelStr] = editResponse.formValues;
+                const buyPrice = parseInt(buyPriceStr, 10);
+                const sellPrice = parseInt(sellPriceStr, 10);
+                const permissionLevel = parseInt(permLevelStr, 10);
+                if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
+                    const result = shopAdminManager.setItem(categoryName, subCategoryName, selectedItem.id, { buyPrice, sellPrice, permissionLevel });
+                    player.sendMessage(result.message);
+                }
+            } else { // Delete
+                const result = shopAdminManager.removeItem(categoryName, subCategoryName, selectedItem.id);
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, panelId, { ...context, page: 1 });
+        }
+
+        // Handle pagination
+        let newPage = page;
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+        let buttonIndex = selection - 3 - paginatedItems.length;
+
+        if (hasPrev && buttonIndex === 0) {
+            newPage--;
+        } else if (hasNext) {
+            newPage++;
+        }
+        return showPanel(player, panelId, { ...context, page: newPage });
+    }
+
+    if (panelId.startsWith('shopAdminSubCategoryActionPanel_')) {
+        const subCategoryName = panelId.replace('shopAdminSubCategoryActionPanel_', '');
+        const { categoryName } = context;
+        if (selection === 0) { // Edit
+            const shopConfig = getShopConfig();
+            const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
+            const form = new ModalFormData().title('Edit Subcategory')
+                .textField('Subcategory Name', 'Enter new name', { defaultValue: subCategoryName })
+                .textField('Icon', 'Enter icon texture path', { defaultValue: subCategory.icon });
+            const response = await utils.uiWait(player, form);
+            if (response.canceled) { return showPanel(player, `shopAdminSubCategoryItemPanel_${subCategoryName}`, context); }
+            const [newName, newIcon] = response.formValues;
+            if (newName) {
+                const result = shopAdminManager.editSubCategory(categoryName, subCategoryName, newName, newIcon);
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
+        }
+        if (selection === 1) { // Delete
+            const confirmForm = new ActionFormData().title('Confirm Deletion').body('Are you sure?').button('§cYes, Delete').button('§2No, Cancel');
+            const response = await utils.uiWait(player, confirmForm);
+            if (response.selection === 0) {
+                const result = shopAdminManager.deleteSubCategory(categoryName, subCategoryName);
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
+        }
+        if (selection === 2) { // Back
+            return showPanel(player, `shopAdminSubCategoryItemPanel_${subCategoryName}`, context);
+        }
     }
 
     if (panelId === 'kitManagementPanel') {
@@ -1789,6 +2039,7 @@ function buildShopAdminCategoryPanel(form, context) {
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
     form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
+    form.button('§l§9* Edit Category', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName];
@@ -1801,7 +2052,7 @@ function buildShopAdminCategoryPanel(form, context) {
     const items = Object.keys(category.items).map(id => ({ id, ...category.items[id], type: 'item' }));
     const subCategories = Object.keys(category.subCategories).sort().map(name => ({ name, ...category.subCategories[name], type: 'subCategory' }));
 
-    const allEntries = [...items, ...subCategories];
+    const allEntries = [...subCategories, ...items];
     const paginatedEntries = getPaginatedItems(allEntries, page);
 
     for (const entry of paginatedEntries) {
@@ -1816,6 +2067,37 @@ function buildShopAdminCategoryPanel(form, context) {
     }
 
     addPaginationButtons(form, page, allEntries.length);
+}
+
+function buildShopAdminSubCategoryItemPanel(form, context) {
+    const { categoryName, subCategoryName, page = 1 } = context;
+    form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    form.button('§l§2+ Add Item', 'textures/ui/color_plus');
+    form.button('§l§9* Edit Subcategory', 'textures/ui/icon_setting');
+
+    const shopConfig = getShopConfig();
+    const category = shopConfig.categories[categoryName];
+    if (!category) {
+        form.body('§cCategory not found.');
+        return;
+    }
+    const subCategory = category.subCategories[subCategoryName];
+    if (!subCategory) {
+        form.body('§cSubcategory not found.');
+        return;
+    }
+
+    const items = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
+    const paginatedItems = getPaginatedItems(items, page);
+
+    for (const item of paginatedItems) {
+        const masterItem = allItems[item.id] || {};
+        const displayName = item.displayName || masterItem.displayName || item.id;
+        const icon = item.icon || masterItem.icon;
+        form.button(displayName, icon);
+    }
+
+    addPaginationButtons(form, page, items.length);
 }
 
 function buildShopAddItemPanel(form, context) {
@@ -1881,12 +2163,6 @@ function addPanelBody(form, player, panelId, context) {
             `§fBalance: §2$${pData.balance.toFixed(2)}`,
             `§fBounty on you: §6$${bounty.toFixed(2)}`
         ].join('\n'));
-    } else if (panelId === 'helpfulLinksPanel') {
-        form.body([
-            '§fHere are some helpful links:',
-            `§9Discord: §r${config.serverInfo.discordLink}`,
-            `§1Website: §r${config.serverInfo.websiteLink}`
-        ].join('\n\n'));
     } else if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
         const pData = context.targetData || loadPlayerData(context.targetPlayerId);
         if (!pData) {
@@ -2074,6 +2350,35 @@ uiActionFunctions['showRules'] = async (player) => {
     // If the "Edit Rules" button was shown and clicked
     if (pData && pData.permissionLevel <= 1 && response.selection === 0) {
         return showPanel(player, 'rulesManagementPanel');
+    }
+};
+
+uiActionFunctions['showHelpfulLinks'] = async (player) => {
+    const links = helpfulLinksManager.getHelpfulLinks();
+    const pData = getPlayer(player.id);
+
+    const form = new ActionFormData()
+        .title('§l§9Helpful Links');
+
+    if (links.length === 0) {
+        form.body('§cNo helpful links have been configured by the admin.');
+    } else {
+        const bodyText = links.map(link => `§f${link.title}: §r${link.url}`).join('\n\n');
+        form.body(bodyText);
+    }
+
+    if (pData && pData.permissionLevel <= 1) {
+        form.button('§l§4Edit Links', 'textures/ui/icon_setting');
+    }
+
+    form.button('§l§8Close', 'textures/ui/cancel');
+
+    const response = await utils.uiWait(player, form);
+
+    if (response.canceled) { return; }
+
+    if (pData && pData.permissionLevel <= 1 && response.selection === 0) {
+        return showPanel(player, 'helpfulLinksManagementPanel');
     }
 };
 

@@ -8,6 +8,7 @@ const commandFiles = [
     'help.js',
     'panel.js',
     'rules.js',
+    'links.js',
     'status.js',
     'version.js',
     'deathcoords.js',

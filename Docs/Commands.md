@@ -121,9 +121,9 @@ Commands available to Admins and above.
 
 ### Player Punishment
 - **/ban <target> [duration] [reason]**
-  - Bans a player.
+  - Bans an online player. For offline players, use `/offlineban`.
 - **/unban <target>**
-  - Unbans a player.
+  - Unbans a player, allowing them to rejoin.
 - **/offlineban <target> [duration] [reason]**
   - Bans a player who is currently offline.
 - **/kick <target> [reason]**
@@ -133,15 +133,16 @@ Commands available to Admins and above.
 - **/unmute <target>**
   - Unmutes a player.
 - **/freeze <target>**
-  - Freezes a player, preventing them from moving.
+  - Freezes a player, preventing them from moving or looking around.
 - **/unfreeze <target>**
-  - Unfreezes a player, allowing them to move again.
+  - Unfreezes a player, allowing them to move and look around again.
 
 ### Player Management
 - **/invsee <target> [page]**
   - Views a player's inventory.
-- **/clear [target]**
+- **/xclear [target]**
   - Clears another player's inventory.
+  - *Chat Alias: `!clear`*
 - **/ecwipe [target]**
   - Clears a player's Ender Chest.
 - **/copyinv <target>**
@@ -168,7 +169,7 @@ Commands for high-level server management.
 
 ### Core Management
 - **/xreload**
-  - Reloads the addon configuration.
+  - Reloads the addon's internal configuration state. Does **not** reload file changes from disk.
   - *Chat Alias: `!reload`*
 - **/debug [true|false]**
   - Toggles the script debug logging mode.
@@ -188,6 +189,13 @@ Commands for high-level server management.
   - Sets a player's gamemode.
 - **/rank <set|remove> <target> <rankId>**
   - Manages custom player ranks.
+- **/warp [warpName]**
+  - Teleports you to a specified warp, or opens a UI to select one.
+- **/addwarp <warpName> [x] [y] [z]**
+  - Creates a new warp point.
+  - *Chat Alias: `!setwarp`*
+- **/delwarp [warpName]**
+  - Deletes an existing warp point.
 
 ### World Management
 - **/netherlock [true|false]**

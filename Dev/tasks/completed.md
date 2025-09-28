@@ -4,6 +4,14 @@ This document is an archive of completed tasks.
 
 ---
 
+**Task:** Final Correction and Harmonization of All Project Documentation
+
+**Objective:** Perform a final, definitive update of all project documentation based on critical user feedback. This included correcting command information, fixing reload instructions, and ensuring all links in the CurseForge description were absolute URLs pointing to the `exe` branch.
+
+**Assignee:** Jules
+**Status:** Completed
+---
+
 **Task:** Add logging to debug `spawnProtection.js` crash
 
 **Objective:** Add detailed logging to the `itemUseOn` event in `spawnProtection.js` to diagnose a persistent crash. This includes enabling debug mode in the configuration.
