@@ -61,8 +61,10 @@ async function loadCommands() {
         try {
             await import('./' + file);
         } catch (e) {
-            errorLog(`[CommandLoader] Failed to load command file '${file}':`);
-            errorLog(e.stack);
+            errorLog(`[CommandLoader] Failed to load command file '${file}': ${e.message}`);
+            if (e.stack) {
+                errorLog(`[CommandLoader] Stack trace: ${e.stack}`);
+            }
         }
     }
 }

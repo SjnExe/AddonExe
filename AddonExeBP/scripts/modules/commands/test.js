@@ -1,5 +1,5 @@
 import { system } from '@minecraft/server';
-import { Command } from './command.js';
+import { Command } from './commandManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { debugLog, errorLog } from '../../core/logger.js';
