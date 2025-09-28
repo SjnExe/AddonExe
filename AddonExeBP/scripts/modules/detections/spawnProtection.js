@@ -1,4 +1,4 @@
-import { world, system, Player, EntityDamageCause } from '@minecraft/server';
+import { world, system, Player } from '@minecraft/server';
 import { getSpawnConfig } from '../../core/configurations.js';
 import { getConfig } from '../../core/configManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
