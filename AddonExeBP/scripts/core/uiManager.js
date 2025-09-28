@@ -170,6 +170,28 @@ async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId === 'helpfulLinksManagementPanel') {
+        const form = new ActionFormData().title(title);
+        const links = helpfulLinksManager.getHelpfulLinks();
+        form.button('§l§2+ Add Link', 'textures/ui/color_plus');
+        links.forEach((link, index) => {
+            form.button(`${index + 1}. ${link.title}`);
+        });
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
+    if (panelId === 'helpfulLinksManagementPanel') {
+        const form = new ActionFormData().title(title);
+        const links = helpfulLinksManager.getHelpfulLinks();
+        form.button('§l§2+ Add Link', 'textures/ui/color_plus');
+        links.forEach((link, index) => {
+            form.button(`${index + 1}. ${link.title}`);
+        });
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
     if (panelId.startsWith('kitSettingsPanel_')) {
         const kitName = panelId.replace('kitSettingsPanel_', '');
         const allKits = getAllKits();
@@ -308,6 +330,17 @@ async function buildPanelForm(player, panelId, context) {
         form.button('§l§2+ Add Rule', 'textures/ui/color_plus');
         rules.forEach((rule, index) => {
             form.button(`${index + 1}. ${rule}`);
+        });
+        form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
+    if (panelId === 'helpfulLinksManagementPanel') {
+        const form = new ActionFormData().title(title);
+        const links = helpfulLinksManager.getHelpfulLinks();
+        form.button('§l§2+ Add Link', 'textures/ui/color_plus');
+        links.forEach((link, index) => {
+            form.button(`${index + 1}. ${link.title}`);
         });
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
         return form;

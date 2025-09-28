@@ -2,7 +2,6 @@ export const config = {
     // --- System & Core Settings ---
     version: [1, 0, 0], // This will be replaced by the release workflow
     ownerPlayerNames: ['Your•Name•Here'], // Default : ['Your•Name•Here']
-    adminTag: 'admin',
     commandPrefix: '!',
     serverName: '§cServerExe§r',
     defaultGamemode: 'survival',
