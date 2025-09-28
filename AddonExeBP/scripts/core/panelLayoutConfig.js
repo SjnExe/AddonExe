@@ -106,8 +106,8 @@ export const panelDefinitions = {
                 text: '§9Helpful Links',
                 icon: 'textures/items/chain',
                 permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'helpfulLinksPanel',
+                actionType: 'functionCall',
+                actionValue: 'showHelpfulLinks',
                 sortId: 70
             },
             {
@@ -299,6 +299,36 @@ export const panelDefinitions = {
     ruleActionPanel: {
         title: 'Manage Rule',
         parentPanelId: 'rulesManagementPanel',
+        items: [] // Dynamically populated
+    },
+    helpfulLinksManagementPanel: {
+        title: '§l§9Links Management',
+        parentPanelId: 'mainPanel',
+        items: [] // Dynamically populated
+    },
+    addHelpfulLinkPanel: {
+        title: 'Add New Link',
+        parentPanelId: 'helpfulLinksManagementPanel',
+        items: [] // Modal form, no items needed
+    },
+    helpfulLinkActionPanel: {
+        title: 'Manage Link',
+        parentPanelId: 'helpfulLinksManagementPanel',
+        items: [] // Dynamically populated
+    },
+    shopAdminCategoryActionPanel: {
+        title: 'Manage Category',
+        parentPanelId: 'shopManagementPanel',
+        items: [] // Dynamically populated
+    },
+    shopAdminSubCategoryItemPanel: {
+        title: 'Manage Subcategory Items',
+        parentPanelId: 'shopAdminCategoryPanel', // This will be dynamic
+        items: [] // Dynamically populated
+    },
+    shopAdminSubCategoryActionPanel: {
+        title: 'Manage Subcategory',
+        parentPanelId: 'shopAdminSubCategoryItemPanel', // This will be dynamic
         items: [] // Dynamically populated
     }
 };
