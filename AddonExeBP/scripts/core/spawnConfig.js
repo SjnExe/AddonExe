@@ -14,7 +14,7 @@ export const spawnConfig = {
 
     // --- Spawn Protection Settings ---
     spawnProtection: {
-        enabled: true,
+        enabled: false,
         protectionRadius: 32,
         allowAdminBypass: true,
         preventPvP: true,
@@ -24,9 +24,8 @@ export const spawnConfig = {
         preventBlockPlacing: true,
         preventExplosions: true,
         preventBlockInteraction: true,
-        preventFire: true,
         preventHungerLoss: true,
-        preventItemDropping: false,
-        preventItemPickup: false
+        preventItemDropping: true,
+        preventItemPickup: true
     }
 };

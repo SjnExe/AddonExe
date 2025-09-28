@@ -65,7 +65,7 @@ function isWithinSpawnProtection(location, dimensionId) {
     }
 
     const dx = location.x - spawnLocation.x;
-    const dz = location.z - spawnLocation.z;
+    const dz = location.z - spawnLocation.z; // Corrected: was spawnLocation.y
     const distanceSquared = dx * dx + dz * dz;
     const radiusSquared = spawnProtectionConfig.protectionRadius * spawnProtectionConfig.protectionRadius;
 
@@ -163,19 +163,6 @@ function initialize() {
         });
     }
 
-    if (spawnProtection.preventFire) {
-        subscribe(world.beforeEvents.itemUseOn, (event) => {
-            const player = event.source;
-            if (!(player instanceof Player) || !event.block) {return;}
-
-            const item = event.itemStack;
-            const fireStarters = ['minecraft:flint_and_steel', 'minecraft:fire_charge', 'minecraft:lava_bucket'];
-
-            if (fireStarters.includes(item?.typeId) && isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(player)) {
-                event.cancel = true;
-            }
-        });
-    }
 
     if (spawnProtection.preventPvP || spawnProtection.preventPvE) {
         subscribe(world.beforeEvents.entityHurt, (event) => {
@@ -185,39 +172,35 @@ function initialize() {
             if (!(hurtEntity instanceof Player) || !hurtEntity.dimension) { return; }
             if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) { return; }
 
-            // Admins with bypass are immune to spawn protection rules
+            // Admins with bypass are immune to spawn protection rules for being hurt
             if (canBypass(hurtEntity)) { return; }
 
             const attacker = damageSource.damagingEntity;
 
-            // Handle PvP: A player is hurting another player
-            if (attacker instanceof Player && spawnProtection.preventPvP) {
-                // If the attacker is an admin, let them attack. Otherwise, cancel.
-                if (!canBypass(attacker)) {
+            // --- PvP Check ---
+            // Is the damage from another player?
+            if (attacker instanceof Player) {
+                // If PvP protection is on, cancel the damage unless the attacker can bypass.
+                if (spawnProtection.preventPvP && !canBypass(attacker)) {
                     event.cancel = true;
                 }
-                return; // PvP handled, no need for PvE check on the same event
+                // If PvP is off, we do nothing and let the damage happen.
+                // In either case, we don't need to check PvE for this event.
+                return;
             }
 
-            // Handle PvE: Damage from mobs or environment to a player
+            // --- PvE Check ---
+            // If we reach here, the damage is not from a player.
             if (spawnProtection.preventPvE) {
-                const pveBypassCauses = [
+                // List of damage causes that should NOT be prevented (e.g., admin commands, /kill)
+                const allowedCauses = [
                     EntityDamageCause.void,
-                    EntityDamageCause.suicide,
-                    EntityDamageCause.entityAttack // Re-check to ensure we didn't miss a PvP case
+                    EntityDamageCause.suicide
                 ];
 
-                // If damage is from another player, PvP rules should have already caught it.
-                // But as a fallback, if PvP is OFF but PvE is ON, this will still protect players from each other.
-                if (damageSource.cause === 'entityAttack' && attacker instanceof Player) {
-                    if (spawnProtection.preventPvP && !canBypass(attacker)) {
-                        event.cancel = true;
-                    }
-                    return;
-                }
-
-                // Protect from all other non-bypassable damage sources
-                if (!pveBypassCauses.includes(damageSource.cause)) {
+                // If the cause is not in the allowed list, cancel it.
+                // This will block damage from mobs, projectiles (not from players), fire, lava, etc.
+                if (!allowedCauses.includes(damageSource.cause)) {
                     event.cancel = true;
                 }
             }

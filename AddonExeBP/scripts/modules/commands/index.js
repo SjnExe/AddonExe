@@ -42,6 +42,7 @@ const commandFiles = [
     'clearchat.js',
 
     // --- Administration Commands ---
+    'test.js',
     'dimensionLock.js',
     'debug.js',
     'gamemode.js',
