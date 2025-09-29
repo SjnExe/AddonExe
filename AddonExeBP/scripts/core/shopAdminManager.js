@@ -222,32 +222,73 @@ export function addShopItemFromHand(itemStack, categoryName, subCategoryName, bu
         return { success: false, message: "You aren't holding anything." };
     }
 
-    // 1. Generate a unique ID for the shop key
+    // 1. Generate a truly unique ID by checking both the base config and the live shop config.
+    const allExistingIds = new Set(Object.keys(items));
+    const shopConfig = getShopConfig();
+    if (shopConfig && shopConfig.categories) {
+        for (const category of Object.values(shopConfig.categories)) {
+            if (category.items) {
+                for (const itemId of Object.keys(category.items)) {
+                    allExistingIds.add(itemId);
+                }
+            }
+            if (category.subCategories) {
+                for (const subCategory of Object.values(category.subCategories)) {
+                    if (subCategory.items) {
+                        for (const itemId of Object.keys(subCategory.items)) {
+                            allExistingIds.add(itemId);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     const baseId = itemStack.typeId.replace('minecraft:', '');
     let i = 1;
     let newId = `${baseId}_${i}`;
-    while (items[newId]) {
+    while (allExistingIds.has(newId)) {
         i++;
         newId = `${baseId}_${i}`;
     }
 
     // 2. Determine the best icon and display name
-    const displayName = itemStack.nameTag || generateDisplayName(itemStack.typeId);
-
+    let displayName = itemStack.nameTag;
     let icon;
+
+    // Priority 1: Check existing items config
     const existingItem = Object.values(items).find(item => item.itemId === itemStack.typeId);
-    if (existingItem && existingItem.icon) {
+    if (existingItem) {
         icon = existingItem.icon;
-        debugLog(`[ShopAdminManager] Found existing icon for ${itemStack.typeId} in master config.`);
-    } else if (iconDB[itemStack.typeId]) {
-        icon = iconDB[itemStack.typeId];
-        debugLog(`[ShopAdminManager] Found icon for ${itemStack.typeId} in icon database.`);
-    } else {
+        displayName = displayName || existingItem.displayName;
+        debugLog(`[ShopAdminManager] Found existing item for ${itemStack.typeId} in master config.`);
+    }
+
+    // Priority 2: Check the icon and name database
+    const dbEntry = iconDB[itemStack.typeId];
+    if (dbEntry) {
+        if (!icon) {
+            icon = dbEntry.icon;
+            debugLog(`[ShopAdminManager] Found icon for ${itemStack.typeId} in database.`);
+        }
+        if (!displayName) {
+            displayName = dbEntry.displayName;
+            debugLog(`[ShopAdminManager] Found display name for ${itemStack.typeId} in database.`);
+        }
+    }
+
+    // Priority 3: Fallback to guessing
+    if (!icon) {
         const iconBaseId = itemStack.typeId.includes(':') ? itemStack.typeId.split(':')[1] : itemStack.typeId;
         const textureType = itemStack.isBlock ? 'blocks' : 'items';
         icon = `textures/${textureType}/${iconBaseId}`;
         debugLog(`[ShopAdminManager] Guessed icon for ${itemStack.typeId} as a ${textureType}.`);
     }
+    if (!displayName) {
+        displayName = generateDisplayName(itemStack.typeId);
+        debugLog(`[ShopAdminManager] Generated display name for ${itemStack.typeId}.`);
+    }
+
 
     // 3. Add to master item list (in memory)
     const newItemConfig = {
