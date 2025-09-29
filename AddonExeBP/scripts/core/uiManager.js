@@ -22,7 +22,7 @@ import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
 import * as rulesManager from './rulesManager.js';
 import * as helpfulLinksManager from './helpfulLinksManager.js';
 import * as shopManager from './shopManager.js';
-import { getKitsConfig, saveKitsConfig, getShopConfig, saveShopConfig, getSpawnConfig, saveSpawnConfig } from './configurations.js';
+import { getKitsConfig, saveKitsConfig, getShopConfig, getSpawnConfig, saveSpawnConfig } from './configurations.js';
 import { items as allItems } from './itemsConfig.js';
 import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from './kitAdminManager.js';
 import { addItemToKit, updateItemInKit } from './kitItemsManager.js';
@@ -579,12 +579,12 @@ async function handleFormResponse(player, panelId, response, context) {
             if (hasPrev && buttonIndex === 0) {
                 return showPanel(player, panelId, { ...context, page: page - 1 });
             }
-            if (hasPrev) buttonIndex--;
+            if (hasPrev) {buttonIndex--;}
 
             if (hasNext && buttonIndex === 0) {
                 return showPanel(player, panelId, { ...context, page: page + 1 });
             }
-            if (hasNext) buttonIndex--;
+            if (hasNext) {buttonIndex--;}
         }
         return;
     }
@@ -633,12 +633,12 @@ async function handleFormResponse(player, panelId, response, context) {
             if (hasPrev && buttonIndex === 0) {
                 return showPanel(player, panelId, { ...context, page: page - 1 });
             }
-            if (hasPrev) buttonIndex--;
+            if (hasPrev) {buttonIndex--;}
 
             if (hasNext && buttonIndex === 0) {
                 return showPanel(player, panelId, { ...context, page: page + 1 });
             }
-            if (hasNext) buttonIndex--;
+            if (hasNext) {buttonIndex--;}
         }
         return;
     }
@@ -1191,7 +1191,6 @@ async function handleFormResponse(player, panelId, response, context) {
 
     if (panelId.startsWith('shopAdminCategoryActionPanel_')) {
         const categoryName = panelId.replace('shopAdminCategoryActionPanel_', '');
-        const { page = 1 } = context;
 
         if (selection === 0) { // Edit
             const shopConfig = getShopConfig();
