@@ -119,8 +119,8 @@ commandManager.register({
     allowConsole: false,
     parameters: [
         { name: 'category', type: 'string', description: 'The shop category to add the item to.' },
-        { name: 'buyPrice', type: 'number', description: 'The price to buy the item. Use -1 to disable.' },
-        { name: 'sellPrice', type: 'number', description: 'The price to sell the item. Use -1 to disable.' },
+        { name: 'buyPrice', type: 'float', description: 'The price to buy the item. Use -1 to disable.' },
+        { name: 'sellPrice', type: 'float', description: 'The price to sell the item. Use -1 to disable.' },
         { name: 'subCategory', type: 'string', description: 'The subcategory to add the item to.', optional: true }
     ],
     execute: (player, args) => {
