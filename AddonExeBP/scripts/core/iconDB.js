@@ -74,11 +74,7 @@ export const iconDB = {
     "minecraft:sugar_cane": { icon: "textures/items/reeds", displayName: "Sugar Cane" },
     "minecraft:nether_wart": { icon: "textures/items/nether_wart", displayName: "Nether Wart" },
     "minecraft:enchanted_book": { icon: "textures/items/book_enchanted", displayName: "Enchanted Book" },
-
-    // Custom Items
     "exe:panel": { icon: "textures/items/breeze_rod", displayName: "§l§bPanel§r" },
-
-    // Supplemental Items from item_texture.json
     "minecraft:apple": { icon: "textures/items/apple", displayName: "Apple" },
     "minecraft:arrow": { icon: "textures/items/arrow", displayName: "Arrow" },
     "minecraft:beef": { icon: "textures/items/beef_raw", displayName: "Raw Beef" },
