@@ -244,8 +244,9 @@ export function addShopItemFromHand(itemStack, categoryName, subCategoryName, bu
         debugLog(`[ShopAdminManager] Found icon for ${itemStack.typeId} in icon database.`);
     } else {
         const iconBaseId = itemStack.typeId.includes(':') ? itemStack.typeId.split(':')[1] : itemStack.typeId;
-        icon = `textures/items/${iconBaseId}`;
-        debugLog(`[ShopAdminManager] Guessed icon for ${itemStack.typeId}.`);
+        const textureType = itemStack.isBlock ? 'blocks' : 'items';
+        icon = `textures/${textureType}/${iconBaseId}`;
+        debugLog(`[ShopAdminManager] Guessed icon for ${itemStack.typeId} as a ${textureType}.`);
     }
 
     // 3. Add to master item list (in memory)
