@@ -15,7 +15,7 @@ commandManager.register({
     parameters: [],
     execute: (player, args) => {
         const config = getConfig();
-        if (!(config.shop?.enabled ?? true)) {
+        if (!config.shop.enabled) {
             return player.sendMessage('§cThe shop is currently disabled.');
         }
         showPanel(player, 'shopMainPanel', { view: 'shop' });
@@ -33,7 +33,7 @@ commandManager.register({
     parameters: [],
     execute: (player, args) => {
         const config = getConfig();
-        if (!(config.shop?.enabled ?? true)) {
+        if (!config.shop.enabled) {
             return player.sendMessage('§cThe shop is currently disabled.');
         }
         showPanel(player, 'shopMainPanel', { view: 'buy' });
@@ -51,7 +51,7 @@ commandManager.register({
     parameters: [],
     execute: (player, args) => {
         const config = getConfig();
-        if (!(config.shop?.enabled ?? true)) {
+        if (!config.shop.enabled) {
             return player.sendMessage('§cThe shop is currently disabled.');
         }
         showPanel(player, 'shopMainPanel', { view: 'sell' });
@@ -69,7 +69,7 @@ commandManager.register({
     parameters: [],
     execute: (player, args) => {
         const config = getConfig();
-        if (!(config.shop?.enabled ?? true)) {
+        if (!config.shop.enabled) {
             return player.sendMessage('§cThe shop is currently disabled.');
         }
         const equipment = player.getComponent('minecraft:equippable');
