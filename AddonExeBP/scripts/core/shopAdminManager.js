@@ -1,6 +1,8 @@
 import { getShopConfig, saveShopConfig } from './configurations.js';
 import { debugLog } from './logger.js';
 import { items } from './itemsConfig.js';
+import { generateDisplayName } from './utils.js';
+import { iconDB } from './iconDB.js';
 
 /**
  * Adds a new category to the shop.
@@ -220,39 +222,98 @@ export function addShopItemFromHand(itemStack, categoryName, subCategoryName, bu
         return { success: false, message: "You aren't holding anything." };
     }
 
-    // 1. Generate a unique ID
+    // 1. Generate a truly unique ID by checking both the base config and the live shop config.
+    const allExistingIds = new Set(Object.keys(items));
+    const shopConfig = getShopConfig();
+    if (shopConfig && shopConfig.categories) {
+        for (const category of Object.values(shopConfig.categories)) {
+            if (category.items) {
+                for (const itemId of Object.keys(category.items)) {
+                    allExistingIds.add(itemId);
+                }
+            }
+            if (category.subCategories) {
+                for (const subCategory of Object.values(category.subCategories)) {
+                    if (subCategory.items) {
+                        for (const itemId of Object.keys(subCategory.items)) {
+                            allExistingIds.add(itemId);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     const baseId = itemStack.typeId.replace('minecraft:', '');
     let i = 1;
     let newId = `${baseId}_${i}`;
-    while (items[newId]) {
+    while (allExistingIds.has(newId)) {
         i++;
         newId = `${baseId}_${i}`;
     }
 
-    // 2. Add to master item list (in memory)
+    // 2. Determine the best icon and display name
+    let displayName = itemStack.nameTag;
+    let icon;
+
+    // Priority 1: Check existing items config
+    const existingItem = Object.values(items).find(item => item.itemId === itemStack.typeId);
+    if (existingItem) {
+        icon = existingItem.icon;
+        displayName = displayName || existingItem.displayName;
+        debugLog(`[ShopAdminManager] Found existing item for ${itemStack.typeId} in master config.`);
+    }
+
+    // Priority 2: Check the icon and name database
+    const dbEntry = iconDB[itemStack.typeId];
+    if (dbEntry) {
+        if (!icon) {
+            icon = dbEntry.icon;
+            debugLog(`[ShopAdminManager] Found icon for ${itemStack.typeId} in database.`);
+        }
+        if (!displayName) {
+            displayName = dbEntry.displayName;
+            debugLog(`[ShopAdminManager] Found display name for ${itemStack.typeId} in database.`);
+        }
+    }
+
+    // Priority 3: Fallback to guessing
+    if (!icon) {
+        const iconBaseId = itemStack.typeId.includes(':') ? itemStack.typeId.split(':')[1] : itemStack.typeId;
+        const textureType = itemStack.isBlock ? 'blocks' : 'items';
+        icon = `textures/${textureType}/${iconBaseId}`;
+        debugLog(`[ShopAdminManager] Guessed icon for ${itemStack.typeId} as a ${textureType}.`);
+    }
+    if (!displayName) {
+        displayName = generateDisplayName(itemStack.typeId);
+        debugLog(`[ShopAdminManager] Generated display name for ${itemStack.typeId}.`);
+    }
+
+
+    // 3. Add to master item list (in memory)
     const newItemConfig = {
         itemId: itemStack.typeId,
-        icon: `textures/items/${baseId}`, // Default icon path
-        displayName: itemStack.nameTag || `item.${itemStack.typeId.replace(':', '.')}.name`,
+        icon: icon,
+        displayName: displayName,
         buyPrice: buyPrice,
         sellPrice: sellPrice
     };
     addCustomItemToConfig(newId, newItemConfig);
     debugLog(`[ShopAdminManager] Added new custom item '${newId}' to master list.`);
 
-    // 3. Add to shop category/subcategory
+    // 4. Add to shop category/subcategory
     const shopItemData = {
         buyPrice,
         sellPrice,
         permissionLevel: 1024, // Default to everyone
-        icon: newItemConfig.icon,
-        displayName: newItemConfig.displayName
+        icon: icon,
+        displayName: displayName
     };
 
     const setResult = setItem(categoryName, subCategoryName, newId, shopItemData);
 
     if (setResult.success) {
-        return { success: true, message: `Successfully added '${newId}' to the shop.`, itemId: newId };
+        return { success: true, message: `Successfully added '${displayName}' to the shop.`, itemId: newId };
     } else {
         // Rollback the addition to the master list if adding to shop fails
         delete items[newId];
