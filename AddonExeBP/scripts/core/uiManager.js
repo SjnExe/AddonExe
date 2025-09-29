@@ -234,13 +234,23 @@ async function buildPanelForm(player, panelId, context) {
 
     if (panelId === 'helpfulLinksManagementPanel') {
         const panelDef = panelDefinitions[panelId];
-        const form = new ActionFormData().title(panelDef.title);
+        const page = context.page || 1;
+        const form = new ActionFormData().title(`${panelDef.title} (Page ${page})`);
         const links = helpfulLinksManager.getHelpfulLinks();
-        form.button('§l§2+ Add Link', 'textures/ui/color_plus');
-        links.forEach((link, index) => {
-            form.button(`${index + 1}. ${link.title}`);
-        });
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        form.button('§l§2+ Add Link', 'textures/ui/color_plus');
+
+        const paginatedLinks = getPaginatedItems(links, page);
+
+        paginatedLinks.forEach((link, index) => {
+            const itemIndex = ((page - 1) * itemsPerPage) + index;
+            form.button(`${itemIndex + 1}. ${link.title}`);
+        });
+
+        if (links.length > itemsPerPage) {
+            addPaginationButtons(form, page, links.length);
+        }
+
         return form;
     }
 
@@ -333,13 +343,23 @@ async function buildPanelForm(player, panelId, context) {
     if (panelId === 'playerListPanel') {return buildPlayerListForm(title, context);}
 
     if (panelId === 'rulesManagementPanel') {
-        const form = new ActionFormData().title(title);
+        const page = context.page || 1;
+        const form = new ActionFormData().title(`${title} (Page ${page})`);
         const rules = rulesManager.getRules();
-        form.button('§l§2+ Add Rule', 'textures/ui/color_plus');
-        rules.forEach((rule, index) => {
-            form.button(`${index + 1}. ${rule}`);
-        });
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        form.button('§l§2+ Add Rule', 'textures/ui/color_plus');
+
+        const paginatedRules = getPaginatedItems(rules, page);
+
+        paginatedRules.forEach((rule, index) => {
+            const itemIndex = ((page - 1) * itemsPerPage) + index;
+            form.button(`${itemIndex + 1}. ${rule}`);
+        });
+
+        if (rules.length > itemsPerPage) {
+            addPaginationButtons(form, page, rules.length);
+        }
+
         return form;
     }
 
@@ -528,22 +548,43 @@ async function handleFormResponse(player, panelId, response, context) {
     if (!pData) {return;}
 
     if (panelId === 'rulesManagementPanel') {
+        const page = context.page || 1;
         const rules = rulesManager.getRules();
-        // "Add Rule" is at index 0
+
+        // Back button
         if (selection === 0) {
+            return showPanel(player, 'mainPanel', context);
+        }
+        // "Add Rule" button
+        if (selection === 1) {
             return showPanel(player, 'addRulePanel', context);
         }
 
-        const ruleIndex = selection - 1;
+        const paginatedRules = getPaginatedItems(rules, page);
+        const selectionIndex = selection - 2;
 
-        // Check if a rule button was clicked
-        if (ruleIndex >= 0 && ruleIndex < rules.length) {
+        // Handle rule selection
+        if (selectionIndex < paginatedRules.length) {
+            const ruleIndex = ((page - 1) * itemsPerPage) + selectionIndex;
             return showPanel(player, 'ruleActionPanel', { ...context, ruleIndex });
         }
 
-        // The last button is "Back"
-        if (selection === rules.length + 1) {
-            return showPanel(player, 'mainPanel', context);
+        // Handle pagination
+        let buttonIndex = selectionIndex - paginatedRules.length;
+        const totalPages = Math.ceil(rules.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+
+        if (rules.length > itemsPerPage) {
+            if (hasPrev && buttonIndex === 0) {
+                return showPanel(player, panelId, { ...context, page: page - 1 });
+            }
+            if (hasPrev) buttonIndex--;
+
+            if (hasNext && buttonIndex === 0) {
+                return showPanel(player, panelId, { ...context, page: page + 1 });
+            }
+            if (hasNext) buttonIndex--;
         }
         return;
     }
@@ -561,16 +602,43 @@ async function handleFormResponse(player, panelId, response, context) {
     }
 
     if (panelId === 'helpfulLinksManagementPanel') {
+        const page = context.page || 1;
         const links = helpfulLinksManager.getHelpfulLinks();
+
+        // Back button
         if (selection === 0) {
+            return showPanel(player, 'mainPanel', context);
+        }
+        // Add Link button
+        if (selection === 1) {
             return showPanel(player, 'addHelpfulLinkPanel', context);
         }
-        const linkIndex = selection - 1;
-        if (linkIndex >= 0 && linkIndex < links.length) {
+
+        const paginatedLinks = getPaginatedItems(links, page);
+        const selectionIndex = selection - 2;
+
+        // Handle link selection
+        if (selectionIndex < paginatedLinks.length) {
+            const linkIndex = ((page - 1) * itemsPerPage) + selectionIndex;
             return showPanel(player, 'helpfulLinkActionPanel', { ...context, linkIndex });
         }
-        if (selection === links.length + 1) {
-            return showPanel(player, 'mainPanel', context);
+
+        // Handle pagination
+        let buttonIndex = selectionIndex - paginatedLinks.length;
+        const totalPages = Math.ceil(links.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+
+        if (links.length > itemsPerPage) {
+            if (hasPrev && buttonIndex === 0) {
+                return showPanel(player, panelId, { ...context, page: page - 1 });
+            }
+            if (hasPrev) buttonIndex--;
+
+            if (hasNext && buttonIndex === 0) {
+                return showPanel(player, panelId, { ...context, page: page + 1 });
+            }
+            if (hasNext) buttonIndex--;
         }
         return;
     }
@@ -991,7 +1059,16 @@ async function handleFormResponse(player, panelId, response, context) {
     if (panelId === 'shopManagementPanel') {
         const page = context.page || 1;
         if (selection === 0) { return showPanel(player, 'configCategoryPanel'); }
-        if (selection === 1) { // Add Category
+
+        if (selection === 1) {
+            const mainConfig = getConfig();
+            const newStatus = !mainConfig.shop.enabled;
+            updateMultipleConfig({ 'shop.enabled': newStatus });
+            player.sendMessage(`§2Shop system has been ${newStatus ? 'enabled' : 'disabled'}.`);
+            return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
+        }
+
+        if (selection === 2) { // Add Category
             const form = new ModalFormData().title('Add Category').textField('Category Name', 'Enter category name').textField('Icon', 'Enter icon texture path');
             const response = await utils.uiWait(player, form);
             if (response.canceled) { return showPanel(player, panelId, context); }
@@ -1006,7 +1083,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const shopConfig = getShopConfig();
         const categories = Object.keys(shopConfig.categories).sort();
         const paginatedCategories = getPaginatedItems(categories, page);
-        const selectedCategoryName = paginatedCategories[selection - 2];
+        const selectedCategoryName = paginatedCategories[selection - 3];
 
         if (selectedCategoryName) {
             return showPanel(player, `shopAdminCategoryPanel_${selectedCategoryName}`, { categoryName: selectedCategoryName });
@@ -1016,7 +1093,7 @@ async function handleFormResponse(player, panelId, response, context) {
         const totalPages = Math.ceil(categories.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        let buttonIndex = selection - 2 - paginatedCategories.length;
+        let buttonIndex = selection - 3 - paginatedCategories.length;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;
@@ -1913,10 +1990,10 @@ function getPaginatedItems(items, page) {
 function addPaginationButtons(form, page, totalItems) {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
-        form.button('§e< Previous');
+        form.button('§l§4< §1Previous');
     }
     if (page < totalPages) {
-        form.button('§eNext >');
+        form.button('§l§1Next §4>');
     }
 }
 
@@ -2019,7 +2096,14 @@ function buildShopItemListPanel(form, context) {
 // --- Admin Edit Shop Builder Functions ---
 function buildShopAdminMainPanel(form, context) {
     const { page = 1 } = context;
+    const mainConfig = getConfig();
+
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+    const isEnabled = mainConfig.shop.enabled;
+    const toggleText = isEnabled ? '§2Shop System: ENABLED' : '§cShop System: DISABLED';
+    form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
+
     form.button('§l§2+ Add Category', 'textures/ui/color_plus');
 
     const shopConfig = getShopConfig();
@@ -2141,7 +2225,16 @@ function getVisiblePlayerActionItems(context, permissionLevel) {
 }
 
 function getMenuItems(panelDef, permissionLevel) {
-    const items = (panelDef.items || []).filter(item => permissionLevel <= item.permissionLevel).sort((a, b) => (a.sortId || 0) - (b.sortId || 0));
+    const config = getConfig();
+    const items = (panelDef.items || [])
+        .filter(item => {
+            if (item.actionValue === 'shopMainPanel' && !config.shop.enabled) {
+                return false;
+            }
+            return permissionLevel <= item.permissionLevel;
+        })
+        .sort((a, b) => (a.sortId || 0) - (b.sortId || 0));
+
     if (panelDef.parentPanelId) {
         items.unshift({ id: '__back__', text: '§l§8< Back', icon: 'textures/gui/controls/left.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: panelDef.parentPanelId });
     }
@@ -2573,8 +2666,8 @@ uiActionFunctions['bountyPlayer'] = async (player, context) => {
         const [amountStr] = response.formValues;
         const amount = Number(amountStr);
         const config = getConfig();
-        if (isNaN(amount) || amount < config.economy.minimumBounty) {
-            player.sendMessage(`§cInvalid amount. The minimum bounty is $${config.economy.minimumBounty}.`);
+        if (isNaN(amount) || amount < config.bounties.minimumBounty) {
+            player.sendMessage(`§cInvalid amount. The minimum bounty is $${config.bounties.minimumBounty}.`);
             return true;
         }
         if (economyManager.getBalance(player.id) < amount) {

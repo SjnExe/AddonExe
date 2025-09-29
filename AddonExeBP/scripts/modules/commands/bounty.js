@@ -65,8 +65,8 @@ function placeBounty(player, targetPlayer, amount) {
         player.sendMessage('§cPlayer not found.');
         return;
     }
-    if (isNaN(amount) || amount < config.economy.minimumBounty) {
-        player.sendMessage(`§cInvalid amount. The minimum bounty is $${config.economy.minimumBounty}.`);
+    if (isNaN(amount) || amount < config.bounties.minimumBounty) {
+        player.sendMessage(`§cInvalid amount. The minimum bounty is $${config.bounties.minimumBounty}.`);
         return;
     }
 
