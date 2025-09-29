@@ -2,6 +2,7 @@
  * A comprehensive database mapping Minecraft item IDs to their default texture paths.
  * This is used to automatically assign icons to new items added to the shop.
  * Manually curated for accuracy, especially for blocks with special texture names.
+ * Corrected using the project's own itemsConfig.js as the source of truth.
  */
 export const iconDB = {
     // Ores & Minerals (Items)
@@ -12,7 +13,7 @@ export const iconDB = {
     "minecraft:iron_ingot": "textures/items/iron_ingot",
     "minecraft:netherite_ingot": "textures/items/netherite_ingot",
     "minecraft:netherite_scrap": "textures/items/netherite_scrap",
-    "minecraft:lapis_lazuli": "textures/items/lapis_lazuli",
+    "minecraft:lapis_lazuli": "textures/blocks/lapis_ore",
     "minecraft:quartz": "textures/items/quartz",
     "minecraft:raw_iron": "textures/items/raw_iron",
     "minecraft:raw_gold": "textures/items/raw_gold",
@@ -55,8 +56,8 @@ export const iconDB = {
     "minecraft:dark_oak_log": "textures/blocks/log_big_oak_top",
     "minecraft:mangrove_log": "textures/blocks/mangrove_log_top",
     "minecraft:cherry_log": "textures/blocks/cherry_log_top",
-    "minecraft:crimson_stem": "textures/blocks/crimson_stem_top",
-    "minecraft:warped_stem": "textures/blocks/warped_stem_top",
+    "minecraft:crimson_stem": "textures/blocks/huge_fungus/crimson_log_top",
+    "minecraft:warped_stem": "textures/blocks/huge_fungus/warped_stem_top",
     "minecraft:stripped_oak_log": "textures/blocks/stripped_oak_log_top",
     "minecraft:stripped_spruce_log": "textures/blocks/stripped_spruce_log_top",
     "minecraft:stripped_birch_log": "textures/blocks/stripped_birch_log_top",
@@ -310,6 +311,10 @@ export const iconDB = {
     "minecraft:tipped_arrow": "textures/items/tipped_arrow",
     "minecraft:snowball": "textures/items/snowball",
     "minecraft:egg": "textures/items/egg",
+    "minecraft:pumpkin": "textures/blocks/pumpkin_face_off",
+    "minecraft:sugar_cane": "textures/items/reeds",
+    "minecraft:terracotta": "textures/blocks/hardened_clay",
+    "minecraft:stone_bricks": "textures/blocks/stonebrick",
 
     // Mob Drops
     "minecraft:bone": "textures/items/bone",
@@ -334,7 +339,7 @@ export const iconDB = {
     "minecraft:honeycomb": "textures/items/honeycomb",
     "minecraft:nautilus_shell": "textures/items/nautilus",
     "minecraft:heart_of_the_sea": "textures/items/heartofthesea_closed",
-    "minecraft:wither_skeleton_skull": "textures/items/skull_wither_skeleton",
+    "minecraft:wither_skeleton_skull": "textures/items/spawn_eggs/spawn_egg_wither_skeleton",
     "minecraft:skeleton_skull": "textures/items/skull_skeleton",
     "minecraft:zombie_head": "textures/items/skull_zombie",
     "minecraft:creeper_head": "textures/items/skull_creeper",
