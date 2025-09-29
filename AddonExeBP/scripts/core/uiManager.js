@@ -1062,7 +1062,7 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (selection === 1) {
             const mainConfig = getConfig();
-            const newStatus = !(mainConfig.shop?.enabled ?? true);
+            const newStatus = !mainConfig.shop.enabled;
             updateMultipleConfig({ 'shop.enabled': newStatus });
             player.sendMessage(`§2Shop system has been ${newStatus ? 'enabled' : 'disabled'}.`);
             return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
@@ -1140,19 +1140,30 @@ async function handleFormResponse(player, panelId, response, context) {
                 const response = await utils.uiWait(player, form);
                 if (response.canceled) { return showPanel(player, panelId, context); }
                 if (response.selection === 0) { // Edit
-                    const editForm = new ModalFormData().title('Edit Item')
-                        .textField('Buy Price', '-1 to disable', { defaultValue: `${selectedEntry.buyPrice}` })
-                        .textField('Sell Price', '-1 to disable', { defaultValue: `${selectedEntry.sellPrice}` })
-                        .textField('Permission Level', 'e.g., 1024', { defaultValue: `${selectedEntry.permissionLevel}` });
+                    const masterItem = allItems[selectedEntry.id] || {};
+                    const editForm = new ModalFormData().title(`Edit Item: ${selectedEntry.id}`)
+                        .textField('Display Name', 'e.g., Magical Sword', { defaultValue: selectedEntry.displayName || masterItem.displayName })
+                        .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', { defaultValue: masterItem.itemId })
+                        .textField('Icon Path', 'e.g., textures/items/diamond_sword', { defaultValue: selectedEntry.icon || masterItem.icon })
+                        .textField('Buy Price', '-1 to disable', { defaultValue: String(selectedEntry.buyPrice) })
+                        .textField('Sell Price', '-1 to disable', { defaultValue: String(selectedEntry.sellPrice) })
+                        .textField('Permission Level', 'e.g., 1024', { defaultValue: String(selectedEntry.permissionLevel) });
+
                     const editResponse = await utils.uiWait(player, editForm);
                     if (editResponse.canceled) { return showPanel(player, panelId, context); }
-                    const [buyPriceStr, sellPriceStr, permLevelStr] = editResponse.formValues;
-                    const buyPrice = parseInt(buyPriceStr, 10);
-                    const sellPrice = parseInt(sellPriceStr, 10);
-                    const permissionLevel = parseInt(permLevelStr, 10);
-                    if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
-                        const result = shopAdminManager.setItem(categoryName, null, selectedEntry.id, { buyPrice, sellPrice, permissionLevel });
+
+                    const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] = editResponse.formValues;
+                    const buyPrice = Number(buyPriceStr);
+                    const sellPrice = Number(sellPriceStr);
+                    const permissionLevel = Number(permLevelStr);
+
+                    if (displayName && minecraftId && icon && !isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
+                        const result = shopAdminManager.updateShopItem(categoryName, null, selectedEntry.id, {
+                            buyPrice, sellPrice, permissionLevel, icon, minecraftId, displayName
+                        });
                         player.sendMessage(result.message);
+                    } else {
+                        player.sendMessage('§cInvalid data. Please check all fields.');
                     }
                 } else { // Delete
                     const result = shopAdminManager.removeItem(categoryName, null, selectedEntry.id);
@@ -1234,19 +1245,30 @@ async function handleFormResponse(player, panelId, response, context) {
             const response = await utils.uiWait(player, form);
             if (response.canceled) { return showPanel(player, panelId, context); }
             if (response.selection === 0) { // Edit
-                const editForm = new ModalFormData().title('Edit Item')
-                    .textField('Buy Price', '-1 to disable', { defaultValue: `${selectedItem.buyPrice}` })
-                    .textField('Sell Price', '-1 to disable', { defaultValue: `${selectedItem.sellPrice}` })
-                    .textField('Permission Level', 'e.g., 1024', { defaultValue: `${selectedItem.permissionLevel}` });
+                const masterItem = allItems[selectedItem.id] || {};
+                const editForm = new ModalFormData().title(`Edit Item: ${selectedItem.id}`)
+                    .textField('Display Name', 'e.g., Magical Sword', { defaultValue: selectedItem.displayName || masterItem.displayName })
+                    .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', { defaultValue: masterItem.itemId })
+                    .textField('Icon Path', 'e.g., textures/items/diamond_sword', { defaultValue: selectedItem.icon || masterItem.icon })
+                    .textField('Buy Price', '-1 to disable', { defaultValue: String(selectedItem.buyPrice) })
+                    .textField('Sell Price', '-1 to disable', { defaultValue: String(selectedItem.sellPrice) })
+                    .textField('Permission Level', 'e.g., 1024', { defaultValue: String(selectedItem.permissionLevel) });
+
                 const editResponse = await utils.uiWait(player, editForm);
                 if (editResponse.canceled) { return showPanel(player, panelId, context); }
-                const [buyPriceStr, sellPriceStr, permLevelStr] = editResponse.formValues;
-                const buyPrice = parseInt(buyPriceStr, 10);
-                const sellPrice = parseInt(sellPriceStr, 10);
-                const permissionLevel = parseInt(permLevelStr, 10);
-                if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
-                    const result = shopAdminManager.setItem(categoryName, subCategoryName, selectedItem.id, { buyPrice, sellPrice, permissionLevel });
+
+                const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] = editResponse.formValues;
+                const buyPrice = Number(buyPriceStr);
+                const sellPrice = Number(sellPriceStr);
+                const permissionLevel = Number(permLevelStr);
+
+                if (displayName && minecraftId && icon && !isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
+                    const result = shopAdminManager.updateShopItem(categoryName, subCategoryName, selectedItem.id, {
+                        buyPrice, sellPrice, permissionLevel, icon, minecraftId, displayName
+                    });
                     player.sendMessage(result.message);
+                } else {
+                    player.sendMessage('§cInvalid data. Please check all fields.');
                 }
             } else { // Delete
                 const result = shopAdminManager.removeItem(categoryName, subCategoryName, selectedItem.id);
@@ -2100,7 +2122,7 @@ function buildShopAdminMainPanel(form, context) {
 
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-    const isEnabled = mainConfig.shop?.enabled ?? true;
+    const isEnabled = mainConfig.shop.enabled;
     const toggleText = isEnabled ? '§2Shop System: ENABLED' : '§cShop System: DISABLED';
     form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
 
@@ -2228,7 +2250,7 @@ function getMenuItems(panelDef, permissionLevel) {
     const config = getConfig();
     const items = (panelDef.items || [])
         .filter(item => {
-            if (item.actionValue === 'shopMainPanel' && !(config.shop?.enabled ?? true)) {
+            if (item.actionValue === 'shopMainPanel' && !config.shop.enabled) {
                 return false;
             }
             return permissionLevel <= item.permissionLevel;

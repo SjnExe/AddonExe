@@ -53,6 +53,9 @@ export const config = {
     kits: {
         enabled: true
     },
+    shop: {
+        enabled: true
+    },
     reports: {
         resolvedReportLifetimeDays: 7
     },
