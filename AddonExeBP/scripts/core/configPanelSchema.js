@@ -105,6 +105,12 @@ export const configPanelSchema = [
                 label: 'Credit Timeout (s)',
                 type: 'textField',
                 description: 'How long a player is credited for a kill after their last hit.'
+            },
+            {
+                key: 'bounties.minimumBounty',
+                label: 'Minimum Bounty',
+                type: 'textField',
+                description: 'The minimum amount for setting a bounty.'
             }
         ]
     },
@@ -328,12 +334,6 @@ export const configPanelSchema = [
                 label: 'Starting Balance',
                 type: 'textField',
                 description: 'The amount of money new players start with.'
-            },
-            {
-                key: 'economy.minimumBounty',
-                label: 'Minimum Bounty',
-                type: 'textField',
-                description: 'The minimum amount for setting a bounty.'
             }
         ]
     },

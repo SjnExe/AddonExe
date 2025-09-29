@@ -2,6 +2,7 @@ import { commandManager } from './commandManager.js';
 import { showPanel } from '../../core/uiManager.js';
 import * as shopManager from '../../core/shopManager.js';
 import { items as allItems } from '../../core/itemsConfig.js';
+import { getConfig } from '../../core/configManager.js';
 
 commandManager.register({
     name: 'shop',
@@ -13,6 +14,10 @@ commandManager.register({
     disableSlashCommand: false,
     parameters: [],
     execute: (player, args) => {
+        const config = getConfig();
+        if (!(config.shop?.enabled ?? true)) {
+            return player.sendMessage('§cThe shop is currently disabled.');
+        }
         showPanel(player, 'shopMainPanel', { view: 'shop' });
     }
 });
@@ -27,6 +32,10 @@ commandManager.register({
     disableSlashCommand: false,
     parameters: [],
     execute: (player, args) => {
+        const config = getConfig();
+        if (!(config.shop?.enabled ?? true)) {
+            return player.sendMessage('§cThe shop is currently disabled.');
+        }
         showPanel(player, 'shopMainPanel', { view: 'buy' });
     }
 });
@@ -41,6 +50,10 @@ commandManager.register({
     disableSlashCommand: false,
     parameters: [],
     execute: (player, args) => {
+        const config = getConfig();
+        if (!(config.shop?.enabled ?? true)) {
+            return player.sendMessage('§cThe shop is currently disabled.');
+        }
         showPanel(player, 'shopMainPanel', { view: 'sell' });
     }
 });
@@ -55,6 +68,10 @@ commandManager.register({
     disableSlashCommand: false,
     parameters: [],
     execute: (player, args) => {
+        const config = getConfig();
+        if (!(config.shop?.enabled ?? true)) {
+            return player.sendMessage('§cThe shop is currently disabled.');
+        }
         const equipment = player.getComponent('minecraft:equippable');
         if (!equipment) {
             return player.sendMessage('§cCould not access your inventory.');
