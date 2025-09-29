@@ -244,7 +244,9 @@ export function addShopItemFromHand(itemStack, categoryName, subCategoryName, bu
     const shopItemData = {
         buyPrice,
         sellPrice,
-        permissionLevel: 1024 // Default to everyone
+        permissionLevel: 1024, // Default to everyone
+        icon: newItemConfig.icon,
+        displayName: newItemConfig.displayName
     };
 
     const setResult = setItem(categoryName, subCategoryName, newId, shopItemData);
