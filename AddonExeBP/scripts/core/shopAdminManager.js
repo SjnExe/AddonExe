@@ -224,7 +224,7 @@ export function addShopItemFromHand(itemStack, categoryName, subCategoryName, bu
     const baseId = itemStack.typeId.replace('minecraft:', '');
     let i = 1;
     let newId = `${baseId}_${i}`;
-    while (allItems[newId]) {
+    while (items[newId]) {
         i++;
         newId = `${baseId}_${i}`;
     }
@@ -244,7 +244,9 @@ export function addShopItemFromHand(itemStack, categoryName, subCategoryName, bu
     const shopItemData = {
         buyPrice,
         sellPrice,
-        permissionLevel: 1024 // Default to everyone
+        permissionLevel: 1024, // Default to everyone
+        icon: newItemConfig.icon,
+        displayName: newItemConfig.displayName
     };
 
     const setResult = setItem(categoryName, subCategoryName, newId, shopItemData);
@@ -253,7 +255,7 @@ export function addShopItemFromHand(itemStack, categoryName, subCategoryName, bu
         return { success: true, message: `Successfully added '${newId}' to the shop.`, itemId: newId };
     } else {
         // Rollback the addition to the master list if adding to shop fails
-        delete allItems[newId];
+        delete items[newId];
         return { success: false, message: `Failed to add item to shop: ${setResult.message}` };
     }
 }
