@@ -1062,7 +1062,7 @@ async function handleFormResponse(player, panelId, response, context) {
 
         if (selection === 1) {
             const mainConfig = getConfig();
-            const newStatus = !(mainConfig.shop?.enabled ?? true);
+            const newStatus = !mainConfig.shop.enabled;
             updateMultipleConfig({ 'shop.enabled': newStatus });
             player.sendMessage(`§2Shop system has been ${newStatus ? 'enabled' : 'disabled'}.`);
             return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
@@ -2100,7 +2100,7 @@ function buildShopAdminMainPanel(form, context) {
 
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-    const isEnabled = mainConfig.shop?.enabled ?? true;
+    const isEnabled = mainConfig.shop.enabled;
     const toggleText = isEnabled ? '§2Shop System: ENABLED' : '§cShop System: DISABLED';
     form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
 
@@ -2228,7 +2228,7 @@ function getMenuItems(panelDef, permissionLevel) {
     const config = getConfig();
     const items = (panelDef.items || [])
         .filter(item => {
-            if (item.actionValue === 'shopMainPanel' && !(config.shop?.enabled ?? true)) {
+            if (item.actionValue === 'shopMainPanel' && !config.shop.enabled) {
                 return false;
             }
             return permissionLevel <= item.permissionLevel;
