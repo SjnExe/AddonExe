@@ -236,3 +236,26 @@ export function formatCooldown(seconds) {
 
     return result.trim();
 }
+
+/**
+ * Generates a clean, human-readable display name from an item's type ID.
+ * Example: 'minecraft:diamond_sword' becomes 'Diamond Sword'.
+ * @param {string} typeId The item's type ID.
+ * @returns {string} A formatted display name.
+ */
+export function generateDisplayName(typeId) {
+    if (!typeId) {
+        return 'Unknown Item';
+    }
+
+    // Remove the namespace (e.g., 'minecraft:')
+    const nameWithoutNamespace = typeId.includes(':') ? typeId.split(':')[1] : typeId;
+
+    // Replace underscores with spaces and capitalize each word
+    const formattedName = nameWithoutNamespace
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+
+    return formattedName;
+}

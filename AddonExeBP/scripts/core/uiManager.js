@@ -811,12 +811,12 @@ async function handleFormResponse(player, panelId, response, context) {
 
             const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
-            if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].toLowerCase() !== 'confirm') {
+            if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].trim().toLowerCase() !== 'confirm') {
                 player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                 return showPanel(player, 'configResetPanel', { ...context, page });
             }
 
-            const result = resetConfigSection(selectedSystem.id);
+            const result = await resetConfigSection(selectedSystem.id);
             player.sendMessage(`§2${result.message}`);
             return showPanel(player, 'configResetPanel', { ...context, page: 1 });
         }
@@ -845,12 +845,12 @@ async function handleFormResponse(player, panelId, response, context) {
 
                 const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
-                if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].toLowerCase() !== 'confirm') {
+                if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].trim().toLowerCase() !== 'confirm') {
                     player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                     return showPanel(player, 'configResetPanel', { ...context, page });
                 }
 
-                const result = resetConfigSection('all');
+                const result = await resetConfigSection('all');
                 player.sendMessage(`§2${result.message}`);
                 return showPanel(player, 'configResetPanel', { ...context, page: 1 });
             }
