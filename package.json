@@ -26,8 +26,8 @@
     "devDependencies": {
         "@eslint/eslintrc": "^3.3.1",
         "@eslint/js": "^9.36.0",
-        "@minecraft/creator-tools": "^0.14.1",
-        "eslint": "^9.35.0",
+        "@minecraft/creator-tools": "^0.14.2",
+        "eslint": "^9.36.0",
         "eslint-plugin-jsonc": "^2.20.1",
         "globals": "^16.4.0"
     }
