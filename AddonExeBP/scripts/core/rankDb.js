@@ -44,7 +44,15 @@ export function updateRank(rankId, updatedData) {
     if (rankIndex === -1) {
         return { success: false, message: `Rank with ID '${rankId}' not found.` };
     }
-
+    const originalRank = ranksConfig.rankDefinitions[rankIndex];
+    if (originalRank.locked) {
+        if (updatedData.id && updatedData.id !== originalRank.id) {
+            return { success: false, message: `Cannot change the ID of a locked rank.` };
+        }
+        if (updatedData.permissionLevel && updatedData.permissionLevel !== originalRank.permissionLevel) {
+            return { success: false, message: `Cannot change the permission level of a locked rank.` };
+        }
+    }
     // Ensure the ID is not changed if a new ID is passed in updatedData that already exists
     if (updatedData.id && updatedData.id !== rankId && getRankById(updatedData.id)) {
         return { success: false, message: `Cannot rename rank ID to '${updatedData.id}' as it already exists.` };
@@ -66,13 +74,10 @@ export function deleteRank(rankId) {
     if (rankIndex === -1) {
         return { success: false, message: `Rank with ID '${rankId}' not found.` };
     }
-
-    // Prevent deletion of special ranks
     const rank = ranksConfig.rankDefinitions[rankIndex];
-    if (rank.conditions.some(c => c.type === 'isOwner' || c.type === 'default')) {
-        return { success: false, message: `Cannot delete special rank '${rank.name}'.` };
+    if (rank.locked) {
+        return { success: false, message: `Cannot delete locked rank '${rank.name}'.` };
     }
-
     const deletedRankName = ranksConfig.rankDefinitions[rankIndex].name;
     ranksConfig.rankDefinitions.splice(rankIndex, 1);
     saveRanksConfig();

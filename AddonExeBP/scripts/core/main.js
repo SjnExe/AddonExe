@@ -220,7 +220,21 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
 
         case 'exe:grant_admin_self': {
             if (sourceEntity && sourceEntity.addTag) {
-                sourceEntity.addTag(config.playerTags.admin);
+                const adminRank = rankManager.getRankById('admin');
+                if (!adminRank) {
+                    errorLog('[AddonExe] Could not grant admin rank because the "admin" rank definition was not found.');
+                    sourceEntity.sendMessage('§cError: The admin rank is not configured.');
+                    return;
+                }
+
+                const adminTagCondition = adminRank.conditions.find(c => c.type === 'hasTag');
+                if (!adminTagCondition || !adminTagCondition.value) {
+                    errorLog('[AddonExe] Could not grant admin rank because it lacks a valid "hasTag" condition.');
+                    sourceEntity.sendMessage('§cError: The admin rank is not configured with a valid tag.');
+                    return;
+                }
+
+                sourceEntity.addTag(adminTagCondition.value);
                 sourceEntity.sendMessage('§aYou have been promoted to Admin.');
                 updateAllPlayerRanks();
             }
