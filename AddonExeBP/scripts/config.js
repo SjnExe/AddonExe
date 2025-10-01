@@ -19,13 +19,6 @@ export const config = {
         kickMessage: 'Server is restarting. Please rejoin in a moment.'
     },
 
-    // --- Player Tags ---
-    playerTags: {
-        admin: 'admin',
-        vanished: 'vanished',
-        frozen: 'frozen'
-    },
-
     // --- Feature Toggles & Settings ---
     tpa: {
         enabled: true,
