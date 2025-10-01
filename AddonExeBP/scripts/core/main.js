@@ -220,7 +220,7 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
 
         case 'exe:grant_admin_self': {
             if (sourceEntity && sourceEntity.addTag) {
-                sourceEntity.addTag(config.adminTag);
+                sourceEntity.addTag(config.playerTags.admin);
                 sourceEntity.sendMessage('§aYou have been promoted to Admin.');
                 updateAllPlayerRanks();
             }

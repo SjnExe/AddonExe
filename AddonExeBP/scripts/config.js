@@ -21,6 +21,7 @@ export const config = {
 
     // --- Player Tags ---
     playerTags: {
+        admin: 'admin',
         vanished: 'vanished',
         frozen: 'frozen'
     },
