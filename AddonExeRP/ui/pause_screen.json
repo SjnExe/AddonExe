@@ -1,0 +1,29 @@
+// This file is designed to modify the vanilla pause screen, not replace it.
+// It specifically targets the player list to hide players with the 'vanished' tag.
+{
+    // The namespace must match the file it's modifying.
+    "namespace": "pause_screen",
+
+    // We are modifying the 'players_panel_content' control from the original 'pause_screen.json'.
+    // This is a common pattern for modifying existing UI screens.
+    "players_panel_content@pause_screen.players_panel_content": {
+    // The 'modifications' array allows us to change existing controls.
+        "modifications": [
+            {
+                // We target the 'players_grid' control, which is responsible for displaying the list of players.
+                "control_name": "players_grid",
+                "factory": {
+                    // We are redefining the factory for this grid.
+                    "name": "player_list_entry_factory",
+                    // This is the name of the template for each player entry. It's defined in the vanilla file.
+                    "control_name": "player_list_entry",
+                    // This variable holds the list of all players in the session.
+                    "collection_name": "$players_list",
+                    // This is the crucial part. It tells the game to only include players in the collection
+                    // if they DO NOT have the 'vanished' tag.
+                    "collection_condition": "query.not_has_tag('vanished')"
+                }
+            }
+        ]
+    }
+}

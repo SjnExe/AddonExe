@@ -34,6 +34,7 @@ export const rankDefinitions = [
         id: 'owner',
         name: 'Owner',
         permissionLevel: 0,
+        locked: true,
         chatFormatting: {
             prefixText: '§8[§4Owner§8] ',
             nameColor: '§4',
@@ -48,6 +49,7 @@ export const rankDefinitions = [
         id: 'admin',
         name: 'Admin',
         permissionLevel: 1,
+        locked: true,
         chatFormatting: {
             prefixText: '§8[§cAdmin§8] ',
             nameColor: '§c',
@@ -132,6 +134,7 @@ export const rankDefinitions = [
         id: 'member',
         name: 'Member',
         permissionLevel: 1024, // Default permission level
+        locked: true,
         chatFormatting: defaultChatFormatting,
         nametagPrefix: '§8Member',
         conditions: [
