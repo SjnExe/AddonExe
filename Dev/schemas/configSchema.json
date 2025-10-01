@@ -46,20 +46,6 @@
                 }
             }
         },
-        "playerTags": {
-            "type": "object",
-            "description": "Settings related to player status effects and tags.",
-            "properties": {
-                "vanished": {
-                    "type": "string",
-                    "description": "The tag applied to players who are vanished."
-                },
-                "frozen": {
-                    "type": "string",
-                    "description": "The tag applied to players who are frozen."
-                }
-            }
-        },
         "playerInfo": {
             "type": "object",
             "description": "Settings for player welcome messages and informational messages.",
@@ -267,7 +253,6 @@
         "prefix",
         "exeGlobalNotificationsDefaultOn",
         "development",
-        "playerTags",
         "playerInfo",
         "combatLog",
         "tpa",
