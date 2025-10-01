@@ -21,7 +21,7 @@
                     "collection_name": "$players_list",
                     // This is the crucial part. It tells the game to only include players in the collection
                     // if they DO NOT have the 'vanished' tag.
-                    "collection_condition": "query.not_has_tag('vanished')"
+                    "collection_condition": "query.is_local_player or query.not_has_tag('vanished')"
                 }
             }
         ]
