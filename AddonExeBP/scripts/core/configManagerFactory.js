@@ -1,5 +1,5 @@
 import { world } from '@minecraft/server';
-import { deepMerge, deepClone, setValueByPath, isDeepEqual } from './objectUtils.js';
+import { deepMerge, deepClone, setValueByPath, isDeepEqual, mergeRanks, mergeObjectMaps } from './objectUtils.js';
 import { errorLog } from './errorLogger.js';
 import { debugLog } from './logger.js';
 
@@ -136,9 +136,23 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                         }
                     }
 
-                    // Use the new default config directly for comparison, as isDeepEqual handles object complexities.
-                    applyFileChanges('', newDefaultConfig, lastLoadedConfig);
-                    currentConfig = mergedConfig;
+                    // --- Custom Merging Logic ---
+                    if (name === 'Ranks') {
+                        const currentUserRanks = userSavedConfig.rankDefinitions;
+                        const newFileRanks = newDefaultConfig.rankDefinitions;
+                        const lastLoadedRanks = lastLoadedConfig ? lastLoadedConfig.rankDefinitions : [];
+
+                        const mergedRanks = mergeRanks(currentUserRanks, newFileRanks, lastLoadedRanks);
+                        mergedConfig.rankDefinitions = mergedRanks;
+                        currentConfig = mergedConfig;
+                    } else if (name === 'Kits' || name === 'Shop') {
+                        const lastLoaded = lastLoadedConfig || {};
+                        currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoaded);
+                    } else {
+                        // Use the new default config directly for comparison, as isDeepEqual handles object complexities.
+                        applyFileChanges('', newDefaultConfig, lastLoadedConfig);
+                        currentConfig = mergedConfig;
+                    }
                 }
             }
             // After any load/merge scenario, the "last loaded" snapshot is updated to the current file's state.

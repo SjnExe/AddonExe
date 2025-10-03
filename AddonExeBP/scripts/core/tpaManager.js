@@ -124,12 +124,28 @@ export function getOutgoingRequest(player) {
  * @param {import('@minecraft/server').Player} player The player accepting the request.
  */
 export function acceptRequest(player, sourcePlayerName) {
-    const request = getIncomingRequest(player, sourcePlayerName);
+    const requests = incomingRequests.get(player.id);
+    let request = null;
+
+    if (sourcePlayerName) {
+        request = requests?.find(r => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
+    } else {
+        // If no name is given, find the most recent request from an ONLINE player
+        if (requests) {
+            for (let i = requests.length - 1; i >= 0; i--) {
+                if (getPlayerFromCache(requests[i].sourcePlayerId)) {
+                    request = requests[i];
+                    break;
+                }
+            }
+        }
+    }
+
     if (!request) {
         if (sourcePlayerName) {
             player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
         } else {
-            player.sendMessage('§cYou have no incoming TPA requests.');
+            player.sendMessage('§cYou have no pending TPA requests from online players.');
         }
         return;
     }
@@ -137,6 +153,7 @@ export function acceptRequest(player, sourcePlayerName) {
     const sourcePlayer = getPlayerFromCache(request.sourcePlayerId);
     const targetPlayer = getPlayerFromCache(request.targetPlayerId);
 
+    // This check is now mostly for the targetPlayer, as the loop for sourcePlayer already validates it.
     if (!sourcePlayer || !targetPlayer) {
         player.sendMessage('§cThe other player could not be found. They may have logged off.');
         clearRequest(request);
@@ -190,19 +207,22 @@ export function acceptRequest(player, sourcePlayerName) {
  */
 export function denyRequest(player, sourcePlayerName) {
     const request = getIncomingRequest(player, sourcePlayerName);
+
     if (!request) {
         if (sourcePlayerName) {
             player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
         } else {
-            player.sendMessage('§cYou have no incoming TPA requests.');
+            player.sendMessage('§cYou have no pending TPA requests.');
         }
         return;
     }
+
     const sourcePlayer = getPlayerFromCache(request.sourcePlayerId);
     if (sourcePlayer) {
         sourcePlayer.sendMessage(`§c${player.name} has denied your TPA request.`);
     }
-    player.sendMessage('§aYou have denied the TPA request.');
+
+    player.sendMessage(`§aYou have denied the TPA request from ${request.sourcePlayerName}.`);
     clearRequest(request);
 }
 
