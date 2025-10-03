@@ -1,27 +1,53 @@
 /**
- * Deeply compares two objects for equality.
- * @param {any} object1 The first object.
- * @param {any} object2 The second object.
- * @returns {boolean} True if the objects are equal.
+ * Deeply compares two values for equality, handling objects, arrays, dates, and circular references.
+ * @param {*} a The first value to compare.
+ * @param {*} b The second value to compare.
+ * @param {WeakMap} [map=new WeakMap()] Used internally to handle circular references.
+ * @returns {boolean} True if the values are deeply equal.
  */
-export function deepEqual(object1, object2) {
-    if (object1 === object2) {
+export function isDeepEqual(a, b, map = new WeakMap()) {
+    // Strict equality check for primitives and same object reference.
+    if (a === b) return true;
+
+    // Different types or null objects are not equal.
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+        return false;
+    }
+
+    // Handle Dates
+    if (a instanceof Date && b instanceof Date) {
+        return a.getTime() === b.getTime();
+    }
+
+    // Handle Regex
+    if (a instanceof RegExp && b instanceof RegExp) {
+        return a.source === b.source && a.flags === b.flags;
+    }
+
+    // Handle circular references for objects and arrays.
+    if (map.has(a) && map.get(a) === b) return true;
+    map.set(a, b);
+
+    // Handle Arrays
+    if (Array.isArray(a) && Array.isArray(b)) {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (!isDeepEqual(a[i], b[i], map)) return false;
+        }
         return true;
     }
 
-    if (object1 === null || typeof object1 !== 'object' || object2 === null || typeof object2 !== 'object') {
-        return false;
-    }
+    // If one is an array and the other is not.
+    if (Array.isArray(a) !== Array.isArray(b)) return false;
 
-    const keys1 = Object.keys(object1);
-    const keys2 = Object.keys(object2);
+    // Handle Objects
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
 
-    if (keys1.length !== keys2.length) {
-        return false;
-    }
+    if (keysA.length !== keysB.length) return false;
 
-    for (const key of keys1) {
-        if (!keys2.includes(key) || !deepEqual(object1[key], object2[key])) {
+    for (const key of keysA) {
+        if (!Object.prototype.hasOwnProperty.call(b, key) || !isDeepEqual(a[key], b[key], map)) {
             return false;
         }
     }
@@ -121,7 +147,7 @@ function reconcileNestedObject(newDefaultValue, oldDefaultValue, userSavedValue)
  * @returns {boolean} True if the default value has changed.
  */
 function hasDefaultValueChanged(newDefaultValue, oldDefaultValue) {
-    return !deepEqual(newDefaultValue, oldDefaultValue);
+    return !isDeepEqual(newDefaultValue, oldDefaultValue);
 }
 
 /**

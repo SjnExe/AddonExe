@@ -60,9 +60,16 @@ export function updateRank(rankId, updatedData) {
         return { success: false, message: `Cannot rename rank ID to '${updatedData.id}' as it already exists.` };
     }
 
+    let message = `Rank '${updatedData.name || originalRank.name}' updated successfully.`;
+
+    // Add a warning if the rank ID (tag) is changed.
+    if (updatedData.id && updatedData.id !== rankId) {
+        message += `\n§eWARNING:§r The rank ID (tag) was changed from '${rankId}' to '${updatedData.id}'. Players with the old rank tag will need to be updated manually.`;
+    }
+
     ranksConfig.rankDefinitions[rankIndex] = { ...ranksConfig.rankDefinitions[rankIndex], ...updatedData };
     saveRanksConfig();
-    return { success: true, message: `Rank '${ranksConfig.rankDefinitions[rankIndex].name}' updated successfully.` };
+    return { success: true, message };
 }
 
 /**

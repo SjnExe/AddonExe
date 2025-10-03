@@ -1,5 +1,5 @@
 import { world } from '@minecraft/server';
-import { deepMerge, deepClone, setValueByPath } from './objectUtils.js';
+import { deepMerge, deepClone, setValueByPath, isDeepEqual } from './objectUtils.js';
 import { errorLog } from './errorLogger.js';
 import { debugLog } from './logger.js';
 
@@ -128,20 +128,16 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                             if (typeof fileValue === 'object' && fileValue !== null && !Array.isArray(fileValue) &&
                                 typeof lastLoadedValue === 'object' && lastLoadedValue !== null && !Array.isArray(lastLoadedValue)) {
                                 applyFileChanges(currentPath, fileValue, lastLoadedValue);
-                            } else if (JSON.stringify(fileValue) !== JSON.stringify(lastLoadedValue)) {
-                                // Otherwise, if the values are different in any way (including type changes),
-                                // we update the config with the new value from the file.
+                            } else if (!isDeepEqual(fileValue, lastLoadedValue)) {
+                                // Otherwise, if the values are different, we update the config with the new value from the file.
                                 debugLog(`[${name}ConfigManager] Manual file change detected for '${currentPath}'. Applying file value.`);
                                 setValueByPath(mergedConfig, currentPath, fileValue);
                             }
                         }
                     }
 
-                    // Normalize the new default config by running it through a stringify/parse cycle.
-                    // This ensures its structure and key order match the lastLoadedConfig, preventing false positives.
-                    const normalizedNewDefaultConfig = JSON.parse(JSON.stringify(newDefaultConfig));
-
-                    applyFileChanges('', normalizedNewDefaultConfig, lastLoadedConfig);
+                    // Use the new default config directly for comparison, as isDeepEqual handles object complexities.
+                    applyFileChanges('', newDefaultConfig, lastLoadedConfig);
                     currentConfig = mergedConfig;
                 }
             }
