@@ -1,5 +1,5 @@
 import { world } from '@minecraft/server';
-import { deepMerge, deepClone, setValueByPath, isDeepEqual, mergeRanks } from './objectUtils.js';
+import { deepMerge, deepClone, setValueByPath, isDeepEqual, mergeRanks, mergeObjectMaps } from './objectUtils.js';
 import { errorLog } from './errorLogger.js';
 import { debugLog } from './logger.js';
 
@@ -136,7 +136,7 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                         }
                     }
 
-                    // --- Custom Rank Merging Logic ---
+                    // --- Custom Merging Logic ---
                     if (name === 'Ranks') {
                         const currentUserRanks = userSavedConfig.rankDefinitions;
                         const newFileRanks = newDefaultConfig.rankDefinitions;
@@ -145,6 +145,9 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                         const mergedRanks = mergeRanks(currentUserRanks, newFileRanks, lastLoadedRanks);
                         mergedConfig.rankDefinitions = mergedRanks;
                         currentConfig = mergedConfig;
+                    } else if (name === 'Kits' || name === 'Shop') {
+                        const lastLoaded = lastLoadedConfig || {};
+                        currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoaded);
                     } else {
                         // Use the new default config directly for comparison, as isDeepEqual handles object complexities.
                         applyFileChanges('', newDefaultConfig, lastLoadedConfig);
