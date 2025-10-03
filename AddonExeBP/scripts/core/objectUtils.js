@@ -7,7 +7,7 @@
  */
 export function isDeepEqual(a, b, map = new WeakMap()) {
     // Strict equality check for primitives and same object reference.
-    if (a === b) return true;
+    if (a === b) {return true;}
 
     // Different types or null objects are not equal.
     if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
@@ -25,26 +25,26 @@ export function isDeepEqual(a, b, map = new WeakMap()) {
     }
 
     // Handle circular references for objects and arrays.
-    if (map.has(a) && map.get(a) === b) return true;
+    if (map.has(a) && map.get(a) === b) {return true;}
     map.set(a, b);
 
     // Handle Arrays
     if (Array.isArray(a) && Array.isArray(b)) {
-        if (a.length !== b.length) return false;
+        if (a.length !== b.length) {return false;}
         for (let i = 0; i < a.length; i++) {
-            if (!isDeepEqual(a[i], b[i], map)) return false;
+            if (!isDeepEqual(a[i], b[i], map)) {return false;}
         }
         return true;
     }
 
     // If one is an array and the other is not.
-    if (Array.isArray(a) !== Array.isArray(b)) return false;
+    if (Array.isArray(a) !== Array.isArray(b)) {return false;}
 
     // Handle Objects
     const keysA = Object.keys(a);
     const keysB = Object.keys(b);
 
-    if (keysA.length !== keysB.length) return false;
+    if (keysA.length !== keysB.length) {return false;}
 
     for (const key of keysA) {
         if (!Object.prototype.hasOwnProperty.call(b, key) || !isDeepEqual(a[key], b[key], map)) {
@@ -221,4 +221,83 @@ export function deepClone(obj, hash = new WeakMap()) {
     return Object.assign(result, ...Object.keys(obj).map(
         key => ({ [key]: deepClone(obj[key], hash) })
     ));
+}
+
+/**
+ * Performs a 3-way merge of rank definition arrays to intelligently combine developer file changes
+ * with user in-game changes, preserving data where possible.
+ *
+ * The logic prioritizes changes in the following order:
+ * 1. User deletions are always respected.
+ * 2. Developer file deletions are respected.
+ * 3. New ranks added by the developer are added.
+ * 4. For existing ranks, changes made by the developer in the file are merged on top of any
+ *    changes the user made in-game. If there's a conflict on the same property, the file change wins.
+ *
+ * @param {import('./ranksConfig.js').RankDefinition[]} currentUserRanks The ranks currently in the world (with user changes).
+ * @param {import('./ranksConfig.js').RankDefinition[]} newFileRanks The ranks from the newly loaded config file.
+ * @param {import('./ranksConfig.js').RankDefinition[]} lastLoadedRanks The ranks from the config file as of the last load.
+ * @returns {import('./ranksConfig.js').RankDefinition[]} The merged list of ranks.
+ */
+export function mergeRanks(currentUserRanks, newFileRanks, lastLoadedRanks) {
+    const userMap = new Map((currentUserRanks || []).map(r => [r.id, r]));
+    const fileMap = new Map((newFileRanks || []).map(r => [r.id, r]));
+    const lastMap = new Map((lastLoadedRanks || []).map(r => [r.id, r]));
+
+    const allIds = new Set([...userMap.keys(), ...fileMap.keys(), ...lastMap.keys()]);
+    const finalRanks = [];
+
+    for (const id of allIds) {
+        const userRank = userMap.get(id);
+        const fileRank = fileMap.get(id);
+        const lastRank = lastMap.get(id);
+
+        // Scenario 1: Rank was deleted by the user in-game. This is the highest priority.
+        if (!userRank && lastRank) {
+            continue; // Do not add to the final list.
+        }
+
+        // Scenario 2: Rank was deleted from the file by the developer.
+        if (!fileRank && lastRank) {
+            continue; // Do not add to the final list.
+        }
+
+        // Scenario 3: A new rank was added to the file by the developer.
+        if (fileRank && !lastRank) {
+            finalRanks.push(deepClone(fileRank));
+            continue;
+        }
+
+        // Scenario 4: The rank exists in some form and needs to be merged or updated.
+        if (userRank && fileRank) {
+            // If there's no 'lastRank', it's a new rank that somehow also exists in-game.
+            // The file version is the source of truth for its base properties.
+            const baseRank = lastRank || fileRank;
+            const fileDidChange = !isDeepEqual(fileRank, baseRank);
+
+            if (!fileDidChange) {
+                // The file hasn't changed for this rank, so we can safely keep the user's version.
+                finalRanks.push(deepClone(userRank));
+            } else {
+                // The file has changed. Merge changes, with file changes taking precedence.
+                const mergedRank = deepClone(userRank);
+
+                for (const key in fileRank) {
+                    const fileValue = fileRank[key];
+                    const lastValue = baseRank[key];
+
+                    if (!isDeepEqual(fileValue, lastValue)) {
+                        mergedRank[key] = deepClone(fileValue);
+                    }
+                }
+                finalRanks.push(mergedRank);
+            }
+        } else if (userRank && !fileRank && !lastRank) {
+            // Edge case: A rank exists in-game but never existed in the files.
+            // This might be from data corruption or a previous manual command. Safest to keep it.
+            finalRanks.push(deepClone(userRank));
+        }
+    }
+
+    return finalRanks;
 }
