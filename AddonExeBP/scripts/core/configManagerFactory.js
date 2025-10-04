@@ -90,9 +90,16 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
             if (isMigration) {
                 // Scenario: Addon Update (Migration)
                 errorLog(`[${name}ConfigManager] Version mismatch detected. Migrating config.`);
-                // The new default is the base, user's settings are merged on top.
-                // This preserves their settings while adding new properties from the update.
-                currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+                if (name === 'Ranks' || name === 'Kits' || name === 'Shop') {
+                    // For these list-based configs, we preserve the user's data as-is during a migration
+                    // to prevent deleted items from reappearing. New items must be added manually by admins.
+                    debugLog(`[${name}ConfigManager] Preserving user's current config for ${name} during migration.`);
+                    currentConfig = userSavedConfig;
+                } else {
+                    // For other configs, merge the user's settings on top of the new defaults.
+                    // This preserves their settings while adding new properties from the update.
+                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+                }
             } else {
                 // Scenario: Standard Load / Reload
                 // This logic prioritizes manual file edits over in-game changes.

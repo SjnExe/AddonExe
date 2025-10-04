@@ -2,6 +2,7 @@ import { commandManager } from './commandManager.js';
 import { createRequest, acceptRequest, denyRequest, cancelRequest, getOutgoingRequest, getIncomingRequest } from '../../core/tpaManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { playSound } from '../../core/utils.js';
+import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '../../core/playerDataManager.js';
 
 commandManager.register({
     name: 'tpa',
@@ -178,5 +179,53 @@ commandManager.register({
 
         player.sendMessage(statusMessage.trim());
         playSound(player, 'random.orb');
+    }
+});
+
+commandManager.register({
+    name: 'tpastop',
+    aliases: ['tpstop', 'tpablock', 'tpblock'],
+    description: 'Disables TPA requests or blocks a specific player.',
+    category: 'TPA System',
+    permissionLevel: 1024,
+    parameters: [
+        { name: 'player', type: 'player', description: 'The player to block from sending TPA requests.', optional: true }
+    ],
+    execute: (player, args) => {
+        const target = args.player ? args.player[0] : null;
+
+        if (target) {
+            // Block a specific player
+            addTpaBlockedPlayer(player.id, target.id);
+            player.sendMessage(`§aYou have blocked ${target.name} from sending you TPA requests.`);
+        } else {
+            // Disable all TPA requests
+            setTpaRequestsDisabled(player.id, true);
+            player.sendMessage('§aYou have disabled all incoming TPA requests.');
+        }
+    }
+});
+
+commandManager.register({
+    name: 'tpastart',
+    aliases: ['tpstart', 'tpaunblock', 'tpunblock'],
+    description: 'Enables TPA requests or unblocks a specific player.',
+    category: 'TPA System',
+    permissionLevel: 1024,
+    parameters: [
+        { name: 'player', type: 'player', description: 'The player to unblock from sending TPA requests.', optional: true }
+    ],
+    execute: (player, args) => {
+        const target = args.player ? args.player[0] : null;
+
+        if (target) {
+            // Unblock a specific player
+            removeTpaBlockedPlayer(player.id, target.id);
+            player.sendMessage(`§aYou have unblocked ${target.name}. They can now send you TPA requests.`);
+        } else {
+            // Enable all TPA requests
+            setTpaRequestsDisabled(player.id, false);
+            player.sendMessage('§aYou have enabled all incoming TPA requests.');
+        }
     }
 });

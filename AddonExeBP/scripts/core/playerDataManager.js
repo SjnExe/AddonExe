@@ -17,6 +17,8 @@
  * @property {boolean} xrayNotifications
  * @property {HomeLocation | null} lastDeathLocation
  * @property {boolean} deathNotificationSent
+ * @property {boolean} tpaRequestsDisabled
+ * @property {string[]} tpaBlockedPlayerIds
  */
 
 import { getConfig } from './configManager.js';
@@ -222,6 +224,15 @@ export function loadPlayerData(playerId) {
         if (dataString && typeof dataString === 'string') {
             /** @type {PlayerData} */
             const playerData = JSON.parse(dataString);
+
+            // Backwards compatibility: Add new properties if they don't exist
+            if (playerData.tpaRequestsDisabled === undefined) {
+                playerData.tpaRequestsDisabled = false;
+            }
+            if (playerData.tpaBlockedPlayerIds === undefined) {
+                playerData.tpaBlockedPlayerIds = [];
+            }
+
             activePlayerData.set(playerId, playerData);
             return playerData;
         }
@@ -290,7 +301,9 @@ export function getOrCreatePlayer(player) {
         kitCooldowns: {},
         xrayNotifications: config.playerDefaults.xrayNotifications,
         lastDeathLocation: null,
-        deathNotificationSent: true // Default to true to prevent message on first spawn
+        deathNotificationSent: true, // Default to true to prevent message on first spawn
+        tpaRequestsDisabled: false,
+        tpaBlockedPlayerIds: []
     };
     activePlayerData.set(player.id, newPlayerData);
     savePlayerData(player.id); // Save immediately
@@ -397,6 +410,45 @@ export function setPlayerRank(playerId, rankId, permissionLevel) {
     if (pData) {
         pData.rankId = rankId;
         pData.permissionLevel = permissionLevel;
+        savePlayerData(playerId);
+    }
+}
+
+/**
+ * Sets whether a player's TPA requests are disabled.
+ * @param {string} playerId The ID of the player to modify.
+ * @param {boolean} isDisabled The new disabled state.
+ */
+export function setTpaRequestsDisabled(playerId, isDisabled) {
+    const pData = getPlayer(playerId);
+    if (pData) {
+        pData.tpaRequestsDisabled = isDisabled;
+        savePlayerData(playerId);
+    }
+}
+
+/**
+ * Adds a player to another player's TPA block list.
+ * @param {string} playerId The ID of the player whose block list is being modified.
+ * @param {string} blockedPlayerId The ID of the player to block.
+ */
+export function addTpaBlockedPlayer(playerId, blockedPlayerId) {
+    const pData = getPlayer(playerId);
+    if (pData && !pData.tpaBlockedPlayerIds.includes(blockedPlayerId)) {
+        pData.tpaBlockedPlayerIds.push(blockedPlayerId);
+        savePlayerData(playerId);
+    }
+}
+
+/**
+ * Removes a player from another player's TPA block list.
+ * @param {string} playerId The ID of the player whose block list is being modified.
+ * @param {string} unblockedPlayerId The ID of the player to unblock.
+ */
+export function removeTpaBlockedPlayer(playerId, unblockedPlayerId) {
+    const pData = getPlayer(playerId);
+    if (pData && pData.tpaBlockedPlayerIds.includes(unblockedPlayerId)) {
+        pData.tpaBlockedPlayerIds = pData.tpaBlockedPlayerIds.filter(id => id !== unblockedPlayerId);
         savePlayerData(playerId);
     }
 }
