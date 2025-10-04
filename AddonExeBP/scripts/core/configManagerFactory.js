@@ -1,5 +1,5 @@
 import { world } from '@minecraft/server';
-import { deepMerge, deepClone, setValueByPath, isDeepEqual } from './objectUtils.js';
+import { deepMerge, deepClone, setValueByPath, isDeepEqual, mergeRanks, mergeObjectMaps } from './objectUtils.js';
 import { errorLog } from './errorLogger.js';
 import { debugLog } from './logger.js';
 
@@ -90,9 +90,16 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
             if (isMigration) {
                 // Scenario: Addon Update (Migration)
                 errorLog(`[${name}ConfigManager] Version mismatch detected. Migrating config.`);
-                // The new default is the base, user's settings are merged on top.
-                // This preserves their settings while adding new properties from the update.
-                currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+                if (name === 'Ranks' || name === 'Kits' || name === 'Shop') {
+                    // For these list-based configs, we preserve the user's data as-is during a migration
+                    // to prevent deleted items from reappearing. New items must be added manually by admins.
+                    debugLog(`[${name}ConfigManager] Preserving user's current config for ${name} during migration.`);
+                    currentConfig = userSavedConfig;
+                } else {
+                    // For other configs, merge the user's settings on top of the new defaults.
+                    // This preserves their settings while adding new properties from the update.
+                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+                }
             } else {
                 // Scenario: Standard Load / Reload
                 // This logic prioritizes manual file edits over in-game changes.
@@ -136,9 +143,23 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                         }
                     }
 
-                    // Use the new default config directly for comparison, as isDeepEqual handles object complexities.
-                    applyFileChanges('', newDefaultConfig, lastLoadedConfig);
-                    currentConfig = mergedConfig;
+                    // --- Custom Merging Logic ---
+                    if (name === 'Ranks') {
+                        const currentUserRanks = userSavedConfig.rankDefinitions;
+                        const newFileRanks = newDefaultConfig.rankDefinitions;
+                        const lastLoadedRanks = lastLoadedConfig ? lastLoadedConfig.rankDefinitions : [];
+
+                        const mergedRanks = mergeRanks(currentUserRanks, newFileRanks, lastLoadedRanks);
+                        mergedConfig.rankDefinitions = mergedRanks;
+                        currentConfig = mergedConfig;
+                    } else if (name === 'Kits' || name === 'Shop') {
+                        const lastLoaded = lastLoadedConfig || {};
+                        currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoaded);
+                    } else {
+                        // Use the new default config directly for comparison, as isDeepEqual handles object complexities.
+                        applyFileChanges('', newDefaultConfig, lastLoadedConfig);
+                        currentConfig = mergedConfig;
+                    }
                 }
             }
             // After any load/merge scenario, the "last loaded" snapshot is updated to the current file's state.

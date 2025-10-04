@@ -7,7 +7,9 @@
  */
 export function isDeepEqual(a, b, map = new WeakMap()) {
     // Strict equality check for primitives and same object reference.
-    if (a === b) return true;
+    if (a === b) {
+        return true;
+    }
 
     // Different types or null objects are not equal.
     if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
@@ -25,26 +27,36 @@ export function isDeepEqual(a, b, map = new WeakMap()) {
     }
 
     // Handle circular references for objects and arrays.
-    if (map.has(a) && map.get(a) === b) return true;
+    if (map.has(a) && map.get(a) === b) {
+        return true;
+    }
     map.set(a, b);
 
     // Handle Arrays
     if (Array.isArray(a) && Array.isArray(b)) {
-        if (a.length !== b.length) return false;
+        if (a.length !== b.length) {
+            return false;
+        }
         for (let i = 0; i < a.length; i++) {
-            if (!isDeepEqual(a[i], b[i], map)) return false;
+            if (!isDeepEqual(a[i], b[i], map)) {
+                return false;
+            }
         }
         return true;
     }
 
     // If one is an array and the other is not.
-    if (Array.isArray(a) !== Array.isArray(b)) return false;
+    if (Array.isArray(a) !== Array.isArray(b)) {
+        return false;
+    }
 
     // Handle Objects
     const keysA = Object.keys(a);
     const keysB = Object.keys(b);
 
-    if (keysA.length !== keysB.length) return false;
+    if (keysA.length !== keysB.length) {
+        return false;
+    }
 
     for (const key of keysA) {
         if (!Object.prototype.hasOwnProperty.call(b, key) || !isDeepEqual(a[key], b[key], map)) {
@@ -86,7 +98,7 @@ export function deepMerge(target, source) {
  * @param {*} item The value to check.
  * @returns {boolean} True if the value is an object.
  */
-function isObject(item) {
+export function isObject(item) {
     return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
@@ -221,4 +233,139 @@ export function deepClone(obj, hash = new WeakMap()) {
     return Object.assign(result, ...Object.keys(obj).map(
         key => ({ [key]: deepClone(obj[key], hash) })
     ));
+}
+
+/**
+ * Performs a 3-way merge of rank definition arrays to intelligently combine developer file changes
+ * with user in-game changes, preserving data where possible.
+ *
+ * The logic prioritizes changes in the following order:
+ * 1. User deletions are always respected.
+ * 2. Developer file deletions are respected.
+ * 3. New ranks added by the developer are added.
+ * 4. For existing ranks, changes made by the developer in the file are merged on top of any
+ *    changes the user made in-game. If there's a conflict on the same property, the file change wins.
+ *
+ * @param {import('./ranksConfig.js').RankDefinition[]} currentUserRanks The ranks currently in the world (with user changes).
+ * @param {import('./ranksConfig.js').RankDefinition[]} newFileRanks The ranks from the newly loaded config file.
+ * @param {import('./ranksConfig.js').RankDefinition[]} lastLoadedRanks The ranks from the config file as of the last load.
+ * @returns {import('./ranksConfig.js').RankDefinition[]} The merged list of ranks.
+ */
+export function mergeRanks(currentUserRanks, newFileRanks, lastLoadedRanks) {
+    const userMap = new Map((currentUserRanks || []).map(r => [r.id, r]));
+    const fileMap = new Map((newFileRanks || []).map(r => [r.id, r]));
+    const lastMap = new Map((lastLoadedRanks || []).map(r => [r.id, r]));
+
+    const allIds = new Set([...userMap.keys(), ...fileMap.keys(), ...lastMap.keys()]);
+    const finalRanks = [];
+
+    for (const id of allIds) {
+        const userRank = userMap.get(id);
+        const fileRank = fileMap.get(id);
+        const lastRank = lastMap.get(id);
+
+        // Case 1: Dev added a new rank to the file.
+        if (fileRank && !lastRank) {
+            finalRanks.push(deepClone(fileRank));
+            continue;
+        }
+
+        // Case 2: Dev deleted a rank from the file. It should be removed.
+        if (!fileRank && lastRank) {
+            continue;
+        }
+
+        // Case 3: User deleted a rank in-game. It should be removed.
+        if (!userRank && fileRank && lastRank) {
+            continue;
+        }
+
+        // Case 4: Rank exists and needs to be merged.
+        if (userRank && fileRank && lastRank) {
+            const fileDidChange = !isDeepEqual(fileRank, lastRank);
+
+            if (fileDidChange) {
+                // The file has changed. Merge changes, with file changes taking precedence.
+                const mergedRank = deepClone(userRank);
+                for (const key in fileRank) {
+                    if (!isDeepEqual(fileRank[key], lastRank[key])) {
+                        mergedRank[key] = deepClone(fileRank[key]);
+                    }
+                }
+                finalRanks.push(mergedRank);
+            } else {
+                // File didn't change for this rank, so keep the user's version.
+                finalRanks.push(deepClone(userRank));
+            }
+            continue;
+        }
+
+        // Edge Case: A rank exists in-game but was never in the tracked files (e.g., manually added).
+        // To be safe, we keep it.
+        if (userRank && !fileRank && !lastRank) {
+            finalRanks.push(deepClone(userRank));
+        }
+    }
+
+    // Preserve original order as much as possible
+    finalRanks.sort((a, b) => {
+        const aIndex = newFileRanks.findIndex(r => r.id === a.id);
+        const bIndex = newFileRanks.findIndex(r => r.id === b.id);
+        if (aIndex === -1 || bIndex === -1) {
+            return 0;
+        }
+        return aIndex - bIndex;
+    });
+
+    return finalRanks;
+}
+
+/**
+ * Recursively performs a 3-way merge for configurations that use objects as key-value maps (e.g., kits, shop).
+ * This function correctly handles additions, modifications, and deletions from both file and in-game changes.
+ *
+ * @param {object} currentUser The current in-game configuration object.
+ * @param {object} newFile The configuration object from the newly loaded file.
+ * @param {object} lastLoaded The configuration object from the last time the file was loaded.
+ * @returns {object} The merged configuration object.
+ */
+export function mergeObjectMaps(currentUser, newFile, lastLoaded) {
+    const finalConfig = deepClone(currentUser);
+    const allKeys = new Set([...Object.keys(currentUser), ...Object.keys(newFile), ...Object.keys(lastLoaded)]);
+
+    for (const key of allKeys) {
+        const userValue = currentUser[key];
+        const fileValue = newFile[key];
+        const lastValue = lastLoaded[key];
+
+        // Scenario 1: Item was deleted from the file by the developer.
+        if (fileValue === undefined && lastValue !== undefined) {
+            delete finalConfig[key];
+            continue;
+        }
+
+        // Scenario 2: A new item was added to the file by the developer.
+        if (fileValue !== undefined && lastValue === undefined) {
+            finalConfig[key] = deepClone(fileValue);
+            continue;
+        }
+
+        // Scenario 3: The item exists and may need updates.
+        if (userValue !== undefined && fileValue !== undefined) {
+            const fileDidChange = !isDeepEqual(fileValue, lastValue);
+
+            if (fileDidChange) {
+                // If the item is a nested object, recurse. Otherwise, just apply the file value.
+                if (isObject(userValue) && isObject(fileValue) && isObject(lastValue)) {
+                    finalConfig[key] = mergeObjectMaps(userValue, fileValue, lastValue);
+                } else {
+                    // The file value takes precedence for this property.
+                    finalConfig[key] = deepClone(fileValue);
+                }
+            }
+            // If fileDidChange is false, we do nothing, preserving the userValue that's already in finalConfig.
+        }
+    }
+
+    return finalConfig;
 }

@@ -6,6 +6,7 @@ export const kitsConfig = {
             cooldownSeconds: 3600, // 1 hour
             icon: 'textures/items/stone_sword',
             price: 0,
+            permissionLevel: 1024,
             items: [
                 { typeId: 'minecraft:stone_sword', amount: 1 },
                 { typeId: 'minecraft:stone_pickaxe', amount: 1 },
@@ -20,6 +21,7 @@ export const kitsConfig = {
             cooldownSeconds: 900, // 15 minutes
             icon: 'textures/items/beef_cooked',
             price: 10,
+            permissionLevel: 1024,
             items: [
                 { typeId: 'minecraft:cooked_beef', amount: 8 }
             ]
@@ -30,6 +32,7 @@ export const kitsConfig = {
             cooldownSeconds: 86400, // 24 hours
             icon: 'textures/items/iron_sword',
             price: 100,
+            permissionLevel: 1024,
             items: [
                 { typeId: 'minecraft:iron_sword', amount: 1 },
                 { typeId: 'minecraft:iron_helmet', amount: 1 },
@@ -46,6 +49,7 @@ export const kitsConfig = {
             cooldownSeconds: 86400, // 24 hours
             icon: 'textures/items/bow_standby',
             price: 100,
+            permissionLevel: 1024,
             items: [
                 { typeId: 'minecraft:bow', amount: 1 },
                 { typeId: 'minecraft:arrow', amount: 64 },
@@ -62,6 +66,7 @@ export const kitsConfig = {
             cooldownSeconds: 43200, // 12 hours
             icon: 'textures/items/iron_pickaxe',
             price: 50,
+            permissionLevel: 1024,
             items: [
                 { typeId: 'minecraft:iron_pickaxe', amount: 1 },
                 { typeId: 'minecraft:iron_shovel', amount: 1 },
@@ -76,6 +81,7 @@ export const kitsConfig = {
             cooldownSeconds: 86400, // 24 hours
             icon: 'textures/blocks/planks_oak',
             price: 200,
+            permissionLevel: 1024,
             items: [
                 { typeId: 'minecraft:oak_log', amount: 64 },
                 { typeId: 'minecraft:oak_log', amount: 64 },
