@@ -233,7 +233,7 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
             console.log(`[${name}ConfigManager] Main configuration has been reset to default. Debug logging is now ${currentConfig.debug ? 'enabled' : 'disabled'}.`);
         } else {
             // Use the now-reliable debugLog for other configs.
-            (await import('./logger.js')).debugLog(`[${name}ConfigManager] Configuration has been reset to default.`);
+            debugLog(`[${name}ConfigManager] Configuration has been reset to default.`);
         }
     }
 
