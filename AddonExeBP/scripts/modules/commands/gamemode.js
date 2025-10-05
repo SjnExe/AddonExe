@@ -1,7 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { GameMode } from '@minecraft/server';
 import { getPlayer } from '../../core/playerDataManager.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 const gamemodes = {
     'survival': GameMode.Survival,

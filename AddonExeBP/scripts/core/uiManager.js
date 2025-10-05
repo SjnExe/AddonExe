@@ -1,5 +1,5 @@
 import { debugLog } from './logger.js';
-import { errorLog } from './errorLogger.js';
+import { errorLog } from './logger.js';
 import * as utils from './utils.js';
 import { buildPanelForm } from './ui/panelBuilder.js';
 import { handleFormResponse } from './ui/panelHandlers.js';

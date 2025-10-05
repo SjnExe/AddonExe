@@ -1,6 +1,6 @@
 import { world } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 commandManager.register({
     name: 'clearchat',

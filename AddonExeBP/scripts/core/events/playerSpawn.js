@@ -6,7 +6,7 @@ import * as rankManager from '../rankManager.js';
 import { updatePlayerRank } from '../main.js';
 import { getConfig } from '../configManager.js';
 import { formatString } from '../utils.js';
-import { errorLog } from '../errorLogger.js';
+import { errorLog } from '../logger.js';
 import { debugLog } from '../logger.js';
 
 export const eventName = 'playerSpawn';

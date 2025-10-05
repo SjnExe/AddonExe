@@ -11,7 +11,7 @@ import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
 import * as economyManager from './economyManager.js';
 import * as bountyManager from './bountyManager.js';
 import { debugLog } from './logger.js';
-import { errorLog } from './errorLogger.js';
+import { errorLog } from './logger.js';
 import { startRestart } from './restartManager.js';
 import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';

@@ -3,7 +3,7 @@ import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { getPlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
 import { getConfig } from '../configManager.js';
 import { debugLog } from '../logger.js';
-import { errorLog } from '../errorLogger.js';
+import { errorLog } from '../logger.js';
 import * as rankManager from '../rankManager.js';
 import * as playerCache from '../playerCache.js';
 import * as bountyManager from '../bountyManager.js';

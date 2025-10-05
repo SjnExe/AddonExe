@@ -2,7 +2,7 @@ import { system, world } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getPlayer, setPlayerAnnouncementsMuted } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 const ANNOUNCEMENT_PANEL_ID = 'config_announcements';
 

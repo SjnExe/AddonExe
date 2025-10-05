@@ -1,7 +1,7 @@
 import { world } from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
 import { commandManager } from './commandManager.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 import * as homesManager from '../../core/homesManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
