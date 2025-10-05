@@ -47,7 +47,7 @@ export async function resetConfigSection(sectionKey, player) {
 
     // Dynamically import the latest default config to compare against
     try {
-        const { config: defaultConfig } = await import(`../config.js?v=${new Date().getTime()}`);
+        const { config: defaultConfig } = await import('../config.js');
         if (Object.prototype.hasOwnProperty.call(defaultConfig, sectionKey)) {
             updateConfig(sectionKey, deepClone(defaultConfig[sectionKey]));
 

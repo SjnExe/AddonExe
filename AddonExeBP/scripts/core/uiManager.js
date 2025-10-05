@@ -808,7 +808,12 @@ async function handleFormResponse(player, panelId, response, context) {
             }
 
             const result = await resetConfigSection(selectedSystem.id, player);
-            player.sendMessage(`§2${result.message}`);
+            if (result.success) {
+                player.sendMessage(`§2${result.message}`);
+            } else {
+                player.sendMessage('§cFailed to reset the configuration. Please check the console for details.');
+                errorLog(`[UIManager] Failed to reset config section '${selectedSystem.id}': ${result.message}`);
+            }
             return showPanel(player, 'configResetPanel', { ...context, page: 1 });
         }
 
@@ -842,7 +847,12 @@ async function handleFormResponse(player, panelId, response, context) {
                 }
 
                 const result = await resetConfigSection('all', player);
-                player.sendMessage(`§2${result.message}`);
+                if (result.success) {
+                    player.sendMessage(`§2${result.message}`);
+                } else {
+                    player.sendMessage('§cFailed to reset all configurations. Please check the console for details.');
+                    errorLog(`[UIManager] Failed to reset all config sections: ${result.message}`);
+                }
                 return showPanel(player, 'configResetPanel', { ...context, page: 1 });
             }
             buttonIndex--;
