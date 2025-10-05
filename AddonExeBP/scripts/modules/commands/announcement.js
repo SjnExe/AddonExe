@@ -11,49 +11,42 @@ const ANNOUNCEMENT_PANEL_ID = 'config_announcements';
 commandManager.register({
     name: 'announcement',
     aliases: ['announce', 'motd'],
-    description: 'Manages server announcements or toggles personal display.',
-    category: 'Administration',
-    permissionLevel: 1024, // Allow everyone to use the base command for toggling
-    allowConsole: true,
+    description: 'Toggles personal announcement display, or opens the admin panel.',
+    category: 'General',
+    permissionLevel: 1024, // Allow everyone
+    allowConsole: false,
     parameters: [
-        { name: 'subcommand', type: 'string', optional: true, enumOptions: ['on', 'off', 'true', 'false'] },
-        { name: 'value', type: 'text', optional: true }
+        { name: 'enabled', type: 'boolean', optional: true, description: 'Set your announcement status (true=ON, false=OFF).' }
     ],
     execute: (executor, args) => {
-        const pData = executor.isConsole ? null : getPlayer(executor.id);
-        const isAdmin = executor.isConsole || (pData && pData.permissionLevel <= 1);
+        const pData = getPlayer(executor.id);
+        const isAdmin = pData && pData.permissionLevel <= 1;
 
-        // Non-admin usage: Toggle personal announcements
-        if (!isAdmin) {
-            const currentStatus = pData.announcementsMuted ?? false;
-            const newStatus = !currentStatus;
-            setPlayerAnnouncementsMuted(executor.id, newStatus);
-            executor.sendMessage(`§7Announcements are now §${newStatus ? 'cOFF' : '2ON'}§7 for you.`);
-            return;
-        }
-
-        // Admin usage: Open UI or handle subcommands
-        if (!args.subcommand) {
-            // Use a dynamic import to break the circular dependency chain
+        // If the executor is an admin, always show the panel.
+        if (isAdmin) {
             import('../../core/uiManager.js').then(uiManager => {
                 uiManager.showPanel(executor, ANNOUNCEMENT_PANEL_ID);
             }).catch(e => errorLog(`Failed to load uiManager for announcements panel: ${e}`));
             return;
         }
 
-        const sub = args.subcommand.toLowerCase();
-        const config = getConfig();
+        // The following logic is for non-admins only.
 
-        if (['true', 'on'].includes(sub)) {
-            config.announcements.enabled = true;
-            executor.sendMessage('§2Announcements have been enabled globally.');
-        } else if (['false', 'off'].includes(sub)) {
-            config.announcements.enabled = false;
-            executor.sendMessage('§cAnnouncements have been disabled globally.');
-        } else {
-            executor.sendMessage('§cInvalid subcommand. Use "on" or "off", or no subcommand to open the panel.');
+        // Case 1: Player explicitly sets their announcement state
+        if (args.enabled !== undefined) {
+            // enabled: true -> wants ON -> announcementsMuted = false
+            // enabled: false -> wants OFF -> announcementsMuted = true
+            const announcementsMuted = !args.enabled;
+            setPlayerAnnouncementsMuted(executor.id, announcementsMuted);
+            executor.sendMessage(`§7Announcements are now §${announcementsMuted ? 'cOFF' : '2ON'}§7 for you.`);
+            return;
         }
-        // Note: config changes are not yet persisted. This will be handled via the UI.
+
+        // Case 2: No arguments provided, toggle their current mute state
+        const currentStatus = pData.announcementsMuted ?? false;
+        const newStatus = !currentStatus;
+        setPlayerAnnouncementsMuted(executor.id, newStatus);
+        executor.sendMessage(`§7Announcements are now §${newStatus ? 'cOFF' : '2ON'}§7 for you.`);
     }
 });
 
