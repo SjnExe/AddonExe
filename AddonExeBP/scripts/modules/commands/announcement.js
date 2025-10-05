@@ -65,7 +65,7 @@ function stopAnnouncer() {
     }
 }
 
-function startAnnouncer() {
+export function restartAnnouncer() {
     stopAnnouncer(); // Ensure no multiple timers are running
 
     const config = getConfig();
@@ -93,10 +93,5 @@ function startAnnouncer() {
 
 // --- System Event Hooks ---
 
-// Start the announcer when the world initializes
-system.afterEvents.worldInitialize.subscribe(() => {
-    startAnnouncer();
-});
-
-// A server reload (/reload) is required for changes to the announcement
-// message or interval to take effect on the broadcast timer.
+// Start the announcer automatically when the script loads.
+restartAnnouncer();
