@@ -2,7 +2,7 @@ import { system, world } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getPlayer, setPlayerAnnouncementsMuted } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
-import { showPanel } from '../../core/uiManager.js';
+import { errorLog } from '../../core/errorLogger.js';
 
 const ANNOUNCEMENT_PANEL_ID = 'config_announcements';
 
@@ -34,7 +34,10 @@ commandManager.register({
 
         // Admin usage: Open UI or handle subcommands
         if (!args.subcommand) {
-            showPanel(executor, ANNOUNCEMENT_PANEL_ID);
+            // Use a dynamic import to break the circular dependency chain
+            import('../../core/uiManager.js').then(uiManager => {
+                uiManager.showPanel(executor, ANNOUNCEMENT_PANEL_ID);
+            }).catch(e => errorLog(`Failed to load uiManager for announcements panel: ${e}`));
             return;
         }
 
