@@ -66,7 +66,7 @@ export const configPanelSchema = [
     },
     {
         id: 'announcements',
-        title: '§l§aAnnouncement System§r',
+        title: '§l§2Announcement System§r',
         icon: 'textures/ui/icon_bell',
         settings: [
             {

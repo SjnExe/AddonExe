@@ -33,19 +33,19 @@ export const config = {
         teleportWarmupSeconds: 10
     },
     warps: {
-        enabled: true,
+        enabled: false,
         cooldownSeconds: 60, // 1 minute
         teleportWarmupSeconds: 10
     },
     rtp: {
-        enabled: true,
+        enabled: false,
         minRange: 1000,
         maxRange: 10000,
         cooldownSeconds: 600, // 10 minutes
         teleportWarmupSeconds: 10
     },
     kits: {
-        enabled: true
+        enabled: false
     },
     shop: {
         enabled: true
@@ -70,7 +70,7 @@ export const config = {
         bountyCreditTimeoutSeconds: 15
     },
     announcements: {
-        enabled: true,
+        enabled: false,
         message: '§2Welcome to the server! Enjoy your stay.',
         interval: 300 // Time in seconds
     },
