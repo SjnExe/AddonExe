@@ -817,7 +817,7 @@ async function handleFormResponse(player, panelId, response, context) {
                 return showPanel(player, 'configResetPanel', { ...context, page });
             }
 
-            const result = await resetConfigSection(selectedSystem.id);
+            const result = await resetConfigSection(selectedSystem.id, player);
             player.sendMessage(`§2${result.message}`);
             return showPanel(player, 'configResetPanel', { ...context, page: 1 });
         }
@@ -851,7 +851,7 @@ async function handleFormResponse(player, panelId, response, context) {
                     return showPanel(player, 'configResetPanel', { ...context, page });
                 }
 
-                const result = await resetConfigSection('all');
+                const result = await resetConfigSection('all', player);
                 player.sendMessage(`§2${result.message}`);
                 return showPanel(player, 'configResetPanel', { ...context, page: 1 });
             }
