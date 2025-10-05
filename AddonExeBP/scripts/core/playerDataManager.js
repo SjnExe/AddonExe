@@ -19,6 +19,7 @@
  * @property {boolean} deathNotificationSent
  * @property {boolean} tpaRequestsDisabled
  * @property {string[]} tpaBlockedPlayerIds
+ * @property {boolean} announcementsMuted
  */
 
 import { getConfig } from './configManager.js';
@@ -232,6 +233,9 @@ export function loadPlayerData(playerId) {
             if (playerData.tpaBlockedPlayerIds === undefined) {
                 playerData.tpaBlockedPlayerIds = [];
             }
+            if (playerData.announcementsMuted === undefined) {
+                playerData.announcementsMuted = false;
+            }
 
             activePlayerData.set(playerId, playerData);
             return playerData;
@@ -303,7 +307,8 @@ export function getOrCreatePlayer(player) {
         lastDeathLocation: null,
         deathNotificationSent: true, // Default to true to prevent message on first spawn
         tpaRequestsDisabled: false,
-        tpaBlockedPlayerIds: []
+        tpaBlockedPlayerIds: [],
+        announcementsMuted: false
     };
     activePlayerData.set(player.id, newPlayerData);
     savePlayerData(player.id); // Save immediately
@@ -410,6 +415,19 @@ export function setPlayerRank(playerId, rankId, permissionLevel) {
     if (pData) {
         pData.rankId = rankId;
         pData.permissionLevel = permissionLevel;
+        savePlayerData(playerId);
+    }
+}
+
+/**
+ * Sets whether a player has muted announcements.
+ * @param {string} playerId The ID of the player to modify.
+ * @param {boolean} isMuted The new muted state.
+ */
+export function setPlayerAnnouncementsMuted(playerId, isMuted) {
+    const pData = getPlayer(playerId);
+    if (pData) {
+        pData.announcementsMuted = isMuted;
         savePlayerData(playerId);
     }
 }

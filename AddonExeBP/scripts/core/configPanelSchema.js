@@ -65,6 +65,31 @@ export const configPanelSchema = [
         ]
     },
     {
+        id: 'announcements',
+        title: '§l§aAnnouncement System§r',
+        icon: 'textures/ui/icon_bell',
+        settings: [
+            {
+                key: 'announcements.enabled',
+                label: 'Announcements Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the periodic announcement broadcast.'
+            },
+            {
+                key: 'announcements.message',
+                label: 'Announcement Message',
+                type: 'textField',
+                description: 'The message to be broadcast. Use color codes for formatting.'
+            },
+            {
+                key: 'announcements.interval',
+                label: 'Interval (seconds)',
+                type: 'textField',
+                description: 'How often the message is broadcast, in seconds. A reload is required for changes to take effect.'
+            }
+        ]
+    },
+    {
         id: 'warps',
         title: '§l§dWarp System§r',
         icon: 'textures/blocks/portal_placeholder',

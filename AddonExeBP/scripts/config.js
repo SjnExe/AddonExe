@@ -69,6 +69,11 @@ export const config = {
         // How long (in seconds) after the last hit from a player that they can still be credited for the kill.
         bountyCreditTimeoutSeconds: 15
     },
+    announcements: {
+        enabled: true,
+        message: '§aWelcome to the server! Enjoy your stay.',
+        interval: 300 // Time in seconds
+    },
     dimensionLock: {
         allowAdminBypass: true,
         netherLock: false,
