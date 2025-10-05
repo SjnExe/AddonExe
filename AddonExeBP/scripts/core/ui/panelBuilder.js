@@ -41,7 +41,7 @@ function addPaginationButtons(form, page, totalItems) {
     }
 }
 
-function getMenuItems(panelDef, permissionLevel) {
+export function getMenuItems(panelDef, permissionLevel) {
     const config = getConfig();
     const items = (panelDef.items || [])
         .filter(item => {
