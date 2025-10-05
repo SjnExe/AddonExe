@@ -1,7 +1,7 @@
 import { system, world } from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getPlayer, setPlayerAnnouncementsMuted } from '../../core/playerDataManager.js';
-import { getConfig } from '../../core/configManager.js';
+import { getConfig, updateConfig } from '../../core/configManager.js';
 import { errorLog } from '../../core/logger.js';
 
 const ANNOUNCEMENT_PANEL_ID = 'config_announcements';
@@ -10,45 +10,45 @@ const ANNOUNCEMENT_PANEL_ID = 'config_announcements';
 
 commandManager.register({
     name: 'announcement',
-    aliases: ['announce', 'motd'],
-    description: 'Toggles personal announcement display, or opens the admin panel.',
-    category: 'General',
-    permissionLevel: 1024, // Allow everyone
-    allowConsole: false,
+    aliases: ['broadcast'],
+    description: 'Manages server announcements.',
+    category: 'Administration',
+    permissionLevel: 1, // Admin and above
+    allowConsole: true,
     parameters: [
-        { name: 'enabled', type: 'boolean', optional: true, description: 'Set your announcement status (true=ON, false=OFF).' }
+        { name: 'enabled', type: 'boolean', optional: true, description: 'Globally enable or disable announcements (true=ON, false=OFF).' }
     ],
     execute: (executor, args) => {
-        const pData = getPlayer(executor.id);
-        const isAdmin = pData && pData.permissionLevel <= 1;
+        // This is an admin-only command, so no need to check permissionLevel here.
 
-        // If the executor is an admin, always show the panel.
-        if (isAdmin) {
-            import('../../core/uiManager.js').then(uiManager => {
-                uiManager.showPanel(executor, ANNOUNCEMENT_PANEL_ID);
-            }).catch(e => errorLog(`Failed to load uiManager for announcements panel: ${e}`));
-            return;
-        }
-
-        // The following logic is for non-admins only.
-
-        // Case 1: Player explicitly sets their announcement state
+        // Case 1: Globally enable or disable announcements
         if (args.enabled !== undefined) {
-            // enabled: true -> wants ON -> announcementsMuted = false
-            // enabled: false -> wants OFF -> announcementsMuted = true
-            const announcementsMuted = !args.enabled;
-            setPlayerAnnouncementsMuted(executor.id, announcementsMuted);
-            executor.sendMessage(`§7Announcements are now §${announcementsMuted ? 'cOFF' : '2ON'}§7 for you.`);
+            const announcementsConfig = getConfig().announcements;
+            announcementsConfig.enabled = args.enabled;
+
+            // updateConfig saves the changes and triggers persistence
+            updateConfig('announcements', announcementsConfig);
+
+            // Manually restart the announcer to apply the change immediately
+            restartAnnouncer();
+
+            executor.sendMessage(`§7Announcements have been globally §${args.enabled ? '2enabled' : 'cdisabled'}§7.`);
             return;
         }
 
-        // Case 2: No arguments provided, toggle their current mute state
-        const currentStatus = pData.announcementsMuted ?? false;
-        const newStatus = !currentStatus;
-        setPlayerAnnouncementsMuted(executor.id, newStatus);
-        executor.sendMessage(`§7Announcements are now §${newStatus ? 'cOFF' : '2ON'}§7 for you.`);
+        // Case 2: No arguments, open the UI panel
+        // The executor must be a player to receive a UI panel.
+        if (executor.isConsole) {
+            executor.sendMessage('§cThis command must be run by a player to open the UI. Use `/announcement [true|false]` to control announcements from the console.');
+            return;
+        }
+
+        import('../../core/uiManager.js').then(uiManager => {
+            uiManager.showPanel(executor, ANNOUNCEMENT_PANEL_ID);
+        }).catch(e => errorLog(`Failed to load uiManager for announcements panel: ${e}`));
     }
 });
+
 
 // --- Announcement Broadcasting ---
 
@@ -90,3 +90,60 @@ export function restartAnnouncer() {
 // --- System Event Hooks ---
 
 // The announcer is started by main.js after all configs are loaded.
+
+// --- Player-Facing Commands ---
+
+commandManager.register({
+    name: 'motdnotify',
+    aliases: ['togglemotd'],
+    description: 'Toggles or sets your personal announcement preference.',
+    category: 'General',
+    permissionLevel: 1024, // Allow everyone
+    allowConsole: false,
+    parameters: [
+        { name: 'enabled', type: 'boolean', optional: true, description: 'Set your announcement status (true=ON, false=OFF).' }
+    ],
+    execute: (executor, args) => {
+        const pData = getPlayer(executor.id);
+        if (!pData) return;
+
+        if (args.enabled !== undefined) {
+            const announcementsMuted = !args.enabled;
+            setPlayerAnnouncementsMuted(executor.id, announcementsMuted);
+            executor.sendMessage(`§7Announcements are now §${announcementsMuted ? 'cOFF' : '2ON'}§7 for you.`);
+        } else {
+            const currentStatus = pData.announcementsMuted ?? false;
+            const newStatus = !currentStatus;
+            setPlayerAnnouncementsMuted(executor.id, newStatus);
+            executor.sendMessage(`§7Announcements are now §${newStatus ? 'cOFF' : '2ON'}§7 for you.`);
+        }
+    }
+});
+
+commandManager.register({
+    name: 'startannounce',
+    aliases: ['annon'],
+    description: 'Force-enables announcements for yourself.',
+    category: 'General',
+    permissionLevel: 1024,
+    allowConsole: false,
+    parameters: [],
+    execute: (executor) => {
+        setPlayerAnnouncementsMuted(executor.id, false); // false = not muted
+        executor.sendMessage(`§7Announcements are now §2ON§7 for you.`);
+    }
+});
+
+commandManager.register({
+    name: 'stopannounce',
+    aliases: ['annoff'],
+    description: 'Force-disables announcements for yourself.',
+    category: 'General',
+    permissionLevel: 1024,
+    allowConsole: false,
+    parameters: [],
+    execute: (executor) => {
+        setPlayerAnnouncementsMuted(executor.id, true); // true = muted
+        executor.sendMessage(`§7Announcements are now §cOFF§7 for you.`);
+    }
+});
