@@ -19,8 +19,7 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
 
     async function _getDefaultConfig() {
         try {
-            // Removed cache-busting query as it can be unreliable in this environment.
-            const module = await import(configPath);
+            const module = await import(`${configPath}?v=${new Date().getTime()}`);
             if (!module[configKey]) {
                 throw new Error(`Config key '${configKey}' not found in module ${configPath}`);
             }
