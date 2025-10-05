@@ -1967,7 +1967,7 @@ async function handleFormResponse(player, panelId, response, context) {
         }
         if (categoryId === 'announcements') {
             restartAnnouncer();
-            player.sendMessage('§aAnnouncement system has been updated with new settings.');
+            player.sendMessage('§2Announcement system has been updated with new settings.');
         }
 
         return showPanel(player, 'configCategoryPanel');

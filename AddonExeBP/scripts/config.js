@@ -71,7 +71,7 @@ export const config = {
     },
     announcements: {
         enabled: true,
-        message: '§aWelcome to the server! Enjoy your stay.',
+        message: '§2Welcome to the server! Enjoy your stay.',
         interval: 300 // Time in seconds
     },
     dimensionLock: {

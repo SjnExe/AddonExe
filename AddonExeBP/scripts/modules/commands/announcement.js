@@ -28,7 +28,7 @@ commandManager.register({
             const currentStatus = pData.announcementsMuted ?? false;
             const newStatus = !currentStatus;
             setPlayerAnnouncementsMuted(executor.id, newStatus);
-            executor.sendMessage(`§7Announcements are now §${newStatus ? 'cOFF' : 'aON'}§7 for you.`);
+            executor.sendMessage(`§7Announcements are now §${newStatus ? 'cOFF' : '2ON'}§7 for you.`);
             return;
         }
 
@@ -43,7 +43,7 @@ commandManager.register({
 
         if (['true', 'on'].includes(sub)) {
             config.announcements.enabled = true;
-            executor.sendMessage('§aAnnouncements have been enabled globally.');
+            executor.sendMessage('§2Announcements have been enabled globally.');
         } else if (['false', 'off'].includes(sub)) {
             config.announcements.enabled = false;
             executor.sendMessage('§cAnnouncements have been disabled globally.');
@@ -93,5 +93,4 @@ export function restartAnnouncer() {
 
 // --- System Event Hooks ---
 
-// Start the announcer automatically when the script loads.
-restartAnnouncer();
+// The announcer is started by main.js after all configs are loaded.
