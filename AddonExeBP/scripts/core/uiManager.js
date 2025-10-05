@@ -491,19 +491,14 @@ async function buildPanelForm(player, panelId, context) {
         form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
         const resettableSystems = [
-            ...configPanelSchema.map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+            ...configPanelSchema.filter(c => c.id !== 'general').map(c => ({ id: c.id, title: c.title, icon: c.icon })),
             { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
             { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
             { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
         ];
         resettableSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
 
-        const generalSystem = resettableSystems.find(s => s.id === 'general');
-        let otherSystems = resettableSystems.filter(s => s.id !== 'general');
-
-        const sortedSystems = [];
-        if (generalSystem) {sortedSystems.push(generalSystem);}
-        sortedSystems.push(...otherSystems);
+        const sortedSystems = resettableSystems;
 
         const paginatedSystems = getPaginatedItems(sortedSystems, page);
 
@@ -771,19 +766,14 @@ async function handleFormResponse(player, panelId, response, context) {
     if (panelId === 'configResetPanel') {
         const page = context.page || 1;
         const resettableSystems = [
-            ...configPanelSchema.map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+            ...configPanelSchema.filter(c => c.id !== 'general').map(c => ({ id: c.id, title: c.title, icon: c.icon })),
             { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
             { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
             { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
         ];
         resettableSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
 
-        const generalSystem = resettableSystems.find(s => s.id === 'general');
-        let otherSystems = resettableSystems.filter(s => s.id !== 'general');
-
-        const sortedSystems = [];
-        if (generalSystem) {sortedSystems.push(generalSystem);}
-        sortedSystems.push(...otherSystems);
+        const sortedSystems = resettableSystems;
 
         if (selection === 0) { // Back button
             return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
@@ -817,8 +807,13 @@ async function handleFormResponse(player, panelId, response, context) {
                 return showPanel(player, 'configResetPanel', { ...context, page });
             }
 
-            const result = await resetConfigSection(selectedSystem.id);
-            player.sendMessage(`§2${result.message}`);
+            const result = await resetConfigSection(selectedSystem.id, player);
+            if (result.success) {
+                player.sendMessage(`§2${result.message}`);
+            } else {
+                player.sendMessage('§cFailed to reset the configuration. Please check the console for details.');
+                errorLog(`[UIManager] Failed to reset config section '${selectedSystem.id}': ${result.message}`);
+            }
             return showPanel(player, 'configResetPanel', { ...context, page: 1 });
         }
 
@@ -851,8 +846,13 @@ async function handleFormResponse(player, panelId, response, context) {
                     return showPanel(player, 'configResetPanel', { ...context, page });
                 }
 
-                const result = await resetConfigSection('all');
-                player.sendMessage(`§2${result.message}`);
+                const result = await resetConfigSection('all', player);
+                if (result.success) {
+                    player.sendMessage(`§2${result.message}`);
+                } else {
+                    player.sendMessage('§cFailed to reset all configurations. Please check the console for details.');
+                    errorLog(`[UIManager] Failed to reset all config sections: ${result.message}`);
+                }
                 return showPanel(player, 'configResetPanel', { ...context, page: 1 });
             }
             buttonIndex--;
