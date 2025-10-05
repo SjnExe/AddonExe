@@ -2,7 +2,7 @@ import { world, system, Player } from '@minecraft/server';
 import { getSpawnConfig } from '../../core/configurations.js';
 import { getConfig } from '../../core/configManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 // State variables to hold subscription handles and timer IDs for cleanup
 let eventHandlers = [];

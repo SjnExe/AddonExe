@@ -4,7 +4,7 @@ import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerD
 import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
 import { parseDuration, playSoundFromConfig } from '../../core/utils.js';
 import { findPlayerByName } from '../../core/playerCache.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 export function banPlayer(player, targetPlayer, duration, reason) {
     // Console execution does not have a player object with an id

@@ -99,7 +99,7 @@ function addPanelBody(form, player, panelId, context) {
     }
 }
 
-function getVisiblePlayerActionItems(context, permissionLevel) {
+export function getVisiblePlayerActionItems(context, permissionLevel) {
     const panelDef = panelDefinitions.playerActionsPanel;
     const config = getConfig();
     const allItems = getMenuItems(panelDef, permissionLevel);

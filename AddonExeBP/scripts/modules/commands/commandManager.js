@@ -5,7 +5,7 @@ import {
 } from '@minecraft/server';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 import { getCooldown } from '../../core/cooldownManager.js';
 
 /**

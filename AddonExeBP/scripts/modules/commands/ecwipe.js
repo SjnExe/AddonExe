@@ -2,7 +2,7 @@ import { commandManager } from './commandManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { playSound } from '../../core/utils.js';
 import { world } from '@minecraft/server';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 commandManager.register({
     name: 'ecwipe',

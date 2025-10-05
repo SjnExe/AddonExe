@@ -3,7 +3,7 @@ import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { setCooldown } from '../../core/cooldownManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 commandManager.register({
     name: 'rtp',

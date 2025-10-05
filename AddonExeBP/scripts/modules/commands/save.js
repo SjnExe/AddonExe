@@ -1,7 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { saveAllData } from '../../core/dataManager.js';
 import { playSoundFromConfig } from '../../core/utils.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 commandManager.register({
     name: 'save',

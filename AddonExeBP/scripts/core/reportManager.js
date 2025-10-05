@@ -1,6 +1,6 @@
 import { world, system } from '@minecraft/server';
 import { debugLog } from './logger.js';
-import { errorLog } from './errorLogger.js';
+import { errorLog } from './logger.js';
 import { getConfig } from './configManager.js';
 
 const reportsDbKey = 'exe:reports';

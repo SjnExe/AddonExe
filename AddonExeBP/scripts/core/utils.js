@@ -1,6 +1,6 @@
 import { system, world } from '@minecraft/server';
 import { getConfig } from './configManager.js';
-import { errorLog } from './errorLogger.js';
+import { errorLog } from './logger.js';
 
 /**
  * Parses a duration string (e.g., "10m", "2h", "7d") and returns the duration in milliseconds.

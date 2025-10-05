@@ -1,7 +1,6 @@
 import { world } from '@minecraft/server';
 import { deepMerge, deepClone, setValueByPath, isDeepEqual, mergeRanks, mergeObjectMaps } from './objectUtils.js';
-import { errorLog } from './errorLogger.js';
-import { debugLog } from './logger.js';
+import { errorLog, setDebug, debugLog } from './logger.js';
 
 /**
  * Creates a configuration manager for a specific configuration type.
@@ -168,6 +167,12 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
         }
 
         saveConfig();
+
+        // After loading, if this is the main config, update the logger's debug state.
+        if (name === 'Main') {
+            setDebug(currentConfig.debug);
+        }
+
         return isFirstInit;
     }
 
@@ -205,6 +210,10 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
         }
         for (const path in updates) {
             setValueByPath(currentConfig, path, updates[path]);
+            // If the debug flag is being changed in the main config, update the logger immediately.
+            if (name === 'Main' && path === 'debug') {
+                setDebug(updates[path]);
+            }
         }
         saveConfig();
     }
@@ -215,7 +224,17 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
         lastLoadedConfig = defaultConfig;
         saveConfig();
         saveLastLoadedConfig();
-        debugLog(`[${name}ConfigManager] Configuration has been reset to default.`);
+
+        // If this is the main config, update the logger's debug state to the new default.
+        if (name === 'Main') {
+            setDebug(currentConfig.debug);
+            // Use console.log directly here because debugLog itself relies on this state.
+            // eslint-disable-next-line no-console
+            console.log(`[${name}ConfigManager] Main configuration has been reset to default. Debug logging is now ${currentConfig.debug ? 'enabled' : 'disabled'}.`);
+        } else {
+            // Use the now-reliable debugLog for other configs.
+            debugLog(`[${name}ConfigManager] Configuration has been reset to default.`);
+        }
     }
 
     return {

@@ -1,7 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { reloadConfig } from '../../core/configManager.js';
 import { updateAllPlayerRanks } from '../../core/main.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 commandManager.register({
     name: 'reload',
