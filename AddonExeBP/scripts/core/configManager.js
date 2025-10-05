@@ -22,9 +22,11 @@ export async function resetConfigSection(sectionKey, player) {
         Object.values(configResetRegistry).forEach(config => resetPromises.push(config.reset()));
         await Promise.all(resetPromises);
 
+        const config = getConfig();
+
         // Trigger all post-reset callbacks
         for (const key in configResetCallbacks) {
-            configResetCallbacks[key](player);
+            configResetCallbacks[key](player, config);
         }
         for (const key in configResetRegistry) {
             if (configResetRegistry[key].postResetCallback) {
@@ -51,7 +53,7 @@ export async function resetConfigSection(sectionKey, player) {
 
             // After resetting, check if there's a callback to re-initialize the system
             if (configResetCallbacks[sectionKey]) {
-                configResetCallbacks[sectionKey](player);
+                configResetCallbacks[sectionKey](player, getConfig());
                 return { success: true, message: `The '${sectionKey}' configuration has been reset and the system reloaded.` };
             }
 
