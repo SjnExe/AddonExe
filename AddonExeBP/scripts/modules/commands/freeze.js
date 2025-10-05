@@ -1,5 +1,5 @@
 import { commandManager } from './commandManager.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 const FROZEN_TAG = 'frozen';
 

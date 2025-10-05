@@ -6,7 +6,7 @@ import * as bountyManager from '../bountyManager.js';
 import * as economyManager from '../economyManager.js';
 import { getConfig } from '../configManager.js';
 import { debugLog } from '../logger.js';
-import { errorLog } from '../errorLogger.js';
+import { errorLog } from '../logger.js';
 
 export const eventName = 'entityDie';
 

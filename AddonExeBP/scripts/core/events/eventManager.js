@@ -1,5 +1,5 @@
 import { world } from '@minecraft/server';
-import { errorLog } from '../errorLogger.js';
+import { errorLog } from '../logger.js';
 
 // Import all event handlers statically
 import handleBeforeChatSend from './beforeChatSend.js';

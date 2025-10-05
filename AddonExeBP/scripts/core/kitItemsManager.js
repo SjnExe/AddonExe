@@ -1,5 +1,5 @@
 import { getKitsConfig, saveKitsConfig } from './configurations.js';
-import { errorLog } from './errorLogger.js';
+import { errorLog } from './logger.js';
 import { debugLog } from './logger.js';
 import { ItemStack } from '@minecraft/server';
 

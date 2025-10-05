@@ -3,7 +3,7 @@ import { playSound } from '../../core/utils.js';
 import * as rankManager from '../../core/rankManager.js';
 import { updatePlayerRank } from '../../core/main.js';
 import { getPlayer } from '../../core/playerDataManager.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 commandManager.register({
     name: 'rank',

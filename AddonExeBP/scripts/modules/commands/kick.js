@@ -3,7 +3,7 @@ import { commandManager } from './commandManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { playSound } from '../../core/utils.js';
 import { findPlayerByName } from '../../core/playerCache.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 export function kickPlayer(player, targetPlayer, reason) {
     if (!targetPlayer) {

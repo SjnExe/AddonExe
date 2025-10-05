@@ -1,4 +1,4 @@
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 // This file is used to load all command modules.
 // By importing this single file, all commands within the imported modules will be registered.

@@ -3,7 +3,7 @@ import { getPlayer, setKitCooldown } from './playerDataManager.js';
 import { getConfig } from './configManager.js';
 import { getKitsConfig } from './configurations.js';
 import * as economyManager from './economyManager.js';
-import { errorLog } from './errorLogger.js';
+import { errorLog } from './logger.js';
 import { formatCooldown } from './utils.js';
 
 /**
