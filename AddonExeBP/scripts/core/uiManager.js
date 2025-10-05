@@ -2,7 +2,7 @@ import { world } from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { panelDefinitions } from './panelLayoutConfig.js';
 import { configPanelSchema } from './configPanelSchema.js';
-import { getPlayer, loadPlayerData, getAllPlayerNameIdMap } from './playerDataManager.js';
+import { getPlayer, loadPlayerData, getAllPlayerNameIdMap, setLockState } from './playerDataManager.js';
 import { getConfig, updateMultipleConfig, resetConfigSection } from './configManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './errorLogger.js';
@@ -16,6 +16,7 @@ import * as bountyManager from './bountyManager.js';
 import * as economyManager from './economyManager.js';
 import * as tpaManager from './tpaManager.js';
 import { kickPlayer } from '../modules/commands/kick.js';
+import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { mutePlayer, unmutePlayer } from '../modules/commands/mute.js';
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '../modules/commands/ban.js';
 import { freezePlayer, unfreezePlayer } from '../modules/commands/freeze.js';
@@ -1956,6 +1957,19 @@ async function handleFormResponse(player, panelId, response, context) {
         }
 
         player.sendMessage(`§2Successfully saved settings for ${category.title}§2.`);
+
+        // Post-save actions for specific config panels
+        if (categoryId === 'dimensionLock') {
+            const [netherLock, endLock] = newValues;
+            setLockState('nether', !!netherLock);
+            setLockState('end', !!endLock);
+            player.sendMessage('§aLive dimension lock states have been updated to match config.');
+        }
+        if (categoryId === 'announcements') {
+            restartAnnouncer();
+            player.sendMessage('§2Announcement system has been updated with new settings.');
+        }
+
         return showPanel(player, 'configCategoryPanel');
     }
 
