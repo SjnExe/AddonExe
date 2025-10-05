@@ -3,7 +3,7 @@ import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { getSpawnConfig, saveSpawnConfig } from '../../core/configurations.js';
 import { playSound, startTeleportWarmup } from '../../core/utils.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 import { setCooldown } from '../../core/cooldownManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
 import { initializeSpawnProtection } from '../detections/spawnProtection.js';

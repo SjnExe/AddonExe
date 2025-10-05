@@ -1,7 +1,7 @@
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { getPlayer, loadPlayerData, setLockState, getAllPlayerNameIdMap } from '../playerDataManager.js';
 import { getConfig, updateMultipleConfig, resetConfigSection } from '../configManager.js';
-import { errorLog } from '../errorLogger.js';
+import { errorLog } from '../logger.js';
 import * as rankManager from '../rankManager.js';
 import * as rankDb from '../rankDb.js';
 import * as playerCache from '../playerCache.js';

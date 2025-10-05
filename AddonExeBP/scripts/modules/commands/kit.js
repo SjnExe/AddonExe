@@ -2,7 +2,7 @@ import { ActionFormData } from '@minecraft/server-ui';
 import { commandManager } from './commandManager.js';
 import * as kitsManager from '../../core/kitsManager.js';
 import { getConfig } from '../../core/configManager.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 import { createKit, getAllKits } from '../../core/kitAdminManager.js';
 import { addItemToKit } from '../../core/kitItemsManager.js';
 import { formatCooldown } from '../../core/utils.js';

@@ -1,6 +1,6 @@
 import { getRanksConfig } from './configurations.js';
 import { debugLog } from './logger.js';
-import { errorLog } from './errorLogger.js';
+import { errorLog } from './logger.js';
 
 let sortedRanks = [];
 

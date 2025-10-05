@@ -1,6 +1,6 @@
 import { commandManager } from './commandManager.js';
 import { playSound } from '../../core/utils.js';
-import { errorLog } from '../../core/errorLogger.js';
+import { errorLog } from '../../core/logger.js';
 
 commandManager.register({
     name: 'copyinv',

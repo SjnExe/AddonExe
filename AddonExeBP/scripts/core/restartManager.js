@@ -2,7 +2,7 @@ import { world } from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { saveAllData } from './dataManager.js';
 import { debugLog } from './logger.js';
-import { errorLog } from './errorLogger.js';
+import { errorLog } from './logger.js';
 import { setTrackedInterval, clearTrackedInterval, setTrackedTimeout } from './timerManager.js';
 
 let restartInProgress = false;
