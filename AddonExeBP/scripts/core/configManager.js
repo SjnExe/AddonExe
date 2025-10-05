@@ -1,5 +1,4 @@
 import createConfigManager from './configManagerFactory.js';
-import { configResetRegistry, configResetCallbacks } from './configurations.js';
 import { deepClone } from './objectUtils.js';
 
 const mainConfigManager = createConfigManager('exe:config:current', '../config.js', 'Main', 'config');
@@ -17,16 +16,17 @@ export const updateMultipleConfig = mainConfigManager.updateMultiple;
  * @returns {Promise<{success: boolean, message: string}>}
  */
 export async function resetConfigSection(sectionKey, player) {
+    // Dynamically import configurations to break the circular dependency at load time.
+    const { configResetRegistry, configResetCallbacks } = await import('./configurations.js');
+
     if (sectionKey === 'all') {
         const resetPromises = [mainConfigManager.reset()];
         Object.values(configResetRegistry).forEach(config => resetPromises.push(config.reset()));
         await Promise.all(resetPromises);
 
-        const config = getConfig();
-
         // Trigger all post-reset callbacks
         for (const key in configResetCallbacks) {
-            configResetCallbacks[key](player, config);
+            configResetCallbacks[key](player);
         }
         for (const key in configResetRegistry) {
             if (configResetRegistry[key].postResetCallback) {
@@ -53,7 +53,7 @@ export async function resetConfigSection(sectionKey, player) {
 
             // After resetting, check if there's a callback to re-initialize the system
             if (configResetCallbacks[sectionKey]) {
-                configResetCallbacks[sectionKey](player, getConfig());
+                configResetCallbacks[sectionKey](player);
                 return { success: true, message: `The '${sectionKey}' configuration has been reset and the system reloaded.` };
             }
 

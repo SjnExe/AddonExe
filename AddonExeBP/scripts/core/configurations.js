@@ -3,6 +3,7 @@ import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import { reloadRanks } from './rankManager.js';
 import { setLockState } from './playerDataManager.js';
+import { getConfig } from './configManager.js';
 
 
 const kitsConfigManager = createConfigManager('exe:kitsConfig:current', './kitsConfig.js', 'Kits', 'kitsConfig');
@@ -70,13 +71,14 @@ export const configResetRegistry = {
  * This is for sections within the main `config.js` file.
  */
 export const configResetCallbacks = {
-    'announcements': (player, config) => {
+    'announcements': (player) => {
         restartAnnouncer();
         if (player) {
             player.sendMessage('§aAnnouncement system has been updated with new settings.');
         }
     },
-    'dimensionLock': (player, config) => {
+    'dimensionLock': (player) => {
+        const config = getConfig(); // Get the freshly reset config
         setLockState('nether', !!config.dimensionLock.lockNether);
         setLockState('end', !!config.dimensionLock.lockEnd);
         if (player) {
