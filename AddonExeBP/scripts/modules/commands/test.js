@@ -1,5 +1,24 @@
 import { commandManager } from './commandManager.js';
-import { world, system } from '@minecraft/server';
+import { world, system, Vector, Player, Block, Dimension, Scoreboard, Container, Effect, Camera, StructureManager, ItemStack, EntityComponent, BlockComponent, ItemComponent } from '@minecraft/server';
+import { MolangVariableMap } from '@minecraft/server';
+
+// --- Helper Function ---
+const log = (message, executor) => {
+    const prefix = '§7[§eAPI-Test§7]§r';
+    console.warn(`${prefix} ${message}`);
+    if (executor && !executor.isConsole) {
+        executor.sendMessage(`${prefix} ${message}`);
+    }
+};
+
+const testSection = (name, testFn, executor) => {
+    log(`--- Testing: ${name} ---`, executor);
+    try {
+        testFn();
+    } catch (e) {
+        log(`§c  FAILURE: An unexpected error occurred in ${name}. Error: ${e.stack}`, executor);
+    }
+};
 
 commandManager.register({
     name: 'test',
@@ -11,88 +30,211 @@ commandManager.register({
     parameters: [],
     execute: (executor, args) => {
         const player = executor.isConsole ? null : executor;
-        const log = (message) => {
-            console.warn(`[APITest] ${message}`);
-            if (player) {
-                player.sendMessage(`[APITest] ${message}`);
-            }
-        };
 
-        log('--- Starting API Tests ---');
+        log('§aStarting comprehensive API tests... Check console for detailed logs.', executor);
 
         system.run(() => {
-            // 1. Test Entity API
-            try {
-                log('Testing: Entity API...');
+            // --- Original Tests ---
+            testSection('Entity API', () => {
                 const dimension = player ? player.dimension : world.getDimension('overworld');
                 const entities = dimension.getEntities({ limit: 5 });
                 if (entities && entities.length > 0) {
-                    log(`  SUCCESS: Found ${entities.length} entities.`);
-                    const firstEntity = entities[0];
-                    log(`  - First entity ID: ${firstEntity.id}`);
-                    log(`  - First entity TypeID: ${firstEntity.typeId}`);
+                    log(`  SUCCESS: Found ${entities.length} entities. First entity is '${entities[0].typeId}'.`, executor);
                 } else {
-                    log('  SUCCESS: getEntities() ran, but no entities were found in the immediate vicinity.');
+                    log('  SUCCESS: getEntities() ran, but no entities were found.', executor);
                 }
-            } catch (e) {
-                log(`  FAILURE: Entity API test failed. Error: ${e.message}`);
-            }
+            }, executor);
 
-            // 2. Test Block API
-            try {
-                log('Testing: Block API...');
+            testSection('Block API', () => {
                 if (!player) {
-                    log('  SKIPPED: Block API test requires a player context.');
-                } else {
-                    const block = player.getBlockFromViewDirection();
-                    if (block) {
-                        log(`  SUCCESS: Found block of type '${block.typeId}' at location ${block.x}, ${block.y}, ${block.z}.`);
-                    } else {
-                        log('  SUCCESS: getBlockFromViewDirection() ran, but no block was in view.');
-                    }
+                    log('  SKIPPED: Block API test requires a player context.', executor);
+                    return;
                 }
-            } catch (e) {
-                log(`  FAILURE: Block API test failed. Error: ${e.message}`);
-            }
+                const block = player.getBlockFromViewDirection();
+                if (block) {
+                    log(`  SUCCESS: Found block of type '${block.typeId}' at [${block.x}, ${block.y}, ${block.z}].`, executor);
+                } else {
+                    log('  SUCCESS: getBlockFromViewDirection() ran, but no block was in view.', executor);
+                }
+            }, executor);
 
-            // 3. Test Dimension API
-            try {
-                log('Testing: Dimension API...');
+            testSection('Dimension API', () => {
                 const dimension = player ? player.dimension : world.getDimension('overworld');
                 if (dimension && dimension.id) {
-                    log(`  SUCCESS: Retrieved dimension ID: '${dimension.id}'`);
+                    log(`  SUCCESS: Retrieved dimension ID: '${dimension.id}'`, executor);
                 } else {
-                    log('  FAILURE: Could not retrieve dimension ID.');
+                    log('  §cFAILURE: Could not retrieve dimension ID.', executor);
                 }
-            } catch (e) {
-                log(`  FAILURE: Dimension API test failed. Error: ${e.message}`);
-            }
+            }, executor);
 
-            // 4. Test Scoreboard API
-            try {
-                log('Testing: Scoreboard API...');
+            testSection('Scoreboard API', () => {
                 const scoreboard = world.scoreboard;
                 if (scoreboard) {
                     const objectives = scoreboard.getObjectives();
-                    log(`  SUCCESS: Found ${objectives.length} objectives.`);
-
+                    log(`  SUCCESS: Found ${objectives.length} objectives.`, executor);
                     const testObjectiveId = 'api_test_objective';
                     try {
                         const newObjective = scoreboard.addObjective(testObjectiveId, 'API Test');
-                        log(`  - SUCCESS: Created test objective '${newObjective.id}'.`);
+                        log(`  - SUCCESS: Created test objective '${newObjective.id}'.`, executor);
                         scoreboard.removeObjective(testObjectiveId);
-                        log('  - SUCCESS: Removed test objective.');
+                        log('  - SUCCESS: Removed test objective.', executor);
                     } catch (e) {
-                        log(`  - FAILURE: Could not add/remove scoreboard objective. Error: ${e.message}`);
+                        log(`  - §cFAILURE: Could not add/remove scoreboard objective. Error: ${e.message}`, executor);
                     }
                 } else {
-                    log('  FAILURE: world.scoreboard is not available.');
+                    log('  §cFAILURE: world.scoreboard is not available.', executor);
                 }
-            } catch (e) {
-                log(`  FAILURE: Scoreboard API test failed. Error: ${e.message}`);
-            }
+            }, executor);
 
-            log('--- API Tests Complete ---');
+            // --- New Expanded Tests ---
+
+            testSection('Event System', () => {
+                if (world.afterEvents && world.beforeEvents) {
+                    log('  SUCCESS: `world.afterEvents` and `world.beforeEvents` exist.', executor);
+                } else {
+                    log('  §cFAILURE: Event objects not found on `world`.', executor);
+                }
+                if (system.afterEvents && system.beforeEvents) {
+                    log('  SUCCESS: `system.afterEvents` and `system.beforeEvents` exist.', executor);
+                } else {
+                    log('  §cFAILURE: Event objects not found on `system`.', executor);
+                }
+            }, executor);
+
+            testSection('Container API (Player Inventory)', () => {
+                if (!player) {
+                    log('  SKIPPED: Container test requires a player context.', executor);
+                    return;
+                }
+                const inventory = player.getComponent('inventory');
+                if (inventory && inventory.container) {
+                    log(`  SUCCESS: Player inventory container found. Size: ${inventory.container.size}, Empty slots: ${inventory.container.emptySlotsCount}`, executor);
+                } else {
+                    log('  §cFAILURE: Could not get player inventory container.', executor);
+                }
+            }, executor);
+
+            testSection('Effect API', () => {
+                if (!player) {
+                    log('  SKIPPED: Effect test requires a player context.', executor);
+                    return;
+                }
+                const effectType = "speed";
+                player.addEffect(effectType, 5, { showParticles: false });
+                const activeEffect = player.getEffect(effectType);
+                if (activeEffect) {
+                    log(`  SUCCESS: Applied and retrieved '${effectType}' effect. Amplifier: ${activeEffect.amplifier}`, executor);
+                    player.removeEffect(effectType);
+                    log('  - SUCCESS: Removed test effect.', executor);
+                } else {
+                    log(`  §cFAILURE: Could not apply or retrieve '${effectType}' effect.`, executor);
+                }
+            }, executor);
+
+            testSection('Camera API', () => {
+                if (!player) {
+                    log('  SKIPPED: Camera test requires a player context.', executor);
+                    return;
+                }
+                if (player.camera) {
+                    log('  SUCCESS: `player.camera` object exists.', executor);
+                    try {
+                        player.camera.fade({ fadeTime: { fadeInTime: 0.5, holdTime: 1, fadeOutTime: 0.5 }, fadeColor: { red: 0, green: 0, blue: 0 } });
+                        log('  - SUCCESS: Initiated a camera fade.', executor);
+                    } catch (e) {
+                         log(`  - §cFAILURE: Could not use camera fade. Error: ${e.message}`, executor);
+                    }
+                } else {
+                    log('  §cFAILURE: `player.camera` does not exist.', executor);
+                }
+            }, executor);
+
+            testSection('Manager APIs', () => {
+                if (world.structureManager) {
+                     log('  SUCCESS: `world.structureManager` exists.', executor);
+                } else {
+                     log('  §cFAILURE: `world.structureManager` does not exist.', executor);
+                }
+                // LootTableManager is not a public API, so we don't test for it.
+            }, executor);
+
+            testSection('Component APIs', () => {
+                if (!player) {
+                    log('  SKIPPED: Component tests require a player context.', executor);
+                    return;
+                }
+                // Entity Component
+                const health = player.getComponent('health');
+                if (health) {
+                    log(`  SUCCESS: EntityHealthComponent found. Current value: ${health.currentValue}`, executor);
+                } else {
+                    log('  §cFAILURE: Could not get EntityHealthComponent.', executor);
+                }
+                // Block Component (Sign)
+                const block = player.getBlockFromViewDirection();
+                if (block && block.typeId.includes('sign')) {
+                    const signComponent = block.getComponent('sign');
+                    if (signComponent) {
+                        log('  SUCCESS: BlockSignComponent found on a sign.', executor);
+                    } else {
+                        log('  INFO: Looked at a sign, but could not get BlockSignComponent.', executor);
+                    }
+                } else {
+                    log('  INFO: Not looking at a sign, skipping BlockSignComponent test.', executor);
+                }
+            }, executor);
+
+            testSection('Utility APIs', () => {
+                const vec = new Vector(1, 2, 3);
+                if (vec.x === 1 && vec.y === 2 && vec.z === 3) {
+                    log('  SUCCESS: Vector class is working.', executor);
+                } else {
+                    log('  §cFAILURE: Vector class did not return expected values.', executor);
+                }
+                const molang = new MolangVariableMap();
+                if (molang) {
+                    log('  SUCCESS: MolangVariableMap class can be instantiated.', executor);
+                } else {
+                    log('  §cFAILURE: MolangVariableMap could not be instantiated.', executor);
+                }
+            }, executor);
+
+            testSection('ScreenDisplay API', () => {
+                if (!player) {
+                    log('  SKIPPED: ScreenDisplay test requires a player context.', executor);
+                    return;
+                }
+                if (player.onScreenDisplay) {
+                    log('  SUCCESS: `player.onScreenDisplay` exists.', executor);
+                    player.onScreenDisplay.setTitle('API Test Title', { fadeInDuration: 10, stayDuration: 20, fadeOutDuration: 10 });
+                    log('  - SUCCESS: Sent a title to the screen.', executor);
+                } else {
+                    log('  §cFAILURE: `player.onScreenDisplay` does not exist.', executor);
+                }
+            }, executor);
+
+            testSection('External Module Loading', () => {
+                try {
+                    const gametest = import('@minecraft/server-gametest');
+                    log('  INFO: @minecraft/server-gametest appears to be available.', executor);
+                } catch (e) {
+                    log('  INFO: @minecraft/server-gametest is not available.', executor);
+                }
+                try {
+                    const net = import('@minecraft/server-net');
+                    log('  INFO: @minecraft/server-net appears to be available.', executor);
+                } catch (e) {
+                    log('  INFO: @minecraft/server-net is not available.', executor);
+                }
+                try {
+                    const admin = import('@minecraft/server-admin');
+                    log('  INFO: @minecraft/server-admin appears to be available.', executor);
+                } catch (e) {
+                    log('  INFO: @minecraft/server-admin is not available.', executor);
+                }
+            }, executor);
+
+            log('§aAll API tests complete.', executor);
         });
     }
 });
