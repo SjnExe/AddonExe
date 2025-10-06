@@ -1,7 +1,6 @@
 import { commandManager } from './commandManager.js';
-import * as economyManager from '../../core/economyManager.js';
 import * as bountyManager from '../../core/bountyManager.js';
-import { getPlayer } from '../../core/playerDataManager.js';
+import { getPlayer, getBalance, incrementPlayerBalance } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { world } from '@minecraft/server';
 import { findPlayerByName } from '../../core/playerCache.js';
@@ -40,18 +39,14 @@ commandManager.register({
             return;
         }
 
-        if (economyManager.getBalance(player.id) < amount) {
+        if (getBalance(player.id) < amount) {
             player.sendMessage('§cYou dont have enough money for this!');
             return;
         }
 
-        const result = economyManager.removeBalance(player.id, amount);
-        if (result) {
-            bountyManager.incrementBounty(targetPlayer.id, -amount);
-            player.sendMessage(`§aYou have removed $${amount.toFixed(2)} from ${targetPlayer.name}'s bounty.`);
-        } else {
-            player.sendMessage('§cFailed to remove bounty.');
-        }
+        incrementPlayerBalance(player.id, -amount);
+        bountyManager.incrementBounty(targetPlayer.id, -amount);
+        player.sendMessage(`§aYou have removed $${amount.toFixed(2)} from ${targetPlayer.name}'s bounty.`);
     }
 });
 
@@ -70,7 +65,7 @@ function placeBounty(player, targetPlayer, amount) {
         return;
     }
 
-    if (economyManager.getBalance(player.id) < amount) {
+    if (getBalance(player.id) < amount) {
         player.sendMessage('§cYou do not have enough money for this bounty.');
         return;
     }
@@ -82,15 +77,11 @@ function placeBounty(player, targetPlayer, amount) {
         return;
     }
 
-    const result = economyManager.removeBalance(player.id, amount);
-    if (result) {
-        bountyManager.incrementBounty(targetPlayer.id, amount);
+    incrementPlayerBalance(player.id, -amount);
+    bountyManager.incrementBounty(targetPlayer.id, amount);
 
-        player.sendMessage(`§aYou have placed a bounty of §e$${amount}§a on ${targetPlayer.name}.`);
-        world.sendMessage(`§cSomeone has placed a bounty of §e$${amount}§c on ${targetPlayer.name}!`);
-    } else {
-        player.sendMessage('§cFailed to place bounty.');
-    }
+    player.sendMessage(`§aYou have placed a bounty of §e$${amount}§a on ${targetPlayer.name}.`);
+    world.sendMessage(`§cSomeone has placed a bounty of §e$${amount}§c on ${targetPlayer.name}!`);
 }
 
 commandManager.register({

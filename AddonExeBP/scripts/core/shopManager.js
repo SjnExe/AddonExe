@@ -1,5 +1,5 @@
 import { ItemStack, ItemTypes, EnchantmentTypes } from '@minecraft/server';
-import * as economyManager from './economyManager.js';
+import { getBalance, incrementPlayerBalance } from './playerDataManager.js';
 import { getShopConfig } from './configurations.js';
 import { items as allItems } from './itemsConfig.js';
 import { errorLog } from './logger.js';
@@ -87,7 +87,7 @@ export function buyItem(player, itemId, quantity) {
     }
 
     const initialCost = buyPrice * quantity;
-    const playerBalance = economyManager.getBalance(player.id);
+    const playerBalance = getBalance(player.id);
 
     if (playerBalance < initialCost) {
         return { success: false, message: `§cInsufficient funds. You need §e$${initialCost.toFixed(2)}§c to attempt this purchase.` };
@@ -136,7 +136,7 @@ export function buyItem(player, itemId, quantity) {
         return { success: false, message: `§cInsufficient funds. You need §e$${finalCost.toFixed(2)}§c to buy ${finalQuantity}.` };
     }
 
-    economyManager.removeBalance(player.id, finalCost);
+    incrementPlayerBalance(player.id, -finalCost);
 
     // 4. Give items one by one to avoid stack bugs
     for (let i = 0; i < finalQuantity; i++) {
@@ -197,7 +197,7 @@ export function sellItem(player, itemId, quantity) {
 
     // Success
     const totalGain = sellPrice * quantity;
-    economyManager.addBalance(player.id, totalGain);
+    incrementPlayerBalance(player.id, totalGain);
 
     return { success: true, message: `§2Successfully sold ${quantity}x ${shopItem.displayName ?? itemId} for §e$${totalGain.toFixed(2)}§2.` };
 }

@@ -1,6 +1,5 @@
 import { commandManager } from './commandManager.js';
-import * as economyManager from '../../core/economyManager.js';
-import * as playerDataManager from '../../core/playerDataManager.js';
+import { getBalance, getLeaderboard } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 
 commandManager.register({
@@ -29,7 +28,7 @@ commandManager.register({
             targetPlayer = args.target[0];
         }
 
-        const balance = economyManager.getBalance(targetPlayer.id);
+        const balance = getBalance(targetPlayer.id);
 
         if (balance === null) {
             player.sendMessage(`§cCould not retrieve balance for ${targetPlayer.name}.`);
@@ -59,7 +58,7 @@ commandManager.register({
             return;
         }
 
-        const leaderboard = playerDataManager.getLeaderboard();
+        const leaderboard = getLeaderboard();
         const displayLimit = config.economy.baltopLimit ?? 10;
         const topPlayers = leaderboard.slice(0, displayLimit);
 
