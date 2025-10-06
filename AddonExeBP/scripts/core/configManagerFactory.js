@@ -1,5 +1,5 @@
 import { world } from '@minecraft/server';
-import { deepMerge, deepClone, setValueByPath, isDeepEqual, mergeRanks, mergeObjectMaps, mergeWithFileChanges } from './objectUtils.js';
+import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, mergeWithFileChanges } from './objectUtils.js';
 import { errorLog, setDebug, debugLog } from './logger.js';
 
 /**
