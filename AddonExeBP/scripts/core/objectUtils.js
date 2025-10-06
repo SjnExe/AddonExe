@@ -205,6 +205,48 @@ export function reconcileConfig(newDefault, oldDefault, userSaved) {
 }
 
 /**
+ * Performs a 3-way merge of a standard configuration object. It starts with the user's saved
+ * configuration and then recursively applies any changes detected between the new default
+ * file and the last-loaded version of the file. This ensures that manual file edits by the
+ * developer are prioritized and applied over existing in-game settings.
+ *
+ * @param {object} userSavedConfig The user's current in-game configuration.
+ * @param {object} newDefaultConfig The configuration from the newly loaded file.
+ * @param {object} lastLoadedConfig The configuration from the last time the file was loaded.
+ * @param {(message: string, ...args: any[]) => void} debugLog A function to log debug messages.
+ * @param {string} configName The name of the configuration for logging purposes (e.g., 'Main').
+ * @returns {object} The merged configuration object.
+ */
+export function mergeWithFileChanges(userSavedConfig, newDefaultConfig, lastLoadedConfig, debugLog, configName) {
+    const mergedConfig = deepClone(userSavedConfig);
+
+    // This recursive helper function is the core of the logic.
+    function applyChanges(path, fileObj, lastLoadedObj) {
+        if (!isObject(fileObj)) { return; }
+
+        for (const key in fileObj) {
+            if (!Object.prototype.hasOwnProperty.call(fileObj, key)) { continue; }
+
+            const currentPath = path ? `${path}.${key}` : key;
+            const fileValue = fileObj[key];
+            const lastLoadedValue = isObject(lastLoadedObj) ? lastLoadedObj[key] : undefined;
+
+            if (isObject(fileValue) && isObject(lastLoadedValue)) {
+                // If both are objects, recurse deeper.
+                applyChanges(currentPath, fileValue, lastLoadedValue);
+            } else if (!isDeepEqual(fileValue, lastLoadedValue)) {
+                // If values are different, the file value takes precedence.
+                debugLog(`[${configName}ConfigManager] Manual file change detected for '${currentPath}'. Applying file value.`);
+                setValueByPath(mergedConfig, currentPath, fileValue);
+            }
+        }
+    }
+
+    applyChanges('', newDefaultConfig, lastLoadedConfig);
+    return mergedConfig;
+}
+
+/**
  * Creates a deep clone of an object.
  * @param {*} obj The value to clone.
  * @param {WeakMap} [hash=new WeakMap()] A map to store references to already cloned objects to handle circular references.
