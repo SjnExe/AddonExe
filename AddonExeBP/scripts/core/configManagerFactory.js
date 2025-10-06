@@ -1,5 +1,5 @@
 import { world } from '@minecraft/server';
-import { deepMerge, deepClone, setValueByPath, isDeepEqual, mergeRanks, mergeObjectMaps } from './objectUtils.js';
+import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, mergeWithFileChanges } from './objectUtils.js';
 import { errorLog, setDebug, debugLog } from './logger.js';
 
 /**
@@ -115,49 +115,20 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                         lastLoadedConfig = newDefaultConfig;
                     }
 
-                    // Start with the user's current in-game config as the base.
-                    const mergedConfig = deepClone(userSavedConfig);
-
-                    // This recursive function compares the new file against the last loaded snapshot
-                    // and applies any detected file changes to the merged config.
-                    function applyFileChanges(path, fileObj, lastLoadedObj) {
-                        if (!fileObj || typeof fileObj !== 'object') { return; }
-
-                        for (const key in fileObj) {
-                            if (!Object.prototype.hasOwnProperty.call(fileObj, key)) { continue; }
-
-                            const currentPath = path ? `${path}.${key}` : key;
-                            const fileValue = fileObj[key];
-                            const lastLoadedValue = (lastLoadedObj && typeof lastLoadedObj === 'object') ? lastLoadedObj[key] : undefined;
-
-                            // If the value in the new file is an object, and the last loaded value was also an object, we recurse.
-                            if (typeof fileValue === 'object' && fileValue !== null && !Array.isArray(fileValue) &&
-                                typeof lastLoadedValue === 'object' && lastLoadedValue !== null && !Array.isArray(lastLoadedValue)) {
-                                applyFileChanges(currentPath, fileValue, lastLoadedValue);
-                            } else if (!isDeepEqual(fileValue, lastLoadedValue)) {
-                                // Otherwise, if the values are different, we update the config with the new value from the file.
-                                debugLog(`[${name}ConfigManager] Manual file change detected for '${currentPath}'. Applying file value.`);
-                                setValueByPath(mergedConfig, currentPath, fileValue);
-                            }
-                        }
-                    }
-
                     // --- Custom Merging Logic ---
                     if (name === 'Ranks') {
                         const currentUserRanks = userSavedConfig.rankDefinitions;
                         const newFileRanks = newDefaultConfig.rankDefinitions;
                         const lastLoadedRanks = lastLoadedConfig ? lastLoadedConfig.rankDefinitions : [];
-
                         const mergedRanks = mergeRanks(currentUserRanks, newFileRanks, lastLoadedRanks);
-                        mergedConfig.rankDefinitions = mergedRanks;
-                        currentConfig = mergedConfig;
+                        // Re-assign to a new object to avoid modifying the original userSavedConfig reference
+                        currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks };
                     } else if (name === 'Kits' || name === 'Shop') {
                         const lastLoaded = lastLoadedConfig || {};
                         currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoaded);
                     } else {
-                        // Use the new default config directly for comparison, as isDeepEqual handles object complexities.
-                        applyFileChanges('', newDefaultConfig, lastLoadedConfig);
-                        currentConfig = mergedConfig;
+                        // For standard configs, use the new 3-way merge utility.
+                        currentConfig = mergeWithFileChanges(userSavedConfig, newDefaultConfig, lastLoadedConfig, debugLog, name);
                     }
                 }
             }
