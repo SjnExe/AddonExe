@@ -105,7 +105,7 @@ commandManager.register({
     ],
     execute: (executor, args) => {
         const pData = getPlayer(executor.id);
-        if (!pData) return;
+        if (!pData) {return;}
 
         if (args.enabled !== undefined) {
             const announcementsMuted = !args.enabled;
@@ -130,7 +130,7 @@ commandManager.register({
     parameters: [],
     execute: (executor) => {
         setPlayerAnnouncementsMuted(executor.id, false); // false = not muted
-        executor.sendMessage(`§7Announcements are now §2ON§7 for you.`);
+        executor.sendMessage('§7Announcements are now §2ON§7 for you.');
     }
 });
 
@@ -144,6 +144,6 @@ commandManager.register({
     parameters: [],
     execute: (executor) => {
         setPlayerAnnouncementsMuted(executor.id, true); // true = muted
-        executor.sendMessage(`§7Announcements are now §cOFF§7 for you.`);
+        executor.sendMessage('§7Announcements are now §cOFF§7 for you.');
     }
 });
