@@ -324,10 +324,10 @@ function updateAndSaveLeaderboard(playerId, pData) {
     const existingIndex = leaderboardCache.findIndex(p => p.playerId === playerId);
     const playerIsOnBoard = existingIndex !== -1;
 
-    if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) return;
+    if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) {return;}
 
     if (playerIsOnBoard) {
-        if (leaderboardCache[existingIndex].balance === pData.balance) return;
+        if (leaderboardCache[existingIndex].balance === pData.balance) {return;}
         leaderboardCache.splice(existingIndex, 1);
     }
 
