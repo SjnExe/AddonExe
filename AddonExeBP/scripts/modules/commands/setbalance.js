@@ -4,7 +4,7 @@ import { getBalance, setPlayerBalance, incrementPlayerBalance } from '../../core
 commandManager.register({
     name: 'setbalance',
     aliases: ['setbal', 'setmoney'],
-    description: 'Sets a player\'s balance to a specific amount. (Admin and above)',
+    description: "Sets a player's balance to a specific amount. (Admin and above)",
     category: 'Economy',
     permissionLevel: 1, // Admin and above
     allowConsole: true,
@@ -36,7 +36,7 @@ commandManager.register({
 commandManager.register({
     name: 'addbalance',
     aliases: ['addbal', '+bal'],
-    description: 'Adds a specific amount to a player\'s balance. (Admin and above)',
+    description: "Adds a specific amount to a player's balance. (Admin and above)",
     category: 'Economy',
     permissionLevel: 1, // Admin and above
     allowConsole: true,
@@ -69,7 +69,7 @@ commandManager.register({
 commandManager.register({
     name: 'removebalance',
     aliases: ['removebal', '-bal', 'rembal', 'delbal'],
-    description: 'Removes a specific amount from a player\'s balance. (Admin and above)',
+    description: "Removes a specific amount from a player's balance. (Admin and above)",
     category: 'Economy',
     permissionLevel: 1, // Admin and above
     allowConsole: true,
