@@ -4,7 +4,7 @@ import { getPlayer, setPlayerAnnouncementsMuted } from '../../core/playerDataMan
 import { getConfig, updateConfig } from '../../core/configManager.js';
 import { errorLog } from '../../core/logger.js';
 
-const ANNOUNCEMENT_PANEL_ID = 'config_announcements';
+const announcementPanelId = 'config_announcements';
 
 // --- Command Registration ---
 
@@ -44,7 +44,7 @@ commandManager.register({
         }
 
         import('../../core/uiManager.js').then(uiManager => {
-            uiManager.showPanel(executor, ANNOUNCEMENT_PANEL_ID);
+            uiManager.showPanel(executor, announcementPanelId);
         }).catch(e => errorLog(`Failed to load uiManager for announcements panel: ${e}`));
     }
 });
