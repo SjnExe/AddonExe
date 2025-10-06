@@ -1,8 +1,7 @@
 import { ItemStack } from '@minecraft/server';
-import { getPlayer, setKitCooldown } from './playerDataManager.js';
+import { getPlayer, setKitCooldown, getBalance, incrementPlayerBalance } from './playerDataManager.js';
 import { getConfig } from './configManager.js';
 import { getKitsConfig } from './configurations.js';
-import * as economyManager from './economyManager.js';
 import { errorLog } from './logger.js';
 import { formatCooldown } from './utils.js';
 
@@ -115,7 +114,7 @@ export function giveKit(player, kitName) {
 
     // Check for price
     if (kit.price && kit.price > 0) {
-        const balance = economyManager.getBalance(player.id);
+        const balance = getBalance(player.id);
         if (balance < kit.price) {
             return { success: false, message: `You cannot afford this kit. It costs $${kit.price}.` };
         }
@@ -129,7 +128,7 @@ export function giveKit(player, kitName) {
 
     // All checks passed, now charge the player
     if (kit.price && kit.price > 0) {
-        economyManager.removeBalance(player.id, kit.price);
+        incrementPlayerBalance(player.id, -kit.price);
     }
 
     try {

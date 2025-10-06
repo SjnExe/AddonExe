@@ -24,8 +24,8 @@
 
 import { getConfig } from './configManager.js';
 import { world, system } from '@minecraft/server';
-import { debugLog } from './logger.js';
-import { errorLog } from './logger.js';
+import { debugLog, errorLog } from './logger.js';
+import { getPlayerFromCache } from './playerCache.js';
 
 const playerPropertyPrefix = 'exe:player.';
 const playerNameIdMapKey = 'exe:playerNameIdMap';
@@ -43,14 +43,10 @@ let leaderboardCache = [];
 let isLeaderboardDirty = false;
 let isSaveOnCooldown = false;
 
-/**
- * @type {Map<string, PlayerData>}
- */
+/** @type {Map<string, PlayerData>} */
 const activePlayerData = new Map();
 
-/**
- * @type {Map<string, string>}
- */
+/** @type {Map<string, string>} */
 let playerNameIdMap = new Map();
 let playerIdNameMap = new Map();
 
@@ -58,8 +54,40 @@ let playerIdNameMap = new Map();
 export let isNameIdMapDirty = false;
 
 /**
+ * Defines the default structure and values for a new player.
+ * This is used to ensure all properties exist, especially for backwards compatibility.
+ * @type {Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 'tpaBlockedPlayerIds'>}
+ */
+const defaultPlayerData = {
+    rankId: 'member',
+    permissionLevel: 1024,
+    balance: 0,
+    xrayNotifications: true,
+    lastDeathLocation: null,
+    deathNotificationSent: true,
+    tpaRequestsDisabled: false,
+    announcementsMuted: false
+};
+
+
+// --- Generic Data Handling ---
+
+/**
+ * A generic function to update a player's data. It handles getting the data,
+ * running a modification callback, and saving the data.
+ * @param {string} playerId The ID of the player to update.
+ * @param {(pData: PlayerData) => void} modificationCallback A callback that receives the player data and modifies it.
+ */
+function updatePlayerData(playerId, modificationCallback) {
+    const pData = getPlayer(playerId);
+    if (pData) {
+        modificationCallback(pData);
+        savePlayerData(playerId);
+    }
+}
+
+/**
  * Resets all in-memory caches and state variables.
- * This is crucial for ensuring a clean state after a script reload.
  */
 export function cleanupPlayerDataManager() {
     leaderboardCache = [];
@@ -79,40 +107,11 @@ export function saveNameIdMap() {
     try {
         const dataToSave = Array.from(playerNameIdMap.entries());
         world.setDynamicProperty(playerNameIdMapKey, JSON.stringify(dataToSave));
-        isNameIdMapDirty = false; // Reset the flag after saving
+        isNameIdMapDirty = false;
         debugLog('[PlayerDataManager] Saved name-to-ID map.');
     } catch (e) {
         errorLog(`[PlayerDataManager] Failed to save name-to-ID map: ${e.stack}`);
     }
-}
-
-/**
- * Loads the player name-to-ID map from a dynamic property.
- */
-export function getLeaderboard() {
-    return leaderboardCache;
-}
-
-/**
- * Loads the leaderboard from storage, or generates it if it doesn't exist.
- */
-export function initializeLeaderboard() {
-    try {
-        const dataString = world.getDynamicProperty(leaderboardKey);
-        if (dataString && typeof dataString === 'string') {
-            leaderboardCache = JSON.parse(dataString);
-            debugLog(`[PlayerDataManager] Loaded ${leaderboardCache.length} players into leaderboard cache.`);
-            return;
-        }
-    } catch (e) {
-        errorLog(`[PlayerDataManager] Failed to load leaderboard from storage: ${e.stack}`);
-    }
-
-    // If loading failed or it doesn't exist, initialize an empty one.
-    // The leaderboard will be populated as players join and their balances are updated.
-    debugLog('[PlayerDataManager] No leaderboard found in storage, initializing an empty one.');
-    leaderboardCache = [];
-    // No need to save it immediately, it will be saved when it's first updated.
 }
 
 export function loadNameIdMap() {
@@ -125,74 +124,6 @@ export function loadNameIdMap() {
         }
     } catch (e) {
         errorLog(`[PlayerDataManager] Failed to load name-to-ID map: ${e.stack}`);
-    }
-}
-
-function triggerLeaderboardSave() {
-    if (isSaveOnCooldown) {
-        isLeaderboardDirty = true;
-        return;
-    }
-
-    try {
-        world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
-        debugLog('[PlayerDataManager] Saved leaderboard to storage.');
-        isLeaderboardDirty = false;
-        isSaveOnCooldown = true;
-
-        system.runTimeout(() => {
-            isSaveOnCooldown = false;
-            if (isLeaderboardDirty) {
-                triggerLeaderboardSave();
-            }
-        }, 30 * 20); // 30-second cooldown
-    } catch (e) {
-        errorLog(`[PlayerDataManager] Failed to save leaderboard: ${e.stack}`);
-    }
-}
-
-/**
- * Updates the leaderboard if the player's new balance qualifies them.
- * @param {string} playerId
- * @param {PlayerData} pData
- */
-function updateAndSaveLeaderboard(playerId, pData) {
-    const config = getConfig();
-    const cacheSize = (config.economy.baltopLimit ?? 10) + 5;
-    const lowestBalanceOnBoard = leaderboardCache.length < cacheSize ? 0 : (leaderboardCache[leaderboardCache.length - 1]?.balance ?? 0);
-
-    const existingIndex = leaderboardCache.findIndex(p => p.playerId === playerId);
-    const playerIsOnBoard = existingIndex !== -1;
-
-    // Case 1: Player is not on the board and their balance is too low to get on.
-    if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) {
-        return; // No update needed.
-    }
-
-    // Case 2: Player is on the board.
-    if (playerIsOnBoard) {
-        const oldEntry = leaderboardCache[existingIndex];
-        // If balance hasn't changed, do nothing.
-        if (oldEntry.balance === pData.balance) {
-            return;
-        }
-        // Update the balance and re-sort. A resort is needed in case their rank changed.
-        leaderboardCache.splice(existingIndex, 1);
-        leaderboardCache.push({ playerId: playerId, name: pData.name, balance: pData.balance });
-        leaderboardCache.sort((a, b) => b.balance - a.balance);
-        triggerLeaderboardSave();
-        return;
-    }
-
-    // Case 3: Player is not on the board but has enough balance to get on.
-    if (!playerIsOnBoard && pData.balance > lowestBalanceOnBoard) {
-        leaderboardCache.push({ playerId: playerId, name: pData.name, balance: pData.balance });
-        leaderboardCache.sort((a, b) => b.balance - a.balance);
-        // Trim the cache to the correct size
-        if (leaderboardCache.length > cacheSize) {
-            leaderboardCache.length = cacheSize;
-        }
-        triggerLeaderboardSave();
     }
 }
 
@@ -223,19 +154,17 @@ export function loadPlayerData(playerId) {
     try {
         const dataString = world.getDynamicProperty(`${playerPropertyPrefix}${playerId}`);
         if (dataString && typeof dataString === 'string') {
-            /** @type {PlayerData} */
-            const playerData = JSON.parse(dataString);
+            /** @type {Partial<PlayerData>} */
+            const loadedData = JSON.parse(dataString);
 
-            // Backwards compatibility: Add new properties if they don't exist
-            if (playerData.tpaRequestsDisabled === undefined) {
-                playerData.tpaRequestsDisabled = false;
-            }
-            if (playerData.tpaBlockedPlayerIds === undefined) {
-                playerData.tpaBlockedPlayerIds = [];
-            }
-            if (playerData.announcementsMuted === undefined) {
-                playerData.announcementsMuted = false;
-            }
+            // Merge with defaults to ensure all properties exist
+            const playerData = {
+                ...defaultPlayerData,
+                homes: {},
+                kitCooldowns: {},
+                tpaBlockedPlayerIds: [],
+                ...loadedData
+            };
 
             activePlayerData.set(playerId, playerData);
             return playerData;
@@ -255,17 +184,13 @@ export function getOrCreatePlayer(player) {
     const playerNameLower = player.name.toLowerCase();
     let mapWasModified = false;
 
-    // Check if the current name is correctly mapped
     if (playerNameIdMap.get(playerNameLower) !== player.id) {
-        // Clean up old usernames for this player ID from both maps
         const oldName = playerIdNameMap.get(player.id);
         if (oldName) {
             playerNameIdMap.delete(oldName.toLowerCase());
-            debugLog(`[PlayerDataManager] Removed old username '${oldName}' for player ID ${player.id}.`);
         }
-
         playerNameIdMap.set(playerNameLower, player.id);
-        playerIdNameMap.set(player.id, player.name); // Store the proper-cased name
+        playerIdNameMap.set(player.id, player.name);
         mapWasModified = true;
     }
 
@@ -275,43 +200,35 @@ export function getOrCreatePlayer(player) {
 
     if (activePlayerData.has(player.id)) {
         const pData = activePlayerData.get(player.id);
-        // Update name if it has changed since last join
         if (pData.name !== player.name) {
-            pData.name = player.name;
-            savePlayerData(player.id); // Save immediately
+            updatePlayerData(player.id, data => { data.name = player.name; });
         }
         return pData;
     }
 
-    // Try to load from dynamic properties first
     const loadedData = loadPlayerData(player.id);
     if (loadedData) {
-        // Also check for name change on first load of session
         if (loadedData.name !== player.name) {
-            loadedData.name = player.name;
-            savePlayerData(player.id);
+            updatePlayerData(player.id, data => { data.name = player.name; });
         }
         return loadedData;
     }
 
-    // If still not found, create new data
     const config = getConfig();
     const newPlayerData = {
         name: player.name,
+        ...defaultPlayerData,
         rankId: config.playerDefaults.rankId,
         permissionLevel: config.playerDefaults.permissionLevel,
-        homes: {},
         balance: config.economy.startingBalance,
-        kitCooldowns: {},
         xrayNotifications: config.playerDefaults.xrayNotifications,
-        lastDeathLocation: null,
-        deathNotificationSent: true, // Default to true to prevent message on first spawn
-        tpaRequestsDisabled: false,
-        tpaBlockedPlayerIds: [],
-        announcementsMuted: false
+        homes: {},
+        kitCooldowns: {},
+        tpaBlockedPlayerIds: []
     };
+
     activePlayerData.set(player.id, newPlayerData);
-    savePlayerData(player.id); // Save immediately
+    savePlayerData(player.id);
     return newPlayerData;
 }
 
@@ -334,14 +251,11 @@ export function getPlayer(playerId) {
 }
 
 /**
- * Handles a player leaving the server by saving their data and removing them from the cache.
+ * Handles a player leaving the server by removing them from the cache.
  * @param {string} playerId
  */
 export function handlePlayerLeave(playerId) {
-    const pData = activePlayerData.get(playerId);
-    if (pData) {
-        // Data is now saved immediately on modification,
-        // so we just need to remove the player from the active cache on leave.
+    if (activePlayerData.has(playerId)) {
         activePlayerData.delete(playerId);
         debugLog(`[PlayerDataManager] Unloaded data for player ${playerId} from cache.`);
     }
@@ -363,34 +277,129 @@ export function getAllPlayerNameIdMap() {
     return playerNameIdMap;
 }
 
+// --- Leaderboard Management ---
+
+export function getLeaderboard() {
+    return leaderboardCache;
+}
+
+export function initializeLeaderboard() {
+    try {
+        const dataString = world.getDynamicProperty(leaderboardKey);
+        if (dataString && typeof dataString === 'string') {
+            leaderboardCache = JSON.parse(dataString);
+            debugLog(`[PlayerDataManager] Loaded ${leaderboardCache.length} players into leaderboard cache.`);
+            return;
+        }
+    } catch (e) {
+        errorLog(`[PlayerDataManager] Failed to load leaderboard from storage: ${e.stack}`);
+    }
+    leaderboardCache = [];
+}
+
+function triggerLeaderboardSave() {
+    if (isSaveOnCooldown) {
+        isLeaderboardDirty = true;
+        return;
+    }
+    try {
+        world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
+        isLeaderboardDirty = false;
+        isSaveOnCooldown = true;
+        system.runTimeout(() => {
+            isSaveOnCooldown = false;
+            if (isLeaderboardDirty) {
+                triggerLeaderboardSave();
+            }
+        }, 30 * 20);
+    } catch (e) {
+        errorLog(`[PlayerDataManager] Failed to save leaderboard: ${e.stack}`);
+    }
+}
+
+function updateAndSaveLeaderboard(playerId, pData) {
+    const config = getConfig();
+    const cacheSize = (config.economy.baltopLimit ?? 10) + 5;
+    const lowestBalanceOnBoard = leaderboardCache.length < cacheSize ? 0 : (leaderboardCache[leaderboardCache.length - 1]?.balance ?? 0);
+    const existingIndex = leaderboardCache.findIndex(p => p.playerId === playerId);
+    const playerIsOnBoard = existingIndex !== -1;
+
+    if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) {return;}
+
+    if (playerIsOnBoard) {
+        if (leaderboardCache[existingIndex].balance === pData.balance) {return;}
+        leaderboardCache.splice(existingIndex, 1);
+    }
+
+    leaderboardCache.push({ playerId: playerId, name: pData.name, balance: pData.balance });
+    leaderboardCache.sort((a, b) => b.balance - a.balance);
+
+    if (leaderboardCache.length > cacheSize) {
+        leaderboardCache.length = cacheSize;
+    }
+    triggerLeaderboardSave();
+}
+
+
+// --- Pending Payment Management ---
+
+/**
+ * @typedef {object} PendingPayment
+ * @property {string} sourcePlayerId
+ * @property {string} targetPlayerId
+ * @property {number} amount
+ * @property {number} timestamp
+ */
+
+/** @type {Map<string, PendingPayment>} */
+const pendingPayments = new Map();
+
+export function createPendingPayment(sourcePlayerId, targetPlayerId, amount) {
+    pendingPayments.set(sourcePlayerId, {
+        sourcePlayerId,
+        targetPlayerId,
+        amount,
+        timestamp: Date.now()
+    });
+}
+
+export function getPendingPayment(sourcePlayerId) {
+    return pendingPayments.get(sourcePlayerId);
+}
+
+export function clearPendingPayment(sourcePlayerId) {
+    pendingPayments.delete(sourcePlayerId);
+}
+
+export function clearExpiredPayments() {
+    const config = getConfig();
+    const timeout = config.economy.paymentConfirmationTimeout * 1000; // convert to ms
+    const now = Date.now();
+
+    for (const [playerId, payment] of pendingPayments.entries()) {
+        if (now - payment.timestamp > timeout) {
+            pendingPayments.delete(playerId);
+            const player = getPlayerFromCache(playerId);
+            if (player) {
+                player.sendMessage('§cYour pending payment has expired.');
+            }
+        }
+    }
+}
+
 
 // --- Dimension Lock State Management ---
 
 const netherLockKey = 'exe:dimensionLock_nether';
 const endLockKey = 'exe:dimensionLock_end';
 
-/**
- * Gets the lock state for a given dimension.
- * @param {'nether' | 'end'} dimension
- * @returns {boolean}
- */
 export function getLockState(dimension) {
     const key = dimension === 'nether' ? netherLockKey : endLockKey;
     try {
-        // Returns the value of the property, or undefined if it doesn't exist.
-        // Coerce to boolean.
         return !!world.getDynamicProperty(key);
-    } catch {
-        // Property probably doesn't exist yet
-        return false;
-    }
+    } catch { return false; }
 }
 
-/**
- * Sets the lock state for a given dimension.
- * @param {'nether' | 'end'} dimension
- * @param {boolean} isLocked
- */
 export function setLockState(dimension, isLocked) {
     const key = dimension === 'nether' ? netherLockKey : endLockKey;
     try {
@@ -400,186 +409,105 @@ export function setLockState(dimension, isLocked) {
     }
 }
 
-
 // --- Data Modification Wrappers ---
-// These functions now save data immediately after modification.
 
-/**
- * Updates a player's rank and permission level.
- * @param {string} playerId
- * @param {string} rankId
- * @param {number} permissionLevel
- */
 export function setPlayerRank(playerId, rankId, permissionLevel) {
-    const pData = getPlayer(playerId);
-    if (pData) {
+    updatePlayerData(playerId, pData => {
         pData.rankId = rankId;
         pData.permissionLevel = permissionLevel;
-        savePlayerData(playerId);
-    }
+    });
 }
 
-/**
- * Sets whether a player has muted announcements.
- * @param {string} playerId The ID of the player to modify.
- * @param {boolean} isMuted The new muted state.
- */
 export function setPlayerAnnouncementsMuted(playerId, isMuted) {
-    const pData = getPlayer(playerId);
-    if (pData) {
-        pData.announcementsMuted = isMuted;
-        savePlayerData(playerId);
-    }
+    updatePlayerData(playerId, pData => { pData.announcementsMuted = isMuted; });
 }
 
-/**
- * Sets whether a player's TPA requests are disabled.
- * @param {string} playerId The ID of the player to modify.
- * @param {boolean} isDisabled The new disabled state.
- */
 export function setTpaRequestsDisabled(playerId, isDisabled) {
-    const pData = getPlayer(playerId);
-    if (pData) {
-        pData.tpaRequestsDisabled = isDisabled;
-        savePlayerData(playerId);
-    }
+    updatePlayerData(playerId, pData => { pData.tpaRequestsDisabled = isDisabled; });
 }
 
-/**
- * Adds a player to another player's TPA block list.
- * @param {string} playerId The ID of the player whose block list is being modified.
- * @param {string} blockedPlayerId The ID of the player to block.
- */
 export function addTpaBlockedPlayer(playerId, blockedPlayerId) {
-    const pData = getPlayer(playerId);
-    if (pData && !pData.tpaBlockedPlayerIds.includes(blockedPlayerId)) {
-        pData.tpaBlockedPlayerIds.push(blockedPlayerId);
-        savePlayerData(playerId);
-    }
+    updatePlayerData(playerId, pData => {
+        if (!pData.tpaBlockedPlayerIds.includes(blockedPlayerId)) {
+            pData.tpaBlockedPlayerIds.push(blockedPlayerId);
+        }
+    });
 }
 
-/**
- * Removes a player from another player's TPA block list.
- * @param {string} playerId The ID of the player whose block list is being modified.
- * @param {string} unblockedPlayerId The ID of the player to unblock.
- */
 export function removeTpaBlockedPlayer(playerId, unblockedPlayerId) {
-    const pData = getPlayer(playerId);
-    if (pData && pData.tpaBlockedPlayerIds.includes(unblockedPlayerId)) {
+    updatePlayerData(playerId, pData => {
         pData.tpaBlockedPlayerIds = pData.tpaBlockedPlayerIds.filter(id => id !== unblockedPlayerId);
-        savePlayerData(playerId);
-    }
+    });
 }
 
-/**
- * Sets or updates a player's home location.
- * @param {string} playerId
- * @param {string} homeName
- * @param {HomeLocation} location
- */
 export function setPlayerHome(playerId, homeName, location) {
-    const pData = getPlayer(playerId);
-    if (pData) {
-        pData.homes[homeName] = location;
-        savePlayerData(playerId);
-    }
+    updatePlayerData(playerId, pData => { pData.homes[homeName] = location; });
 }
 
-/**
- * Deletes a player's home.
- * @param {string} playerId
- * @param {string} homeName
- */
 export function deletePlayerHome(playerId, homeName) {
-    const pData = getPlayer(playerId);
-    if (pData && pData.homes[homeName]) {
-        delete pData.homes[homeName];
-        savePlayerData(playerId);
-    }
+    updatePlayerData(playerId, pData => { delete pData.homes[homeName]; });
 }
 
-/**
- * Sets a player's balance to a specific value.
- * @param {string} playerId
- * @param {number} newBalance
- */
 export function setPlayerBalance(playerId, newBalance) {
-    const pData = getPlayer(playerId);
-    if (pData) {
+    updatePlayerData(playerId, pData => {
         pData.balance = newBalance;
-        savePlayerData(playerId);
         updateAndSaveLeaderboard(playerId, pData);
-    }
+    });
 }
 
-/**
- * Adds or removes from a player's balance.
- * @param {string} playerId
- * @param {number} amount The amount to add (can be negative).
- */
 export function incrementPlayerBalance(playerId, amount) {
-    const pData = getPlayer(playerId);
-    if (pData) {
+    updatePlayerData(playerId, pData => {
         pData.balance += amount;
-        savePlayerData(playerId);
         updateAndSaveLeaderboard(playerId, pData);
-    }
+    });
 }
 
-/**
- * Sets a cooldown for a kit for a player.
- * @param {string} playerId
- * @param {string} kitName
- * @param {number} timestamp The timestamp when the cooldown expires.
- */
 export function setKitCooldown(playerId, kitName, timestamp) {
-    const pData = getPlayer(playerId);
-    if (pData) {
-        pData.kitCooldowns[kitName] = timestamp;
-        savePlayerData(playerId);
-    }
+    updatePlayerData(playerId, pData => { pData.kitCooldowns[kitName] = timestamp; });
 }
 
-/**
- * Toggles whether a player receives X-ray notifications.
- * @param {string} playerId
- * @param {boolean} status
- */
 export function setPlayerXrayNotifications(playerId, status) {
-    const pData = getPlayer(playerId);
-    if (pData) {
-        pData.xrayNotifications = status;
-        savePlayerData(playerId);
-    }
+    updatePlayerData(playerId, pData => { pData.xrayNotifications = status; });
 }
 
-/**
- * Sets a player's last death location.
- * @param {string} playerId
- * @param {HomeLocation | null} location
- */
 export function setPlayerLastDeathLocation(playerId, location) {
-    const pData = getPlayer(playerId);
-    if (pData) {
+    updatePlayerData(playerId, pData => {
         pData.lastDeathLocation = location;
-        // If a new location is being set, it means the player has died,
-        // so we need to reset the notification flag.
         if (location) {
             pData.deathNotificationSent = false;
         }
-        savePlayerData(playerId);
-    }
+    });
 }
 
-/**
- * Sets the flag indicating whether the death notification has been sent.
- * @param {string} playerId
- * @param {boolean} status
- */
 export function setDeathNotificationSent(playerId, status) {
+    updatePlayerData(playerId, pData => { pData.deathNotificationSent = status; });
+}
+
+// --- Economy Specific Logic ---
+
+export function getBalance(playerId) {
     const pData = getPlayer(playerId);
-    if (pData) {
-        pData.deathNotificationSent = status;
-        savePlayerData(playerId);
+    return pData?.balance ?? null;
+}
+
+export function transfer(sourcePlayerId, targetPlayerId, amount) {
+    if (amount <= 0) {
+        return { success: false, message: 'Transfer amount must be positive.' };
     }
+    const sourceData = getPlayer(sourcePlayerId);
+    if (!sourceData) {
+        return { success: false, message: 'Could not find your player data.' };
+    }
+    if (sourceData.balance < amount) {
+        return { success: false, message: 'You do not have enough money for this transaction.' };
+    }
+    const targetData = getPlayer(targetPlayerId);
+    if (!targetData) {
+        return { success: false, message: 'Could not find the target player\'s data.' };
+    }
+
+    incrementPlayerBalance(sourcePlayerId, -amount);
+    incrementPlayerBalance(targetPlayerId, amount);
+
+    return { success: true, message: 'Transfer successful.' };
 }

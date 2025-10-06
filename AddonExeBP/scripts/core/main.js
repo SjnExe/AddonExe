@@ -4,11 +4,10 @@ import { getSpawnConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSp
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
-import { cleanupPlayerDataManager } from './playerDataManager.js';
+import { cleanupPlayerDataManager, clearExpiredPayments } from './playerDataManager.js';
 import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
-import * as economyManager from './economyManager.js';
 import * as bountyManager from './bountyManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './logger.js';
@@ -87,7 +86,7 @@ function initializeManagers() {
     clearExpiredPunishments();
     clearOldResolvedReports();
     clearExpiredCooldowns();
-    economyManager.clearExpiredPayments();
+    clearExpiredPayments();
 }
 
 /**
@@ -115,7 +114,7 @@ function checkConfiguration() {
  */
 function startSystemTimers() {
     // Periodically clear expired payment confirmations
-    setTrackedInterval(economyManager.clearExpiredPayments, 6000); // 5 minutes
+    setTrackedInterval(clearExpiredPayments, 6000); // 5 minutes
     // Rank updates are now handled by events (e.g., !admin command)
     debugLog('[AddonExe] System timers started.');
 }

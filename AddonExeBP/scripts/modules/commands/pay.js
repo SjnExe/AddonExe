@@ -1,7 +1,6 @@
 import { commandManager } from './commandManager.js';
-import * as economyManager from '../../core/economyManager.js';
 import { getConfig } from '../../core/configManager.js';
-import { getPlayer } from '../../core/playerDataManager.js';
+import { getPlayer, createPendingPayment, getPendingPayment, clearPendingPayment, transfer } from '../../core/playerDataManager.js';
 import { world } from '@minecraft/server';
 
 commandManager.register({
@@ -42,11 +41,11 @@ commandManager.register({
         }
 
         if (amount > config.economy.paymentConfirmationThreshold) {
-            economyManager.createPendingPayment(player.id, targetPlayer.id, amount);
+            createPendingPayment(player.id, targetPlayer.id, amount);
             player.sendMessage(`§ePayment of $${amount.toFixed(2)} to ${targetPlayer.name} is pending.`);
             player.sendMessage(`§eType §a/payconfirm§e within ${config.economy.paymentConfirmationTimeout} seconds to complete the transaction.`);
         } else {
-            const result = economyManager.transfer(player.id, targetPlayer.id, amount);
+            const result = transfer(player.id, targetPlayer.id, amount);
             if (result.success) {
                 player.sendMessage(`§aYou have paid §e$${amount.toFixed(2)}§a to ${targetPlayer.name}.`);
                 targetPlayer.sendMessage(`§aYou have received §e$${amount.toFixed(2)}§a from ${player.name}.`);
@@ -65,7 +64,7 @@ commandManager.register({
     permissionLevel: 1024,
     parameters: [],
     execute: (player, args) => {
-        const pendingPayment = economyManager.getPendingPayment(player.id);
+        const pendingPayment = getPendingPayment(player.id);
 
         if (!pendingPayment) {
             return player.sendMessage('§cYou have no pending payment to confirm.');
@@ -75,11 +74,11 @@ commandManager.register({
         const targetPlayer = world.getPlayer(targetPlayerId);
 
         if (!targetPlayer) {
-            economyManager.clearPendingPayment(player.id);
+            clearPendingPayment(player.id);
             return player.sendMessage('§cThe target player has gone offline. Payment cancelled.');
         }
 
-        const result = economyManager.transfer(player.id, targetPlayerId, amount);
+        const result = transfer(player.id, targetPlayerId, amount);
 
         if (result.success) {
             player.sendMessage(`§aPayment confirmed. You sent §e$${amount.toFixed(2)}§a to ${targetPlayer.name}.`);
@@ -88,6 +87,6 @@ commandManager.register({
             player.sendMessage(`§cPayment failed: ${result.message}`);
         }
 
-        economyManager.clearPendingPayment(player.id);
+        clearPendingPayment(player.id);
     }
 });

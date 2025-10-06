@@ -52,6 +52,44 @@ function clearRequest(request) {
  * @param {TpaRequestType} type
  * @returns {{success: boolean, message: string}}
  */
+/**
+ * Finds a specific incoming TPA request for a player.
+ * @param {string} targetPlayerId The ID of the player who received the request.
+ * @param {string} [sourcePlayerName] The name of the player who sent the request. If not provided, finds the most recent.
+ * @param {boolean} [onlineOnly=false] If true and no sourcePlayerName is given, only the most recent request from an online player is returned.
+ * @returns {TpaRequest | undefined}
+ */
+function _findIncomingRequest(targetPlayerId, sourcePlayerName, onlineOnly = false) {
+    const requests = incomingRequests.get(targetPlayerId);
+    if (!requests || requests.length === 0) {
+        return undefined;
+    }
+
+    if (sourcePlayerName) {
+        return requests.find(r => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
+    }
+
+    // If no name is given, find the most recent request based on the onlineOnly flag.
+    if (onlineOnly) {
+        for (let i = requests.length - 1; i >= 0; i--) {
+            if (getPlayerFromCache(requests[i].sourcePlayerId)) {
+                return requests[i]; // Return the most recent request from an online player
+            }
+        }
+        return undefined; // No requests from online players
+    }
+
+    // Return the absolute most recent request
+    return requests[requests.length - 1];
+}
+
+/**
+ * Creates a new TPA request.
+ * @param {import('@minecraft/server').Player} sourcePlayer
+ * @param {import('@minecraft/server').Player} targetPlayer
+ * @param {TpaRequestType} type
+ * @returns {{success: boolean, message: string}}
+ */
 export function createRequest(sourcePlayer, targetPlayer, type) {
     if (outgoingRequests.has(sourcePlayer.id)) {
         return { success: false, message: 'You already have an outgoing TPA request. Use !tpacancel to cancel it.' };
@@ -135,22 +173,8 @@ export function getOutgoingRequest(player) {
  * @param {import('@minecraft/server').Player} player The player accepting the request.
  */
 export function acceptRequest(player, sourcePlayerName) {
-    const requests = incomingRequests.get(player.id);
-    let request = null;
-
-    if (sourcePlayerName) {
-        request = requests?.find(r => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
-    } else {
-        // If no name is given, find the most recent request from an ONLINE player
-        if (requests) {
-            for (let i = requests.length - 1; i >= 0; i--) {
-                if (getPlayerFromCache(requests[i].sourcePlayerId)) {
-                    request = requests[i];
-                    break;
-                }
-            }
-        }
-    }
+    // Find the request, requiring the source player to be online if no specific name is given.
+    const request = _findIncomingRequest(player.id, sourcePlayerName, true);
 
     if (!request) {
         if (sourcePlayerName) {
@@ -217,17 +241,8 @@ export function acceptRequest(player, sourcePlayerName) {
  * @param {import('@minecraft/server').Player} player The player denying the request.
  */
 export function denyRequest(player, sourcePlayerName) {
-    const requests = incomingRequests.get(player.id);
-    let request = null;
-
-    if (sourcePlayerName) {
-        request = requests?.find(r => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
-    } else {
-        // If no name is given, get the most recent request, regardless of online status.
-        if (requests && requests.length > 0) {
-            request = requests[requests.length - 1];
-        }
-    }
+    // Find the request. If no name is given, finds the most recent, regardless of online status.
+    const request = _findIncomingRequest(player.id, sourcePlayerName);
 
     if (!request) {
         if (sourcePlayerName) {

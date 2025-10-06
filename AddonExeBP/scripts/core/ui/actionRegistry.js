@@ -6,7 +6,7 @@ import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import * as reportManager from '../reportManager.js';
 import * as bountyManager from '../bountyManager.js';
-import * as economyManager from '../economyManager.js';
+import { getBalance, incrementPlayerBalance } from '../playerDataManager.js';
 import * as tpaManager from '../tpaManager.js';
 import * as playerCache from '../playerCache.js';
 import { kickPlayer } from '../../modules/commands/kick.js';
@@ -259,19 +259,15 @@ export const uiActionFunctions = {
                 player.sendMessage(`§cInvalid amount. The minimum bounty is $${config.bounties.minimumBounty}.`);
                 return true;
             }
-            if (economyManager.getBalance(player.id) < amount) {
+            if (getBalance(player.id) < amount) {
                 player.sendMessage('§cYou do not have enough money for this bounty.');
                 return true;
             }
 
-            const result = economyManager.removeBalance(player.id, amount);
-            if (result) {
-                bountyManager.incrementBounty(targetPlayerId, amount);
-                player.sendMessage(`§2You have placed a bounty of §6$${amount}§2 on ${targetPlayerName}.`);
-                world.sendMessage(`§cSomeone has placed a bounty of §6$${amount}§c on ${targetPlayerName}!`);
-            } else {
-                player.sendMessage('§cFailed to place bounty.');
-            }
+            incrementPlayerBalance(player.id, -amount);
+            bountyManager.incrementBounty(targetPlayerId, amount);
+            player.sendMessage(`§2You have placed a bounty of §6$${amount}§2 on ${targetPlayerName}.`);
+            world.sendMessage(`§cSomeone has placed a bounty of §6$${amount}§c on ${targetPlayerName}!`);
         }
         return true;
     },
@@ -323,19 +319,15 @@ export const uiActionFunctions = {
                 return true;
             }
 
-            if (economyManager.getBalance(player.id) < amount) {
+            if (getBalance(player.id) < amount) {
                 player.sendMessage('§cYou dont have enough money for this!');
                 return true;
             }
 
-            const result = economyManager.removeBalance(player.id, amount);
-            if (result) {
-                bountyManager.incrementBounty(targetPlayerId, -amount);
-                player.sendMessage(`§2You have removed $${amount.toFixed(2)} from ${targetPlayerName}'s bounty.`);
-                world.sendMessage(`§2${player.name} has removed $${amount.toFixed(2)} from ${targetPlayerName}'s bounty!`);
-            } else {
-                player.sendMessage('§cFailed to remove bounty.');
-            }
+            incrementPlayerBalance(player.id, -amount);
+            bountyManager.incrementBounty(targetPlayerId, -amount);
+            player.sendMessage(`§2You have removed $${amount.toFixed(2)} from ${targetPlayerName}'s bounty.`);
+            world.sendMessage(`§2${player.name} has removed $${amount.toFixed(2)} from ${targetPlayerName}'s bounty!`);
         }
 
         return true;
