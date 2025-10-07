@@ -49,10 +49,7 @@ These commands are used for managing a multiplayer server.
 | `/op` | `/op <player>` | Grants operator status to a player. | Both |
 | `/deop` | `/deop <player>` | Revokes operator status from a player. | Both |
 | `/kick` | `/kick <player> [reason]` | Kicks a player from the server. | Both |
-| `/ban` | `/ban <player> [reason]` | Bans a player from the server. | Both |
-| `/pardon` | `/pardon <player>` | Pardons a banned player. | Both |
 | `/whitelist` | `/whitelist <add|remove|on|off|list|reload>` | Manages the server's whitelist. | Java |
-| `/save-all` | `/save-all` | Saves the server to disk. | Both |
 | `/stop` | `/stop` | Stops the server. | Both |
 
 ---
