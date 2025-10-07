@@ -21,10 +21,10 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 
 | API | Status | Usage |
 | --- | --- | --- |
-| `world.afterEvents` | Unconfirmed | Subscribe to events that have already occurred (e.g., `playerSpawn`, `entityDie`). |
-| `world.beforeEvents` | Unconfirmed | Subscribe to events before they happen, with the ability to cancel some of them (e.g., `chatSend`, `playerBreakBlock`). |
-| `system.afterEvents`| Unconfirmed | Subscribe to system-level events that have occurred. |
-| `system.beforeEvents`| Unconfirmed | Subscribe to system-level events before they happen. |
+| `world.afterEvents` | Confirmed | Subscribe to events that have already occurred (e.g., `playerSpawn`, `entityDie`). |
+| `world.beforeEvents` | Confirmed | Subscribe to events before they happen, with the ability to cancel some of them (e.g., `chatSend`, `playerBreakBlock`). |
+| `system.afterEvents`| Confirmed | Subscribe to system-level events that have occurred. |
+| `system.beforeEvents`| Confirmed | Subscribe to system-level events before they happen. |
 
 ### Game Objects & Classes
 
@@ -35,10 +35,10 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Block` | Confirmed | Represents a block in the world, providing information about its type, location, and state. |
 | `Dimension` | Confirmed | Represents a dimension in the world (Overworld, Nether, The End). |
 | `Scoreboard` | Confirmed | Used to interact with the in-game scoreboard, managing objectives and scores. |
-| `Container` | Unconfirmed | Represents an inventory container, such as a chest or a player's inventory. |
-| `Effect` | Unconfirmed | Represents a status effect that can be applied to an entity. |
-| `Camera` | Unconfirmed | Provides methods to control the player's camera, such as setting its position or creating fade effects. |
-| `Structure` | Unconfirmed | Represents a saved structure that can be placed in the world. |
+| `Container` | Confirmed | Represents an inventory container, such as a chest or a player's inventory. |
+| `Effect` | Confirmed | Represents a status effect that can be applied to an entity. |
+| `Camera` | Confirmed | Provides methods to control the player's camera, such as setting its position or creating fade effects. Accessed via `player.camera`. |
+| `Structure` | Confirmed | Represents a saved structure that can be placed in the world, managed by the `StructureManager`. |
 
 ### Item Management
 
@@ -47,7 +47,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `ItemStack` | Confirmed | Represents a stack of items. Used for creating, modifying, and managing items. |
 | `ItemTypes` | Confirmed | Provides a list of all available item types. |
 | `EnchantmentTypes`| Confirmed | Provides a list of all available enchantments. |
-| `ItemComponent` | Unconfirmed | Base class for components that can be on an `ItemStack`, defining its behavior (e.g., `ItemFoodComponent`, `ItemDurabilityComponent`). |
+| `ItemComponent` | Confirmed | Base class for components that can be on an `ItemStack`, defining its behavior (e.g., `ItemFoodComponent`, `ItemDurabilityComponent`). |
 
 ### Components
 
@@ -55,23 +55,23 @@ Components are used to add functionality and data to Blocks, Entities, and Items
 
 | API | Status | Usage |
 | --- | --- | --- |
-| `EntityComponent` | Unconfirmed | Base class for components that can be on an `Entity`, defining its state and behavior (e.g., `EntityHealthComponent`, `EntityInventoryComponent`). |
-| `BlockComponent` | Unconfirmed | Base class for components that can be on a `Block`, defining its state and behavior (e.g., `BlockInventoryComponent`, `BlockSignComponent`). |
+| `EntityComponent` | Confirmed | Base class for components that can be on an `Entity`, defining its state and behavior (e.g., `EntityHealthComponent`, `EntityInventoryComponent`). |
+| `BlockComponent` | Confirmed | Base class for components that can be on a `Block`, defining its state and behavior (e.g., `BlockInventoryComponent`, `BlockSignComponent`). |
 
 ### Managers
 
 | API | Status | Usage |
 | --- | --- | --- |
-| `StructureManager`| Unconfirmed | Manages the creation, loading, and placement of structures in the world. Accessed via `world.structureManager`. |
+| `StructureManager`| Confirmed | Manages the creation, loading, and placement of structures in the world. Accessed via `world.structureManager`. |
 | `LootTableManager`| Unconfirmed | Manages loot tables, allowing for custom loot generation. Could be accessed via `world.lootTables`. |
 
 ### Utilities
 
 | API | Status | Usage |
 | --- | --- | --- |
-| `Vector3` | Unconfirmed | Represents a 3D vector (x, y, z), commonly used for positions and velocities. |
-| `MolangVariableMap` | Unconfirmed | A map for defining and using MoLang variables, which can be used in animations and other data-driven features. |
-| `ScreenDisplay` | Unconfirmed | Represents the player's screen, allowing for the display of titles and action bar messages. Accessed via `player.onScreenDisplay`. |
+| `Vector3` | Confirmed | Represents a 3D vector using an object literal (e.g., `{ x, y, z }`), commonly used for positions and velocities. |
+| `MolangVariableMap`| Confirmed | A map for defining and using MoLang variables, which can be used in animations and other data-driven features. |
+| `ScreenDisplay` | Confirmed | Represents the player's screen, allowing for the display of titles and action bar messages. Accessed via `player.onScreenDisplay`. |
 
 ---
 
@@ -91,10 +91,10 @@ This module provides APIs for creating and managing user interface elements.
 
 ## Other Modules
 
-The documentation also lists other specialized modules that could be useful.
+The documentation also lists other specialized modules that could be useful. These require being added to the `manifest.json` file to be accessible.
 
 | API | Status | Usage |
 | --- | --- | --- |
-| `@minecraft/server-gametest` | Unconfirmed | Provides a framework for creating and running in-game tests. |
-| `@minecraft/server-net` | Unconfirmed | Allows for server-based HTTP requests (e.g., to an external API). Requires a Bedrock Dedicated Server. |
-| `@minecraft/server-admin` | Unconfirmed | Provides tools for server administration, such as managing secrets and variables. |
+| `@minecraft/server-gametest` | Confirmed (Unavailable) | Provides a framework for creating and running in-game tests. Not enabled in `manifest.json`. |
+| `@minecraft/server-net` | Confirmed (Unavailable) | Allows for server-based HTTP requests. Not enabled in `manifest.json`. |
+| `@minecraft/server-admin` | Confirmed (Unavailable) | Provides tools for server administration. Not enabled in `manifest.json`. |
