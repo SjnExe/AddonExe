@@ -10,6 +10,9 @@
         ],
         "unlock": [
             {
+                "item": "minecraft:planks"
+            },
+            {
                 "item": "minecraft:stick"
             }
         ],
