@@ -11,10 +11,10 @@ const log = (message, executor) => {
     }
 };
 
-const testSection = (name, testFn, executor) => {
+const testSection = async (name, testFn, executor) => {
     log(`--- Testing: ${name} ---`, executor);
     try {
-        testFn();
+        await testFn();
     } catch (e) {
         log(`§c  FAILURE: An unexpected error occurred in ${name}. Error: ${e.stack}`, executor);
     }
@@ -33,9 +33,9 @@ commandManager.register({
 
         log('§aStarting comprehensive API tests... Check console for detailed logs.', executor);
 
-        system.run(() => {
+        system.run(async () => {
             // --- Original Tests ---
-            testSection('Entity API', () => {
+            await testSection('Entity API', async () => {
                 const dimension = player ? player.dimension : world.getDimension('overworld');
                 const entities = dimension.getEntities({ limit: 5 });
                 if (entities && entities.length > 0) {
@@ -45,20 +45,20 @@ commandManager.register({
                 }
             }, executor);
 
-            testSection('Block API', () => {
+            await testSection('Block API', async () => {
                 if (!player) {
                     log('  SKIPPED: Block API test requires a player context.', executor);
                     return;
                 }
                 const block = player.getBlockFromViewDirection();
-                if (block) {
+                if (block && block.typeId) {
                     log(`  SUCCESS: Found block of type '${block.typeId}' at [${block.x}, ${block.y}, ${block.z}].`, executor);
                 } else {
-                    log('  SUCCESS: getBlockFromViewDirection() ran, but no block was in view.', executor);
+                    log('  SUCCESS: getBlockFromViewDirection() ran, but no block was in view or it had no typeId.', executor);
                 }
             }, executor);
 
-            testSection('Dimension API', () => {
+            await testSection('Dimension API', async () => {
                 const dimension = player ? player.dimension : world.getDimension('overworld');
                 if (dimension && dimension.id) {
                     log(`  SUCCESS: Retrieved dimension ID: '${dimension.id}'`, executor);
@@ -67,7 +67,7 @@ commandManager.register({
                 }
             }, executor);
 
-            testSection('Scoreboard API', () => {
+            await testSection('Scoreboard API', async () => {
                 const scoreboard = world.scoreboard;
                 if (scoreboard) {
                     const objectives = scoreboard.getObjectives();
@@ -88,7 +88,7 @@ commandManager.register({
 
             // --- New Expanded Tests ---
 
-            testSection('Event System', () => {
+            await testSection('Event System', async () => {
                 if (world.afterEvents && world.beforeEvents) {
                     log('  SUCCESS: `world.afterEvents` and `world.beforeEvents` exist.', executor);
                 } else {
@@ -101,7 +101,7 @@ commandManager.register({
                 }
             }, executor);
 
-            testSection('Container API (Player Inventory)', () => {
+            await testSection('Container API (Player Inventory)', async () => {
                 if (!player) {
                     log('  SKIPPED: Container test requires a player context.', executor);
                     return;
@@ -114,7 +114,7 @@ commandManager.register({
                 }
             }, executor);
 
-            testSection('Effect API', () => {
+            await testSection('Effect API', async () => {
                 if (!player) {
                     log('  SKIPPED: Effect test requires a player context.', executor);
                     return;
@@ -131,7 +131,7 @@ commandManager.register({
                 }
             }, executor);
 
-            testSection('Camera API', () => {
+            await testSection('Camera API', async () => {
                 if (!player) {
                     log('  SKIPPED: Camera test requires a player context.', executor);
                     return;
@@ -149,7 +149,7 @@ commandManager.register({
                 }
             }, executor);
 
-            testSection('Manager APIs', () => {
+            await testSection('Manager APIs', async () => {
                 if (world.structureManager) {
                      log('  SUCCESS: `world.structureManager` exists.', executor);
                 } else {
@@ -158,7 +158,7 @@ commandManager.register({
                 // LootTableManager is not a public API, so we don't test for it.
             }, executor);
 
-            testSection('Component APIs', () => {
+            await testSection('Component APIs', async () => {
                 if (!player) {
                     log('  SKIPPED: Component tests require a player context.', executor);
                     return;
@@ -172,7 +172,7 @@ commandManager.register({
                 }
                 // Block Component (Sign)
                 const block = player.getBlockFromViewDirection();
-                if (block && block.typeId.includes('sign')) {
+                if (block && block.typeId && block.typeId.includes('sign')) {
                     const signComponent = block.getComponent('sign');
                     if (signComponent) {
                         log('  SUCCESS: BlockSignComponent found on a sign.', executor);
@@ -180,11 +180,11 @@ commandManager.register({
                         log('  INFO: Looked at a sign, but could not get BlockSignComponent.', executor);
                     }
                 } else {
-                    log('  INFO: Not looking at a sign, skipping BlockSignComponent test.', executor);
+                    log('  INFO: Not looking at a sign (or block has no typeId), skipping BlockSignComponent test.', executor);
                 }
             }, executor);
 
-            testSection('Utility APIs', () => {
+            await testSection('Utility APIs', async () => {
                 const vec = { x: 1, y: 2, z: 3 };
                 if (vec.x === 1 && vec.y === 2 && vec.z === 3) {
                     log('  SUCCESS: Vector3 object literal is working.', executor);
@@ -199,7 +199,7 @@ commandManager.register({
                 }
             }, executor);
 
-            testSection('ScreenDisplay API', () => {
+            await testSection('ScreenDisplay API', async () => {
                 if (!player) {
                     log('  SKIPPED: ScreenDisplay test requires a player context.', executor);
                     return;
@@ -213,24 +213,15 @@ commandManager.register({
                 }
             }, executor);
 
-            testSection('External Module Loading', () => {
-                try {
-                    const gametest = import('@minecraft/server-gametest');
-                    log('  INFO: @minecraft/server-gametest appears to be available.', executor);
-                } catch (e) {
-                    log('  INFO: @minecraft/server-gametest is not available.', executor);
-                }
-                try {
-                    const net = import('@minecraft/server-net');
-                    log('  INFO: @minecraft/server-net appears to be available.', executor);
-                } catch (e) {
-                    log('  INFO: @minecraft/server-net is not available.', executor);
-                }
-                try {
-                    const admin = import('@minecraft/server-admin');
-                    log('  INFO: @minecraft/server-admin appears to be available.', executor);
-                } catch (e) {
-                    log('  INFO: @minecraft/server-admin is not available.', executor);
+            await testSection('External Module Loading', async () => {
+                const modulesToTest = ['@minecraft/server-gametest', '@minecraft/server-net', '@minecraft/server-admin'];
+                for (const moduleName of modulesToTest) {
+                    try {
+                        await import(moduleName);
+                        log(`  INFO: ${moduleName} appears to be available.`, executor);
+                    } catch (e) {
+                        log(`  INFO: ${moduleName} is not available.`, executor);
+                    }
                 }
             }, executor);
 
