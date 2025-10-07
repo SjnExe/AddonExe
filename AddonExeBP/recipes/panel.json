@@ -11,9 +11,6 @@
         "unlock": [
             {
                 "item": "minecraft:stick"
-            },
-            {
-                "tag": "minecraft:planks"
             }
         ],
         "ingredients": [
