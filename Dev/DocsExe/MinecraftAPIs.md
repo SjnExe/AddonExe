@@ -1,6 +1,6 @@
-# Minecraft APIs
+# Minecraft: Bedrock Edition Scripting APIs
 
-This document lists the Minecraft APIs used in this project, based on community-driven documentation. APIs are categorized by their respective modules.
+This document lists the Minecraft: Bedrock Edition Scripting APIs used in this project. The APIs are primarily from the `@minecraft/server` and `@minecraft/server-ui` modules and are categorized below.
 
 ---
 
