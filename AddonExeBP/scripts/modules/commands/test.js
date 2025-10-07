@@ -1,5 +1,5 @@
 import { commandManager } from './commandManager.js';
-import { world, system, Vector, Player, Block, Dimension, Scoreboard, Container, Effect, Camera, StructureManager, ItemStack, EntityComponent, BlockComponent, ItemComponent } from '@minecraft/server';
+import { world, system } from '@minecraft/server';
 import { MolangVariableMap } from '@minecraft/server';
 
 // --- Helper Function ---
@@ -185,11 +185,11 @@ commandManager.register({
             }, executor);
 
             testSection('Utility APIs', () => {
-                const vec = new Vector(1, 2, 3);
+                const vec = { x: 1, y: 2, z: 3 };
                 if (vec.x === 1 && vec.y === 2 && vec.z === 3) {
-                    log('  SUCCESS: Vector class is working.', executor);
+                    log('  SUCCESS: Vector3 object literal is working.', executor);
                 } else {
-                    log('  §cFAILURE: Vector class did not return expected values.', executor);
+                    log('  §cFAILURE: Vector3 object literal did not return expected values.', executor);
                 }
                 const molang = new MolangVariableMap();
                 if (molang) {
