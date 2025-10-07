@@ -8,14 +8,9 @@
             "crafting_table",
             "crafting_screen"
         ],
-        "unlock": [
-            {
-                "item": "minecraft:planks"
-            },
-            {
-                "item": "minecraft:stick"
-            }
-        ],
+        "unlock": {
+            "context": "AlwaysUnlocked"
+        },
         "ingredients": [
             {
                 "item": "minecraft:stick"
