@@ -15,63 +15,96 @@ This module provides APIs to interact with the game world, entities, and other s
 | `world` | Confirmed | Provides access to the game world, including methods to get players, entities, and dimensions. It is the root for many world-related operations and events. |
 | `system` | Confirmed | Provides access to system-level functionality, such as running scheduled tasks (`system.run`) and managing system-wide events. |
 
-### Events
+### Events System
 
 The `world` and `system` objects have `afterEvents` and `beforeEvents` properties that allow scripts to subscribe to a wide range of game events.
 
 | API | Status | Usage |
 | --- | --- | --- |
-| `world.afterEvents` | Confirmed | Subscribe to events that have already occurred (e.g., `playerSpawn`, `entityDie`). |
-| `world.beforeEvents` | Confirmed | Subscribe to events before they happen, with the ability to cancel some of them (e.g., `chatSend`, `playerBreakBlock`). |
+| `world.afterEvents` | Confirmed | Subscribe to events that have already occurred. |
+| `world.beforeEvents` | Confirmed | Subscribe to events before they happen, with the ability to cancel some of them. |
 | `system.afterEvents`| Confirmed | Subscribe to system-level events that have occurred. |
 | `system.beforeEvents`| Confirmed | Subscribe to system-level events before they happen. |
+
+#### Specific Events (Examples)
+| Event | Status | Description |
+| --- | --- | --- |
+| `PlayerJoinAfterEvent` | Unconfirmed | Fires after a player has joined the world. |
+| `PlayerLeaveAfterEvent` | Unconfirmed | Fires after a player has left the world. |
+| `PlayerSpawnAfterEvent` | Unconfirmed | Fires after a player has spawned or respawned. |
+| `PlayerBreakBlockAfterEvent` | Unconfirmed | Fires after a player breaks a block. |
+| `PlayerPlaceBlockAfterEvent` | Unconfirmed | Fires after a player places a block. |
+| `EntityDieAfterEvent` | Unconfirmed | Fires after an entity dies. |
+| `WeatherChangeAfterEvent` | Unconfirmed | Fires after the weather changes. |
 
 ### Game Objects & Classes
 
 | API | Status | Usage |
 | --- | --- | --- |
-| `Player` | Confirmed | Represents a player in the world. Used to access player-specific information and methods. |
-| `Entity` | Confirmed | Represents any entity in the world (mobs, items, etc.). Provides methods to interact with these entities. |
-| `Block` | Confirmed | Represents a block in the world, providing information about its type, location, and state. |
-| `Dimension` | Confirmed | Represents a dimension in the world (Overworld, Nether, The End). |
-| `Scoreboard` | Confirmed | Used to interact with the in-game scoreboard, managing objectives and scores. |
-| `Container` | Confirmed | Represents an inventory container, such as a chest or a player's inventory. |
-| `Effect` | Confirmed | Represents a status effect that can be applied to an entity. |
-| `Camera` | Confirmed | Provides methods to control the player's camera, such as setting its position or creating fade effects. Accessed via `player.camera`. |
-| `Structure` | Confirmed | Represents a saved structure that can be placed in the world, managed by the `StructureManager`. |
+| `Player` | Confirmed | Represents a player in the world. |
+| `Entity` | Confirmed | Represents any entity in the world (mobs, items, etc.). |
+| `Block` | Confirmed | Represents a block in the world. |
+| `Dimension` | Confirmed | Represents a dimension (Overworld, Nether, etc.). |
+| `Scoreboard` | Confirmed | The world's scoreboard. |
+| `Container` | Confirmed | An inventory container. |
+| `Effect` | Confirmed | A status effect that can be applied to an entity. |
+| `Camera` | Confirmed | Controls the player's camera. Accessed via `player.camera`. |
+| `Structure` | Confirmed | A saved structure that can be placed in the world. |
+| `BlockPermutation` | Unconfirmed | Represents a specific state of a block (e.g., a furnace that is lit). |
+| `ContainerSlot` | Unconfirmed | Represents a single slot in a container. |
+| `EffectType` | Unconfirmed | Represents a type of status effect. |
+| `ScoreboardIdentity` | Unconfirmed | Represents a single entry (like a player name or a fake player) on a scoreboard. |
+| `ScoreboardObjective`| Unconfirmed | Represents a single objective on a scoreboard. |
 
 ### Item Management
 
 | API | Status | Usage |
 | --- | --- | --- |
-| `ItemStack` | Confirmed | Represents a stack of items. Used for creating, modifying, and managing items. |
-| `ItemTypes` | Confirmed | Provides a list of all available item types. |
-| `EnchantmentTypes`| Confirmed | Provides a list of all available enchantments. |
-| `ItemComponent` | Confirmed | Base class for components that can be on an `ItemStack`, defining its behavior (e.g., `ItemFoodComponent`, `ItemDurabilityComponent`). |
+| `ItemStack` | Confirmed | Represents a stack of items. |
+| `ItemTypes` | Confirmed | A collection of all available item types. |
+| `EnchantmentTypes`| Confirmed | A collection of all available enchantments. |
+| `ItemComponent` | Confirmed | Base class for components on an `ItemStack`. |
+| `ItemDurabilityComponent` | Unconfirmed | Manages the durability of an item. |
+| `ItemFoodComponent` | Unconfirmed | Defines the food properties of an item. |
+| `ItemEnchantableComponent` | Unconfirmed | Manages the enchantments that can be applied to an item. |
 
 ### Components
+Components add functionality to Blocks, Entities, and Items.
 
-Components are used to add functionality and data to Blocks, Entities, and Items.
-
+#### Entity Components (Examples)
 | API | Status | Usage |
 | --- | --- | --- |
-| `EntityComponent` | Confirmed | Base class for components that can be on an `Entity`, defining its state and behavior (e.g., `EntityHealthComponent`, `EntityInventoryComponent`). |
-| `BlockComponent` | Confirmed | Base class for components that can be on a `Block`, defining its state and behavior (e.g., `BlockInventoryComponent`, `BlockSignComponent`). |
+| `EntityHealthComponent` | Confirmed | Manages the health of an entity. |
+| `EntityInventoryComponent`| Confirmed | Manages the inventory of an entity. |
+| `EntityMovementComponent` | Unconfirmed | Manages the movement speed of an entity. |
+| `EntityRideableComponent` | Unconfirmed | Allows an entity to be ridden by other entities. |
+| `EntityEquippableComponent`| Unconfirmed | Manages the equipment that can be worn by an entity. |
+
+#### Block Components (Examples)
+| API | Status | Usage |
+| --- | --- | --- |
+| `BlockInventoryComponent`| Confirmed | Provides access to a block's inventory (e.g., a chest). |
+| `BlockSignComponent` | Confirmed | Manages the text content of a sign. |
+| `BlockPistonComponent` | Unconfirmed | Provides information about a piston's state. |
+| `BlockRecordPlayerComponent`| Unconfirmed | Manages a jukebox, allowing a music disc to be played. |
 
 ### Managers
 
 | API | Status | Usage |
 | --- | --- | --- |
-| `StructureManager`| Confirmed | Manages the creation, loading, and placement of structures in the world. Accessed via `world.structureManager`. |
-| `LootTableManager`| Unconfirmed | Manages loot tables, allowing for custom loot generation. Could be accessed via `world.lootTables`. |
+| `StructureManager`| Confirmed | Manages the creation, loading, and placement of structures. Accessed via `world.structureManager`. |
+| `LootTableManager`| Unconfirmed | Manages loot tables. Could be accessed via `world.lootTables`. |
 
 ### Utilities
 
 | API | Status | Usage |
 | --- | --- | --- |
-| `Vector3` | Confirmed | Represents a 3D vector using an object literal (e.g., `{ x, y, z }`), commonly used for positions and velocities. |
-| `MolangVariableMap`| Confirmed | A map for defining and using MoLang variables, which can be used in animations and other data-driven features. |
-| `ScreenDisplay` | Confirmed | Represents the player's screen, allowing for the display of titles and action bar messages. Accessed via `player.onScreenDisplay`. |
+| `Vector3` | Confirmed | Represents a 3D vector using an object literal (e.g., `{ x, y, z }`). |
+| `MolangVariableMap`| Confirmed | A map for defining MoLang variables for use in animations. |
+| `ScreenDisplay` | Confirmed | Represents the player's screen for displaying titles. Accessed via `player.onScreenDisplay`. |
+| `BlockRaycastOptions`| Unconfirmed | Options for casting a ray to find a block. |
+| `EntityQueryOptions` | Unconfirmed | Options for querying entities in the world. |
+| `RawMessage` | Unconfirmed | A raw JSON message that can be displayed in chat, allowing for translatable text and scores. |
 
 ---
 
@@ -84,7 +117,6 @@ This module provides APIs for creating and managing user interface elements.
 | API | Status | Usage |
 | --- | --- | --- |
 | `ActionFormData` | Confirmed | Used to create a form with a list of buttons. |
-| `ModalFormData` | Confirmed | Used to create a form with various input fields (text, toggles, sliders). |
+| `ModalFormData` | Confirmed | Used to create a form with various input fields. |
 | `MessageFormData` | Confirmed | Used to create a simple dialog with a message and two buttons. |
-
 ---
