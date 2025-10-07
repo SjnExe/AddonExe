@@ -88,13 +88,3 @@ This module provides APIs for creating and managing user interface elements.
 | `MessageFormData` | Confirmed | Used to create a simple dialog with a message and two buttons. |
 
 ---
-
-## Other Modules
-
-The documentation also lists other specialized modules that could be useful. These require being added to the `manifest.json` file to be accessible.
-
-| API | Status | Usage |
-| --- | --- | --- |
-| `@minecraft/server-gametest` | Confirmed (Unavailable) | Provides a framework for creating and running in-game tests. Not enabled in `manifest.json`. |
-| `@minecraft/server-net` | Confirmed (Unavailable) | Allows for server-based HTTP requests. Not enabled in `manifest.json`. |
-| `@minecraft/server-admin` | Confirmed (Unavailable) | Provides tools for server administration. Not enabled in `manifest.json`. |

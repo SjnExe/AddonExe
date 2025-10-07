@@ -43,20 +43,6 @@ commandManager.register({
                 }
             }, executor);
 
-            // Test for external modules which might be enabled in the future.
-            await testSection('External Module Loading', async () => {
-                testsRun = true;
-                const modulesToTest = ['@minecraft/server-gametest', '@minecraft/server-net', '@minecraft/server-admin'];
-                for (const moduleName of modulesToTest) {
-                    try {
-                        await import(moduleName);
-                        log(`  INFO: ${moduleName} appears to be available.`, executor);
-                    } catch (e) {
-                        log(`  INFO: ${moduleName} is not available.`, executor);
-                    }
-                }
-            }, executor);
-
             if (!testsRun) {
                 log('No unconfirmed APIs are currently being tested.', executor);
             }
