@@ -4,7 +4,8 @@
         "description": {
             "identifier": "exe:panel",
             "menu_category": {
-                "category": "items"
+                "category": "items",
+                "group": "itemGroup.name.items"
             }
         },
         "components": {
