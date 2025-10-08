@@ -8,6 +8,7 @@
             "crafting_table",
             "crafting_screen"
         ],
+        "group": "panel",
         "unlock": {
             "context": "AlwaysUnlocked"
         },

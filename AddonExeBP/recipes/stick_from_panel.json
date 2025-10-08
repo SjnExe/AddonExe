@@ -8,11 +8,10 @@
             "crafting_table",
             "crafting_screen"
         ],
-        "unlock": [
-            {
-                "item": "exe:panel"
-            }
-        ],
+        "group": "panel",
+        "unlock": {
+            "context": "AlwaysUnlocked"
+        },
         "ingredients": [
             {
                 "item": "exe:panel"
