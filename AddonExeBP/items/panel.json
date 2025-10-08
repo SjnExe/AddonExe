@@ -5,11 +5,13 @@
             "identifier": "exe:panel",
             "menu_category": {
                 "category": "items",
-                "group": "itemGroup.name.items"
+                "group": "itemGroup.name.misc"
             }
         },
         "components": {
-            "minecraft:icon": "breeze_rod",
+            "minecraft:icon": {
+                "texture": "breeze_rod"
+            },
             "minecraft:foil": true,
             "minecraft:display_name": {
                 "value": "§l§bPanel§r"
