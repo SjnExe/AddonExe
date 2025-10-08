@@ -4,14 +4,11 @@
         "description": {
             "identifier": "exe:panel",
             "menu_category": {
-                "category": "items",
-                "group": "itemGroup.name.misc"
+                "category": "items"
             }
         },
         "components": {
-            "minecraft:icon": {
-                "texture": "breeze_rod"
-            },
+            "minecraft:icon": "stick",
             "minecraft:foil": true,
             "minecraft:display_name": {
                 "value": "§l§bPanel§r"
