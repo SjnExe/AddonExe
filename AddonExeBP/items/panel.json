@@ -8,7 +8,7 @@
             }
         },
         "components": {
-            "minecraft:icon": "stick",
+            "minecraft:icon": "breeze_rod",
             "minecraft:foil": true,
             "minecraft:display_name": {
                 "value": "§l§bPanel§r"
