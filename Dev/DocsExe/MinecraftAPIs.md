@@ -50,11 +50,31 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Effect` | Confirmed | A status effect that can be applied to an entity. |
 | `Camera` | Confirmed | Controls the player's camera. Accessed via `player.camera`. |
 | `Structure` | Confirmed | A saved structure that can be placed in the world. |
-| `BlockPermutation` | Unconfirmed (Test Failed) | Represents a specific state of a block. Test to retrieve this from a block failed. |
+| `BlockPermutation` | Unconfirmed (Test Skipped) | Represents a specific state of a block. Test requires player to be looking at a block. |
 | `ContainerSlot` | Confirmed | Represents a single slot in a container. |
 | `EffectType` | Confirmed | Represents a type of status effect. |
-| `ScoreboardIdentity` | Unconfirmed | Represents a single entry (like a player name or a fake player) on a scoreboard. |
-| `ScoreboardObjective`| Unconfirmed | Represents a single objective on a scoreboard. |
+| `ScoreboardIdentity` | Unconfirmed (Test Skipped) | Represents a single entry on a scoreboard. Test requires a scoreboard objective named "test". |
+| `ScoreboardObjective`| Unconfirmed (Test Skipped) | Represents a single objective on a scoreboard. Test requires a scoreboard objective named "test". |
+
+### World Properties & Methods
+
+| API | Status | Usage |
+| --- | --- | --- |
+| `world.getDefaultSpawnLocation` | Confirmed | Retrieves the world's default spawn location as a `Vector3`. |
+| `world.getTimeOfDay` / `setTimeOfDay` | Confirmed | Gets or sets the current time of day. |
+
+### Player Properties & Methods
+
+| API | Status | Usage |
+| --- | --- | --- |
+| `player.isEmoting` | Confirmed | A boolean property that is `true` if the player is currently emoting. |
+| `player.onScreenDisplay` | Confirmed | Provides access to the player's screen display for showing titles and action bars via methods like `setTitle()`. |
+
+### System Properties & Methods
+
+| API | Status | Usage |
+| --- | --- | --- |
+| `system.currentTick` | Confirmed | A read-only property that returns the current server tick. |
 
 ### Item Management
 
@@ -85,8 +105,8 @@ Components add functionality to Blocks, Entities, and Items.
 | --- | --- | --- |
 | `BlockInventoryComponent`| Confirmed | Provides access to a block's inventory (e.g., a chest). |
 | `BlockSignComponent` | Confirmed | Manages the text content of a sign. |
-| `BlockPistonComponent` | Unconfirmed | Provides information about a piston's state. |
-| `BlockRecordPlayerComponent`| Unconfirmed | Manages a jukebox, allowing a music disc to be played. |
+| `BlockPistonComponent` | Unconfirmed (Test Skipped) | Provides information about a piston's state. Test requires player to be looking at a piston. |
+| `BlockRecordPlayerComponent`| Unconfirmed (Test Skipped) | Manages a jukebox. Test requires player to be looking at a jukebox. |
 
 ### Managers
 
@@ -101,7 +121,6 @@ Components add functionality to Blocks, Entities, and Items.
 | --- | --- | --- |
 | `Vector3` | Confirmed | Represents a 3D vector using an object literal (e.g., `{ x, y, z }`). |
 | `MolangVariableMap`| Confirmed | A map for defining MoLang variables for use in animations. |
-| `ScreenDisplay` | Confirmed | Represents the player's screen for displaying titles. Accessed via `player.onScreenDisplay`. |
 | `BlockRaycastOptions`| Confirmed | Options for casting a ray to find a block. |
 | `EntityQueryOptions` | Confirmed | Options for querying entities in the world. |
 | `RawMessage` | Confirmed | A raw JSON message that can be displayed in chat, allowing for translatable text and scores. |

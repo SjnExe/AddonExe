@@ -95,19 +95,28 @@ commandManager.register({
                     logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Info', message: 'Player not looking at a block.' });
                 }
 
-                if (world.scoreboard.getObjective('test')) {
-                    const objective = world.scoreboard.getObjective('test');
-                    const identity = objective.getParticipants()[0];
+                // Pre-test setup: Ensure the objective exists
+                try {
+                    world.scoreboard.addObjective('test', 'test');
+                } catch (e) {
+                    // Objective likely already exists, which is fine.
+                }
+
+                const objective = world.scoreboard.getObjective('test');
+                if (objective) {
+                    logTestResult(executor, logger, { api: 'ScoreboardObjective', status: 'Success', message: `Got objective. ID: ${objective.id}`, details: `Got objective. ID: \`${objective.id}\`` });
+                    // Add a dummy score to test identity
+                    objective.setScore('test_player', 1);
+                    const identity = objective.getParticipants().find(p => p.displayName === 'test_player');
                     if (identity) {
                         logTestResult(executor, logger, { api: 'ScoreboardIdentity', status: 'Success', message: `Got identity. DisplayName: ${identity.displayName}`, details: `Got identity. DisplayName: \`${identity.displayName}\`` });
                     } else {
-                        logTestResult(executor, logger, { api: 'ScoreboardIdentity', status: 'Info', message: 'No participants found in "test" objective.' });
+                        logTestResult(executor, logger, { api: 'ScoreboardIdentity', status: 'Failure', message: 'Could not retrieve participant from objective.' });
                     }
-                    if (objective) {
-                         logTestResult(executor, logger, { api: 'ScoreboardObjective', status: 'Success', message: `Got objective. ID: ${objective.id}`, details: `Got objective. ID: \`${objective.id}\`` });
-                    }
+                    // Cleanup
+                    world.scoreboard.removeObjective(objective);
                 } else {
-                    logTestResult(executor, logger, { api: 'ScoreboardIdentity/Objective', status: 'Info', message: 'Scoreboard objective "test" not found.' });
+                    logTestResult(executor, logger, { api: 'ScoreboardObjective', status: 'Failure', message: 'Could not get or create scoreboard objective "test".' });
                 }
             }, executor, logger);
 
@@ -126,7 +135,7 @@ commandManager.register({
                             logTestResult(executor, logger, { api: 'BlockPistonComponent', status: 'Failure', message: 'Could not get component from piston.' });
                         }
                     } else {
-                        logTestResult(executor, logger, { api: 'BlockPistonComponent', status: 'Info', message: 'Not looking at a piston.' });
+                        logTestResult(executor, logger, { api: 'BlockPistonComponent', status: 'Info', message: 'Not looking at a piston. Look at a piston to test this component.' });
                     }
 
                     if (block.typeId === 'minecraft:jukebox') {
@@ -137,10 +146,10 @@ commandManager.register({
                             logTestResult(executor, logger, { api: 'BlockRecordPlayerComponent', status: 'Failure', message: 'Could not get component from jukebox.' });
                         }
                     } else {
-                        logTestResult(executor, logger, { api: 'BlockRecordPlayerComponent', status: 'Info', message: 'Not looking at a jukebox.' });
+                        logTestResult(executor, logger, { api: 'BlockRecordPlayerComponent', status: 'Info', message: 'Not looking at a jukebox. Look at a jukebox to test this component.' });
                     }
                 } else {
-                    logTestResult(executor, logger, { api: 'Block Component Tests', status: 'Info', message: 'Not looking at a block.' });
+                    logTestResult(executor, logger, { api: 'Block Component Tests', status: 'Info', message: 'Not looking at a block. Look at a piston or jukebox to run component tests.' });
                 }
             }, executor, logger);
 
@@ -196,6 +205,39 @@ commandManager.register({
                     logTestResult(executor, logger, { api: 'system.currentTick', status: 'Success', message: `Current tick is ${currentTick}.`, details: `\`system.currentTick\` returned \`${currentTick}\`.` });
                 } catch(e) {
                     logTestResult(executor, logger, { api: 'system.currentTick', status: 'Failure', message: `Error: ${e.message}` });
+                }
+            }, executor, logger);
+
+            await testSection('Entity APIs', async (executor, logger) => {
+                if (!player) {
+                    logTestResult(executor, logger, { api: 'Entity API Tests', status: 'Skipped', message: 'Requires a player to run.' });
+                    return;
+                }
+
+                const entities = player.getEntitiesFromViewDirection();
+                const entity = entities.length > 0 ? entities[0] : null;
+
+                if (entity) {
+                    logTestResult(executor, logger, { api: 'entity.id', status: 'Success', message: `Found entity with ID: ${entity.id}` });
+                    logTestResult(executor, logger, { api: 'entity.typeId', status: 'Success', message: `Entity typeId is: ${entity.typeId}` });
+
+                    try {
+                        const components = entity.getComponents();
+                        const componentIds = components.map(c => c.typeId || c.id); // .id is fallback for older versions
+                        logTestResult(executor, logger, { api: 'entity.getComponents', status: 'Success', message: `Found ${componentIds.length} components.`, details: `Components found: \`${componentIds.join(', ')}\`` });
+                    } catch (e) {
+                        logTestResult(executor, logger, { api: 'entity.getComponents', status: 'Failure', message: `Error: ${e.message}` });
+                    }
+
+                    try {
+                        const originalLocation = entity.location;
+                        entity.teleport(originalLocation);
+                        logTestResult(executor, logger, { api: 'entity.teleport', status: 'Success', message: 'Successfully teleported entity to its original location.' });
+                    } catch (e) {
+                        logTestResult(executor, logger, { api: 'entity.teleport', status: 'Failure', message: `Error: ${e.message}` });
+                    }
+                } else {
+                    logTestResult(executor, logger, { api: 'Entity API Tests', status: 'Info', message: 'Not looking at an entity. Look at an entity to run these tests.' });
                 }
             }, executor, logger);
 
