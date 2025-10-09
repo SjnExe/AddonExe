@@ -5,16 +5,10 @@ import { world, system } from '@minecraft/server';
 class MarkdownLogger {
     constructor() {
         this.results = [];
-        this.currentSection = '';
-    }
-
-    setSection(sectionName) {
-        this.currentSection = sectionName;
     }
 
     addTest(apiName, status, details) {
         this.results.push({
-            section: this.currentSection,
             api: `\`${apiName}\``,
             status: status,
             details: details
@@ -25,89 +19,101 @@ class MarkdownLogger {
         if (this.results.length === 0) {
             return 'No unconfirmed APIs were tested.';
         }
-
         let markdown = '### Unconfirmed API Test Results\n\n';
         markdown += '| API | Status | Details |\n';
         markdown += '| --- | --- | --- |\n';
-
         this.results.forEach(result => {
             markdown += `| ${result.api} | ${result.status} | ${result.details} |\n`;
         });
-
         return markdown;
     }
 }
 
-
-// --- Helper Function ---
-const logToConsole = (message, executor) => {
+// --- Helper Functions ---
+const logToPlayer = (message, executor) => {
     const prefix = '§7[§eAPI-Test§7]§r';
+    // Log to console for the server owner to see
     console.warn(`${prefix} ${message}`);
+    // Log to the player who ran the command
     if (executor && !executor.isConsole) {
         executor.sendMessage(`${prefix} ${message}`);
     }
 };
 
-const testSection = async (name, testFn, logger) => {
-    logger.setSection(name);
+const logTestResult = (executor, logger, { api, status, message, details }) => {
+    const statusColors = {
+        Success: '§a',
+        Failure: '§c',
+        Info: '§e',
+        Skipped: '§7'
+    };
+    const color = statusColors[status] || '§f';
+    logToPlayer(`  ${color}${status.toUpperCase()}:§r ${message}`, executor);
+    logger.addTest(api, status, details || message);
+};
+
+const testSection = async (name, testFn, executor, logger) => {
+    logToPlayer(`--- Testing: ${name} ---`, executor);
     try {
-        await testFn(logger);
+        await testFn(executor, logger);
     } catch (e) {
-        logger.addTest(name, 'Test Failure', `An unexpected error occurred. Error: ${e.stack}`);
+        const errorMessage = `An unexpected error occurred in ${name}. Error: ${e.stack}`;
+        logToPlayer(`§c  FAILURE: ${errorMessage}`, executor);
+        logger.addTest(name, 'Failure', errorMessage);
     }
 };
 
 commandManager.register({
     name: 'test',
     aliases: ['testapis'],
-    description: 'Tests unconfirmed APIs and generates a Markdown report.',
+    description: 'Tests unconfirmed APIs, logs to console, and generates a Markdown report.',
     category: 'Admin',
-    permissionLevel: 1, // Admin-level command
+    permissionLevel: 1,
     allowConsole: true,
     parameters: [],
     execute: (executor, args) => {
         const player = executor.isConsole ? null : executor;
-        logToConsole('§aStarting tests for unconfirmed APIs...', executor);
+        logToPlayer('§aStarting tests for unconfirmed APIs...', executor);
 
         system.run(async () => {
             const logger = new MarkdownLogger();
 
-            await testSection('Game Objects', async (logger) => {
+            await testSection('Game Objects', async (executor, logger) => {
                 if (!player) {
-                    logger.addTest('Player-Context Tests', 'Skipped', 'Requires a player to run.');
+                    logTestResult(executor, logger, { api: 'Player-Context Tests', status: 'Skipped', message: 'Requires a player to run.' });
                     return;
                 }
                 const block = player.getBlockFromViewDirection();
                 if (block) {
                     const permutation = block.permutation;
                     if (permutation) {
-                        logger.addTest('BlockPermutation', 'Success', `Found permutation for block: \`${permutation.type.id}\``);
+                        logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Success', message: `Found permutation. Type: ${permutation.type.id}`, details: `Found permutation for block: \`${permutation.type.id}\`` });
                     } else {
-                        logger.addTest('BlockPermutation', 'Failure', 'Could not get `BlockPermutation` from the block.');
+                        logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Failure', message: 'Could not get BlockPermutation from the block.' });
                     }
                 } else {
-                    logger.addTest('BlockPermutation', 'Info', 'Player not looking at a block.');
+                    logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Info', message: 'Player not looking at a block.' });
                 }
 
                 if (world.scoreboard.getObjective('test')) {
                     const objective = world.scoreboard.getObjective('test');
                     const identity = objective.getParticipants()[0];
                     if (identity) {
-                        logger.addTest('ScoreboardIdentity', 'Success', `Got identity. DisplayName: \`${identity.displayName}\``);
+                        logTestResult(executor, logger, { api: 'ScoreboardIdentity', status: 'Success', message: `Got identity. DisplayName: ${identity.displayName}`, details: `Got identity. DisplayName: \`${identity.displayName}\`` });
                     } else {
-                        logger.addTest('ScoreboardIdentity', 'Info', 'No participants found in "test" objective.');
+                        logTestResult(executor, logger, { api: 'ScoreboardIdentity', status: 'Info', message: 'No participants found in "test" objective.' });
                     }
                     if (objective) {
-                         logger.addTest('ScoreboardObjective', 'Success', `Got objective. ID: \`${objective.id}\``);
+                         logTestResult(executor, logger, { api: 'ScoreboardObjective', status: 'Success', message: `Got objective. ID: ${objective.id}`, details: `Got objective. ID: \`${objective.id}\`` });
                     }
                 } else {
-                    logger.addTest('ScoreboardIdentity/Objective', 'Info', 'Scoreboard objective "test" not found.');
+                    logTestResult(executor, logger, { api: 'ScoreboardIdentity/Objective', status: 'Info', message: 'Scoreboard objective "test" not found.' });
                 }
-            });
+            }, executor, logger);
 
-            await testSection('Components', async (logger) => {
+            await testSection('Components', async (executor, logger) => {
                 if (!player) {
-                    logger.addTest('Component Tests', 'Skipped', 'Requires a player to run.');
+                    logTestResult(executor, logger, { api: 'Component Tests', status: 'Skipped', message: 'Requires a player to run.' });
                     return;
                 }
                 const block = player.getBlockFromViewDirection();
@@ -115,48 +121,89 @@ commandManager.register({
                     if (block.typeId.includes('piston')) {
                         const piston = block.getComponent('piston');
                         if (piston) {
-                            logger.addTest('BlockPistonComponent', 'Success', `Got component. IsMoving: \`${piston.isMoving}\``);
+                            logTestResult(executor, logger, { api: 'BlockPistonComponent', status: 'Success', message: `Got component. IsMoving: ${piston.isMoving}`, details: `Got component. IsMoving: \`${piston.isMoving}\`` });
                         } else {
-                            logger.addTest('BlockPistonComponent', 'Failure', 'Could not get component from a piston block.');
+                            logTestResult(executor, logger, { api: 'BlockPistonComponent', status: 'Failure', message: 'Could not get component from piston.' });
                         }
                     } else {
-                         logger.addTest('BlockPistonComponent', 'Info', 'Player not looking at a piston.');
+                        logTestResult(executor, logger, { api: 'BlockPistonComponent', status: 'Info', message: 'Not looking at a piston.' });
                     }
 
                     if (block.typeId === 'minecraft:jukebox') {
                         const jukebox = block.getComponent('record_player');
                         if (jukebox) {
-                            logger.addTest('BlockRecordPlayerComponent', 'Success', 'Got component from jukebox.');
+                            logTestResult(executor, logger, { api: 'BlockRecordPlayerComponent', status: 'Success', message: 'Got component from jukebox.' });
                         } else {
-                            logger.addTest('BlockRecordPlayerComponent', 'Failure', 'Could not get component from jukebox.');
+                            logTestResult(executor, logger, { api: 'BlockRecordPlayerComponent', status: 'Failure', message: 'Could not get component from jukebox.' });
                         }
                     } else {
-                        logger.addTest('BlockRecordPlayerComponent', 'Info', 'Player not looking at a jukebox.');
+                        logTestResult(executor, logger, { api: 'BlockRecordPlayerComponent', status: 'Info', message: 'Not looking at a jukebox.' });
                     }
                 } else {
-                    logger.addTest('Block Component Tests', 'Info', 'Player not looking at a block.');
+                    logTestResult(executor, logger, { api: 'Block Component Tests', status: 'Info', message: 'Not looking at a block.' });
                 }
-            });
+            }, executor, logger);
 
-            await testSection('Managers', async (logger) => {
+            await testSection('Managers', async (executor, logger) => {
                 if (world.lootTables) {
-                    logger.addTest('world.lootTables', 'Success', '`LootTableManager` exists.');
+                    logTestResult(executor, logger, { api: 'world.lootTables', status: 'Success', message: 'LootTableManager exists.', details: '`world.lootTables` (LootTableManager) exists.' });
                 } else {
-                    logger.addTest('world.lootTables', 'Not Found', '`LootTableManager` does not exist on `world`.');
+                    logTestResult(executor, logger, { api: 'world.lootTables', status: 'Info', message: 'LootTableManager does not exist.', details: '`world.lootTables` (LootTableManager) does not exist.' });
                 }
-            });
+            }, executor, logger);
+
+            await testSection('World APIs', async (executor, logger) => {
+                try {
+                    const time = world.getTimeOfDay();
+                    world.setTimeOfDay(time);
+                    logTestResult(executor, logger, { api: 'world.getTimeOfDay / setTimeOfDay', status: 'Success', message: `Current time of day is ${time}.` });
+                } catch (e) {
+                    logTestResult(executor, logger, { api: 'world.getTimeOfDay / setTimeOfDay', status: 'Failure', message: `Error: ${e.message}` });
+                }
+
+                try {
+                    const spawn = world.getDefaultSpawnLocation();
+                    logTestResult(executor, logger, { api: 'world.getDefaultSpawnLocation', status: 'Success', message: `Default spawn is at ${spawn.x}, ${spawn.y}, ${spawn.z}.`, details: `Default spawn is at \`{ x: ${spawn.x}, y: ${spawn.y}, z: ${spawn.z} }\`` });
+                } catch(e) {
+                    logTestResult(executor, logger, { api: 'world.getDefaultSpawnLocation', status: 'Failure', message: `Error: ${e.message}` });
+                }
+            }, executor, logger);
+
+            await testSection('Player APIs', async (executor, logger) => {
+                if (!player) {
+                    logTestResult(executor, logger, { api: 'Player API Tests', status: 'Skipped', message: 'Requires a player to run.' });
+                    return;
+                }
+
+                try {
+                    const isEmoting = player.isEmoting;
+                    logTestResult(executor, logger, { api: 'player.isEmoting', status: 'Success', message: `Player isEmoting: ${isEmoting}.`, details: `Player \`isEmoting\` property exists and returned \`${isEmoting}\`.` });
+                } catch (e) {
+                    logTestResult(executor, logger, { api: 'player.isEmoting', status: 'Failure', message: 'Property does not exist or threw an error.' });
+                }
+
+                try {
+                    player.onScreenDisplay.setTitle("API Test Title", { fadeInDuration: 0, fadeOutDuration: 1, stayDuration: 2 });
+                    logTestResult(executor, logger, { api: 'player.onScreenDisplay.setTitle', status: 'Success', message: 'Successfully displayed a title.' });
+                } catch(e) {
+                    logTestResult(executor, logger, { api: 'player.onScreenDisplay.setTitle', status: 'Failure', message: `Error: ${e.message}` });
+                }
+            }, executor, logger);
+
+            await testSection('System APIs', async (executor, logger) => {
+                try {
+                    const currentTick = system.currentTick;
+                    logTestResult(executor, logger, { api: 'system.currentTick', status: 'Success', message: `Current tick is ${currentTick}.`, details: `\`system.currentTick\` returned \`${currentTick}\`.` });
+                } catch(e) {
+                    logTestResult(executor, logger, { api: 'system.currentTick', status: 'Failure', message: `Error: ${e.message}` });
+                }
+            }, executor, logger);
 
             const markdownOutput = logger.generateMarkdown();
-            logToConsole('§aAPI tests complete. Results below:', executor);
+            logToPlayer('§aAPI tests complete. Markdown report generated in server console.', executor);
 
-            // Log the raw markdown for easy copying
+            // Log the raw markdown for easy copying, only to the server console
             console.warn("\n\n--- COPY MARKDOWN BELOW ---\n" + markdownOutput + "\n--- END MARKDOWN ---\n\n");
-
-            // Send to the executing player in chunks if necessary
-            if (executor && !executor.isConsole) {
-                const chunks = markdownOutput.match(/.{1,1000}/g) || [];
-                chunks.forEach(chunk => executor.sendMessage(chunk));
-            }
         });
     }
 });
