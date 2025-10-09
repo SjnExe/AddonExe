@@ -29,13 +29,13 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 #### Specific Events (Examples)
 | Event | Status | Description |
 | --- | --- | --- |
-| `PlayerJoinAfterEvent` | Unconfirmed | Fires after a player has joined the world. |
-| `PlayerLeaveAfterEvent` | Unconfirmed | Fires after a player has left the world. |
-| `PlayerSpawnAfterEvent` | Unconfirmed | Fires after a player has spawned or respawned. |
-| `PlayerBreakBlockAfterEvent` | Unconfirmed | Fires after a player breaks a block. |
-| `PlayerPlaceBlockAfterEvent` | Unconfirmed | Fires after a player places a block. |
-| `EntityDieAfterEvent` | Unconfirmed | Fires after an entity dies. |
-| `WeatherChangeAfterEvent` | Unconfirmed | Fires after the weather changes. |
+| `PlayerJoinAfterEvent` | Confirmed | Fires after a player has joined the world. |
+| `PlayerLeaveAfterEvent` | Confirmed | Fires after a player has left the world. |
+| `PlayerSpawnAfterEvent` | Confirmed | Fires after a player has spawned or respawned. |
+| `PlayerBreakBlockAfterEvent` | Confirmed | Fires after a player breaks a block. |
+| `PlayerPlaceBlockAfterEvent` | Confirmed | Fires after a player places a block. |
+| `EntityDieAfterEvent` | Confirmed | Fires after an entity dies. |
+| `WeatherChangeAfterEvent` | Confirmed | Fires after the weather changes. |
 
 ### Game Objects & Classes
 
@@ -50,9 +50,9 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Effect` | Confirmed | A status effect that can be applied to an entity. |
 | `Camera` | Confirmed | Controls the player's camera. Accessed via `player.camera`. |
 | `Structure` | Confirmed | A saved structure that can be placed in the world. |
-| `BlockPermutation` | Unconfirmed | Represents a specific state of a block (e.g., a furnace that is lit). |
-| `ContainerSlot` | Unconfirmed | Represents a single slot in a container. |
-| `EffectType` | Unconfirmed | Represents a type of status effect. |
+| `BlockPermutation` | Unconfirmed (Test Failed) | Represents a specific state of a block. Test to retrieve this from a block failed. |
+| `ContainerSlot` | Confirmed | Represents a single slot in a container. |
+| `EffectType` | Confirmed | Represents a type of status effect. |
 | `ScoreboardIdentity` | Unconfirmed | Represents a single entry (like a player name or a fake player) on a scoreboard. |
 | `ScoreboardObjective`| Unconfirmed | Represents a single objective on a scoreboard. |
 
@@ -64,9 +64,9 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `ItemTypes` | Confirmed | A collection of all available item types. |
 | `EnchantmentTypes`| Confirmed | A collection of all available enchantments. |
 | `ItemComponent` | Confirmed | Base class for components on an `ItemStack`. |
-| `ItemDurabilityComponent` | Unconfirmed | Manages the durability of an item. |
-| `ItemFoodComponent` | Unconfirmed | Defines the food properties of an item. |
-| `ItemEnchantableComponent` | Unconfirmed | Manages the enchantments that can be applied to an item. |
+| `ItemDurabilityComponent` | Confirmed | Manages the durability of an item. |
+| `ItemFoodComponent` | Confirmed | Defines the food properties of an item. |
+| `ItemEnchantableComponent` | Confirmed | Manages the enchantments that can be applied to an item. |
 
 ### Components
 Components add functionality to Blocks, Entities, and Items.
@@ -76,8 +76,8 @@ Components add functionality to Blocks, Entities, and Items.
 | --- | --- | --- |
 | `EntityHealthComponent` | Confirmed | Manages the health of an entity. |
 | `EntityInventoryComponent`| Confirmed | Manages the inventory of an entity. |
-| `EntityMovementComponent` | Unconfirmed | Manages the movement speed of an entity. |
-| `EntityRideableComponent` | Unconfirmed | Allows an entity to be ridden by other entities. |
+| `EntityMovementComponent` | Confirmed | Manages the movement speed of an entity. |
+| `EntityRideableComponent` | Confirmed | Allows an entity to be ridden by other entities. |
 | `EntityEquippableComponent`| Unconfirmed | Manages the equipment that can be worn by an entity. |
 
 #### Block Components (Examples)
@@ -93,7 +93,7 @@ Components add functionality to Blocks, Entities, and Items.
 | API | Status | Usage |
 | --- | --- | --- |
 | `StructureManager`| Confirmed | Manages the creation, loading, and placement of structures. Accessed via `world.structureManager`. |
-| `LootTableManager`| Unconfirmed | Manages loot tables. Could be accessed via `world.lootTables`. |
+| `LootTableManager`| Unconfirmed (Not Found) | Manages loot tables. Test showed `world.lootTables` does not exist. |
 
 ### Utilities
 
@@ -102,9 +102,9 @@ Components add functionality to Blocks, Entities, and Items.
 | `Vector3` | Confirmed | Represents a 3D vector using an object literal (e.g., `{ x, y, z }`). |
 | `MolangVariableMap`| Confirmed | A map for defining MoLang variables for use in animations. |
 | `ScreenDisplay` | Confirmed | Represents the player's screen for displaying titles. Accessed via `player.onScreenDisplay`. |
-| `BlockRaycastOptions`| Unconfirmed | Options for casting a ray to find a block. |
-| `EntityQueryOptions` | Unconfirmed | Options for querying entities in the world. |
-| `RawMessage` | Unconfirmed | A raw JSON message that can be displayed in chat, allowing for translatable text and scores. |
+| `BlockRaycastOptions`| Confirmed | Options for casting a ray to find a block. |
+| `EntityQueryOptions` | Confirmed | Options for querying entities in the world. |
+| `RawMessage` | Confirmed | A raw JSON message that can be displayed in chat, allowing for translatable text and scores. |
 
 ---
 

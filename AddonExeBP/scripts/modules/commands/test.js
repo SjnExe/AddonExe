@@ -1,5 +1,5 @@
 import { commandManager } from './commandManager.js';
-import { world, system, ItemStack, ItemTypes, Block, EnchantmentType } from '@minecraft/server';
+import { world, system } from '@minecraft/server';
 
 // --- Helper Function ---
 const log = (message, executor) => {
@@ -32,21 +32,10 @@ commandManager.register({
         log('§aStarting tests for unconfirmed APIs...', executor);
 
         system.run(async () => {
-            await testSection('Specific Events', async () => {
-                const eventList = ['playerJoin', 'playerLeave', 'playerSpawn', 'playerBreakBlock', 'entityDie', 'weatherChange'];
-                let allFound = true;
-                for (const eventName of eventList) {
-                    if (world.afterEvents[eventName]) {
-                        log(`  SUCCESS: Found event world.afterEvents.${eventName}`, executor);
-                    } else {
-                        log(`  §cFAILURE: Could not find event world.afterEvents.${eventName}`, executor);
-                        allFound = false;
-                    }
-                }
-                if (allFound) log('  All example events exist.', executor);
-            }, executor);
+            let testsRun = false;
 
-            await testSection('Game Objects & Classes', async () => {
+            await testSection('Unconfirmed Game Objects', async () => {
+                testsRun = true;
                 if (!player) {
                     log('  SKIPPED: Requires a player context.', executor);
                     return;
@@ -63,14 +52,6 @@ commandManager.register({
                     log('  INFO: Not looking at a block for BlockPermutation test.', executor);
                 }
 
-                const inv = player.getComponent('inventory').container;
-                const slot = inv.getSlot(0);
-                if (slot) {
-                    log('  SUCCESS: Got ContainerSlot for slot 0.', executor);
-                } else {
-                    log('  §cFAILURE: Could not get ContainerSlot.', executor);
-                }
-
                 if (world.scoreboard.getObjective('test')) {
                     const objective = world.scoreboard.getObjective('test');
                     const identity = objective.getParticipants()[0];
@@ -85,52 +66,32 @@ commandManager.register({
                 }
             }, executor);
 
-            await testSection('Item Components', async () => {
-                const diamondSword = new ItemStack(ItemTypes.get('diamond_sword'));
-                const apple = new ItemStack(ItemTypes.get('apple'));
-
-                const durability = diamondSword.getComponent('durability');
-                if (durability) {
-                    log(`  SUCCESS: Got ItemDurabilityComponent. Max Durability: ${durability.maxDurability}`, executor);
-                } else {
-                     log('  §cFAILURE: Could not get ItemDurabilityComponent.', executor);
-                }
-
-                const food = apple.getComponent('food');
-                if (food) {
-                    log(`  SUCCESS: Got ItemFoodComponent. Nutrition: ${food.nutrition}`, executor);
-                } else {
-                    log('  §cFAILURE: Could not get ItemFoodComponent.', executor);
-                }
-
-                const enchantable = diamondSword.getComponent('enchantable');
-                if (enchantable) {
-                    log('  SUCCESS: Got ItemEnchantableComponent.', executor);
-                } else {
-                    log('  §cFAILURE: Could not get ItemEnchantableComponent.', executor);
-                }
-            }, executor);
-
-            await testSection('Entity & Block Components', async () => {
+            await testSection('Unconfirmed Components', async () => {
+                testsRun = true;
                 if (!player) {
                     log('  SKIPPED: Requires a player context.', executor);
                     return;
                 }
-                const movement = player.getComponent('movement');
-                if (movement) {
-                    log(`  SUCCESS: Got EntityMovementComponent. Current Value: ${movement.currentValue}`, executor);
+                const equippable = player.getComponent('equippable');
+                if (equippable) {
+                    log('  SUCCESS: Got EntityEquippableComponent.', executor);
                 } else {
-                    log('  §cFAILURE: Could not get EntityMovementComponent.', executor);
-                }
-                const rideable = player.getComponent('rideable');
-                 if (rideable) {
-                    log('  SUCCESS: Got EntityRideableComponent.', executor);
-                } else {
-                    log('  §cFAILURE: Could not get EntityRideableComponent.', executor);
+                    log('  INFO: Could not get EntityEquippableComponent on player.', executor);
                 }
 
-                // Look at a jukebox to test
+                // Look at a piston to test
                 const block = player.getBlockFromViewDirection();
+                if (block && block.typeId.includes('piston')) {
+                    const piston = block.getComponent('piston');
+                    if (piston) {
+                        log(`  SUCCESS: Got BlockPistonComponent. IsMoving: ${piston.isMoving}`, executor);
+                    } else {
+                        log('  §cFAILURE: Could not get BlockPistonComponent from piston.', executor);
+                    }
+                } else {
+                    log('  INFO: Not looking at a piston, skipping piston test.', executor);
+                }
+
                 if (block && block.typeId === 'minecraft:jukebox') {
                     const jukebox = block.getComponent('record_player');
                     if (jukebox) {
@@ -143,39 +104,20 @@ commandManager.register({
                 }
             }, executor);
 
-            await testSection('Managers & Utilities', async () => {
+            await testSection('Unconfirmed Managers', async () => {
+                testsRun = true;
                 if (world.lootTables) {
                     log('  SUCCESS: `world.lootTables` (LootTableManager) exists.', executor);
                 } else {
                     log('  INFO: `world.lootTables` (LootTableManager) does not exist.', executor);
                 }
-
-                try {
-                    const rawMessage = { rawtext: [{ text: "This is a " }, { translate: "item.diamond_sword.name" }] };
-                    world.sendMessage(rawMessage);
-                    log('  SUCCESS: Sent a RawMessage.', executor);
-                } catch(e) {
-                    log(`  §cFAILURE: Could not send RawMessage. Error: ${e.message}`, executor);
-                }
-
-                if (!player) {
-                    log('  SKIPPED: Raycast/Query tests require a player context.', executor);
-                    return;
-                }
-                const blockRaycast = player.getBlockFromViewDirection({ maxDistance: 5 });
-                if (blockRaycast) {
-                     log('  SUCCESS: `getBlockFromViewDirection` with options (BlockRaycastOptions) worked.', executor);
-                } else {
-                    log('  INFO: `getBlockFromViewDirection` with options returned nothing.', executor);
-                }
-
-                const query = { families: ['monster'] };
-                const queryResult = player.dimension.getEntities(query);
-                log(`  SUCCESS: EntityQueryOptions worked. Found ${queryResult.length} monsters.`, executor);
-
             }, executor);
 
-            log('§aAll API tests complete.', executor);
+            if (!testsRun) {
+                log('No unconfirmed APIs are currently being tested.', executor);
+            }
+
+            log('§aAPI tests complete.', executor);
         });
     }
 });
