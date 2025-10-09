@@ -78,7 +78,7 @@ Components add functionality to Blocks, Entities, and Items.
 | `EntityInventoryComponent`| Confirmed | Manages the inventory of an entity. |
 | `EntityMovementComponent` | Confirmed | Manages the movement speed of an entity. |
 | `EntityRideableComponent` | Confirmed | Allows an entity to be ridden by other entities. |
-| `EntityEquippableComponent`| Unconfirmed | Manages the equipment that can be worn by an entity. |
+| `EntityEquippableComponent`| Confirmed | Manages the equipment that can be worn by an entity. |
 
 #### Block Components (Examples)
 | API | Status | Usage |

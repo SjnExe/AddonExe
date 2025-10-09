@@ -72,13 +72,6 @@ commandManager.register({
                     log('  SKIPPED: Requires a player context.', executor);
                     return;
                 }
-                const equippable = player.getComponent('equippable');
-                if (equippable) {
-                    log('  SUCCESS: Got EntityEquippableComponent.', executor);
-                } else {
-                    log('  INFO: Could not get EntityEquippableComponent on player.', executor);
-                }
-
                 // Look at a piston or jukebox to test
                 const block = player.getBlockFromViewDirection();
                 if (block && block.typeId) {
