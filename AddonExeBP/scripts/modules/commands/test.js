@@ -1,8 +1,46 @@
 import { commandManager } from './commandManager.js';
 import { world, system } from '@minecraft/server';
 
+// --- Markdown Logger ---
+class MarkdownLogger {
+    constructor() {
+        this.results = [];
+        this.currentSection = '';
+    }
+
+    setSection(sectionName) {
+        this.currentSection = sectionName;
+    }
+
+    addTest(apiName, status, details) {
+        this.results.push({
+            section: this.currentSection,
+            api: `\`${apiName}\``,
+            status: status,
+            details: details
+        });
+    }
+
+    generateMarkdown() {
+        if (this.results.length === 0) {
+            return 'No unconfirmed APIs were tested.';
+        }
+
+        let markdown = '### Unconfirmed API Test Results\n\n';
+        markdown += '| API | Status | Details |\n';
+        markdown += '| --- | --- | --- |\n';
+
+        this.results.forEach(result => {
+            markdown += `| ${result.api} | ${result.status} | ${result.details} |\n`;
+        });
+
+        return markdown;
+    }
+}
+
+
 // --- Helper Function ---
-const log = (message, executor) => {
+const logToConsole = (message, executor) => {
     const prefix = '§7[§eAPI-Test§7]§r';
     console.warn(`${prefix} ${message}`);
     if (executor && !executor.isConsole) {
@@ -10,111 +48,115 @@ const log = (message, executor) => {
     }
 };
 
-const testSection = async (name, testFn, executor) => {
-    log(`--- Testing: ${name} ---`, executor);
+const testSection = async (name, testFn, logger) => {
+    logger.setSection(name);
     try {
-        await testFn();
+        await testFn(logger);
     } catch (e) {
-        log(`§c  FAILURE: An unexpected error occurred in ${name}. Error: ${e.stack}`, executor);
+        logger.addTest(name, 'Test Failure', `An unexpected error occurred. Error: ${e.stack}`);
     }
 };
 
 commandManager.register({
     name: 'test',
     aliases: ['testapis'],
-    description: 'Tests unconfirmed APIs and logs the results to the console.',
+    description: 'Tests unconfirmed APIs and generates a Markdown report.',
     category: 'Admin',
     permissionLevel: 1, // Admin-level command
     allowConsole: true,
     parameters: [],
     execute: (executor, args) => {
         const player = executor.isConsole ? null : executor;
-        log('§aStarting tests for unconfirmed APIs...', executor);
+        logToConsole('§aStarting tests for unconfirmed APIs...', executor);
 
         system.run(async () => {
-            let testsRun = false;
+            const logger = new MarkdownLogger();
 
-            await testSection('Unconfirmed Game Objects', async () => {
-                testsRun = true;
+            await testSection('Game Objects', async (logger) => {
                 if (!player) {
-                    log('  SKIPPED: Requires a player context.', executor);
+                    logger.addTest('Player-Context Tests', 'Skipped', 'Requires a player to run.');
                     return;
                 }
                 const block = player.getBlockFromViewDirection();
                 if (block) {
                     const permutation = block.permutation;
                     if (permutation) {
-                        log(`  SUCCESS: Found BlockPermutation. Type: ${permutation.type.id}`, executor);
+                        logger.addTest('BlockPermutation', 'Success', `Found permutation for block: \`${permutation.type.id}\``);
                     } else {
-                        log('  §cFAILURE: Could not get BlockPermutation.', executor);
+                        logger.addTest('BlockPermutation', 'Failure', 'Could not get `BlockPermutation` from the block.');
                     }
                 } else {
-                    log('  INFO: Not looking at a block for BlockPermutation test.', executor);
+                    logger.addTest('BlockPermutation', 'Info', 'Player not looking at a block.');
                 }
 
                 if (world.scoreboard.getObjective('test')) {
                     const objective = world.scoreboard.getObjective('test');
                     const identity = objective.getParticipants()[0];
                     if (identity) {
-                        log(`  SUCCESS: Got ScoreboardIdentity. DisplayName: ${identity.displayName}`, executor);
+                        logger.addTest('ScoreboardIdentity', 'Success', `Got identity. DisplayName: \`${identity.displayName}\``);
+                    } else {
+                        logger.addTest('ScoreboardIdentity', 'Info', 'No participants found in "test" objective.');
                     }
                     if (objective) {
-                         log(`  SUCCESS: Got ScoreboardObjective. ID: ${objective.id}`, executor);
+                         logger.addTest('ScoreboardObjective', 'Success', `Got objective. ID: \`${objective.id}\``);
                     }
                 } else {
-                    log('  INFO: Scoreboard objective "test" not found, skipping identity/objective test.', executor);
+                    logger.addTest('ScoreboardIdentity/Objective', 'Info', 'Scoreboard objective "test" not found.');
                 }
-            }, executor);
+            });
 
-            await testSection('Unconfirmed Components', async () => {
-                testsRun = true;
+            await testSection('Components', async (logger) => {
                 if (!player) {
-                    log('  SKIPPED: Requires a player context.', executor);
+                    logger.addTest('Component Tests', 'Skipped', 'Requires a player to run.');
                     return;
                 }
-                // Look at a piston or jukebox to test
                 const block = player.getBlockFromViewDirection();
                 if (block && block.typeId) {
                     if (block.typeId.includes('piston')) {
                         const piston = block.getComponent('piston');
                         if (piston) {
-                            log(`  SUCCESS: Got BlockPistonComponent. IsMoving: ${piston.isMoving}`, executor);
+                            logger.addTest('BlockPistonComponent', 'Success', `Got component. IsMoving: \`${piston.isMoving}\``);
                         } else {
-                            log('  §cFAILURE: Could not get BlockPistonComponent from piston.', executor);
+                            logger.addTest('BlockPistonComponent', 'Failure', 'Could not get component from a piston block.');
                         }
                     } else {
-                        log('  INFO: Not looking at a piston, skipping piston test.', executor);
+                         logger.addTest('BlockPistonComponent', 'Info', 'Player not looking at a piston.');
                     }
 
                     if (block.typeId === 'minecraft:jukebox') {
                         const jukebox = block.getComponent('record_player');
                         if (jukebox) {
-                            log('  SUCCESS: Got BlockRecordPlayerComponent from jukebox.', executor);
+                            logger.addTest('BlockRecordPlayerComponent', 'Success', 'Got component from jukebox.');
                         } else {
-                            log('  §cFAILURE: Could not get BlockRecordPlayerComponent from jukebox.', executor);
+                            logger.addTest('BlockRecordPlayerComponent', 'Failure', 'Could not get component from jukebox.');
                         }
                     } else {
-                        log('  INFO: Not looking at a jukebox, skipping record player test.', executor);
+                        logger.addTest('BlockRecordPlayerComponent', 'Info', 'Player not looking at a jukebox.');
                     }
                 } else {
-                    log('  INFO: Not looking at a block, skipping block component tests.', executor);
+                    logger.addTest('Block Component Tests', 'Info', 'Player not looking at a block.');
                 }
-            }, executor);
+            });
 
-            await testSection('Unconfirmed Managers', async () => {
-                testsRun = true;
+            await testSection('Managers', async (logger) => {
                 if (world.lootTables) {
-                    log('  SUCCESS: `world.lootTables` (LootTableManager) exists.', executor);
+                    logger.addTest('world.lootTables', 'Success', '`LootTableManager` exists.');
                 } else {
-                    log('  INFO: `world.lootTables` (LootTableManager) does not exist.', executor);
+                    logger.addTest('world.lootTables', 'Not Found', '`LootTableManager` does not exist on `world`.');
                 }
-            }, executor);
+            });
 
-            if (!testsRun) {
-                log('No unconfirmed APIs are currently being tested.', executor);
+            const markdownOutput = logger.generateMarkdown();
+            logToConsole('§aAPI tests complete. Results below:', executor);
+
+            // Log the raw markdown for easy copying
+            console.warn("\n\n--- COPY MARKDOWN BELOW ---\n" + markdownOutput + "\n--- END MARKDOWN ---\n\n");
+
+            // Send to the executing player in chunks if necessary
+            if (executor && !executor.isConsole) {
+                const chunks = markdownOutput.match(/.{1,1000}/g) || [];
+                chunks.forEach(chunk => executor.sendMessage(chunk));
             }
-
-            log('§aAPI tests complete.', executor);
         });
     }
 });
