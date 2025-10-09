@@ -79,28 +79,32 @@ commandManager.register({
                     log('  INFO: Could not get EntityEquippableComponent on player.', executor);
                 }
 
-                // Look at a piston to test
+                // Look at a piston or jukebox to test
                 const block = player.getBlockFromViewDirection();
-                if (block && block.typeId.includes('piston')) {
-                    const piston = block.getComponent('piston');
-                    if (piston) {
-                        log(`  SUCCESS: Got BlockPistonComponent. IsMoving: ${piston.isMoving}`, executor);
+                if (block && block.typeId) {
+                    if (block.typeId.includes('piston')) {
+                        const piston = block.getComponent('piston');
+                        if (piston) {
+                            log(`  SUCCESS: Got BlockPistonComponent. IsMoving: ${piston.isMoving}`, executor);
+                        } else {
+                            log('  §cFAILURE: Could not get BlockPistonComponent from piston.', executor);
+                        }
                     } else {
-                        log('  §cFAILURE: Could not get BlockPistonComponent from piston.', executor);
+                        log('  INFO: Not looking at a piston, skipping piston test.', executor);
                     }
-                } else {
-                    log('  INFO: Not looking at a piston, skipping piston test.', executor);
-                }
 
-                if (block && block.typeId === 'minecraft:jukebox') {
-                    const jukebox = block.getComponent('record_player');
-                    if (jukebox) {
-                        log('  SUCCESS: Got BlockRecordPlayerComponent from jukebox.', executor);
+                    if (block.typeId === 'minecraft:jukebox') {
+                        const jukebox = block.getComponent('record_player');
+                        if (jukebox) {
+                            log('  SUCCESS: Got BlockRecordPlayerComponent from jukebox.', executor);
+                        } else {
+                            log('  §cFAILURE: Could not get BlockRecordPlayerComponent from jukebox.', executor);
+                        }
                     } else {
-                        log('  §cFAILURE: Could not get BlockRecordPlayerComponent from jukebox.', executor);
+                        log('  INFO: Not looking at a jukebox, skipping record player test.', executor);
                     }
                 } else {
-                    log('  INFO: Not looking at a jukebox, skipping record player test.', executor);
+                    log('  INFO: Not looking at a block, skipping block component tests.', executor);
                 }
             }, executor);
 
