@@ -26,17 +26,6 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `system.afterEvents`| Confirmed | Subscribe to system-level events that have occurred. |
 | `system.beforeEvents`| Confirmed | Subscribe to system-level events before they happen. |
 
-#### Specific Events (Examples)
-| Event | Status | Description |
-| --- | --- | --- |
-| `PlayerJoinAfterEvent` | Confirmed | Fires after a player has joined the world. |
-| `PlayerLeaveAfterEvent` | Confirmed | Fires after a player has left the world. |
-| `PlayerSpawnAfterEvent` | Confirmed | Fires after a player has spawned or respawned. |
-| `PlayerBreakBlockAfterEvent` | Confirmed | Fires after a player breaks a block. |
-| `PlayerPlaceBlockAfterEvent` | Confirmed | Fires after a player places a block. |
-| `EntityDieAfterEvent` | Confirmed | Fires after an entity dies. |
-| `WeatherChangeAfterEvent` | Confirmed | Fires after the weather changes. |
-
 ### Game Objects & Classes
 
 | API | Status | Usage |
@@ -46,15 +35,15 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Block` | Confirmed | Represents a block in the world. |
 | `Dimension` | Confirmed | Represents a dimension (Overworld, Nether, etc.). |
 | `Scoreboard` | Confirmed | The world's scoreboard. |
+| `ScoreboardObjective`| Confirmed | Represents a single objective on a scoreboard. |
+| `ScoreboardIdentity` | Confirmed | Represents a single entry on a scoreboard. |
 | `Container` | Confirmed | An inventory container. |
 | `Effect` | Confirmed | A status effect that can be applied to an entity. |
 | `Camera` | Confirmed | Controls the player's camera. Accessed via `player.camera`. |
 | `Structure` | Confirmed | A saved structure that can be placed in the world. |
-| `BlockPermutation` | Unconfirmed (Test Skipped) | Represents a specific state of a block. Test requires player to be looking at a block. |
+| `BlockPermutation` | Unconfirmed (Test Failed) | Represents a specific state of a block. Test to retrieve this from a block failed. |
 | `ContainerSlot` | Confirmed | Represents a single slot in a container. |
 | `EffectType` | Confirmed | Represents a type of status effect. |
-| `ScoreboardIdentity` | Unconfirmed (Test Skipped) | Represents a single entry on a scoreboard. Test requires a scoreboard objective named "test". |
-| `ScoreboardObjective`| Unconfirmed (Test Skipped) | Represents a single objective on a scoreboard. Test requires a scoreboard objective named "test". |
 
 ### World Properties & Methods
 
@@ -75,6 +64,15 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | API | Status | Usage |
 | --- | --- | --- |
 | `system.currentTick` | Confirmed | A read-only property that returns the current server tick. |
+
+### Entity Properties & Methods
+
+| API | Status | Usage |
+| --- | --- | --- |
+| `entity.id` | Unconfirmed | A read-only property that returns the unique identifier of the entity. |
+| `entity.typeId` | Unconfirmed | A read-only property that returns the type identifier of the entity (e.g., `minecraft:player`). |
+| `entity.getComponents`| Unconfirmed | Retrieves all components attached to the entity. |
+| `entity.teleport`| Unconfirmed | Teleports the entity to a new location. |
 
 ### Item Management
 

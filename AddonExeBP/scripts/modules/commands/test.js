@@ -83,16 +83,26 @@ commandManager.register({
                     logTestResult(executor, logger, { api: 'Player-Context Tests', status: 'Skipped', message: 'Requires a player to run.' });
                     return;
                 }
-                const block = player.getBlockFromViewDirection();
+
+                const blockHit = player.getBlockFromViewDirection();
+                let block = blockHit ? blockHit.block : undefined;
+                let blockSource = 'view direction';
+
+                if (!block) {
+                    const feetLocation = { x: Math.floor(player.location.x), y: Math.floor(player.location.y - 1), z: Math.floor(player.location.z) };
+                    block = player.dimension.getBlock(feetLocation);
+                    blockSource = "player's feet";
+                }
+
                 if (block) {
                     const permutation = block.permutation;
                     if (permutation) {
-                        logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Success', message: `Found permutation. Type: ${permutation.type.id}`, details: `Found permutation for block: \`${permutation.type.id}\`` });
+                        logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Success', message: `Found permutation from ${blockSource}. Type: ${permutation.type.id}`, details: `Found permutation for block: \`${permutation.type.id}\` (from ${blockSource})` });
                     } else {
-                        logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Failure', message: 'Could not get BlockPermutation from the block.' });
+                        logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Failure', message: `Could not get BlockPermutation from block at ${blockSource}.` });
                     }
                 } else {
-                    logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Info', message: 'Player not looking at a block.' });
+                    logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Failure', message: 'Could not find a block in view or at player\'s feet.' });
                 }
 
                 // Pre-test setup: Ensure the objective exists
@@ -125,7 +135,15 @@ commandManager.register({
                     logTestResult(executor, logger, { api: 'Component Tests', status: 'Skipped', message: 'Requires a player to run.' });
                     return;
                 }
-                const block = player.getBlockFromViewDirection();
+
+                const blockHit = player.getBlockFromViewDirection();
+                let block = blockHit ? blockHit.block : undefined;
+
+                if (!block) {
+                    const feetLocation = { x: Math.floor(player.location.x), y: Math.floor(player.location.y - 1), z: Math.floor(player.location.z) };
+                    block = player.dimension.getBlock(feetLocation);
+                }
+
                 if (block && block.typeId) {
                     if (block.typeId.includes('piston')) {
                         const piston = block.getComponent('piston');
@@ -149,7 +167,7 @@ commandManager.register({
                         logTestResult(executor, logger, { api: 'BlockRecordPlayerComponent', status: 'Info', message: 'Not looking at a jukebox. Look at a jukebox to test this component.' });
                     }
                 } else {
-                    logTestResult(executor, logger, { api: 'Block Component Tests', status: 'Info', message: 'Not looking at a block. Look at a piston or jukebox to run component tests.' });
+                    logTestResult(executor, logger, { api: 'Block Component Tests', status: 'Info', message: 'No valid block found. Look at a piston or jukebox to run component tests.' });
                 }
             }, executor, logger);
 
@@ -176,6 +194,13 @@ commandManager.register({
                 } catch(e) {
                     logTestResult(executor, logger, { api: 'world.getDefaultSpawnLocation', status: 'Failure', message: `Error: ${e.message}` });
                 }
+
+                try {
+                    const absoluteTime = world.getAbsoluteTime();
+                    logTestResult(executor, logger, { api: 'world.getAbsoluteTime', status: 'Success', message: `Absolute time is ${absoluteTime}.`, details: `\`world.getAbsoluteTime()\` returned \`${absoluteTime}\`.` });
+                } catch(e) {
+                    logTestResult(executor, logger, { api: 'world.getAbsoluteTime', status: 'Failure', message: `Error: ${e.message}` });
+                }
             }, executor, logger);
 
             await testSection('Player APIs', async (executor, logger) => {
@@ -197,6 +222,13 @@ commandManager.register({
                 } catch(e) {
                     logTestResult(executor, logger, { api: 'player.onScreenDisplay.setTitle', status: 'Failure', message: `Error: ${e.message}` });
                 }
+
+                try {
+                    player.playMusic("record.ward", { fade: 1, volume: 0.5 });
+                    logTestResult(executor, logger, { api: 'player.playMusic', status: 'Success', message: 'Successfully played music for the player.' });
+                } catch(e) {
+                    logTestResult(executor, logger, { api: 'player.playMusic', status: 'Failure', message: `Error: ${e.message}` });
+                }
             }, executor, logger);
 
             await testSection('System APIs', async (executor, logger) => {
@@ -214,11 +246,17 @@ commandManager.register({
                     return;
                 }
 
-                const entities = player.getEntitiesFromViewDirection();
-                const entity = entities.length > 0 ? entities[0] : null;
+                const entityHits = player.getEntitiesFromViewDirection();
+                let entity = entityHits.length > 0 ? entityHits[0].entity : null;
+                let entitySource = 'view direction';
+
+                if (!entity) {
+                    entity = player;
+                    entitySource = 'the player themselves';
+                }
 
                 if (entity) {
-                    logTestResult(executor, logger, { api: 'entity.id', status: 'Success', message: `Found entity with ID: ${entity.id}` });
+                    logTestResult(executor, logger, { api: 'entity.id', status: 'Success', message: `Found entity from ${entitySource} with ID: ${entity.id}` });
                     logTestResult(executor, logger, { api: 'entity.typeId', status: 'Success', message: `Entity typeId is: ${entity.typeId}` });
 
                     try {
@@ -237,7 +275,8 @@ commandManager.register({
                         logTestResult(executor, logger, { api: 'entity.teleport', status: 'Failure', message: `Error: ${e.message}` });
                     }
                 } else {
-                    logTestResult(executor, logger, { api: 'Entity API Tests', status: 'Info', message: 'Not looking at an entity. Look at an entity to run these tests.' });
+                    // This case should not be reachable due to the player fallback
+                    logTestResult(executor, logger, { api: 'Entity API Tests', status: 'Failure', message: 'Could not find an entity in view or get the player entity.' });
                 }
             }, executor, logger);
 
