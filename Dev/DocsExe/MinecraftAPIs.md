@@ -52,6 +52,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `world.getAbsoluteTime` | Confirmed | Retrieves the total elapsed time in the world, in ticks. |
 | `world.getDefaultSpawnLocation` | Confirmed | Retrieves the world's default spawn location as a `Vector3`. |
 | `world.getTimeOfDay` / `setTimeOfDay` | Confirmed | Gets or sets the current time of day. |
+| `world.say` | Unconfirmed | Broadcasts a message to all players. |
 
 ### Dimension Properties & Methods
 
@@ -64,6 +65,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | API | Status | Usage |
 | --- | --- | --- |
 | `player.isEmoting` | Confirmed | A boolean property that is `true` if the player is currently emoting. |
+| `player.nameTag` | Unconfirmed | Gets or sets the player's name tag (the text displayed above their head). |
 | `player.onScreenDisplay` | Confirmed | Provides access to the player's screen display for showing titles and action bars via methods like `setTitle()`. |
 | `player.playMusic` | Confirmed | Plays a music track for the player with specified options. |
 
@@ -141,6 +143,9 @@ This module provides APIs for creating and managing user interface elements.
 | API | Status | Usage |
 | --- | --- | --- |
 | `ActionFormData` | Confirmed | Used to create a form with a list of buttons. |
+| `ActionFormData.title` | Unconfirmed | Sets the title of the action form. |
+| `ActionFormData.body` | Unconfirmed | Sets the body text of the action form. |
+| `ActionFormData.button` | Unconfirmed | Adds a button to the action form. |
 | `ModalFormData` | Confirmed | Used to create a form with various input fields. |
 | `MessageFormData` | Confirmed | Used to create a simple dialog with a message and two buttons. |
 ---

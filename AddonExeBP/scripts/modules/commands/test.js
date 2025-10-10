@@ -1,5 +1,6 @@
 import { commandManager } from './commandManager.js';
 import { world, system } from '@minecraft/server';
+import { ActionFormData } from '@minecraft/server-ui';
 
 // --- Markdown Logger ---
 class MarkdownLogger {
@@ -224,6 +225,13 @@ commandManager.register({
                 } else {
                     logTestResult(executor, logger, { api: 'dimension.playSound', status: 'Skipped', message: 'Requires a player context to run.' });
                 }
+
+                try {
+                    world.say("§aAPI test says hello!");
+                    logTestResult(executor, logger, { api: 'world.say', status: 'Success', message: 'Successfully broadcast a message to chat.' });
+                } catch(e) {
+                    logTestResult(executor, logger, { api: 'world.say', status: 'Failure', message: `Error: ${e.message}` });
+                }
             }, executor, logger);
 
             await testSection('Player APIs', async (executor, logger) => {
@@ -251,6 +259,15 @@ commandManager.register({
                     logTestResult(executor, logger, { api: 'player.playMusic', status: 'Success', message: 'Successfully played music for the player.' });
                 } catch(e) {
                     logTestResult(executor, logger, { api: 'player.playMusic', status: 'Failure', message: `Error: ${e.message}` });
+                }
+
+                try {
+                    const nameTag = player.nameTag;
+                    player.nameTag = "API_TEST";
+                    logTestResult(executor, logger, { api: 'player.nameTag', status: 'Success', message: `Player nameTag is "${player.nameTag}".`, details: `Successfully get and set player.nameTag. Original: "${nameTag}", New: "${player.nameTag}"` });
+                    player.nameTag = nameTag; // Reset it
+                } catch(e) {
+                    logTestResult(executor, logger, { api: 'player.nameTag', status: 'Failure', message: `Error: ${e.message}` });
                 }
             }, executor, logger);
 
@@ -300,6 +317,28 @@ commandManager.register({
                 } else {
                     // This case should not be reachable due to the player fallback
                     logTestResult(executor, logger, { api: 'Entity API Tests', status: 'Failure', message: 'Could not find an entity in view or get the player entity.' });
+                }
+            }, executor, logger);
+
+            await testSection('UI (ActionFormData)', async (executor, logger) => {
+                if (!player) {
+                    logTestResult(executor, logger, { api: 'UI Tests', status: 'Skipped', message: 'Requires a player to run.' });
+                    return;
+                }
+
+                try {
+                    const form = new ActionFormData();
+                    form.title("Test Title");
+                    form.body("Test Body");
+                    form.button("Test Button");
+
+                    logTestResult(executor, logger, { api: 'ActionFormData.title', status: 'Success', message: 'Method exists and was called.' });
+                    logTestResult(executor, logger, { api: 'ActionFormData.body', status: 'Success', message: 'Method exists and was called.' });
+                    logTestResult(executor, logger, { api: 'ActionFormData.button', status: 'Success', message: 'Method exists and was called.' });
+
+                    // We don't show the form to avoid interrupting the user, but we confirm it can be built.
+                } catch(e) {
+                    logTestResult(executor, logger, { api: 'ActionFormData', status: 'Failure', message: `Error during form creation: ${e.message}` });
                 }
             }, executor, logger);
 
