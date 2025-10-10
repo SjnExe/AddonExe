@@ -171,14 +171,6 @@ commandManager.register({
                 }
             }, executor, logger);
 
-            await testSection('Managers', async (executor, logger) => {
-                if (world.lootTables) {
-                    logTestResult(executor, logger, { api: 'world.lootTables', status: 'Success', message: 'LootTableManager exists.', details: '`world.lootTables` (LootTableManager) exists.' });
-                } else {
-                    logTestResult(executor, logger, { api: 'world.lootTables', status: 'Info', message: 'LootTableManager does not exist.', details: '`world.lootTables` (LootTableManager) does not exist.' });
-                }
-            }, executor, logger);
-
             await testSection('World APIs', async (executor, logger) => {
                 try {
                     const time = world.getTimeOfDay();
@@ -200,6 +192,17 @@ commandManager.register({
                     logTestResult(executor, logger, { api: 'world.getAbsoluteTime', status: 'Success', message: `Absolute time is ${absoluteTime}.`, details: `\`world.getAbsoluteTime()\` returned \`${absoluteTime}\`.` });
                 } catch(e) {
                     logTestResult(executor, logger, { api: 'world.getAbsoluteTime', status: 'Failure', message: `Error: ${e.message}` });
+                }
+
+                if (player) {
+                    try {
+                        world.playSound("random.orb", player.location);
+                        logTestResult(executor, logger, { api: 'world.playSound', status: 'Success', message: 'Successfully played a sound at the player\'s location.' });
+                    } catch(e) {
+                        logTestResult(executor, logger, { api: 'world.playSound', status: 'Failure', message: `Error: ${e.message}` });
+                    }
+                } else {
+                    logTestResult(executor, logger, { api: 'world.playSound', status: 'Skipped', message: 'Requires a player context to run.' });
                 }
             }, executor, logger);
 

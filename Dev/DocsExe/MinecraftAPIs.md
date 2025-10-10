@@ -33,6 +33,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Player` | Confirmed | Represents a player in the world. |
 | `Entity` | Confirmed | Represents any entity in the world (mobs, items, etc.). |
 | `Block` | Confirmed | Represents a block in the world. |
+| `BlockPermutation` | Confirmed | Represents a specific state of a block. Can be retrieved from a `Block` object. |
 | `Dimension` | Confirmed | Represents a dimension (Overworld, Nether, etc.). |
 | `Scoreboard` | Confirmed | The world's scoreboard. |
 | `ScoreboardObjective`| Confirmed | Represents a single objective on a scoreboard. |
@@ -41,7 +42,6 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Effect` | Confirmed | A status effect that can be applied to an entity. |
 | `Camera` | Confirmed | Controls the player's camera. Accessed via `player.camera`. |
 | `Structure` | Confirmed | A saved structure that can be placed in the world. |
-| `BlockPermutation` | Unconfirmed (Test Failed) | Represents a specific state of a block. Test to retrieve this from a block failed. |
 | `ContainerSlot` | Confirmed | Represents a single slot in a container. |
 | `EffectType` | Confirmed | Represents a type of status effect. |
 
@@ -49,6 +49,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 
 | API | Status | Usage |
 | --- | --- | --- |
+| `world.getAbsoluteTime` | Confirmed | Retrieves the total elapsed time in the world, in ticks. |
 | `world.getDefaultSpawnLocation` | Confirmed | Retrieves the world's default spawn location as a `Vector3`. |
 | `world.getTimeOfDay` / `setTimeOfDay` | Confirmed | Gets or sets the current time of day. |
 
@@ -58,6 +59,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | --- | --- | --- |
 | `player.isEmoting` | Confirmed | A boolean property that is `true` if the player is currently emoting. |
 | `player.onScreenDisplay` | Confirmed | Provides access to the player's screen display for showing titles and action bars via methods like `setTitle()`. |
+| `player.playMusic` | Confirmed | Plays a music track for the player with specified options. |
 
 ### System Properties & Methods
 
@@ -69,10 +71,10 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 
 | API | Status | Usage |
 | --- | --- | --- |
-| `entity.id` | Unconfirmed | A read-only property that returns the unique identifier of the entity. |
-| `entity.typeId` | Unconfirmed | A read-only property that returns the type identifier of the entity (e.g., `minecraft:player`). |
-| `entity.getComponents`| Unconfirmed | Retrieves all components attached to the entity. |
-| `entity.teleport`| Unconfirmed | Teleports the entity to a new location. |
+| `entity.id` | Confirmed | A read-only property that returns the unique identifier of the entity. |
+| `entity.typeId` | Confirmed | A read-only property that returns the type identifier of the entity (e.g., `minecraft:player`). |
+| `entity.getComponents`| Confirmed | Retrieves all components attached to the entity. |
+| `entity.teleport`| Confirmed | Teleports the entity to a new location. |
 
 ### Item Management
 
