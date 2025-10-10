@@ -33,11 +33,11 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Player` | Confirmed | Represents a player in the world. |
 | `Entity` | Confirmed | Represents any entity in the world (mobs, items, etc.). |
 | `Block` | Confirmed | Represents a block in the world. |
-| `BlockPermutation` | Confirmed | Represents a specific state of a block. Can be retrieved from a `Block` object. |
+| `BlockPermutation` | Unconfirmed (Test Failed) | Represents a specific state of a block. Test to retrieve this from a block failed. |
 | `Dimension` | Confirmed | Represents a dimension (Overworld, Nether, etc.). |
 | `Scoreboard` | Confirmed | The world's scoreboard. |
-| `ScoreboardObjective`| Confirmed | Represents a single objective on a scoreboard. |
-| `ScoreboardIdentity` | Confirmed | Represents a single entry on a scoreboard. |
+| `ScoreboardObjective`| Unconfirmed (Test Failed) | Represents a single objective on a scoreboard. Test section crashed. |
+| `ScoreboardIdentity` | Unconfirmed (Test Failed) | Represents a single entry on a scoreboard. Test section crashed. |
 | `Container` | Confirmed | An inventory container. |
 | `Effect` | Confirmed | A status effect that can be applied to an entity. |
 | `Camera` | Confirmed | Controls the player's camera. Accessed via `player.camera`. |
@@ -52,6 +52,12 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `world.getAbsoluteTime` | Confirmed | Retrieves the total elapsed time in the world, in ticks. |
 | `world.getDefaultSpawnLocation` | Confirmed | Retrieves the world's default spawn location as a `Vector3`. |
 | `world.getTimeOfDay` / `setTimeOfDay` | Confirmed | Gets or sets the current time of day. |
+
+### Dimension Properties & Methods
+
+| API | Status | Usage |
+| --- | --- | --- |
+| `dimension.playSound` | Unconfirmed (Test Failed) | Plays a sound at a specified location in the dimension. |
 
 ### Player Properties & Methods
 
@@ -113,7 +119,6 @@ Components add functionality to Blocks, Entities, and Items.
 | API | Status | Usage |
 | --- | --- | --- |
 | `StructureManager`| Confirmed | Manages the creation, loading, and placement of structures. Accessed via `world.structureManager`. |
-| `LootTableManager`| Unconfirmed (Not Found) | Manages loot tables. Test showed `world.lootTables` does not exist. |
 
 ### Utilities
 

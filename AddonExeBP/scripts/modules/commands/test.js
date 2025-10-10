@@ -84,14 +84,24 @@ commandManager.register({
                     return;
                 }
 
-                const blockHit = player.getBlockFromViewDirection();
-                let block = blockHit ? blockHit.block : undefined;
+                let block;
                 let blockSource = 'view direction';
+                try {
+                    // This API can throw if no block is in view, instead of returning undefined.
+                    const blockHit = player.getBlockFromViewDirection();
+                    block = blockHit?.block;
+                } catch (e) {
+                    // This is informational and expected if not looking at a block.
+                }
 
                 if (!block) {
-                    const feetLocation = { x: Math.floor(player.location.x), y: Math.floor(player.location.y - 1), z: Math.floor(player.location.z) };
-                    block = player.dimension.getBlock(feetLocation);
                     blockSource = "player's feet";
+                    try {
+                        const feetLocation = { x: Math.floor(player.location.x), y: Math.floor(player.location.y - 1), z: Math.floor(player.location.z) };
+                        block = player.dimension.getBlock(feetLocation);
+                    } catch (e) {
+                        logTestResult(executor, logger, { api: 'Block Tests', status: 'Failure', message: `Failed to get block at player's feet. Error: ${e.message}` });
+                    }
                 }
 
                 if (block) {
@@ -136,12 +146,22 @@ commandManager.register({
                     return;
                 }
 
-                const blockHit = player.getBlockFromViewDirection();
-                let block = blockHit ? blockHit.block : undefined;
+                let block;
+                try {
+                    // This API can throw if no block is in view.
+                    const blockHit = player.getBlockFromViewDirection();
+                    block = blockHit?.block;
+                } catch (e) {
+                    // Informational, not a failure.
+                }
 
                 if (!block) {
-                    const feetLocation = { x: Math.floor(player.location.x), y: Math.floor(player.location.y - 1), z: Math.floor(player.location.z) };
-                    block = player.dimension.getBlock(feetLocation);
+                    try {
+                        const feetLocation = { x: Math.floor(player.location.x), y: Math.floor(player.location.y - 1), z: Math.floor(player.location.z) };
+                        block = player.dimension.getBlock(feetLocation);
+                    } catch (e) {
+                        // Fail gracefully if this also fails, the next check will handle it.
+                    }
                 }
 
                 if (block && block.typeId) {
@@ -196,13 +216,13 @@ commandManager.register({
 
                 if (player) {
                     try {
-                        world.playSound("random.orb", player.location);
-                        logTestResult(executor, logger, { api: 'world.playSound', status: 'Success', message: 'Successfully played a sound at the player\'s location.' });
+                        player.dimension.playSound("random.orb", player.location);
+                        logTestResult(executor, logger, { api: 'dimension.playSound', status: 'Success', message: 'Successfully played a sound at the player\'s location.' });
                     } catch(e) {
-                        logTestResult(executor, logger, { api: 'world.playSound', status: 'Failure', message: `Error: ${e.message}` });
+                        logTestResult(executor, logger, { api: 'dimension.playSound', status: 'Failure', message: `Error: ${e.message}` });
                     }
                 } else {
-                    logTestResult(executor, logger, { api: 'world.playSound', status: 'Skipped', message: 'Requires a player context to run.' });
+                    logTestResult(executor, logger, { api: 'dimension.playSound', status: 'Skipped', message: 'Requires a player context to run.' });
                 }
             }, executor, logger);
 
