@@ -4,6 +4,14 @@ This document is an archive of completed tasks.
 
 ---
 
+**Task:** Refactor /test command to remove confirmed APIs
+
+**Objective:** Update the `/test` command to only test unconfirmed APIs, based on the `Dev/DocsExe/MinecraftAPIs.md` document. This helps focus testing efforts on APIs that are not yet validated.
+
+**Assignee:** Jules
+**Status:** Completed
+---
+
 **Task:** Implement Announcement System
 
 **Objective:** Create a new announcement system with admin-configurable messages and intervals, and a toggle for players to mute announcements. This also included fixing a bug in the dimension locking UI that was discovered during testing.

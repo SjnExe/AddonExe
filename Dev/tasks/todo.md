@@ -14,6 +14,7 @@ This document outlines planned tasks for improving the addon.
 
 *(No medium priority tasks currently planned)*
 
+
 ---
 
 ### Low Priority
