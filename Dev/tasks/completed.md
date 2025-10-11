@@ -4,6 +4,14 @@ This document is an archive of completed tasks.
 
 ---
 
+**Task:** Expand API Test Coverage
+
+**Objective:** Update the API documentation with the latest test results, refactor the `/test` command to remove confirmed APIs, and discover and add new, untested APIs to both the documentation and the test command.
+
+**Assignee:** Jules
+**Status:** Completed
+---
+
 **Task:** Fix `/test` command and update API docs
 
 **Objective:** Correct the `/test` command to use `world.sendMessage` instead of the non-existent `world.say`, and update the API documentation to reflect this finding from the latest test run.

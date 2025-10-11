@@ -1,6 +1,6 @@
 import { commandManager } from './commandManager.js';
-import { world, system } from '@minecraft/server';
-import { ActionFormData } from '@minecraft/server-ui';
+import { world, system, GameMode } from '@minecraft/server';
+import { ModalFormData, MessageFormData } from '@minecraft/server-ui';
 
 // --- Markdown Logger ---
 class MarkdownLogger {
@@ -79,58 +79,6 @@ commandManager.register({
         system.run(async () => {
             const logger = new MarkdownLogger();
 
-            await testSection('Game Objects', async (executor, logger) => {
-                if (!player) {
-                    logTestResult(executor, logger, { api: 'Player-Context Tests', status: 'Skipped', message: 'Requires a player to run.' });
-                    return;
-                }
-
-                let block;
-                try {
-                    // This API can throw if no block is in view, instead of returning undefined.
-                    const blockHit = player.getBlockFromViewDirection();
-                    block = blockHit?.block;
-                } catch (e) {
-                    // This is informational and expected if not looking at a block.
-                }
-
-                if (block) {
-                    const blockSource = 'view direction';
-                    const permutation = block.permutation;
-                    if (permutation) {
-                        logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Success', message: `Found permutation from ${blockSource}. Type: ${permutation.type.id}`, details: `Found permutation for block: \`${permutation.type.id}\` (from ${blockSource})` });
-                    } else {
-                        logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Failure', message: `Could not get BlockPermutation from block at ${blockSource}.` });
-                    }
-                } else {
-                    logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Info', message: 'Could not find a block in view. Look at a block to test.' });
-                }
-
-                // Pre-test setup: Ensure the objective exists
-                let objective;
-                try {
-                    objective = world.scoreboard.getObjective('test') ?? world.scoreboard.addObjective('test', 'test');
-                } catch (e) {
-                    // Objective likely already exists, which is fine.
-                }
-
-                if (objective) {
-                    logTestResult(executor, logger, { api: 'ScoreboardObjective', status: 'Success', message: `Got objective. ID: ${objective.id}`, details: `Got objective. ID: \`${objective.id}\`` });
-                    // Add a dummy score to test identity
-                    objective.setScore('test_player', 1);
-                    const identity = objective.getParticipants().find(p => p.displayName === 'test_player');
-                    if (identity) {
-                        logTestResult(executor, logger, { api: 'ScoreboardIdentity', status: 'Success', message: `Got identity. DisplayName: ${identity.displayName}`, details: `Got identity. DisplayName: \`${identity.displayName}\`` });
-                    } else {
-                        logTestResult(executor, logger, { api: 'ScoreboardIdentity', status: 'Failure', message: 'Could not retrieve participant from objective.' });
-                    }
-                    // Cleanup
-                    world.scoreboard.removeObjective(objective);
-                } else {
-                    logTestResult(executor, logger, { api: 'ScoreboardObjective', status: 'Failure', message: 'Could not get or create scoreboard objective "test".' });
-                }
-            }, executor, logger);
-
             await testSection('Components', async (executor, logger) => {
                 if (!player) {
                     logTestResult(executor, logger, { api: 'Component Tests', status: 'Skipped', message: 'Requires a player to run.' });
@@ -173,12 +121,60 @@ commandManager.register({
                 }
             }, executor, logger);
 
-            await testSection('World APIs', async (executor, logger) => {
+            await testSection('Game Objects', async (executor, logger) => {
                 try {
-                    world.sendMessage("§aAPI test says hello!");
-                    logTestResult(executor, logger, { api: 'world.sendMessage', status: 'Success', message: 'Successfully broadcast a message to chat.' });
+                    if (GameMode.creative) {
+                        logTestResult(executor, logger, { api: 'GameMode', status: 'Success', message: 'GameMode enum exists and is accessible.' });
+                    } else {
+                        logTestResult(executor, logger, { api: 'GameMode', status: 'Failure', message: 'GameMode enum could not be accessed.' });
+                    }
+                } catch (e) {
+                    logTestResult(executor, logger, { api: 'GameMode', status: 'Failure', message: `Error: ${e.message}` });
+                }
+            }, executor, logger);
+
+            await testSection('System APIs', async (executor, logger) => {
+                try {
+                    let hasRun = false;
+                    system.run(() => {
+                        hasRun = true;
+                    });
+                    // Give the system a moment to run the callback
+                    await new Promise(resolve => system.run(resolve));
+                    if (hasRun) {
+                        logTestResult(executor, logger, { api: 'system.run', status: 'Success', message: 'system.run callback was executed.' });
+                    } else {
+                        logTestResult(executor, logger, { api: 'system.run', status: 'Failure', message: 'system.run callback did not execute as expected.' });
+                    }
                 } catch(e) {
-                    logTestResult(executor, logger, { api: 'world.sendMessage', status: 'Failure', message: `Error: ${e.message}` });
+                    logTestResult(executor, logger, { api: 'system.run', status: 'Failure', message: `Error: ${e.message}` });
+                }
+            }, executor, logger);
+
+            await testSection('UI (ModalFormData & MessageFormData)', async (executor, logger) => {
+                if (!player) {
+                    logTestResult(executor, logger, { api: 'UI Tests', status: 'Skipped', message: 'Requires a player to run.' });
+                    return;
+                }
+
+                try {
+                    const modalForm = new ModalFormData();
+                    modalForm.title("Test ModalForm");
+                    modalForm.textField("Text Field", "Placeholder");
+                    logTestResult(executor, logger, { api: 'ModalFormData', status: 'Success', message: 'ModalFormData methods exist and were called.' });
+                } catch(e) {
+                    logTestResult(executor, logger, { api: 'ModalFormData', status: 'Failure', message: `Error during form creation: ${e.message}` });
+                }
+
+                try {
+                    const messageForm = new MessageFormData();
+                    messageForm.title("Test MessageForm");
+                    messageForm.body("This is a test message.");
+                    messageForm.button1("Button 1");
+                    messageForm.button2("Button 2");
+                    logTestResult(executor, logger, { api: 'MessageFormData', status: 'Success', message: 'MessageFormData methods exist and were called.' });
+                } catch(e) {
+                    logTestResult(executor, logger, { api: 'MessageFormData', status: 'Failure', message: `Error during form creation: ${e.message}` });
                 }
             }, executor, logger);
 
