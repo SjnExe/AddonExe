@@ -26,17 +26,6 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `system.afterEvents`| Confirmed | Subscribe to system-level events that have occurred. |
 | `system.beforeEvents`| Confirmed | Subscribe to system-level events before they happen. |
 
-#### Specific Events (Examples)
-| Event | Status | Description |
-| --- | --- | --- |
-| `PlayerJoinAfterEvent` | Confirmed | Fires after a player has joined the world. |
-| `PlayerLeaveAfterEvent` | Confirmed | Fires after a player has left the world. |
-| `PlayerSpawnAfterEvent` | Confirmed | Fires after a player has spawned or respawned. |
-| `PlayerBreakBlockAfterEvent` | Confirmed | Fires after a player breaks a block. |
-| `PlayerPlaceBlockAfterEvent` | Confirmed | Fires after a player places a block. |
-| `EntityDieAfterEvent` | Confirmed | Fires after an entity dies. |
-| `WeatherChangeAfterEvent` | Confirmed | Fires after the weather changes. |
-
 ### Game Objects & Classes
 
 | API | Status | Usage |
@@ -44,17 +33,56 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Player` | Confirmed | Represents a player in the world. |
 | `Entity` | Confirmed | Represents any entity in the world (mobs, items, etc.). |
 | `Block` | Confirmed | Represents a block in the world. |
+| `BlockPermutation` | Unconfirmed (Test Failed) | Represents a specific state of a block. Test section crashed. |
 | `Dimension` | Confirmed | Represents a dimension (Overworld, Nether, etc.). |
 | `Scoreboard` | Confirmed | The world's scoreboard. |
+| `ScoreboardObjective`| Unconfirmed (Test Failed) | Represents a single objective on a scoreboard. Test section crashed. |
+| `ScoreboardIdentity` | Unconfirmed (Test Failed) | Represents a single entry on a scoreboard. Test section crashed. |
 | `Container` | Confirmed | An inventory container. |
 | `Effect` | Confirmed | A status effect that can be applied to an entity. |
 | `Camera` | Confirmed | Controls the player's camera. Accessed via `player.camera`. |
 | `Structure` | Confirmed | A saved structure that can be placed in the world. |
-| `BlockPermutation` | Unconfirmed (Test Failed) | Represents a specific state of a block. Test to retrieve this from a block failed. |
 | `ContainerSlot` | Confirmed | Represents a single slot in a container. |
 | `EffectType` | Confirmed | Represents a type of status effect. |
-| `ScoreboardIdentity` | Unconfirmed | Represents a single entry (like a player name or a fake player) on a scoreboard. |
-| `ScoreboardObjective`| Unconfirmed | Represents a single objective on a scoreboard. |
+
+### World Properties & Methods
+
+| API | Status | Usage |
+| --- | --- | --- |
+| `world.getAbsoluteTime` | Confirmed | Retrieves the total elapsed time in the world, in ticks. |
+| `world.getDefaultSpawnLocation` | Confirmed | Retrieves the world's default spawn location as a `Vector3`. |
+| `world.getTimeOfDay` / `setTimeOfDay` | Confirmed | Gets or sets the current time of day. |
+| `world.say` | Unconfirmed (Test Failed) | Broadcasts a message to all players. |
+
+### Dimension Properties & Methods
+
+| API | Status | Usage |
+| --- | --- | --- |
+| `dimension.playSound` | Confirmed | Plays a sound at a specified location in the dimension. |
+
+### Player Properties & Methods
+
+| API | Status | Usage |
+| --- | --- | --- |
+| `player.isEmoting` | Confirmed | A boolean property that is `true` if the player is currently emoting. |
+| `player.nameTag` | Confirmed | Gets or sets the player's name tag (the text displayed above their head). |
+| `player.onScreenDisplay` | Confirmed | Provides access to the player's screen display for showing titles and action bars via methods like `setTitle()`. |
+| `player.playMusic` | Confirmed | Plays a music track for the player with specified options. |
+
+### System Properties & Methods
+
+| API | Status | Usage |
+| --- | --- | --- |
+| `system.currentTick` | Confirmed | A read-only property that returns the current server tick. |
+
+### Entity Properties & Methods
+
+| API | Status | Usage |
+| --- | --- | --- |
+| `entity.id` | Confirmed | A read-only property that returns the unique identifier of the entity. |
+| `entity.typeId` | Confirmed | A read-only property that returns the type identifier of the entity (e.g., `minecraft:player`). |
+| `entity.getComponents`| Confirmed | Retrieves all components attached to the entity. |
+| `entity.teleport`| Confirmed | Teleports the entity to a new location. |
 
 ### Item Management
 
@@ -85,15 +113,14 @@ Components add functionality to Blocks, Entities, and Items.
 | --- | --- | --- |
 | `BlockInventoryComponent`| Confirmed | Provides access to a block's inventory (e.g., a chest). |
 | `BlockSignComponent` | Confirmed | Manages the text content of a sign. |
-| `BlockPistonComponent` | Unconfirmed | Provides information about a piston's state. |
-| `BlockRecordPlayerComponent`| Unconfirmed | Manages a jukebox, allowing a music disc to be played. |
+| `BlockPistonComponent` | Unconfirmed (Test Skipped) | Provides information about a piston's state. Test requires player to be looking at a piston. |
+| `BlockRecordPlayerComponent`| Unconfirmed (Test Skipped) | Manages a jukebox. Test requires player to be looking at a jukebox. |
 
 ### Managers
 
 | API | Status | Usage |
 | --- | --- | --- |
 | `StructureManager`| Confirmed | Manages the creation, loading, and placement of structures. Accessed via `world.structureManager`. |
-| `LootTableManager`| Unconfirmed (Not Found) | Manages loot tables. Test showed `world.lootTables` does not exist. |
 
 ### Utilities
 
@@ -101,7 +128,6 @@ Components add functionality to Blocks, Entities, and Items.
 | --- | --- | --- |
 | `Vector3` | Confirmed | Represents a 3D vector using an object literal (e.g., `{ x, y, z }`). |
 | `MolangVariableMap`| Confirmed | A map for defining MoLang variables for use in animations. |
-| `ScreenDisplay` | Confirmed | Represents the player's screen for displaying titles. Accessed via `player.onScreenDisplay`. |
 | `BlockRaycastOptions`| Confirmed | Options for casting a ray to find a block. |
 | `EntityQueryOptions` | Confirmed | Options for querying entities in the world. |
 | `RawMessage` | Confirmed | A raw JSON message that can be displayed in chat, allowing for translatable text and scores. |
@@ -117,6 +143,9 @@ This module provides APIs for creating and managing user interface elements.
 | API | Status | Usage |
 | --- | --- | --- |
 | `ActionFormData` | Confirmed | Used to create a form with a list of buttons. |
+| `ActionFormData.title` | Confirmed | Sets the title of the action form. |
+| `ActionFormData.body` | Confirmed | Sets the body text of the action form. |
+| `ActionFormData.button` | Confirmed | Adds a button to the action form. |
 | `ModalFormData` | Confirmed | Used to create a form with various input fields. |
 | `MessageFormData` | Confirmed | Used to create a simple dialog with a message and two buttons. |
 ---
