@@ -86,7 +86,6 @@ commandManager.register({
                 }
 
                 let block;
-                let blockSource = 'view direction';
                 try {
                     // This API can throw if no block is in view, instead of returning undefined.
                     const blockHit = player.getBlockFromViewDirection();
@@ -95,17 +94,8 @@ commandManager.register({
                     // This is informational and expected if not looking at a block.
                 }
 
-                if (!block) {
-                    blockSource = "player's feet";
-                    try {
-                        const feetLocation = { x: Math.floor(player.location.x), y: Math.floor(player.location.y - 1), z: Math.floor(player.location.z) };
-                        block = player.dimension.getBlock(feetLocation);
-                    } catch (e) {
-                        logTestResult(executor, logger, { api: 'Block Tests', status: 'Failure', message: `Failed to get block at player's feet. Error: ${e.message}` });
-                    }
-                }
-
                 if (block) {
+                    const blockSource = 'view direction';
                     const permutation = block.permutation;
                     if (permutation) {
                         logTestResult(executor, logger, { api: 'BlockPermutation', status: 'Success', message: `Found permutation from ${blockSource}. Type: ${permutation.type.id}`, details: `Found permutation for block: \`${permutation.type.id}\` (from ${blockSource})` });
@@ -154,15 +144,6 @@ commandManager.register({
                     block = blockHit?.block;
                 } catch (e) {
                     // Informational, not a failure.
-                }
-
-                if (!block) {
-                    try {
-                        const feetLocation = { x: Math.floor(player.location.x), y: Math.floor(player.location.y - 1), z: Math.floor(player.location.z) };
-                        block = player.dimension.getBlock(feetLocation);
-                    } catch (e) {
-                        // Fail gracefully if this also fails, the next check will handle it.
-                    }
                 }
 
                 if (block && block.typeId) {

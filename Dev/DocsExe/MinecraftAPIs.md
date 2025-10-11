@@ -33,11 +33,11 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Player` | Confirmed | Represents a player in the world. |
 | `Entity` | Confirmed | Represents any entity in the world (mobs, items, etc.). |
 | `Block` | Confirmed | Represents a block in the world. |
-| `BlockPermutation` | Confirmed | Represents a specific state of a block. Can be retrieved from a `Block` object. |
+| `BlockPermutation` | Unconfirmed (Test Failed) | Represents a specific state of a block. Test section crashed. |
 | `Dimension` | Confirmed | Represents a dimension (Overworld, Nether, etc.). |
 | `Scoreboard` | Confirmed | The world's scoreboard. |
-| `ScoreboardObjective`| Confirmed | Represents a single objective on a scoreboard. |
-| `ScoreboardIdentity` | Confirmed | Represents a single entry on a scoreboard. |
+| `ScoreboardObjective`| Unconfirmed (Test Failed) | Represents a single objective on a scoreboard. Test section crashed. |
+| `ScoreboardIdentity` | Unconfirmed (Test Failed) | Represents a single entry on a scoreboard. Test section crashed. |
 | `Container` | Confirmed | An inventory container. |
 | `Effect` | Confirmed | A status effect that can be applied to an entity. |
 | `Camera` | Confirmed | Controls the player's camera. Accessed via `player.camera`. |
@@ -52,7 +52,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `world.getAbsoluteTime` | Confirmed | Retrieves the total elapsed time in the world, in ticks. |
 | `world.getDefaultSpawnLocation` | Confirmed | Retrieves the world's default spawn location as a `Vector3`. |
 | `world.getTimeOfDay` / `setTimeOfDay` | Confirmed | Gets or sets the current time of day. |
-| `world.say` | Unconfirmed | Broadcasts a message to all players. |
+| `world.say` | Unconfirmed (Test Failed) | Broadcasts a message to all players. |
 
 ### Dimension Properties & Methods
 
@@ -65,7 +65,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | API | Status | Usage |
 | --- | --- | --- |
 | `player.isEmoting` | Confirmed | A boolean property that is `true` if the player is currently emoting. |
-| `player.nameTag` | Unconfirmed | Gets or sets the player's name tag (the text displayed above their head). |
+| `player.nameTag` | Confirmed | Gets or sets the player's name tag (the text displayed above their head). |
 | `player.onScreenDisplay` | Confirmed | Provides access to the player's screen display for showing titles and action bars via methods like `setTitle()`. |
 | `player.playMusic` | Confirmed | Plays a music track for the player with specified options. |
 
@@ -143,9 +143,9 @@ This module provides APIs for creating and managing user interface elements.
 | API | Status | Usage |
 | --- | --- | --- |
 | `ActionFormData` | Confirmed | Used to create a form with a list of buttons. |
-| `ActionFormData.title` | Unconfirmed | Sets the title of the action form. |
-| `ActionFormData.body` | Unconfirmed | Sets the body text of the action form. |
-| `ActionFormData.button` | Unconfirmed | Adds a button to the action form. |
+| `ActionFormData.title` | Confirmed | Sets the title of the action form. |
+| `ActionFormData.body` | Confirmed | Sets the body text of the action form. |
+| `ActionFormData.button` | Confirmed | Adds a button to the action form. |
 | `ModalFormData` | Confirmed | Used to create a form with various input fields. |
 | `MessageFormData` | Confirmed | Used to create a simple dialog with a message and two buttons. |
 ---
