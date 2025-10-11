@@ -4,6 +4,14 @@ This document is an archive of completed tasks.
 
 ---
 
+**Task:** Fix `/test` command and update API docs
+
+**Objective:** Correct the `/test` command to use `world.sendMessage` instead of the non-existent `world.say`, and update the API documentation to reflect this finding from the latest test run.
+
+**Assignee:** Jules
+**Status:** Completed
+---
+
 **Task:** Refactor /test command to remove confirmed APIs
 
 **Objective:** Update the `/test` command to only test unconfirmed APIs, based on the `Dev/DocsExe/MinecraftAPIs.md` document. This helps focus testing efforts on APIs that are not yet validated.

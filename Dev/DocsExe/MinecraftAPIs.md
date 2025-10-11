@@ -53,6 +53,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `world.getDefaultSpawnLocation` | Confirmed | Retrieves the world's default spawn location as a `Vector3`. |
 | `world.getTimeOfDay` / `setTimeOfDay` | Confirmed | Gets or sets the current time of day. |
 | `world.say` | Unconfirmed (Test Failed) | Broadcasts a message to all players. |
+| `world.sendMessage` | Confirmed | Broadcasts a message to all players. |
 
 ### Dimension Properties & Methods
 

@@ -175,10 +175,10 @@ commandManager.register({
 
             await testSection('World APIs', async (executor, logger) => {
                 try {
-                    world.say("§aAPI test says hello!");
-                    logTestResult(executor, logger, { api: 'world.say', status: 'Success', message: 'Successfully broadcast a message to chat.' });
+                    world.sendMessage("§aAPI test says hello!");
+                    logTestResult(executor, logger, { api: 'world.sendMessage', status: 'Success', message: 'Successfully broadcast a message to chat.' });
                 } catch(e) {
-                    logTestResult(executor, logger, { api: 'world.say', status: 'Failure', message: `Error: ${e.message}` });
+                    logTestResult(executor, logger, { api: 'world.sendMessage', status: 'Failure', message: `Error: ${e.message}` });
                 }
             }, executor, logger);
 
