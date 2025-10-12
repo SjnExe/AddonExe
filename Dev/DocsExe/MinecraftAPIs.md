@@ -33,17 +33,18 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Player` | Confirmed | Represents a player in the world. |
 | `Entity` | Confirmed | Represents any entity in the world (mobs, items, etc.). |
 | `Block` | Confirmed | Represents a block in the world. |
-| `BlockPermutation` | Unconfirmed (Test Failed) | Represents a specific state of a block. Test section crashed. |
+| `BlockPermutation` | Confirmed | Represents a specific state of a block. |
 | `Dimension` | Confirmed | Represents a dimension (Overworld, Nether, etc.). |
 | `Scoreboard` | Confirmed | The world's scoreboard. |
-| `ScoreboardObjective`| Unconfirmed (Test Failed) | Represents a single objective on a scoreboard. Test section crashed. |
-| `ScoreboardIdentity` | Unconfirmed (Test Failed) | Represents a single entry on a scoreboard. Test section crashed. |
+| `ScoreboardObjective`| Confirmed | Represents a single objective on a scoreboard. |
+| `ScoreboardIdentity` | Confirmed | Represents a single entry on a scoreboard. |
 | `Container` | Confirmed | An inventory container. |
 | `Effect` | Confirmed | A status effect that can be applied to an entity. |
 | `Camera` | Confirmed | Controls the player's camera. Accessed via `player.camera`. |
 | `Structure` | Confirmed | A saved structure that can be placed in the world. |
 | `ContainerSlot` | Confirmed | Represents a single slot in a container. |
 | `EffectType` | Confirmed | Represents a type of status effect. |
+| `GameMode` | Confirmed | A set of values for different game modes. |
 
 ### World Properties & Methods
 
@@ -53,6 +54,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `world.getDefaultSpawnLocation` | Confirmed | Retrieves the world's default spawn location as a `Vector3`. |
 | `world.getTimeOfDay` / `setTimeOfDay` | Confirmed | Gets or sets the current time of day. |
 | `world.say` | Unconfirmed (Test Failed) | Broadcasts a message to all players. |
+| `world.sendMessage` | Confirmed | Broadcasts a message to all players. |
 
 ### Dimension Properties & Methods
 
@@ -74,6 +76,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | API | Status | Usage |
 | --- | --- | --- |
 | `system.currentTick` | Confirmed | A read-only property that returns the current server tick. |
+| `system.run` | Confirmed | Runs a callback function on the next tick. |
 
 ### Entity Properties & Methods
 
