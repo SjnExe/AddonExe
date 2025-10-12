@@ -4,6 +4,14 @@ This document is an archive of completed tasks.
 
 ---
 
+**Task:** Fix `GameMode` API Test and Update Docs
+
+**Objective:** Correct the failing `GameMode` API test by using the correct property name (`GameMode.Creative`) and update the API documentation to mark `GameMode` as confirmed.
+
+**Assignee:** Jules
+**Status:** Completed
+---
+
 **Task:** Fix `GameMode` Test and Update API Docs
 
 **Objective:** Address the failing `GameMode` API test by improving diagnostics in the `/test` command. Update the API documentation with the latest results, marking several APIs as confirmed.

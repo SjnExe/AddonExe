@@ -44,7 +44,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Structure` | Confirmed | A saved structure that can be placed in the world. |
 | `ContainerSlot` | Confirmed | Represents a single slot in a container. |
 | `EffectType` | Confirmed | Represents a type of status effect. |
-| `GameMode` | Test Failed | A set of values for different game modes. |
+| `GameMode` | Confirmed | A set of values for different game modes. |
 
 ### World Properties & Methods
 

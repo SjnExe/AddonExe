@@ -123,7 +123,7 @@ commandManager.register({
 
             await testSection('Game Objects', async (executor, logger) => {
                 try {
-                    const gameModeValue = GameMode.creative;
+                    const gameModeValue = GameMode.Creative; // Corrected to uppercase 'C'
                     const gameModeType = typeof gameModeValue;
                     const keys = Object.keys(GameMode);
                     const details = `Value: ${gameModeValue}, Type: ${gameModeType}, Keys: [${keys.join(', ')}]`;
