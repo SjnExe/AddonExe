@@ -4,6 +4,14 @@ This document is an archive of completed tasks.
 
 ---
 
+**Task:** Fix `GameMode` Test and Update API Docs
+
+**Objective:** Address the failing `GameMode` API test by improving diagnostics in the `/test` command. Update the API documentation with the latest results, marking several APIs as confirmed.
+
+**Assignee:** Jules
+**Status:** Completed
+---
+
 **Task:** Expand API Test Coverage
 
 **Objective:** Update the API documentation with the latest test results, refactor the `/test` command to remove confirmed APIs, and discover and add new, untested APIs to both the documentation and the test command.

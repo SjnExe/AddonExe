@@ -123,58 +123,18 @@ commandManager.register({
 
             await testSection('Game Objects', async (executor, logger) => {
                 try {
-                    if (GameMode.creative) {
-                        logTestResult(executor, logger, { api: 'GameMode', status: 'Success', message: 'GameMode enum exists and is accessible.' });
+                    const gameModeValue = GameMode.creative;
+                    const gameModeType = typeof gameModeValue;
+                    const keys = Object.keys(GameMode);
+                    const details = `Value: ${gameModeValue}, Type: ${gameModeType}, Keys: [${keys.join(', ')}]`;
+
+                    if (gameModeValue !== undefined && gameModeType) {
+                        logTestResult(executor, logger, { api: 'GameMode', status: 'Success', message: 'GameMode enum exists and is accessible.', details: details });
                     } else {
-                        logTestResult(executor, logger, { api: 'GameMode', status: 'Failure', message: 'GameMode enum could not be accessed.' });
+                        logTestResult(executor, logger, { api: 'GameMode', status: 'Failure', message: 'GameMode enum could not be accessed.', details: details });
                     }
                 } catch (e) {
-                    logTestResult(executor, logger, { api: 'GameMode', status: 'Failure', message: `Error: ${e.message}` });
-                }
-            }, executor, logger);
-
-            await testSection('System APIs', async (executor, logger) => {
-                try {
-                    let hasRun = false;
-                    system.run(() => {
-                        hasRun = true;
-                    });
-                    // Give the system a moment to run the callback
-                    await new Promise(resolve => system.run(resolve));
-                    if (hasRun) {
-                        logTestResult(executor, logger, { api: 'system.run', status: 'Success', message: 'system.run callback was executed.' });
-                    } else {
-                        logTestResult(executor, logger, { api: 'system.run', status: 'Failure', message: 'system.run callback did not execute as expected.' });
-                    }
-                } catch(e) {
-                    logTestResult(executor, logger, { api: 'system.run', status: 'Failure', message: `Error: ${e.message}` });
-                }
-            }, executor, logger);
-
-            await testSection('UI (ModalFormData & MessageFormData)', async (executor, logger) => {
-                if (!player) {
-                    logTestResult(executor, logger, { api: 'UI Tests', status: 'Skipped', message: 'Requires a player to run.' });
-                    return;
-                }
-
-                try {
-                    const modalForm = new ModalFormData();
-                    modalForm.title("Test ModalForm");
-                    modalForm.textField("Text Field", "Placeholder");
-                    logTestResult(executor, logger, { api: 'ModalFormData', status: 'Success', message: 'ModalFormData methods exist and were called.' });
-                } catch(e) {
-                    logTestResult(executor, logger, { api: 'ModalFormData', status: 'Failure', message: `Error during form creation: ${e.message}` });
-                }
-
-                try {
-                    const messageForm = new MessageFormData();
-                    messageForm.title("Test MessageForm");
-                    messageForm.body("This is a test message.");
-                    messageForm.button1("Button 1");
-                    messageForm.button2("Button 2");
-                    logTestResult(executor, logger, { api: 'MessageFormData', status: 'Success', message: 'MessageFormData methods exist and were called.' });
-                } catch(e) {
-                    logTestResult(executor, logger, { api: 'MessageFormData', status: 'Failure', message: `Error during form creation: ${e.message}` });
+                    logTestResult(executor, logger, { api: 'GameMode', status: 'Failure', message: `Error: ${e.stack}` });
                 }
             }, executor, logger);
 

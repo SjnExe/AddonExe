@@ -44,7 +44,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | `Structure` | Confirmed | A saved structure that can be placed in the world. |
 | `ContainerSlot` | Confirmed | Represents a single slot in a container. |
 | `EffectType` | Confirmed | Represents a type of status effect. |
-| `GameMode` | Unconfirmed | A set of values for different game modes. |
+| `GameMode` | Test Failed | A set of values for different game modes. |
 
 ### World Properties & Methods
 
@@ -76,7 +76,7 @@ The `world` and `system` objects have `afterEvents` and `beforeEvents` propertie
 | API | Status | Usage |
 | --- | --- | --- |
 | `system.currentTick` | Confirmed | A read-only property that returns the current server tick. |
-| `system.run` | Unconfirmed | Runs a callback function on the next tick. |
+| `system.run` | Confirmed | Runs a callback function on the next tick. |
 
 ### Entity Properties & Methods
 
@@ -149,6 +149,6 @@ This module provides APIs for creating and managing user interface elements.
 | `ActionFormData.title` | Confirmed | Sets the title of the action form. |
 | `ActionFormData.body` | Confirmed | Sets the body text of the action form. |
 | `ActionFormData.button` | Confirmed | Adds a button to the action form. |
-| `ModalFormData` | Unconfirmed | Used to create a form with various input fields. |
-| `MessageFormData` | Unconfirmed | Used to create a simple dialog with a message and two buttons. |
+| `ModalFormData` | Confirmed | Used to create a form with various input fields. |
+| `MessageFormData` | Confirmed | Used to create a simple dialog with a message and two buttons. |
 ---
