@@ -1,0 +1,20 @@
+{
+  "format_version": "1.19.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "addonexe:floating_text",
+      "materials": {
+        "default": "armor_stand"
+      },
+      "textures": {
+        "default": "textures/entity/invisible"
+      },
+      "geometry": {
+        "default": "geometry.invisible"
+      },
+      "render_controllers": [
+        "controller.render.armor_stand"
+      ]
+    }
+  }
+}

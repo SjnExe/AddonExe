@@ -16,6 +16,7 @@ import { initializeEventManager, cleanupEventManager } from './events/eventManag
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
+import { floatingTextManager } from './floatingTextManager.js';
 import '../modules/commands/index.js';
 
 /**
@@ -82,6 +83,7 @@ function initializeManagers() {
     debugLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
+    floatingTextManager.initialize();
     // Clear any expired data on startup
     clearExpiredPunishments();
     clearOldResolvedReports();
