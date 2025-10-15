@@ -83,6 +83,15 @@ export const panelDefinitions = {
                 sortId: 20
             },
             {
+                id: 'floatingText',
+                text: '§bFloating Text',
+                icon: 'textures/items/writable_book',
+                permissionLevel: 1, // Admin and above
+                actionType: 'openPanel',
+                actionValue: 'floatingTextListPanel',
+                sortId: 25
+            },
+            {
                 id: 'config',
                 text: '§3Config',
                 icon: 'textures/ui/settings_glyph_color_2x',
@@ -355,6 +364,21 @@ export const panelDefinitions = {
         title: 'Manage Subcategory',
         parentPanelId: 'shopAdminSubCategoryItemPanel', // This will be dynamic
         items: [] // Dynamically populated
+    },
+    floatingTextListPanel: {
+        title: '§l§bFloating Text§r',
+        parentPanelId: 'mainPanel',
+        items: [] // Dynamically populated
+    },
+    floatingTextEditPanel: {
+        title: '§l§bEdit Floating Text§r',
+        parentPanelId: 'floatingTextListPanel',
+        items: [] // Modal form, no items needed
+    },
+    floatingTextCreatePanel: {
+        title: '§l§bCreate Floating Text§r',
+        parentPanelId: 'floatingTextListPanel',
+        items: [] // Modal form, no items needed
     }
 };
 

@@ -1,7 +1,6 @@
 import { registerCommand } from './commandManager.js';
 import { floatingTextManager } from '../../core/floatingTextManager.js';
-import { openPanel } from '../../core/ui/panelRegistry.js';
-import '../../core/ui/floatingTextPanel.js'; // Import to register the panels
+import { showPanel } from '../../core/uiManager.js';
 
 registerCommand('floatingtext', {
     description: 'Manage floating text displays. Opens UI if no args.',
@@ -10,7 +9,7 @@ registerCommand('floatingtext', {
     handler: (player, args) => {
         // If no subcommand is provided, open the main list panel
         if (args.length === 0) {
-            openPanel(player, 'floatingTextList');
+            showPanel(player, 'floatingTextListPanel');
             return;
         }
         // Fallback to showing help or error if a subcommand was intended but not matched
@@ -70,11 +69,11 @@ registerCommand('floatingtext', {
                 const id = args[0];
                 if (!id) {
                     // If no ID is provided, open the main list view
-                    openPanel(player, 'floatingTextList');
+                    showPanel(player, 'floatingTextListPanel');
                     return;
                 }
                 // If an ID is provided, open the edit panel for that specific text
-                openPanel(player, 'floatingTextEdit', { id });
+                showPanel(player, 'floatingTextEditPanel', { id });
             }
         }
     }

@@ -703,6 +703,50 @@ export async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId === 'floatingTextListPanel') {
+        const { floatingTextManager } = await import('../floatingTextManager.js');
+        const form = new ActionFormData()
+            .title(panelDefinitions[panelId].title)
+            .button('§l§8< Back', 'textures/gui/controls/left.png')
+            .button('§l§2+ Create New', 'textures/ui/color_plus');
+
+        const texts = floatingTextManager.getAllTexts();
+        if (texts.length === 0) {
+            form.body('No floating texts have been created yet.');
+        } else {
+            for (const text of texts) {
+                form.button(text.id);
+            }
+        }
+        return form;
+    }
+
+    if (panelId === 'floatingTextEditPanel') {
+        const { floatingTextManager } = await import('../floatingTextManager.js');
+        const { id } = context;
+        const text = floatingTextManager.getTextById(id);
+        if (!text) {
+            errorLog(`[UIManager] floatingTextEditPanel: Text with ID ${id} not found.`);
+            return null;
+        }
+        const form = new ModalFormData()
+            .title(`Edit: ${id}`)
+            .textField('Text Content', 'Enter the text to display', { defaultValue: text.text })
+            .toggle('Is Dynamic (use placeholders)', { defaultValue: text.isDynamic })
+            .slider('Update Interval (seconds)', 1, 60, 1, { defaultValue: text.updateInterval / 20 })
+            .toggle('Enable Expiration Timer', { defaultValue: !!text.expiresAt })
+            .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: text.expiresAt ? String(Math.round((text.expiresAt - Date.now()) / 60000)) : '0' });
+        return form;
+    }
+
+    if (panelId === 'floatingTextCreatePanel') {
+        const form = new ModalFormData()
+            .title('Create New Floating Text')
+            .textField('Unique ID', 'e.g., "welcome_message"')
+            .textField('Text Content', 'Enter the text, use {placeholders} for dynamic text');
+        return form;
+    }
+
     if (panelId === 'addHelpfulLinkPanel') {
         const panelDef = panelDefinitions[panelId];
         const form = new ModalFormData()
