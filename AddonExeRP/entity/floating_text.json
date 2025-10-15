@@ -7,7 +7,7 @@
         "default": "armor_stand"
       },
       "textures": {
-        "default": "textures/entity/invisible"
+        "default": "textures/entity/invisible.png"
       },
       "geometry": {
         "default": "geometry.invisible"

@@ -1,26 +1,56 @@
 import { world, system } from '@minecraft/server';
-import { Database } from './dataManager.js';
-import { errorLog } from './logger.js';
+import { errorLog, debugLog } from './logger.js';
 import { resolvePlaceholders } from './placeholderManager.js';
 
-const db = new Database('floatingText');
-let floatingTexts = [];
+const floatingTextDataKey = 'exe:floatingTextData';
+let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
 const activeEntities = new Map(); // Map<textId, entity>
 
+function loadTexts() {
+    try {
+        const dataString = world.getDynamicProperty(floatingTextDataKey);
+        if (dataString && typeof dataString === 'string') {
+            const parsedData = JSON.parse(dataString);
+            floatingTexts = new Map(parsedData);
+            debugLog(`[FloatingText] Loaded ${floatingTexts.size} floating texts.`);
+        } else {
+            debugLog('[FloatingText] No floating text data found. Starting fresh.');
+        }
+    } catch (e) {
+        errorLog(`[FloatingText] Failed to load floating text data: ${e.stack}`);
+        floatingTexts = new Map();
+    }
+}
+
+function saveTexts() {
+    try {
+        const dataToSave = Array.from(floatingTexts.entries());
+        world.setDynamicProperty(floatingTextDataKey, JSON.stringify(dataToSave));
+    } catch (e) {
+        errorLog(`[FloatingText] Failed to save floating text data: ${e.stack}`);
+    }
+}
+
 function initialize() {
-    floatingTexts = db.values();
-    console.log(`[FloatingText] Initialized. Loaded ${floatingTexts.length} texts.`);
+    loadTexts();
     spawnAllTexts();
 
-    // Start the recurring health check and update task
     system.runInterval(() => {
         healthCheck();
         updateDynamicTexts();
-    }, 100); // Run every 5 seconds (100 ticks)
+        // Also check for expired texts
+        const now = Date.now();
+        for (const [id, textConfig] of floatingTexts.entries()) {
+            if (textConfig.expiresAt && now >= textConfig.expiresAt) {
+                deleteText(null, id); // No player context for automatic deletion
+                debugLog(`[FloatingText] Expired and removed text with ID: ${id}`);
+            }
+        }
+    }, 100);
 }
 
 function spawnAllTexts() {
-    for (const textConfig of floatingTexts) {
+    for (const textConfig of floatingTexts.values()) {
         spawnText(textConfig);
     }
 }
@@ -37,22 +67,20 @@ function spawnText(textConfig) {
 }
 
 function healthCheck() {
-    for (const textConfig of floatingTexts) {
+    for (const textConfig of floatingTexts.values()) {
         const entity = activeEntities.get(textConfig.id);
         if (!entity || !entity.isValid()) {
-            console.log(`[FloatingText] Health check failed for ID: ${textConfig.id}. Respawning...`);
+            debugLog(`[FloatingText] Health check failed for ID: ${textConfig.id}. Respawning...`);
             spawnText(textConfig);
         }
     }
 }
 
 function updateDynamicTexts() {
-    for (const textConfig of floatingTexts) {
+    for (const textConfig of floatingTexts.values()) {
         if (textConfig.isDynamic) {
             const entity = activeEntities.get(textConfig.id);
             if (entity && entity.isValid()) {
-                // Placeholder for the actual dynamic text update logic
-                // This will be implemented in the next step
                 const newText = getUpdatedText(textConfig);
                 if (entity.nameTag !== newText) {
                     entity.nameTag = newText;
@@ -67,11 +95,11 @@ function getUpdatedText(textConfig) {
 }
 
 function getAllTexts() {
-    return floatingTexts;
+    return Array.from(floatingTexts.values());
 }
 
 function getTextById(id) {
-    return floatingTexts.find(t => t.id === id);
+    return floatingTexts.get(id);
 }
 
 function updateText(id, updates) {
@@ -79,17 +107,17 @@ function updateText(id, updates) {
     if (!textConfig) return;
 
     Object.assign(textConfig, updates);
-    db.set(id, textConfig);
+    floatingTexts.set(id, textConfig);
+    saveTexts();
 
-    // If the text content itself is updated, update the entity nametag immediately
     const entity = activeEntities.get(id);
     if (updates.text && entity && entity.isValid()) {
-        entity.nameTag = updates.text;
+        entity.nameTag = getUpdatedText(textConfig); // Resolve placeholders on update
     }
 }
 
 function createText(player, id, text) {
-    if (db.has(id)) {
+    if (floatingTexts.has(id)) {
         player.sendMessage(`§cFloating text with ID "${id}" already exists.`);
         return false;
     }
@@ -97,44 +125,45 @@ function createText(player, id, text) {
     const newTextConfig = {
         id,
         text,
-        location: player.location,
+        location: { x: player.location.x, y: player.location.y, z: player.location.z },
         dimension: player.dimension.id,
         isDynamic: text.includes('{'),
         updateInterval: 100,
         expiresAt: null
     };
 
-    db.set(id, newTextConfig);
-    floatingTexts.push(newTextConfig);
+    floatingTexts.set(id, newTextConfig);
+    saveTexts();
     spawnText(newTextConfig);
     player.sendMessage(`§aSuccessfully created floating text with ID "${id}".`);
     return true;
 }
 
 function deleteText(player, id) {
-    if (!db.has(id)) {
-        player.sendMessage(`§cFloating text with ID "${id}" not found.`);
+    if (!floatingTexts.has(id)) {
+        if (player) player.sendMessage(`§cFloating text with ID "${id}" not found.`);
         return;
     }
 
-    db.delete(id);
-    floatingTexts = floatingTexts.filter(t => t.id !== id);
+    floatingTexts.delete(id);
+    saveTexts();
+
     const entity = activeEntities.get(id);
     if (entity && entity.isValid()) {
         entity.remove();
     }
     activeEntities.delete(id);
-    player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);
+    if (player) player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);
 }
 
 function listTexts(player) {
-    if (floatingTexts.length === 0) {
+    if (floatingTexts.size === 0) {
         player.sendMessage('§eThere are no floating texts.');
         return;
     }
 
     player.sendMessage('§a--- Floating Texts ---');
-    for (const text of floatingTexts) {
+    for (const text of floatingTexts.values()) {
         player.sendMessage(`- ID: ${text.id}, Text: "${text.text}"`);
     }
 }
