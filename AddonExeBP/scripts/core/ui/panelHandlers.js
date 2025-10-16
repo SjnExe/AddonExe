@@ -91,14 +91,17 @@ export async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, 'floatingTextActionPanel', context);
         }
         const { id } = context;
-        const [textContent, x, y, z, scale, isDynamic, updateInterval, useExpiration, expirationMinutes] = formValues;
+        const [textContent, x, y, z, scale, isDynamic, updateInterval, useExpiration, expirationMinutes, snapRotation, hover, sway] = formValues;
         const updatedConfig = {
             text: textContent,
             location: { x: parseFloat(x), y: parseFloat(y), z: parseFloat(z) },
             scale: parseFloat(scale),
             isDynamic: isDynamic,
             updateInterval: updateInterval * 20,
-            expiresAt: useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
+            expiresAt: useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null,
+            snapRotation,
+            hover,
+            sway
         };
         floatingTextManager.updateText(id, updatedConfig);
         player.sendMessage(`§aSuccessfully updated floating text: ${id}`);

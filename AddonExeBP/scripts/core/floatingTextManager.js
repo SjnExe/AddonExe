@@ -63,6 +63,15 @@ function spawnText(textConfig) {
         if (scaleComponent) {
             scaleComponent.value = textConfig.scale || 1;
         }
+        if (textConfig.snapRotation) {
+            entity.triggerEvent('enable_snap_rotation');
+        }
+        if (textConfig.hover) {
+            entity.triggerEvent('enable_hover');
+        }
+        if (textConfig.sway) {
+            entity.triggerEvent('enable_sway');
+        }
         activeEntities.set(textConfig.id, entity);
     } catch (error) {
         errorLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id}`, error);
@@ -100,6 +109,18 @@ function updateText(id, updates) {
     const textConfig = getTextById(id);
     if (!textConfig) return;
 
+    // Handle boolean toggles for behaviors
+    const behaviorToggles = ['snapRotation', 'hover', 'sway'];
+    for (const toggle of behaviorToggles) {
+        if (updates[toggle] !== undefined && updates[toggle] !== textConfig[toggle]) {
+            const entity = activeEntities.get(id);
+            if (entity && entity.isValid()) {
+                const eventName = updates[toggle] ? `enable_${toggle.toLowerCase()}` : `disable_${toggle.toLowerCase()}`;
+                entity.triggerEvent(eventName.replace('snaprotation', 'snap_rotation')); // Handle snake_case
+            }
+        }
+    }
+
     Object.assign(textConfig, updates);
     floatingTexts.set(id, textConfig);
     saveTexts();
@@ -135,7 +156,10 @@ function createText(player, id, text) {
         isDynamic: text.includes('{'),
         updateInterval: 100,
         expiresAt: null,
-        scale: 1
+        scale: 1,
+        snapRotation: false,
+        hover: false,
+        sway: false
     };
 
     floatingTexts.set(id, newTextConfig);
