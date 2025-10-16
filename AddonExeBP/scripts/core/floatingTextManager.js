@@ -1,5 +1,5 @@
 import { world, system } from '@minecraft/server';
-import { errorLog, debugLog } from './logger.js';
+import { errorLog } from './logger.js';
 import { resolvePlaceholders } from './placeholderManager.js';
 
 const floatingTextDataKey = 'exe:floatingTextData';
@@ -12,9 +12,9 @@ function loadTexts() {
         if (dataString && typeof dataString === 'string') {
             const parsedData = JSON.parse(dataString);
             floatingTexts = new Map(parsedData);
-            debugLog(`[FloatingText] Loaded ${floatingTexts.size} floating texts.`);
+            console.log(`[FloatingText] Loaded ${floatingTexts.size} floating texts.`);
         } else {
-            debugLog('[FloatingText] No floating text data found. Starting fresh.');
+            console.log('[FloatingText] No floating text data found. Starting fresh.');
         }
     } catch (e) {
         errorLog(`[FloatingText] Failed to load floating text data: ${e.stack}`);
@@ -36,17 +36,16 @@ function initialize() {
     spawnAllTexts();
 
     system.runInterval(() => {
-        healthCheck();
         updateDynamicTexts();
         // Also check for expired texts
         const now = Date.now();
         for (const [id, textConfig] of floatingTexts.entries()) {
             if (textConfig.expiresAt && now >= textConfig.expiresAt) {
                 deleteText(null, id); // No player context for automatic deletion
-                debugLog(`[FloatingText] Expired and removed text with ID: ${id}`);
+                console.log(`[FloatingText] Expired and removed text with ID: ${id}`);
             }
         }
-    }, 100);
+    }, 40);
 }
 
 function spawnAllTexts() {
@@ -66,15 +65,6 @@ function spawnText(textConfig) {
     }
 }
 
-function healthCheck() {
-    for (const textConfig of floatingTexts.values()) {
-        const entity = activeEntities.get(textConfig.id);
-        if (!entity || !entity.isValid()) {
-            debugLog(`[FloatingText] Health check failed for ID: ${textConfig.id}. Respawning...`);
-            spawnText(textConfig);
-        }
-    }
-}
 
 function updateDynamicTexts() {
     for (const textConfig of floatingTexts.values()) {
@@ -150,7 +140,7 @@ function deleteText(player, id) {
 
     const entity = activeEntities.get(id);
     if (entity && entity.isValid()) {
-        entity.remove();
+        entity.triggerEvent('minecraft:despawn');
     }
     activeEntities.delete(id);
     if (player) player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);
@@ -169,7 +159,7 @@ function listTexts(player) {
 }
 
 function teleportToText(player, id) {
-    const textConfig = floatingTexts.find(t => t.id === id);
+    const textConfig = floatingTexts.get(id);
     if (!textConfig) {
         player.sendMessage(`§cFloating text with ID "${id}" not found.`);
         return;

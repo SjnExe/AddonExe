@@ -33,6 +33,27 @@
           "cause": "all",
           "deals_damage": false
         }
+      },
+      "minecraft:is_hidden_when_invisible": {},
+      "minecraft:rideable": {
+        "seat_count": 1,
+        "family_types": [
+          "player"
+        ]
+      }
+    },
+    "events": {
+      "minecraft:despawn": {
+        "add": {
+          "component_groups": [
+            "despawn"
+          ]
+        }
+      }
+    },
+    "component_groups": {
+      "despawn": {
+        "minecraft:instant_despawn": {}
       }
     }
   }
