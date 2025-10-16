@@ -1,27 +1,29 @@
-import { registerCommand } from './commandManager.js';
+import { commandManager } from './commandManager.js';
 import { floatingTextManager } from '../../core/floatingTextManager.js';
 import { showPanel } from '../../core/uiManager.js';
 
-registerCommand('floatingtext', {
-    description: 'Manage floating text displays. Opens UI if no args.',
+commandManager.register({
+    name: 'floatingtext',
+    aliases: ['ft'],
+    description: 'Manage floating text displays.',
     category: 'Administration',
-    permissionLevel: 'admin',
-    handler: (player, args) => {
-        // If no subcommand is provided, open the main list panel
-        if (args.length === 0) {
+    permissionLevel: 1, // Admin
+    allowConsole: false,
+    parameters: [
+        { name: 'subcommand', type: 'string', optional: true, enumOptions: ['create', 'delete', 'list', 'teleport', 'edit'] },
+        { name: 'id', type: 'string', optional: true },
+        { name: 'text', type: 'text', optional: true }
+    ],
+    execute: (player, args) => {
+        const { subcommand, id, text } = args;
+
+        if (!subcommand) {
             showPanel(player, 'floatingTextListPanel');
             return;
         }
-        // Fallback to showing help or error if a subcommand was intended but not matched
-        player.sendMessage("§cUnknown subcommand. Use '!help floatingtext' for a list of commands.");
-    },
-    subCommands: {
-        create: {
-            description: 'Create a new floating text.',
-            permissionLevel: 'admin',
-            handler: (player, args) => {
-                const id = args[0];
-                const text = args.slice(1).join(' ');
+
+        switch (subcommand.toLowerCase()) {
+            case 'create':
                 if (!id || !text) {
                     player.sendMessage('§cUsage: !floatingtext create <id> <text>');
                     return;
@@ -29,52 +31,34 @@ registerCommand('floatingtext', {
                 if (floatingTextManager.createText(player, id, text)) {
                     player.sendMessage(`§aFloating text "${id}" created.`);
                 }
-            }
-        },
-        delete: {
-            description: 'Delete a floating text.',
-            permissionLevel: 'admin',
-            handler: (player, args) => {
-                const id = args[0];
+                break;
+            case 'delete':
                 if (!id) {
                     player.sendMessage('§cUsage: !floatingtext delete <id>');
                     return;
                 }
                 floatingTextManager.deleteText(player, id);
-            }
-        },
-        list: {
-            description: 'List all floating texts.',
-            permissionLevel: 'admin',
-            handler: (player) => {
+                break;
+            case 'list':
                 floatingTextManager.listTexts(player);
-            }
-        },
-        teleport: {
-            description: 'Teleport to a floating text.',
-            permissionLevel: 'admin',
-            handler: (player, args) => {
-                const id = args[0];
+                break;
+            case 'teleport':
                 if (!id) {
                     player.sendMessage('§cUsage: !floatingtext teleport <id>');
                     return;
                 }
                 floatingTextManager.teleportToText(player, id);
-            }
-        },
-        edit: {
-            description: 'Open the UI to edit a floating text.',
-            permissionLevel: 'admin',
-            handler: (player, args) => {
-                const id = args[0];
+                break;
+            case 'edit':
                 if (!id) {
-                    // If no ID is provided, open the main list view
                     showPanel(player, 'floatingTextListPanel');
-                    return;
+                } else {
+                    showPanel(player, 'floatingTextEditPanel', { id });
                 }
-                // If an ID is provided, open the edit panel for that specific text
-                showPanel(player, 'floatingTextEditPanel', { id });
-            }
+                break;
+            default:
+                player.sendMessage(`§cUnknown subcommand: ${subcommand}. Use !help floatingtext for details.`);
+                break;
         }
     }
 });
