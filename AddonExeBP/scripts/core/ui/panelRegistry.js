@@ -379,6 +379,11 @@ export const panelDefinitions = {
         title: '§l§bCreate Floating Text§r',
         parentPanelId: 'floatingTextListPanel',
         items: [] // Modal form, no items needed
+    },
+    floatingTextActionPanel: {
+        title: '§l§bFloating Text Actions§r',
+        parentPanelId: 'floatingTextListPanel',
+        items: [] // Dynamically populated
     }
 };
 

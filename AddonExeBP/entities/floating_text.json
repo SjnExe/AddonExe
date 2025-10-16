@@ -40,6 +40,9 @@
         "family_types": [
           "player"
         ]
+      },
+      "minecraft:scale": {
+        "value": 1
       }
     },
     "events": {

@@ -560,6 +560,18 @@ export async function buildPanelForm(player, panelId, context) {
         return form;
     }
 
+    if (panelId === 'floatingTextActionPanel') {
+        const { id } = context;
+        const form = new ActionFormData()
+            .title(`Actions for: ${id}`)
+            .button('Edit', 'textures/ui/icon_setting')
+            .button('Respawn', 'textures/ui/refresh_light')
+            .button('Despawn', 'textures/ui/cancel')
+            .button('§cDelete', 'textures/ui/trash')
+            .button('§l§8< Back', 'textures/gui/controls/left.png');
+        return form;
+    }
+
     // Handle dynamic shop panels before falling back to static definitions
     if (panelId.startsWith('shopCategoryPanel_')) {
         const category = panelId.replace('shopCategoryPanel_', '');
@@ -732,6 +744,10 @@ export async function buildPanelForm(player, panelId, context) {
         const form = new ModalFormData()
             .title(`Edit: ${id}`)
             .textField('Text Content', 'Enter the text to display', { defaultValue: text.text })
+            .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(text.location.x) })
+            .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(text.location.y) })
+            .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(text.location.z) })
+            .slider('Text Size (Scale)', 0.1, 5, 0.1, { defaultValue: text.scale || 1 })
             .toggle('Is Dynamic (use placeholders)', { defaultValue: text.isDynamic })
             .slider('Update Interval (seconds)', 1, 60, 1, { defaultValue: text.updateInterval / 20 })
             .toggle('Enable Expiration Timer', { defaultValue: !!text.expiresAt })

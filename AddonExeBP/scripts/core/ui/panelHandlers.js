@@ -59,26 +59,50 @@ export async function handleFormResponse(player, panelId, response, context) {
         const texts = floatingTextManager.getAllTexts();
         const selectedText = texts[selection - 2];
         if (selectedText) {
-            return showPanel(player, 'floatingTextEditPanel', { ...context, id: selectedText.id });
+            return showPanel(player, 'floatingTextActionPanel', { ...context, id: selectedText.id });
+        }
+        return;
+    }
+
+    if (panelId === 'floatingTextActionPanel') {
+        const { id } = context;
+        switch (selection) {
+            case 0: // Edit
+                return showPanel(player, 'floatingTextEditPanel', context);
+            case 1: // Respawn
+                floatingTextManager.respawnText(id);
+                player.sendMessage(`§aRespawned floating text: ${id}`);
+                return showPanel(player, 'floatingTextListPanel', context);
+            case 2: // Despawn
+                floatingTextManager.despawnText(id);
+                player.sendMessage(`§aDespawned floating text: ${id}`);
+                return showPanel(player, 'floatingTextListPanel', context);
+            case 3: // Delete
+                floatingTextManager.deleteText(player, id);
+                return showPanel(player, 'floatingTextListPanel', context);
+            case 4: // Back
+                return showPanel(player, 'floatingTextListPanel', context);
         }
         return;
     }
 
     if (panelId === 'floatingTextEditPanel') {
         if (canceled) {
-            return showPanel(player, 'floatingTextListPanel', context);
+            return showPanel(player, 'floatingTextActionPanel', context);
         }
         const { id } = context;
-        const [textContent, isDynamic, updateInterval, useExpiration, expirationMinutes] = formValues;
+        const [textContent, x, y, z, scale, isDynamic, updateInterval, useExpiration, expirationMinutes] = formValues;
         const updatedConfig = {
             text: textContent,
+            location: { x: parseFloat(x), y: parseFloat(y), z: parseFloat(z) },
+            scale: parseFloat(scale),
             isDynamic: isDynamic,
             updateInterval: updateInterval * 20,
             expiresAt: useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
         };
         floatingTextManager.updateText(id, updatedConfig);
         player.sendMessage(`§aSuccessfully updated floating text: ${id}`);
-        return showPanel(player, 'floatingTextListPanel', context);
+        return showPanel(player, 'floatingTextActionPanel', context);
     }
 
     if (panelId === 'floatingTextCreatePanel') {

@@ -59,6 +59,10 @@ function spawnText(textConfig) {
         const dimension = world.getDimension(textConfig.dimension);
         const entity = dimension.spawnEntity(`addonexe:floating_text`, textConfig.location);
         entity.nameTag = textConfig.text;
+        const scaleComponent = entity.getComponent('minecraft:scale');
+        if (scaleComponent) {
+            scaleComponent.value = textConfig.scale || 1;
+        }
         activeEntities.set(textConfig.id, entity);
     } catch (error) {
         errorLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id}`, error);
@@ -101,8 +105,19 @@ function updateText(id, updates) {
     saveTexts();
 
     const entity = activeEntities.get(id);
-    if (updates.text && entity && entity.isValid()) {
-        entity.nameTag = getUpdatedText(textConfig); // Resolve placeholders on update
+    if (entity && entity.isValid()) {
+        if (updates.text) {
+            entity.nameTag = getUpdatedText(textConfig);
+        }
+        if (updates.location) {
+            entity.teleport(updates.location, { dimension: world.getDimension(textConfig.dimension) });
+        }
+        if (updates.scale) {
+            const scaleComponent = entity.getComponent('minecraft:scale');
+            if (scaleComponent) {
+                scaleComponent.value = updates.scale;
+            }
+        }
     }
 }
 
@@ -119,7 +134,8 @@ function createText(player, id, text) {
         dimension: player.dimension.id,
         isDynamic: text.includes('{'),
         updateInterval: 100,
-        expiresAt: null
+        expiresAt: null,
+        scale: 1
     };
 
     floatingTexts.set(id, newTextConfig);
@@ -127,6 +143,22 @@ function createText(player, id, text) {
     spawnText(newTextConfig);
     player.sendMessage(`§aSuccessfully created floating text with ID "${id}".`);
     return true;
+}
+
+function despawnText(id) {
+    const entity = activeEntities.get(id);
+    if (entity && entity.isValid()) {
+        entity.triggerEvent('minecraft:despawn');
+        activeEntities.delete(id);
+    }
+}
+
+function respawnText(id) {
+    const textConfig = getTextById(id);
+    if (textConfig) {
+        despawnText(id);
+        spawnText(textConfig);
+    }
 }
 
 function deleteText(player, id) {
@@ -179,5 +211,7 @@ export const floatingTextManager = {
     teleportToText,
     getAllTexts,
     getTextById,
-    updateText
+    updateText,
+    despawnText,
+    respawnText
 };
