@@ -59,10 +59,15 @@ function spawnText(textConfig) {
         const dimension = world.getDimension(textConfig.dimension);
         const entity = dimension.spawnEntity(`addonexe:floating_text`, textConfig.location);
         entity.nameTag = textConfig.text;
-        const scaleComponent = entity.getComponent('minecraft:scale');
-        if (scaleComponent) {
-            scaleComponent.value = textConfig.scale || 1;
-        }
+
+        system.runTimeout(() => {
+            if (!entity.isValid()) return;
+            const scaleComponent = entity.getComponent('minecraft:scale');
+            if (scaleComponent) {
+                scaleComponent.value = textConfig.scale || 1;
+            }
+        }, 1);
+
         if (textConfig.snapRotation) {
             entity.triggerEvent('enable_snap_rotation');
         }
@@ -74,7 +79,11 @@ function spawnText(textConfig) {
         }
         activeEntities.set(textConfig.id, entity);
     } catch (error) {
-        errorLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id}`, error);
+        if (error.toString().includes('LocationInUnloadedChunkError')) {
+            console.log(`[FloatingText] Failed to spawn text with ID: ${textConfig.id} because the chunk is not loaded. It will be spawned when the chunk is loaded.`);
+        } else {
+            errorLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id}`, error);
+        }
     }
 }
 

@@ -12,8 +12,8 @@
         "family": ["inanimate", "floating_text"]
       },
       "minecraft:collision_box": {
-        "width": 0.1,
-        "height": 0.1
+        "width": 0,
+        "height": 0
       },
       "minecraft:health": {
         "value": 1,
@@ -35,23 +35,8 @@
         }
       },
       "minecraft:is_hidden_when_invisible": {},
-      "minecraft:rideable": {
-        "seat_count": 1,
-        "family_types": [
-          "player"
-        ]
-      },
       "minecraft:scale": {
         "value": 1
-      }
-    },
-    "events": {
-      "minecraft:despawn": {
-        "add": {
-          "component_groups": [
-            "despawn"
-          ]
-        }
       }
     },
     "component_groups": {

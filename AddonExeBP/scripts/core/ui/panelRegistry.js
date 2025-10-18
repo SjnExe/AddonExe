@@ -85,7 +85,7 @@ export const panelDefinitions = {
             {
                 id: 'floatingText',
                 text: '§bFloating Text',
-                icon: 'textures/items/writable_book',
+                icon: 'textures/ui/text_color_paintbrush',
                 permissionLevel: 1, // Admin and above
                 actionType: 'openPanel',
                 actionValue: 'floatingTextListPanel',
@@ -148,7 +148,7 @@ export const panelDefinitions = {
             {
                 id: 'shop',
                 text: '§2Shop',
-                icon: 'textures/items/emerald.png',
+                icon: 'textures/ui/trade_icon',
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',
                 actionValue: 'shopMainPanel',
