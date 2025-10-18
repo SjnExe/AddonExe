@@ -34,10 +34,7 @@
           "deals_damage": false
         }
       },
-      "minecraft:is_hidden_when_invisible": {},
-      "minecraft:scale": {
-        "value": 1
-      }
+      "minecraft:is_hidden_when_invisible": {}
     },
     "component_groups": {
       "despawn": {

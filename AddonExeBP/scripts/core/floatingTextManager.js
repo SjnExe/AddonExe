@@ -60,14 +60,6 @@ function spawnText(textConfig) {
         const entity = dimension.spawnEntity(`addonexe:floating_text`, textConfig.location);
         entity.nameTag = textConfig.text;
 
-        system.runTimeout(() => {
-            if (!entity.isValid()) return;
-            const scaleComponent = entity.getComponent('minecraft:scale');
-            if (scaleComponent) {
-                scaleComponent.value = textConfig.scale || 1;
-            }
-        }, 1);
-
         if (textConfig.snapRotation) {
             entity.triggerEvent('enable_snap_rotation');
         }
@@ -142,12 +134,6 @@ function updateText(id, updates) {
         if (updates.location) {
             entity.teleport(updates.location, { dimension: world.getDimension(textConfig.dimension) });
         }
-        if (updates.scale) {
-            const scaleComponent = entity.getComponent('minecraft:scale');
-            if (scaleComponent) {
-                scaleComponent.value = updates.scale;
-            }
-        }
     }
 }
 
@@ -165,7 +151,6 @@ function createText(player, id, text) {
         isDynamic: text.includes('{'),
         updateInterval: 100,
         expiresAt: null,
-        scale: 1,
         snapRotation: false,
         hover: false,
         sway: false
