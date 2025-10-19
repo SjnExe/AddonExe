@@ -164,34 +164,32 @@ function createText(player, id, text) {
     return true;
 }
 
-async function despawnText(id) {
+function despawnText(id) {
     const textConfig = getTextById(id);
     if (!textConfig) return;
 
     const tickingAreaName = `ft_${id}`;
     const { x, y, z } = textConfig.location;
-    const dimension = textConfig.dimension;
+    const dimension = world.getDimension(textConfig.dimension);
 
-    try {
-        // Add a ticking area to ensure the chunk is loaded
-        await world.getDimension(dimension).runCommandAsync(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
-
-        // Kill the entity using its unique tag
-        await world.getDimension(dimension).runCommandAsync(`kill @e[type=addonexe:floating_text,tag=${tickingAreaName}]`);
-
-        // Remove the ticking area
-        await world.getDimension(dimension).runCommandAsync(`tickingarea remove ${tickingAreaName}`);
-
-        activeEntities.delete(id);
-    } catch (error) {
-        errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
-        // Ensure the ticking area is removed even if the kill command fails
+    system.runTimeout(() => {
         try {
-            await world.getDimension(dimension).runCommandAsync(`tickingarea remove ${tickingAreaName}`);
-        } catch (e) {
-            // Ignore errors here, as the area may not have been added
+            dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
+            system.runTimeout(() => {
+                dimension.runCommand(`kill @e[type=addonexe:floating_text,tag=ft_${id}]`);
+                dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
+                activeEntities.delete(id);
+            }, 5);
+        } catch (error) {
+            errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
+            // Ensure the ticking area is removed even if the kill command fails
+            try {
+                dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
+            } catch (e) {
+                // Ignore errors here, as the area may not have been added
+            }
         }
-    }
+    }, 1);
 }
 
 function respawnText(id) {
@@ -208,14 +206,10 @@ function deleteText(player, id) {
         return;
     }
 
+    despawnText(id);
     floatingTexts.delete(id);
     saveTexts();
 
-    const entity = activeEntities.get(id);
-    if (entity && entity.isValid()) {
-        entity.triggerEvent('minecraft:despawn');
-    }
-    activeEntities.delete(id);
     if (player) player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);
 }
 
