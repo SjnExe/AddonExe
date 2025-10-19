@@ -59,6 +59,7 @@ function spawnText(textConfig) {
         const dimension = world.getDimension(textConfig.dimension);
         const entity = dimension.spawnEntity(`addonexe:floating_text`, textConfig.location);
         entity.nameTag = textConfig.text;
+        entity.addTag(`ft_${textConfig.id}`);
 
         if (textConfig.snapRotation) {
             entity.triggerEvent('enable_snap_rotation');
@@ -163,11 +164,33 @@ function createText(player, id, text) {
     return true;
 }
 
-function despawnText(id) {
-    const entity = activeEntities.get(id);
-    if (entity && entity.isValid()) {
-        entity.triggerEvent('minecraft:despawn');
+async function despawnText(id) {
+    const textConfig = getTextById(id);
+    if (!textConfig) return;
+
+    const tickingAreaName = `ft_${id}`;
+    const { x, y, z } = textConfig.location;
+    const dimension = textConfig.dimension;
+
+    try {
+        // Add a ticking area to ensure the chunk is loaded
+        await world.getDimension(dimension).runCommandAsync(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
+
+        // Kill the entity using its unique tag
+        await world.getDimension(dimension).runCommandAsync(`kill @e[type=addonexe:floating_text,tag=${tickingAreaName}]`);
+
+        // Remove the ticking area
+        await world.getDimension(dimension).runCommandAsync(`tickingarea remove ${tickingAreaName}`);
+
         activeEntities.delete(id);
+    } catch (error) {
+        errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
+        // Ensure the ticking area is removed even if the kill command fails
+        try {
+            await world.getDimension(dimension).runCommandAsync(`tickingarea remove ${tickingAreaName}`);
+        } catch (e) {
+            // Ignore errors here, as the area may not have been added
+        }
     }
 }
 
