@@ -1,6 +1,6 @@
 import { commandManager } from './commandManager.js';
 import { floatingTextManager } from '../../core/floatingTextManager.js';
-import { showPanel } from '../../core/ui/uiManager.js';
+import { showPanel } from '../../core/uiManager.js';
 
 commandManager.register({
     name: 'floatingtext',

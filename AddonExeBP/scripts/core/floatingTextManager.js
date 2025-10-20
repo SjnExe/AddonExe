@@ -1,5 +1,5 @@
 import { world, system } from '@minecraft/server';
-import { errorLog } from './logger.js';
+import { errorLog, debugLog } from './logger.js';
 import { resolvePlaceholders } from './placeholderManager.js';
 
 const floatingTextDataKey = 'exe:floatingTextData';
@@ -12,9 +12,9 @@ function loadTexts() {
         if (dataString && typeof dataString === 'string') {
             const parsedData = JSON.parse(dataString);
             floatingTexts = new Map(parsedData);
-            console.log(`[FloatingText] Loaded ${floatingTexts.size} floating texts.`);
+            debugLog(`[FloatingText] Loaded ${floatingTexts.size} floating texts.`);
         } else {
-            console.log('[FloatingText] No floating text data found. Starting fresh.');
+            debugLog('[FloatingText] No floating text data found. Starting fresh.');
         }
     } catch (e) {
         errorLog(`[FloatingText] Failed to load floating text data: ${e.stack}`);
@@ -42,7 +42,7 @@ function initialize() {
         for (const [id, textConfig] of floatingTexts.entries()) {
             if (textConfig.expiresAt && now >= textConfig.expiresAt) {
                 deleteText(null, id); // No player context for automatic deletion
-                console.log(`[FloatingText] Expired and removed text with ID: ${id}`);
+                debugLog(`[FloatingText] Expired and removed text with ID: ${id}`);
             }
         }
     }, 40);
@@ -57,7 +57,7 @@ function spawnAllTexts() {
 function spawnText(textConfig) {
     try {
         const dimension = world.getDimension(textConfig.dimension);
-        const entity = dimension.spawnEntity(`addonexe:floating_text`, textConfig.location);
+        const entity = dimension.spawnEntity('addonexe:floating_text', textConfig.location);
         entity.nameTag = textConfig.text;
         entity.addTag(`ft_${textConfig.id}`);
 
@@ -73,7 +73,7 @@ function spawnText(textConfig) {
         activeEntities.set(textConfig.id, entity);
     } catch (error) {
         if (error.toString().includes('LocationInUnloadedChunkError')) {
-            console.log(`[FloatingText] Failed to spawn text with ID: ${textConfig.id} because the chunk is not loaded. It will be spawned when the chunk is loaded.`);
+            debugLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id} because the chunk is not loaded. It will be spawned when the chunk is loaded.`);
         } else {
             errorLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id}`, error);
         }
@@ -109,33 +109,18 @@ function getTextById(id) {
 
 function updateText(id, updates) {
     const textConfig = getTextById(id);
-    if (!textConfig) return;
+    if (!textConfig) {return;}
 
-    // Handle boolean toggles for behaviors
-    const behaviorToggles = ['snapRotation', 'hover', 'sway'];
-    for (const toggle of behaviorToggles) {
-        if (updates[toggle] !== undefined && updates[toggle] !== textConfig[toggle]) {
-            const entity = activeEntities.get(id);
-            if (entity && entity.isValid()) {
-                const eventName = updates[toggle] ? `enable_${toggle.toLowerCase()}` : `disable_${toggle.toLowerCase()}`;
-                entity.triggerEvent(eventName.replace('snaprotation', 'snap_rotation')); // Handle snake_case
-            }
-        }
-    }
+    // Despawn the old entity first
+    despawnText(id);
 
+    // Apply updates to the configuration
     Object.assign(textConfig, updates);
     floatingTexts.set(id, textConfig);
     saveTexts();
 
-    const entity = activeEntities.get(id);
-    if (entity && entity.isValid()) {
-        if (updates.text) {
-            entity.nameTag = getUpdatedText(textConfig);
-        }
-        if (updates.location) {
-            entity.teleport(updates.location, { dimension: world.getDimension(textConfig.dimension) });
-        }
-    }
+    // Spawn a new entity with the updated configuration
+    spawnText(textConfig);
 }
 
 function createText(player, id, text) {
@@ -165,8 +150,16 @@ function createText(player, id, text) {
 }
 
 function despawnText(id) {
+    const entity = activeEntities.get(id);
+    if (entity && entity.isValid()) {
+        entity.triggerEvent('minecraft:despawn');
+        activeEntities.delete(id);
+        return;
+    }
+
+    // Fallback for when the entity isn't loaded
     const textConfig = getTextById(id);
-    if (!textConfig) return;
+    if (!textConfig) {return;}
 
     const tickingAreaName = `ft_${id}`;
     const { x, y, z } = textConfig.location;
@@ -182,11 +175,10 @@ function despawnText(id) {
             }, 5);
         } catch (error) {
             errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
-            // Ensure the ticking area is removed even if the kill command fails
             try {
                 dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
-            } catch (e) {
-                // Ignore errors here, as the area may not have been added
+            } catch {
+                // Ignore
             }
         }
     }, 1);
@@ -195,6 +187,11 @@ function despawnText(id) {
 function respawnText(id) {
     const textConfig = getTextById(id);
     if (textConfig) {
+        // Clear any expiration timer when manually respawning
+        if (textConfig.expiresAt) {
+            textConfig.expiresAt = null;
+            saveTexts();
+        }
         despawnText(id);
         spawnText(textConfig);
     }
@@ -202,7 +199,7 @@ function respawnText(id) {
 
 function deleteText(player, id) {
     if (!floatingTexts.has(id)) {
-        if (player) player.sendMessage(`§cFloating text with ID "${id}" not found.`);
+        if (player) {player.sendMessage(`§cFloating text with ID "${id}" not found.`);}
         return;
     }
 
@@ -210,7 +207,7 @@ function deleteText(player, id) {
     floatingTexts.delete(id);
     saveTexts();
 
-    if (player) player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);
+    if (player) {player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);}
 }
 
 function listTexts(player) {

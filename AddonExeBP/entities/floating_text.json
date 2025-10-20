@@ -1,77 +1,77 @@
 {
-  "format_version": "1.19.0",
-  "minecraft:entity": {
-    "description": {
-      "identifier": "addonexe:floating_text",
-      "is_spawnable": false,
-      "is_summonable": true,
-      "is_experimental": false
-    },
-    "components": {
-      "minecraft:type_family": {
-        "family": ["inanimate", "floating_text"]
-      },
-      "minecraft:collision_box": {
-        "width": 0,
-        "height": 0
-      },
-      "minecraft:health": {
-        "value": 1,
-        "max": 1
-      },
-      "minecraft:nameable": {
-        "always_show": true,
-        "allow_name_tag_renaming": false
-      },
-      "minecraft:persistent": {},
-      "minecraft:physics": {
-        "has_gravity": false,
-        "has_collision": false
-      },
-      "minecraft:damage_sensor": {
-        "triggers": {
-          "cause": "all",
-          "deals_damage": false
+    "format_version": "1.19.0",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "addonexe:floating_text",
+            "is_spawnable": false,
+            "is_summonable": true,
+            "is_experimental": false
+        },
+        "components": {
+            "minecraft:type_family": {
+                "family": ["inanimate", "floating_text"]
+            },
+            "minecraft:collision_box": {
+                "width": 0,
+                "height": 0
+            },
+            "minecraft:health": {
+                "value": 1,
+                "max": 1
+            },
+            "minecraft:nameable": {
+                "always_show": true,
+                "allow_name_tag_renaming": false
+            },
+            "minecraft:persistent": {},
+            "minecraft:physics": {
+                "has_gravity": false,
+                "has_collision": false
+            },
+            "minecraft:damage_sensor": {
+                "triggers": {
+                    "cause": "all",
+                    "deals_damage": false
+                }
+            },
+            "minecraft:is_hidden_when_invisible": {}
+        },
+        "component_groups": {
+            "despawn": {
+                "minecraft:instant_despawn": {}
+            },
+            "snap_rotation": {
+                "minecraft:body_rotation_axis_aligned": {}
+            },
+            "hover_movement": {
+                "minecraft:movement.hover": {}
+            },
+            "sway_movement": {
+                "minecraft:movement.sway": {}
+            }
+        },
+        "events": {
+            "minecraft:despawn": {
+                "add": { "component_groups": ["despawn"] }
+            },
+            "enable_snap_rotation": {
+                "add": { "component_groups": ["snap_rotation"] }
+            },
+            "disable_snap_rotation": {
+                "remove": { "component_groups": ["snap_rotation"] }
+            },
+            "enable_hover": {
+                "add": { "component_groups": ["hover_movement"] }
+            },
+            "disable_hover": {
+                "remove": { "component_groups": ["hover_movement"] }
+            },
+            "enable_sway": {
+                "add": { "component_groups": ["sway_movement"] }
+            },
+            "disable_sway": {
+                "remove": { "component_groups": ["sway_movement"] }
+            }
         }
-      },
-      "minecraft:is_hidden_when_invisible": {}
-    },
-    "component_groups": {
-      "despawn": {
-        "minecraft:instant_despawn": {}
-      },
-      "snap_rotation": {
-        "minecraft:body_rotation_axis_aligned": {}
-      },
-      "hover_movement": {
-        "minecraft:movement.hover": {}
-      },
-      "sway_movement": {
-        "minecraft:movement.sway": {}
-      }
-    },
-    "events": {
-      "minecraft:despawn": {
-        "add": { "component_groups": [ "despawn" ] }
-      },
-      "enable_snap_rotation": {
-        "add": { "component_groups": [ "snap_rotation" ] }
-      },
-      "disable_snap_rotation": {
-        "remove": { "component_groups": [ "snap_rotation" ] }
-      },
-      "enable_hover": {
-        "add": { "component_groups": [ "hover_movement" ] }
-      },
-      "disable_hover": {
-        "remove": { "component_groups": [ "hover_movement" ] }
-      },
-      "enable_sway": {
-        "add": { "component_groups": [ "sway_movement" ] }
-      },
-      "disable_sway": {
-        "remove": { "component_groups": [ "sway_movement" ] }
-      }
     }
-  }
 }
