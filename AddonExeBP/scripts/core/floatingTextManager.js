@@ -111,31 +111,16 @@ function updateText(id, updates) {
     const textConfig = getTextById(id);
     if (!textConfig) {return;}
 
-    // Handle boolean toggles for behaviors
-    const behaviorToggles = ['snapRotation', 'hover', 'sway'];
-    for (const toggle of behaviorToggles) {
-        if (updates[toggle] !== undefined && updates[toggle] !== textConfig[toggle]) {
-            const entity = activeEntities.get(id);
-            if (entity && entity.isValid()) {
-                const eventName = updates[toggle] ? `enable_${toggle.toLowerCase()}` : `disable_${toggle.toLowerCase()}`;
-                entity.triggerEvent(eventName.replace('snaprotation', 'snap_rotation')); // Handle snake_case
-            }
-        }
-    }
+    // Despawn the old entity first
+    despawnText(id);
 
+    // Apply updates to the configuration
     Object.assign(textConfig, updates);
     floatingTexts.set(id, textConfig);
     saveTexts();
 
-    const entity = activeEntities.get(id);
-    if (entity && entity.isValid()) {
-        if (updates.text) {
-            entity.nameTag = getUpdatedText(textConfig);
-        }
-        if (updates.location) {
-            entity.teleport(updates.location, { dimension: world.getDimension(textConfig.dimension) });
-        }
-    }
+    // Spawn a new entity with the updated configuration
+    spawnText(textConfig);
 }
 
 function createText(player, id, text) {

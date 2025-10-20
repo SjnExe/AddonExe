@@ -743,7 +743,12 @@ export async function buildPanelForm(player, panelId, context) {
         }
 
         // Ensure defaults for properties that might be missing from older configs
+        const isDynamic = text.isDynamic ?? false;
         const updateInterval = text.updateInterval ?? 100; // Default to 5 seconds (100 ticks)
+        const expiresAt = text.expiresAt ?? null;
+        const snapRotation = text.snapRotation ?? false;
+        const hover = text.hover ?? false;
+        const sway = text.sway ?? false;
 
         const form = new ModalFormData()
             .title(`Edit: ${id}`)
@@ -751,13 +756,13 @@ export async function buildPanelForm(player, panelId, context) {
             .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(text.location.x) })
             .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(text.location.y) })
             .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(text.location.z) })
-            .toggle('Is Dynamic (use placeholders)', { defaultValue: text.isDynamic })
+            .toggle('Is Dynamic (use placeholders)', { defaultValue: isDynamic })
             .slider('Update Interval (seconds)', 1, 60, 1, { defaultValue: updateInterval / 20 })
-            .toggle('Enable Expiration Timer', { defaultValue: !!text.expiresAt })
-            .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: text.expiresAt ? String(Math.round((text.expiresAt - Date.now()) / 60000)) : '0' })
-            .toggle('Snap to Cardinal Direction', { defaultValue: !!text.snapRotation })
-            .toggle('Hovering Motion', { defaultValue: !!text.hover })
-            .toggle('Swaying Motion', { defaultValue: !!text.sway });
+            .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
+            .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' })
+            .toggle('Snap to Cardinal Direction', { defaultValue: snapRotation })
+            .toggle('Hovering Motion', { defaultValue: hover })
+            .toggle('Swaying Motion', { defaultValue: sway });
         return form;
     }
 
