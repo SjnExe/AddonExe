@@ -1,10 +1,11 @@
 import { getLeaderboard } from './playerDataManager.js';
+import { debugLog } from './logger.js';
 
 const placeholders = new Map();
 
 function registerPlaceholder(key, resolver) {
     if (placeholders.has(key)) {
-        console.warn(`[PlaceholderManager] Placeholder with key "${key}" is already registered. Overwriting.`);
+        debugLog(`[PlaceholderManager] Placeholder with key "${key}" is already registered. Overwriting.`);
     }
     placeholders.set(key, resolver);
 }
@@ -29,7 +30,7 @@ export function resolvePlaceholders(text) {
 function initializeDefaultPlaceholders() {
     registerPlaceholder('top_balance', ({ index, valueKey }) => {
         const leaderboard = getLeaderboard('balance');
-        if (index >= leaderboard.length) return '';
+        if (index >= leaderboard.length) {return '';}
 
         const playerData = leaderboard[index];
         if (valueKey === 'name') {
