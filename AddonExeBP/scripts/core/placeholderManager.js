@@ -3,6 +3,10 @@ import { debugLog } from './logger.js';
 
 const placeholders = new Map();
 
+export function getPlaceholderKeys() {
+    return Array.from(placeholders.keys());
+}
+
 function registerPlaceholder(key, resolver) {
     if (placeholders.has(key)) {
         debugLog(`[PlaceholderManager] Placeholder with key "${key}" is already registered. Overwriting.`);

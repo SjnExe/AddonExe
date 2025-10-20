@@ -195,6 +195,11 @@ function despawnText(id) {
 function respawnText(id) {
     const textConfig = getTextById(id);
     if (textConfig) {
+        // Clear any expiration timer when manually respawning
+        if (textConfig.expiresAt) {
+            textConfig.expiresAt = null;
+            saveTexts();
+        }
         despawnText(id);
         spawnText(textConfig);
     }
