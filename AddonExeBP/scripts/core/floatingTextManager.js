@@ -165,6 +165,14 @@ function createText(player, id, text) {
 }
 
 function despawnText(id) {
+    const entity = activeEntities.get(id);
+    if (entity && entity.isValid()) {
+        entity.triggerEvent('minecraft:despawn');
+        activeEntities.delete(id);
+        return;
+    }
+
+    // Fallback for when the entity isn't loaded
     const textConfig = getTextById(id);
     if (!textConfig) {return;}
 
@@ -182,11 +190,10 @@ function despawnText(id) {
             }, 5);
         } catch (error) {
             errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
-            // Ensure the ticking area is removed even if the kill command fails
             try {
                 dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
             } catch {
-                // Ignore errors here, as the area may not have been added
+                // Ignore
             }
         }
     }, 1);
