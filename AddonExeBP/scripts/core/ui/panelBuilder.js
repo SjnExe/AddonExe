@@ -519,10 +519,11 @@ function buildKitManagementPanel(form, context) {
 }
 
 export async function buildPanelForm(player, panelId, context) {
-    debugLog(`[UIManager] Building form for panel '${panelId}' for player ${player.name}.`);
+    try {
+        debugLog(`[UIManager] Building form for panel '${panelId}' for player ${player.name}.`);
 
-    if (panelId.startsWith('config_')) {
-        const categoryId = panelId.replace('config_', '');
+        if (panelId.startsWith('config_')) {
+            const categoryId = panelId.replace('config_', '');
         const category = configPanelSchema.find(c => c.id === categoryId);
         if (!category) {
             errorLog(`[UIManager] Could not find config category for ID: ${categoryId}`);
@@ -744,20 +745,32 @@ export async function buildPanelForm(player, panelId, context) {
 
         // Ensure defaults for properties that might be missing from older configs
         const isDynamic = text.isDynamic ?? false;
-        const updateInterval = text.updateInterval ?? 100; // Default to 5 seconds (100 ticks)
+
+        // Robust handling for update interval to prevent crashes with legacy data
+        let updateIntervalInTicks = text.updateInterval ?? 100;
+        if (typeof updateIntervalInTicks !== 'number' || !Number.isFinite(updateIntervalInTicks) || updateIntervalInTicks <= 0) {
+            updateIntervalInTicks = 100; // Default to 5 seconds (100 ticks)
+        }
+        let sliderDefaultValue = Math.round(updateIntervalInTicks / 20);
+        sliderDefaultValue = Math.max(1, Math.min(60, sliderDefaultValue)); // Clamp to slider's valid range [1, 60]
+
         const expiresAt = text.expiresAt ?? null;
         const snapRotation = text.snapRotation ?? false;
         const hover = text.hover ?? false;
         const sway = text.sway ?? false;
 
+        const { getPlaceholderKeys } = await import('../placeholderManager.js');
+        const placeholders = getPlaceholderKeys();
+        const placeholderText = placeholders.length > 0 ? `\nAvailable Placeholders: {${placeholders.join('}, {')}}` : '';
+
         const form = new ModalFormData()
             .title(`Edit: ${id}`)
-            .textField('Text Content', 'Enter the text to display', { defaultValue: text.text })
-            .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(text.location.x) })
-            .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(text.location.y) })
-            .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(text.location.z) })
+            .textField(`Text Content${placeholderText}`, 'Enter the text to display', { defaultValue: text.text ?? '' })
+            .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(text.location?.x ?? 0) })
+            .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(text.location?.y ?? 0) })
+            .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(text.location?.z ?? 0) })
             .toggle('Is Dynamic (use placeholders)', { defaultValue: isDynamic })
-            .slider('Update Interval (seconds)', 1, 60, 1, { defaultValue: updateInterval / 20 })
+            .slider('Update Interval (seconds)', 1, 60, 1, { defaultValue: sliderDefaultValue })
             .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
             .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' })
             .toggle('Snap to Cardinal Direction', { defaultValue: snapRotation })
@@ -769,12 +782,12 @@ export async function buildPanelForm(player, panelId, context) {
     if (panelId === 'floatingTextCreatePanel') {
         const { getPlaceholderKeys } = await import('../placeholderManager.js');
         const placeholders = getPlaceholderKeys();
-        const placeholderText = placeholders.length > 0 ? `Available Placeholders: {${placeholders.join('}, {')}}` : 'No dynamic placeholders available.';
+        const placeholderText = placeholders.length > 0 ? `\nAvailable Placeholders: {${placeholders.join('}, {')}}` : '';
 
         const form = new ModalFormData()
             .title('Create New Floating Text')
             .textField('Unique ID', 'e.g., "welcome_message"')
-            .textField('Text Content', `Enter text. ${placeholderText}`);
+            .textField(`Text Content${placeholderText}`, 'Enter text to display');
         return form;
     }
 
@@ -1057,4 +1070,13 @@ export async function buildPanelForm(player, panelId, context) {
     }
     debugLog(`[UIManager] Successfully built form for panel '${panelId}' with ${menuItems.length} items.`);
     return form;
+    } catch (e) {
+        const textConfig = panelId === 'floatingTextEditPanel' && context.id ? (await import('../floatingTextManager.js')).floatingTextManager.getTextById(context.id) : null;
+        errorLog(`[UIManager] Critical error while building form '${panelId}'.`, {
+            error: e.stack,
+            context: context,
+            textConfig: textConfig
+        });
+        return null;
+    }
 }

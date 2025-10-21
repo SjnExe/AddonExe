@@ -5,6 +5,7 @@ import { resolvePlaceholders } from './placeholderManager.js';
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
 const activeEntities = new Map(); // Map<textId, entity>
+const pendingDespawns = new Map(); // Map<textId, timeoutId>
 
 function loadTexts() {
     try {
@@ -159,32 +160,54 @@ function despawnText(id) {
 
     // Fallback for when the entity isn't loaded
     const textConfig = getTextById(id);
-    if (!textConfig) {return;}
+    if (!textConfig || !textConfig.location) {
+        errorLog(`[FloatingText] Cannot despawn text with ID: ${id} due to missing config or location.`);
+        return;
+    }
+
+    // If there's already a pending despawn, don't create another one.
+    if (pendingDespawns.has(id)) {return;}
 
     const tickingAreaName = `ft_${id}`;
     const { x, y, z } = textConfig.location;
     const dimension = world.getDimension(textConfig.dimension);
 
-    system.runTimeout(() => {
+    const timeoutId = system.runTimeout(() => {
         try {
             dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
             system.runTimeout(() => {
-                dimension.runCommand(`kill @e[type=addonexe:floating_text,tag=ft_${id}]`);
-                dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
-                activeEntities.delete(id);
-            }, 5);
+                try {
+                    dimension.runCommand(`kill @e[type=addonexe:floating_text,tag=ft_${id}]`);
+                    activeEntities.delete(id);
+                } catch (killError) {
+                    errorLog(`[FloatingText] Failed during kill command for ID: ${id}`, killError);
+                } finally {
+                    dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
+                    pendingDespawns.delete(id); // Clean up after execution
+                }
+            }, 10); // Increased delay to ensure ticking area is loaded
         } catch (error) {
             errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
             try {
                 dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
             } catch {
-                // Ignore
+                // Ignore cleanup error
             }
+            pendingDespawns.delete(id); // Clean up on failure
         }
-    }, 1);
+    }, 5); // Initial delay before adding ticking area
+
+    pendingDespawns.set(id, timeoutId);
 }
 
 function respawnText(id) {
+    // Cancel any pending command-based despawn to prevent race conditions
+    if (pendingDespawns.has(id)) {
+        system.clearTimeout(pendingDespawns.get(id));
+        pendingDespawns.delete(id);
+        debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to respawn.`);
+    }
+
     const textConfig = getTextById(id);
     if (textConfig) {
         // Clear any expiration timer when manually respawning
@@ -192,8 +215,10 @@ function respawnText(id) {
             textConfig.expiresAt = null;
             saveTexts();
         }
-        despawnText(id);
-        spawnText(textConfig);
+        despawnText(id); // Despawn the current entity if it exists
+        system.runTimeout(() => {
+            spawnText(textConfig); // Spawn the new one after a short delay
+        }, 5);
     }
 }
 
