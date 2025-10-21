@@ -743,21 +743,27 @@ export async function buildPanelForm(player, panelId, context) {
             return null;
         }
 
-        // Ensure defaults for properties that might be missing from older configs
-        const isDynamic = text.isDynamic ?? false;
+        // Create a sanitized object with safe defaults to prevent crashes from legacy data.
+        const safeText = {
+            text: text.text ?? '',
+            location: {
+                x: text.location?.x ?? 0,
+                y: text.location?.y ?? 0,
+                z: text.location?.z ?? 0
+            },
+            isDynamic: text.isDynamic ?? false,
+            expiresAt: text.expiresAt ?? null,
+            snapRotation: text.snapRotation ?? false,
+            hover: text.hover ?? false,
+            sway: text.sway ?? false
+        };
 
-        // Robust handling for update interval to prevent crashes with legacy data
-        let updateIntervalInTicks = text.updateInterval ?? 100;
-        if (typeof updateIntervalInTicks !== 'number' || !Number.isFinite(updateIntervalInTicks) || updateIntervalInTicks <= 0) {
-            updateIntervalInTicks = 100; // Default to 5 seconds (100 ticks)
+        // Robust handling for update interval, clamping to the slider's valid range.
+        let updateInterval = text.updateInterval ?? 100;
+        if (typeof updateInterval !== 'number' || !Number.isFinite(updateInterval) || updateInterval <= 0) {
+            updateInterval = 100;
         }
-        let sliderDefaultValue = Math.round(updateIntervalInTicks / 20);
-        sliderDefaultValue = Math.max(1, Math.min(60, sliderDefaultValue)); // Clamp to slider's valid range [1, 60]
-
-        const expiresAt = text.expiresAt ?? null;
-        const snapRotation = text.snapRotation ?? false;
-        const hover = text.hover ?? false;
-        const sway = text.sway ?? false;
+        const sliderDefaultValue = Math.max(1, Math.min(60, Math.round(updateInterval / 20)));
 
         const { getPlaceholderKeys } = await import('../placeholderManager.js');
         const placeholders = getPlaceholderKeys();
@@ -765,17 +771,17 @@ export async function buildPanelForm(player, panelId, context) {
 
         const form = new ModalFormData()
             .title(`Edit: ${id}`)
-            .textField(`Text Content${placeholderText}`, 'Enter the text to display', { defaultValue: text.text ?? '' })
-            .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(text.location?.x ?? 0) })
-            .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(text.location?.y ?? 0) })
-            .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(text.location?.z ?? 0) })
-            .toggle('Is Dynamic (use placeholders)', { defaultValue: isDynamic })
+            .textField(`Text Content${placeholderText}`, 'Enter the text to display', { defaultValue: safeText.text })
+            .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(safeText.location.x) })
+            .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(safeText.location.y) })
+            .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(safeText.location.z) })
+            .toggle('Is Dynamic (use placeholders)', { defaultValue: safeText.isDynamic })
             .slider('Update Interval (seconds)', 1, 60, 1, { defaultValue: sliderDefaultValue })
-            .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
-            .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' })
-            .toggle('Snap to Cardinal Direction', { defaultValue: snapRotation })
-            .toggle('Hovering Motion', { defaultValue: hover })
-            .toggle('Swaying Motion', { defaultValue: sway });
+            .toggle('Enable Expiration Timer', { defaultValue: !!safeText.expiresAt })
+            .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: safeText.expiresAt ? String(Math.round((safeText.expiresAt - Date.now()) / 60000)) : '0' })
+            .toggle('Snap to Cardinal Direction', { defaultValue: safeText.snapRotation })
+            .toggle('Hovering Motion', { defaultValue: safeText.hover })
+            .toggle('Swaying Motion', { defaultValue: safeText.sway });
         return form;
     }
 
