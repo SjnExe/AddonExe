@@ -1078,7 +1078,8 @@ export async function buildPanelForm(player, panelId, context) {
         return form;
     } catch (e) {
         const textConfig = panelId === 'floatingTextEditPanel' && context.id ? (await import('../floatingTextManager.js')).floatingTextManager.getTextById(context.id) : null;
-        errorLog(`[UIManager] Critical error while building form '${panelId}'. Full error: ${e.stack}`, {
+        errorLog(`[UIManager] Critical error while building form '${panelId}'.`, {
+            error: e,
             context: context,
             textConfig: textConfig
         });
