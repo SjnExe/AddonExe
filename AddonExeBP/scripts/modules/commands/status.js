@@ -1,5 +1,6 @@
 import { commandManager } from './commandManager.js';
 import { world, system } from '@minecraft/server';
+import { sendMessage } from '../../core/messaging.js';
 
 commandManager.register({
     name: 'status',
@@ -8,7 +9,11 @@ commandManager.register({
     permissionLevel: 1024, // Everyone
     allowConsole: true,
     parameters: [],
-    execute: (player, args) => {
+    /**
+     * Executes the /status command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     */
+    execute: (player) => {
         const onlinePlayers = world.getAllPlayers().length;
         const statusText = [
             '§l§b--- Server Status ---§r',
@@ -16,6 +21,6 @@ commandManager.register({
             `§eCurrent Tick: §f${system.currentTick}`
         ].join('\n');
 
-        player.sendMessage(statusText);
+        sendMessage(statusText, player, { raw: true });
     }
 });
