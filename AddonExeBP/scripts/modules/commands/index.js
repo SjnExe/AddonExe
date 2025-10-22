@@ -45,7 +45,7 @@ const commandFiles = [
     // --- Administration Commands ---
     'announcement.js',
     'dimensionLock.js',
-    'debug.js',
+    'log.js',
     'gamemode.js',
     'rank.js',
     'reload.js',
@@ -55,7 +55,9 @@ const commandFiles = [
     'tp.js',
     'chattoconsole.js',
     'xraynotify.js',
-    'floatingtext.js'
+    'floatingtext.js',
+    'test1.js',
+    'test2.js'
 ];
 
 async function loadCommands() {

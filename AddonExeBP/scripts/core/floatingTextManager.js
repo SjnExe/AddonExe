@@ -110,18 +110,32 @@ function getTextById(id) {
 
 function updateText(id, updates) {
     const textConfig = getTextById(id);
-    if (!textConfig) {return;}
+    if (!textConfig) { return; }
 
-    // Despawn the old entity first
+    // Cancel any pending command-based despawn from a PREVIOUS operation
+    if (pendingDespawns.has(id)) {
+        system.clearTimeout(pendingDespawns.get(id));
+        pendingDespawns.delete(id);
+        debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to update.`);
+    }
+
+    // Despawn the old entity. This might schedule a NEW pending despawn.
     despawnText(id);
 
     // Apply updates to the configuration
     Object.assign(textConfig, updates);
+    // Ensure expiresAt is explicitly set to null if not provided in the update,
+    // preventing an old timer from persisting across edits.
+    if (!updates.hasOwnProperty('expiresAt')) {
+        textConfig.expiresAt = null;
+    }
     floatingTexts.set(id, textConfig);
     saveTexts();
 
-    // Spawn a new entity with the updated configuration
-    spawnText(textConfig);
+    // Spawn a new entity after a delay long enough for the async despawn to complete.
+    system.runTimeout(() => {
+        spawnText(textConfig);
+    }, 20); // 20 ticks > 5+10 ticks used by despawnText fallback
 }
 
 function createText(player, id, text) {
@@ -218,7 +232,7 @@ function respawnText(id) {
         despawnText(id); // Despawn the current entity if it exists
         system.runTimeout(() => {
             spawnText(textConfig); // Spawn the new one after a short delay
-        }, 5);
+        }, 20); // 20 ticks > 5+10 ticks used by despawnText fallback
     }
 }
 
