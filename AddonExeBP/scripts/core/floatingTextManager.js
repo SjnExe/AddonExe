@@ -108,7 +108,7 @@ function getTextById(id) {
     return floatingTexts.get(id);
 }
 
-function updateText(id, updates) {
+async function updateText(id, updates) {
     const textConfig = getTextById(id);
     if (!textConfig) { return; }
 
@@ -120,7 +120,7 @@ function updateText(id, updates) {
     }
 
     // Despawn the old entity. This might schedule a NEW pending despawn.
-    despawnText(id);
+    await despawnText(id);
 
     // Apply updates to the configuration
     Object.assign(textConfig, updates);
@@ -168,67 +168,67 @@ function createText(player, id, text) {
     return true;
 }
 
-function despawnText(id, callback) {
-    const entity = activeEntities.get(id);
-    if (entity && entity.isValid()) {
-        entity.remove();
-        activeEntities.delete(id);
-        callback?.();
-        return;
-    }
-
-    // Fallback for when the entity isn't loaded
-    const textConfig = getTextById(id);
-    if (!textConfig || !textConfig.location) {
-        errorLog(`[FloatingText] Cannot despawn text with ID: ${id} due to missing config or location.`);
-        callback?.();
-        return;
-    }
-
-    // If there's already a pending despawn, don't create another one.
-    if (pendingDespawns.has(id)) {
-        callback?.();
-        return;
-    }
-
-    const tickingAreaName = `ft_${id}`;
-    const { x, y, z } = textConfig.location;
-    const dimension = world.getDimension(textConfig.dimension);
-
-    const timeoutId = system.runTimeout(() => {
-        try {
-            dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
-            system.runTimeout(() => {
-                try {
-                    const entities = dimension.getEntities({ type: 'addonexe:floating_text', tags: [`ft_${id}`] });
-                    for (const entity of entities) {
-                        entity.remove();
-                    }
-                    activeEntities.delete(id);
-                } catch (scriptError) {
-                    errorLog(`[FloatingText] Failed during entity.remove() for ID: ${id}`, scriptError);
-                } finally {
-                    dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
-                    pendingDespawns.delete(id);
-                    callback?.();
-                }
-            }, 10);
-        } catch (error) {
-            errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
-            try {
-                dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
-            } catch {
-            // Ignore cleanup
-            }
-            pendingDespawns.delete(id);
-            callback?.();
+function despawnText(id) {
+    return new Promise((resolve) => {
+        const entity = activeEntities.get(id);
+        if (entity && entity.isValid()) {
+            entity.remove();
+            activeEntities.delete(id);
+            resolve();
+            return;
         }
-    }, 5);
 
-    pendingDespawns.set(id, timeoutId);
+        const textConfig = getTextById(id);
+        if (!textConfig || !textConfig.location) {
+            errorLog(`[FloatingText] Cannot despawn text with ID: ${id} due to missing config or location.`);
+            resolve();
+            return;
+        }
+
+        if (pendingDespawns.has(id)) {
+            resolve();
+            return;
+        }
+
+        const tickingAreaName = `ft_${id}`;
+        const { x, y, z } = textConfig.location;
+        const dimension = world.getDimension(textConfig.dimension);
+
+        const timeoutId = system.runTimeout(() => {
+            try {
+                dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
+                system.runTimeout(() => {
+                    try {
+                        const entities = dimension.getEntities({ type: 'addonexe:floating_text', tags: [`ft_${id}`] });
+                        for (const entity of entities) {
+                            entity.remove();
+                        }
+                        activeEntities.delete(id);
+                    } catch (scriptError) {
+                        errorLog(`[FloatingText] Failed during entity.remove() for ID: ${id}`, scriptError);
+                    } finally {
+                        dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
+                        pendingDespawns.delete(id);
+                        resolve();
+                    }
+                }, 10);
+            } catch (error) {
+                errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
+                try {
+                    dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
+                } catch {
+                // Ignore cleanup
+                }
+                pendingDespawns.delete(id);
+                resolve();
+            }
+        }, 5);
+
+        pendingDespawns.set(id, timeoutId);
+    });
 }
 
-function respawnText(id) {
+async function respawnText(id) {
     // Cancel any pending command-based despawn to prevent race conditions
     if (pendingDespawns.has(id)) {
         system.clearTimeout(pendingDespawns.get(id));
@@ -243,14 +243,14 @@ function respawnText(id) {
             textConfig.expiresAt = null;
             saveTexts();
         }
-        despawnText(id); // Despawn the current entity if it exists
+        await despawnText(id); // Despawn the current entity if it exists
         system.runTimeout(() => {
             spawnText(textConfig); // Spawn the new one after a short delay
         }, 20); // 20 ticks > 5+10 ticks used by despawnText fallback
     }
 }
 
-function deleteText(player, id, callback) {
+async function deleteText(player, id, callback) {
     if (!floatingTexts.has(id)) {
         if (player) {
             player.sendMessage(`§cFloating text with ID "${id}" not found.`);
@@ -259,16 +259,16 @@ function deleteText(player, id, callback) {
         return;
     }
 
-    despawnText(id, () => {
-        floatingTexts.delete(id);
-        saveTexts();
+    await despawnText(id);
 
-        if (player) {
-            player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);
-        }
+    floatingTexts.delete(id);
+    saveTexts();
 
-        callback?.();
-    });
+    if (player) {
+        player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);
+    }
+
+    callback?.();
 }
 
 function listTexts(player) {
