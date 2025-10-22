@@ -250,12 +250,11 @@ async function respawnText(id) {
     }
 }
 
-async function deleteText(player, id, callback) {
+async function deleteText(player, id) {
     if (!floatingTexts.has(id)) {
         if (player) {
             player.sendMessage(`§cFloating text with ID "${id}" not found.`);
         }
-        callback?.();
         return;
     }
 
@@ -267,8 +266,6 @@ async function deleteText(player, id, callback) {
     if (player) {
         player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);
     }
-
-    callback?.();
 }
 
 function listTexts(player) {

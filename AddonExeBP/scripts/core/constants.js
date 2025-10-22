@@ -10,6 +10,7 @@ export const Constants = {
     // --- Common Tags ---
     ADMIN_TAG: 'admin',
     VANISHED_TAG: 'vanished',
+    FROZEN_TAG: 'frozen',
 
     // --- UI Form Titles ---
     MAIN_PANEL_TITLE: '§l§bAddonExe Control Panel',
@@ -22,6 +23,7 @@ export const Constants = {
     NO_PERMISSION: '§cYou do not have permission to use this command.',
     HOMES_DISABLED: '§cThe homes system is currently disabled.',
     TPA_DISABLED: '§cThe TPA system is currently disabled.',
+    ECONOMY_DISABLED: '§cThe economy system is currently disabled.',
 
     // --- Sound Events ---
     SOUND_TELEPORT: 'random.orb',
