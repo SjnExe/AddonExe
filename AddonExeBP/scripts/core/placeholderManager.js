@@ -18,31 +18,74 @@ export function resolvePlaceholders(text) {
     // Regex to find all placeholders in the format {key} or {key_index}
     const placeholderRegex = /\{([a-zA-Z0-9_]+)\}/g;
     return text.replace(placeholderRegex, (match, key) => {
-        const parts = key.split('_');
-        const baseKey = parts[0];
-        const index = parts.length > 1 ? parseInt(parts[parts.length - 1], 10) - 1 : 0;
-        const valueKey = parts.length > 2 ? parts.slice(1, -1).join('_') : 'name'; // Default to 'name'
+        let resolver;
+        let baseKey = '';
 
-        const resolver = placeholders.get(baseKey);
-        if (resolver) {
-            return resolver({ index, valueKey });
+        // Find the longest matching registered placeholder key that is a prefix
+        for (const registeredKey of placeholders.keys()) {
+            if (key.startsWith(registeredKey) && registeredKey.length > baseKey.length) {
+                baseKey = registeredKey;
+            }
         }
+
+        if (baseKey) {
+            resolver = placeholders.get(baseKey);
+        }
+
+        if (resolver) {
+            const remainingKey = key.substring(baseKey.length); // e.g., "_1", "_value_1", or ""
+            const parts = remainingKey.split('_').filter(p => p); // e.g., ["1"], ["value", "1"]
+
+            let index = 0;
+            let valueKey = 'name'; // Default value
+
+            if (parts.length > 0) {
+                const lastPart = parts[parts.length - 1];
+                const potentialIndex = parseInt(lastPart, 10);
+
+                if (!isNaN(potentialIndex)) {
+                    index = potentialIndex - 1;
+                    if (parts.length > 1) {
+                        valueKey = parts.slice(0, -1).join('_');
+                    }
+                } else {
+                    // No index, so all parts are the value key
+                    valueKey = parts.join('_');
+                }
+            }
+
+            const result = resolver({ index, valueKey });
+            if (result === undefined || result === null) {return '';}
+            return String(result);
+        }
+
         return match; // Return the original placeholder if no resolver is found
     });
 }
 
 function initializeDefaultPlaceholders() {
-    registerPlaceholder('top_balance', ({ index, valueKey }) => {
+    registerPlaceholder('topbal', ({ index, valueKey }) => {
         const leaderboard = getLeaderboard('balance');
-        if (index >= leaderboard.length) {return '';}
+
+        // Validate leaderboard data and index
+        if (!Array.isArray(leaderboard) || index < 0 || index >= leaderboard.length) {
+            return '';
+        }
 
         const playerData = leaderboard[index];
+
+        // Validate player data object
+        if (!playerData || typeof playerData !== 'object') {
+            return '';
+        }
+
         if (valueKey === 'name') {
-            return playerData.name;
+            return playerData.name ?? ''; // Nullish coalescing for safety
         }
         if (valueKey === 'value') {
-            return String(playerData.balance);
+            return String(playerData.balance ?? '0'); // Nullish coalescing for safety
         }
+
         return '';
     });
 

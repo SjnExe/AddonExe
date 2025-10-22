@@ -78,8 +78,9 @@ export async function handleFormResponse(player, panelId, response, context) {
                 player.sendMessage(`§aDespawned floating text: ${id}`);
                 return showPanel(player, 'floatingTextListPanel', context);
             case 3: // Delete
-                floatingTextManager.deleteText(player, id);
-                return showPanel(player, 'floatingTextListPanel', context);
+                return floatingTextManager.deleteText(player, id, () => {
+                    showPanel(player, 'floatingTextListPanel', context);
+                });
             case 4: // Back
                 return showPanel(player, 'floatingTextListPanel', context);
         }
