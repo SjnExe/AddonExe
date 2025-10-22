@@ -71,9 +71,9 @@ commandManager.register({
         if (x !== undefined && y !== undefined && z !== undefined) {
             // Coordinates are provided
             location = {
-                x: x,
-                y: y,
-                z: z,
+                x: Math.round(x * 100) / 100,
+                y: Math.round(y * 100) / 100,
+                z: Math.round(z * 100) / 100,
                 dimensionId: player.isConsole ? 'minecraft:overworld' : player.dimension.id
             };
         } else {
@@ -83,9 +83,9 @@ commandManager.register({
                 return;
             }
             location = {
-                x: player.location.x,
-                y: player.location.y,
-                z: player.location.z,
+                x: Math.round(player.location.x * 100) / 100,
+                y: Math.round(player.location.y * 100) / 100,
+                z: Math.round(player.location.z * 100) / 100,
                 dimensionId: player.dimension.id
             };
         }
@@ -95,7 +95,7 @@ commandManager.register({
             const spawnConfig = getSpawnConfig();
             spawnConfig.spawn.spawnLocation = location;
             saveSpawnConfig(spawnConfig);
-            const locationString = `X: ${Math.floor(location.x)}, Y: ${Math.floor(location.y)}, Z: ${Math.floor(location.z)} in ${location.dimensionId.replace('minecraft:', '')}`;
+            const locationString = `X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)} in ${location.dimensionId.replace('minecraft:', '')}`;
             player.sendMessage(`§aAddon spawn point set to: ${locationString}`);
 
             // Re-initialize spawn protection to apply any changes immediately

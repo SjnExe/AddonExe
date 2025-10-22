@@ -147,7 +147,11 @@ function createText(player, id, text) {
     const newTextConfig = {
         id,
         text,
-        location: { x: player.location.x, y: player.location.y, z: player.location.z },
+        location: {
+            x: Math.round(player.location.x * 100) / 100,
+            y: Math.round(player.location.y * 100) / 100,
+            z: Math.round(player.location.z * 100) / 100
+        },
         dimension: player.dimension.id,
         isDynamic: text.includes('{'),
         updateInterval: 100,
@@ -197,10 +201,13 @@ function despawnText(id) {
                 dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
                 system.runTimeout(() => {
                     try {
-                        dimension.runCommand(`teleport @e[type=addonexe:floating_text,tag=ft_${id}] 0 -1000 0`);
+                        const entities = dimension.getEntities({ type: 'addonexe:floating_text', tags: [`ft_${id}`] });
+                        for (const entity of entities) {
+                            entity.remove();
+                        }
                         activeEntities.delete(id);
-                    } catch (teleportError) {
-                        errorLog(`[FloatingText] Failed during teleport command for ID: ${id}`, teleportError);
+                    } catch (scriptError) {
+                        errorLog(`[FloatingText] Failed during entity.remove() for ID: ${id}`, scriptError);
                     } finally {
                         dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
                         pendingDespawns.delete(id);

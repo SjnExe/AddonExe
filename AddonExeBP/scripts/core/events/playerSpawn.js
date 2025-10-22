@@ -68,9 +68,9 @@ async function handlePlayerSpawn(event) {
             const location = freshPData.lastDeathLocation;
             const config = getConfig();
             const context = {
-                x: Math.floor(location.x),
-                y: Math.floor(location.y),
-                z: Math.floor(location.z),
+                x: location.x.toFixed(2),
+                y: location.y.toFixed(2),
+                z: location.z.toFixed(2),
                 dimensionId: location.dimensionId.replace('minecraft:', '')
             };
             const message = formatString(config.playerInfo.deathCoordsMessage, context);

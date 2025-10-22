@@ -64,7 +64,7 @@ commandManager.register({
 
         warpList.forEach(warpName => {
             const location = warpsManager.getWarp(warpName);
-            form.button(`${warpName}\n§7(X: ${Math.floor(location.x)}, Y: ${Math.floor(location.y)}, Z: ${Math.floor(location.z)})`);
+            form.button(`${warpName}\n§7(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`);
         });
 
         form.show(player).then(response => {

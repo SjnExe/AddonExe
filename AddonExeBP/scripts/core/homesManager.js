@@ -33,9 +33,9 @@ export function setHome(player, homeName) {
     }
 
     const location = {
-        x: player.location.x,
-        y: player.location.y,
-        z: player.location.z,
+        x: Math.round(player.location.x * 100) / 100,
+        y: Math.round(player.location.y * 100) / 100,
+        z: Math.round(player.location.z * 100) / 100,
         dimensionId: player.dimension.id
     };
 
