@@ -16,7 +16,7 @@ commandManager.register({
     permissionLevel: 1, // Admin and above
     allowConsole: true,
     parameters: [
-        { name: 'level', type: 'float', description: 'The log level to set (0-3).', optional: true }
+        { name: 'level', type: 'int', description: 'The log level to set (0-3).', optional: true }
     ],
     execute: (player, args) => {
         const { level } = args;

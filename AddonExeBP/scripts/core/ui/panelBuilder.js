@@ -751,8 +751,8 @@ export async function buildPanelForm(player, panelId, context) {
             if (typeof updateIntervalInTicks !== 'number' || !Number.isFinite(updateIntervalInTicks) || updateIntervalInTicks <= 0) {
                 updateIntervalInTicks = 100; // Default to 5 seconds (100 ticks)
             }
-            let sliderDefaultValue = Math.round(updateIntervalInTicks / 20);
-            sliderDefaultValue = Math.max(1, Math.min(60, sliderDefaultValue)); // Clamp to slider's valid range [1, 60]
+            const updateIntervalInSeconds = updateIntervalInTicks / 20;
+            const sliderDefaultValue = Math.max(1, Math.min(60, updateIntervalInSeconds));
 
             const expiresAt = text.expiresAt ?? null;
             const snapRotation = text.snapRotation ?? false;
