@@ -12,15 +12,16 @@ let currentLogLevel = LogLevels.INFO;
 /**
  * Sets the current log level for the entire application.
  * Messages below this level will not be logged.
- * @param {number} level The log level to set (use LogLevels enum).
+ * @param {number | string} level The log level to set (use LogLevels enum).
  */
 export function setLogLevel(level) {
-    if (typeof level === 'number' && level >= LogLevels.ERROR && level <= LogLevels.DEBUG) {
-        currentLogLevel = level;
+    const numericLevel = parseInt(level, 10);
+    if (!isNaN(numericLevel) && numericLevel >= LogLevels.ERROR && numericLevel <= LogLevels.DEBUG) {
+        currentLogLevel = numericLevel;
         // Provide feedback on the new log level for clarity during startup
-        infoLog(`[Logger] Log level set to: ${Object.keys(LogLevels).find(key => LogLevels[key] === level)}`);
+        infoLog(`[Logger] Log level set to: ${Object.keys(LogLevels).find(key => LogLevels[key] === numericLevel)}`);
     } else {
-        errorLog(`[Logger] Invalid log level provided: ${level}. Defaulting to INFO.`);
+        errorLog(`[Logger] Invalid log level provided: '${level}'. Defaulting to INFO.`);
         currentLogLevel = LogLevels.INFO;
     }
 }
@@ -32,12 +33,19 @@ export function setLogLevel(level) {
  * @returns {string} A string representation of the error.
  */
 function formatError(error) {
-    if (error instanceof Error) {
-        return `\n  Message: ${error.message}\n  Stack: ${error.stack}`;
-    }
     if (typeof error === 'object' && error !== null) {
+        // If the object has a stack, it's likely an error object.
+        if (error.stack) {
+            return `\n  Message: ${error.message}\n  Stack: ${error.stack}`;
+        }
         try {
-            return JSON.stringify(error, null, 2);
+            // For other objects, attempt to stringify them.
+            return JSON.stringify(error, (key, value) => {
+                if (value instanceof Error) {
+                    return { message: value.message, stack: value.stack };
+                }
+                return value;
+            }, 2);
         } catch {
             return 'Unserializable object';
         }

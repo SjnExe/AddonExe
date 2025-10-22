@@ -16,12 +16,15 @@ commandManager.register({
     permissionLevel: 1, // Admin and above
     allowConsole: true,
     parameters: [
-        { name: 'level', type: 'number', description: 'The log level to set (0-3).', optional: true }
+        { name: 'level', type: 'string', description: 'The log level to set (0-3).', optional: true }
     ],
     execute: (player, args) => {
-        const level = args.level;
-        if (level === undefined || !logLevelNames[level]) {
+        const level = args.level !== undefined ? parseInt(args.level, 10) : undefined;
+        const currentLogLevel = getConfig().logLevel;
+
+        if (level === undefined || isNaN(level) || !logLevelNames[level]) {
             player.sendMessage(
+                `§aCurrent log level is §e${logLevelNames[currentLogLevel]}§a.\n` +
                 '§eUsage: /log <level>\n' +
                 '§fSets the console log verbosity.\n' +
                 '§fAvailable levels:\n' +
