@@ -7,32 +7,35 @@ commandManager.register({
     category: 'Testing',
     permissionLevel: 0, // Admin-only
     execute: (player) => {
-        player.sendMessage('§e[Test 2] Spawning a pig to test entity.triggerEvent(\'minecraft:despawn\')...');
+        const testId = `test2_${Math.floor(Math.random() * 10000)}`;
+        player.sendMessage(`§e[Test 2] Spawning a pig with tag "${testId}" to test entity.triggerEvent('minecraft:despawn')...`);
 
-        let pig;
         try {
-            pig = player.dimension.spawnEntity('minecraft:pig', player.location);
-            player.sendMessage(`§aSuccessfully spawned pig with ID: ${pig.id}`);
+            const pig = player.dimension.spawnEntity('minecraft:pig', player.location);
+            pig.addTag(testId);
+            player.sendMessage(`§aSuccessfully spawned pig.`);
         } catch (e) {
             player.sendMessage(`§cFailed to spawn pig: ${e.message}`);
             return;
         }
 
         system.runTimeout(() => {
-            if (!pig || !pig.isValid()) {
-                player.sendMessage('§c[Test 2] The pig is no longer valid before despawn attempt.');
+            const entities = player.dimension.getEntities({ tags: [testId] });
+            if (entities.length === 0) {
+                player.sendMessage('§c[Test 2] Could not re-fetch the pig before despawn attempt.');
                 return;
             }
+            const pigToDespawn = entities[0];
 
             player.sendMessage('§e[Test 2] Attempting to despawn pig with entity.triggerEvent()...');
-            pig.triggerEvent('minecraft:despawn');
+            pigToDespawn.triggerEvent('minecraft:despawn');
 
-            // Check the result after a tick
             system.runTimeout(() => {
-                if (!pig.isValid()) {
-                    player.sendMessage('§a[Test 2] SUCCESS: The pig is no longer valid. entity.triggerEvent() worked.');
+                const remainingEntities = player.dimension.getEntities({ tags: [testId] });
+                if (remainingEntities.length === 0) {
+                    player.sendMessage('§a[Test 2] SUCCESS: The pig was removed. entity.triggerEvent() worked.');
                 } else {
-                    player.sendMessage('§c[Test 2] FAILURE: The pig is still valid. entity.triggerEvent() did not work as expected.');
+                    player.sendMessage('§c[Test 2] FAILURE: The pig still exists. entity.triggerEvent() did not work.');
                 }
             }, 1);
         }, 40); // 2-second delay
