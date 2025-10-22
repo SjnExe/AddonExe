@@ -19,5 +19,11 @@ export const Constants = {
     COMMAND_PREFIX: '!', // This will be read from config later
 
     // --- Default Messages ---
-    NO_PERMISSION: '§cYou do not have permission to use this command.'
+    NO_PERMISSION: '§cYou do not have permission to use this command.',
+    HOMES_DISABLED: '§cThe homes system is currently disabled.',
+    TPA_DISABLED: '§cThe TPA system is currently disabled.',
+
+    // --- Sound Events ---
+    SOUND_TELEPORT: 'random.orb',
+    SOUND_ERROR: 'note.bass'
 };

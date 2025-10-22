@@ -11,7 +11,7 @@
             "minecraft:icon": "breeze_rod",
             "minecraft:glint": true,
             "minecraft:display_name": {
-                "value": "§l§bPanel§r"
+                "value": "item.exe:panel.name"
             },
             "minecraft:hand_equipped": true,
             "minecraft:can_destroy_in_creative": false,
