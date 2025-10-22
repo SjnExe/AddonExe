@@ -1,6 +1,8 @@
 import { commandManager } from './commandManager.js';
 import { getBalance, getLeaderboard } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
+import { sendMessage } from '../../core/messaging.js';
+import { Constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'balance',
@@ -11,15 +13,21 @@ commandManager.register({
     parameters: [
         { name: 'target', type: 'player', description: 'The player to check the balance of.', optional: true }
     ],
+    /**
+     * Executes the /balance command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     * @param {object} args The command arguments.
+     * @param {import('@minecraft/server').Player[]} [args.target] The optional target player array.
+     */
     execute: (player, args) => {
         const config = getConfig();
         if (!config.economy.enabled) {
-            player.sendMessage('§cThe economy system is currently disabled.');
+            sendMessage(Constants.ECONOMY_DISABLED, player);
             return;
         }
 
         if (player.isConsole && (!args.target || args.target.length === 0)) {
-            player.sendMessage('§cYou must specify a target player when running this command from the console.');
+            sendMessage('§cYou must specify a target player when running this command from the console.', player);
             return;
         }
 
@@ -31,14 +39,14 @@ commandManager.register({
         const balance = getBalance(targetPlayer.id);
 
         if (balance === null) {
-            player.sendMessage(`§cCould not retrieve balance for ${targetPlayer.name}.`);
+            sendMessage(`§cCould not retrieve balance for ${targetPlayer.name}.`, player);
             return;
         }
 
         if (targetPlayer.id === player.id) {
-            player.sendMessage(`§aYour balance is: §e$${balance.toFixed(2)}`);
+            sendMessage(`§aYour balance is: §e$${balance.toFixed(2)}`, player);
         } else {
-            player.sendMessage(`§a${targetPlayer.name}'s balance is: §e$${balance.toFixed(2)}`);
+            sendMessage(`§a${targetPlayer.name}'s balance is: §e$${balance.toFixed(2)}`, player);
         }
     }
 });
@@ -51,10 +59,14 @@ commandManager.register({
     permissionLevel: 1024, // Everyone
     allowConsole: true,
     parameters: [],
-    execute: (player, args) => {
+    /**
+     * Executes the /baltop command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     */
+    execute: (player) => {
         const config = getConfig();
         if (!config.economy.enabled) {
-            player.sendMessage('§cThe economy system is currently disabled.');
+            sendMessage(Constants.ECONOMY_DISABLED, player);
             return;
         }
 
@@ -63,7 +75,7 @@ commandManager.register({
         const topPlayers = leaderboard.slice(0, displayLimit);
 
         if (topPlayers.length === 0) {
-            player.sendMessage('§cThe leaderboard is currently empty.');
+            sendMessage('§cThe leaderboard is currently empty.', player);
             return;
         }
 
@@ -81,6 +93,6 @@ commandManager.register({
             message += `${color}#${rank}§r ${entry.name}: §a$${entry.balance.toFixed(2)}\n`;
         });
 
-        player.sendMessage(message.trim());
+        sendMessage(message.trim(), player, { raw: true });
     }
 });
