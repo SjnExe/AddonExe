@@ -126,7 +126,7 @@ function updateText(id, updates) {
     Object.assign(textConfig, updates);
     // Ensure expiresAt is explicitly set to null if not provided in the update,
     // preventing an old timer from persisting across edits.
-    if (!updates.hasOwnProperty('expiresAt')) {
+    if (!Object.prototype.hasOwnProperty.call(updates, 'expiresAt')) {
         textConfig.expiresAt = null;
     }
     floatingTexts.set(id, textConfig);
@@ -167,7 +167,7 @@ function createText(player, id, text) {
 function despawnText(id) {
     const entity = activeEntities.get(id);
     if (entity && entity.isValid()) {
-        entity.triggerEvent('minecraft:despawn');
+        entity.remove();
         activeEntities.delete(id);
         return;
     }
@@ -191,10 +191,11 @@ function despawnText(id) {
             dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
             system.runTimeout(() => {
                 try {
-                    dimension.runCommand(`kill @e[type=addonexe:floating_text,tag=ft_${id}]`);
+                    // Teleport the entity into the void to remove it without particles.
+                    dimension.runCommand(`teleport @e[type=addonexe:floating_text,tag=ft_${id}] 0 -1000 0`);
                     activeEntities.delete(id);
-                } catch (killError) {
-                    errorLog(`[FloatingText] Failed during kill command for ID: ${id}`, killError);
+                } catch (teleportError) {
+                    errorLog(`[FloatingText] Failed during teleport command for ID: ${id}`, teleportError);
                 } finally {
                     dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
                     pendingDespawns.delete(id); // Clean up after execution
