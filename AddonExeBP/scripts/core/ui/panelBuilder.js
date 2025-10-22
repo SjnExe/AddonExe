@@ -770,7 +770,7 @@ export async function buildPanelForm(player, panelId, context) {
                 .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(text.location?.y ?? 0) })
                 .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(text.location?.z ?? 0) })
                 .toggle('Is Dynamic (use placeholders)', { defaultValue: isDynamic })
-                .slider('Update Interval (seconds)', 1, 60, 1, sliderDefaultValue)
+                .slider('Update Interval (seconds)', 1, 60, { valueStep: 1, defaultValue: sliderDefaultValue })
                 .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
                 .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' })
                 .toggle('Snap to Cardinal Direction', { defaultValue: snapRotation })
