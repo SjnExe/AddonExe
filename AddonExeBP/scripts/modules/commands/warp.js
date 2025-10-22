@@ -6,6 +6,8 @@ import * as warpsManager from '../../core/warpsManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
 import { setCooldown } from '../../core/cooldownManager.js';
+import { sendMessage } from '../../core/messaging.js';
+import { Constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'warp',
@@ -18,17 +20,23 @@ commandManager.register({
     parameters: [
         { name: 'warpName', type: 'string', description: 'The name of the warp to teleport to.', optional: true }
     ],
+    /**
+     * Executes the /warp command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     * @param {string} [args.warpName] The name of the warp to teleport to.
+     */
     execute: (player, args) => {
         const config = getConfig();
         if (!config.warps.enabled) {
-            player.sendMessage('§cThe warps system is currently disabled.');
+            sendMessage(Constants.WARPS_DISABLED, player);
             return;
         }
 
         const teleportToWarp = (warpName) => {
             const warpLocation = warpsManager.getWarp(warpName);
             if (!warpLocation) {
-                player.sendMessage(`§cWarp '${warpName}' not found.`);
+                sendMessage(`§cWarp '${warpName}' not found.`, player);
                 return;
             }
 
@@ -36,10 +44,10 @@ commandManager.register({
             const teleportLogic = () => {
                 try {
                     player.teleport(warpLocation, { dimension: world.getDimension(warpLocation.dimensionId) });
-                    player.sendMessage(`§aTeleported to warp '${warpName}'.`);
+                    sendMessage(`§aTeleported to warp '${warpName}'.`, player);
                     setCooldown(player, 'warp');
                 } catch (e) {
-                    player.sendMessage(`§cFailed to teleport. Error: ${e.message}`);
+                    sendMessage(`§cFailed to teleport. Error: ${e.message}`, player);
                     errorLog(`[/warp] Failed to teleport: ${e.stack}`);
                 }
             };
@@ -54,7 +62,7 @@ commandManager.register({
         const warpList = warpsManager.listWarps();
 
         if (warpList.length === 0) {
-            player.sendMessage('§cThere are no warps set.');
+            sendMessage('§cThere are no warps set.', player);
             return;
         }
 
@@ -68,7 +76,7 @@ commandManager.register({
         });
 
         form.show(player).then(response => {
-            if (response.canceled) {return;}
+            if (response.canceled) { return; }
             const selectedWarp = warpList[response.selection];
             teleportToWarp(selectedWarp);
         }).catch(e => errorLog(`[/warp UI] ${e.stack}`));
@@ -87,6 +95,11 @@ commandManager.register({
         { name: 'y', type: 'int', description: 'The y-coordinate for the warp.', optional: true },
         { name: 'z', type: 'int', description: 'The z-coordinate for the warp.', optional: true }
     ],
+    /**
+     * Executes the /addwarp command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     */
     execute: (player, args) => {
         const { warpName, x, y, z } = args;
         const hasX = x !== undefined && x !== null;
@@ -100,12 +113,12 @@ commandManager.register({
         } else if (!hasX && !hasY && !hasZ) {
             location = player.location;
         } else {
-            player.sendMessage('§cYou must provide all three coordinates (x, y, z) or none to use your current location.');
+            sendMessage('§cYou must provide all three coordinates (x, y, z) or none to use your current location.', player);
             return;
         }
 
         const result = warpsManager.setWarp(warpName, location, player.dimension.id);
-        player.sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`);
+        sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`, player);
     }
 });
 
@@ -117,10 +130,15 @@ commandManager.register({
     parameters: [
         { name: 'warpName', type: 'string', description: 'The name of the warp to delete. Leave blank to choose from a list.', optional: true }
     ],
+    /**
+     * Executes the /delwarp command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     */
     execute: (player, args) => {
         const deleteWarpByName = (warpName) => {
             const result = warpsManager.deleteWarp(warpName);
-            player.sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`);
+            sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`, player);
         };
 
         if (args.warpName) {
@@ -130,7 +148,7 @@ commandManager.register({
 
         const warpList = warpsManager.listWarps();
         if (warpList.length === 0) {
-            player.sendMessage('§cThere are no warps to delete.');
+            sendMessage('§cThere are no warps to delete.', player);
             return;
         }
 
@@ -141,7 +159,7 @@ commandManager.register({
         warpList.forEach(warpName => form.button(warpName));
 
         form.show(player).then(response => {
-            if (response.canceled) {return;}
+            if (response.canceled) { return; }
             const selectedWarp = warpList[response.selection];
             deleteWarpByName(selectedWarp);
         }).catch(e => errorLog(`[/delwarp UI] ${e.stack}`));

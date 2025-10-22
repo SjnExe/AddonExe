@@ -24,6 +24,8 @@ export const Constants = {
     HOMES_DISABLED: '§cThe homes system is currently disabled.',
     TPA_DISABLED: '§cThe TPA system is currently disabled.',
     ECONOMY_DISABLED: '§cThe economy system is currently disabled.',
+    RTP_DISABLED: '§cThe Random Teleport system is currently disabled.',
+    WARPS_DISABLED: '§cThe warps system is currently disabled.',
 
     // --- Sound Events ---
     SOUND_TELEPORT: 'random.orb',
