@@ -1,8 +1,6 @@
 [
     {
         "texture_name": "invisible",
-        "texture_data": {
-            "path": "textures/entity/invisible.png"
-        }
+        "texture_data": "textures/entity/cape_invisible"
     }
 ]
