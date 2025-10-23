@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-import { commandManager } from '../../core/commandManager.js';
+import { commandManager } from './commandManager.js';
 import { GameMode } from '@minecraft/server';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { errorLog } from '../../core/logger.js';

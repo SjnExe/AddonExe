@@ -10,7 +10,7 @@
  */
 
 import { world } from '@minecraft/server';
-import { commandManager } from '../../core/commandManager.js';
+import { commandManager } from './commandManager.js';
 import { sendMessage } from '../../core/messaging.js';
 import { constants } from '../../core/constants.js';
 

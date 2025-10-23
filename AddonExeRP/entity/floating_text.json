@@ -4,10 +4,10 @@
         "description": {
             "identifier": "addonexe:floating_text",
             "materials": {
-                "default": "armor_stand"
+                "default": "entity_alphatest"
             },
             "textures": {
-                "default": "invisible"
+                "default": "textures/entity/cape_invisible"
             },
             "geometry": {
                 "default": "geometry.invisible"
