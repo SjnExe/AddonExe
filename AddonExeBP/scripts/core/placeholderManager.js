@@ -1,6 +1,13 @@
 import { debugLog } from './logger.js';
+import { registerPlayerDataPlaceholders } from './playerDataManager.js';
 
 const placeholders = new Map();
+
+export function initializePlaceholders() {
+    registerPlayerDataPlaceholders();
+    // Future placeholder registrations can be added here.
+    debugLog('[PlaceholderManager] All placeholders have been registered.');
+}
 
 export function getPlaceholderKeys() {
     return Array.from(placeholders.keys());

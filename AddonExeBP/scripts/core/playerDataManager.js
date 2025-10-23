@@ -513,27 +513,30 @@ export function transfer(sourcePlayerId, targetPlayerId, amount) {
     return { success: true, message: 'Transfer successful.' };
 }
 
-registerPlaceholder('topbal', ({ index, valueKey }) => {
-    const leaderboard = getLeaderboard('balance');
+export function registerPlayerDataPlaceholders() {
+    registerPlaceholder('topbal', ({ index, valueKey }) => {
+        // The getLeaderboard function does not take any arguments. It always returns the balance leaderboard.
+        const leaderboard = getLeaderboard();
 
-    // Validate leaderboard data and index
-    if (!Array.isArray(leaderboard) || index < 0 || index >= leaderboard.length) {
+        // Validate leaderboard data and index
+        if (!Array.isArray(leaderboard) || index < 0 || index >= leaderboard.length) {
+            return '';
+        }
+
+        const playerData = leaderboard[index];
+
+        // Validate player data object
+        if (!playerData || typeof playerData !== 'object') {
+            return '';
+        }
+
+        if (valueKey === 'name') {
+            return playerData.name ?? ''; // Nullish coalescing for safety
+        }
+        if (valueKey === 'value') {
+            return String(playerData.balance ?? '0'); // Nullish coalescing for safety
+        }
+
         return '';
-    }
-
-    const playerData = leaderboard[index];
-
-    // Validate player data object
-    if (!playerData || typeof playerData !== 'object') {
-        return '';
-    }
-
-    if (valueKey === 'name') {
-        return playerData.name ?? ''; // Nullish coalescing for safety
-    }
-    if (valueKey === 'value') {
-        return String(playerData.balance ?? '0'); // Nullish coalescing for safety
-    }
-
-    return '';
-});
+    });
+}
