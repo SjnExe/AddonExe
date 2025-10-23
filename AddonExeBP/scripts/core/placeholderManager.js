@@ -1,4 +1,3 @@
-import { getLeaderboard } from './playerDataManager.js';
 import { debugLog } from './logger.js';
 
 const placeholders = new Map();
@@ -7,7 +6,7 @@ export function getPlaceholderKeys() {
     return Array.from(placeholders.keys());
 }
 
-function registerPlaceholder(key, resolver) {
+export function registerPlaceholder(key, resolver) {
     if (placeholders.has(key)) {
         debugLog(`[PlaceholderManager] Placeholder with key "${key}" is already registered. Overwriting.`);
     }
@@ -62,36 +61,3 @@ export function resolvePlaceholders(text) {
         return match; // Return the original placeholder if no resolver is found
     });
 }
-
-function initializeDefaultPlaceholders() {
-    registerPlaceholder('topbal', ({ index, valueKey }) => {
-        const leaderboard = getLeaderboard('balance');
-
-        // Validate leaderboard data and index
-        if (!Array.isArray(leaderboard) || index < 0 || index >= leaderboard.length) {
-            return '';
-        }
-
-        const playerData = leaderboard[index];
-
-        // Validate player data object
-        if (!playerData || typeof playerData !== 'object') {
-            return '';
-        }
-
-        if (valueKey === 'name') {
-            return playerData.name ?? ''; // Nullish coalescing for safety
-        }
-        if (valueKey === 'value') {
-            return String(playerData.balance ?? '0'); // Nullish coalescing for safety
-        }
-
-        return '';
-    });
-
-    // Add more placeholders here in the future
-    // e.g., registerPlaceholder('online_players', () => world.getAllPlayers().length);
-}
-
-// Initialize default placeholders when the module is loaded
-initializeDefaultPlaceholders();

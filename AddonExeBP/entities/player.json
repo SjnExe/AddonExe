@@ -1,0 +1,103 @@
+{
+  "format_version": "1.16.0",
+  "minecraft:player": {
+    "description": {
+      "identifier": "minecraft:player",
+      "is_spawnable": false,
+      "is_summonable": false,
+      "is_experimental": false
+    },
+    "components": {},
+    "component_groups": {
+      "exe:spawn_protected": {
+        "minecraft:can_pickup_items": {
+          "value": false
+        },
+        "minecraft:inventory": {
+          "private": true
+        }
+      },
+      "exe:pvp_disabled": {
+        "minecraft:damage_sensor": {
+          "triggers": {
+            "on_damage": {
+              "filters": {
+                "test": "is_family",
+                "subject": "damager",
+                "value": "player"
+              }
+            },
+            "deals_damage": false
+          }
+        }
+      },
+      "exe:hostile_damage_disabled": {
+        "minecraft:damage_sensor": {
+          "triggers": {
+            "on_damage": {
+              "filters": {
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "damager",
+                    "operator": "!=",
+                    "value": "player"
+                  },
+                  {
+                    "test": "has_damage",
+                    "value": "any"
+                  }
+                ]
+              }
+            },
+            "deals_damage": false
+          }
+        }
+      }
+    },
+    "events": {
+      "exe:apply_spawn_protection": {
+        "add": {
+          "component_groups": [
+            "exe:spawn_protected"
+          ]
+        }
+      },
+      "exe:remove_spawn_protection": {
+        "remove": {
+          "component_groups": [
+            "exe:spawn_protected"
+          ]
+        }
+      },
+      "exe:disable_pvp": {
+        "add": {
+          "component_groups": [
+            "exe:pvp_disabled"
+          ]
+        }
+      },
+      "exe:enable_pvp": {
+        "remove": {
+          "component_groups": [
+            "exe:pvp_disabled"
+          ]
+        }
+      },
+      "exe:disable_hostile_damage": {
+        "add": {
+          "component_groups": [
+            "exe:hostile_damage_disabled"
+          ]
+        }
+      },
+      "exe:enable_hostile_damage": {
+        "remove": {
+          "component_groups": [
+            "exe:hostile_damage_disabled"
+          ]
+        }
+      }
+    }
+  }
+}
