@@ -18,7 +18,7 @@ function handlePlayerBreakBlock(event) {
         if (onlineAdmins.length === 0) { return; }
 
         const location = block.location;
-        const message = `§e${player.name}§r mined §e${block.typeId.replace('minecraft:', '')}§r at §bX: ${Math.floor(location.x)}, Y: ${Math.floor(location.y)}, Z: ${Math.floor(location.z)}`;
+        const message = `§e${player.name}§r mined §e${block.typeId.replace('minecraft:', '')}§r at §bX: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)}`;
 
         onlineAdmins.forEach(admin => {
             // Don't send the notification to the player who mined the ore.

@@ -1,6 +1,8 @@
 import { commandManager } from './commandManager.js';
 import { playSound } from '../../core/utils.js';
 import { errorLog } from '../../core/logger.js';
+import { sendMessage } from '../../core/messaging.js';
+import { constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'copyinv',
@@ -10,18 +12,24 @@ commandManager.register({
     parameters: [
         { name: 'target', type: 'player', description: 'The player whose inventory to copy.' }
     ],
+    /**
+     * Executes the /copyinv command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     * @param {import('@minecraft/server').Player[]} args.target The target player array.
+     */
     execute: (player, args) => {
         const { target } = args;
 
         if (!target || target.length === 0) {
-            player.sendMessage('§cPlayer not found.');
+            sendMessage('§cPlayer not found.', player);
             return;
         }
 
         const targetPlayer = target[0];
 
         if (player.id === targetPlayer.id) {
-            player.sendMessage('§cYou cannot copy your own inventory.');
+            sendMessage('§cYou cannot copy your own inventory.', player);
             return;
         }
 
@@ -29,21 +37,19 @@ commandManager.register({
             const playerInv = player.getComponent('inventory').container;
             const targetInv = targetPlayer.getComponent('inventory').container;
 
-            // Clear the admin's inventory first
             playerInv.clearAll();
 
-            // Copy items
             for (let i = 0; i < targetInv.size; i++) {
                 const item = targetInv.getItem(i);
                 if (item) {
                     playerInv.setItem(i, item);
                 }
             }
-            player.sendMessage(`§aSuccessfully copied inventory from ${targetPlayer.name}.`);
-            playSound(player, 'random.orb');
+            sendMessage(`§aSuccessfully copied inventory from ${targetPlayer.name}.`, player);
+            playSound(player, constants.soundTeleport);
         } catch (e) {
-            player.sendMessage('§cFailed to copy inventory.');
-            errorLog(`[/x:copyinv] Error: ${e.stack}`);
+            sendMessage('§cFailed to copy inventory.', player);
+            errorLog(`[/copyinv] Error: ${e.stack}`);
         }
     }
 });

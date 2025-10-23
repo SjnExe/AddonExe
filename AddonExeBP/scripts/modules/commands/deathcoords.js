@@ -2,6 +2,7 @@ import { commandManager } from './commandManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { formatString } from '../../core/utils.js';
 import { getConfig } from '../../core/configManager.js';
+import { sendMessage } from '../../core/messaging.js';
 
 commandManager.register({
     name: 'deathcoords',
@@ -10,21 +11,25 @@ commandManager.register({
     category: 'General',
     permissionLevel: 1024, // Everyone
     parameters: [],
-    execute: (player, args) => {
+    /**
+     * Executes the /deathcoords command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     */
+    execute: (player) => {
         const pData = getPlayer(player.id);
         if (pData && pData.lastDeathLocation) {
             const location = pData.lastDeathLocation;
             const config = getConfig();
             const context = {
-                x: Math.floor(location.x),
-                y: Math.floor(location.y),
-                z: Math.floor(location.z),
+                x: location.x.toFixed(2),
+                y: location.y.toFixed(2),
+                z: location.z.toFixed(2),
                 dimensionId: location.dimensionId.replace('minecraft:', '')
             };
             const message = formatString(config.playerInfo.deathCoordsMessage, context);
-            player.sendMessage(message);
+            sendMessage(message, player, { raw: true });
         } else {
-            player.sendMessage('§cYou have not died yet or your last death location is not available.');
+            sendMessage('§cYou have not died yet or your last death location is not available.', player);
         }
     }
 });

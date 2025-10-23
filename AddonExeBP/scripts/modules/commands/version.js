@@ -1,5 +1,6 @@
 import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
+import { sendMessage } from '../../core/messaging.js';
 
 commandManager.register({
     name: 'version',
@@ -8,9 +9,13 @@ commandManager.register({
     category: 'General',
     permissionLevel: 1024, // Everyone
     parameters: [],
-    execute: (player, args) => {
+    /**
+     * Executes the /version command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     */
+    execute: (player) => {
         const config = getConfig();
         const versionString = `v${config.version.join('.')}`;
-        player.sendMessage(`§7AddonExe Version: §e${versionString}`);
+        sendMessage(`§7AddonExe Version: §e${versionString}`, player);
     }
 });

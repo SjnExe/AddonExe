@@ -4,34 +4,39 @@ import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerD
 import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
 import { parseDuration, playSoundFromConfig } from '../../core/utils.js';
 import { findPlayerByName } from '../../core/playerCache.js';
-import { errorLog } from '../../core/logger.js';
+import { errorLog, warnLog } from '../../core/logger.js';
+import { sendMessage } from '../../core/messaging.js';
 
+/**
+ * Bans a player.
+ * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+ * @param {import('@minecraft/server').Player} targetPlayer The player to ban.
+ * @param {string} [duration] The duration of the ban.
+ * @param {string} reason The reason for the ban.
+ */
 export function banPlayer(player, targetPlayer, duration, reason) {
-    // Console execution does not have a player object with an id
     if (player && player.id === targetPlayer.id) {
-        player.sendMessage('§cYou cannot ban yourself.');
+        sendMessage('§cYou cannot ban yourself.', player);
         return;
     }
 
-    // Permission check for player execution
     if (player && !player.isConsole) {
         const executorData = getPlayer(player.id);
         const targetData = getPlayer(targetPlayer.id);
 
         if (!executorData || !targetData) {
-            player.sendMessage('§cCould not retrieve player data for permission check.');
+            sendMessage('§cCould not retrieve player data for permission check.', player);
             return;
         }
 
         if (executorData.permissionLevel >= targetData.permissionLevel) {
-            player.sendMessage('§cYou cannot ban a player with the same or higher rank than you.');
+            sendMessage('§cYou cannot ban a player with the same or higher rank than you.', player);
             return;
         }
     }
 
     const durationString = duration || 'perm';
     const durationMs = duration ? parseDuration(duration) : Infinity;
-
     const expires = durationMs === Infinity ? Infinity : Date.now() + durationMs;
 
     addPunishment(targetPlayer.id, {
@@ -41,28 +46,25 @@ export function banPlayer(player, targetPlayer, duration, reason) {
     });
 
     const durationText = durationMs === Infinity ? 'permanently' : `for ${durationString}`;
-    player.sendMessage(`§aSuccessfully banned ${targetPlayer.name} ${durationText}. Reason: ${reason}`);
+    sendMessage(`§aSuccessfully banned ${targetPlayer.name} ${durationText}. Reason: ${reason}`, player);
 
     if (player && !player.isConsole) {
         playSoundFromConfig(player, 'adminNotificationReceived');
         try {
-            // Player can run kick command
             const sanitizedReason = reason.replace(/"/g, '\\"');
             player.runCommand(`kick "${targetPlayer.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
         } catch (error) {
-            player.sendMessage(`§eWarning: Could not kick ${targetPlayer.name} after banning. They will be kicked on next join.`);
-            errorLog(`[/x:ban] Failed to run kick command for ${targetPlayer.name} after banning:`, error);
+            sendMessage(`§eWarning: Could not kick ${targetPlayer.name} after banning. They will be kicked on next join.`, player);
+            errorLog(`[/ban] Failed to run kick command for ${targetPlayer.name} after banning:`, error);
         }
     } else {
-        // For console, run the command in the overworld.
         try {
             const sanitizedReason = reason.replace(/"/g, '\\"');
             const command = `kick "${targetPlayer.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`;
             world.getDimension('overworld').runCommand(command);
         } catch (error) {
-            // This outer catch is for unexpected errors.
-            console.warn(`[Commands:Ban] Could not kick ${targetPlayer.name} after banning. They will be kicked on next join.`); // eslint-disable-line no-console
-            errorLog(`[/x:ban] Failed to run kick command from console for ${targetPlayer.name}:`, error);
+            warnLog(`[Commands:Ban] Could not kick ${targetPlayer.name} after banning. They will be kicked on next join.`);
+            errorLog(`[/ban] Failed to run kick command from console for ${targetPlayer.name}:`, error);
         }
     }
 }
@@ -78,67 +80,69 @@ commandManager.register({
         { name: 'duration', type: 'string', description: 'The duration of the ban (e.g., 1d, 2h, 30m). Default: perm', optional: true },
         { name: 'reason', type: 'text', description: 'The reason for the ban.', optional: true }
     ],
+    /**
+     * Executes the /ban command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     * @param {object} args The command arguments.
+     */
     execute: (player, args) => {
-        // For slash commands (from player or console), target is a player object array.
-        // For chat commands, it's a name string.
         const targetPlayer = Array.isArray(args.target) ? args.target[0] : findPlayerByName(args.target);
 
         if (!targetPlayer) {
-            player.sendMessage('§cPlayer not found. If they are offline, use the /offlineban command.');
+            sendMessage('§cPlayer not found. If they are offline, use the /offlineban command.', player);
             return;
         }
 
-        // Prevent console from banning itself (it has no ID)
         if (player.isConsole && !targetPlayer.id) {
-            player.sendMessage('§cCannot target the console for a ban.');
+            sendMessage('§cCannot target the console for a ban.', player);
             return;
         }
 
         let duration = args.duration;
         let reason = args.reason;
 
-        // The command manager can't distinguish between an optional duration and the reason.
-        // We need to check if the 'duration' argument is actually a duration or the start of the reason.
         if (duration && parseDuration(duration) === 0) {
-            // It's not a valid duration, so it must be the start of the reason.
             reason = `${duration}${reason ? ' ' + reason : ''}`;
-            duration = undefined; // Reset duration
+            duration = undefined;
         }
 
         banPlayer(player, targetPlayer, duration, reason || 'No reason provided.');
     }
 });
 
+/**
+ * Unbans a player.
+ * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+ * @param {string} targetName The name of the player to unban.
+ */
 export function unbanPlayer(player, targetName) {
     const targetId = getPlayerIdByName(targetName);
 
     if (!targetId) {
-        player.sendMessage(`§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`);
+        sendMessage(`§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`, player);
         return;
     }
 
-    // --- Permission Checks ---
     if (!player.isConsole) {
         if (player.id === targetId) {
-            player.sendMessage('§cYou cannot unban yourself.');
+            sendMessage('§cYou cannot unban yourself.', player);
             return;
         }
         const executorData = getPlayer(player.id);
-        // Load the offline player's data for the check
         const targetData = loadPlayerData(targetId);
 
         if (!executorData || !targetData) {
-            player.sendMessage('§cCould not retrieve player data for permission check.');
+            sendMessage('§cCould not retrieve player data for permission check.', player);
             return;
         }
         if (executorData.permissionLevel >= targetData.permissionLevel) {
-            player.sendMessage('§cYou cannot unban a player with the same or higher rank than you.');
+            sendMessage('§cYou cannot unban a player with the same or higher rank than you.', player);
             return;
         }
     }
 
     removePunishment(targetId);
-    player.sendMessage(`§aSuccessfully unbanned ${targetName}. They can now rejoin the server.`);
+    sendMessage(`§aSuccessfully unbanned ${targetName}. They can now rejoin the server.`, player);
     if (!player.isConsole) {
         playSoundFromConfig(player, 'adminNotificationReceived');
     }
@@ -154,15 +158,28 @@ commandManager.register({
     parameters: [
         { name: 'target', type: 'string', description: 'The name of the player to unban.' }
     ],
+    /**
+     * Executes the /unban command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     * @param {object} args The command arguments.
+     */
     execute: (player, args) => {
         unbanPlayer(player, args.target);
     }
 });
 
+/**
+ * Bans an offline player.
+ * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+ * @param {string} targetId The ID of the player to ban.
+ * @param {string} targetName The name of the player to ban.
+ * @param {string} [duration] The duration of the ban.
+ * @param {string} reason The reason for the ban.
+ */
 export function offlineBanPlayer(player, targetId, targetName, duration, reason) {
     if (!player.isConsole) {
         if (player.id === targetId) {
-            player.sendMessage('§cYou cannot ban yourself.');
+            sendMessage('§cYou cannot ban yourself.', player);
             return;
         }
 
@@ -170,12 +187,12 @@ export function offlineBanPlayer(player, targetId, targetName, duration, reason)
         const targetData = loadPlayerData(targetId);
 
         if (!executorData || !targetData) {
-            player.sendMessage('§cCould not retrieve player data for permission check.');
+            sendMessage('§cCould not retrieve player data for permission check.', player);
             return;
         }
 
         if (executorData.permissionLevel >= targetData.permissionLevel) {
-            player.sendMessage('§cYou cannot ban a player with the same or higher rank than you.');
+            sendMessage('§cYou cannot ban a player with the same or higher rank than you.', player);
             return;
         }
     }
@@ -191,7 +208,7 @@ export function offlineBanPlayer(player, targetId, targetName, duration, reason)
     });
 
     const durationText = durationMs === Infinity ? 'permanently' : `for ${durationString}`;
-    player.sendMessage(`§aSuccessfully banned ${targetName} ${durationText}. Reason: ${reason}`);
+    sendMessage(`§aSuccessfully banned ${targetName} ${durationText}. Reason: ${reason}`, player);
     if (!player.isConsole) {
         playSoundFromConfig(player, 'adminNotificationReceived');
     }
@@ -216,12 +233,17 @@ commandManager.register({
         { name: 'duration', type: 'string', description: 'The duration of the ban (e.g., 1d, 2h, 30m). Default: perm', optional: true },
         { name: 'reason', type: 'text', description: 'The reason for the ban.', optional: true }
     ],
+    /**
+     * Executes the /offlineban command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     * @param {object} args The command arguments.
+     */
     execute: (player, args) => {
         const { target: targetName } = args;
 
         const targetId = getPlayerIdByName(targetName);
         if (!targetId) {
-            player.sendMessage(`§cPlayer "${targetName}" has never joined this server.`);
+            sendMessage(`§cPlayer "${targetName}" has never joined this server.`, player);
             return;
         }
 

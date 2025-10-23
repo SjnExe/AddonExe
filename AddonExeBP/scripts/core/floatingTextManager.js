@@ -108,7 +108,7 @@ function getTextById(id) {
     return floatingTexts.get(id);
 }
 
-function updateText(id, updates) {
+async function updateText(id, updates) {
     const textConfig = getTextById(id);
     if (!textConfig) { return; }
 
@@ -120,13 +120,13 @@ function updateText(id, updates) {
     }
 
     // Despawn the old entity. This might schedule a NEW pending despawn.
-    despawnText(id);
+    await despawnText(id);
 
     // Apply updates to the configuration
     Object.assign(textConfig, updates);
     // Ensure expiresAt is explicitly set to null if not provided in the update,
     // preventing an old timer from persisting across edits.
-    if (!updates.hasOwnProperty('expiresAt')) {
+    if (!Object.prototype.hasOwnProperty.call(updates, 'expiresAt')) {
         textConfig.expiresAt = null;
     }
     floatingTexts.set(id, textConfig);
@@ -147,7 +147,11 @@ function createText(player, id, text) {
     const newTextConfig = {
         id,
         text,
-        location: { x: player.location.x, y: player.location.y, z: player.location.z },
+        location: {
+            x: Math.round(player.location.x * 100) / 100,
+            y: Math.round(player.location.y * 100) / 100,
+            z: Math.round(player.location.z * 100) / 100
+        },
         dimension: player.dimension.id,
         isDynamic: text.includes('{'),
         updateInterval: 100,
@@ -165,56 +169,66 @@ function createText(player, id, text) {
 }
 
 function despawnText(id) {
-    const entity = activeEntities.get(id);
-    if (entity && entity.isValid()) {
-        entity.triggerEvent('minecraft:despawn');
-        activeEntities.delete(id);
-        return;
-    }
-
-    // Fallback for when the entity isn't loaded
-    const textConfig = getTextById(id);
-    if (!textConfig || !textConfig.location) {
-        errorLog(`[FloatingText] Cannot despawn text with ID: ${id} due to missing config or location.`);
-        return;
-    }
-
-    // If there's already a pending despawn, don't create another one.
-    if (pendingDespawns.has(id)) {return;}
-
-    const tickingAreaName = `ft_${id}`;
-    const { x, y, z } = textConfig.location;
-    const dimension = world.getDimension(textConfig.dimension);
-
-    const timeoutId = system.runTimeout(() => {
-        try {
-            dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
-            system.runTimeout(() => {
-                try {
-                    dimension.runCommand(`kill @e[type=addonexe:floating_text,tag=ft_${id}]`);
-                    activeEntities.delete(id);
-                } catch (killError) {
-                    errorLog(`[FloatingText] Failed during kill command for ID: ${id}`, killError);
-                } finally {
-                    dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
-                    pendingDespawns.delete(id); // Clean up after execution
-                }
-            }, 10); // Increased delay to ensure ticking area is loaded
-        } catch (error) {
-            errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
-            try {
-                dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
-            } catch {
-                // Ignore cleanup error
-            }
-            pendingDespawns.delete(id); // Clean up on failure
+    return new Promise((resolve) => {
+        const entity = activeEntities.get(id);
+        if (entity && entity.isValid()) {
+            entity.remove();
+            activeEntities.delete(id);
+            resolve();
+            return;
         }
-    }, 5); // Initial delay before adding ticking area
 
-    pendingDespawns.set(id, timeoutId);
+        const textConfig = getTextById(id);
+        if (!textConfig || !textConfig.location) {
+            errorLog(`[FloatingText] Cannot despawn text with ID: ${id} due to missing config or location.`);
+            resolve();
+            return;
+        }
+
+        if (pendingDespawns.has(id)) {
+            resolve();
+            return;
+        }
+
+        const tickingAreaName = `ft_${id}`;
+        const { x, y, z } = textConfig.location;
+        const dimension = world.getDimension(textConfig.dimension);
+
+        const timeoutId = system.runTimeout(() => {
+            try {
+                dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
+                system.runTimeout(() => {
+                    try {
+                        const entities = dimension.getEntities({ type: 'addonexe:floating_text', tags: [`ft_${id}`] });
+                        for (const entity of entities) {
+                            entity.remove();
+                        }
+                        activeEntities.delete(id);
+                    } catch (scriptError) {
+                        errorLog(`[FloatingText] Failed during entity.remove() for ID: ${id}`, scriptError);
+                    } finally {
+                        dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
+                        pendingDespawns.delete(id);
+                        resolve();
+                    }
+                }, 10);
+            } catch (error) {
+                errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
+                try {
+                    dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
+                } catch {
+                // Ignore cleanup
+                }
+                pendingDespawns.delete(id);
+                resolve();
+            }
+        }, 5);
+
+        pendingDespawns.set(id, timeoutId);
+    });
 }
 
-function respawnText(id) {
+async function respawnText(id) {
     // Cancel any pending command-based despawn to prevent race conditions
     if (pendingDespawns.has(id)) {
         system.clearTimeout(pendingDespawns.get(id));
@@ -229,24 +243,29 @@ function respawnText(id) {
             textConfig.expiresAt = null;
             saveTexts();
         }
-        despawnText(id); // Despawn the current entity if it exists
+        await despawnText(id); // Despawn the current entity if it exists
         system.runTimeout(() => {
             spawnText(textConfig); // Spawn the new one after a short delay
         }, 20); // 20 ticks > 5+10 ticks used by despawnText fallback
     }
 }
 
-function deleteText(player, id) {
+async function deleteText(player, id) {
     if (!floatingTexts.has(id)) {
-        if (player) {player.sendMessage(`§cFloating text with ID "${id}" not found.`);}
+        if (player) {
+            player.sendMessage(`§cFloating text with ID "${id}" not found.`);
+        }
         return;
     }
 
-    despawnText(id);
+    await despawnText(id);
+
     floatingTexts.delete(id);
     saveTexts();
 
-    if (player) {player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);}
+    if (player) {
+        player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);
+    }
 }
 
 function listTexts(player) {

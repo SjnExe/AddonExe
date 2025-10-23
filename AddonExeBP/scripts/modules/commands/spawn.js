@@ -7,6 +7,7 @@ import { errorLog } from '../../core/logger.js';
 import { setCooldown } from '../../core/cooldownManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
 import { initializeSpawnProtection } from '../detections/spawnProtection.js';
+import { sendMessage } from '../../core/messaging.js';
 
 commandManager.register({
     name: 'spawn',
@@ -16,16 +17,20 @@ commandManager.register({
     permissionLevel: 1024, // Everyone
     parameters: [],
     hasCooldown: true,
-    execute: (player, args) => {
+    /**
+     * Executes the /spawn command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     */
+    execute: (player) => {
         const config = getConfig();
         const spawnConfig = getSpawnConfig();
         const spawnLocation = spawnConfig.spawn.spawnLocation;
 
         if (!spawnLocation || typeof spawnLocation.x !== 'number') {
-            player.sendMessage('§cThe server spawn point has not been set.');
+            sendMessage('§cThe server spawn point has not been set.', player);
             const rank = getPlayerRank(player, config);
             if (rank.permissionLevel <= 1) { // Is admin or owner
-                player.sendMessage('§eAs an admin, you can set it by running §a/setspawn§e at the desired location.');
+                sendMessage('§eAs an admin, you can set it by running §a/setspawn§e at the desired location.', player, { raw: true });
             }
             playSound(player, 'note.bass');
             return;
@@ -33,16 +38,19 @@ commandManager.register({
 
         const warmupSeconds = spawnConfig.spawn.teleportWarmupSeconds;
 
+        /**
+         * The core logic for teleporting the player to spawn.
+         */
         const teleportLogic = () => {
             try {
                 const dimension = world.getDimension(spawnLocation.dimensionId);
                 player.teleport(spawnLocation, { dimension: dimension });
-                player.sendMessage('§aTeleporting you to spawn...');
+                sendMessage('§aTeleporting you to spawn...', player);
                 playSound(player, 'random.orb');
                 setCooldown(player, 'spawn');
             } catch (e) {
-                player.sendMessage('§cFailed to teleport to spawn. The dimension may be invalid or the location unsafe.');
-                errorLog(`[/x:spawn] Failed to teleport: ${e.stack}`);
+                sendMessage('§cFailed to teleport to spawn. The dimension may be invalid or the location unsafe.', player);
+                errorLog(`[/spawn] Failed to teleport: ${e.stack}`);
                 playSound(player, 'note.bass');
             }
         };
@@ -64,6 +72,14 @@ commandManager.register({
         { name: 'y', type: 'float', description: 'The Y coordinate for the spawn.', optional: true },
         { name: 'z', type: 'float', description: 'The Z coordinate for the spawn.', optional: true }
     ],
+    /**
+     * Executes the /setspawn command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     * @param {object} args The command arguments.
+     * @param {number} [args.x] The X coordinate.
+     * @param {number} [args.y] The Y coordinate.
+     * @param {number} [args.z] The Z coordinate.
+     */
     execute: (player, args) => {
         let location;
         const { x, y, z } = args;
@@ -71,21 +87,21 @@ commandManager.register({
         if (x !== undefined && y !== undefined && z !== undefined) {
             // Coordinates are provided
             location = {
-                x: x,
-                y: y,
-                z: z,
+                x: Math.round(x * 100) / 100,
+                y: Math.round(y * 100) / 100,
+                z: Math.round(z * 100) / 100,
                 dimensionId: player.isConsole ? 'minecraft:overworld' : player.dimension.id
             };
         } else {
             // No coordinates, use player location
             if (player.isConsole) {
-                player.sendMessage('§cYou must specify X, Y, and Z coordinates when running this command from the console.');
+                sendMessage('§cYou must specify X, Y, and Z coordinates when running this command from the console.', player);
                 return;
             }
             location = {
-                x: player.location.x,
-                y: player.location.y,
-                z: player.location.z,
+                x: Math.round(player.location.x * 100) / 100,
+                y: Math.round(player.location.y * 100) / 100,
+                z: Math.round(player.location.z * 100) / 100,
                 dimensionId: player.dimension.id
             };
         }
@@ -95,36 +111,36 @@ commandManager.register({
             const spawnConfig = getSpawnConfig();
             spawnConfig.spawn.spawnLocation = location;
             saveSpawnConfig(spawnConfig);
-            const locationString = `X: ${Math.floor(location.x)}, Y: ${Math.floor(location.y)}, Z: ${Math.floor(location.z)} in ${location.dimensionId.replace('minecraft:', '')}`;
-            player.sendMessage(`§aAddon spawn point set to: ${locationString}`);
+            const locationString = `X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)} in ${location.dimensionId.replace('minecraft:', '')}`;
+            sendMessage(`§aAddon spawn point set to: §f${locationString}`, player);
 
             // Re-initialize spawn protection to apply any changes immediately
             initializeSpawnProtection();
-            player.sendMessage('§aSpawn protection system has been updated.');
+            sendMessage('§aSpawn protection system has been updated.', player);
 
             // Then, update the world spawn if in the overworld
             if (location.dimensionId === 'minecraft:overworld') {
                 try {
                     const spawnPos = { x: location.x, y: location.y, z: location.z };
                     world.setDefaultSpawnLocation(spawnPos);
-                    player.sendMessage('§aWorld spawn point updated successfully.');
+                    sendMessage('§aWorld spawn point updated successfully.', player);
                 } catch (e) {
-                    errorLog(`[/x:setspawn] Failed to set default world spawn: ${e.stack}`);
-                    player.sendMessage('§cError: Could not set the world spawn point. Check server logs for details.');
+                    errorLog(`[/setspawn] Failed to set default world spawn: ${e.stack}`);
+                    sendMessage('§cError: Could not set the world spawn point. Check server logs for details.', player);
                 }
                 try {
                     world.getDimension('minecraft:overworld').runCommand('gamerule spawnradius 1');
-                    player.sendMessage('§aWorld spawn radius set to 1.');
+                    sendMessage('§aWorld spawn radius set to 1.', player);
                 } catch (e) {
-                    errorLog(`[/x:setspawn] Failed to set spawnradius gamerule: ${e.stack}`);
-                    player.sendMessage('§cError: Could not set the spawn radius. Check server logs for details.');
+                    errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${e.stack}`);
+                    sendMessage('§cError: Could not set the spawn radius. Check server logs for details.', player);
                 }
             }
 
             if (!player.isConsole) { playSound(player, 'random.orb'); }
         } catch (e) {
-            player.sendMessage('§cAn unexpected error occurred while setting the spawn.');
-            errorLog(`[/x:setspawn] General error: ${e.stack}`);
+            sendMessage('§cAn unexpected error occurred while setting the spawn.', player);
+            errorLog(`[/setspawn] General error: ${e.stack}`);
         }
     }
 });

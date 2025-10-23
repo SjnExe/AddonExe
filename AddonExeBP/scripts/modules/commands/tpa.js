@@ -3,6 +3,8 @@ import { createRequest, acceptRequest, denyRequest, cancelRequest, getOutgoingRe
 import { getConfig } from '../../core/configManager.js';
 import { playSound } from '../../core/utils.js';
 import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '../../core/playerDataManager.js';
+import { sendMessage } from '../../core/messaging.js';
+import { constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'tpa',
@@ -14,33 +16,39 @@ commandManager.register({
     parameters: [
         { name: 'target', type: 'player', description: 'The player to send the request to.' }
     ],
+    /**
+     * Executes the /tpa command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     * @param {import('@minecraft/server').Player[]} args.target The target player array.
+     */
     execute: (player, args) => {
         const { target } = args;
         const config = getConfig();
         if (!config.tpa.enabled) {
-            player.sendMessage('§cThe TPA system is currently disabled.');
+            sendMessage(constants.tpaDisabled, player);
             return;
         }
 
         if (!target || target.length === 0) {
-            player.sendMessage('§cPlayer not found.');
+            sendMessage('§cPlayer not found.', player);
             return;
         }
 
         const targetPlayer = target[0];
 
         if (targetPlayer.id === player.id) {
-            player.sendMessage('§cYou cannot send a TPA request to yourself.');
+            sendMessage('§cYou cannot send a TPA request to yourself.', player);
             return;
         }
 
         const result = createRequest(player, targetPlayer, 'tpa');
 
         if (result.success) {
-            player.sendMessage(`§aTPA request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`);
-            targetPlayer.sendMessage(`§a${player.name} has requested to teleport to you. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`);
+            sendMessage(`§aTPA request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`, player);
+            sendMessage(`§a${player.name} has requested to teleport to you. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`, targetPlayer);
         } else {
-            player.sendMessage(`§c${result.message}`);
+            sendMessage(`§c${result.message}`, player);
         }
     }
 });
@@ -56,33 +64,39 @@ commandManager.register({
     parameters: [
         { name: 'target', type: 'player', description: 'The player to send the request to.' }
     ],
+    /**
+     * Executes the /tpahere command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     * @param {import('@minecraft/server').Player[]} args.target The target player array.
+     */
     execute: (player, args) => {
         const { target } = args;
         const config = getConfig();
         if (!config.tpa.enabled) {
-            player.sendMessage('§cThe TPA system is currently disabled.');
+            sendMessage(constants.tpaDisabled, player);
             return;
         }
 
         if (!target || target.length === 0) {
-            player.sendMessage('§cPlayer not found.');
+            sendMessage('§cPlayer not found.', player);
             return;
         }
 
         const targetPlayer = target[0];
 
         if (targetPlayer.id === player.id) {
-            player.sendMessage('§cYou cannot send a TPA request to yourself.');
+            sendMessage('§cYou cannot send a TPA request to yourself.', player);
             return;
         }
 
         const result = createRequest(player, targetPlayer, 'tpahere');
 
         if (result.success) {
-            player.sendMessage(`§aTPA Here request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`);
-            targetPlayer.sendMessage(`§a${player.name} has requested for you to teleport to them. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`);
+            sendMessage(`§aTPA Here request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`, player);
+            sendMessage(`§a${player.name} has requested for you to teleport to them. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`, targetPlayer);
         } else {
-            player.sendMessage(`§c${result.message}`);
+            sendMessage(`§c${result.message}`, player);
         }
     }
 });
@@ -96,10 +110,16 @@ commandManager.register({
     parameters: [
         { name: 'player', type: 'player', description: 'The player whose request you want to accept.', optional: true }
     ],
+    /**
+     * Executes the /tpaccept command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     * @param {import('@minecraft/server').Player[]} [args.player] The optional target player array.
+     */
     execute: (player, args) => {
         const config = getConfig();
         if (!config.tpa.enabled) {
-            player.sendMessage('§cThe TPA system is currently disabled.');
+            sendMessage(constants.tpaDisabled, player);
             return;
         }
 
@@ -117,10 +137,16 @@ commandManager.register({
     parameters: [
         { name: 'player', type: 'player', description: 'The player whose request you want to deny.', optional: true }
     ],
+    /**
+     * Executes the /tpadeny command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     * @param {import('@minecraft/server').Player[]} [args.player] The optional target player array.
+     */
     execute: (player, args) => {
         const config = getConfig();
         if (!config.tpa.enabled) {
-            player.sendMessage('§cThe TPA system is currently disabled.');
+            sendMessage(constants.tpaDisabled, player);
             return;
         }
 
@@ -135,10 +161,14 @@ commandManager.register({
     category: 'TPA System',
     permissionLevel: 1024, // Everyone
     parameters: [],
-    execute: (player, args) => {
+    /**
+     * Executes the /tpacancel command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     */
+    execute: (player) => {
         const config = getConfig();
         if (!config.tpa.enabled) {
-            player.sendMessage('§cThe TPA system is currently disabled.');
+            sendMessage(constants.tpaDisabled, player);
             return;
         }
 
@@ -152,7 +182,11 @@ commandManager.register({
     category: 'TPA System',
     permissionLevel: 1024, // Everyone
     parameters: [],
-    execute: (player, args) => {
+    /**
+     * Executes the /tpastatus command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     */
+    execute: (player) => {
         const outgoing = getOutgoingRequest(player);
         const incoming = getIncomingRequest(player);
 
@@ -177,8 +211,8 @@ commandManager.register({
             statusMessage += '§fYou have no pending TPA requests.';
         }
 
-        player.sendMessage(statusMessage.trim());
-        playSound(player, 'random.orb');
+        sendMessage(statusMessage.trim(), player, { raw: true });
+        playSound(player, constants.soundTeleport);
     }
 });
 
@@ -191,17 +225,23 @@ commandManager.register({
     parameters: [
         { name: 'player', type: 'player', description: 'The player to block from sending TPA requests.', optional: true }
     ],
+    /**
+     * Executes the /tpastop command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     * @param {import('@minecraft/server').Player[]} [args.player] The optional target player array.
+     */
     execute: (player, args) => {
         const target = args.player ? args.player[0] : null;
 
         if (target) {
             // Block a specific player
             addTpaBlockedPlayer(player.id, target.id);
-            player.sendMessage(`§aYou have blocked ${target.name} from sending you TPA requests.`);
+            sendMessage(`§aYou have blocked ${target.name} from sending you TPA requests.`, player);
         } else {
             // Disable all TPA requests
             setTpaRequestsDisabled(player.id, true);
-            player.sendMessage('§aYou have disabled all incoming TPA requests.');
+            sendMessage('§aYou have disabled all incoming TPA requests.', player);
         }
     }
 });
@@ -215,17 +255,23 @@ commandManager.register({
     parameters: [
         { name: 'player', type: 'player', description: 'The player to unblock from sending TPA requests.', optional: true }
     ],
+    /**
+     * Executes the /tpastart command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     * @param {import('@minecraft/server').Player[]} [args.player] The optional target player array.
+     */
     execute: (player, args) => {
         const target = args.player ? args.player[0] : null;
 
         if (target) {
             // Unblock a specific player
             removeTpaBlockedPlayer(player.id, target.id);
-            player.sendMessage(`§aYou have unblocked ${target.name}. They can now send you TPA requests.`);
+            sendMessage(`§aYou have unblocked ${target.name}. They can now send you TPA requests.`, player);
         } else {
             // Enable all TPA requests
             setTpaRequestsDisabled(player.id, false);
-            player.sendMessage('§aYou have enabled all incoming TPA requests.');
+            sendMessage('§aYou have enabled all incoming TPA requests.', player);
         }
     }
 });

@@ -1,10 +1,17 @@
 import { commandManager } from './commandManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
+import { sendMessage } from '../../core/messaging.js';
+import { constants } from '../../core/constants.js';
 
+/**
+ * Displays a categorized list of commands available to the player.
+ * @param {import('@minecraft/server').Player | object} player The player or console requesting help.
+ * @param {number} userPermissionLevel The permission level of the user.
+ * @param {boolean} isConsole Whether the command is being run from the console.
+ */
 function showCategorizedHelp(player, userPermissionLevel, isConsole) {
     const categorizedCommands = {};
 
-    // Get commands from the Map and convert to an array to be able to filter and iterate
     let commandList = Array.from(commandManager.commands.values());
     if (isConsole) {
         commandList = commandList.filter(cmd => cmd.allowConsole);
@@ -21,14 +28,8 @@ function showCategorizedHelp(player, userPermissionLevel, isConsole) {
     }
 
     const categoryOrder = [
-        'Administration',
-        'Moderation',
-        'Economy',
-        'Shop System',
-        'Bounty System',
-        'Home System',
-        'TPA System',
-        'General'
+        'Administration', 'Moderation', 'Economy', 'Shop System', 'Bounty System',
+        'Home System', 'TPA System', 'General'
     ];
 
     let helpMessage = '§a--- Available Commands ---';
@@ -48,19 +49,23 @@ function showCategorizedHelp(player, userPermissionLevel, isConsole) {
     }
 
     if (!commandsShown) {
-        player.sendMessage('§cYou do not have permission to use any commands.');
+        sendMessage(constants.noPermission, player);
         return;
     }
 
-    player.sendMessage(helpMessage);
+    sendMessage(helpMessage, player, { raw: true });
 }
 
+/**
+ * Displays detailed help for a specific command.
+ * @param {import('@minecraft/server').Player | object} player The player or console requesting help.
+ * @param {string} commandName The name of the command to get help for.
+ * @param {boolean} isConsole Whether the command is being run from the console.
+ */
 function showSpecificHelp(player, commandName, isConsole) {
-    // Resolve alias to primary command name, then look up the command
     const realCommandName = commandManager.aliases.get(commandName) || commandName;
     let cmd = commandManager.commands.get(realCommandName);
 
-    // If not found, it might be a unique slash command name, so we have to iterate to find it.
     if (!cmd) {
         for (const command of commandManager.commands.values()) {
             if (command.slashName && command.slashName.toLowerCase() === commandName) {
@@ -74,13 +79,12 @@ function showSpecificHelp(player, commandName, isConsole) {
     const userPermissionLevel = isConsole ? 0 : (pData?.permissionLevel ?? 1024);
 
     if (!cmd || (isConsole && !cmd.allowConsole) || userPermissionLevel > cmd.permissionLevel) {
-        player.sendMessage(`§cUnknown command: '${commandName}'. Or you do not have permission to view it.`);
+        sendMessage(`§cUnknown command: '${commandName}'. Or you do not have permission to view it.`, player);
         return;
     }
 
     const slashCommand = cmd.slashName || cmd.name;
 
-    // Build the parameter string
     let paramString = '';
     if (cmd.parameters && cmd.parameters.length > 0) {
         paramString = ' ' + cmd.parameters.map(p => {
@@ -99,7 +103,7 @@ function showSpecificHelp(player, commandName, isConsole) {
 
     helpMessage += `§eCategory§r: ${cmd.category || 'General'}`;
 
-    player.sendMessage(helpMessage);
+    sendMessage(helpMessage, player, { raw: true });
 }
 
 commandManager.register({
@@ -114,10 +118,16 @@ commandManager.register({
     parameters: [
         { name: 'command', type: 'string', description: 'The command to get help for.', optional: true }
     ],
+    /**
+     * Executes the /help command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     * @param {object} args The command arguments.
+     * @param {string} [args.command] The command to get help for.
+     */
     execute: (player, args) => {
-        let userPermissionLevel = 1024; // Default for players without data
+        let userPermissionLevel = 1024;
         if (player.isConsole) {
-            userPermissionLevel = 0; // Highest permission for console
+            userPermissionLevel = 0;
         } else {
             const pData = getPlayer(player.id);
             if (pData) {
