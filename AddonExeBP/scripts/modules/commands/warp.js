@@ -7,7 +7,7 @@ import { getConfig } from '../../core/configManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
 import { setCooldown } from '../../core/cooldownManager.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'warp',
@@ -29,7 +29,7 @@ commandManager.register({
     execute: (player, args) => {
         const config = getConfig();
         if (!config.warps.enabled) {
-            sendMessage(Constants.WARPS_DISABLED, player);
+            sendMessage(constants.warpsDisabled, player);
             return;
         }
 

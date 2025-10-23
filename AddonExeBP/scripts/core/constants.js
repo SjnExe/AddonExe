@@ -3,31 +3,30 @@
  * Using constants helps prevent "magic strings" and makes the code easier to maintain.
  */
 
-export const Constants = {
+export const constants = {
     // --- Entity Identifiers ---
-    FLOATING_TEXT_ID: 'addonexe:floating_text',
+    floatingTextId: 'addonexe:floating_text',
 
     // --- Common Tags ---
-    ADMIN_TAG: 'admin',
-    VANISHED_TAG: 'vanished',
-    FROZEN_TAG: 'frozen',
+    adminTag: 'admin',
+    vanishedTag: 'vanished',
+    frozenTag: 'frozen',
 
     // --- UI Form Titles ---
-    MAIN_PANEL_TITLE: '§l§bAddonExe Control Panel',
-    // ... more titles can be added here ...
+    mainPanelTitle: '§l§bAddonExe Control Panel',
 
     // --- Command Prefixes ---
-    COMMAND_PREFIX: '!', // This will be read from config later
+    commandPrefix: '!', // This will be read from config later
 
     // --- Default Messages ---
-    NO_PERMISSION: '§cYou do not have permission to use this command.',
-    HOMES_DISABLED: '§cThe homes system is currently disabled.',
-    TPA_DISABLED: '§cThe TPA system is currently disabled.',
-    ECONOMY_DISABLED: '§cThe economy system is currently disabled.',
-    RTP_DISABLED: '§cThe Random Teleport system is currently disabled.',
-    WARPS_DISABLED: '§cThe warps system is currently disabled.',
+    noPermission: '§cYou do not have permission to use this command.',
+    homesDisabled: '§cThe homes system is currently disabled.',
+    tpaDisabled: '§cThe TPA system is currently disabled.',
+    economyDisabled: '§cThe economy system is currently disabled.',
+    rtpDisabled: '§cThe Random Teleport system is currently disabled.',
+    warpsDisabled: '§cThe warps system is currently disabled.',
 
     // --- Sound Events ---
-    SOUND_TELEPORT: 'random.orb',
-    SOUND_ERROR: 'note.bass'
+    soundTeleport: 'random.orb',
+    soundError: 'note.bass'
 };

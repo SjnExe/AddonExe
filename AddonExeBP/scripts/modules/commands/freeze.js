@@ -1,7 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 /**
  * Freezes a player by disabling their input permissions.
@@ -9,14 +9,14 @@ import { Constants } from '../../core/constants.js';
  * @param {import('@minecraft/server').Player} targetPlayer
  */
 export function freezePlayer(executor, targetPlayer) {
-    if (targetPlayer.hasTag(Constants.FROZEN_TAG)) {
+    if (targetPlayer.hasTag(constants.frozenTag)) {
         sendMessage(`§ePlayer ${targetPlayer.name} is already frozen.`, executor);
         return;
     }
     try {
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera disabled`);
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement disabled`);
-        targetPlayer.addTag(Constants.FROZEN_TAG);
+        targetPlayer.addTag(constants.frozenTag);
 
         const announcer = executor.isConsole ? 'the Console' : executor.name;
         sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`, executor);
@@ -33,14 +33,14 @@ export function freezePlayer(executor, targetPlayer) {
  * @param {import('@minecraft/server').Player} targetPlayer
  */
 export function unfreezePlayer(executor, targetPlayer) {
-    if (!targetPlayer.hasTag(Constants.FROZEN_TAG)) {
+    if (!targetPlayer.hasTag(constants.frozenTag)) {
         sendMessage(`§ePlayer ${targetPlayer.name} is not frozen.`, executor);
         return;
     }
     try {
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera enabled`);
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement enabled`);
-        targetPlayer.removeTag(Constants.FROZEN_TAG);
+        targetPlayer.removeTag(constants.frozenTag);
 
         sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`, executor);
         sendMessage('§aYou have been unfrozen.', targetPlayer);

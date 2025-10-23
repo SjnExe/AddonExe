@@ -5,7 +5,7 @@ import { playSound } from '../../core/utils.js';
 import { findPlayerByName } from '../../core/playerCache.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 /**
  * Kicks a player from the server.
@@ -16,13 +16,13 @@ import { Constants } from '../../core/constants.js';
 export function kickPlayer(player, targetPlayer, reason) {
     if (!targetPlayer) {
         sendMessage('§cPlayer not found.', player);
-        if (!player.isConsole) { playSound(player, Constants.SOUND_ERROR); }
+        if (!player.isConsole) { playSound(player, constants.soundError); }
         return;
     }
 
     if (player.id && player.id === targetPlayer.id) {
         sendMessage('§cYou cannot kick yourself.', player);
-        playSound(player, Constants.SOUND_ERROR);
+        playSound(player, constants.soundError);
         return;
     }
 
@@ -31,12 +31,12 @@ export function kickPlayer(player, targetPlayer, reason) {
         const targetData = getPlayer(targetPlayer.id);
         if (!executorData || !targetData) {
             sendMessage('§cCould not retrieve player data for permission check.', player);
-            playSound(player, Constants.SOUND_ERROR);
+            playSound(player, constants.soundError);
             return;
         }
         if (executorData.permissionLevel >= targetData.permissionLevel) {
             sendMessage('§cYou cannot kick a player with the same or higher rank than you.', player);
-            playSound(player, Constants.SOUND_ERROR);
+            playSound(player, constants.soundError);
             return;
         }
     }
@@ -50,10 +50,10 @@ export function kickPlayer(player, targetPlayer, reason) {
             player.runCommand(commandToRun);
         }
         sendMessage(`§aSuccessfully kicked ${targetPlayer.name}. Reason: ${reason}`, player);
-        if (!player.isConsole) { playSound(player, Constants.SOUND_TELEPORT); }
+        if (!player.isConsole) { playSound(player, constants.soundTeleport); }
     } catch (error) {
         sendMessage(`§cFailed to kick ${targetPlayer.name}. See console for details.`, player);
-        if (!player.isConsole) { playSound(player, Constants.SOUND_ERROR); }
+        if (!player.isConsole) { playSound(player, constants.soundError); }
         errorLog(`[/kick] Failed to run kick command for ${targetPlayer.name}:`, error);
     }
 }

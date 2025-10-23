@@ -5,7 +5,7 @@ import { setCooldown } from '../../core/cooldownManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'rtp',
@@ -21,7 +21,7 @@ commandManager.register({
     execute: (player) => {
         const config = getConfig();
         if (!config.rtp.enabled) {
-            sendMessage(Constants.RTP_DISABLED, player);
+            sendMessage(constants.rtpDisabled, player);
             return;
         }
 

@@ -4,7 +4,7 @@ import { getConfig } from '../../core/configManager.js';
 import { playSound } from '../../core/utils.js';
 import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '../../core/playerDataManager.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'tpa',
@@ -26,7 +26,7 @@ commandManager.register({
         const { target } = args;
         const config = getConfig();
         if (!config.tpa.enabled) {
-            sendMessage(Constants.TPA_DISABLED, player);
+            sendMessage(constants.tpaDisabled, player);
             return;
         }
 
@@ -74,7 +74,7 @@ commandManager.register({
         const { target } = args;
         const config = getConfig();
         if (!config.tpa.enabled) {
-            sendMessage(Constants.TPA_DISABLED, player);
+            sendMessage(constants.tpaDisabled, player);
             return;
         }
 
@@ -119,7 +119,7 @@ commandManager.register({
     execute: (player, args) => {
         const config = getConfig();
         if (!config.tpa.enabled) {
-            sendMessage(Constants.TPA_DISABLED, player);
+            sendMessage(constants.tpaDisabled, player);
             return;
         }
 
@@ -146,7 +146,7 @@ commandManager.register({
     execute: (player, args) => {
         const config = getConfig();
         if (!config.tpa.enabled) {
-            sendMessage(Constants.TPA_DISABLED, player);
+            sendMessage(constants.tpaDisabled, player);
             return;
         }
 
@@ -168,7 +168,7 @@ commandManager.register({
     execute: (player) => {
         const config = getConfig();
         if (!config.tpa.enabled) {
-            sendMessage(Constants.TPA_DISABLED, player);
+            sendMessage(constants.tpaDisabled, player);
             return;
         }
 
@@ -212,7 +212,7 @@ commandManager.register({
         }
 
         sendMessage(statusMessage.trim(), player, { raw: true });
-        playSound(player, Constants.SOUND_TELEPORT);
+        playSound(player, constants.soundTeleport);
     }
 });
 

@@ -13,7 +13,7 @@ import { GameMode } from '@minecraft/server';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 /**
  * A map of gamemode aliases to their corresponding GameMode enum values.

@@ -2,7 +2,7 @@ import { commandManager } from './commandManager.js';
 import { playSound } from '../../core/utils.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'copyinv',
@@ -46,7 +46,7 @@ commandManager.register({
                 }
             }
             sendMessage(`§aSuccessfully copied inventory from ${targetPlayer.name}.`, player);
-            playSound(player, Constants.SOUND_TELEPORT);
+            playSound(player, constants.soundTeleport);
         } catch (e) {
             sendMessage('§cFailed to copy inventory.', player);
             errorLog(`[/copyinv] Error: ${e.stack}`);

@@ -2,7 +2,7 @@ import { commandManager } from './commandManager.js';
 import { playSound } from '../../core/utils.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'clear',
@@ -38,13 +38,13 @@ commandManager.register({
             const executorData = getPlayer(player.id);
             if (executorData.permissionLevel > 1 && player.id !== targetPlayer.id) {
                 sendMessage("§cYou do not have permission to clear another player's inventory.", player);
-                playSound(player, Constants.SOUND_ERROR);
+                playSound(player, constants.soundError);
                 return;
             }
             const targetData = getPlayer(targetPlayer.id);
             if (executorData.permissionLevel >= targetData.permissionLevel && player.id !== targetPlayer.id) {
                 sendMessage('§cYou cannot clear the inventory of a player with the same or higher rank than you.', player);
-                playSound(player, Constants.SOUND_ERROR);
+                playSound(player, constants.soundError);
                 return;
             }
         }
@@ -57,10 +57,10 @@ commandManager.register({
         if (player.isConsole || targetPlayer.id !== player.id) {
             sendMessage(`§aSuccessfully cleared the inventory of ${targetPlayer.name}.`, player);
             sendMessage('§eYour inventory has been cleared by an admin.', targetPlayer);
-            if (!player.isConsole) { playSound(targetPlayer, Constants.SOUND_TELEPORT); }
+            if (!player.isConsole) { playSound(targetPlayer, constants.soundTeleport); }
         } else {
             sendMessage('§aYour inventory has been cleared.', player);
         }
-        if (!player.isConsole) { playSound(player, Constants.SOUND_TELEPORT); }
+        if (!player.isConsole) { playSound(player, constants.soundTeleport); }
     }
 });

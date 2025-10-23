@@ -1,7 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 /**
  * Displays a categorized list of commands available to the player.
@@ -49,7 +49,7 @@ function showCategorizedHelp(player, userPermissionLevel, isConsole) {
     }
 
     if (!commandsShown) {
-        sendMessage(Constants.NO_PERMISSION, player);
+        sendMessage(constants.noPermission, player);
         return;
     }
 

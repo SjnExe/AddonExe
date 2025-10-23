@@ -7,7 +7,7 @@ import { getConfig } from '../../core/configManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
 import { setCooldown } from '../../core/cooldownManager.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'home',
@@ -28,7 +28,7 @@ commandManager.register({
     execute: (player, args) => {
         const config = getConfig();
         if (!config.homes.enabled) {
-            sendMessage(Constants.HOMES_DISABLED, player);
+            sendMessage(constants.homesDisabled, player);
             return;
         }
 
@@ -98,7 +98,7 @@ commandManager.register({
     execute: (player) => {
         const config = getConfig();
         if (!config.homes.enabled) {
-            sendMessage(Constants.HOMES_DISABLED, player);
+            sendMessage(constants.homesDisabled, player);
             return;
         }
 
@@ -132,7 +132,7 @@ commandManager.register({
     execute: (player, args) => {
         const config = getConfig();
         if (!config.homes.enabled) {
-            sendMessage(Constants.HOMES_DISABLED, player);
+            sendMessage(constants.homesDisabled, player);
             return;
         }
 
@@ -190,7 +190,7 @@ commandManager.register({
     execute: (player, args) => {
         const config = getConfig();
         if (!config.homes.enabled) {
-            sendMessage(Constants.HOMES_DISABLED, player);
+            sendMessage(constants.homesDisabled, player);
             return;
         }
 

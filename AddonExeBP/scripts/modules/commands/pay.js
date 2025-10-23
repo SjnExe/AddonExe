@@ -3,7 +3,7 @@ import { getConfig } from '../../core/configManager.js';
 import { getPlayer, createPendingPayment, getPendingPayment, clearPendingPayment, transfer } from '../../core/playerDataManager.js';
 import { world } from '@minecraft/server';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'pay',
@@ -27,7 +27,7 @@ commandManager.register({
         const { target, amount } = args;
         const config = getConfig();
         if (!config.economy.enabled) {
-            return sendMessage(Constants.ECONOMY_DISABLED, player);
+            return sendMessage(constants.economyDisabled, player);
         }
 
         if (!target || target.length === 0) {

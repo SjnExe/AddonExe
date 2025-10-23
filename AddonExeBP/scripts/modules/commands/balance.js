@@ -2,7 +2,7 @@ import { commandManager } from './commandManager.js';
 import { getBalance, getLeaderboard } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'balance',
@@ -22,7 +22,7 @@ commandManager.register({
     execute: (player, args) => {
         const config = getConfig();
         if (!config.economy.enabled) {
-            sendMessage(Constants.ECONOMY_DISABLED, player);
+            sendMessage(constants.economyDisabled, player);
             return;
         }
 
@@ -66,7 +66,7 @@ commandManager.register({
     execute: (player) => {
         const config = getConfig();
         if (!config.economy.enabled) {
-            sendMessage(Constants.ECONOMY_DISABLED, player);
+            sendMessage(constants.economyDisabled, player);
             return;
         }
 

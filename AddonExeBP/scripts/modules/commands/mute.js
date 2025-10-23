@@ -4,7 +4,7 @@ import { addPunishment, removePunishment } from '../../core/punishmentManager.js
 import { parseDuration, playSound } from '../../core/utils.js';
 import { findPlayerByName } from '../../core/playerCache.js';
 import { sendMessage } from '../../core/messaging.js';
-import { Constants } from '../../core/constants.js';
+import { constants } from '../../core/constants.js';
 
 /**
  * Mutes a player.
@@ -16,25 +16,25 @@ import { Constants } from '../../core/constants.js';
 export function mutePlayer(player, targetPlayer, duration, reason) {
     if (!targetPlayer) {
         sendMessage('§cPlayer not found.', player);
-        playSound(player, Constants.SOUND_ERROR);
+        playSound(player, constants.soundError);
         return;
     }
     if (!player.isConsole) {
         if (player.id === targetPlayer.id) {
             sendMessage('§cYou cannot mute yourself.', player);
-            playSound(player, Constants.SOUND_ERROR);
+            playSound(player, constants.soundError);
             return;
         }
         const executorData = getPlayer(player.id);
         const targetData = getPlayer(targetPlayer.id);
         if (!executorData || !targetData) {
             sendMessage('§cCould not retrieve player data for permission check.', player);
-            playSound(player, Constants.SOUND_ERROR);
+            playSound(player, constants.soundError);
             return;
         }
         if (executorData.permissionLevel >= targetData.permissionLevel) {
             sendMessage('§cYou cannot mute a player with the same or higher rank than you.', player);
-            playSound(player, Constants.SOUND_ERROR);
+            playSound(player, constants.soundError);
             return;
         }
     }
@@ -51,7 +51,7 @@ export function mutePlayer(player, targetPlayer, duration, reason) {
     sendMessage(`§aSuccessfully muted ${targetPlayer.name} ${durationText}. Reason: ${reason}`, player);
     sendMessage(`§cYou have been muted ${durationText} by ${announcer}.`, targetPlayer);
     if (!player.isConsole) {
-        playSound(player, Constants.SOUND_TELEPORT);
+        playSound(player, constants.soundTeleport);
     }
 }
 
@@ -124,13 +124,13 @@ export function unmutePlayer(player, targetName) {
 
     if (!success) {
         sendMessage(`§cPlayer "${targetName}" is not currently muted.`, player);
-        if (!player.isConsole) { playSound(player, Constants.SOUND_ERROR); }
+        if (!player.isConsole) { playSound(player, constants.soundError); }
         return;
     }
 
     sendMessage(`§aSuccessfully unmuted ${targetName}.`, player);
     if (!player.isConsole) {
-        playSound(player, Constants.SOUND_TELEPORT);
+        playSound(player, constants.soundTeleport);
     }
 
     const targetPlayer = findPlayerByName(targetName);
