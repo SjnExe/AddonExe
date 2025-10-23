@@ -2,7 +2,7 @@
     {
         "texture_name": "invisible",
         "texture_data": {
-            "path": "textures/entity/invisible.png"
+            "path": "textures/entity/cape_invisible"
         }
     }
 ]

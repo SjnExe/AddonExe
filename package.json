@@ -5,7 +5,6 @@
     "main": "index.js",
     "scripts": {
         "test": "jest",
-        "build": "rollup --config rollup.config.js",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "lint:report": "eslint . --output-file eslint_report.txt",
@@ -24,23 +23,17 @@
         "url": "https://github.com/SjnExe/AddonExe/issues"
     },
     "homepage": "https://github.com/SjnExe/AddonExe#readme",
-    "dependencies": {
-        "ajv": "^8.17.1"
-    },
+    "dependencies": {},
     "devDependencies": {
         "@babel/preset-env": "^7.28.3",
         "@eslint/eslintrc": "^3.3.1",
         "@eslint/js": "^9.36.0",
         "@minecraft/creator-tools": "^0.14.2",
-        "@rollup/plugin-commonjs": "^28.0.8",
-        "@rollup/plugin-json": "^6.1.0",
-        "@rollup/plugin-node-resolve": "^16.0.3",
         "babel-jest": "^30.2.0",
         "eslint": "^9.36.0",
         "eslint-plugin-jsonc": "^2.20.1",
         "globals": "^16.4.0",
-        "jest": "^30.2.0",
-        "rollup": "^4.52.5"
+        "jest": "^30.2.0"
     },
     "jest": {
         "testEnvironment": "node",

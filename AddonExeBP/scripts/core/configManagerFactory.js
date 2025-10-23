@@ -1,7 +1,6 @@
 import { world } from '@minecraft/server';
 import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, mergeWithFileChanges } from './objectUtils.js';
 import { errorLog, debugLog } from './logger.js';
-import Ajv from 'ajv';
 
 /**
  * Creates a configuration manager for a specific configuration type.
@@ -12,31 +11,6 @@ import Ajv from 'ajv';
  * @param {string | null} wrapperKey If provided, the imported config data will be wrapped in an object with this key.
  * @returns {object} An object with methods to manage the configuration.
  */
-import configSchema from '../../../Dev/schemas/configSchema.json';
-
-/**
- * Validates a configuration object against the main config schema.
- * @param {object} configObject The configuration object to validate.
- */
-function validateConfig(configObject) {
-    const ajv = new Ajv({ allErrors: true });
-    const validate = ajv.compile(configSchema);
-    const valid = validate(configObject);
-
-    if (!valid) {
-        errorLog('Configuration validation failed. Please check your config.js for the following errors:');
-        for (const error of validate.errors) {
-            const path = error.instancePath ? error.instancePath.substring(1).replace(/\//g, '.') : 'config';
-            errorLog(`- [${path}] ${error.message}`);
-        }
-        return false;
-    }
-
-    debugLog('Main configuration validation successful.');
-    return true;
-}
-
-
 function createConfigManager(key, configPath, name, configKey, wrapperKey = null) {
     const lastLoadedKey = `${key}:last_loaded`;
     let currentConfig = null;
@@ -164,11 +138,6 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
         }
 
         saveConfig();
-
-        // After loading and merging, validate the final configuration object.
-        if (name === 'Main') {
-            validateConfig(currentConfig);
-        }
 
         return isFirstInit;
     }
