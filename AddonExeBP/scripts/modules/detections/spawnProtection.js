@@ -168,26 +168,6 @@ function initialize() {
         });
     }
 
-
-    if (spawnProtection.preventPvP) {
-        subscribe(world.beforeEvents.entityHurt, (event) => {
-            const { hurtEntity, damageSource } = event;
-            const attacker = damageSource.damagingEntity;
-
-            // Check if it's a PvP scenario (player hurting another player)
-            if (!(hurtEntity instanceof Player) || !(attacker instanceof Player)) { return; }
-            if (hurtEntity.id === attacker.id) { return; } // Self-harm is not PvP
-
-            // Check if the victim is in spawn
-            if (!isWithinSpawnProtection(hurtEntity.location, hurtEntity.dimension.id)) { return; }
-
-            // If the attacker can bypass, allow the damage. Otherwise, cancel it.
-            if (!canBypass(attacker)) {
-                event.cancel = true;
-            }
-        });
-    }
-
     // --- INTERVAL-BASED PROTECTIONS ---
 
     intervalId = system.runInterval(() => {
@@ -220,6 +200,34 @@ function initialize() {
                 }
             } catch (e) {
                 errorLog(`[SpawnProtection] Error during mob cleanup: ${e}`);
+            }
+        }
+
+        // Player Protection Logic
+        for (const player of world.getAllPlayers()) {
+            const wasInSpawn = player.hasTag('inSpawn');
+            const isInSpawn = isWithinSpawnProtection(player.location, player.dimension.id);
+
+            if (isInSpawn && !wasInSpawn) {
+                // Player has entered spawn
+                player.addTag('inSpawn');
+                if (!canBypass(player)) {
+                    if (protection.preventItemPickup || protection.preventItemDropping) {
+                        player.runCommand('event entity @s exe:apply_spawn_protection');
+                    }
+                    if (protection.preventPvP) {
+                        player.runCommand('event entity @s exe:disable_pvp');
+                    }
+                    if (protection.preventHostileDamage) {
+                        player.runCommand('event entity @s exe:disable_hostile_damage');
+                    }
+                }
+            } else if (!isInSpawn && wasInSpawn) {
+                // Player has left spawn
+                player.removeTag('inSpawn');
+                player.runCommand('event entity @s exe:remove_spawn_protection');
+                player.runCommand('event entity @s exe:enable_pvp');
+                player.runCommand('event entity @s exe:enable_hostile_damage');
             }
         }
     }, 40); // Run every 2 seconds
