@@ -1,0 +1,7 @@
+[
+    {
+        "flipbook_texture": "textures/entity/cape_invisible",
+        "atlas_tile": "entity/invisible",
+        "ticks_per_frame": 1
+    }
+]

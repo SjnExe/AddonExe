@@ -1659,7 +1659,7 @@ function requireUtil () {
 	                : (0, codegen_1._) `"['" + ${dataProp} + "']"`
 	            : isNumber
 	                ? (0, codegen_1._) `"/" + ${dataProp}`
-	                : (0, codegen_1._) `"/" + ${dataProp}.replace(/~/g, "~0").replace(/\\//g, "~1")`; // TODO maybe use global escapePointer
+	                : (0, codegen_1._) `"/" + ${dataProp}.replace(/~/g, "~0").replace(/\//g, "~1")`;
 	    }
 	    return jsPropertySyntax ? (0, codegen_1.getProperty)(dataProp).toString() : "/" + escapeJsonPointer(dataProp);
 	}
