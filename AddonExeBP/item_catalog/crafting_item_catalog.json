@@ -1,9 +1,19 @@
 {
     "format_version": "1.21.110",
-    "item_catalog": {
-        "items": [
+    "minecraft:crafting_items_catalog": {
+        "categories": [
             {
-                "name": "exe:panel"
+                "category_name": "items",
+                "groups": [
+                    {
+                        "group_identifier": {
+                            "name": "minecraft:itemGroup.name.items"
+                        },
+                        "items": [
+                            "exe:panel"
+                        ]
+                    }
+                ]
             }
         ]
     }

@@ -18,7 +18,7 @@
             "description": "Main scripting engine for AddonExe's features.",
             "type": "script",
             "language": "javascript",
-            "entry": "scripts/core/main.js",
+            "entry": "scripts/dist/bundle.js",
             "uuid": "ecb49e35-ade4-459d-83ff-85c3770c1e74",
             "version": [1, 0, 0]
         }
