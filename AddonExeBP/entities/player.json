@@ -36,18 +36,9 @@
           "triggers": {
             "on_damage": {
               "filters": {
-                "all_of": [
-                  {
-                    "test": "is_family",
-                    "subject": "damager",
-                    "operator": "!=",
-                    "value": "player"
-                  },
-                  {
-                    "test": "has_damage",
-                    "value": "any"
-                  }
-                ]
+                "test": "is_family",
+                "subject": "damager",
+                "value": "monster"
               }
             },
             "deals_damage": false

@@ -37,6 +37,7 @@ export function updatePlayerRank(player) {
         infoLog(`[AddonExe] Player ${player.name}'s rank updated from ${oldRankId} to ${newRank.name}.`);
         player.sendMessage(`§aYour rank has been updated to ${newRank.name}.`);
     }
+    rankManager.updatePlayerNameTag(player, config);
 }
 
 /**
@@ -54,11 +55,13 @@ export function updateAllPlayerRanks() {
  */
 function reinitializeOnlinePlayers() {
     infoLog(`[AddonExe] Re-initializing state for ${world.getAllPlayers().length} online players...`);
+    const config = getConfig();
     for (const player of world.getAllPlayers()) {
         // Ensure the player's data is loaded into the system
         playerDataManager.getOrCreatePlayer(player);
         // Then, update their rank based on the loaded data and config
         updatePlayerRank(player);
+        rankManager.updatePlayerNameTag(player, config);
     }
     infoLog('[AddonExe] Player re-initialization complete.');
 }

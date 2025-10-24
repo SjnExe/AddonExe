@@ -578,6 +578,12 @@ export const configPanelSchema = [
                 description: 'Prevents players from damaging other players in spawn.'
             },
             {
+                key: 'spawnProtection.preventHostileDamage',
+                label: 'Prevent Hostile Damage',
+                type: 'toggle',
+                description: 'Prevents hostile mobs from damaging players in spawn.'
+            },
+            {
                 key: 'spawnProtection.preventHostileMobSpawning',
                 label: 'Prevent Hostile Mob Spawning',
                 type: 'toggle',

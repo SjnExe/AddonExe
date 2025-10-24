@@ -772,10 +772,7 @@ export async function buildPanelForm(player, panelId, context) {
                 .toggle('Is Dynamic (use placeholders)', { defaultValue: isDynamic })
                 .slider('Update Interval (seconds)', 1, 60, { valueStep: 1, defaultValue: sliderDefaultValue })
                 .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
-                .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' })
-                .toggle('Snap to Cardinal Direction', { defaultValue: snapRotation })
-                .toggle('Hovering Motion', { defaultValue: hover })
-                .toggle('Swaying Motion', { defaultValue: sway });
+                .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' });
             return form;
         }
 
