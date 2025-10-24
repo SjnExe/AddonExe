@@ -121,5 +121,9 @@ export function getAllRanks() {
 export function updatePlayerNameTag(player, config) {
     const rank = getPlayerRank(player, config);
     const prefix = rank.chatFormatting?.prefixText ?? '';
-    player.nameTag = `${prefix}\n${player.name}`;
+    const newNameTag = `${prefix}\n${player.name}`;
+
+    if (player.nameTag !== newNameTag) {
+        player.nameTag = newNameTag;
+    }
 }

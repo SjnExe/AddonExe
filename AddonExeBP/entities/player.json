@@ -22,9 +22,20 @@
           "triggers": {
             "on_damage": {
               "filters": {
-                "test": "is_family",
-                "subject": "damager",
-                "value": "player"
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "damager",
+                    "operator": "!=",
+                    "value": "player"
+                  },
+                  {
+                    "test": "is_family",
+                    "subject": "damager",
+                    "operator": "!=",
+                    "value": "inanimate"
+                  }
+                ]
               }
             },
             "deals_damage": false
@@ -36,9 +47,20 @@
           "triggers": {
             "on_damage": {
               "filters": {
-                "test": "is_family",
-                "subject": "damager",
-                "value": "monster"
+                "all_of": [
+                  {
+                    "test": "is_family",
+                    "subject": "damager",
+                    "operator": "!=",
+                    "value": "player"
+                  },
+                  {
+                    "test": "is_family",
+                    "subject": "damager",
+                    "operator": "!=",
+                    "value": "inanimate"
+                  }
+                ]
               }
             },
             "deals_damage": false

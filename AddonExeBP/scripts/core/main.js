@@ -16,7 +16,7 @@ import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
-import { initializePlaceholders } from './placeholderManager.js';
+import { registerPlayerDataPlaceholders } from './playerDataManager.js';
 import '../modules/commands/index.js';
 
 /**
@@ -86,7 +86,7 @@ function initializeManagers() {
     infoLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
-    initializePlaceholders(); // Must be before managers that use placeholders
+    registerPlayerDataPlaceholders(); // Must be before managers that use placeholders
     floatingTextManager.initialize();
     // Clear any expired data on startup
     clearExpiredPunishments();

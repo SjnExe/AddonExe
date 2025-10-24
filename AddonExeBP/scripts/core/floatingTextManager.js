@@ -180,9 +180,10 @@ function despawnText(id) {
 
         const tickingAreaName = `ft_${id}`;
         const { x, y, z } = textConfig.location;
-        const dimension = world.getDimension(textConfig.dimension);
+        const dimensionId = textConfig.dimension;
 
         const timeoutId = system.runTimeout(() => {
+            const dimension = world.getDimension(dimensionId);
             try {
                 dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
                 system.runTimeout(() => {
