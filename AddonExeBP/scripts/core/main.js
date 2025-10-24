@@ -61,7 +61,6 @@ function reinitializeOnlinePlayers() {
         playerDataManager.getOrCreatePlayer(player);
         // Then, update their rank based on the loaded data and config
         updatePlayerRank(player);
-        rankManager.updatePlayerNameTag(player, config);
     }
     infoLog('[AddonExe] Player re-initialization complete.');
 }

@@ -22,20 +22,9 @@
           "triggers": {
             "on_damage": {
               "filters": {
-                "all_of": [
-                  {
-                    "test": "is_family",
-                    "subject": "damager",
-                    "operator": "!=",
-                    "value": "player"
-                  },
-                  {
-                    "test": "is_family",
-                    "subject": "damager",
-                    "operator": "!=",
-                    "value": "inanimate"
-                  }
-                ]
+                "test": "is_family",
+                "subject": "damager",
+                "value": "player"
               }
             },
             "deals_damage": false

@@ -88,7 +88,7 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
 
             if (isMigration) {
                 // Scenario: Addon Update (Migration)
-                errorLog(`[${name}ConfigManager] Version mismatch detected. Migrating config.`);
+                debugLog(`[${name}ConfigManager] Version mismatch detected. Migrating config.`);
                 if (name === 'Ranks' || name === 'Kits' || name === 'Shop') {
                     // For these list-based configs, we preserve the user's data as-is during a migration
                     // to prevent deleted items from reappearing. New items must be added manually by admins.
