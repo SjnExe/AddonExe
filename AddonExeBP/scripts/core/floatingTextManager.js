@@ -62,15 +62,6 @@ function spawnText(textConfig) {
         entity.nameTag = textConfig.text;
         entity.addTag(`ft_${textConfig.id}`);
 
-        if (textConfig.snapRotation) {
-            entity.triggerEvent('enable_snap_rotation');
-        }
-        if (textConfig.hover) {
-            entity.triggerEvent('enable_hover');
-        }
-        if (textConfig.sway) {
-            entity.triggerEvent('enable_sway');
-        }
         activeEntities.set(textConfig.id, entity);
     } catch (error) {
         if (error.toString().includes('LocationInUnloadedChunkError')) {
@@ -155,10 +146,7 @@ function createText(player, id, text) {
         dimension: player.dimension.id,
         isDynamic: text.includes('{'),
         updateInterval: 100,
-        expiresAt: null,
-        snapRotation: false,
-        hover: false,
-        sway: false
+        expiresAt: null
     };
 
     floatingTexts.set(id, newTextConfig);
@@ -192,9 +180,10 @@ function despawnText(id) {
 
         const tickingAreaName = `ft_${id}`;
         const { x, y, z } = textConfig.location;
-        const dimension = world.getDimension(textConfig.dimension);
+        const dimensionId = textConfig.dimension;
 
         const timeoutId = system.runTimeout(() => {
+            const dimension = world.getDimension(dimensionId);
             try {
                 dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
                 system.runTimeout(() => {

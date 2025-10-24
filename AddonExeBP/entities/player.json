@@ -44,8 +44,10 @@
                     "value": "player"
                   },
                   {
-                    "test": "has_damage",
-                    "value": "any"
+                    "test": "is_family",
+                    "subject": "damager",
+                    "operator": "!=",
+                    "value": "inanimate"
                   }
                 ]
               }

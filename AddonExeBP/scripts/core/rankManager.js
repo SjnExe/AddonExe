@@ -112,3 +112,18 @@ export function getRankById(rankId) {
 export function getAllRanks() {
     return getRanksConfig().rankDefinitions;
 }
+
+/**
+ * Updates a player's nametag to display their rank.
+ * @param {import('@minecraft/server').Player} player The player whose nametag should be updated.
+ * @param {object} config The addon's configuration object.
+ */
+export function updatePlayerNameTag(player, config) {
+    const rank = getPlayerRank(player, config);
+    const prefix = rank.chatFormatting?.prefixText ?? '';
+    const newNameTag = `${prefix}\n${player.name}`;
+
+    if (player.nameTag !== newNameTag) {
+        player.nameTag = newNameTag;
+    }
+}

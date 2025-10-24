@@ -578,6 +578,24 @@ export const configPanelSchema = [
                 description: 'Prevents players from damaging other players in spawn.'
             },
             {
+                key: 'spawnProtection.preventHostileDamage',
+                label: 'Prevent Hostile Damage',
+                type: 'toggle',
+                description: 'Prevents hostile mobs from damaging players in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventItemPickup',
+                label: 'Prevent Item Pickup',
+                type: 'toggle',
+                description: 'Prevents players from picking up items in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventItemDropping',
+                label: 'Prevent Item Dropping',
+                type: 'toggle',
+                description: 'Prevents players from dropping items in spawn.'
+            },
+            {
                 key: 'spawnProtection.preventHostileMobSpawning',
                 label: 'Prevent Hostile Mob Spawning',
                 type: 'toggle',

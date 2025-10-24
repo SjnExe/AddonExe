@@ -16,6 +16,7 @@ import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
+import { registerPlayerDataPlaceholders } from './playerDataManager.js';
 import '../modules/commands/index.js';
 
 /**
@@ -36,6 +37,7 @@ export function updatePlayerRank(player) {
         infoLog(`[AddonExe] Player ${player.name}'s rank updated from ${oldRankId} to ${newRank.name}.`);
         player.sendMessage(`§aYour rank has been updated to ${newRank.name}.`);
     }
+    rankManager.updatePlayerNameTag(player, config);
 }
 
 /**
@@ -53,6 +55,7 @@ export function updateAllPlayerRanks() {
  */
 function reinitializeOnlinePlayers() {
     infoLog(`[AddonExe] Re-initializing state for ${world.getAllPlayers().length} online players...`);
+    const config = getConfig();
     for (const player of world.getAllPlayers()) {
         // Ensure the player's data is loaded into the system
         playerDataManager.getOrCreatePlayer(player);
@@ -82,6 +85,7 @@ function initializeManagers() {
     infoLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
+    registerPlayerDataPlaceholders(); // Must be before managers that use placeholders
     floatingTextManager.initialize();
     // Clear any expired data on startup
     clearExpiredPunishments();
