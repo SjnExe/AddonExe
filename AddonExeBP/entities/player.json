@@ -1,13 +1,20 @@
 {
-  "format_version": "1.16.0",
-  "minecraft:player": {
+  "format_version": "1.21.0",
+  "minecraft:entity": {
     "description": {
       "identifier": "minecraft:player",
       "is_spawnable": false,
       "is_summonable": false,
       "is_experimental": false
     },
-    "components": {},
+    "components": {
+      "minecraft:can_pickup_items": {
+        "value": true
+      },
+      "minecraft:inventory": {
+        "private": false
+      }
+    },
     "component_groups": {
       "exe:spawn_protected": {
         "minecraft:can_pickup_items": {
@@ -19,41 +26,45 @@
       },
       "exe:pvp_disabled": {
         "minecraft:damage_sensor": {
-          "triggers": {
-            "on_damage": {
-              "filters": {
-                "test": "is_family",
-                "subject": "damager",
-                "value": "player"
-              }
-            },
-            "deals_damage": false
-          }
+          "triggers": [
+            {
+              "on_damage": {
+                "filters": {
+                  "test": "is_family",
+                  "subject": "damager",
+                  "value": "player"
+                }
+              },
+              "deals_damage": false
+            }
+          ]
         }
       },
       "exe:hostile_damage_disabled": {
         "minecraft:damage_sensor": {
-          "triggers": {
-            "on_damage": {
-              "filters": {
-                "all_of": [
-                  {
-                    "test": "is_family",
-                    "subject": "damager",
-                    "operator": "!=",
-                    "value": "player"
-                  },
-                  {
-                    "test": "is_family",
-                    "subject": "damager",
-                    "operator": "!=",
-                    "value": "inanimate"
-                  }
-                ]
-              }
-            },
-            "deals_damage": false
-          }
+          "triggers": [
+            {
+              "on_damage": {
+                "filters": {
+                  "all_of": [
+                    {
+                      "test": "is_family",
+                      "subject": "damager",
+                      "operator": "!=",
+                      "value": "player"
+                    },
+                    {
+                      "test": "is_family",
+                      "subject": "damager",
+                      "operator": "!=",
+                      "value": "inanimate"
+                    }
+                  ]
+                }
+              },
+              "deals_damage": false
+            }
+          ]
         }
       }
     },
