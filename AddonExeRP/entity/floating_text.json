@@ -7,7 +7,7 @@
                 "default": "entity_alphatest"
             },
             "textures": {
-                "default": "textures/entity/cape_invisible"
+                "default": "textures/entity/pig/pig"
             },
             "geometry": {
                 "default": "geometry.invisible"
