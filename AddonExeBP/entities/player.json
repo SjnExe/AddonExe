@@ -3,6 +3,7 @@
   "minecraft:entity": {
     "description": {
       "identifier": "minecraft:player",
+      "spawn_category": "creature",
       "is_spawnable": false,
       "is_summonable": false,
       "is_experimental": false
@@ -141,16 +142,10 @@
           },
           "event": "minecraft:gain_raid_omen"
         }
-      },
-      "minecraft:inventory": {
-        "private": false
       }
     },
     "component_groups": {
       "exe:spawn_protected": {
-        "minecraft:inventory": {
-          "private": true
-        },
         "minecraft:shareables": {
           "items": []
         }
