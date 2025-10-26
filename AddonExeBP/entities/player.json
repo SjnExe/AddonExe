@@ -8,18 +8,12 @@
       "is_experimental": false
     },
     "components": {
-      "minecraft:can_pickup_items": {
-        "value": true
-      },
       "minecraft:inventory": {
         "private": false
       }
     },
     "component_groups": {
       "exe:spawn_protected": {
-        "minecraft:can_pickup_items": {
-          "value": false
-        },
         "minecraft:inventory": {
           "private": true
         }
