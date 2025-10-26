@@ -147,7 +147,12 @@
     "component_groups": {
       "exe:spawn_protected": {
         "minecraft:shareables": {
-          "items": []
+          "items": [
+            {
+              "item": "minecraft:air",
+              "pickup_only": true
+            }
+          ]
         }
       },
       "exe:pvp_disabled": {
