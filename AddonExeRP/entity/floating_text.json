@@ -7,13 +7,13 @@
                 "default": "entity_alphatest"
             },
             "textures": {
-                "default": "textures/entity/cape_invisible"
+                "default": "textures/entity/pig/pig"
             },
             "geometry": {
                 "default": "geometry.invisible"
             },
             "render_controllers": [
-                "controller.render.armor_stand"
+                "controller.render.floating_text"
             ]
         }
     }
