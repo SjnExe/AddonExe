@@ -42,11 +42,7 @@
           }
         }
       },
-      "exe:spawn_protected": {
-        "minecraft:shareables": {
-          "items": []
-        }
-      },
+      "exe:spawn_protected": {},
       "exe:pvp_disabled": {
         "minecraft:damage_sensor": {
           "triggers": [
