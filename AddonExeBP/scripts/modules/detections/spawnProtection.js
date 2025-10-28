@@ -211,23 +211,32 @@ function initialize() {
             if (isInSpawn && !wasInSpawn) {
                 debugLog(`[SpawnProtection] Player '${playerName}' ENTERED spawn area.`);
                 player.addTag('inSpawn');
+
+                // Admin bypass should not affect damage protection.
                 if (canBypass(player)) {
-                    debugLog(`[SpawnProtection] Player '${playerName}' can bypass. No effects applied.`);
-                    continue;
+                    debugLog(`[SpawnProtection] Player '${playerName}' is an admin. Item/block protections bypassed.`);
+                } else {
+                    if (protection.preventItemPickup || protection.preventItemDropping) {
+                        debugLog(`[SpawnProtection] Applying item protection to '${playerName}'.`);
+                        player.runCommand('event entity @s exe:apply_spawn_protection');
+                    }
                 }
 
-                if (protection.preventItemPickup || protection.preventItemDropping) {
-                    debugLog(`[SpawnProtection] Applying item protection to '${playerName}'.`);
-                    player.runCommand('event entity @s exe:apply_spawn_protection');
-                }
-                if (protection.preventPvP) {
+                // Damage protection logic
+                const pvp = protection.preventPvP;
+                const hostile = protection.preventHostileDamage;
+
+                if (pvp && hostile) {
+                    debugLog(`[SpawnProtection] Disabling ALL damage for '${playerName}'.`);
+                    player.runCommand('event entity @s exe:prevent_all_damage_on');
+                } else if (pvp) {
                     debugLog(`[SpawnProtection] Disabling PvP for '${playerName}'.`);
                     player.runCommand('event entity @s exe:disable_pvp');
-                }
-                if (protection.preventHostileDamage) {
+                } else if (hostile) {
                     debugLog(`[SpawnProtection] Disabling hostile damage for '${playerName}'.`);
                     player.runCommand('event entity @s exe:disable_hostile_damage');
                 }
+
 
             } else if (!isInSpawn && wasInSpawn) {
                 debugLog(`[SpawnProtection] Player '${playerName}' EXITED spawn area.`);
@@ -236,6 +245,7 @@ function initialize() {
                 player.runCommand('event entity @s exe:remove_spawn_protection');
                 player.runCommand('event entity @s exe:enable_pvp');
                 player.runCommand('event entity @s exe:enable_hostile_damage');
+                player.runCommand('event entity @s exe:prevent_all_damage_off');
             }
         }
     }, 40);
