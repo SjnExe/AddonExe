@@ -27,6 +27,16 @@ function cleanup() {
         intervalId = -1;
         debugLog('[SpawnProtection] Interval cleared.');
     }
+
+    // Forcefully remove protection effects from all players to ensure a clean state on re-initialization.
+    debugLog('[SpawnProtection] Forcefully removing protection effects from all online players.');
+    for (const player of world.getAllPlayers()) {
+        player.removeTag('inSpawn');
+        // Run commands to remove all possible protection component groups
+        player.runCommand('event entity @s exe:remove_spawn_protection');
+        player.runCommand('event entity @s exe:enable_pvp');
+        player.runCommand('event entity @s exe:enable_hostile_damage');
+    }
 }
 
 /**
