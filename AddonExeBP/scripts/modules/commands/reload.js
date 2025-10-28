@@ -2,6 +2,7 @@ import { commandManager } from './commandManager.js';
 import { reloadConfig } from '../../core/configManager.js';
 import { updateAllPlayerRanks } from '../../core/main.js';
 import { errorLog } from '../../core/logger.js';
+import { sendMessage } from '../../core/messaging.js';
 
 commandManager.register({
     name: 'reload',
@@ -12,18 +13,22 @@ commandManager.register({
     allowConsole: true,
     disableSlashCommand: false,
     parameters: [],
-    execute: async (player, args) => {
+    /**
+     * Executes the /reload command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     */
+    execute: async (player) => {
         try {
-            player.sendMessage('§eReloading configuration...');
+            sendMessage('§eReloading configuration...', player);
             await reloadConfig();
-            player.sendMessage('§aConfiguration reloaded successfully.');
+            sendMessage('§aConfiguration reloaded successfully.', player);
 
             updateAllPlayerRanks();
-            player.sendMessage('§aAll online player ranks have been re-evaluated.');
+            sendMessage('§aAll online player ranks have been re-evaluated.', player);
 
         } catch (error) {
-            player.sendMessage('§cFailed to reload configuration. Check the console for errors.');
-            errorLog(`[/x:reload] ${error.stack}`);
+            sendMessage('§cFailed to reload configuration. Check the console for errors.', player);
+            errorLog(`[/reload] ${error.stack}`);
         }
     }
 });

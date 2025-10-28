@@ -83,6 +83,15 @@ export const panelDefinitions = {
                 sortId: 20
             },
             {
+                id: 'floatingText',
+                text: '§bFloating Text',
+                icon: 'textures/ui/text_color_paintbrush',
+                permissionLevel: 1, // Admin and above
+                actionType: 'openPanel',
+                actionValue: 'floatingTextListPanel',
+                sortId: 25
+            },
+            {
                 id: 'config',
                 text: '§3Config',
                 icon: 'textures/ui/settings_glyph_color_2x',
@@ -139,7 +148,7 @@ export const panelDefinitions = {
             {
                 id: 'shop',
                 text: '§2Shop',
-                icon: 'textures/items/emerald.png',
+                icon: 'textures/ui/trade_icon',
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',
                 actionValue: 'shopMainPanel',
@@ -355,6 +364,26 @@ export const panelDefinitions = {
         title: 'Manage Subcategory',
         parentPanelId: 'shopAdminSubCategoryItemPanel', // This will be dynamic
         items: [] // Dynamically populated
+    },
+    floatingTextListPanel: {
+        title: '§l§bFloating Text§r',
+        parentPanelId: 'mainPanel',
+        items: [] // Dynamically populated
+    },
+    floatingTextEditPanel: {
+        title: '§l§bEdit Floating Text§r',
+        parentPanelId: 'floatingTextListPanel',
+        items: [] // Modal form, no items needed
+    },
+    floatingTextCreatePanel: {
+        title: '§l§bCreate Floating Text§r',
+        parentPanelId: 'floatingTextListPanel',
+        items: [] // Modal form, no items needed
+    },
+    floatingTextActionPanel: {
+        title: '§l§bFloating Text Actions§r',
+        parentPanelId: 'floatingTextListPanel',
+        items: [] // Dynamically populated
     }
 };
 
@@ -547,6 +576,24 @@ export const configPanelSchema = [
                 label: 'Prevent PvP',
                 type: 'toggle',
                 description: 'Prevents players from damaging other players in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventHostileDamage',
+                label: 'Prevent Hostile Damage',
+                type: 'toggle',
+                description: 'Prevents hostile mobs from damaging players in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventItemPickup',
+                label: 'Prevent Item Pickup',
+                type: 'toggle',
+                description: 'Prevents players from picking up items in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventItemDropping',
+                label: 'Prevent Item Dropping',
+                type: 'toggle',
+                description: 'Prevents players from dropping items in spawn.'
             },
             {
                 key: 'spawnProtection.preventHostileMobSpawning',

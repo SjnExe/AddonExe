@@ -4,6 +4,15 @@ This document is an archive of completed tasks.
 
 ---
 
+**Task:** Fix `floatingTextEditPanel` UI Crash
+
+**Objective:** Resolved a critical UI crash in the `floatingTextEditPanel` caused by legacy data. The fix involved adding robust default values for all form properties and sanitizing the text object to prevent null reference errors.
+
+**Assignee:** Jules
+**Status:** Completed
+
+---
+
 **Task:** Fix `GameMode` API Test and Update Docs
 
 **Objective:** Correct the failing `GameMode` API test by using the correct property name (`GameMode.Creative`) and update the API documentation to mark `GameMode` as confirmed.

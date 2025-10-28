@@ -95,4 +95,13 @@ export default [
             'jsonc/object-property-newline': ['error', { 'allowAllPropertiesOnSameLine': true }],
         },
     },
+    // Jest test file configuration
+    {
+        files: ['**/__tests__/**/*.js'],
+        languageOptions: {
+            globals: {
+                ...globals.jest,
+            },
+        },
+    },
 ];

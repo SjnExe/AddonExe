@@ -1,6 +1,6 @@
 import { world } from '@minecraft/server';
 import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, mergeWithFileChanges } from './objectUtils.js';
-import { errorLog, setDebug, debugLog } from './logger.js';
+import { errorLog, debugLog } from './logger.js';
 
 /**
  * Creates a configuration manager for a specific configuration type.
@@ -88,7 +88,7 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
 
             if (isMigration) {
                 // Scenario: Addon Update (Migration)
-                errorLog(`[${name}ConfigManager] Version mismatch detected. Migrating config.`);
+                debugLog(`[${name}ConfigManager] Version mismatch detected. Migrating config.`);
                 if (name === 'Ranks' || name === 'Kits' || name === 'Shop') {
                     // For these list-based configs, we preserve the user's data as-is during a migration
                     // to prevent deleted items from reappearing. New items must be added manually by admins.
@@ -139,11 +139,6 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
 
         saveConfig();
 
-        // After loading, if this is the main config, update the logger's debug state.
-        if (name === 'Main') {
-            setDebug(currentConfig.debug);
-        }
-
         return isFirstInit;
     }
 
@@ -181,10 +176,6 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
         }
         for (const path in updates) {
             setValueByPath(currentConfig, path, updates[path]);
-            // If the debug flag is being changed in the main config, update the logger immediately.
-            if (name === 'Main' && path === 'debug') {
-                setDebug(updates[path]);
-            }
         }
         saveConfig();
     }
@@ -196,16 +187,8 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
         saveConfig();
         saveLastLoadedConfig();
 
-        // If this is the main config, update the logger's debug state to the new default.
-        if (name === 'Main') {
-            setDebug(currentConfig.debug);
-            // Use console.log directly here because debugLog itself relies on this state.
-            // eslint-disable-next-line no-console
-            console.log(`[${name}ConfigManager] Main configuration has been reset to default. Debug logging is now ${currentConfig.debug ? 'enabled' : 'disabled'}.`);
-        } else {
-            // Use the now-reliable debugLog for other configs.
-            debugLog(`[${name}ConfigManager] Configuration has been reset to default.`);
-        }
+        // Use the now-reliable debugLog for other configs.
+        debugLog(`[${name}ConfigManager] Configuration has been reset to default.`);
     }
 
     return {

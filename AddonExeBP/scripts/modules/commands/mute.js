@@ -3,29 +3,38 @@ import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerD
 import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
 import { parseDuration, playSound } from '../../core/utils.js';
 import { findPlayerByName } from '../../core/playerCache.js';
+import { sendMessage } from '../../core/messaging.js';
+import { constants } from '../../core/constants.js';
 
+/**
+ * Mutes a player.
+ * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+ * @param {import('@minecraft/server').Player} targetPlayer The player to mute.
+ * @param {string} [duration] The duration of the mute.
+ * @param {string} reason The reason for the mute.
+ */
 export function mutePlayer(player, targetPlayer, duration, reason) {
     if (!targetPlayer) {
-        player.sendMessage('§cPlayer not found.');
-        playSound(player, 'note.bass');
+        sendMessage('§cPlayer not found.', player);
+        playSound(player, constants.soundError);
         return;
     }
     if (!player.isConsole) {
         if (player.id === targetPlayer.id) {
-            player.sendMessage('§cYou cannot mute yourself.');
-            playSound(player, 'note.bass');
+            sendMessage('§cYou cannot mute yourself.', player);
+            playSound(player, constants.soundError);
             return;
         }
         const executorData = getPlayer(player.id);
         const targetData = getPlayer(targetPlayer.id);
         if (!executorData || !targetData) {
-            player.sendMessage('§cCould not retrieve player data for permission check.');
-            playSound(player, 'note.bass');
+            sendMessage('§cCould not retrieve player data for permission check.', player);
+            playSound(player, constants.soundError);
             return;
         }
         if (executorData.permissionLevel >= targetData.permissionLevel) {
-            player.sendMessage('§cYou cannot mute a player with the same or higher rank than you.');
-            playSound(player, 'note.bass');
+            sendMessage('§cYou cannot mute a player with the same or higher rank than you.', player);
+            playSound(player, constants.soundError);
             return;
         }
     }
@@ -39,10 +48,10 @@ export function mutePlayer(player, targetPlayer, duration, reason) {
     });
     const durationText = durationMs === Infinity ? 'permanently' : `for ${durationString}`;
     const announcer = player.isConsole ? 'the Console' : player.name;
-    player.sendMessage(`§aSuccessfully muted ${targetPlayer.name} ${durationText}. Reason: ${reason}`);
-    targetPlayer.sendMessage(`§cYou have been muted ${durationText} by ${announcer}.`);
+    sendMessage(`§aSuccessfully muted ${targetPlayer.name} ${durationText}. Reason: ${reason}`, player);
+    sendMessage(`§cYou have been muted ${durationText} by ${announcer}.`, targetPlayer);
     if (!player.isConsole) {
-        playSound(player, 'random.orb');
+        playSound(player, constants.soundTeleport);
     }
 }
 
@@ -58,11 +67,16 @@ commandManager.register({
         { name: 'duration', type: 'string', description: 'The duration of the mute (e.g., 1d, 2h, 30m). Default: perm', optional: true },
         { name: 'reason', type: 'text', description: 'The reason for the mute.', optional: true }
     ],
+    /**
+     * Executes the /mute command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     * @param {object} args The command arguments.
+     */
     execute: (player, args) => {
         const targetPlayer = Array.isArray(args.target) ? args.target[0] : findPlayerByName(args.target);
 
         if (!targetPlayer) {
-            player.sendMessage('§cPlayer not found.');
+            sendMessage('§cPlayer not found.', player);
             return;
         }
 
@@ -78,46 +92,50 @@ commandManager.register({
     }
 });
 
+/**
+ * Unmutes a player.
+ * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+ * @param {string} targetName The name of the player to unmute.
+ */
 export function unmutePlayer(player, targetName) {
     const targetId = getPlayerIdByName(targetName);
 
     if (!targetId) {
-        player.sendMessage(`§cPlayer "${targetName}" has never joined the server or name is misspelled.`);
+        sendMessage(`§cPlayer "${targetName}" has never joined the server or name is misspelled.`, player);
         return;
     }
     if (!player.isConsole) {
         if (targetId === player.id) {
-            player.sendMessage('§cYou cannot unmute yourself.');
+            sendMessage('§cYou cannot unmute yourself.', player);
             return;
         }
         const executorData = getPlayer(player.id);
         const targetData = loadPlayerData(targetId);
         if (!executorData || !targetData) {
-            player.sendMessage('§cCould not retrieve player data for permission check.');
+            sendMessage('§cCould not retrieve player data for permission check.', player);
             return;
         }
         if (executorData.permissionLevel >= targetData.permissionLevel) {
-            player.sendMessage('§cYou cannot unmute a player with the same or higher rank than you.');
+            sendMessage('§cYou cannot unmute a player with the same or higher rank than you.', player);
             return;
         }
     }
     const success = removePunishment(targetId);
 
     if (!success) {
-        player.sendMessage(`§cPlayer "${targetName}" is not currently muted.`);
-        if (!player.isConsole) {playSound(player, 'note.bass');}
+        sendMessage(`§cPlayer "${targetName}" is not currently muted.`, player);
+        if (!player.isConsole) { playSound(player, constants.soundError); }
         return;
     }
 
-    player.sendMessage(`§aSuccessfully unmuted ${targetName}.`);
+    sendMessage(`§aSuccessfully unmuted ${targetName}.`, player);
     if (!player.isConsole) {
-        playSound(player, 'random.orb');
+        playSound(player, constants.soundTeleport);
     }
 
-    // Attempt to notify the player if they are online
     const targetPlayer = findPlayerByName(targetName);
     if (targetPlayer) {
-        targetPlayer.sendMessage('§aYou have been unmuted and can now chat again.');
+        sendMessage('§aYou have been unmuted and can now chat again.', targetPlayer);
         playSound(targetPlayer, 'random.levelup');
     }
 }
@@ -132,6 +150,11 @@ commandManager.register({
     parameters: [
         { name: 'target', type: 'string', description: 'The name of the player to unmute.' }
     ],
+    /**
+     * Executes the /unmute command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     * @param {object} args The command arguments.
+     */
     execute: (player, args) => {
         unmutePlayer(player, args.target);
     }

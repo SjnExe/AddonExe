@@ -4,7 +4,7 @@
     "description": "<p align=\"center\">   <!-- TODO: Add a cool project logo/banner here. Example: <img src=\"link_to_your_logo.png\" alt=\"AddonExe Logo\" width=\"200\"/> -->   <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "jest",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "lint:report": "eslint . --output-file eslint_report.txt",
@@ -23,12 +23,22 @@
         "url": "https://github.com/SjnExe/AddonExe/issues"
     },
     "homepage": "https://github.com/SjnExe/AddonExe#readme",
+    "dependencies": {},
     "devDependencies": {
+        "@babel/preset-env": "^7.28.3",
         "@eslint/eslintrc": "^3.3.1",
         "@eslint/js": "^9.36.0",
         "@minecraft/creator-tools": "^0.14.2",
+        "babel-jest": "^30.2.0",
         "eslint": "^9.36.0",
         "eslint-plugin-jsonc": "^2.20.1",
-        "globals": "^16.4.0"
+        "globals": "^16.4.0",
+        "jest": "^30.2.0"
+    },
+    "jest": {
+        "testEnvironment": "node",
+        "transform": {
+            "^.+\\.js$": "babel-jest"
+        }
     }
 }

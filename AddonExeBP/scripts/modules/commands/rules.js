@@ -1,5 +1,6 @@
 import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
+import { sendMessage } from '../../core/messaging.js';
 
 commandManager.register({
     name: 'rules',
@@ -16,25 +17,25 @@ commandManager.register({
         const rules = config.serverInfo.rules;
 
         if (!rules || rules.length === 0) {
-            player.sendMessage('§cThe server rules have not been configured by the admin.');
+            sendMessage('§cThe server rules have not been configured by the admin.', player);
             return;
         }
 
         if (args.ruleNumber) {
             const ruleNumber = args.ruleNumber;
             if (isNaN(ruleNumber) || ruleNumber < 1 || ruleNumber > rules.length) {
-                player.sendMessage('§cInvalid rule number. Use /rules to see all rules.');
+                sendMessage('§cInvalid rule number. Use §e/rules§c to see all rules.', player);
                 return;
             }
-            player.sendMessage('§l§a--- Server Rules ---');
-            player.sendMessage(rules[ruleNumber - 1]);
-            player.sendMessage('§l§a------------------');
+            sendMessage('§l§a--- Server Rules ---', player, { raw: true });
+            sendMessage(rules[ruleNumber - 1], player, { raw: true });
+            sendMessage('§l§a------------------', player, { raw: true });
         } else {
-            player.sendMessage('§l§a--- Server Rules ---');
+            sendMessage('§l§a--- Server Rules ---', player, { raw: true });
             for (const rule of rules) {
-                player.sendMessage(rule);
+                sendMessage(rule, player, { raw: true });
             }
-            player.sendMessage('§l§a------------------');
+            sendMessage('§l§a------------------', player, { raw: true });
         }
     }
 });

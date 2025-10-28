@@ -38,9 +38,9 @@ export function setWarp(warpName, location, dimensionId) {
     }
 
     warps[lowerCaseWarpName] = {
-        x: location.x,
-        y: location.y,
-        z: location.z,
+        x: Math.round(location.x * 100) / 100,
+        y: Math.round(location.y * 100) / 100,
+        z: Math.round(location.z * 100) / 100,
         dimensionId: dimensionId
     };
 

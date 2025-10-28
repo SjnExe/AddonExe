@@ -6,6 +6,8 @@ import * as homesManager from '../../core/homesManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
 import { setCooldown } from '../../core/cooldownManager.js';
+import { sendMessage } from '../../core/messaging.js';
+import { constants } from '../../core/constants.js';
 
 commandManager.register({
     name: 'home',
@@ -17,18 +19,23 @@ commandManager.register({
     parameters: [
         { name: 'homeName', type: 'string', description: 'The name of the home to teleport to. Defaults to "home".', optional: true }
     ],
+    /**
+     * Executes the /home command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     * @param {string} [args.homeName] The name of the home to teleport to.
+     */
     execute: (player, args) => {
         const config = getConfig();
         if (!config.homes.enabled) {
-            player.sendMessage('§cThe homes system is currently disabled.');
+            sendMessage(constants.homesDisabled, player);
             return;
         }
 
         const teleportToHome = (homeName) => {
             const homeLocation = homesManager.getHome(player, homeName);
             if (!homeLocation) {
-                // This case should ideally not be hit if homes are validated before calling
-                player.sendMessage(`§cHome '${homeName}' not found.`);
+                sendMessage(`§cHome '${homeName}' not found.`, player);
                 return;
             }
 
@@ -36,11 +43,11 @@ commandManager.register({
             const teleportLogic = () => {
                 try {
                     player.teleport(homeLocation, { dimension: world.getDimension(homeLocation.dimensionId) });
-                    player.sendMessage(`§aTeleported to home '${homeName}'.`);
+                    sendMessage(`§aTeleported to home '${homeName}'.`, player);
                     setCooldown(player, 'homes');
                 } catch (e) {
-                    player.sendMessage(`§cFailed to teleport. Error: ${e.message}`);
-                    errorLog(`[/x:home] Failed to teleport: ${e.stack}`);
+                    sendMessage(`§cFailed to teleport. Error: ${e.message}`, player);
+                    errorLog(`[/home] Failed to teleport: ${e.stack}`);
                 }
             };
             startTeleportWarmup(player, warmupSeconds, teleportLogic, `home '${homeName}'`);
@@ -54,7 +61,7 @@ commandManager.register({
         const homeList = homesManager.listHomes(player);
 
         if (homeList.length === 0) {
-            player.sendMessage('§cYou have no homes set. Use /sethome <name> to create one.');
+            sendMessage('§cYou have no homes set. Use §e/sethome <name>§c to create one.', player);
             return;
         }
 
@@ -84,10 +91,14 @@ commandManager.register({
     category: 'Home System',
     permissionLevel: 1024, // Everyone
     parameters: [],
-    execute: (player, args) => {
+    /**
+     * Executes the /homes command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     */
+    execute: (player) => {
         const config = getConfig();
         if (!config.homes.enabled) {
-            player.sendMessage('§cThe homes system is currently disabled.');
+            sendMessage(constants.homesDisabled, player);
             return;
         }
 
@@ -96,9 +107,9 @@ commandManager.register({
         const maxHomes = config.homes.maxHomes;
 
         if (homeCount === 0) {
-            player.sendMessage(`§aYou have no homes set. Use /sethome <name> to set one. (${homeCount}/${maxHomes})`);
+            sendMessage(`§aYou have no homes set. Use §e/sethome <name>§a to set one. (${homeCount}/${maxHomes})`, player);
         } else {
-            player.sendMessage(`§aYour homes (${homeCount}/${maxHomes}): §e${homeList.join(', ')}`);
+            sendMessage(`§aYour homes (${homeCount}/${maxHomes}): §e${homeList.join(', ')}`, player);
         }
     }
 });
@@ -112,16 +123,22 @@ commandManager.register({
     parameters: [
         { name: 'homeName', type: 'string', description: 'The name of the home to delete. Leave blank to choose from a list.', optional: true }
     ],
+    /**
+     * Executes the /delhome command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     * @param {string} [args.homeName] The name of the home to delete.
+     */
     execute: (player, args) => {
         const config = getConfig();
         if (!config.homes.enabled) {
-            player.sendMessage('§cThe homes system is currently disabled.');
+            sendMessage(constants.homesDisabled, player);
             return;
         }
 
         const deleteHomeByName = (homeName) => {
             const result = homesManager.deleteHome(player, homeName);
-            player.sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`);
+            sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`, player);
         };
 
         if (args.homeName) {
@@ -132,7 +149,7 @@ commandManager.register({
         const homeList = homesManager.listHomes(player);
 
         if (homeList.length === 0) {
-            player.sendMessage('§cYou have no homes to delete.');
+            sendMessage('§cYou have no homes to delete.', player);
             return;
         }
 
@@ -164,29 +181,31 @@ commandManager.register({
     parameters: [
         { name: 'homeName', type: 'string', description: 'The name of the home to set. Defaults to "home".', optional: true }
     ],
+    /**
+     * Executes the /sethome command.
+     * @param {import('@minecraft/server').Player} player The player executing the command.
+     * @param {object} args The command arguments.
+     * @param {string} [args.homeName] The name of the home to set.
+     */
     execute: (player, args) => {
         const config = getConfig();
         if (!config.homes.enabled) {
-            player.sendMessage('§cThe homes system is currently disabled.');
+            sendMessage(constants.homesDisabled, player);
             return;
         }
 
         let homeNameToSet;
 
         if (args.homeName) {
-            // If a name is provided, use it directly.
-            // The homesManager.setHome function will handle the error for duplicate names.
             homeNameToSet = args.homeName;
         } else {
-            // If no name is provided, find the next available "home" name.
             const existingHomes = new Set(homesManager.listHomes(player).map(h => h.toLowerCase()));
             let i = 1;
             let baseName = 'home';
             homeNameToSet = baseName;
 
-            // If "home" doesn't exist, we'll use it. If it does, find the next number.
             if (existingHomes.has(homeNameToSet)) {
-                i = 2; // Start checking from home2
+                i = 2;
                 while (true) {
                     homeNameToSet = `${baseName}${i}`;
                     if (!existingHomes.has(homeNameToSet)) {
@@ -198,6 +217,6 @@ commandManager.register({
         }
 
         const result = homesManager.setHome(player, homeNameToSet);
-        player.sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`);
+        sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`, player);
     }
 });

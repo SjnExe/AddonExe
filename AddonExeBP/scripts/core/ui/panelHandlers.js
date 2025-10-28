@@ -24,6 +24,7 @@ import { getVisiblePlayerActionItems, getMenuItems } from './panelBuilder.js';
 import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { showConfirmationDialog } from './components.js';
 import { uiActionFunctions } from './actionRegistry.js';
+import { floatingTextManager } from '../floatingTextManager.js';
 
 const itemsPerPage = 8;
 const configHandlers = {
@@ -47,6 +48,79 @@ export async function handleFormResponse(player, panelId, response, context) {
     const { selection, canceled, formValues } = response;
     const pData = getPlayer(player.id);
     if (!pData) {return;}
+
+    if (panelId === 'floatingTextListPanel') {
+        if (selection === 0) { // Back
+            return showPanel(player, 'mainPanel', context);
+        }
+        if (selection === 1) { // Create New
+            return showPanel(player, 'floatingTextCreatePanel', context);
+        }
+        const texts = floatingTextManager.getAllTexts();
+        const selectedText = texts[selection - 2];
+        if (selectedText) {
+            return showPanel(player, 'floatingTextActionPanel', { ...context, id: selectedText.id });
+        }
+        return;
+    }
+
+    if (panelId === 'floatingTextActionPanel') {
+        const { id } = context;
+        switch (selection) {
+            case 0: // Edit
+                return showPanel(player, 'floatingTextEditPanel', context);
+            case 1: // Respawn
+                floatingTextManager.respawnText(id);
+                player.sendMessage(`§aRespawned floating text: ${id}`);
+                return showPanel(player, 'floatingTextListPanel', context);
+            case 2: // Despawn
+                floatingTextManager.despawnText(id);
+                player.sendMessage(`§aDespawned floating text: ${id}`);
+                return showPanel(player, 'floatingTextListPanel', context);
+            case 3: // Delete
+                await floatingTextManager.deleteText(player, id);
+                return showPanel(player, 'floatingTextListPanel', context);
+            case 4: // Back
+                return showPanel(player, 'floatingTextListPanel', context);
+        }
+        return;
+    }
+
+    if (panelId === 'floatingTextEditPanel') {
+        if (canceled) {
+            return showPanel(player, 'floatingTextActionPanel', context);
+        }
+        const { id } = context;
+        const [textContent, x, y, z, isDynamic, updateInterval, useExpiration, expirationMinutes, snapRotation, hover, sway] = formValues;
+        const updatedConfig = {
+            text: textContent,
+            location: { x: parseFloat(x), y: parseFloat(y), z: parseFloat(z) },
+            isDynamic: isDynamic,
+            updateInterval: updateInterval * 20,
+            expiresAt: useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null,
+            snapRotation,
+            hover,
+            sway
+        };
+        floatingTextManager.updateText(id, updatedConfig);
+        player.sendMessage(`§aSuccessfully updated floating text: ${id}`);
+        return showPanel(player, 'floatingTextActionPanel', context);
+    }
+
+    if (panelId === 'floatingTextCreatePanel') {
+        if (canceled) {
+            return showPanel(player, 'floatingTextListPanel', context);
+        }
+        const [id, text] = formValues;
+        if (!id) {
+            player.sendMessage('§cID cannot be empty.');
+            return showPanel(player, 'floatingTextCreatePanel', context);
+        }
+        if (floatingTextManager.createText(player, id, text)) {
+            player.sendMessage(`§aSuccessfully created floating text: ${id}`);
+        }
+        return showPanel(player, 'floatingTextListPanel', context);
+    }
 
     if (panelId === 'rulesManagementPanel') {
         const page = context.page || 1;

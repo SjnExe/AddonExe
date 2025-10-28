@@ -1,4 +1,5 @@
 import { commandManager } from './commandManager.js';
+import { sendMessage } from '../../core/messaging.js';
 
 commandManager.register({
     name: 'invsee',
@@ -10,16 +11,22 @@ commandManager.register({
         { name: 'target', type: 'player', description: 'The player whose inventory to view.' },
         { name: 'page', type: 'int', description: 'The page of the inventory to view.', optional: true }
     ],
+    /**
+     * Executes the /invsee command.
+     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
+     * @param {object} args The command arguments.
+     * @param {import('@minecraft/server').Player[]} args.target The target player array.
+     * @param {number} [args.page] The inventory page to view.
+     */
     execute: (player, args) => {
         const { target, page: pageArg } = args;
 
         if (!target || target.length === 0) {
-            player.sendMessage('§cPlayer not found.');
+            sendMessage('§cPlayer not found.', player);
             return;
         }
 
         const targetPlayer = target[0];
-
         const inventory = targetPlayer.getComponent('inventory').container;
         const items = [];
         for (let i = 0; i < inventory.size; i++) {
@@ -30,7 +37,7 @@ commandManager.register({
         }
 
         if (items.length === 0) {
-            player.sendMessage(`§6Inventory of ${targetPlayer.name}: §r§7(Empty)`);
+            sendMessage(`§6Inventory of ${targetPlayer.name}: §r§7(Empty)`, player);
             return;
         }
 
@@ -47,6 +54,6 @@ commandManager.register({
         let message = `§6Inv: ${targetPlayer.name} (Page ${page + 1}/${totalPages})§r\n`;
         message += pageItems.join('\n');
 
-        player.sendMessage(message);
+        sendMessage(message, player, { raw: true });
     }
 });

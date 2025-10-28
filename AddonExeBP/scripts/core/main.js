@@ -9,13 +9,14 @@ import { loadPunishments, clearExpiredPunishments, initializePunishmentManager }
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
 import * as bountyManager from './bountyManager.js';
-import { debugLog } from './logger.js';
-import { errorLog } from './logger.js';
+import { errorLog, setLogLevel, infoLog } from './logger.js';
 import { startRestart } from './restartManager.js';
 import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
+import { floatingTextManager } from './floatingTextManager.js';
+import { registerPlayerDataPlaceholders } from './playerDataManager.js';
 import '../modules/commands/index.js';
 
 /**
@@ -33,9 +34,10 @@ export function updatePlayerRank(player) {
 
     if (oldRankId !== newRank.id) {
         playerDataManager.setPlayerRank(player.id, newRank.id, newRank.permissionLevel);
-        debugLog(`[AddonExe] Player ${player.name}'s rank updated from ${oldRankId} to ${newRank.name}.`);
+        infoLog(`[AddonExe] Player ${player.name}'s rank updated from ${oldRankId} to ${newRank.name}.`);
         player.sendMessage(`§aYour rank has been updated to ${newRank.name}.`);
     }
+    rankManager.updatePlayerNameTag(player, config);
 }
 
 /**
@@ -52,21 +54,22 @@ export function updateAllPlayerRanks() {
  * This is crucial for restoring player data after a script reload.
  */
 function reinitializeOnlinePlayers() {
-    debugLog(`[AddonExe] Re-initializing state for ${world.getAllPlayers().length} online players...`);
+    infoLog(`[AddonExe] Re-initializing state for ${world.getAllPlayers().length} online players...`);
+    const config = getConfig();
     for (const player of world.getAllPlayers()) {
         // Ensure the player's data is loaded into the system
         playerDataManager.getOrCreatePlayer(player);
         // Then, update their rank based on the loaded data and config
         updatePlayerRank(player);
     }
-    debugLog('[AddonExe] Player re-initialization complete.');
+    infoLog('[AddonExe] Player re-initialization complete.');
 }
 
 /**
  * Loads all persistent data from dynamic properties.
  */
 function loadPersistentData() {
-    debugLog('[AddonExe] Loading persistent data...');
+    infoLog('[AddonExe] Loading persistent data...');
     playerDataManager.loadNameIdMap();
     loadPunishments();
     loadReports();
@@ -79,9 +82,11 @@ function loadPersistentData() {
  * Initializes all core managers and performs startup data clearing.
  */
 function initializeManagers() {
-    debugLog('[AddonExe] Initializing managers...');
+    infoLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
+    registerPlayerDataPlaceholders(); // Must be before managers that use placeholders
+    floatingTextManager.initialize();
     // Clear any expired data on startup
     clearExpiredPunishments();
     clearOldResolvedReports();
@@ -116,14 +121,14 @@ function startSystemTimers() {
     // Periodically clear expired payment confirmations
     setTrackedInterval(clearExpiredPayments, 6000); // 5 minutes
     // Rank updates are now handled by events (e.g., !admin command)
-    debugLog('[AddonExe] System timers started.');
+    infoLog('[AddonExe] System timers started.');
 }
 
 /**
  * Main entry point for addon initialization.
  */
 async function initializeAddon() {
-    debugLog('[AddonExe] Initializing addon...');
+    infoLog('[AddonExe] Initializing addon...');
 
     // Dynamically import the main config file to get the version number.
     // This is necessary because we need to know if it's a migration before loading all configs.
@@ -142,6 +147,10 @@ async function initializeAddon() {
     ];
     await Promise.all(loadPromises);
 
+    // Set the log level from the newly loaded config
+    const config = getConfig();
+    setLogLevel(config.logLevel);
+
     world.setDynamicProperty('exe:lastVersion', newVersion);
 
     dataManager.initializeDataManager();
@@ -156,7 +165,7 @@ async function initializeAddon() {
     reinitializeOnlinePlayers();
 
     startSystemTimers();
-    debugLog('[AddonExe] Addon initialized successfully.');
+    infoLog('[AddonExe] Addon initialized successfully.');
 }
 
 /**
