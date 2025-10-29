@@ -1,6 +1,6 @@
-import { system, world } from '@minecraft/server';
+import { system } from '@minecraft/server';
 import { config } from '../config.js';
-import { playerDataManager } from './playerDataManager.js';
+import { incrementPlayerBalance } from './playerDataManager.js';
 import { infoLog } from './logger.js';
 
 system.afterEvents.scriptEventReceive.subscribe(
@@ -16,7 +16,7 @@ system.afterEvents.scriptEventReceive.subscribe(
             const reward = config.mobMoney[mobId];
 
             if (reward && reward > 0) {
-                playerDataManager.addBalance(sourceEntity.id, reward);
+                incrementPlayerBalance(sourceEntity.id, reward);
                 infoLog(
                     `Gave ${sourceEntity.name} $${reward} for killing a ${mobId}.`
                 );
