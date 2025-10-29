@@ -256,7 +256,21 @@ export const panelDefinitions = {
     rankManagementPanel: {
         title: '§l§4Rank System§r',
         parentPanelId: 'configCategoryPanel',
-        items: [] // Dynamically populated
+        items: [
+            {
+                id: 'rankSettings',
+                text: '§l§2Settings§r',
+                icon: 'textures/ui/settings_glyph_color_2x',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'rankSettingsPanel'
+            }
+        ]
+    },
+    rankSettingsPanel: {
+        title: '§l§2Rank Settings§r',
+        parentPanelId: 'rankManagementPanel',
+        items: [] // Modal form, no items needed
     },
     editRankPanel: {
         title: '§l§3Edit Rank§r',

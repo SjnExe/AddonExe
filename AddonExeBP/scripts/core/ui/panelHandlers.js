@@ -1290,6 +1290,20 @@ export async function handleFormResponse(player, panelId, response, context) {
         return;
     }
 
+    if (panelId === 'rankSettingsPanel') {
+        if (canceled) {
+            return showPanel(player, 'rankManagementPanel', context);
+        }
+
+        const [nameTagStyleIndex] = formValues;
+        const nameTagStyles = ['above', 'before', 'after', 'under'];
+        const selectedStyle = nameTagStyles[nameTagStyleIndex];
+
+        updateMultipleConfig({ 'ranks.nameTagStyle': selectedStyle });
+        player.sendMessage(`§2Rank nametag style set to '${selectedStyle}'.`);
+        return showPanel(player, 'rankManagementPanel', context);
+    }
+
     if (panelId === 'rankManagementPanel') {
         const page = context.page || 1;
         // Back button

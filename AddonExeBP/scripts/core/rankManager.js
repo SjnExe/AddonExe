@@ -121,7 +121,24 @@ export function getAllRanks() {
 export function updatePlayerNameTag(player, config) {
     const rank = getPlayerRank(player, config);
     const prefix = rank.chatFormatting?.prefixText ?? '';
-    const newNameTag = `${prefix}\n${player.name}`;
+    const nameTagStyle = config.ranks?.nameTagStyle || 'above';
+    let newNameTag;
+
+    switch (nameTagStyle) {
+        case 'before':
+            newNameTag = `${prefix} ${player.name}`;
+            break;
+        case 'after':
+            newNameTag = `${player.name} ${prefix}`;
+            break;
+        case 'under':
+            newNameTag = `${player.name}\n${prefix}`;
+            break;
+        case 'above':
+        default:
+            newNameTag = `${prefix}\n${player.name}`;
+            break;
+    }
 
     if (player.nameTag !== newNameTag) {
         player.nameTag = newNameTag;
