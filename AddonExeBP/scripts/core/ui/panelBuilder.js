@@ -964,10 +964,11 @@ export async function buildPanelForm(player, panelId, context) {
             const config = getConfig();
             const form = new ModalFormData().title('§l§2Rank Settings');
             const nameTagStyles = ['Above Name', 'Before Name', 'After Name', 'Under Name'];
+            const internalStyles = ['above', 'before', 'after', 'under'];
             const currentStyle = config.ranks?.nameTagStyle || 'above';
-            const defaultIndex = ['above', 'before', 'after', 'under'].indexOf(currentStyle);
+            const defaultIndex = internalStyles.indexOf(currentStyle);
 
-            form.slider('Nametag Style', nameTagStyles, { min: 0, max: 3, valueStep: 1, defaultValue: defaultIndex });
+            form.dropdown('Nametag Style', nameTagStyles, { defaultValueIndex: defaultIndex > -1 ? defaultIndex : 0 });
             return form;
         }
 

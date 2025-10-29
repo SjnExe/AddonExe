@@ -1295,12 +1295,14 @@ export async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, 'rankManagementPanel', context);
         }
 
+        const { updateAllPlayerRanks } = await import('../main.js');
         const [nameTagStyleIndex] = formValues;
         const nameTagStyles = ['above', 'before', 'after', 'under'];
         const selectedStyle = nameTagStyles[nameTagStyleIndex];
 
         updateMultipleConfig({ 'ranks.nameTagStyle': selectedStyle });
-        player.sendMessage(`§2Rank nametag style set to '${selectedStyle}'.`);
+        updateAllPlayerRanks();
+        player.sendMessage(`§2Rank nametag style set to '${selectedStyle}'. All player nametags have been updated.`);
         return showPanel(player, 'rankManagementPanel', context);
     }
 
