@@ -960,6 +960,17 @@ export async function buildPanelForm(player, panelId, context) {
             return form;
         }
 
+        if (panelId === 'rankSettingsPanel') {
+            const config = getConfig();
+            const form = new ModalFormData().title('§l§2Rank Settings');
+            const nameTagStyles = ['Above Name', 'Before Name', 'After Name', 'Under Name'];
+            const currentStyle = config.ranks?.nameTagStyle || 'above';
+            const defaultIndex = ['above', 'before', 'after', 'under'].indexOf(currentStyle);
+
+            form.slider('Nametag Style', nameTagStyles, { min: 0, max: 3, valueStep: 1, defaultValue: defaultIndex });
+            return form;
+        }
+
         if (panelId === 'editRankPanel') {
             const rank = rankManager.getRankById(context.rankId);
             if (!rank) {
