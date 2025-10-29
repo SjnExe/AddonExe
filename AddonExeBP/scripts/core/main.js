@@ -55,7 +55,6 @@ export function updateAllPlayerRanks() {
  */
 function reinitializeOnlinePlayers() {
     infoLog(`[AddonExe] Re-initializing state for ${world.getAllPlayers().length} online players...`);
-    const config = getConfig();
     for (const player of world.getAllPlayers()) {
         // Ensure the player's data is loaded into the system
         playerDataManager.getOrCreatePlayer(player);

@@ -13,7 +13,6 @@ import { GameMode } from '@minecraft/server';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { constants } from '../../core/constants.js';
 
 /**
  * A map of gamemode aliases to their corresponding GameMode enum values.
@@ -84,7 +83,7 @@ function setGamemode(player, gamemode, target) {
             sendMessage(`§aYour gamemode has been set to §e${gamemodeName}§a.`, player);
         }
     } catch (e) {
-        sendMessage(`§cFailed to set gamemode. Please check the console for details.`, player);
+        sendMessage('§cFailed to set gamemode. Please check the console for details.', player);
         errorLog(`[/gamemode] Failed to set gamemode for ${targetPlayer.name}: ${e.stack}`);
     }
 }
