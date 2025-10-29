@@ -69,6 +69,27 @@ export const config = {
         // How long (in seconds) after the last hit from a player that they can still be credited for the kill.
         bountyCreditTimeoutSeconds: 15
     },
+    mobMoney: {
+        // Defines the amount of money awarded for killing specific mobs.
+        // The key is the mob's identifier (e.g., 'minecraft:zombie').
+        // The value is the amount of money to give.
+        // Mobs not listed here will not award money.
+        'minecraft:zombie': 5,
+        'minecraft:skeleton': 5,
+        'minecraft:creeper': 10,
+        'minecraft:spider': 5,
+        'minecraft:enderman': 15,
+        'minecraft:witch': 20,
+        'minecraft:drowned': 7,
+        'minecraft:husk': 7,
+        'minecraft:stray': 7,
+        'minecraft:phantom': 10,
+        'minecraft:blaze': 15,
+        'minecraft:ghast': 25,
+        'minecraft:magma_cube': 3,
+        'minecraft:slime': 3,
+        'minecraft:wither_skeleton': 30
+    },
     announcements: {
         enabled: false,
         message: '§2Welcome to the server! Enjoy your stay.',

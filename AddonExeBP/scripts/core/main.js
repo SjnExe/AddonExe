@@ -18,6 +18,7 @@ import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
 import { registerPlayerDataPlaceholders } from './playerDataManager.js';
 import '../modules/commands/index.js';
+import './mobMoney.js';
 
 /**
  * Checks a player's rank and updates it if necessary.

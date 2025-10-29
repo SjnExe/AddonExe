@@ -1,0 +1,25 @@
+{
+    "pools": [
+        {
+            "rolls": 1,
+            "entries": [
+                {
+                    "type": "item",
+                    "name": "minecraft:structure_block",
+                    "weight": 1,
+                    "functions": [
+                        {
+                            "function": "scriptevent",
+                            "message": "minecraft:skeleton"
+                        }
+                    ]
+                }
+            ],
+            "conditions": [
+                {
+                    "condition": "killed_by_player"
+                }
+            ]
+        }
+    ]
+}
