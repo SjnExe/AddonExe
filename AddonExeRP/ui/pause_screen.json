@@ -1,16 +1,16 @@
 {
-  "namespace": "pause_screen",
-  "players_panel_content@pause_screen.players_panel_content": {
-    "modifications": [
-      {
-        "control_name": "players_grid",
-        "factory": {
-          "name": "player_list_entry_factory",
-          "control_name": "player_list_entry",
-          "collection_name": "$players_list",
-          "collection_condition": "query.is_local_player or query.not_has_tag('vanished')"
-        }
-      }
-    ]
-  }
+    "namespace": "pause_screen",
+    "players_panel_content@pause_screen.players_panel_content": {
+        "modifications": [
+            {
+                "control_name": "players_grid",
+                "factory": {
+                    "name": "player_list_entry_factory",
+                    "control_name": "player_list_entry",
+                    "collection_name": "$players_list",
+                    "collection_condition": "query.is_local_player or query.not_has_tag('vanished')"
+                }
+            }
+        ]
+    }
 }

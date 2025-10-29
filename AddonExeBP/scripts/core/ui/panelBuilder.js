@@ -755,9 +755,6 @@ export async function buildPanelForm(player, panelId, context) {
             const sliderDefaultValue = Math.max(1, Math.min(60, updateIntervalInSeconds));
 
             const expiresAt = text.expiresAt ?? null;
-            const snapRotation = text.snapRotation ?? false;
-            const hover = text.hover ?? false;
-            const sway = text.sway ?? false;
 
             const { getPlaceholderKeys } = await import('../placeholderManager.js');
             const placeholders = getPlaceholderKeys();
