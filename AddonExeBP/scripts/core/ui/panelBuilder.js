@@ -9,7 +9,7 @@ import * as bountyManager from '../bountyManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
-import { getKitsConfig, getShopConfig, getSpawnConfig } from '../configurations.js';
+import { getKitsConfig, getShopConfig, getSpawnConfig, getEconomyConfig } from '../configurations.js';
 import { items as allItems } from '../itemsConfig.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { getValueFromPath } from '../objectUtils.js';
@@ -946,6 +946,26 @@ export async function buildPanelForm(player, panelId, context) {
             return form;
         }
 
+        if (panelId === 'addMobDropPanel') {
+            const form = new ModalFormData().title('§l§2Add Mob Drop');
+            form.textField('Mob ID', 'e.g., minecraft:creeper');
+            form.textField('Amount', 'e.g., 10');
+            return form;
+        }
+
+        if (panelId === 'editMobDropPanel') {
+            const { mobId } = context;
+            const economyConfig = getEconomyConfig();
+            const currentAmount = economyConfig.mobMoney[mobId] ?? 0;
+            const form = new ActionFormData()
+                .title(`Edit: ${mobId}`)
+                .body(`Current amount: §2$${currentAmount}`)
+                .button('§l§eEdit Amount§r', 'textures/ui/icon_setting')
+                .button('§l§cDelete Mob Drop§r', 'textures/ui/trash')
+                .button('§l§8< Back', 'textures/gui/controls/left.png');
+            return form;
+        }
+
         if (panelId === 'addRankPanel') {
             const form = new ModalFormData().title('§l§2Add New Rank');
             form.textField('Rank Name', 'e.g., VIP');
@@ -954,6 +974,32 @@ export async function buildPanelForm(player, panelId, context) {
             form.textField('Name Color', 'e.g., §6');
             form.textField('Chat Color', 'e.g., §6');
             form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]');
+            return form;
+        }
+
+        if (panelId === 'mobDropsSystemPanel') {
+            const { page = 1 } = context;
+            const form = new ActionFormData().title('§l§2Mob Drops System');
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+            form.button('§l§a+ Add New Mob§r', 'textures/ui/realms_green_check.png');
+
+            const economyConfig = getEconomyConfig();
+            const mobDrops = economyConfig.mobMoney || {};
+            const mobIds = Object.keys(mobDrops).sort();
+
+            if (mobIds.length === 0) {
+                form.body('§cNo mob drops have been configured.');
+                return form;
+            }
+
+            const paginatedMobIds = getPaginatedItems(mobIds, page);
+
+            for (const mobId of paginatedMobIds) {
+                const amount = mobDrops[mobId];
+                form.button(`${mobId}\n§2$${amount}`);
+            }
+
+            addPaginationButtons(form, page, mobIds.length);
             return form;
         }
 

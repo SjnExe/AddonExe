@@ -23,8 +23,9 @@
         "url": "https://github.com/SjnExe/AddonExe/issues"
     },
     "homepage": "https://github.com/SjnExe/AddonExe#readme",
+    "dependencies": {},
     "devDependencies": {
-        "@babel/preset-env": "^7.28.5",
+        "@babel/preset-env": "^7.28.3",
         "@eslint/eslintrc": "^3.3.1",
         "@eslint/js": "^9.36.0",
         "@minecraft/creator-tools": "^0.14.2",

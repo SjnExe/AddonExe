@@ -1,6 +1,6 @@
 import { world, system } from '@minecraft/server';
 import { loadConfig, getConfig, updateConfig } from './configManager.js';
-import { getSpawnConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSpawnConfig } from './configurations.js';
+import { getSpawnConfig, loadEconomyConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSpawnConfig } from './configurations.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
@@ -18,7 +18,7 @@ import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
 import { registerPlayerDataPlaceholders } from './playerDataManager.js';
 import '../modules/commands/index.js';
-import './mobMoney.js';
+import './mobDeathEvents.js';
 
 /**
  * Checks a player's rank and updates it if necessary.
@@ -143,7 +143,8 @@ async function initializeAddon() {
         loadKitsConfig(isMigration),
         loadShopConfig(isMigration),
         loadRanksConfig(isMigration),
-        loadSpawnConfig(isMigration)
+        loadSpawnConfig(isMigration),
+        loadEconomyConfig(isMigration)
     ];
     await Promise.all(loadPromises);
 
