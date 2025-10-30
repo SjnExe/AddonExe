@@ -409,7 +409,7 @@ export const panelDefinitions = {
                 icon: 'textures/ui/settings_glyph_color_2x',
                 permissionLevel: 1,
                 actionType: 'openPanel',
-                actionValue: 'config_economy'
+                actionValue: 'config_economyGeneralSettings'
             },
             {
                 id: 'bountySystemPanel',
@@ -795,9 +795,9 @@ export const configPanelSchema = [
         ]
     },
     {
-        id: 'economy',
-        title: '§l§6Economy Settings§r',
-        icon: 'textures/items/emerald',
+        id: 'economyGeneralSettings',
+        title: '§l§6Economy General Settings§r',
+        icon: 'textures/ui/settings_glyph_color_2x',
         settings: [
             {
                 key: 'economy.startingBalance',
