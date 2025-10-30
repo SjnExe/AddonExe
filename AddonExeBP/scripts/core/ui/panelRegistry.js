@@ -417,7 +417,7 @@ export const panelDefinitions = {
                 icon: 'textures/items/diamond_sword',
                 permissionLevel: 1,
                 actionType: 'openPanel',
-                actionValue: 'bountySystemPanel'
+                actionValue: 'config_bounties'
             },
             {
                 id: 'mobDropsSystemPanel',
@@ -791,25 +791,6 @@ export const configPanelSchema = [
                 label: 'Warmup (s)',
                 type: 'textField',
                 description: 'How long a player must stand still before teleporting.'
-            }
-        ]
-    },
-    {
-        id: 'economyGeneralSettings',
-        title: '§l§6Economy General Settings§r',
-        icon: 'textures/ui/settings_glyph_color_2x',
-        settings: [
-            {
-                key: 'economy.startingBalance',
-                label: 'Starting Balance',
-                type: 'textField',
-                description: 'The amount of money new players start with.'
-            },
-            {
-                key: 'economy.logToConsole',
-                label: 'Log Transactions',
-                type: 'toggle',
-                description: 'Logs all economy transactions to the console.'
             }
         ]
     },
