@@ -795,6 +795,25 @@ export const configPanelSchema = [
         ]
     },
     {
+        id: 'economyGeneralSettings',
+        title: '§l§6Economy General Settings§r',
+        icon: 'textures/ui/settings_glyph_color_2x',
+        settings: [
+            {
+                key: 'economy.startingBalance',
+                label: 'Starting Balance',
+                type: 'textField',
+                description: 'The amount of money new players start with.'
+            },
+            {
+                key: 'economy.logToConsole',
+                label: 'Log Transactions',
+                type: 'toggle',
+                description: 'Logs all economy transactions to the console.'
+            }
+        ]
+    },
+    {
         id: 'playerInfo',
         title: '§l§ePlayer Info System§r',
         icon: 'textures/ui/icon_multiplayer',
