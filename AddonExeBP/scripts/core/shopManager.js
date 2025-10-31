@@ -3,6 +3,7 @@ import { getBalance, incrementPlayerBalance } from './playerDataManager.js';
 import { getShopConfig } from './configurations.js';
 import { items as allItems } from './itemsConfig.js';
 import { errorLog } from './logger.js';
+import { formatCurrency } from './utils.js';
 
 /**
  * Creates an ItemStack for a given item ID, handling enchantments.
@@ -90,7 +91,7 @@ export function buyItem(player, itemId, quantity) {
     const playerBalance = getBalance(player.id);
 
     if (playerBalance < initialCost) {
-        return { success: false, message: `§cInsufficient funds. You need §e$${initialCost.toFixed(2)}§c to attempt this purchase.` };
+        return { success: false, message: `§cInsufficient funds. You need §e${formatCurrency(initialCost)}§c to attempt this purchase.` };
     }
 
     const inventory = player.getComponent('inventory').container;
@@ -133,7 +134,7 @@ export function buyItem(player, itemId, quantity) {
     const finalCost = buyPrice * finalQuantity;
     if (playerBalance < finalCost) {
         // This can happen if the adjusted quantity is still too expensive, though unlikely if the initial check passed.
-        return { success: false, message: `§cInsufficient funds. You need §e$${finalCost.toFixed(2)}§c to buy ${finalQuantity}.` };
+        return { success: false, message: `§cInsufficient funds. You need §e${formatCurrency(finalCost)}§c to buy ${finalQuantity}.` };
     }
 
     incrementPlayerBalance(player.id, -finalCost);
@@ -146,7 +147,7 @@ export function buyItem(player, itemId, quantity) {
         }
     }
 
-    return { success: true, message: `§2Successfully purchased ${finalQuantity}x ${shopItem.displayName ?? itemId} for §e$${finalCost.toFixed(2)}§2.` };
+    return { success: true, message: `§2Successfully purchased ${finalQuantity}x ${shopItem.displayName ?? itemId} for §e${formatCurrency(finalCost)}§2.` };
 }
 
 /**
@@ -199,5 +200,5 @@ export function sellItem(player, itemId, quantity) {
     const totalGain = sellPrice * quantity;
     incrementPlayerBalance(player.id, totalGain);
 
-    return { success: true, message: `§2Successfully sold ${quantity}x ${shopItem.displayName ?? itemId} for §e$${totalGain.toFixed(2)}§2.` };
+    return { success: true, message: `§2Successfully sold ${quantity}x ${shopItem.displayName ?? itemId} for §e${formatCurrency(totalGain)}§2.` };
 }

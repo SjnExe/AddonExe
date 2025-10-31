@@ -1,6 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { getBalance, setPlayerBalance, incrementPlayerBalance } from '../../core/playerDataManager.js';
 import { sendMessage } from '../../core/messaging.js';
+import { formatCurrency } from '../../core/utils.js';
 
 commandManager.register({
     name: 'setbalance',
@@ -36,8 +37,8 @@ commandManager.register({
         }
 
         setPlayerBalance(targetPlayer.id, amount);
-        sendMessage(`§aSuccessfully set ${targetPlayer.name}'s balance to §e$${amount.toFixed(2)}§a.`, player);
-        sendMessage(`§aYour balance has been set to §e$${amount.toFixed(2)}§a by an administrator.`, targetPlayer);
+        sendMessage(`§aSuccessfully set ${targetPlayer.name}'s balance to §e${formatCurrency(amount)}§a.`, player);
+        sendMessage(`§aYour balance has been set to §e${formatCurrency(amount)}§a by an administrator.`, targetPlayer);
     }
 });
 
@@ -76,8 +77,8 @@ commandManager.register({
 
         incrementPlayerBalance(targetPlayer.id, amount);
         const newBalance = getBalance(targetPlayer.id);
-        sendMessage(`§aSuccessfully added §e$${amount.toFixed(2)}§a to ${targetPlayer.name}'s balance. New balance: §e$${newBalance.toFixed(2)}§a.`, player);
-        sendMessage(`§aAn administrator has added §e$${amount.toFixed(2)}§a to your balance.`, targetPlayer);
+        sendMessage(`§aSuccessfully added §e${formatCurrency(amount)}§a to ${targetPlayer.name}'s balance. New balance: §e${formatCurrency(newBalance)}§a.`, player);
+        sendMessage(`§aAn administrator has added §e${formatCurrency(amount)}§a to your balance.`, targetPlayer);
     }
 });
 
@@ -116,13 +117,13 @@ commandManager.register({
 
         const currentBalance = getBalance(targetPlayer.id);
         if (currentBalance < amount) {
-            sendMessage(`§cCannot remove §e$${amount.toFixed(2)}§c. ${targetPlayer.name}'s balance is only §e$${currentBalance.toFixed(2)}§c.`, player);
+            sendMessage(`§cCannot remove §e${formatCurrency(amount)}§c. ${targetPlayer.name}'s balance is only §e${formatCurrency(currentBalance)}§c.`, player);
             return;
         }
 
         incrementPlayerBalance(targetPlayer.id, -amount);
         const newBalance = getBalance(targetPlayer.id);
-        sendMessage(`§aSuccessfully removed §e$${amount.toFixed(2)}§a from ${targetPlayer.name}'s balance. New balance: §e$${newBalance.toFixed(2)}§a.`, player);
-        sendMessage(`§cAn administrator has removed §e$${amount.toFixed(2)}§c from your balance.`, targetPlayer);
+        sendMessage(`§aSuccessfully removed §e${formatCurrency(amount)}§a from ${targetPlayer.name}'s balance. New balance: §e${formatCurrency(newBalance)}§a.`, player);
+        sendMessage(`§cAn administrator has removed §e${formatCurrency(amount)}§c from your balance.`, targetPlayer);
     }
 });

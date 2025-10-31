@@ -1,5 +1,5 @@
 import { system, world } from '@minecraft/server';
-import { getConfig } from './configManager.js';
+import { getEconomyConfig } from './configurations.js';
 import { errorLog } from './logger.js';
 
 /**
@@ -258,4 +258,16 @@ export function generateDisplayName(typeId) {
         .join(' ');
 
     return formattedName;
+}
+
+/**
+ * Formats a number as a currency string, using the symbol from the config.
+ * @param {number} amount The amount to format.
+ * @returns {string} The formatted currency string (e.g., "$1,234.50").
+ */
+export function formatCurrency(amount) {
+    const economyConfig = getEconomyConfig();
+    const symbol = economyConfig.currencySymbol || '$';
+    const formattedAmount = amount.toFixed(2);
+    return `${symbol}${formattedAmount}`;
 }

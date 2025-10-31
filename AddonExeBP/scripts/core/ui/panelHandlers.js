@@ -13,7 +13,7 @@ import { restartAnnouncer } from '../../modules/commands/announcement.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import * as shopManager from '../shopManager.js';
-import { getKitsConfig, saveKitsConfig, getShopConfig, getSpawnConfig, saveSpawnConfig } from '../configurations.js';
+import { getKitsConfig, saveKitsConfig, getShopConfig, getSpawnConfig, saveSpawnConfig, getEconomyConfig, saveEconomyConfig } from '../configurations.js';
 import { items as allItems } from '../itemsConfig.js';
 import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from '../kitAdminManager.js';
 import { addItemToKit, updateItemInKit } from '../kitItemsManager.js';
@@ -35,6 +35,10 @@ const configHandlers = {
     'spawn': {
         get: getSpawnConfig,
         save: (config) => saveSpawnConfig(config)
+    },
+    'economy': {
+        get: getEconomyConfig,
+        save: (config) => saveEconomyConfig(config)
     }
 };
 
@@ -1349,6 +1353,91 @@ export async function handleFormResponse(player, panelId, response, context) {
         return;
     }
 
+        if (panelId === 'mobDropsSystemPanel') {
+            const { page = 1 } = context;
+            if (selection === 0) { // Back
+                return showPanel(player, 'economyPanel', context);
+            }
+            if (selection === 1) { // Add New Mob
+                return showPanel(player, 'addMobDropPanel', context);
+            }
+
+            const economyConfig = getEconomyConfig();
+            const mobDrops = economyConfig.mobMoney || {};
+            const mobIds = Object.keys(mobDrops).sort();
+            const paginatedMobIds = getPaginatedItems(mobIds, page);
+            const selectionIndex = selection - 2;
+
+            if (selectionIndex < paginatedMobIds.length) {
+                const selectedMobId = paginatedMobIds[selectionIndex];
+                return showPanel(player, 'editMobDropPanel', { ...context, mobId: selectedMobId });
+            }
+
+            // Handle pagination
+            let newPage = page;
+            const totalPages = Math.ceil(mobIds.length / itemsPerPage);
+            const hasPrev = page > 1;
+            let buttonIndex = selectionIndex - paginatedMobIds.length;
+
+            if (hasPrev && buttonIndex === 0) {
+                newPage--;
+            } else {
+                newPage++;
+            }
+            return showPanel(player, panelId, { ...context, page: newPage });
+        }
+
+        if (panelId === 'addMobDropPanel') {
+            if (canceled) {
+                return showPanel(player, 'mobDropsSystemPanel', context);
+            }
+            const [mobId, amountStr] = formValues;
+            const amount = Number(amountStr);
+            if (!mobId || isNaN(amount) || amount < 0) {
+                player.sendMessage('§cInvalid mob ID or amount.');
+                return showPanel(player, 'addMobDropPanel', context);
+            }
+            const economyConfig = getEconomyConfig();
+            economyConfig.mobMoney[mobId] = amount;
+            saveEconomyConfig(economyConfig);
+            player.sendMessage(`§2Successfully added mob drop for ${mobId}.`);
+            return showPanel(player, 'mobDropsSystemPanel', { ...context, page: 1 });
+        }
+
+        if (panelId === 'editMobDropPanel') {
+            const { mobId } = context;
+            if (selection === 0) { // Edit Amount
+                const form = new ModalFormData().title(`Edit ${mobId}`)
+                    .textField('Amount', 'Enter the new amount', { defaultValue: String(getEconomyConfig().mobMoney[mobId]) });
+                const response = await utils.uiWait(player, form);
+                if (response.canceled) {
+                    return showPanel(player, 'mobDropsSystemPanel', context);
+                }
+                const [amountStr] = response.formValues;
+                const amount = Number(amountStr);
+                if (isNaN(amount) || amount < 0) {
+                    player.sendMessage('§cInvalid amount.');
+                    return showPanel(player, 'editMobDropPanel', context);
+                }
+                const economyConfig = getEconomyConfig();
+                economyConfig.mobMoney[mobId] = amount;
+                saveEconomyConfig(economyConfig);
+                player.sendMessage(`§2Successfully updated mob drop for ${mobId}.`);
+                return showPanel(player, 'mobDropsSystemPanel', { ...context, page: 1 });
+            }
+            if (selection === 1) { // Delete
+                const economyConfig = getEconomyConfig();
+                delete economyConfig.mobMoney[mobId];
+                saveEconomyConfig(economyConfig);
+                player.sendMessage(`§2Successfully deleted mob drop for ${mobId}.`);
+                return showPanel(player, 'mobDropsSystemPanel', { ...context, page: 1 });
+            }
+            if (selection === 2) { // Back
+                return showPanel(player, 'mobDropsSystemPanel', context);
+            }
+        }
+
+
     if (panelId === 'addRankPanel') {
         if (canceled) { return showPanel(player, 'rankManagementPanel', context); }
 
@@ -1459,6 +1548,7 @@ export async function handleFormResponse(player, panelId, response, context) {
             allSystems.push({ id: 'kitManagementPanel', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' });
             allSystems.push({ id: 'shopManagementPanel', title: '§l§2Shop System§r', icon: 'textures/items/emerald' });
             allSystems.push({ id: 'rankManagementPanel', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' });
+            allSystems.push({ id: 'economyPanel', title: '§l§6Economy System§r', icon: 'textures/items/emerald' });
         }
         if (pData.permissionLevel === 0) {
             allSystems.push({ id: 'configResetPanel', title: '§l§cReset Settings§r', icon: 'textures/ui/wysiwyg_reset' });
