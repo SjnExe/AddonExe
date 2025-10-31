@@ -2,6 +2,7 @@ import { commandManager } from './commandManager.js';
 import { getBalance, getLeaderboard } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { sendMessage } from '../../core/messaging.js';
+import { formatCurrency } from '../../core/utils.js';
 import { constants } from '../../core/constants.js';
 
 commandManager.register({
@@ -44,9 +45,9 @@ commandManager.register({
         }
 
         if (targetPlayer.id === player.id) {
-            sendMessage(`§aYour balance is: §e$${balance.toFixed(2)}`, player);
+            sendMessage(`§aYour balance is: §e${formatCurrency(balance)}`, player);
         } else {
-            sendMessage(`§a${targetPlayer.name}'s balance is: §e$${balance.toFixed(2)}`, player);
+            sendMessage(`§a${targetPlayer.name}'s balance is: §e${formatCurrency(balance)}`, player);
         }
     }
 });
@@ -90,7 +91,7 @@ commandManager.register({
         topPlayers.forEach((entry, index) => {
             const rank = index + 1;
             const color = rankColors[rank] || defaultColor;
-            message += `${color}#${rank}§r ${entry.name}: §a$${entry.balance.toFixed(2)}\n`;
+            message += `${color}#${rank}§r ${entry.name}: §a${formatCurrency(entry.balance)}\n`;
         });
 
         sendMessage(message.trim(), player, { raw: true });

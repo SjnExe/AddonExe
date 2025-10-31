@@ -58,14 +58,15 @@ export const config = {
     },
     economy: {
         enabled: true,
+        currencySymbol: '$',
         startingBalance: 50,
         baltopLimit: 10,
-        minimumBounty: 10,
         paymentConfirmationThreshold: 10000, // Payments over this amount require confirmation
         paymentConfirmationTimeout: 60 // Seconds to confirm a payment
     },
     bounties: {
         enabled: true,
+        minimumBounty: 10,
         // How long (in seconds) after the last hit from a player that they can still be credited for the kill.
         bountyCreditTimeoutSeconds: 15
     },

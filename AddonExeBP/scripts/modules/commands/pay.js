@@ -3,6 +3,7 @@ import { getConfig } from '../../core/configManager.js';
 import { getPlayer, createPendingPayment, getPendingPayment, clearPendingPayment, transfer } from '../../core/playerDataManager.js';
 import { world } from '@minecraft/server';
 import { sendMessage } from '../../core/messaging.js';
+import { formatCurrency } from '../../core/utils.js';
 import { constants } from '../../core/constants.js';
 
 commandManager.register({
@@ -51,13 +52,13 @@ commandManager.register({
 
         if (amount > config.economy.paymentConfirmationThreshold) {
             createPendingPayment(player.id, targetPlayer.id, amount);
-            sendMessage(`§ePayment of $${amount.toFixed(2)} to ${targetPlayer.name} is pending.`, player);
+            sendMessage(`§ePayment of ${formatCurrency(amount)} to ${targetPlayer.name} is pending.`, player);
             sendMessage(`§eType §a/payconfirm§e within ${config.economy.paymentConfirmationTimeout} seconds to complete the transaction.`, player);
         } else {
             const result = transfer(player.id, targetPlayer.id, amount);
             if (result.success) {
-                sendMessage(`§aYou have paid §e$${amount.toFixed(2)}§a to ${targetPlayer.name}.`, player);
-                sendMessage(`§aYou have received §e$${amount.toFixed(2)}§a from ${player.name}.`, targetPlayer);
+                sendMessage(`§aYou have paid §e${formatCurrency(amount)}§a to ${targetPlayer.name}.`, player);
+                sendMessage(`§aYou have received §e${formatCurrency(amount)}§a from ${player.name}.`, targetPlayer);
             } else {
                 sendMessage(`§cPayment failed: ${result.message}`, player);
             }
@@ -94,8 +95,8 @@ commandManager.register({
         const result = transfer(player.id, targetPlayerId, amount);
 
         if (result.success) {
-            sendMessage(`§aPayment confirmed. You sent §e$${amount.toFixed(2)}§a to ${targetPlayer.name}.`, player);
-            sendMessage(`§aYou have received §e$${amount.toFixed(2)}§a from ${player.name}.`, targetPlayer);
+            sendMessage(`§aPayment confirmed. You sent §e${formatCurrency(amount)}§a to ${targetPlayer.name}.`, player);
+            sendMessage(`§aYou have received §e${formatCurrency(amount)}§a from ${player.name}.`, targetPlayer);
         } else {
             sendMessage(`§cPayment failed: ${result.message}`, player);
         }

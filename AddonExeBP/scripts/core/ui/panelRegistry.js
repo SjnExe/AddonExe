@@ -398,6 +398,60 @@ export const panelDefinitions = {
         title: '§l§bFloating Text Actions§r',
         parentPanelId: 'floatingTextListPanel',
         items: [] // Dynamically populated
+    },
+    economyPanel: {
+        title: '§l§6Economy System§r',
+        parentPanelId: 'configCategoryPanel',
+        items: [
+            {
+                id: 'economyGeneralSettings',
+                text: '§l§3General Settings§r',
+                icon: 'textures/ui/settings_glyph_color_2x',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'config_economyGeneralSettings'
+            },
+            {
+                id: 'bountySystemPanel',
+                text: '§l§cBounty System§r',
+                icon: 'textures/items/diamond_sword',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'config_bounties'
+            },
+            {
+                id: 'mobDropsSystemPanel',
+                text: '§l§2Mob Drops System§r',
+                icon: 'textures/items/bone',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'mobDropsSystemPanel'
+            }
+        ]
+    },
+    mobDropsSystemPanel: {
+        title: '§l§2Mob Drops System§r',
+        parentPanelId: 'economyPanel',
+        items: [
+            {
+                id: 'addMobDrop',
+                text: '§l§aAdd New Mob§r',
+                icon: 'textures/ui/realms_green_check.png',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'addMobDropPanel'
+            }
+        ]
+    },
+    addMobDropPanel: {
+        title: '§l§2Add Mob Drop§r',
+        parentPanelId: 'mobDropsSystemPanel',
+        items: [] // Modal form, no items needed
+    },
+    editMobDropPanel: {
+        title: '§l§2Edit Mob Drop§r',
+        parentPanelId: 'mobDropsSystemPanel',
+        items: [] // Dynamically built in panelBuilder.js
     }
 };
 
@@ -741,21 +795,28 @@ export const configPanelSchema = [
         ]
     },
     {
-        id: 'economy',
-        title: '§l§6Economy System§r',
-        icon: 'textures/items/gold_ingot.png',
+        id: 'economyGeneralSettings',
+        title: '§l§6Economy General Settings§r',
+        icon: 'textures/ui/settings_glyph_color_2x',
+        configSource: 'economy',
         settings: [
             {
-                key: 'economy.enabled',
-                label: 'Economy Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the entire economy system.'
+                key: 'economy.currencySymbol',
+                label: 'Currency Symbol',
+                type: 'textField',
+                description: 'The symbol to use for currency (e.g., $, €, £).'
             },
             {
                 key: 'economy.startingBalance',
                 label: 'Starting Balance',
                 type: 'textField',
                 description: 'The amount of money new players start with.'
+            },
+            {
+                key: 'economy.logToConsole',
+                label: 'Log Transactions',
+                type: 'toggle',
+                description: 'Logs all economy transactions to the console.'
             }
         ]
     },

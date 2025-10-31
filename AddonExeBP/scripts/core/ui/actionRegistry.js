@@ -2,6 +2,7 @@ import { world } from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { getPlayer } from '../playerDataManager.js';
 import * as utils from '../utils.js';
+import { formatCurrency } from '../utils.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import * as reportManager from '../reportManager.js';
@@ -256,7 +257,7 @@ export const uiActionFunctions = {
             const amount = Number(amountStr);
             const config = getConfig();
             if (isNaN(amount) || amount < config.bounties.minimumBounty) {
-                player.sendMessage(`§cInvalid amount. The minimum bounty is $${config.bounties.minimumBounty}.`);
+                player.sendMessage(`§cInvalid amount. The minimum bounty is ${formatCurrency(config.bounties.minimumBounty)}.`);
                 return true;
             }
             if (getBalance(player.id) < amount) {
@@ -266,8 +267,8 @@ export const uiActionFunctions = {
 
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, amount);
-            player.sendMessage(`§2You have placed a bounty of §6$${amount}§2 on ${targetPlayerName}.`);
-            world.sendMessage(`§cSomeone has placed a bounty of §6$${amount}§c on ${targetPlayerName}!`);
+            player.sendMessage(`§2You have placed a bounty of §6${formatCurrency(amount)}§2 on ${targetPlayerName}.`);
+            world.sendMessage(`§cSomeone has placed a bounty of §6${formatCurrency(amount)}§c on ${targetPlayerName}!`);
         }
         return true;
     },
@@ -301,7 +302,7 @@ export const uiActionFunctions = {
 
         const form = new ModalFormData()
             .title(`Remove Bounty from ${targetPlayerName}`)
-            .textField(`Bounty Amount: $${targetBounty.amount.toFixed(2)}\nEnter amount to remove:`, 'Enter amount');
+            .textField(`Bounty Amount: ${formatCurrency(targetBounty.amount)}\nEnter amount to remove:`, 'Enter amount');
 
         const response = await utils.uiWait(player, form);
 
@@ -315,7 +316,7 @@ export const uiActionFunctions = {
             }
 
             if (amount > targetBounty.amount) {
-                player.sendMessage(`§cYou cannot remove more than the bounty amount ($${targetBounty.amount.toFixed(2)}).`);
+                player.sendMessage(`§cYou cannot remove more than the bounty amount (${formatCurrency(targetBounty.amount)}).`);
                 return true;
             }
 
@@ -326,8 +327,8 @@ export const uiActionFunctions = {
 
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, -amount);
-            player.sendMessage(`§2You have removed $${amount.toFixed(2)} from ${targetPlayerName}'s bounty.`);
-            world.sendMessage(`§2${player.name} has removed $${amount.toFixed(2)} from ${targetPlayerName}'s bounty!`);
+            player.sendMessage(`§2You have removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty.`);
+            world.sendMessage(`§2${player.name} has removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty!`);
         }
 
         return true;

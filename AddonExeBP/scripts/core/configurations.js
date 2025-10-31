@@ -12,6 +12,7 @@ const spawnConfigManager = createConfigManager('exe:spawnConfig:current', './spa
 // The last parameter 'rankDefinitions' is the wrapperKey. It ensures the imported array
 // is wrapped in an object like { rankDefinitions: [...] }, which the addon expects.
 const ranksConfigManager = createConfigManager('exe:ranksConfig', './ranksConfig.js', 'Ranks', 'rankDefinitions', 'rankDefinitions');
+const economyConfigManager = createConfigManager('exe:economyConfig:current', './economyConfig.js', 'Economy', 'economyConfig');
 
 export const loadKitsConfig = kitsConfigManager.load;
 export const getKitsConfig = kitsConfigManager.get;
@@ -33,7 +34,16 @@ export const getRanksConfig = ranksConfigManager.get;
 export const saveRanksConfig = ranksConfigManager.save;
 export const resetRanksConfig = ranksConfigManager.reset;
 
+export const loadEconomyConfig = economyConfigManager.load;
+export const getEconomyConfig = economyConfigManager.get;
+export const saveEconomyConfig = economyConfigManager.save;
+export const resetEconomyConfig = economyConfigManager.reset;
+
 export const configResetRegistry = {
+    'economy': {
+        reset: resetEconomyConfig,
+        message: 'The \'economy\' configuration section has been reset to default.'
+    },
     'kits': {
         reset: resetKitsConfig,
         message: 'The \'kits\' configuration section has been reset to default.'
