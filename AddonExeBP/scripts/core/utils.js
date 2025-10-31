@@ -259,3 +259,15 @@ export function generateDisplayName(typeId) {
 
     return formattedName;
 }
+
+/**
+ * Formats a number as a currency string, using the symbol from the config.
+ * @param {number} amount The amount to format.
+ * @returns {string} The formatted currency string (e.g., "$1,234.50").
+ */
+export function formatCurrency(amount) {
+    const config = getConfig();
+    const symbol = config.economy.currencySymbol || '$';
+    const formattedAmount = amount.toFixed(2);
+    return `${symbol}${formattedAmount}`;
+}

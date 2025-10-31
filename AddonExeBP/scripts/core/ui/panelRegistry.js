@@ -798,7 +798,14 @@ export const configPanelSchema = [
         id: 'economyGeneralSettings',
         title: '§l§6Economy General Settings§r',
         icon: 'textures/ui/settings_glyph_color_2x',
+        configSource: 'economy',
         settings: [
+            {
+                key: 'economy.currencySymbol',
+                label: 'Currency Symbol',
+                type: 'textField',
+                description: 'The symbol to use for currency (e.g., $, €, £).'
+            },
             {
                 key: 'economy.startingBalance',
                 label: 'Starting Balance',

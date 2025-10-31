@@ -58,6 +58,7 @@ export const config = {
     },
     economy: {
         enabled: true,
+        currencySymbol: '$',
         startingBalance: 50,
         baltopLimit: 10,
         paymentConfirmationThreshold: 10000, // Payments over this amount require confirmation

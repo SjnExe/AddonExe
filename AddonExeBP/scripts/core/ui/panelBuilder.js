@@ -13,12 +13,16 @@ import { getKitsConfig, getShopConfig, getSpawnConfig, getEconomyConfig } from '
 import { items as allItems } from '../itemsConfig.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { getValueFromPath } from '../objectUtils.js';
+import { formatCurrency } from '../utils.js';
 
 const itemsPerPage = 8;
 
 const configHandlers = {
     'main': {
         get: getConfig
+    },
+    'economy': {
+        get: getEconomyConfig
     },
     'spawn': {
         get: getSpawnConfig
@@ -70,8 +74,8 @@ function addPanelBody(form, player, panelId, context) {
         const bounty = bountyManager.getBounty(player.id)?.amount ?? 0;
         form.body([
             `§fRank: §r${rank.chatFormatting?.nameColor ?? '§7'}${rank.name}`,
-            `§fBalance: §2$${pData.balance.toFixed(2)}`,
-            `§fBounty on you: §6$${bounty.toFixed(2)}`
+            `§fBalance: §2${formatCurrency(pData.balance)}`,
+            `§fBounty on you: §6${formatCurrency(bounty)}`
         ].join('\n'));
     } else if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
         const pData = context.targetData || loadPlayerData(context.targetPlayerId);
@@ -83,8 +87,8 @@ function addPanelBody(form, player, panelId, context) {
         const bounty = bountyManager.getBounty(context.targetPlayerId)?.amount ?? 0;
         form.body([
             `§fRank: §r${rank?.chatFormatting?.nameColor ?? '§7'}${rank?.name ?? 'Unknown'}`,
-            `§fBalance: §2$${pData.balance.toFixed(2)}`,
-            `§fBounty: §6$${bounty.toFixed(2)}`
+            `§fBalance: §2${formatCurrency(pData.balance)}`,
+            `§fBounty: §6${formatCurrency(bounty)}`
         ].join('\n'));
     } else if (panelId === 'reportActionsPanel' && context.targetReport) {
         const { targetReport } = context;
@@ -166,12 +170,12 @@ function buildShopCategoryPanel(form, context) {
             const icon = entry.icon || masterItem.icon;
             let priceString = '';
             if (view === 'buy' && entry.buyPrice > 0) {
-                priceString = `§2Buy: $${entry.buyPrice}`;
+                priceString = `§2Buy: ${formatCurrency(entry.buyPrice)}`;
             } else if (view === 'sell' && entry.sellPrice > 0) {
-                priceString = `§cSell: $${entry.sellPrice}`;
+                priceString = `§cSell: ${formatCurrency(entry.sellPrice)}`;
             } else {
-                const buy = entry.buyPrice > 0 ? `§2B: $${entry.buyPrice}` : '';
-                const sell = entry.sellPrice > 0 ? `§cS: $${entry.sellPrice}` : '';
+                const buy = entry.buyPrice > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
+                const sell = entry.sellPrice > 0 ? `§cS: ${formatCurrency(entry.sellPrice)}` : '';
                 priceString = [buy, sell].filter(Boolean).join(' ');
             }
             form.button(`${displayName}\n${priceString}`, icon);
@@ -203,12 +207,12 @@ function buildShopItemListPanel(form, context) {
         const icon = item.icon || masterItem.icon;
         let priceString = '';
         if (view === 'buy' && item.buyPrice > 0) {
-            priceString = `§2Buy: $${item.buyPrice}`;
+            priceString = `§2Buy: ${formatCurrency(item.buyPrice)}`;
         } else if (view === 'sell' && item.sellPrice > 0) {
-            priceString = `§cSell: $${item.sellPrice}`;
+            priceString = `§cSell: ${formatCurrency(item.sellPrice)}`;
         } else {
-            const buy = item.buyPrice > 0 ? `§2B: $${item.buyPrice}` : '';
-            const sell = item.sellPrice > 0 ? `§cS: $${item.sellPrice}` : '';
+            const buy = item.buyPrice > 0 ? `§2B: ${formatCurrency(item.buyPrice)}` : '';
+            const sell = item.sellPrice > 0 ? `§cS: ${formatCurrency(item.sellPrice)}` : '';
             priceString = [buy, sell].filter(Boolean).join(' ');
         }
         form.button(`${displayName}\n${priceString}`, icon);
@@ -414,7 +418,7 @@ async function buildBountyListForm(title, context) {
     } else {
         const paginatedBounties = getPaginatedItems(allBounties, page);
         for (const bounty of paginatedBounties) {
-            form.button(`${bounty.name}\n§6$${bounty.amount.toFixed(2)}`);
+            form.button(`${bounty.name}\n§6${formatCurrency(bounty.amount)}`);
         }
     }
 
@@ -959,7 +963,7 @@ export async function buildPanelForm(player, panelId, context) {
             const currentAmount = economyConfig.mobMoney[mobId] ?? 0;
             const form = new ActionFormData()
                 .title(`Edit: ${mobId}`)
-                .body(`Current amount: §2$${currentAmount}`)
+                .body(`Current amount: §2${formatCurrency(currentAmount)}`)
                 .button('§l§eEdit Amount§r', 'textures/ui/icon_setting')
                 .button('§l§cDelete Mob Drop§r', 'textures/ui/trash')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
@@ -996,7 +1000,7 @@ export async function buildPanelForm(player, panelId, context) {
 
             for (const mobId of paginatedMobIds) {
                 const amount = mobDrops[mobId];
-                form.button(`${mobId}\n§2$${amount}`);
+                form.button(`${mobId}\n§2${formatCurrency(amount)}`);
             }
 
             addPaginationButtons(form, page, mobIds.length);
