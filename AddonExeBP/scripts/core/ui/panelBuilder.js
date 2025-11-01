@@ -465,12 +465,7 @@ function buildReportListForm(title, context) {
 
 function buildRankManagementPanel(form, context) {
     const { page = 1 } = context;
-    const pData = getPlayer(context.player.id);
-    const panelDef = panelDefinitions.rankManagementPanel;
-    const menuItems = getMenuItems(panelDef, pData.permissionLevel);
-    for (const item of menuItems) {
-        form.button(item.text, item.icon);
-    }
+    form.button('§l§8< Back', 'textures/gui/controls/left.png');
     form.button('§l§2+ Add New Rank', 'textures/ui/color_plus');
 
     const allRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);

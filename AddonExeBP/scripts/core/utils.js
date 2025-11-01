@@ -1,4 +1,5 @@
 import { system, world } from '@minecraft/server';
+import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { errorLog } from './logger.js';
 
