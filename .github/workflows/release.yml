@@ -91,15 +91,15 @@ jobs:
           FULL_TAG_NAME: ${{ env.FULL_TAG_NAME }}
         run: |
           set -e
-          # Create main .mcaddon
-          (cd staging && zip -r "../AddonExe.${FULL_TAG_NAME}.mcaddon" ./*)
+          # Create main .mcaddon with max compression
+          (cd staging && zip -r -9 "../AddonExe.${FULL_TAG_NAME}.mcaddon" ./*)
 
-          # Create BP .mcpack
-          (cd staging/AddonExeBP && zip -r "../../AddonExe.BP${FULL_TAG_NAME}.mcpack" ./*)
+          # Create BP .mcpack with max compression
+          (cd staging/AddonExeBP && zip -r -9 "../../AddonExe.BP${FULL_TAG_NAME}.mcpack" ./*)
 
-          # Create RP .mcpack
-          (cd staging/AddonExeRP && zip -r "../../AddonExe.RP${FULL_TAG_NAME}.mcpack" ./*)
-          echo "Created release archives."
+          # Create RP .mcpack with max compression
+          (cd staging/AddonExeRP && zip -r -9 "../../AddonExe.RP${FULL_TAG_NAME}.mcpack" ./*)
+          echo "Created release archives with maximum compression."
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
