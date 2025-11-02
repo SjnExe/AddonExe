@@ -880,7 +880,7 @@ export const configPanelSchema = [
                 description: 'Enables or disables the X-ray detection system.'
             },
             {
-                key: 'notificationMessage',
+                key: 'notifications.message',
                 label: 'Notification Message\nPlaceholders: {playerName}, {oreName}, {x}, {y}, {z}',
                 type: 'textField',
                 description: 'The format of the notification message sent to staff.'

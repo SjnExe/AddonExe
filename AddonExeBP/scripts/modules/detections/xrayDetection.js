@@ -30,7 +30,7 @@ function handleBlockBreak(event) {
     for (const onlinePlayer of onlinePlayers) {
         const pData = getPlayer(onlinePlayer.id);
         if (pData && pData.permissionLevel <= 2 && pData.xrayNotificationsEnabled) {
-            const message = xrayConfig.notificationMessage
+            const message = xrayConfig.notifications.message
                 .replace('{playerName}', player.name)
                 .replace('{oreName}', monitoredOre.oreName)
                 .replace('{x}', brokenBlock.location.x.toFixed(2))

@@ -1,6 +1,8 @@
 export const xrayConfig = {
     enabled: false,
-    notificationMessage: '§8[§cX-Ray§8]§r §7{playerName}§r mined §e{oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r',
+    notifications: {
+        message: '§8[§cX-Ray§8]§r §7{playerName}§r mined §e{oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r'
+    },
     monitoredOres: [
         {
             blockId: 'minecraft:diamond_ore',
