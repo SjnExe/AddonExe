@@ -26,6 +26,9 @@ const configHandlers = {
     },
     'spawn': {
         get: getSpawnConfig
+    },
+    'xray': {
+        get: getXrayConfig
     }
 };
 
@@ -1064,6 +1067,43 @@ export async function buildPanelForm(player, panelId, context) {
             form.textField('Chat Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.messageColor ?? '' });
             form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: rank.chatFormatting?.prefixText ?? '' });
             form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
+            return form;
+        }
+
+        if (panelId === 'xrayOresPanel') {
+            const xrayConfig = getXrayConfig();
+            const form = new ActionFormData().title(panelDefinitions[panelId].title);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+            form.button('§l§2+ Add New Ore§r', 'textures/ui/color_plus');
+            if (xrayConfig.monitoredOres.length === 0) {
+                form.body('No ores are being monitored.');
+            } else {
+                for (const ore of xrayConfig.monitoredOres) {
+                    form.button(`§e${ore.oreName}§r\n§7${ore.blockId}`);
+                }
+            }
+            return form;
+        }
+
+        if (panelId === 'addXrayOrePanel') {
+            const form = new ModalFormData().title('§l§cAdd Monitored Ore');
+            form.textField('Block ID', 'e.g., minecraft:diamond_ore');
+            form.textField('Dimension ID', 'e.g., minecraft:overworld');
+            form.textField('Min Y', 'e.g., -64');
+            form.textField('Max Y', 'e.g., 16');
+            form.textField('Ore Name', 'e.g., Diamond Ore');
+            return form;
+        }
+
+        if (panelId === 'editXrayOrePanel') {
+            const xrayConfig = getXrayConfig();
+            const ore = xrayConfig.monitoredOres[context.oreIndex];
+            const form = new ModalFormData().title('§l§cEdit Monitored Ore');
+            form.textField('Block ID', 'e.g., minecraft:diamond_ore', { defaultValue: ore.blockId });
+            form.textField('Dimension ID', 'e.g., minecraft:overworld', { defaultValue: ore.dimensionId });
+            form.textField('Min Y', 'e.g., -64', { defaultValue: String(ore.minY) });
+            form.textField('Max Y', 'e.g., 16', { defaultValue: String(ore.maxY) });
+            form.textField('Ore Name', 'e.g., Diamond Ore', { defaultValue: ore.oreName });
             return form;
         }
 

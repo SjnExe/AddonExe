@@ -444,6 +444,30 @@ export const panelDefinitions = {
         title: '§l§2Edit Mob Drop§r',
         parentPanelId: 'mobDropsSystemPanel',
         items: [] // Dynamically built in panelBuilder.js
+    },
+    xrayOresPanel: {
+        title: '§l§cX-Ray Monitored Ores§r',
+        parentPanelId: 'config_xray',
+        items: [
+            {
+                id: 'addXrayOre',
+                text: '§l§2Add New Ore§r',
+                icon: 'textures/ui/color_plus',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'addXrayOrePanel'
+            }
+        ]
+    },
+    addXrayOrePanel: {
+        title: '§l§cAdd Monitored Ore§r',
+        parentPanelId: 'xrayOresPanel',
+        items: [] // Modal form
+    },
+    editXrayOrePanel: {
+        title: '§l§cEdit Monitored Ore§r',
+        parentPanelId: 'xrayOresPanel',
+        items: [] // Modal form
     }
 };
 
@@ -840,6 +864,34 @@ export const configPanelSchema = [
                 label: 'Enable Death Coords',
                 type: 'toggle',
                 description: 'Tells players their coordinates upon respawning after death.'
+            }
+        ]
+    },
+    {
+        id: 'xray',
+        title: '§l§cX-Ray System§r',
+        icon: 'textures/blocks/diamond_ore',
+        configSource: 'xray',
+        settings: [
+            {
+                key: 'enabled',
+                label: 'Enable X-Ray Detection',
+                type: 'toggle',
+                description: 'Enables or disables the X-ray detection system.'
+            },
+            {
+                key: 'notificationMessage',
+                label: 'Notification Message\nPlaceholders: {playerName}, {oreName}, {x}, {y}, {z}',
+                type: 'textField',
+                description: 'The format of the notification message sent to staff.'
+            },
+            {
+                id: 'manageOres',
+                text: '§l§cManage Monitored Ores§r',
+                icon: 'textures/items/diamond_pickaxe',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'xrayOresPanel'
             }
         ]
     },

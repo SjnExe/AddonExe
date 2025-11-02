@@ -14,6 +14,7 @@ import { startRestart } from './restartManager.js';
 import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
+import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
 import { registerPlayerDataPlaceholders } from './playerDataManager.js';
@@ -160,6 +161,7 @@ async function initializeAddon() {
     checkConfiguration();
     initializeEventManager();
     initializeSpawnProtection();
+    initializeXrayDetection();
     restartAnnouncer(); // Start the announcement system
 
     // Restore state for any players who were online during the reload

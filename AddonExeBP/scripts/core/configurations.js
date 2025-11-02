@@ -13,6 +13,7 @@ const spawnConfigManager = createConfigManager('exe:spawnConfig:current', './spa
 // is wrapped in an object like { rankDefinitions: [...] }, which the addon expects.
 const ranksConfigManager = createConfigManager('exe:ranksConfig', './ranksConfig.js', 'Ranks', 'rankDefinitions', 'rankDefinitions');
 const economyConfigManager = createConfigManager('exe:economyConfig:current', './economyConfig.js', 'Economy', 'economyConfig');
+const xrayConfigManager = createConfigManager('exe:xrayConfig:current', './xrayConfig.js', 'X-Ray', 'xrayConfig');
 
 export const loadKitsConfig = kitsConfigManager.load;
 export const getKitsConfig = kitsConfigManager.get;
@@ -39,7 +40,16 @@ export const getEconomyConfig = economyConfigManager.get;
 export const saveEconomyConfig = economyConfigManager.save;
 export const resetEconomyConfig = economyConfigManager.reset;
 
+export const loadXrayConfig = xrayConfigManager.load;
+export const getXrayConfig = xrayConfigManager.get;
+export const saveXrayConfig = xrayConfigManager.save;
+export const resetXrayConfig = xrayConfigManager.reset;
+
 export const configResetRegistry = {
+    'xray': {
+        reset: resetXrayConfig,
+        message: 'The \'X-ray\' configuration section has been reset to default.'
+    },
     'economy': {
         reset: resetEconomyConfig,
         message: 'The \'economy\' configuration section has been reset to default.'

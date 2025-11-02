@@ -13,7 +13,7 @@ import { restartAnnouncer } from '../../modules/commands/announcement.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import * as shopManager from '../shopManager.js';
-import { getKitsConfig, saveKitsConfig, getShopConfig, getSpawnConfig, saveSpawnConfig, getEconomyConfig, saveEconomyConfig } from '../configurations.js';
+import { getKitsConfig, saveKitsConfig, getShopConfig, getSpawnConfig, saveSpawnConfig, getEconomyConfig, saveEconomyConfig, getXrayConfig, saveXrayConfig } from '../configurations.js';
 import { items as allItems } from '../itemsConfig.js';
 import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from '../kitAdminManager.js';
 import { addItemToKit, updateItemInKit } from '../kitItemsManager.js';
@@ -39,6 +39,10 @@ const configHandlers = {
     'economy': {
         get: getEconomyConfig,
         save: (config) => saveEconomyConfig(config)
+    },
+    'xray': {
+        get: getXrayConfig,
+        save: (config) => saveXrayConfig(config)
     }
 };
 
@@ -88,6 +92,58 @@ export async function handleFormResponse(player, panelId, response, context) {
                 return showPanel(player, 'floatingTextListPanel', context);
         }
         return;
+    }
+
+    if (panelId === 'xrayOresPanel') {
+        if (selection === 0) { // Back
+            return showPanel(player, 'config_xray', context);
+        }
+        if (selection === 1) { // Add New Ore
+            return showPanel(player, 'addXrayOrePanel', context);
+        }
+        const xrayConfig = getXrayConfig();
+        const selectedOreIndex = selection - 2;
+        if (selectedOreIndex >= 0 && selectedOreIndex < xrayConfig.monitoredOres.length) {
+            return showPanel(player, 'editXrayOrePanel', { ...context, oreIndex: selectedOreIndex });
+        }
+        return;
+    }
+
+    if (panelId === 'addXrayOrePanel') {
+        if (canceled) {
+            return showPanel(player, 'xrayOresPanel', context);
+        }
+        const [blockId, dimensionId, minYStr, maxYStr, oreName] = formValues;
+        const minY = parseInt(minYStr, 10);
+        const maxY = parseInt(maxYStr, 10);
+        if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
+            const xrayConfig = getXrayConfig();
+            xrayConfig.monitoredOres.push({ blockId, dimensionId, minY, maxY, oreName });
+            saveXrayConfig(xrayConfig);
+            player.sendMessage('§2Successfully added new monitored ore.');
+        } else {
+            player.sendMessage('§cInvalid data. Please check all fields.');
+        }
+        return showPanel(player, 'xrayOresPanel', context);
+    }
+
+    if (panelId === 'editXrayOrePanel') {
+        if (canceled) {
+            return showPanel(player, 'xrayOresPanel', context);
+        }
+        const { oreIndex } = context;
+        const [blockId, dimensionId, minYStr, maxYStr, oreName] = formValues;
+        const minY = parseInt(minYStr, 10);
+        const maxY = parseInt(maxYStr, 10);
+        if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
+            const xrayConfig = getXrayConfig();
+            xrayConfig.monitoredOres[oreIndex] = { blockId, dimensionId, minY, maxY, oreName };
+            saveXrayConfig(xrayConfig);
+            player.sendMessage('§2Successfully updated monitored ore.');
+        } else {
+            player.sendMessage('§cInvalid data. Please check all fields.');
+        }
+        return showPanel(player, 'xrayOresPanel', context);
     }
 
     if (panelId === 'floatingTextEditPanel') {
