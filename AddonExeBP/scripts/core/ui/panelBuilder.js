@@ -9,7 +9,7 @@ import * as bountyManager from '../bountyManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
-import { getKitsConfig, getShopConfig, getSpawnConfig, getEconomyConfig } from '../configurations.js';
+import { getKitsConfig, getShopConfig, getSpawnConfig, getEconomyConfig, getXrayConfig } from '../configurations.js';
 import { items as allItems } from '../itemsConfig.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { getValueFromPath } from '../objectUtils.js';
