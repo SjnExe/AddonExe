@@ -1043,8 +1043,8 @@ export async function buildPanelForm(player, panelId, context) {
             const defaultIndex = internalStyles.indexOf(currentStyle);
 
             form.dropdown('Nametag Style', nameTagStyles, { defaultValueIndex: defaultIndex > -1 ? defaultIndex : 0 });
-            form.textField('Nametag Prefix', 'e.g., [', { defaultValue: config.ranks?.nameTagPrefix ?? '' });
-            form.textField('Nametag Suffix', 'e.g., ]', { defaultValue: config.ranks?.nameTagSuffix ?? '' });
+            form.textField('Nametag Prefix', 'e.g., §0[§r', { defaultValue: config.ranks?.nameTagPrefix ?? '§0[§r' });
+            form.textField('Nametag Suffix', 'e.g., §0]§r', { defaultValue: config.ranks?.nameTagSuffix ?? '§0]§r' });
             return form;
         }
 
@@ -1073,7 +1073,7 @@ export async function buildPanelForm(player, panelId, context) {
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
             let allSystems = [
-                ...configPanelSchema.map(c => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
+                ...configPanelSchema.filter(c => c.id !== 'economyGeneralSettings').map(c => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
             ];
 
             if (pData.permissionLevel <= 1) {
