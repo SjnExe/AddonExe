@@ -412,14 +412,6 @@ export const panelDefinitions = {
                 actionValue: 'config_economyGeneralSettings'
             },
             {
-                id: 'bountySystemPanel',
-                text: '§l§cBounty System§r',
-                icon: 'textures/items/diamond_sword',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'config_bounties'
-            },
-            {
                 id: 'mobDropsSystemPanel',
                 text: '§l§2Mob Drops System§r',
                 icon: 'textures/items/bone',
@@ -519,6 +511,26 @@ export const configPanelSchema = [
                 label: 'Interval (seconds)',
                 type: 'textField',
                 description: 'How often the message is broadcast, in seconds. A reload is required for changes to take effect.'
+            }
+        ]
+    },
+    {
+        id: 'economyGeneralSettings',
+        title: '§l§6Economy Settings§r',
+        icon: 'textures/ui/Scaffolding',
+        configSource: 'economy',
+        settings: [
+            {
+                key: 'currencySymbol',
+                label: 'Currency Symbol',
+                type: 'textField',
+                description: 'The symbol used for currency (e.g., $).'
+            },
+            {
+                key: 'startingBalance',
+                label: 'Starting Balance',
+                type: 'textField',
+                description: 'The amount of money new players start with.'
             }
         ]
     },
