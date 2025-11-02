@@ -1300,22 +1300,32 @@ export async function handleFormResponse(player, panelId, response, context) {
         }
 
         const { updateAllPlayerRanks } = await import('../main.js');
-        const [nameTagStyleIndex] = formValues;
+        const [nameTagStyleIndex, nameTagPrefix, nameTagSuffix] = formValues;
         const nameTagStyles = ['above', 'before', 'after', 'under'];
         const selectedStyle = nameTagStyles[nameTagStyleIndex];
 
-        updateMultipleConfig({ 'ranks.nameTagStyle': selectedStyle });
+        updateMultipleConfig({
+            'ranks.nameTagStyle': selectedStyle,
+            'ranks.nameTagPrefix': nameTagPrefix,
+            'ranks.nameTagSuffix': nameTagSuffix
+        });
         updateAllPlayerRanks();
-        player.sendMessage(`§2Rank nametag style set to '${selectedStyle}'. All player nametags have been updated.`);
+        player.sendMessage(`§2Rank nametag settings updated. All player nametags have been refreshed.`);
         return showPanel(player, 'rankManagementPanel', context);
     }
 
     if (panelId === 'rankManagementPanel') {
         const page = context.page || 1;
         // Back button
-        if (selection === 0) { return showPanel(player, 'configCategoryPanel'); }
-        // Add New Rank button
+        if (selection === 0) {
+            return showPanel(player, 'configCategoryPanel');
+        }
+        // Settings button
         if (selection === 1) {
+            return showPanel(player, 'rankSettingsPanel', context);
+        }
+        // Add New Rank button
+        if (selection === 2) {
             return showPanel(player, 'addRankPanel', context);
         }
 
@@ -1323,7 +1333,7 @@ export async function handleFormResponse(player, panelId, response, context) {
         const paginatedRanks = getPaginatedItems(allRanks, page);
         const totalPages = Math.ceil(allRanks.length / itemsPerPage);
 
-        const rankStartIndex = 2;
+        const rankStartIndex = 3; // Adjusted for Back, Settings, and Add Rank buttons
         const rankEndIndex = rankStartIndex + paginatedRanks.length - 1;
 
         if (selection >= rankStartIndex && selection <= rankEndIndex) {

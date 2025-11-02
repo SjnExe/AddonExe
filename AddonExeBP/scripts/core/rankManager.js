@@ -120,26 +120,30 @@ export function getAllRanks() {
  */
 export function updatePlayerNameTag(player, config) {
     const rank = getPlayerRank(player, config);
-    const prefix = rank.chatFormatting?.prefixText ?? '';
-    const nameTagStyle = config.ranks?.nameTagStyle || 'above';
-    let newNameTag;
+    const rankPrefix = rank.chatFormatting?.prefixText ?? '';
+    const { nameTagStyle = 'above', nameTagPrefix = '', nameTagSuffix = '' } = config.ranks || {};
 
+    // Construct the final nametag prefix, only adding brackets if the rank prefix itself isn't empty.
+    const finalPrefix = rankPrefix ? `${nameTagPrefix}${rankPrefix}${nameTagSuffix}` : '';
+
+    let newNameTag;
     switch (nameTagStyle) {
         case 'before':
-            newNameTag = `${prefix} ${player.name}`;
+            newNameTag = finalPrefix ? `${finalPrefix} ${player.name}` : player.name;
             break;
         case 'after':
-            newNameTag = `${player.name} ${prefix}`;
+            newNameTag = finalPrefix ? `${player.name} ${finalPrefix}` : player.name;
             break;
         case 'under':
-            newNameTag = `${player.name}\n${prefix}`;
+            newNameTag = `${player.name}\n${finalPrefix}`;
             break;
         case 'above':
         default:
-            newNameTag = `${prefix}\n${player.name}`;
+            newNameTag = `${finalPrefix}\n${player.name}`;
             break;
     }
 
+    // To prevent unnecessary updates and potential Watchdog spikes, only update if the nametag has changed.
     if (player.nameTag !== newNameTag) {
         player.nameTag = newNameTag;
     }

@@ -548,32 +548,6 @@ export const configPanelSchema = [
         ]
     },
     {
-        id: 'economyGeneralSettings',
-        title: '§l§3General Economy Settings§r',
-        icon: 'textures/ui/settings_glyph_color_2x',
-        configSource: 'economy',
-        settings: [
-            {
-                key: 'currencySymbol',
-                label: 'Currency Symbol',
-                type: 'textField',
-                description: 'The symbol used for currency (e.g., $).'
-            },
-            {
-                key: 'startingBalance',
-                label: 'Starting Balance',
-                type: 'textField',
-                description: 'The amount of money new players start with.'
-            },
-            {
-                key: 'logToConsole',
-                label: 'Log Transactions',
-                type: 'toggle',
-                description: 'Logs all economy transactions to the console for debugging.'
-            }
-        ]
-    },
-    {
         id: 'bounties',
         title: '§l§cBounty System§r',
         icon: 'textures/items/diamond_sword',

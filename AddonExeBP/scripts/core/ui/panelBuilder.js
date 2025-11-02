@@ -1023,6 +1023,8 @@ export async function buildPanelForm(player, panelId, context) {
             const defaultIndex = internalStyles.indexOf(currentStyle);
 
             form.dropdown('Nametag Style', nameTagStyles, { defaultValueIndex: defaultIndex > -1 ? defaultIndex : 0 });
+            form.textField('Nametag Prefix', 'e.g., [', { defaultValue: config.ranks?.nameTagPrefix ?? '' });
+            form.textField('Nametag Suffix', 'e.g., ]', { defaultValue: config.ranks?.nameTagSuffix ?? '' });
             return form;
         }
 

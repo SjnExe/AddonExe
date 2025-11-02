@@ -86,7 +86,9 @@ export const config = {
         deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.'
     },
     ranks: {
-        nameTagStyle: 'above' // Options: 'above', 'before', 'after', 'under'
+        nameTagStyle: 'above', // Options: 'above', 'before', 'after', 'under'
+        nameTagPrefix: '', // e.g., '['
+        nameTagSuffix: '' // e.g., ']'
     },
 
     // --- Player Defaults ---
