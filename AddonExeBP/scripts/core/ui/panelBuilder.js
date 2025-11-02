@@ -465,7 +465,14 @@ function buildReportListForm(title, context) {
 
 function buildRankManagementPanel(form, context) {
     const { page = 1 } = context;
+    const pData = getPlayer(context.player.id);
+    const panelDef = panelDefinitions.rankManagementPanel;
+    const settingsItem = panelDef.items.find(item => item.id === 'rankSettings');
+
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    if (settingsItem && pData.permissionLevel <= settingsItem.permissionLevel) {
+        form.button(settingsItem.text, settingsItem.icon);
+    }
     form.button('§l§2+ Add New Rank', 'textures/ui/color_plus');
 
     const allRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);
@@ -946,7 +953,27 @@ export async function buildPanelForm(player, panelId, context) {
             const panelDef = panelDefinitions[panelId];
             const title = panelDef.title;
             const form = new ActionFormData().title(title);
-            buildRankManagementPanel(form, context);
+            buildRankManagementPanel(form, { ...context, player });
+            return form;
+        }
+
+        if (panelId === 'addMobDropPanel') {
+            const form = new ModalFormData().title('§l§2Add Mob Drop');
+            form.textField('Mob ID', 'e.g., minecraft:creeper');
+            form.textField('Amount', 'e.g., 10');
+            return form;
+        }
+
+        if (panelId === 'editMobDropPanel') {
+            const { mobId } = context;
+            const economyConfig = getEconomyConfig();
+            const currentAmount = economyConfig.mobMoney[mobId] ?? 0;
+            const form = new ActionFormData()
+                .title(`Edit: ${mobId}`)
+                .body(`Current amount: §2${formatCurrency(currentAmount)}`)
+                .button('§l§eEdit Amount§r', 'textures/ui/icon_setting')
+                .button('§l§cDelete Mob Drop§r', 'textures/ui/trash')
+                .button('§l§8< Back', 'textures/gui/controls/left.png');
             return form;
         }
 

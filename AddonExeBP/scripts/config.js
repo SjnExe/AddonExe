@@ -54,12 +54,9 @@ export const config = {
         resolvedReportLifetimeDays: 7
     },
     chat: {
-        logToConsole: true
     },
     economy: {
         enabled: true,
-        currencySymbol: '$',
-        startingBalance: 50,
         baltopLimit: 10,
         paymentConfirmationThreshold: 10000, // Payments over this amount require confirmation
         paymentConfirmationTimeout: 60 // Seconds to confirm a payment

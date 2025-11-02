@@ -2,6 +2,7 @@ import { world } from '@minecraft/server';
 import { getEconomyConfig } from './configurations.js';
 import { incrementPlayerBalance } from './playerDataManager.js';
 import { infoLog } from './logger.js';
+import { formatCurrency } from './utils.js';
 
 world.afterEvents.entityDie.subscribe((event) => {
     const { deadEntity, damageSource } = event;
@@ -22,7 +23,7 @@ world.afterEvents.entityDie.subscribe((event) => {
     if (reward && reward > 0) {
         incrementPlayerBalance(damagingEntity.id, reward);
         infoLog(
-            `Gave ${damagingEntity.name} $${reward} for killing a ${mobId}.`
+            `Gave ${damagingEntity.name} ${formatCurrency(reward)} for killing a ${mobId}.`
         );
     }
 });

@@ -548,6 +548,32 @@ export const configPanelSchema = [
         ]
     },
     {
+        id: 'economyGeneralSettings',
+        title: '§l§3General Economy Settings§r',
+        icon: 'textures/ui/settings_glyph_color_2x',
+        configSource: 'economy',
+        settings: [
+            {
+                key: 'currencySymbol',
+                label: 'Currency Symbol',
+                type: 'textField',
+                description: 'The symbol used for currency (e.g., $).'
+            },
+            {
+                key: 'startingBalance',
+                label: 'Starting Balance',
+                type: 'textField',
+                description: 'The amount of money new players start with.'
+            },
+            {
+                key: 'logToConsole',
+                label: 'Log Transactions',
+                type: 'toggle',
+                description: 'Logs all economy transactions to the console for debugging.'
+            }
+        ]
+    },
+    {
         id: 'bounties',
         title: '§l§cBounty System§r',
         icon: 'textures/items/diamond_sword',
@@ -791,32 +817,6 @@ export const configPanelSchema = [
                 label: 'Warmup (s)',
                 type: 'textField',
                 description: 'How long a player must stand still before teleporting.'
-            }
-        ]
-    },
-    {
-        id: 'economyGeneralSettings',
-        title: '§l§6Economy General Settings§r',
-        icon: 'textures/ui/settings_glyph_color_2x',
-        configSource: 'economy',
-        settings: [
-            {
-                key: 'economy.currencySymbol',
-                label: 'Currency Symbol',
-                type: 'textField',
-                description: 'The symbol to use for currency (e.g., $, €, £).'
-            },
-            {
-                key: 'economy.startingBalance',
-                label: 'Starting Balance',
-                type: 'textField',
-                description: 'The amount of money new players start with.'
-            },
-            {
-                key: 'economy.logToConsole',
-                label: 'Log Transactions',
-                type: 'toggle',
-                description: 'Logs all economy transactions to the console.'
             }
         ]
     },

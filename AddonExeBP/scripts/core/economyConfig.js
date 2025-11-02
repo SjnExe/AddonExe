@@ -1,4 +1,7 @@
 export const economyConfig = {
+    currencySymbol: '$',
+    startingBalance: 100,
+    logToConsole: false,
     mobMoney: {
         'minecraft:zombie': 5,
         'minecraft:skeleton': 5,
@@ -14,6 +17,6 @@ export const economyConfig = {
         'minecraft:ghast': 25,
         'minecraft:magma_cube': 3,
         'minecraft:slime': 3,
-        'minecraft:wither_skeleton': 30,
-    },
+        'minecraft:wither_skeleton': 30
+    }
 };
