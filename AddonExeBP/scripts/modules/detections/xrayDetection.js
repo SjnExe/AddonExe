@@ -8,7 +8,7 @@ function handleBlockBreak(event) {
     const { player, brokenBlock } = event;
     const xrayConfig = getXrayConfig();
 
-    if (!xrayConfig.enabled) {
+    if (!xrayConfig || !xrayConfig.enabled) {
         return;
     }
 

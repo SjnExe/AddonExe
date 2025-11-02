@@ -1607,7 +1607,7 @@ export async function handleFormResponse(player, panelId, response, context) {
         if (selection === 0) { return showPanel(player, 'mainPanel'); }
 
         let allSystems = [
-            ...configPanelSchema.map(c => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
+            ...configPanelSchema.filter(c => c.id !== 'economyGeneralSettings').map(c => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
         ];
         if (pData.permissionLevel <= 1) {
             allSystems.push({ id: 'kitManagementPanel', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' });

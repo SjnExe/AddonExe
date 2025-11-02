@@ -1,5 +1,5 @@
 import { getOrCreatePlayer, setPlayerXrayNotifications } from '../../core/playerDataManager.js';
-import commandManager from './commandManager.js';
+import { commandManager } from './commandManager.js';
 import { sendMessage } from '../../core/messaging.js';
 
 commandManager.register('xraynotify', {
