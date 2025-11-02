@@ -1310,7 +1310,7 @@ export async function handleFormResponse(player, panelId, response, context) {
             'ranks.nameTagSuffix': nameTagSuffix
         });
         updateAllPlayerRanks();
-        player.sendMessage(`§2Rank nametag settings updated. All player nametags have been refreshed.`);
+        player.sendMessage('§2Rank nametag settings updated. All player nametags have been refreshed.');
         return showPanel(player, 'rankManagementPanel', context);
     }
 
