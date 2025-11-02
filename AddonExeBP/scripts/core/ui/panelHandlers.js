@@ -21,6 +21,7 @@ import * as shopAdminManager from '../shopAdminManager.js';
 import { initializeSpawnProtection } from '../../modules/detections/spawnProtection.js';
 import { showPanel } from '../uiManager.js';
 import { getVisiblePlayerActionItems, getMenuItems } from './panelBuilder.js';
+import { getVisibleConfigSystems } from './uiUtils.js';
 import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { showConfirmationDialog } from './components.js';
 import { uiActionFunctions } from './actionRegistry.js';
@@ -1606,42 +1607,18 @@ export async function handleFormResponse(player, panelId, response, context) {
         const page = context.page || 1;
         if (selection === 0) { return showPanel(player, 'mainPanel'); }
 
-        let allSystems = [
-            ...configPanelSchema.filter(c => c.id !== 'economyGeneralSettings').map(c => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
-        ];
-        if (pData.permissionLevel <= 1) {
-            allSystems.push({ id: 'kitManagementPanel', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' });
-            allSystems.push({ id: 'shopManagementPanel', title: '§l§2Shop System§r', icon: 'textures/items/emerald' });
-            allSystems.push({ id: 'rankManagementPanel', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' });
-            allSystems.push({ id: 'economyPanel', title: '§l§6Economy System§r', icon: 'textures/items/emerald' });
-        }
-        if (pData.permissionLevel === 0) {
-            allSystems.push({ id: 'configResetPanel', title: '§l§cReset Settings§r', icon: 'textures/ui/wysiwyg_reset' });
-        }
-        allSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
-
-        // Re-apply the same custom sort from the build function
-        const generalSystem = allSystems.find(s => s.id === 'config_general');
-        const resetSystem = allSystems.find(s => s.id === 'configResetPanel');
-        let otherSystems = allSystems.filter(s => s.id !== 'config_general' && s.id !== 'configResetPanel');
-        otherSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
-        const sortedSystems = [];
-        if (generalSystem) {sortedSystems.push(generalSystem);}
-        sortedSystems.push(...otherSystems);
-        if (resetSystem) {sortedSystems.push(resetSystem);}
-
+        const sortedSystems = getVisibleConfigSystems(pData);
         const paginatedSystems = getPaginatedItems(sortedSystems, page);
         const selectionIndex = selection - 1;
 
         if (selectionIndex < paginatedSystems.length) {
             const selectedSystem = paginatedSystems[selectionIndex];
-            // Reset context to ensure pagination starts from 1 on the new panel
             return showPanel(player, selectedSystem.id, {});
         }
 
         // Handle pagination
         let newPage = page;
-        const totalPages = Math.ceil(allSystems.length / itemsPerPage);
+        const totalPages = Math.ceil(sortedSystems.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
         let buttonIndex = selectionIndex - paginatedSystems.length;
