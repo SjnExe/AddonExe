@@ -2,11 +2,12 @@ import { getOrCreatePlayer, setPlayerXrayNotifications } from '../../core/player
 import { commandManager } from './commandManager.js';
 import { sendMessage } from '../../core/messaging.js';
 
-commandManager.register('xraynotify', {
+commandManager.register({
+    name: 'xraynotify',
     aliases: ['xray'],
     description: 'Toggles X-ray notifications for yourself.',
     permissionLevel: 2,
-    callback: (player, args) => {
+    execute: (player, args) => {
         const pData = getOrCreatePlayer(player);
         const newStatus = !pData.xrayNotificationsEnabled;
         setPlayerXrayNotifications(player.id, newStatus);

@@ -884,14 +884,6 @@ export const configPanelSchema = [
                 label: 'Notification Message\nPlaceholders: {playerName}, {oreName}, {x}, {y}, {z}',
                 type: 'textField',
                 description: 'The format of the notification message sent to staff.'
-            },
-            {
-                id: 'manageOres',
-                text: '§l§cManage Monitored Ores§r',
-                icon: 'textures/items/diamond_pickaxe',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'xrayOresPanel'
             }
         ]
     },
