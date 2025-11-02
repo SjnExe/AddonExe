@@ -977,6 +977,26 @@ export async function buildPanelForm(player, panelId, context) {
             return form;
         }
 
+        if (panelId === 'addMobDropPanel') {
+            const form = new ModalFormData().title('§l§2Add Mob Drop');
+            form.textField('Mob ID', 'e.g., minecraft:creeper');
+            form.textField('Amount', 'e.g., 10');
+            return form;
+        }
+
+        if (panelId === 'editMobDropPanel') {
+            const { mobId } = context;
+            const economyConfig = getEconomyConfig();
+            const currentAmount = economyConfig.mobMoney[mobId] ?? 0;
+            const form = new ActionFormData()
+                .title(`Edit: ${mobId}`)
+                .body(`Current amount: §2${formatCurrency(currentAmount)}`)
+                .button('§l§eEdit Amount§r', 'textures/ui/icon_setting')
+                .button('§l§cDelete Mob Drop§r', 'textures/ui/trash')
+                .button('§l§8< Back', 'textures/gui/controls/left.png');
+            return form;
+        }
+
         if (panelId === 'addRankPanel') {
             const form = new ModalFormData().title('§l§2Add New Rank');
             form.textField('Rank Name', 'e.g., VIP');
