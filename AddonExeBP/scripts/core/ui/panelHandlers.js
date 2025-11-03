@@ -1708,9 +1708,6 @@ export async function handleFormResponse(player, panelId, response, context) {
                 if (validationFailed) { return; }
                 const newValue = processAndValidate(setting, newValues[index]);
                 if (!validationFailed) {
-                    console.error(`[XRAY-DEBUG] Preparing to set value. Path: ${setting.key}`);
-                    console.error(`[XRAY-DEBUG] Value to set: ${JSON.stringify(newValue)}`);
-                    console.error(`[XRAY-DEBUG] Config object state BEFORE setting: ${JSON.stringify(configToSave)}`);
                     setValueByPath(configToSave, setting.key, newValue);
                 }
             });
