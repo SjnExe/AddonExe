@@ -1662,7 +1662,12 @@ export async function handleFormResponse(player, panelId, response, context) {
             if (setting.type === 'textField' && value.trim() === '') {
                 const allDefaults = getAllDefaultConfigs();
                 const defaultValue = getValueByPath(allDefaults[configSource], setting.key);
-                return defaultValue ?? ''; // Fallback to empty string if default is not found
+
+                // Ensure the default value is a valid, non-null string before returning it.
+                if (defaultValue !== null && defaultValue !== undefined) {
+                    return String(defaultValue);
+                }
+                return ''; // Fallback to an empty string if the default is null or undefined.
             }
 
             const isNumericField = setting.key.includes('Seconds') ||
