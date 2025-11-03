@@ -43,7 +43,7 @@ function handleBlockBreak(event) {
         const pData = getPlayer(onlinePlayer.id);
         // Permission level 2 is 'admin', 1 is 'moderator'
         if (pData && pData.permissionLevel <= 2 && pData.xrayNotificationsEnabled) {
-            sendMessage(onlinePlayer.name, message);
+            sendMessage(onlinePlayer, message);
         }
     }
 }
