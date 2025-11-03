@@ -6,6 +6,7 @@ const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
 const activeEntities = new Map(); // Map<textId, entity>
 const pendingDespawns = new Map(); // Map<textId, timeoutId>
+const unloadedChunkQueue = new Set(); // Set of textIds that failed to spawn
 
 function loadTexts() {
     try {
@@ -47,6 +48,21 @@ function initialize() {
             }
         }
     }, 40);
+
+    // Interval to retry spawning texts in unloaded chunks
+    system.runInterval(() => {
+        if (unloadedChunkQueue.size > 0) {
+            for (const textId of unloadedChunkQueue) {
+                const textConfig = floatingTexts.get(textId);
+                if (textConfig) {
+                    spawnText(textConfig);
+                } else {
+                    // If the config was deleted, remove it from the queue
+                    unloadedChunkQueue.delete(textId);
+                }
+            }
+        }
+    }, 200); // Retry every 10 seconds
 }
 
 function spawnAllTexts() {
@@ -56,6 +72,11 @@ function spawnAllTexts() {
 }
 
 function spawnText(textConfig) {
+    // If it's already active, don't try to spawn it again.
+    if (activeEntities.has(textConfig.id)) {
+        return;
+    }
+
     try {
         const dimension = world.getDimension(textConfig.dimension);
         const entity = dimension.spawnEntity('addonexe:floating_text', textConfig.location);
@@ -63,9 +84,14 @@ function spawnText(textConfig) {
         entity.addTag(`ft_${textConfig.id}`);
 
         activeEntities.set(textConfig.id, entity);
+        // If it was in the queue, remove it now that it's spawned.
+        unloadedChunkQueue.delete(textConfig.id);
     } catch (error) {
         if (error.toString().includes('LocationInUnloadedChunkError')) {
-            debugLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id} because the chunk is not loaded. It will be spawned when the chunk is loaded.`);
+            if (!unloadedChunkQueue.has(textConfig.id)) {
+                debugLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id} because the chunk is not loaded. Adding to retry queue.`);
+                unloadedChunkQueue.add(textConfig.id);
+            }
         } else {
             errorLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id}`, error);
         }

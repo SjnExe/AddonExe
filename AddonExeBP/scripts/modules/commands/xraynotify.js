@@ -1,30 +1,37 @@
+import { getOrCreatePlayer, setPlayerXrayNotifications } from '../../core/playerDataManager.js';
 import { commandManager } from './commandManager.js';
-import { getPlayer, setPlayerXrayNotifications } from '../../core/playerDataManager.js';
-import { addAdminToXrayCache, removeAdminFromXrayCache } from '../../core/playerCache.js';
+import { sendMessage } from '../../core/messaging.js';
+import { getXrayConfig, saveXrayConfig } from '../../core/configurations.js';
+import { infoLog } from '../../core/logger.js';
+import { getPlayerFromCache } from '../../core/playerCache.js';
 
 commandManager.register({
     name: 'xraynotify',
-    description: 'Toggles X-Ray notifications for yourself.',
-    category: '§4Administration',
-    permissionLevel: 2, // Admin and above
-    parameters: [],
+    aliases: ['xray'],
+    description: 'Toggles X-ray notifications for yourself or the console.',
+    permissionLevel: 2,
     execute: (player, args) => {
-        const pData = getPlayer(player.id);
-        if (!pData) {
-            player.sendMessage('§cCould not find your player data.');
+        if (!player) {
+            // Command is run from the console
+            const xrayConfig = getXrayConfig();
+            if (xrayConfig) {
+                const newStatus = !xrayConfig.notifications.logToConsole;
+                xrayConfig.notifications.logToConsole = newStatus;
+                saveXrayConfig(xrayConfig);
+                infoLog(`X-ray notifications for console have been ${newStatus ? 'enabled' : 'disabled'}.`);
+            }
             return;
         }
 
-        const newStatus = !pData.xrayNotifications;
+        const pData = getOrCreatePlayer(player);
+        const newStatus = !pData.xrayNotificationsEnabled;
         setPlayerXrayNotifications(player.id, newStatus);
 
-        if (newStatus) {
-            addAdminToXrayCache(player.id);
-        } else {
-            removeAdminFromXrayCache(player.id);
+        // It's crucial to get a fresh, valid player object from the cache before sending a message.
+        // The 'player' object passed to the command executor can become stale.
+        const freshPlayer = getPlayerFromCache(player.id);
+        if (freshPlayer) {
+            sendMessage(freshPlayer, `§aX-ray notifications have been ${newStatus ? '§2enabled' : '§cdisabled'}§a.`);
         }
-
-        const status = newStatus ? '§aenabled' : '§cdisabled';
-        player.sendMessage(`§aX-Ray notifications have been ${status}§a for you.`);
     }
 });

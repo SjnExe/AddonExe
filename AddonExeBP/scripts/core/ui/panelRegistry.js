@@ -57,7 +57,7 @@ export const panelDefinitions = {
         items: [
             {
                 id: 'reportManagement',
-                text: '§cReport Management',
+                text: '§cReport Management§r',
                 icon: 'textures/ui/WarningGlyph',
                 permissionLevel: 2,
                 actionType: 'openPanel',
@@ -66,7 +66,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'playerManagement',
-                text: '§4Player Management',
+                text: '§4Player Management§r',
                 icon: 'textures/ui/icon_multiplayer.png',
                 permissionLevel: 2, // Admin only
                 actionType: 'openPanel',
@@ -75,7 +75,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'moderation',
-                text: '§cModeration',
+                text: '§cModeration§r',
                 icon: 'textures/ui/hammer_l.png',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -84,7 +84,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'floatingText',
-                text: '§bFloating Text',
+                text: '§9Floating Text§r',
                 icon: 'textures/ui/text_color_paintbrush',
                 permissionLevel: 1, // Admin and above
                 actionType: 'openPanel',
@@ -93,7 +93,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'config',
-                text: '§3Config',
+                text: '§3Config§r',
                 icon: 'textures/ui/settings_glyph_color_2x',
                 permissionLevel: 1, // Admin and above
                 actionType: 'openPanel',
@@ -102,7 +102,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'bountyList',
-                text: '§6Bounty List',
+                text: '§6Bounty List§r',
                 icon: 'textures/items/netherite_sword.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
@@ -111,7 +111,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'playerList',
-                text: '§2Player List',
+                text: '§2Player List§r',
                 icon: 'textures/ui/icon_steve.png',
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',
@@ -120,7 +120,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'rules',
-                text: '§cRules',
+                text: '§cRules§r',
                 icon: 'textures/items/book_enchanted.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -129,7 +129,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'myStats',
-                text: '§3My Stats',
+                text: '§3My Stats§r',
                 icon: 'textures/ui/profile_glyph_color.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
@@ -138,7 +138,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'helpfulLinks',
-                text: '§9Helpful Links',
+                text: '§9Helpful Links§r',
                 icon: 'textures/items/chain',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -147,7 +147,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'shop',
-                text: '§2Shop',
+                text: '§2Shop§r',
                 icon: 'textures/ui/trade_icon',
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',
@@ -227,7 +227,7 @@ export const panelDefinitions = {
         items: [
             {
                 id: 'unbanPlayer',
-                text: '§2Unban Player',
+                text: '§2Unban Player§r',
                 icon: 'textures/ui/check.png',
                 permissionLevel: 1,
                 actionType: 'functionCall',
@@ -235,7 +235,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'unmutePlayer',
-                text: '§2Unmute Player',
+                text: '§2Unmute Player§r',
                 icon: 'textures/ui/mute_off.png',
                 permissionLevel: 1,
                 actionType: 'functionCall',
@@ -298,7 +298,7 @@ export const panelDefinitions = {
         items: [
             {
                 id: 'setBounty',
-                text: '§eSet Bounty',
+                text: '§eSet Bounty§r',
                 icon: 'textures/ui/realms_green_check.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -307,7 +307,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'removePlayerBounty',
-                text: '§cRemove Bounty',
+                text: '§cRemove Bounty§r',
                 icon: 'textures/ui/cancel.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -321,81 +321,81 @@ export const panelDefinitions = {
         parentPanelId: 'mainPanel', // This will be dynamically overridden
         items: [
             // Admin Actions (for Player Management panel)
-            { id: 'kick', text: '§cKick', icon: 'textures/ui/cancel.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'kickPlayer' },
-            { id: 'mute', text: '§6Mute', icon: 'textures/ui/mute_on.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'mutePlayer' },
-            { id: 'unmute', text: '§aUnmute', icon: 'textures/ui/mute_off.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unmutePlayer' },
-            { id: 'ban', text: '§4Ban', icon: 'textures/ui/hammer_l.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'banPlayer' },
-            { id: 'freeze', text: '§bFreeze', icon: 'textures/ui/icon_lock.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'freezePlayer' },
-            { id: 'unfreeze', text: '§bUnfreeze', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
+            { id: 'kick', text: '§cKick§r', icon: 'textures/ui/cancel.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'kickPlayer' },
+            { id: 'mute', text: '§6Mute§r', icon: 'textures/ui/mute_on.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'mutePlayer' },
+            { id: 'unmute', text: '§2Unmute§r', icon: 'textures/ui/mute_off.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unmutePlayer' },
+            { id: 'ban', text: '§4Ban§r', icon: 'textures/ui/hammer_l.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'banPlayer' },
+            { id: 'freeze', text: '§bFreeze§r', icon: 'textures/ui/icon_lock.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'freezePlayer' },
+            { id: 'unfreeze', text: '§bUnfreeze§r', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
             // Player Actions (for Player List panel)
-            { id: 'tpa', text: '§eTPA', icon: 'textures/gui/controls/jump.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer', sortId: 10 },
-            { id: 'tpahere', text: '§9TPAHere', icon: 'textures/gui/controls/sneak.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaherePlayer', sortId: 20 },
-            { id: 'bounty', text: '§6Bounty', icon: 'textures/items/netherite_sword.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'bountyActionsPanel', sortId: 30 },
-            { id: 'report', text: '§cReport Player', icon: 'textures/ui/WarningGlyph', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'reportPlayer', sortId: 40 }
+            { id: 'tpa', text: '§eTPA§r', icon: 'textures/gui/controls/jump.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer', sortId: 10 },
+            { id: 'tpahere', text: '§9TPAHere§r', icon: 'textures/gui/controls/sneak.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaherePlayer', sortId: 20 },
+            { id: 'bounty', text: '§6Bounty§r', icon: 'textures/items/netherite_sword.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'bountyActionsPanel', sortId: 30 },
+            { id: 'report', text: '§cReport Player§r', icon: 'textures/ui/WarningGlyph', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'reportPlayer', sortId: 40 }
         ]
     },
     rulesManagementPanel: {
-        title: '§l§4Rules Management',
+        title: '§l§4Rules Management§r',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     addRulePanel: {
-        title: 'Add New Rule',
+        title: 'Add New Rule§r',
         parentPanelId: 'rulesManagementPanel',
         items: [] // Modal form, no items needed
     },
     ruleActionPanel: {
-        title: 'Manage Rule',
+        title: 'Manage Rule§r',
         parentPanelId: 'rulesManagementPanel',
         items: [] // Dynamically populated
     },
     helpfulLinksManagementPanel: {
-        title: '§l§9Links Management',
+        title: '§l§9Links Management§r',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     addHelpfulLinkPanel: {
-        title: 'Add New Link',
+        title: 'Add New Link§r',
         parentPanelId: 'helpfulLinksManagementPanel',
         items: [] // Modal form, no items needed
     },
     helpfulLinkActionPanel: {
-        title: 'Manage Link',
+        title: 'Manage Link§r',
         parentPanelId: 'helpfulLinksManagementPanel',
         items: [] // Dynamically populated
     },
     shopAdminCategoryActionPanel: {
-        title: 'Manage Category',
+        title: 'Manage Category§r',
         parentPanelId: 'shopManagementPanel',
         items: [] // Dynamically populated
     },
     shopAdminSubCategoryItemPanel: {
-        title: 'Manage Subcategory Items',
+        title: 'Manage Subcategory Items§r',
         parentPanelId: 'shopAdminCategoryPanel', // This will be dynamic
         items: [] // Dynamically populated
     },
     shopAdminSubCategoryActionPanel: {
-        title: 'Manage Subcategory',
+        title: 'Manage Subcategory§r',
         parentPanelId: 'shopAdminSubCategoryItemPanel', // This will be dynamic
         items: [] // Dynamically populated
     },
     floatingTextListPanel: {
-        title: '§l§bFloating Text§r',
+        title: '§l§9Floating Text§r',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     floatingTextEditPanel: {
-        title: '§l§bEdit Floating Text§r',
+        title: '§l§9Edit Floating Text§r',
         parentPanelId: 'floatingTextListPanel',
         items: [] // Modal form, no items needed
     },
     floatingTextCreatePanel: {
-        title: '§l§bCreate Floating Text§r',
+        title: '§l§9Create Floating Text§r',
         parentPanelId: 'floatingTextListPanel',
         items: [] // Modal form, no items needed
     },
     floatingTextActionPanel: {
-        title: '§l§bFloating Text Actions§r',
+        title: '§l§9Floating Text Actions§r',
         parentPanelId: 'floatingTextListPanel',
         items: [] // Dynamically populated
     },
@@ -410,14 +410,6 @@ export const panelDefinitions = {
                 permissionLevel: 1,
                 actionType: 'openPanel',
                 actionValue: 'config_economyGeneralSettings'
-            },
-            {
-                id: 'bountySystemPanel',
-                text: '§l§cBounty System§r',
-                icon: 'textures/items/diamond_sword',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'config_bounties'
             },
             {
                 id: 'mobDropsSystemPanel',
@@ -435,7 +427,7 @@ export const panelDefinitions = {
         items: [
             {
                 id: 'addMobDrop',
-                text: '§l§aAdd New Mob§r',
+                text: '§l§2Add New Mob§r',
                 icon: 'textures/ui/realms_green_check.png',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -452,6 +444,30 @@ export const panelDefinitions = {
         title: '§l§2Edit Mob Drop§r',
         parentPanelId: 'mobDropsSystemPanel',
         items: [] // Dynamically built in panelBuilder.js
+    },
+    xrayOresPanel: {
+        title: '§l§cX-Ray Monitored Ores§r',
+        parentPanelId: 'config_xray',
+        items: [
+            {
+                id: 'addXrayOre',
+                text: '§l§2Add New Ore§r',
+                icon: 'textures/ui/color_plus',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'addXrayOrePanel'
+            }
+        ]
+    },
+    addXrayOrePanel: {
+        title: '§l§cAdd Monitored Ore§r',
+        parentPanelId: 'xrayOresPanel',
+        items: [] // Modal form
+    },
+    editXrayOrePanel: {
+        title: '§l§cEdit Monitored Ore§r',
+        parentPanelId: 'xrayOresPanel',
+        items: [] // Modal form
     }
 };
 
@@ -519,6 +535,32 @@ export const configPanelSchema = [
                 label: 'Interval (seconds)',
                 type: 'textField',
                 description: 'How often the message is broadcast, in seconds. A reload is required for changes to take effect.'
+            }
+        ]
+    },
+    {
+        id: 'economyGeneralSettings',
+        title: '§l§6Economy Settings§r',
+        icon: 'textures/ui/Scaffolding',
+        configSource: 'economy',
+        settings: [
+            {
+                key: 'currencySymbol',
+                label: 'Currency Symbol',
+                type: 'textField',
+                description: 'The symbol used for currency (e.g., $).'
+            },
+            {
+                key: 'startingBalance',
+                label: 'Starting Balance',
+                type: 'textField',
+                description: 'The amount of money new players start with.'
+            },
+            {
+                key: 'logToConsole',
+                label: 'Log Transactions',
+                type: 'toggle',
+                description: 'Logs all economy transactions to the console.'
             }
         ]
     },
@@ -822,6 +864,32 @@ export const configPanelSchema = [
                 label: 'Enable Death Coords',
                 type: 'toggle',
                 description: 'Tells players their coordinates upon respawning after death.'
+            }
+        ]
+    },
+    {
+        id: 'xray',
+        title: '§l§cX-Ray System§r',
+        icon: 'textures/blocks/diamond_ore',
+        configSource: 'xray',
+        settings: [
+            {
+                key: 'enabled',
+                label: 'Enable X-Ray Detection',
+                type: 'toggle',
+                description: 'Enables or disables the X-ray detection system.'
+            },
+            {
+                key: 'notifications.message',
+                label: 'Notification Message\nPlaceholders: {playerName}, {oreName}, {x}, {y}, {z}',
+                type: 'textField',
+                description: 'The format of the notification message sent to staff.'
+            },
+            {
+                key: 'notifications.logToConsole',
+                label: 'Log to Console',
+                type: 'toggle',
+                description: 'Logs X-ray notifications to the server console.'
             }
         ]
     },

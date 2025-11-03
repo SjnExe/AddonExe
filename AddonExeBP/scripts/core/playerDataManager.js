@@ -14,7 +14,7 @@
  * @property {Object.<string, HomeLocation>} homes
  * @property {number} balance
  * @property {Object.<string, number>} kitCooldowns
- * @property {boolean} xrayNotifications
+ * @property {boolean} xrayNotificationsEnabled
  * @property {HomeLocation | null} lastDeathLocation
  * @property {boolean} deathNotificationSent
  * @property {boolean} tpaRequestsDisabled
@@ -63,7 +63,7 @@ const defaultPlayerData = {
     rankId: 'member',
     permissionLevel: 1024,
     balance: 0,
-    xrayNotifications: true,
+    xrayNotificationsEnabled: false,
     lastDeathLocation: null,
     deathNotificationSent: true,
     tpaRequestsDisabled: false,
@@ -222,7 +222,7 @@ export function getOrCreatePlayer(player) {
         rankId: config.playerDefaults.rankId,
         permissionLevel: config.playerDefaults.permissionLevel,
         balance: config.economy.startingBalance,
-        xrayNotifications: config.playerDefaults.xrayNotifications,
+        xrayNotificationsEnabled: config.playerDefaults.xrayNotificationsEnabled,
         homes: {},
         kitCooldowns: {},
         tpaBlockedPlayerIds: []
@@ -468,7 +468,7 @@ export function setKitCooldown(playerId, kitName, timestamp) {
 }
 
 export function setPlayerXrayNotifications(playerId, status) {
-    updatePlayerData(playerId, pData => { pData.xrayNotifications = status; });
+    updatePlayerData(playerId, pData => { pData.xrayNotificationsEnabled = status; });
 }
 
 export function setPlayerLastDeathLocation(playerId, location) {

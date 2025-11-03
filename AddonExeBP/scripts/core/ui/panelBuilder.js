@@ -9,11 +9,12 @@ import * as bountyManager from '../bountyManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
-import { getKitsConfig, getShopConfig, getSpawnConfig, getEconomyConfig } from '../configurations.js';
+import { getKitsConfig, getShopConfig, getSpawnConfig, getEconomyConfig, getXrayConfig } from '../configurations.js';
 import { items as allItems } from '../itemsConfig.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { getValueFromPath } from '../objectUtils.js';
 import { formatCurrency } from '../utils.js';
+import { getVisibleConfigSystems } from './uiUtils.js';
 
 const itemsPerPage = 8;
 
@@ -26,6 +27,9 @@ const configHandlers = {
     },
     'spawn': {
         get: getSpawnConfig
+    },
+    'xray': {
+        get: getXrayConfig
     }
 };
 
@@ -1043,8 +1047,8 @@ export async function buildPanelForm(player, panelId, context) {
             const defaultIndex = internalStyles.indexOf(currentStyle);
 
             form.dropdown('Nametag Style', nameTagStyles, { defaultValueIndex: defaultIndex > -1 ? defaultIndex : 0 });
-            form.textField('Nametag Prefix', 'e.g., [', { defaultValue: config.ranks?.nameTagPrefix ?? '' });
-            form.textField('Nametag Suffix', 'e.g., ]', { defaultValue: config.ranks?.nameTagSuffix ?? '' });
+            form.textField('Nametag Prefix', 'e.g., §0[§r', { defaultValue: config.ranks?.nameTagPrefix ?? '§0[§r' });
+            form.textField('Nametag Suffix', 'e.g., §0]§r', { defaultValue: config.ranks?.nameTagSuffix ?? '§0]§r' });
             return form;
         }
 
@@ -1067,43 +1071,56 @@ export async function buildPanelForm(player, panelId, context) {
             return form;
         }
 
+        if (panelId === 'xrayOresPanel') {
+            const xrayConfig = getXrayConfig();
+            const form = new ActionFormData().title(panelDefinitions[panelId].title);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+            form.button('§l§2+ Add New Ore§r', 'textures/ui/color_plus');
+            if (xrayConfig.monitoredOres.length === 0) {
+                form.body('No ores are being monitored.');
+            } else {
+                for (const ore of xrayConfig.monitoredOres) {
+                    form.button(`§e${ore.oreName}§r\n§7${ore.blockId}`);
+                }
+            }
+            return form;
+        }
+
+        if (panelId === 'addXrayOrePanel') {
+            const form = new ModalFormData().title('§l§cAdd Monitored Ore');
+            form.textField('Block ID', 'e.g., minecraft:diamond_ore');
+            form.textField('Dimension ID', 'e.g., minecraft:overworld');
+            form.textField('Min Y', 'e.g., -64');
+            form.textField('Max Y', 'e.g., 16');
+            form.textField('Ore Name', 'e.g., Diamond Ore');
+            return form;
+        }
+
+        if (panelId === 'editXrayOrePanel') {
+            const xrayConfig = getXrayConfig();
+            const ore = xrayConfig.monitoredOres[context.oreIndex];
+            const form = new ModalFormData().title('§l§cEdit Monitored Ore');
+            form.textField('Block ID', 'e.g., minecraft:diamond_ore', { defaultValue: ore.blockId });
+            form.textField('Dimension ID', 'e.g., minecraft:overworld', { defaultValue: ore.dimensionId });
+            form.textField('Min Y', 'e.g., -64', { defaultValue: String(ore.minY) });
+            form.textField('Max Y', 'e.g., 16', { defaultValue: String(ore.maxY) });
+            form.textField('Ore Name', 'e.g., Diamond Ore', { defaultValue: ore.oreName });
+            return form;
+        }
+
         if (panelId === 'configCategoryPanel') {
             const page = context.page || 1;
             const form = new ActionFormData().title(`${title} (Page ${page})`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-            let allSystems = [
-                ...configPanelSchema.map(c => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
-            ];
-
-            if (pData.permissionLevel <= 1) {
-                allSystems.push({ id: 'kitManagementPanel', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' });
-                allSystems.push({ id: 'shopManagementPanel', title: '§l§2Shop System§r', icon: 'textures/items/emerald' });
-                allSystems.push({ id: 'rankManagementPanel', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' });
-                allSystems.push({ id: 'economyPanel', title: '§l§6Economy System§r', icon: 'textures/items/emerald' });
-            }
-            if (pData.permissionLevel === 0) {
-                allSystems.push({ id: 'configResetPanel', title: '§l§cReset Settings§r', icon: 'textures/ui/wysiwyg_reset' });
-            }
-
-            // Custom sorting: General first, Reset last, rest alphabetical
-            const generalSystem = allSystems.find(s => s.id === 'config_general');
-            const resetSystem = allSystems.find(s => s.id === 'configResetPanel');
-            let otherSystems = allSystems.filter(s => s.id !== 'config_general' && s.id !== 'configResetPanel');
-            otherSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
-
-            const sortedSystems = [];
-            if (generalSystem) {sortedSystems.push(generalSystem);}
-            sortedSystems.push(...otherSystems);
-            if (resetSystem) {sortedSystems.push(resetSystem);}
-
+            const sortedSystems = getVisibleConfigSystems(pData);
             const paginatedSystems = getPaginatedItems(sortedSystems, page);
 
             for (const system of paginatedSystems) {
                 form.button(system.title, system.icon);
             }
 
-            addPaginationButtons(form, page, allSystems.length);
+            addPaginationButtons(form, page, sortedSystems.length);
             return form;
         }
 

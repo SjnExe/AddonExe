@@ -13,7 +13,7 @@ import { restartAnnouncer } from '../../modules/commands/announcement.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import * as shopManager from '../shopManager.js';
-import { getKitsConfig, saveKitsConfig, getShopConfig, getSpawnConfig, saveSpawnConfig, getEconomyConfig, saveEconomyConfig } from '../configurations.js';
+import { getKitsConfig, saveKitsConfig, getShopConfig, getSpawnConfig, saveSpawnConfig, getEconomyConfig, saveEconomyConfig, getXrayConfig, saveXrayConfig } from '../configurations.js';
 import { items as allItems } from '../itemsConfig.js';
 import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from '../kitAdminManager.js';
 import { addItemToKit, updateItemInKit } from '../kitItemsManager.js';
@@ -21,6 +21,7 @@ import * as shopAdminManager from '../shopAdminManager.js';
 import { initializeSpawnProtection } from '../../modules/detections/spawnProtection.js';
 import { showPanel } from '../uiManager.js';
 import { getVisiblePlayerActionItems, getMenuItems } from './panelBuilder.js';
+import { getVisibleConfigSystems } from './uiUtils.js';
 import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { showConfirmationDialog } from './components.js';
 import { uiActionFunctions } from './actionRegistry.js';
@@ -39,6 +40,10 @@ const configHandlers = {
     'economy': {
         get: getEconomyConfig,
         save: (config) => saveEconomyConfig(config)
+    },
+    'xray': {
+        get: getXrayConfig,
+        save: (config) => saveXrayConfig(config)
     }
 };
 
@@ -88,6 +93,58 @@ export async function handleFormResponse(player, panelId, response, context) {
                 return showPanel(player, 'floatingTextListPanel', context);
         }
         return;
+    }
+
+    if (panelId === 'xrayOresPanel') {
+        if (selection === 0) { // Back
+            return showPanel(player, 'config_xray', context);
+        }
+        if (selection === 1) { // Add New Ore
+            return showPanel(player, 'addXrayOrePanel', context);
+        }
+        const xrayConfig = getXrayConfig();
+        const selectedOreIndex = selection - 2;
+        if (selectedOreIndex >= 0 && selectedOreIndex < xrayConfig.monitoredOres.length) {
+            return showPanel(player, 'editXrayOrePanel', { ...context, oreIndex: selectedOreIndex });
+        }
+        return;
+    }
+
+    if (panelId === 'addXrayOrePanel') {
+        if (canceled) {
+            return showPanel(player, 'xrayOresPanel', context);
+        }
+        const [blockId, dimensionId, minYStr, maxYStr, oreName] = formValues;
+        const minY = parseInt(minYStr, 10);
+        const maxY = parseInt(maxYStr, 10);
+        if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
+            const xrayConfig = getXrayConfig();
+            xrayConfig.monitoredOres.push({ blockId, dimensionId, minY, maxY, oreName });
+            saveXrayConfig(xrayConfig);
+            player.sendMessage('§2Successfully added new monitored ore.');
+        } else {
+            player.sendMessage('§cInvalid data. Please check all fields.');
+        }
+        return showPanel(player, 'xrayOresPanel', context);
+    }
+
+    if (panelId === 'editXrayOrePanel') {
+        if (canceled) {
+            return showPanel(player, 'xrayOresPanel', context);
+        }
+        const { oreIndex } = context;
+        const [blockId, dimensionId, minYStr, maxYStr, oreName] = formValues;
+        const minY = parseInt(minYStr, 10);
+        const maxY = parseInt(maxYStr, 10);
+        if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
+            const xrayConfig = getXrayConfig();
+            xrayConfig.monitoredOres[oreIndex] = { blockId, dimensionId, minY, maxY, oreName };
+            saveXrayConfig(xrayConfig);
+            player.sendMessage('§2Successfully updated monitored ore.');
+        } else {
+            player.sendMessage('§cInvalid data. Please check all fields.');
+        }
+        return showPanel(player, 'xrayOresPanel', context);
     }
 
     if (panelId === 'floatingTextEditPanel') {
@@ -1550,42 +1607,18 @@ export async function handleFormResponse(player, panelId, response, context) {
         const page = context.page || 1;
         if (selection === 0) { return showPanel(player, 'mainPanel'); }
 
-        let allSystems = [
-            ...configPanelSchema.map(c => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
-        ];
-        if (pData.permissionLevel <= 1) {
-            allSystems.push({ id: 'kitManagementPanel', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' });
-            allSystems.push({ id: 'shopManagementPanel', title: '§l§2Shop System§r', icon: 'textures/items/emerald' });
-            allSystems.push({ id: 'rankManagementPanel', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' });
-            allSystems.push({ id: 'economyPanel', title: '§l§6Economy System§r', icon: 'textures/items/emerald' });
-        }
-        if (pData.permissionLevel === 0) {
-            allSystems.push({ id: 'configResetPanel', title: '§l§cReset Settings§r', icon: 'textures/ui/wysiwyg_reset' });
-        }
-        allSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
-
-        // Re-apply the same custom sort from the build function
-        const generalSystem = allSystems.find(s => s.id === 'config_general');
-        const resetSystem = allSystems.find(s => s.id === 'configResetPanel');
-        let otherSystems = allSystems.filter(s => s.id !== 'config_general' && s.id !== 'configResetPanel');
-        otherSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
-        const sortedSystems = [];
-        if (generalSystem) {sortedSystems.push(generalSystem);}
-        sortedSystems.push(...otherSystems);
-        if (resetSystem) {sortedSystems.push(resetSystem);}
-
+        const sortedSystems = getVisibleConfigSystems(pData);
         const paginatedSystems = getPaginatedItems(sortedSystems, page);
         const selectionIndex = selection - 1;
 
         if (selectionIndex < paginatedSystems.length) {
             const selectedSystem = paginatedSystems[selectionIndex];
-            // Reset context to ensure pagination starts from 1 on the new panel
             return showPanel(player, selectedSystem.id, {});
         }
 
         // Handle pagination
         let newPage = page;
-        const totalPages = Math.ceil(allSystems.length / itemsPerPage);
+        const totalPages = Math.ceil(sortedSystems.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
         let buttonIndex = selectionIndex - paginatedSystems.length;
@@ -1611,6 +1644,9 @@ export async function handleFormResponse(player, panelId, response, context) {
             return;
         }
 
+        const { getAllDefaultConfigs } = await import('../configManager.js');
+        const { getValueByPath } = await import('../objectUtils.js');
+
         const newValues = formValues;
         let validationFailed = false;
 
@@ -1620,6 +1656,13 @@ export async function handleFormResponse(player, panelId, response, context) {
             }
             if (setting.type === 'dropdown') {
                 return setting.options[value];
+            }
+
+            // If a textField is empty, fallback to the default value.
+            if (setting.type === 'textField' && value.trim() === '') {
+                const allDefaults = getAllDefaultConfigs();
+                const defaultValue = getValueByPath(allDefaults[configSource], setting.key);
+                return defaultValue ?? ''; // Fallback to empty string if default is not found
             }
 
             const isNumericField = setting.key.includes('Seconds') ||

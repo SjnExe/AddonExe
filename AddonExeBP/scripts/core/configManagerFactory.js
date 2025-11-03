@@ -86,50 +86,35 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
             }
             // --- End Custom Migration Logic ---
 
-            if (isMigration) {
-                // Scenario: Addon Update (Migration)
-                debugLog(`[${name}ConfigManager] Version mismatch detected. Migrating config.`);
-                if (name === 'Ranks' || name === 'Kits' || name === 'Shop') {
-                    // For these list-based configs, we preserve the user's data as-is during a migration
-                    // to prevent deleted items from reappearing. New items must be added manually by admins.
-                    debugLog(`[${name}ConfigManager] Preserving user's current config for ${name} during migration.`);
-                    currentConfig = userSavedConfig;
-                } else {
-                    // For other configs, merge the user's settings on top of the new defaults.
-                    // This preserves their settings while adding new properties from the update.
-                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
-                }
-            } else {
+            // Always merge the loaded config with the defaults to ensure the structure is complete.
+            // This prevents errors if the saved config is malformed or missing properties after a reset.
+            currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+
+            if (!isMigration) {
                 // Scenario: Standard Load / Reload
                 // This logic prioritizes manual file edits over in-game changes.
-                if (!lastLoadedConfigStr) {
-                    // If there's no 'last loaded' snapshot, we can't detect file changes.
-                    // Fallback to a simple merge, treating it like a first-time load for this version.
-                    errorLog(`[${name}ConfigManager] No last-loaded config found. Merging current settings with default.`);
-                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
-                } else {
+                if (lastLoadedConfigStr) {
                     try {
                         lastLoadedConfig = JSON.parse(lastLoadedConfigStr);
-                    } catch (e) {
-                        errorLog(`[${name}ConfigManager] Failed to parse last-loaded config. It will be reset.`, e);
-                        lastLoadedConfig = newDefaultConfig;
-                    }
 
-                    // --- Custom Merging Logic ---
-                    if (name === 'Ranks') {
-                        const currentUserRanks = userSavedConfig.rankDefinitions;
-                        const newFileRanks = newDefaultConfig.rankDefinitions;
-                        const lastLoadedRanks = lastLoadedConfig ? lastLoadedConfig.rankDefinitions : [];
-                        const mergedRanks = mergeRanks(currentUserRanks, newFileRanks, lastLoadedRanks);
-                        // Re-assign to a new object to avoid modifying the original userSavedConfig reference
-                        currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks };
-                    } else if (name === 'Kits' || name === 'Shop') {
-                        const lastLoaded = lastLoadedConfig || {};
-                        currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoaded);
-                    } else {
-                        // For standard configs, use the new 3-way merge utility.
-                        currentConfig = mergeWithFileChanges(userSavedConfig, newDefaultConfig, lastLoadedConfig, debugLog, name);
+                        // --- Custom Merging Logic for specific configs ---
+                        if (name === 'Ranks') {
+                            const currentUserRanks = userSavedConfig.rankDefinitions;
+                            const newFileRanks = newDefaultConfig.rankDefinitions;
+                            const lastLoadedRanks = lastLoadedConfig ? lastLoadedConfig.rankDefinitions : [];
+                            const mergedRanks = mergeRanks(currentUserRanks, newFileRanks, lastLoadedRanks);
+                            currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks };
+                        } else if (name === 'Kits' || name === 'Shop') {
+                            const lastLoaded = lastLoadedConfig || {};
+                            currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoaded);
+                        }
+                    // For standard configs, the initial deepMerge is sufficient.
+                    // The complex 3-way merge is removed to prioritize in-game changes.
+                    } catch (e) {
+                        errorLog(`[${name}ConfigManager] Failed to parse last-loaded config. Using default merge.`, e);
                     }
+                } else {
+                debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
                 }
             }
             // After any load/merge scenario, the "last loaded" snapshot is updated to the current file's state.
