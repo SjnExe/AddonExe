@@ -42,7 +42,7 @@ export const resetEconomyConfig = economyConfigManager.reset;
 
 export const loadXrayConfig = xrayConfigManager.load;
 export const getXrayConfig = xrayConfigManager.get;
-export const saveXrayConfig = xrayConfigManager.save;
+export const saveXrayConfig = xrayConfigManager.set;
 export const resetXrayConfig = xrayConfigManager.reset;
 
 export const configResetRegistry = {
