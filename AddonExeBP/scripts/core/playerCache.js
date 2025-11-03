@@ -23,3 +23,13 @@ export function removePlayerFromCache(playerId) {
 export function getAllPlayersFromCache() {
     return Array.from(playerCache.values());
 }
+
+export function findPlayerByName(name) {
+    const lowerCaseName = name.toLowerCase();
+    for (const player of playerCache.values()) {
+        if (player.name.toLowerCase() === lowerCaseName) {
+            return player;
+        }
+    }
+    return undefined;
+}
