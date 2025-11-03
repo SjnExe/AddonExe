@@ -107,16 +107,14 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                         } else if (name === 'Kits' || name === 'Shop') {
                             const lastLoaded = lastLoadedConfig || {};
                             currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoaded);
-                        } else {
-                            // For standard configs, use the new 3-way merge utility.
-                            currentConfig = mergeWithFileChanges(userSavedConfig, newDefaultConfig, lastLoadedConfig, debugLog, name);
                         }
+                    // For standard configs, the initial deepMerge is sufficient.
+                    // The complex 3-way merge is removed to prioritize in-game changes.
                     } catch (e) {
                         errorLog(`[${name}ConfigManager] Failed to parse last-loaded config. Using default merge.`, e);
-                        lastLoadedConfig = newDefaultConfig;
                     }
                 } else {
-                    errorLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
+                debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
                 }
             }
             // After any load/merge scenario, the "last loaded" snapshot is updated to the current file's state.
