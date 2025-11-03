@@ -1662,12 +1662,7 @@ export async function handleFormResponse(player, panelId, response, context) {
             if (setting.type === 'textField' && value.trim() === '') {
                 const allDefaults = getAllDefaultConfigs();
                 const defaultValue = getValueByPath(allDefaults[configSource], setting.key);
-
-                // Ensure the default value is a valid, non-null string before returning it.
-                if (defaultValue !== null && defaultValue !== undefined) {
-                    return String(defaultValue);
-                }
-                return ''; // Fallback to an empty string if the default is null or undefined.
+                return defaultValue ?? ''; // Fallback to empty string if default is not found
             }
 
             const isNumericField = setting.key.includes('Seconds') ||
@@ -1713,6 +1708,9 @@ export async function handleFormResponse(player, panelId, response, context) {
                 if (validationFailed) { return; }
                 const newValue = processAndValidate(setting, newValues[index]);
                 if (!validationFailed) {
+                    console.error(`[XRAY-DEBUG] Preparing to set value. Path: ${setting.key}`);
+                    console.error(`[XRAY-DEBUG] Value to set: ${JSON.stringify(newValue)}`);
+                    console.error(`[XRAY-DEBUG] Config object state BEFORE setting: ${JSON.stringify(configToSave)}`);
                     setValueByPath(configToSave, setting.key, newValue);
                 }
             });
