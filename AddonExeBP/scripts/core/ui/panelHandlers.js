@@ -26,8 +26,19 @@ import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { showConfirmationDialog } from './components.js';
 import { uiActionFunctions } from './actionRegistry.js';
 import { floatingTextManager } from '../floatingTextManager.js';
+import { config as defaultConfig } from '../config.js';
+import { spawnConfig as defaultSpawnConfig } from './spawnConfig.js';
+import { economyConfig as defaultEconomyConfig } from './economyConfig.js';
+import { xrayConfig as defaultXrayConfig } from './xrayConfig.js';
 
 const itemsPerPage = 8;
+const allDefaultConfigs = {
+    'main': defaultConfig,
+    'spawn': defaultSpawnConfig,
+    'economy': defaultEconomyConfig,
+    'xray': defaultXrayConfig
+};
+
 const configHandlers = {
     'main': {
         get: getConfig,
@@ -1644,8 +1655,7 @@ export async function handleFormResponse(player, panelId, response, context) {
             return;
         }
 
-        const { getAllDefaultConfigs } = await import('../configManager.js');
-        const { getValueByPath } = await import('../objectUtils.js');
+        const { getValueFromPath } = await import('../objectUtils.js');
 
         const newValues = formValues;
         let validationFailed = false;
@@ -1660,8 +1670,8 @@ export async function handleFormResponse(player, panelId, response, context) {
 
             // If a textField is empty, fallback to the default value.
             if (setting.type === 'textField' && value.trim() === '') {
-                const allDefaults = getAllDefaultConfigs();
-                const defaultValue = getValueByPath(allDefaults[configSource], setting.key);
+                const defaultConfig = allDefaultConfigs[configSource];
+                const defaultValue = getValueFromPath(defaultConfig, setting.key);
                 return defaultValue ?? ''; // Fallback to empty string if default is not found
             }
 
