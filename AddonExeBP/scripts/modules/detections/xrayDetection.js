@@ -5,14 +5,14 @@ import { getAllPlayersFromCache } from '../../core/playerCache.js';
 import { sendMessage } from '../../core/messaging.js';
 
 function handleBlockBreak(event) {
-    const { player, brokenBlock } = event;
+    const { player, brokenBlockPermutation, block } = event;
     const xrayConfig = getXrayConfig();
 
     if (!xrayConfig || !xrayConfig.enabled) {
         return;
     }
 
-    const monitoredOre = xrayConfig.monitoredOres.find(ore => ore.blockId === brokenBlock.typeId);
+    const monitoredOre = xrayConfig.monitoredOres.find(ore => ore.blockId === brokenBlockPermutation.type.id);
 
     if (!monitoredOre) {
         return;
@@ -22,7 +22,7 @@ function handleBlockBreak(event) {
         return;
     }
 
-    if (brokenBlock.location.y < monitoredOre.minY || brokenBlock.location.y > monitoredOre.maxY) {
+    if (block.location.y < monitoredOre.minY || block.location.y > monitoredOre.maxY) {
         return;
     }
 
@@ -33,9 +33,9 @@ function handleBlockBreak(event) {
             const message = xrayConfig.notifications.message
                 .replace('{playerName}', player.name)
                 .replace('{oreName}', monitoredOre.oreName)
-                .replace('{x}', brokenBlock.location.x.toFixed(2))
-                .replace('{y}', brokenBlock.location.y.toFixed(2))
-                .replace('{z}', brokenBlock.location.z.toFixed(2));
+                .replace('{x}', block.location.x.toFixed(2))
+                .replace('{y}', block.location.y.toFixed(2))
+                .replace('{z}', block.location.z.toFixed(2));
             sendMessage(onlinePlayer, message);
         }
     }

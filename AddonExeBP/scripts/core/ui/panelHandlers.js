@@ -1644,6 +1644,9 @@ export async function handleFormResponse(player, panelId, response, context) {
             return;
         }
 
+        const { getAllDefaultConfigs } = await import('../configManager.js');
+        const { getValueByPath } = await import('../objectUtils.js');
+
         const newValues = formValues;
         let validationFailed = false;
 
@@ -1653,6 +1656,13 @@ export async function handleFormResponse(player, panelId, response, context) {
             }
             if (setting.type === 'dropdown') {
                 return setting.options[value];
+            }
+
+            // If a textField is empty, fallback to the default value.
+            if (setting.type === 'textField' && value.trim() === '') {
+                const allDefaults = getAllDefaultConfigs();
+                const defaultValue = getValueByPath(allDefaults[configSource], setting.key);
+                return defaultValue ?? ''; // Fallback to empty string if default is not found
             }
 
             const isNumericField = setting.key.includes('Seconds') ||
