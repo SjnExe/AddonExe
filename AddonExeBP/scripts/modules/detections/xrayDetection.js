@@ -26,17 +26,24 @@ function handleBlockBreak(event) {
         return;
     }
 
+    const message = xrayConfig.notifications.message
+        .replace('{playerName}', player.name)
+        .replace('{oreName}', monitoredOre.oreName)
+        .replace('{x}', block.location.x.toFixed(2))
+        .replace('{y}', block.location.y.toFixed(2))
+        .replace('{z}', block.location.z.toFixed(2));
+
+    if (xrayConfig.notifications.logToConsole) {
+        // The logger will handle the formatting, so we just send the raw message.
+        console.warn(message);
+    }
+
     const onlinePlayers = getAllPlayersFromCache();
     for (const onlinePlayer of onlinePlayers) {
         const pData = getPlayer(onlinePlayer.id);
+        // Permission level 2 is 'admin', 1 is 'moderator'
         if (pData && pData.permissionLevel <= 2 && pData.xrayNotificationsEnabled) {
-            const message = xrayConfig.notifications.message
-                .replace('{playerName}', player.name)
-                .replace('{oreName}', monitoredOre.oreName)
-                .replace('{x}', block.location.x.toFixed(2))
-                .replace('{y}', block.location.y.toFixed(2))
-                .replace('{z}', block.location.z.toFixed(2));
-            sendMessage(onlinePlayer, message);
+            sendMessage(onlinePlayer.name, message);
         }
     }
 }

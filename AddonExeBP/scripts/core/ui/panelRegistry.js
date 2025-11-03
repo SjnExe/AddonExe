@@ -884,6 +884,12 @@ export const configPanelSchema = [
                 label: 'Notification Message\nPlaceholders: {playerName}, {oreName}, {x}, {y}, {z}',
                 type: 'textField',
                 description: 'The format of the notification message sent to staff.'
+            },
+            {
+                key: 'notifications.logToConsole',
+                label: 'Log to Console',
+                type: 'toggle',
+                description: 'Logs X-ray notifications to the server console.'
             }
         ]
     },
