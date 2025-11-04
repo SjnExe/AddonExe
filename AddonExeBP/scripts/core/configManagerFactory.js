@@ -1,43 +1,30 @@
 import { world } from '@minecraft/server';
-import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, mergeWithFileChanges } from './objectUtils.js';
+import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps } from './objectUtils.js';
 import { errorLog, debugLog } from './logger.js';
 
 /**
  * Creates a configuration manager for a specific configuration type.
+ * This version uses synchronous initialization to prevent race conditions.
  * @param {string} key The dynamic property key for this configuration.
- * @param {string} configPath The path to the configuration module (e.g., '../config.js').
+ * @param {object | Array} defaultConfig The default configuration object, imported directly.
  * @param {string} name The name of the configuration for logging purposes.
- * @param {string} configKey The name of the exported config object within the module (e.g., 'config').
- * @param {string | null} wrapperKey If provided, the imported config data will be wrapped in an object with this key.
+ * @param {string | null} wrapperKey If provided, the default config data will be wrapped in an object with this key.
  * @returns {object} An object with methods to manage the configuration.
  */
-function createConfigManager(key, configPath, name, configKey, wrapperKey = null) {
+function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
     const lastLoadedKey = `${key}:last_loaded`;
-    let currentConfig = null;
+
+    // The wrapperKey logic is handled here during initialization. This ensures that configs
+    // like 'ranks', which are stored as an array in their file, are correctly structured
+    // as an object (e.g., { rankDefinitions: [...] }) from the very beginning.
+    const initialDefaultConfig = wrapperKey
+        ? { [wrapperKey]: deepClone(defaultConfig) }
+        : deepClone(defaultConfig);
+
+    // Initialize currentConfig with a deep clone of the default.
+    // This is the core of the fix: `currentConfig` is never null.
+    let currentConfig = deepClone(initialDefaultConfig);
     let lastLoadedConfig = null;
-
-    async function _getDefaultConfig() {
-        try {
-            // Removed cache-busting query as it can be unreliable in this environment.
-            const module = await import(configPath);
-            if (!module[configKey]) {
-                throw new Error(`Config key '${configKey}' not found in module ${configPath}`);
-            }
-
-            const configData = deepClone(module[configKey]);
-
-            // If a wrapper key is provided, wrap the imported data in an object.
-            // This is used for configs like 'ranks' which are stored as an array but need to be in an object.
-            if (wrapperKey) {
-                return { [wrapperKey]: configData };
-            }
-
-            return configData;
-        } catch (e) {
-            errorLog(`[${name}ConfigManager] Failed to dynamically import config from ${configPath}.`, e);
-            return {}; // Return empty object on failure to prevent crashes.
-        }
-    }
 
     function saveLastLoadedConfig() {
         try {
@@ -47,22 +34,20 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
         }
     }
 
-    async function loadConfig(isMigration) {
-        const newDefaultConfig = await _getDefaultConfig();
+    function loadConfig(isMigration) {
+        const newDefaultConfig = initialDefaultConfig;
         let isFirstInit = false;
 
         const userSavedConfigStr = world.getDynamicProperty(key);
         const lastLoadedConfigStr = world.getDynamicProperty(lastLoadedKey);
 
         if (!userSavedConfigStr) {
-            // Scenario 1: First Initialization
             isFirstInit = true;
             currentConfig = newDefaultConfig;
             lastLoadedConfig = newDefaultConfig;
             errorLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
             saveLastLoadedConfig();
         } else {
-            // Config exists, parse it
             let userSavedConfig;
             try {
                 userSavedConfig = JSON.parse(userSavedConfigStr);
@@ -71,59 +56,43 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
                 userSavedConfig = newDefaultConfig;
             }
 
-            // --- Custom Migration Logic ---
-            // This section can be expanded with more migration steps as needed.
             if (name === 'Main' && userSavedConfig.spawnLocation && typeof userSavedConfig.spawnLocation === 'object') {
                 debugLog(`[${name}ConfigManager] Migrating legacy spawnLocation to spawn.spawnLocation.`);
-                if (!userSavedConfig.spawn) {
-                    userSavedConfig.spawn = {};
-                }
-                // Only migrate if the new location doesn't already exist with a valid value
+                if (!userSavedConfig.spawn) {userSavedConfig.spawn = {};}
                 if (!userSavedConfig.spawn.spawnLocation) {
                     userSavedConfig.spawn.spawnLocation = deepClone(userSavedConfig.spawnLocation);
                 }
                 delete userSavedConfig.spawnLocation;
             }
-            // --- End Custom Migration Logic ---
 
-            // Always merge the loaded config with the defaults to ensure the structure is complete.
-            // This prevents errors if the saved config is malformed or missing properties after a reset.
             currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
 
-            if (!isMigration) {
-                // Scenario: Standard Load / Reload
-                // This logic prioritizes manual file edits over in-game changes.
-                if (lastLoadedConfigStr) {
-                    try {
-                        lastLoadedConfig = JSON.parse(lastLoadedConfigStr);
+            if (!isMigration && lastLoadedConfigStr) {
+                try {
+                    lastLoadedConfig = JSON.parse(lastLoadedConfigStr);
 
-                        // --- Custom Merging Logic for specific configs ---
-                        if (name === 'Ranks') {
-                            const currentUserRanks = userSavedConfig.rankDefinitions;
-                            const newFileRanks = newDefaultConfig.rankDefinitions;
-                            const lastLoadedRanks = lastLoadedConfig ? lastLoadedConfig.rankDefinitions : [];
-                            const mergedRanks = mergeRanks(currentUserRanks, newFileRanks, lastLoadedRanks);
-                            currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks };
-                        } else if (name === 'Kits' || name === 'Shop') {
-                            const lastLoaded = lastLoadedConfig || {};
-                            currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoaded);
-                        }
-                    // For standard configs, the initial deepMerge is sufficient.
-                    // The complex 3-way merge is removed to prioritize in-game changes.
-                    } catch (e) {
-                        errorLog(`[${name}ConfigManager] Failed to parse last-loaded config. Using default merge.`, e);
+                    if (name === 'Ranks') {
+                        const mergedRanks = mergeRanks(
+                            userSavedConfig.rankDefinitions,
+                            newDefaultConfig.rankDefinitions,
+                            lastLoadedConfig?.rankDefinitions || []
+                        );
+                        currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks };
+                    } else if (name === 'Kits' || name === 'Shop') {
+                        currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoadedConfig || {});
                     }
-                } else {
-                debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
+                } catch (e) {
+                    errorLog(`[${name}ConfigManager] Failed to parse last-loaded config. Using default merge.`, e);
                 }
+            } else if (!isMigration) {
+                debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
             }
-            // After any load/merge scenario, the "last loaded" snapshot is updated to the current file's state.
+
             lastLoadedConfig = newDefaultConfig;
             saveLastLoadedConfig();
         }
 
         saveConfig();
-
         return isFirstInit;
     }
 
@@ -139,40 +108,29 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
         }
     }
 
-    function updateConfig(updateKey, value) {
-        updateMultipleConfig({ [updateKey]: value });
-    }
-
     function setConfig(newConfig) {
         currentConfig = newConfig;
         saveConfig();
     }
 
-    async function reloadConfig() {
+    function reloadConfig() {
         debugLog(`[${name}ConfigManager] Reloading configuration...`);
-        await loadConfig(false);
+        loadConfig(false);
         debugLog(`[${name}ConfigManager] Configuration reloaded.`);
     }
 
     function updateMultipleConfig(updates) {
-        if (!currentConfig) {
-            errorLog(`[${name}ConfigManager] Attempted to update config before it was loaded.`);
-            return;
-        }
         for (const path in updates) {
             setValueByPath(currentConfig, path, updates[path]);
         }
         saveConfig();
     }
 
-    async function resetConfig() {
-        const defaultConfig = await _getDefaultConfig();
-        currentConfig = defaultConfig;
-        lastLoadedConfig = defaultConfig;
+    function resetConfig() {
+        currentConfig = initialDefaultConfig;
+        lastLoadedConfig = initialDefaultConfig;
         saveConfig();
         saveLastLoadedConfig();
-
-        // Use the now-reliable debugLog for other configs.
         debugLog(`[${name}ConfigManager] Configuration has been reset to default.`);
     }
 
@@ -181,7 +139,6 @@ function createConfigManager(key, configPath, name, configKey, wrapperKey = null
         get: getConfig,
         save: saveConfig,
         set: setConfig,
-        update: updateConfig,
         reload: reloadConfig,
         updateMultiple: updateMultipleConfig,
         reset: resetConfig

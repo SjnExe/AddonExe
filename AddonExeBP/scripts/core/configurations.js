@@ -5,15 +5,20 @@ import { reloadRanks } from './rankManager.js';
 import { setLockState } from './playerDataManager.js';
 import { getConfig } from './configManager.js';
 
+// Import default configs directly for synchronous initialization
+import { kitsConfig as defaultKitsConfig } from './kitsConfig.js';
+import { shopConfig as defaultShopConfig } from './shopConfig.js';
+import { spawnConfig as defaultSpawnConfig } from './spawnConfig.js';
+import { rankDefinitions as defaultRankDefinitions } from './ranksConfig.js';
+import { economyConfig as defaultEconomyConfig } from './economyConfig.js';
+import { xrayConfig as defaultXrayConfig } from './xrayConfig.js';
 
-const kitsConfigManager = createConfigManager('exe:kitsConfig:current', './kitsConfig.js', 'Kits', 'kitsConfig');
-const shopConfigManager = createConfigManager('exe:shopConfig:current', './shopConfig.js', 'Shop', 'shopConfig');
-const spawnConfigManager = createConfigManager('exe:spawnConfig:current', './spawnConfig.js', 'Spawn', 'spawnConfig');
-// The last parameter 'rankDefinitions' is the wrapperKey. It ensures the imported array
-// is wrapped in an object like { rankDefinitions: [...] }, which the addon expects.
-const ranksConfigManager = createConfigManager('exe:ranksConfig', './ranksConfig.js', 'Ranks', 'rankDefinitions', 'rankDefinitions');
-const economyConfigManager = createConfigManager('exe:economyConfig:current', './economyConfig.js', 'Economy', 'economyConfig');
-const xrayConfigManager = createConfigManager('exe:xrayConfig:current', './xrayConfig.js', 'X-Ray', 'xrayConfig');
+const kitsConfigManager = createConfigManager('exe:kitsConfig:current', defaultKitsConfig, 'Kits');
+const shopConfigManager = createConfigManager('exe:shopConfig:current', defaultShopConfig, 'Shop');
+const spawnConfigManager = createConfigManager('exe:spawnConfig:current', defaultSpawnConfig, 'Spawn');
+const ranksConfigManager = createConfigManager('exe:ranksConfig', defaultRankDefinitions, 'Ranks', 'rankDefinitions');
+const economyConfigManager = createConfigManager('exe:economyConfig:current', defaultEconomyConfig, 'Economy');
+const xrayConfigManager = createConfigManager('exe:xrayConfig:current', defaultXrayConfig, 'X-Ray');
 
 export const loadKitsConfig = kitsConfigManager.load;
 export const getKitsConfig = kitsConfigManager.get;
