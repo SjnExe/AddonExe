@@ -874,10 +874,16 @@ export const configPanelSchema = [
         configSource: 'xray',
         settings: [
             {
-                key: 'enabled',
-                label: 'Enable X-Ray Detection',
+                key: 'monitoredOreTypes.diamond.enabled',
+                label: 'Enable Diamond Ore Alerts',
                 type: 'toggle',
-                description: 'Enables or disables the X-ray detection system.'
+                description: 'Enables or disables alerts for Diamond Ore.'
+            },
+            {
+                key: 'monitoredOreTypes.ancientDebris.enabled',
+                label: 'Enable Ancient Debris Alerts',
+                type: 'toggle',
+                description: 'Enables or disables alerts for Ancient Debris.'
             },
             {
                 key: 'notifications.message',
