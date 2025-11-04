@@ -11,27 +11,35 @@ commandManager.register({
     description: 'Toggles X-ray notifications for yourself or the console.',
     permissionLevel: 2,
     execute: (player, args) => {
+        // If the command is run from the console (player is null)
         if (!player) {
-            // Command is run from the console
             const xrayConfig = getXrayConfig();
-            if (xrayConfig) {
-                const newStatus = !xrayConfig.notifications.logToConsole;
-                xrayConfig.notifications.logToConsole = newStatus;
-                saveXrayConfig(xrayConfig);
-                infoLog(`X-ray notifications for console have been ${newStatus ? 'enabled' : 'disabled'}.`);
+            if (!xrayConfig) {
+                infoLog('X-ray config not found.');
+                return;
             }
+            const newStatus = !xrayConfig.notifications.logToConsole;
+            xrayConfig.notifications.logToConsole = newStatus;
+            saveXrayConfig(xrayConfig); // This should be asynchronous, but the current implementation is synchronous.
+            infoLog(`X-ray console notifications have been ${newStatus ? 'enabled' : 'disabled'}.`);
             return;
         }
 
+        // If the command is run by a player
         const pData = getOrCreatePlayer(player);
+        if (!pData) {
+            sendMessage('Could not retrieve your player data.', player);
+            return;
+        }
+
         const newStatus = !pData.xrayNotificationsEnabled;
         setPlayerXrayNotifications(player.id, newStatus);
 
-        // It's crucial to get a fresh, valid player object from the cache before sending a message.
-        // The 'player' object passed to the command executor can become stale.
+        // Re-fetch the player from the cache to ensure the object is valid for sending a message.
         const freshPlayer = getPlayerFromCache(player.id);
         if (freshPlayer) {
-            sendMessage(freshPlayer, `§aX-ray notifications have been ${newStatus ? '§2enabled' : '§cdisabled'}§a.`);
+            const statusMessage = `§aX-ray notifications have been ${newStatus ? '§2enabled' : '§cdisabled'}§a.`;
+            sendMessage(statusMessage, freshPlayer, { raw: true }); // Send raw to avoid server name prefix.
         }
     }
 });

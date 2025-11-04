@@ -3,6 +3,8 @@ import { getXrayConfig } from '../../core/configurations.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { getAllPlayersFromCache } from '../../core/playerCache.js';
 import { sendMessage } from '../../core/messaging.js';
+import { warnLog } from '../../core/logger.js';
+import { xrayConfig as xrayDefaultConfig } from '../../core/xrayConfig.js';
 
 function handleBlockBreak(event) {
     const { player, brokenBlockPermutation, block } = event;
@@ -26,7 +28,10 @@ function handleBlockBreak(event) {
         return;
     }
 
-    const message = xrayConfig.notifications.message
+    // Use default message if the configured one is empty or missing.
+    const messageTemplate = xrayConfig.notifications?.message || xrayDefaultConfig.notifications.message;
+
+    const message = messageTemplate
         .replace('{playerName}', player.name)
         .replace('{oreName}', monitoredOre.oreName)
         .replace('{x}', block.location.x.toFixed(2))
@@ -34,8 +39,7 @@ function handleBlockBreak(event) {
         .replace('{z}', block.location.z.toFixed(2));
 
     if (xrayConfig.notifications.logToConsole) {
-        // The logger will handle the formatting, so we just send the raw message.
-        console.warn(message);
+        warnLog(message);
     }
 
     const onlinePlayers = getAllPlayersFromCache();
@@ -43,7 +47,7 @@ function handleBlockBreak(event) {
         const pData = getPlayer(onlinePlayer.id);
         // Permission level 2 is 'admin', 1 is 'moderator'
         if (pData && pData.permissionLevel <= 2 && pData.xrayNotificationsEnabled) {
-            sendMessage(onlinePlayer, message);
+            sendMessage(message, onlinePlayer);
         }
     }
 }

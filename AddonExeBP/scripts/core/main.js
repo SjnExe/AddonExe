@@ -1,6 +1,6 @@
 import { world, system } from '@minecraft/server';
 import { loadConfig, getConfig, updateConfig } from './configManager.js';
-import { getSpawnConfig, loadEconomyConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSpawnConfig } from './configurations.js';
+import { getSpawnConfig, loadEconomyConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSpawnConfig, loadXrayConfig } from './configurations.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
@@ -138,16 +138,14 @@ async function initializeAddon() {
     const lastVersion = world.getDynamicProperty('exe:lastVersion');
     const isMigration = !lastVersion || lastVersion !== newVersion;
 
-    // Load all configurations with the correct migration flag.
-    const loadPromises = [
-        loadConfig(isMigration),
-        loadKitsConfig(isMigration),
-        loadShopConfig(isMigration),
-        loadRanksConfig(isMigration),
-        loadSpawnConfig(isMigration),
-        loadEconomyConfig(isMigration)
-    ];
-    await Promise.all(loadPromises);
+    // Load all configurations synchronously with the correct migration flag.
+    loadConfig(isMigration);
+    loadKitsConfig(isMigration);
+    loadShopConfig(isMigration);
+    loadRanksConfig(isMigration);
+    loadSpawnConfig(isMigration);
+    loadEconomyConfig(isMigration);
+    loadXrayConfig(isMigration);
 
     // Set the log level from the newly loaded config
     const config = getConfig();

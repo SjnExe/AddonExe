@@ -21,7 +21,7 @@ export const xrayConfig = {
         },
         {
             blockId: 'minecraft:ancient_debris',
-            dimensionId: 'minecraft:the_nether',
+            dimensionId: 'minecraft:nether',
             minY: 8,
             maxY: 119,
             oreName: 'Ancient Debris'
