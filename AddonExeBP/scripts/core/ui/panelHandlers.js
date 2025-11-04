@@ -26,10 +26,10 @@ import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { showConfirmationDialog } from './components.js';
 import { uiActionFunctions } from './actionRegistry.js';
 import { floatingTextManager } from '../floatingTextManager.js';
-import { config as defaultConfig } from '../config.js';
-import { spawnConfig as defaultSpawnConfig } from './spawnConfig.js';
-import { economyConfig as defaultEconomyConfig } from './economyConfig.js';
-import { xrayConfig as defaultXrayConfig } from './xrayConfig.js';
+import { config as defaultConfig } from '../../config.js';
+import { spawnConfig as defaultSpawnConfig } from '../spawnConfig.js';
+import { economyConfig as defaultEconomyConfig } from '../economyConfig.js';
+import { xrayConfig as defaultXrayConfig } from '../xrayConfig.js';
 
 const itemsPerPage = 8;
 const allDefaultConfigs = {
