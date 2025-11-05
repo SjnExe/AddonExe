@@ -90,11 +90,11 @@ export async function handleFormResponse(player, panelId, response, context) {
             case 0: // Edit
                 return showPanel(player, 'floatingTextEditPanel', context);
             case 1: // Respawn
-                floatingTextManager.respawnText(id);
+                await floatingTextManager.respawnText(id);
                 player.sendMessage(`§aRespawned floating text: ${id}`);
                 return showPanel(player, 'floatingTextListPanel', context);
             case 2: // Despawn
-                floatingTextManager.despawnText(id);
+                await floatingTextManager.despawnText(id);
                 player.sendMessage(`§aDespawned floating text: ${id}`);
                 return showPanel(player, 'floatingTextListPanel', context);
             case 3: // Delete
