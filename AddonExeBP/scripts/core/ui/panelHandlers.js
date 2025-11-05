@@ -1665,6 +1665,10 @@ export async function handleFormResponse(player, panelId, response, context) {
                 return !!value;
             }
             if (setting.type === 'dropdown') {
+                // For the logLevel dropdown, the selected index is the value.
+                if (setting.key === 'logLevel') {
+                    return value;
+                }
                 return setting.options[value];
             }
 

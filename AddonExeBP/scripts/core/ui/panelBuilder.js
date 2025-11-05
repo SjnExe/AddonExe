@@ -567,8 +567,14 @@ export async function buildPanelForm(player, panelId, context) {
                         break;
                     case 'dropdown':
                     {
-                        const index = setting.options.indexOf(currentValue);
-                        form.dropdown(setting.label, setting.options, { defaultValueIndex: index === -1 ? 0 : index });
+                        let index = -1;
+                        // Special handling for logLevel, where the value is the index.
+                        if (setting.key === 'logLevel' && typeof currentValue === 'number') {
+                            index = currentValue;
+                        } else {
+                            index = setting.options.indexOf(currentValue);
+                        }
+                        form.dropdown(setting.label, setting.options, { defaultValueIndex: index >= 0 && index < setting.options.length ? index : 0 });
                         break;
                     }
                 }

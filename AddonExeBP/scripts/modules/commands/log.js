@@ -1,6 +1,6 @@
 import { commandManager } from './commandManager.js';
 import { getConfig, updateConfig } from '../../core/configManager.js';
-import { LogLevels, setLogLevel } from '../../core/logger.js';
+import { LogLevels, setLogLevel, infoLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
 
 const logLevelNames = {
@@ -9,6 +9,21 @@ const logLevelNames = {
     [LogLevels.INFO]: 'INFO',
     [LogLevels.DEBUG]: 'DEBUG'
 };
+
+/**
+ * Sends a message to the command executor, whether it's a player or the console.
+ * @param {string} message The message to send.
+ * @param {import('@minecraft/server').Player | object} executor The player or console object.
+ */
+function reply(message, executor) {
+    // Check if the executor is a player by seeing if it has the sendMessage method.
+    if (typeof executor.sendMessage === 'function') {
+        sendMessage(message, executor, { raw: true });
+    } else {
+        // Otherwise, it's the console. Log the message, stripping color codes.
+        infoLog(message.replace(/§./g, ''));
+    }
+}
 
 commandManager.register({
     name: 'log',
@@ -39,14 +54,14 @@ commandManager.register({
                 '  §61 - WARN:§r Errors and warnings.\n' +
                 '  §a2 - INFO:§r (Default) Errors, warnings, and general info.\n' +
                 '  §b3 - DEBUG:§r All messages, for development.';
-            sendMessage(usageMessage, player, { raw: true });
+            reply(usageMessage, player);
             return;
         }
 
         updateConfig('logLevel', level);
         setLogLevel(level); // Apply live
 
-        sendMessage(`§aLog level set to §e${logLevelNames[level]}§a.`, player);
+        reply(`§aLog level set to §e${logLevelNames[level]}§a.`, player);
     }
 });
 
@@ -68,6 +83,6 @@ commandManager.register({
         setLogLevel(newLogLevel); // Apply live
 
         const newLevelName = logLevelNames[newLogLevel];
-        sendMessage(`§aLog level set to §e${newLevelName}§a.`, player);
+        reply(`§aLog level set to §e${newLevelName}§a.`, player);
     }
 });

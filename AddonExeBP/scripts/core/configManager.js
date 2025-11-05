@@ -1,7 +1,8 @@
 import createConfigManager from './configManagerFactory.js';
 import { deepClone } from './objectUtils.js';
+import { config as defaultConfig } from '../config.js';
 
-const mainConfigManager = createConfigManager('exe:config:current', '../config.js', 'Main', 'config');
+const mainConfigManager = createConfigManager('exe:config:current', defaultConfig, 'Main');
 
 export const loadConfig = mainConfigManager.load;
 export const getConfig = mainConfigManager.get;
@@ -47,9 +48,9 @@ export async function resetConfigSection(sectionKey, player) {
 
     // Dynamically import the latest default config to compare against
     try {
-        const { config: defaultConfig } = await import('../config.js');
-        if (Object.prototype.hasOwnProperty.call(defaultConfig, sectionKey)) {
-            updateConfig(sectionKey, deepClone(defaultConfig[sectionKey]));
+        const { config: freshDefaultConfig } = await import('../config.js');
+        if (Object.prototype.hasOwnProperty.call(freshDefaultConfig, sectionKey)) {
+            updateConfig(sectionKey, deepClone(freshDefaultConfig[sectionKey]));
 
             // After resetting, check if there's a callback to re-initialize the system
             if (configResetCallbacks[sectionKey]) {

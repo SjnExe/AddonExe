@@ -500,10 +500,11 @@ export const configPanelSchema = [
                 description: 'The default gamemode for new players.'
             },
             {
-                key: 'debug',
-                label: 'Debug Mode',
-                type: 'toggle',
-                description: 'Enables detailed logging for development and troubleshooting.'
+                key: 'logLevel',
+                label: 'Log Level',
+                type: 'dropdown',
+                options: ['0: ERROR', '1: WARN', '2: INFO', '3: DEBUG'],
+                description: 'Sets the verbosity of the server console logs.'
             },
             {
                 key: 'data.autoSaveIntervalSeconds',
