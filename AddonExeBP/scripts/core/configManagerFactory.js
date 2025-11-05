@@ -14,15 +14,10 @@ import { errorLog, debugLog } from './logger.js';
 function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
     const lastLoadedKey = `${key}:last_loaded`;
 
-    // The wrapperKey logic is handled here during initialization. This ensures that configs
-    // like 'ranks', which are stored as an array in their file, are correctly structured
-    // as an object (e.g., { rankDefinitions: [...] }) from the very beginning.
     const initialDefaultConfig = wrapperKey
         ? { [wrapperKey]: deepClone(defaultConfig) }
         : deepClone(defaultConfig);
 
-    // Initialize currentConfig with a deep clone of the default.
-    // This is the core of the fix: `currentConfig` is never null.
     let currentConfig = deepClone(initialDefaultConfig);
     let lastLoadedConfig = null;
 
@@ -119,6 +114,11 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
         debugLog(`[${name}ConfigManager] Configuration reloaded.`);
     }
 
+    function updateConfig(path, value) {
+        setValueByPath(currentConfig, path, value);
+        saveConfig();
+    }
+
     function updateMultipleConfig(updates) {
         for (const path in updates) {
             setValueByPath(currentConfig, path, updates[path]);
@@ -140,6 +140,7 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
         save: saveConfig,
         set: setConfig,
         reload: reloadConfig,
+        update: updateConfig,
         updateMultiple: updateMultipleConfig,
         reset: resetConfig
     };
