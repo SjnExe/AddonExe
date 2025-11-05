@@ -194,7 +194,14 @@ async function despawnText(id) {
 
     // If the entity is loaded and active, just remove it directly.
     if (entity && entity.isValid()) {
-        entity.remove();
+        try {
+            entity.remove();
+        } catch (error) {
+            // Suppress and log errors, which can happen with stale entity references
+            // despite the isValid() check, especially in race conditions.
+            errorLog(`[FloatingText] Suppressed error during entity.remove() for ID: ${id}.`, error);
+        }
+        // Always remove the entity from our active map, even if .remove() fails.
         activeEntities.delete(id);
         return;
     }
