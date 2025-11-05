@@ -183,37 +183,76 @@ function createText(player, id, text) {
 }
 
 async function despawnText(id) {
+    console.log(`[DIAGNOSTIC] --- despawnText START for id: ${id} (typeof: ${typeof id}) ---`);
+
+    console.log(`[DIAGNOSTIC] Checking pendingDespawns...`);
+    console.log(`[DIAGNOSTIC] pendingDespawns is: ${pendingDespawns}`);
+    console.log(`[DIAGNOSTIC] pendingDespawns.has is: ${typeof pendingDespawns.has}`);
+    const hasPending = pendingDespawns.has(id);
+    console.log(`[DIAGNOSTIC] hasPending: ${hasPending}`);
+
     // Cancel any pending command-based despawn from a PREVIOUS operation
     // to prevent race conditions if this function is called multiple times quickly.
-    if (pendingDespawns.has(id)) {
+    if (hasPending) {
+        console.log(`[DIAGNOSTIC] Found pending despawn. Clearing timeout...`);
+        console.log(`[DIAGNOSTIC] system is: ${system}`);
+        console.log(`[DIAGNOSTIC] system.clearTimeout is: ${typeof system.clearTimeout}`);
         system.clearTimeout(pendingDespawns.get(id));
+        console.log(`[DIAGNOSTIC] Timeout cleared.`);
+        console.log(`[DIAGNOSTIC] pendingDespawns.delete is: ${typeof pendingDespawns.delete}`);
         pendingDespawns.delete(id);
+        console.log(`[DIAGNOSTIC] Pending despawn deleted from map.`);
     }
 
+    console.log(`[DIAGNOSTIC] Getting entity from activeEntities...`);
+    console.log(`[DIAGNOSTIC] activeEntities is: ${activeEntities}`);
+    console.log(`[DIAGNOSTIC] activeEntities.get is: ${typeof activeEntities.get}`);
     const entity = activeEntities.get(id);
+    console.log(`[DIAGNOSTIC] Got entity: ${entity} (typeof: ${typeof entity})`);
 
     // If the entity is loaded and active, just remove it directly.
     if (entity && entity.isValid()) {
+        console.log(`[DIAGNOSTIC] Entity is valid. Attempting to remove.`);
         try {
+            console.log(`[DIAGNOSTIC] entity.remove is: ${typeof entity.remove}`);
             entity.remove();
+            console.log(`[DIAGNOSTIC] entity.remove() called successfully.`);
         } catch (error) {
             // Suppress and log errors, which can happen with stale entity references
             // despite the isValid() check, especially in race conditions.
+            console.error(`[DIAGNOSTIC] CRITICAL ERROR during entity.remove() for ID: ${id}.`);
+            console.error(error.message);
+            console.error(error.stack);
             errorLog(`[FloatingText] Suppressed error during entity.remove() for ID: ${id}.`, error);
         }
         // Always remove the entity from our active map, even if .remove() fails.
+        console.log(`[DIAGNOSTIC] Deleting from activeEntities map...`);
+        console.log(`[DIAGNOSTIC] activeEntities.delete is: ${typeof activeEntities.delete}`);
         activeEntities.delete(id);
+        console.log(`[DIAGNOSTIC] Deleted from activeEntities map.`);
+        console.log(`[DIAGNOSTIC] --- despawnText END for valid entity ---`);
         return;
     }
 
+    console.log(`[DIAGNOSTIC] Entity is NOT valid or does not exist in active map.`);
     // If the entity isn't active, it might be in an unloaded chunk.
     // We can't directly remove it, but we can ensure it's removed
     // from the retry queue so it doesn't get respawned later.
-    if (unloadedChunkQueue.has(id)) {
+    console.log(`[DIAGNOSTIC] Checking unloadedChunkQueue...`);
+    console.log(`[DIAGNOSTIC] unloadedChunkQueue is: ${unloadedChunkQueue}`);
+    console.log(`[DIAGNOSTIC] unloadedChunkQueue.has is: ${typeof unloadedChunkQueue.has}`);
+    const inQueue = unloadedChunkQueue.has(id);
+    console.log(`[DIAGNOSTIC] inQueue: ${inQueue}`);
+
+    if (inQueue) {
+        console.log(`[DIAGNOSTIC] Deleting from unloadedChunkQueue...`);
+        console.log(`[DIAGNOSTIC] unloadedChunkQueue.delete is: ${typeof unloadedChunkQueue.delete}`);
         unloadedChunkQueue.delete(id);
+        console.log(`[DIAGNOSTIC] Deleted from unloadedChunkQueue.`);
     }
     // No need for complex tickingarea logic, as the entity doesn't exist in the world
     // or will be cleaned up by the server if the chunk is permanently gone.
+    console.log(`[DIAGNOSTIC] --- despawnText END for invalid/unloaded entity ---`);
 }
 
 async function respawnText(id) {
