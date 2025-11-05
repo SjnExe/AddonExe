@@ -182,65 +182,31 @@ function createText(player, id, text) {
     return true;
 }
 
-function despawnText(id) {
-    return new Promise((resolve) => {
-        const entity = activeEntities.get(id);
-        if (entity && entity.isValid()) {
-            entity.remove();
-            activeEntities.delete(id);
-            resolve();
-            return;
-        }
+async function despawnText(id) {
+    // Cancel any pending command-based despawn from a PREVIOUS operation
+    // to prevent race conditions if this function is called multiple times quickly.
+    if (pendingDespawns.has(id)) {
+        system.clearTimeout(pendingDespawns.get(id));
+        pendingDespawns.delete(id);
+    }
 
-        const textConfig = getTextById(id);
-        if (!textConfig || !textConfig.location) {
-            errorLog(`[FloatingText] Cannot despawn text with ID: ${id} due to missing config or location.`);
-            resolve();
-            return;
-        }
+    const entity = activeEntities.get(id);
 
-        if (pendingDespawns.has(id)) {
-            resolve();
-            return;
-        }
+    // If the entity is loaded and active, just remove it directly.
+    if (entity && entity.isValid()) {
+        entity.remove();
+        activeEntities.delete(id);
+        return;
+    }
 
-        const tickingAreaName = `ft_${id}`;
-        const { x, y, z } = textConfig.location;
-        const dimensionId = textConfig.dimension;
-
-        const timeoutId = system.runTimeout(() => {
-            const dimension = world.getDimension(dimensionId);
-            try {
-                dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
-                system.runTimeout(() => {
-                    try {
-                        const entities = dimension.getEntities({ type: 'addonexe:floating_text', tags: [`ft_${id}`] });
-                        for (const entity of entities) {
-                            entity.remove();
-                        }
-                        activeEntities.delete(id);
-                    } catch (scriptError) {
-                        errorLog(`[FloatingText] Failed during entity.remove() for ID: ${id}`, scriptError);
-                    } finally {
-                        dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
-                        pendingDespawns.delete(id);
-                        resolve();
-                    }
-                }, 10);
-            } catch (error) {
-                errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
-                try {
-                    dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
-                } catch {
-                // Ignore cleanup
-                }
-                pendingDespawns.delete(id);
-                resolve();
-            }
-        }, 5);
-
-        pendingDespawns.set(id, timeoutId);
-    });
+    // If the entity isn't active, it might be in an unloaded chunk.
+    // We can't directly remove it, but we can ensure it's removed
+    // from the retry queue so it doesn't get respawned later.
+    if (unloadedChunkQueue.has(id)) {
+        unloadedChunkQueue.delete(id);
+    }
+    // No need for complex tickingarea logic, as the entity doesn't exist in the world
+    // or will be cleaned up by the server if the chunk is permanently gone.
 }
 
 async function respawnText(id) {
