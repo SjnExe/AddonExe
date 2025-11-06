@@ -189,27 +189,37 @@ async function despawnText(id) {
         system.clearTimeout(pendingDespawns.get(id));
         pendingDespawns.delete(id);
     }
-    activeEntities.delete(id);
     unloadedChunkQueue.delete(id);
 
+    const activeEntity = activeEntities.get(id);
+    activeEntities.delete(id); // Always remove from active map
+
+    // Try to remove the entity directly if we have a valid reference
+    if (activeEntity && typeof activeEntity.isValid === 'function' && activeEntity.isValid()) {
+        try {
+            activeEntity.remove();
+            return; // Successfully removed, no need for fallback
+        } catch (e) {
+            // This can happen due to engine race conditions. Log it and proceed to the fallback.
+            errorLog(`[FloatingText] Error using entity.remove() for ID: ${id}. Falling back to command.`, e);
+        }
+    }
+
+    // Fallback for when the entity is not in a loaded chunk or the reference is invalid.
     const textConfig = getTextById(id);
     // If there is no config, there is nothing more to do.
     if (!textConfig) {
         return;
     }
 
-    // Now, use a reliable command to kill the entity in the world. This works
-    // regardless of whether the chunk is loaded or the script has a valid reference.
+    // Use a reliable command to kill the entity. This works regardless of chunk state.
     try {
         const dimension = world.getDimension(textConfig.dimension);
-        // The command targets the unique tag assigned to the entity on spawn.
         // The tag is wrapped in quotes to handle IDs that may contain spaces.
         const command = `kill @e[type=addonexe:floating_text,tag="ft_${id}"]`;
         dimension.runCommand(command);
     } catch (error) {
-        // This might fail if the entity doesn't exist (which is fine) or for
-        // other reasons. We log it but don't crash. The error for "no targets matched"
-        // is expected if the entity is already gone, so we ignore it.
+        // "No targets matched" is expected if the entity is already gone.
         if (!error.toString().includes('No targets matched selector')) {
             errorLog(`[FloatingText] Error during command-based despawn for ID: ${id}.`, error);
         }
