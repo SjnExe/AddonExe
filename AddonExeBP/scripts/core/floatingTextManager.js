@@ -183,43 +183,54 @@ function createText(player, id, text) {
 }
 
 async function despawnText(id) {
-    // First, clean up all internal script state for this ID to prevent respawns
-    // or other unintended behavior.
+    // 1. Clean up internal script state to prevent respawns
     if (pendingDespawns.has(id)) {
         system.clearTimeout(pendingDespawns.get(id));
         pendingDespawns.delete(id);
     }
     unloadedChunkQueue.delete(id);
 
-    const activeEntity = activeEntities.get(id);
-    activeEntities.delete(id); // Always remove from active map
-
-    // Try to remove the entity directly if we have a valid reference
-    if (activeEntity && typeof activeEntity.isValid === 'function' && activeEntity.isValid()) {
+    // 2. Try to use the cached entity reference first (fastest method)
+    const cachedEntity = activeEntities.get(id);
+    if (cachedEntity && typeof cachedEntity.isValid === 'function' && cachedEntity.isValid()) {
         try {
-            activeEntity.remove();
-            return; // Successfully removed, no need for fallback
+            cachedEntity.remove();
+            activeEntities.delete(id); // Clean up cache on success
+            return; // Success!
         } catch (e) {
-            // This can happen due to engine race conditions. Log it and proceed to the fallback.
-            errorLog(`[FloatingText] Error using entity.remove() for ID: ${id}. Falling back to command.`, e);
+            errorLog(`[FloatingText] Error using cached entity.remove() for ID: ${id}.`, e);
+            // Proceed to next methods
         }
     }
+    // If we are here, the cached entity was stale, invalid, or didn't exist.
+    // In any case, we should remove it from the map.
+    activeEntities.delete(id);
 
-    // Fallback for when the entity is not in a loaded chunk or the reference is invalid.
+
     const textConfig = getTextById(id);
-    // If there is no config, there is nothing more to do.
-    if (!textConfig) {
-        return;
-    }
+    if (!textConfig) { return; } // No config, nothing more to do.
 
-    // Use a reliable command to kill the entity. This works regardless of chunk state.
+    // 3. Fallback to a live world query (for loaded entities with stale references)
     try {
         const dimension = world.getDimension(textConfig.dimension);
-        // The tag is wrapped in quotes to handle IDs that may contain spaces.
+        const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
+        const freshEntity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+
+        if (freshEntity && typeof freshEntity.isValid === 'function' && freshEntity.isValid()) {
+            freshEntity.remove();
+            return; // Success!
+        }
+    } catch (e) {
+        errorLog(`[FloatingText] Error during live query despawn for ID: ${id}.`, e);
+        // Proceed to final fallback
+    }
+
+    // 4. Final fallback: Use the kill command (for unloaded chunks or other failures)
+    try {
+        const dimension = world.getDimension(textConfig.dimension);
         const command = `kill @e[type=addonexe:floating_text,tag="ft_${id}"]`;
         dimension.runCommand(command);
     } catch (error) {
-        // "No targets matched" is expected if the entity is already gone.
         if (!error.toString().includes('No targets matched selector')) {
             errorLog(`[FloatingText] Error during command-based despawn for ID: ${id}.`, error);
         }
