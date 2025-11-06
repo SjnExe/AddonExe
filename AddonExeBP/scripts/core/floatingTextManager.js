@@ -203,7 +203,8 @@ async function despawnText(id) {
     try {
         const dimension = world.getDimension(textConfig.dimension);
         // The command targets the unique tag assigned to the entity on spawn.
-        const command = `kill @e[type=addonexe:floating_text,tag=ft_${id}]`;
+        // The tag is wrapped in quotes to handle IDs that may contain spaces.
+        const command = `kill @e[type=addonexe:floating_text,tag="ft_${id}"]`;
         dimension.runCommand(command);
     } catch (error) {
         // This might fail if the entity doesn't exist (which is fine) or for

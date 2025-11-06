@@ -194,8 +194,12 @@ export async function handleFormResponse(player, panelId, response, context) {
             player.sendMessage('§cID cannot be empty.');
             return showPanel(player, 'floatingTextCreatePanel', context);
         }
+        if (id.includes(' ')) {
+            player.sendMessage('§cID cannot contain spaces. Please use a single word.');
+            return showPanel(player, 'floatingTextCreatePanel', context);
+        }
         if (floatingTextManager.createText(player, id, text)) {
-            player.sendMessage(`§aSuccessfully created floating text: ${id}`);
+            // Success message is sent by createText
         }
         return showPanel(player, 'floatingTextListPanel', context);
     }

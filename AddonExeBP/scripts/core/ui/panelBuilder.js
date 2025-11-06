@@ -801,7 +801,7 @@ export async function buildPanelForm(player, panelId, context) {
 
             const form = new ModalFormData()
                 .title('Create New Floating Text')
-                .textField('Unique ID', 'e.g., "welcome_message"')
+                .textField('Unique ID (no spaces)', 'e.g., "welcome_message"')
                 .textField(`Text Content${placeholderText}`, 'Enter text to display');
             return form;
         }

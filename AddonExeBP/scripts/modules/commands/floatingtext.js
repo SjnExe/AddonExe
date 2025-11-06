@@ -28,9 +28,11 @@ commandManager.register({
                     player.sendMessage('§cUsage: !floatingtext create <id> <text>');
                     return;
                 }
-                if (floatingTextManager.createText(player, id, text)) {
-                    player.sendMessage(`§aFloating text "${id}" created.`);
+                if (id.includes(' ')) {
+                    player.sendMessage('§cID cannot contain spaces. Please use a single word.');
+                    return;
                 }
+                floatingTextManager.createText(player, id, text);
                 break;
             case 'delete':
                 if (!id) {
