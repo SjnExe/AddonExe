@@ -183,37 +183,36 @@ function createText(player, id, text) {
 }
 
 async function despawnText(id) {
-    // Cancel any pending command-based despawn from a PREVIOUS operation
-    // to prevent race conditions if this function is called multiple times quickly.
+    // First, clean up all internal script state for this ID to prevent respawns
+    // or other unintended behavior.
     if (pendingDespawns.has(id)) {
         system.clearTimeout(pendingDespawns.get(id));
         pendingDespawns.delete(id);
     }
+    activeEntities.delete(id);
+    unloadedChunkQueue.delete(id);
 
-    const entity = activeEntities.get(id);
-
-    // If the entity is loaded and active, just remove it directly.
-    if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-        try {
-            entity.remove();
-        } catch (error) {
-            // Suppress and log errors, which can happen with stale entity references
-            // despite the isValid() check, especially in race conditions.
-            errorLog(`[FloatingText] Suppressed error during entity.remove() for ID: ${id}.`, error);
-        }
-        // Always remove the entity from our active map, even if .remove() fails.
-        activeEntities.delete(id);
+    const textConfig = getTextById(id);
+    // If there is no config, there is nothing more to do.
+    if (!textConfig) {
         return;
     }
 
-    // If the entity isn't active, it might be in an unloaded chunk.
-    // We can't directly remove it, but we can ensure it's removed
-    // from the retry queue so it doesn't get respawned later.
-    if (unloadedChunkQueue.has(id)) {
-        unloadedChunkQueue.delete(id);
+    // Now, use a reliable command to kill the entity in the world. This works
+    // regardless of whether the chunk is loaded or the script has a valid reference.
+    try {
+        const dimension = world.getDimension(textConfig.dimension);
+        // The command targets the unique tag assigned to the entity on spawn.
+        const command = `kill @e[type=addonexe:floating_text,tag=ft_${id}]`;
+        dimension.runCommand(command);
+    } catch (error) {
+        // This might fail if the entity doesn't exist (which is fine) or for
+        // other reasons. We log it but don't crash. The error for "no targets matched"
+        // is expected if the entity is already gone, so we ignore it.
+        if (!error.toString().includes('No targets matched selector')) {
+            errorLog(`[FloatingText] Error during command-based despawn for ID: ${id}.`, error);
+        }
     }
-    // No need for complex tickingarea logic, as the entity doesn't exist in the world
-    // or will be cleaned up by the server if the chunk is permanently gone.
 }
 
 async function respawnText(id) {
