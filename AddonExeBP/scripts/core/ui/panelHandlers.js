@@ -86,24 +86,30 @@ export async function handleFormResponse(player, panelId, response, context) {
 
     if (panelId === 'floatingTextActionPanel') {
         const { id } = context;
-        switch (selection) {
-            case 0: // Edit
-                return showPanel(player, 'floatingTextEditPanel', context);
-            case 1: // Respawn
-                floatingTextManager.respawnText(id);
-                player.sendMessage(`§aRespawned floating text: ${id}`);
-                return showPanel(player, 'floatingTextListPanel', context);
-            case 2: // Despawn
-                floatingTextManager.despawnText(id);
-                player.sendMessage(`§aDespawned floating text: ${id}`);
-                return showPanel(player, 'floatingTextListPanel', context);
-            case 3: // Delete
-                await floatingTextManager.deleteText(player, id);
-                return showPanel(player, 'floatingTextListPanel', context);
-            case 4: // Back
-                return showPanel(player, 'floatingTextListPanel', context);
+        try {
+            switch (selection) {
+                case 0: // Edit
+                    return showPanel(player, 'floatingTextEditPanel', context);
+                case 1: // Respawn
+                    await floatingTextManager.respawnText(id);
+                    player.sendMessage(`§aRespawned floating text: ${id}`);
+                    break;
+                case 2: // Despawn
+                    await floatingTextManager.despawnText(id);
+                    player.sendMessage(`§aDespawned floating text: ${id}`);
+                    break;
+                case 3: // Delete
+                    await floatingTextManager.deleteText(player, id);
+                    break; // The deleteText function sends its own success message.
+                case 4: // Back
+                    break;
+            }
+        } catch (error) {
+            errorLog(`[UIManager] Error in floatingTextActionPanel for ID '${id}':`, error);
+            player.sendMessage("§cAn error occurred. Please check the logs.");
         }
-        return;
+        // Always refresh the list panel, even on error or 'Back'
+        return showPanel(player, 'floatingTextListPanel', context);
     }
 
     if (panelId === 'xrayOresPanel') {
@@ -188,8 +194,12 @@ export async function handleFormResponse(player, panelId, response, context) {
             player.sendMessage('§cID cannot be empty.');
             return showPanel(player, 'floatingTextCreatePanel', context);
         }
+        if (id.includes(' ')) {
+            player.sendMessage('§cID cannot contain spaces. Please use a single word.');
+            return showPanel(player, 'floatingTextCreatePanel', context);
+        }
         if (floatingTextManager.createText(player, id, text)) {
-            player.sendMessage(`§aSuccessfully created floating text: ${id}`);
+            // Success message is sent by createText
         }
         return showPanel(player, 'floatingTextListPanel', context);
     }

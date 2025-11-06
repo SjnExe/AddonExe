@@ -182,65 +182,38 @@ function createText(player, id, text) {
     return true;
 }
 
-function despawnText(id) {
-    return new Promise((resolve) => {
-        const entity = activeEntities.get(id);
-        if (entity && entity.isValid()) {
-            entity.remove();
-            activeEntities.delete(id);
-            resolve();
-            return;
+async function despawnText(id) {
+    // First, clean up all internal script state for this ID to prevent respawns
+    // or other unintended behavior.
+    if (pendingDespawns.has(id)) {
+        system.clearTimeout(pendingDespawns.get(id));
+        pendingDespawns.delete(id);
+    }
+    activeEntities.delete(id);
+    unloadedChunkQueue.delete(id);
+
+    const textConfig = getTextById(id);
+    // If there is no config, there is nothing more to do.
+    if (!textConfig) {
+        return;
+    }
+
+    // Now, use a reliable command to kill the entity in the world. This works
+    // regardless of whether the chunk is loaded or the script has a valid reference.
+    try {
+        const dimension = world.getDimension(textConfig.dimension);
+        // The command targets the unique tag assigned to the entity on spawn.
+        // The tag is wrapped in quotes to handle IDs that may contain spaces.
+        const command = `kill @e[type=addonexe:floating_text,tag="ft_${id}"]`;
+        dimension.runCommand(command);
+    } catch (error) {
+        // This might fail if the entity doesn't exist (which is fine) or for
+        // other reasons. We log it but don't crash. The error for "no targets matched"
+        // is expected if the entity is already gone, so we ignore it.
+        if (!error.toString().includes('No targets matched selector')) {
+            errorLog(`[FloatingText] Error during command-based despawn for ID: ${id}.`, error);
         }
-
-        const textConfig = getTextById(id);
-        if (!textConfig || !textConfig.location) {
-            errorLog(`[FloatingText] Cannot despawn text with ID: ${id} due to missing config or location.`);
-            resolve();
-            return;
-        }
-
-        if (pendingDespawns.has(id)) {
-            resolve();
-            return;
-        }
-
-        const tickingAreaName = `ft_${id}`;
-        const { x, y, z } = textConfig.location;
-        const dimensionId = textConfig.dimension;
-
-        const timeoutId = system.runTimeout(() => {
-            const dimension = world.getDimension(dimensionId);
-            try {
-                dimension.runCommand(`tickingarea add ${x} ${y} ${z} ${x} ${y} ${z} ${tickingAreaName}`);
-                system.runTimeout(() => {
-                    try {
-                        const entities = dimension.getEntities({ type: 'addonexe:floating_text', tags: [`ft_${id}`] });
-                        for (const entity of entities) {
-                            entity.remove();
-                        }
-                        activeEntities.delete(id);
-                    } catch (scriptError) {
-                        errorLog(`[FloatingText] Failed during entity.remove() for ID: ${id}`, scriptError);
-                    } finally {
-                        dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
-                        pendingDespawns.delete(id);
-                        resolve();
-                    }
-                }, 10);
-            } catch (error) {
-                errorLog(`[FloatingText] Failed to despawn text with ID: ${id}`, error);
-                try {
-                    dimension.runCommand(`tickingarea remove ${tickingAreaName}`);
-                } catch {
-                // Ignore cleanup
-                }
-                pendingDespawns.delete(id);
-                resolve();
-            }
-        }, 5);
-
-        pendingDespawns.set(id, timeoutId);
-    });
+    }
 }
 
 async function respawnText(id) {
