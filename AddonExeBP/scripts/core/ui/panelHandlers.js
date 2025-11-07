@@ -169,12 +169,15 @@ export async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, 'floatingTextActionPanel', context);
         }
         const { id } = context;
-        const [textContent, x, y, z, isDynamic, updateInterval, useExpiration, expirationMinutes, snapRotation, hover, sway] = formValues;
+        const [textContent, x, y, z, intervalIndex, useExpiration, expirationMinutes, snapRotation, hover, sway] = formValues;
+
+        const intervalOptions = [0, 1, 2, 5, 10, 20, 30, 60];
+        const updateIntervalInSeconds = intervalOptions[intervalIndex] ?? 0;
+
         const updatedConfig = {
             text: textContent,
             location: { x: parseFloat(x), y: parseFloat(y), z: parseFloat(z) },
-            isDynamic: isDynamic,
-            updateInterval: updateInterval * 20,
+            updateInterval: updateIntervalInSeconds * 20, // Convert to ticks
             expiresAt: useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null,
             snapRotation,
             hover,

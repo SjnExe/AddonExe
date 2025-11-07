@@ -35,19 +35,27 @@ function saveTexts() {
 function initialize() {
     loadTexts();
     spawnAllTexts();
-
+    // A single master interval that runs every tick.
     system.runInterval(() => {
-        updateDynamicTexts();
+        const currentTick = system.currentTick;
         // Also check for expired texts
         const now = Date.now();
         for (const [id, textConfig] of floatingTexts.entries()) {
             if (textConfig.expiresAt && now >= textConfig.expiresAt) {
                 deleteText(null, id); // No player context for automatic deletion
                 debugLog(`[FloatingText] Expired and removed text with ID: ${id}`);
+                continue; // Skip to next text since this one is gone
+            }
+            // If the text has a valid interval and contains a placeholder, check if it's time to update.
+            const updateInterval = textConfig.updateInterval ?? 0;
+            if (updateInterval > 0 && textConfig.text.includes('{')) {
+                // Use modulo to check if the current tick is a multiple of the interval.
+                if (currentTick % updateInterval === 0) {
+                    updateDynamicText(textConfig);
+                }
             }
         }
-    }, 40);
-
+    });
     // Interval to retry spawning texts in unloaded chunks
     system.runInterval(() => {
         if (unloadedChunkQueue.size > 0) {
@@ -97,27 +105,23 @@ function spawnText(textConfig) {
 }
 
 
-function updateDynamicTexts() {
-    for (const textConfig of floatingTexts.values()) {
-        if (textConfig.isDynamic) {
-            try {
-                // Perform a live query to get a fresh entity reference every time.
-                const dimension = world.getDimension(textConfig.dimension);
-                const query = { type: 'addonexe:floating_text', tags: [`ft_${textConfig.id}`] };
-                const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+function updateDynamicText(textConfig) {
+    try {
+        // Perform a live query to get a fresh entity reference every time.
+        const dimension = world.getDimension(textConfig.dimension);
+        const query = { type: 'addonexe:floating_text', tags: [`ft_${textConfig.id}`] };
+        const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
 
-                if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-                    const newText = getUpdatedText(textConfig);
-                    if (entity.nameTag !== newText) {
-                        entity.nameTag = newText;
-                    }
-                }
-            } catch (e) {
-                // This can happen if the dimension is not loaded, but it's not critical.
-                // We can just skip this update cycle for this entity.
-                debugLog(`[FloatingText] Could not update dynamic text for ID ${textConfig.id}: ${e.message}`);
+        if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+            const newText = getUpdatedText(textConfig);
+            if (entity.nameTag !== newText) {
+                entity.nameTag = newText;
             }
         }
+    } catch (e) {
+        // This can happen if the dimension is not loaded, but it's not critical.
+        // We can just skip this update cycle for this entity.
+        debugLog(`[FloatingText] Could not update dynamic text for ID ${textConfig.id}: ${e.message}`);
     }
 }
 
@@ -178,8 +182,7 @@ function createText(player, id, text) {
             z: Math.round(player.location.z * 100) / 100
         },
         dimension: player.dimension.id,
-        isDynamic: text.includes('{'),
-        updateInterval: 100,
+        updateInterval: 0,
         expiresAt: null
     };
 
