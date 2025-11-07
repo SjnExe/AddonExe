@@ -786,10 +786,7 @@ export async function buildPanelForm(player, panelId, context) {
                 .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
                 .dropdown('Update Interval', intervalLabels, { defaultValueIndex: defaultIntervalIndex })
                 .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
-                .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' })
-                .toggle('Snap Rotation (face player)', { defaultValue: text.snapRotation ?? false })
-                .toggle('Hover Animation (bob up/down)', { defaultValue: text.hover ?? false })
-                .toggle('Sway Animation (move side to side)', { defaultValue: text.sway ?? false });
+                .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' });
             return form;
         }
 

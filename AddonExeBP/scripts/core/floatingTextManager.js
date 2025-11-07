@@ -5,7 +5,27 @@ import { resolvePlaceholders } from './placeholderManager.js';
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
 const pendingDespawns = new Map(); // Map<textId, timeoutId>
+const updateTimeouts = new Map(); // Map<textId, timeoutId>
 const unloadedChunkQueue = new Set(); // Set of textIds that failed to spawn
+
+function scheduleNextUpdate(textConfig) {
+    // If a timeout already exists for this text, clear it before scheduling a new one.
+    if (updateTimeouts.has(textConfig.id)) {
+        system.clearTimeout(updateTimeouts.get(textConfig.id));
+        updateTimeouts.delete(textConfig.id);
+    }
+
+    // Only schedule an update if the interval is valid and the text has placeholders.
+    const interval = textConfig.updateInterval ?? 0;
+    if (interval > 0 && textConfig.text.includes('{')) {
+        const timeoutId = system.runTimeout(() => {
+            updateDynamicText(textConfig);
+            // After the update, schedule the next one.
+            scheduleNextUpdate(textConfig);
+        }, interval);
+        updateTimeouts.set(textConfig.id, timeoutId);
+    }
+}
 
 function loadTexts() {
     try {
@@ -35,27 +55,23 @@ function saveTexts() {
 function initialize() {
     loadTexts();
     spawnAllTexts();
-    // A single master interval that runs every tick.
+
+    // Set up initial update schedules for all texts.
+    for (const textConfig of floatingTexts.values()) {
+        scheduleNextUpdate(textConfig);
+    }
+
+    // Interval to check for expired texts
     system.runInterval(() => {
-        const currentTick = system.currentTick;
-        // Also check for expired texts
         const now = Date.now();
         for (const [id, textConfig] of floatingTexts.entries()) {
             if (textConfig.expiresAt && now >= textConfig.expiresAt) {
-                deleteText(null, id); // No player context for automatic deletion
+                deleteText(null, id);
                 debugLog(`[FloatingText] Expired and removed text with ID: ${id}`);
-                continue; // Skip to next text since this one is gone
-            }
-            // If the text has a valid interval and contains a placeholder, check if it's time to update.
-            const updateInterval = textConfig.updateInterval ?? 0;
-            if (updateInterval > 0 && textConfig.text.includes('{')) {
-                // Use modulo to check if the current tick is a multiple of the interval.
-                if (currentTick % updateInterval === 0) {
-                    updateDynamicText(textConfig);
-                }
             }
         }
-    });
+    }, 200); // Check every 10 seconds
+
     // Interval to retry spawning texts in unloaded chunks
     system.runInterval(() => {
         if (unloadedChunkQueue.size > 0) {
@@ -64,12 +80,11 @@ function initialize() {
                 if (textConfig) {
                     spawnText(textConfig);
                 } else {
-                    // If the config was deleted, remove it from the queue
                     unloadedChunkQueue.delete(textId);
                 }
             }
         }
-    }, 200); // Retry every 10 seconds
+    }, 200);
 }
 
 function spawnAllTexts() {
@@ -87,7 +102,7 @@ function spawnText(textConfig) {
         dimension.runCommand(`kill @e[type=addonexe:floating_text,tag="ft_${textConfig.id}"]`);
 
         const entity = dimension.spawnEntity('addonexe:floating_text', textConfig.location);
-        entity.nameTag = resolvePlaceholders(textConfig.text);
+        entity.nameTag = resolvePlaceholders(textConfig.text).replace(/\\n/g, '\n');
         entity.addTag(`ft_${textConfig.id}`);
 
         // If it was in the queue, remove it now that it's spawned.
@@ -113,7 +128,7 @@ function updateDynamicText(textConfig) {
         const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
 
         if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-            const newText = getUpdatedText(textConfig);
+            const newText = getUpdatedText(textConfig).replace(/\\n/g, '\n');
             if (entity.nameTag !== newText) {
                 entity.nameTag = newText;
             }
@@ -161,6 +176,10 @@ async function updateText(id, updates) {
     floatingTexts.set(id, textConfig);
     saveTexts();
 
+    // Schedule the next update based on the new configuration.
+    // This will clear any old timeout and create a new one if necessary.
+    scheduleNextUpdate(textConfig);
+
     // Spawn a new entity after a delay long enough for the async despawn to complete.
     system.runTimeout(() => {
         spawnText(textConfig);
@@ -189,6 +208,7 @@ function createText(player, id, text) {
     floatingTexts.set(id, newTextConfig);
     saveTexts();
     spawnText(newTextConfig);
+    scheduleNextUpdate(newTextConfig); // Schedule its first update
     player.sendMessage(`§aSuccessfully created floating text with ID "${id}".`);
     return true;
 }
@@ -260,6 +280,12 @@ async function deleteText(player, id) {
             player.sendMessage(`§cFloating text with ID "${id}" not found.`);
         }
         return;
+    }
+
+    // Stop any scheduled updates for this text.
+    if (updateTimeouts.has(id)) {
+        system.clearTimeout(updateTimeouts.get(id));
+        updateTimeouts.delete(id);
     }
 
     await despawnText(id);
