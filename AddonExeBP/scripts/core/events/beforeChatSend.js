@@ -23,7 +23,7 @@ function handleChatSend(eventData) {
     if (wasCommand) { return; }
 
     eventData.cancel = true;
-    const pData = playerDataManager.getPlayer(player.id);
+    const pData = playerDataManager.getOrCreatePlayer(player);
     if (!pData) {
         world.sendMessage(`§7${player.name}§r: ${eventData.message}`);
         return;

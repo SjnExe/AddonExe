@@ -1,5 +1,5 @@
 import { ItemStack, ItemTypes, EnchantmentTypes } from '@minecraft/server';
-import { getBalance, incrementPlayerBalance } from './playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from './playerDataManager.js';
 import { getShopConfig } from './configurations.js';
 import { items as allItems } from './itemsConfig.js';
 import { errorLog } from './logger.js';
@@ -87,10 +87,10 @@ export function buyItem(player, itemId, quantity) {
         return { success: false, message: '§cThis item cannot be purchased.' };
     }
 
+    const pData = getOrCreatePlayer(player);
     const initialCost = buyPrice * quantity;
-    const playerBalance = getBalance(player.id);
 
-    if (playerBalance < initialCost) {
+    if (pData.balance < initialCost) {
         return { success: false, message: `§cInsufficient funds. You need §e${formatCurrency(initialCost)}§c to attempt this purchase.` };
     }
 

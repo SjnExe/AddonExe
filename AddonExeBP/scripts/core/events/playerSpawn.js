@@ -62,7 +62,7 @@ async function handlePlayerSpawn(event) {
         const freshPlayer = world.getAllPlayers().find(p => p.id === player.id);
         if (!freshPlayer) { return; }
 
-        const freshPData = playerDataManager.getPlayer(player.id);
+        const freshPData = playerDataManager.getOrCreatePlayer(freshPlayer);
 
         if (freshPData && freshPData.lastDeathLocation && !freshPData.deathNotificationSent) {
             const location = freshPData.lastDeathLocation;

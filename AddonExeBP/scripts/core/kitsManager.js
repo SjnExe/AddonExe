@@ -1,5 +1,5 @@
 import { ItemStack } from '@minecraft/server';
-import { getPlayer, setKitCooldown, getBalance, incrementPlayerBalance } from './playerDataManager.js';
+import { getOrCreatePlayer, setKitCooldown, incrementPlayerBalance } from './playerDataManager.js';
 import { getConfig } from './configManager.js';
 import { getKitsConfig } from './configurations.js';
 import { errorLog } from './logger.js';
@@ -30,7 +30,7 @@ export function listKits(player) {
         return [];
     }
 
-    const pData = getPlayer(player.id);
+    const pData = getOrCreatePlayer(player);
     if (!pData) { return []; }
 
     const kitDefs = kitsConfig.kitDefinitions;
@@ -59,7 +59,7 @@ export function listKits(player) {
  * @returns {number} The remaining cooldown in seconds, or 0 if available.
  */
 export function getKitCooldown(player, kitName) {
-    const pData = getPlayer(player.id);
+    const pData = getOrCreatePlayer(player);
     if (!pData) { return 0; }
 
     const cooldownExpiry = pData.kitCooldowns[kitName.toLowerCase()];
@@ -96,7 +96,7 @@ export function giveKit(player, kitName) {
         return { success: false, message: `Kit '${kitName}' is currently disabled.` };
     }
 
-    const pData = getPlayer(player.id);
+    const pData = getOrCreatePlayer(player);
     if (!pData) {
         return { success: false, message: 'Could not find your player data.' };
     }
@@ -114,8 +114,7 @@ export function giveKit(player, kitName) {
 
     // Check for price
     if (kit.price && kit.price > 0) {
-        const balance = getBalance(player.id);
-        if (balance < kit.price) {
+        if (pData.balance < kit.price) {
             return { success: false, message: `You cannot afford this kit. It costs $${kit.price}.` };
         }
     }

@@ -1,6 +1,6 @@
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
-import { getPlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
+import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
 import { getConfig } from '../configManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import * as rankManager from '../rankManager.js';
@@ -69,7 +69,7 @@ export function getMenuItems(panelDef, permissionLevel) {
 function addPanelBody(form, player, panelId, context) {
     const config = getConfig();
     if (panelId === 'myStatsPanel') {
-        const pData = getPlayer(player.id);
+        const pData = getOrCreatePlayer(player);
         const rank = rankManager.getPlayerRank(player, config);
         if (!pData || !rank) {
             form.body('§cCould not retrieve your stats.');
