@@ -1,4 +1,4 @@
-import { getPlayer, setPlayerHome as setPlayerDataHome, deletePlayerHome as deletePlayerDataHome } from './playerDataManager.js';
+import { getOrCreatePlayer, setPlayerHome as setPlayerDataHome, deletePlayerHome as deletePlayerDataHome } from './playerDataManager.js';
 import { getConfig } from './configManager.js';
 
 /**
@@ -8,7 +8,7 @@ import { getConfig } from './configManager.js';
  * @returns {{success: boolean, message: string}}
  */
 export function setHome(player, homeName) {
-    const pData = getPlayer(player.id);
+    const pData = getOrCreatePlayer(player);
     if (!pData) {
         return { success: false, message: 'Could not find your player data.' };
     }
@@ -50,7 +50,7 @@ export function setHome(player, homeName) {
  * @returns {import('./playerDataManager.js').HomeLocation | null}
  */
 export function getHome(player, homeName) {
-    const pData = getPlayer(player.id);
+    const pData = getOrCreatePlayer(player);
     if (!pData) {return null;}
     return pData.homes[homeName.toLowerCase()] || null;
 }
@@ -62,7 +62,7 @@ export function getHome(player, homeName) {
  * @returns {{success: boolean, message: string}}
  */
 export function deleteHome(player, homeName) {
-    const pData = getPlayer(player.id);
+    const pData = getOrCreatePlayer(player);
     if (!pData) {
         return { success: false, message: 'Could not find your player data.' };
     }
@@ -83,7 +83,7 @@ export function deleteHome(player, homeName) {
  * @returns {string[]} An array of home names.
  */
 export function listHomes(player) {
-    const pData = getPlayer(player.id);
+    const pData = getOrCreatePlayer(player);
     if (!pData) {return [];}
     return Object.keys(pData.homes);
 }
@@ -94,7 +94,7 @@ export function listHomes(player) {
  * @returns {number}
  */
 export function getHomeCount(player) {
-    const pData = getPlayer(player.id);
+    const pData = getOrCreatePlayer(player);
     if (!pData) {return 0;}
     return Object.keys(pData.homes).length;
 }

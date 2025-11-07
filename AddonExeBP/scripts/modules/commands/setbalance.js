@@ -1,5 +1,5 @@
 import { commandManager } from './commandManager.js';
-import { getBalance, setPlayerBalance, incrementPlayerBalance } from '../../core/playerDataManager.js';
+import { getOrCreatePlayer, setPlayerBalance, incrementPlayerBalance } from '../../core/playerDataManager.js';
 import { sendMessage } from '../../core/messaging.js';
 import { formatCurrency } from '../../core/utils.js';
 
@@ -76,8 +76,8 @@ commandManager.register({
         }
 
         incrementPlayerBalance(targetPlayer.id, amount);
-        const newBalance = getBalance(targetPlayer.id);
-        sendMessage(`§aSuccessfully added §e${formatCurrency(amount)}§a to ${targetPlayer.name}'s balance. New balance: §e${formatCurrency(newBalance)}§a.`, player);
+        const pData = getOrCreatePlayer(targetPlayer);
+        sendMessage(`§aSuccessfully added §e${formatCurrency(amount)}§a to ${targetPlayer.name}'s balance. New balance: §e${formatCurrency(pData.balance)}§a.`, player);
         sendMessage(`§aAn administrator has added §e${formatCurrency(amount)}§a to your balance.`, targetPlayer);
     }
 });
@@ -115,15 +115,15 @@ commandManager.register({
             return;
         }
 
-        const currentBalance = getBalance(targetPlayer.id);
-        if (currentBalance < amount) {
-            sendMessage(`§cCannot remove §e${formatCurrency(amount)}§c. ${targetPlayer.name}'s balance is only §e${formatCurrency(currentBalance)}§c.`, player);
+        const pData = getOrCreatePlayer(targetPlayer);
+        if (pData.balance < amount) {
+            sendMessage(`§cCannot remove §e${formatCurrency(amount)}§c. ${targetPlayer.name}'s balance is only §e${formatCurrency(pData.balance)}§c.`, player);
             return;
         }
 
         incrementPlayerBalance(targetPlayer.id, -amount);
-        const newBalance = getBalance(targetPlayer.id);
-        sendMessage(`§aSuccessfully removed §e${formatCurrency(amount)}§a from ${targetPlayer.name}'s balance. New balance: §e${formatCurrency(newBalance)}§a.`, player);
+        const newPData = getOrCreatePlayer(targetPlayer);
+        sendMessage(`§aSuccessfully removed §e${formatCurrency(amount)}§a from ${targetPlayer.name}'s balance. New balance: §e${formatCurrency(newPData.balance)}§a.`, player);
         sendMessage(`§cAn administrator has removed §e${formatCurrency(amount)}§c from your balance.`, targetPlayer);
     }
 });

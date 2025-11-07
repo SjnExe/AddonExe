@@ -26,7 +26,7 @@ import './mobDeathEvents.js';
  * @param {import('@minecraft/server').Player} player The player to check.
  */
 export function updatePlayerRank(player) {
-    const pData = playerDataManager.getPlayer(player.id);
+    const pData = playerDataManager.getOrCreatePlayer(player);
     if (!pData) { return; }
 
     const config = getConfig();

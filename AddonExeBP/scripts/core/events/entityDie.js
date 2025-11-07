@@ -1,5 +1,5 @@
 import { world } from '@minecraft/server';
-import { getPlayer, setPlayerLastDeathLocation, incrementPlayerBalance } from '../playerDataManager.js';
+import { getOrCreatePlayer, setPlayerLastDeathLocation, incrementPlayerBalance } from '../playerDataManager.js';
 import * as lastHitManager from '../lastHitManager.js';
 import * as playerCache from '../playerCache.js';
 import * as bountyManager from '../bountyManager.js';
@@ -19,7 +19,7 @@ function handleEntityDie(event) {
     const config = getConfig();
 
     if (config.playerInfo.enableDeathCoords) {
-        const pData = getPlayer(deadPlayer.id);
+        const pData = getOrCreatePlayer(deadPlayer);
         if (pData) {
             const deathLocation = {
                 x: deadPlayer.location.x,

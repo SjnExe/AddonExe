@@ -1,6 +1,6 @@
 import { world } from '@minecraft/server';
 import { getXrayConfig } from '../../core/configurations.js';
-import { getPlayer } from '../../core/playerDataManager.js';
+import { getOrCreatePlayer } from '../../core/playerDataManager.js';
 import { getAllPlayersFromCache } from '../../core/playerCache.js';
 import { sendMessage } from '../../core/messaging.js';
 import { warnLog } from '../../core/logger.js';
@@ -59,7 +59,7 @@ function handleBlockBreak(event) {
         // Send a private message to all staff who have notifications enabled.
         const onlinePlayers = getAllPlayersFromCache();
         for (const onlinePlayer of onlinePlayers) {
-            const pData = getPlayer(onlinePlayer.id);
+            const pData = getOrCreatePlayer(onlinePlayer);
             if (pData && pData.permissionLevel <= 2 && pData.xrayNotificationsEnabled) {
                 sendMessage(message, onlinePlayer);
             }

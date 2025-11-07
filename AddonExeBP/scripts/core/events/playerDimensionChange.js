@@ -25,7 +25,7 @@ function handlePlayerDimensionChange(event) {
     }
 
     if (config.dimensionLock?.allowAdminBypass) {
-        const pData = playerDataManager.getPlayer(player.id);
+        const pData = playerDataManager.getOrCreatePlayer(player);
         if (pData && pData.permissionLevel <= 1) {
             debugLog(`[DimensionLock] Allowing admin ${player.name} to enter locked ${dimensionId} dimension.`);
             return;
