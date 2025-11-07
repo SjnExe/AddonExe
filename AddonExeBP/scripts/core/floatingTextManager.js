@@ -4,7 +4,6 @@ import { resolvePlaceholders } from './placeholderManager.js';
 
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
-const activeEntities = new Map(); // Map<textId, entity>
 const pendingDespawns = new Map(); // Map<textId, timeoutId>
 const unloadedChunkQueue = new Set(); // Set of textIds that failed to spawn
 
@@ -72,18 +71,17 @@ function spawnAllTexts() {
 }
 
 function spawnText(textConfig) {
-    // If it's already active, don't try to spawn it again.
-    if (activeEntities.has(textConfig.id)) {
-        return;
-    }
-
     try {
         const dimension = world.getDimension(textConfig.dimension);
+        // We need to ensure no duplicate entities exist, since we no longer have a cache.
+        // A quick kill command is the most reliable way to clean up any potential strays
+        // before spawning a new one.
+        dimension.runCommand(`kill @e[type=addonexe:floating_text,tag="ft_${textConfig.id}"]`);
+
         const entity = dimension.spawnEntity('addonexe:floating_text', textConfig.location);
         entity.nameTag = textConfig.text;
         entity.addTag(`ft_${textConfig.id}`);
 
-        activeEntities.set(textConfig.id, entity);
         // If it was in the queue, remove it now that it's spawned.
         unloadedChunkQueue.delete(textConfig.id);
     } catch (error) {
@@ -102,12 +100,22 @@ function spawnText(textConfig) {
 function updateDynamicTexts() {
     for (const textConfig of floatingTexts.values()) {
         if (textConfig.isDynamic) {
-            const entity = activeEntities.get(textConfig.id);
-            if (entity && entity.isValid()) {
-                const newText = getUpdatedText(textConfig);
-                if (entity.nameTag !== newText) {
-                    entity.nameTag = newText;
+            try {
+                // Perform a live query to get a fresh entity reference every time.
+                const dimension = world.getDimension(textConfig.dimension);
+                const query = { type: 'addonexe:floating_text', tags: [`ft_${textConfig.id}`] };
+                const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+
+                if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+                    const newText = getUpdatedText(textConfig);
+                    if (entity.nameTag !== newText) {
+                        entity.nameTag = newText;
+                    }
                 }
+            } catch (e) {
+                // This can happen if the dimension is not loaded, but it's not critical.
+                // We can just skip this update cycle for this entity.
+                debugLog(`[FloatingText] Could not update dynamic text for ID ${textConfig.id}: ${e.message}`);
             }
         }
     }
@@ -183,49 +191,33 @@ function createText(player, id, text) {
 }
 
 async function despawnText(id) {
-    // 1. Clean up internal script state to prevent respawns
+    // Clean up internal script state to prevent respawns.
     if (pendingDespawns.has(id)) {
         system.clearTimeout(pendingDespawns.get(id));
         pendingDespawns.delete(id);
     }
     unloadedChunkQueue.delete(id);
 
-    // 2. Try to use the cached entity reference first (fastest method)
-    const cachedEntity = activeEntities.get(id);
-    if (cachedEntity && typeof cachedEntity.isValid === 'function' && cachedEntity.isValid()) {
-        try {
-            cachedEntity.remove();
-            activeEntities.delete(id); // Clean up cache on success
-            return; // Success!
-        } catch (e) {
-            errorLog(`[FloatingText] Error using cached entity.remove() for ID: ${id}.`, e);
-            // Proceed to next methods
-        }
-    }
-    // If we are here, the cached entity was stale, invalid, or didn't exist.
-    // In any case, we should remove it from the map.
-    activeEntities.delete(id);
-
-
     const textConfig = getTextById(id);
     if (!textConfig) { return; } // No config, nothing more to do.
 
-    // 3. Fallback to a live world query (for loaded entities with stale references)
+    // Always attempt a live query first. This is the most reliable way to find a loaded entity.
     try {
         const dimension = world.getDimension(textConfig.dimension);
         const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
-        const freshEntity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+        const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
 
-        if (freshEntity && typeof freshEntity.isValid === 'function' && freshEntity.isValid()) {
-            freshEntity.remove();
-            return; // Success!
+        if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+            entity.remove();
+            return; // Success! Entity was found and removed.
         }
     } catch (e) {
-        errorLog(`[FloatingText] Error during live query despawn for ID: ${id}.`, e);
-        // Proceed to final fallback
+        errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, e);
+        // Proceed to the command fallback.
     }
 
-    // 4. Final fallback: Use the kill command (for unloaded chunks or other failures)
+    // If the query fails or finds nothing, fall back to the kill command.
+    // This is essential for removing entities in unloaded chunks.
     try {
         const dimension = world.getDimension(textConfig.dimension);
         const command = `kill @e[type=addonexe:floating_text,tag="ft_${id}"]`;
