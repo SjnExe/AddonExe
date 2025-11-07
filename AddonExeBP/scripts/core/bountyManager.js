@@ -86,7 +86,7 @@ export function setBounty(playerId, amount) {
         return;
     }
 
-    const pData = playerDataManager.getPlayer(playerId);
+    const pData = playerDataManager.loadPlayerData(playerId);
     if (!pData) {
         errorLog(`[BountyManager] Cannot set bounty for unknown player ID: ${playerId}`);
         return;

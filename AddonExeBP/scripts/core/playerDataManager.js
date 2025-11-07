@@ -23,6 +23,7 @@
  */
 
 import { getConfig } from './configManager.js';
+import { getEconomyConfig } from './configurations.js';
 import { world, system } from '@minecraft/server';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
@@ -216,12 +217,13 @@ export function getOrCreatePlayer(player) {
     }
 
     const config = getConfig();
+    const economyConfig = getEconomyConfig();
     const newPlayerData = {
         name: player.name,
         ...defaultPlayerData,
         rankId: config.playerDefaults.rankId,
         permissionLevel: config.playerDefaults.permissionLevel,
-        balance: config.economy.startingBalance,
+        balance: economyConfig.startingBalance,
         xrayNotificationsEnabled: config.playerDefaults.xrayNotificationsEnabled,
         homes: {},
         kitCooldowns: {},

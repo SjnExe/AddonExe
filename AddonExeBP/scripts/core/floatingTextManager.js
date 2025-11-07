@@ -79,7 +79,7 @@ function spawnText(textConfig) {
         dimension.runCommand(`kill @e[type=addonexe:floating_text,tag="ft_${textConfig.id}"]`);
 
         const entity = dimension.spawnEntity('addonexe:floating_text', textConfig.location);
-        entity.nameTag = textConfig.text;
+        entity.nameTag = resolvePlaceholders(textConfig.text);
         entity.addTag(`ft_${textConfig.id}`);
 
         // If it was in the queue, remove it now that it's spawned.

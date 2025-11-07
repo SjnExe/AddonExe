@@ -1,13 +1,12 @@
 import { world } from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
-import { getPlayer } from '../playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '../playerDataManager.js';
 import * as utils from '../utils.js';
 import { formatCurrency } from '../utils.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import * as reportManager from '../reportManager.js';
 import * as bountyManager from '../bountyManager.js';
-import { getBalance, incrementPlayerBalance } from '../playerDataManager.js';
 import * as tpaManager from '../tpaManager.js';
 import * as playerCache from '../playerCache.js';
 import { kickPlayer } from '../../modules/commands/kick.js';
@@ -20,7 +19,7 @@ import { getConfig } from '../configManager.js';
 export const uiActionFunctions = {
     showRules: async (player) => {
         const rules = rulesManager.getRules();
-        const pData = getPlayer(player.id);
+        const pData = getOrCreatePlayer(player);
 
         const rulesForm = new ActionFormData()
             .title('§l§6Server Rules')
@@ -43,7 +42,7 @@ export const uiActionFunctions = {
 
     showHelpfulLinks: async (player) => {
         const links = helpfulLinksManager.getHelpfulLinks();
-        const pData = getPlayer(player.id);
+        const pData = getOrCreatePlayer(player);
 
         const form = new ActionFormData()
             .title('§l§9Helpful Links');
@@ -260,7 +259,8 @@ export const uiActionFunctions = {
                 player.sendMessage(`§cInvalid amount. The minimum bounty is ${formatCurrency(config.bounties.minimumBounty)}.`);
                 return true;
             }
-            if (getBalance(player.id) < amount) {
+            const pData = getOrCreatePlayer(player);
+            if (pData.balance < amount) {
                 player.sendMessage('§cYou do not have enough money for this bounty.');
                 return true;
             }
@@ -320,7 +320,8 @@ export const uiActionFunctions = {
                 return true;
             }
 
-            if (getBalance(player.id) < amount) {
+            const pData = getOrCreatePlayer(player);
+            if (pData.balance < amount) {
                 player.sendMessage('§cYou dont have enough money for this!');
                 return true;
             }

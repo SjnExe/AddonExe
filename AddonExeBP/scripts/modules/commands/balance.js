@@ -1,5 +1,5 @@
 import { commandManager } from './commandManager.js';
-import { getBalance, getLeaderboard } from '../../core/playerDataManager.js';
+import { getOrCreatePlayer, getLeaderboard } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { sendMessage } from '../../core/messaging.js';
 import { formatCurrency } from '../../core/utils.js';
@@ -37,7 +37,8 @@ commandManager.register({
             targetPlayer = args.target[0];
         }
 
-        const balance = getBalance(targetPlayer.id);
+        const pData = getOrCreatePlayer(targetPlayer);
+        const balance = pData.balance;
 
         if (balance === null) {
             sendMessage(`§cCould not retrieve balance for ${targetPlayer.name}.`, player);

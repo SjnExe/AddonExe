@@ -1,6 +1,6 @@
 import { commandManager } from './commandManager.js';
 import * as bountyManager from '../../core/bountyManager.js';
-import { getPlayer, getBalance, incrementPlayerBalance } from '../../core/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { world } from '@minecraft/server';
 import { findPlayerByName } from '../../core/playerCache.js';
@@ -39,7 +39,8 @@ commandManager.register({
             return;
         }
 
-        if (getBalance(player.id) < amount) {
+        const pData = getOrCreatePlayer(player);
+        if (pData.balance < amount) {
             player.sendMessage('§cYou dont have enough money for this!');
             return;
         }
@@ -65,13 +66,14 @@ function placeBounty(player, targetPlayer, amount) {
         return;
     }
 
-    if (getBalance(player.id) < amount) {
+    const pData = getOrCreatePlayer(player);
+    if (pData.balance < amount) {
         player.sendMessage('§cYou do not have enough money for this bounty.');
         return;
     }
 
     // Ensure the target player has data, which is needed by the bounty manager
-    const targetData = getPlayer(targetPlayer.id);
+    const targetData = getOrCreatePlayer(targetPlayer);
     if (!targetData) {
         player.sendMessage('§cCould not find the target player\'s data. They may need to join the server first.');
         return;
