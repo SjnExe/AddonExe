@@ -106,7 +106,7 @@ export async function handleFormResponse(player, panelId, response, context) {
             }
         } catch (error) {
             errorLog(`[UIManager] Error in floatingTextActionPanel for ID '${id}':`, error);
-            player.sendMessage("§cAn error occurred. Please check the logs.");
+            player.sendMessage('§cAn error occurred. Please check the logs.');
         }
         // Always refresh the list panel, even on error or 'Back'
         return showPanel(player, 'floatingTextListPanel', context);

@@ -547,7 +547,7 @@ export function registerPlayerDataPlaceholders() {
             }
 
             const playerData = leaderboard[index];
-            if (!playerData) return 'N/A';
+            if (!playerData) {return 'N/A';}
 
             if (valueKey === 'name') {
                 return playerData.name;
