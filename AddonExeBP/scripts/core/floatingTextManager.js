@@ -3,9 +3,9 @@ import { errorLog, debugLog } from './logger.js';
 import { resolvePlaceholders } from './placeholderManager.js';
 
 // Cache stable references to system functions to prevent context loss in async operations.
-// Using .bind() is the most robust way to ensure the 'this' context is always correct.
-const runTimeout = system.runTimeout.bind(system);
-const clearTimeout = system.clearTimeout.bind(system);
+// We will define these later, inside the initialize function, to avoid race conditions.
+let runTimeout;
+let clearTimeout;
 
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
@@ -58,6 +58,10 @@ function saveTexts() {
 }
 
 function initialize() {
+    // Bind system functions now that we know the API is initialized.
+    runTimeout = system.runTimeout.bind(system);
+    clearTimeout = system.clearTimeout.bind(system);
+
     loadTexts();
     spawnAllTexts();
 
