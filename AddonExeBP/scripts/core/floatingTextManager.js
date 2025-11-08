@@ -79,30 +79,46 @@ function initialize() {
         scheduleNextUpdate(textConfig);
     }
 
-    // Interval to check for expired texts
-    expirationIntervalId = runInterval(() => {
-        const now = Date.now();
-        for (const [id, textConfig] of floatingTexts.entries()) {
-            if (textConfig.expiresAt && now >= textConfig.expiresAt) {
-                deleteText(null, id);
-                debugLog(`[FloatingText] Expired and removed text with ID: ${id}`);
-            }
-        }
-    }, 200); // Check every 10 seconds
+    // Start the self-rescheduling loops
+    runExpirationLoop();
+    runRetrySpawnLoop();
+}
 
-    // Interval to retry spawning texts in unloaded chunks
-    retrySpawnIntervalId = runInterval(() => {
-        if (unloadedChunkQueue.size > 0) {
-            for (const textId of unloadedChunkQueue) {
-                const textConfig = floatingTexts.get(textId);
-                if (textConfig) {
-                    spawnText(textConfig);
-                } else {
-                    unloadedChunkQueue.delete(textId);
-                }
+/**
+ * A self-rescheduling loop that periodically checks for and removes expired floating texts.
+ * This is a more robust pattern than using system.runInterval.
+ */
+function runExpirationLoop() {
+    // Check for expired texts
+    const now = Date.now();
+    for (const [id, textConfig] of floatingTexts.entries()) {
+        if (textConfig.expiresAt && now >= textConfig.expiresAt) {
+            deleteText(null, id);
+            debugLog(`[FloatingText] Expired and removed text with ID: ${id}`);
+        }
+    }
+
+    // Schedule the next check
+    expirationIntervalId = runTimeout(runExpirationLoop, 200); // Check every 10 seconds
+}
+
+/**
+ * A self-rescheduling loop that periodically retries spawning texts in unloaded chunks.
+ */
+function runRetrySpawnLoop() {
+    if (unloadedChunkQueue.size > 0) {
+        for (const textId of unloadedChunkQueue) {
+            const textConfig = floatingTexts.get(textId);
+            if (textConfig) {
+                spawnText(textConfig);
+            } else {
+                unloadedChunkQueue.delete(textId);
             }
         }
-    }, 200);
+    }
+
+    // Schedule the next retry
+    retrySpawnIntervalId = runTimeout(runRetrySpawnLoop, 200);
 }
 
 function spawnAllTexts() {
@@ -345,11 +361,11 @@ function cleanup() {
 
     // Clear main interval loops
     if (expirationIntervalId) {
-        clearInterval(expirationIntervalId);
+        clearTimeout(expirationIntervalId);
         expirationIntervalId = undefined; // Use undefined to signify it's cleared
     }
     if (retrySpawnIntervalId) {
-        clearInterval(retrySpawnIntervalId);
+        clearTimeout(retrySpawnIntervalId);
         retrySpawnIntervalId = undefined;
     }
 
