@@ -178,6 +178,7 @@ function cleanupAddon() {
     // This is crucial for debugging script unload.
     // eslint-disable-next-line no-console
     console.log('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
+    floatingTextManager.cleanup();
     cleanupPlayerDataManager();
     cleanupEventManager();
     cleanupTimers();

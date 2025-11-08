@@ -6,12 +6,18 @@ import { resolvePlaceholders } from './placeholderManager.js';
 // We will define these later, inside the initialize function, to avoid race conditions.
 let runTimeout;
 let clearTimeout;
+let runInterval;
+let clearInterval;
 
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
 const pendingDespawns = new Map(); // Map<textId, timeoutId>
 const updateTimeouts = new Map(); // Map<textId, timeoutId>
 const unloadedChunkQueue = new Set(); // Set of textIds that failed to spawn
+
+// Track the IDs of the main interval loops for cleanup
+let expirationIntervalId;
+let retrySpawnIntervalId;
 
 function scheduleNextUpdate(textConfig) {
     // If a timeout already exists for this text, clear it before scheduling a new one.
@@ -61,6 +67,9 @@ function initialize() {
     // Bind system functions now that we know the API is initialized.
     runTimeout = system.runTimeout.bind(system);
     clearTimeout = system.clearTimeout.bind(system);
+    runInterval = system.runInterval.bind(system);
+    clearInterval = system.clearInterval.bind(system);
+
 
     loadTexts();
     spawnAllTexts();
@@ -71,7 +80,7 @@ function initialize() {
     }
 
     // Interval to check for expired texts
-    system.runInterval(() => {
+    expirationIntervalId = runInterval(() => {
         const now = Date.now();
         for (const [id, textConfig] of floatingTexts.entries()) {
             if (textConfig.expiresAt && now >= textConfig.expiresAt) {
@@ -82,7 +91,7 @@ function initialize() {
     }, 200); // Check every 10 seconds
 
     // Interval to retry spawning texts in unloaded chunks
-    system.runInterval(() => {
+    retrySpawnIntervalId = runInterval(() => {
         if (unloadedChunkQueue.size > 0) {
             for (const textId of unloadedChunkQueue) {
                 const textConfig = floatingTexts.get(textId);
@@ -331,9 +340,45 @@ function teleportToText(player, id) {
 }
 
 
+function cleanup() {
+    debugLog('[FloatingText] Cleaning up timers and intervals...');
+
+    // Clear main interval loops
+    if (expirationIntervalId) {
+        clearInterval(expirationIntervalId);
+        expirationIntervalId = undefined; // Use undefined to signify it's cleared
+    }
+    if (retrySpawnIntervalId) {
+        clearInterval(retrySpawnIntervalId);
+        retrySpawnIntervalId = undefined;
+    }
+
+    // Clear all pending update timeouts for individual texts
+    for (const timeoutId of updateTimeouts.values()) {
+        clearTimeout(timeoutId);
+    }
+    updateTimeouts.clear();
+
+    // Clear any pending despawn timeouts
+    for (const timeoutId of pendingDespawns.values()) {
+        clearTimeout(timeoutId);
+    }
+    pendingDespawns.clear();
+
+    // Clear the unloaded chunk queue to prevent retries on next load
+    unloadedChunkQueue.clear();
+
+    // Reset the main data map
+    floatingTexts.clear();
+
+    debugLog('[FloatingText] Cleanup complete.');
+}
+
+
 // Public API for the manager
 export const floatingTextManager = {
     initialize,
+    cleanup,
     createText,
     deleteText,
     listTexts,
