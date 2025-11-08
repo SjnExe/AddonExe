@@ -6,8 +6,6 @@ import { resolvePlaceholders } from './placeholderManager.js';
 // We will define these later, inside the initialize function, to avoid race conditions.
 let runTimeout;
 let clearTimeout;
-let runInterval;
-let clearInterval;
 
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
@@ -67,8 +65,6 @@ function initialize() {
     // Bind system functions now that we know the API is initialized.
     runTimeout = system.runTimeout.bind(system);
     clearTimeout = system.clearTimeout.bind(system);
-    runInterval = system.runInterval.bind(system);
-    clearInterval = system.clearInterval.bind(system);
 
 
     loadTexts();
