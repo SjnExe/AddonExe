@@ -2,10 +2,35 @@ import { world, system } from '@minecraft/server';
 import { errorLog, debugLog } from './logger.js';
 import { resolvePlaceholders } from './placeholderManager.js';
 
+// Cache stable references to system functions to prevent context loss in async operations.
+// Using .bind() is the most robust way to ensure the 'this' context is always correct.
+const runTimeout = system.runTimeout.bind(system);
+const clearTimeout = system.clearTimeout.bind(system);
+
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
 const pendingDespawns = new Map(); // Map<textId, timeoutId>
+const updateTimeouts = new Map(); // Map<textId, timeoutId>
 const unloadedChunkQueue = new Set(); // Set of textIds that failed to spawn
+
+function scheduleNextUpdate(textConfig) {
+    // If a timeout already exists for this text, clear it before scheduling a new one.
+    if (updateTimeouts.has(textConfig.id)) {
+        clearTimeout(updateTimeouts.get(textConfig.id));
+        updateTimeouts.delete(textConfig.id);
+    }
+
+    // Only schedule an update if the interval is valid and the text has placeholders.
+    const interval = textConfig.updateInterval ?? 0;
+    if (interval > 0 && textConfig.text.includes('{')) {
+        const timeoutId = runTimeout(() => {
+            updateDynamicText(textConfig);
+            // After the update, schedule the next one.
+            scheduleNextUpdate(textConfig);
+        }, interval);
+        updateTimeouts.set(textConfig.id, timeoutId);
+    }
+}
 
 function loadTexts() {
     try {
@@ -36,17 +61,21 @@ function initialize() {
     loadTexts();
     spawnAllTexts();
 
+    // Set up initial update schedules for all texts.
+    for (const textConfig of floatingTexts.values()) {
+        scheduleNextUpdate(textConfig);
+    }
+
+    // Interval to check for expired texts
     system.runInterval(() => {
-        updateDynamicTexts();
-        // Also check for expired texts
         const now = Date.now();
         for (const [id, textConfig] of floatingTexts.entries()) {
             if (textConfig.expiresAt && now >= textConfig.expiresAt) {
-                deleteText(null, id); // No player context for automatic deletion
+                deleteText(null, id);
                 debugLog(`[FloatingText] Expired and removed text with ID: ${id}`);
             }
         }
-    }, 40);
+    }, 200); // Check every 10 seconds
 
     // Interval to retry spawning texts in unloaded chunks
     system.runInterval(() => {
@@ -56,12 +85,11 @@ function initialize() {
                 if (textConfig) {
                     spawnText(textConfig);
                 } else {
-                    // If the config was deleted, remove it from the queue
                     unloadedChunkQueue.delete(textId);
                 }
             }
         }
-    }, 200); // Retry every 10 seconds
+    }, 200);
 }
 
 function spawnAllTexts() {
@@ -79,7 +107,7 @@ function spawnText(textConfig) {
         dimension.runCommand(`kill @e[type=addonexe:floating_text,tag="ft_${textConfig.id}"]`);
 
         const entity = dimension.spawnEntity('addonexe:floating_text', textConfig.location);
-        entity.nameTag = resolvePlaceholders(textConfig.text);
+        entity.nameTag = resolvePlaceholders(textConfig.text).replace(/\\n/g, '\n');
         entity.addTag(`ft_${textConfig.id}`);
 
         // If it was in the queue, remove it now that it's spawned.
@@ -97,27 +125,23 @@ function spawnText(textConfig) {
 }
 
 
-function updateDynamicTexts() {
-    for (const textConfig of floatingTexts.values()) {
-        if (textConfig.isDynamic) {
-            try {
-                // Perform a live query to get a fresh entity reference every time.
-                const dimension = world.getDimension(textConfig.dimension);
-                const query = { type: 'addonexe:floating_text', tags: [`ft_${textConfig.id}`] };
-                const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+function updateDynamicText(textConfig) {
+    try {
+        // Perform a live query to get a fresh entity reference every time.
+        const dimension = world.getDimension(textConfig.dimension);
+        const query = { type: 'addonexe:floating_text', tags: [`ft_${textConfig.id}`] };
+        const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
 
-                if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-                    const newText = getUpdatedText(textConfig);
-                    if (entity.nameTag !== newText) {
-                        entity.nameTag = newText;
-                    }
-                }
-            } catch (e) {
-                // This can happen if the dimension is not loaded, but it's not critical.
-                // We can just skip this update cycle for this entity.
-                debugLog(`[FloatingText] Could not update dynamic text for ID ${textConfig.id}: ${e.message}`);
+        if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+            const newText = getUpdatedText(textConfig).replace(/\\n/g, '\n');
+            if (entity.nameTag !== newText) {
+                entity.nameTag = newText;
             }
         }
+    } catch (e) {
+        // This can happen if the dimension is not loaded, but it's not critical.
+        // We can just skip this update cycle for this entity.
+        debugLog(`[FloatingText] Could not update dynamic text for ID ${textConfig.id}: ${e.message}`);
     }
 }
 
@@ -139,7 +163,7 @@ async function updateText(id, updates) {
 
     // Cancel any pending command-based despawn from a PREVIOUS operation
     if (pendingDespawns.has(id)) {
-        system.clearTimeout(pendingDespawns.get(id));
+        clearTimeout(pendingDespawns.get(id));
         pendingDespawns.delete(id);
         debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to update.`);
     }
@@ -157,8 +181,12 @@ async function updateText(id, updates) {
     floatingTexts.set(id, textConfig);
     saveTexts();
 
+    // Schedule the next update based on the new configuration.
+    // This will clear any old timeout and create a new one if necessary.
+    scheduleNextUpdate(textConfig);
+
     // Spawn a new entity after a delay long enough for the async despawn to complete.
-    system.runTimeout(() => {
+    runTimeout(() => {
         spawnText(textConfig);
     }, 20); // 20 ticks > 5+10 ticks used by despawnText fallback
 }
@@ -178,14 +206,14 @@ function createText(player, id, text) {
             z: Math.round(player.location.z * 100) / 100
         },
         dimension: player.dimension.id,
-        isDynamic: text.includes('{'),
-        updateInterval: 100,
+        updateInterval: 0,
         expiresAt: null
     };
 
     floatingTexts.set(id, newTextConfig);
     saveTexts();
     spawnText(newTextConfig);
+    scheduleNextUpdate(newTextConfig); // Schedule its first update
     player.sendMessage(`§aSuccessfully created floating text with ID "${id}".`);
     return true;
 }
@@ -193,7 +221,7 @@ function createText(player, id, text) {
 async function despawnText(id) {
     // Clean up internal script state to prevent respawns.
     if (pendingDespawns.has(id)) {
-        system.clearTimeout(pendingDespawns.get(id));
+        clearTimeout(pendingDespawns.get(id));
         pendingDespawns.delete(id);
     }
     unloadedChunkQueue.delete(id);
@@ -232,7 +260,7 @@ async function despawnText(id) {
 async function respawnText(id) {
     // Cancel any pending command-based despawn to prevent race conditions
     if (pendingDespawns.has(id)) {
-        system.clearTimeout(pendingDespawns.get(id));
+        clearTimeout(pendingDespawns.get(id));
         pendingDespawns.delete(id);
         debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to respawn.`);
     }
@@ -245,7 +273,7 @@ async function respawnText(id) {
             saveTexts();
         }
         await despawnText(id); // Despawn the current entity if it exists
-        system.runTimeout(() => {
+        runTimeout(() => {
             spawnText(textConfig); // Spawn the new one after a short delay
         }, 20); // 20 ticks > 5+10 ticks used by despawnText fallback
     }
@@ -257,6 +285,12 @@ async function deleteText(player, id) {
             player.sendMessage(`§cFloating text with ID "${id}" not found.`);
         }
         return;
+    }
+
+    // Stop any scheduled updates for this text.
+    if (updateTimeouts.has(id)) {
+        clearTimeout(updateTimeouts.get(id));
+        updateTimeouts.delete(id);
     }
 
     await despawnText(id);

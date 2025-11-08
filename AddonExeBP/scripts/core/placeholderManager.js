@@ -32,29 +32,28 @@ export function resolvePlaceholders(text) {
         }
 
         if (resolver) {
-            const remainingKey = key.substring(baseKey.length); // e.g., "_1", "_value_1", or ""
-            const parts = remainingKey.split('_').filter(p => p); // e.g., ["1"], ["value", "1"]
+            const remainingKey = key.substring(baseKey.length); // e.g., "1name", "12value", or ""
 
-            let index = 0;
-            let valueKey = 'name'; // Default value
+            let index = -1; // Default to -1 to indicate no valid index was parsed
+            let valueKey = '';
 
-            if (parts.length > 0) {
-                const lastPart = parts[parts.length - 1];
-                const potentialIndex = parseInt(lastPart, 10);
-
-                if (!isNaN(potentialIndex)) {
-                    index = potentialIndex - 1;
-                    if (parts.length > 1) {
-                        valueKey = parts.slice(0, -1).join('_');
-                    }
-                } else {
-                    // No index, so all parts are the value key
-                    valueKey = parts.join('_');
+            if (remainingKey === '') {
+                // This is a special case for the root placeholder, e.g., {topbal}
+                valueKey = 'list';
+            } else {
+                // Regex to capture the number and the key, e.g., "1name" -> ["1name", "1", "name"]
+                const indexedMatch = remainingKey.match(/^(\d+)([a-zA-Z]+)$/);
+                if (indexedMatch) {
+                    index = parseInt(indexedMatch[1], 10) - 1; // Convert rank to zero-based index
+                    valueKey = indexedMatch[2];
                 }
             }
 
+            // Call the resolver with the parsed components
             const result = resolver({ index, valueKey });
-            if (result === undefined || result === null) {return '';}
+            if (result === undefined || result === null) {
+                return '';
+            }
             return String(result);
         }
 

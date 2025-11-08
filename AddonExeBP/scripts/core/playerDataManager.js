@@ -28,6 +28,7 @@ import { world, system } from '@minecraft/server';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
 import { registerPlaceholder } from './placeholderManager.js';
+import { formatCurrency } from './utils.js';
 
 const playerPropertyPrefix = 'exe:player.';
 const playerNameIdMapKey = 'exe:playerNameIdMap';
@@ -517,28 +518,46 @@ export function transfer(sourcePlayerId, targetPlayerId, amount) {
 
 export function registerPlayerDataPlaceholders() {
     registerPlaceholder('topbal', ({ index, valueKey }) => {
-        // The getLeaderboard function does not take any arguments. It always returns the balance leaderboard.
+        const config = getConfig();
         const leaderboard = getLeaderboard();
+        const baltopLimit = config.economy.baltopLimit ?? 10;
 
-        // Validate leaderboard data and index
-        if (!Array.isArray(leaderboard) || index < 0 || index >= leaderboard.length) {
-            return '';
+        // Case 1: Handle the main {topbal} list placeholder
+        if (valueKey === 'list') {
+            const listLimit = Math.min(5, baltopLimit);
+            const topPlayers = leaderboard.slice(0, listLimit);
+
+            if (topPlayers.length === 0) {
+                return '§cNo players on the leaderboard yet.§r';
+            }
+
+            return topPlayers.map((player, i) => {
+                const rank = i + 1;
+                const formattedBalance = `§a${formatCurrency(player.balance)}§r`;
+                // Example: §e#1 §rSjnTech: §a$1,000.00§r
+                return `§e#${rank} §r${player.name}: ${formattedBalance}`;
+            }).join('\n');
         }
 
-        const playerData = leaderboard[index];
+        // Case 2: Handle indexed placeholders like {topbal1name} or {topbal1value}
+        if (index >= 0) {
+            // Check if the requested rank is within the configured limit and available data
+            if (index >= baltopLimit || index >= leaderboard.length) {
+                return 'N/A';
+            }
 
-        // Validate player data object
-        if (!playerData || typeof playerData !== 'object') {
-            return '';
+            const playerData = leaderboard[index];
+            if (!playerData) {return 'N/A';}
+
+            if (valueKey === 'name') {
+                return playerData.name;
+            }
+            if (valueKey === 'value') {
+                return `§a${formatCurrency(playerData.balance)}§r`;
+            }
         }
 
-        if (valueKey === 'name') {
-            return playerData.name ?? ''; // Nullish coalescing for safety
-        }
-        if (valueKey === 'value') {
-            return String(playerData.balance ?? '0'); // Nullish coalescing for safety
-        }
-
-        return '';
+        // Fallback for any unhandled or invalid format
+        return 'N/A';
     });
 }

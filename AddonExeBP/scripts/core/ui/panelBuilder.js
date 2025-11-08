@@ -764,22 +764,19 @@ export async function buildPanelForm(player, panelId, context) {
                 return null;
             }
 
-            // Ensure defaults for properties that might be missing from older configs
-            const isDynamic = text.isDynamic ?? false;
-
             // Robust handling for update interval to prevent crashes with legacy data
-            let updateIntervalInTicks = text.updateInterval ?? 100;
-            if (typeof updateIntervalInTicks !== 'number' || !Number.isFinite(updateIntervalInTicks) || updateIntervalInTicks <= 0) {
-                updateIntervalInTicks = 100; // Default to 5 seconds (100 ticks)
-            }
-            const updateIntervalInSeconds = updateIntervalInTicks / 20;
-            const sliderDefaultValue = Math.max(1, Math.min(60, updateIntervalInSeconds));
+            const updateIntervalInTicks = text.updateInterval ?? 0;
+            const intervalOptions = [0, 1, 2, 5, 10, 20, 30, 60];
+            const currentIntervalSeconds = updateIntervalInTicks / 20;
+            let defaultIntervalIndex = intervalOptions.indexOf(currentIntervalSeconds);
+            if (defaultIntervalIndex === -1) { defaultIntervalIndex = 0; } // Default to "Off"
 
             const expiresAt = text.expiresAt ?? null;
 
             const { getPlaceholderKeys } = await import('../placeholderManager.js');
             const placeholders = getPlaceholderKeys();
             const placeholderText = placeholders.length > 0 ? `\nAvailable Placeholders: {${placeholders.join('}, {')}}` : '';
+            const intervalLabels = ['Off', '1s', '2s', '5s', '10s', '20s', '30s', '60s'];
 
             const form = new ModalFormData()
                 .title(`Edit: ${id}`)
@@ -787,8 +784,7 @@ export async function buildPanelForm(player, panelId, context) {
                 .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(+(text.location?.x ?? 0).toFixed(2)) })
                 .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(+(text.location?.y ?? 0).toFixed(2)) })
                 .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
-                .toggle('Is Dynamic (use placeholders)', { defaultValue: isDynamic })
-                .slider('Update Interval (seconds)', 1, 60, { valueStep: 1, defaultValue: sliderDefaultValue })
+                .dropdown('Update Interval', intervalLabels, { defaultValueIndex: defaultIntervalIndex })
                 .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
                 .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' });
             return form;

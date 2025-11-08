@@ -132,7 +132,7 @@ export function buyItem(player, itemId, quantity) {
 
     // 3. Recalculate cost and perform final transaction
     const finalCost = buyPrice * finalQuantity;
-    if (playerBalance < finalCost) {
+    if (pData.balance < finalCost) {
         // This can happen if the adjusted quantity is still too expensive, though unlikely if the initial check passed.
         return { success: false, message: `§cInsufficient funds. You need §e${formatCurrency(finalCost)}§c to buy ${finalQuantity}.` };
     }

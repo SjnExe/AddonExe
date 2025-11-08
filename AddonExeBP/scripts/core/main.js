@@ -185,8 +185,10 @@ function cleanupAddon() {
     console.log('[AddonExe] Cleanup complete. The script will now unload.');
 }
 
-// Run the initialization logic on the next tick after the script is loaded.
-system.run(async () => {
+// Defer the entire addon initialization by one tick.
+// This is a crucial step to prevent a race condition where the script tries to access APIs
+// from @minecraft/server before they are fully initialized by the game engine.
+system.runTimeout(async () => {
     try {
         await initializeAddon();
     } catch (e) {
@@ -194,7 +196,7 @@ system.run(async () => {
         errorLog(e.stack);
         world.sendMessage('§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.');
     }
-});
+}, 0);
 
 system.afterEvents.scriptEventReceive.subscribe((event) => {
     const { id, sourceEntity } = event;
