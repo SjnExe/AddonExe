@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { getOrCreatePlayer, incrementPlayerBalance } from '../playerDataManager.js';
 import * as utils from '../utils.js';
@@ -124,7 +124,7 @@ export const uiActionFunctions = {
 
         bountyManager.removeBounty(targetPlayerId);
         player.sendMessage(`§2Successfully removed the bounty from ${targetPlayerName}.`);
-        world.sendMessage(`§2The bounty on ${targetPlayerName} has been removed!`);
+        mc.world.sendMessage(`§2The bounty on ${targetPlayerName} has been removed!`);
 
         return true;
     },
@@ -268,7 +268,7 @@ export const uiActionFunctions = {
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, amount);
             player.sendMessage(`§2You have placed a bounty of §6${formatCurrency(amount)}§2 on ${targetPlayerName}.`);
-            world.sendMessage(`§cSomeone has placed a bounty of §6${formatCurrency(amount)}§c on ${targetPlayerName}!`);
+            mc.world.sendMessage(`§cSomeone has placed a bounty of §6${formatCurrency(amount)}§c on ${targetPlayerName}!`);
         }
         return true;
     },
@@ -329,7 +329,7 @@ export const uiActionFunctions = {
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, -amount);
             player.sendMessage(`§2You have removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty.`);
-            world.sendMessage(`§2${player.name} has removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty!`);
+            mc.world.sendMessage(`§2${player.name} has removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty!`);
         }
 
         return true;

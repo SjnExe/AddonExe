@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getXrayConfig } from '../../core/configurations.js';
 import { getOrCreatePlayer } from '../../core/playerDataManager.js';
 import { getAllPlayersFromCache } from '../../core/playerCache.js';
@@ -71,5 +71,5 @@ function handleBlockBreak(event) {
 }
 
 export function initializeXrayDetection() {
-    world.afterEvents.playerBreakBlock.subscribe(handleBlockBreak);
+    mc.world.afterEvents.playerBreakBlock.subscribe(handleBlockBreak);
 }

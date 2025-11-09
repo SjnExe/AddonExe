@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { getSpawnConfig, saveSpawnConfig } from '../../core/configurations.js';
@@ -43,7 +43,7 @@ commandManager.register({
          */
         const teleportLogic = () => {
             try {
-                const dimension = world.getDimension(spawnLocation.dimensionId);
+                const dimension = mc.world.getDimension(spawnLocation.dimensionId);
                 player.teleport(spawnLocation, { dimension: dimension });
                 sendMessage('§aTeleporting you to spawn...', player);
                 playSound(player, 'random.orb');
@@ -122,14 +122,14 @@ commandManager.register({
             if (location.dimensionId === 'minecraft:overworld') {
                 try {
                     const spawnPos = { x: location.x, y: location.y, z: location.z };
-                    world.setDefaultSpawnLocation(spawnPos);
+                    mc.world.setDefaultSpawnLocation(spawnPos);
                     sendMessage('§aWorld spawn point updated successfully.', player);
                 } catch (e) {
                     errorLog(`[/setspawn] Failed to set default world spawn: ${e.stack}`);
                     sendMessage('§cError: Could not set the world spawn point. Check server logs for details.', player);
                 }
                 try {
-                    world.getDimension('minecraft:overworld').runCommand('gamerule spawnradius 1');
+                    mc.world.getDimension('minecraft:overworld').runCommand('gamerule spawnradius 1');
                     sendMessage('§aWorld spawn radius set to 1.', player);
                 } catch (e) {
                     errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${e.stack}`);

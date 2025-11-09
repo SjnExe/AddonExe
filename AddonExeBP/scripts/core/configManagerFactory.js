@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps } from './objectUtils.js';
 import { errorLog, debugLog } from './logger.js';
 
@@ -23,7 +23,7 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
 
     function saveLastLoadedConfig() {
         try {
-            world.setDynamicProperty(lastLoadedKey, JSON.stringify(lastLoadedConfig));
+            mc.world.setDynamicProperty(lastLoadedKey, JSON.stringify(lastLoadedConfig));
         } catch (e) {
             errorLog(`[${name}ConfigManager] Failed to save last loaded config.`, e);
         }
@@ -33,8 +33,8 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
         const newDefaultConfig = initialDefaultConfig;
         let isFirstInit = false;
 
-        const userSavedConfigStr = world.getDynamicProperty(key);
-        const lastLoadedConfigStr = world.getDynamicProperty(lastLoadedKey);
+        const userSavedConfigStr = mc.world.getDynamicProperty(key);
+        const lastLoadedConfigStr = mc.world.getDynamicProperty(lastLoadedKey);
 
         if (!userSavedConfigStr) {
             isFirstInit = true;
@@ -97,7 +97,7 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
 
     function saveConfig() {
         try {
-            world.setDynamicProperty(key, JSON.stringify(currentConfig));
+            mc.world.setDynamicProperty(key, JSON.stringify(currentConfig));
         } catch (e) {
             errorLog(`[${name}ConfigManager] Failed to save current config.`, e);
         }

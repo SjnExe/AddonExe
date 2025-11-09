@@ -1,4 +1,4 @@
-import { world, system } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './logger.js';
@@ -27,7 +27,7 @@ let needsSave = false;
  */
 export function loadPunishments() {
     debugLog('[PunishmentManager] Loading punishments...');
-    const dataStr = world.getDynamicProperty(punishmentDbKey);
+    const dataStr = mc.world.getDynamicProperty(punishmentDbKey);
     if (dataStr) {
         try {
             const parsedData = JSON.parse(dataStr);
@@ -67,7 +67,7 @@ function savePunishments() {
     try {
         // JSON can't stringify a Map directly, so convert to an array first.
         const dataToSave = Array.from(punishments.entries());
-        world.setDynamicProperty(punishmentDbKey, JSON.stringify(dataToSave));
+        mc.world.setDynamicProperty(punishmentDbKey, JSON.stringify(dataToSave));
         needsSave = false;
         debugLog('[PunishmentManager] Saved punishments to world properties.');
     } catch (e) {
@@ -125,7 +125,7 @@ export function removePunishment(playerId) {
  */
 export function initializePunishmentManager() {
     // Periodically clear expired punishments and save to the world
-    system.runInterval(() => {
+    mc.system.runInterval(() => {
         clearExpiredPunishments();
         savePunishments();
     }, (getConfig().data?.autoSaveIntervalSeconds ?? 30) * 20);

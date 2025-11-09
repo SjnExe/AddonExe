@@ -1,7 +1,7 @@
 import { getKitsConfig, saveKitsConfig } from './configurations.js';
 import { errorLog } from './logger.js';
 import { debugLog } from './logger.js';
-import { ItemStack } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 
 const MAX_KIT_SLOTS = 36;
 
@@ -27,7 +27,7 @@ export function addItemToKit(kitName, itemInfo) {
 
     try {
         // Use an item stack to validate the item and get its max stack size
-        const itemStack = new ItemStack(itemInfo.typeId, 1);
+        const itemStack = new mc.ItemStack(itemInfo.typeId, 1);
         const maxAmount = itemStack.maxAmount;
 
         if (itemInfo.amount > maxAmount) {
@@ -98,7 +98,7 @@ export function updateItemInKit(kitName, itemIndex, newItemInfo) {
     }
 
     try {
-        const itemStack = new ItemStack(newItemInfo.typeId, 1);
+        const itemStack = new mc.ItemStack(newItemInfo.typeId, 1);
         const maxAmount = itemStack.maxAmount;
 
         if (newItemInfo.amount > maxAmount) {

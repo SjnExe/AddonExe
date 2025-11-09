@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
 import { commandManager } from './commandManager.js';
 import { errorLog } from '../../core/logger.js';
@@ -42,7 +42,7 @@ commandManager.register({
             const warmupSeconds = config.homes.teleportWarmupSeconds;
             const teleportLogic = () => {
                 try {
-                    player.teleport(homeLocation, { dimension: world.getDimension(homeLocation.dimensionId) });
+                    player.teleport(homeLocation, { dimension: mc.world.getDimension(homeLocation.dimensionId) });
                     sendMessage(`§aTeleported to home '${homeName}'.`, player);
                     setCooldown(player, 'homes');
                 } catch (e) {

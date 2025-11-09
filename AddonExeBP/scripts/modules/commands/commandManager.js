@@ -1,8 +1,4 @@
-import { system } from '@minecraft/server';
-import {
-    CommandPermissionLevel,
-    CustomCommandParamType
-} from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { errorLog } from '../../core/logger.js';
@@ -17,7 +13,7 @@ class CommandManager {
         this.aliases = new Map();
         this.prefix = 'exe'; // Namespace for all custom commands
 
-        system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
+        mc.system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             this.commands.forEach(command => {
                 if (command.disableSlashCommand) {return;}
 
@@ -68,7 +64,7 @@ class CommandManager {
                 console.warn(`[CommandManager] Command '${command.name}' cannot be run from the console.`); // eslint-disable-line no-console
                 return;
             }
-            system.run(() => {
+            mc.system.run(() => {
                 try {
                     command.execute(executor, args);
                 } catch (error) {
@@ -99,7 +95,7 @@ class CommandManager {
         }
 
         // Execute Command
-        system.run(() => {
+        mc.system.run(() => {
             try {
                 command.execute(player, args);
             } catch (error) {
@@ -175,16 +171,16 @@ class CommandManager {
      */
     formatParameter(param) {
         const paramTypeMap = {
-            'player': CustomCommandParamType.PlayerSelector,
-            'string': CustomCommandParamType.String,
-            'text': CustomCommandParamType.String, // For greedy strings
-            'int': CustomCommandParamType.Integer,
-            'float': CustomCommandParamType.Float,
-            'boolean': CustomCommandParamType.Boolean,
-            'block': CustomCommandParamType.BlockType,
-            'item': CustomCommandParamType.ItemType,
-            'position': CustomCommandParamType.Position,
-            'target': CustomCommandParamType.PlayerSelector
+            'player': mc.CustomCommandParamType.PlayerSelector,
+            'string': mc.CustomCommandParamType.String,
+            'text': mc.CustomCommandParamType.String, // For greedy strings
+            'int': mc.CustomCommandParamType.Integer,
+            'float': mc.CustomCommandParamType.Float,
+            'boolean': mc.CustomCommandParamType.Boolean,
+            'block': mc.CustomCommandParamType.BlockType,
+            'item': mc.CustomCommandParamType.ItemType,
+            'position': mc.CustomCommandParamType.Position,
+            'target': mc.CustomCommandParamType.PlayerSelector
         };
 
         const type = paramTypeMap[param.type.toLowerCase()];
@@ -193,7 +189,7 @@ class CommandManager {
             errorLog(`[CommandManager] Unknown parameter type '${param.type}' for parameter '${param.name}'. Defaulting to String.`);
             return {
                 name: param.name,
-                type: CustomCommandParamType.String
+                type: mc.CustomCommandParamType.String
             };
         }
 
@@ -219,7 +215,7 @@ class CommandManager {
     translatePermissionLevel(level) {
         // We will handle all permission checks with our custom rank system.
         // Registering all commands with 'Any' allows our more granular check to be the single source of truth.
-        return CommandPermissionLevel.Any;
+        return mc.CommandPermissionLevel.Any;
     }
 
     // --- Chat Command Management ---

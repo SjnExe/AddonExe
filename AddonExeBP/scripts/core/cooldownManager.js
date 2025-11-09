@@ -1,4 +1,4 @@
-import { world, system } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './logger.js';
@@ -15,7 +15,7 @@ let needsSave = false;
  */
 export function loadCooldowns() {
     debugLog('[CooldownManager] Loading cooldowns...');
-    const dataStr = world.getDynamicProperty(cooldownDbKey);
+    const dataStr = mc.world.getDynamicProperty(cooldownDbKey);
     if (dataStr) {
         try {
             const parsedData = JSON.parse(dataStr);
@@ -37,7 +37,7 @@ function saveCooldowns() {
     try {
         // Convert Map to an array for JSON serialization
         const dataToSave = Array.from(cooldowns.entries());
-        world.setDynamicProperty(cooldownDbKey, JSON.stringify(dataToSave));
+        mc.world.setDynamicProperty(cooldownDbKey, JSON.stringify(dataToSave));
         needsSave = false;
         debugLog('[CooldownManager] Saved cooldowns to world properties.');
     } catch (e) {
@@ -120,7 +120,7 @@ export function getCooldown(playerId, identifier) {
 }
 
 // Periodically clear expired cooldowns and save to the world
-system.runInterval(() => {
+mc.system.runInterval(() => {
     clearExpiredCooldowns();
     saveCooldowns();
 }, saveIntervalTicks);

@@ -1,4 +1,4 @@
-import { system, world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getPlayer, setPlayerAnnouncementsMuted } from '../../core/playerDataManager.js';
 import { getConfig, updateConfig } from '../../core/configManager.js';
@@ -56,7 +56,7 @@ let announcementIntervalId;
 
 function stopAnnouncer() {
     if (announcementIntervalId) {
-        system.clearRun(announcementIntervalId);
+        mc.system.clearRun(announcementIntervalId);
         announcementIntervalId = undefined;
     }
 }
@@ -69,7 +69,7 @@ export function restartAnnouncer() {
         return;
     }
 
-    announcementIntervalId = system.runInterval(() => {
+    announcementIntervalId = mc.system.runInterval(() => {
         const currentConfig = getConfig(); // Get the latest config inside the interval
         if (!currentConfig.announcements.enabled) {
             stopAnnouncer();
@@ -77,7 +77,7 @@ export function restartAnnouncer() {
         }
 
         const message = currentConfig.announcements.message;
-        world.getAllPlayers().forEach(player => {
+        mc.world.getAllPlayers().forEach(player => {
             const pData = getPlayer(player.id);
             if (!pData || !pData.announcementsMuted) {
                 player.sendMessage(message);

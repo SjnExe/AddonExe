@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getOrCreatePlayer, setPlayerLastDeathLocation, incrementPlayerBalance } from '../playerDataManager.js';
 import * as lastHitManager from '../lastHitManager.js';
 import * as playerCache from '../playerCache.js';
@@ -54,7 +54,7 @@ function handleEntityDie(event) {
                 incrementPlayerBalance(killer.id, bounty.amount);
                 bountyManager.removeBounty(deadPlayer.id);
 
-                world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
+                mc.world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
                 debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
             }
         }

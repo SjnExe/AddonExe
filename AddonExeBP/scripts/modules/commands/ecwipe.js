@@ -1,7 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { playSound } from '../../core/utils.js';
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { errorLog } from '../../core/logger.js';
 
 commandManager.register({
@@ -25,7 +25,7 @@ commandManager.register({
             targetPlayer = sender;
         } else {
             const targetName = args.target;
-            const potentialTargets = [...world.getPlayers({ name: targetName })];
+            const potentialTargets = [...mc.world.getPlayers({ name: targetName })];
 
             if (potentialTargets.length === 0) {
                 sender.sendMessage(`§cPlayer "${targetName}" not found or is offline.`);

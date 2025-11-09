@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getPunishment } from '../punishmentManager.js';
 import { commandManager } from '../../modules/commands/commandManager.js';
 import * as playerDataManager from '../playerDataManager.js';
@@ -25,7 +25,7 @@ function handleChatSend(eventData) {
     eventData.cancel = true;
     const pData = playerDataManager.getOrCreatePlayer(player);
     if (!pData) {
-        world.sendMessage(`§7${player.name}§r: ${eventData.message}`);
+        mc.world.sendMessage(`§7${player.name}§r: ${eventData.message}`);
         return;
     }
     const rank = rankManager.getRankById(pData.rankId);
@@ -40,7 +40,7 @@ function handleChatSend(eventData) {
         console.log(`<${player.name}> ${eventData.message}`);
     }
 
-    world.sendMessage(formattedMessage);
+    mc.world.sendMessage(formattedMessage);
 }
 
 export default handleChatSend;

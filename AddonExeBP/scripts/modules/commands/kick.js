@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { playSound } from '../../core/utils.js';
@@ -45,7 +45,7 @@ export function kickPlayer(player, targetPlayer, reason) {
         const sanitizedReason = reason.replace(/"/g, '\\"');
         const commandToRun = `kick "${targetPlayer.name}" ${sanitizedReason}`;
         if (player.isConsole) {
-            world.getDimension('overworld').runCommand(commandToRun);
+            mc.world.getDimension('overworld').runCommand(commandToRun);
         } else {
             player.runCommand(commandToRun);
         }

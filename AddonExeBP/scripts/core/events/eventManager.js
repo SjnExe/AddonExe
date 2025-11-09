@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { errorLog } from '../logger.js';
 
 // Import all event handlers statically
@@ -17,14 +17,14 @@ import handlePlayerBreakBlock from './playerBreakBlock.js';
  * and the subscriptions happen predictably.
  */
 export const events = [
-    { event: world.beforeEvents.chatSend, handler: handleBeforeChatSend, name: 'beforeChatSend' },
-    { event: world.afterEvents.playerSpawn, handler: handlePlayerSpawn, name: 'playerSpawn' },
-    { event: world.afterEvents.entityHurt, handler: handleEntityHurt, name: 'entityHurt' },
-    { event: world.afterEvents.playerLeave, handler: handlePlayerLeave, name: 'playerLeave' },
-    { event: world.afterEvents.playerDimensionChange, handler: handlePlayerDimensionChange, name: 'playerDimensionChange' },
-    { event: world.afterEvents.itemUse, handler: handleItemUse, name: 'itemUse' },
-    { event: world.afterEvents.entityDie, handler: handleEntityDie, name: 'entityDie' },
-    { event: world.afterEvents.playerBreakBlock, handler: handlePlayerBreakBlock, name: 'playerBreakBlock' }
+    { event: mc.world.beforeEvents.chatSend, handler: handleBeforeChatSend, name: 'beforeChatSend' },
+    { event: mc.world.afterEvents.playerSpawn, handler: handlePlayerSpawn, name: 'playerSpawn' },
+    { event: mc.world.afterEvents.entityHurt, handler: handleEntityHurt, name: 'entityHurt' },
+    { event: mc.world.afterEvents.playerLeave, handler: handlePlayerLeave, name: 'playerLeave' },
+    { event: mc.world.afterEvents.playerDimensionChange, handler: handlePlayerDimensionChange, name: 'playerDimensionChange' },
+    { event: mc.world.afterEvents.itemUse, handler: handleItemUse, name: 'itemUse' },
+    { event: mc.world.afterEvents.entityDie, handler: handleEntityDie, name: 'entityDie' },
+    { event: mc.world.afterEvents.playerBreakBlock, handler: handlePlayerBreakBlock, name: 'playerBreakBlock' }
 ];
 
 /**

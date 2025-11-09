@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { saveAllData } from './dataManager.js';
 import { debugLog } from './logger.js';
@@ -26,7 +26,7 @@ export function startRestart(initiator) {
     restartInProgress = true;
     countdownTimer = countdownSeconds;
 
-    world.sendMessage(`§l§c[SERVER] Attention! Restart initiated by ${announcer}. The server will restart in ${countdownSeconds} seconds.`);
+    mc.world.sendMessage(`§l§c[SERVER] Attention! Restart initiated by ${announcer}. The server will restart in ${countdownSeconds} seconds.`);
     initiator.sendMessage('§aYou have initiated the server restart sequence.');
 
     // Use the tracked interval function
@@ -34,13 +34,13 @@ export function startRestart(initiator) {
         if (countdownTimer > 0) {
             const message = `§l§cServer restarting in ${countdownTimer}...`;
             // Use action bar for a less intrusive, constant reminder
-            for (const player of world.getAllPlayers()) {
+            for (const player of mc.world.getAllPlayers()) {
                 player.onScreenDisplay.setActionBar(message);
             }
 
             // Announce in chat at key moments
             if (countdownTimer === 30 || countdownTimer === 15 || countdownTimer === 10 || countdownTimer <= 5) {
-                world.sendMessage(message);
+                mc.world.sendMessage(message);
             }
 
             countdownTimer--;
@@ -58,7 +58,7 @@ export function startRestart(initiator) {
  */
 function finalizeRestart() {
     debugLog('[RestartManager] Finalizing server restart...');
-    world.sendMessage('§l§c[SERVER] Finalizing restart... saving all data now.');
+    mc.world.sendMessage('§l§c[SERVER] Finalizing restart... saving all data now.');
 
     saveAllData({ log: true });
 
@@ -73,11 +73,11 @@ function finalizeRestart() {
             const command = `kick @a[tag=!${config.adminTag},${ownerNames}] ${kickMessage}`;
 
             debugLog(`[RestartManager] Running kick command: /${command}`);
-            world.getDimension('overworld').runCommand(command);
+            mc.world.getDimension('overworld').runCommand(command);
             debugLog('[RestartManager] Kick command finished.');
 
             // Send a message to any remaining (admin/owner) players.
-            for (const player of world.getAllPlayers()) {
+            for (const player of mc.world.getAllPlayers()) {
                 player.sendMessage('§aYou were not kicked by the restart sequence because you are an admin/owner.');
             }
         } catch (error) {

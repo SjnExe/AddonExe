@@ -2,7 +2,7 @@ import { commandManager } from './commandManager.js';
 import * as bountyManager from '../../core/bountyManager.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { findPlayerByName } from '../../core/playerCache.js';
 
 commandManager.register({
@@ -83,7 +83,7 @@ function placeBounty(player, targetPlayer, amount) {
     bountyManager.incrementBounty(targetPlayer.id, amount);
 
     player.sendMessage(`§aYou have placed a bounty of §e$${amount}§a on ${targetPlayer.name}.`);
-    world.sendMessage(`§cSomeone has placed a bounty of §e$${amount}§c on ${targetPlayer.name}!`);
+    mc.world.sendMessage(`§cSomeone has placed a bounty of §e$${amount}§c on ${targetPlayer.name}!`);
 }
 
 commandManager.register({

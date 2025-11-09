@@ -9,7 +9,7 @@
  * @version 1.0.0
  */
 
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { sendMessage } from '../../core/messaging.js';
 import { constants } from '../../core/constants.js';
@@ -35,7 +35,7 @@ commandManager.register({
             player.removeEffect('invisibility');
             sendMessage('§aYou are no longer vanished. You are now visible to other players.', player);
             // Announce a fake join message
-            world.sendMessage(`§e${player.name} joined the game.`);
+            mc.world.sendMessage(`§e${player.name} joined the game.`);
         } else {
             // Vanish the player
             player.addTag(constants.vanishedTag);
@@ -43,7 +43,7 @@ commandManager.register({
             player.addEffect('invisibility', 2000000, { amplifier: 1, showParticles: false });
             sendMessage('§aYou are now vanished. You are hidden from other players.', player);
             // Announce a fake leave message
-            world.sendMessage(`§e${player.name} left the game.`);
+            mc.world.sendMessage(`§e${player.name} left the game.`);
         }
     }
 });
