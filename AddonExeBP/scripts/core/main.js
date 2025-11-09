@@ -1,4 +1,4 @@
-import { world, system } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { loadConfig, getConfig, updateConfig } from './configManager.js';
 import { getSpawnConfig, loadEconomyConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSpawnConfig, loadXrayConfig } from './configurations.js';
 import * as dataManager from './dataManager.js';
@@ -46,7 +46,7 @@ export function updatePlayerRank(player) {
  * Iterates through all online players and updates their ranks.
  */
 export function updateAllPlayerRanks() {
-    for (const player of world.getAllPlayers()) {
+    for (const player of mc.world.getAllPlayers()) {
         updatePlayerRank(player);
     }
 }
@@ -56,8 +56,8 @@ export function updateAllPlayerRanks() {
  * This is crucial for restoring player data after a script reload.
  */
 function reinitializeOnlinePlayers() {
-    infoLog(`[AddonExe] Re-initializing state for ${world.getAllPlayers().length} online players...`);
-    for (const player of world.getAllPlayers()) {
+    infoLog(`[AddonExe] Re-initializing state for ${mc.world.getAllPlayers().length} online players...`);
+    for (const player of mc.world.getAllPlayers()) {
         // Ensure the player's data is loaded into the system
         playerDataManager.getOrCreatePlayer(player);
         // Then, update their rank based on the loaded data and config
@@ -104,13 +104,13 @@ function checkConfiguration() {
     // Add a guard in case config hasn't loaded yet, though the init flow should prevent this.
     if (!config || !config.ownerPlayerNames || !config.ownerPlayerNames.length || config.ownerPlayerNames[0] === 'Your•Name•Here') {
         const warningMessage = '§l§c[AddonExe] WARNING: No owner is configured. Please set `ownerPlayerNames` in `scripts/config.js` to gain access to admin commands.';
-        system.runTimeout(() => world.sendMessage(warningMessage), 20);
+        mc.system.runTimeout(() => mc.world.sendMessage(warningMessage), 20);
         errorLog('[AddonExe] No owner configured.');
     }
 
     if (!spawnConfig.spawn || !spawnConfig.spawn.spawnLocation) {
         const spawnWarning = '§l§e[AddonExe] NOTICE: The server spawn has not been set. Spawn protection and the /spawn command will not function until an admin runs /setspawn.';
-        system.runTimeout(() => world.sendMessage(spawnWarning), 40);
+        mc.system.runTimeout(() => mc.world.sendMessage(spawnWarning), 40);
         errorLog('[AddonExe] Server spawn not set.');
     }
 }
@@ -135,7 +135,7 @@ async function initializeAddon() {
     // This is necessary because we need to know if it's a migration before loading all configs.
     const { config: tempConfig } = await import('../config.js');
     const newVersion = String(tempConfig.version);
-    const lastVersion = world.getDynamicProperty('exe:lastVersion');
+    const lastVersion = mc.world.getDynamicProperty('exe:lastVersion');
     const isMigration = !lastVersion || lastVersion !== newVersion;
 
     // Load all configurations synchronously with the correct migration flag.
@@ -151,7 +151,7 @@ async function initializeAddon() {
     const config = getConfig();
     setLogLevel(config.logLevel);
 
-    world.setDynamicProperty('exe:lastVersion', newVersion);
+    mc.world.setDynamicProperty('exe:lastVersion', newVersion);
 
     dataManager.initializeDataManager();
     loadPersistentData();
@@ -189,17 +189,17 @@ function cleanupAddon() {
 // Defer the entire addon initialization by one tick.
 // This is a crucial step to prevent a race condition where the script tries to access APIs
 // from @minecraft/server before they are fully initialized by the game engine.
-system.runTimeout(async () => {
+mc.system.runTimeout(async () => {
     try {
         await initializeAddon();
     } catch (e) {
         errorLog('[AddonExe] A critical error occurred during addon initialization:');
         errorLog(e.stack);
-        world.sendMessage('§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.');
+        mc.world.sendMessage('§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.');
     }
 }, 0);
 
-system.afterEvents.scriptEventReceive.subscribe((event) => {
+mc.system.afterEvents.scriptEventReceive.subscribe((event) => {
     const { id, sourceEntity } = event;
 
     // Handle script unload event

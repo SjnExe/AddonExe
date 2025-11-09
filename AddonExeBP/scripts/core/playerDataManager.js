@@ -24,7 +24,7 @@
 
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
-import { world, system } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
 import { registerPlaceholder } from './placeholderManager.js';
@@ -109,7 +109,7 @@ export function cleanupPlayerDataManager() {
 export function saveNameIdMap() {
     try {
         const dataToSave = Array.from(playerNameIdMap.entries());
-        world.setDynamicProperty(playerNameIdMapKey, JSON.stringify(dataToSave));
+        mc.world.setDynamicProperty(playerNameIdMapKey, JSON.stringify(dataToSave));
         isNameIdMapDirty = false;
         debugLog('[PlayerDataManager] Saved name-to-ID map.');
     } catch (e) {
@@ -119,7 +119,7 @@ export function saveNameIdMap() {
 
 export function loadNameIdMap() {
     try {
-        const dataString = world.getDynamicProperty(playerNameIdMapKey);
+        const dataString = mc.world.getDynamicProperty(playerNameIdMapKey);
         if (dataString && typeof dataString === 'string') {
             const parsedData = JSON.parse(dataString);
             playerNameIdMap = new Map(parsedData);
@@ -142,7 +142,7 @@ export function savePlayerData(playerId) {
     try {
         const playerData = activePlayerData.get(playerId);
         const dataString = JSON.stringify(playerData);
-        world.setDynamicProperty(`${playerPropertyPrefix}${playerId}`, dataString);
+        mc.world.setDynamicProperty(`${playerPropertyPrefix}${playerId}`, dataString);
     } catch (e) {
         errorLog(`[PlayerDataManager] Failed to save data for player ${playerId}: ${e.stack}`);
     }
@@ -155,7 +155,7 @@ export function savePlayerData(playerId) {
  */
 export function loadPlayerData(playerId) {
     try {
-        const dataString = world.getDynamicProperty(`${playerPropertyPrefix}${playerId}`);
+        const dataString = mc.world.getDynamicProperty(`${playerPropertyPrefix}${playerId}`);
         if (dataString && typeof dataString === 'string') {
             /** @type {Partial<PlayerData>} */
             const loadedData = JSON.parse(dataString);
@@ -289,7 +289,7 @@ export function getLeaderboard() {
 
 export function initializeLeaderboard() {
     try {
-        const dataString = world.getDynamicProperty(leaderboardKey);
+        const dataString = mc.world.getDynamicProperty(leaderboardKey);
         if (dataString && typeof dataString === 'string') {
             leaderboardCache = JSON.parse(dataString);
             debugLog(`[PlayerDataManager] Loaded ${leaderboardCache.length} players into leaderboard cache.`);
@@ -307,10 +307,10 @@ function triggerLeaderboardSave() {
         return;
     }
     try {
-        world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
+        mc.world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
         isLeaderboardDirty = false;
         isSaveOnCooldown = true;
-        system.runTimeout(() => {
+        mc.system.runTimeout(() => {
             isSaveOnCooldown = false;
             if (isLeaderboardDirty) {
                 triggerLeaderboardSave();
@@ -400,14 +400,14 @@ const endLockKey = 'exe:dimensionLock_end';
 export function getLockState(dimension) {
     const key = dimension === 'nether' ? netherLockKey : endLockKey;
     try {
-        return !!world.getDynamicProperty(key);
+        return !!mc.world.getDynamicProperty(key);
     } catch { return false; }
 }
 
 export function setLockState(dimension, isLocked) {
     const key = dimension === 'nether' ? netherLockKey : endLockKey;
     try {
-        world.setDynamicProperty(key, isLocked);
+        mc.world.setDynamicProperty(key, isLocked);
     } catch {
         errorLog(`[DimensionLock] Failed to set lock state for ${dimension}.`);
     }
