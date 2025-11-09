@@ -1,4 +1,4 @@
-import { ItemStack, ItemTypes, EnchantmentTypes } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getOrCreatePlayer, incrementPlayerBalance } from './playerDataManager.js';
 import { getShopConfig } from './configurations.js';
 import { items as allItems } from './itemsConfig.js';
@@ -9,7 +9,7 @@ import { formatCurrency } from './utils.js';
  * Creates an ItemStack for a given item ID, handling enchantments.
  * @param {string} itemId The ID of the item from itemsConfig.js.
  * @param {number} quantity The amount of items.
- * @returns {ItemStack | null}
+ * @returns {mc.ItemStack | null}
  */
 function createShopItemStack(itemInfo, quantity) {
     if (!itemInfo) {
@@ -17,13 +17,13 @@ function createShopItemStack(itemInfo, quantity) {
         return null;
     }
 
-    const itemType = ItemTypes.get(itemInfo.itemId);
+    const itemType = mc.ItemTypes.get(itemInfo.itemId);
     if (!itemType) {
         errorLog(`[ShopManager] Could not find item type for itemId: ${itemInfo.itemId}`);
         return null;
     }
 
-    const itemStack = new ItemStack(itemType, quantity);
+    const itemStack = new mc.ItemStack(itemType, quantity);
 
     // Handle enchantments
     if (itemInfo.enchantment) {
@@ -31,7 +31,7 @@ function createShopItemStack(itemInfo, quantity) {
             const enchantable = itemStack.getComponent('minecraft:enchantable');
             if (enchantable) {
                 enchantable.addEnchantment({
-                    type: EnchantmentTypes.get(itemInfo.enchantment.id),
+                    type: mc.EnchantmentTypes.get(itemInfo.enchantment.id),
                     level: itemInfo.enchantment.level
                 });
             }
@@ -174,7 +174,7 @@ export function sellItem(player, itemId, quantity) {
     }
 
     const inventory = player.getComponent('inventory').container;
-    const itemType = ItemTypes.get(shopItem.itemId);
+    const itemType = mc.ItemTypes.get(shopItem.itemId);
     if (!itemType) {
         return { success: false, message: '§cInternal server error: Item type not found.' };
     }

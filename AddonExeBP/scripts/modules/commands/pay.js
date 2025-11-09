@@ -1,7 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { getPlayer, createPendingPayment, getPendingPayment, clearPendingPayment, transfer } from '../../core/playerDataManager.js';
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { sendMessage } from '../../core/messaging.js';
 import { formatCurrency } from '../../core/utils.js';
 import { constants } from '../../core/constants.js';
@@ -85,7 +85,7 @@ commandManager.register({
         }
 
         const { targetPlayerId, amount } = pendingPayment;
-        const targetPlayer = world.getPlayer(targetPlayerId);
+        const targetPlayer = mc.world.getPlayer(targetPlayerId);
 
         if (!targetPlayer) {
             clearPendingPayment(player.id);

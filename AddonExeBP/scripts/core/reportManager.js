@@ -1,4 +1,4 @@
-import { world, system } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { debugLog } from './logger.js';
 import { errorLog } from './logger.js';
 import { getConfig } from './configManager.js';
@@ -27,7 +27,7 @@ let needsSave = false;
  */
 export function loadReports() {
     debugLog('[ReportManager] Loading reports...');
-    const dataStr = world.getDynamicProperty(reportsDbKey);
+    const dataStr = mc.world.getDynamicProperty(reportsDbKey);
     if (dataStr) {
         try {
             reports = JSON.parse(dataStr);
@@ -49,7 +49,7 @@ export function saveReports(options = {}) {
     if (!needsSave && !force) {return;}
 
     try {
-        world.setDynamicProperty(reportsDbKey, JSON.stringify(reports));
+        mc.world.setDynamicProperty(reportsDbKey, JSON.stringify(reports));
         needsSave = false; // Reset flag after saving
         debugLog('[ReportManager] Saved reports to world properties.');
     } catch (e) {
@@ -171,6 +171,6 @@ export function clearOldResolvedReports() {
 }
 
 // Periodically clean up old reports. Saving is now handled by the central dataManager.
-system.runInterval(() => {
+mc.system.runInterval(() => {
     clearOldResolvedReports();
 }, 36000); // Clean up every 30 minutes

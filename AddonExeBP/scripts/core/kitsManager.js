@@ -1,4 +1,4 @@
-import { ItemStack } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getOrCreatePlayer, setKitCooldown, incrementPlayerBalance } from './playerDataManager.js';
 import { getConfig } from './configManager.js';
 import { getKitsConfig } from './configurations.js';
@@ -132,7 +132,7 @@ export function giveKit(player, kitName) {
 
     try {
         for (const itemInfo of kit.items) {
-            const itemStack = new ItemStack(itemInfo.typeId, itemInfo.amount);
+            const itemStack = new mc.ItemStack(itemInfo.typeId, itemInfo.amount);
             if (itemInfo.nameTag) {
                 itemStack.nameTag = itemInfo.nameTag;
             }

@@ -1,9 +1,9 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 
 const playerCache = new Map();
 
 export function initializePlayerCache() {
-    for (const player of world.getAllPlayers()) {
+    for (const player of mc.world.getAllPlayers()) {
         playerCache.set(player.id, player);
     }
 }

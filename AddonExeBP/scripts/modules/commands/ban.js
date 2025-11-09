@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
 import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
@@ -61,7 +61,7 @@ export function banPlayer(player, targetPlayer, duration, reason) {
         try {
             const sanitizedReason = reason.replace(/"/g, '\\"');
             const command = `kick "${targetPlayer.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`;
-            world.getDimension('overworld').runCommand(command);
+            mc.world.getDimension('overworld').runCommand(command);
         } catch (error) {
             warnLog(`[Commands:Ban] Could not kick ${targetPlayer.name} after banning. They will be kicked on next join.`);
             errorLog(`[/ban] Failed to run kick command from console for ${targetPlayer.name}:`, error);

@@ -1,4 +1,4 @@
-import { system, world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { errorLog } from './logger.js';
@@ -69,8 +69,8 @@ export async function uiWait(player, form) {
     // If the first attempt failed because the UI was busy, send the message and start retrying.
     player.sendMessage('§eOpening UI... please close chat to view.§r');
 
-    const startTick = system.currentTick;
-    while ((system.currentTick - startTick) < 1200) { // 1 minute timeout
+    const startTick = mc.system.currentTick;
+    while ((mc.system.currentTick - startTick) < 1200) { // 1 minute timeout
         const subsequentAttempt = await form.show(player);
         if (subsequentAttempt.cancelationReason !== 'UserBusy') {
             return subsequentAttempt;
@@ -134,16 +134,16 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
 
     const cleanup = () => {
         if (intervalId !== null) {
-            system.clearRun(intervalId);
+            mc.system.clearRun(intervalId);
             intervalId = null;
         }
         if (hurtListener) {
-            world.afterEvents.entityHurt.unsubscribe(hurtListener);
+            mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
             hurtListener = null;
         }
     };
 
-    hurtListener = world.afterEvents.entityHurt.subscribe(event => {
+    hurtListener = mc.world.afterEvents.entityHurt.subscribe(event => {
         if (event.hurtEntity.id === player.id) {
             player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
             cleanup();
@@ -152,7 +152,7 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
 
     player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 
-    intervalId = system.runInterval(() => {
+    intervalId = mc.system.runInterval(() => {
         try {
             // It's possible the player was killed or disconnected, which would invalidate the object.
             // A simple property access will throw if the player object is no longer valid.

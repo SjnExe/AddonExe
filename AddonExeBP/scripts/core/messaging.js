@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { warnLog } from './logger.js';
 
@@ -10,14 +10,14 @@ import { warnLog } from './logger.js';
  * @param {boolean} [options.raw=false] If true, sends the message without the server name prefix.
  * @param {string} [options.title=null] An optional title to replace the default server name.
  */
-export function sendMessage(message, target = world, options = {}) {
+export function sendMessage(message, target = mc.world, options = {}) {
     const { raw = false, title = null } = options;
     const serverName = title ?? getConfig()?.serverName ?? 'Server';
     const finalMessage = raw ? message : `${serverName} §8»§r ${message}`;
 
     try {
-        if (target === 'all' || target === world) {
-            world.sendMessage(finalMessage);
+        if (target === 'all' || target === mc.world) {
+            mc.world.sendMessage(finalMessage);
         } else if (target && typeof target.sendMessage === 'function') {
             target.sendMessage(finalMessage);
         } else {
