@@ -2,11 +2,6 @@ import { world, system } from '@minecraft/server';
 import { errorLog, debugLog } from './logger.js';
 import { resolvePlaceholders } from './placeholderManager.js';
 
-// Cache stable references to system functions to prevent context loss in async operations.
-// We will define these later, inside the initialize function, to avoid race conditions.
-let runTimeout;
-let clearTimeout;
-
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
 const pendingDespawns = new Map(); // Map<textId, timeoutId>
@@ -20,14 +15,14 @@ let retrySpawnIntervalId;
 function scheduleNextUpdate(textConfig) {
     // If a timeout already exists for this text, clear it before scheduling a new one.
     if (updateTimeouts.has(textConfig.id)) {
-        clearTimeout(updateTimeouts.get(textConfig.id));
+        system.clearTimeout(updateTimeouts.get(textConfig.id));
         updateTimeouts.delete(textConfig.id);
     }
 
     // Only schedule an update if the interval is valid and the text has placeholders.
     const interval = textConfig.updateInterval ?? 0;
     if (interval > 0 && textConfig.text.includes('{')) {
-        const timeoutId = runTimeout(() => {
+        const timeoutId = system.runTimeout(() => {
             updateDynamicText(textConfig);
             // After the update, schedule the next one.
             scheduleNextUpdate(textConfig);
@@ -62,11 +57,6 @@ function saveTexts() {
 }
 
 function initialize() {
-    // Bind system functions now that we know the API is initialized.
-    runTimeout = system.runTimeout.bind(system);
-    clearTimeout = system.clearTimeout.bind(system);
-
-
     loadTexts();
     spawnAllTexts();
 
@@ -95,7 +85,7 @@ function runExpirationLoop() {
     }
 
     // Schedule the next check
-    expirationIntervalId = runTimeout(runExpirationLoop, 200); // Check every 10 seconds
+    expirationIntervalId = system.runTimeout(runExpirationLoop, 200); // Check every 10 seconds
 }
 
 /**
@@ -114,7 +104,7 @@ function runRetrySpawnLoop() {
     }
 
     // Schedule the next retry
-    retrySpawnIntervalId = runTimeout(runRetrySpawnLoop, 200);
+    retrySpawnIntervalId = system.runTimeout(runRetrySpawnLoop, 200);
 }
 
 function spawnAllTexts() {
@@ -188,7 +178,7 @@ async function updateText(id, updates) {
 
     // Cancel any pending command-based despawn from a PREVIOUS operation
     if (pendingDespawns.has(id)) {
-        clearTimeout(pendingDespawns.get(id));
+        system.clearTimeout(pendingDespawns.get(id));
         pendingDespawns.delete(id);
         debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to update.`);
     }
@@ -211,7 +201,7 @@ async function updateText(id, updates) {
     scheduleNextUpdate(textConfig);
 
     // Spawn a new entity after a delay long enough for the async despawn to complete.
-    runTimeout(() => {
+    system.runTimeout(() => {
         spawnText(textConfig);
     }, 20); // 20 ticks > 5+10 ticks used by despawnText fallback
 }
@@ -246,7 +236,7 @@ function createText(player, id, text) {
 async function despawnText(id) {
     // Clean up internal script state to prevent respawns.
     if (pendingDespawns.has(id)) {
-        clearTimeout(pendingDespawns.get(id));
+        system.clearTimeout(pendingDespawns.get(id));
         pendingDespawns.delete(id);
     }
     unloadedChunkQueue.delete(id);
@@ -285,7 +275,7 @@ async function despawnText(id) {
 async function respawnText(id) {
     // Cancel any pending command-based despawn to prevent race conditions
     if (pendingDespawns.has(id)) {
-        clearTimeout(pendingDespawns.get(id));
+        system.clearTimeout(pendingDespawns.get(id));
         pendingDespawns.delete(id);
         debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to respawn.`);
     }
@@ -298,7 +288,7 @@ async function respawnText(id) {
             saveTexts();
         }
         await despawnText(id); // Despawn the current entity if it exists
-        runTimeout(() => {
+        system.runTimeout(() => {
             spawnText(textConfig); // Spawn the new one after a short delay
         }, 20); // 20 ticks > 5+10 ticks used by despawnText fallback
     }
@@ -314,7 +304,7 @@ async function deleteText(player, id) {
 
     // Stop any scheduled updates for this text.
     if (updateTimeouts.has(id)) {
-        clearTimeout(updateTimeouts.get(id));
+        system.clearTimeout(updateTimeouts.get(id));
         updateTimeouts.delete(id);
     }
 
@@ -357,23 +347,23 @@ function cleanup() {
 
     // Clear main interval loops
     if (expirationIntervalId) {
-        clearTimeout(expirationIntervalId);
+        system.clearTimeout(expirationIntervalId);
         expirationIntervalId = undefined; // Use undefined to signify it's cleared
     }
     if (retrySpawnIntervalId) {
-        clearTimeout(retrySpawnIntervalId);
+        system.clearTimeout(retrySpawnIntervalId);
         retrySpawnIntervalId = undefined;
     }
 
     // Clear all pending update timeouts for individual texts
     for (const timeoutId of updateTimeouts.values()) {
-        clearTimeout(timeoutId);
+        system.clearTimeout(timeoutId);
     }
     updateTimeouts.clear();
 
     // Clear any pending despawn timeouts
     for (const timeoutId of pendingDespawns.values()) {
-        clearTimeout(timeoutId);
+        system.clearTimeout(timeoutId);
     }
     pendingDespawns.clear();
 
