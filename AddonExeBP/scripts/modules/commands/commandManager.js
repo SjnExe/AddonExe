@@ -64,13 +64,13 @@ class CommandManager {
                 console.warn(`[CommandManager] Command '${command.name}' cannot be run from the console.`); // eslint-disable-line no-console
                 return;
             }
-            mc.system.run(() => {
+            mc.system.runTimeout(() => {
                 try {
                     command.execute(executor, args);
                 } catch (error) {
                     console.error(`[CommandManager] Error executing console command '${command.name}': ${error.stack}`); // eslint-disable-line no-console
                 }
-            });
+            }, 0);
             return;
         }
 
@@ -95,7 +95,7 @@ class CommandManager {
         }
 
         // Execute Command
-        mc.system.run(() => {
+        mc.system.runTimeout(() => {
             try {
                 command.execute(player, args);
             } catch (error) {
@@ -104,7 +104,7 @@ class CommandManager {
                 }
                 player.sendMessage('§cAn unexpected error occurred while running this command.');
             }
-        });
+        }, 0);
     }
 
     /**
