@@ -1,4 +1,4 @@
-import { system } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { setCooldown } from '../../core/cooldownManager.js';
@@ -34,7 +34,7 @@ commandManager.register({
     }
 });
 
-const sleep = (ticks) => new Promise(resolve => system.runTimeout(resolve, ticks));
+const sleep = (ticks) => new Promise(resolve => mc.system.runTimeout(resolve, ticks));
 
 /**
  * Finds a safe location and teleports the player there.

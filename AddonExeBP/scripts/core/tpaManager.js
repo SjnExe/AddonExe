@@ -1,4 +1,4 @@
-import { system } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { getPlayerFromCache } from './playerCache.js';
 import { getOrCreatePlayer } from './playerDataManager.js';
@@ -31,7 +31,7 @@ const incomingRequests = new Map();
  */
 function clearRequest(request) {
     if (!request) {return;}
-    system.clearRun(request.timeoutId);
+    mc.system.clearRun(request.timeoutId);
     outgoingRequests.delete(request.sourcePlayerId);
     const targetRequests = incomingRequests.get(request.targetPlayerId);
     if (targetRequests) {
@@ -110,7 +110,7 @@ export function createRequest(sourcePlayer, targetPlayer, type) {
     const timeoutSeconds = config.tpa.requestTimeoutSeconds;
     const expiryTimestamp = Date.now() + timeoutSeconds * 1000;
 
-    const timeoutId = system.runTimeout(() => {
+    const timeoutId = mc.system.runTimeout(() => {
         const existingRequest = outgoingRequests.get(sourcePlayer.id);
         if (existingRequest && existingRequest.expiryTimestamp <= Date.now()) {
             sourcePlayer.sendMessage('§cYour TPA request has expired.');

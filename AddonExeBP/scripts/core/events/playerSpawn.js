@@ -1,4 +1,4 @@
-import { world, system } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getPunishment } from '../punishmentManager.js';
 import * as playerCache from '../playerCache.js';
 import * as playerDataManager from '../playerDataManager.js';
@@ -21,10 +21,10 @@ async function handlePlayerSpawn(event) {
         const remainingTime = Math.round((punishment.expires - Date.now()) / 1000);
         const durationText = punishment.expires === Infinity ? 'permanently' : `for another ${remainingTime} seconds`;
 
-        system.run(() => {
+        mc.system.run(() => {
             try {
                 const sanitizedReason = punishment.reason.replace(/"/g, '\\"');
-                world.getDimension('overworld').runCommand(`kick "${player.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
+                mc.world.getDimension('overworld').runCommand(`kick "${player.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
             } catch (error) {
                 errorLog(`[BanCheck] Failed to kick banned player ${player.name}:`, error);
             }
@@ -58,8 +58,8 @@ async function handlePlayerSpawn(event) {
     }
 
     // Check for a death location to message the player after a brief delay.
-    system.runTimeout(() => {
-        const freshPlayer = world.getAllPlayers().find(p => p.id === player.id);
+    mc.system.runTimeout(() => {
+        const freshPlayer = mc.world.getAllPlayers().find(p => p.id === player.id);
         if (!freshPlayer) { return; }
 
         const freshPData = playerDataManager.getOrCreatePlayer(freshPlayer);
