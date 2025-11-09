@@ -18,7 +18,7 @@ import { initializeXrayDetection } from '../modules/detections/xrayDetection.js'
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
 import { registerPlayerDataPlaceholders } from './playerDataManager.js';
-import { loadCommands } from '../modules/commands/index.js';
+import '../modules/commands/index.js';
 import './mobDeathEvents.js';
 
 /**
@@ -166,7 +166,6 @@ async function initializeAddon() {
     reinitializeOnlinePlayers();
 
     startSystemTimers();
-    await loadCommands(); // Load all command modules
     infoLog('[AddonExe] Addon initialized successfully.');
 }
 
