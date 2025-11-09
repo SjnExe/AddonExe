@@ -58,7 +58,7 @@ const commandFiles = [
     'floatingtext.js'
 ];
 
-async function loadCommands() {
+export async function loadCommands() {
     for (const file of commandFiles) {
         try {
             await import('./' + file);
@@ -70,5 +70,3 @@ async function loadCommands() {
         }
     }
 }
-
-loadCommands();

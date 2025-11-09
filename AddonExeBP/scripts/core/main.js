@@ -17,10 +17,8 @@ import { initializeSpawnProtection } from '../modules/detections/spawnProtection
 import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
-import { getLeaderboard } from './playerDataManager.js';
-import { registerPlaceholder } from './placeholderManager.js';
-import { formatCurrency } from './utils.js';
-import '../modules/commands/index.js';
+import { registerPlayerDataPlaceholders } from './playerDataManager.js';
+import { loadCommands } from '../modules/commands/index.js';
 import './mobDeathEvents.js';
 
 /**
@@ -88,30 +86,7 @@ function initializeManagers() {
     infoLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
-
-    // Register placeholders here to break the circular dependency between playerDataManager and placeholderManager
-    registerPlaceholder('topbal', ({ index, valueKey }) => {
-        const config = getConfig();
-        const leaderboard = getLeaderboard();
-        const baltopLimit = config.economy.baltopLimit ?? 10;
-
-        if (valueKey === 'list') {
-            const listLimit = Math.min(5, baltopLimit);
-            const topPlayers = leaderboard.slice(0, listLimit);
-            if (topPlayers.length === 0) {return '§cNo players on the leaderboard yet.§r';}
-            return topPlayers.map((player, i) => `§e#${i + 1} §r${player.name}: §a${formatCurrency(player.balance)}§r`).join('\n');
-        }
-
-        if (index >= 0) {
-            if (index >= baltopLimit || index >= leaderboard.length) {return 'N/A';}
-            const playerData = leaderboard[index];
-            if (!playerData) {return 'N/A';}
-            if (valueKey === 'name') {return playerData.name;}
-            if (valueKey === 'value') {return `§a${formatCurrency(playerData.balance)}§r`;}
-        }
-        return 'N/A';
-    });
-
+    registerPlayerDataPlaceholders(); // Must be before managers that use placeholders
     floatingTextManager.initialize();
     // Clear any expired data on startup
     clearExpiredPunishments();
@@ -191,6 +166,7 @@ async function initializeAddon() {
     reinitializeOnlinePlayers();
 
     startSystemTimers();
+    await loadCommands(); // Load all command modules
     infoLog('[AddonExe] Addon initialized successfully.');
 }
 
