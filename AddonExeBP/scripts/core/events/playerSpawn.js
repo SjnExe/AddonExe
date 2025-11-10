@@ -21,14 +21,14 @@ async function handlePlayerSpawn(event) {
         const remainingTime = Math.round((punishment.expires - Date.now()) / 1000);
         const durationText = punishment.expires === Infinity ? 'permanently' : `for another ${remainingTime} seconds`;
 
-        mc.system.run(() => {
+        mc.system.runTimeout(() => {
             try {
                 const sanitizedReason = punishment.reason.replace(/"/g, '\\"');
                 mc.world.getDimension('overworld').runCommand(`kick "${player.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
             } catch (error) {
                 errorLog(`[BanCheck] Failed to kick banned player ${player.name}:`, error);
             }
-        });
+        }, 0);
         return;
     }
 
