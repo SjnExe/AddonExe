@@ -773,6 +773,11 @@ export async function buildPanelForm(player, panelId, context) {
 
             const expiresAt = text.expiresAt ?? null;
 
+            const dimensionOptions = ['Overworld', 'Nether', 'The End'];
+            const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
+            const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension));
+
+
             const { getPlaceholderKeys } = await import('../placeholderManager.js');
             const placeholders = getPlaceholderKeys();
             const placeholderText = placeholders.length > 0 ? `\nAvailable Placeholders: {${placeholders.join('}, {')}}` : '';
@@ -784,6 +789,7 @@ export async function buildPanelForm(player, panelId, context) {
                 .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(+(text.location?.x ?? 0).toFixed(2)) })
                 .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(+(text.location?.y ?? 0).toFixed(2)) })
                 .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
+                .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
                 .dropdown('Update Interval', intervalLabels, { defaultValueIndex: defaultIntervalIndex })
                 .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
                 .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' });

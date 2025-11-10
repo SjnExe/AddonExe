@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 import { errorLog, debugLog } from './logger.js';
 import { resolvePlaceholders } from './placeholderManager.js';
+import { isDeepEqual } from './objectUtils.js';
 
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
@@ -56,9 +57,9 @@ function saveTexts() {
     }
 }
 
-function initialize() {
+async function initialize() {
     loadTexts();
-    spawnAllTexts();
+    await spawnAllTexts();
 
     // Set up initial update schedules for all texts.
     for (const textConfig of floatingTexts.values()) {
@@ -69,6 +70,7 @@ function initialize() {
     runExpirationLoop();
     runRetrySpawnLoop();
 }
+
 
 /**
  * A self-rescheduling loop that periodically checks for and removes expired floating texts.
@@ -107,11 +109,41 @@ function runRetrySpawnLoop() {
     retrySpawnIntervalId = mc.system.runTimeout(runRetrySpawnLoop, 200);
 }
 
-function spawnAllTexts() {
+async function spawnAllTexts() {
     for (const textConfig of floatingTexts.values()) {
-        spawnText(textConfig);
+        try {
+            const dimension = mc.world.getDimension(textConfig.dimension);
+            const query = { type: 'addonexe:floating_text', tags: [`ft_${textConfig.id}`] };
+            const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+
+            // Check if a valid entity already exists at the correct location.
+            if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+                const isCorrectLocation = Math.abs(entity.location.x - textConfig.location.x) < 0.1 &&
+                                          Math.abs(entity.location.y - textConfig.location.y) < 0.1 &&
+                                          Math.abs(entity.location.z - textConfig.location.z) < 0.1;
+
+                if (isCorrectLocation) {
+                    debugLog(`[FloatingText] Entity for ID: ${textConfig.id} already exists. Skipping spawn.`);
+                    continue; // Skip to the next text
+                }
+            }
+            // If we reach here, either the entity doesn't exist, is invalid, or is in the wrong place.
+            // So, we spawn it (which includes a cleanup kill command).
+            spawnText(textConfig);
+
+        } catch (error) {
+             if (error.toString().includes('LocationInUnloadedChunkError')) {
+                if (!unloadedChunkQueue.has(textConfig.id)) {
+                    debugLog(`[FloatingText] Failed to check text with ID: ${textConfig.id} (chunk unloaded). Adding to retry queue.`);
+                    unloadedChunkQueue.add(textConfig.id);
+                }
+            } else {
+                errorLog(`[FloatingText] Error during initial check for text ID: ${textConfig.id}`, error);
+            }
+        }
     }
 }
+
 
 function spawnText(textConfig) {
     try {
@@ -173,38 +205,74 @@ function getTextById(id) {
 }
 
 async function updateText(id, updates) {
-    const textConfig = getTextById(id);
-    if (!textConfig) { return; }
+    const oldConfig = getTextById(id);
+    if (!oldConfig) { return; }
 
-    // Cancel any pending command-based despawn from a PREVIOUS operation
-    if (pendingDespawns.has(id)) {
-        mc.system.clearTimeout(pendingDespawns.get(id));
-        pendingDespawns.delete(id);
-        debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to update.`);
+    // Create a new config object with the updates applied to see what changed.
+    const newConfig = { ...oldConfig, ...updates };
+
+    // If the expiration is meant to be removed, ensure the property is null.
+    if (updates.expiresAt === undefined) {
+        newConfig.expiresAt = null;
     }
 
-    // Despawn the old entity. This might schedule a NEW pending despawn.
-    await despawnText(id);
+    const locationChanged = !isDeepEqual(oldConfig.location, newConfig.location) || oldConfig.dimension !== newConfig.dimension;
 
-    // Apply updates to the configuration
-    Object.assign(textConfig, updates);
-    // Ensure expiresAt is explicitly set to null if not provided in the update,
-    // preventing an old timer from persisting across edits.
-    if (!Object.prototype.hasOwnProperty.call(updates, 'expiresAt')) {
-        textConfig.expiresAt = null;
+    // --- Logic Branch 1: Location has changed, full respawn is required ---
+    if (locationChanged) {
+        debugLog(`[FloatingText] Location changed for ID: ${id}. Performing full respawn.`);
+        // Cancel any pending command-based despawn from a PREVIOUS operation
+        if (pendingDespawns.has(id)) {
+            mc.system.clearTimeout(pendingDespawns.get(id));
+            pendingDespawns.delete(id);
+        }
+        // Despawn the old entity.
+        await despawnText(id);
+
+        // Apply new config
+        floatingTexts.set(id, newConfig);
+        saveTexts();
+
+        // Schedule the next update based on the new interval.
+        scheduleNextUpdate(newConfig);
+
+        // Spawn a new entity after a delay long enough for the async despawn to complete.
+        mc.system.runTimeout(() => {
+            spawnText(newConfig);
+        }, 20); // 20 ticks > ~15 ticks used by despawnText fallback
+
+        return; // We are done.
     }
-    floatingTexts.set(id, textConfig);
+
+    // --- Logic Branch 2: Location is the same, perform live update ---
+    debugLog(`[FloatingText] Performing live update for ID: ${id}.`);
+    // Save the new configuration
+    floatingTexts.set(id, newConfig);
     saveTexts();
 
-    // Schedule the next update based on the new configuration.
-    // This will clear any old timeout and create a new one if necessary.
-    scheduleNextUpdate(textConfig);
+    // If the update interval changed, reschedule the update loop.
+    if (oldConfig.updateInterval !== newConfig.updateInterval || oldConfig.text !== newConfig.text) {
+        scheduleNextUpdate(newConfig);
+    }
 
-    // Spawn a new entity after a delay long enough for the async despawn to complete.
-    mc.system.runTimeout(() => {
-        spawnText(textConfig);
-    }, 20); // 20 ticks > 5+10 ticks used by despawnText fallback
+    // Update the nametag of the live entity.
+    try {
+        const dimension = mc.world.getDimension(newConfig.dimension);
+        const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
+        const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+
+        if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+            entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
+        } else {
+            // If the entity doesn't exist for some reason, spawn it.
+            debugLog(`[FloatingText] Live entity for ID: ${id} not found during update. Spawning it now.`);
+            spawnText(newConfig);
+        }
+    } catch (e) {
+        errorLog(`[FloatingText] Error during live update for ID: ${id}.`, e);
+    }
 }
+
 
 function createText(player, id, text) {
     if (floatingTexts.has(id)) {
