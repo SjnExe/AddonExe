@@ -64,7 +64,7 @@ class CommandManager {
                 console.warn(`[CommandManager] Command '${command.name}' cannot be run from the console.`); // eslint-disable-line no-console
                 return;
             }
-            mc.system.run(() => {
+            mc.system.runJob(() => {
                 try {
                     command.execute(executor, args);
                 } catch (error) {
@@ -95,7 +95,7 @@ class CommandManager {
         }
 
         // Execute Command
-        mc.system.run(() => {
+        mc.system.runJob(() => {
             try {
                 command.execute(player, args);
             } catch (error) {

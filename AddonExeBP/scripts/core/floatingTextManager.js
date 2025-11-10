@@ -208,69 +208,65 @@ async function updateText(id, updates) {
     const oldConfig = getTextById(id);
     if (!oldConfig) { return; }
 
-    // Create a new config object with the updates applied to see what changed.
     const newConfig = { ...oldConfig, ...updates };
 
-    // If the expiration is meant to be removed, ensure the property is null.
     if (updates.expiresAt === undefined) {
         newConfig.expiresAt = null;
     }
 
-    const locationChanged = !isDeepEqual(oldConfig.location, newConfig.location) || oldConfig.dimension !== newConfig.dimension;
+    const locationChanged =
+        oldConfig.dimension !== newConfig.dimension ||
+        Math.abs(oldConfig.location.x - newConfig.location.x) > 0.01 ||
+        Math.abs(oldConfig.location.y - newConfig.location.y) > 0.01 ||
+        Math.abs(oldConfig.location.z - newConfig.location.z) > 0.01;
 
-    // --- Logic Branch 1: Location has changed, full respawn is required ---
+
     if (locationChanged) {
         debugLog(`[FloatingText] Location changed for ID: ${id}. Performing full respawn.`);
-        // Cancel any pending command-based despawn from a PREVIOUS operation
         if (pendingDespawns.has(id)) {
             mc.system.clearTimeout(pendingDespawns.get(id));
             pendingDespawns.delete(id);
         }
-        // Despawn the old entity.
         await despawnText(id);
 
-        // Apply new config
         floatingTexts.set(id, newConfig);
         saveTexts();
 
-        // Schedule the next update based on the new interval.
         scheduleNextUpdate(newConfig);
 
-        // Spawn a new entity after a delay long enough for the async despawn to complete.
         mc.system.runTimeout(() => {
             spawnText(newConfig);
-        }, 20); // 20 ticks > ~15 ticks used by despawnText fallback
+        }, 20);
 
-        return; // We are done.
+        return;
     }
 
-    // --- Logic Branch 2: Location is the same, perform live update ---
     debugLog(`[FloatingText] Performing live update for ID: ${id}.`);
-    // Save the new configuration
     floatingTexts.set(id, newConfig);
     saveTexts();
 
-    // If the update interval changed, reschedule the update loop.
     if (oldConfig.updateInterval !== newConfig.updateInterval || oldConfig.text !== newConfig.text) {
         scheduleNextUpdate(newConfig);
     }
 
-    // Update the nametag of the live entity.
-    try {
-        const dimension = mc.world.getDimension(newConfig.dimension);
-        const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
-        const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+    // Adding a 1-tick delay to prevent a potential race condition where the entity
+    // might not be found immediately after a UI interaction.
+    mc.system.runTimeout(() => {
+        try {
+            const dimension = mc.world.getDimension(newConfig.dimension);
+            const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
+            const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
 
-        if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-            entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
-        } else {
-            // If the entity doesn't exist for some reason, spawn it.
-            debugLog(`[FloatingText] Live entity for ID: ${id} not found during update. Spawning it now.`);
-            spawnText(newConfig);
+            if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+                entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
+            } else {
+                debugLog(`[FloatingText] Live entity for ID: ${id} not found during update. Spawning it now.`);
+                spawnText(newConfig);
+            }
+        } catch (e) {
+            errorLog(`[FloatingText] Error during live update for ID: ${id}.`, e);
         }
-    } catch (e) {
-        errorLog(`[FloatingText] Error during live update for ID: ${id}.`, e);
-    }
+    }, 1);
 }
 
 

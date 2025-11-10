@@ -23,7 +23,7 @@ function cleanup() {
     eventHandlers = [];
 
     if (intervalId !== -1) {
-        mc.system.clearRun(intervalId);
+        mc.system.clearInterval(intervalId);
         intervalId = -1;
         debugLog('[SpawnProtection] Interval cleared.');
     }
