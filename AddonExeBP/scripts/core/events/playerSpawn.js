@@ -3,8 +3,6 @@ import { getOrCreatePlayer } from '../playerDataManager.js';
 import { updatePlayerRank } from '../main.js';
 import { debugLog, infoLog } from '../logger.js';
 import { getPunishment, initializePunishmentManager } from '../punishmentManager.js';
-import { initializeReportManager } from '../reportManager.js';
-import { initializeCooldownManager } from '../cooldownManager.js';
 import { getConfig } from '../configManager.js';
 import { formatLocation } from '../utils.js';
 import { sendMessage } from '../messaging.js';
@@ -15,8 +13,14 @@ function onFirstPlayerJoin() {
     infoLog('[Add-on] First player has joined. Finalizing manager initializations.');
     // These were deferred to prevent race conditions on world load
     initializePunishmentManager();
-    initializeReportManager();
-    initializeCooldownManager();
+
+    // These managers initialize themselves on import, so we just need to import them.
+    import('../reportManager.js').catch(e => {
+        errorLog('Failed to initialize ReportManager on first player join:', e);
+    });
+    import('../cooldownManager.js').catch(e => {
+        errorLog('Failed to initialize CooldownManager on first player join:', e);
+    });
 }
 
 /**
