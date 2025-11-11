@@ -27,7 +27,6 @@ import { getEconomyConfig } from './configurations.js';
 import * as mc from '@minecraft/server';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
-import { registerPlaceholder } from './placeholderManager.js';
 import { formatCurrency } from './utils.js';
 
 const playerPropertyPrefix = 'exe:player.';
@@ -514,50 +513,4 @@ export function transfer(sourcePlayerId, targetPlayerId, amount) {
     incrementPlayerBalance(targetPlayerId, amount);
 
     return { success: true, message: 'Transfer successful.' };
-}
-
-export function registerPlayerDataPlaceholders() {
-    registerPlaceholder('topbal', ({ index, valueKey }) => {
-        const config = getConfig();
-        const leaderboard = getLeaderboard();
-        const baltopLimit = config.economy.baltopLimit ?? 10;
-
-        // Case 1: Handle the main {topbal} list placeholder
-        if (valueKey === 'list') {
-            const listLimit = Math.min(5, baltopLimit);
-            const topPlayers = leaderboard.slice(0, listLimit);
-
-            if (topPlayers.length === 0) {
-                return '§cNo players on the leaderboard yet.§r';
-            }
-
-            return topPlayers.map((player, i) => {
-                const rank = i + 1;
-                const formattedBalance = `§a${formatCurrency(player.balance)}§r`;
-                // Example: §e#1 §rSjnTech: §a$1,000.00§r
-                return `§e#${rank} §r${player.name}: ${formattedBalance}`;
-            }).join('\n');
-        }
-
-        // Case 2: Handle indexed placeholders like {topbal1name} or {topbal1value}
-        if (index >= 0) {
-            // Check if the requested rank is within the configured limit and available data
-            if (index >= baltopLimit || index >= leaderboard.length) {
-                return 'N/A';
-            }
-
-            const playerData = leaderboard[index];
-            if (!playerData) {return 'N/A';}
-
-            if (valueKey === 'name') {
-                return playerData.name;
-            }
-            if (valueKey === 'value') {
-                return `§a${formatCurrency(playerData.balance)}§r`;
-            }
-        }
-
-        // Fallback for any unhandled or invalid format
-        return 'N/A';
-    });
 }

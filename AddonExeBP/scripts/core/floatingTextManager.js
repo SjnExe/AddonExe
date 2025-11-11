@@ -206,67 +206,81 @@ function getTextById(id) {
 
 async function updateText(id, updates) {
     const oldConfig = getTextById(id);
-    if (!oldConfig) { return; }
+    if (!oldConfig) {
+        errorLog(`[FloatingText] updateText failed: Could not find config for ID: ${id}`);
+        return;
+    }
 
     const newConfig = { ...oldConfig, ...updates };
-
+    // Ensure expiresAt is explicitly nulled if the update removes it
     if (updates.expiresAt === undefined) {
         newConfig.expiresAt = null;
     }
 
-    const locationChanged =
+    // Determine what has changed
+    const locationChanged = (
         oldConfig.dimension !== newConfig.dimension ||
-        Math.abs(oldConfig.location.x - newConfig.location.x) > 0.01 ||
-        Math.abs(oldConfig.location.y - newConfig.location.y) > 0.01 ||
-        Math.abs(oldConfig.location.z - newConfig.location.z) > 0.01;
+        Math.round(oldConfig.location.x * 100) !== Math.round(newConfig.location.x * 100) ||
+        Math.round(oldConfig.location.y * 100) !== Math.round(newConfig.location.y * 100) ||
+        Math.round(oldConfig.location.z * 100) !== Math.round(newConfig.location.z * 100)
+    );
+    const textChanged = oldConfig.text !== newConfig.text;
+    const intervalChanged = oldConfig.updateInterval !== newConfig.updateInterval;
 
-
-    if (locationChanged) {
-        debugLog(`[FloatingText] Location changed for ID: ${id}. Performing full respawn.`);
-        if (pendingDespawns.has(id)) {
-            mc.system.clearTimeout(pendingDespawns.get(id));
-            pendingDespawns.delete(id);
-        }
-        await despawnText(id);
-
+    // If nothing important changed, just save and exit to avoid unnecessary work.
+    if (!locationChanged && !textChanged && !intervalChanged && isDeepEqual(oldConfig, newConfig)) {
+        debugLog(`[FloatingText] updateText called for ID: ${id}, but no functional changes were detected. Only saving.`);
         floatingTexts.set(id, newConfig);
         saveTexts();
-
-        scheduleNextUpdate(newConfig);
-
-        mc.system.runTimeout(() => {
-            spawnText(newConfig);
-        }, 20);
-
         return;
     }
 
-    debugLog(`[FloatingText] Performing live update for ID: ${id}.`);
+    // Always save the latest configuration first.
     floatingTexts.set(id, newConfig);
     saveTexts();
+    debugLog(`[FloatingText] Saved updated config for ID: ${id}`);
 
-    if (oldConfig.updateInterval !== newConfig.updateInterval || oldConfig.text !== newConfig.text) {
-        scheduleNextUpdate(newConfig);
+    // If text or interval changes, we need to restart the update scheduler.
+    // This is the part that was crashing.
+    if (textChanged || intervalChanged) {
+        debugLog(`[FloatingText] Text or interval changed for ID: ${id}. Rescheduling update timer.`);
+        try {
+            scheduleNextUpdate(newConfig);
+        } catch (e) {
+            errorLog(`[FloatingText] CRITICAL: Failed to reschedule update for ${id}. The script engine's timer API may be corrupt.`, e.stack);
+        }
     }
 
-    // Adding a 1-tick delay to prevent a potential race condition where the entity
-    // might not be found immediately after a UI interaction.
-    mc.system.runTimeout(() => {
-        try {
-            const dimension = mc.world.getDimension(newConfig.dimension);
-            const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
-            const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+    // Handle entity updates based on what changed.
+    if (locationChanged) {
+        debugLog(`[FloatingText] Location changed for ID: ${id}. Performing full respawn.`);
+        await despawnText(id);
+        // Use a timeout to spawn the new entity, avoiding race conditions.
+        mc.system.runTimeout(() => {
+            spawnText(newConfig);
+            debugLog(`[FloatingText] Respawn initiated for ID: ${id}`);
+        }, 20); // Delay of 1 second
+    } else if (textChanged) {
+        debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
+        // Use a 1-tick timeout for safety, preventing race conditions with UI closes.
+        mc.system.runTimeout(() => {
+            try {
+                const dimension = mc.world.getDimension(newConfig.dimension);
+                const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
+                const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
 
-            if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-                entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
-            } else {
-                debugLog(`[FloatingText] Live entity for ID: ${id} not found during update. Spawning it now.`);
-                spawnText(newConfig);
+                if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+                    entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
+                    debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
+                } else {
+                    debugLog(`[FloatingText] Live entity for ID: ${id} not found during text update. Spawning it.`);
+                    spawnText(newConfig);
+                }
+            } catch (e) {
+                errorLog(`[FloatingText] Error during live nametag update for ID: ${id}.`, e.stack);
             }
-        } catch (e) {
-            errorLog(`[FloatingText] Error during live update for ID: ${id}.`, e);
-        }
-    }, 1);
+        }, 1);
+    }
 }
 
 
