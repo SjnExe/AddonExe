@@ -262,6 +262,23 @@ export function generateDisplayName(typeId) {
 }
 
 /**
+ * Formats a location object into a human-readable string.
+ * @param {{x: number, y: number, z: number, dimensionId: string}} location The location object.
+ * @returns {string} A formatted string (e.g., "X: 10.50, Y: 64.00, Z: -12.25 in Overworld").
+ */
+export function formatLocation(location) {
+    if (!location) {
+        return 'an unknown location';
+    }
+    const x = location.x.toFixed(2);
+    const y = location.y.toFixed(2);
+    const z = location.z.toFixed(2);
+    const dimensionName = (location.dimensionId || 'Unknown').replace('minecraft:', '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return `X: ${x}, Y: ${y}, Z: ${z} in ${dimensionName}`;
+}
+
+
+/**
  * Formats a number as a currency string, using the symbol from the config.
  * @param {number} amount The amount to format.
  * @returns {string} The formatted currency string (e.g., "$1,234.50").

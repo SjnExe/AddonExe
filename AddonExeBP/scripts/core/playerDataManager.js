@@ -27,7 +27,6 @@ import { getEconomyConfig } from './configurations.js';
 import * as mc from '@minecraft/server';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
-import { formatCurrency } from './utils.js';
 
 const playerPropertyPrefix = 'exe:player.';
 const playerNameIdMapKey = 'exe:playerNameIdMap';

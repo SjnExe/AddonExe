@@ -132,7 +132,7 @@ async function spawnAllTexts() {
             spawnText(textConfig);
 
         } catch (error) {
-             if (error.toString().includes('LocationInUnloadedChunkError')) {
+            if (error.toString().includes('LocationInUnloadedChunkError')) {
                 if (!unloadedChunkQueue.has(textConfig.id)) {
                     debugLog(`[FloatingText] Failed to check text with ID: ${textConfig.id} (chunk unloaded). Adding to retry queue.`);
                     unloadedChunkQueue.add(textConfig.id);

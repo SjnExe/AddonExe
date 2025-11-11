@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 import { getOrCreatePlayer } from '../playerDataManager.js';
 import { updatePlayerRank } from '../main.js';
-import { debugLog, infoLog } from '../logger.js';
+import { debugLog, infoLog, errorLog } from '../logger.js';
 import { getPunishment, initializePunishmentManager } from '../punishmentManager.js';
 import { getConfig } from '../configManager.js';
 import { formatLocation } from '../utils.js';
@@ -59,9 +59,9 @@ function handlePlayerJoin(player) {
     mc.system.runTimeout(() => {
         try {
             updatePlayerRank(player);
-        } catch (e) {
+        } catch {
             // This can sometimes fail if the player object isn't fully ready.
-            // It's usually harmless as ranks are updated periodically.
+            // The error is usually harmless as the rank will be updated by other means shortly.
         }
     }, 1);
 }
