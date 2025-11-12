@@ -184,7 +184,7 @@ export async function handleFormResponse(player, panelId, response, context) {
             updateInterval: updateIntervalInSeconds * 20, // Convert to ticks
             expiresAt: useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
         };
-        await floatingTextManager.updateText(id, updatedConfig);
+        floatingTextManager.updateText(id, updatedConfig);
         player.sendMessage(`§aSuccessfully updated floating text: ${id}`);
         return showPanel(player, 'floatingTextActionPanel', context);
     }

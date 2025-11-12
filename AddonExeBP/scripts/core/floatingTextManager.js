@@ -204,7 +204,7 @@ function getTextById(id) {
     return floatingTexts.get(id);
 }
 
-async function updateText(id, updates) {
+function updateText(id, updates) {
     const oldConfig = getTextById(id);
     if (!oldConfig) {
         errorLog(`[FloatingText] updateText failed: Could not find config for ID: ${id}`);
@@ -251,38 +251,30 @@ async function updateText(id, updates) {
         }
     }
 
-    // Handle entity updates based on what changed.
-    // If location changes, we must respawn. If only text changes, we try to update live.
-    try {
-        const dimension = mc.world.getDimension(newConfig.dimension);
-        const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
-        const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+    // Defer the entity update logic to the next tick to avoid race conditions with UI closes.
+    mc.system.run(async () => {
+        try {
+            const dimension = mc.world.getDimension(newConfig.dimension);
+            const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
+            const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+            const entityExists = entity && typeof entity.isValid === 'function' && entity.isValid();
 
-        // Check if a valid entity exists at the correct location.
-        const entityExists = entity && typeof entity.isValid === 'function' && entity.isValid();
-
-        debugLog(`[FloatingText] Update check for ID: ${id}. locationChanged: ${locationChanged}, entityExists: ${entityExists}`);
-
-        if (locationChanged || !entityExists) {
-            debugLog(`[FloatingText] Location changed or entity not found for ID: ${id}. Performing full respawn.`);
-            await despawnText(id); // Clean up any old entity first
-            // Use a timeout to spawn the new entity, avoiding potential race conditions.
-            mc.system.runTimeout(() => {
+            if (locationChanged || !entityExists) {
+                debugLog(`[FloatingText] Location changed or entity not found for ID: ${id}. Performing full respawn.`);
+                await despawnText(id);
                 spawnText(newConfig);
-                debugLog(`[FloatingText] Respawn initiated for ID: ${id}`);
-            }, 5); // A short delay is often sufficient
-        } else if (textChanged) {
-            // Entity exists and location is the same, so just update the nametag.
-            debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
-            entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
-            debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
+            } else if (textChanged) {
+                debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
+                entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
+                debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
+            }
+        } catch (e) {
+            errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, e.stack);
+            // As a fallback, attempt a respawn.
+            await despawnText(id);
+            spawnText(newConfig);
         }
-    } catch (e) {
-        errorLog(`[FloatingText] Error during entity update/check for ID: ${id}. Attempting a fallback respawn.`, e.stack);
-        // As a fallback, try to respawn the entity if any error occurs.
-        await despawnText(id);
-        mc.system.runTimeout(() => spawnText(newConfig), 5);
-    }
+    });
 }
 
 
