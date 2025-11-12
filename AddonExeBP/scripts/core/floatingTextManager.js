@@ -252,7 +252,7 @@ function updateText(id, updates) {
     }
 
     // Defer the entity update logic to the next tick to avoid race conditions with UI closes.
-    mc.system.run(async () => {
+    mc.system.runTimeout(async () => {
         try {
             const dimension = mc.world.getDimension(newConfig.dimension);
             const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
@@ -274,7 +274,7 @@ function updateText(id, updates) {
             await despawnText(id);
             spawnText(newConfig);
         }
-    });
+    }, 2);
 }
 
 
