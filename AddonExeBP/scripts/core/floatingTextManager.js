@@ -252,31 +252,34 @@ async function updateText(id, updates) {
     }
 
     // Handle entity updates based on what changed.
-    if (locationChanged) {
-        debugLog(`[FloatingText] Location changed for ID: ${id}. Performing full respawn.`);
-        await despawnText(id);
-        // Use a timeout to spawn the new entity, avoiding race conditions.
-        mc.system.runTimeout(() => {
-            spawnText(newConfig);
-            debugLog(`[FloatingText] Respawn initiated for ID: ${id}`);
-        }, 20); // Delay of 1 second
-    } else if (textChanged) {
-        debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
-        try {
-            const dimension = mc.world.getDimension(newConfig.dimension);
-            const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
-            const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+    // If location changes, we must respawn. If only text changes, we try to update live.
+    try {
+        const dimension = mc.world.getDimension(newConfig.dimension);
+        const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
+        const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
 
-            if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-                entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
-                debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
-            } else {
-                debugLog(`[FloatingText] Live entity for ID: ${id} not found during text update. Spawning it.`);
+        // Check if a valid entity exists at the correct location.
+        const entityExists = entity && typeof entity.isValid === 'function' && entity.isValid();
+
+        if (locationChanged || !entityExists) {
+            debugLog(`[FloatingText] Location changed or entity not found for ID: ${id}. Performing full respawn.`);
+            await despawnText(id); // Clean up any old entity first
+            // Use a timeout to spawn the new entity, avoiding potential race conditions.
+            mc.system.runTimeout(() => {
                 spawnText(newConfig);
-            }
-        } catch (e) {
-            errorLog(`[FloatingText] Error during live nametag update for ID: ${id}.`, e.stack);
+                debugLog(`[FloatingText] Respawn initiated for ID: ${id}`);
+            }, 5); // A short delay is often sufficient
+        } else if (textChanged) {
+            // Entity exists and location is the same, so just update the nametag.
+            debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
+            entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
+            debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
         }
+    } catch (e) {
+        errorLog(`[FloatingText] Error during entity update/check for ID: ${id}. Attempting a fallback respawn.`, e.stack);
+        // As a fallback, try to respawn the entity if any error occurs.
+        await despawnText(id);
+        mc.system.runTimeout(() => spawnText(newConfig), 5);
     }
 }
 
