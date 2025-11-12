@@ -220,9 +220,9 @@ async function updateText(id, updates) {
     // Determine what has changed
     const locationChanged = (
         oldConfig.dimension !== newConfig.dimension ||
-        Math.round(oldConfig.location.x * 100) !== Math.round(newConfig.location.x * 100) ||
-        Math.round(oldConfig.location.y * 100) !== Math.round(newConfig.location.y * 100) ||
-        Math.round(oldConfig.location.z * 100) !== Math.round(newConfig.location.z * 100)
+        Math.abs(oldConfig.location.x - newConfig.location.x) > 0.01 ||
+        Math.abs(oldConfig.location.y - newConfig.location.y) > 0.01 ||
+        Math.abs(oldConfig.location.z - newConfig.location.z) > 0.01
     );
     const textChanged = oldConfig.text !== newConfig.text;
     const intervalChanged = oldConfig.updateInterval !== newConfig.updateInterval;
