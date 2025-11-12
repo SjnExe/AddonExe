@@ -16,7 +16,7 @@ let retrySpawnIntervalId;
 function scheduleNextUpdate(textConfig) {
     // If a timeout already exists for this text, clear it before scheduling a new one.
     if (updateTimeouts.has(textConfig.id)) {
-        mc.system.clearTimeout(updateTimeouts.get(textConfig.id));
+        mc.system.clearRun(updateTimeouts.get(textConfig.id));
         updateTimeouts.delete(textConfig.id);
     }
 
@@ -262,24 +262,21 @@ async function updateText(id, updates) {
         }, 20); // Delay of 1 second
     } else if (textChanged) {
         debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
-        // Use a 1-tick timeout for safety, preventing race conditions with UI closes.
-        mc.system.runTimeout(() => {
-            try {
-                const dimension = mc.world.getDimension(newConfig.dimension);
-                const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
-                const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+        try {
+            const dimension = mc.world.getDimension(newConfig.dimension);
+            const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
+            const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
 
-                if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-                    entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
-                    debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
-                } else {
-                    debugLog(`[FloatingText] Live entity for ID: ${id} not found during text update. Spawning it.`);
-                    spawnText(newConfig);
-                }
-            } catch (e) {
-                errorLog(`[FloatingText] Error during live nametag update for ID: ${id}.`, e.stack);
+            if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+                entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
+                debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
+            } else {
+                debugLog(`[FloatingText] Live entity for ID: ${id} not found during text update. Spawning it.`);
+                spawnText(newConfig);
             }
-        }, 1);
+        } catch (e) {
+            errorLog(`[FloatingText] Error during live nametag update for ID: ${id}.`, e.stack);
+        }
     }
 }
 
@@ -314,7 +311,7 @@ function createText(player, id, text) {
 async function despawnText(id) {
     // Clean up internal script state to prevent respawns.
     if (pendingDespawns.has(id)) {
-        mc.system.clearTimeout(pendingDespawns.get(id));
+        mc.system.clearRun(pendingDespawns.get(id));
         pendingDespawns.delete(id);
     }
     unloadedChunkQueue.delete(id);
@@ -353,7 +350,7 @@ async function despawnText(id) {
 async function respawnText(id) {
     // Cancel any pending command-based despawn to prevent race conditions
     if (pendingDespawns.has(id)) {
-        mc.system.clearTimeout(pendingDespawns.get(id));
+        mc.system.clearRun(pendingDespawns.get(id));
         pendingDespawns.delete(id);
         debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to respawn.`);
     }
@@ -382,7 +379,7 @@ async function deleteText(player, id) {
 
     // Stop any scheduled updates for this text.
     if (updateTimeouts.has(id)) {
-        mc.system.clearTimeout(updateTimeouts.get(id));
+        mc.system.clearRun(updateTimeouts.get(id));
         updateTimeouts.delete(id);
     }
 
@@ -425,23 +422,23 @@ function cleanup() {
 
     // Clear main interval loops
     if (expirationIntervalId) {
-        mc.system.clearTimeout(expirationIntervalId);
+        mc.system.clearRun(expirationIntervalId);
         expirationIntervalId = undefined; // Use undefined to signify it's cleared
     }
     if (retrySpawnIntervalId) {
-        mc.system.clearTimeout(retrySpawnIntervalId);
+        mc.system.clearRun(retrySpawnIntervalId);
         retrySpawnIntervalId = undefined;
     }
 
     // Clear all pending update timeouts for individual texts
     for (const timeoutId of updateTimeouts.values()) {
-        mc.system.clearTimeout(timeoutId);
+        mc.system.clearRun(timeoutId);
     }
     updateTimeouts.clear();
 
     // Clear any pending despawn timeouts
     for (const timeoutId of pendingDespawns.values()) {
-        mc.system.clearTimeout(timeoutId);
+        mc.system.clearRun(timeoutId);
     }
     pendingDespawns.clear();
 
