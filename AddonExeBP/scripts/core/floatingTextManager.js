@@ -261,6 +261,8 @@ async function updateText(id, updates) {
         // Check if a valid entity exists at the correct location.
         const entityExists = entity && typeof entity.isValid === 'function' && entity.isValid();
 
+        debugLog(`[FloatingText] Update check for ID: ${id}. locationChanged: ${locationChanged}, entityExists: ${entityExists}`);
+
         if (locationChanged || !entityExists) {
             debugLog(`[FloatingText] Location changed or entity not found for ID: ${id}. Performing full respawn.`);
             await despawnText(id); // Clean up any old entity first
