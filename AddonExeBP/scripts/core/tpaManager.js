@@ -31,7 +31,7 @@ const incomingRequests = new Map();
  */
 function clearRequest(request) {
     if (!request) {return;}
-    mc.system.clearRun(request.timeoutId);
+    mc.system.clearTimeout(request.timeoutId);
     outgoingRequests.delete(request.sourcePlayerId);
     const targetRequests = incomingRequests.get(request.targetPlayerId);
     if (targetRequests) {

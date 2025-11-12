@@ -3,7 +3,7 @@ import { errorLog } from '../logger.js';
 
 // Import all event handlers statically
 import handleBeforeChatSend from './beforeChatSend.js';
-import handlePlayerSpawn from './playerSpawn.js';
+import { initializePlayerSpawnEvent } from './playerSpawn.js';
 import handleEntityHurt from './entityHurt.js';
 import handlePlayerLeave from './playerLeave.js';
 import handlePlayerDimensionChange from './playerDimensionChange.js';
@@ -18,7 +18,7 @@ import handlePlayerBreakBlock from './playerBreakBlock.js';
  */
 export const events = [
     { event: mc.world.beforeEvents.chatSend, handler: handleBeforeChatSend, name: 'beforeChatSend' },
-    { event: mc.world.afterEvents.playerSpawn, handler: handlePlayerSpawn, name: 'playerSpawn' },
+    { event: null, handler: initializePlayerSpawnEvent, name: 'playerSpawn' }, // playerSpawn is not a direct event handler, but the initializer for one.
     { event: mc.world.afterEvents.entityHurt, handler: handleEntityHurt, name: 'entityHurt' },
     { event: mc.world.afterEvents.playerLeave, handler: handlePlayerLeave, name: 'playerLeave' },
     { event: mc.world.afterEvents.playerDimensionChange, handler: handlePlayerDimensionChange, name: 'playerDimensionChange' },
@@ -41,6 +41,13 @@ export function initializeEventManager() {
             } catch (e) {
                 // Log the error with more detail for easier debugging in the future.
                 errorLog(`[EventManager] Failed to subscribe to event '${name}'. Error: ${e.message}\nStack: ${e.stack}`);
+            }
+        } else if (typeof handler === 'function') {
+            // If there's no event but there is a handler, it's likely an initializer.
+            try {
+                handler();
+            } catch (e) {
+                errorLog(`[EventManager] Failed to run initializer '${name}'. Error: ${e.message}\nStack: ${e.stack}`);
             }
         } else {
             errorLog(`[EventManager] Event subscription for '${name}' was skipped because the event is not available in this version of Minecraft.`);

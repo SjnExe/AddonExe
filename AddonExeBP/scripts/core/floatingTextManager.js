@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 import { errorLog, debugLog } from './logger.js';
 import { resolvePlaceholders } from './placeholderManager.js';
+import { isDeepEqual } from './objectUtils.js';
 
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map(); // Use a Map for efficient lookups by ID
@@ -15,7 +16,7 @@ let retrySpawnIntervalId;
 function scheduleNextUpdate(textConfig) {
     // If a timeout already exists for this text, clear it before scheduling a new one.
     if (updateTimeouts.has(textConfig.id)) {
-        mc.system.clearTimeout(updateTimeouts.get(textConfig.id));
+        mc.system.clearRun(updateTimeouts.get(textConfig.id));
         updateTimeouts.delete(textConfig.id);
     }
 
@@ -56,9 +57,9 @@ function saveTexts() {
     }
 }
 
-function initialize() {
+async function initialize() {
     loadTexts();
-    spawnAllTexts();
+    await spawnAllTexts();
 
     // Set up initial update schedules for all texts.
     for (const textConfig of floatingTexts.values()) {
@@ -69,6 +70,7 @@ function initialize() {
     runExpirationLoop();
     runRetrySpawnLoop();
 }
+
 
 /**
  * A self-rescheduling loop that periodically checks for and removes expired floating texts.
@@ -107,11 +109,41 @@ function runRetrySpawnLoop() {
     retrySpawnIntervalId = mc.system.runTimeout(runRetrySpawnLoop, 200);
 }
 
-function spawnAllTexts() {
+async function spawnAllTexts() {
     for (const textConfig of floatingTexts.values()) {
-        spawnText(textConfig);
+        try {
+            const dimension = mc.world.getDimension(textConfig.dimension);
+            const query = { type: 'addonexe:floating_text', tags: [`ft_${textConfig.id}`] };
+            const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+
+            // Check if a valid entity already exists at the correct location.
+            if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+                const isCorrectLocation = Math.abs(entity.location.x - textConfig.location.x) < 0.1 &&
+                                          Math.abs(entity.location.y - textConfig.location.y) < 0.1 &&
+                                          Math.abs(entity.location.z - textConfig.location.z) < 0.1;
+
+                if (isCorrectLocation) {
+                    debugLog(`[FloatingText] Entity for ID: ${textConfig.id} already exists. Skipping spawn.`);
+                    continue; // Skip to the next text
+                }
+            }
+            // If we reach here, either the entity doesn't exist, is invalid, or is in the wrong place.
+            // So, we spawn it (which includes a cleanup kill command).
+            spawnText(textConfig);
+
+        } catch (error) {
+            if (error.toString().includes('LocationInUnloadedChunkError')) {
+                if (!unloadedChunkQueue.has(textConfig.id)) {
+                    debugLog(`[FloatingText] Failed to check text with ID: ${textConfig.id} (chunk unloaded). Adding to retry queue.`);
+                    unloadedChunkQueue.add(textConfig.id);
+                }
+            } else {
+                errorLog(`[FloatingText] Error during initial check for text ID: ${textConfig.id}`, error);
+            }
+        }
     }
 }
+
 
 function spawnText(textConfig) {
     try {
@@ -173,38 +205,84 @@ function getTextById(id) {
 }
 
 async function updateText(id, updates) {
-    const textConfig = getTextById(id);
-    if (!textConfig) { return; }
-
-    // Cancel any pending command-based despawn from a PREVIOUS operation
-    if (pendingDespawns.has(id)) {
-        mc.system.clearTimeout(pendingDespawns.get(id));
-        pendingDespawns.delete(id);
-        debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to update.`);
+    const oldConfig = getTextById(id);
+    if (!oldConfig) {
+        errorLog(`[FloatingText] updateText failed: Could not find config for ID: ${id}`);
+        return;
     }
 
-    // Despawn the old entity. This might schedule a NEW pending despawn.
-    await despawnText(id);
-
-    // Apply updates to the configuration
-    Object.assign(textConfig, updates);
-    // Ensure expiresAt is explicitly set to null if not provided in the update,
-    // preventing an old timer from persisting across edits.
-    if (!Object.prototype.hasOwnProperty.call(updates, 'expiresAt')) {
-        textConfig.expiresAt = null;
+    const newConfig = { ...oldConfig, ...updates };
+    // Ensure expiresAt is explicitly nulled if the update removes it
+    if (updates.expiresAt === undefined) {
+        newConfig.expiresAt = null;
     }
-    floatingTexts.set(id, textConfig);
+
+    // Determine what has changed
+    const locationChanged = (
+        oldConfig.dimension !== newConfig.dimension ||
+        Math.round(oldConfig.location.x * 100) !== Math.round(newConfig.location.x * 100) ||
+        Math.round(oldConfig.location.y * 100) !== Math.round(newConfig.location.y * 100) ||
+        Math.round(oldConfig.location.z * 100) !== Math.round(newConfig.location.z * 100)
+    );
+    const textChanged = oldConfig.text !== newConfig.text;
+    const intervalChanged = oldConfig.updateInterval !== newConfig.updateInterval;
+
+    // If nothing important changed, just save and exit to avoid unnecessary work.
+    if (!locationChanged && !textChanged && !intervalChanged && isDeepEqual(oldConfig, newConfig)) {
+        debugLog(`[FloatingText] updateText called for ID: ${id}, but no functional changes were detected. Only saving.`);
+        floatingTexts.set(id, newConfig);
+        saveTexts();
+        return;
+    }
+
+    // Always save the latest configuration first.
+    floatingTexts.set(id, newConfig);
     saveTexts();
+    debugLog(`[FloatingText] Saved updated config for ID: ${id}`);
 
-    // Schedule the next update based on the new configuration.
-    // This will clear any old timeout and create a new one if necessary.
-    scheduleNextUpdate(textConfig);
+    // If text or interval changes, we need to restart the update scheduler.
+    // This is the part that was crashing.
+    if (textChanged || intervalChanged) {
+        debugLog(`[FloatingText] Text or interval changed for ID: ${id}. Rescheduling update timer.`);
+        try {
+            scheduleNextUpdate(newConfig);
+        } catch (e) {
+            errorLog(`[FloatingText] CRITICAL: Failed to reschedule update for ${id}. The script engine's timer API may be corrupt.`, e.stack);
+        }
+    }
 
-    // Spawn a new entity after a delay long enough for the async despawn to complete.
-    mc.system.runTimeout(() => {
-        spawnText(textConfig);
-    }, 20); // 20 ticks > 5+10 ticks used by despawnText fallback
+    // Handle entity updates based on what changed.
+    if (locationChanged) {
+        debugLog(`[FloatingText] Location changed for ID: ${id}. Performing full respawn.`);
+        await despawnText(id);
+        // Use a timeout to spawn the new entity, avoiding race conditions.
+        mc.system.runTimeout(() => {
+            spawnText(newConfig);
+            debugLog(`[FloatingText] Respawn initiated for ID: ${id}`);
+        }, 20); // Delay of 1 second
+    } else if (textChanged) {
+        debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
+        // Use a 1-tick timeout for safety, preventing race conditions with UI closes.
+        mc.system.runTimeout(() => {
+            try {
+                const dimension = mc.world.getDimension(newConfig.dimension);
+                const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
+                const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+
+                if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+                    entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
+                    debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
+                } else {
+                    debugLog(`[FloatingText] Live entity for ID: ${id} not found during text update. Spawning it.`);
+                    spawnText(newConfig);
+                }
+            } catch (e) {
+                errorLog(`[FloatingText] Error during live nametag update for ID: ${id}.`, e.stack);
+            }
+        }, 1);
+    }
 }
+
 
 function createText(player, id, text) {
     if (floatingTexts.has(id)) {
@@ -236,7 +314,7 @@ function createText(player, id, text) {
 async function despawnText(id) {
     // Clean up internal script state to prevent respawns.
     if (pendingDespawns.has(id)) {
-        mc.system.clearTimeout(pendingDespawns.get(id));
+        mc.system.clearRun(pendingDespawns.get(id));
         pendingDespawns.delete(id);
     }
     unloadedChunkQueue.delete(id);
@@ -275,7 +353,7 @@ async function despawnText(id) {
 async function respawnText(id) {
     // Cancel any pending command-based despawn to prevent race conditions
     if (pendingDespawns.has(id)) {
-        mc.system.clearTimeout(pendingDespawns.get(id));
+        mc.system.clearRun(pendingDespawns.get(id));
         pendingDespawns.delete(id);
         debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to respawn.`);
     }
@@ -304,7 +382,7 @@ async function deleteText(player, id) {
 
     // Stop any scheduled updates for this text.
     if (updateTimeouts.has(id)) {
-        mc.system.clearTimeout(updateTimeouts.get(id));
+        mc.system.clearRun(updateTimeouts.get(id));
         updateTimeouts.delete(id);
     }
 
@@ -347,23 +425,23 @@ function cleanup() {
 
     // Clear main interval loops
     if (expirationIntervalId) {
-        mc.system.clearTimeout(expirationIntervalId);
+        mc.system.clearRun(expirationIntervalId);
         expirationIntervalId = undefined; // Use undefined to signify it's cleared
     }
     if (retrySpawnIntervalId) {
-        mc.system.clearTimeout(retrySpawnIntervalId);
+        mc.system.clearRun(retrySpawnIntervalId);
         retrySpawnIntervalId = undefined;
     }
 
     // Clear all pending update timeouts for individual texts
     for (const timeoutId of updateTimeouts.values()) {
-        mc.system.clearTimeout(timeoutId);
+        mc.system.clearRun(timeoutId);
     }
     updateTimeouts.clear();
 
     // Clear any pending despawn timeouts
     for (const timeoutId of pendingDespawns.values()) {
-        mc.system.clearTimeout(timeoutId);
+        mc.system.clearRun(timeoutId);
     }
     pendingDespawns.clear();
 
