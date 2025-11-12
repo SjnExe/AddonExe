@@ -1,4 +1,5 @@
 import * as playerCache from '../playerCache.js';
+import { getPlayer } from '../playerDataManager.js';
 
 /**
  * Handles the `playerBreakBlock` event to notify admins of valuable ore mining.
@@ -14,7 +15,11 @@ function handlePlayerBreakBlock(event) {
     ];
 
     if (valuableOres.includes(block.typeId)) {
-        const onlineAdmins = playerCache.getXrayAdmins();
+        const onlineAdmins = playerCache.getAllPlayersFromCache().filter(p => {
+            const pData = getPlayer(p.id);
+            return pData && pData.permissionLevel === 0 && pData.xrayNotificationsEnabled;
+        });
+
         if (onlineAdmins.length === 0) { return; }
 
         const location = block.location;

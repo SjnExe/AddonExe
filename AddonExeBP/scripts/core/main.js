@@ -4,7 +4,7 @@ import { getSpawnConfig, loadEconomyConfig, loadKitsConfig, loadRanksConfig, loa
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
-import { cleanupPlayerDataManager, clearExpiredPayments } from './playerDataManager.js';
+import { cleanupPlayerDataManager, clearExpiredPayments, getBalance, getLeaderboard, getPlayer } from './playerDataManager.js';
 import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
@@ -17,9 +17,58 @@ import { initializeSpawnProtection } from '../modules/detections/spawnProtection
 import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
-import { registerPlayerDataPlaceholders } from './playerDataManager.js';
+import { registerPlaceholder } from './placeholderManager.js';
+import { formatCurrency } from './utils.js';
 import '../modules/commands/index.js';
 import './mobDeathEvents.js';
+
+/**
+ * Registers all placeholders related to player data.
+ * This must be called after the player data manager is initialized but before
+ * any systems that might use these placeholders are initialized.
+ */
+function registerPlayerDataPlaceholders() {
+    registerPlaceholder('playername', (player) => player.name);
+
+    registerPlaceholder('balance', (player) => {
+        const balance = getBalance(player.id);
+        return balance !== null ? formatCurrency(balance) : 'N/A';
+    });
+
+    registerPlaceholder('rank', (player) => {
+        const pData = getPlayer(player.id);
+        if (!pData) { return 'N/A'; }
+        const rank = rankManager.getRankById(pData.rankId);
+        return rank?.name ?? 'N/A';
+    });
+
+    registerPlaceholder('topbal', (player, args) => {
+        const leaderboard = getLeaderboard();
+        const config = getConfig();
+        const limit = args?.limit ?? config.economy.baltopLimit;
+        if (!leaderboard || leaderboard.length === 0) {
+            return '§cNo balance data available.§r';
+        }
+
+        const topEntries = leaderboard.slice(0, limit);
+        return topEntries.map((entry, index) =>
+            `§e${index + 1}. §f${entry.name} §7- §a${formatCurrency(entry.balance)}§r`
+        ).join('\n');
+    }, (fullKey) => {
+        const match = fullKey.match(/^topbal(\d+)(name|value)$/);
+        if (!match) { return null; }
+        const index = parseInt(match[1], 10) - 1;
+        const type = match[2];
+        const leaderboard = getLeaderboard();
+
+        if (index < 0 || index >= leaderboard.length) {
+            return 'N/A';
+        }
+        const entry = leaderboard[index];
+        return type === 'name' ? entry.name : formatCurrency(entry.balance);
+    });
+}
+
 
 /**
  * Checks a player's rank and updates it if necessary.

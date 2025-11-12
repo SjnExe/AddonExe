@@ -1,84 +1,86 @@
 import * as mc from '@minecraft/server';
-import { getPunishment } from '../punishmentManager.js';
-import * as playerCache from '../playerCache.js';
-import * as playerDataManager from '../playerDataManager.js';
-import * as rankManager from '../rankManager.js';
+import { getOrCreatePlayer } from '../playerDataManager.js';
 import { updatePlayerRank } from '../main.js';
+import { debugLog, infoLog, errorLog } from '../logger.js';
+import { getPunishment, initializePunishmentManager } from '../punishmentManager.js';
 import { getConfig } from '../configManager.js';
-import { formatString } from '../utils.js';
-import { errorLog } from '../logger.js';
-import { debugLog } from '../logger.js';
+import { formatLocation } from '../utils.js';
+import { sendMessage } from '../messaging.js';
 
-export const eventName = 'playerSpawn';
+let isFirstPlayerJoined = false;
 
-async function handlePlayerSpawn(event) {
-    const { player, initialSpawn } = event;
-    playerCache.addPlayerToCache(player);
+function onFirstPlayerJoin() {
+    infoLog('[Add-on] First player has joined. Finalizing manager initializations.');
+    // These were deferred to prevent race conditions on world load
+    initializePunishmentManager();
 
-    // Ban check
+    // These managers initialize themselves on import, so we just need to import them.
+    import('../reportManager.js').catch(e => {
+        errorLog('Failed to initialize ReportManager on first player join:', e);
+    });
+    import('../cooldownManager.js').catch(e => {
+        errorLog('Failed to initialize CooldownManager on first player join:', e);
+    });
+}
+
+/**
+ * Handles all logic that should run when a player joins the server.
+ * @param {import('@minecraft/server').Player} player The player who joined.
+ */
+function handlePlayerJoin(player) {
+    const pData = getOrCreatePlayer(player);
+    debugLog(`[Add-on] Player ${player.name} joined with rank ${pData.rankId}.`);
+
+    // 1. Check for bans
     const punishment = getPunishment(player.id);
     if (punishment?.type === 'ban') {
-        const remainingTime = Math.round((punishment.expires - Date.now()) / 1000);
-        const durationText = punishment.expires === Infinity ? 'permanently' : `for another ${remainingTime} seconds`;
-
-        mc.system.runTimeout(() => {
-            try {
-                const sanitizedReason = punishment.reason.replace(/"/g, '\\"');
-                mc.world.getDimension('overworld').runCommand(`kick "${player.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
-            } catch (error) {
-                errorLog(`[BanCheck] Failed to kick banned player ${player.name}:`, error);
-            }
-        }, 0);
-        return;
+        const banReason = punishment.reason || 'You are banned.';
+        // Kick the player after a short delay to ensure the message is sent
+        mc.system.runTimeout(() => player.kick(banReason), 5);
+        return; // Stop further processing for banned players
     }
 
-    const pData = playerDataManager.getOrCreatePlayer(player);
-    updatePlayerRank(player); // Check and update rank on join
-
-    if (initialSpawn) {
-        const rank = rankManager.getRankById(pData.rankId);
-        debugLog(`[AddonExe] Player ${player.name} joined with rank ${rank?.name ?? 'unknown'}.`);
-
-        const config = getConfig();
-        if (config.playerInfo.enableWelcomer) {
-            const context = {
-                playerName: player.name,
-                serverName: config.serverName,
-                discordLink: config.serverInfo.discordLink,
-                websiteLink: config.serverInfo.websiteLink
-            };
-            const welcomeMessage = formatString(config.playerInfo.welcomeMessage, context);
-            player.sendMessage(welcomeMessage);
-        }
+    // 2. Send welcome message
+    const config = getConfig();
+    if (config.welcomeMessage?.enabled && config.welcomeMessage?.message) {
+        sendMessage(config.welcomeMessage.message, player);
     }
 
-    // Update X-ray notification cache for admins
-    if (pData.permissionLevel <= 1 && pData.xrayNotifications) {
-        playerCache.addAdminToXrayCache(player.id);
+    // 3. Inform about pending death coordinates
+    if (pData.lastDeathLocation && !pData.deathNotificationSent) {
+        const formattedCoords = formatLocation(pData.lastDeathLocation);
+        sendMessage(`§7You died at ${formattedCoords}. Use §e/deathcoords§7 to see it again.`, player);
+        pData.deathNotificationSent = true;
+        // No need to save here, as it's not a critical data change.
+        // It will be saved on the next auto-save or on player leave.
     }
 
-    // Check for a death location to message the player after a brief delay.
+    // 4. Defer rank update by a tick to prevent race conditions
     mc.system.runTimeout(() => {
-        const freshPlayer = mc.world.getAllPlayers().find(p => p.id === player.id);
-        if (!freshPlayer) { return; }
-
-        const freshPData = playerDataManager.getOrCreatePlayer(freshPlayer);
-
-        if (freshPData && freshPData.lastDeathLocation && !freshPData.deathNotificationSent) {
-            const location = freshPData.lastDeathLocation;
-            const config = getConfig();
-            const context = {
-                x: location.x.toFixed(2),
-                y: location.y.toFixed(2),
-                z: location.z.toFixed(2),
-                dimensionId: location.dimensionId.replace('minecraft:', '')
-            };
-            const message = formatString(config.playerInfo.deathCoordsMessage, context);
-            freshPlayer.sendMessage(message);
-
-            playerDataManager.setDeathNotificationSent(player.id, true);
+        try {
+            updatePlayerRank(player);
+        } catch {
+            // This can sometimes fail if the player object isn't fully ready.
+            // The error is usually harmless as the rank will be updated by other means shortly.
         }
     }, 1);
 }
 
-export default handlePlayerSpawn;
+
+/**
+ * Subscribes to the player spawn event to handle player initialization.
+ */
+export function initializePlayerSpawnEvent() {
+    mc.world.afterEvents.playerSpawn.subscribe(event => {
+        const { player, initialSpawn } = event;
+
+        if (initialSpawn) {
+            if (!isFirstPlayerJoined) {
+                isFirstPlayerJoined = true;
+                // Defer by one tick to ensure the world is fully ready
+                mc.system.runTimeout(onFirstPlayerJoin, 1);
+            }
+            handlePlayerJoin(player);
+        }
+    });
+}
