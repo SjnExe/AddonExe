@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
-import { admin, command } from '../../../config/commands.js';
-import { debugLog } from '../../../core/logger.js';
-import { uiWait } from '../../../core/utils.js';
+import { admin, command } from '../../config/commands.js';
+import { debugLog } from '../../core/logger.js';
+import { uiWait } from '../../core/utils.js';
 
 command.register({
     name: 'querytest',
