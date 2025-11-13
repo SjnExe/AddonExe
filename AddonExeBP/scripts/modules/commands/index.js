@@ -55,7 +55,8 @@ const commandFiles = [
     'tp.js',
     'chattoconsole.js',
     'xraynotify.js',
-    'floatingtext.js'
+    'floatingtext.js',
+    'querytest.js'
 ];
 
 async function loadCommands() {
