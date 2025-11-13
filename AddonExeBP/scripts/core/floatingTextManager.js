@@ -196,6 +196,29 @@ function getUpdatedText(textConfig) {
     return resolvePlaceholders(textConfig.text);
 }
 
+/**
+ * A utility function to find an entity with a retry mechanism to handle race conditions.
+ * @param {mc.Dimension} dimension - The dimension to search in.
+ * @param {mc.EntityQueryOptions} query - The query to use for finding the entity.
+ * @param {number} maxRetries - The maximum number of retries.
+ * @param {number} delayBetweenRetries - The delay in ticks between each retry.
+ * @returns {Promise<mc.Entity | null>} - A promise that resolves with the found entity or null if not found.
+ */
+async function findEntityWithRetries(dimension, query, maxRetries = 5, delayBetweenRetries = 2) {
+    for (let i = 0; i < maxRetries; i++) {
+        const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+        if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+            debugLog(`[FloatingText] Found entity for query after ${i + 1} attempt(s).`);
+            return entity;
+        }
+        // Wait for the specified delay before the next retry.
+        await new Promise(resolve => mc.system.runTimeout(resolve, delayBetweenRetries));
+    }
+    debugLog(`[FloatingText] Could not find entity for query after ${maxRetries} attempts.`);
+    return null;
+}
+
+
 function getAllTexts() {
     return Array.from(floatingTexts.values());
 }
@@ -204,7 +227,7 @@ function getTextById(id) {
     return floatingTexts.get(id);
 }
 
-function updateText(id, updates) {
+async function updateText(id, updates) {
     const oldConfig = getTextById(id);
     if (!oldConfig) {
         errorLog(`[FloatingText] updateText failed: Could not find config for ID: ${id}`);
@@ -241,7 +264,6 @@ function updateText(id, updates) {
     debugLog(`[FloatingText] Saved updated config for ID: ${id}`);
 
     // If text or interval changes, we need to restart the update scheduler.
-    // This is the part that was crashing.
     if (textChanged || intervalChanged) {
         debugLog(`[FloatingText] Text or interval changed for ID: ${id}. Rescheduling update timer.`);
         try {
@@ -251,32 +273,14 @@ function updateText(id, updates) {
         }
     }
 
-    // --- DIAGNOSTIC LOG: IMMEDIATE CHECK ---
-    try {
-        const immediateDimension = mc.world.getDimension(newConfig.dimension);
-        const immediateQuery = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
-        const immediateEntity = immediateDimension.getEntities(immediateQuery)[Symbol.iterator]().next().value;
-        const immediateEntityExists = immediateEntity && typeof immediateEntity.isValid === 'function' && immediateEntity.isValid();
-        debugLog(`[DIAGNOSTIC] Entity check inside updateText (immediate): id=${id}, exists=${immediateEntityExists}`);
-    } catch (e) {
-        debugLog(`[DIAGNOSTIC] Error during immediate entity check for id=${id}: ${e.message}`);
-    }
-    // --- END DIAGNOSTIC ---
-
-
-    // Defer the entity update logic to the next tick to avoid race conditions with UI closes.
-    mc.system.runTimeout(async () => {
+    // This logic is now async to handle the retry mechanism.
+    mc.system.run(async () => {
         try {
             const dimension = mc.world.getDimension(newConfig.dimension);
             const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
-            const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
-            const entityExists = entity && typeof entity.isValid === 'function' && entity.isValid();
+            const entity = await findEntityWithRetries(dimension, query);
 
-            // --- DIAGNOSTIC LOG: DELAYED CHECK ---
-            debugLog(`[DIAGNOSTIC] Entity check inside runTimeout (delayed): id=${id}, exists=${entityExists}`);
-            // --- END DIAGNOSTIC ---
-
-            if (locationChanged || !entityExists) {
+            if (locationChanged || !entity) {
                 debugLog(`[FloatingText] Location changed or entity not found for ID: ${id}. Performing full respawn.`);
                 await despawnText(id);
                 spawnText(newConfig);
@@ -291,7 +295,7 @@ function updateText(id, updates) {
             await despawnText(id);
             spawnText(newConfig);
         }
-    }, 2);
+    });
 }
 
 
