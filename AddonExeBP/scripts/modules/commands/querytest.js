@@ -1,6 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData } from '@minecraft/server-ui';
-import { admin, command } from '../../config.js';
+import { ActionFormData } from '@minecraft-server/ui';
 import { commandManager } from './commandManager.js';
 import { debugLog } from '../../core/logger.js';
 import { uiWait } from '../../core/utils.js';
@@ -8,7 +7,7 @@ import { uiWait } from '../../core/utils.js';
 commandManager.register({
     name: 'querytest',
     description: 'Runs a diagnostic test for entity queries after UI interactions.',
-    permissionLevel: admin,
+    permissionLevel: 1, // Admin
     category: 'utility'
 }, async (player, args) => {
     const testId = 'ft_querytest';
