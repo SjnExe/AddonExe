@@ -1,10 +1,11 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
-import { admin, command } from '../../config/commands.js';
+import { admin } from '../../config/commands.js';
+import { commandManager } from './commandManager.js';
 import { debugLog } from '../../core/logger.js';
 import { uiWait } from '../../core/utils.js';
 
-command.register({
+commandManager.register({
     name: 'querytest',
     description: 'Runs a diagnostic test for entity queries after UI interactions.',
     permissionLevel: admin,
