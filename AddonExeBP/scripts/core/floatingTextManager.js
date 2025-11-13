@@ -251,6 +251,19 @@ function updateText(id, updates) {
         }
     }
 
+    // --- DIAGNOSTIC LOG: IMMEDIATE CHECK ---
+    try {
+        const immediateDimension = mc.world.getDimension(newConfig.dimension);
+        const immediateQuery = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
+        const immediateEntity = immediateDimension.getEntities(immediateQuery)[Symbol.iterator]().next().value;
+        const immediateEntityExists = immediateEntity && typeof immediateEntity.isValid === 'function' && immediateEntity.isValid();
+        debugLog(`[DIAGNOSTIC] Entity check inside updateText (immediate): id=${id}, exists=${immediateEntityExists}`);
+    } catch (e) {
+        debugLog(`[DIAGNOSTIC] Error during immediate entity check for id=${id}: ${e.message}`);
+    }
+    // --- END DIAGNOSTIC ---
+
+
     // Defer the entity update logic to the next tick to avoid race conditions with UI closes.
     mc.system.runTimeout(async () => {
         try {
@@ -258,6 +271,10 @@ function updateText(id, updates) {
             const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
             const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
             const entityExists = entity && typeof entity.isValid === 'function' && entity.isValid();
+
+            // --- DIAGNOSTIC LOG: DELAYED CHECK ---
+            debugLog(`[DIAGNOSTIC] Entity check inside runTimeout (delayed): id=${id}, exists=${entityExists}`);
+            // --- END DIAGNOSTIC ---
 
             if (locationChanged || !entityExists) {
                 debugLog(`[FloatingText] Location changed or entity not found for ID: ${id}. Performing full respawn.`);
