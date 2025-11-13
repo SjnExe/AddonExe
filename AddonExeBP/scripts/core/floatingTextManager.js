@@ -204,7 +204,7 @@ function getUpdatedText(textConfig) {
  * @param {number} delayBetweenRetries - The delay in ticks between each retry.
  * @returns {Promise<mc.Entity | null>} - A promise that resolves with the found entity or null if not found.
  */
-async function findEntityWithRetries(dimension, query, maxRetries = 5, delayBetweenRetries = 2) {
+async function findEntityWithRetries(dimension, query, maxRetries = 10, delayBetweenRetries = 4) {
     for (let i = 0; i < maxRetries; i++) {
         const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
         if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
