@@ -1,6 +1,7 @@
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
+import { commandManager } from '../../modules/commands/commandManager.js';
 import { getConfig } from '../configManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import * as rankManager from '../rankManager.js';
@@ -1169,6 +1170,33 @@ export async function buildPanelForm(player, panelId, context) {
             const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
             for (const item of visibleItems) {
                 form.button(item.text, item.icon);
+            }
+            return form;
+        }
+
+        if (panelId === 'commandSystemPanel') {
+            const form = new ActionFormData().title(title);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+            const commands = [...commandManager.commands.values()];
+            const categories = [...new Set(commands.map(cmd => cmd.category || 'Uncategorized'))];
+            categories.sort();
+
+            for (const category of categories) {
+                form.button(`§l§7${category}`);
+            }
+            return form;
+        }
+
+        if (panelId.startsWith('commandCategoryPanel_')) {
+            const category = panelId.replace('commandCategoryPanel_', '');
+            const form = new ActionFormData().title(`§l§6${category} Commands`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+            const commands = [...commandManager.commands.values()]
+                .filter(cmd => (cmd.category || 'Uncategorized') === category)
+                .sort((a, b) => a.name.localeCompare(b.name));
+
+            for (const command of commands) {
+                form.button(`${command.name}\n§8Permission Level: ${command.permissionLevel}`);
             }
             return form;
         }

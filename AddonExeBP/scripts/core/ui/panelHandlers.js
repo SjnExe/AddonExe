@@ -24,6 +24,8 @@ import { getVisiblePlayerActionItems, getMenuItems } from './panelBuilder.js';
 import { getVisibleConfigSystems } from './uiUtils.js';
 import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { showConfirmationDialog } from './components.js';
+import { commandManager } from '../../modules/commands/commandManager.js';
+import { getCommandPermissions, updateCommandPermission } from '../commandPermissionManager.js';
 import { uiActionFunctions } from './actionRegistry.js';
 import { floatingTextManager } from '../floatingTextManager.js';
 import { config as defaultConfig } from '../../config.js';
@@ -1765,6 +1767,52 @@ export async function handleFormResponse(player, panelId, response, context) {
         }
 
         return showPanel(player, 'configCategoryPanel');
+    }
+
+    if (panelId === 'commandSystemPanel') {
+        if (selection === 0) { // Back
+            return showPanel(player, 'configCategoryPanel', context);
+        }
+        const commands = [...commandManager.commands.values()];
+        const categories = [...new Set(commands.map(cmd => cmd.category || 'Uncategorized'))];
+        categories.sort();
+        const selectedCategory = categories[selection - 1];
+        if (selectedCategory) {
+            return showPanel(player, `commandCategoryPanel_${selectedCategory}`, context);
+        }
+        return;
+    }
+
+    if (panelId.startsWith('commandCategoryPanel_')) {
+        const category = panelId.replace('commandCategoryPanel_', '');
+        if (selection === 0) { // Back
+            return showPanel(player, 'commandSystemPanel', context);
+        }
+        const commands = [...commandManager.commands.values()]
+            .filter(cmd => (cmd.category || 'Uncategorized') === category)
+            .sort((a, b) => a.name.localeCompare(b.name));
+        const selectedCommand = commands[selection - 1];
+
+        if (selectedCommand) {
+            const form = new ModalFormData()
+                .title(`Edit: ${selectedCommand.name}`)
+                .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', `${selectedCommand.permissionLevel}`);
+            const response = await utils.uiWait(player, form);
+
+            if (!response.canceled) {
+                const [newPermissionLevelStr] = response.formValues;
+                const newPermissionLevel = parseInt(newPermissionLevelStr, 10);
+                if (!isNaN(newPermissionLevel)) {
+                    updateCommandPermission(selectedCommand.name, { permissionLevel: newPermissionLevel });
+                    // Also update the command object in memory
+                    selectedCommand.permissionLevel = newPermissionLevel;
+                    player.sendMessage(`§aPermission level for '${selectedCommand.name}' set to ${newPermissionLevel}.`);
+                } else {
+                    player.sendMessage('§cInvalid permission level. Please enter a number.');
+                }
+            }
+        }
+        return showPanel(player, panelId, context); // Refresh the panel
     }
 
     if (panelId === 'playerActionsPanel') {

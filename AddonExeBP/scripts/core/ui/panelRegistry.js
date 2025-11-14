@@ -246,6 +246,20 @@ export const panelDefinitions = {
     configCategoryPanel: {
         title: '§l§3Configuration§r',
         parentPanelId: 'mainPanel',
+        items: [
+            {
+                id: 'commandSystem',
+                text: '§l§6Command System§r',
+                icon: 'textures/ui/hammer_l.png',
+                permissionLevel: 0,
+                actionType: 'openPanel',
+                actionValue: 'commandSystemPanel'
+            }
+        ]
+    },
+    commandSystemPanel: {
+        title: '§l§6Command System§r',
+        parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated
     },
     kitManagementPanel: {
