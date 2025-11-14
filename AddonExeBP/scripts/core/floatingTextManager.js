@@ -196,6 +196,29 @@ function getUpdatedText(textConfig) {
     return resolvePlaceholders(textConfig.text);
 }
 
+/**
+ * A utility function to find an entity with a retry mechanism to handle race conditions.
+ * @param {mc.Dimension} dimension - The dimension to search in.
+ * @param {mc.EntityQueryOptions} query - The query to use for finding the entity.
+ * @param {number} maxRetries - The maximum number of retries.
+ * @param {number} delayBetweenRetries - The delay in ticks between each retry.
+ * @returns {Promise<mc.Entity | null>} - A promise that resolves with the found entity or null if not found.
+ */
+async function findEntityWithRetries(dimension, query, maxRetries = 10, delayBetweenRetries = 4) {
+    for (let i = 0; i < maxRetries; i++) {
+        const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+        if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+            debugLog(`[FloatingText] Found entity for query after ${i + 1} attempt(s).`);
+            return entity;
+        }
+        // Wait for the specified delay before the next retry.
+        await new Promise(resolve => mc.system.runTimeout(resolve, delayBetweenRetries));
+    }
+    debugLog(`[FloatingText] Could not find entity for query after ${maxRetries} attempts.`);
+    return null;
+}
+
+
 function getAllTexts() {
     return Array.from(floatingTexts.values());
 }
@@ -220,9 +243,9 @@ async function updateText(id, updates) {
     // Determine what has changed
     const locationChanged = (
         oldConfig.dimension !== newConfig.dimension ||
-        Math.round(oldConfig.location.x * 100) !== Math.round(newConfig.location.x * 100) ||
-        Math.round(oldConfig.location.y * 100) !== Math.round(newConfig.location.y * 100) ||
-        Math.round(oldConfig.location.z * 100) !== Math.round(newConfig.location.z * 100)
+        Math.abs(oldConfig.location.x - newConfig.location.x) > 0.01 ||
+        Math.abs(oldConfig.location.y - newConfig.location.y) > 0.01 ||
+        Math.abs(oldConfig.location.z - newConfig.location.z) > 0.01
     );
     const textChanged = oldConfig.text !== newConfig.text;
     const intervalChanged = oldConfig.updateInterval !== newConfig.updateInterval;
@@ -241,7 +264,6 @@ async function updateText(id, updates) {
     debugLog(`[FloatingText] Saved updated config for ID: ${id}`);
 
     // If text or interval changes, we need to restart the update scheduler.
-    // This is the part that was crashing.
     if (textChanged || intervalChanged) {
         debugLog(`[FloatingText] Text or interval changed for ID: ${id}. Rescheduling update timer.`);
         try {
@@ -251,36 +273,29 @@ async function updateText(id, updates) {
         }
     }
 
-    // Handle entity updates based on what changed.
-    if (locationChanged) {
-        debugLog(`[FloatingText] Location changed for ID: ${id}. Performing full respawn.`);
-        await despawnText(id);
-        // Use a timeout to spawn the new entity, avoiding race conditions.
-        mc.system.runTimeout(() => {
-            spawnText(newConfig);
-            debugLog(`[FloatingText] Respawn initiated for ID: ${id}`);
-        }, 20); // Delay of 1 second
-    } else if (textChanged) {
-        debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
-        // Use a 1-tick timeout for safety, preventing race conditions with UI closes.
-        mc.system.runTimeout(() => {
-            try {
-                const dimension = mc.world.getDimension(newConfig.dimension);
-                const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
-                const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+    // This logic is now async to handle the retry mechanism.
+    mc.system.run(async () => {
+        try {
+            const dimension = mc.world.getDimension(newConfig.dimension);
+            const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
+            const entity = await findEntityWithRetries(dimension, query);
 
-                if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-                    entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
-                    debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
-                } else {
-                    debugLog(`[FloatingText] Live entity for ID: ${id} not found during text update. Spawning it.`);
-                    spawnText(newConfig);
-                }
-            } catch (e) {
-                errorLog(`[FloatingText] Error during live nametag update for ID: ${id}.`, e.stack);
+            if (locationChanged || !entity) {
+                debugLog(`[FloatingText] Location changed or entity not found for ID: ${id}. Performing full respawn.`);
+                await despawnText(id);
+                spawnText(newConfig);
+            } else if (textChanged) {
+                debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
+                entity.nameTag = resolvePlaceholders(newConfig.text).replace(/\\n/g, '\n');
+                debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
             }
-        }, 1);
-    }
+        } catch (e) {
+            errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, e.stack);
+            // As a fallback, attempt a respawn.
+            await despawnText(id);
+            spawnText(newConfig);
+        }
+    });
 }
 
 
