@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData } from '@minecraft-server/ui';
+import { ActionFormData } from '@minecraft/server-ui';
 import { commandManager } from './commandManager.js';
 import { debugLog } from '../../core/logger.js';
 import { uiWait } from '../../core/utils.js';
