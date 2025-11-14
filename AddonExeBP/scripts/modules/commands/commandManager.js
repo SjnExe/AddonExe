@@ -4,6 +4,7 @@ import { getConfig } from '../../core/configManager.js';
 import { errorLog } from '../../core/logger.js';
 import { getCooldown } from '../../core/cooldownManager.js';
 import { loadCommandPermissions, getCommandPermissions } from '../../core/commandPermissionManager.js';
+import { commandPermissions } from './commandPermissions.js';
 
 /**
  * Manages the registration and execution of both slash and chat commands.

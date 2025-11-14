@@ -1,5 +1,5 @@
 import createConfigManager from './configManagerFactory.js';
-import { commandPermissions as defaultPermissions } from '../commandPermissions.js';
+import { commandPermissions as defaultPermissions } from '../modules/commands/commandPermissions.js';
 
 const commandPermissionManager = createConfigManager('exe:cmdperms:current', defaultPermissions, 'CommandPermissions');
 
