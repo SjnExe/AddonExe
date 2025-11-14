@@ -13,6 +13,7 @@
  * @property {number} permissionLevel
  * @property {Object.<string, HomeLocation>} homes
  * @property {number} balance
+ * @property {number} balanceVersion
  * @property {Object.<string, number>} kitCooldowns
  * @property {boolean} xrayNotificationsEnabled
  * @property {HomeLocation | null} lastDeathLocation
@@ -63,6 +64,7 @@ const defaultPlayerData = {
     rankId: 'member',
     permissionLevel: 1024,
     balance: 0,
+    balanceVersion: 2,
     xrayNotificationsEnabled: false,
     lastDeathLocation: null,
     deathNotificationSent: true,
@@ -211,6 +213,14 @@ export function getOrCreatePlayer(player) {
     if (loadedData) {
         if (loadedData.name !== player.name) {
             updatePlayerData(player.id, data => { data.name = player.name; });
+        }
+        // Migrate balance from float to integer
+        if (!loadedData.balanceVersion || loadedData.balanceVersion < 2) {
+            updatePlayerData(player.id, data => {
+                data.balance = Math.round(data.balance * 100);
+                data.balanceVersion = 2;
+            });
+            debugLog(`[PlayerDataManager] Migrated balance for player ${player.name} (${player.id}) to integer format.`);
         }
         return loadedData;
     }
