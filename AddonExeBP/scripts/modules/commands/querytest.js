@@ -2,7 +2,6 @@ import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
 import { commandManager } from './commandManager.js';
 import { debugLog } from '../../core/logger.js';
-import { uiWait } from '../../core/utils.js';
 
 commandManager.register({
     name: 'querytest',
@@ -45,7 +44,7 @@ commandManager.register({
                 .body('Close this form to continue the test.')
                 .button('Close');
 
-            await uiWait(player, form);
+            await form.show(player);
             debugLog('[QueryTest] UI form closed. Starting post-UI query loop...');
 
             // --- Step 5: Post-UI query loop ---
