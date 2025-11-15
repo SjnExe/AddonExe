@@ -3,8 +3,6 @@ import { getPlayer } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { errorLog } from '../../core/logger.js';
 import { getCooldown } from '../../core/cooldownManager.js';
-import { loadCommandPermissions, getCommandPermissions } from '../../core/commandPermissionManager.js';
-import { commandPermissions } from './commandPermissions.js';
 
 /**
  * Manages the registration and execution of both slash and chat commands.
@@ -14,8 +12,6 @@ class CommandManager {
         this.commands = new Map();
         this.aliases = new Map();
         this.prefix = 'exe'; // Namespace for all custom commands
-
-        loadCommandPermissions();
 
         mc.system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             this.commands.forEach(command => {
@@ -42,19 +38,12 @@ class CommandManager {
      * @param {object} commandOptions
      */
     register(commandOptions) {
-        const commandName = commandOptions.name.toLowerCase();
-        const permissions = getCommandPermissions();
-        const permissionOverride = permissions[commandName];
-        const permissionLevel = (permissionOverride && permissionOverride.permissionLevel !== undefined)
-            ? permissionOverride.permissionLevel
-            : commandOptions.permissionLevel;
-
-        const command = { permissionLevel: 0, ...commandOptions, permissionLevel };
-        this.commands.set(commandName, command);
+        const command = { permissionLevel: 0, ...commandOptions };
+        this.commands.set(command.name.toLowerCase(), command);
 
         if (command.aliases) {
             for (const alias of command.aliases) {
-                this.aliases.set(alias.toLowerCase(), commandName);
+                this.aliases.set(alias.toLowerCase(), command.name.toLowerCase());
             }
         }
     }

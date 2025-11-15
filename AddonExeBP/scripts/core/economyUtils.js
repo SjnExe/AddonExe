@@ -1,9 +1,12 @@
+import { getEconomyConfig } from './configurations.js';
+
 /**
  * Formats a number representing cents into a human-readable currency string.
  * @param {number} amount The amount in cents.
  * @returns {string} The formatted currency string.
  */
 export function formatMoney(amount) {
+    const economyConfig = getEconomyConfig();
     const dollars = amount / 100;
     const tiers = [
         { value: 1e12, symbol: 'T' },
@@ -15,9 +18,9 @@ export function formatMoney(amount) {
     for (const tier of tiers) {
         if (dollars >= tier.value) {
             const formatted = (dollars / tier.value).toFixed(1);
-            return `$${formatted}${tier.symbol}`;
+            return `${economyConfig.currencySymbol}${formatted}${tier.symbol}`;
         }
     }
 
-    return `$${dollars.toFixed(2)}`;
+    return `${economyConfig.currencySymbol}${dollars.toFixed(2)}`;
 }

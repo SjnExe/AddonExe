@@ -13,7 +13,7 @@
  * @property {number} permissionLevel
  * @property {Object.<string, HomeLocation>} homes
  * @property {number} balance
- * @property {number} balanceVersion
+ * @property {number} [balanceVersion] - Version of the balance field for migration. 2 = cents.
  * @property {Object.<string, number>} kitCooldowns
  * @property {boolean} xrayNotificationsEnabled
  * @property {HomeLocation | null} lastDeathLocation
@@ -64,7 +64,6 @@ const defaultPlayerData = {
     rankId: 'member',
     permissionLevel: 1024,
     balance: 0,
-    balanceVersion: 2,
     xrayNotificationsEnabled: false,
     lastDeathLocation: null,
     deathNotificationSent: true,
@@ -169,6 +168,12 @@ export function loadPlayerData(playerId) {
                 ...loadedData
             };
 
+            if (playerData.balanceVersion !== 2) {
+                playerData.balance = Math.round(playerData.balance * 100);
+                playerData.balanceVersion = 2;
+                savePlayerData(playerId); // Re-save immediately after migration
+            }
+
             activePlayerData.set(playerId, playerData);
             return playerData;
         }
@@ -214,14 +219,6 @@ export function getOrCreatePlayer(player) {
         if (loadedData.name !== player.name) {
             updatePlayerData(player.id, data => { data.name = player.name; });
         }
-        // Migrate balance from float to integer
-        if (!loadedData.balanceVersion || loadedData.balanceVersion < 2) {
-            updatePlayerData(player.id, data => {
-                data.balance = Math.round(data.balance * 100);
-                data.balanceVersion = 2;
-            });
-            debugLog(`[PlayerDataManager] Migrated balance for player ${player.name} (${player.id}) to integer format.`);
-        }
         return loadedData;
     }
 
@@ -232,7 +229,8 @@ export function getOrCreatePlayer(player) {
         ...defaultPlayerData,
         rankId: config.playerDefaults.rankId,
         permissionLevel: config.playerDefaults.permissionLevel,
-        balance: economyConfig.startingBalance,
+        balance: economyConfig.startingBalance * 100,
+        balanceVersion: 2,
         xrayNotificationsEnabled: config.playerDefaults.xrayNotificationsEnabled,
         homes: {},
         kitCooldowns: {},
