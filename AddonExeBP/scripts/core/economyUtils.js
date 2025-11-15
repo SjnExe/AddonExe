@@ -12,7 +12,7 @@ export function formatMoney(amount) {
         { value: 1e12, symbol: 'T' },
         { value: 1e9, symbol: 'B' },
         { value: 1e6, symbol: 'M' },
-        { value: 1e3, symbol: 'k' },
+        { value: 1e3, symbol: 'k' }
     ];
 
     for (const tier of tiers) {
