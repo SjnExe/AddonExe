@@ -374,7 +374,7 @@ async function buildPlayerListForm(title, context) {
     // Add Back button
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-    const onlinePlayers = playerCache.getAllPlayersFromCache().sort((a, b) => a.name.localeCompare(b.name));
+    const onlinePlayers = Array.from(mc.world.getAllPlayers()).sort((a, b) => a.name.localeCompare(b.name));
     const totalPages = Math.ceil(onlinePlayers.length / itemsPerPage);
 
     // Add Previous button if not on the first page
@@ -531,6 +531,32 @@ function buildKitManagementPanel(form, context) {
     }
 
     addPaginationButtons(form, page, kitNames.length);
+}
+
+function buildCommandSystemPanel(form, context) {
+    const { page = 1 } = context;
+    const config = getConfig();
+    const commandSettings = config.commandSettings || {};
+
+    // Get all command names, filter out hidden ones, and sort alphabetically
+    const allCommands = Object.keys(commandSettings)
+        .filter(cmd => !cmd.startsWith('_')) // Assuming internal/hidden commands start with an underscore
+        .sort();
+
+    if (allCommands.length === 0) {
+        form.body('§cNo commands are available for configuration.');
+        return;
+    }
+
+    const paginatedCommands = getPaginatedItems(allCommands, page);
+
+    for (const commandName of paginatedCommands) {
+        const isEnabled = commandSettings[commandName]?.enabled ?? false;
+        const statusIcon = isEnabled ? '§2✔' : '§c✖';
+        form.button(`${statusIcon} ${commandName}`);
+    }
+
+    addPaginationButtons(form, page, allCommands.length);
 }
 
 export async function buildPanelForm(player, panelId, context) {
@@ -958,6 +984,13 @@ export async function buildPanelForm(player, panelId, context) {
         if (panelId === 'kitManagementPanel') {
             const form = new ActionFormData().title(title);
             buildKitManagementPanel(form, context);
+            return form;
+        }
+
+        if (panelId === 'commandSystemPanel') {
+            const form = new ActionFormData().title(title);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+            buildCommandSystemPanel(form, context);
             return form;
         }
 

@@ -12,6 +12,7 @@ export function getVisibleConfigSystems(pData) {
     ];
 
     if (pData.permissionLevel <= 1) {
+        allSystems.push({ id: 'commandSystemPanel', title: '§l§1Command System§r', icon: 'textures/ui/command_block_front' });
         allSystems.push({ id: 'kitManagementPanel', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' });
         allSystems.push({ id: 'shopManagementPanel', title: '§l§2Shop System§r', icon: 'textures/items/emerald' });
         allSystems.push({ id: 'rankManagementPanel', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' });

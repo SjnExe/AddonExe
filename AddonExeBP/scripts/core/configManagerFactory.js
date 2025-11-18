@@ -60,27 +60,34 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
                 delete userSavedConfig.spawnLocation;
             }
 
-            currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
-
             if (!isMigration && lastLoadedConfigStr) {
+                let lastLoadedConfigForMerge;
                 try {
-                    lastLoadedConfig = JSON.parse(lastLoadedConfigStr);
+                    lastLoadedConfigForMerge = JSON.parse(lastLoadedConfigStr);
+                } catch (e) {
+                    errorLog(`[${name}ConfigManager] Failed to parse last-loaded config. Using default merge.`, e);
+                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+                }
 
-                    if (name === 'Ranks') {
+                if (lastLoadedConfigForMerge) {
+                    if (name === 'Main') {
+                        currentConfig = reconcileConfig(newDefaultConfig, lastLoadedConfigForMerge, userSavedConfig);
+                    } else if (name === 'Ranks') {
                         const mergedRanks = mergeRanks(
                             userSavedConfig.rankDefinitions,
                             newDefaultConfig.rankDefinitions,
-                            lastLoadedConfig?.rankDefinitions || []
+                            lastLoadedConfigForMerge?.rankDefinitions || []
                         );
                         currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks };
                     } else if (name === 'Kits' || name === 'Shop') {
-                        currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoadedConfig || {});
+                        currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoadedConfigForMerge || {});
+                    } else {
+                        currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
                     }
-                } catch (e) {
-                    errorLog(`[${name}ConfigManager] Failed to parse last-loaded config. Using default merge.`, e);
                 }
-            } else if (!isMigration) {
-                debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
+            } else {
+                if (!isMigration) debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
+                currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
             }
 
             lastLoadedConfig = newDefaultConfig;
@@ -110,6 +117,8 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
 
     function reloadConfig() {
         debugLog(`[${name}ConfigManager] Reloading configuration...`);
+        // We pass `false` to indicate this is not a migration.
+        // This ensures the user's saved settings are preserved and merged with any new defaults.
         loadConfig(false);
         debugLog(`[${name}ConfigManager] Configuration reloaded.`);
     }

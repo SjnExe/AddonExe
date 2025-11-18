@@ -468,6 +468,11 @@ export const panelDefinitions = {
         title: '§l§cEdit Monitored Ore§r',
         parentPanelId: 'xrayOresPanel',
         items: [] // Modal form
+    },
+    commandSystemPanel: {
+        title: '§l§1Command System§r',
+        parentPanelId: 'configCategoryPanel',
+        items: [] // Dynamically populated
     }
 };
 
