@@ -151,7 +151,9 @@ function checkConfiguration() {
     const config = getConfig();
     const spawnConfig = getSpawnConfig();
     // Add a guard in case config hasn't loaded yet, though the init flow should prevent this.
-    if (!config || !config.ownerPlayerNames || !config.ownerPlayerNames.length || config.ownerPlayerNames[0] === 'Your•Name•Here') {
+    const validOwners = config?.ownerPlayerNames?.filter(name => name !== 'Your•Name•Here');
+
+    if (!validOwners || validOwners.length === 0) {
         const warningMessage = '§l§c[AddonExe] WARNING: No owner is configured. Please set `ownerPlayerNames` in `scripts/config.js` to gain access to admin commands.';
         mc.system.runTimeout(() => mc.world.sendMessage(warningMessage), 20);
         errorLog('[AddonExe] No owner configured.');
