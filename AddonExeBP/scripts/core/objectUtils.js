@@ -201,7 +201,6 @@ export function reconcileConfig(newDefault, oldDefault, userSaved) {
             finalConfig[key] = getFinalValue(newDefaultValue, userSavedValue, userHasSavedValue);
         }
     }
-    finalConfig.ownerPlayerNames = newDefault.ownerPlayerNames;
     return finalConfig;
 }
 

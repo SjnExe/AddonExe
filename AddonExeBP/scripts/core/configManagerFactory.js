@@ -94,6 +94,11 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
             saveLastLoadedConfig();
         }
 
+        // Always overwrite ownerPlayerNames with the one from the file to ensure file-based control.
+        if (name === 'Main') {
+            currentConfig.ownerPlayerNames = newDefaultConfig.ownerPlayerNames;
+        }
+
         saveConfig();
         return isFirstInit;
     }
