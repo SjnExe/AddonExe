@@ -550,6 +550,8 @@ function buildCommandSystemPanel(form, context) {
 
     const paginatedCommands = getPaginatedItems(allCommands, page);
 
+    form.body('Toggle commands on or off.\n§2✔§r = Enabled, §c✖§r = Disabled');
+
     for (const commandName of paginatedCommands) {
         const isEnabled = commandSettings[commandName]?.enabled ?? false;
         const statusIcon = isEnabled ? '§2✔' : '§c✖';

@@ -1283,6 +1283,63 @@ export async function handleFormResponse(player, panelId, response, context) {
         return showPanel(player, 'kitManagementPanel', context); // Go back to the list
     }
 
+    if (panelId === 'commandSystemPanel') {
+        const page = context.page || 1;
+
+        if (selection === 0) { // Back button
+            return showPanel(player, 'configCategoryPanel', context);
+        }
+
+        const config = getConfig();
+        const commandSettings = config.commandSettings || {};
+        const allCommands = Object.keys(commandSettings)
+            .filter(cmd => !cmd.startsWith('_'))
+            .sort();
+
+        const paginatedCommands = getPaginatedItems(allCommands, page);
+        const selectionIndex = selection - 1;
+
+        if (selectionIndex < paginatedCommands.length) {
+            const commandName = paginatedCommands[selectionIndex];
+            const isEnabled = commandSettings[commandName]?.enabled ?? false;
+            const action = isEnabled ? 'Disable' : 'Enable';
+
+            showConfirmationDialog(player, {
+                title: `${action} ${commandName}?`,
+                body: `Do you want to ${action.toLowerCase()} the '${commandName}' command?`,
+                confirmButtonText: `§cYes, ${action}`,
+                cancelButtonText: '§2No, Cancel',
+                onConfirm: () => {
+                    updateMultipleConfig({ [`commandSettings.${commandName}.enabled`]: !isEnabled });
+                    player.sendMessage(`§2Command '${commandName}' has been ${isEnabled ? 'disabled' : 'enabled'}.`);
+                    return showPanel(player, 'commandSystemPanel', { ...context, page });
+                },
+                onCancel: () => {
+                    return showPanel(player, 'commandSystemPanel', { ...context, page });
+                }
+            });
+            return;
+        }
+
+        // Handle pagination
+        let buttonIndex = selectionIndex - paginatedCommands.length;
+        const totalPages = Math.ceil(allCommands.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+
+        if (allCommands.length > itemsPerPage) {
+            if (hasPrev && buttonIndex === 0) {
+                return showPanel(player, panelId, { ...context, page: page - 1 });
+            }
+            if (hasPrev) { buttonIndex--; }
+
+            if (hasNext && buttonIndex === 0) {
+                return showPanel(player, panelId, { ...context, page: page + 1 });
+            }
+        }
+        return;
+    }
+
     if (panelId === 'bountyListPanel' || panelId === 'reportListPanel' || panelId === 'playerManagementPanel' || panelId === 'playerListPanel') {
         const page = context.page || 1;
 
