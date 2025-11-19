@@ -182,6 +182,15 @@ function getFinalValue(newDefaultValue, userSavedValue, userHasSavedValue) {
  * @param {object} userSaved - The user's currently saved config object.
  * @returns {object} The final, reconciled configuration object.
  */
+/**
+ * Reconciles three configuration objects based on a specific set of rules for addon updates.
+ * - If a setting's default value has changed between versions, the new default is forced.
+ * - If a setting's default value is unchanged, the user's custom value is preserved.
+ * @param {object} newDefault - The new default config object (from the updated config.js).
+ * @param {object} oldDefault - The old default config object (from the last loaded version).
+ * @param {object} userSaved - The user's currently saved config object.
+ * @returns {object} The final, reconciled configuration object.
+ */
 export function reconcileConfig(newDefault, oldDefault, userSaved) {
     const finalConfig = {};
 
