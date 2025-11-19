@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps } from './objectUtils.js';
+import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, reconcileConfig } from './objectUtils.js';
 import { errorLog, debugLog } from './logger.js';
 
 /**

@@ -42,16 +42,15 @@
             {
                 "label": {
                     "type": "label",
-                    "text": "Marketplace",
-                    "color": "$light_button_text_color"
+                    "text": "Marketplace"
                 }
             }
         ]
     },
 
     "settings_button@common_buttons.light_content_button": {
-        "size": [ "100%", 28 ],
+        "$button_content": "pause_screen.marketplace_button_content",
         "$pressed_button_name": "button.menu_store",
-        "$button_content": "pause_screen.marketplace_button_content"
+        "size": [ "100%", 28 ]
     }
 }
