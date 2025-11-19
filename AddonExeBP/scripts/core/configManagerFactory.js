@@ -94,9 +94,18 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
             saveLastLoadedConfig();
         }
 
-        // Always overwrite ownerPlayerNames with the one from the file to ensure file-based control.
+        // Handle "sticky" ownerPlayerNames.
         if (name === 'Main') {
-            currentConfig.ownerPlayerNames = newDefaultConfig.ownerPlayerNames;
+            const storedOwner = userSavedConfig?.ownerPlayerNames;
+            const isStoredOwnerValid = storedOwner && Array.isArray(storedOwner) && storedOwner.length > 0 && JSON.stringify(storedOwner) !== JSON.stringify(['Your•Name•Here']);
+
+            if (isStoredOwnerValid) {
+                // If a valid owner is already in storage, keep it, ignoring the file.
+                currentConfig.ownerPlayerNames = storedOwner;
+            } else {
+                // Otherwise, take the value from the file (which might be the placeholder or a new owner).
+                currentConfig.ownerPlayerNames = newDefaultConfig.ownerPlayerNames;
+            }
         }
 
         saveConfig();

@@ -1001,7 +1001,7 @@ export async function buildPanelForm(player, panelId, context) {
         const { commandName } = context;
         const config = getConfig();
         const commandSettings = config.commandSettings[commandName] || {};
-        const command = commandManager.getCommand(commandName);
+        const command = commandManager.commands.get(commandName);
 
         const isEnabled = commandSettings.enabled ?? false;
         const permissionLevel = commandSettings.permissionLevel ?? command?.permissionLevel ?? 1024;
