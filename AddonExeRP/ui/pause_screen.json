@@ -15,14 +15,9 @@
         ]
     },
 
-    "store_button@pause.pause_button_template": {
-      "$pressed_button_name": "button.menu_settings",
-      "$button_text": "menu.settings",
-      "bindings": []
-    },
-
-    "store_error_button": {
-      "visible": false
+    "store_button_panel@pause.pause_button_template": {
+        "$pressed_button_name": "button.menu_settings",
+        "$button_text": "menu.settings"
     },
 
     "marketplace_button_content": {

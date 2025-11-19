@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
-import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, reconcileConfig } from './objectUtils.js';
+import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps } from './objectUtils.js';
 import { errorLog, debugLog } from './logger.js';
+import { reconcileConfig } from './objectUtils.js'; // Ensure reconcileConfig is explicitly imported
 
 /**
  * Creates a configuration manager for a specific configuration type.
@@ -30,6 +31,7 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
     }
 
     function loadConfig(isMigration) {
+        debugLog(`[${name}ConfigManager] Starting to load config. Is migration: ${isMigration}`);
         const newDefaultConfig = initialDefaultConfig;
         let isFirstInit = false;
 
@@ -66,10 +68,11 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
                     lastLoadedConfigForMerge = JSON.parse(lastLoadedConfigStr);
                 } catch (e) {
                     errorLog(`[${name}ConfigManager] Failed to parse last-loaded config. Using default merge.`, e);
-                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+                    lastLoadedConfigForMerge = null; // Fallback
                 }
 
                 if (lastLoadedConfigForMerge) {
+                    debugLog(`[${name}ConfigManager] Found last-loaded config. Proceeding with reconciliation.`);
                     if (name === 'Main') {
                         currentConfig = reconcileConfig(newDefaultConfig, lastLoadedConfigForMerge, userSavedConfig);
                     } else if (name === 'Ranks') {
@@ -84,6 +87,9 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
                     } else {
                         currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
                     }
+                } else {
+                    debugLog(`[${name}ConfigManager] Last-loaded config was unparsable. Falling back to default merge.`);
+                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
                 }
             } else {
                 if (!isMigration) debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
@@ -94,21 +100,22 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
             saveLastLoadedConfig();
         }
 
-        // Handle "sticky" ownerPlayerNames.
         if (name === 'Main') {
-            const storedOwner = userSavedConfig?.ownerPlayerNames;
+            const userSavedConfigForOwner = userSavedConfigStr ? JSON.parse(userSavedConfigStr) : {};
+            const storedOwner = userSavedConfigForOwner?.ownerPlayerNames;
             const isStoredOwnerValid = storedOwner && Array.isArray(storedOwner) && storedOwner.length > 0 && JSON.stringify(storedOwner) !== JSON.stringify(['Your•Name•Here']);
 
             if (isStoredOwnerValid) {
-                // If a valid owner is already in storage, keep it, ignoring the file.
                 currentConfig.ownerPlayerNames = storedOwner;
+                debugLog(`[${name}ConfigManager] Applied "sticky" owner from user-saved config:`, storedOwner);
             } else {
-                // Otherwise, take the value from the file (which might be the placeholder or a new owner).
                 currentConfig.ownerPlayerNames = newDefaultConfig.ownerPlayerNames;
+                debugLog(`[${name}ConfigManager] Using default owner from file:`, newDefaultConfig.ownerPlayerNames);
             }
         }
 
         saveConfig();
+        debugLog(`[${name}ConfigManager] Config loading finished.`);
         return isFirstInit;
     }
 
@@ -131,8 +138,6 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
 
     function reloadConfig() {
         debugLog(`[${name}ConfigManager] Reloading configuration...`);
-        // We pass `false` to indicate this is not a migration.
-        // This ensures the user's saved settings are preserved and merged with any new defaults.
         loadConfig(false);
         debugLog(`[${name}ConfigManager] Configuration reloaded.`);
     }
