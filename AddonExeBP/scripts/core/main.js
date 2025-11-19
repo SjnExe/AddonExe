@@ -150,10 +150,16 @@ function initializeManagers() {
 function checkConfiguration() {
     const config = getConfig();
     const spawnConfig = getSpawnConfig();
-    // Add a guard in case config hasn't loaded yet, though the init flow should prevent this.
-    const validOwners = config?.ownerPlayerNames?.filter(name => name !== 'Your•Name•Here');
 
-    if (!validOwners || validOwners.length === 0) {
+    // Correctly check for a configured owner.
+    // The check is now more robust:
+    // 1. It ensures ownerPlayerNames is an array.
+    // 2. It verifies the array is not empty.
+    // 3. It checks that the array doesn't solely contain the default placeholder.
+    const ownerNames = config?.ownerPlayerNames;
+    const isOwnerConfigured = Array.isArray(ownerNames) && ownerNames.length > 0 && (ownerNames.length > 1 || ownerNames[0] !== 'Your•Name•Here');
+
+    if (!isOwnerConfigured) {
         const warningMessage = '§l§c[AddonExe] WARNING: No owner is configured. Please set `ownerPlayerNames` in `scripts/config.js` to gain access to admin commands.';
         mc.system.runTimeout(() => mc.world.sendMessage(warningMessage), 20);
         errorLog('[AddonExe] No owner configured.');

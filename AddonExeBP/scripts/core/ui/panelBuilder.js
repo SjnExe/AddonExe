@@ -15,6 +15,7 @@ import { getAllKits } from '../kitAdminManager.js';
 import { getValueFromPath } from '../objectUtils.js';
 import { formatCurrency } from '../utils.js';
 import { getVisibleConfigSystems } from './uiUtils.js';
+import { commandManager } from '../../modules/commands/commandManager.js';
 
 const itemsPerPage = 8;
 
@@ -995,6 +996,24 @@ export async function buildPanelForm(player, panelId, context) {
             buildCommandSystemPanel(form, context);
             return form;
         }
+
+    if (panelId === 'commandSettingsPanel') {
+        const { commandName } = context;
+        const config = getConfig();
+        const commandSettings = config.commandSettings[commandName] || {};
+        const command = commandManager.getCommand(commandName);
+
+        const isEnabled = commandSettings.enabled ?? false;
+        const permissionLevel = commandSettings.permissionLevel ?? command?.permissionLevel ?? 1024;
+
+        const form = new ModalFormData()
+            .title(`${commandName} Settings`)
+            .toggle('Enable Command', { defaultValue: isEnabled })
+            .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', { defaultValue: String(permissionLevel) });
+
+        form.submitButton('§l§2Save Settings');
+        return form;
+    }
 
         if (panelId === 'rankManagementPanel') {
             const panelDef = panelDefinitions[panelId];

@@ -26,6 +26,7 @@ import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { showConfirmationDialog } from './components.js';
 import { uiActionFunctions } from './actionRegistry.js';
 import { floatingTextManager } from '../floatingTextManager.js';
+import { commandManager } from '../../modules/commands/commandManager.js';
 import { config as defaultConfig } from '../../config.js';
 import { spawnConfig as defaultSpawnConfig } from '../spawnConfig.js';
 import { economyConfig as defaultEconomyConfig } from '../economyConfig.js';
@@ -1301,24 +1302,7 @@ export async function handleFormResponse(player, panelId, response, context) {
 
         if (selectionIndex < paginatedCommands.length) {
             const commandName = paginatedCommands[selectionIndex];
-            const isEnabled = commandSettings[commandName]?.enabled ?? false;
-            const action = isEnabled ? 'Disable' : 'Enable';
-
-            showConfirmationDialog(player, {
-                title: `${action} ${commandName}?`,
-                body: `Do you want to ${action.toLowerCase()} the '${commandName}' command?`,
-                confirmButtonText: `§cYes, ${action}`,
-                cancelButtonText: '§2No, Cancel',
-                onConfirm: () => {
-                    updateMultipleConfig({ [`commandSettings.${commandName}.enabled`]: !isEnabled });
-                    player.sendMessage(`§2Command '${commandName}' has been ${isEnabled ? 'disabled' : 'enabled'}.`);
-                    return showPanel(player, 'commandSystemPanel', { ...context, page });
-                },
-                onCancel: () => {
-                    return showPanel(player, 'commandSystemPanel', { ...context, page });
-                }
-            });
-            return;
+            return showPanel(player, 'commandSettingsPanel', { ...context, commandName });
         }
 
         // Handle pagination
@@ -1338,6 +1322,29 @@ export async function handleFormResponse(player, panelId, response, context) {
             }
         }
         return;
+    }
+
+    if (panelId === 'commandSettingsPanel') {
+        if (canceled) {
+            return showPanel(player, 'commandSystemPanel', context);
+        }
+
+        const { commandName } = context;
+        const [isEnabled, permissionLevelStr] = formValues;
+        const permissionLevel = parseInt(permissionLevelStr, 10);
+
+        if (isNaN(permissionLevel)) {
+            player.sendMessage('§cInvalid permission level. Please enter a number.');
+            return showPanel(player, 'commandSettingsPanel', context);
+        }
+
+        updateMultipleConfig({
+            [`commandSettings.${commandName}.enabled`]: isEnabled,
+            [`commandSettings.${commandName}.permissionLevel`]: permissionLevel
+        });
+
+        player.sendMessage(`§2Successfully updated settings for '${commandName}'.`);
+        return showPanel(player, 'commandSystemPanel', context);
     }
 
     if (panelId === 'bountyListPanel' || panelId === 'reportListPanel' || panelId === 'playerManagementPanel' || panelId === 'playerListPanel') {
