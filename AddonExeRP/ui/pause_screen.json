@@ -20,32 +20,16 @@
         "$button_text": "menu.settings"
     },
 
-    "marketplace_button_content": {
-        "type": "stack_panel",
-        "orientation": "horizontal",
-        "anchor_from": "center",
-        "anchor_to": "center",
-        "controls": [
-            {
-                "icon": {
-                    "type": "image",
-                    "texture": "textures/ui/sidebar_icons/marketplace",
-                    "size": [ 16, 16 ]
-                }
-            },
-            { "padding": { "type": "panel", "size": [ 4, 0 ] } },
-            {
-                "label": {
-                    "type": "label",
-                    "text": "Marketplace"
-                }
-            }
-        ]
+    "marketplace_icon": {
+        "type": "image",
+        "texture": "textures/ui/sidebar_icons/marketplace",
+        "layer": 3,
+        "size": [ 24, 24 ]
     },
 
-    "settings_button@common_buttons.light_content_button": {
-        "$button_content": "pause_screen.marketplace_button_content",
+    "settings_button_small@common_buttons.light_content_button": {
         "$pressed_button_name": "button.menu_store",
-        "size": [ "100%", 28 ]
+        "$button_tts_header": "menu.store",
+        "$button_content": "pause_screen.marketplace_icon"
     }
 }
