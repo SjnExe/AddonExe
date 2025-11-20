@@ -15,6 +15,7 @@ import { getAllKits } from '../kitAdminManager.js';
 import { getValueFromPath } from '../objectUtils.js';
 import { formatCurrency } from '../utils.js';
 import { getVisibleConfigSystems } from './uiUtils.js';
+import { commandManager } from '../../modules/commands/commandManager.js';
 
 const itemsPerPage = 8;
 
@@ -805,15 +806,11 @@ export async function buildPanelForm(player, panelId, context) {
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
             const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension));
 
-
-            const { getPlaceholderKeys } = await import('../placeholderManager.js');
-            const placeholders = getPlaceholderKeys();
-            const placeholderText = placeholders.length > 0 ? `\nAvailable Placeholders: {${placeholders.join('}, {')}}` : '';
-            const intervalLabels = ['Off', '1s', '2s', '5s', '10s', '20s', '30s', '60s'];
+            const intervalLabels = ['Off'];
 
             const form = new ModalFormData()
                 .title(`Edit: ${id}`)
-                .textField(`Text Content${placeholderText}`, 'Enter the text to display', { defaultValue: text.text ?? '' })
+                .textField('Text Content', 'Enter the text to display', { defaultValue: text.text ?? '' })
                 .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(+(text.location?.x ?? 0).toFixed(2)) })
                 .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(+(text.location?.y ?? 0).toFixed(2)) })
                 .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
@@ -825,14 +822,10 @@ export async function buildPanelForm(player, panelId, context) {
         }
 
         if (panelId === 'floatingTextCreatePanel') {
-            const { getPlaceholderKeys } = await import('../placeholderManager.js');
-            const placeholders = getPlaceholderKeys();
-            const placeholderText = placeholders.length > 0 ? `\nAvailable Placeholders: {${placeholders.join('}, {')}}` : '';
-
             const form = new ModalFormData()
                 .title('Create New Floating Text')
                 .textField('Unique ID (no spaces)', 'e.g., "welcome_message"')
-                .textField(`Text Content${placeholderText}`, 'Enter text to display');
+                .textField('Text Content', 'Enter text to display');
             return form;
         }
 
@@ -995,6 +988,24 @@ export async function buildPanelForm(player, panelId, context) {
             buildCommandSystemPanel(form, context);
             return form;
         }
+
+    if (panelId === 'commandSettingsPanel') {
+        const { commandName } = context;
+        const config = getConfig();
+        const commandSettings = config.commandSettings[commandName] || {};
+        const command = commandManager.commands.get(commandName);
+
+        const isEnabled = commandSettings.enabled ?? false;
+        const permissionLevel = commandSettings.permissionLevel ?? command?.permissionLevel ?? 1024;
+
+        const form = new ModalFormData()
+            .title(`${commandName} Settings`)
+            .toggle('Enable Command', { defaultValue: isEnabled })
+            .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', { defaultValue: String(permissionLevel) });
+
+        form.submitButton('§l§2Save Settings');
+        return form;
+    }
 
         if (panelId === 'rankManagementPanel') {
             const panelDef = panelDefinitions[panelId];
