@@ -101,17 +101,19 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
         }
 
         if (name === 'Main') {
+            // After all merging, specifically handle the "sticky" ownerPlayerNames.
             const userSavedConfigForOwner = userSavedConfigStr ? JSON.parse(userSavedConfigStr) : {};
-            const storedOwner = userSavedConfigForOwner?.ownerPlayerNames;
+            const storedOwner = userSavedConfigForOwner.ownerPlayerNames;
             const isStoredOwnerValid = storedOwner && Array.isArray(storedOwner) && storedOwner.length > 0 && JSON.stringify(storedOwner) !== JSON.stringify(['Your•Name•Here']);
 
             if (isStoredOwnerValid) {
+                // If a valid owner is in the user's saved config, it always takes precedence.
                 currentConfig.ownerPlayerNames = storedOwner;
                 debugLog(`[${name}ConfigManager] Applied "sticky" owner from user-saved config:`, storedOwner);
-            } else {
-                currentConfig.ownerPlayerNames = newDefaultConfig.ownerPlayerNames;
-                debugLog(`[${name}ConfigManager] Using default owner from file:`, newDefaultConfig.ownerPlayerNames);
             }
+            // If the stored owner is not valid (i.e., it's the placeholder or empty),
+            // currentConfig.ownerPlayerNames will already have the correct value from the deepMerge/reconciliation above,
+            // which would be the value from the new config.js file. So, no 'else' block is needed.
         }
 
         saveConfig();

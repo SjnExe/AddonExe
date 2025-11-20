@@ -1,6 +1,5 @@
 {
     "namespace": "pause_screen",
-
     "players_panel_content@pause_screen.players_panel_content": {
         "modifications": [
             {
