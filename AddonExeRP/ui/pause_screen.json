@@ -23,8 +23,7 @@
     "marketplace_icon": {
         "type": "image",
         "texture": "textures/ui/sidebar_icons/marketplace",
-        "layer": 3,
-        "size": [ 24, 24 ]
+        "size": [ 16, 16 ]
     },
 
     "settings_button_small@common_buttons.light_content_button": {
