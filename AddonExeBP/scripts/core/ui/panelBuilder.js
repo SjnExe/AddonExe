@@ -806,15 +806,11 @@ export async function buildPanelForm(player, panelId, context) {
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
             const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension));
 
-
-            const { getPlaceholderKeys } = await import('../placeholderManager.js');
-            const placeholders = getPlaceholderKeys();
-            const placeholderText = placeholders.length > 0 ? `\nAvailable Placeholders: {${placeholders.join('}, {')}}` : '';
-            const intervalLabels = ['Off', '1s', '2s', '5s', '10s', '20s', '30s', '60s'];
+            const intervalLabels = ['Off'];
 
             const form = new ModalFormData()
                 .title(`Edit: ${id}`)
-                .textField(`Text Content${placeholderText}`, 'Enter the text to display', { defaultValue: text.text ?? '' })
+                .textField('Text Content', 'Enter the text to display', { defaultValue: text.text ?? '' })
                 .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(+(text.location?.x ?? 0).toFixed(2)) })
                 .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(+(text.location?.y ?? 0).toFixed(2)) })
                 .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
@@ -826,14 +822,10 @@ export async function buildPanelForm(player, panelId, context) {
         }
 
         if (panelId === 'floatingTextCreatePanel') {
-            const { getPlaceholderKeys } = await import('../placeholderManager.js');
-            const placeholders = getPlaceholderKeys();
-            const placeholderText = placeholders.length > 0 ? `\nAvailable Placeholders: {${placeholders.join('}, {')}}` : '';
-
             const form = new ModalFormData()
                 .title('Create New Floating Text')
                 .textField('Unique ID (no spaces)', 'e.g., "welcome_message"')
-                .textField(`Text Content${placeholderText}`, 'Enter text to display');
+                .textField('Text Content', 'Enter text to display');
             return form;
         }
 
