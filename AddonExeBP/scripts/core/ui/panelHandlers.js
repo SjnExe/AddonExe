@@ -300,7 +300,7 @@ export async function handleFormResponse(player, panelId, response, context) {
     }
 
     if (panelId === 'teamManagePanel') {
-        const { getTeamByPlayer, deleteTeam, setTeamHome } = await import('../teamManager.js');
+        const { getTeamByPlayer, deleteTeam } = await import('../teamManager.js');
         const team = getTeamByPlayer(player.id);
         if (!team) {return;}
 
@@ -316,10 +316,8 @@ export async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, 'teamMembersPanel', { ...context, mode: 'manage' });
         }
 
-        if (selection === 4) { // Set Team Home
-            setTeamHome(team.id, player.location, player.dimension.id);
-            player.sendMessage('§aTeam home set to your current location.');
-            return showPanel(player, panelId, context);
+        if (selection === 4) { // Team Home
+            return showPanel(player, 'teamHomePanel', context);
         }
 
         if (selection === 5) { // Delete Team (Owner Only)
@@ -336,6 +334,55 @@ export async function handleFormResponse(player, panelId, response, context) {
                 onCancel: () => showPanel(player, panelId, context)
             });
             return;
+        }
+        return;
+    }
+
+    if (panelId === 'teamHomePanel') {
+        if (selection === 0) {return showPanel(player, 'teamManagePanel', context);}
+
+        const { getTeamByPlayer, setTeamHome, deleteTeamHome } = await import('../teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        if (!team) {return;}
+
+        const isOwner = team.ownerId === player.id;
+        const isAdmin = team.admins.includes(player.id);
+        const canManage = isOwner || isAdmin;
+
+        let btnIndex = 1;
+
+        if (team.home) {
+            if (selection === btnIndex) { // Teleport
+                const { x, y, z } = team.home.location;
+                player.teleport({ x, y, z }, { dimension: team.home.dimensionId ? player.dimension : undefined }); // Handle dimension properly if API allows or check dimension match
+                // Since player.teleport accepts dimension in options:
+                const targetDimension = team.home.dimensionId ? (await import('@minecraft/server')).world.getDimension(team.home.dimensionId) : player.dimension;
+                if (targetDimension) {
+                    player.teleport({ x, y, z }, { dimension: targetDimension });
+                    player.sendMessage('§aTeleported to team home.');
+                } else {
+                    player.sendMessage('§cInvalid dimension for team home.');
+                }
+                return;
+            }
+            btnIndex++;
+        }
+
+        if (canManage) {
+            if (selection === btnIndex) { // Update Location
+                setTeamHome(team.id, player.location, player.dimension.id);
+                player.sendMessage('§aTeam home updated to your current location.');
+                return showPanel(player, panelId, context);
+            }
+            btnIndex++;
+
+            if (team.home) {
+                if (selection === btnIndex) { // Delete Home
+                    deleteTeamHome(team.id);
+                    player.sendMessage('§aTeam home deleted.');
+                    return showPanel(player, panelId, context);
+                }
+            }
         }
         return;
     }

@@ -129,9 +129,13 @@ export function updatePlayerNameTag(player, config) {
 
     // Team Suffix Logic
     const team = getTeamByPlayer(player.id);
-    const teamSuffix = team ? ` §r[${team.name}§r]` : '';
+    // The space before [TeamName] ensures it doesn't merge with the player name.
+    // The reset code §r ensures the team name color doesn't bleed.
+    // Assuming team.name is plain text, we might want to colorize it. For now, keeping it simple.
+    const teamSuffix = team ? ` §r[§b${team.name}§r]` : '';
 
     let newNameTag;
+    // We append teamSuffix to player.name in all cases so it's always visible next to the name.
     switch (nameTagStyle) {
         case 'before':
             newNameTag = finalPrefix ? `${finalPrefix} ${player.name}${teamSuffix}` : `${player.name}${teamSuffix}`;

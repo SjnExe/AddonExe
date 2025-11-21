@@ -1,3 +1,4 @@
+import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { panelDefinitions } from './panelRegistry.js';
 import { configPanelSchema } from './configPanelRegistry.js';
@@ -35,7 +36,7 @@ export function getMenuItems(panelDef, permissionLevel) {
     return items;
 }
 
-function addPanelBody(form, player, panelId, context) {
+async function addPanelBody(form, player, panelId, context) {
     const config = getConfig();
     if (panelId === 'myStatsPanel') {
         const pData = getOrCreatePlayer(player);
@@ -45,8 +46,13 @@ function addPanelBody(form, player, panelId, context) {
             return;
         }
         const bounty = bountyManager.getBounty(player.id)?.amount ?? 0;
+        const { getTeamByPlayer } = await import('../teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        const teamName = team ? `§b${team.name}` : '§7None';
+
         form.body([
             `§fRank: §r${rank.chatFormatting?.nameColor ?? '§7'}${rank.name}`,
+            `§fTeam: ${teamName}`,
             `§fBalance: §2${formatCurrency(pData.balance)}`,
             `§fBounty on you: §6${formatCurrency(bounty)}`
         ].join('\n'));
@@ -732,10 +738,41 @@ export async function buildPanelForm(player, panelId, context) {
             form.button('§l§2Invite Player', 'textures/ui/color_plus');
             form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/email_icon');
             form.button('§l§bManage Members', 'textures/ui/icon_multiplayer'); // Reuse or create logic for management actions
-            form.button('§l§dSet Team Home', 'textures/ui/icon_recipe_nature');
+            form.button('§l§dTeam Home', 'textures/ui/icon_recipe_nature');
 
             if (team.ownerId === player.id) {
                 form.button('§l§cDelete Team', 'textures/ui/trash');
+            }
+            return form;
+        }
+
+        if (panelId === 'teamHomePanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const team = getTeamByPlayer(player.id);
+            if (!team) {return null;}
+
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+            const canManage = isOwner || isAdmin;
+
+            const form = new ActionFormData().title(`Team Home: ${team.name}`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            if (team.home) {
+                const { x, y, z } = team.home.location;
+                const dim = team.home.dimensionId.replace('minecraft:', '');
+                const coords = `${x.toFixed(0)}, ${y.toFixed(0)}, ${z.toFixed(0)} (${dim})`;
+                form.body(`Home Location:\n§a${coords}`);
+                form.button('§l§2Teleport', 'textures/items/ender_pearl');
+            } else {
+                form.body('§cNo team home set.');
+            }
+
+            if (canManage) {
+                form.button('§l§eUpdate Location', 'textures/ui/icon_recipe_nature');
+                if (team.home) {
+                    form.button('§l§cDelete Home', 'textures/ui/trash');
+                }
             }
             return form;
         }
@@ -1352,7 +1389,7 @@ export async function buildPanelForm(player, panelId, context) {
         }
 
         const form = new ActionFormData().title(title);
-        addPanelBody(form, player, panelId, context);
+        await addPanelBody(form, player, panelId, context);
         const menuItems = getMenuItems(panelDef, pData.permissionLevel);
         for (const item of menuItems) {
             form.button(item.text, item.icon);

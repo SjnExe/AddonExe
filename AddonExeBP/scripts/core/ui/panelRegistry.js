@@ -240,6 +240,11 @@ export const panelDefinitions = {
         parentPanelId: 'teamMainPanel',
         items: [] // Modal
     },
+    teamHomePanel: {
+        title: 'Team Home',
+        parentPanelId: 'teamManagePanel',
+        items: [] // Dynamic: Teleport, Update, Delete
+    },
     shopMainPanel: {
         title: '§l§aShop Categories§r',
         parentPanelId: 'mainPanel',
