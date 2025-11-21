@@ -1,6 +1,6 @@
 {
-    "namespace": "pause_screen",
-    "players_panel_content@pause_screen.players_panel_content": {
+    "namespace": "pause",
+    "players_panel_content@pause.players_panel_content": {
         "modifications": [
             {
                 "control_name": "players_grid",
@@ -14,7 +14,7 @@
         ]
     },
 
-    "pause.store_button_panel@pause.pause_button_template": {
+    "store_button_panel@pause.pause_button_template": {
         "$pressed_button_name": "button.menu_settings",
         "$button_text": "menu.settings"
     },
@@ -33,9 +33,9 @@
         ]
     },
 
-    "pause.settings_button_small@common_buttons.light_content_button": {
+    "settings_button_small@common_buttons.light_content_button": {
         "$pressed_button_name": "button.menu_store",
         "$button_tts_header": "menu.store",
-        "$button_content": "pause_screen.marketplace_icon"
+        "$button_content": "marketplace_icon"
     }
 }
