@@ -1799,7 +1799,12 @@ export async function handleFormResponse(player, panelId, response, context) {
             player.sendMessage('§2Announcement system has been updated with new settings.');
         }
 
-        return showPanel(player, 'configCategoryPanel');
+        // Dynamic redirect: Find which panel links to this config panel
+        const parentPanelId = Object.keys(panelDefinitions).find(pid =>
+            panelDefinitions[pid].items && panelDefinitions[pid].items.some(item => item.actionValue === panelId)
+        ) || 'configCategoryPanel';
+
+        return showPanel(player, parentPanelId);
     }
 
     if (panelId === 'playerActionsPanel') {

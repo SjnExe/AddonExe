@@ -1029,7 +1029,7 @@ export async function buildPanelForm(player, panelId, context) {
             const { page = 1 } = context;
             const form = new ActionFormData().title('§l§2Mob Drops System');
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            form.button('§l§a+ Add New Mob§r', 'textures/ui/realms_green_check.png');
+            form.button('§l§2+ Add New Mob§r', 'textures/ui/realms_green_check.png');
 
             const economyConfig = getEconomyConfig();
             const mobDrops = economyConfig.mobMoney || {};
