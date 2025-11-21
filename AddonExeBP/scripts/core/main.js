@@ -15,6 +15,7 @@ import { loadPunishments, clearExpiredPunishments, initializePunishmentManager }
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
 import * as bountyManager from './bountyManager.js';
+import * as teamManager from './teamManager.js';
 import { errorLog, setLogLevel, infoLog } from './logger.js';
 import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
@@ -91,6 +92,7 @@ function initializeManagers() {
     rankManager.initialize();
     initializePunishmentManager();
     floatingTextManager.initialize();
+    teamManager.initialize();
     // Clear any expired data on startup
     clearExpiredPunishments();
     clearOldResolvedReports();

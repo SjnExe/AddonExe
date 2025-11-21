@@ -1,6 +1,7 @@
 import { getRanksConfig } from './configurations.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './logger.js';
+import { getTeamByPlayer } from './teamManager.js';
 
 let sortedRanks = [];
 
@@ -114,7 +115,7 @@ export function getAllRanks() {
 }
 
 /**
- * Updates a player's nametag to display their rank.
+ * Updates a player's nametag to display their rank and team.
  * @param {import('@minecraft/server').Player} player The player whose nametag should be updated.
  * @param {object} config The addon's configuration object.
  */
@@ -126,20 +127,24 @@ export function updatePlayerNameTag(player, config) {
     // Construct the final nametag prefix, only adding brackets if the rank prefix itself isn't empty.
     const finalPrefix = rankPrefix ? `${nameTagPrefix}${rankPrefix}${nameTagSuffix}` : '';
 
+    // Team Suffix Logic
+    const team = getTeamByPlayer(player.id);
+    const teamSuffix = team ? ` §r[${team.name}§r]` : '';
+
     let newNameTag;
     switch (nameTagStyle) {
         case 'before':
-            newNameTag = finalPrefix ? `${finalPrefix} ${player.name}` : player.name;
+            newNameTag = finalPrefix ? `${finalPrefix} ${player.name}${teamSuffix}` : `${player.name}${teamSuffix}`;
             break;
         case 'after':
-            newNameTag = finalPrefix ? `${player.name} ${finalPrefix}` : player.name;
+            newNameTag = finalPrefix ? `${player.name}${teamSuffix} ${finalPrefix}` : `${player.name}${teamSuffix}`;
             break;
         case 'under':
-            newNameTag = `${player.name}\n${finalPrefix}`;
+            newNameTag = `${player.name}${teamSuffix}\n${finalPrefix}`;
             break;
         case 'above':
         default:
-            newNameTag = `${finalPrefix}\n${player.name}`;
+            newNameTag = `${finalPrefix}\n${player.name}${teamSuffix}`;
             break;
     }
 
