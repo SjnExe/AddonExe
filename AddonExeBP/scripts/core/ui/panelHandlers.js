@@ -13,7 +13,7 @@ import { restartAnnouncer } from '../../modules/commands/announcement.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import * as shopManager from '../shopManager.js';
-import { getKitsConfig, saveKitsConfig, getShopConfig, getSpawnConfig, saveSpawnConfig, getEconomyConfig, saveEconomyConfig, getXrayConfig, saveXrayConfig } from '../configurations.js';
+import { getKitsConfig, saveKitsConfig, getShopConfig, getEconomyConfig, saveEconomyConfig, getXrayConfig, saveXrayConfig } from '../configurations.js';
 import { items as allItems } from '../itemsConfig.js';
 import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from '../kitAdminManager.js';
 import { addItemToKit, updateItemInKit } from '../kitItemsManager.js';
@@ -21,49 +21,22 @@ import * as shopAdminManager from '../shopAdminManager.js';
 import { initializeSpawnProtection } from '../../modules/detections/spawnProtection.js';
 import { showPanel } from '../uiManager.js';
 import { getVisiblePlayerActionItems, getMenuItems } from './panelBuilder.js';
-import { getVisibleConfigSystems } from './uiUtils.js';
+import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems } from './uiUtils.js';
 import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { showConfirmationDialog } from './components.js';
 import { uiActionFunctions } from './actionRegistry.js';
 import { floatingTextManager } from '../floatingTextManager.js';
-import { commandManager } from '../../modules/commands/commandManager.js';
 import { config as defaultConfig } from '../../config.js';
 import { spawnConfig as defaultSpawnConfig } from '../spawnConfig.js';
 import { economyConfig as defaultEconomyConfig } from '../economyConfig.js';
 import { xrayConfig as defaultXrayConfig } from '../xrayConfig.js';
 
-const itemsPerPage = 8;
 const allDefaultConfigs = {
     'main': defaultConfig,
     'spawn': defaultSpawnConfig,
     'economy': defaultEconomyConfig,
     'xray': defaultXrayConfig
 };
-
-const configHandlers = {
-    'main': {
-        get: getConfig,
-        save: (updates) => updateMultipleConfig(updates)
-    },
-    'spawn': {
-        get: getSpawnConfig,
-        save: (config) => saveSpawnConfig(config)
-    },
-    'economy': {
-        get: getEconomyConfig,
-        save: (config) => saveEconomyConfig(config)
-    },
-    'xray': {
-        get: getXrayConfig,
-        save: (config) => saveXrayConfig(config)
-    }
-};
-
-function getPaginatedItems(items, page) {
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return items.slice(startIndex, endIndex);
-}
 
 export async function handleFormResponse(player, panelId, response, context) {
     const { selection, canceled, formValues } = response;
@@ -170,10 +143,7 @@ export async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, 'floatingTextActionPanel', context);
         }
         const { id } = context;
-        const [textContent, x, y, z, dimensionIndex, intervalIndex, useExpiration, expirationMinutes] = formValues;
-
-        const intervalOptions = [0, 1, 2, 5, 10, 20, 30, 60];
-        const updateIntervalInSeconds = intervalOptions[intervalIndex] ?? 0;
+        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = formValues;
 
         const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
         const selectedDimension = dimensionIds[dimensionIndex] ?? 'minecraft:overworld';
@@ -182,7 +152,6 @@ export async function handleFormResponse(player, panelId, response, context) {
             text: textContent,
             location: { x: parseFloat(x), y: parseFloat(y), z: parseFloat(z) },
             dimension: selectedDimension,
-            updateInterval: updateIntervalInSeconds * 20, // Convert to ticks
             expiresAt: useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
         };
         floatingTextManager.updateText(id, updatedConfig);
@@ -439,7 +408,9 @@ export async function handleFormResponse(player, panelId, response, context) {
     if (panelId === 'configResetPanel') {
         const page = context.page || 1;
         const resettableSystems = [
-            ...configPanelSchema.filter(c => c.id !== 'general').map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+            ...configPanelSchema
+                .filter(c => !c.id.startsWith('general_')) // General settings are not individually resettable via this panel
+                .map(c => ({ id: c.id, title: c.title, icon: c.icon })),
             { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
             { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
             { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
@@ -1548,7 +1519,7 @@ export async function handleFormResponse(player, panelId, response, context) {
         }
         const [mobId, amountStr] = formValues;
         const amount = Number(amountStr);
-        if (!mobId || isNaN(amount) || amount < 0) {
+        if (!mobId || isNaN(amount)) {
             player.sendMessage('§cInvalid mob ID or amount.');
             return showPanel(player, 'addMobDropPanel', context);
         }
@@ -1570,7 +1541,7 @@ export async function handleFormResponse(player, panelId, response, context) {
             }
             const [amountStr] = response.formValues;
             const amount = Number(amountStr);
-            if (isNaN(amount) || amount < 0) {
+            if (isNaN(amount)) {
                 player.sendMessage('§cInvalid amount.');
                 return showPanel(player, 'editMobDropPanel', context);
             }

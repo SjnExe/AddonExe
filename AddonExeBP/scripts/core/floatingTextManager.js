@@ -148,10 +148,12 @@ async function updateText(id, updates) {
         return;
     }
 
-    const newConfig = { ...oldConfig, ...updates, updateInterval: 0 }; // Force interval to 0
+    // Remove updateInterval from here, it's deprecated
+    const newConfig = { ...oldConfig, ...updates };
     if (updates.expiresAt === undefined) {
         newConfig.expiresAt = null;
     }
+    delete newConfig.updateInterval;
 
     const locationChanged = (
         oldConfig.dimension !== newConfig.dimension ||
@@ -210,7 +212,6 @@ function createText(player, id, text) {
             z: Math.round(player.location.z * 100) / 100
         },
         dimension: player.dimension.id,
-        updateInterval: 0,
         expiresAt: null
     };
 
@@ -234,16 +235,31 @@ async function despawnText(id) {
     try {
         const dimension = mc.world.getDimension(textConfig.dimension);
         const query = { type: 'addonexe:floating_text', tags: [`ft_${id}`] };
-        const entity = dimension.getEntities(query)[Symbol.iterator]().next().value;
+        const entities = dimension.getEntities(query);
 
-        if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-            entity.remove();
+        // Iterate and remove all matches, just in case duplication occurred
+        let found = false;
+        for (const entity of entities) {
+            if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+                entity.remove();
+                found = true;
+            }
+        }
+
+        if (found) {
             return;
         }
     } catch (e) {
-        errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, e);
+        // If specific error handling is needed, check e.
+        // But we generally want to fall through to command if direct removal fails
+        // (e.g. unloaded chunk, though remove() usually just doesn't find it).
+        // The log below helps debugging.
+        if (!e.toString().includes('LocationInUnloadedChunkError')) {
+            errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, e);
+        }
     }
 
+    // Fallback for unloaded chunks or if entity.remove() somehow missed
     try {
         const dimension = mc.world.getDimension(textConfig.dimension);
         const command = `kill @e[type=addonexe:floating_text,tag="ft_${id}"]`;

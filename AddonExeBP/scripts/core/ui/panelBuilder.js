@@ -1,54 +1,22 @@
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
-import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
+import { panelDefinitions } from './panelRegistry.js';
+import { configPanelSchema } from './configPanelRegistry.js';
 import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
 import { getConfig } from '../configManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import * as rankManager from '../rankManager.js';
-import * as playerCache from '../playerCache.js';
 import * as bountyManager from '../bountyManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
-import { getKitsConfig, getShopConfig, getSpawnConfig, getEconomyConfig, getXrayConfig } from '../configurations.js';
+import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig } from '../configurations.js';
 import { items as allItems } from '../itemsConfig.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { getValueFromPath } from '../objectUtils.js';
 import { formatCurrency } from '../utils.js';
-import { getVisibleConfigSystems } from './uiUtils.js';
+import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems, addPaginationButtons } from './uiUtils.js';
 import { commandManager } from '../../modules/commands/commandManager.js';
-
-const itemsPerPage = 8;
-
-const configHandlers = {
-    'main': {
-        get: getConfig
-    },
-    'economy': {
-        get: getEconomyConfig
-    },
-    'spawn': {
-        get: getSpawnConfig
-    },
-    'xray': {
-        get: getXrayConfig
-    }
-};
-
-function getPaginatedItems(items, page) {
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return items.slice(startIndex, endIndex);
-}
-
-function addPaginationButtons(form, page, totalItems) {
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    if (page > 1) {
-        form.button('§l§4< §1Previous');
-    }
-    if (page < totalPages) {
-        form.button('§l§1Next §4>');
-    }
-}
+import { iconDB } from '../iconDB.js';
 
 export function getMenuItems(panelDef, permissionLevel) {
     const config = getConfig();
@@ -794,19 +762,11 @@ export async function buildPanelForm(player, panelId, context) {
             }
 
             // Robust handling for update interval to prevent crashes with legacy data
-            const updateIntervalInTicks = text.updateInterval ?? 0;
-            const intervalOptions = [0, 1, 2, 5, 10, 20, 30, 60];
-            const currentIntervalSeconds = updateIntervalInTicks / 20;
-            let defaultIntervalIndex = intervalOptions.indexOf(currentIntervalSeconds);
-            if (defaultIntervalIndex === -1) { defaultIntervalIndex = 0; } // Default to "Off"
-
             const expiresAt = text.expiresAt ?? null;
 
             const dimensionOptions = ['Overworld', 'Nether', 'The End'];
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
             const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension));
-
-            const intervalLabels = ['Off'];
 
             const form = new ModalFormData()
                 .title(`Edit: ${id}`)
@@ -815,7 +775,6 @@ export async function buildPanelForm(player, panelId, context) {
                 .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(+(text.location?.y ?? 0).toFixed(2)) })
                 .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
                 .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
-                .dropdown('Update Interval', intervalLabels, { defaultValueIndex: defaultIntervalIndex })
                 .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
                 .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' });
             return form;
@@ -989,23 +948,23 @@ export async function buildPanelForm(player, panelId, context) {
             return form;
         }
 
-    if (panelId === 'commandSettingsPanel') {
-        const { commandName } = context;
-        const config = getConfig();
-        const commandSettings = config.commandSettings[commandName] || {};
-        const command = commandManager.commands.get(commandName);
+        if (panelId === 'commandSettingsPanel') {
+            const { commandName } = context;
+            const config = getConfig();
+            const commandSettings = config.commandSettings[commandName] || {};
+            const command = commandManager.commands.get(commandName);
 
-        const isEnabled = commandSettings.enabled ?? false;
-        const permissionLevel = commandSettings.permissionLevel ?? command?.permissionLevel ?? 1024;
+            const isEnabled = commandSettings.enabled ?? false;
+            const permissionLevel = commandSettings.permissionLevel ?? command?.permissionLevel ?? 1024;
 
-        const form = new ModalFormData()
-            .title(`${commandName} Settings`)
-            .toggle('Enable Command', { defaultValue: isEnabled })
-            .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', { defaultValue: String(permissionLevel) });
+            const form = new ModalFormData()
+                .title(`${commandName} Settings`)
+                .toggle('Enable Command', { defaultValue: isEnabled })
+                .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', { defaultValue: String(permissionLevel) });
 
-        form.submitButton('§l§2Save Settings');
-        return form;
-    }
+            form.submitButton('§l§2Save Settings');
+            return form;
+        }
 
         if (panelId === 'rankManagementPanel') {
             const panelDef = panelDefinitions[panelId];
@@ -1085,7 +1044,11 @@ export async function buildPanelForm(player, panelId, context) {
 
             for (const mobId of paginatedMobIds) {
                 const amount = mobDrops[mobId];
-                form.button(`${mobId}\n§2${formatCurrency(amount)}`);
+                // Check if we have a specific spawn egg icon for this mob
+                const spawnEggId = `${mobId}_spawn_egg`;
+                const icon = iconDB[spawnEggId]?.icon || 'textures/ui/help_question_mark';
+
+                form.button(`${mobId}\n§2${formatCurrency(amount)}`, icon);
             }
 
             addPaginationButtons(form, page, mobIds.length);
@@ -1184,7 +1147,9 @@ export async function buildPanelForm(player, panelId, context) {
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
             const resettableSystems = [
-                ...configPanelSchema.filter(c => c.id !== 'general').map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+                ...configPanelSchema
+                    .filter(c => !c.id.startsWith('general_'))
+                    .map(c => ({ id: c.id, title: c.title, icon: c.icon })),
                 { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
                 { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
                 { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }

@@ -1,6 +1,8 @@
 export const economyConfig = {
     currencySymbol: '$',
     startingBalance: 100,
+    minBalance: -1000000,
+    maxBalance: 1000000000,
     logToConsole: false,
     mobMoney: {
         'minecraft:zombie': 5,

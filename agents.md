@@ -67,4 +67,33 @@ This project uses a simple task management system in the `Dev/tasks/` directory.
 - **Ask Questions:** If the user's request is ambiguous or if you encounter significant issues, use `request_user_input`.
 - **Report Progress:** Use `plan_step_complete()` after each step.
 
+## 7. Specific Technical Constraints & Patterns
+
+The following patterns must be verified and adhered to when working on the codebase:
+
+- **Exports:**
+  - `playerDataManager.js`: Uses named exports (e.g., `export { functionName }`), not default exports.
+  - `commandManager.js`: Uses named exports (e.g., `import { commandManager } from ...`).
+- **Configuration:**
+  - Persistence: Use `.set(newConfig)` to update and save configurations. `.save()` persists current memory state.
+  - Structure: `bounties` are in `config.js`, but other economy settings are in `economyConfig.js`.
+  - Validation: `xrayConfig.js` uses a `monitoredOreTypes` structure.
+- **UI System:**
+  - Source of Truth: `AddonExeBP/scripts/core/ui/panelRegistry.js` contains the schema for UI panels.
+  - Dynamic Config IDs: Panels generated from schema use IDs like `config_<schemaId>`.
+- **Floating Text:**
+  - Implementation: Uses invisible entity `addonexe:floating_text`.
+  - Management: `floatingTextManager.js`. Requires killing existing entity before spawning new one to prevent duplicates.
+- **Scripting API Specifics:**
+  - **Versions:** Use exact versions from `manifest.json` (e.g., `2.3.0-beta`).
+  - **Timers:** `mc.system.runJob` requires a generator function. Use `mc.system.runTimeout` for simple delays.
+  - **Entity References:** Do not cache Entity objects. They become invalid. Store IDs and query fresh objects.
+  - **Dimensions:** Use `minecraft:nether` (not `the_nether`).
+- **Commands:**
+  - `commandManager` supports `int` parameter type.
+  - Use `runCommand`, not `runCommandAsync` (deprecated).
+- **Non-Existent Features (Do Not Use):**
+  - `placeholderManager.js` / `resolvePlaceholders`: **Does not exist.** Use `formatString` from `utils.js`.
+  - `world.playSound`: Use `dimension.playSound` or `player.playSound`.
+
 By following these guidelines, you will help ensure the continued quality, consistency, and maintainability of the AddonExe. Thank you!

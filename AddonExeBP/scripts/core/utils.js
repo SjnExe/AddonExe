@@ -280,12 +280,36 @@ export function formatLocation(location) {
 
 /**
  * Formats a number as a currency string, using the symbol from the config.
+ * Supports short forms like k, M, B, T.
  * @param {number} amount The amount to format.
- * @returns {string} The formatted currency string (e.g., "$1,234.50").
+ * @returns {string} The formatted currency string (e.g., "$105k").
  */
 export function formatCurrency(amount) {
     const economyConfig = getEconomyConfig();
     const symbol = economyConfig.currencySymbol || '$';
-    const formattedAmount = amount.toFixed(2);
-    return `${symbol}${formattedAmount}`;
+    const isNegative = amount < 0;
+    let absAmount = Math.abs(amount);
+    let formattedAmount = '';
+
+    const suffixes = [
+        { value: 1e24, symbol: 'S' },
+        { value: 1e21, symbol: 's' },
+        { value: 1e18, symbol: 'Q' },
+        { value: 1e15, symbol: 'q' },
+        { value: 1e12, symbol: 'T' },
+        { value: 1e9, symbol: 'B' },
+        { value: 1e6, symbol: 'M' },
+        { value: 1e3, symbol: 'k' }
+    ];
+
+    const suffix = suffixes.find(s => absAmount >= s.value);
+
+    if (suffix) {
+        // Use at most 2 decimal places for large numbers, but remove trailing zeros/decimal if whole
+        formattedAmount = (absAmount / suffix.value).toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1') + suffix.symbol;
+    } else {
+        formattedAmount = absAmount.toFixed(2);
+    }
+
+    return `${isNegative ? '-' : ''}${symbol}${formattedAmount}`;
 }

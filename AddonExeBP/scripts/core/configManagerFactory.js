@@ -92,7 +92,7 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
                     currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
                 }
             } else {
-                if (!isMigration) debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
+                if (!isMigration) {debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);}
                 currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
             }
 
