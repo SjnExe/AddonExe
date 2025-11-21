@@ -1519,7 +1519,7 @@ export async function handleFormResponse(player, panelId, response, context) {
         }
         const [mobId, amountStr] = formValues;
         const amount = Number(amountStr);
-        if (!mobId || isNaN(amount) || amount < 0) {
+        if (!mobId || isNaN(amount)) {
             player.sendMessage('§cInvalid mob ID or amount.');
             return showPanel(player, 'addMobDropPanel', context);
         }
@@ -1541,7 +1541,7 @@ export async function handleFormResponse(player, panelId, response, context) {
             }
             const [amountStr] = response.formValues;
             const amount = Number(amountStr);
-            if (isNaN(amount) || amount < 0) {
+            if (isNaN(amount)) {
                 player.sendMessage('§cInvalid amount.');
                 return showPanel(player, 'editMobDropPanel', context);
             }

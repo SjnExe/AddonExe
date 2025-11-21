@@ -464,15 +464,24 @@ export function deletePlayerHome(playerId, homeName) {
 }
 
 export function setPlayerBalance(playerId, newBalance) {
+    const economyConfig = getEconomyConfig();
+    const min = economyConfig.minBalance ?? -1000000;
+    const max = economyConfig.maxBalance ?? 1000000000;
+
     updatePlayerData(playerId, pData => {
-        pData.balance = newBalance;
+        pData.balance = Math.max(min, Math.min(newBalance, max));
         updateAndSaveLeaderboard(playerId, pData);
     });
 }
 
 export function incrementPlayerBalance(playerId, amount) {
+    const economyConfig = getEconomyConfig();
+    const min = economyConfig.minBalance ?? -1000000;
+    const max = economyConfig.maxBalance ?? 1000000000;
+
     updatePlayerData(playerId, pData => {
-        pData.balance += amount;
+        const potentialBalance = pData.balance + amount;
+        pData.balance = Math.max(min, Math.min(potentialBalance, max));
         updateAndSaveLeaderboard(playerId, pData);
     });
 }

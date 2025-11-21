@@ -126,6 +126,18 @@ export const configPanelSchema = [
                 description: 'The amount of money new players start with.'
             },
             {
+                key: 'minBalance',
+                label: 'Minimum Balance',
+                type: 'textField',
+                description: 'The minimum balance a player can have (e.g., -1000).'
+            },
+            {
+                key: 'maxBalance',
+                label: 'Maximum Balance',
+                type: 'textField',
+                description: 'The maximum balance a player can have.'
+            },
+            {
                 key: 'logToConsole',
                 label: 'Log Transactions',
                 type: 'toggle',
