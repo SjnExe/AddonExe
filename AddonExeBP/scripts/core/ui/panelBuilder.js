@@ -16,6 +16,7 @@ import { getValueFromPath } from '../objectUtils.js';
 import { formatCurrency } from '../utils.js';
 import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems, addPaginationButtons } from './uiUtils.js';
 import { commandManager } from '../../modules/commands/commandManager.js';
+import { iconDB } from '../iconDB.js';
 
 export function getMenuItems(panelDef, permissionLevel) {
     const config = getConfig();
@@ -1043,7 +1044,11 @@ export async function buildPanelForm(player, panelId, context) {
 
             for (const mobId of paginatedMobIds) {
                 const amount = mobDrops[mobId];
-                form.button(`${mobId}\n§2${formatCurrency(amount)}`);
+                // Check if we have a specific spawn egg icon for this mob
+                const spawnEggId = `${mobId}_spawn_egg`;
+                const icon = iconDB[spawnEggId]?.icon || 'textures/ui/help_question_mark';
+
+                form.button(`${mobId}\n§2${formatCurrency(amount)}`, icon);
             }
 
             addPaginationButtons(form, page, mobIds.length);
