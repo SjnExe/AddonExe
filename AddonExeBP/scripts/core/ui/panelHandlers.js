@@ -143,10 +143,7 @@ export async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, 'floatingTextActionPanel', context);
         }
         const { id } = context;
-        const [textContent, x, y, z, dimensionIndex, intervalIndex, useExpiration, expirationMinutes] = formValues;
-
-        const intervalOptions = [0, 1, 2, 5, 10, 20, 30, 60];
-        const updateIntervalInSeconds = intervalOptions[intervalIndex] ?? 0;
+        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = formValues;
 
         const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
         const selectedDimension = dimensionIds[dimensionIndex] ?? 'minecraft:overworld';
@@ -155,7 +152,6 @@ export async function handleFormResponse(player, panelId, response, context) {
             text: textContent,
             location: { x: parseFloat(x), y: parseFloat(y), z: parseFloat(z) },
             dimension: selectedDimension,
-            updateInterval: updateIntervalInSeconds * 20, // Convert to ticks
             expiresAt: useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
         };
         floatingTextManager.updateText(id, updatedConfig);
