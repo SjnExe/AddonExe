@@ -10,6 +10,7 @@ import handlePlayerDimensionChange from './playerDimensionChange.js';
 import handleItemUse from './itemUse.js';
 import handleEntityDie from './entityDie.js';
 import handlePlayerBreakBlock from './playerBreakBlock.js';
+import { handleScriptEventReceive } from './scriptEventReceive.js';
 
 /**
  * An array of all event handlers and their corresponding event subscriptions.
@@ -24,7 +25,8 @@ export const events = [
     { event: mc.world.afterEvents.playerDimensionChange, handler: handlePlayerDimensionChange, name: 'playerDimensionChange' },
     { event: mc.world.afterEvents.itemUse, handler: handleItemUse, name: 'itemUse' },
     { event: mc.world.afterEvents.entityDie, handler: handleEntityDie, name: 'entityDie' },
-    { event: mc.world.afterEvents.playerBreakBlock, handler: handlePlayerBreakBlock, name: 'playerBreakBlock' }
+    { event: mc.world.afterEvents.playerBreakBlock, handler: handlePlayerBreakBlock, name: 'playerBreakBlock' },
+    { event: mc.system.afterEvents.scriptEventReceive, handler: handleScriptEventReceive, name: 'scriptEventReceive' }
 ];
 
 /**

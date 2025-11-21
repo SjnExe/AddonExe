@@ -1,5 +1,6 @@
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
-import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
+import { panelDefinitions } from './panelRegistry.js';
+import { configPanelSchema } from './configPanelRegistry.js';
 import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
 import { getConfig } from '../configManager.js';
 import { debugLog, errorLog } from '../logger.js';
@@ -8,46 +9,13 @@ import * as bountyManager from '../bountyManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
-import { getKitsConfig, getShopConfig, getSpawnConfig, getEconomyConfig, getXrayConfig } from '../configurations.js';
+import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig } from '../configurations.js';
 import { items as allItems } from '../itemsConfig.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { getValueFromPath } from '../objectUtils.js';
 import { formatCurrency } from '../utils.js';
-import { getVisibleConfigSystems } from './uiUtils.js';
+import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems, addPaginationButtons } from './uiUtils.js';
 import { commandManager } from '../../modules/commands/commandManager.js';
-
-const itemsPerPage = 8;
-
-const configHandlers = {
-    'main': {
-        get: getConfig
-    },
-    'economy': {
-        get: getEconomyConfig
-    },
-    'spawn': {
-        get: getSpawnConfig
-    },
-    'xray': {
-        get: getXrayConfig
-    }
-};
-
-function getPaginatedItems(items, page) {
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return items.slice(startIndex, endIndex);
-}
-
-function addPaginationButtons(form, page, totalItems) {
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    if (page > 1) {
-        form.button('§l§4< §1Previous');
-    }
-    if (page < totalPages) {
-        form.button('§l§1Next §4>');
-    }
-}
 
 export function getMenuItems(panelDef, permissionLevel) {
     const config = getConfig();
@@ -1183,7 +1151,9 @@ export async function buildPanelForm(player, panelId, context) {
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
             const resettableSystems = [
-                ...configPanelSchema.filter(c => c.id !== 'general').map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+                ...configPanelSchema
+                    .filter(c => !c.id.startsWith('general_'))
+                    .map(c => ({ id: c.id, title: c.title, icon: c.icon })),
                 { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
                 { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
                 { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
