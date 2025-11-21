@@ -26,7 +26,6 @@ import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { showConfirmationDialog } from './components.js';
 import { uiActionFunctions } from './actionRegistry.js';
 import { floatingTextManager } from '../floatingTextManager.js';
-import { commandManager } from '../../modules/commands/commandManager.js';
 import { config as defaultConfig } from '../../config.js';
 import { spawnConfig as defaultSpawnConfig } from '../spawnConfig.js';
 import { economyConfig as defaultEconomyConfig } from '../economyConfig.js';

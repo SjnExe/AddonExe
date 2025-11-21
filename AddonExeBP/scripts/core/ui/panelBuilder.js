@@ -4,7 +4,6 @@ import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } f
 import { getConfig } from '../configManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import * as rankManager from '../rankManager.js';
-import * as playerCache from '../playerCache.js';
 import * as bountyManager from '../bountyManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';

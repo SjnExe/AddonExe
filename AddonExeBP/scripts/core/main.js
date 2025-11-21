@@ -4,7 +4,7 @@ import { getSpawnConfig, loadEconomyConfig, loadKitsConfig, loadRanksConfig, loa
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
 import * as playerDataManager from './playerDataManager.js';
-import { cleanupPlayerDataManager, clearExpiredPayments, getBalance, getLeaderboard, getPlayer } from './playerDataManager.js';
+import { cleanupPlayerDataManager, clearExpiredPayments } from './playerDataManager.js';
 import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
@@ -17,7 +17,6 @@ import { initializeSpawnProtection } from '../modules/detections/spawnProtection
 import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
-import { formatCurrency } from './utils.js';
 import '../modules/commands/index.js';
 import './mobDeathEvents.js';
 
