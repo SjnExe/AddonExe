@@ -989,23 +989,23 @@ export async function buildPanelForm(player, panelId, context) {
             return form;
         }
 
-    if (panelId === 'commandSettingsPanel') {
-        const { commandName } = context;
-        const config = getConfig();
-        const commandSettings = config.commandSettings[commandName] || {};
-        const command = commandManager.commands.get(commandName);
+        if (panelId === 'commandSettingsPanel') {
+            const { commandName } = context;
+            const config = getConfig();
+            const commandSettings = config.commandSettings[commandName] || {};
+            const command = commandManager.commands.get(commandName);
 
-        const isEnabled = commandSettings.enabled ?? false;
-        const permissionLevel = commandSettings.permissionLevel ?? command?.permissionLevel ?? 1024;
+            const isEnabled = commandSettings.enabled ?? false;
+            const permissionLevel = commandSettings.permissionLevel ?? command?.permissionLevel ?? 1024;
 
-        const form = new ModalFormData()
-            .title(`${commandName} Settings`)
-            .toggle('Enable Command', { defaultValue: isEnabled })
-            .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', { defaultValue: String(permissionLevel) });
+            const form = new ModalFormData()
+                .title(`${commandName} Settings`)
+                .toggle('Enable Command', { defaultValue: isEnabled })
+                .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', { defaultValue: String(permissionLevel) });
 
-        form.submitButton('§l§2Save Settings');
-        return form;
-    }
+            form.submitButton('§l§2Save Settings');
+            return form;
+        }
 
         if (panelId === 'rankManagementPanel') {
             const panelDef = panelDefinitions[panelId];
