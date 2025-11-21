@@ -59,7 +59,7 @@ commandManager.register({
 // /hq
 commandManager.register({
     name: 'hq',
-    description: 'Teleports you to your team\'s home.',
+    description: "Teleports you to your team's home.",
     category: 'Team',
     permissionLevel: 1024,
     aliases: ['teamhome'],
