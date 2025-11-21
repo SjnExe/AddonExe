@@ -56,6 +56,16 @@ class CommandManager {
      * @private
      */
     _executeCommand(executor, command, args) {
+        const config = getConfig();
+        const commandSettings = config.commandSettings[command.name] || {};
+
+        if (commandSettings.enabled === false) {
+            if (executor.sendMessage) {
+                executor.sendMessage('§cThis command is currently disabled.');
+            }
+            return;
+        }
+
         const isPlayer = !!executor.id; // Check if it's a player or console object
 
         // --- Console Execution ---
@@ -250,6 +260,12 @@ class CommandManager {
 
         if (!command) {
             player.sendMessage(`§cUnknown command: ${commandName}`);
+            return true;
+        }
+
+        const commandSettings = config.commandSettings[command.name] || {};
+        if (commandSettings.enabled === false) {
+            player.sendMessage('§cThis command is currently disabled.');
             return true;
         }
 

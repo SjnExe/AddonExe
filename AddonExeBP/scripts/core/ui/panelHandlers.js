@@ -26,6 +26,7 @@ import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { showConfirmationDialog } from './components.js';
 import { uiActionFunctions } from './actionRegistry.js';
 import { floatingTextManager } from '../floatingTextManager.js';
+import { commandManager } from '../../modules/commands/commandManager.js';
 import { config as defaultConfig } from '../../config.js';
 import { spawnConfig as defaultSpawnConfig } from '../spawnConfig.js';
 import { economyConfig as defaultEconomyConfig } from '../economyConfig.js';
@@ -1281,6 +1282,69 @@ export async function handleFormResponse(player, panelId, response, context) {
         }
 
         return showPanel(player, 'kitManagementPanel', context); // Go back to the list
+    }
+
+    if (panelId === 'commandSystemPanel') {
+        const page = context.page || 1;
+
+        if (selection === 0) { // Back button
+            return showPanel(player, 'configCategoryPanel', context);
+        }
+
+        const config = getConfig();
+        const commandSettings = config.commandSettings || {};
+        const allCommands = Object.keys(commandSettings)
+            .filter(cmd => !cmd.startsWith('_'))
+            .sort();
+
+        const paginatedCommands = getPaginatedItems(allCommands, page);
+        const selectionIndex = selection - 1;
+
+        if (selectionIndex < paginatedCommands.length) {
+            const commandName = paginatedCommands[selectionIndex];
+            return showPanel(player, 'commandSettingsPanel', { ...context, commandName });
+        }
+
+        // Handle pagination
+        let buttonIndex = selectionIndex - paginatedCommands.length;
+        const totalPages = Math.ceil(allCommands.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+
+        if (allCommands.length > itemsPerPage) {
+            if (hasPrev && buttonIndex === 0) {
+                return showPanel(player, panelId, { ...context, page: page - 1 });
+            }
+            if (hasPrev) { buttonIndex--; }
+
+            if (hasNext && buttonIndex === 0) {
+                return showPanel(player, panelId, { ...context, page: page + 1 });
+            }
+        }
+        return;
+    }
+
+    if (panelId === 'commandSettingsPanel') {
+        if (canceled) {
+            return showPanel(player, 'commandSystemPanel', context);
+        }
+
+        const { commandName } = context;
+        const [isEnabled, permissionLevelStr] = formValues;
+        const permissionLevel = parseInt(permissionLevelStr, 10);
+
+        if (isNaN(permissionLevel)) {
+            player.sendMessage('§cInvalid permission level. Please enter a number.');
+            return showPanel(player, 'commandSettingsPanel', context);
+        }
+
+        updateMultipleConfig({
+            [`commandSettings.${commandName}.enabled`]: isEnabled,
+            [`commandSettings.${commandName}.permissionLevel`]: permissionLevel
+        });
+
+        player.sendMessage(`§2Successfully updated settings for '${commandName}'.`);
+        return showPanel(player, 'commandSystemPanel', context);
     }
 
     if (panelId === 'bountyListPanel' || panelId === 'reportListPanel' || panelId === 'playerManagementPanel' || panelId === 'playerListPanel') {

@@ -13,7 +13,6 @@
  * @property {number} permissionLevel
  * @property {Object.<string, HomeLocation>} homes
  * @property {number} balance
- * @property {number} [balanceVersion] - Version of the balance field for migration. 2 = cents.
  * @property {Object.<string, number>} kitCooldowns
  * @property {boolean} xrayNotificationsEnabled
  * @property {HomeLocation | null} lastDeathLocation
@@ -168,12 +167,6 @@ export function loadPlayerData(playerId) {
                 ...loadedData
             };
 
-            if (playerData.balanceVersion !== 2) {
-                playerData.balance = Math.round(playerData.balance * 100);
-                playerData.balanceVersion = 2;
-                savePlayerData(playerId); // Re-save immediately after migration
-            }
-
             activePlayerData.set(playerId, playerData);
             return playerData;
         }
@@ -229,8 +222,7 @@ export function getOrCreatePlayer(player) {
         ...defaultPlayerData,
         rankId: config.playerDefaults.rankId,
         permissionLevel: config.playerDefaults.permissionLevel,
-        balance: economyConfig.startingBalance * 100,
-        balanceVersion: 2,
+        balance: economyConfig.startingBalance,
         xrayNotificationsEnabled: config.playerDefaults.xrayNotificationsEnabled,
         homes: {},
         kitCooldowns: {},
