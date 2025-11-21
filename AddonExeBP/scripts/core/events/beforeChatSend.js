@@ -4,7 +4,7 @@ import { commandManager } from '../../modules/commands/commandManager.js';
 import * as playerDataManager from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
 import { getConfig } from '../configManager.js';
-import { isTeamChatEnabled, toggleTeamChat } from '../../modules/commands/teamChat.js';
+import { isTeamChatEnabled, toggleTeamChat } from '../../modules/commands/team.js';
 import { getTeamByPlayer } from '../teamManager.js';
 
 export const eventName = 'beforeChatSend';
