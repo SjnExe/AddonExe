@@ -797,8 +797,8 @@ export async function buildPanelForm(player, panelId, context) {
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
             if (team.home && team.home.dimensionId) {
-                const { x, y, z } = team.home.location;
-                const dim = team.home.dimensionId.replace('minecraft:', '');
+                const { x, y, z, dimensionId } = team.home;
+                const dim = dimensionId.replace('minecraft:', '');
                 const coords = `${x.toFixed(0)}, ${y.toFixed(0)}, ${z.toFixed(0)} (${dim})`;
                 form.body(`Home Location:\n§a${coords}`);
                 form.button('§l§2Teleport', 'textures/items/ender_pearl');

@@ -1,5 +1,5 @@
 import { getPlayerTeamId } from '../teamManager.js';
-import { teamConfig } from '../teamConfig.js';
+import { getTeamConfig } from '../configurations.js';
 
 export const eventName = 'beforeEntityHurt';
 
@@ -16,7 +16,8 @@ function handleBeforeEntityHurt(event) {
     if (attacker.id === hurtEntity.id) {return;}
 
     // Friendly Fire Check
-    if (!teamConfig.friendlyFire) {
+    const config = getTeamConfig();
+    if (!config.friendlyFire) {
         const victimTeamId = getPlayerTeamId(hurtEntity.id);
         if (victimTeamId) {
             const attackerTeamId = getPlayerTeamId(attacker.id);

@@ -77,7 +77,7 @@ commandManager.register({
             return;
         }
 
-        const { location, dimensionId } = team.home;
+        const { x, y, z, dimensionId } = team.home;
         const dimension = mc.world.getDimension(dimensionId);
 
         if (!dimension) {
@@ -86,7 +86,7 @@ commandManager.register({
         }
 
         try {
-            player.teleport(location, { dimension: dimension });
+            player.teleport({ x, y, z }, { dimension: dimension });
             player.sendMessage('§aTeleported to team home.');
         } catch {
             player.sendMessage('§cFailed to teleport to team home.');

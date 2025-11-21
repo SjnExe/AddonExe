@@ -353,10 +353,8 @@ export async function handleFormResponse(player, panelId, response, context) {
 
         if (team.home) {
             if (selection === btnIndex) { // Teleport
-                const { x, y, z } = team.home.location;
-                player.teleport({ x, y, z }, { dimension: team.home.dimensionId ? player.dimension : undefined }); // Handle dimension properly if API allows or check dimension match
-                // Since player.teleport accepts dimension in options:
-                const targetDimension = team.home.dimensionId ? (await import('@minecraft/server')).world.getDimension(team.home.dimensionId) : player.dimension;
+                const { x, y, z, dimensionId } = team.home;
+                const targetDimension = dimensionId ? (await import('@minecraft/server')).world.getDimension(dimensionId) : player.dimension;
                 if (targetDimension) {
                     player.teleport({ x, y, z }, { dimension: targetDimension });
                     player.sendMessage('§aTeleported to team home.');
