@@ -137,6 +137,15 @@ export const panelDefinitions = {
                 sortId: 60
             },
             {
+                id: 'team',
+                text: '§1Team§r',
+                icon: 'textures/ui/icon_multiplayer.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamMainPanel',
+                sortId: 65
+            },
+            {
                 id: 'helpfulLinks',
                 text: '§9Helpful Links§r',
                 icon: 'textures/items/chain',
@@ -155,6 +164,86 @@ export const panelDefinitions = {
                 sortId: 5
             }
         ]
+    },
+    teamMainPanel: {
+        title: '§l§bTeam System§r',
+        parentPanelId: 'mainPanel',
+        items: [] // Dynamic: Shows Create/Join OR Team Info
+    },
+    teamCreatePanel: {
+        title: 'Create Team',
+        parentPanelId: 'teamMainPanel',
+        items: [] // Modal
+    },
+    teamJoinPanel: {
+        title: 'Join Team',
+        parentPanelId: 'teamMainPanel',
+        items: [
+            {
+                id: 'viewInvites',
+                text: 'View Invites',
+                icon: 'textures/ui/email_icon',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamInvitesPanel'
+            },
+            {
+                id: 'searchTeam',
+                text: 'Search Team ID',
+                icon: 'textures/ui/magnifyingGlass',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamSearchPanel'
+            },
+            {
+                id: 'browseTeams',
+                text: 'Browse Teams',
+                icon: 'textures/ui/world_glyph_color',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamBrowserPanel'
+            }
+        ]
+    },
+    teamInvitesPanel: {
+        title: 'Pending Invites',
+        parentPanelId: 'teamJoinPanel',
+        items: [] // Dynamic
+    },
+    teamSearchPanel: {
+        title: 'Search Team',
+        parentPanelId: 'teamJoinPanel',
+        items: [] // Modal
+    },
+    teamBrowserPanel: {
+        title: 'Browse Teams',
+        parentPanelId: 'teamJoinPanel',
+        items: [] // Dynamic
+    },
+    teamManagePanel: {
+        title: 'Team Management',
+        parentPanelId: 'teamMainPanel',
+        items: [] // Dynamic: Owner/Admin actions
+    },
+    teamMembersPanel: {
+        title: 'Team Members',
+        parentPanelId: 'teamMainPanel',
+        items: [] // Dynamic
+    },
+    teamRequestsPanel: {
+        title: 'Join Requests',
+        parentPanelId: 'teamManagePanel',
+        items: [] // Dynamic
+    },
+    teamSettingsPanel: {
+        title: 'Team Settings',
+        parentPanelId: 'teamMainPanel',
+        items: [] // Modal
+    },
+    teamHomePanel: {
+        title: 'Team Home',
+        parentPanelId: 'teamManagePanel',
+        items: [] // Dynamic: Teleport, Update, Delete
     },
     shopMainPanel: {
         title: '§l§aShop Categories§r',

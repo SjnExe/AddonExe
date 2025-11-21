@@ -1,3 +1,4 @@
+import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { panelDefinitions } from './panelRegistry.js';
 import { configPanelSchema } from './configPanelRegistry.js';
@@ -35,7 +36,7 @@ export function getMenuItems(panelDef, permissionLevel) {
     return items;
 }
 
-function addPanelBody(form, player, panelId, context) {
+async function addPanelBody(form, player, panelId, context) {
     const config = getConfig();
     if (panelId === 'myStatsPanel') {
         const pData = getOrCreatePlayer(player);
@@ -45,8 +46,13 @@ function addPanelBody(form, player, panelId, context) {
             return;
         }
         const bounty = bountyManager.getBounty(player.id)?.amount ?? 0;
+        const { getTeamByPlayer } = await import('../teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        const teamName = team ? `§b${team.name}` : '§7None';
+
         form.body([
             `§fRank: §r${rank.chatFormatting?.nameColor ?? '§7'}${rank.name}`,
+            `§fTeam: ${teamName}`,
             `§fBalance: §2${formatCurrency(pData.balance)}`,
             `§fBounty on you: §6${formatCurrency(bounty)}`
         ].join('\n'));
@@ -591,6 +597,242 @@ export async function buildPanelForm(player, panelId, context) {
             return form;
         }
 
+        if (panelId === 'teamMainPanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const { teamConfig } = await import('../teamConfig.js');
+            const panelDef = panelDefinitions[panelId];
+
+            const team = getTeamByPlayer(player.id);
+            const form = new ActionFormData().title(panelDef.title);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            if (team) {
+                const isOwner = team.ownerId === player.id;
+                const isAdmin = team.admins.includes(player.id);
+                const isOwnerOrAdmin = isOwner || isAdmin;
+
+                const ownerData = loadPlayerData(team.ownerId);
+                const ownerName = ownerData ? ownerData.name : 'Unknown';
+
+                form.body([
+                    `§l§2Team: ${team.name}`,
+                    `§rOwner: ${ownerName}`,
+                    `Members: ${team.members.length}/${teamConfig.maxMembers}`
+                ].join('\n'));
+
+                form.button('§l§3Team Members', 'textures/ui/icon_multiplayer');
+                if (isOwnerOrAdmin) {
+                    form.button('§l§cManage Team', 'textures/ui/op');
+                }
+                form.button('§l§eTeam Settings', 'textures/ui/icon_setting');
+                form.button('§cLeave Team', 'textures/ui/cancel');
+
+            } else {
+                // No Team
+                form.button(`§l§2Create Team\n§r§6Cost: ${formatCurrency(teamConfig.creationCost)}`, 'textures/ui/color_plus');
+                form.button('§l§9Join Team', 'textures/ui/world_glyph_color');
+            }
+            return form;
+        }
+
+        if (panelId === 'teamCreatePanel') {
+            const { teamConfig } = await import('../teamConfig.js');
+            const form = new ModalFormData().title('Create Team');
+            form.textField('Team Name', `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`);
+            return form;
+        }
+
+        if (panelId === 'teamSearchPanel') {
+            const form = new ModalFormData().title('Search Team');
+            form.textField('Team ID', 'Enter the numeric Team ID');
+            return form;
+        }
+
+        if (panelId === 'teamSettingsPanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const pData = getOrCreatePlayer(player);
+            const team = getTeamByPlayer(player.id);
+
+            if (!team) {return null;}
+
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+            const canManage = isOwner || isAdmin;
+
+            const form = new ModalFormData().title('Team Settings');
+            // Personal Settings
+            form.toggle('Auto-Accept Team Teleport', { defaultValue: pData.teamSettings?.autoTpAccept ?? false });
+            if (canManage) {
+                form.toggle('Allow Join Requests', { defaultValue: team.open ?? true });
+            }
+            return form;
+        }
+
+        if (panelId === 'teamMembersPanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const team = getTeamByPlayer(player.id);
+            if (!team) {
+                player.sendMessage('§cYou are not in a team.');
+                return null;
+            }
+
+            const form = new ActionFormData().title(`Members: ${team.name}`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            // List members.
+            for (const memberId of team.members) {
+                const memData = loadPlayerData(memberId);
+                const name = memData ? memData.name : 'Unknown';
+                let role = 'Member';
+                if (team.ownerId === memberId) {role = '§cOwner';}
+                else if (team.admins.includes(memberId)) {role = '§2Admin';}
+
+                let status = '§7(Offline)';
+                // Note: This is O(n) per member, assuming team size is small (<10) it's fine.
+                // For larger lists, a cache lookup is better.
+                const onlineP = mc.world.getAllPlayers().find(p => p.id === memberId);
+                if (onlineP) {status = '§a(Online)';}
+
+                form.button(`${role} §r${name}\n${status}`, 'textures/ui/icon_steve');
+            }
+            return form;
+        }
+
+        if (panelId === 'teamBrowserPanel') {
+            const { getAllTeams } = await import('../teamManager.js');
+            const { page = 1 } = context;
+            const form = new ActionFormData().title(`Browse Teams (Page ${page})`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            let teams = getAllTeams();
+
+            // Filter out closed teams for non-admins
+            const pData = getOrCreatePlayer(player);
+            if (pData.permissionLevel >= 1024) {
+                teams = teams.filter(t => t.open !== false);
+            }
+
+            teams = teams.sort((a, b) => b.members.length - a.members.length);
+            const paginatedTeams = getPaginatedItems(teams, page);
+
+            for (const team of paginatedTeams) {
+                const ownerData = loadPlayerData(team.ownerId);
+                const ownerName = ownerData ? ownerData.name : 'Unknown';
+                form.button(`${team.name} §7(ID: ${team.id})\n§rOwner: ${ownerName} | Members: ${team.members.length}`);
+            }
+
+            addPaginationButtons(form, page, teams.length);
+            return form;
+        }
+
+        if (panelId === 'teamInvitesPanel') {
+            const pData = getOrCreatePlayer(player);
+            const invites = pData.pendingInvites || [];
+            const form = new ActionFormData().title('Pending Invites');
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            if (invites.length === 0) {
+                form.body('You have no pending invites.');
+            } else {
+                for (const invite of invites) {
+                    const date = new Date(invite.timestamp).toLocaleDateString();
+                    form.button(`${invite.teamName}\n§7Received: ${date}`);
+                }
+                form.button('§cDeny All Invites', 'textures/ui/cancel');
+            }
+            return form;
+        }
+
+        if (panelId === 'teamManagePanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const { teamId } = context;
+            // If context has teamId, it might be an admin managing another team.
+            // Otherwise, manage own team.
+
+            let team = null;
+            const pData = getOrCreatePlayer(player);
+
+            if (teamId && pData.permissionLevel < 1024) {
+                const { getTeam } = await import('../teamManager.js');
+                team = getTeam(teamId);
+            } else {
+                team = getTeamByPlayer(player.id);
+            }
+
+            if (!team) {return null;}
+
+            const form = new ActionFormData().title(`Manage: ${team.name}`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+            const isServerAdmin = pData.permissionLevel < 1024;
+
+            if (isOwner || isAdmin || isServerAdmin) {
+                form.button('§l§2Invite Player', 'textures/ui/color_plus');
+                form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/email_icon');
+                form.button('§l§bManage Members', 'textures/ui/icon_multiplayer');
+            }
+
+            if (isOwner || isAdmin) {
+                form.button('§l§dTeam Home', 'textures/ui/icon_recipe_nature');
+            }
+
+            if (isOwner || isServerAdmin) {
+                form.button('§l§cDelete Team', 'textures/ui/trash');
+            }
+            return form;
+        }
+
+        if (panelId === 'teamHomePanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const team = getTeamByPlayer(player.id);
+            if (!team) {return null;}
+
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+            const canManage = isOwner || isAdmin;
+
+            const form = new ActionFormData().title(`Team Home: ${team.name}`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            if (team.home && team.home.dimensionId) {
+                const { x, y, z, dimensionId } = team.home;
+                const dim = dimensionId.replace('minecraft:', '');
+                const coords = `${x.toFixed(0)}, ${y.toFixed(0)}, ${z.toFixed(0)} (${dim})`;
+                form.body(`Home Location:\n§a${coords}`);
+                form.button('§l§2Teleport', 'textures/items/ender_pearl');
+            } else {
+                form.body('§cNo team home set.');
+            }
+
+            if (canManage) {
+                form.button('§l§eUpdate Location', 'textures/ui/icon_recipe_nature');
+                if (team.home) {
+                    form.button('§l§cDelete Home', 'textures/ui/trash');
+                }
+            }
+            return form;
+        }
+
+        if (panelId === 'teamRequestsPanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const team = getTeamByPlayer(player.id);
+            if (!team) {return null;}
+
+            const form = new ActionFormData().title('Join Requests');
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            if (team.applications.length === 0) {
+                form.body('No pending join requests.');
+            } else {
+                for (const app of team.applications) {
+                    form.button(`${app.playerName}`);
+                }
+            }
+            return form;
+        }
+
         // Handle dynamic shop panels before falling back to static definitions
         if (panelId.startsWith('shopCategoryPanel_')) {
             const category = panelId.replace('shopCategoryPanel_', '');
@@ -1029,7 +1271,7 @@ export async function buildPanelForm(player, panelId, context) {
             const { page = 1 } = context;
             const form = new ActionFormData().title('§l§2Mob Drops System');
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            form.button('§l§a+ Add New Mob§r', 'textures/ui/realms_green_check.png');
+            form.button('§l§2+ Add New Mob§r', 'textures/ui/realms_green_check.png');
 
             const economyConfig = getEconomyConfig();
             const mobDrops = economyConfig.mobMoney || {};
@@ -1185,7 +1427,7 @@ export async function buildPanelForm(player, panelId, context) {
         }
 
         const form = new ActionFormData().title(title);
-        addPanelBody(form, player, panelId, context);
+        await addPanelBody(form, player, panelId, context);
         const menuItems = getMenuItems(panelDef, pData.permissionLevel);
         for (const item of menuItems) {
             form.button(item.text, item.icon);

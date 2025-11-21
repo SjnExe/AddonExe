@@ -17,6 +17,7 @@ const commandFiles = [
 
     // --- TPA System ---
     'tpa.js',         // Contains /tpa, /tpahere, /tpaccept, /tpadeny, /tpacancel, /tpastatus
+    'team.js',        // Contains /teamchat, /hq
 
     // --- Home System ---
     'home.js',        // Contains /sethome, /delhome, /homes

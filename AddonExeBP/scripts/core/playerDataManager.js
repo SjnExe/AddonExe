@@ -67,7 +67,10 @@ const defaultPlayerData = {
     lastDeathLocation: null,
     deathNotificationSent: true,
     tpaRequestsDisabled: false,
-    announcementsMuted: false
+    announcementsMuted: false,
+    teamId: null,
+    teamSettings: { autoTpAccept: false },
+    pendingInvites: []
 };
 
 
@@ -79,7 +82,7 @@ const defaultPlayerData = {
  * @param {string} playerId The ID of the player to update.
  * @param {(pData: PlayerData) => void} modificationCallback A callback that receives the player data and modifies it.
  */
-function updatePlayerData(playerId, modificationCallback) {
+export function updatePlayerData(playerId, modificationCallback) {
     const pData = getPlayer(playerId);
     if (pData) {
         modificationCallback(pData);
@@ -210,7 +213,10 @@ function _createNewPlayerData(player) {
         xrayNotificationsEnabled: config.playerDefaults.xrayNotificationsEnabled,
         homes: {},
         kitCooldowns: {},
-        tpaBlockedPlayerIds: []
+        tpaBlockedPlayerIds: [],
+        teamId: null,
+        teamSettings: { autoTpAccept: false },
+        pendingInvites: []
     };
     activePlayerData.set(player.id, newPlayerData);
     savePlayerData(player.id);

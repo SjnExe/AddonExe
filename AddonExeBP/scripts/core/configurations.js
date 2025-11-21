@@ -12,6 +12,7 @@ import { spawnConfig as defaultSpawnConfig } from './spawnConfig.js';
 import { rankDefinitions as defaultRankDefinitions } from './ranksConfig.js';
 import { economyConfig as defaultEconomyConfig } from './economyConfig.js';
 import { xrayConfig as defaultXrayConfig } from './xrayConfig.js';
+import { teamConfig as defaultTeamConfig } from './teamConfig.js';
 
 const kitsConfigManager = createConfigManager('exe:kitsConfig:current', defaultKitsConfig, 'Kits');
 const shopConfigManager = createConfigManager('exe:shopConfig:current', defaultShopConfig, 'Shop');
@@ -19,6 +20,7 @@ const spawnConfigManager = createConfigManager('exe:spawnConfig:current', defaul
 const ranksConfigManager = createConfigManager('exe:ranksConfig', defaultRankDefinitions, 'Ranks', 'rankDefinitions');
 const economyConfigManager = createConfigManager('exe:economyConfig:current', defaultEconomyConfig, 'Economy');
 const xrayConfigManager = createConfigManager('exe:xrayConfig:current', defaultXrayConfig, 'X-Ray');
+const teamConfigManager = createConfigManager('exe:teamConfig:current', defaultTeamConfig, 'Teams');
 
 export const loadKitsConfig = kitsConfigManager.load;
 export const getKitsConfig = kitsConfigManager.get;
@@ -50,7 +52,16 @@ export const getXrayConfig = xrayConfigManager.get;
 export const saveXrayConfig = xrayConfigManager.set;
 export const resetXrayConfig = xrayConfigManager.reset;
 
+export const loadTeamConfig = teamConfigManager.load;
+export const getTeamConfig = teamConfigManager.get;
+export const saveTeamConfig = teamConfigManager.save;
+export const resetTeamConfig = teamConfigManager.reset;
+
 export const configResetRegistry = {
+    'team': {
+        reset: resetTeamConfig,
+        message: 'The \'team\' configuration section has been reset to default.'
+    },
     'xray': {
         reset: resetXrayConfig,
         message: 'The \'X-ray\' configuration section has been reset to default.'

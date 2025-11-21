@@ -1,6 +1,6 @@
 import { configPanelSchema } from './configPanelRegistry.js';
 import { getConfig, updateMultipleConfig } from '../configManager.js';
-import { getSpawnConfig, saveSpawnConfig, getEconomyConfig, saveEconomyConfig, getXrayConfig, saveXrayConfig } from '../configurations.js';
+import { getSpawnConfig, saveSpawnConfig, getEconomyConfig, saveEconomyConfig, getXrayConfig, saveXrayConfig, getTeamConfig, saveTeamConfig } from '../configurations.js';
 
 export const itemsPerPage = 8;
 
@@ -20,6 +20,10 @@ export const configHandlers = {
     'xray': {
         get: getXrayConfig,
         save: (config) => saveXrayConfig(config)
+    },
+    'team': {
+        get: getTeamConfig,
+        save: (config) => saveTeamConfig(config)
     }
 };
 

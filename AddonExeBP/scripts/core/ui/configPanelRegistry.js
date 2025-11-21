@@ -320,8 +320,8 @@ export const configPanelSchema = [
     },
     {
         id: 'tpa',
-        title: '§l§bTPA System§r',
-        icon: 'textures/ui/icon_multiplayer',
+        title: '§l§5TPA System§r',
+        icon: 'textures/items/ender_pearl',
         settings: [
             {
                 key: 'tpa.enabled',
@@ -502,6 +502,50 @@ export const configPanelSchema = [
                 label: 'Allow Admin Bypass',
                 type: 'toggle',
                 description: 'If enabled, admins can enter locked dimensions.'
+            }
+        ]
+    },
+    {
+        id: 'team',
+        title: '§l§1Team System§r',
+        icon: 'textures/ui/icon_multiplayer',
+        configSource: 'team',
+        settings: [
+            {
+                key: 'enabled',
+                label: 'Enable Team System',
+                type: 'toggle',
+                description: 'Enables or disables the entire team system.'
+            },
+            {
+                key: 'creationCost',
+                label: 'Creation Cost',
+                type: 'textField',
+                description: 'The cost to create a new team.'
+            },
+            {
+                key: 'maxMembers',
+                label: 'Max Members',
+                type: 'textField',
+                description: 'The maximum number of members a team can have.'
+            },
+            {
+                key: 'nameMinLength',
+                label: 'Min Name Length',
+                type: 'textField',
+                description: 'Minimum length of a team name.'
+            },
+            {
+                key: 'nameMaxLength',
+                label: 'Max Name Length',
+                type: 'textField',
+                description: 'Maximum length of a team name.'
+            },
+            {
+                key: 'friendlyFire',
+                label: 'Allow Friendly Fire',
+                type: 'toggle',
+                description: 'If enabled, teammates can hurt each other.'
             }
         ]
     }
