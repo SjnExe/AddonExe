@@ -129,7 +129,8 @@ export function createTeam(player, name) {
         createdDate: Date.now(),
         home: null,
         applications: [],
-        balance: 0
+        balance: 0,
+        open: true
     };
 
     activeTeams.set(newTeamId, newTeam);
@@ -348,6 +349,11 @@ export function applyToTeam(player, teamId) {
     const pData = getOrCreatePlayer(player);
     if (pData.teamId) {return { success: false, message: '§cYou are already in a team.' };}
 
+    // Check if team accepts requests
+    if (team.open === false) {
+        return { success: false, message: '§cThis team is not accepting new join requests.' };
+    }
+
     // Check existing application
     if (team.applications.some(app => app.playerId === player.id)) {
         return { success: false, message: '§cYou have already applied to this team.' };
@@ -415,4 +421,20 @@ export function setTeamHome(teamId, location, dimensionId) {
     team.home = { x: location.x, y: location.y, z: location.z, dimensionId };
     saveTeam(teamId);
     return { success: true, message: '§aTeam home set!' };
+}
+
+export function deleteTeamHome(teamId) {
+    const team = activeTeams.get(teamId);
+    if (!team) {return { success: false };}
+    team.home = null;
+    saveTeam(teamId);
+    return { success: true, message: '§aTeam home deleted!' };
+}
+
+export function setTeamOpenStatus(teamId, isOpen) {
+    const team = activeTeams.get(teamId);
+    if (!team) {return { success: false };}
+    team.open = !!isOpen;
+    saveTeam(teamId);
+    return { success: true, message: `§aTeam is now ${isOpen ? 'open' : 'closed'} to requests.` };
 }

@@ -420,12 +420,29 @@ export async function handleFormResponse(player, panelId, response, context) {
 
     if (panelId === 'teamSettingsPanel') {
         if (canceled) {return showPanel(player, 'teamMainPanel', context);}
-        const [autoTp] = formValues;
+
+        const { getTeamByPlayer, setTeamOpenStatus } = await import('../teamManager.js');
         const { updatePlayerData } = await import('../playerDataManager.js');
+
+        const team = getTeamByPlayer(player.id);
+        if (!team) { return showPanel(player, 'teamMainPanel', context); }
+
+        const isOwner = team.ownerId === player.id;
+        const isAdmin = team.admins.includes(player.id);
+        const canManage = isOwner || isAdmin;
+
+        const autoTp = formValues[0];
+
         updatePlayerData(player.id, d => {
             if (!d.teamSettings) {d.teamSettings = {};}
             d.teamSettings.autoTpAccept = autoTp;
         });
+
+        if (canManage && formValues.length > 1) {
+            const allowRequests = formValues[1];
+            setTeamOpenStatus(team.id, allowRequests);
+        }
+
         player.sendMessage('§aSettings updated.');
         return showPanel(player, 'teamMainPanel', context);
     }

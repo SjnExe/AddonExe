@@ -320,8 +320,8 @@ export const configPanelSchema = [
     },
     {
         id: 'tpa',
-        title: '§l§bTPA System§r',
-        icon: 'textures/ui/icon_multiplayer',
+        title: '§l§5TPA System§r',
+        icon: 'textures/items/ender_pearl',
         settings: [
             {
                 key: 'tpa.enabled',
@@ -507,7 +507,7 @@ export const configPanelSchema = [
     },
     {
         id: 'team',
-        title: '§l§bTeam System§r',
+        title: '§l§1Team System§r',
         icon: 'textures/ui/icon_multiplayer',
         configSource: 'team',
         settings: [

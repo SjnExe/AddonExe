@@ -655,9 +655,16 @@ export async function buildPanelForm(player, panelId, context) {
 
             if (!team) {return null;}
 
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+            const canManage = isOwner || isAdmin;
+
             const form = new ModalFormData().title('Team Settings');
             // Personal Settings
             form.toggle('Auto-Accept Team Teleport', { defaultValue: pData.teamSettings?.autoTpAccept ?? false });
+            if (canManage) {
+                form.toggle('Allow Join Requests', { defaultValue: team.open ?? true });
+            }
             return form;
         }
 
@@ -697,7 +704,15 @@ export async function buildPanelForm(player, panelId, context) {
             const form = new ActionFormData().title(`Browse Teams (Page ${page})`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-            const teams = getAllTeams().sort((a, b) => b.members.length - a.members.length);
+            let teams = getAllTeams();
+
+            // Filter out closed teams for non-admins
+            const pData = getOrCreatePlayer(player);
+            if (pData.permissionLevel >= 1024) {
+                teams = teams.filter(t => t.open !== false);
+            }
+
+            teams = teams.sort((a, b) => b.members.length - a.members.length);
             const paginatedTeams = getPaginatedItems(teams, page);
 
             for (const team of paginatedTeams) {
@@ -730,17 +745,40 @@ export async function buildPanelForm(player, panelId, context) {
 
         if (panelId === 'teamManagePanel') {
             const { getTeamByPlayer } = await import('../teamManager.js');
-            const team = getTeamByPlayer(player.id);
+            const { teamId } = context;
+            // If context has teamId, it might be an admin managing another team.
+            // Otherwise, manage own team.
+
+            let team = null;
+            const pData = getOrCreatePlayer(player);
+
+            if (teamId && pData.permissionLevel < 1024) {
+                const { getTeam } = await import('../teamManager.js');
+                team = getTeam(teamId);
+            } else {
+                team = getTeamByPlayer(player.id);
+            }
+
             if (!team) {return null;}
 
             const form = new ActionFormData().title(`Manage: ${team.name}`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            form.button('§l§2Invite Player', 'textures/ui/color_plus');
-            form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/email_icon');
-            form.button('§l§bManage Members', 'textures/ui/icon_multiplayer'); // Reuse or create logic for management actions
-            form.button('§l§dTeam Home', 'textures/ui/icon_recipe_nature');
 
-            if (team.ownerId === player.id) {
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+            const isServerAdmin = pData.permissionLevel < 1024;
+
+            if (isOwner || isAdmin || isServerAdmin) {
+                form.button('§l§2Invite Player', 'textures/ui/color_plus');
+                form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/email_icon');
+                form.button('§l§bManage Members', 'textures/ui/icon_multiplayer');
+            }
+
+            if (isOwner || isAdmin) {
+                form.button('§l§dTeam Home', 'textures/ui/icon_recipe_nature');
+            }
+
+            if (isOwner || isServerAdmin) {
                 form.button('§l§cDelete Team', 'textures/ui/trash');
             }
             return form;
@@ -758,7 +796,7 @@ export async function buildPanelForm(player, panelId, context) {
             const form = new ActionFormData().title(`Team Home: ${team.name}`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-            if (team.home) {
+            if (team.home && team.home.dimensionId) {
                 const { x, y, z } = team.home.location;
                 const dim = team.home.dimensionId.replace('minecraft:', '');
                 const coords = `${x.toFixed(0)}, ${y.toFixed(0)}, ${z.toFixed(0)} (${dim})`;
