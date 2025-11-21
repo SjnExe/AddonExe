@@ -138,7 +138,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'team',
-                text: '§l§bTeam§r',
+                text: '§1Team§r',
                 icon: 'textures/ui/icon_multiplayer.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',

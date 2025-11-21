@@ -594,6 +594,7 @@ export async function buildPanelForm(player, panelId, context) {
         if (panelId === 'teamMainPanel') {
             const { getTeamByPlayer } = await import('../teamManager.js');
             const { teamConfig } = await import('../teamConfig.js');
+            const panelDef = panelDefinitions[panelId];
 
             const team = getTeamByPlayer(player.id);
             const form = new ActionFormData().title(panelDef.title);
