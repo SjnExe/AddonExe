@@ -477,6 +477,12 @@ export const configPanelSchema = [
                 label: 'Log to Console',
                 type: 'toggle',
                 description: 'Logs X-ray notifications to the server console.'
+            },
+            {
+                key: 'notifications.alertBufferingSeconds',
+                label: 'Alert Buffering (s)',
+                type: 'textField',
+                description: 'Groups multiple alerts into one message within this time window.'
             }
         ]
     },
