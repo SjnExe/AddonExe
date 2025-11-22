@@ -332,7 +332,7 @@ async function buildPlayerManagementForm(title, context) {
             const prefix = rank?.chatFormatting?.prefixText ?? '';
             const properName = pData ? pData.name : lowerCaseName; // Fallback to lowercase name if data fails to load
             const team = getTeamByPlayer(id);
-            const teamSuffix = team ? `\n§7[${team.name}]` : '';
+            const teamSuffix = team ? `\n§7[§r${team.name}§r§7]` : '';
             form.button(`${prefix}${properName}${teamSuffix}`);
         }
     }
@@ -370,7 +370,7 @@ async function buildPlayerListForm(title, context) {
             const rank = rankManager.getPlayerRank(player, config);
             const prefix = rank.chatFormatting?.prefixText ?? '';
             const team = getTeamByPlayer(player.id);
-            const teamSuffix = team ? `\n§7[${team.name}]` : '';
+            const teamSuffix = team ? `\n§7[§r${team.name}§r§7]` : '';
             form.button(`${prefix}${player.name}${teamSuffix}`);
         }
     }
@@ -1426,7 +1426,13 @@ export async function buildPanelForm(player, panelId, context) {
             addPanelBody(form, player, panelId, context);
 
             const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
+            const isSelf = context.targetPlayerId === player.id;
+            const selfDisabledActions = ['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze', 'tpa', 'tpahere', 'report'];
+
             for (const item of visibleItems) {
+                if (isSelf && selfDisabledActions.includes(item.id)) {
+                    continue;
+                }
                 form.button(item.text, item.icon);
             }
             return form;
