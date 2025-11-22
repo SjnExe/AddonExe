@@ -134,7 +134,7 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
 
     const cleanup = () => {
         if (intervalId !== null) {
-            mc.system.clearInterval(intervalId);
+            mc.system.clearRun(intervalId);
             intervalId = null;
         }
         if (hurtListener) {

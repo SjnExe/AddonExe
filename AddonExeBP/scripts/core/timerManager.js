@@ -45,7 +45,7 @@ export function setTrackedTimeout(callback, tickDelay) {
  */
 export function clearTrackedInterval(id) {
     if (intervalIds.has(id)) {
-        mc.system.clearInterval(id);
+        mc.system.clearRun(id);
         intervalIds.delete(id);
     }
 }
@@ -56,7 +56,7 @@ export function clearTrackedInterval(id) {
  */
 export function clearTrackedTimeout(id) {
     if (timeoutIds.has(id)) {
-        mc.system.clearTimeout(id);
+        mc.system.clearRun(id);
         timeoutIds.delete(id);
     }
 }
@@ -69,12 +69,12 @@ export function cleanupTimers() {
     debugLog(`[TimerManager] Clearing ${intervalIds.size} intervals and ${timeoutIds.size} timeouts.`);
 
     for (const id of intervalIds) {
-        mc.system.clearInterval(id);
+        mc.system.clearRun(id);
     }
     intervalIds.clear();
 
     for (const id of timeoutIds) {
-        mc.system.clearTimeout(id);
+        mc.system.clearRun(id);
     }
     timeoutIds.clear();
 
