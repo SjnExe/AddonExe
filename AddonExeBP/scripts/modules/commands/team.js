@@ -1,6 +1,8 @@
 import { commandManager } from './commandManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { getTeamByPlayer } from '../../core/teamManager.js';
+import { startTeleportWarmup } from '../../core/utils.js';
+import { teamConfig } from '../../core/teamConfig.js';
 import * as mc from '@minecraft/server';
 
 // --- Team Chat State ---
@@ -85,11 +87,13 @@ commandManager.register({
             return;
         }
 
-        try {
-            player.teleport({ x, y, z }, { dimension: dimension });
-            player.sendMessage('§aTeleported to team home.');
-        } catch {
-            player.sendMessage('§cFailed to teleport to team home.');
-        }
+        startTeleportWarmup(player, teamConfig.teleportWarmupSeconds, () => {
+            try {
+                player.teleport({ x, y, z }, { dimension: dimension });
+                player.sendMessage('§aTeleported to team home.');
+            } catch {
+                player.sendMessage('§cFailed to teleport to team home.');
+            }
+        }, 'team home');
     }
 });

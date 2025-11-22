@@ -62,6 +62,19 @@ function updateManifest(filePath) {
         });
     }
 
+    // Update dependencies version
+    if (json.dependencies) {
+        json.dependencies.forEach(dep => {
+            if (dep.version) {
+                // Only update if version is [1, 0, 0]
+                // This avoids touching "beta" or other specific versions
+                if (JSON.stringify(dep.version) === '[1,0,0]' || JSON.stringify(dep.version) === '[1, 0, 0]') {
+                    dep.version = versionArray;
+                }
+            }
+        });
+    }
+
     fs.writeFileSync(fullPath, JSON.stringify(json, null, 4));
     console.log(`Updated ${filePath}`);
 }

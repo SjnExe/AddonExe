@@ -324,13 +324,16 @@ async function buildPlayerManagementForm(title, context) {
     if (playerEntries.length === 0) {
         form.body('§cNo player data found.');
     } else {
+        const { getTeamByPlayer } = await import('../teamManager.js');
         const paginatedEntries = getPaginatedItems(playerEntries, page);
         for (const [lowerCaseName, id] of paginatedEntries) {
             const pData = loadPlayerData(id); // Load data for the player on the current page
             const rank = pData ? rankManager.getRankById(pData.rankId) : null;
             const prefix = rank?.chatFormatting?.prefixText ?? '';
             const properName = pData ? pData.name : lowerCaseName; // Fallback to lowercase name if data fails to load
-            form.button(`${prefix}${properName}`);
+            const team = getTeamByPlayer(id);
+            const teamSuffix = team ? `\n§0[§r${team.name}§r§0]` : '';
+            form.button(`${prefix}${properName}${teamSuffix}`);
         }
     }
 
@@ -360,12 +363,15 @@ async function buildPlayerListForm(title, context) {
     if (onlinePlayers.length === 0) {
         form.body('§cNo players are currently online.');
     } else {
+        const { getTeamByPlayer } = await import('../teamManager.js');
         const paginatedPlayers = getPaginatedItems(onlinePlayers, page);
         const config = getConfig();
         for (const player of paginatedPlayers) {
             const rank = rankManager.getPlayerRank(player, config);
             const prefix = rank.chatFormatting?.prefixText ?? '';
-            form.button(`${prefix}${player.name}`);
+            const team = getTeamByPlayer(player.id);
+            const teamSuffix = team ? `\n§0[§r${team.name}§r§0]` : '';
+            form.button(`${prefix}${player.name}${teamSuffix}`);
         }
     }
 
@@ -616,7 +622,8 @@ export async function buildPanelForm(player, panelId, context) {
 
                 form.body([
                     `§l§2Team: ${team.name}`,
-                    `§rOwner: ${ownerName}`,
+                    `§rID: ${team.id}`,
+                    `Owner: ${ownerName}`,
                     `Members: ${team.members.length}/${teamConfig.maxMembers}`
                 ].join('\n'));
 
@@ -691,7 +698,7 @@ export async function buildPanelForm(player, panelId, context) {
                 // Note: This is O(n) per member, assuming team size is small (<10) it's fine.
                 // For larger lists, a cache lookup is better.
                 const onlineP = mc.world.getAllPlayers().find(p => p.id === memberId);
-                if (onlineP) {status = '§a(Online)';}
+                if (onlineP) {status = '§2(Online)';}
 
                 form.button(`${role} §r${name}\n${status}`, 'textures/ui/icon_steve');
             }
@@ -770,7 +777,7 @@ export async function buildPanelForm(player, panelId, context) {
 
             if (isOwner || isAdmin || isServerAdmin) {
                 form.button('§l§2Invite Player', 'textures/ui/color_plus');
-                form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/email_icon');
+                form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/mail_icon');
                 form.button('§l§bManage Members', 'textures/ui/icon_multiplayer');
             }
 
@@ -1306,8 +1313,6 @@ export async function buildPanelForm(player, panelId, context) {
             const defaultIndex = internalStyles.indexOf(currentStyle);
 
             form.dropdown('Nametag Style', nameTagStyles, { defaultValueIndex: defaultIndex > -1 ? defaultIndex : 0 });
-            form.textField('Nametag Prefix', 'e.g., §0[§r', { defaultValue: config.ranks?.nameTagPrefix ?? '§0[§r' });
-            form.textField('Nametag Suffix', 'e.g., §0]§r', { defaultValue: config.ranks?.nameTagSuffix ?? '§0]§r' });
             return form;
         }
 
@@ -1420,7 +1425,13 @@ export async function buildPanelForm(player, panelId, context) {
             addPanelBody(form, player, panelId, context);
 
             const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
+            const isSelf = context.targetPlayerId === player.id;
+            const selfDisabledActions = ['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze', 'tpa', 'tpahere', 'report'];
+
             for (const item of visibleItems) {
+                if (isSelf && selfDisabledActions.includes(item.id)) {
+                    continue;
+                }
                 form.button(item.text, item.icon);
             }
             return form;

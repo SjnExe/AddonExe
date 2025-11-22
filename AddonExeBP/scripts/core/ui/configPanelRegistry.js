@@ -477,6 +477,12 @@ export const configPanelSchema = [
                 label: 'Log to Console',
                 type: 'toggle',
                 description: 'Logs X-ray notifications to the server console.'
+            },
+            {
+                key: 'notifications.alertBufferingSeconds',
+                label: 'Alert Buffering (s)',
+                type: 'textField',
+                description: 'Groups multiple alerts into one message within this time window.'
             }
         ]
     },
@@ -546,6 +552,12 @@ export const configPanelSchema = [
                 label: 'Allow Friendly Fire',
                 type: 'toggle',
                 description: 'If enabled, teammates can hurt each other.'
+            },
+            {
+                key: 'teleportWarmupSeconds',
+                label: 'Home Warmup (s)',
+                type: 'textField',
+                description: 'How long a player must wait before teleporting to team home.'
             }
         ]
     }

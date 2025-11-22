@@ -134,11 +134,18 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
 
     const cleanup = () => {
         if (intervalId !== null) {
-            mc.system.clearInterval(intervalId);
+            mc.system.clearRun(intervalId);
             intervalId = null;
         }
         if (hurtListener) {
-            mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
+            try {
+                // Defensive check to avoid crashes if the API reference is stale or invalid
+                if (mc.world?.afterEvents?.entityHurt?.unsubscribe) {
+                    mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
+                }
+            } catch (e) {
+                // Ignore cleanup errors to prevent cascading crashes
+            }
             hurtListener = null;
         }
     };

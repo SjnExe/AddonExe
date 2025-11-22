@@ -52,9 +52,17 @@ function handleChatSend(eventData) {
         return;
     }
     const rank = rankManager.getRankById(pData.rankId);
+    const team = getTeamByPlayer(player.id);
+    const teamSuffix = team ? ` §0[§r${team.name}§0]§r` : '';
+
+    // Hardcode brackets for rank prefix if it exists
+    const rankPrefix = rank && rank.chatFormatting.prefixText
+        ? `§0[§r${rank.chatFormatting.prefixText}§0]§r`
+        : '';
+
     const formattedMessage = rank
-        ? `${rank.chatFormatting.prefixText}${rank.chatFormatting.nameColor}${player.name}§r: ${rank.chatFormatting.messageColor}${eventData.message}`
-        : `§7${player.name}§r: ${eventData.message}`;
+        ? `${rankPrefix}${rank.chatFormatting.nameColor}${player.name}${teamSuffix}§r: ${rank.chatFormatting.messageColor}${eventData.message}`
+        : `§7${player.name}${teamSuffix}§r: ${eventData.message}`;
 
     // Log to console if enabled
     if (getConfig().chat?.logToConsole) {

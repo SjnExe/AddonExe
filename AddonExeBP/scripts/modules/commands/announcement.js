@@ -56,7 +56,7 @@ let announcementIntervalId;
 
 function stopAnnouncer() {
     if (announcementIntervalId) {
-        mc.system.clearInterval(announcementIntervalId);
+        mc.system.clearRun(announcementIntervalId);
         announcementIntervalId = undefined;
     }
 }

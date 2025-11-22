@@ -3,22 +3,24 @@
     "players_panel_content@pause.players_panel_content": {
         "modifications": [
             {
+                "array_name": "controls",
                 "control_name": "players_grid",
-                "factory": {
-                    "name": "player_list_entry_factory",
-                    "control_name": "player_list_entry",
-                    "collection_name": "$players_list",
-                    "collection_condition": "query.is_local_player or query.not_has_tag('vanished')"
+                "operation": "modify",
+                "value": {
+                    "factory": {
+                        "name": "player_list_entry_factory",
+                        "control_name": "player_list_entry",
+                        "collection_name": "$players_list",
+                        "collection_condition": "(not query.has_tag('vanished'))"
+                    }
                 }
             }
         ]
     },
-
     "store_button_panel@pause.pause_button_template": {
         "$pressed_button_name": "button.menu_settings",
         "$button_text": "menu.settings"
     },
-
     "marketplace_icon": {
         "type": "panel",
         "size": [16, 16],
@@ -32,7 +34,6 @@
             }
         ]
     },
-
     "settings_button_small@common_buttons.light_content_button": {
         "$pressed_button_name": "button.menu_store",
         "$button_tts_header": "menu.store",

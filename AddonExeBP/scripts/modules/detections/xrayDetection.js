@@ -6,6 +6,87 @@ import { sendMessage } from '../../core/messaging.js';
 import { warnLog } from '../../core/logger.js';
 import { xrayConfig as xrayDefaultConfig } from '../../core/xrayConfig.js';
 
+// Map<playerId, Map<oreName, { count: number, timerId: number, blockLocation: Vector3, oreType: object }>>
+const alertBuffers = new Map();
+
+function sendAlert(player, oreType, location, count) {
+    const xrayConfig = getXrayConfig();
+    const messageTemplate = xrayConfig.notifications?.message || xrayDefaultConfig.notifications.message;
+
+    const oreDisplayName = count > 1 ? `${count} ${oreType.oreName}` : oreType.oreName;
+
+    const message = messageTemplate
+        .replace('{playerName}', player.name)
+        .replace('{oreName}', oreDisplayName)
+        .replace('{x}', location.x.toFixed(2))
+        .replace('{y}', location.y.toFixed(2))
+        .replace('{z}', location.z.toFixed(2));
+
+    // Log to console if enabled.
+    if (xrayConfig.notifications.logToConsole) {
+        warnLog(message);
+    }
+
+    // Send a private message to all staff who have notifications enabled.
+    const onlinePlayers = getAllPlayersFromCache();
+    for (const onlinePlayer of onlinePlayers) {
+        const pData = getOrCreatePlayer(onlinePlayer);
+        if (pData && pData.permissionLevel <= 2 && pData.xrayNotificationsEnabled) {
+            sendMessage(message, onlinePlayer);
+        }
+    }
+}
+
+function flushAlert(playerId, oreKey) {
+    const playerBuffer = alertBuffers.get(playerId);
+    if (!playerBuffer) {return;}
+    const data = playerBuffer.get(oreKey);
+    if (!data) {return;}
+
+    playerBuffer.delete(oreKey);
+    if (playerBuffer.size === 0) {alertBuffers.delete(playerId);}
+
+    const player = mc.world.getAllPlayers().find(p => p.id === playerId);
+    if (!player) {return;} // Player likely left
+
+    sendAlert(player, data.oreType, data.blockLocation, data.count);
+}
+
+function bufferAlert(player, oreType, block) {
+    const playerId = player.id;
+    const xrayConfig = getXrayConfig();
+    // Convert seconds to ticks (20 ticks/sec). Default to 0 if not set.
+    const bufferTime = (xrayConfig.notifications.alertBufferingSeconds ?? 0) * 20;
+
+    if (bufferTime <= 0) {
+        sendAlert(player, oreType, block.location, 1);
+        return;
+    }
+
+    if (!alertBuffers.has(playerId)) {
+        alertBuffers.set(playerId, new Map());
+    }
+    const playerBuffer = alertBuffers.get(playerId);
+    const oreKey = oreType.oreName;
+
+    if (!playerBuffer.has(oreKey)) {
+        const timerId = mc.system.runTimeout(() => {
+            flushAlert(playerId, oreKey);
+        }, bufferTime);
+
+        playerBuffer.set(oreKey, {
+            count: 1,
+            timerId,
+            blockLocation: { ...block.location },
+            oreType
+        });
+    } else {
+        const data = playerBuffer.get(oreKey);
+        data.count++;
+        data.blockLocation = { ...block.location }; // Update to latest location
+    }
+}
+
 function handleBlockBreak(event) {
     const { player, brokenBlockPermutation, block } = event;
     const blockId = brokenBlockPermutation.type.id;
@@ -43,27 +124,7 @@ function handleBlockBreak(event) {
         }
 
         // All checks passed. This is a valid detection.
-        const messageTemplate = xrayConfig.notifications?.message || xrayDefaultConfig.notifications.message;
-        const message = messageTemplate
-            .replace('{playerName}', player.name)
-            .replace('{oreName}', oreType.oreName)
-            .replace('{x}', block.location.x.toFixed(2))
-            .replace('{y}', block.location.y.toFixed(2))
-            .replace('{z}', block.location.z.toFixed(2));
-
-        // Log to console if enabled.
-        if (xrayConfig.notifications.logToConsole) {
-            warnLog(message);
-        }
-
-        // Send a private message to all staff who have notifications enabled.
-        const onlinePlayers = getAllPlayersFromCache();
-        for (const onlinePlayer of onlinePlayers) {
-            const pData = getOrCreatePlayer(onlinePlayer);
-            if (pData && pData.permissionLevel <= 2 && pData.xrayNotificationsEnabled) {
-                sendMessage(message, onlinePlayer);
-            }
-        }
+        bufferAlert(player, oreType, block);
 
         // Ore found and handled, no need to check other types.
         return;

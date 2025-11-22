@@ -4,7 +4,6 @@ import { getConfig, updateMultipleConfig, resetConfigSection } from '../configMa
 import { errorLog } from '../logger.js';
 import * as rankManager from '../rankManager.js';
 import * as rankDb from '../rankDb.js';
-import * as playerCache from '../playerCache.js';
 import * as utils from '../utils.js';
 import { setValueByPath } from '../objectUtils.js';
 import * as reportManager from '../reportManager.js';
@@ -1764,7 +1763,8 @@ export async function handleFormResponse(player, panelId, response, context) {
         } else if (panelId === 'playerManagementPanel') {
             allItems = Array.from(getAllPlayerNameIdMap().entries()).sort((a, b) => a[0].localeCompare(b[0]));
         } else if (panelId === 'playerListPanel') {
-            allItems = playerCache.getAllPlayersFromCache().sort((a, b) => a.name.localeCompare(b.name));
+            const onlinePlayers = Array.from((await import('@minecraft/server')).world.getAllPlayers());
+            allItems = onlinePlayers.sort((a, b) => a.name.localeCompare(b.name));
         }
 
         const paginatedItems = getPaginatedItems(allItems, page);
@@ -1850,14 +1850,12 @@ export async function handleFormResponse(player, panelId, response, context) {
         }
 
         const { updateAllPlayerRanks } = await import('../main.js');
-        const [nameTagStyleIndex, nameTagPrefix, nameTagSuffix] = formValues;
+        const [nameTagStyleIndex] = formValues;
         const nameTagStyles = ['above', 'before', 'after', 'under'];
         const selectedStyle = nameTagStyles[nameTagStyleIndex];
 
         updateMultipleConfig({
-            'ranks.nameTagStyle': selectedStyle,
-            'ranks.nameTagPrefix': nameTagPrefix,
-            'ranks.nameTagSuffix': nameTagSuffix
+            'ranks.nameTagStyle': selectedStyle
         });
         updateAllPlayerRanks();
         player.sendMessage('§2Rank nametag settings updated. All player nametags have been refreshed.');
