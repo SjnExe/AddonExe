@@ -546,6 +546,12 @@ export const configPanelSchema = [
                 label: 'Allow Friendly Fire',
                 type: 'toggle',
                 description: 'If enabled, teammates can hurt each other.'
+            },
+            {
+                key: 'teleportWarmupSeconds',
+                label: 'Home Warmup (s)',
+                type: 'textField',
+                description: 'How long a player must wait before teleporting to team home.'
             }
         ]
     }
