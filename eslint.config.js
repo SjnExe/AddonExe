@@ -123,4 +123,11 @@ export default [
             },
         },
     },
+    // Scripts configuration
+    {
+        files: ['scripts/**/*.js'],
+        rules: {
+            'no-console': 'off',
+        },
+    },
 ];

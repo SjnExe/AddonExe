@@ -55,34 +55,15 @@ jobs:
           IS_BETA_RELEASE: ${{ env.IS_BETA_RELEASE }}
         run: |
           set -e
-          echo "--- Starting Placeholder Replacement ---"
-          BP_MANIFEST="staging/AddonExeBP/manifest.json"
-          RP_MANIFEST="staging/AddonExeRP/manifest.json"
-          CONFIG_JS_PATH="staging/AddonExeBP/scripts/config.js"
-
-          # Replace version array placeholder in all relevant files
-          sed -i "s|\"version\": \[1, 0, 0\]|\"version\": ${VERSION_ARRAY_STRING}|g" "$BP_MANIFEST"
-          sed -i "s|\"version\": \[1, 0, 0\]|\"version\": ${VERSION_ARRAY_STRING}|g" "$RP_MANIFEST"
-          sed -i "s|version: \[1, 0, 0\]|version: ${VERSION_ARRAY_STRING}|g" "$CONFIG_JS_PATH"
-
-          # Replace version string in descriptions
-          sed -i "s|v1.0.0|v${VERSION_STRING}|g" "$BP_MANIFEST" "$RP_MANIFEST"
-
-          # Conditionally modify config for beta releases
-          if [ "${IS_BETA_RELEASE}" = "true" ]; then
-            echo "--- Applying Beta Release Modifications ---"
-            sed -i "s|ownerPlayerNames: \['Your•Name•Here'\]|ownerPlayerNames: \['SjnTechMlmYT'\]|g" "$CONFIG_JS_PATH"
-            sed -i "s|logLevel: 2|logLevel: 3|g" "$CONFIG_JS_PATH"
-            echo "Beta modifications applied."
-          fi
+          node scripts/prepare-release.js
 
           echo "--- Verification ---"
           echo "BP Manifest:"
-          cat "$BP_MANIFEST"
+          cat staging/AddonExeBP/manifest.json
           echo "RP Manifest:"
-          cat "$RP_MANIFEST"
+          cat staging/AddonExeRP/manifest.json
           echo "Config.js:"
-          head -n 15 "$CONFIG_JS_PATH"
+          head -n 15 staging/AddonExeBP/scripts/config.js
           echo "--- End Verification ---"
 
       - name: Create Release Archives
