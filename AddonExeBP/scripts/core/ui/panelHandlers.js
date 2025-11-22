@@ -1850,14 +1850,12 @@ export async function handleFormResponse(player, panelId, response, context) {
         }
 
         const { updateAllPlayerRanks } = await import('../main.js');
-        const [nameTagStyleIndex, nameTagPrefix, nameTagSuffix] = formValues;
+        const [nameTagStyleIndex] = formValues;
         const nameTagStyles = ['above', 'before', 'after', 'under'];
         const selectedStyle = nameTagStyles[nameTagStyleIndex];
 
         updateMultipleConfig({
-            'ranks.nameTagStyle': selectedStyle,
-            'ranks.nameTagPrefix': nameTagPrefix,
-            'ranks.nameTagSuffix': nameTagSuffix
+            'ranks.nameTagStyle': selectedStyle
         });
         updateAllPlayerRanks();
         player.sendMessage('§2Rank nametag settings updated. All player nametags have been refreshed.');

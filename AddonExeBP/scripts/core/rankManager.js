@@ -1,7 +1,6 @@
 import { getRanksConfig } from './configurations.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './logger.js';
-import { getTeamByPlayer } from './teamManager.js';
 
 let sortedRanks = [];
 
@@ -122,33 +121,25 @@ export function getAllRanks() {
 export function updatePlayerNameTag(player, config) {
     const rank = getPlayerRank(player, config);
     const rankPrefix = rank.chatFormatting?.prefixText ?? '';
-    const { nameTagStyle = 'above', nameTagPrefix = '', nameTagSuffix = '' } = config.ranks || {};
+    const { nameTagStyle = 'above' } = config.ranks || {};
 
-    // Construct the final nametag prefix, only adding brackets if the rank prefix itself isn't empty.
-    const finalPrefix = rankPrefix ? `${nameTagPrefix}${rankPrefix}${nameTagSuffix}` : '';
-
-    // Team Suffix Logic
-    const team = getTeamByPlayer(player.id);
-    // The space before [TeamName] ensures it doesn't merge with the player name.
-    // The reset code §r ensures the team name color doesn't bleed.
-    // Assuming team.name is plain text, we might want to colorize it. For now, keeping it simple.
-    const teamSuffix = team ? ` §r[§b${team.name}§r]` : '';
+    // Hardcoded brackets: §0[§r PREFIX §0]§r
+    const finalPrefix = rankPrefix ? `§0[§r${rankPrefix}§0]§r` : '';
 
     let newNameTag;
-    // We append teamSuffix to player.name in all cases so it's always visible next to the name.
     switch (nameTagStyle) {
         case 'before':
-            newNameTag = finalPrefix ? `${finalPrefix} ${player.name}${teamSuffix}` : `${player.name}${teamSuffix}`;
+            newNameTag = finalPrefix ? `${finalPrefix} ${player.name}` : player.name;
             break;
         case 'after':
-            newNameTag = finalPrefix ? `${player.name}${teamSuffix} ${finalPrefix}` : `${player.name}${teamSuffix}`;
+            newNameTag = finalPrefix ? `${player.name} ${finalPrefix}` : player.name;
             break;
         case 'under':
-            newNameTag = `${player.name}${teamSuffix}\n${finalPrefix}`;
+            newNameTag = `${player.name}\n${finalPrefix}`;
             break;
         case 'above':
         default:
-            newNameTag = `${finalPrefix}\n${player.name}${teamSuffix}`;
+            newNameTag = `${finalPrefix}\n${player.name}`;
             break;
     }
 

@@ -53,10 +53,15 @@ function handleChatSend(eventData) {
     }
     const rank = rankManager.getRankById(pData.rankId);
     const team = getTeamByPlayer(player.id);
-    const teamSuffix = team ? ` §r[§b${team.name}§r]` : '';
+    const teamSuffix = team ? ` §0[§r${team.name}§0]§r` : '';
+
+    // Hardcode brackets for rank prefix if it exists
+    const rankPrefix = rank && rank.chatFormatting.prefixText
+        ? `§0[§r${rank.chatFormatting.prefixText}§0]§r`
+        : '';
 
     const formattedMessage = rank
-        ? `${rank.chatFormatting.prefixText}${rank.chatFormatting.nameColor}${player.name}${teamSuffix}§r: ${rank.chatFormatting.messageColor}${eventData.message}`
+        ? `${rankPrefix}${rank.chatFormatting.nameColor}${player.name}${teamSuffix}§r: ${rank.chatFormatting.messageColor}${eventData.message}`
         : `§7${player.name}${teamSuffix}§r: ${eventData.message}`;
 
     // Log to console if enabled
