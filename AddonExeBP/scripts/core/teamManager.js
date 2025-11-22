@@ -96,6 +96,12 @@ export function createTeam(player, name) {
     if (name.length < teamConfig.nameMinLength || name.length > teamConfig.nameMaxLength) {
         return { success: false, message: `§cName must be between ${teamConfig.nameMinLength} and ${teamConfig.nameMaxLength} characters.` };
     }
+
+    const nameRegex = /^[0-9a-zA-Z §&+-]+$/;
+    if (!nameRegex.test(name)) {
+        return { success: false, message: '§cName contains invalid characters. Allowed: A-Z, 0-9, space, §, &, +, -' };
+    }
+
     const lowerName = name.toLowerCase();
     if (teamConfig.nameBlacklist.some(blacklisted => lowerName.includes(blacklisted))) {
         return { success: false, message: '§cName contains forbidden words.' };
