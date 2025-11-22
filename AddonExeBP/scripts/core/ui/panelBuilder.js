@@ -324,13 +324,16 @@ async function buildPlayerManagementForm(title, context) {
     if (playerEntries.length === 0) {
         form.body('§cNo player data found.');
     } else {
+        const { getTeamByPlayer } = await import('../teamManager.js');
         const paginatedEntries = getPaginatedItems(playerEntries, page);
         for (const [lowerCaseName, id] of paginatedEntries) {
             const pData = loadPlayerData(id); // Load data for the player on the current page
             const rank = pData ? rankManager.getRankById(pData.rankId) : null;
             const prefix = rank?.chatFormatting?.prefixText ?? '';
             const properName = pData ? pData.name : lowerCaseName; // Fallback to lowercase name if data fails to load
-            form.button(`${prefix}${properName}`);
+            const team = getTeamByPlayer(id);
+            const teamSuffix = team ? `\n§7[${team.name}]` : '';
+            form.button(`${prefix}${properName}${teamSuffix}`);
         }
     }
 
@@ -360,12 +363,15 @@ async function buildPlayerListForm(title, context) {
     if (onlinePlayers.length === 0) {
         form.body('§cNo players are currently online.');
     } else {
+        const { getTeamByPlayer } = await import('../teamManager.js');
         const paginatedPlayers = getPaginatedItems(onlinePlayers, page);
         const config = getConfig();
         for (const player of paginatedPlayers) {
             const rank = rankManager.getPlayerRank(player, config);
             const prefix = rank.chatFormatting?.prefixText ?? '';
-            form.button(`${prefix}${player.name}`);
+            const team = getTeamByPlayer(player.id);
+            const teamSuffix = team ? `\n§7[${team.name}]` : '';
+            form.button(`${prefix}${player.name}${teamSuffix}`);
         }
     }
 
