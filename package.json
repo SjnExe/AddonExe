@@ -46,5 +46,8 @@
   },
   "lint-staged": {
     "*.js": "eslint --fix"
+  },
+  "dependencies": {
+    "@minecraft/server": "^2.4.0-beta.1.21.124-stable"
   }
 }

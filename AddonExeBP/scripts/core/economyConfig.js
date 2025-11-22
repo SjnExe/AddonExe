@@ -20,5 +20,17 @@ export const economyConfig = {
         'minecraft:magma_cube': 3,
         'minecraft:slime': 3,
         'minecraft:wither_skeleton': 30
+    },
+    steal: {
+        enabled: true,
+        percent: 5,
+        sameTeamImmunity: true
+    },
+    pvp: {
+        enabled: true,
+        defaultWinPercent: 100,
+        requestTimeout: 60,
+        duelTimeout: 300,
+        maxConcurrentDuels: 1
     }
 };

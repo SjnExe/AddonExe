@@ -99,7 +99,11 @@ class CommandManager {
 
         // Permission Check
         const pData = getPlayer(player.id);
-        if (!pData || pData.permissionLevel > command.permissionLevel) {
+        const requiredPermissionLevel = commandSettings.permissionLevel !== undefined
+            ? commandSettings.permissionLevel
+            : command.permissionLevel;
+
+        if (!pData || pData.permissionLevel > requiredPermissionLevel) {
             player.sendMessage('§cYou do not have permission to use this command.');
             return;
         }
@@ -125,7 +129,7 @@ class CommandManager {
      * @private
      */
     _registerSlashCommand(customCommandRegistry, command, name) {
-        const commandData = this.prepareCommandData(command, name);
+        const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
         const commandCallback = (origin, ...rawArgs) => {
             const executor = origin.sourceEntity || { isConsole: true, sendMessage: (msg) => console.log(msg.replace(/§[0-9a-fklmnor]/g, '')) }; // eslint-disable-line no-console
@@ -156,13 +160,18 @@ class CommandManager {
      * Prepares the command data for registration with the Minecraft API.
      * @param {object} command The command definition.
      * @param {string} nameOverride The specific name to use for this registration (main name or alias).
+     * @param {object} registry The custom command registry for enum registration.
      * @returns {object} The formatted command data.
      * @private
      */
-    prepareCommandData(command, nameOverride) {
+    prepareCommandData(command, nameOverride, registry) {
         const slashCommandName = nameOverride || command.slashName || command.name;
-        const mandatoryParameters = (command.parameters || []).filter(p => !p.optional).map(p => this.formatParameter(p));
-        const optionalParameters = (command.parameters || []).filter(p => p.optional).map(p => this.formatParameter(p));
+        const mandatoryParameters = (command.parameters || [])
+            .filter(p => !p.optional)
+            .map(p => this.formatParameter(p, slashCommandName, registry));
+        const optionalParameters = (command.parameters || [])
+            .filter(p => p.optional)
+            .map(p => this.formatParameter(p, slashCommandName, registry));
 
         return {
             name: `${this.prefix}:${slashCommandName}`,
@@ -176,10 +185,32 @@ class CommandManager {
     /**
      * Formats a parameter for registration with the Minecraft API.
      * @param {object} param The parameter definition.
+     * @param {string} commandName The name of the command (for unique enum naming).
+     * @param {object} registry The registry to register enums with.
      * @returns {object} The formatted parameter data.
      * @private
      */
-    formatParameter(param) {
+    formatParameter(param, commandName, registry) {
+        // --- Enum Handling ---
+        if (param.enumOptions && Array.isArray(param.enumOptions) && registry) {
+            const safeCmdName = (commandName || 'cmd').replace(/[^a-zA-Z0-9_]/g, '');
+            const safeParamName = param.name.replace(/[^a-zA-Z0-9_]/g, '');
+            const enumName = `${this.prefix}_${safeCmdName}_${safeParamName}`;
+
+            try {
+                registry.registerEnum(enumName, param.enumOptions);
+            } catch (e) {
+                // Ignore if enum already exists (e.g. alias sharing same params)
+            }
+
+            return {
+                name: param.name,
+                type: mc.CustomCommandParamType.Enum,
+                enumName: enumName
+            };
+        }
+
+        // --- Standard Types ---
         const paramTypeMap = {
             'player': mc.CustomCommandParamType.PlayerSelector,
             'string': mc.CustomCommandParamType.String,
@@ -203,17 +234,10 @@ class CommandManager {
             };
         }
 
-        const formattedParam = {
+        return {
             name: param.name,
             type: type
         };
-
-        if (param.enumOptions && Array.isArray(param.enumOptions)) {
-            // This is how you define an enum for a string parameter
-            formattedParam.enumOptions = param.enumOptions;
-        }
-
-        return formattedParam;
     }
 
     /**
