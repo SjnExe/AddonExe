@@ -770,7 +770,7 @@ export async function buildPanelForm(player, panelId, context) {
 
             if (isOwner || isAdmin || isServerAdmin) {
                 form.button('§l§2Invite Player', 'textures/ui/color_plus');
-                form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/message');
+                form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/mail_icon');
                 form.button('§l§bManage Members', 'textures/ui/icon_multiplayer');
             }
 

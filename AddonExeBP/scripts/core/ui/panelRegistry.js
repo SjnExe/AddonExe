@@ -182,7 +182,7 @@ export const panelDefinitions = {
             {
                 id: 'viewInvites',
                 text: 'View Invites',
-                icon: 'textures/ui/email_icon',
+                icon: 'textures/ui/mail_icon',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
                 actionValue: 'teamInvitesPanel'
