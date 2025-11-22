@@ -1,0 +1,107 @@
+import fs from 'fs';
+import path from 'path';
+
+const VERSION_STRING = process.env.VERSION_STRING;
+const VERSION_ARRAY_STRING = process.env.VERSION_ARRAY_STRING;
+const IS_BETA_RELEASE = process.env.IS_BETA_RELEASE === 'true';
+
+if (!VERSION_STRING || !VERSION_ARRAY_STRING) {
+    console.error('Error: VERSION_STRING and VERSION_ARRAY_STRING environment variables must be set.');
+    process.exit(1);
+}
+
+const stagingDir = 'staging';
+
+// Function to update JSON manifest
+function updateManifest(filePath) {
+    const fullPath = path.join(stagingDir, filePath);
+    if (!fs.existsSync(fullPath)) {
+        console.error(`Error: File not found: ${fullPath}`);
+        process.exit(1);
+    }
+
+    const content = fs.readFileSync(fullPath, 'utf8');
+    let json;
+    try {
+        json = JSON.parse(content);
+    } catch (e) {
+        console.error(`Error parsing JSON file ${fullPath}:`, e);
+        process.exit(1);
+    }
+
+    // Parse version array string "[1, 0, 0]" -> [1, 0, 0]
+    let versionArray;
+    try {
+        versionArray = JSON.parse(VERSION_ARRAY_STRING);
+    } catch (e) {
+        console.error('Error parsing VERSION_ARRAY_STRING:', e);
+        process.exit(1);
+    }
+
+    // Update header version
+    if (json.header) {
+        json.header.version = versionArray;
+        // Update description version string
+        if (json.header.description) {
+            // Replace v1.0.0 placeholder
+            json.header.description = json.header.description.replace('v1.0.0', `v${VERSION_STRING}`);
+            // Replace any existing vX.X.X pattern if re-running or if base file changed
+            json.header.description = json.header.description.replace(/v\d+\.\d+\.\d+(-beta)?/g, `v${VERSION_STRING}`);
+        }
+    }
+
+    // Update modules version
+    if (json.modules) {
+        json.modules.forEach(module => {
+            if (module.version) {
+                // Keep beta dependencies as is, unless they match the [1, 0, 0] placeholder we are replacing.
+                if (JSON.stringify(module.version) === '[1,0,0]' || JSON.stringify(module.version) === '[1, 0, 0]') {
+                    module.version = versionArray;
+                }
+            }
+        });
+    }
+
+    fs.writeFileSync(fullPath, JSON.stringify(json, null, 4));
+    console.log(`Updated ${filePath}`);
+}
+
+// Function to update config.js
+function updateConfig(filePath) {
+    const fullPath = path.join(stagingDir, filePath);
+    if (!fs.existsSync(fullPath)) {
+        console.error(`Error: File not found: ${fullPath}`);
+        process.exit(1);
+    }
+
+    let content = fs.readFileSync(fullPath, 'utf8');
+
+    // Update version
+    // Regex matches: version: [1, 0, 0] (with flexible whitespace)
+    content = content.replace(/version:\s*\[\s*1\s*,\s*0\s*,\s*0\s*\]/g, `version: ${VERSION_ARRAY_STRING}`);
+
+    if (IS_BETA_RELEASE) {
+        console.log('Applying Beta Release Modifications...');
+        // Update ownerPlayerNames
+        // Regex matches: ownerPlayerNames: ['Your•Name•Here']
+        content = content.replace(/ownerPlayerNames:\s*\[\s*'Your•Name•Here'\s*\]/g, "ownerPlayerNames: ['SjnTechMlmYT']");
+
+        // Update logLevel
+        // Regex matches: logLevel: 2
+        content = content.replace(/logLevel:\s*2/g, 'logLevel: 3');
+    }
+
+    fs.writeFileSync(fullPath, content);
+    console.log(`Updated ${filePath}`);
+}
+
+console.log('--- Starting Release Preparation ---');
+console.log(`Version: ${VERSION_STRING}`);
+console.log(`Version Array: ${VERSION_ARRAY_STRING}`);
+console.log(`Is Beta: ${IS_BETA_RELEASE}`);
+
+updateManifest('AddonExeBP/manifest.json');
+updateManifest('AddonExeRP/manifest.json');
+updateConfig('AddonExeBP/scripts/config.js');
+
+console.log('--- Release Preparation Complete ---');

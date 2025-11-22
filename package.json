@@ -1,44 +1,50 @@
 {
-    "name": "app",
-    "version": "1.0.0",
-    "description": "<p align=\"center\">   <!-- TODO: Add a cool project logo/banner here. Example: <img src=\"link_to_your_logo.png\" alt=\"AddonExe Logo\" width=\"200\"/> -->   <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
-    "main": "index.js",
-    "scripts": {
-        "test": "jest",
-        "lint": "eslint .",
-        "lint:fix": "eslint . --fix",
-        "lint:report": "eslint . --output-file eslint_report.txt",
-        "validate": "npx mct validate default PRJINT,UNKJSON,pathlength,BASEGAMEVER100,CHKMANIF105 --display-only",
-        "validate:report": "npx mct validate default PRJINT,UNKJSON,pathlength,BASEGAMEVER100,CHKMANIF105 -o validation_report"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/SjnExe/AddonExe.git"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "type": "module",
-    "bugs": {
-        "url": "https://github.com/SjnExe/AddonExe/issues"
-    },
-    "homepage": "https://github.com/SjnExe/AddonExe#readme",
-    "devDependencies": {
-        "@babel/preset-env": "^7.28.5",
-        "@eslint/eslintrc": "^3.3.1",
-        "@eslint/js": "^9.39.1",
-        "@minecraft/creator-tools": "^0.14.2",
-        "babel-jest": "^30.2.0",
-        "eslint": "^9.36.0",
-        "eslint-plugin-import": "^2.32.0",
-        "eslint-plugin-jsonc": "^2.20.1",
-        "globals": "^16.4.0",
-        "jest": "^30.2.0"
-    },
-    "jest": {
-        "testEnvironment": "node",
-        "transform": {
-            "^.+\\.js$": "babel-jest"
-        }
+  "name": "app",
+  "version": "1.0.0",
+  "description": "<p align=\"center\">   <!-- TODO: Add a cool project logo/banner here. Example: <img src=\"link_to_your_logo.png\" alt=\"AddonExe Logo\" width=\"200\"/> -->   <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:report": "eslint . --output-file eslint_report.txt",
+    "validate": "npx mct validate default PRJINT,UNKJSON,pathlength,BASEGAMEVER100,CHKMANIF105 --display-only",
+    "validate:report": "npx mct validate default PRJINT,UNKJSON,pathlength,BASEGAMEVER100,CHKMANIF105 -o validation_report",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SjnExe/AddonExe.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/SjnExe/AddonExe/issues"
+  },
+  "homepage": "https://github.com/SjnExe/AddonExe#readme",
+  "devDependencies": {
+    "@babel/preset-env": "^7.28.5",
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.39.1",
+    "@minecraft/creator-tools": "^0.14.2",
+    "babel-jest": "^30.2.0",
+    "eslint": "^9.36.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsonc": "^2.20.1",
+    "globals": "^16.4.0",
+    "husky": "^9.1.7",
+    "jest": "^30.2.0",
+    "lint-staged": "^16.2.7"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.js$": "babel-jest"
     }
+  },
+  "lint-staged": {
+    "*.js": "eslint --fix"
+  }
 }
