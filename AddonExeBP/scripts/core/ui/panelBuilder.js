@@ -691,7 +691,7 @@ export async function buildPanelForm(player, panelId, context) {
                 // Note: This is O(n) per member, assuming team size is small (<10) it's fine.
                 // For larger lists, a cache lookup is better.
                 const onlineP = mc.world.getAllPlayers().find(p => p.id === memberId);
-                if (onlineP) {status = '§a(Online)';}
+                if (onlineP) {status = '§2(Online)';}
 
                 form.button(`${role} §r${name}\n${status}`, 'textures/ui/icon_steve');
             }
@@ -770,7 +770,7 @@ export async function buildPanelForm(player, panelId, context) {
 
             if (isOwner || isAdmin || isServerAdmin) {
                 form.button('§l§2Invite Player', 'textures/ui/color_plus');
-                form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/email_icon');
+                form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/message');
                 form.button('§l§bManage Members', 'textures/ui/icon_multiplayer');
             }
 

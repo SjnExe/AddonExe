@@ -9,5 +9,6 @@ export const teamConfig = {
     friendlyFire: false,
     nameBlacklist: ['owner', 'admin', 'mod', 'moderator', 'staff', 'server', 'operator', 'null', 'undefined'],
     nameMinLength: 3,
-    nameMaxLength: 16
+    nameMaxLength: 16,
+    teleportWarmupSeconds: 5
 };

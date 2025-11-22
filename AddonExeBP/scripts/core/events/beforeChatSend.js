@@ -52,9 +52,12 @@ function handleChatSend(eventData) {
         return;
     }
     const rank = rankManager.getRankById(pData.rankId);
+    const team = getTeamByPlayer(player.id);
+    const teamSuffix = team ? ` §r[§b${team.name}§r]` : '';
+
     const formattedMessage = rank
-        ? `${rank.chatFormatting.prefixText}${rank.chatFormatting.nameColor}${player.name}§r: ${rank.chatFormatting.messageColor}${eventData.message}`
-        : `§7${player.name}§r: ${eventData.message}`;
+        ? `${rank.chatFormatting.prefixText}${rank.chatFormatting.nameColor}${player.name}${teamSuffix}§r: ${rank.chatFormatting.messageColor}${eventData.message}`
+        : `§7${player.name}${teamSuffix}§r: ${eventData.message}`;
 
     // Log to console if enabled
     if (getConfig().chat?.logToConsole) {
