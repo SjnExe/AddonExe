@@ -622,7 +622,8 @@ export async function buildPanelForm(player, panelId, context) {
 
                 form.body([
                     `§l§2Team: ${team.name}`,
-                    `§rOwner: ${ownerName}`,
+                    `§rID: ${team.id}`,
+                    `Owner: ${ownerName}`,
                     `Members: ${team.members.length}/${teamConfig.maxMembers}`
                 ].join('\n'));
 
