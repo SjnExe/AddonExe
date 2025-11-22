@@ -507,6 +507,22 @@ export const panelDefinitions = {
                 permissionLevel: 1,
                 actionType: 'openPanel',
                 actionValue: 'mobDropsSystemPanel'
+            },
+            {
+                id: 'stealSystem',
+                text: '§l§cSteal System§r',
+                icon: 'textures/items/iron_sword',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'config_stealSystem'
+            },
+            {
+                id: 'pvpSystem',
+                text: '§l§cPvP System§r',
+                icon: 'textures/items/diamond_sword',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'config_pvpSystem'
             }
         ]
     },

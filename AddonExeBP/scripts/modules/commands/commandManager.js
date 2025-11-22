@@ -99,7 +99,11 @@ class CommandManager {
 
         // Permission Check
         const pData = getPlayer(player.id);
-        if (!pData || pData.permissionLevel > command.permissionLevel) {
+        const requiredPermissionLevel = commandSettings.permissionLevel !== undefined
+            ? commandSettings.permissionLevel
+            : command.permissionLevel;
+
+        if (!pData || pData.permissionLevel > requiredPermissionLevel) {
             player.sendMessage('§cYou do not have permission to use this command.');
             return;
         }

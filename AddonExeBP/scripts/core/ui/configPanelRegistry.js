@@ -560,5 +560,69 @@ export const configPanelSchema = [
                 description: 'How long a player must wait before teleporting to team home.'
             }
         ]
+    },
+    {
+        id: 'stealSystem',
+        title: '§l§6Steal System§r',
+        icon: 'textures/items/iron_sword',
+        configSource: 'economy',
+        settings: [
+            {
+                key: 'steal.enabled',
+                label: 'Enable Steal System',
+                type: 'toggle',
+                description: 'Enables or disables stealing money on player kills.'
+            },
+            {
+                key: 'steal.percent',
+                label: 'Steal Percentage',
+                type: 'textField',
+                description: 'Percentage of victim\'s balance to steal (0-100).'
+            },
+            {
+                key: 'steal.sameTeamImmunity',
+                label: 'Same Team Immunity',
+                type: 'toggle',
+                description: 'Prevents stealing from teammates.'
+            }
+        ]
+    },
+    {
+        id: 'pvpSystem',
+        title: '§l§6PvP System§r',
+        icon: 'textures/items/diamond_sword',
+        configSource: 'economy',
+        settings: [
+            {
+                key: 'pvp.enabled',
+                label: 'Enable PvP System',
+                type: 'toggle',
+                description: 'Enables or disables the /pvp command.'
+            },
+            {
+                key: 'pvp.defaultWinPercent',
+                label: 'Default Win %',
+                type: 'textField',
+                description: 'Percentage of loser\'s money won if no wager is set.'
+            },
+            {
+                key: 'pvp.requestTimeout',
+                label: 'Request Timeout (s)',
+                type: 'textField',
+                description: 'Time before a PvP request expires.'
+            },
+            {
+                key: 'pvp.duelTimeout',
+                label: 'Duel Timeout (s)',
+                type: 'textField',
+                description: 'Max duration of a duel. Money refunded if time runs out.'
+            },
+            {
+                key: 'pvp.maxConcurrentDuels',
+                label: 'Max Concurrent Duels',
+                type: 'textField',
+                description: 'Max active duels allowed per player (usually 1).'
+            }
+        ]
     }
 ];
