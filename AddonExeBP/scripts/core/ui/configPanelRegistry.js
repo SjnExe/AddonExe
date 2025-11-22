@@ -548,12 +548,6 @@ export const configPanelSchema = [
                 description: 'Maximum length of a team name.'
             },
             {
-                key: 'friendlyFire',
-                label: 'Allow Friendly Fire',
-                type: 'toggle',
-                description: 'If enabled, teammates can hurt each other.'
-            },
-            {
                 key: 'teleportWarmupSeconds',
                 label: 'Home Warmup (s)',
                 type: 'textField',

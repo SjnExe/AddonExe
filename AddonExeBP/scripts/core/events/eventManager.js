@@ -3,7 +3,6 @@ import { errorLog } from '../logger.js';
 
 // Import all event handlers statically
 import handleBeforeChatSend from './beforeChatSend.js';
-import handleBeforeEntityHurt from './beforeEntityHurt.js';
 import { initializePlayerSpawnEvent } from './playerSpawn.js';
 import handleEntityHurt from './entityHurt.js';
 import handlePlayerLeave from './playerLeave.js';
@@ -20,7 +19,6 @@ import { handleScriptEventReceive } from './scriptEventReceive.js';
  */
 export const events = [
     { event: mc.world.beforeEvents.chatSend, handler: handleBeforeChatSend, name: 'beforeChatSend' },
-    // { event: mc.world.beforeEvents.entityHurt, handler: handleBeforeEntityHurt, name: 'beforeEntityHurt' }, // Disabled: Removed from API in recent betas
     { event: null, handler: initializePlayerSpawnEvent, name: 'playerSpawn' }, // playerSpawn is not a direct event handler, but the initializer for one.
     { event: mc.world.afterEvents.entityHurt, handler: handleEntityHurt, name: 'entityHurt' },
     { event: mc.world.afterEvents.playerLeave, handler: handlePlayerLeave, name: 'playerLeave' },
