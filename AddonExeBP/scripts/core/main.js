@@ -23,6 +23,7 @@ import { initializeSpawnProtection } from '../modules/detections/spawnProtection
 import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
+import { initializeMigration } from './migrationManager.js';
 import '../modules/commands/index.js';
 import './mobDeathEvents.js';
 
@@ -168,6 +169,11 @@ async function initializeAddon() {
 
     dataManager.initializeDataManager();
     loadPersistentData();
+
+    // Run migrations after data load but before managers usage if possible,
+    // or right here as managers initialize.
+    initializeMigration();
+
     initializeManagers();
     checkConfiguration();
     initializeEventManager();

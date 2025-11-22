@@ -52,12 +52,12 @@
  */
 export const panelDefinitions = {
     mainPanel: {
-        title: '§l§3Panel§r',
+        title: 'Panel',
         parentPanelId: null,
         items: [
             {
                 id: 'reportManagement',
-                text: '§cReport Management§r',
+                text: 'Report Management',
                 icon: 'textures/ui/WarningGlyph',
                 permissionLevel: 2,
                 actionType: 'openPanel',
@@ -66,7 +66,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'playerManagement',
-                text: '§4Player Management§r',
+                text: 'Player Management',
                 icon: 'textures/ui/icon_multiplayer.png',
                 permissionLevel: 2, // Admin only
                 actionType: 'openPanel',
@@ -75,7 +75,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'moderation',
-                text: '§cModeration§r',
+                text: 'Moderation',
                 icon: 'textures/ui/hammer_l.png',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -84,7 +84,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'floatingText',
-                text: '§9Floating Text§r',
+                text: 'Floating Text',
                 icon: 'textures/ui/text_color_paintbrush',
                 permissionLevel: 1, // Admin and above
                 actionType: 'openPanel',
@@ -93,7 +93,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'config',
-                text: '§3Config§r',
+                text: 'Config',
                 icon: 'textures/ui/settings_glyph_color_2x',
                 permissionLevel: 1, // Admin and above
                 actionType: 'openPanel',
@@ -102,7 +102,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'bountyList',
-                text: '§6Bounty List§r',
+                text: 'Bounty List',
                 icon: 'textures/items/netherite_sword.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
@@ -111,7 +111,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'playerList',
-                text: '§2Player List§r',
+                text: 'Player List',
                 icon: 'textures/ui/icon_steve.png',
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',
@@ -120,7 +120,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'rules',
-                text: '§cRules§r',
+                text: 'Rules',
                 icon: 'textures/items/book_enchanted.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -129,7 +129,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'myStats',
-                text: '§3My Stats§r',
+                text: 'My Stats',
                 icon: 'textures/ui/profile_glyph_color.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
@@ -138,7 +138,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'team',
-                text: '§1Team§r',
+                text: 'Team',
                 icon: 'textures/ui/icon_multiplayer.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
@@ -147,7 +147,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'helpfulLinks',
-                text: '§9Helpful Links§r',
+                text: 'Helpful Links',
                 icon: 'textures/items/chain',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -156,7 +156,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'shop',
-                text: '§2Shop§r',
+                text: 'Shop',
                 icon: 'textures/ui/trade_icon',
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',
@@ -166,7 +166,7 @@ export const panelDefinitions = {
         ]
     },
     teamMainPanel: {
-        title: '§l§bTeam System§r',
+        title: 'Team System',
         parentPanelId: 'mainPanel',
         items: [] // Dynamic: Shows Create/Join OR Team Info
     },
@@ -246,32 +246,32 @@ export const panelDefinitions = {
         items: [] // Dynamic: Teleport, Update, Delete
     },
     shopMainPanel: {
-        title: '§l§aShop Categories§r',
+        title: 'Shop Categories',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     configResetPanel: {
-        title: '§l§cReset Configuration§r',
+        title: 'Reset Configuration',
         parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated
     },
     shopManagementPanel: {
-        title: '§l§2Shop System§r',
+        title: 'Shop System',
         parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated
     },
     reportListPanel: {
-        title: '§l§4Active Reports§r',
+        title: 'Active Reports',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     reportActionsPanel: {
-        title: '§l§4Report Details§r',
+        title: 'Report Details',
         parentPanelId: 'reportListPanel',
         items: [
             {
                 id: 'assignReport',
-                text: '§eAssign to Me',
+                text: 'Assign to Me',
                 icon: 'textures/ui/profile_glyph_color.png',
                 permissionLevel: 2,
                 actionType: 'functionCall',
@@ -279,7 +279,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'resolveReport',
-                text: '§2Mark as Resolved',
+                text: 'Mark as Resolved',
                 icon: 'textures/ui/check.png',
                 permissionLevel: 2,
                 actionType: 'functionCall',
@@ -287,7 +287,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'clearReport',
-                text: '§cClear Report',
+                text: 'Clear Report',
                 icon: 'textures/ui/trash.png',
                 permissionLevel: 2,
                 actionType: 'functionCall',
@@ -296,27 +296,27 @@ export const panelDefinitions = {
         ]
     },
     bountyListPanel: {
-        title: '§l§6Bounty List§r',
+        title: 'Bounty List',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     myStatsPanel: {
-        title: '§l§3Your Stats§r',
+        title: 'Your Stats',
         parentPanelId: 'mainPanel',
         items: [] // Body is dynamically generated
     },
     helpfulLinksPanel: {
-        title: '§l§9Helpful Links§r',
+        title: 'Helpful Links',
         parentPanelId: 'mainPanel',
         items: [] // Body is dynamically generated
     },
     moderationPanel: {
-        title: '§l§cModeration Tools§r',
+        title: 'Moderation Tools',
         parentPanelId: 'mainPanel',
         items: [
             {
                 id: 'unbanPlayer',
-                text: '§2Unban Player§r',
+                text: 'Unban Player',
                 icon: 'textures/ui/check.png',
                 permissionLevel: 1,
                 actionType: 'functionCall',
@@ -324,7 +324,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'unmutePlayer',
-                text: '§2Unmute Player§r',
+                text: 'Unmute Player',
                 icon: 'textures/ui/mute_off.png',
                 permissionLevel: 1,
                 actionType: 'functionCall',
@@ -333,22 +333,22 @@ export const panelDefinitions = {
         ]
     },
     configCategoryPanel: {
-        title: '§l§3Configuration§r',
+        title: 'Configuration',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     kitManagementPanel: {
-        title: '§l§dKit System§r',
+        title: 'Kit System',
         parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated
     },
     rankManagementPanel: {
-        title: '§l§4Rank System§r',
+        title: 'Rank System',
         parentPanelId: 'configCategoryPanel',
         items: [
             {
                 id: 'rankSettings',
-                text: '§l§2Settings§r',
+                text: 'Settings',
                 icon: 'textures/ui/settings_glyph_color_2x',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -357,37 +357,37 @@ export const panelDefinitions = {
         ]
     },
     rankSettingsPanel: {
-        title: '§l§2Rank Settings§r',
+        title: 'Rank Settings',
         parentPanelId: 'rankManagementPanel',
         items: [] // Modal form, no items needed
     },
     editRankPanel: {
-        title: '§l§3Edit Rank§r',
+        title: 'Edit Rank',
         parentPanelId: 'rankManagementPanel',
         items: [] // Dynamically populated
     },
     addRankPanel: {
-        title: '§l§2Add New Rank§r',
+        title: 'Add New Rank',
         parentPanelId: 'rankManagementPanel',
         items: [] // Dynamically populated
     },
     playerManagementPanel: {
-        title: '§l§4Player Management§r',
+        title: 'Player Management',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     playerListPanel: {
-        title: '§l§2Online Players§r',
+        title: 'Online Players',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     bountyActionsPanel: {
-        title: '§l§6Bounty Actions§r',
+        title: 'Bounty Actions',
         parentPanelId: 'playerActionsPanel',
         items: [
             {
                 id: 'setBounty',
-                text: '§eSet Bounty§r',
+                text: 'Set Bounty',
                 icon: 'textures/ui/realms_green_check.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -396,7 +396,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'removePlayerBounty',
-                text: '§cRemove Bounty§r',
+                text: 'Remove Bounty',
                 icon: 'textures/ui/cancel.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -406,95 +406,95 @@ export const panelDefinitions = {
         ]
     },
     playerActionsPanel: {
-        title: '§l§e{playerName}§r', // Title will be dynamic
+        title: '{playerName}', // Title will be dynamic
         parentPanelId: 'mainPanel', // This will be dynamically overridden
         items: [
             // Admin Actions (for Player Management panel)
-            { id: 'kick', text: '§cKick§r', icon: 'textures/ui/cancel.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'kickPlayer' },
-            { id: 'mute', text: '§6Mute§r', icon: 'textures/ui/mute_on.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'mutePlayer' },
-            { id: 'unmute', text: '§2Unmute§r', icon: 'textures/ui/mute_off.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unmutePlayer' },
-            { id: 'ban', text: '§4Ban§r', icon: 'textures/ui/hammer_l.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'banPlayer' },
-            { id: 'freeze', text: '§bFreeze§r', icon: 'textures/ui/icon_lock.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'freezePlayer' },
-            { id: 'unfreeze', text: '§bUnfreeze§r', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
+            { id: 'kick', text: 'Kick', icon: 'textures/ui/cancel.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'kickPlayer' },
+            { id: 'mute', text: 'Mute', icon: 'textures/ui/mute_on.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'mutePlayer' },
+            { id: 'unmute', text: 'Unmute', icon: 'textures/ui/mute_off.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unmutePlayer' },
+            { id: 'ban', text: 'Ban', icon: 'textures/ui/hammer_l.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'banPlayer' },
+            { id: 'freeze', text: 'Freeze', icon: 'textures/ui/icon_lock.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'freezePlayer' },
+            { id: 'unfreeze', text: 'Unfreeze', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
             // Player Actions (for Player List panel)
-            { id: 'tpa', text: '§eTPA§r', icon: 'textures/gui/controls/jump.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer', sortId: 10 },
-            { id: 'tpahere', text: '§9TPAHere§r', icon: 'textures/gui/controls/sneak.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaherePlayer', sortId: 20 },
-            { id: 'bounty', text: '§6Bounty§r', icon: 'textures/items/netherite_sword.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'bountyActionsPanel', sortId: 30 },
-            { id: 'report', text: '§cReport Player§r', icon: 'textures/ui/WarningGlyph', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'reportPlayer', sortId: 40 }
+            { id: 'tpa', text: 'TPA', icon: 'textures/gui/controls/jump.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer', sortId: 10 },
+            { id: 'tpahere', text: 'TPAHere', icon: 'textures/gui/controls/sneak.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaherePlayer', sortId: 20 },
+            { id: 'bounty', text: 'Bounty', icon: 'textures/items/netherite_sword.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'bountyActionsPanel', sortId: 30 },
+            { id: 'report', text: 'Report Player', icon: 'textures/ui/WarningGlyph', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'reportPlayer', sortId: 40 }
         ]
     },
     rulesManagementPanel: {
-        title: '§l§4Rules Management§r',
+        title: 'Rules Management',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     addRulePanel: {
-        title: 'Add New Rule§r',
+        title: 'Add New Rule',
         parentPanelId: 'rulesManagementPanel',
         items: [] // Modal form, no items needed
     },
     ruleActionPanel: {
-        title: 'Manage Rule§r',
+        title: 'Manage Rule',
         parentPanelId: 'rulesManagementPanel',
         items: [] // Dynamically populated
     },
     helpfulLinksManagementPanel: {
-        title: '§l§9Links Management§r',
+        title: 'Links Management',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     addHelpfulLinkPanel: {
-        title: 'Add New Link§r',
+        title: 'Add New Link',
         parentPanelId: 'helpfulLinksManagementPanel',
         items: [] // Modal form, no items needed
     },
     helpfulLinkActionPanel: {
-        title: 'Manage Link§r',
+        title: 'Manage Link',
         parentPanelId: 'helpfulLinksManagementPanel',
         items: [] // Dynamically populated
     },
     shopAdminCategoryActionPanel: {
-        title: 'Manage Category§r',
+        title: 'Manage Category',
         parentPanelId: 'shopManagementPanel',
         items: [] // Dynamically populated
     },
     shopAdminSubCategoryItemPanel: {
-        title: 'Manage Subcategory Items§r',
+        title: 'Manage Subcategory Items',
         parentPanelId: 'shopAdminCategoryPanel', // This will be dynamic
         items: [] // Dynamically populated
     },
     shopAdminSubCategoryActionPanel: {
-        title: 'Manage Subcategory§r',
+        title: 'Manage Subcategory',
         parentPanelId: 'shopAdminSubCategoryItemPanel', // This will be dynamic
         items: [] // Dynamically populated
     },
     floatingTextListPanel: {
-        title: '§l§9Floating Text§r',
+        title: 'Floating Text',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     floatingTextEditPanel: {
-        title: '§l§9Edit Floating Text§r',
+        title: 'Edit Floating Text',
         parentPanelId: 'floatingTextListPanel',
         items: [] // Modal form, no items needed
     },
     floatingTextCreatePanel: {
-        title: '§l§9Create Floating Text§r',
+        title: 'Create Floating Text',
         parentPanelId: 'floatingTextListPanel',
         items: [] // Modal form, no items needed
     },
     floatingTextActionPanel: {
-        title: '§l§9Floating Text Actions§r',
+        title: 'Floating Text Actions',
         parentPanelId: 'floatingTextListPanel',
         items: [] // Dynamically populated
     },
     economyPanel: {
-        title: '§l§6Economy System§r',
+        title: 'Economy System',
         parentPanelId: 'configCategoryPanel',
         items: [
             {
                 id: 'economyGeneralSettings',
-                text: '§l§3General Settings§r',
+                text: 'General Settings',
                 icon: 'textures/ui/settings_glyph_color_2x',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -502,7 +502,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'mobDropsSystemPanel',
-                text: '§l§2Mob Drops System§r',
+                text: 'Mob Drops System',
                 icon: 'textures/items/bone',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -510,7 +510,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'stealSystem',
-                text: '§l§cSteal System§r',
+                text: 'Steal System',
                 icon: 'textures/items/iron_sword',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -518,7 +518,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'pvpSystem',
-                text: '§l§cPvP System§r',
+                text: 'PvP System',
                 icon: 'textures/items/diamond_sword',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -527,12 +527,12 @@ export const panelDefinitions = {
         ]
     },
     mobDropsSystemPanel: {
-        title: '§l§2Mob Drops System§r',
+        title: 'Mob Drops System',
         parentPanelId: 'economyPanel',
         items: [
             {
                 id: 'addMobDrop',
-                text: '§l§2Add New Mob§r',
+                text: 'Add New Mob',
                 icon: 'textures/ui/realms_green_check.png',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -541,22 +541,22 @@ export const panelDefinitions = {
         ]
     },
     addMobDropPanel: {
-        title: '§l§2Add Mob Drop§r',
+        title: 'Add Mob Drop',
         parentPanelId: 'mobDropsSystemPanel',
         items: [] // Modal form, no items needed
     },
     editMobDropPanel: {
-        title: '§l§2Edit Mob Drop§r',
+        title: 'Edit Mob Drop',
         parentPanelId: 'mobDropsSystemPanel',
         items: [] // Dynamically built in panelBuilder.js
     },
     xrayOresPanel: {
-        title: '§l§cX-Ray Monitored Ores§r',
+        title: 'X-Ray Monitored Ores',
         parentPanelId: 'config_xray',
         items: [
             {
                 id: 'addXrayOre',
-                text: '§l§2Add New Ore§r',
+                text: 'Add New Ore',
                 icon: 'textures/ui/color_plus',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -565,22 +565,22 @@ export const panelDefinitions = {
         ]
     },
     addXrayOrePanel: {
-        title: '§l§cAdd Monitored Ore§r',
+        title: 'Add Monitored Ore',
         parentPanelId: 'xrayOresPanel',
         items: [] // Modal form
     },
     editXrayOrePanel: {
-        title: '§l§cEdit Monitored Ore§r',
+        title: 'Edit Monitored Ore',
         parentPanelId: 'xrayOresPanel',
         items: [] // Modal form
     },
     commandSystemPanel: {
-        title: '§l§1Command System§r',
+        title: 'Command System',
         parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated
     },
     commandSettingsPanel: {
-        title: '§l§1{commandName} Settings§r', // Dynamic title
+        title: '{commandName} Settings', // Dynamic title
         parentPanelId: 'commandSystemPanel',
         items: [] // Modal form, no items needed
     }

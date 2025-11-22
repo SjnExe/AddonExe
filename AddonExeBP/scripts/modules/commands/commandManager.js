@@ -71,14 +71,16 @@ class CommandManager {
         // --- Console Execution ---
         if (!isPlayer) {
             if (!command.allowConsole) {
-                console.warn(`[CommandManager] Command '${command.name}' cannot be run from the console.`); // eslint-disable-line no-console
+                // eslint-disable-next-line no-console
+                console.warn(`[CommandManager] Command '${command.name}' cannot be run from the console.`);
                 return;
             }
             mc.system.run(() => {
                 try {
                     command.execute(executor, args);
                 } catch (error) {
-                    console.error(`[CommandManager] Error executing console command '${command.name}': ${error.stack}`); // eslint-disable-line no-console
+                    // eslint-disable-next-line no-console
+                    console.error(`[CommandManager] Error executing console command '${command.name}': ${error.stack}`);
                 }
             });
             return;
@@ -122,6 +124,28 @@ class CommandManager {
     }
 
     /**
+     * Generates a usage string for a command.
+     * @param {object} command
+     * @returns {string} e.g. "Usage: /gm [s|c|a] <target>"
+     */
+    getUsageString(command) {
+        const params = command.parameters || [];
+        const parts = params.map(p => {
+            if (p.optional) {
+                return `[${p.name}]`;
+            } else {
+                // If it's an enum, maybe show options?
+                // For now, keep it simple: <name>
+                if (p.enumOptions && p.enumOptions.length <= 4) {
+                    return `<${p.enumOptions.join('|')}>`;
+                }
+                return `<${p.name}>`;
+            }
+        });
+        return `Usage: /${command.name} ${parts.join(' ')}`;
+    }
+
+    /**
      * Registers a single slash command or alias.
      * @param {object} customCommandRegistry The registry object from the startup event.
      * @param {object} command The command definition.
@@ -132,7 +156,8 @@ class CommandManager {
         const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
         const commandCallback = (origin, ...rawArgs) => {
-            const executor = origin.sourceEntity || { isConsole: true, sendMessage: (msg) => console.log(msg.replace(/§[0-9a-fklmnor]/g, '')) }; // eslint-disable-line no-console
+            // eslint-disable-next-line no-console
+            const executor = origin.sourceEntity || { isConsole: true, sendMessage: (msg) => console.log(msg.replace(/§[0-9a-fklmnor]/g, '')) };
 
             // Prepare arguments
             const allParams = (command.parameters || []);
@@ -301,7 +326,8 @@ class CommandManager {
         for (const paramDef of paramDefs) {
             if (currentArgIndex >= cleanedArgs.length) {
                 if (!paramDef.optional) {
-                    player.sendMessage(`§cMissing required argument: ${paramDef.name}.`);
+                    const usage = this.getUsageString(command);
+                    player.sendMessage(`§cMissing required argument: ${paramDef.name}.\n${usage}`);
                     return true; // Stop execution
                 }
                 break; // No more args to process

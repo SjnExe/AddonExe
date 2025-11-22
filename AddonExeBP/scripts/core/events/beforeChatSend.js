@@ -57,7 +57,7 @@ function handleChatSend(eventData) {
 
     // Hardcode brackets for rank prefix if it exists
     const rankPrefix = rank && rank.chatFormatting.prefixText
-        ? `§0[§r${rank.chatFormatting.prefixText}§0]§r`
+        ? `§7[§r${rank.chatFormatting.prefixText}§7]§r`
         : '';
 
     const formattedMessage = rank
