@@ -1,7 +1,8 @@
 export const xrayConfig = {
     notifications: {
         logToConsole: true,
-        alertBufferingSeconds: 10
+        alertBufferingSeconds: 10,
+        alertPermissionLevel: 2
     },
     monitoredOreTypes: {
         diamond: {

@@ -1746,6 +1746,13 @@ export async function handleFormResponse(player, panelId, response, context) {
             [`commandSettings.${commandName}.permissionLevel`]: permissionLevel
         });
 
+        // Sync with xray config if this is the xraynotify command
+        if (commandName === 'xraynotify') {
+            updateMultipleConfig({
+                'xray.notifications.alertPermissionLevel': permissionLevel
+            });
+        }
+
         player.sendMessage(`§2Successfully updated settings for '${commandName}'.`);
         return showPanel(player, 'commandSystemPanel', context);
     }
@@ -2228,6 +2235,19 @@ export async function handleFormResponse(player, panelId, response, context) {
         if (categoryId === 'announcements') {
             restartAnnouncer();
             player.sendMessage('§2Announcement system has been updated with new settings.');
+        }
+        if (categoryId === 'xray') {
+            // Sync alertPermissionLevel with command permission
+            // category.settings is in order of configPanelSchema. We find the index of alertPermissionLevel.
+            const permSettingIndex = category.settings.findIndex(s => s.key === 'notifications.alertPermissionLevel');
+            if (permSettingIndex !== -1) {
+                const newPermLevel = Number(newValues[permSettingIndex]);
+                if (!isNaN(newPermLevel)) {
+                    updateMultipleConfig({
+                        'commandSettings.xraynotify.permissionLevel': newPermLevel
+                    });
+                }
+            }
         }
 
         // Dynamic redirect: Find which panel links to this config panel
