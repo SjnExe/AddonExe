@@ -56,9 +56,30 @@ async function findSafeLocationAndTeleport(player, minRange, maxRange) {
             // Create ticking area to load chunks
             player.dimension.runCommand(`tickingarea add circle ${centerX} 0 ${centerZ} 1 ${tickingAreaName}`);
 
-            // WAIT for chunks to load.
-            // 2 seconds (40 ticks) is usually safer than 60 ticks, but let's use 30 ticks.
-            await new Promise(resolve => mc.system.runTimeout(resolve, 30));
+            // Wait for chunks to load robustly
+            let chunkLoaded = false;
+            let waitAttempts = 0;
+            const maxWaitAttempts = 10; // Max 5 seconds (10 * 10 ticks + initial delay)
+
+            // Initial wait
+            await new Promise(resolve => mc.system.runTimeout(resolve, 60));
+
+            while (!chunkLoaded && waitAttempts < maxWaitAttempts) {
+                try {
+                    // Try to access a block in the center to check if chunk is loaded
+                    player.dimension.getBlock({ x: centerX, y: 300, z: centerZ });
+                    chunkLoaded = true;
+                } catch (e) {
+                    waitAttempts++;
+                    await new Promise(resolve => mc.system.runTimeout(resolve, 10));
+                }
+            }
+
+            if (!chunkLoaded) {
+                 // Cleanup and try next attempt
+                 safeRemoveTickingArea(player.dimension, tickingAreaName);
+                 continue;
+            }
 
             sendMessage(`§7Searching... Attempt ${i + 1}/${searchAttempts}`, player);
 

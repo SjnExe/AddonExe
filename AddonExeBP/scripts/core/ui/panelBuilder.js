@@ -330,10 +330,11 @@ async function buildPlayerManagementForm(title, context) {
             const pData = loadPlayerData(id); // Load data for the player on the current page
             const rank = pData ? rankManager.getRankById(pData.rankId) : null;
             const prefix = rank?.chatFormatting?.prefixText ?? '';
+            const rankPrefix = prefix ? `§e[§r${prefix}§e]§r ` : '';
             const properName = pData ? pData.name : lowerCaseName; // Fallback to lowercase name if data fails to load
             const team = getTeamByPlayer(id);
-            const teamSuffix = team ? `\n§7[§r${team.name}§r§7]` : '';
-            form.button(`${prefix}${properName}${teamSuffix}`);
+            const teamSuffix = team ? `\n§e[§r${team.name}§e]` : '';
+            form.button(`${rankPrefix}${properName}${teamSuffix}`);
         }
     }
 
@@ -369,9 +370,10 @@ async function buildPlayerListForm(title, context) {
         for (const player of paginatedPlayers) {
             const rank = rankManager.getPlayerRank(player, config);
             const prefix = rank.chatFormatting?.prefixText ?? '';
+            const rankPrefix = prefix ? `§e[§r${prefix}§e]§r ` : '';
             const team = getTeamByPlayer(player.id);
-            const teamSuffix = team ? `\n§7[§r${team.name}§r§7]` : '';
-            form.button(`${prefix}${player.name}${teamSuffix}`);
+            const teamSuffix = team ? `\n§e[§r${team.name}§e]` : '';
+            form.button(`${rankPrefix}${player.name}${teamSuffix}`);
         }
     }
 
@@ -470,10 +472,9 @@ function buildRankManagementPanel(form, context) {
     const paginatedRanks = getPaginatedItems(allRanks, page);
 
     for (const rank of paginatedRanks) {
-        const prefix = rank.chatFormatting?.prefixText ?? '';
         const name = rank.name;
         const permLevel = rank.permissionLevel;
-        form.button(`${prefix}${name}\n§8(ID: ${rank.id}, Level: ${permLevel})`);
+        form.button(`${name}\n§8(ID: ${rank.id}, Level: ${permLevel})`);
     }
 
     addPaginationButtons(form, page, allRanks.length);

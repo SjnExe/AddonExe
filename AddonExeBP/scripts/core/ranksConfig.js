@@ -23,7 +23,7 @@
 
 /** @type {Required<ChatFormatting>} */
 export const defaultChatFormatting = {
-    prefixText: 'Member',
+    prefixText: '§8Member',
     nameColor: '§7',
     messageColor: '§f'
 };
