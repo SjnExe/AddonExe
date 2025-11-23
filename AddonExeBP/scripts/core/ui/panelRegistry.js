@@ -57,7 +57,7 @@ export const panelDefinitions = {
         items: [
             {
                 id: 'reportManagement',
-                text: 'Report Management',
+                text: '§4Report Management', // Dark Red
                 icon: 'textures/ui/WarningGlyph',
                 permissionLevel: 2,
                 actionType: 'openPanel',
@@ -66,7 +66,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'playerManagement',
-                text: 'Player Management',
+                text: '§3Player Management', // Dark Aqua
                 icon: 'textures/ui/icon_multiplayer.png',
                 permissionLevel: 2, // Admin only
                 actionType: 'openPanel',
@@ -75,7 +75,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'moderation',
-                text: 'Moderation',
+                text: '§cModeration', // Red
                 icon: 'textures/ui/hammer_l.png',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -84,7 +84,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'floatingText',
-                text: 'Floating Text',
+                text: '§5Floating Text', // Dark Purple
                 icon: 'textures/ui/text_color_paintbrush',
                 permissionLevel: 1, // Admin and above
                 actionType: 'openPanel',
@@ -93,7 +93,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'config',
-                text: 'Config',
+                text: '§8Config', // Dark Grey
                 icon: 'textures/ui/settings_glyph_color_2x',
                 permissionLevel: 1, // Admin and above
                 actionType: 'openPanel',
@@ -102,7 +102,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'bountyList',
-                text: 'Bounty List',
+                text: '§6Bounty List', // Gold
                 icon: 'textures/items/netherite_sword.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
@@ -111,7 +111,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'playerList',
-                text: 'Player List',
+                text: '§2Player List', // Dark Green
                 icon: 'textures/ui/icon_steve.png',
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',
@@ -120,7 +120,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'rules',
-                text: 'Rules',
+                text: '§9Rules', // Blue
                 icon: 'textures/items/book_enchanted.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -129,7 +129,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'myStats',
-                text: 'My Stats',
+                text: '§3My Stats', // Dark Aqua
                 icon: 'textures/ui/profile_glyph_color.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
@@ -138,7 +138,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'team',
-                text: 'Team',
+                text: '§1Team', // Dark Blue
                 icon: 'textures/ui/icon_multiplayer.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
@@ -147,7 +147,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'helpfulLinks',
-                text: 'Helpful Links',
+                text: '§9Helpful Links', // Blue
                 icon: 'textures/items/chain',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -156,7 +156,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'shop',
-                text: 'Shop',
+                text: '§2Shop', // Dark Green
                 icon: 'textures/ui/trade_icon',
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',

@@ -4,6 +4,7 @@ import { getOrCreatePlayer } from '../../core/playerDataManager.js';
 import { getAllPlayersFromCache } from '../../core/playerCache.js';
 import { sendMessage } from '../../core/messaging.js';
 import { warnLog } from '../../core/logger.js';
+import { formatString } from '../../core/utils.js';
 
 // Map<playerId, Map<oreName, { count: number, timerId: number, blockLocation: Vector3, oreType: object }>>
 const alertBuffers = new Map();
@@ -18,11 +19,19 @@ const alertBuffers = new Map();
 function sendAlert(player, oreType, location, count) {
     const xrayConfig = getXrayConfig();
 
-    // Hardcoded message format:
-    // §8[§cX-Ray§8]§r §7<Player>§r mined §e<Count> <OreName>§r at §aX§r, §aY§r, §aZ§r
     const oreDisplay = count > 1 ? `${count} ${oreType.oreName}` : oreType.oreName;
 
-    const message = `§8[§cX-Ray§8]§r §7${player.name}§r mined §e${oreDisplay}§r at §a${location.x.toFixed(2)}§r, §a${location.y.toFixed(2)}§r, §a${location.z.toFixed(2)}§r`;
+    const context = {
+        playerName: player.name,
+        oreName: oreDisplay,
+        count: count,
+        x: location.x.toFixed(2),
+        y: location.y.toFixed(2),
+        z: location.z.toFixed(2)
+    };
+
+    // Use the configured message template
+    const message = formatString(xrayConfig.notifications.message, context);
 
     // Log to console if enabled.
     if (xrayConfig.notifications.logToConsole) {
@@ -30,13 +39,9 @@ function sendAlert(player, oreType, location, count) {
     }
 
     // Send a private message to all staff who have notifications enabled.
-    // Staff check: Permission Level <= 1 (Owner/Admin) OR explicit 'xrayNotificationsEnabled' flag?
-    // Ideally, anyone with permission to receive alerts should get them if enabled.
-    // Usually, permissions are handled by rank check, but here we verify level and preference.
-
     const onlinePlayers = getAllPlayersFromCache();
     for (const onlinePlayer of onlinePlayers) {
-        // Avoid notifying the miner themselves? (Optional, usually good practice)
+        // Avoid notifying the miner themselves (Optional, usually good practice)
         if (onlinePlayer.id === player.id) { continue; }
 
         const pData = getOrCreatePlayer(onlinePlayer);
@@ -106,13 +111,6 @@ function handleBlockBreak(event) {
     if (!xrayConfig?.monitoredOreTypes) {
         return;
     }
-
-    // Check global enable switch
-    // Note: xrayConfig structure from config file usually has a top level toggle or implied by ore types
-    // Checking configurations.js or xrayConfig.js would confirm, but usually we assume 'enabled' check inside command toggles affects logic.
-    // If there isn't a global 'enabled' key in config, we skip.
-    // Looking at xrayConfig.js provided earlier, it doesn't have a root 'enabled'.
-    // However, commands like xraynotify toggle personal settings.
 
     // Iterate over each configured ore type (e.g., 'diamond', 'ancientDebris').
     for (const oreTypeKey in xrayConfig.monitoredOreTypes) {
