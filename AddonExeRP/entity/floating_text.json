@@ -1,5 +1,5 @@
 {
-    "format_version": "1.19.0",
+    "format_version": "1.21.0",
     "minecraft:client_entity": {
         "description": {
             "identifier": "addonexe:floating_text",
@@ -7,7 +7,7 @@
                 "default": "entity_alphatest"
             },
             "textures": {
-                "default": "textures/entity/pig/pig"
+                "default": "textures/entity/transparent"
             },
             "geometry": {
                 "default": "geometry.invisible"

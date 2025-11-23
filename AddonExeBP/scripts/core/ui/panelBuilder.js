@@ -1,53 +1,23 @@
+import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
-import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
+import { panelDefinitions } from './panelRegistry.js';
+import { configPanelSchema } from './configPanelRegistry.js';
 import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
 import { getConfig } from '../configManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import * as rankManager from '../rankManager.js';
-import * as playerCache from '../playerCache.js';
 import * as bountyManager from '../bountyManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
-import { getKitsConfig, getShopConfig, getSpawnConfig, getEconomyConfig, getXrayConfig } from '../configurations.js';
+import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig } from '../configurations.js';
 import { items as allItems } from '../itemsConfig.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { getValueFromPath } from '../objectUtils.js';
 import { formatCurrency } from '../utils.js';
-import { getVisibleConfigSystems } from './uiUtils.js';
-
-const itemsPerPage = 8;
-
-const configHandlers = {
-    'main': {
-        get: getConfig
-    },
-    'economy': {
-        get: getEconomyConfig
-    },
-    'spawn': {
-        get: getSpawnConfig
-    },
-    'xray': {
-        get: getXrayConfig
-    }
-};
-
-function getPaginatedItems(items, page) {
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return items.slice(startIndex, endIndex);
-}
-
-function addPaginationButtons(form, page, totalItems) {
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    if (page > 1) {
-        form.button('§l§4< §1Previous');
-    }
-    if (page < totalPages) {
-        form.button('§l§1Next §4>');
-    }
-}
+import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems, addPaginationButtons } from './uiUtils.js';
+import { commandManager } from '../../modules/commands/commandManager.js';
+import { iconDB } from '../iconDB.js';
 
 export function getMenuItems(panelDef, permissionLevel) {
     const config = getConfig();
@@ -66,7 +36,7 @@ export function getMenuItems(panelDef, permissionLevel) {
     return items;
 }
 
-function addPanelBody(form, player, panelId, context) {
+async function addPanelBody(form, player, panelId, context) {
     const config = getConfig();
     if (panelId === 'myStatsPanel') {
         const pData = getOrCreatePlayer(player);
@@ -76,8 +46,13 @@ function addPanelBody(form, player, panelId, context) {
             return;
         }
         const bounty = bountyManager.getBounty(player.id)?.amount ?? 0;
+        const { getTeamByPlayer } = await import('../teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        const teamName = team ? `§b${team.name}` : '§7None';
+
         form.body([
             `§fRank: §r${rank.chatFormatting?.nameColor ?? '§7'}${rank.name}`,
+            `§fTeam: ${teamName}`,
             `§fBalance: §2${formatCurrency(pData.balance)}`,
             `§fBounty on you: §6${formatCurrency(bounty)}`
         ].join('\n'));
@@ -349,13 +324,17 @@ async function buildPlayerManagementForm(title, context) {
     if (playerEntries.length === 0) {
         form.body('§cNo player data found.');
     } else {
+        const { getTeamByPlayer } = await import('../teamManager.js');
         const paginatedEntries = getPaginatedItems(playerEntries, page);
         for (const [lowerCaseName, id] of paginatedEntries) {
             const pData = loadPlayerData(id); // Load data for the player on the current page
             const rank = pData ? rankManager.getRankById(pData.rankId) : null;
             const prefix = rank?.chatFormatting?.prefixText ?? '';
+            const rankPrefix = prefix ? `§e[§r${prefix}§e]§r ` : '';
             const properName = pData ? pData.name : lowerCaseName; // Fallback to lowercase name if data fails to load
-            form.button(`${prefix}${properName}`);
+            const team = getTeamByPlayer(id);
+            const teamSuffix = team ? `\n§e[§r${team.name}§e]` : '';
+            form.button(`${rankPrefix}${properName}${teamSuffix}`);
         }
     }
 
@@ -374,7 +353,7 @@ async function buildPlayerListForm(title, context) {
     // Add Back button
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-    const onlinePlayers = playerCache.getAllPlayersFromCache().sort((a, b) => a.name.localeCompare(b.name));
+    const onlinePlayers = Array.from(mc.world.getAllPlayers()).sort((a, b) => a.name.localeCompare(b.name));
     const totalPages = Math.ceil(onlinePlayers.length / itemsPerPage);
 
     // Add Previous button if not on the first page
@@ -385,12 +364,16 @@ async function buildPlayerListForm(title, context) {
     if (onlinePlayers.length === 0) {
         form.body('§cNo players are currently online.');
     } else {
+        const { getTeamByPlayer } = await import('../teamManager.js');
         const paginatedPlayers = getPaginatedItems(onlinePlayers, page);
         const config = getConfig();
         for (const player of paginatedPlayers) {
             const rank = rankManager.getPlayerRank(player, config);
             const prefix = rank.chatFormatting?.prefixText ?? '';
-            form.button(`${prefix}${player.name}`);
+            const rankPrefix = prefix ? `§e[§r${prefix}§e]§r ` : '';
+            const team = getTeamByPlayer(player.id);
+            const teamSuffix = team ? `\n§e[§r${team.name}§e]` : '';
+            form.button(`${rankPrefix}${player.name}${teamSuffix}`);
         }
     }
 
@@ -489,10 +472,9 @@ function buildRankManagementPanel(form, context) {
     const paginatedRanks = getPaginatedItems(allRanks, page);
 
     for (const rank of paginatedRanks) {
-        const prefix = rank.chatFormatting?.prefixText ?? '';
         const name = rank.name;
         const permLevel = rank.permissionLevel;
-        form.button(`${prefix}${name}\n§8(ID: ${rank.id}, Level: ${permLevel})`);
+        form.button(`${name}\n§8(ID: ${rank.id}, Level: ${permLevel})`);
     }
 
     addPaginationButtons(form, page, allRanks.length);
@@ -531,6 +513,34 @@ function buildKitManagementPanel(form, context) {
     }
 
     addPaginationButtons(form, page, kitNames.length);
+}
+
+function buildCommandSystemPanel(form, context) {
+    const { page = 1 } = context;
+    const config = getConfig();
+    const commandSettings = config.commandSettings || {};
+
+    // Get all command names, filter out hidden ones, and sort alphabetically
+    const allCommands = Object.keys(commandSettings)
+        .filter(cmd => !cmd.startsWith('_')) // Assuming internal/hidden commands start with an underscore
+        .sort();
+
+    if (allCommands.length === 0) {
+        form.body('§cNo commands are available for configuration.');
+        return;
+    }
+
+    const paginatedCommands = getPaginatedItems(allCommands, page);
+
+    form.body('Toggle commands on or off.\n§2[Enabled]§r / §c[Disabled]§r');
+
+    for (const commandName of paginatedCommands) {
+        const isEnabled = commandSettings[commandName]?.enabled ?? false;
+        const statusText = isEnabled ? '§2[Enabled]' : '§c[Disabled]';
+        form.button(`${commandName}\n${statusText}`);
+    }
+
+    addPaginationButtons(form, page, allCommands.length);
 }
 
 export async function buildPanelForm(player, panelId, context) {
@@ -591,6 +601,243 @@ export async function buildPanelForm(player, panelId, context) {
                 .button('Despawn', 'textures/ui/cancel')
                 .button('§cDelete', 'textures/ui/trash')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
+            return form;
+        }
+
+        if (panelId === 'teamMainPanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const { teamConfig } = await import('../teamConfig.js');
+            const panelDef = panelDefinitions[panelId];
+
+            const team = getTeamByPlayer(player.id);
+            const form = new ActionFormData().title(panelDef.title);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            if (team) {
+                const isOwner = team.ownerId === player.id;
+                const isAdmin = team.admins.includes(player.id);
+                const isOwnerOrAdmin = isOwner || isAdmin;
+
+                const ownerData = loadPlayerData(team.ownerId);
+                const ownerName = ownerData ? ownerData.name : 'Unknown';
+
+                form.body([
+                    `§l§2Team: ${team.name}`,
+                    `§rID: ${team.id}`,
+                    `Owner: ${ownerName}`,
+                    `Members: ${team.members.length}/${teamConfig.maxMembers}`
+                ].join('\n'));
+
+                form.button('§l§3Team Members', 'textures/ui/icon_multiplayer');
+                if (isOwnerOrAdmin) {
+                    form.button('§l§cManage Team', 'textures/ui/op');
+                }
+                form.button('§l§eTeam Settings', 'textures/ui/icon_setting');
+                form.button('§cLeave Team', 'textures/ui/cancel');
+
+            } else {
+                // No Team
+                form.button(`§l§2Create Team\n§r§6Cost: ${formatCurrency(teamConfig.creationCost)}`, 'textures/ui/color_plus');
+                form.button('§l§9Join Team', 'textures/ui/world_glyph_color');
+            }
+            return form;
+        }
+
+        if (panelId === 'teamCreatePanel') {
+            const { teamConfig } = await import('../teamConfig.js');
+            const form = new ModalFormData().title('Create Team');
+            form.textField('Team Name', `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`);
+            return form;
+        }
+
+        if (panelId === 'teamSearchPanel') {
+            const form = new ModalFormData().title('Search Team');
+            form.textField('Team ID', 'Enter the numeric Team ID');
+            return form;
+        }
+
+        if (panelId === 'teamSettingsPanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const pData = getOrCreatePlayer(player);
+            const team = getTeamByPlayer(player.id);
+
+            if (!team) {return null;}
+
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+            const canManage = isOwner || isAdmin;
+
+            const form = new ModalFormData().title('Team Settings');
+            // Personal Settings
+            form.toggle('Auto-Accept Team Teleport', { defaultValue: pData.teamSettings?.autoTpAccept ?? false });
+            if (canManage) {
+                form.toggle('Allow Join Requests', { defaultValue: team.open ?? true });
+            }
+            return form;
+        }
+
+        if (panelId === 'teamMembersPanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const team = getTeamByPlayer(player.id);
+            if (!team) {
+                player.sendMessage('§cYou are not in a team.');
+                return null;
+            }
+
+            const form = new ActionFormData().title(`Members: ${team.name}`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            // List members.
+            for (const memberId of team.members) {
+                const memData = loadPlayerData(memberId);
+                const name = memData ? memData.name : 'Unknown';
+                let role = 'Member';
+                if (team.ownerId === memberId) {role = '§cOwner';}
+                else if (team.admins.includes(memberId)) {role = '§2Admin';}
+
+                let status = '§7(Offline)';
+                // Note: This is O(n) per member, assuming team size is small (<10) it's fine.
+                // For larger lists, a cache lookup is better.
+                const onlineP = mc.world.getAllPlayers().find(p => p.id === memberId);
+                if (onlineP) {status = '§2(Online)';}
+
+                form.button(`${role} §r${name}\n${status}`, 'textures/ui/icon_steve');
+            }
+            return form;
+        }
+
+        if (panelId === 'teamBrowserPanel') {
+            const { getAllTeams } = await import('../teamManager.js');
+            const { page = 1 } = context;
+            const form = new ActionFormData().title(`Browse Teams (Page ${page})`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            let teams = getAllTeams();
+
+            // Filter out closed teams for non-admins
+            const pData = getOrCreatePlayer(player);
+            if (pData.permissionLevel >= 1024) {
+                teams = teams.filter(t => t.open !== false);
+            }
+
+            teams = teams.sort((a, b) => b.members.length - a.members.length);
+            const paginatedTeams = getPaginatedItems(teams, page);
+
+            for (const team of paginatedTeams) {
+                const ownerData = loadPlayerData(team.ownerId);
+                const ownerName = ownerData ? ownerData.name : 'Unknown';
+                form.button(`${team.name} §7(ID: ${team.id})\n§rOwner: ${ownerName} | Members: ${team.members.length}`);
+            }
+
+            addPaginationButtons(form, page, teams.length);
+            return form;
+        }
+
+        if (panelId === 'teamInvitesPanel') {
+            const pData = getOrCreatePlayer(player);
+            const invites = pData.pendingInvites || [];
+            const form = new ActionFormData().title('Pending Invites');
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            if (invites.length === 0) {
+                form.body('You have no pending invites.');
+            } else {
+                for (const invite of invites) {
+                    const date = new Date(invite.timestamp).toLocaleDateString();
+                    form.button(`${invite.teamName}\n§7Received: ${date}`);
+                }
+                form.button('§cDeny All Invites', 'textures/ui/cancel');
+            }
+            return form;
+        }
+
+        if (panelId === 'teamManagePanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const { teamId } = context;
+            // If context has teamId, it might be an admin managing another team.
+            // Otherwise, manage own team.
+
+            let team = null;
+            const pData = getOrCreatePlayer(player);
+
+            if (teamId && pData.permissionLevel < 1024) {
+                const { getTeam } = await import('../teamManager.js');
+                team = getTeam(teamId);
+            } else {
+                team = getTeamByPlayer(player.id);
+            }
+
+            if (!team) {return null;}
+
+            const form = new ActionFormData().title(`Manage: ${team.name}`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+            const isServerAdmin = pData.permissionLevel < 1024;
+
+            if (isOwner || isAdmin || isServerAdmin) {
+                form.button('§l§2Invite Player', 'textures/ui/color_plus');
+                form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/mail_icon');
+                form.button('§l§bManage Members', 'textures/ui/icon_multiplayer');
+            }
+
+            if (isOwner || isAdmin) {
+                form.button('§l§dTeam Home', 'textures/ui/icon_recipe_nature');
+            }
+
+            if (isOwner || isServerAdmin) {
+                form.button('§l§cDelete Team', 'textures/ui/trash');
+            }
+            return form;
+        }
+
+        if (panelId === 'teamHomePanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const team = getTeamByPlayer(player.id);
+            if (!team) {return null;}
+
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+            const canManage = isOwner || isAdmin;
+
+            const form = new ActionFormData().title(`Team Home: ${team.name}`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            if (team.home && team.home.dimensionId) {
+                const { x, y, z, dimensionId } = team.home;
+                const dim = dimensionId.replace('minecraft:', '');
+                const coords = `${x.toFixed(0)}, ${y.toFixed(0)}, ${z.toFixed(0)} (${dim})`;
+                form.body(`Home Location:\n§a${coords}`);
+                form.button('§l§2Teleport', 'textures/items/ender_pearl');
+            } else {
+                form.body('§cNo team home set.');
+            }
+
+            if (canManage) {
+                form.button('§l§eUpdate Location', 'textures/ui/icon_recipe_nature');
+                if (team.home) {
+                    form.button('§l§cDelete Home', 'textures/ui/trash');
+                }
+            }
+            return form;
+        }
+
+        if (panelId === 'teamRequestsPanel') {
+            const { getTeamByPlayer } = await import('../teamManager.js');
+            const team = getTeamByPlayer(player.id);
+            if (!team) {return null;}
+
+            const form = new ActionFormData().title('Join Requests');
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            if (team.applications.length === 0) {
+                form.body('No pending join requests.');
+            } else {
+                for (const app of team.applications) {
+                    form.button(`${app.playerName}`);
+                }
+            }
             return form;
         }
 
@@ -765,46 +1012,29 @@ export async function buildPanelForm(player, panelId, context) {
             }
 
             // Robust handling for update interval to prevent crashes with legacy data
-            const updateIntervalInTicks = text.updateInterval ?? 0;
-            const intervalOptions = [0, 1, 2, 5, 10, 20, 30, 60];
-            const currentIntervalSeconds = updateIntervalInTicks / 20;
-            let defaultIntervalIndex = intervalOptions.indexOf(currentIntervalSeconds);
-            if (defaultIntervalIndex === -1) { defaultIntervalIndex = 0; } // Default to "Off"
-
             const expiresAt = text.expiresAt ?? null;
 
             const dimensionOptions = ['Overworld', 'Nether', 'The End'];
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
             const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension));
 
-
-            const { getPlaceholderKeys } = await import('../placeholderManager.js');
-            const placeholders = getPlaceholderKeys();
-            const placeholderText = placeholders.length > 0 ? `\nAvailable Placeholders: {${placeholders.join('}, {')}}` : '';
-            const intervalLabels = ['Off', '1s', '2s', '5s', '10s', '20s', '30s', '60s'];
-
             const form = new ModalFormData()
                 .title(`Edit: ${id}`)
-                .textField(`Text Content${placeholderText}`, 'Enter the text to display', { defaultValue: text.text ?? '' })
+                .textField('Text Content', 'Enter the text to display', { defaultValue: text.text ?? '' })
                 .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(+(text.location?.x ?? 0).toFixed(2)) })
                 .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(+(text.location?.y ?? 0).toFixed(2)) })
                 .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
                 .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
-                .dropdown('Update Interval', intervalLabels, { defaultValueIndex: defaultIntervalIndex })
                 .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
                 .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' });
             return form;
         }
 
         if (panelId === 'floatingTextCreatePanel') {
-            const { getPlaceholderKeys } = await import('../placeholderManager.js');
-            const placeholders = getPlaceholderKeys();
-            const placeholderText = placeholders.length > 0 ? `\nAvailable Placeholders: {${placeholders.join('}, {')}}` : '';
-
             const form = new ModalFormData()
                 .title('Create New Floating Text')
                 .textField('Unique ID (no spaces)', 'e.g., "welcome_message"')
-                .textField(`Text Content${placeholderText}`, 'Enter text to display');
+                .textField('Text Content', 'Enter text to display');
             return form;
         }
 
@@ -961,6 +1191,31 @@ export async function buildPanelForm(player, panelId, context) {
             return form;
         }
 
+        if (panelId === 'commandSystemPanel') {
+            const form = new ActionFormData().title(title);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+            buildCommandSystemPanel(form, context);
+            return form;
+        }
+
+        if (panelId === 'commandSettingsPanel') {
+            const { commandName } = context;
+            const config = getConfig();
+            const commandSettings = config.commandSettings[commandName] || {};
+            const command = commandManager.commands.get(commandName);
+
+            const isEnabled = commandSettings.enabled ?? false;
+            const permissionLevel = commandSettings.permissionLevel ?? command?.permissionLevel ?? 1024;
+
+            const form = new ModalFormData()
+                .title(`${commandName} Settings`)
+                .toggle('Enable Command', { defaultValue: isEnabled })
+                .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', { defaultValue: String(permissionLevel) });
+
+            form.submitButton('§l§2Save Settings');
+            return form;
+        }
+
         if (panelId === 'rankManagementPanel') {
             const panelDef = panelDefinitions[panelId];
             const title = panelDef.title;
@@ -1024,7 +1279,7 @@ export async function buildPanelForm(player, panelId, context) {
             const { page = 1 } = context;
             const form = new ActionFormData().title('§l§2Mob Drops System');
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            form.button('§l§a+ Add New Mob§r', 'textures/ui/realms_green_check.png');
+            form.button('§l§2+ Add New Mob§r', 'textures/ui/realms_green_check.png');
 
             const economyConfig = getEconomyConfig();
             const mobDrops = economyConfig.mobMoney || {};
@@ -1039,7 +1294,11 @@ export async function buildPanelForm(player, panelId, context) {
 
             for (const mobId of paginatedMobIds) {
                 const amount = mobDrops[mobId];
-                form.button(`${mobId}\n§2${formatCurrency(amount)}`);
+                // Check if we have a specific spawn egg icon for this mob
+                const spawnEggId = `${mobId}_spawn_egg`;
+                const icon = iconDB[spawnEggId]?.icon || 'textures/ui/help_question_mark';
+
+                form.button(`${mobId}\n§2${formatCurrency(amount)}`, icon);
             }
 
             addPaginationButtons(form, page, mobIds.length);
@@ -1055,8 +1314,6 @@ export async function buildPanelForm(player, panelId, context) {
             const defaultIndex = internalStyles.indexOf(currentStyle);
 
             form.dropdown('Nametag Style', nameTagStyles, { defaultValueIndex: defaultIndex > -1 ? defaultIndex : 0 });
-            form.textField('Nametag Prefix', 'e.g., §0[§r', { defaultValue: config.ranks?.nameTagPrefix ?? '§0[§r' });
-            form.textField('Nametag Suffix', 'e.g., §0]§r', { defaultValue: config.ranks?.nameTagSuffix ?? '§0]§r' });
             return form;
         }
 
@@ -1138,7 +1395,9 @@ export async function buildPanelForm(player, panelId, context) {
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
             const resettableSystems = [
-                ...configPanelSchema.filter(c => c.id !== 'general').map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+                ...configPanelSchema
+                    .filter(c => !c.id.startsWith('general_'))
+                    .map(c => ({ id: c.id, title: c.title, icon: c.icon })),
                 { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
                 { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
                 { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
@@ -1167,14 +1426,20 @@ export async function buildPanelForm(player, panelId, context) {
             addPanelBody(form, player, panelId, context);
 
             const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
+            const isSelf = context.targetPlayerId === player.id;
+            const selfDisabledActions = ['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze', 'tpa', 'tpahere', 'report'];
+
             for (const item of visibleItems) {
+                if (isSelf && selfDisabledActions.includes(item.id)) {
+                    continue;
+                }
                 form.button(item.text, item.icon);
             }
             return form;
         }
 
         const form = new ActionFormData().title(title);
-        addPanelBody(form, player, panelId, context);
+        await addPanelBody(form, player, panelId, context);
         const menuItems = getMenuItems(panelDef, pData.permissionLevel);
         for (const item of menuItems) {
             form.button(item.text, item.icon);

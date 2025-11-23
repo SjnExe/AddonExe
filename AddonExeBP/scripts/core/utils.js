@@ -46,9 +46,9 @@ export function parseDuration(durationString) {
  * @param {import('@minecraft/server').Player} player The player to play the sound for.
  * @param {string} soundId The ID of the sound to play.
  */
-export function playSound(player, soundId) {
+export function playSound(player, soundId, options = {}) {
     try {
-        player.playSound(soundId);
+        player.playSound(soundId, options);
     } catch (e) {
         errorLog(`Failed to play sound "${soundId}" for player ${player.name}: ${e}`);
     }
@@ -61,6 +61,9 @@ export function playSound(player, soundId) {
  * @returns {Promise<any>} A promise that resolves with the form response, or undefined if it times out or is cancelled for other reasons.
  */
 export async function uiWait(player, form) {
+    // REMOVED: playSound(player, 'random.click', { volume: 0.5, pitch: 1.0 });
+    // The vanilla UI system already plays a click sound. Removing duplicate.
+
     let firstAttempt = await form.show(player);
     if (firstAttempt.cancelationReason !== 'UserBusy') {
         return firstAttempt;
@@ -134,11 +137,18 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
 
     const cleanup = () => {
         if (intervalId !== null) {
-            mc.system.clearInterval(intervalId);
+            mc.system.clearRun(intervalId);
             intervalId = null;
         }
         if (hurtListener) {
-            mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
+            try {
+                // Defensive check to avoid crashes if the API reference is stale or invalid
+                if (mc.world?.afterEvents?.entityHurt?.unsubscribe) {
+                    mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
+                }
+            } catch {
+                // Ignore cleanup errors to prevent cascading crashes
+            }
             hurtListener = null;
         }
     };
@@ -146,6 +156,7 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
     hurtListener = mc.world.afterEvents.entityHurt.subscribe(event => {
         if (event.hurtEntity.id === player.id) {
             player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
+            playSound(player, 'note.bass', { volume: 1.0, pitch: 0.5 });
             cleanup();
         }
     }, { entityTypes: ['minecraft:player'] });
@@ -167,6 +178,7 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
 
             if (distanceMoved > 2 || player.dimension.id !== dimensionId) {
                 player.onScreenDisplay.setActionBar('§cTeleport canceled because you moved.');
+                playSound(player, 'note.bass', { volume: 1.0, pitch: 0.5 });
                 cleanup();
                 return;
             }
@@ -176,8 +188,14 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
             if (remainingSeconds > 0) {
                 const color = getCountdownColor(remainingSeconds);
                 player.onScreenDisplay.setActionBar(`${color}Teleporting in ${remainingSeconds}...`);
+
+                // Play ticking sound (rising pitch as time decreases)
+                // Pitch starts at 0.5 and goes up to 2.0
+                const pitch = 0.5 + (1.5 * (1 - (remainingSeconds / durationSeconds)));
+                playSound(player, 'note.pling', { volume: 0.5, pitch: pitch });
             } else {
                 player.onScreenDisplay.setActionBar('§aTeleporting...');
+                playSound(player, 'random.levelup', { volume: 0.5, pitch: 1.0 });
                 cleanup();
                 onWarmupComplete();
             }
@@ -280,12 +298,36 @@ export function formatLocation(location) {
 
 /**
  * Formats a number as a currency string, using the symbol from the config.
+ * Supports short forms like k, M, B, T.
  * @param {number} amount The amount to format.
- * @returns {string} The formatted currency string (e.g., "$1,234.50").
+ * @returns {string} The formatted currency string (e.g., "$105k").
  */
 export function formatCurrency(amount) {
     const economyConfig = getEconomyConfig();
     const symbol = economyConfig.currencySymbol || '$';
-    const formattedAmount = amount.toFixed(2);
-    return `${symbol}${formattedAmount}`;
+    const isNegative = amount < 0;
+    let absAmount = Math.abs(amount);
+    let formattedAmount = '';
+
+    const suffixes = [
+        { value: 1e24, symbol: 'S' },
+        { value: 1e21, symbol: 's' },
+        { value: 1e18, symbol: 'Q' },
+        { value: 1e15, symbol: 'q' },
+        { value: 1e12, symbol: 'T' },
+        { value: 1e9, symbol: 'B' },
+        { value: 1e6, symbol: 'M' },
+        { value: 1e3, symbol: 'k' }
+    ];
+
+    const suffix = suffixes.find(s => absAmount >= s.value);
+
+    if (suffix) {
+        // Use at most 2 decimal places for large numbers, but remove trailing zeros/decimal if whole
+        formattedAmount = (absAmount / suffix.value).toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1') + suffix.symbol;
+    } else {
+        formattedAmount = absAmount.toFixed(2);
+    }
+
+    return `${isNegative ? '-' : ''}${symbol}${formattedAmount}`;
 }

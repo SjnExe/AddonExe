@@ -99,7 +99,7 @@ commandManager.register({
     allowConsole: true,
     disableSlashCommand: false,
     parameters: [
-        { name: 'gamemode', type: 'string', description: 'Gamemode (s, c, a, sp, or full name)', optional: false },
+        { name: 'gamemode', type: 'string', description: 'Gamemode (s, c, a, sp, or full name)', enumOptions: ['survival', 'creative', 'adventure', 'spectator', 's', 'c', 'a', 'sp'], optional: false },
         { name: 'target', type: 'player', description: 'The target player', optional: true }
     ],
     /**

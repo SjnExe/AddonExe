@@ -23,7 +23,7 @@
 
 /** @type {Required<ChatFormatting>} */
 export const defaultChatFormatting = {
-    prefixText: '§8[§8Member§8] ',
+    prefixText: '§8Member',
     nameColor: '§7',
     messageColor: '§f'
 };
@@ -36,7 +36,7 @@ export const rankDefinitions = [
         permissionLevel: 0,
         locked: true,
         chatFormatting: {
-            prefixText: '§8[§4Owner§8] ',
+            prefixText: '§4Owner',
             nameColor: '§4',
             messageColor: '§f'
         },
@@ -51,7 +51,7 @@ export const rankDefinitions = [
         permissionLevel: 1,
         locked: true,
         chatFormatting: {
-            prefixText: '§8[§cAdmin§8] ',
+            prefixText: '§cAdmin',
             nameColor: '§c',
             messageColor: '§f'
         },
@@ -65,7 +65,7 @@ export const rankDefinitions = [
         name: 'Moderator',
         permissionLevel: 2,
         chatFormatting: {
-            prefixText: '§8[§2Mod§8] ',
+            prefixText: '§2Mod',
             nameColor: '§a',
             messageColor: '§f'
         },
@@ -79,7 +79,7 @@ export const rankDefinitions = [
         name: 'Helper',
         permissionLevel: 500,
         chatFormatting: {
-            prefixText: '§8[§eHelper§8] ',
+            prefixText: '§eHelper',
             nameColor: '§e',
             messageColor: '§f'
         },
@@ -93,7 +93,7 @@ export const rankDefinitions = [
         name: 'Donator',
         permissionLevel: 850,
         chatFormatting: {
-            prefixText: '§8[§dDonator§8] ',
+            prefixText: '§dDonator',
             nameColor: '§d',
             messageColor: '§f'
         },
@@ -107,7 +107,7 @@ export const rankDefinitions = [
         name: 'VIP',
         permissionLevel: 800,
         chatFormatting: {
-            prefixText: '§8[§6VIP§8] ',
+            prefixText: '§6VIP',
             nameColor: '§6',
             messageColor: '§f'
         },
@@ -121,7 +121,7 @@ export const rankDefinitions = [
         name: 'Verified',
         permissionLevel: 700,
         chatFormatting: {
-            prefixText: '§8[§bVerified§8] ',
+            prefixText: '§bVerified',
             nameColor: '§b',
             messageColor: '§f'
         },

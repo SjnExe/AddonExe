@@ -46,7 +46,16 @@ commandManager.register({
         }
 
         const sourceData = getPlayer(player.id);
-        if (!sourceData || sourceData.balance < amount) {
+
+        if (!sourceData) {
+            return sendMessage('§cCould not retrieve your data.', player);
+        }
+
+        if (sourceData.balance < 0) {
+            return sendMessage('§cYou cannot transfer money while your balance is negative.', player);
+        }
+
+        if (sourceData.balance < amount) {
             return sendMessage('§cYou do not have enough money for this payment.', player);
         }
 

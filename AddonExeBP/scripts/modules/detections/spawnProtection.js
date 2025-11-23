@@ -23,7 +23,7 @@ function cleanup() {
     eventHandlers = [];
 
     if (intervalId !== -1) {
-        mc.system.clearInterval(intervalId);
+        mc.system.clearRun(intervalId);
         intervalId = -1;
         debugLog('[SpawnProtection] Interval cleared.');
     }
@@ -168,6 +168,17 @@ function initialize() {
         debugLog('[SpawnProtection] Subscribing to block interaction events.');
         subscribe(mc.world.beforeEvents.playerInteractWithBlock, (event) => {
             if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
+                event.cancel = true;
+            }
+        });
+    }
+
+    if (spawnProtection.preventItemDropping) {
+        debugLog('[SpawnProtection] Subscribing to item drop events.');
+        subscribe(mc.world.beforeEvents.playerDropItem, (event) => {
+            // Note: event.itemStack is the item being dropped.
+            // We check the player's location.
+            if (isWithinSpawnProtection(event.player.location, event.player.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
         });

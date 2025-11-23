@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 import { getConfig } from './configManager.js';
+import { getPlayerRank } from './rankManager.js';
 import { saveAllData } from './dataManager.js';
 import { debugLog } from './logger.js';
 import { errorLog } from './logger.js';
@@ -33,9 +34,23 @@ export function startRestart(initiator) {
     countdownIntervalId = setTrackedInterval(() => {
         if (countdownTimer > 0) {
             const message = `§l§cServer restarting in ${countdownTimer}...`;
-            // Use action bar for a less intrusive, constant reminder
+
+            // Calculate pitch: Starts at 0.5, ends at 2.0
+            const progress = (countdownSeconds - countdownTimer) / countdownSeconds;
+            const pitch = 0.5 + (progress * 1.5);
+
             for (const player of mc.world.getAllPlayers()) {
+                // Action Bar
                 player.onScreenDisplay.setActionBar(message);
+
+                // Sound Effect
+                player.playSound('note.pling', { pitch: pitch, volume: 1.0 });
+
+                // Big Title for last 5 seconds
+                if (countdownTimer <= 5) {
+                    player.onScreenDisplay.setTitle(`§c${countdownTimer}`);
+                    player.onScreenDisplay.updateSubtitle('§eServer Restarting...');
+                }
             }
 
             // Announce in chat at key moments
@@ -69,19 +84,33 @@ function finalizeRestart() {
         const kickMessage = config.restart?.kickMessage ?? 'Server is restarting.';
 
         try {
-            const ownerNames = config.ownerPlayerNames.map(name => `name=!"${name}"`).join(',');
-            const command = `kick @a[tag=!${config.adminTag},${ownerNames}] ${kickMessage}`;
-
-            debugLog(`[RestartManager] Running kick command: /${command}`);
-            mc.world.getDimension('overworld').runCommand(command);
-            debugLog('[RestartManager] Kick command finished.');
-
-            // Send a message to any remaining (admin/owner) players.
+            // Play a final sound
             for (const player of mc.world.getAllPlayers()) {
-                player.sendMessage('§aYou were not kicked by the restart sequence because you are an admin/owner.');
+                player.playSound('random.levelup', { pitch: 1.0, volume: 1.0 });
             }
+
+            // Iterate players and kick based on permission level
+            const players = mc.world.getAllPlayers();
+            const overworld = mc.world.getDimension('overworld');
+            for (const player of players) {
+                const rank = getPlayerRank(player, config);
+                // Permission Level 0 = Owner, 1 = Admin. Higher is lower rank.
+                if (rank.permissionLevel > 1) {
+                    try {
+                        // Use dimension to run command so it runs with server permissions
+                        overworld.runCommand(`kick "${player.name}" ${kickMessage}`);
+                    } catch (kickError) {
+                        errorLog(`[RestartManager] Failed to kick ${player.name}: ${kickError}`);
+                    }
+                } else {
+                    player.sendMessage('§aYou were not kicked by the restart sequence because you are an admin/owner.');
+                }
+            }
+
+            debugLog('[RestartManager] Kick sequence finished.');
+
         } catch (error) {
-            errorLog(`[RestartManager] Failed to execute kick command: ${error}`);
+            errorLog(`[RestartManager] Critical error during kick sequence: ${error}`);
         }
 
         errorLog('[AddonExe] SERVER IS READY FOR RESTART. Data has been saved and players have been kicked.');

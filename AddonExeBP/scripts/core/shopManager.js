@@ -90,6 +90,10 @@ export function buyItem(player, itemId, quantity) {
     const pData = getOrCreatePlayer(player);
     const initialCost = buyPrice * quantity;
 
+    if (pData.balance < 0) {
+        return { success: false, message: '§cYou cannot purchase items while your balance is negative.' };
+    }
+
     if (pData.balance < initialCost) {
         return { success: false, message: `§cInsufficient funds. You need §e${formatCurrency(initialCost)}§c to attempt this purchase.` };
     }

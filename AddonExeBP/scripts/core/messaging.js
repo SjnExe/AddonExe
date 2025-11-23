@@ -11,9 +11,7 @@ import { warnLog } from './logger.js';
  * @param {string} [options.title=null] An optional title to replace the default server name.
  */
 export function sendMessage(message, target = mc.world, options = {}) {
-    const { raw = false, title = null } = options;
-    const serverName = title ?? getConfig()?.serverName ?? 'Server';
-    const finalMessage = raw ? message : `${serverName} §8»§r ${message}`;
+    const finalMessage = message;
 
     try {
         if (target === 'all' || target === mc.world) {

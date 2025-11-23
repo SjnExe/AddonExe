@@ -114,17 +114,17 @@ export function getAllRanks() {
 }
 
 /**
- * Updates a player's nametag to display their rank.
+ * Updates a player's nametag to display their rank and team.
  * @param {import('@minecraft/server').Player} player The player whose nametag should be updated.
  * @param {object} config The addon's configuration object.
  */
 export function updatePlayerNameTag(player, config) {
     const rank = getPlayerRank(player, config);
     const rankPrefix = rank.chatFormatting?.prefixText ?? '';
-    const { nameTagStyle = 'above', nameTagPrefix = '', nameTagSuffix = '' } = config.ranks || {};
+    const { nameTagStyle = 'above' } = config.ranks || {};
 
-    // Construct the final nametag prefix, only adding brackets if the rank prefix itself isn't empty.
-    const finalPrefix = rankPrefix ? `${nameTagPrefix}${rankPrefix}${nameTagSuffix}` : '';
+    // Hardcoded brackets: §e[§r PREFIX §e]§r
+    const finalPrefix = rankPrefix ? `§e[§r${rankPrefix}§e]§r` : '';
 
     let newNameTag;
     switch (nameTagStyle) {

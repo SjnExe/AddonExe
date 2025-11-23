@@ -1,81 +1,38 @@
 import * as mc from '@minecraft/server';
-import { loadConfig, getConfig, updateConfig } from './configManager.js';
+import { loadConfig, getConfig } from './configManager.js';
 import { getSpawnConfig, loadEconomyConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSpawnConfig, loadXrayConfig } from './configurations.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
-import * as playerDataManager from './playerDataManager.js';
-import { cleanupPlayerDataManager, clearExpiredPayments, getBalance, getLeaderboard, getPlayer } from './playerDataManager.js';
+import {
+    getOrCreatePlayer,
+    setPlayerRank,
+    cleanupPlayerDataManager,
+    clearExpiredPayments,
+    loadNameIdMap,
+    initializeLeaderboard
+} from './playerDataManager.js';
 import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
 import * as bountyManager from './bountyManager.js';
+import * as teamManager from './teamManager.js';
 import { errorLog, setLogLevel, infoLog } from './logger.js';
-import { startRestart } from './restartManager.js';
 import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
-import { registerPlaceholder } from './placeholderManager.js';
-import { formatCurrency } from './utils.js';
+import { initializeMigration } from './migrationManager.js';
 import '../modules/commands/index.js';
 import './mobDeathEvents.js';
-
-/**
- * Registers all placeholders related to player data.
- * This must be called after the player data manager is initialized but before
- * any systems that might use these placeholders are initialized.
- */
-function registerPlayerDataPlaceholders() {
-    registerPlaceholder('playername', (player) => player.name);
-
-    registerPlaceholder('balance', (player) => {
-        const balance = getBalance(player.id);
-        return balance !== null ? formatCurrency(balance) : 'N/A';
-    });
-
-    registerPlaceholder('rank', (player) => {
-        const pData = getPlayer(player.id);
-        if (!pData) { return 'N/A'; }
-        const rank = rankManager.getRankById(pData.rankId);
-        return rank?.name ?? 'N/A';
-    });
-
-    registerPlaceholder('topbal', (player, args) => {
-        const leaderboard = getLeaderboard();
-        const config = getConfig();
-        const limit = args?.limit ?? config.economy.baltopLimit;
-        if (!leaderboard || leaderboard.length === 0) {
-            return '§cNo balance data available.§r';
-        }
-
-        const topEntries = leaderboard.slice(0, limit);
-        return topEntries.map((entry, index) =>
-            `§e${index + 1}. §f${entry.name} §7- §a${formatCurrency(entry.balance)}§r`
-        ).join('\n');
-    }, (fullKey) => {
-        const match = fullKey.match(/^topbal(\d+)(name|value)$/);
-        if (!match) { return null; }
-        const index = parseInt(match[1], 10) - 1;
-        const type = match[2];
-        const leaderboard = getLeaderboard();
-
-        if (index < 0 || index >= leaderboard.length) {
-            return 'N/A';
-        }
-        const entry = leaderboard[index];
-        return type === 'name' ? entry.name : formatCurrency(entry.balance);
-    });
-}
-
 
 /**
  * Checks a player's rank and updates it if necessary.
  * @param {import('@minecraft/server').Player} player The player to check.
  */
 export function updatePlayerRank(player) {
-    const pData = playerDataManager.getOrCreatePlayer(player);
+    const pData = getOrCreatePlayer(player);
     if (!pData) { return; }
 
     const config = getConfig();
@@ -84,7 +41,7 @@ export function updatePlayerRank(player) {
     const newRank = rankManager.getPlayerRank(player, config);
 
     if (oldRankId !== newRank.id) {
-        playerDataManager.setPlayerRank(player.id, newRank.id, newRank.permissionLevel);
+        setPlayerRank(player.id, newRank.id, newRank.permissionLevel);
         infoLog(`[AddonExe] Player ${player.name}'s rank updated from ${oldRankId} to ${newRank.name}.`);
         player.sendMessage(`§aYour rank has been updated to ${newRank.name}.`);
     }
@@ -108,7 +65,7 @@ function reinitializeOnlinePlayers() {
     infoLog(`[AddonExe] Re-initializing state for ${mc.world.getAllPlayers().length} online players...`);
     for (const player of mc.world.getAllPlayers()) {
         // Ensure the player's data is loaded into the system
-        playerDataManager.getOrCreatePlayer(player);
+        getOrCreatePlayer(player);
         // Then, update their rank based on the loaded data and config
         updatePlayerRank(player);
     }
@@ -120,12 +77,12 @@ function reinitializeOnlinePlayers() {
  */
 function loadPersistentData() {
     infoLog('[AddonExe] Loading persistent data...');
-    playerDataManager.loadNameIdMap();
+    loadNameIdMap();
     loadPunishments();
     loadReports();
     loadCooldowns();
     bountyManager.loadBounties();
-    playerDataManager.initializeLeaderboard();
+    initializeLeaderboard();
 }
 
 /**
@@ -135,8 +92,8 @@ function initializeManagers() {
     infoLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
-    registerPlayerDataPlaceholders(); // Must be before managers that use placeholders
     floatingTextManager.initialize();
+    teamManager.initialize();
     // Clear any expired data on startup
     clearExpiredPunishments();
     clearOldResolvedReports();
@@ -150,8 +107,16 @@ function initializeManagers() {
 function checkConfiguration() {
     const config = getConfig();
     const spawnConfig = getSpawnConfig();
-    // Add a guard in case config hasn't loaded yet, though the init flow should prevent this.
-    if (!config || !config.ownerPlayerNames || !config.ownerPlayerNames.length || config.ownerPlayerNames[0] === 'Your•Name•Here') {
+
+    // Correctly check for a configured owner.
+    // The check is now more robust:
+    // 1. It ensures ownerPlayerNames is an array.
+    // 2. It verifies the array is not empty.
+    // 3. It checks that the array doesn't solely contain the default placeholder.
+    const ownerNames = config?.ownerPlayerNames;
+    const isOwnerConfigured = Array.isArray(ownerNames) && ownerNames.length > 0 && (ownerNames.length > 1 || ownerNames[0] !== 'Your•Name•Here');
+
+    if (!isOwnerConfigured) {
         const warningMessage = '§l§c[AddonExe] WARNING: No owner is configured. Please set `ownerPlayerNames` in `scripts/config.js` to gain access to admin commands.';
         mc.system.runTimeout(() => mc.world.sendMessage(warningMessage), 20);
         errorLog('[AddonExe] No owner configured.');
@@ -168,8 +133,8 @@ function checkConfiguration() {
  * Starts all recurring system timers.
  */
 function startSystemTimers() {
-    // Periodically clear expired payment confirmations
-    setTrackedInterval(clearExpiredPayments, 6000); // 5 minutes
+    // Periodically clear expired payment confirmations (every 60 seconds)
+    setTrackedInterval(clearExpiredPayments, 60 * 20);
     // Rank updates are now handled by events (e.g., !admin command)
     infoLog('[AddonExe] System timers started.');
 }
@@ -204,6 +169,15 @@ async function initializeAddon() {
 
     dataManager.initializeDataManager();
     loadPersistentData();
+
+    // Run migrations after data load but before managers usage if possible,
+    // or right here as managers initialize.
+    initializeMigration();
+
+    // Initialize player cache first so other managers can rely on it
+    const { initializePlayerCache } = await import('./playerCache.js');
+    initializePlayerCache();
+
     initializeManagers();
     checkConfiguration();
     initializeEventManager();
@@ -249,59 +223,12 @@ mc.system.runTimeout(async () => {
 }, 0);
 
 mc.system.afterEvents.scriptEventReceive.subscribe((event) => {
-    const { id, sourceEntity } = event;
+    const { id } = event;
 
     // Handle script unload event
     if (id === 'minecraft:script_unload') {
         cleanupAddon();
         return;
     }
-
-    const config = getConfig(); // Config should be loaded by the time this event fires for custom events.
-    if (!config) { return; }
-
-
-    switch (id) {
-        case 'exe:restart':
-            startRestart(sourceEntity);
-            break;
-
-        case 'exe:toggle_chat_log': {
-            const chatConfig = config.chat || { logToConsole: false };
-            const newValue = !chatConfig.logToConsole;
-            chatConfig.logToConsole = newValue;
-            updateConfig('chat', chatConfig);
-
-            const feedbackMessage = `§aChat-to-console has been ${newValue ? '§aenabled' : '§cdisabled'}§a.`;
-            if (sourceEntity && sourceEntity.sendMessage) {
-                sourceEntity.sendMessage(feedbackMessage);
-            }
-            // eslint-disable-next-line no-console
-            console.log(`[AddonExe] ${feedbackMessage}`);
-            break;
-        }
-
-        case 'exe:grant_admin_self': {
-            if (sourceEntity && sourceEntity.addTag) {
-                const adminRank = rankManager.getRankById('admin');
-                if (!adminRank) {
-                    errorLog('[AddonExe] Could not grant admin rank because the "admin" rank definition was not found.');
-                    sourceEntity.sendMessage('§cError: The admin rank is not configured.');
-                    return;
-                }
-
-                const adminTagCondition = adminRank.conditions.find(c => c.type === 'hasTag');
-                if (!adminTagCondition || !adminTagCondition.value) {
-                    errorLog('[AddonExe] Could not grant admin rank because it lacks a valid "hasTag" condition.');
-                    sourceEntity.sendMessage('§cError: The admin rank is not configured with a valid tag.');
-                    return;
-                }
-
-                sourceEntity.addTag(adminTagCondition.value);
-                sourceEntity.sendMessage('§aYou have been promoted to Admin.');
-                updateAllPlayerRanks();
-            }
-            break;
-        }
-    }
+    // Other script events are handled by handleScriptEventReceive in core/events/scriptEventReceive.js
 });

@@ -67,7 +67,10 @@ const defaultPlayerData = {
     lastDeathLocation: null,
     deathNotificationSent: true,
     tpaRequestsDisabled: false,
-    announcementsMuted: false
+    announcementsMuted: false,
+    teamId: null,
+    teamSettings: { autoTpAccept: false },
+    pendingInvites: []
 };
 
 
@@ -79,7 +82,7 @@ const defaultPlayerData = {
  * @param {string} playerId The ID of the player to update.
  * @param {(pData: PlayerData) => void} modificationCallback A callback that receives the player data and modifies it.
  */
-function updatePlayerData(playerId, modificationCallback) {
+export function updatePlayerData(playerId, modificationCallback) {
     const pData = getPlayer(playerId);
     if (pData) {
         modificationCallback(pData);
@@ -177,14 +180,11 @@ export function loadPlayerData(playerId) {
 }
 
 /**
- * Gets a player's data from the cache, or loads/creates it if it doesn't exist.
+ * Updates the name-to-ID map if the player's name has changed.
  * @param {import('@minecraft/server').Player} player
- * @returns {PlayerData}
  */
-export function getOrCreatePlayer(player) {
+function _updateNameMap(player) {
     const playerNameLower = player.name.toLowerCase();
-    let mapWasModified = false;
-
     if (playerNameIdMap.get(playerNameLower) !== player.id) {
         const oldName = playerIdNameMap.get(player.id);
         if (oldName) {
@@ -192,29 +192,16 @@ export function getOrCreatePlayer(player) {
         }
         playerNameIdMap.set(playerNameLower, player.id);
         playerIdNameMap.set(player.id, player.name);
-        mapWasModified = true;
-    }
-
-    if (mapWasModified) {
         isNameIdMapDirty = true;
     }
+}
 
-    if (activePlayerData.has(player.id)) {
-        const pData = activePlayerData.get(player.id);
-        if (pData.name !== player.name) {
-            updatePlayerData(player.id, data => { data.name = player.name; });
-        }
-        return pData;
-    }
-
-    const loadedData = loadPlayerData(player.id);
-    if (loadedData) {
-        if (loadedData.name !== player.name) {
-            updatePlayerData(player.id, data => { data.name = player.name; });
-        }
-        return loadedData;
-    }
-
+/**
+ * Creates a new player data object with default values.
+ * @param {import('@minecraft/server').Player} player
+ * @returns {PlayerData}
+ */
+function _createNewPlayerData(player) {
     const config = getConfig();
     const economyConfig = getEconomyConfig();
     const newPlayerData = {
@@ -226,12 +213,40 @@ export function getOrCreatePlayer(player) {
         xrayNotificationsEnabled: config.playerDefaults.xrayNotificationsEnabled,
         homes: {},
         kitCooldowns: {},
-        tpaBlockedPlayerIds: []
+        tpaBlockedPlayerIds: [],
+        teamId: null,
+        teamSettings: { autoTpAccept: false },
+        pendingInvites: []
     };
-
     activePlayerData.set(player.id, newPlayerData);
     savePlayerData(player.id);
     return newPlayerData;
+}
+
+/**
+ * Gets a player's data from the cache, or loads/creates it if it doesn't exist.
+ * @param {import('@minecraft/server').Player} player
+ * @returns {PlayerData}
+ */
+export function getOrCreatePlayer(player) {
+    _updateNameMap(player);
+
+    let pData = activePlayerData.get(player.id);
+
+    if (!pData) {
+        pData = loadPlayerData(player.id);
+    }
+
+    if (!pData) {
+        return _createNewPlayerData(player);
+    }
+
+    // Ensure name in data matches current player name
+    if (pData.name !== player.name) {
+        updatePlayerData(player.id, data => { data.name = player.name; });
+    }
+
+    return pData;
 }
 
 /**
@@ -326,10 +341,14 @@ function updateAndSaveLeaderboard(playerId, pData) {
     const existingIndex = leaderboardCache.findIndex(p => p.playerId === playerId);
     const playerIsOnBoard = existingIndex !== -1;
 
-    if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) {return;}
+    // Optimization: Skip if player is not on board AND their balance is too low to enter
+    if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) { return; }
 
+    // Optimization: If player is on board, check if their balance actually changed enough to matter?
+    // Actually, if they are on the board, we always need to update their entry.
+    // But we can check if the balance value is identical to what we have in cache.
     if (playerIsOnBoard) {
-        if (leaderboardCache[existingIndex].balance === pData.balance) {return;}
+        if (leaderboardCache[existingIndex].balance === pData.balance) { return; } // No change in value
         leaderboardCache.splice(existingIndex, 1);
     }
 
@@ -451,15 +470,24 @@ export function deletePlayerHome(playerId, homeName) {
 }
 
 export function setPlayerBalance(playerId, newBalance) {
+    const economyConfig = getEconomyConfig();
+    const min = economyConfig.minBalance ?? -1000000;
+    const max = economyConfig.maxBalance ?? 1000000000;
+
     updatePlayerData(playerId, pData => {
-        pData.balance = newBalance;
+        pData.balance = Math.max(min, Math.min(newBalance, max));
         updateAndSaveLeaderboard(playerId, pData);
     });
 }
 
 export function incrementPlayerBalance(playerId, amount) {
+    const economyConfig = getEconomyConfig();
+    const min = economyConfig.minBalance ?? -1000000;
+    const max = economyConfig.maxBalance ?? 1000000000;
+
     updatePlayerData(playerId, pData => {
-        pData.balance += amount;
+        const potentialBalance = pData.balance + amount;
+        pData.balance = Math.max(min, Math.min(potentialBalance, max));
         updateAndSaveLeaderboard(playerId, pData);
     });
 }

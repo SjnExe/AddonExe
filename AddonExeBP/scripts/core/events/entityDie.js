@@ -3,6 +3,7 @@ import { getOrCreatePlayer, setPlayerLastDeathLocation, incrementPlayerBalance }
 import * as lastHitManager from '../lastHitManager.js';
 import * as playerCache from '../playerCache.js';
 import * as bountyManager from '../bountyManager.js';
+import * as teamManager from '../teamManager.js';
 import { getConfig } from '../configManager.js';
 import { debugLog } from '../logger.js';
 import { errorLog } from '../logger.js';
@@ -51,6 +52,16 @@ function handleEntityDie(event) {
         if (killer && killer.isValid && killer.id !== deadPlayer.id) {
             const bounty = bountyManager.getBounty(deadPlayer.id);
             if (bounty && bounty.amount > 0) {
+
+                // Check Team
+                const killerTeamId = teamManager.getPlayerTeamId(killer.id);
+                const victimTeamId = teamManager.getPlayerTeamId(deadPlayer.id);
+
+                if (killerTeamId && victimTeamId && killerTeamId === victimTeamId) {
+                    killer.sendMessage('§cYou cannot claim bounties on teammates!');
+                    return;
+                }
+
                 incrementPlayerBalance(killer.id, bounty.amount);
                 bountyManager.removeBounty(deadPlayer.id);
 

@@ -1,0 +1,128 @@
+import * as mc from '@minecraft/server';
+import { debugLog, infoLog, errorLog } from './logger.js';
+
+/**
+ * The current data version of the addon.
+ * Increment this number when adding new migrations.
+ */
+const CURRENT_DATA_VERSION = 1;
+
+/**
+ * The property key used to store the current data version in the world.
+ */
+const DATA_VERSION_KEY = 'exe:data_version';
+
+/**
+ * Initializes the migration manager and runs any pending migrations.
+ * This should be called during addon initialization, after configs are loaded but before data is fully utilized.
+ */
+export function initializeMigration() {
+    debugLog('[MigrationManager] Checking for pending migrations...');
+
+    let currentVersion = mc.world.getDynamicProperty(DATA_VERSION_KEY);
+
+    // If no version is stored, assume version 0 (fresh install or legacy data)
+    if (typeof currentVersion !== 'number') {
+        currentVersion = 0;
+    }
+
+    if (currentVersion < CURRENT_DATA_VERSION) {
+        infoLog(`[MigrationManager] Migrating data from version ${currentVersion} to ${CURRENT_DATA_VERSION}...`);
+
+        try {
+            runMigrations(currentVersion);
+            mc.world.setDynamicProperty(DATA_VERSION_KEY, CURRENT_DATA_VERSION);
+            infoLog(`[MigrationManager] Successfully migrated to version ${CURRENT_DATA_VERSION}.`);
+        } catch (e) {
+            errorLog(`[MigrationManager] Critical error during migration: ${e.stack}`);
+            // We do NOT update the version if migration fails, so it can retry next time.
+        }
+    } else {
+        debugLog('[MigrationManager] Data is up to date.');
+    }
+}
+
+/**
+ * Runs migrations sequentially from the current version up to the latest.
+ * @param {number} startVersion The version to start migrating from.
+ */
+function runMigrations(startVersion) {
+    if (startVersion < 1) {
+        migrateToV1();
+    }
+}
+
+/**
+ * Migration v1: Remove hardcoded brackets `[` `]` and color `§0` from rank prefixes.
+ * This ensures ranks are clean names (e.g. "Owner") instead of "[Owner]".
+ * The system now adds standard brackets `§7[...]` automatically.
+ */
+function migrateToV1() {
+    infoLog('[MigrationManager] Running v1 migration: Cleaning rank prefixes...');
+
+    // Migrate stored Ranks Config
+    const ranksConfigKey = 'exe:ranksConfig';
+
+    try {
+        const ranksDataStr = mc.world.getDynamicProperty(ranksConfigKey);
+        if (!ranksDataStr) {
+            infoLog('[MigrationManager] No saved rank data found to migrate.');
+            return;
+        }
+
+        let ranksData;
+        try {
+            ranksData = JSON.parse(ranksDataStr);
+        } catch (e) {
+            errorLog('[MigrationManager] Failed to parse stored rank config for migration.', e);
+            return;
+        }
+
+        if (ranksData && Array.isArray(ranksData.rankDefinitions)) {
+            let modified = false;
+            for (const rank of ranksData.rankDefinitions) {
+                if (rank.chatFormatting) {
+                    const oldPrefix = rank.chatFormatting.prefixText;
+                    const newPrefix = cleanRankName(oldPrefix);
+                    if (oldPrefix !== newPrefix) {
+                        rank.chatFormatting.prefixText = newPrefix;
+                        modified = true;
+                    }
+                }
+                if (rank.nametagPrefix) {
+                    const oldTag = rank.nametagPrefix;
+                    const newTag = cleanRankName(oldTag);
+                    if (oldTag !== newTag) {
+                        rank.nametagPrefix = newTag;
+                        modified = true;
+                    }
+                }
+            }
+
+            if (modified) {
+                mc.world.setDynamicProperty(ranksConfigKey, JSON.stringify(ranksData));
+                infoLog('[MigrationManager] Successfully migrated rank definitions.');
+            } else {
+                infoLog('[MigrationManager] No ranks required migration.');
+            }
+        } else {
+            infoLog('[MigrationManager] Rank data structure did not match expected format. Skipping.');
+        }
+
+    } catch (e) {
+        errorLog('[MigrationManager] Error migrating rank configs:', e);
+    }
+}
+
+/**
+ * Helper to strip brackets and specific colors from a rank string.
+ * @param {string} name
+ * @returns {string}
+ */
+export function cleanRankName(name) {
+    if (!name) {return name;}
+    // Remove §0, [, ]
+    // Also remove the hardcoded space if present at the end often used in old config '... ] '
+    let cleaned = name.replace(/§0/g, '').replace(/\[|\]/g, '').trim();
+    return cleaned;
+}

@@ -4,6 +4,8 @@ import { commandManager } from '../../modules/commands/commandManager.js';
 import * as playerDataManager from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
 import { getConfig } from '../configManager.js';
+import { isTeamChatEnabled, toggleTeamChat } from '../../modules/commands/team.js';
+import { getTeamByPlayer } from '../teamManager.js';
 
 export const eventName = 'beforeChatSend';
 
@@ -22,6 +24,27 @@ function handleChatSend(eventData) {
     const wasCommand = commandManager.handleChatCommand(eventData);
     if (wasCommand) { return; }
 
+    // Team Chat Check
+    if (isTeamChatEnabled(player.id)) {
+        const team = getTeamByPlayer(player.id);
+        if (team) {
+            eventData.cancel = true;
+            const teamMsg = `§a[Team] ${player.name}: §f${eventData.message}`;
+            // Broadcast to members
+            for (const memberId of team.members) {
+                const member = mc.world.getAllPlayers().find(p => p.id === memberId);
+                if (member) { member.sendMessage(teamMsg); }
+            }
+            // Also log if needed?
+            return;
+        } else {
+            // Player left team but has chat on? Disable it.
+            toggleTeamChat(player.id); // Disable
+            player.sendMessage('§cYou are no longer in a team. Team chat disabled.');
+            // Fall through to normal chat
+        }
+    }
+
     eventData.cancel = true;
     const pData = playerDataManager.getOrCreatePlayer(player);
     if (!pData) {
@@ -29,9 +52,17 @@ function handleChatSend(eventData) {
         return;
     }
     const rank = rankManager.getRankById(pData.rankId);
+    const team = getTeamByPlayer(player.id);
+    const teamSuffix = team ? `§e[§r${team.name}§e]§r` : '';
+
+    // Hardcode brackets for rank prefix if it exists
+    const rankPrefix = rank && rank.chatFormatting.prefixText
+        ? `§e[§r${rank.chatFormatting.prefixText}§e]§r`
+        : '';
+
     const formattedMessage = rank
-        ? `${rank.chatFormatting.prefixText}${rank.chatFormatting.nameColor}${player.name}§r: ${rank.chatFormatting.messageColor}${eventData.message}`
-        : `§7${player.name}§r: ${eventData.message}`;
+        ? `${rankPrefix}${rank.chatFormatting.nameColor}${player.name}${teamSuffix}§r: ${rank.chatFormatting.messageColor}${eventData.message}`
+        : `§7${player.name}${teamSuffix}§r: ${eventData.message}`;
 
     // Log to console if enabled
     if (getConfig().chat?.logToConsole) {
