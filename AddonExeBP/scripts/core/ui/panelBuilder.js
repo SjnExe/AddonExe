@@ -472,10 +472,9 @@ function buildRankManagementPanel(form, context) {
     const paginatedRanks = getPaginatedItems(allRanks, page);
 
     for (const rank of paginatedRanks) {
-        const prefix = rank.chatFormatting?.prefixText ?? '';
         const name = rank.name;
         const permLevel = rank.permissionLevel;
-        form.button(`${prefix}${name}\n§8(ID: ${rank.id}, Level: ${permLevel})`);
+        form.button(`${name}\n§8(ID: ${rank.id}, Level: ${permLevel})`);
     }
 
     addPaginationButtons(form, page, allRanks.length);
