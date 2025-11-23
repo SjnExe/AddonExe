@@ -7,7 +7,7 @@
                 "default": "entity_alphatest"
             },
             "textures": {
-                "default": "textures/entity/pig/pig"
+                "default": "textures/entity/transparent"
             },
             "geometry": {
                 "default": "geometry.invisible"
