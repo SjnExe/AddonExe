@@ -1691,7 +1691,8 @@ export async function handleFormResponse(player, panelId, response, context) {
         const page = context.page || 1;
 
         if (selection === 0) { // Back button
-            return showPanel(player, 'configCategoryPanel', context);
+            // Reset page to 1 when going back to the main category panel to prevent page number leakage
+            return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
         }
 
         const config = getConfig();
@@ -1748,9 +1749,13 @@ export async function handleFormResponse(player, panelId, response, context) {
 
         // Sync with xray config if this is the xraynotify command
         if (commandName === 'xraynotify') {
-            updateMultipleConfig({
-                'xray.notifications.alertPermissionLevel': permissionLevel
-            });
+            try {
+                const xrayConfig = getXrayConfig();
+                xrayConfig.notifications.alertPermissionLevel = permissionLevel;
+                saveXrayConfig(xrayConfig);
+            } catch (e) {
+                errorLog(`Failed to sync xraynotify permission to X-Ray config: ${e}`);
+            }
         }
 
         player.sendMessage(`§2Successfully updated settings for '${commandName}'.`);

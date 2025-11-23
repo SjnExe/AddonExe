@@ -42,6 +42,12 @@ function sendAlert(player, oreType, location, count) {
 
     // Send a private message to all staff who have notifications enabled.
     const onlinePlayers = getAllPlayersFromCache();
+
+    // DEBUG: Log the count of players found in cache to ensure we are iterating
+    if (xrayConfig.notifications.logToConsole) {
+        warnLog(`[X-Ray Debug] Processing alerts for ${onlinePlayers.length} cached players. Required Perm Level: ${xrayConfig.notifications.alertPermissionLevel ?? 2}`);
+    }
+
     for (const onlinePlayer of onlinePlayers) {
         // The user requested self-alerting capability for testing, so we do NOT skip the miner.
         // if (onlinePlayer.id === player.id) { continue; }
@@ -54,13 +60,17 @@ function sendAlert(player, oreType, location, count) {
             const isEnabled = pData.xrayNotificationsEnabled;
 
             // --- Temporary Debug Logging as requested by user ---
-            // Log decision logic for every staff/potential staff member
+            // Log decision logic for every staff/potential staff member using warnLog to ensure visibility
             if (pData.permissionLevel <= 1024) { // Only log for members/staff, ignore visitors if any
                 const status = (hasPermission && isEnabled) ? '§aACCEPTED' : '§cSKIPPED';
                 const reason = !hasPermission ? `Low Perm (Level ${pData.permissionLevel} > ${requiredLevel})`
-                    : !isEnabled ? 'Notifications Disabled'
+                    : !isEnabled ? 'Notifications Disabled (xrayNotificationsEnabled: ${isEnabled})'
                     : 'Unknown';
-                debugLog(`[X-Ray Debug] ${status} ${onlinePlayer.name}: ${reason}`);
+
+                // Using warnLog to ensure it appears in user's console even if debug log level isn't perfect
+                if (xrayConfig.notifications.logToConsole) {
+                    warnLog(`[X-Ray Debug] ${status} ${onlinePlayer.name}: ${reason}`);
+                }
             }
             // ----------------------------------------------------
 
