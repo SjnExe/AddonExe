@@ -36,6 +36,6 @@ commandManager.register({
         setPlayerXrayNotifications(player.id, newStatus);
 
         const statusMessage = `§aX-ray notifications have been ${newStatus ? '§2enabled' : '§cdisabled'}§a.`;
-        sendMessage(statusMessage, player);
+        sendMessage(statusMessage, player, { raw: true });
     }
 });

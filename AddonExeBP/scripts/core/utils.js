@@ -61,8 +61,8 @@ export function playSound(player, soundId, options = {}) {
  * @returns {Promise<any>} A promise that resolves with the form response, or undefined if it times out or is cancelled for other reasons.
  */
 export async function uiWait(player, form) {
-    // Optional: Play a click sound when attempting to open UI
-    playSound(player, 'random.click', { volume: 0.5, pitch: 1.0 });
+    // REMOVED: playSound(player, 'random.click', { volume: 0.5, pitch: 1.0 });
+    // The vanilla UI system already plays a click sound. Removing duplicate.
 
     let firstAttempt = await form.show(player);
     if (firstAttempt.cancelationReason !== 'UserBusy') {

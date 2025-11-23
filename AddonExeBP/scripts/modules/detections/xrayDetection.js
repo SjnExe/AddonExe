@@ -3,7 +3,7 @@ import { getXrayConfig } from '../../core/configurations.js';
 import { getOrCreatePlayer } from '../../core/playerDataManager.js';
 import { getAllPlayersFromCache } from '../../core/playerCache.js';
 import { sendMessage } from '../../core/messaging.js';
-import { warnLog } from '../../core/logger.js';
+import { warnLog, debugLog } from '../../core/logger.js';
 import { formatString } from '../../core/utils.js';
 
 // Map<playerId, Map<oreName, { count: number, timerId: number, blockLocation: Vector3, oreType: object }>>
@@ -48,19 +48,33 @@ function sendAlert(player, oreType, location, count) {
         if (onlinePlayer.id === player.id) { continue; }
 
         const pData = getOrCreatePlayer(onlinePlayer);
-        // Check if player has permission (<= 1: Admin/Owner) AND has enabled notifications
-        if (pData && pData.permissionLevel <= 1 && pData.xrayNotificationsEnabled) {
-            // Use direct sendMessage on the player object to bypass any potential wrapper issues
-            try {
-                // The user reported missing notifications; bypassing wrapper ensures it goes through if the player object is valid.
-                // However, getAllPlayersFromCache returns cached objects which might be stale references if not careful.
-                // But playerCache usually refreshes. To be safe, we find the real player in the world.
-                const realPlayer = mc.world.getAllPlayers().find(p => p.id === onlinePlayer.id);
-                if (realPlayer) {
-                    realPlayer.sendMessage(message);
+
+        // Debug Log: Why is this player getting skipped or accepted?
+        // Only log debug if log level is high enough (handled by debugLog internals, but useful to see logic)
+        // Checking permissions: Level <= 1 is Admin/Owner.
+
+        if (pData) {
+            const isAdmin = pData.permissionLevel <= 1;
+            const isEnabled = pData.xrayNotificationsEnabled;
+
+            if (isAdmin && isEnabled) {
+                // Use direct sendMessage on the player object to bypass any potential wrapper issues
+                try {
+                    // The user reported missing notifications; bypassing wrapper ensures it goes through if the player object is valid.
+                    // However, getAllPlayersFromCache returns cached objects which might be stale references if not careful.
+                    // But playerCache usually refreshes. To be safe, we find the real player in the world.
+                    const realPlayer = mc.world.getAllPlayers().find(p => p.id === onlinePlayer.id);
+                    if (realPlayer) {
+                        realPlayer.sendMessage(message);
+                    } else {
+                        debugLog(`[X-Ray] Could not find real player object for ${onlinePlayer.name} to send alert.`);
+                    }
+                } catch (e) {
+                    warnLog(`Failed to send X-Ray alert to ${onlinePlayer.name}: ${e}`);
                 }
-            } catch (e) {
-                warnLog(`Failed to send X-Ray alert to ${onlinePlayer.name}: ${e}`);
+            } else {
+                // Optional: Uncomment for deep debugging if issue persists
+                // debugLog(`[X-Ray] Skipping alert for ${onlinePlayer.name}. Admin: ${isAdmin}, Enabled: ${isEnabled}`);
             }
         }
     }
