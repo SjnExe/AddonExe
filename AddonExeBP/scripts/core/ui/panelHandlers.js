@@ -2235,7 +2235,9 @@ export async function handleFormResponse(player, panelId, response, context) {
             panelDefinitions[pid].items && panelDefinitions[pid].items.some(item => item.actionValue === panelId)
         ) || 'configCategoryPanel';
 
-        return showPanel(player, parentPanelId);
+        // Ensure we return to the correct page if the parent supports pagination
+        const { page } = context;
+        return showPanel(player, parentPanelId, { ...context, page });
     }
 
     if (panelId === 'playerActionsPanel') {

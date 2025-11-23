@@ -43,8 +43,8 @@ function sendAlert(player, oreType, location, count) {
     // Send a private message to all staff who have notifications enabled.
     const onlinePlayers = getAllPlayersFromCache();
     for (const onlinePlayer of onlinePlayers) {
-        // Avoid notifying the miner themselves
-        if (onlinePlayer.id === player.id) { continue; }
+        // The user requested self-alerting capability for testing, so we do NOT skip the miner.
+        // if (onlinePlayer.id === player.id) { continue; }
 
         const pData = getOrCreatePlayer(onlinePlayer);
 
