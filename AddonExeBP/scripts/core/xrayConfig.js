@@ -1,6 +1,5 @@
 export const xrayConfig = {
     notifications: {
-        message: '§7{playerName}§r mined §e{count} {oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r',
         logToConsole: true,
         alertBufferingSeconds: 10
     },

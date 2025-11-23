@@ -19,7 +19,9 @@ const alertBuffers = new Map();
 function sendAlert(player, oreType, location, count) {
     const xrayConfig = getXrayConfig();
 
-    const oreDisplay = count > 1 ? `${count} ${oreType.oreName}` : oreType.oreName;
+    // The message format should be hardcoded as per user request, bypassing config.
+    // §7{playerName}§r mined §e{count} {oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r
+    const oreDisplay = oreType.oreName; // We use the ore name directly, count is handled in the template
 
     const context = {
         playerName: player.name,
@@ -30,8 +32,9 @@ function sendAlert(player, oreType, location, count) {
         z: location.z.toFixed(2)
     };
 
-    // Use the configured message template
-    const message = formatString(xrayConfig.notifications.message, context);
+    // HARDCODED TEMPLATE
+    const messageTemplate = '§7{playerName}§r mined §e{count} {oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r';
+    const message = formatString(messageTemplate, context);
 
     // Log to console if enabled.
     if (xrayConfig.notifications.logToConsole) {
@@ -41,13 +44,24 @@ function sendAlert(player, oreType, location, count) {
     // Send a private message to all staff who have notifications enabled.
     const onlinePlayers = getAllPlayersFromCache();
     for (const onlinePlayer of onlinePlayers) {
-        // Avoid notifying the miner themselves (Optional, usually good practice)
+        // Avoid notifying the miner themselves
         if (onlinePlayer.id === player.id) { continue; }
 
         const pData = getOrCreatePlayer(onlinePlayer);
         // Check if player has permission (<= 1: Admin/Owner) AND has enabled notifications
         if (pData && pData.permissionLevel <= 1 && pData.xrayNotificationsEnabled) {
-            sendMessage(message, onlinePlayer);
+            // Use direct sendMessage on the player object to bypass any potential wrapper issues
+            try {
+                // The user reported missing notifications; bypassing wrapper ensures it goes through if the player object is valid.
+                // However, getAllPlayersFromCache returns cached objects which might be stale references if not careful.
+                // But playerCache usually refreshes. To be safe, we find the real player in the world.
+                const realPlayer = mc.world.getAllPlayers().find(p => p.id === onlinePlayer.id);
+                if (realPlayer) {
+                    realPlayer.sendMessage(message);
+                }
+            } catch (e) {
+                warnLog(`Failed to send X-Ray alert to ${onlinePlayer.name}: ${e}`);
+            }
         }
     }
 }

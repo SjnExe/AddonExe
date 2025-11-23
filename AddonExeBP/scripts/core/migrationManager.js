@@ -5,7 +5,7 @@ import { debugLog, infoLog, errorLog } from './logger.js';
  * The current data version of the addon.
  * Increment this number when adding new migrations.
  */
-const CURRENT_DATA_VERSION = 2;
+const CURRENT_DATA_VERSION = 1;
 
 /**
  * The property key used to store the current data version in the world.
@@ -49,9 +49,6 @@ export function initializeMigration() {
 function runMigrations(startVersion) {
     if (startVersion < 1) {
         migrateToV1();
-    }
-    if (startVersion < 2) {
-        migrateToV2();
     }
 }
 
@@ -114,34 +111,6 @@ function migrateToV1() {
 
     } catch (e) {
         errorLog('[MigrationManager] Error migrating rank configs:', e);
-    }
-}
-
-/**
- * Migration v2: Reset X-ray alert message to new default (supporting count placeholder).
- */
-function migrateToV2() {
-    infoLog('[MigrationManager] Running v2 migration: Updating X-ray alert message...');
-    const xrayConfigKey = 'exe:xrayConfig:current';
-    const newDefaultMessage = '§7{playerName}§r mined §e{count} {oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r';
-
-    try {
-        const xrayDataStr = mc.world.getDynamicProperty(xrayConfigKey);
-        if (!xrayDataStr) {
-            return;
-        }
-        const xrayData = JSON.parse(xrayDataStr);
-
-        if (xrayData.notifications) {
-            // Always overwrite the message to the new default to ensure the format is correct
-            // unless the user has significantly customized it beyond the old default.
-            // Given the request, we force update to support the new placeholder.
-            xrayData.notifications.message = newDefaultMessage;
-            mc.world.setDynamicProperty(xrayConfigKey, JSON.stringify(xrayData));
-            infoLog('[MigrationManager] X-ray alert message updated to support count placeholder.');
-        }
-    } catch (e) {
-        errorLog('[MigrationManager] Error migrating X-ray config:', e);
     }
 }
 

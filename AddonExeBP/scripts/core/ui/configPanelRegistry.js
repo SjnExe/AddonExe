@@ -467,12 +467,6 @@ export const configPanelSchema = [
                 description: 'Enables or disables alerts for Ancient Debris.'
             },
             {
-                key: 'notifications.message',
-                label: 'Notification Message\nPlaceholders: {playerName}, {oreName}, {x}, {y}, {z}',
-                type: 'textField',
-                description: 'The format of the notification message sent to staff.'
-            },
-            {
                 key: 'notifications.logToConsole',
                 label: 'Log to Console',
                 type: 'toggle',
