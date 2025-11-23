@@ -63,9 +63,15 @@ function sendAlert(player, oreType, location, count) {
             // Log decision logic for every staff/potential staff member using warnLog to ensure visibility
             if (pData.permissionLevel <= 1024) { // Only log for members/staff, ignore visitors if any
                 const status = (hasPermission && isEnabled) ? '§aACCEPTED' : '§cSKIPPED';
-                const reason = !hasPermission ? `Low Perm (Level ${pData.permissionLevel} > ${requiredLevel})`
-                    : !isEnabled ? 'Notifications Disabled (xrayNotificationsEnabled: ${isEnabled})'
-                        : 'Unknown';
+                let reason = '';
+
+                if (!hasPermission) {
+                    reason = `Low Perm (Level ${pData.permissionLevel} > ${requiredLevel})`;
+                } else if (!isEnabled) {
+                    reason = `Notifications Disabled (xrayNotificationsEnabled: ${isEnabled})`;
+                } else {
+                    reason = 'Approved';
+                }
 
                 // Using warnLog to ensure it appears in user's console even if debug log level isn't perfect
                 if (xrayConfig.notifications.logToConsole) {
