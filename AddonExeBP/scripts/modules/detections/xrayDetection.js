@@ -2,7 +2,6 @@ import * as mc from '@minecraft/server';
 import { getXrayConfig } from '../../core/configurations.js';
 import { getOrCreatePlayer } from '../../core/playerDataManager.js';
 import { getAllPlayersFromCache } from '../../core/playerCache.js';
-import { sendMessage } from '../../core/messaging.js';
 import { warnLog, debugLog } from '../../core/logger.js';
 import { formatString } from '../../core/utils.js';
 
@@ -65,6 +64,7 @@ function sendAlert(player, oreType, location, count) {
                     // But playerCache usually refreshes. To be safe, we find the real player in the world.
                     const realPlayer = mc.world.getAllPlayers().find(p => p.id === onlinePlayer.id);
                     if (realPlayer) {
+                        // Replaced sendMessage with realPlayer.sendMessage to fix lint unused vars warning
                         realPlayer.sendMessage(message);
                     } else {
                         debugLog(`[X-Ray] Could not find real player object for ${onlinePlayer.name} to send alert.`);

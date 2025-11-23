@@ -224,7 +224,7 @@ class CommandManager {
 
             try {
                 registry.registerEnum(enumName, param.enumOptions);
-            } catch (e) {
+            } catch {
                 // Ignore if enum already exists (e.g. alias sharing same params)
             }
 

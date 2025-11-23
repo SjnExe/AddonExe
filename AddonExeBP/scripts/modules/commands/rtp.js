@@ -111,7 +111,7 @@ async function findSafeLocationAndTeleport(player, minRange, maxRange) {
 function safeRemoveTickingArea(dimension, name) {
     try {
         dimension.runCommand(`tickingarea remove ${name}`);
-    } catch (e) {
+    } catch {
         // Ignore if it doesn't exist
     }
 }

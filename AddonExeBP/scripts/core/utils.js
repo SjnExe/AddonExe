@@ -146,7 +146,7 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
                 if (mc.world?.afterEvents?.entityHurt?.unsubscribe) {
                     mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
                 }
-            } catch (e) {
+            } catch {
                 // Ignore cleanup errors to prevent cascading crashes
             }
             hurtListener = null;
