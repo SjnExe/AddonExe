@@ -123,8 +123,8 @@ export function updatePlayerNameTag(player, config) {
     const rankPrefix = rank.chatFormatting?.prefixText ?? '';
     const { nameTagStyle = 'above' } = config.ranks || {};
 
-    // Hardcoded brackets: §7[§r PREFIX §7]§r
-    const finalPrefix = rankPrefix ? `§7[§r${rankPrefix}§7]§r` : '';
+    // Hardcoded brackets: §e[§r PREFIX §e]§r
+    const finalPrefix = rankPrefix ? `§e[§r${rankPrefix}§e]§r` : '';
 
     let newNameTag;
     switch (nameTagStyle) {
