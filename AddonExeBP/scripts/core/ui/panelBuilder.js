@@ -332,7 +332,7 @@ async function buildPlayerManagementForm(title, context) {
             const prefix = rank?.chatFormatting?.prefixText ?? '';
             const properName = pData ? pData.name : lowerCaseName; // Fallback to lowercase name if data fails to load
             const team = getTeamByPlayer(id);
-            const teamSuffix = team ? `\n§0[§r${team.name}§r§0]` : '';
+            const teamSuffix = team ? `\n§7[§r${team.name}§r§7]` : '';
             form.button(`${prefix}${properName}${teamSuffix}`);
         }
     }
@@ -370,7 +370,7 @@ async function buildPlayerListForm(title, context) {
             const rank = rankManager.getPlayerRank(player, config);
             const prefix = rank.chatFormatting?.prefixText ?? '';
             const team = getTeamByPlayer(player.id);
-            const teamSuffix = team ? `\n§0[§r${team.name}§r§0]` : '';
+            const teamSuffix = team ? `\n§7[§r${team.name}§r§7]` : '';
             form.button(`${prefix}${player.name}${teamSuffix}`);
         }
     }
