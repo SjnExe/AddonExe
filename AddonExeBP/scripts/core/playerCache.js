@@ -6,6 +6,16 @@ export function initializePlayerCache() {
     for (const player of mc.world.getAllPlayers()) {
         playerCache.set(player.id, player);
     }
+
+    mc.world.afterEvents.playerSpawn.subscribe((event) => {
+        const { player } = event;
+        addPlayerToCache(player);
+    });
+
+    mc.world.afterEvents.playerLeave.subscribe((event) => {
+        const { playerId } = event;
+        removePlayerFromCache(playerId);
+    });
 }
 
 export function getPlayerFromCache(playerId) {
