@@ -65,7 +65,7 @@ function sendAlert(player, oreType, location, count) {
                 const status = (hasPermission && isEnabled) ? '§aACCEPTED' : '§cSKIPPED';
                 const reason = !hasPermission ? `Low Perm (Level ${pData.permissionLevel} > ${requiredLevel})`
                     : !isEnabled ? 'Notifications Disabled (xrayNotificationsEnabled: ${isEnabled})'
-                    : 'Unknown';
+                        : 'Unknown';
 
                 // Using warnLog to ensure it appears in user's console even if debug log level isn't perfect
                 if (xrayConfig.notifications.logToConsole) {
