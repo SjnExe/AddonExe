@@ -46,9 +46,9 @@ export function parseDuration(durationString) {
  * @param {import('@minecraft/server').Player} player The player to play the sound for.
  * @param {string} soundId The ID of the sound to play.
  */
-export function playSound(player, soundId) {
+export function playSound(player, soundId, options = {}) {
     try {
-        player.playSound(soundId);
+        player.playSound(soundId, options);
     } catch (e) {
         errorLog(`Failed to play sound "${soundId}" for player ${player.name}: ${e}`);
     }
@@ -61,6 +61,9 @@ export function playSound(player, soundId) {
  * @returns {Promise<any>} A promise that resolves with the form response, or undefined if it times out or is cancelled for other reasons.
  */
 export async function uiWait(player, form) {
+    // REMOVED: playSound(player, 'random.click', { volume: 0.5, pitch: 1.0 });
+    // The vanilla UI system already plays a click sound. Removing duplicate.
+
     let firstAttempt = await form.show(player);
     if (firstAttempt.cancelationReason !== 'UserBusy') {
         return firstAttempt;
@@ -143,7 +146,7 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
                 if (mc.world?.afterEvents?.entityHurt?.unsubscribe) {
                     mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
                 }
-            } catch (e) {
+            } catch {
                 // Ignore cleanup errors to prevent cascading crashes
             }
             hurtListener = null;
@@ -153,6 +156,7 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
     hurtListener = mc.world.afterEvents.entityHurt.subscribe(event => {
         if (event.hurtEntity.id === player.id) {
             player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
+            playSound(player, 'note.bass', { volume: 1.0, pitch: 0.5 });
             cleanup();
         }
     }, { entityTypes: ['minecraft:player'] });
@@ -174,6 +178,7 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
 
             if (distanceMoved > 2 || player.dimension.id !== dimensionId) {
                 player.onScreenDisplay.setActionBar('§cTeleport canceled because you moved.');
+                playSound(player, 'note.bass', { volume: 1.0, pitch: 0.5 });
                 cleanup();
                 return;
             }
@@ -183,8 +188,14 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
             if (remainingSeconds > 0) {
                 const color = getCountdownColor(remainingSeconds);
                 player.onScreenDisplay.setActionBar(`${color}Teleporting in ${remainingSeconds}...`);
+
+                // Play ticking sound (rising pitch as time decreases)
+                // Pitch starts at 0.5 and goes up to 2.0
+                const pitch = 0.5 + (1.5 * (1 - (remainingSeconds / durationSeconds)));
+                playSound(player, 'note.pling', { volume: 0.5, pitch: pitch });
             } else {
                 player.onScreenDisplay.setActionBar('§aTeleporting...');
+                playSound(player, 'random.levelup', { volume: 0.5, pitch: 1.0 });
                 cleanup();
                 onWarmupComplete();
             }

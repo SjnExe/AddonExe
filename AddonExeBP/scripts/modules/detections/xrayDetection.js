@@ -2,25 +2,38 @@ import * as mc from '@minecraft/server';
 import { getXrayConfig } from '../../core/configurations.js';
 import { getOrCreatePlayer } from '../../core/playerDataManager.js';
 import { getAllPlayersFromCache } from '../../core/playerCache.js';
-import { sendMessage } from '../../core/messaging.js';
-import { warnLog } from '../../core/logger.js';
-import { xrayConfig as xrayDefaultConfig } from '../../core/xrayConfig.js';
+import { warnLog, debugLog } from '../../core/logger.js';
+import { formatString } from '../../core/utils.js';
 
 // Map<playerId, Map<oreName, { count: number, timerId: number, blockLocation: Vector3, oreType: object }>>
 const alertBuffers = new Map();
 
+/**
+ * Sends the X-Ray alert to console and qualified staff.
+ * @param {import('@minecraft/server').Player} player The player who mined the ore.
+ * @param {object} oreType The ore configuration object.
+ * @param {import('@minecraft/server').Vector3} location The location of the block.
+ * @param {number} count The number of blocks mined in the buffer period.
+ */
 function sendAlert(player, oreType, location, count) {
     const xrayConfig = getXrayConfig();
-    const messageTemplate = xrayConfig.notifications?.message || xrayDefaultConfig.notifications.message;
 
-    const oreDisplayName = count > 1 ? `${count} ${oreType.oreName}` : oreType.oreName;
+    // The message format should be hardcoded as per user request, bypassing config.
+    // §7{playerName}§r mined §e{count} {oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r
+    const oreDisplay = oreType.oreName; // We use the ore name directly, count is handled in the template
 
-    const message = messageTemplate
-        .replace('{playerName}', player.name)
-        .replace('{oreName}', oreDisplayName)
-        .replace('{x}', location.x.toFixed(2))
-        .replace('{y}', location.y.toFixed(2))
-        .replace('{z}', location.z.toFixed(2));
+    const context = {
+        playerName: player.name,
+        oreName: oreDisplay,
+        count: count,
+        x: location.x.toFixed(2),
+        y: location.y.toFixed(2),
+        z: location.z.toFixed(2)
+    };
+
+    // HARDCODED TEMPLATE
+    const messageTemplate = '§7{playerName}§r mined §e{count} {oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r';
+    const message = formatString(messageTemplate, context);
 
     // Log to console if enabled.
     if (xrayConfig.notifications.logToConsole) {
@@ -30,9 +43,39 @@ function sendAlert(player, oreType, location, count) {
     // Send a private message to all staff who have notifications enabled.
     const onlinePlayers = getAllPlayersFromCache();
     for (const onlinePlayer of onlinePlayers) {
+        // The user requested self-alerting capability for testing, so we do NOT skip the miner.
+        // if (onlinePlayer.id === player.id) { continue; }
+
         const pData = getOrCreatePlayer(onlinePlayer);
-        if (pData && pData.permissionLevel <= 2 && pData.xrayNotificationsEnabled) {
-            sendMessage(message, onlinePlayer);
+
+        // Debug Log: Why is this player getting skipped or accepted?
+        // Only log debug if log level is high enough (handled by debugLog internals, but useful to see logic)
+        // Checking permissions: Level <= 1 is Admin/Owner.
+
+        if (pData) {
+            const isAdmin = pData.permissionLevel <= 1;
+            const isEnabled = pData.xrayNotificationsEnabled;
+
+            if (isAdmin && isEnabled) {
+                // Use direct sendMessage on the player object to bypass any potential wrapper issues
+                try {
+                    // The user reported missing notifications; bypassing wrapper ensures it goes through if the player object is valid.
+                    // However, getAllPlayersFromCache returns cached objects which might be stale references if not careful.
+                    // But playerCache usually refreshes. To be safe, we find the real player in the world.
+                    const realPlayer = mc.world.getAllPlayers().find(p => p.id === onlinePlayer.id);
+                    if (realPlayer) {
+                        // Replaced sendMessage with realPlayer.sendMessage to fix lint unused vars warning
+                        realPlayer.sendMessage(message);
+                    } else {
+                        debugLog(`[X-Ray] Could not find real player object for ${onlinePlayer.name} to send alert.`);
+                    }
+                } catch (e) {
+                    warnLog(`Failed to send X-Ray alert to ${onlinePlayer.name}: ${e}`);
+                }
+            } else {
+                // Optional: Uncomment for deep debugging if issue persists
+                // debugLog(`[X-Ray] Skipping alert for ${onlinePlayer.name}. Admin: ${isAdmin}, Enabled: ${isEnabled}`);
+            }
         }
     }
 }

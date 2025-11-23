@@ -173,6 +173,17 @@ function initialize() {
         });
     }
 
+    if (spawnProtection.preventItemDropping) {
+        debugLog('[SpawnProtection] Subscribing to item drop events.');
+        subscribe(mc.world.beforeEvents.playerDropItem, (event) => {
+            // Note: event.itemStack is the item being dropped.
+            // We check the player's location.
+            if (isWithinSpawnProtection(event.player.location, event.player.dimension.id) && !canBypass(event.player)) {
+                event.cancel = true;
+            }
+        });
+    }
+
     // --- INTERVAL-BASED PROTECTIONS ---
     debugLog('[SpawnProtection] Starting protection interval...');
     intervalId = mc.system.runInterval(() => {
