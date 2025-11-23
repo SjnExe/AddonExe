@@ -42,7 +42,7 @@ export const economyConfig = {
         // Penalty for killing friendly/passive mobs
         'minecraft:villager': -100,
         'minecraft:wandering_trader': -50,
-        'minecraft:iron_golem': -50,
+        'minecraft:iron_golem': 0,
         'minecraft:snow_golem': -20,
         'minecraft:wolf': -50,
         'minecraft:cat': -50,
