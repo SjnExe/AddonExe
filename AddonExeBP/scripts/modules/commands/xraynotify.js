@@ -3,6 +3,7 @@ import { commandManager } from './commandManager.js';
 import { sendMessage } from '../../core/messaging.js';
 import { getXrayConfig, saveXrayConfig } from '../../core/configurations.js';
 import { infoLog } from '../../core/logger.js';
+import { playSound } from '../../core/utils.js';
 
 commandManager.register({
     name: 'xraynotify',
@@ -37,5 +38,11 @@ commandManager.register({
 
         const statusMessage = `§aX-ray notifications have been ${newStatus ? '§2enabled' : '§cdisabled'}§a.`;
         sendMessage(statusMessage, player, { raw: true });
+
+        if (newStatus) {
+            playSound(player, 'random.orb', { volume: 0.5, pitch: 1.0 });
+        } else {
+            playSound(player, 'note.bass', { volume: 0.5, pitch: 0.8 });
+        }
     }
 });
