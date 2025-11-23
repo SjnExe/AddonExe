@@ -42,6 +42,7 @@ commandManager.register({
  */
 async function findSafeLocationAndTeleport(player, minRange, maxRange) {
     sendMessage('§aSearching for a safe random location...', player);
+    debugLog(`[RTP] Starting search for ${player.name}. Range: ${minRange}-${maxRange}`);
     const searchAttempts = 10; // Increased attempts
     const searchRadius = 16;
 
@@ -51,6 +52,7 @@ async function findSafeLocationAndTeleport(player, minRange, maxRange) {
         const centerZ = Math.floor(player.location.z + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
 
         const tickingAreaName = `rtp_${player.id}`;
+        debugLog(`[RTP] Attempt ${i + 1}: Center (${centerX}, ${centerZ}). Ticking area: ${tickingAreaName}`);
 
         try {
             // Create ticking area to load chunks
@@ -69,10 +71,12 @@ async function findSafeLocationAndTeleport(player, minRange, maxRange) {
                 const x = centerX + Math.floor(Math.random() * (searchRadius * 2) - searchRadius);
                 const z = centerZ + Math.floor(Math.random() * (searchRadius * 2) - searchRadius);
                 const y = await findHighestSolidBlock(player.dimension, x, z);
+                debugLog(`[RTP] Checking spot (${x}, ${y}, ${z})...`);
 
                 if (y !== null) {
                     const potentialLoc = { x: x + 0.5, y: y + 1, z: z + 0.5 };
                     if (isLocationSafe(player.dimension, potentialLoc)) {
+                        debugLog(`[RTP] Safe location found at ${JSON.stringify(potentialLoc)}`);
                         const warmupSeconds = getConfig().rtp.teleportWarmupSeconds;
 
                         const teleportLogic = () => {
@@ -136,25 +140,43 @@ async function findHighestSolidBlock(dimension, x, z) {
 function isLocationSafe(dimension, location) {
     const { x, y, z } = location;
     const groundBlock = dimension.getBlock({ x, y: y - 1, z });
-    if (!groundBlock || !groundBlock.isSolid) { return false; }
+    if (!groundBlock || !groundBlock.isSolid) {
+        debugLog(`[RTP] Unsafe: Ground missing or not solid at ${y-1}.`);
+        return false;
+    }
 
     const unsafeGroundBlocks = [
         'minecraft:lava', 'minecraft:flowing_lava',
         'minecraft:fire', 'minecraft:magma_block',
         'minecraft:cactus', 'minecraft:water', 'minecraft:flowing_water'
     ];
-    if (unsafeGroundBlocks.includes(groundBlock.typeId)) { return false; }
-    if (groundBlock.typeId.includes('leaves')) { return false; } // Avoid spawning on trees
+    if (unsafeGroundBlocks.includes(groundBlock.typeId)) {
+        debugLog(`[RTP] Unsafe: Ground is ${groundBlock.typeId}.`);
+        return false;
+    }
+    if (groundBlock.typeId.includes('leaves')) {
+        debugLog(`[RTP] Unsafe: Ground is leaves.`);
+        return false;
+    } // Avoid spawning on trees
 
     // Check space for player (2 blocks high)
     const blockHead = dimension.getBlock({ x, y, z });
     const blockEyes = dimension.getBlock({ x, y: y + 1, z });
 
-    if (!blockHead || blockHead.isSolid) { return false; }
-    if (!blockEyes || blockEyes.isSolid) { return false; }
+    if (!blockHead || blockHead.isSolid) {
+        debugLog(`[RTP] Unsafe: Head block solid.`);
+        return false;
+    }
+    if (!blockEyes || blockEyes.isSolid) {
+        debugLog(`[RTP] Unsafe: Eye block solid.`);
+        return false;
+    }
 
     // Check for liquids at head/feet
-    if (blockHead.isLiquid || blockEyes.isLiquid) { return false; }
+    if (blockHead.isLiquid || blockEyes.isLiquid) {
+        debugLog(`[RTP] Unsafe: Liquid at head/eyes.`);
+        return false;
+    }
 
     return true;
 }
