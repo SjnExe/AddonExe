@@ -102,6 +102,11 @@ export function createTeam(player, name) {
         return { success: false, message: '§cName contains invalid characters. Allowed: A-Z, 0-9, space, §, &, +, -' };
     }
 
+    // Check for obfuscated formatting codes
+    if (name.includes('§k') || name.includes('&k')) {
+        return { success: false, message: '§cTeam names cannot contain obfuscated (magic) text.' };
+    }
+
     const lowerName = name.toLowerCase();
     if (teamConfig.nameBlacklist.some(blacklisted => lowerName.includes(blacklisted))) {
         return { success: false, message: '§cName contains forbidden words.' };

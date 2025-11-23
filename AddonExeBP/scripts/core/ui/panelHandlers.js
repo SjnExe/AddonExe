@@ -1691,7 +1691,8 @@ export async function handleFormResponse(player, panelId, response, context) {
         const page = context.page || 1;
 
         if (selection === 0) { // Back button
-            return showPanel(player, 'configCategoryPanel', context);
+            // Reset page to 1 when going back to the main category panel to prevent page number leakage
+            return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
         }
 
         const config = getConfig();
@@ -1745,6 +1746,17 @@ export async function handleFormResponse(player, panelId, response, context) {
             [`commandSettings.${commandName}.enabled`]: isEnabled,
             [`commandSettings.${commandName}.permissionLevel`]: permissionLevel
         });
+
+        // Sync with xray config if this is the xraynotify command
+        if (commandName === 'xraynotify') {
+            try {
+                const xrayConfig = getXrayConfig();
+                xrayConfig.notifications.alertPermissionLevel = permissionLevel;
+                saveXrayConfig(xrayConfig);
+            } catch (e) {
+                errorLog(`Failed to sync xraynotify permission to X-Ray config: ${e}`);
+            }
+        }
 
         player.sendMessage(`§2Successfully updated settings for '${commandName}'.`);
         return showPanel(player, 'commandSystemPanel', context);
@@ -2228,6 +2240,19 @@ export async function handleFormResponse(player, panelId, response, context) {
         if (categoryId === 'announcements') {
             restartAnnouncer();
             player.sendMessage('§2Announcement system has been updated with new settings.');
+        }
+        if (categoryId === 'xray') {
+            // Sync alertPermissionLevel with command permission
+            // category.settings is in order of configPanelSchema. We find the index of alertPermissionLevel.
+            const permSettingIndex = category.settings.findIndex(s => s.key === 'notifications.alertPermissionLevel');
+            if (permSettingIndex !== -1) {
+                const newPermLevel = Number(newValues[permSettingIndex]);
+                if (!isNaN(newPermLevel)) {
+                    updateMultipleConfig({
+                        'commandSettings.xraynotify.permissionLevel': newPermLevel
+                    });
+                }
+            }
         }
 
         // Dynamic redirect: Find which panel links to this config panel

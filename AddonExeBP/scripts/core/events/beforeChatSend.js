@@ -53,7 +53,7 @@ function handleChatSend(eventData) {
     }
     const rank = rankManager.getRankById(pData.rankId);
     const team = getTeamByPlayer(player.id);
-    const teamSuffix = team ? ` §0[§r${team.name}§0]§r` : '';
+    const teamSuffix = team ? ` §7[§r${team.name}§7]§r` : '';
 
     // Hardcode brackets for rank prefix if it exists
     const rankPrefix = rank && rank.chatFormatting.prefixText

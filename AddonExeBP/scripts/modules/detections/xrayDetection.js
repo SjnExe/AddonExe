@@ -42,21 +42,19 @@ function sendAlert(player, oreType, location, count) {
 
     // Send a private message to all staff who have notifications enabled.
     const onlinePlayers = getAllPlayersFromCache();
+
     for (const onlinePlayer of onlinePlayers) {
         // The user requested self-alerting capability for testing, so we do NOT skip the miner.
         // if (onlinePlayer.id === player.id) { continue; }
 
         const pData = getOrCreatePlayer(onlinePlayer);
-
-        // Debug Log: Why is this player getting skipped or accepted?
-        // Only log debug if log level is high enough (handled by debugLog internals, but useful to see logic)
-        // Checking permissions: Level <= 1 is Admin/Owner.
+        const requiredLevel = xrayConfig.notifications.alertPermissionLevel ?? 2;
 
         if (pData) {
-            const isAdmin = pData.permissionLevel <= 1;
+            const hasPermission = pData.permissionLevel <= requiredLevel;
             const isEnabled = pData.xrayNotificationsEnabled;
 
-            if (isAdmin && isEnabled) {
+            if (hasPermission && isEnabled) {
                 // Use direct sendMessage on the player object to bypass any potential wrapper issues
                 try {
                     // The user reported missing notifications; bypassing wrapper ensures it goes through if the player object is valid.
@@ -64,7 +62,6 @@ function sendAlert(player, oreType, location, count) {
                     // But playerCache usually refreshes. To be safe, we find the real player in the world.
                     const realPlayer = mc.world.getAllPlayers().find(p => p.id === onlinePlayer.id);
                     if (realPlayer) {
-                        // Replaced sendMessage with realPlayer.sendMessage to fix lint unused vars warning
                         realPlayer.sendMessage(message);
                     } else {
                         debugLog(`[X-Ray] Could not find real player object for ${onlinePlayer.name} to send alert.`);
@@ -72,9 +69,6 @@ function sendAlert(player, oreType, location, count) {
                 } catch (e) {
                     warnLog(`Failed to send X-Ray alert to ${onlinePlayer.name}: ${e}`);
                 }
-            } else {
-                // Optional: Uncomment for deep debugging if issue persists
-                // debugLog(`[X-Ray] Skipping alert for ${onlinePlayer.name}. Admin: ${isAdmin}, Enabled: ${isEnabled}`);
             }
         }
     }

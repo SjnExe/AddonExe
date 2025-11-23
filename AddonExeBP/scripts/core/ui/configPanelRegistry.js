@@ -477,6 +477,12 @@ export const configPanelSchema = [
                 label: 'Alert Buffering (s)',
                 type: 'textField',
                 description: 'Groups multiple alerts into one message within this time window.'
+            },
+            {
+                key: 'notifications.alertPermissionLevel',
+                label: 'Alert Permission Level',
+                type: 'textField',
+                description: 'Minimum permission level required to receive X-ray alerts (0=Owner, 1=Admin, 2=Mod).'
             }
         ]
     },

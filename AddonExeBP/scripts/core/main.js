@@ -174,6 +174,10 @@ async function initializeAddon() {
     // or right here as managers initialize.
     initializeMigration();
 
+    // Initialize player cache first so other managers can rely on it
+    const { initializePlayerCache } = await import('./playerCache.js');
+    initializePlayerCache();
+
     initializeManagers();
     checkConfiguration();
     initializeEventManager();
