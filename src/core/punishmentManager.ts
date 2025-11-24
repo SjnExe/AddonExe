@@ -1,25 +1,18 @@
 import * as mc from '@minecraft/server';
 import { getConfig } from './configManager.js';
-import { debugLog } from './logger.js';
-import { errorLog } from './logger.js';
+import { debugLog, errorLog } from './logger.js';
 
 const punishmentDbKey = 'exe:punishments';
 
-/**
- * @typedef {'mute' | 'ban'} PunishmentType
- */
+export type PunishmentType = 'mute' | 'ban';
 
-/**
- * @typedef {object} Punishment
- * @property {PunishmentType} type
- * @property {number} expires - The timestamp (in milliseconds) when the punishment expires.
- * @property {string} reason
- */
+export interface Punishment {
+    type: PunishmentType;
+    expires: number;
+    reason: string;
+}
 
-/**
- * @type {Map<string, Punishment>}
- */
-let punishments = new Map();
+let punishments = new Map<string, Punishment>();
 let needsSave = false;
 
 /**
@@ -28,7 +21,7 @@ let needsSave = false;
 export function loadPunishments() {
     debugLog('[PunishmentManager] Loading punishments...');
     const dataStr = mc.world.getDynamicProperty(punishmentDbKey);
-    if (dataStr) {
+    if (typeof dataStr === 'string') {
         try {
             const parsedData = JSON.parse(dataStr);
             // JSON stringifies a Map as an array of [key, value] pairs
@@ -77,10 +70,10 @@ function savePunishments() {
 
 /**
  * Adds or updates a punishment for a player.
- * @param {string} playerId The ID of the player.
- * @param {Punishment} punishment The punishment details.
+ * @param playerId The ID of the player.
+ * @param punishment The punishment details.
  */
-export function addPunishment(playerId, punishment) {
+export function addPunishment(playerId: string, punishment: Punishment) {
     punishments.set(playerId, punishment);
     needsSave = true;
     savePunishments(); // Save immediately for critical actions
@@ -90,10 +83,9 @@ export function addPunishment(playerId, punishment) {
 /**
  * Gets a player's active punishment.
  * It also clears the punishment if it has expired.
- * @param {string} playerId The ID of the player.
- * @returns {Punishment | undefined}
+ * @param playerId The ID of the player.
  */
-export function getPunishment(playerId) {
+export function getPunishment(playerId: string): Punishment | undefined {
     const punishment = punishments.get(playerId);
     if (!punishment) {
         return undefined;
@@ -110,9 +102,9 @@ export function getPunishment(playerId) {
 
 /**
  * Removes a punishment for a player.
- * @param {string} playerId The ID of the player to unpunish.
+ * @param playerId The ID of the player to unpunish.
  */
-export function removePunishment(playerId) {
+export function removePunishment(playerId: string) {
     if (punishments.delete(playerId)) {
         needsSave = true;
         savePunishments(); // Save immediately for critical actions
@@ -125,8 +117,10 @@ export function removePunishment(playerId) {
  */
 export function initializePunishmentManager() {
     // Periodically clear expired punishments and save to the world
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const config: any = getConfig();
     mc.system.runInterval(() => {
         clearExpiredPunishments();
         savePunishments();
-    }, (getConfig().data?.autoSaveIntervalSeconds ?? 30) * 20);
+    }, (config.data?.autoSaveIntervalSeconds ?? 30) * 20);
 }

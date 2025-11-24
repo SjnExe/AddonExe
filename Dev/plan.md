@@ -1,6 +1,6 @@
 # AddonExe TypeScript Migration Plan
 
-## Phase 1: Environment Setup & Utils (Current Session)
+## Phase 1: Environment Setup & Utils (Completed)
 - [x] Create `src` directory and move files.
 - [x] Install TypeScript, Prettier, ESLint plugins, and MC types.
 - [x] Configure `tsconfig.json`, `.prettierrc`, `eslint.config.js`.
@@ -34,13 +34,13 @@
     - [x] `src/core/configurations.js` -> `.ts`
 - [x] Convert `playerDataManager.js` -> `.ts`
 
-## Phase 3: Managers (Part 1 - Chat & Moderation)
-- [ ] `messaging.js`
-- [ ] `punishmentManager.js`
-- [ ] `reportManager.js`
-- [ ] `cooldownManager.js`
-- [ ] `helpfulLinksManager.js`
-- [ ] `rulesManager.js`
+## Phase 3: Managers (Part 1 - Chat & Moderation) (Completed)
+- [x] `messaging.js` -> `.ts`
+- [x] `punishmentManager.js` -> `.ts`
+- [x] `reportManager.js` -> `.ts`
+- [x] `cooldownManager.js` -> `.ts`
+- [x] `helpfulLinksManager.js` -> `.ts`
+- [x] `rulesManager.js` -> `.ts`
 
 ## Phase 4: Managers (Part 2 - Gameplay Systems)
 - [ ] `shopManager.js`
