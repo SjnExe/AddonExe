@@ -1,14 +1,15 @@
 import * as mc from '@minecraft/server';
+import { ActionFormData, ModalFormData, MessageFormData } from '@minecraft/server-ui';
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { errorLog } from './logger.js';
 
 /**
  * Parses a duration string (e.g., "10m", "2h", "7d") and returns the duration in milliseconds.
- * @param {string} durationString The duration string to parse.
- * @returns {number} The duration in milliseconds, or 0 if the format is invalid.
+ * @param durationString The duration string to parse.
+ * @returns The duration in milliseconds, or 0 if the format is invalid.
  */
-export function parseDuration(durationString) {
+export function parseDuration(durationString: string): number {
     const durationRegex = /^(\d+)([smhdw])$/;
     const match = durationString.toLowerCase().match(durationRegex);
 
@@ -43,10 +44,11 @@ export function parseDuration(durationString) {
 
 /**
  * Plays a sound for a specific player.
- * @param {import('@minecraft/server').Player} player The player to play the sound for.
- * @param {string} soundId The ID of the sound to play.
+ * @param player The player to play the sound for.
+ * @param soundId The ID of the sound to play.
+ * @param options options for the sound.
  */
-export function playSound(player, soundId, options = {}) {
+export function playSound(player: mc.Player, soundId: string, options: mc.PlayerSoundOptions = {}): void {
     try {
         player.playSound(soundId, options);
     } catch (e) {
@@ -56,15 +58,15 @@ export function playSound(player, soundId, options = {}) {
 
 /**
  * Shows a form to a player, handling the 'UserBusy' case by sending a one-time message and then retrying.
- * @param {import('@minecraft/server').Player} player The player to show the form to.
- * @param {import('@minecraft/server-ui').ActionFormData | import('@minecraft/server-ui').ModalFormData | import('@minecraft/server-ui').MessageFormData} form The form to show.
- * @returns {Promise<any>} A promise that resolves with the form response, or undefined if it times out or is cancelled for other reasons.
+ * @param player The player to show the form to.
+ * @param form The form to show.
+ * @returns A promise that resolves with the form response, or undefined if it times out or is cancelled for other reasons.
  */
-export async function uiWait(player, form) {
+export async function uiWait(player: mc.Player, form: ActionFormData | ModalFormData | MessageFormData): Promise<any> {
     // REMOVED: playSound(player, 'random.click', { volume: 0.5, pitch: 1.0 });
     // The vanilla UI system already plays a click sound. Removing duplicate.
 
-    let firstAttempt = await form.show(player);
+    const firstAttempt = await form.show(player);
     if (firstAttempt.cancelationReason !== 'UserBusy') {
         return firstAttempt;
     }
@@ -73,11 +75,16 @@ export async function uiWait(player, form) {
     player.sendMessage('§eOpening UI... please close chat to view.§r');
 
     const startTick = mc.system.currentTick;
-    while ((mc.system.currentTick - startTick) < 1200) { // 1 minute timeout
+    while (mc.system.currentTick - startTick < 1200) {
+        // 1 minute timeout
         const subsequentAttempt = await form.show(player);
         if (subsequentAttempt.cancelationReason !== 'UserBusy') {
             return subsequentAttempt;
         }
+        // Small delay to prevent tight loop, though await form.show is async.
+        // But if it returns immediately with UserBusy, we might spam.
+        // We can use a small sleep if we had one, but await show is usually enough.
+        // We'll trust the loop.
     }
 
     return undefined; // Timeout
@@ -85,12 +92,13 @@ export async function uiWait(player, form) {
 
 /**
  * Plays a configured sound for a player if it's enabled in the config.
- * @param {import('@minecraft/server').Player} player The player to play the sound for.
- * @param {keyof import('../config.js').config.soundEvents} soundEventKey The key of the sound event in the config.
+ * @param player The player to play the sound for.
+ * @param soundEventKey The key of the sound event in the config.
  */
-export function playSoundFromConfig(player, soundEventKey) {
+export function playSoundFromConfig(player: mc.Player, soundEventKey: string): void {
     try {
-        const config = getConfig();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const config: any = getConfig();
         const soundEvent = config.soundEvents?.[soundEventKey];
         if (soundEvent && soundEvent.enabled) {
             player.playSound(soundEvent.soundId, {
@@ -105,25 +113,38 @@ export function playSoundFromConfig(player, soundEventKey) {
 
 /**
  * Determines the color for the countdown timer based on remaining seconds.
- * @param {number} secondsRemaining
- * @returns {string} The Minecraft color code.
+ * @param secondsRemaining
+ * @returns The Minecraft color code.
  */
-function getCountdownColor(secondsRemaining) {
-    if (secondsRemaining <= 1) {return '§4';} // Dark Red
-    if (secondsRemaining <= 3) {return '§c';} // Red
-    if (secondsRemaining <= 5) {return '§6';} // Gold
-    if (secondsRemaining <= 10) {return '§e';} // Yellow
+function getCountdownColor(secondsRemaining: number): string {
+    if (secondsRemaining <= 1) {
+        return '§4';
+    } // Dark Red
+    if (secondsRemaining <= 3) {
+        return '§c';
+    } // Red
+    if (secondsRemaining <= 5) {
+        return '§6';
+    } // Gold
+    if (secondsRemaining <= 10) {
+        return '§e';
+    } // Yellow
     return '§a'; // Green
 }
 
 /**
  * Starts a teleport warmup timer for a player.
- * @param {import('@minecraft/server').Player} player The player to teleport.
- * @param {number} durationSeconds The duration of the warmup in seconds.
- * @param {() => void} onWarmupComplete The function to execute when the warmup completes successfully.
- * @param {string} teleportName A short name for the teleport type (e.g., "home", "spawn") for messages.
+ * @param player The player to teleport.
+ * @param durationSeconds The duration of the warmup in seconds.
+ * @param onWarmupComplete The function to execute when the warmup completes successfully.
+ * @param teleportName A short name for the teleport type (e.g., "home", "spawn") for messages.
  */
-export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, teleportName = 'teleport') {
+export function startTeleportWarmup(
+    player: mc.Player,
+    durationSeconds: number,
+    onWarmupComplete: () => void,
+    teleportName = 'teleport'
+): void {
     if (durationSeconds <= 0) {
         onWarmupComplete();
         return;
@@ -132,8 +153,9 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
     let remainingSeconds = durationSeconds;
     const initialLocation = { x: player.location.x, y: player.location.y, z: player.location.z };
     const dimensionId = player.dimension.id;
-    let intervalId = null;
-    let hurtListener = null;
+    let intervalId: number | null = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let hurtListener: any = null;
 
     const cleanup = () => {
         if (intervalId !== null) {
@@ -153,13 +175,16 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
         }
     };
 
-    hurtListener = mc.world.afterEvents.entityHurt.subscribe(event => {
-        if (event.hurtEntity.id === player.id) {
-            player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
-            playSound(player, 'note.bass', { volume: 1.0, pitch: 0.5 });
-            cleanup();
-        }
-    }, { entityTypes: ['minecraft:player'] });
+    hurtListener = mc.world.afterEvents.entityHurt.subscribe(
+        (event) => {
+            if (event.hurtEntity.id === player.id) {
+                player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
+                playSound(player, 'note.bass', { volume: 1.0, pitch: 0.5 });
+                cleanup();
+            }
+        },
+        { entityTypes: ['minecraft:player'] }
+    );
 
     player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 
@@ -172,8 +197,8 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
             // Check the 3D distance the player has moved.
             const distanceMoved = Math.sqrt(
                 Math.pow(currentLocation.x - initialLocation.x, 2) +
-                Math.pow(currentLocation.y - initialLocation.y, 2) +
-                Math.pow(currentLocation.z - initialLocation.z, 2)
+                    Math.pow(currentLocation.y - initialLocation.y, 2) +
+                    Math.pow(currentLocation.z - initialLocation.z, 2)
             );
 
             if (distanceMoved > 2 || player.dimension.id !== dimensionId) {
@@ -191,7 +216,7 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
 
                 // Play ticking sound (rising pitch as time decreases)
                 // Pitch starts at 0.5 and goes up to 2.0
-                const pitch = 0.5 + (1.5 * (1 - (remainingSeconds / durationSeconds)));
+                const pitch = 0.5 + 1.5 * (1 - remainingSeconds / durationSeconds);
                 playSound(player, 'note.pling', { volume: 0.5, pitch: pitch });
             } else {
                 player.onScreenDisplay.setActionBar('§aTeleporting...');
@@ -208,11 +233,12 @@ export function startTeleportWarmup(player, durationSeconds, onWarmupComplete, t
 
 /**
  * Formats a string by replacing placeholders with values from a context object.
- * @param {string} template The string template with placeholders like {key}.
- * @param {object} context An object containing the values to substitute.
- * @returns {string} The formatted string.
+ * @param template The string template with placeholders like {key}.
+ * @param context An object containing the values to substitute.
+ * @returns The formatted string.
  */
-export function formatString(template, context) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function formatString(template: string, context: Record<string, any>): string {
     if (!template) {
         return '';
     }
@@ -223,19 +249,19 @@ export function formatString(template, context) {
     for (const key in context) {
         if (Object.prototype.hasOwnProperty.call(context, key)) {
             const placeholder = new RegExp(`{${key}}`, 'g');
-            message = message.replace(placeholder, context[key]);
+            message = message.replace(placeholder, String(context[key]));
         }
     }
     return message;
 }
 
-export function formatCooldown(seconds) {
+export function formatCooldown(seconds: number): string {
     if (seconds <= 0) {
         return 'Ready';
     }
 
     const d = Math.floor(seconds / (3600 * 24));
-    const h = Math.floor(seconds % (3600 * 24) / 3600);
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
 
@@ -259,10 +285,10 @@ export function formatCooldown(seconds) {
 /**
  * Generates a clean, human-readable display name from an item's type ID.
  * Example: 'minecraft:diamond_sword' becomes 'Diamond Sword'.
- * @param {string} typeId The item's type ID.
- * @returns {string} A formatted display name.
+ * @param typeId The item's type ID.
+ * @returns A formatted display name.
  */
-export function generateDisplayName(typeId) {
+export function generateDisplayName(typeId: string): string {
     if (!typeId) {
         return 'Unknown Item';
     }
@@ -273,7 +299,7 @@ export function generateDisplayName(typeId) {
     // Replace underscores with spaces and capitalize each word
     const formattedName = nameWithoutNamespace
         .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
     return formattedName;
@@ -281,32 +307,35 @@ export function generateDisplayName(typeId) {
 
 /**
  * Formats a location object into a human-readable string.
- * @param {{x: number, y: number, z: number, dimensionId: string}} location The location object.
- * @returns {string} A formatted string (e.g., "X: 10.50, Y: 64.00, Z: -12.25 in Overworld").
+ * @param location The location object.
+ * @returns A formatted string (e.g., "X: 10.50, Y: 64.00, Z: -12.25 in Overworld").
  */
-export function formatLocation(location) {
+export function formatLocation(location: { x: number; y: number; z: number; dimensionId?: string }): string {
     if (!location) {
         return 'an unknown location';
     }
     const x = location.x.toFixed(2);
     const y = location.y.toFixed(2);
     const z = location.z.toFixed(2);
-    const dimensionName = (location.dimensionId || 'Unknown').replace('minecraft:', '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const dimensionName = (location.dimensionId || 'Unknown')
+        .replace('minecraft:', '')
+        .replace('_', ' ')
+        .replace(/\b\w/g, (l) => l.toUpperCase());
     return `X: ${x}, Y: ${y}, Z: ${z} in ${dimensionName}`;
 }
-
 
 /**
  * Formats a number as a currency string, using the symbol from the config.
  * Supports short forms like k, M, B, T.
- * @param {number} amount The amount to format.
- * @returns {string} The formatted currency string (e.g., "$105k").
+ * @param amount The amount to format.
+ * @returns The formatted currency string (e.g., "$105k").
  */
-export function formatCurrency(amount) {
-    const economyConfig = getEconomyConfig();
+export function formatCurrency(amount: number): string {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const economyConfig: any = getEconomyConfig();
     const symbol = economyConfig.currencySymbol || '$';
     const isNegative = amount < 0;
-    let absAmount = Math.abs(amount);
+    const absAmount = Math.abs(amount);
     let formattedAmount = '';
 
     const suffixes = [
@@ -320,11 +349,15 @@ export function formatCurrency(amount) {
         { value: 1e3, symbol: 'k' }
     ];
 
-    const suffix = suffixes.find(s => absAmount >= s.value);
+    const suffix = suffixes.find((s) => absAmount >= s.value);
 
     if (suffix) {
         // Use at most 2 decimal places for large numbers, but remove trailing zeros/decimal if whole
-        formattedAmount = (absAmount / suffix.value).toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1') + suffix.symbol;
+        formattedAmount =
+            (absAmount / suffix.value)
+                .toFixed(2)
+                .replace(/\.00$/, '')
+                .replace(/(\.\d)0$/, '$1') + suffix.symbol;
     } else {
         formattedAmount = absAmount.toFixed(2);
     }

@@ -12,6 +12,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Set up Node.js and cache npm dependencies
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Extract version from tag
         shell: bash
         run: |
@@ -40,14 +49,7 @@ jobs:
           echo "Clean Version String: $VERSION_STR"
           echo "Version Array String: $VERSION_ARR_STR"
 
-      - name: Create staging directory and copy addon folders
-        run: |
-          set -e
-          mkdir staging
-          cp -r AddonExeBP staging/
-          cp -r AddonExeRP staging/
-
-      - name: Replace placeholders in staged files
+      - name: Prepare Release (Update Source)
         shell: bash
         env:
           VERSION_STRING: ${{ env.VERSION_STRING }}
@@ -59,12 +61,22 @@ jobs:
 
           echo "--- Verification ---"
           echo "BP Manifest:"
-          cat staging/AddonExeBP/manifest.json
+          cat AddonExeBP/manifest.json
           echo "RP Manifest:"
-          cat staging/AddonExeRP/manifest.json
-          echo "Config.js:"
-          head -n 15 staging/AddonExeBP/scripts/config.js
+          cat AddonExeRP/manifest.json
+          echo "Config Source:"
+          head -n 15 src/config.ts
           echo "--- End Verification ---"
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Create staging directory and copy addon folders
+        run: |
+          set -e
+          mkdir staging
+          cp -r AddonExeBP staging/
+          cp -r AddonExeRP staging/
 
       - name: Create Release Archives
         shell: bash

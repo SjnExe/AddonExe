@@ -10,11 +10,12 @@ if (!VERSION_STRING || !VERSION_ARRAY_STRING) {
     process.exit(1);
 }
 
-const stagingDir = 'staging';
+// We now modify the source files directly in the checked-out repo before building.
+const baseDir = '.';
 
 // Function to update JSON manifest
 function updateManifest(filePath) {
-    const fullPath = path.join(stagingDir, filePath);
+    const fullPath = path.join(baseDir, filePath);
     if (!fs.existsSync(fullPath)) {
         console.error(`Error: File not found: ${fullPath}`);
         process.exit(1);
@@ -52,7 +53,7 @@ function updateManifest(filePath) {
 
     // Update modules version
     if (json.modules) {
-        json.modules.forEach(module => {
+        json.modules.forEach((module) => {
             if (module.version) {
                 // Keep beta dependencies as is, unless they match the [1, 0, 0] placeholder we are replacing.
                 if (JSON.stringify(module.version) === '[1,0,0]' || JSON.stringify(module.version) === '[1, 0, 0]') {
@@ -64,7 +65,7 @@ function updateManifest(filePath) {
 
     // Update dependencies version
     if (json.dependencies) {
-        json.dependencies.forEach(dep => {
+        json.dependencies.forEach((dep) => {
             if (dep.version) {
                 // Only update if version is [1, 0, 0]
                 // This avoids touching "beta" or other specific versions
@@ -79,9 +80,9 @@ function updateManifest(filePath) {
     console.log(`Updated ${filePath}`);
 }
 
-// Function to update config.js
+// Function to update config.ts (Source)
 function updateConfig(filePath) {
-    const fullPath = path.join(stagingDir, filePath);
+    const fullPath = path.join(baseDir, filePath);
     if (!fs.existsSync(fullPath)) {
         console.error(`Error: File not found: ${fullPath}`);
         process.exit(1);
@@ -97,7 +98,10 @@ function updateConfig(filePath) {
         console.log('Applying Beta Release Modifications...');
         // Update ownerPlayerNames
         // Regex matches: ownerPlayerNames: ['Your•Name•Here']
-        content = content.replace(/ownerPlayerNames:\s*\[\s*'Your•Name•Here'\s*\]/g, "ownerPlayerNames: ['SjnTechMlmYT']");
+        content = content.replace(
+            /ownerPlayerNames:\s*\[\s*'Your•Name•Here'\s*\]/g,
+            "ownerPlayerNames: ['SjnTechMlmYT']"
+        );
 
         // Update logLevel
         // Regex matches: logLevel: 2
@@ -115,6 +119,7 @@ console.log(`Is Beta: ${IS_BETA_RELEASE}`);
 
 updateManifest('AddonExeBP/manifest.json');
 updateManifest('AddonExeRP/manifest.json');
-updateConfig('AddonExeBP/scripts/config.js');
+// Update the TypeScript source config
+updateConfig('src/config.ts');
 
 console.log('--- Release Preparation Complete ---');

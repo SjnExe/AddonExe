@@ -1,0 +1,54 @@
+# AddonExe TypeScript Migration Plan
+
+## Phase 1: Environment Setup & Utils (Current Session)
+- [x] Create `src` directory and move files.
+- [x] Install TypeScript, Prettier, ESLint plugins, and MC types.
+- [x] Configure `tsconfig.json`, `.prettierrc`, `eslint.config.js`.
+- [x] Update `package.json` scripts.
+- [x] Migrate Batch 1 files:
+  - [x] `src/core/utils.js` -> `src/core/utils.ts`
+  - [x] `src/core/constants.js` -> `src/core/constants.ts`
+  - [x] `src/core/logger.js` -> `src/core/logger.ts`
+  - [x] `src/core/objectUtils.js` -> `src/core/objectUtils.ts`
+  - [x] `src/config.js` -> `src/config.ts`
+- [x] Update `release.yml` and `scripts/prepare-release.js`.
+
+## Phase 2: Core Configuration & Data
+- [ ] Convert `playerDataManager.js` to TS.
+- [ ] Convert `rankManager.js` and `ranksConfig.js` to TS.
+- [ ] Convert `economyConfig.js` and other config files.
+
+## Phase 3: Managers (Part 1 - Chat & Moderation)
+- [ ] `messaging.js`
+- [ ] `punishmentManager.js`
+- [ ] `reportManager.js`
+- [ ] `cooldownManager.js`
+- [ ] `helpfulLinksManager.js`
+- [ ] `rulesManager.js`
+
+## Phase 4: Managers (Part 2 - Gameplay Systems)
+- [ ] `shopManager.js`, `shopConfig.js`, `shopCategoryConfig.js`
+- [ ] `kitsManager.js`, `kitsConfig.js`
+- [ ] `warpsManager.js`
+- [ ] `homesManager.js`
+- [ ] `tpaManager.js`
+- [ ] `bountyManager.js`
+- [ ] `floatingTextManager.js`
+- [ ] `teamManager.js`
+
+## Phase 5: UI System
+- [ ] `uiManager.js`
+- [ ] `panelBuilder.js`
+- [ ] `panelRegistry.js`
+- [ ] `panelHandlers.js`
+
+## Phase 6: Commands
+- [ ] `commandManager.js`
+- [ ] `modules/commands/*.js` (Iterative)
+
+## Phase 7: Main & Event Orchestration
+- [ ] `main.js`
+- [ ] `eventManager.js`
+- [ ] `playerSpawn.js`
+- [ ] `mobDeathEvents.js`
+- [ ] Final cleanup of any remaining JS files.

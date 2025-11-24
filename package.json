@@ -4,10 +4,13 @@
   "description": "<p align=\"center\">   <!-- TODO: Add a cool project logo/banner here. Example: <img src=\"link_to_your_logo.png\" alt=\"AddonExe Logo\" width=\"200\"/> -->   <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "lint:report": "eslint . --output-file eslint_report.txt",
+    "format": "prettier --write .",
     "validate": "npx mct validate default PRJINT,UNKJSON,pathlength,BASEGAMEVER100,CHKMANIF105 --display-only",
     "validate:report": "npx mct validate default PRJINT,UNKJSON,pathlength,BASEGAMEVER100,CHKMANIF105 -o validation_report",
     "prepare": "husky"
@@ -29,25 +32,54 @@
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.39.1",
     "@minecraft/creator-tools": "^0.14.2",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/parser": "^8.47.0",
     "babel-jest": "^30.2.0",
     "eslint": "^9.36.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsonc": "^2.20.1",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
-    "lint-staged": "^16.2.7"
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.6.2",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.47.0"
   },
   "jest": {
+    "preset": "ts-jest/presets/default-esm",
     "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
     "transform": {
-      "^.+\\.js$": "babel-jest"
-    }
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
+    },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/AddonExeBP/scripts/"
+    ]
   },
   "lint-staged": {
-    "*.js": "eslint --fix"
+    "*.{js,ts}": "eslint --fix",
+    "*.{js,ts,json,md}": "prettier --write"
   },
   "dependencies": {
-    "@minecraft/server": "^2.4.0-beta.1.21.124-stable"
+    "@minecraft/server": "^2.4.0-beta.1.21.124-stable",
+    "@minecraft/server-ui": "^2.1.0-beta.1.21.124-stable"
   }
 }
