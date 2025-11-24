@@ -1,16 +1,35 @@
 import { getKitsConfig, saveKitsConfig } from './configurations.js';
 import { debugLog } from './logger.js';
 
+interface KitOptions {
+    cooldown?: number;
+    permissionLevel?: number;
+    price?: number;
+    icon?: string;
+    description?: string;
+}
+
+interface KitSettings {
+    enabled?: boolean;
+    description?: string;
+    cooldownSeconds?: number;
+    permissionLevel?: number;
+    price?: number;
+    icon?: string;
+}
+
+interface ActionResult {
+    success: boolean;
+    message: string;
+}
+
 /**
  * Creates a new, empty kit with default settings.
- * @param {string} kitName - The name for the new kit. Must be unique.
- * @param {object} options - The initial settings for the kit.
- * @param {number} [options.cooldown=3600] - Cooldown in seconds.
- * @param {number} [options.permissionLevel=0] - Permission level required to use.
- * @param {number} [options.price=0] - Cost to claim the kit.
- * @returns {{success: boolean, message: string}} - The result of the operation.
+ * @param kitName - The name for the new kit. Must be unique.
+ * @param options - The initial settings for the kit.
+ * @returns The result of the operation.
  */
-export function createKit(kitName, options = {}) {
+export function createKit(kitName: string, options: KitOptions = {}): ActionResult {
     const config = getKitsConfig();
     const lowerCaseKitName = kitName.toLowerCase();
 
@@ -22,11 +41,13 @@ export function createKit(kitName, options = {}) {
         description = 'A new custom kit.'
     } = options;
 
-    if (config.kitDefinitions[lowerCaseKitName]) {
+    const kitDefinitions = config.kitDefinitions as Record<string, any>; // Casting to allow dynamic access/creation
+
+    if (kitDefinitions[lowerCaseKitName]) {
         return { success: false, message: `A kit with the name '${kitName}' already exists.` };
     }
 
-    config.kitDefinitions[lowerCaseKitName] = {
+    kitDefinitions[lowerCaseKitName] = {
         enabled: false, // Disabled by default
         description: description,
         cooldownSeconds: cooldown,
@@ -43,17 +64,18 @@ export function createKit(kitName, options = {}) {
 
 /**
  * Deletes a kit from the configuration.
- * @param {string} kitName - The name of the kit to delete.
- * @returns {{success: boolean, message: string}} - The result of the operation.
+ * @param kitName - The name of the kit to delete.
+ * @returns The result of the operation.
  */
-export function deleteKit(kitName) {
+export function deleteKit(kitName: string): ActionResult {
     const config = getKitsConfig();
+    const kitDefinitions = config.kitDefinitions as Record<string, any>;
 
-    if (!config.kitDefinitions[kitName]) {
+    if (!kitDefinitions[kitName]) {
         return { success: false, message: `Kit '${kitName}' not found.` };
     }
 
-    delete config.kitDefinitions[kitName];
+    delete kitDefinitions[kitName];
     saveKitsConfig();
     debugLog(`[KitAdminManager] Deleted kit: ${kitName}`);
     return { success: true, message: `Successfully deleted kit '${kitName}'.` };
@@ -61,13 +83,14 @@ export function deleteKit(kitName) {
 
 /**
  * Updates the settings of a kit.
- * @param {string} kitName - The name of the kit to update.
- * @param {object} newSettings - The new settings for the kit.
- * @returns {{success: boolean, message: string}} - The result of the operation.
+ * @param kitName - The name of the kit to update.
+ * @param newSettings - The new settings for the kit.
+ * @returns The result of the operation.
  */
-export function updateKitSettings(kitName, newSettings) {
+export function updateKitSettings(kitName: string, newSettings: KitSettings): ActionResult {
     const config = getKitsConfig();
-    const kit = config.kitDefinitions[kitName];
+    const kitDefinitions = config.kitDefinitions as Record<string, any>;
+    const kit = kitDefinitions[kitName];
 
     if (!kit) {
         return { success: false, message: `Kit '${kitName}' not found.` };
@@ -83,22 +106,22 @@ export function updateKitSettings(kitName, newSettings) {
 
 /**
  * Gets all kits from the configuration.
- * @returns {object} The kit definitions object.
+ * @returns The kit definitions object.
  */
-export function getAllKits() {
+export function getAllKits(): Record<string, any> {
     const config = getKitsConfig();
-    return config.kitDefinitions;
+    return config.kitDefinitions as Record<string, any>;
 }
 
 /**
  * Renames a kit.
- * @param {string} oldName - The current name of the kit.
- * @param {string} newName - The new name for the kit.
- * @returns {{success: boolean, message: string}} - The result of the operation.
+ * @param oldName - The current name of the kit.
+ * @param newName - The new name for the kit.
+ * @returns The result of the operation.
  */
-export function renameKit(oldName, newName) {
+export function renameKit(oldName: string, newName: string): ActionResult {
     const config = getKitsConfig();
-    const allKits = config.kitDefinitions;
+    const allKits = config.kitDefinitions as Record<string, any>;
 
     if (!allKits[oldName]) {
         return { success: false, message: `Kit '${oldName}' not found.` };

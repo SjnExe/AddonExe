@@ -1,28 +1,38 @@
 import * as mc from '@minecraft/server';
 import { teamConfig } from './teamConfig.js';
 import { debugLog, errorLog } from './logger.js';
-import { getPlayer, getOrCreatePlayer, updatePlayerData } from './playerDataManager.js';
+import { getPlayer, getOrCreatePlayer, updatePlayerData, HomeLocation } from './playerDataManager.js';
 import { incrementPlayerBalance } from './playerDataManager.js';
 
 const teamPropertyPrefix = 'exe:team.';
 const nextTeamIdKey = 'exe:nextTeamId';
 
-/**
- * @typedef {object} TeamData
- * @property {number} id
- * @property {string} name
- * @property {string} ownerId - Player ID of the owner
- * @property {string[]} admins - Array of Player IDs
- * @property {string[]} members - Array of Player IDs (includes owner and admins)
- * @property {number} createdDate
- * @property {import('./playerDataManager.js').HomeLocation | null} home
- * @property {object[]} applications - Pending join requests FROM players TO team
- * @property {number} balance - Optional team bank balance (future proofing)
- */
+interface TeamApplication {
+    playerId: string;
+    playerName: string;
+    timestamp: number;
+}
+
+interface TeamData {
+    id: number;
+    name: string;
+    ownerId: string;
+    admins: string[];
+    members: string[]; // Includes owner and admins
+    createdDate: number;
+    home: HomeLocation | null;
+    applications: TeamApplication[];
+    balance: number;
+    open: boolean;
+}
+
+interface ActionResult {
+    success: boolean;
+    message?: string;
+}
 
 // In-memory cache
-/** @type {Map<number, TeamData>} */
-const activeTeams = new Map();
+const activeTeams = new Map<number, TeamData>();
 let nextTeamId = 1;
 
 /**
@@ -37,15 +47,8 @@ export function initialize() {
         }
 
         // Load all teams
-        // Since we don't have a list of all team IDs, and dynamic properties don't support getting all keys by prefix efficiently in API < 1.10 (approx),
-        // we might need a master list or iterate.
-        // However, `getDynamicPropertyIds` exists in newer versions. Let's check API capabilities or use a master list if needed.
-        // For now, assuming we can iterate or we track active IDs.
-        // If getDynamicPropertyIds is not available, we must maintain a list of active IDs.
-        // Let's use a safe approach: "exe:allTeamIds" property storing an array of IDs.
-
         const allIdsStr = mc.world.getDynamicProperty('exe:allTeamIds');
-        let allIds = [];
+        let allIds: number[] = [];
         if (typeof allIdsStr === 'string') {
             allIds = JSON.parse(allIdsStr);
         }
@@ -59,18 +62,26 @@ export function initialize() {
             }
         }
         debugLog(`[TeamManager] Loaded ${loadedCount} teams.`);
-    } catch (e) {
-        errorLog(`[TeamManager] Failed to initialize: ${e.stack}`);
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            errorLog(`[TeamManager] Failed to initialize: ${e.stack}`);
+        } else {
+            errorLog(`[TeamManager] Failed to initialize: ${String(e)}`);
+        }
     }
 }
 
-function saveTeam(teamId) {
+function saveTeam(teamId: number) {
     const team = activeTeams.get(teamId);
     if (!team) {return;}
     try {
         mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`, JSON.stringify(team));
-    } catch (e) {
-        errorLog(`[TeamManager] Failed to save team ${teamId}: ${e.stack}`);
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            errorLog(`[TeamManager] Failed to save team ${teamId}: ${e.stack}`);
+        } else {
+            errorLog(`[TeamManager] Failed to save team ${teamId}: ${String(e)}`);
+        }
     }
 }
 
@@ -85,11 +96,11 @@ function saveNextTeamId() {
 
 /**
  * Creates a new team.
- * @param {import('@minecraft/server').Player} player
- * @param {string} name
- * @returns {{success: boolean, message: string}}
+ * @param player The player creating the team.
+ * @param name The name of the team.
+ * @returns The result of the operation.
  */
-export function createTeam(player, name) {
+export function createTeam(player: mc.Player, name: string): ActionResult {
     if (!teamConfig.enabled) {return { success: false, message: '§cTeam system is disabled.' };}
 
     // Validation
@@ -131,7 +142,7 @@ export function createTeam(player, name) {
     incrementPlayerBalance(player.id, -teamConfig.creationCost);
 
     const newTeamId = nextTeamId++;
-    const newTeam = {
+    const newTeam: TeamData = {
         id: newTeamId,
         name: name, // Display name with colors
         ownerId: player.id,
@@ -157,10 +168,10 @@ export function createTeam(player, name) {
 
 /**
  * Deletes a team.
- * @param {number} teamId
- * @returns {boolean}
+ * @param teamId The ID of the team to delete.
+ * @returns True if successful, false otherwise.
  */
-export function deleteTeam(teamId) {
+export function deleteTeam(teamId: number): boolean {
     const team = activeTeams.get(teamId);
     if (!team) {return false;}
 
@@ -175,45 +186,44 @@ export function deleteTeam(teamId) {
 
     activeTeams.delete(teamId);
     // Clean up storage
-    mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`, null); // Delete property
+    mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`, undefined); // undefined or null deletes property
     saveAllTeamIds();
 
     return true;
 }
 
-export function getTeam(teamId) {
+export function getTeam(teamId: number): TeamData | undefined {
     return activeTeams.get(teamId);
 }
 
-export function getAllTeams() {
+export function getAllTeams(): TeamData[] {
     return Array.from(activeTeams.values());
 }
 
-export function getPlayerTeamId(playerId) {
+export function getPlayerTeamId(playerId: string): number | null {
     const pData = getPlayer(playerId);
     return pData?.teamId ?? null;
 }
 
-export function getTeamByPlayer(playerId) {
+export function getTeamByPlayer(playerId: string): TeamData | null {
     const teamId = getPlayerTeamId(playerId);
-    return teamId ? activeTeams.get(teamId) : null;
+    return teamId ? activeTeams.get(teamId) || null : null;
 }
 
 /**
  * Helper to update player data with team ID.
+ * @param playerId The player ID.
+ * @param teamId The team ID or null to remove.
  */
-export function setPlayerTeam(playerId, teamId) {
+export function setPlayerTeam(playerId: string, teamId: number | null) {
     updatePlayerData(playerId, (data) => {
         data.teamId = teamId;
-        // Clear invites/requests relevant to old/new state if needed?
-        // Usually good to clear pending invites TO this player from other teams
-        // but keeping them is also fine, they just fail if accepted.
     });
 }
 
 // --- Member Management ---
 
-export function kickMember(teamId, targetId) {
+export function kickMember(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
     if (!team) {return { success: false, message: 'Team not found.' };}
 
@@ -230,7 +240,7 @@ export function kickMember(teamId, targetId) {
     return { success: true, message: 'Player kicked.' };
 }
 
-export function promoteMember(teamId, targetId) {
+export function promoteMember(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
     if (!team) {return { success: false };}
     if (!team.members.includes(targetId)) {return { success: false, message: 'Player not in team.' };}
@@ -241,7 +251,7 @@ export function promoteMember(teamId, targetId) {
     return { success: true, message: 'Player promoted to admin.' };
 }
 
-export function demoteMember(teamId, targetId) {
+export function demoteMember(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
     if (!team) {return { success: false };}
     team.admins = team.admins.filter(id => id !== targetId);
@@ -249,7 +259,7 @@ export function demoteMember(teamId, targetId) {
     return { success: true, message: 'Player demoted.' };
 }
 
-export function transferOwnership(teamId, newOwnerId) {
+export function transferOwnership(teamId: number, newOwnerId: string): ActionResult {
     const team = activeTeams.get(teamId);
     if (!team) {return { success: false };}
     if (!team.members.includes(newOwnerId)) {return { success: false, message: 'Player not in team.' };}
@@ -265,7 +275,7 @@ export function transferOwnership(teamId, newOwnerId) {
 // --- Invite System (Team -> Player) ---
 // Stored in PlayerData.pendingInvites
 
-export function invitePlayer(teamId, targetId) {
+export function invitePlayer(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
     if (!team) {return { success: false };}
 
@@ -308,7 +318,7 @@ export function invitePlayer(teamId, targetId) {
     return { success, message: msg };
 }
 
-export function acceptInvite(player, teamId) {
+export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
     const pData = getOrCreatePlayer(player);
     if (pData.teamId) {return { success: false, message: '§cYou are already in a team.' };}
 
@@ -318,7 +328,9 @@ export function acceptInvite(player, teamId) {
     const team = activeTeams.get(teamId);
     if (!team) {
         // Clean up invalid invite
-        updatePlayerData(player.id, d => d.pendingInvites.splice(inviteIndex, 1));
+        updatePlayerData(player.id, d => {
+             if (d.pendingInvites) {d.pendingInvites.splice(inviteIndex, 1);}
+        });
         return { success: false, message: '§cTeam no longer exists.' };
     }
 
@@ -339,7 +351,7 @@ export function acceptInvite(player, teamId) {
     return { success: true, message: `§aYou joined ${team.name}§a!` };
 }
 
-export function denyInvite(playerId, teamId) {
+export function denyInvite(playerId: string, teamId: number): ActionResult {
     let found = false;
     updatePlayerData(playerId, d => {
         if (!d.pendingInvites) {return;}
@@ -353,7 +365,7 @@ export function denyInvite(playerId, teamId) {
 // --- Application System (Player -> Team) ---
 // Stored in TeamData.applications
 
-export function applyToTeam(player, teamId) {
+export function applyToTeam(player: mc.Player, teamId: number): ActionResult {
     const team = activeTeams.get(teamId);
     if (!team) {return { success: false, message: '§cTeam not found.' };}
 
@@ -388,7 +400,7 @@ export function applyToTeam(player, teamId) {
     return { success: true, message: '§aApplication sent successfully.' };
 }
 
-export function acceptApplication(teamId, playerId) {
+export function acceptApplication(teamId: number, playerId: string): ActionResult {
     const team = activeTeams.get(teamId);
     if (!team) {return { success: false, message: 'Team error.' };}
 
@@ -399,10 +411,7 @@ export function acceptApplication(teamId, playerId) {
     const appIndex = team.applications.findIndex(app => app.playerId === playerId);
     if (appIndex === -1) {return { success: false, message: 'Application not found.' };}
 
-    // Check if player joined another team
-    const pData = getPlayer(playerId); // Might need loadPlayerData if offline
-    // If player is offline, we can still add them if we load data
-    // TODO: Add robust offline handling if needed. For now, assume cached or loadable.
+    const pData = getPlayer(playerId);
 
     // Add member
     team.members.push(playerId);
@@ -415,7 +424,7 @@ export function acceptApplication(teamId, playerId) {
     return { success: true, message: `§aAccepted ${pData ? pData.name : 'player'} into the team.` };
 }
 
-export function denyApplication(teamId, playerId) {
+export function denyApplication(teamId: number, playerId: string): ActionResult {
     const team = activeTeams.get(teamId);
     if (!team) {return { success: false };}
 
@@ -426,7 +435,7 @@ export function denyApplication(teamId, playerId) {
 
 // --- Settings & Home ---
 
-export function setTeamHome(teamId, location, dimensionId) {
+export function setTeamHome(teamId: number, location: mc.Vector3, dimensionId: string): ActionResult {
     const team = activeTeams.get(teamId);
     if (!team) {return { success: false };}
     team.home = { x: location.x, y: location.y, z: location.z, dimensionId };
@@ -434,7 +443,7 @@ export function setTeamHome(teamId, location, dimensionId) {
     return { success: true, message: '§aTeam home set!' };
 }
 
-export function deleteTeamHome(teamId) {
+export function deleteTeamHome(teamId: number): ActionResult {
     const team = activeTeams.get(teamId);
     if (!team) {return { success: false };}
     team.home = null;
@@ -442,7 +451,7 @@ export function deleteTeamHome(teamId) {
     return { success: true, message: '§aTeam home deleted!' };
 }
 
-export function setTeamOpenStatus(teamId, isOpen) {
+export function setTeamOpenStatus(teamId: number, isOpen: boolean): ActionResult {
     const team = activeTeams.get(teamId);
     if (!team) {return { success: false };}
     team.open = !!isOpen;

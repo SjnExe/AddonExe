@@ -2,10 +2,10 @@ import { getEconomyConfig } from './configurations.js';
 
 /**
  * Formats a number representing cents into a human-readable currency string.
- * @param {number} amount The amount in cents.
- * @returns {string} The formatted currency string.
+ * @param amount The amount in cents.
+ * @returns The formatted currency string.
  */
-export function formatMoney(amount) {
+export function formatMoney(amount: number): string {
     const economyConfig = getEconomyConfig();
     const dollars = amount / 100;
     const tiers = [

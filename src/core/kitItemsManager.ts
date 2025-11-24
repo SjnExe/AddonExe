@@ -5,17 +5,28 @@ import * as mc from '@minecraft/server';
 
 const MAX_KIT_SLOTS = 36;
 
+interface ItemInfo {
+    typeId: string;
+    amount: number;
+    nameTag?: string;
+    lore?: string[];
+}
+
+interface ActionResult {
+    success: boolean;
+    message: string;
+}
+
 /**
  * Adds an item to a kit.
- * @param {string} kitName - The name of the kit.
- * @param {object} itemInfo - The item to add.
- * @param {string} itemInfo.typeId - The item's type ID.
- * @param {number} itemInfo.amount - The amount of the item.
- * @returns {{success: boolean, message: string}} - The result of the operation.
+ * @param kitName - The name of the kit.
+ * @param itemInfo - The item to add.
+ * @returns The result of the operation.
  */
-export function addItemToKit(kitName, itemInfo) {
+export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult {
     const config = getKitsConfig();
-    const kit = config.kitDefinitions[kitName];
+    const kitDefinitions = config.kitDefinitions as Record<string, any>;
+    const kit = kitDefinitions[kitName];
 
     if (!kit) {
         return { success: false, message: `Kit '${kitName}' not found.` };
@@ -43,21 +54,26 @@ export function addItemToKit(kitName, itemInfo) {
         saveKitsConfig();
         debugLog(`[KitItemsManager] Added item ${itemInfo.typeId} x${itemInfo.amount} to kit ${kitName}`);
         return { success: true, message: 'Item added successfully.' };
-    } catch (e) {
-        errorLog(`[KitItemsManager] Failed to add item to kit: ${e.stack}`);
+    } catch (e: unknown) {
+         if (e instanceof Error) {
+            errorLog(`[KitItemsManager] Failed to add item to kit: ${e.stack}`);
+        } else {
+            errorLog(`[KitItemsManager] Failed to add item to kit: ${String(e)}`);
+        }
         return { success: false, message: `Invalid item type ID: ${itemInfo.typeId}` };
     }
 }
 
 /**
  * Removes an item from a kit by its index.
- * @param {string} kitName - The name of the kit.
- * @param {number} itemIndex - The index of the item to remove.
- * @returns {{success: boolean, message: string}} - The result of the operation.
+ * @param kitName - The name of the kit.
+ * @param itemIndex - The index of the item to remove.
+ * @returns The result of the operation.
  */
-export function removeItemFromKit(kitName, itemIndex) {
+export function removeItemFromKit(kitName: string, itemIndex: number): ActionResult {
     const config = getKitsConfig();
-    const kit = config.kitDefinitions[kitName];
+    const kitDefinitions = config.kitDefinitions as Record<string, any>;
+    const kit = kitDefinitions[kitName];
 
     if (!kit) {
         return { success: false, message: `Kit '${kitName}' not found.` };
@@ -75,14 +91,15 @@ export function removeItemFromKit(kitName, itemIndex) {
 
 /**
  * Updates an item in a kit.
- * @param {string} kitName - The name of the kit.
- * @param {number} itemIndex - The index of the item to update.
- * @param {object} newItemInfo - The new item info.
- * @returns {{success: boolean, message: string}} - The result of the operation.
+ * @param kitName - The name of the kit.
+ * @param itemIndex - The index of the item to update.
+ * @param newItemInfo - The new item info.
+ * @returns The result of the operation.
  */
-export function updateItemInKit(kitName, itemIndex, newItemInfo) {
+export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo: ItemInfo): ActionResult {
     const config = getKitsConfig();
-    const kit = config.kitDefinitions[kitName];
+    const kitDefinitions = config.kitDefinitions as Record<string, any>;
+    const kit = kitDefinitions[kitName];
 
     if (!kit) {
         return { success: false, message: `Kit '${kitName}' not found.` };
@@ -110,8 +127,12 @@ export function updateItemInKit(kitName, itemIndex, newItemInfo) {
         saveKitsConfig();
         debugLog(`[KitItemsManager] Updated item at index ${itemIndex} in kit ${kitName}`);
         return { success: true, message: 'Item updated successfully.' };
-    } catch (e) {
-        errorLog(`[KitItemsManager] Failed to update item in kit: ${e.stack}`);
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            errorLog(`[KitItemsManager] Failed to update item in kit: ${e.stack}`);
+        } else {
+            errorLog(`[KitItemsManager] Failed to update item in kit: ${String(e)}`);
+        }
         return { success: false, message: `Invalid item type ID: ${newItemInfo.typeId}` };
     }
 }

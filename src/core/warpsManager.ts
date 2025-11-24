@@ -1,32 +1,39 @@
 import * as mc from '@minecraft/server';
+import { HomeLocation } from './playerDataManager.js';
 
 const WARPS_PROPERTY_ID = 'exe:warps';
 
+interface ActionResult {
+    success: boolean;
+    message: string;
+}
+
 /**
  * Gets all warps from dynamic properties.
- * @returns {Record<string, import('./playerDataManager.js').HomeLocation>}
+ * @returns A record of warp names to their locations.
  */
-function getWarps() {
+function getWarps(): Record<string, HomeLocation> {
     const warpsJson = mc.world.getDynamicProperty(WARPS_PROPERTY_ID);
-    return warpsJson ? JSON.parse(warpsJson) : {};
+    if (typeof warpsJson !== 'string') {return {};}
+    return JSON.parse(warpsJson);
 }
 
 /**
  * Saves all warps to dynamic properties.
- * @param {Record<string, any>} warps
+ * @param warps The record of warps to save.
  */
-function saveWarps(warps) {
+function saveWarps(warps: Record<string, HomeLocation>) {
     mc.world.setDynamicProperty(WARPS_PROPERTY_ID, JSON.stringify(warps));
 }
 
 /**
  * Sets a warp at a specific location.
- * @param {string} warpName The name of the warp.
- * @param {import('@minecraft/server').Location} location The location of the warp.
- * @param {string} dimensionId The dimension of the warp.
- * @returns {{success: boolean, message: string}}
+ * @param warpName The name of the warp.
+ * @param location The location of the warp.
+ * @param dimensionId The dimension of the warp.
+ * @returns The result of the operation.
  */
-export function setWarp(warpName, location, dimensionId) {
+export function setWarp(warpName: string, location: mc.Vector3, dimensionId: string): ActionResult {
     const warps = getWarps();
     const lowerCaseWarpName = warpName.toLowerCase();
 
@@ -50,20 +57,20 @@ export function setWarp(warpName, location, dimensionId) {
 
 /**
  * Gets a warp's location.
- * @param {string} warpName The name of the warp.
- * @returns {import('./playerDataManager.js').HomeLocation | null}
+ * @param warpName The name of the warp.
+ * @returns The location of the warp, or null if it doesn't exist.
  */
-export function getWarp(warpName) {
+export function getWarp(warpName: string): HomeLocation | null {
     const warps = getWarps();
     return warps[warpName.toLowerCase()] || null;
 }
 
 /**
  * Deletes a warp.
- * @param {string} warpName The name of the warp.
- * @returns {{success: boolean, message: string}}
+ * @param warpName The name of the warp.
+ * @returns The result of the operation.
  */
-export function deleteWarp(warpName) {
+export function deleteWarp(warpName: string): ActionResult {
     const warps = getWarps();
     const lowerCaseWarpName = warpName.toLowerCase();
 
@@ -78,9 +85,9 @@ export function deleteWarp(warpName) {
 
 /**
  * Lists all warps.
- * @returns {string[]} An array of warp names.
+ * @returns An array of warp names.
  */
-export function listWarps() {
+export function listWarps(): string[] {
     const warps = getWarps();
     return Object.keys(warps);
 }

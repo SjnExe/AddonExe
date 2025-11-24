@@ -12,7 +12,7 @@ import { warnLog } from './logger.js';
 export function sendMessage(
     message: string,
     target: mc.Player | 'all' | mc.World = mc.world,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     options: { raw?: boolean; title?: string | null } = {}
 ) {
     const finalMessage = message;
