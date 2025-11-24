@@ -1,18 +1,18 @@
 import * as mc from '@minecraft/server';
-import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps } from './objectUtils.js';
+import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, reconcileConfig } from './objectUtils.js';
 import { errorLog, debugLog } from './logger.js';
-import { reconcileConfig } from './objectUtils.js'; // Ensure reconcileConfig is explicitly imported
 
 /**
  * Creates a configuration manager for a specific configuration type.
  * This version uses synchronous initialization to prevent race conditions.
- * @param {string} key The dynamic property key for this configuration.
- * @param {object | Array} defaultConfig The default configuration object, imported directly.
- * @param {string} name The name of the configuration for logging purposes.
- * @param {string | null} wrapperKey If provided, the default config data will be wrapped in an object with this key.
- * @returns {object} An object with methods to manage the configuration.
+ * @param key The dynamic property key for this configuration.
+ * @param defaultConfig The default configuration object, imported directly.
+ * @param name The name of the configuration for logging purposes.
+ * @param wrapperKey If provided, the default config data will be wrapped in an object with this key.
+ * @returns An object with methods to manage the configuration.
  */
-function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function createConfigManager<T = any>(key: string, defaultConfig: T, name: string, wrapperKey: string | null = null) {
     const lastLoadedKey = `${key}:last_loaded`;
 
     const initialDefaultConfig = wrapperKey
@@ -20,7 +20,8 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
         : deepClone(defaultConfig);
 
     let currentConfig = deepClone(initialDefaultConfig);
-    let lastLoadedConfig = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let lastLoadedConfig: any = null;
 
     function saveLastLoadedConfig() {
         try {
@@ -30,13 +31,13 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
         }
     }
 
-    function loadConfig(isMigration) {
+    function loadConfig(isMigration: boolean): boolean {
         debugLog(`[${name}ConfigManager] Starting to load config. Is migration: ${isMigration}`);
         const newDefaultConfig = initialDefaultConfig;
         let isFirstInit = false;
 
-        const userSavedConfigStr = mc.world.getDynamicProperty(key);
-        const lastLoadedConfigStr = mc.world.getDynamicProperty(lastLoadedKey);
+        const userSavedConfigStr = mc.world.getDynamicProperty(key) as string | undefined;
+        const lastLoadedConfigStr = mc.world.getDynamicProperty(lastLoadedKey) as string | undefined;
 
         if (!userSavedConfigStr) {
             isFirstInit = true;
@@ -45,7 +46,8 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
             errorLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
             saveLastLoadedConfig();
         } else {
-            let userSavedConfig;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let userSavedConfig: any;
             try {
                 userSavedConfig = JSON.parse(userSavedConfigStr);
             } catch (e) {
@@ -63,7 +65,8 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
             }
 
             if (!isMigration && lastLoadedConfigStr) {
-                let lastLoadedConfigForMerge;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                let lastLoadedConfigForMerge: any;
                 try {
                     lastLoadedConfigForMerge = JSON.parse(lastLoadedConfigStr);
                 } catch (e) {
@@ -108,12 +111,10 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
 
             if (isStoredOwnerValid) {
                 // If a valid owner is in the user's saved config, it always takes precedence.
-                currentConfig.ownerPlayerNames = storedOwner;
-                debugLog(`[${name}ConfigManager] Applied "sticky" owner from user-saved config:`, storedOwner);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (currentConfig as any).ownerPlayerNames = storedOwner;
+                debugLog(`[${name}ConfigManager] Applied "sticky" owner from user-saved config: ${JSON.stringify(storedOwner)}`);
             }
-            // If the stored owner is not valid (i.e., it's the placeholder or empty),
-            // currentConfig.ownerPlayerNames will already have the correct value from the deepMerge/reconciliation above,
-            // which would be the value from the new config.js file. So, no 'else' block is needed.
         }
 
         saveConfig();
@@ -121,7 +122,7 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
         return isFirstInit;
     }
 
-    function getConfig() {
+    function getConfig(): T {
         return currentConfig;
     }
 
@@ -133,7 +134,7 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
         }
     }
 
-    function setConfig(newConfig) {
+    function setConfig(newConfig: T) {
         currentConfig = newConfig;
         saveConfig();
     }
@@ -144,12 +145,14 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
         debugLog(`[${name}ConfigManager] Configuration reloaded.`);
     }
 
-    function updateConfig(path, value) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function updateConfig(path: string, value: any) {
         setValueByPath(currentConfig, path, value);
         saveConfig();
     }
 
-    function updateMultipleConfig(updates) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function updateMultipleConfig(updates: Record<string, any>) {
         for (const path in updates) {
             setValueByPath(currentConfig, path, updates[path]);
         }
@@ -175,5 +178,3 @@ function createConfigManager(key, defaultConfig, name, wrapperKey = null) {
         reset: resetConfig
     };
 }
-
-export default createConfigManager;

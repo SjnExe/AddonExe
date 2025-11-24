@@ -1,35 +1,32 @@
-/**
- * @typedef {object} ChatFormatting
- * @property {string} [prefixText='']
- * @property {string} [nameColor='§7']
- * @property {string} [messageColor='§f']
- */
+export interface ChatFormatting {
+    prefixText?: string;
+    nameColor?: string;
+    messageColor?: string;
+}
 
-/**
- * @typedef {object} RankCondition
- * @property {string} type The type of condition to check (e.g., 'isOwner', 'hasTag').
- * @property {*} [value] The value to check against (e.g., the tag name).
- */
+export interface RankCondition {
+    type: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    value?: any;
+}
 
-/**
- * @typedef {object} RankDefinition
- * @property {string} id
- * @property {string} name
- * @property {number} permissionLevel
- * @property {ChatFormatting} [chatFormatting]
- * @property {string} [nametagPrefix]
- * @property {RankCondition[]} conditions
- */
+export interface RankDefinition {
+    id: string;
+    name: string;
+    permissionLevel: number;
+    locked?: boolean;
+    chatFormatting?: ChatFormatting;
+    nametagPrefix?: string;
+    conditions: RankCondition[];
+}
 
-/** @type {Required<ChatFormatting>} */
-export const defaultChatFormatting = {
+export const defaultChatFormatting: Required<ChatFormatting> = {
     prefixText: '§8Member',
     nameColor: '§7',
     messageColor: '§f'
 };
 
-/** @type {RankDefinition[]} */
-export const rankDefinitions = [
+export const rankDefinitions: RankDefinition[] = [
     {
         id: 'owner',
         name: 'Owner',

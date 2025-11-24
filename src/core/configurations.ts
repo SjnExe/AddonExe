@@ -1,3 +1,4 @@
+import * as mc from '@minecraft/server';
 import createConfigManager from './configManagerFactory.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
@@ -57,7 +58,13 @@ export const getTeamConfig = teamConfigManager.get;
 export const saveTeamConfig = teamConfigManager.save;
 export const resetTeamConfig = teamConfigManager.reset;
 
-export const configResetRegistry = {
+type ResetRegistryEntry = {
+    reset: () => void;
+    message: string;
+    postResetCallback?: (player?: mc.Player) => void;
+};
+
+export const configResetRegistry: Record<string, ResetRegistryEntry> = {
     'team': {
         reset: resetTeamConfig,
         message: 'The \'team\' configuration section has been reset to default.'
@@ -106,7 +113,7 @@ export const configResetRegistry = {
  * A registry of functions to call after a specific config section is reset.
  * This is for sections within the main `config.js` file.
  */
-export const configResetCallbacks = {
+export const configResetCallbacks: Record<string, (player?: mc.Player) => void> = {
     'announcements': (player) => {
         restartAnnouncer();
         if (player) {
@@ -114,7 +121,8 @@ export const configResetCallbacks = {
         }
     },
     'dimensionLock': (player) => {
-        const config = getConfig(); // Get the freshly reset config
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const config: any = getConfig(); // Get the freshly reset config
         setLockState('nether', !!config.dimensionLock.lockNether);
         setLockState('end', !!config.dimensionLock.lockEnd);
         if (player) {

@@ -7,11 +7,11 @@ import { setTrackedInterval } from './timerManager.js';
 /**
  * Saves all "dirty" data to world properties.
  * This includes player data flagged with `needsSave` and the name-to-ID map if it has changed.
- * @param {object} [options={}]
- * @param {boolean} [options.log=true] - Whether to log the save event.
- * @returns {boolean} - True if any data was saved, false otherwise.
+ * @param options
+ * @param options.log - Whether to log the save event.
+ * @returns True if any data was saved, false otherwise.
  */
-export function saveAllData(options = {}) {
+export function saveAllData(options: { log?: boolean } = {}): boolean {
     const { log = true } = options;
     if (log) {
         debugLog('[DataManager] Starting data sync...');
@@ -57,7 +57,8 @@ export function saveAllData(options = {}) {
  * Initializes the data manager, including setting up the auto-saver.
  */
 export function initializeDataManager() {
-    const config = getConfig();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const config: any = getConfig();
     const autoSaveIntervalSeconds = config.data?.autoSaveIntervalSeconds ?? 300;
 
     if (autoSaveIntervalSeconds > 0) {

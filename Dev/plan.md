@@ -13,10 +13,26 @@
   - [x] `src/config.js` -> `src/config.ts`
 - [x] Update `release.yml` and `scripts/prepare-release.js`.
 
-## Phase 2: Core Configuration & Data
-- [ ] Convert `playerDataManager.js` to TS.
-- [ ] Convert `rankManager.js` and `ranksConfig.js` to TS.
-- [ ] Convert `economyConfig.js` and other config files.
+## Phase 2: Core Configuration & Data (Completed)
+- [x] Convert independent config files:
+    - [x] `src/core/economyConfig.js` -> `.ts`
+    - [x] `src/core/itemsConfig.js` -> `.ts`
+    - [x] `src/core/kitsConfig.js` -> `.ts`
+    - [x] `src/core/shopConfig.js` -> `.ts`
+    - [x] `src/core/shopCategoryConfig.js` -> `.ts`
+    - [x] `src/core/spawnConfig.js` -> `.ts`
+    - [x] `src/core/teamConfig.js` -> `.ts`
+    - [x] `src/core/xrayConfig.js` -> `.ts`
+- [x] Convert Ranks System:
+    - [x] `src/core/ranksConfig.js` -> `.ts`
+    - [x] `src/core/rankDb.js` -> `.ts`
+    - [x] `src/core/rankManager.js` -> `.ts`
+- [x] Convert Data & Config Managers:
+    - [x] `src/core/dataManager.js` -> `.ts`
+    - [x] `src/core/configManager.js` -> `.ts`
+    - [x] `src/core/configManagerFactory.js` -> `.ts`
+    - [x] `src/core/configurations.js` -> `.ts`
+- [x] Convert `playerDataManager.js` -> `.ts`
 
 ## Phase 3: Managers (Part 1 - Chat & Moderation)
 - [ ] `messaging.js`
@@ -27,8 +43,8 @@
 - [ ] `rulesManager.js`
 
 ## Phase 4: Managers (Part 2 - Gameplay Systems)
-- [ ] `shopManager.js`, `shopConfig.js`, `shopCategoryConfig.js`
-- [ ] `kitsManager.js`, `kitsConfig.js`
+- [ ] `shopManager.js`
+- [ ] `kitsManager.js`
 - [ ] `warpsManager.js`
 - [ ] `homesManager.js`
 - [ ] `tpaManager.js`
