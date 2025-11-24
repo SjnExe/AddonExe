@@ -5,26 +5,57 @@ import { getKitsConfig } from './configurations.js';
 import { errorLog } from './logger.js';
 import { formatCooldown } from './utils.js';
 
+interface KitItem {
+    typeId: string;
+    amount: number;
+    nameTag?: string;
+    lore?: string[];
+}
+
+interface KitDefinition {
+    enabled: boolean;
+    permissionLevel: number;
+    cooldownSeconds: number;
+    items: KitItem[];
+    price?: number;
+    icon?: string;
+}
+
+interface KitInfo {
+    name: string;
+    icon: string;
+    price: number;
+    cooldown: number;
+}
+
+interface KitResult {
+    success: boolean;
+    message: string;
+}
+
 /**
  * Gets the definition of a kit from the config.
- * @param {string} kitName The name of the kit.
- * @returns {object | undefined}
+ * @param kitName The name of the kit.
+ * @returns The kit definition or undefined.
  */
-export function getKit(kitName) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getKit(kitName: string): any | undefined {
     const kitsConfig = getKitsConfig();
     if (!kitsConfig.kitDefinitions) {
         return undefined;
     }
-    return kitsConfig.kitDefinitions[kitName.toLowerCase()];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (kitsConfig.kitDefinitions as any)[kitName.toLowerCase()];
 }
 
 /**
  * Lists all available and enabled kits for a given player.
- * @param {import('@minecraft/server').Player} player The player to check permissions for.
- * @returns {{name: string, icon: string, price: number, cooldown: number}[]}
+ * @param player The player to check permissions for.
+ * @returns An array of kit information objects.
  */
-export function listKits(player) {
-    const mainConfig = getConfig();
+export function listKits(player: mc.Player): KitInfo[] {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mainConfig = getConfig() as any;
     const kitsConfig = getKitsConfig();
     if (!mainConfig.kits.enabled || !kitsConfig.kitDefinitions) {
         return [];
@@ -33,7 +64,8 @@ export function listKits(player) {
     const pData = getOrCreatePlayer(player);
     if (!pData) { return []; }
 
-    const kitDefs = kitsConfig.kitDefinitions;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const kitDefs = kitsConfig.kitDefinitions as any;
     return Object.keys(kitDefs)
         .filter(kitName => {
             const kit = kitDefs[kitName];
@@ -45,8 +77,8 @@ export function listKits(player) {
             const kit = kitDefs[kitName];
             return {
                 name: kitName,
-                icon: kit.icon,
-                price: kit.price,
+                icon: kit.icon || 'textures/ui/gift_square',
+                price: kit.price || 0,
                 cooldown: getKitCooldown(player, kitName)
             };
         });
@@ -54,11 +86,11 @@ export function listKits(player) {
 
 /**
  * Gets the remaining cooldown time for a player's kit in seconds.
- * @param {import('@minecraft/server').Player} player The player.
- * @param {string} kitName The name of the kit.
- * @returns {number} The remaining cooldown in seconds, or 0 if available.
+ * @param player The player.
+ * @param kitName The name of the kit.
+ * @returns The remaining cooldown in seconds, or 0 if available.
  */
-export function getKitCooldown(player, kitName) {
+export function getKitCooldown(player: mc.Player, kitName: string): number {
     const pData = getOrCreatePlayer(player);
     if (!pData) { return 0; }
 
@@ -75,12 +107,13 @@ export function getKitCooldown(player, kitName) {
 
 /**
  * Gives a kit to a player if they are off cooldown and the kit is enabled.
- * @param {import('@minecraft/server').Player} player The player to give the kit to.
- * @param {string} kitName The name of the kit to give.
- * @returns {{success: boolean, message: string}}
+ * @param player The player to give the kit to.
+ * @param kitName The name of the kit to give.
+ * @returns The result of the operation.
  */
-export function giveKit(player, kitName) {
-    const mainConfig = getConfig();
+export function giveKit(player: mc.Player, kitName: string): KitResult {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mainConfig = getConfig() as any;
     if (!mainConfig.kits.enabled) {
         return { success: false, message: 'The kit system is currently disabled.' };
     }
@@ -119,7 +152,11 @@ export function giveKit(player, kitName) {
         }
     }
 
-    const inventory = player.getComponent('minecraft:inventory').container;
+    const inventoryComp = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
+    if (!inventoryComp || !inventoryComp.container) {
+         return { success: false, message: 'Could not access inventory.' };
+    }
+    const inventory = inventoryComp.container;
 
     if (inventory.emptySlotsCount < kit.items.length) {
         return { success: false, message: 'You do not have enough inventory space to claim this kit.' };
@@ -148,8 +185,12 @@ export function giveKit(player, kitName) {
         setKitCooldown(player.id, lowerCaseKitName, newCooldown);
 
         return { success: true, message: `You have received the '${kitName}' kit.` };
-    } catch (e) {
-        errorLog(`[KitsManager] Failed to give kit: ${e.stack}`);
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            errorLog(`[KitsManager] Failed to give kit: ${e.stack}`);
+        } else {
+            errorLog(`[KitsManager] Failed to give kit: ${String(e)}`);
+        }
         return { success: false, message: 'An unexpected error occurred while giving the kit.' };
     }
 }

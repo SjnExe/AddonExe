@@ -10,19 +10,17 @@ import * as playerDataManager from './playerDataManager.js';
 
 const bountyDataKey = 'exe:bountyData';
 
-/**
- * @typedef {object} BountyEntry
- * @property {string} playerId
- * @property {string} name - The last known name of the player with the bounty.
- * @property {number} amount
- */
+interface BountyEntry {
+    playerId: string;
+    name: string; // The last known name of the player with the bounty.
+    amount: number;
+}
 
 /**
  * A map of active bounties.
  * Key: playerId, Value: BountyEntry
- * @type {Map<string, BountyEntry>}
  */
-let activeBounties = new Map();
+let activeBounties = new Map<string, BountyEntry>();
 
 /**
  * Loads the active bounty list from a dynamic property into memory.
@@ -31,15 +29,18 @@ export function loadBounties() {
     try {
         const dataString = mc.world.getDynamicProperty(bountyDataKey);
         if (dataString && typeof dataString === 'string') {
-            /** @type {[string, BountyEntry][]} */
-            const parsedData = JSON.parse(dataString);
+            const parsedData: [string, BountyEntry][] = JSON.parse(dataString);
             activeBounties = new Map(parsedData);
             debugLog(`[BountyManager] Loaded ${activeBounties.size} active bounties.`);
         } else {
             debugLog('[BountyManager] No bounty data found in storage. Starting fresh.');
         }
-    } catch (e) {
-        errorLog(`[BountyManager] Failed to load bounty data: ${e.stack}`);
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            errorLog(`[BountyManager] Failed to load bounty data: ${e.stack}`);
+        } else {
+            errorLog(`[BountyManager] Failed to load bounty data: ${String(e)}`);
+        }
         activeBounties = new Map(); // Start with a clean slate on error
     }
 }
@@ -52,35 +53,39 @@ export function saveBounties() {
         const dataToSave = Array.from(activeBounties.entries());
         mc.world.setDynamicProperty(bountyDataKey, JSON.stringify(dataToSave));
         debugLog('[BountyManager] Saved active bounty data.');
-    } catch (e) {
-        errorLog(`[BountyManager] Failed to save bounty data: ${e.stack}`);
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            errorLog(`[BountyManager] Failed to save bounty data: ${e.stack}`);
+        } else {
+            errorLog(`[BountyManager] Failed to save bounty data: ${String(e)}`);
+        }
     }
 }
 
 /**
  * Gets the entire map of active bounties.
- * @returns {Map<string, BountyEntry>}
+ * @returns The map of active bounties.
  */
-export function getAllBounties() {
+export function getAllBounties(): Map<string, BountyEntry> {
     return activeBounties;
 }
 
 /**
  * Gets the bounty for a specific player.
- * @param {string} playerId
- * @returns {BountyEntry | undefined}
+ * @param playerId The ID of the player to check.
+ * @returns The bounty entry or undefined.
  */
-export function getBounty(playerId) {
+export function getBounty(playerId: string): BountyEntry | undefined {
     return activeBounties.get(playerId);
 }
 
 /**
  * Sets or updates the bounty for a specific player.
  * If the amount is 0 or less, the bounty is removed.
- * @param {string} playerId
- * @param {number} amount
+ * @param playerId The player ID.
+ * @param amount The bounty amount.
  */
-export function setBounty(playerId, amount) {
+export function setBounty(playerId: string, amount: number) {
     if (amount <= 0) {
         removeBounty(playerId);
         return;
@@ -92,7 +97,7 @@ export function setBounty(playerId, amount) {
         return;
     }
 
-    const bountyEntry = {
+    const bountyEntry: BountyEntry = {
         playerId: playerId,
         name: pData.name,
         amount: amount
@@ -105,10 +110,10 @@ export function setBounty(playerId, amount) {
 
 /**
  * Adds to an existing bounty.
- * @param {string} playerId
- * @param {number} amountToAdd
+ * @param playerId The player ID.
+ * @param amountToAdd The amount to add.
  */
-export function incrementBounty(playerId, amountToAdd) {
+export function incrementBounty(playerId: string, amountToAdd: number) {
     const existingBounty = activeBounties.get(playerId)?.amount ?? 0;
     setBounty(playerId, existingBounty + amountToAdd);
 }
@@ -116,9 +121,9 @@ export function incrementBounty(playerId, amountToAdd) {
 
 /**
  * Removes a bounty from a player.
- * @param {string} playerId
+ * @param playerId The player ID.
  */
-export function removeBounty(playerId) {
+export function removeBounty(playerId: string) {
     if (activeBounties.has(playerId)) {
         activeBounties.delete(playerId);
         saveBounties();

@@ -1,5 +1,14 @@
 # AddonExe TypeScript Migration Plan
 
+## Current Status
+**Phase 4 Completed.** The next task is **Phase 5: UI System**.
+
+## Instructions for Next Session
+1. **Goal:** Migrate the UI system to TypeScript.
+2. **Scope:** Convert all files in `src/core/ui/` and `src/core/uiManager.js`.
+3. **Verification:** Run `npm run build` frequently. Use `npm run lint:fix` to clean up.
+4. **Note:** The UI system relies heavily on `@minecraft/server-ui`. Ensure strict typing is applied where possible, but use `any` if necessary for complex dynamic panel generators to avoid getting stuck on circular type definitions.
+
 ## Phase 1: Environment Setup & Utils (Completed)
 - [x] Create `src` directory and move files.
 - [x] Install TypeScript, Prettier, ESLint plugins, and MC types.
@@ -42,21 +51,26 @@
 - [x] `helpfulLinksManager.js` -> `.ts`
 - [x] `rulesManager.js` -> `.ts`
 
-## Phase 4: Managers (Part 2 - Gameplay Systems)
-- [ ] `shopManager.js`
-- [ ] `kitsManager.js`
-- [ ] `warpsManager.js`
-- [ ] `homesManager.js`
-- [ ] `tpaManager.js`
-- [ ] `bountyManager.js`
-- [ ] `floatingTextManager.js`
-- [ ] `teamManager.js`
+## Phase 4: Managers (Part 2 - Gameplay Systems) (Completed)
+- [x] `shopManager.js` (including `shopAdminManager.js`)
+- [x] `kitsManager.js` (including `kitAdminManager.js`, `kitItemsManager.js`)
+- [x] `warpsManager.js`
+- [x] `homesManager.js`
+- [x] `tpaManager.js`
+- [x] `bountyManager.js`
+- [x] `floatingTextManager.js`
+- [x] `teamManager.js`
+- [x] `economyUtils.js`
 
-## Phase 5: UI System
-- [ ] `uiManager.js`
-- [ ] `panelBuilder.js`
-- [ ] `panelRegistry.js`
-- [ ] `panelHandlers.js`
+## Phase 5: UI System (Next Up)
+- [ ] `src/core/uiManager.js`
+- [ ] `src/core/ui/uiUtils.js`
+- [ ] `src/core/ui/components.js`
+- [ ] `src/core/ui/actionRegistry.js`
+- [ ] `src/core/ui/configPanelRegistry.js`
+- [ ] `src/core/ui/panelRegistry.js`
+- [ ] `src/core/ui/panelBuilder.js`
+- [ ] `src/core/ui/panelHandlers.js`
 
 ## Phase 6: Commands
 - [ ] `commandManager.js`

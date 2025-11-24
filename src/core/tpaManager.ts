@@ -5,31 +5,31 @@ import { getOrCreatePlayer } from './playerDataManager.js';
 import { setCooldown } from './cooldownManager.js';
 import { startTeleportWarmup } from './utils.js';
 
-/**
- * @typedef {'tpa' | 'tpahere'} TpaRequestType
- */
+type TpaRequestType = 'tpa' | 'tpahere';
 
-/**
- * @typedef {object} TpaRequest
- * @property {string} sourcePlayerId
- * @property {string} sourcePlayerName
- * @property {string} targetPlayerId
- * @property {string} targetPlayerName
- * @property {TpaRequestType} type
- * @property {number} expiryTimestamp
- * @property {number} timeoutId
- */
+interface TpaRequest {
+    sourcePlayerId: string;
+    sourcePlayerName: string;
+    targetPlayerId: string;
+    targetPlayerName: string;
+    type: TpaRequestType;
+    expiryTimestamp: number;
+    timeoutId: number;
+}
 
-/** @type {Map<string, TpaRequest>} */
-const outgoingRequests = new Map();
-/** @type {Map<string, TpaRequest[]>} */
-const incomingRequests = new Map();
+interface ActionResult {
+    success: boolean;
+    message: string;
+}
+
+const outgoingRequests = new Map<string, TpaRequest>();
+const incomingRequests = new Map<string, TpaRequest[]>();
 
 /**
  * Clears a TPA request from the system.
- * @param {TpaRequest} request The request to clear.
+ * @param request The request to clear.
  */
-function clearRequest(request) {
+function clearRequest(request: TpaRequest | undefined) {
     if (!request) {return;}
     mc.system.clearRun(request.timeoutId);
     outgoingRequests.delete(request.sourcePlayerId);
@@ -46,20 +46,13 @@ function clearRequest(request) {
 }
 
 /**
- * Creates a new TPA request.
- * @param {import('@minecraft/server').Player} sourcePlayer
- * @param {import('@minecraft/server').Player} targetPlayer
- * @param {TpaRequestType} type
- * @returns {{success: boolean, message: string}}
- */
-/**
  * Finds a specific incoming TPA request for a player.
- * @param {string} targetPlayerId The ID of the player who received the request.
- * @param {string} [sourcePlayerName] The name of the player who sent the request. If not provided, finds the most recent.
- * @param {boolean} [onlineOnly=false] If true and no sourcePlayerName is given, only the most recent request from an online player is returned.
- * @returns {TpaRequest | undefined}
+ * @param targetPlayerId The ID of the player who received the request.
+ * @param sourcePlayerName The name of the player who sent the request. If not provided, finds the most recent.
+ * @param onlineOnly If true and no sourcePlayerName is given, only the most recent request from an online player is returned.
+ * @returns The request or undefined.
  */
-function _findIncomingRequest(targetPlayerId, sourcePlayerName, onlineOnly = false) {
+function _findIncomingRequest(targetPlayerId: string, sourcePlayerName?: string, onlineOnly: boolean = false): TpaRequest | undefined {
     const requests = incomingRequests.get(targetPlayerId);
     if (!requests || requests.length === 0) {
         return undefined;
@@ -85,12 +78,12 @@ function _findIncomingRequest(targetPlayerId, sourcePlayerName, onlineOnly = fal
 
 /**
  * Creates a new TPA request.
- * @param {import('@minecraft/server').Player} sourcePlayer
- * @param {import('@minecraft/server').Player} targetPlayer
- * @param {TpaRequestType} type
- * @returns {{success: boolean, message: string}}
+ * @param sourcePlayer The source player.
+ * @param targetPlayer The target player.
+ * @param type The type of request.
+ * @returns The result of the operation.
  */
-export function createRequest(sourcePlayer, targetPlayer, type) {
+export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, type: TpaRequestType): ActionResult {
     if (outgoingRequests.has(sourcePlayer.id)) {
         return { success: false, message: 'You already have an outgoing TPA request. Use !tpacancel to cancel it.' };
     }
@@ -106,7 +99,8 @@ export function createRequest(sourcePlayer, targetPlayer, type) {
         return { success: false, message: `§cYou are blocked from sending TPA requests to ${targetPlayer.name}.` };
     }
 
-    const config = getConfig();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const config = getConfig() as any;
     const timeoutSeconds = config.tpa.requestTimeoutSeconds;
     const expiryTimestamp = Date.now() + timeoutSeconds * 1000;
 
@@ -119,8 +113,7 @@ export function createRequest(sourcePlayer, targetPlayer, type) {
         }
     }, timeoutSeconds * 20); // Convert seconds to ticks
 
-    /** @type {TpaRequest} */
-    const request = {
+    const request: TpaRequest = {
         sourcePlayerId: sourcePlayer.id,
         sourcePlayerName: sourcePlayer.name,
         targetPlayerId: targetPlayer.id,
@@ -134,7 +127,7 @@ export function createRequest(sourcePlayer, targetPlayer, type) {
     if (!incomingRequests.has(targetPlayer.id)) {
         incomingRequests.set(targetPlayer.id, []);
     }
-    incomingRequests.get(targetPlayer.id).push(request);
+    incomingRequests.get(targetPlayer.id)!.push(request);
 
     return { success: true, message: 'TPA request sent.' };
 }
@@ -143,11 +136,11 @@ export function createRequest(sourcePlayer, targetPlayer, type) {
  * Gets a player's incoming TPA request(s).
  * If a source player name is provided, it returns that specific request.
  * Otherwise, it returns the most recent request.
- * @param {import('@minecraft/server').Player} player
- * @param {string} [sourcePlayerName]
- * @returns {TpaRequest | undefined}
+ * @param player The player.
+ * @param sourcePlayerName Optional source player name.
+ * @returns The TPA request or undefined.
  */
-export function getIncomingRequest(player, sourcePlayerName) {
+export function getIncomingRequest(player: mc.Player, sourcePlayerName?: string): TpaRequest | undefined {
     const requests = incomingRequests.get(player.id);
     if (!requests || requests.length === 0) {
         return undefined;
@@ -161,18 +154,19 @@ export function getIncomingRequest(player, sourcePlayerName) {
 
 /**
  * Gets a player's outgoing TPA request.
- * @param {import('@minecraft/server').Player} player
- * @returns {TpaRequest | undefined}
+ * @param player The player.
+ * @returns The TPA request or undefined.
  */
-export function getOutgoingRequest(player) {
+export function getOutgoingRequest(player: mc.Player): TpaRequest | undefined {
     return outgoingRequests.get(player.id);
 }
 
 /**
  * Accepts an incoming TPA request for a player and teleports the relevant party.
- * @param {import('@minecraft/server').Player} player The player accepting the request.
+ * @param player The player accepting the request.
+ * @param sourcePlayerName Optional source player name.
  */
-export function acceptRequest(player, sourcePlayerName) {
+export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
     // Find the request, requiring the source player to be online if no specific name is given.
     const request = _findIncomingRequest(player.id, sourcePlayerName, true);
 
@@ -195,7 +189,8 @@ export function acceptRequest(player, sourcePlayerName) {
         return;
     }
 
-    const config = getConfig();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const config = getConfig() as any;
     const warmupSeconds = config.tpa.teleportWarmupSeconds;
 
     const teleportLogic = () => {
@@ -238,9 +233,10 @@ export function acceptRequest(player, sourcePlayerName) {
 
 /**
  * Denies an incoming TPA request for a player.
- * @param {import('@minecraft/server').Player} player The player denying the request.
+ * @param player The player denying the request.
+ * @param sourcePlayerName Optional source player name.
  */
-export function denyRequest(player, sourcePlayerName) {
+export function denyRequest(player: mc.Player, sourcePlayerName?: string) {
     // Find the request. If no name is given, finds the most recent, regardless of online status.
     const request = _findIncomingRequest(player.id, sourcePlayerName);
 
@@ -264,9 +260,9 @@ export function denyRequest(player, sourcePlayerName) {
 
 /**
  * Cancels an outgoing TPA request for a player.
- * @param {import('@minecraft/server').Player} player The player canceling the request.
+ * @param player The player canceling the request.
  */
-export function cancelRequest(player) {
+export function cancelRequest(player: mc.Player) {
     const request = getOutgoingRequest(player);
     if (!request) {
         player.sendMessage('§cYou have no outgoing TPA requests.');

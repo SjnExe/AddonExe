@@ -15,6 +15,12 @@ export interface HomeLocation {
     dimensionId: string;
 }
 
+export interface PendingInvite {
+    teamId: number;
+    teamName: string;
+    timestamp: number;
+}
+
 export interface PlayerData {
     name: string;
     rankId: string;
@@ -28,9 +34,9 @@ export interface PlayerData {
     tpaRequestsDisabled: boolean;
     tpaBlockedPlayerIds: string[];
     announcementsMuted: boolean;
-    teamId: string | null;
+    teamId: number | null;
     teamSettings: { autoTpAccept: boolean };
-    pendingInvites: string[];
+    pendingInvites: PendingInvite[];
     needsSave?: boolean;
 }
 
@@ -46,10 +52,10 @@ let isSaveOnCooldown = false;
 
 const activePlayerData = new Map<string, PlayerData>();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 let playerNameIdMap = new Map<string, string>();
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let playerIdNameMap = new Map<string, string>();
+
+const playerIdNameMap = new Map<string, string>();
 
 /** A flag indicating that the name-to-ID map has changed and needs to be saved. */
 export let isNameIdMapDirty = false;

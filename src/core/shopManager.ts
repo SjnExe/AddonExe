@@ -5,13 +5,26 @@ import { items as allItems } from './itemsConfig.js';
 import { errorLog } from './logger.js';
 import { formatCurrency } from './utils.js';
 
+interface ItemInfo {
+    itemId: string;
+    displayName?: string;
+    enchantment?: { id: string; level: number };
+    buyPrice?: number;
+    sellPrice?: number;
+}
+
+interface ShopTransactionResult {
+    success: boolean;
+    message: string;
+}
+
 /**
  * Creates an ItemStack for a given item ID, handling enchantments.
- * @param {string} itemId The ID of the item from itemsConfig.js.
- * @param {number} quantity The amount of items.
- * @returns {mc.ItemStack | null}
+ * @param itemInfo The item info object.
+ * @param quantity The amount of items.
+ * @returns The created ItemStack or null if failed.
  */
-function createShopItemStack(itemInfo, quantity) {
+function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack | null {
     if (!itemInfo) {
         errorLog('[ShopManager] Could not find item info for creating item stack.');
         return null;
@@ -31,7 +44,7 @@ function createShopItemStack(itemInfo, quantity) {
             const enchantable = itemStack.getComponent('minecraft:enchantable');
             if (enchantable) {
                 enchantable.addEnchantment({
-                    type: mc.EnchantmentTypes.get(itemInfo.enchantment.id),
+                    type: mc.EnchantmentTypes.get(itemInfo.enchantment.id)!,
                     level: itemInfo.enchantment.level
                 });
             }
@@ -48,30 +61,41 @@ function createShopItemStack(itemInfo, quantity) {
 }
 
 /**
- * Handles a player's request to buy an item from the shop.
- * @param {import('@minecraft/server').Player} player The player buying the item.
- * @param {string} itemId The ID of the item from itemsConfig.js.
- * @param {number} quantity The amount to buy.
- * @returns {{success: boolean, message: string}}
+ * Finds a shop item definition by its ID.
+ * @param itemId The item ID to look up.
+ * @returns The item definition or null if not found.
  */
-function findShopItem(itemId) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function findShopItem(itemId: string): any | null {
     const shopConfig = getShopConfig();
-    for (const categoryName in shopConfig.categories) {
-        const category = shopConfig.categories[categoryName];
-        if (category.items[itemId]) {
-            return { ...allItems[itemId], ...category.items[itemId] };
+    const categories = shopConfig.categories as any;
+    const items = allItems as any;
+
+    for (const categoryName in categories) {
+        const category = categories[categoryName];
+        if (category.items && category.items[itemId]) {
+            return { ...items[itemId], ...category.items[itemId] };
         }
-        for (const subCategoryName in category.subCategories) {
-            const subCategory = category.subCategories[subCategoryName];
-            if (subCategory.items[itemId]) {
-                return { ...allItems[itemId], ...subCategory.items[itemId] };
+        if (category.subCategories) {
+            for (const subCategoryName in category.subCategories) {
+                const subCategory = category.subCategories[subCategoryName];
+                if (subCategory.items && subCategory.items[itemId]) {
+                    return { ...items[itemId], ...subCategory.items[itemId] };
+                }
             }
         }
     }
     return null;
 }
 
-export function buyItem(player, itemId, quantity) {
+/**
+ * Handles a player's request to buy an item from the shop.
+ * @param player The player buying the item.
+ * @param itemId The ID of the item from itemsConfig.js.
+ * @param quantity The amount to buy.
+ * @returns The result of the transaction.
+ */
+export function buyItem(player: mc.Player, itemId: string, quantity: number): ShopTransactionResult {
     if (quantity <= 0) {
         return { success: false, message: '§cQuantity must be a positive number.' };
     }
@@ -83,7 +107,7 @@ export function buyItem(player, itemId, quantity) {
     }
 
     const buyPrice = shopItem.buyPrice;
-    if (buyPrice <= 0) {
+    if (buyPrice === undefined || buyPrice <= 0) {
         return { success: false, message: '§cThis item cannot be purchased.' };
     }
 
@@ -98,7 +122,11 @@ export function buyItem(player, itemId, quantity) {
         return { success: false, message: `§cInsufficient funds. You need §e${formatCurrency(initialCost)}§c to attempt this purchase.` };
     }
 
-    const inventory = player.getComponent('inventory').container;
+    const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent;
+    if (!inventoryComp || !inventoryComp.container) {
+         return { success: false, message: '§cCould not access inventory.' };
+    }
+    const inventory = inventoryComp.container;
     const itemStackTemplate = createShopItemStack(shopItem, 1);
 
     if (!itemStackTemplate) {
@@ -119,7 +147,6 @@ export function buyItem(player, itemId, quantity) {
             }
         }
     } else { // Item is not stackable
-        // We assume emptySlotsCount exists. If not, this will need a manual loop.
         spaceFound = inventory.emptySlotsCount;
     }
 
@@ -156,12 +183,12 @@ export function buyItem(player, itemId, quantity) {
 
 /**
  * Handles a player's request to sell an item to the shop.
- * @param {import('@minecraft/server').Player} player The player selling the item.
- * @param {string} itemId The ID of the item from itemsConfig.js.
- * @param {number} quantity The amount to sell.
- * @returns {{success: boolean, message: string}}
+ * @param player The player selling the item.
+ * @param itemId The ID of the item from itemsConfig.js.
+ * @param quantity The amount to sell.
+ * @returns The result of the transaction.
  */
-export function sellItem(player, itemId, quantity) {
+export function sellItem(player: mc.Player, itemId: string, quantity: number): ShopTransactionResult {
     if (quantity <= 0) {
         return { success: false, message: '§cQuantity must be a positive number.' };
     }
@@ -173,11 +200,15 @@ export function sellItem(player, itemId, quantity) {
     }
 
     const sellPrice = shopItem.sellPrice;
-    if (sellPrice <= 0) {
+    if (sellPrice === undefined || sellPrice <= 0) {
         return { success: false, message: '§cThis item cannot be sold.' };
     }
 
-    const inventory = player.getComponent('inventory').container;
+    const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent;
+    if (!inventoryComp || !inventoryComp.container) {
+         return { success: false, message: '§cCould not access inventory.' };
+    }
+    const inventory = inventoryComp.container;
     const itemType = mc.ItemTypes.get(shopItem.itemId);
     if (!itemType) {
         return { success: false, message: '§cInternal server error: Item type not found.' };
