@@ -62,15 +62,18 @@
 - [x] `teamManager.js`
 - [x] `economyUtils.js`
 
-## Phase 5: UI System (Next Up)
-- [ ] `src/core/uiManager.js`
-- [ ] `src/core/ui/uiUtils.js`
-- [ ] `src/core/ui/components.js`
-- [ ] `src/core/ui/actionRegistry.js`
-- [ ] `src/core/ui/configPanelRegistry.js`
-- [ ] `src/core/ui/panelRegistry.js`
+## Phase 5a: UI System - Part 1 (Foundations)
+- [ ] `src/core/iconDB.js` -> `src/core/iconDB.ts`
+- [ ] `src/core/ui/components.js` -> `src/core/ui/components.ts`
+- [ ] `src/core/ui/actionRegistry.js` -> `src/core/ui/actionRegistry.ts`
+- [ ] `src/core/ui/configPanelRegistry.js` -> `src/core/ui/configPanelRegistry.ts`
+- [ ] `src/core/ui/panelRegistry.js` -> `src/core/ui/panelRegistry.ts`
+- [ ] `src/core/ui/uiUtils.js` -> `src/core/ui/uiUtils.ts`
+
+## Phase 5b: UI System - Part 2 (Logic)
 - [ ] `src/core/ui/panelBuilder.js`
 - [ ] `src/core/ui/panelHandlers.js`
+- [ ] `src/core/uiManager.js`
 
 ## Phase 6: Commands
 - [ ] `commandManager.js`
