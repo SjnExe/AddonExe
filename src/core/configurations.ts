@@ -45,7 +45,7 @@ export const resetRanksConfig = ranksConfigManager.reset;
 
 export const loadEconomyConfig = economyConfigManager.load;
 export const getEconomyConfig = economyConfigManager.get;
-export const saveEconomyConfig = economyConfigManager.save;
+export const saveEconomyConfig = economyConfigManager.set;
 export const resetEconomyConfig = economyConfigManager.reset;
 
 export const loadXrayConfig = xrayConfigManager.load;
@@ -55,7 +55,7 @@ export const resetXrayConfig = xrayConfigManager.reset;
 
 export const loadTeamConfig = teamConfigManager.load;
 export const getTeamConfig = teamConfigManager.get;
-export const saveTeamConfig = teamConfigManager.save;
+export const saveTeamConfig = teamConfigManager.set;
 export const resetTeamConfig = teamConfigManager.reset;
 
 type ResetRegistryEntry = {

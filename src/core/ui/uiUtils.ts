@@ -1,39 +1,43 @@
+import { ActionFormData } from '@minecraft/server-ui';
 import { configPanelSchema } from './configPanelRegistry.js';
 import { getConfig, updateMultipleConfig } from '../configManager.js';
 import { getSpawnConfig, saveSpawnConfig, getEconomyConfig, saveEconomyConfig, getXrayConfig, saveXrayConfig, getTeamConfig, saveTeamConfig } from '../configurations.js';
+import { PlayerData } from '../playerDataManager.js';
 
 export const itemsPerPage = 8;
 
-export const configHandlers = {
+interface ConfigHandler {
+    get: () => any;
+    save: (config: any) => void;
+}
+
+export const configHandlers: Record<string, ConfigHandler> = {
     'main': {
         get: getConfig,
-        save: (updates) => updateMultipleConfig(updates)
+        save: (updates: any) => updateMultipleConfig(updates)
     },
     'spawn': {
         get: getSpawnConfig,
-        save: (config) => saveSpawnConfig(config)
+        save: (config: any) => saveSpawnConfig(config)
     },
     'economy': {
         get: getEconomyConfig,
-        save: (config) => saveEconomyConfig(config)
+        save: (config: any) => saveEconomyConfig(config)
     },
     'xray': {
         get: getXrayConfig,
-        save: (config) => saveXrayConfig(config)
+        save: (config: any) => saveXrayConfig(config)
     },
     'team': {
         get: getTeamConfig,
-        save: (config) => saveTeamConfig(config)
+        save: (config: any) => saveTeamConfig(config)
     }
 };
 
 /**
  * Helper to slice items for pagination.
- * @param {Array} items
- * @param {number} page
- * @returns {Array}
  */
-export function getPaginatedItems(items, page) {
+export function getPaginatedItems<T>(items: T[], page: number): T[] {
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return items.slice(startIndex, endIndex);
@@ -41,11 +45,8 @@ export function getPaginatedItems(items, page) {
 
 /**
  * Helper to add pagination buttons to a form.
- * @param {ActionFormData} form
- * @param {number} page
- * @param {number} totalItems
  */
-export function addPaginationButtons(form, page, totalItems) {
+export function addPaginationButtons(form: ActionFormData, page: number, totalItems: number): void {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
         form.button('§l§4< §1Previous');
@@ -55,14 +56,20 @@ export function addPaginationButtons(form, page, totalItems) {
     }
 }
 
+export interface SystemItem {
+    id: string;
+    title: string;
+    icon: string;
+}
+
 /**
  * Generates a synchronized list of visible configuration systems for a player.
  * This serves as the single source of truth for both building the panel and handling its responses.
- * @param {object} pData The player data object containing permissionLevel.
- * @returns {Array<object>} A sorted array of system objects ({ id, title, icon }).
+ * @param pData The player data object containing permissionLevel.
+ * @returns A sorted array of system objects ({ id, title, icon }).
  */
-export function getVisibleConfigSystems(pData) {
-    let allSystems = [
+export function getVisibleConfigSystems(pData: PlayerData): SystemItem[] {
+    const allSystems: SystemItem[] = [
         ...configPanelSchema.filter(c => c.id !== 'economyGeneralSettings').map(c => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
     ];
 
@@ -83,7 +90,7 @@ export function getVisibleConfigSystems(pData) {
     const system = allSystems.find(s => s.id === 'config_general_system');
     const resetSystem = allSystems.find(s => s.id === 'configResetPanel');
 
-    let otherSystems = allSystems.filter(s =>
+    const otherSystems = allSystems.filter(s =>
         s.id !== 'config_general_server' &&
         s.id !== 'config_general_gameplay' &&
         s.id !== 'config_general_system' &&
@@ -91,7 +98,7 @@ export function getVisibleConfigSystems(pData) {
     );
     otherSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
 
-    const sortedSystems = [];
+    const sortedSystems: SystemItem[] = [];
     if (serverInfo) { sortedSystems.push(serverInfo); }
     if (gameplay) { sortedSystems.push(gameplay); }
     if (system) { sortedSystems.push(system); }

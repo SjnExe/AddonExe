@@ -1,17 +1,24 @@
+import * as mc from '@minecraft/server';
 import { MessageFormData } from '@minecraft/server-ui';
+
+export interface ConfirmationDialogOptions {
+    title: string;
+    body: string;
+    onConfirm: () => void;
+    onCancel?: () => void;
+    confirmButtonText?: string;
+    cancelButtonText?: string;
+}
 
 /**
  * Shows a confirmation dialog to the player.
- * @param {import('@minecraft/server').Player} player The player to show the dialog to.
- * @param {object} options
- * @param {string} options.title The title of the confirmation dialog.
- * @param {string} options.body The body text of the confirmation dialog.
- * @param {() => void} options.onConfirm A callback function to execute when the user confirms.
- * @param {() => void} [options.onCancel] A callback function to execute when the user cancels.
- * @param {string} [options.confirmButtonText='§aConfirm'] Text for the confirm button.
- * @param {string} [options.cancelButtonText='§cCancel'] Text for the cancel button.
+ * @param {mc.Player} player The player to show the dialog to.
+ * @param {ConfirmationDialogOptions} options
  */
-export function showConfirmationDialog(player, { title, body, onConfirm, onCancel, confirmButtonText = '§aConfirm', cancelButtonText = '§cCancel' }) {
+export function showConfirmationDialog(
+    player: mc.Player,
+    { title, body, onConfirm, onCancel, confirmButtonText = '§aConfirm', cancelButtonText = '§cCancel' }: ConfirmationDialogOptions
+) {
     const form = new MessageFormData()
         .title(title)
         .body(body)
@@ -39,10 +46,14 @@ export function showConfirmationDialog(player, { title, body, onConfirm, onCance
         // So `button1` is `0`, `button2` is `1`.
         // My previous implementation was wrong.
 
-        if (selection === 0) { // button1 was pressed
+        if (selection === 0) {
+            // button1 was pressed
             onConfirm();
-        } else { // button2 was pressed
-            if (onCancel) {onCancel();}
+        } else {
+            // button2 was pressed
+            if (onCancel) {
+                onCancel();
+            }
         }
     });
 }

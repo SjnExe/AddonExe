@@ -3,32 +3,35 @@
  * It separates configuration UI definitions from the main navigation panel registry.
  */
 
-/**
- * @typedef {'toggle' | 'textField' | 'dropdown'} UIControlType
- */
+export type UIControlType = 'toggle' | 'textField' | 'dropdown';
 
-/**
- * @typedef {object} ConfigSetting
- * @property {string} key - The dot-separated path to the setting in the config object (e.g., 'tpa.enabled').
- * @property {string} label - The user-friendly label for the setting in the UI.
- * @property {UIControlType} type - The type of UI control to use for this setting.
- * @property {string[]} [options] - For 'dropdown' type, the list of available option strings.
- * @property {string} [description] - A short description of the setting, shown as a tooltip or help text.
- */
+export interface ConfigSetting {
+    /** The dot-separated path to the setting in the config object (e.g., 'tpa.enabled'). */
+    key: string;
+    /** The user-friendly label for the setting in the UI. */
+    label: string;
+    /** The type of UI control to use for this setting. */
+    type: UIControlType;
+    /** For 'dropdown' type, the list of available option strings. */
+    options?: string[];
+    /** A short description of the setting, shown as a tooltip or help text. */
+    description?: string;
+}
 
-/**
- * @typedef {object} ConfigCategory
- * @property {string} id - A unique identifier for the category.
- * @property {string} title - The title of the category panel.
- * @property {string} icon - The icon texture path for the category button.
- * @property {string} [configSource] - The source of the configuration (e.g., 'spawn'). Defaults to 'main'.
- * @property {ConfigSetting[]} settings - An array of settings within this category.
- */
+export interface ConfigCategory {
+    /** A unique identifier for the category. */
+    id: string;
+    /** The title of the category panel. */
+    title: string;
+    /** The icon texture path for the category button. */
+    icon: string;
+    /** The source of the configuration (e.g., 'spawn'). Defaults to 'main'. */
+    configSource?: string;
+    /** An array of settings within this category. */
+    settings: ConfigSetting[];
+}
 
-/**
- * @type {ConfigCategory[]}
- */
-export const configPanelSchema = [
+export const configPanelSchema: ConfigCategory[] = [
     {
         id: 'general_server',
         title: '§l§3Server Info§r',
