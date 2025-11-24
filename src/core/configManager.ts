@@ -1,6 +1,7 @@
 import createConfigManager from './configManagerFactory.js';
 import { deepClone } from './objectUtils.js';
 import { config as defaultConfig } from '../config.js';
+import * as mc from '@minecraft/server';
 
 const mainConfigManager = createConfigManager('exe:config:current', defaultConfig, 'Main');
 
@@ -12,17 +13,19 @@ export const updateMultipleConfig = mainConfigManager.updateMultiple;
 
 /**
  * Resets a section of the configuration to its default values.
- * @param {string} sectionKey The key of the config section to reset (e.g., 'tpa', 'homes'). Use 'all' to reset everything.
- * @param {import('@minecraft/server').Player} [player] - The player who initiated the reset, for feedback.
+ * @param sectionKey The key of the config section to reset (e.g., 'tpa', 'homes'). Use 'all' to reset everything.
+ * @param player - The player who initiated the reset, for feedback.
  * @returns {Promise<{success: boolean, message: string}>}
  */
-export async function resetConfigSection(sectionKey, player) {
+export async function resetConfigSection(sectionKey: string, player?: mc.Player): Promise<{success: boolean, message: string}> {
     // Dynamically import configurations to break the circular dependency at load time.
-    const { configResetRegistry, configResetCallbacks } = await import('./configurations.js');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { configResetRegistry, configResetCallbacks } = await import('./configurations.js') as any;
 
     if (sectionKey === 'all') {
         const resetPromises = [mainConfigManager.reset()];
-        Object.values(configResetRegistry).forEach(config => resetPromises.push(config.reset()));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Object.values(configResetRegistry).forEach((config: any) => resetPromises.push(config.reset()));
         await Promise.all(resetPromises);
 
         // Trigger all post-reset callbacks
@@ -48,7 +51,8 @@ export async function resetConfigSection(sectionKey, player) {
 
     // Dynamically import the latest default config to compare against
     try {
-        const { config: freshDefaultConfig } = await import('../config.js');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { config: freshDefaultConfig } = await import('../config.js') as any;
         if (Object.prototype.hasOwnProperty.call(freshDefaultConfig, sectionKey)) {
             updateConfig(sectionKey, deepClone(freshDefaultConfig[sectionKey]));
 
@@ -62,7 +66,7 @@ export async function resetConfigSection(sectionKey, player) {
         } else {
             return { success: false, message: `Configuration section '${sectionKey}' not found.` };
         }
-    } catch (e) {
+    } catch (e: any) {
         return { success: false, message: `Failed to load default configuration file. Error: ${e.message}` };
     }
 }

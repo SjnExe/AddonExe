@@ -3,27 +3,28 @@ import { debugLog } from './logger.js';
 
 /**
  * Gets the current list of rules from the main configuration.
- * @returns {string[]} The array of rules.
+ * @returns The array of rules.
  */
-export function getRules() {
-    const config = getConfig();
+export function getRules(): string[] {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const config: any = getConfig();
     return config.serverInfo.rules || [];
 }
 
 /**
  * Saves the entire rules array back to the configuration.
- * @param {string[]} rules The full array of rules to save.
+ * @param rules The full array of rules to save.
  */
-function saveRules(rules) {
+function saveRules(rules: string[]) {
     updateMultipleConfig({ 'serverInfo.rules': rules });
     debugLog('[RulesManager] Updated rules saved to config.');
 }
 
 /**
  * Adds a new rule to the end of the list and saves.
- * @param {string} ruleText The text of the new rule.
+ * @param ruleText The text of the new rule.
  */
-export function addRule(ruleText) {
+export function addRule(ruleText: string) {
     if (!ruleText || typeof ruleText !== 'string') {return;}
     const rules = getRules();
     rules.push(ruleText);
@@ -33,10 +34,10 @@ export function addRule(ruleText) {
 
 /**
  * Updates the rule at a specific index and saves.
- * @param {number} index The index of the rule to edit.
- * @param {string} newText The new text for the rule.
+ * @param index The index of the rule to edit.
+ * @param newText The new text for the rule.
  */
-export function editRule(index, newText) {
+export function editRule(index: number, newText: string) {
     const rules = getRules();
     if (index < 0 || index >= rules.length || !newText) {return;}
     const oldText = rules[index];
@@ -47,9 +48,9 @@ export function editRule(index, newText) {
 
 /**
  * Deletes a rule at a specific index and saves.
- * @param {number} index The index of the rule to delete.
+ * @param index The index of the rule to delete.
  */
-export function deleteRule(index) {
+export function deleteRule(index: number) {
     const rules = getRules();
     if (index < 0 || index >= rules.length) {return;}
     const deletedRule = rules.splice(index, 1);
@@ -59,10 +60,10 @@ export function deleteRule(index) {
 
 /**
  * Moves a rule up or down in the list and saves.
- * @param {number} index The index of the rule to move.
- * @param {'up' | 'down'} direction The direction to move the rule.
+ * @param index The index of the rule to move.
+ * @param direction The direction to move the rule.
  */
-export function moveRule(index, direction) {
+export function moveRule(index: number, direction: 'up' | 'down') {
     const rules = getRules();
     if (index < 0 || index >= rules.length) {return;}
 

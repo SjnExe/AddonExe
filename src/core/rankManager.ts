@@ -1,37 +1,32 @@
 import { getRanksConfig } from './configurations.js';
-import { debugLog } from './logger.js';
-import { errorLog } from './logger.js';
+import { debugLog, errorLog } from './logger.js';
+import * as mc from '@minecraft/server';
+import { RankDefinition } from './ranksConfig.js';
 
-let sortedRanks = [];
+let sortedRanks: RankDefinition[] = [];
+
+type ConditionEvaluator = (player: mc.Player, value: any, config: any) => boolean;
 
 /**
  * A map of functions that evaluate rank conditions.
- * @type {Object.<string, (player: import('@minecraft/server').Player, value: any, config: object) => boolean>}
  */
-const conditionEvaluators = {
+const conditionEvaluators: Record<string, ConditionEvaluator> = {
     /**
      * Checks if the player's name is in the owner list.
-     * @param {import('@minecraft/server').Player} player
-     * @param {*} value - Not used for this condition.
-     * @param {object} config
-     * @returns {boolean}
      */
     isOwner: (player, value, config) => {
-        const ownerNames = (config.ownerPlayerNames || []).map(name => name.toLowerCase());
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const ownerNames = (config.ownerPlayerNames || []).map((name: any) => name.toLowerCase());
         return ownerNames.includes(player.name.toLowerCase());
     },
     /**
      * Checks if the player has a specific tag.
-     * @param {import('@minecraft/server').Player} player
-     * @param {string} value The tag to check for.
-     * @returns {boolean}
      */
     hasTag: (player, value) => {
         return player.hasTag(value);
     },
     /**
      * This is a fallback condition that always returns true.
-     * @returns {boolean}
      */
     default: () => {
         return true;
@@ -43,7 +38,8 @@ const conditionEvaluators = {
  * This can be called to refresh ranks after they've been modified in the UI.
  */
 export function reloadRanks() {
-    const allRanks = getRanksConfig().rankDefinitions;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allRanks = (getRanksConfig() as any).rankDefinitions as RankDefinition[];
     sortedRanks = [...allRanks].sort((a, b) => a.permissionLevel - b.permissionLevel);
     debugLog(`[RankManager] Reloaded and sorted ${sortedRanks.length} ranks.`);
 }
@@ -59,11 +55,11 @@ export function initialize() {
 
 /**
  * Gets the rank for a given player by evaluating conditions.
- * @param {import('@minecraft/server').Player} player
- * @param {object} config The addon's configuration object.
- * @returns {import('./ranksConfig.js').RankDefinition}
+ * @param player
+ * @param config The addon's configuration object.
  */
-export function getPlayerRank(player, config) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getPlayerRank(player: mc.Player, config: any): RankDefinition {
     for (const rank of sortedRanks) {
         let allConditionsMet = true;
         for (const condition of rank.conditions) {
@@ -98,27 +94,28 @@ export function getPlayerRank(player, config) {
 
 /**
  * Gets a rank definition by its ID.
- * @param {string} rankId The ID of the rank to get.
- * @returns {import('./ranksConfig.js').RankDefinition | undefined}
+ * @param rankId The ID of the rank to get.
  */
-export function getRankById(rankId) {
-    return getRanksConfig().rankDefinitions.find(rank => rank.id === rankId);
+export function getRankById(rankId: string): RankDefinition | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return ((getRanksConfig() as any).rankDefinitions as RankDefinition[]).find(rank => rank.id === rankId);
 }
 
 /**
  * Gets all rank definitions.
- * @returns {import('./ranksConfig.js').RankDefinition[]}
  */
-export function getAllRanks() {
-    return getRanksConfig().rankDefinitions;
+export function getAllRanks(): RankDefinition[] {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (getRanksConfig() as any).rankDefinitions;
 }
 
 /**
  * Updates a player's nametag to display their rank and team.
- * @param {import('@minecraft/server').Player} player The player whose nametag should be updated.
- * @param {object} config The addon's configuration object.
+ * @param player The player whose nametag should be updated.
+ * @param config The addon's configuration object.
  */
-export function updatePlayerNameTag(player, config) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function updatePlayerNameTag(player: mc.Player, config: any) {
     const rank = getPlayerRank(player, config);
     const rankPrefix = rank.chatFormatting?.prefixText ?? '';
     const { nameTagStyle = 'above' } = config.ranks || {};

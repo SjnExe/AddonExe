@@ -20,6 +20,8 @@ Thumbs.db
 # build/
 # dist/
 # out/
+AddonExeBP/scripts/
+!AddonExeBP/scripts/.gitkeep
 
 # Ignore log files
 *.log

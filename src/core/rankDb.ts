@@ -1,29 +1,29 @@
 import { getRanksConfig, saveRanksConfig } from './configurations.js';
+import { RankDefinition } from './ranksConfig.js';
 
 /**
  * Gets all ranks from the config.
- * @returns {import('./ranksConfig.js').RankDefinition[]}
  */
-export function getRanks() {
-    return getRanksConfig().rankDefinitions;
+export function getRanks(): RankDefinition[] {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (getRanksConfig() as any).rankDefinitions;
 }
 
 /**
  * Gets a single rank by its ID.
- * @param {string} rankId The ID of the rank to find.
- * @returns {import('./ranksConfig.js').RankDefinition | undefined}
+ * @param rankId The ID of the rank to find.
  */
-export function getRankById(rankId) {
+export function getRankById(rankId: string): RankDefinition | undefined {
     return getRanks().find(r => r.id === rankId);
 }
 
 /**
  * Adds a new rank to the database.
- * @param {import('./ranksConfig.js').RankDefinition} rankData
- * @returns {{success: boolean, message: string}}
+ * @param rankData
  */
-export function addRank(rankData) {
-    const ranksConfig = getRanksConfig();
+export function addRank(rankData: RankDefinition): { success: boolean, message: string } {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ranksConfig: any = getRanksConfig();
     if (getRankById(rankData.id)) {
         return { success: false, message: `Rank with ID '${rankData.id}' already exists.` };
     }
@@ -34,13 +34,13 @@ export function addRank(rankData) {
 
 /**
  * Updates an existing rank.
- * @param {string} rankId The ID of the rank to update.
- * @param {Partial<import('./ranksConfig.js').RankDefinition>} updatedData
- * @returns {{success: boolean, message: string}}
+ * @param rankId The ID of the rank to update.
+ * @param updatedData
  */
-export function updateRank(rankId, updatedData) {
-    const ranksConfig = getRanksConfig();
-    const rankIndex = ranksConfig.rankDefinitions.findIndex(r => r.id === rankId);
+export function updateRank(rankId: string, updatedData: Partial<RankDefinition>): { success: boolean, message: string } {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ranksConfig: any = getRanksConfig();
+    const rankIndex = ranksConfig.rankDefinitions.findIndex((r: RankDefinition) => r.id === rankId);
     if (rankIndex === -1) {
         return { success: false, message: `Rank with ID '${rankId}' not found.` };
     }
@@ -74,12 +74,12 @@ export function updateRank(rankId, updatedData) {
 
 /**
  * Deletes a rank from the database.
- * @param {string} rankId The ID of the rank to delete.
- * @returns {{success: boolean, message: string}}
+ * @param rankId The ID of the rank to delete.
  */
-export function deleteRank(rankId) {
-    const ranksConfig = getRanksConfig();
-    const rankIndex = ranksConfig.rankDefinitions.findIndex(r => r.id === rankId);
+export function deleteRank(rankId: string): { success: boolean, message: string } {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ranksConfig: any = getRanksConfig();
+    const rankIndex = ranksConfig.rankDefinitions.findIndex((r: RankDefinition) => r.id === rankId);
     if (rankIndex === -1) {
         return { success: false, message: `Rank with ID '${rankId}' not found.` };
     }

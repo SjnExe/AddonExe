@@ -10,14 +10,15 @@ Your primary goal is to assist users by completing coding tasks, such as solving
 
 Before implementing changes, strive to understand the relevant parts of the codebase. Key architectural information can be found in `Dev/README.md`. Pay attention to:
 
-- **Core Managers (`AddonExeBP/scripts/core/`):** Understand how modules like `playerDataManager.js`, `rankManager.js`, `punishmentManager.js`, and `cooldownManager.js` interact. The `commandManager.js` in `AddonExeBP/scripts/modules/commands/` is also critical.
+- **Source Directory (`src/`):** All Behavior Pack scripts are now located in the `src/` directory. They are compiled to `AddonExeBP/scripts/`.
+- **Core Managers (`src/core/`):** Understand how modules like `playerDataManager.js` (or `.ts`), `rankManager.js`, `punishmentManager.js`, and `cooldownManager.js` interact. The `commandManager.js` in `src/modules/commands/` is also critical.
 - **Configuration Files:**
-  - `AddonExeBP/scripts/config.js`: Main settings, feature toggles, owner/admin setup.
-  - `AddonExeBP/scripts/core/ranksConfig.js`: Defines all ranks and their visual styles.
-  - `AddonExeBP/scripts/core/panelLayoutConfig.js`: Defines the layout and content of the UI panels.
+  - `src/config.js` (or `.ts`): Main settings, feature toggles, owner/admin setup.
+  - `src/core/ranksConfig.js`: Defines all ranks and their visual styles.
+  - `src/core/panelLayoutConfig.js`: Defines the layout and content of the UI panels.
 - **Coding Conventions:** Strictly follow guidelines in `Dev/CodingStyle.md` and `Dev/StandardizationGuidelines.md`.
 - **Naming Conventions:**
-  - The general rule for all project-specific JavaScript identifiers is that **any code style is allowed, but not snake_case**.
+  - The general rule for all project-specific JavaScript/TypeScript identifiers is that **any code style is allowed, but not snake_case**.
   - The use of `snake_case` (e.g., `my_variable`) or `UPPER_SNAKE_CASE` (e.g., `MY_CONSTANT`) is disallowed.
   - An exception is when interacting with native Minecraft APIs that require `snake_case` identifiers. In those cases, the required style must be used.
   - For full details, always refer to the latest `Dev/CodingStyle.md` and `Dev/StandardizationGuidelines.md`.
@@ -45,20 +46,20 @@ This project uses a simple task management system in the `Dev/tasks/` directory.
 
 - **Update Root `README.md`**: If you add significant new user-facing features or make major changes to the addon's functionality or setup, you **must** also update the main project `README.md` (located in the repository root) to reflect these changes. This keeps the primary user documentation current.
 - **Update `Docs/` Folder**: For substantial feature changes or additions, relevant files in the `Docs/` folder (e.g., `FeaturesOverview.md`, `ConfigurationGuide.md`, `Commands.md`) should also be updated.
-- **JSDoc Comments**: Adhere to the JSDoc standards outlined in `Dev/StandardizationGuidelines.md`. Add JSDoc comments for new functions (especially exported ones) and complex logic. Ensure `@param` and `@returns` types are accurate, referencing `types.js` where appropriate.
+- **JSDoc/TSDoc Comments**: Adhere to the JSDoc/TSDoc standards outlined in `Dev/StandardizationGuidelines.md`. Add comments for new functions (especially exported ones) and complex logic. Ensure types are accurate (now enforced by TypeScript).
 
 ## 5. Code Style and Quality
 
 - **Adherence to Guidelines:** Strictly follow `Dev/CodingStyle.md` and `Dev/StandardizationGuidelines.md`.
-- **Plain JavaScript:** All Behavior Pack scripts are written in plain JavaScript. Do not use TypeScript syntax.
+- **TypeScript:** All Behavior Pack scripts are written in TypeScript (or JavaScript migrating to TypeScript) in the `src/` directory.
+- **Build Artifacts:** Do not edit files in `AddonExeBP/scripts/` directly. Always edit the source in `src/` and run `npm run build`.
 - **Error Handling:** Implement robust error handling (e.g., `try...catch` blocks for risky operations, validation of inputs). Refer to `Dev/StandardizationGuidelines.md` (Section 6) for detailed error logging standards.
-- **Logging:** Utilize the `debugLog()` function from `core/logger.js` for development messages. This is conditional on `config.debug` being true.
-  - **User-Facing Text:** Most user-facing text is hardcoded directly in the command or UI files where it is used. Configurable messages (like the welcome message or rules) are in `config.js`. Button texts for dynamically generated panels are defined in `AddonExeBP/scripts/core/panelLayoutConfig.js`.
-- **Linting with ESLint:** This project uses ESLint to enforce code style and catch potential errors.
-  - The configuration (`eslint.config.js`) is based on `eslint:recommended` rules plus specific project style guidelines from `Dev/CodingStyle.md` and `Dev/StandardizationGuidelines.md`.
-  - Run `npm run lint` to check for linting issues.
-  - Run `npm run lint:fix` to automatically fix many common issues.
-  - Please ensure your changes pass linting before submitting.
+- **Logging:** Utilize the `debugLog()` function from `core/logger.ts` for development messages. This is conditional on `config.debug` being true.
+  - **User-Facing Text:** Most user-facing text is hardcoded directly in the command or UI files where it is used. Configurable messages (like the welcome message or rules) are in `config.js`. Button texts for dynamically generated panels are defined in `src/core/panelLayoutConfig.js`.
+- **Linting & Formatting:**
+  - Run `npm run lint` to check for linting issues (ESLint).
+  - Run `npm run format` to format code (Prettier).
+  - Please ensure your changes pass linting and build (`npm run build`) before submitting.
 
 ## 6. Planning and Communication
 
@@ -72,20 +73,20 @@ This project uses a simple task management system in the `Dev/tasks/` directory.
 The following patterns must be verified and adhered to when working on the codebase:
 
 - **Exports:**
-  - `playerDataManager.js`: Uses named exports (e.g., `export { functionName }`), not default exports.
-  - `commandManager.js`: Uses named exports (e.g., `import { commandManager } from ...`).
+  - `playerDataManager.ts`: Uses named exports (e.g., `export { functionName }`), not default exports.
+  - `commandManager.ts`: Uses named exports.
 - **Configuration:**
   - Persistence: Use `.set(newConfig)` to update and save configurations. `.save()` persists current memory state.
   - Structure: `bounties` are in `config.js`, but other economy settings are in `economyConfig.js`.
   - Validation: `xrayConfig.js` uses a `monitoredOreTypes` structure.
 - **UI System:**
-  - Source of Truth: `AddonExeBP/scripts/core/ui/panelRegistry.js` contains the schema for UI panels.
+  - Source of Truth: `src/core/ui/panelRegistry.js` contains the schema for UI panels.
   - Dynamic Config IDs: Panels generated from schema use IDs like `config_<schemaId>`.
 - **Floating Text:**
   - Implementation: Uses invisible entity `addonexe:floating_text`.
   - Management: `floatingTextManager.js`. Requires killing existing entity before spawning new one to prevent duplicates.
 - **Scripting API Specifics:**
-  - **Versions:** Use exact versions from `manifest.json` (e.g., `2.3.0-beta`).
+  - **Versions:** Use exact versions from `manifest.json`.
   - **Timers:** `mc.system.runJob` requires a generator function. Use `mc.system.runTimeout` for simple delays.
   - **Entity References:** Do not cache Entity objects. They become invalid. Store IDs and query fresh objects.
   - **Dimensions:** Use `minecraft:nether` (not `the_nether`).

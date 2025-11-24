@@ -1,25 +1,22 @@
 import * as mc from '@minecraft/server';
-import { debugLog } from './logger.js';
-import { errorLog } from './logger.js';
+import { debugLog, errorLog } from './logger.js';
 import { getConfig } from './configManager.js';
 
 const reportsDbKey = 'exe:reports';
 
-/**
- * @typedef {object} Report
- * @property {string} id - A unique ID for the report.
- * @property {string} reporterId - The ID of the player who made the report.
- * @property {string} reporterName - The name of the player who made the report.
- * @property {string} reportedPlayerId - The ID of the player who was reported.
- * @property {string} reportedPlayerName - The name of the player who was reported.
- * @property {string} reason - The reason for the report.
- * @property {string} status - The status of the report ('open', 'assigned', 'resolved').
- * @property {string|null} assignedAdminId - The ID of the admin assigned to the report.
- * @property {number} timestamp - The timestamp when the report was created.
- */
+export interface Report {
+    id: string;
+    reporterId: string;
+    reporterName: string;
+    reportedPlayerId: string;
+    reportedPlayerName: string;
+    reason: string;
+    status: 'open' | 'assigned' | 'resolved';
+    assignedAdminId: string | null;
+    timestamp: number;
+}
 
-/** @type {Report[]} */
-let reports = [];
+let reports: Report[] = [];
 let needsSave = false;
 
 /**
@@ -28,7 +25,7 @@ let needsSave = false;
 export function loadReports() {
     debugLog('[ReportManager] Loading reports...');
     const dataStr = mc.world.getDynamicProperty(reportsDbKey);
-    if (dataStr) {
+    if (typeof dataStr === 'string') {
         try {
             reports = JSON.parse(dataStr);
             debugLog(`[ReportManager] Loaded ${reports.length} reports.`);
@@ -41,10 +38,10 @@ export function loadReports() {
 
 /**
  * Saves reports to world dynamic properties.
- * @param {object} [options={}]
- * @param {boolean} [options.force=false] - If true, saves even if the `needsSave` flag is false.
+ * @param options
+ * @param options.force - If true, saves even if the `needsSave` flag is false.
  */
-export function saveReports(options = {}) {
+export function saveReports(options: { force?: boolean } = {}) {
     const { force = false } = options;
     if (!needsSave && !force) {return;}
 
@@ -59,13 +56,13 @@ export function saveReports(options = {}) {
 
 /**
  * Creates a new report and adds it to the list.
- * @param {import('@minecraft/server').Player} reporter The player making the report.
- * @param {string} reportedPlayerId The ID of the player being reported.
- * @param {string} reportedPlayerName The name of the player being reported.
- * @param {string} reason The reason for the report.
+ * @param reporter The player making the report.
+ * @param reportedPlayerId The ID of the player being reported.
+ * @param reportedPlayerName The name of the player being reported.
+ * @param reason The reason for the report.
  */
-export function createReport(reporter, reportedPlayerId, reportedPlayerName, reason) {
-    const report = {
+export function createReport(reporter: mc.Player, reportedPlayerId: string, reportedPlayerName: string, reason: string) {
+    const report: Report = {
         id: Math.random().toString(36).substring(2, 9),
         reporterId: reporter.id,
         reporterName: reporter.name,
@@ -83,18 +80,18 @@ export function createReport(reporter, reportedPlayerId, reportedPlayerName, rea
 
 /**
  * Gets all active reports.
- * @returns {Report[]} A copy of the reports array.
+ * @returns A copy of the reports array.
  */
-export function getAllReports() {
+export function getAllReports(): Report[] {
     return [...reports];
 }
 
 /**
  * Assigns a report to an admin.
- * @param {string} reportId The ID of the report to assign.
- * @param {string} adminId The ID of the admin to assign the report to.
+ * @param reportId The ID of the report to assign.
+ * @param adminId The ID of the admin to assign the report to.
  */
-export function assignReport(reportId, adminId) {
+export function assignReport(reportId: string, adminId: string) {
     const report = reports.find(r => r.id === reportId);
     if (report) {
         report.status = 'assigned';
@@ -106,9 +103,9 @@ export function assignReport(reportId, adminId) {
 
 /**
  * Marks a report as resolved.
- * @param {string} reportId The ID of the report to resolve.
+ * @param reportId The ID of the report to resolve.
  */
-export function resolveReport(reportId) {
+export function resolveReport(reportId: string) {
     const report = reports.find(r => r.id === reportId);
     if (report) {
         report.status = 'resolved';
@@ -119,9 +116,9 @@ export function resolveReport(reportId) {
 
 /**
  * Clears a report from the list.
- * @param {string} reportId The ID of the report to clear.
+ * @param reportId The ID of the report to clear.
  */
-export function clearReport(reportId) {
+export function clearReport(reportId: string) {
     const index = reports.findIndex(r => r.id === reportId);
     if (index !== -1) {
         reports.splice(index, 1);
@@ -145,7 +142,8 @@ export function clearAllReports() {
  * Clears old, resolved reports from the system to prevent data bloat.
  */
 export function clearOldResolvedReports() {
-    const config = getConfig();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const config: any = getConfig();
     const lifetimeDays = config.reports?.resolvedReportLifetimeDays;
 
     if (typeof lifetimeDays !== 'number' || lifetimeDays <= 0) {
@@ -173,4 +171,4 @@ export function clearOldResolvedReports() {
 // Periodically clean up old reports. Saving is now handled by the central dataManager.
 mc.system.runInterval(() => {
     clearOldResolvedReports();
-}, 36000); // Clean up every 30 minutes
+}, 36000); // Clean up every 30 minutes (36000 ticks)
