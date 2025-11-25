@@ -1,18 +1,19 @@
-import { debugLog } from './logger.js';
-import { errorLog } from './logger.js';
+import * as mc from '@minecraft/server';
+import { debugLog, errorLog } from './logger.js';
 import * as utils from './utils.js';
 import { buildPanelForm } from './ui/panelBuilder.js';
 import { handleFormResponse } from './ui/panelHandlers.js';
+import { panelDefinitions, UIContext } from './ui/panelRegistry.js';
 
 /**
  * Main entry point for showing a UI panel to a player.
  * This function coordinates the building of the form, showing it to the player,
  * and handling the subsequent response.
- * @param {import('@minecraft/server').Player} player The player to show the panel to.
+ * @param {mc.Player} player The player to show the panel to.
  * @param {string} panelId The unique identifier for the panel to show.
- * @param {object} [context={}] An optional context object to pass data between panels.
+ * @param {UIContext} [context={}] An optional context object to pass data between panels.
  */
-export async function showPanel(player, panelId, context = {}) {
+export async function showPanel(player: mc.Player, panelId: string, context: UIContext = {}) {
     try {
         debugLog(`[UIManager] Showing panel '${panelId}' to ${player.name} with context: ${JSON.stringify(context)}`);
 
@@ -26,7 +27,6 @@ export async function showPanel(player, panelId, context = {}) {
         if (!response || response.canceled) {
             debugLog(`[UIManager] Panel '${panelId}' was canceled by ${player.name}.`);
             // Show the parent panel if the user cancels and a parent is defined
-            const { panelDefinitions } = await import('./ui/panelRegistry.js');
             const panelDef = panelDefinitions[panelId];
             if (panelDef?.parentPanelId) {
                 return showPanel(player, panelDef.parentPanelId, context);
@@ -36,7 +36,8 @@ export async function showPanel(player, panelId, context = {}) {
 
         await handleFormResponse(player, panelId, response, context);
     } catch (e) {
-        errorLog(`[UIManager] showPanel failed for panel '${panelId}': ${e.stack || e}`);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        errorLog(`[UIManager] showPanel failed for panel '${panelId}': ${(e as any).stack || e}`);
         player.sendMessage('§cAn unexpected error occurred while trying to open the UI. Please check the content log for details.');
     }
 }

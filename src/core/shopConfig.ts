@@ -1,4 +1,30 @@
-export const shopConfig = {
+export interface ShopItem {
+    buyPrice: number;
+    sellPrice: number;
+    permissionLevel: number;
+    icon?: string;
+    displayName?: string;
+    itemId?: string;
+}
+
+export interface ShopSubCategory {
+    icon: string;
+    items: Record<string, ShopItem>;
+}
+
+export interface ShopCategory {
+    icon: string;
+    items: Record<string, ShopItem>;
+    subCategories: Record<string, ShopSubCategory>;
+}
+
+export interface ShopConfig {
+    enabled: boolean;
+    categories: Record<string, ShopCategory>;
+}
+
+export const shopConfig: ShopConfig = {
+    enabled: true,
     categories: {
         'Ores & Minerals': {
             icon: 'textures/ui/icon_iron_pickaxe',

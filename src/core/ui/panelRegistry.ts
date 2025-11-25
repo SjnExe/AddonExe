@@ -59,6 +59,9 @@ export interface PanelDefinition {
     items: PanelItem[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type UIContext = Record<string, any>;
+
 // --- PANEL REGISTRIES ---
 
 export const panelDefinitions: Record<string, PanelDefinition> = {

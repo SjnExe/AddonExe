@@ -7,19 +7,19 @@ import { setLockState } from './playerDataManager.js';
 import { getConfig } from './configManager.js';
 
 // Import default configs directly for synchronous initialization
-import { kitsConfig as defaultKitsConfig } from './kitsConfig.js';
-import { shopConfig as defaultShopConfig } from './shopConfig.js';
+import { kitsConfig as defaultKitsConfig, KitsConfig } from './kitsConfig.js';
+import { shopConfig as defaultShopConfig, ShopConfig } from './shopConfig.js';
 import { spawnConfig as defaultSpawnConfig } from './spawnConfig.js';
 import { rankDefinitions as defaultRankDefinitions } from './ranksConfig.js';
-import { economyConfig as defaultEconomyConfig } from './economyConfig.js';
+import { economyConfig as defaultEconomyConfig, EconomyConfig } from './economyConfig.js';
 import { xrayConfig as defaultXrayConfig } from './xrayConfig.js';
 import { teamConfig as defaultTeamConfig } from './teamConfig.js';
 
-const kitsConfigManager = createConfigManager('exe:kitsConfig:current', defaultKitsConfig, 'Kits');
-const shopConfigManager = createConfigManager('exe:shopConfig:current', defaultShopConfig, 'Shop');
+const kitsConfigManager = createConfigManager<KitsConfig>('exe:kitsConfig:current', defaultKitsConfig, 'Kits');
+const shopConfigManager = createConfigManager<ShopConfig>('exe:shopConfig:current', defaultShopConfig, 'Shop');
 const spawnConfigManager = createConfigManager('exe:spawnConfig:current', defaultSpawnConfig, 'Spawn');
 const ranksConfigManager = createConfigManager('exe:ranksConfig', defaultRankDefinitions, 'Ranks', 'rankDefinitions');
-const economyConfigManager = createConfigManager('exe:economyConfig:current', defaultEconomyConfig, 'Economy');
+const economyConfigManager = createConfigManager<EconomyConfig>('exe:economyConfig:current', defaultEconomyConfig, 'Economy');
 const xrayConfigManager = createConfigManager('exe:xrayConfig:current', defaultXrayConfig, 'X-Ray');
 const teamConfigManager = createConfigManager('exe:teamConfig:current', defaultTeamConfig, 'Teams');
 
@@ -40,7 +40,7 @@ export const resetSpawnConfig = spawnConfigManager.reset;
 
 export const loadRanksConfig = ranksConfigManager.load;
 export const getRanksConfig = ranksConfigManager.get;
-export const saveRanksConfig = ranksConfigManager.save;
+export const saveRanksConfig = ranksConfigManager.set;
 export const resetRanksConfig = ranksConfigManager.reset;
 
 export const loadEconomyConfig = economyConfigManager.load;

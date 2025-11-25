@@ -1,4 +1,25 @@
-export const kitsConfig = {
+export interface KitItem {
+    typeId: string;
+    amount: number;
+}
+
+export interface KitDefinition {
+    enabled: boolean;
+    description: string;
+    cooldownSeconds: number;
+    icon: string;
+    price: number;
+    permissionLevel: number;
+    items: KitItem[];
+}
+
+export interface KitsConfig {
+    enabled: boolean;
+    kitDefinitions: Record<string, KitDefinition>;
+}
+
+export const kitsConfig: KitsConfig = {
+    enabled: true,
     kitDefinitions: {
         starter: {
             enabled: true,
