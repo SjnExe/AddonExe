@@ -18,8 +18,8 @@ const commandFiles = [
     'rtp.ts', // Migrated
 
     // --- TPA System ---
-    'tpa.js',         // Contains /tpa, /tpahere, /tpaccept, /padeny, /tpacancel, /tpastatus
-    'team.js',        // Contains /teamchat, /hq
+    'tpa.ts',         // Migrated
+    'team.ts',        // Migrated
 
     // --- Home System ---
     'home.js',        // Contains /sethome, /delhome, /homes

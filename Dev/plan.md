@@ -1,11 +1,11 @@
 # AddonExe TypeScript Migration Plan
 
 ## Current Status
-**Phase 6 (Commands) is in progress.** The core manager and all "General" commands have been migrated.
+**Phase 6 (Commands) is in progress.** The core manager, "General" commands, and "TPA System" commands have been migrated.
 
 ## Instructions for Next Session
 1.  **Goal:** Continue migrating the remaining JavaScript command files to TypeScript.
-2.  **Scope:** The next batch is the **TPA System**, followed by the Home System, Economy System, etc.
+2.  **Scope:** The next batch is the **Home System**.
 3.  **Pattern:** Follow the established pattern: rename to `.ts`, implement the `CustomCommand` interface, use a default export, and update the command loader.
 4.  **Verification:** Run `npm run build` and `npm run lint:fix` frequently.
 
@@ -14,13 +14,7 @@
 - [x] Install TypeScript, Prettier, ESLint plugins, and MC types.
 - [x] Configure `tsconfig.json`, `.prettierrc`, `eslint.config.js`.
 - [x] Update `package.json` scripts.
-- [x] Migrate Batch 1 files:
-  - [x] `src/core/utils.js` -> `src/core/utils.ts`
-  - [x] `src/core/constants.js` -> `src/core/constants.ts`
-  - [x] `src/core/logger.js` -> `src/core/logger.ts`
-  - [x] `src/core/objectUtils.js` -> `src/core/objectUtils.ts`
-  - [x] `src/config.js` -> `src/config.ts`
-- [x] Update `release.yml` and `scripts/prepare-release.js`.
+- [x] Migrate Batch 1 files.
 
 ## Phase 2: Core Configuration & Data (Completed)
 - [x] Convert independent config files.
@@ -64,9 +58,9 @@
     - [x] `src/modules/commands/deathcoords.js` -> `.ts`
     - [x] `src/modules/commands/spawn.js` -> `.ts`
     - [x] `src/modules/commands/rtp.js` -> `.ts`
-- [ ] **TPA System:**
-    - [ ] `src/modules/commands/tpa.js` -> `.ts`
-    - [ ] `src/modules/commands/team.js` -> `.ts`
+- [x] **TPA System:**
+    - [x] `src/modules/commands/tpa.js` -> `.ts`
+    - [x] `src/modules/commands/team.js` -> `.ts`
 - [ ] **Home System:**
     - [ ] `src/modules/commands/home.js` -> `.ts`
     - [ ] `src/modules/commands/warp.js` -> `.ts`
