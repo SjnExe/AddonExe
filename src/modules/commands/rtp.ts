@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { commandManager } from './commandManager.js';
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { setCooldown } from '../../core/cooldownManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
@@ -7,84 +7,67 @@ import { errorLog, debugLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
 import { constants } from '../../core/constants.js';
 
-commandManager.register({
+const rtpCommand: CustomCommand = {
     name: 'rtp',
     aliases: ['randomtp'],
     description: 'Teleports you to a random safe location in the world.',
-    category: 'General',
-    permissionLevel: 1024, // Everyone
+    permissionLevel: 1024,
     hasCooldown: true,
-    /**
-     * Executes the /rtp command.
-     * @param {import('@minecraft/server').Player} player The player executing the command.
-     */
-    execute: (player) => {
+    execute: (executor: CommandExecutor) => {
+        if (!(executor instanceof mc.Player)) {return;}
+
         const config = getConfig();
         if (!config.rtp.enabled) {
-            sendMessage(constants.rtpDisabled, player);
+            sendMessage(constants.rtpDisabled, executor);
             return;
         }
 
-        if (player.dimension.id !== 'minecraft:overworld') {
-            sendMessage('§cYou can only use /rtp in the Overworld.', player);
+        if (executor.dimension.id !== 'minecraft:overworld') {
+            sendMessage('§cYou can only use /rtp in the Overworld.', executor);
             return;
         }
 
-        findSafeLocationAndTeleport(player, config.rtp.minRange, config.rtp.maxRange);
+        findSafeLocationAndTeleport(executor, config.rtp.minRange, config.rtp.maxRange);
     }
-});
+};
 
-/**
- * Finds a safe location and teleports the player there.
- * @param {import('@minecraft/server').Player} player The player to teleport.
- * @param {number} minRange The minimum range to teleport.
- * @param {number} maxRange The maximum range to teleport.
- */
-async function findSafeLocationAndTeleport(player, minRange, maxRange) {
+async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, maxRange: number) {
     sendMessage('§aSearching for a safe random location...', player);
-    const searchAttempts = 10; // Increased attempts
+    const searchAttempts = 10;
     const searchRadius = 16;
 
     for (let i = 0; i < searchAttempts; i++) {
-        // Generate random center coordinates
         const centerX = Math.floor(player.location.x + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
         const centerZ = Math.floor(player.location.z + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
 
         const tickingAreaName = `rtp_${player.id}`;
 
         try {
-            // Create ticking area to load chunks
             player.dimension.runCommand(`tickingarea add circle ${centerX} 0 ${centerZ} 1 ${tickingAreaName}`);
 
-            // Wait for chunks to load robustly
             let chunkLoaded = false;
             let waitAttempts = 0;
-            const maxWaitAttempts = 10; // Max 5 seconds (10 * 10 ticks + initial delay)
+            const maxWaitAttempts = 10;
 
-            // Initial wait
-            await new Promise(resolve => mc.system.runTimeout(resolve, 60));
+            await new Promise<void>(resolve => mc.system.runTimeout(resolve, 60));
 
             while (!chunkLoaded && waitAttempts < maxWaitAttempts) {
                 try {
-                    // Try to access a block in the center to check if chunk is loaded
                     player.dimension.getBlock({ x: centerX, y: 300, z: centerZ });
                     chunkLoaded = true;
-                } catch (e) {
+                } catch {
                     waitAttempts++;
-                    await new Promise(resolve => mc.system.runTimeout(resolve, 10));
+                    await new Promise<void>(resolve => mc.system.runTimeout(resolve, 10));
                 }
             }
 
             if (!chunkLoaded) {
-                 // Cleanup and try next attempt
                  safeRemoveTickingArea(player.dimension, tickingAreaName);
                  continue;
             }
 
             sendMessage(`§7Searching... Attempt ${i + 1}/${searchAttempts}`, player);
 
-            // Try to find a spot near this center
-            // We reduce the inner loop to avoid stalling too long on one bad spot
             const locationAttempts = 5;
             for (let j = 0; j < locationAttempts; j++) {
                 const x = centerX + Math.floor(Math.random() * (searchRadius * 2) - searchRadius);
@@ -101,7 +84,7 @@ async function findSafeLocationAndTeleport(player, minRange, maxRange) {
                                 player.teleport(potentialLoc);
                                 sendMessage('§aYou have been teleported to a random location!', player);
                                 setCooldown(player, 'rtp');
-                            } catch (e) {
+                            } catch (e: any) {
                                 sendMessage('§cFailed to teleport to the location. Please try again.', player);
                                 errorLog(`[/rtp] Failed to teleport: ${e.stack}`);
                             }
@@ -110,26 +93,24 @@ async function findSafeLocationAndTeleport(player, minRange, maxRange) {
                         sendMessage(`§aSafe location found! Teleportation will begin in ${warmupSeconds} seconds. Please do not move.`, player);
                         startTeleportWarmup(player, warmupSeconds, teleportLogic, 'a random location');
 
-                        // Cleanup immediately upon success
                         safeRemoveTickingArea(player.dimension, tickingAreaName);
                         return;
                     }
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             debugLog(`[RTP] Search attempt ${i + 1} error: ${error}`);
         } finally {
             safeRemoveTickingArea(player.dimension, tickingAreaName);
         }
 
-        // Delay before next attempt to prevent spam and lag
-        await new Promise(resolve => mc.system.runTimeout(resolve, 20));
+        await new Promise<void>(resolve => mc.system.runTimeout(resolve, 20));
     }
 
     sendMessage('§cCould not find a safe location after multiple attempts. Please try again or try walking a bit further.', player);
 }
 
-function safeRemoveTickingArea(dimension, name) {
+function safeRemoveTickingArea(dimension: mc.Dimension, name: string) {
     try {
         dimension.runCommand(`tickingarea remove ${name}`);
     } catch {
@@ -137,9 +118,7 @@ function safeRemoveTickingArea(dimension, name) {
     }
 }
 
-async function findHighestSolidBlock(dimension, x, z) {
-    // Start high but not max height to save performance, assuming surface isn't at 300
-    // Bedrock max height is 320 usually.
+async function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): Promise<number | null> {
     for (let y = 150; y >= dimension.heightRange.min; y--) {
         try {
             const block = dimension.getBlock({ x, y, z });
@@ -147,16 +126,15 @@ async function findHighestSolidBlock(dimension, x, z) {
                 return y;
             }
         } catch {
-            // Chunk might still not be loaded or error accessing block
             return null;
         }
     }
     return null;
 }
 
-function isLocationSafe(dimension, location) {
+function isLocationSafe(dimension: mc.Dimension, location: mc.Vector3): boolean {
     const { x, y, z } = location;
-    const groundBlock = dimension.getBlock({ x, y: y - 1, z });
+    const groundBlock = dimension.getBlock({ x: Math.floor(x), y: y - 1, z: Math.floor(z) });
     if (!groundBlock || !groundBlock.isSolid) { return false; }
 
     const unsafeGroundBlocks = [
@@ -165,17 +143,17 @@ function isLocationSafe(dimension, location) {
         'minecraft:cactus', 'minecraft:water', 'minecraft:flowing_water'
     ];
     if (unsafeGroundBlocks.includes(groundBlock.typeId)) { return false; }
-    if (groundBlock.typeId.includes('leaves')) { return false; } // Avoid spawning on trees
+    if (groundBlock.typeId.includes('leaves')) { return false; }
 
-    // Check space for player (2 blocks high)
-    const blockHead = dimension.getBlock({ x, y, z });
-    const blockEyes = dimension.getBlock({ x, y: y + 1, z });
+    const blockHead = dimension.getBlock({ x: Math.floor(x), y: y, z: Math.floor(z) });
+    const blockEyes = dimension.getBlock({ x: Math.floor(x), y: y + 1, z: Math.floor(z) });
 
     if (!blockHead || blockHead.isSolid) { return false; }
     if (!blockEyes || blockEyes.isSolid) { return false; }
 
-    // Check for liquids at head/feet
     if (blockHead.isLiquid || blockEyes.isLiquid) { return false; }
 
     return true;
 }
+
+export default rtpCommand;

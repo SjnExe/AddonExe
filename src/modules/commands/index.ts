@@ -7,15 +7,15 @@ import { commandManager, CustomCommand } from './commandManager.js';
 
 const commandFiles = [
     // --- General Commands ---
-    'help.js',
-    'panel.js',
-    'rules.js',
-    'links.js',
-    'status.js',
+    'help.ts', // Migrated
+    'panel.ts', // Migrated
+    'rules.ts', // Migrated
+    'links.ts', // Migrated
+    'status.ts', // Migrated
     'version.ts', // Migrated
-    'deathcoords.js',
-    'spawn.js',       // Contains /setspawn (admin)
-    'rtp.js',
+    'deathcoords.ts', // Migrated
+    'spawn.ts',       // Migrated
+    'rtp.ts', // Migrated
 
     // --- TPA System ---
     'tpa.js',         // Contains /tpa, /tpahere, /tpaccept, /padeny, /tpacancel, /tpastatus

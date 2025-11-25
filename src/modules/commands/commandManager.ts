@@ -37,6 +37,8 @@ export interface CustomCommand {
     name:string;
     /** A brief description of what the command does. */
     description: string;
+    /** The UI category for the command. */
+    category?: string;
     /** The required permission level to execute the command. Defaults to 0 (Owner). */
     permissionLevel?: number;
     /** An array of alternative names for the command. */
@@ -64,7 +66,7 @@ export interface CustomCommand {
  */
 class CommandManager {
     public commands: Map<string, CustomCommand> = new Map();
-    private aliases: Map<string, string> = new Map();
+    public aliases: Map<string, string> = new Map();
     private readonly prefix = 'exe'; // Namespace for all custom commands
 
     constructor() {

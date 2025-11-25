@@ -1,16 +1,15 @@
-import { commandManager } from './commandManager.js';
+import * as mc from '@minecraft/server';
+import { commandManager, CustomCommand, CommandExecutor } from './commandManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { sendMessage } from '../../core/messaging.js';
 import { constants } from '../../core/constants.js';
 
 /**
  * Displays a categorized list of commands available to the player.
- * @param {import('@minecraft/server').Player | object} player The player or console requesting help.
- * @param {number} userPermissionLevel The permission level of the user.
- * @param {boolean} isConsole Whether the command is being run from the console.
  */
-function showCategorizedHelp(player, userPermissionLevel, isConsole) {
-    const categorizedCommands = {};
+function showCategorizedHelp(executor: CommandExecutor, userPermissionLevel: number) {
+    const categorizedCommands: { [key: string]: CustomCommand[] } = {};
+    const isConsole = !(executor instanceof mc.Player);
 
     let commandList = Array.from(commandManager.commands.values());
     if (isConsole) {
@@ -18,7 +17,7 @@ function showCategorizedHelp(player, userPermissionLevel, isConsole) {
     }
 
     for (const cmd of commandList) {
-        if (userPermissionLevel > cmd.permissionLevel) { continue; }
+        if (userPermissionLevel > (cmd.permissionLevel ?? 1024)) { continue; }
 
         const category = cmd.category || 'General';
         if (!categorizedCommands[category]) {
@@ -49,20 +48,26 @@ function showCategorizedHelp(player, userPermissionLevel, isConsole) {
     }
 
     if (!commandsShown) {
-        sendMessage(constants.noPermission, player);
+        if (executor instanceof mc.Player) {
+            sendMessage(constants.noPermission, executor);
+        } else {
+            executor.sendMessage(constants.noPermission);
+        }
         return;
     }
 
-    sendMessage(helpMessage, player, { raw: true });
+    if (executor instanceof mc.Player) {
+        sendMessage(helpMessage, executor, { raw: true });
+    } else {
+        executor.sendMessage(helpMessage);
+    }
 }
 
 /**
  * Displays detailed help for a specific command.
- * @param {import('@minecraft/server').Player | object} player The player or console requesting help.
- * @param {string} commandName The name of the command to get help for.
- * @param {boolean} isConsole Whether the command is being run from the console.
  */
-function showSpecificHelp(player, commandName, isConsole) {
+function showSpecificHelp(executor: CommandExecutor, commandName: string) {
+    const isConsole = !(executor instanceof mc.Player);
     const realCommandName = commandManager.aliases.get(commandName) || commandName;
     let cmd = commandManager.commands.get(realCommandName);
 
@@ -75,11 +80,16 @@ function showSpecificHelp(player, commandName, isConsole) {
         }
     }
 
-    const pData = isConsole ? null : getPlayer(player.id);
+    const pData = isConsole ? null : getPlayer((executor as mc.Player).id);
     const userPermissionLevel = isConsole ? 0 : (pData?.permissionLevel ?? 1024);
 
-    if (!cmd || (isConsole && !cmd.allowConsole) || userPermissionLevel > cmd.permissionLevel) {
-        sendMessage(`§cUnknown command: '${commandName}'. Or you do not have permission to view it.`, player);
+    if (!cmd || (isConsole && !cmd.allowConsole) || userPermissionLevel > (cmd.permissionLevel ?? 1024)) {
+        const message = `§cUnknown command: '${commandName}'. Or you do not have permission to view it.`;
+        if (executor instanceof mc.Player) {
+            sendMessage(message, executor);
+        } else {
+            executor.sendMessage(message);
+        }
         return;
     }
 
@@ -103,44 +113,42 @@ function showSpecificHelp(player, commandName, isConsole) {
 
     helpMessage += `§eCategory§r: ${cmd.category || 'General'}`;
 
-    sendMessage(helpMessage, player, { raw: true });
+    if (executor instanceof mc.Player) {
+        sendMessage(helpMessage, executor, { raw: true });
+    } else {
+        executor.sendMessage(helpMessage);
+    }
 }
 
-commandManager.register({
+const helpCommand: CustomCommand = {
     name: 'help',
     slashName: 'xhelp',
     aliases: ['?', 'h', 'cmds', 'commands'],
-    disabledSlashAliases: ['?'],
     description: 'Displays a list of available commands or help for a specific command.',
-    category: 'General',
-    permissionLevel: 1024, // Available to everyone
+    permissionLevel: 1024,
     allowConsole: true,
     parameters: [
-        { name: 'command', type: 'string', description: 'The command to get help for.', optional: true }
+        { name: 'command', type: 'string', optional: true }
     ],
-    /**
-     * Executes the /help command.
-     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
-     * @param {object} args The command arguments.
-     * @param {string} [args.command] The command to get help for.
-     */
-    execute: (player, args) => {
+    execute: (executor: CommandExecutor, args: Record<string, any>) => {
         let userPermissionLevel = 1024;
-        if (player.isConsole) {
-            userPermissionLevel = 0;
-        } else {
-            const pData = getPlayer(player.id);
+        if (executor instanceof mc.Player) {
+            const pData = getPlayer(executor.id);
             if (pData) {
                 userPermissionLevel = pData.permissionLevel;
             }
+        } else {
+            userPermissionLevel = 0;
         }
 
-        const topic = args.command ? args.command.toLowerCase() : null;
+        const topic = args.command ? String(args.command).toLowerCase() : null;
 
         if (!topic) {
-            showCategorizedHelp(player, userPermissionLevel, player.isConsole);
+            showCategorizedHelp(executor, userPermissionLevel);
         } else {
-            showSpecificHelp(player, topic, player.isConsole);
+            showSpecificHelp(executor, topic);
         }
     }
-});
+};
+
+export default helpCommand;

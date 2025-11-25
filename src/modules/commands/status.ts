@@ -1,19 +1,13 @@
-import { commandManager } from './commandManager.js';
 import * as mc from '@minecraft/server';
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 import { sendMessage } from '../../core/messaging.js';
 
-commandManager.register({
+const statusCommand: CustomCommand = {
     name: 'status',
     description: 'Displays the current server status.',
-    category: 'General',
-    permissionLevel: 1024, // Everyone
+    permissionLevel: 1024,
     allowConsole: true,
-    parameters: [],
-    /**
-     * Executes the /status command.
-     * @param {import('@minecraft/server').Player | object} player The player or console executing the command.
-     */
-    execute: (player) => {
+    execute: (executor: CommandExecutor) => {
         const onlinePlayers = mc.world.getAllPlayers().length;
         const statusText = [
             '§l§b--- Server Status ---§r',
@@ -21,6 +15,12 @@ commandManager.register({
             `§eCurrent Tick: §f${mc.system.currentTick}`
         ].join('\n');
 
-        sendMessage(statusText, player, { raw: true });
+        if (executor instanceof mc.Player) {
+            sendMessage(statusText, executor, { raw: true });
+        } else {
+            executor.sendMessage(statusText);
+        }
     }
-});
+};
+
+export default statusCommand;

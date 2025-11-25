@@ -1,22 +1,19 @@
-import { commandManager } from './commandManager.js';
+import * as mc from '@minecraft/server';
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { formatString } from '../../core/utils.js';
 import { getConfig } from '../../core/configManager.js';
 import { sendMessage } from '../../core/messaging.js';
 
-commandManager.register({
+const deathCoordsCommand: CustomCommand = {
     name: 'deathcoords',
     aliases: ['deathlocation', 'lastdeath'],
     description: 'Shows your last death coordinates.',
-    category: 'General',
-    permissionLevel: 1024, // Everyone
-    parameters: [],
-    /**
-     * Executes the /deathcoords command.
-     * @param {import('@minecraft/server').Player} player The player executing the command.
-     */
-    execute: (player) => {
-        const pData = getPlayer(player.id);
+    permissionLevel: 1024,
+    execute: (executor: CommandExecutor) => {
+        if (!(executor instanceof mc.Player)) {return;}
+
+        const pData = getPlayer(executor.id);
         if (pData && pData.lastDeathLocation) {
             const location = pData.lastDeathLocation;
             const config = getConfig();
@@ -27,9 +24,11 @@ commandManager.register({
                 dimensionId: location.dimensionId.replace('minecraft:', '')
             };
             const message = formatString(config.playerInfo.deathCoordsMessage, context);
-            sendMessage(message, player, { raw: true });
+            sendMessage(message, executor, { raw: true });
         } else {
-            sendMessage('§cYou have not died yet or your last death location is not available.', player);
+            sendMessage('§cYou have not died yet or your last death location is not available.', executor);
         }
     }
-});
+};
+
+export default deathCoordsCommand;
