@@ -84,23 +84,23 @@ This session successfully migrated the entire "Economy System" and "Moderation" 
     - [x] `src/modules/commands/invsee.js` -> `.ts`
     - [x] `src/modules/commands/copyinv.js` -> `.ts`
     - [x] `src/modules/commands/clearchat.js` -> `.ts`
-- [x] **Administration Commands:**
-    - [x] `src/modules/commands/announcement.js` -> `.ts`
-    - [x] `src/modules/commands/dimensionLock.js` -> `.ts`
-    - [x] `src/modules/commands/gamemode.js` -> `.ts`
-    - [x] `src/modules/commands/rank.js` -> `.ts`
-    - [x] `src/modules/commands/reload.js` -> `.ts`
-    - [x] `src/modules/commands/restart.js` -> `.ts`
-    - [x] `src/modules/commands/save.js` -> `.ts`
-    - [x] `src/modules/commands/setbalance.js` -> `.ts`
-    - [x] `src/modules/commands/tp.js` -> `.ts`
-    - [x] `src/modules/commands/chattoconsole.js` -> `.ts`
-    - [x] `src/modules/commands/xraynotify.js` -> `.ts`
-    - [x] `src/modules/commands/floatingtext.js` -> `.ts`
+- [ ] **Administration Commands:**
+    - [ ] `src/modules/commands/announcement.js` -> `.ts`
+    - [ ] `src/modules/commands/dimensionLock.js` -> `.ts`
+    - [ ] `src/modules/commands/gamemode.js` -> `.ts`
+    - [ ] `src/modules/commands/rank.js` -> `.ts`
+    - [ ] `src/modules/commands/reload.js` -> `.ts`
+    - [ ] `src/modules/commands/restart.js` -> `.ts`
+    - [ ] `src/modules/commands/save.js` -> `.ts`
+    - [ ] `src/modules/commands/setbalance.js` -> `.ts`
+    - [ ] `src/modules/commands/tp.js` -> `.ts`
+    - [ ] `src/modules/commands/chattoconsole.js` -> `.ts`
+    - [ ] `src/modules/commands/xraynotify.js` -> `.ts`
+    - [ ] `src/modules/commands/floatingtext.js` -> `.ts`
 
 ## Phase 7: Main & Event Orchestration
-- [ ] `main.js`
-- [ ] `eventManager.js`
-- [ ] `playerSpawn.js`
-- [ ] `mobDeathEvents.js`
+- [x] `main.js`
+- [x] `eventManager.js`
+- [x] `playerSpawn.js`
+- [x] `mobDeathEvents.js`
 - [ ] Final cleanup of any remaining JS files.

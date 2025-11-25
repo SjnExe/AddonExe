@@ -6,7 +6,7 @@ import { formatCurrency } from './utils.js';
 import { handlePvPDeath } from './pvpManager.js';
 import { getTeamByPlayer } from './teamManager.js';
 
-mc.world.afterEvents.entityDie.subscribe((event) => {
+mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     const { deadEntity, damageSource } = event;
     const { damagingEntity } = damageSource;
 
@@ -14,29 +14,24 @@ mc.world.afterEvents.entityDie.subscribe((event) => {
         return;
     }
 
-    const killer = damagingEntity;
+    const killer = damagingEntity as mc.Player;
     const economyConfig = getEconomyConfig();
 
-    // Handle Player Death (PvP & Steal)
     if (deadEntity.typeId === 'minecraft:player') {
-        const victim = deadEntity;
+        const victim = deadEntity as mc.Player;
 
-        // Check for active Duel first
-        // handlePvPDeath returns true if the death was part of a registered duel
         if (handlePvPDeath(victim, killer)) {
             return;
         }
 
-        // Handle Steal System
         if (economyConfig.steal && economyConfig.steal.enabled) {
             const { percent, sameTeamImmunity } = economyConfig.steal;
 
-            // Check Team Immunity
             if (sameTeamImmunity) {
                 const killerTeam = getTeamByPlayer(killer.id);
                 const victimTeam = getTeamByPlayer(victim.id);
                 if (killerTeam && victimTeam && killerTeam.id === victimTeam.id) {
-                    return; // Same team, no steal
+                    return;
                 }
             }
 
@@ -44,7 +39,6 @@ mc.world.afterEvents.entityDie.subscribe((event) => {
             if (victimData && victimData.balance > 0) {
                 let stolenAmount = Math.floor(victimData.balance * (percent / 100));
                 if (stolenAmount > 0) {
-                    // Cap at actual balance to prevent negative balance if race condition (though incrementPlayerBalance handles min/max)
                     stolenAmount = Math.min(stolenAmount, victimData.balance);
 
                     incrementPlayerBalance(victim.id, -stolenAmount);
@@ -58,7 +52,6 @@ mc.world.afterEvents.entityDie.subscribe((event) => {
         return;
     }
 
-    // Handle Mob Drops
     if (!economyConfig || !economyConfig.mobMoney) {
         return;
     }
@@ -67,9 +60,9 @@ mc.world.afterEvents.entityDie.subscribe((event) => {
     const reward = economyConfig.mobMoney[mobId];
 
     if (reward && reward > 0) {
-        incrementPlayerBalance(damagingEntity.id, reward);
+        incrementPlayerBalance(killer.id, reward);
         infoLog(
-            `Gave ${damagingEntity.name} ${formatCurrency(reward)} for killing a ${mobId}.`
+            `Gave ${killer.name} ${formatCurrency(reward)} for killing a ${mobId}.`
         );
     }
 });
