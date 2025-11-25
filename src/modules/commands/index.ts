@@ -22,8 +22,8 @@ const commandFiles = [
     'team.ts',        // Migrated
 
     // --- Home System ---
-    'home.js',        // Contains /sethome, /delhome, /homes
-    'warp.js',        // Contains /warp, /addwarp, /delwarp
+    'home.ts',        // Migrated
+    'warp.ts',        // Migrated
 
     // --- Economy System ---
     'balance.js',     // Contains /baltop
