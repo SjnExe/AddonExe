@@ -1,24 +1,27 @@
-import { commandManager } from './commandManager.js';
+import * as mc from '@minecraft/server';
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 import { playSound } from '../../core/utils.js';
 import { getLockState, setLockState } from '../../core/playerDataManager.js';
 import { updateMultipleConfig } from '../../core/configManager.js';
 
+type DimensionLockType = 'nether' | 'end';
+
 /**
  * Creates the execution logic for a dimension lock command.
- * @param {'nether' | 'end'} dimension
- * @returns {(player: import('@minecraft/server').Player, args: { isLocked?: boolean }) => void}
+ * @param dimension The dimension to lock ('nether' or 'end').
+ * @returns The command execution function.
  */
-function createLockCommandExecute(dimension) {
-    return (player, args) => {
-        let currentState = getLockState(dimension);
-        let newState;
+function createLockCommandExecute(dimension: DimensionLockType) {
+    return (executor: CommandExecutor, args: { isLocked?: boolean }) => {
+        const currentState = getLockState(dimension);
+        let newState: boolean;
 
         if (args.isLocked === undefined) {
             // Toggle if no argument is provided
             newState = !currentState;
         } else {
             // Set to the provided boolean value
-            newState = args.isLocked;
+            newState = !!args.isLocked;
         }
 
         setLockState(dimension, newState);
@@ -31,35 +34,40 @@ function createLockCommandExecute(dimension) {
         const status = newState ? '§cLocked' : '§aUnlocked';
         const message = `§e${dimensionName} dimension is now ${status}§e.`;
 
-        player.sendMessage(message);
-        if (!player.isConsole) {
-            playSound(player, 'random.orb');
+        executor.sendMessage(message);
+        if (executor instanceof mc.Player) {
+            playSound(executor, 'random.orb');
         }
     };
 }
 
 // --- /netherlock Command ---
-commandManager.register({
+const netherlockCommand: CustomCommand = {
     name: 'netherlock',
     description: 'Toggles or sets the lock for the Nether dimension.',
     category: 'Administration',
     permissionLevel: 1, // Admins only
     allowConsole: true,
     parameters: [
-        { name: 'isLocked', type: 'boolean', description: 'Set to true to lock, false to unlock. Toggles if omitted.', optional: true }
+        { name: 'isLocked', type: 'boolean', optional: true }
     ],
     execute: createLockCommandExecute('nether')
-});
+};
 
 // --- /endlock Command ---
-commandManager.register({
+const endlockCommand: CustomCommand = {
     name: 'endlock',
     description: 'Toggles or sets the lock for the End dimension.',
     category: 'Administration',
     permissionLevel: 1, // Admins only
     allowConsole: true,
     parameters: [
-        { name: 'isLocked', type: 'boolean', description: 'Set to true to lock, false to unlock. Toggles if omitted.', optional: true }
+        { name: 'isLocked', type: 'boolean', optional: true }
     ],
     execute: createLockCommandExecute('end')
-});
+};
+
+export default [
+    netherlockCommand,
+    endlockCommand
+];

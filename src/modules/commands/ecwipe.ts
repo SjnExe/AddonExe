@@ -72,7 +72,7 @@ const ecwipeCommand: CustomCommand = {
             } else {
                 sendMessage('§aYour Ender Chest has been cleared.', executor);
             }
-            if (executor instanceof mc.Player) playSound(executor, 'random.orb');
+            if (executor instanceof mc.Player) {playSound(executor, 'random.orb');}
         } catch (error: any) {
             errorLog(`Failed to clear Ender Chest for ${targetPlayer.name}: ${error}`);
             if (executor instanceof mc.Player) {

@@ -10,7 +10,7 @@ const vanishCommand: CustomCommand = {
     permissionLevel: 2,
     allowConsole: false,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {return;}
 
         const isVanished = executor.hasTag(constants.vanishedTag);
 

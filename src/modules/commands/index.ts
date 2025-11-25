@@ -46,19 +46,19 @@ const commandFiles = [
     'clearchat.ts', // Migrated
 
     // --- Administration Commands ---
-    'announcement.js',
-    'dimensionLock.js',
+    'announcement.ts', // Migrated
+    'dimensionLock.ts', // Migrated
     'log.ts', // Migrated
-    'gamemode.js',
-    'rank.js',
-    'reload.js',
-    'restart.js',
-    'save.js',
-    'setbalance.js',
-    'tp.js',
-    'chattoconsole.js',
-    'xraynotify.js',
-    'floatingtext.js'
+    'gamemode.ts', // Migrated
+    'rank.ts', // Migrated
+    'reload.ts', // Migrated
+    'restart.ts', // Migrated
+    'save.ts', // Migrated
+    'setbalance.ts', // Migrated
+    'tp.ts', // Migrated
+    'chattoconsole.ts', // Migrated
+    'xraynotify.ts', // Migrated
+    'floatingtext.ts' // Migrated
 ];
 
 async function loadCommands() {

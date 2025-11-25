@@ -1,21 +1,27 @@
-import { commandManager } from './commandManager.js';
-import { getConfig, updateConfig } from '../../core/configManager.js';
-
-commandManager.register({
+import {
+    CustomCommand
+} from './commandManager.js';
+import {
+    getConfig,
+    updateConfig
+} from '../../core/configManager.js';
+const chatToConsoleCommand: CustomCommand = {
     name: 'chattoconsole',
     aliases: ['ctc', 'chat'],
     description: 'Toggles or sets whether player chat is logged to the server console.',
     category: 'Administration',
-    permissionLevel: 1, // Admins only
+    permissionLevel: 1,
     allowConsole: true,
-    parameters: [
-        { name: 'state', type: 'string', description: 'Set to "true" or "on" to enable, "false" or "off" to disable. Toggles if omitted.', optional: true }
-    ],
+    parameters: [{
+        name: 'state',
+        type: 'string',
+        optional: true
+    }],
     execute: (player, args) => {
         const config = getConfig();
-        const chatConfig = config.chat || { logToConsole: false };
-        const arg = args.state?.toLowerCase();
+        const chatConfig = { ... { logToConsole: false }, ...config.chat };
 
+        const arg = (args.state as string)?.toLowerCase();
         let newValue;
 
         if (arg === 'true' || arg === 'on') {
@@ -36,4 +42,5 @@ commandManager.register({
 
         player.sendMessage(`§aChat-to-console has been ${newValue ? '§aenabled' : '§cdisabled'}§a.`);
     }
-});
+};
+export default chatToConsoleCommand;

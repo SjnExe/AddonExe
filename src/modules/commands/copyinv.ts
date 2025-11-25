@@ -13,7 +13,7 @@ const copyinvCommand: CustomCommand = {
         { name: 'target', type: 'player' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {return;}
         const { target } = args as { target?: mc.Player[] };
 
         if (!target || target.length === 0) {
