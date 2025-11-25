@@ -14,7 +14,7 @@ const reportCommand: CustomCommand = {
         { name: 'target', type: 'string', optional: true }
     ],
     execute: async (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {return;}
         const reportedPlayerName = args.target as string | undefined;
 
         if (!reportedPlayerName) {

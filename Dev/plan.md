@@ -99,8 +99,8 @@ This session successfully migrated the entire "Economy System" and "Moderation" 
     - [ ] `src/modules/commands/floatingtext.js` -> `.ts`
 
 ## Phase 7: Main & Event Orchestration
-- [ ] `main.js`
-- [ ] `eventManager.js`
-- [ ] `playerSpawn.js`
-- [ ] `mobDeathEvents.js`
+- [x] `main.js`
+- [x] `eventManager.js`
+- [x] `playerSpawn.js`
+- [x] `mobDeathEvents.js`
 - [ ] Final cleanup of any remaining JS files.

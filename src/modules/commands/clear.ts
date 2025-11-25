@@ -75,7 +75,7 @@ const clearCommand: CustomCommand = {
         } else {
             sendMessage('§aYour inventory has been cleared.', executor);
         }
-        if (executor instanceof mc.Player) playSound(executor, constants.soundTeleport);
+        if (executor instanceof mc.Player) {playSound(executor, constants.soundTeleport);}
     }
 };
 
