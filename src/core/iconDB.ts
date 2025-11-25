@@ -3,7 +3,13 @@
  * This is used to automatically assign icons and names to new items added to the shop.
  * Generated from the project's itemsConfig.js and supplemented with all other vanilla items.
  */
-export const iconDB = {
+
+export interface IconEntry {
+    icon: string;
+    displayName: string;
+}
+
+export const iconDB: Record<string, IconEntry> = {
     // From itemsConfig.js (Source of Truth)
     'minecraft:diamond': { icon: 'textures/items/diamond', displayName: 'Diamond' },
     'minecraft:emerald': { icon: 'textures/items/emerald', displayName: 'Emerald' },

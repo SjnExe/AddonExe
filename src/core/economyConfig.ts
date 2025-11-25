@@ -1,4 +1,25 @@
-export const economyConfig = {
+export interface EconomyConfig {
+    currencySymbol: string;
+    startingBalance: number;
+    minBalance: number;
+    maxBalance: number;
+    logToConsole: boolean;
+    mobMoney: Record<string, number>;
+    steal: {
+        enabled: boolean;
+        percent: number;
+        sameTeamImmunity: boolean;
+    };
+    pvp: {
+        enabled: boolean;
+        defaultWinPercent: number;
+        requestTimeout: number;
+        duelTimeout: number;
+        maxConcurrentDuels: number;
+    };
+}
+
+export const economyConfig: EconomyConfig = {
     currencySymbol: '$',
     startingBalance: 100,
     minBalance: -1000000,

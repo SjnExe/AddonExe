@@ -28,7 +28,7 @@ export function addRank(rankData: RankDefinition): { success: boolean, message: 
         return { success: false, message: `Rank with ID '${rankData.id}' already exists.` };
     }
     ranksConfig.rankDefinitions.push(rankData);
-    saveRanksConfig();
+    saveRanksConfig(ranksConfig);
     return { success: true, message: `Rank '${rankData.name}' added successfully.` };
 }
 
@@ -68,7 +68,7 @@ export function updateRank(rankId: string, updatedData: Partial<RankDefinition>)
     }
 
     ranksConfig.rankDefinitions[rankIndex] = { ...ranksConfig.rankDefinitions[rankIndex], ...updatedData };
-    saveRanksConfig();
+    saveRanksConfig(ranksConfig);
     return { success: true, message };
 }
 
@@ -91,6 +91,6 @@ export function deleteRank(rankId: string): { success: boolean, message: string 
 
     const deletedRankName = ranksConfig.rankDefinitions[rankIndex].name;
     ranksConfig.rankDefinitions.splice(rankIndex, 1);
-    saveRanksConfig();
+    saveRanksConfig(ranksConfig);
     return { success: true, message: `Rank '${deletedRankName}' deleted successfully.` };
 }

@@ -14,7 +14,22 @@
  *   displayName?: string    // Optional display name for items like enchanted books.
  * }
  */
-export const items = {
+export interface ItemData {
+    itemId: string;
+    icon: string;
+    buyPrice: number;
+    sellPrice: number;
+    category: string;
+    subCategory?: string;
+    displayName?: string;
+    _comment?: string;
+    enchantment?: {
+        id: string;
+        level: number;
+    };
+}
+
+export const items: Record<string, ItemData> = {
     // == Ores & Minerals ==
     diamond: {
         itemId: 'minecraft:diamond',
