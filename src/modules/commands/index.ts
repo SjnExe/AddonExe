@@ -33,17 +33,17 @@ const commandFiles = [
     'shop.ts', // Migrated
 
     // --- Moderation Commands ---
-    'report.js',      // Contains /reports, /clearreports (admin)
-    'kick.js',
-    'ban.js',         // Contains /unban, /offlineban
-    'mute.js',        // Contains /unmute
-    'freeze.js',
-    'vanish.js',
-    'clear.js',
-    'ecwipe.js',
-    'invsee.js',
-    'copyinv.js',
-    'clearchat.js',
+    'report.ts',      // Migrated
+    'kick.ts', // Migrated
+    'ban.ts',         // Migrated
+    'mute.ts',        // Migrated
+    'freeze.ts', // Migrated
+    'vanish.ts', // Migrated
+    'clear.ts', // Migrated
+    'ecwipe.ts', // Migrated
+    'invsee.ts', // Migrated
+    'copyinv.ts', // Migrated
+    'clearchat.ts', // Migrated
 
     // --- Administration Commands ---
     'announcement.js',
