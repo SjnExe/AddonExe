@@ -1,11 +1,11 @@
 # AddonExe TypeScript Migration Plan
 
 ## Current Status
-**Phase 6 (Commands) is in progress.** The core manager, "General" commands, and "TPA System" commands have been migrated.
+**Phase 6 (Commands) is in progress.** The core manager, General, TPA, Home, and Economy commands have been migrated.
 
 ## Instructions for Next Session
 1.  **Goal:** Continue migrating the remaining JavaScript command files to TypeScript.
-2.  **Scope:** The next batch is the **Home System**.
+2.  **Scope:** The next batch is the **Moderation Commands**.
 3.  **Pattern:** Follow the established pattern: rename to `.ts`, implement the `CustomCommand` interface, use a default export, and update the command loader.
 4.  **Verification:** Run `npm run build` and `npm run lint:fix` frequently.
 
@@ -61,14 +61,14 @@
 - [x] **TPA System:**
     - [x] `src/modules/commands/tpa.js` -> `.ts`
     - [x] `src/modules/commands/team.js` -> `.ts`
-- [ ] **Home System:**
-    - [ ] `src/modules/commands/home.js` -> `.ts`
-    - [ ] `src/modules/commands/warp.js` -> `.ts`
-- [ ] **Economy System:**
-    - [ ] `src/modules/commands/balance.js` -> `.ts`
-    - [ ] `src/modules/commands/pay.js` -> `.ts`
-    - [ ] `src/modules/commands/bounty.js` -> `.ts`
-    - [ ] `src/modules/commands/kit.js` -> `.ts`
+- [x] **Home System:**
+    - [x] `src/modules/commands/home.js` -> `.ts`
+    - [x] `src/modules/commands/warp.js` -> `.ts`
+- [x] **Economy System:**
+    - [x] `src/modules/commands/balance.js` -> `.ts`
+    - [x] `src/modules/commands/pay.js` -> `.ts`
+    - [x] `src/modules/commands/bounty.js` -> `.ts`
+    - [x] `src/modules/commands/kit.js` -> `.ts`
 - [ ] **Moderation Commands:**
     - [ ] `src/modules/commands/report.js` -> `.ts`
     - [ ] `src/modules/commands/kick.js` -> `.ts`

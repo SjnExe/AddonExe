@@ -1,5 +1,6 @@
+import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
-import { commandManager } from './commandManager.js';
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 import * as kitsManager from '../../core/kitsManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { errorLog } from '../../core/logger.js';
@@ -10,12 +11,7 @@ import { showPanel } from '../../core/uiManager.js';
 
 const KITS_PER_PAGE = 8;
 
-/**
- * Shows a paginated list of available kits to the player.
- * @param {import('@minecraft/server').Player} player The player to show the list to.
- * @param {number} page The page number to display (1-based).
- */
-function showKitList(player, page) {
+function showKitList(player: mc.Player, page: number) {
     const availableKits = kitsManager.listKits(player);
     if (availableKits.length === 0) {
         player.sendMessage('§cThere are no kits available for you.');
@@ -23,11 +19,10 @@ function showKitList(player, page) {
     }
 
     const totalPages = Math.ceil(availableKits.length / KITS_PER_PAGE);
-    page = Math.max(1, Math.min(page, totalPages)); // Clamp page number
+    page = Math.max(1, Math.min(page, totalPages));
 
     const startIndex = (page - 1) * KITS_PER_PAGE;
-    const endIndex = startIndex + KITS_PER_PAGE;
-    const kitsToShow = availableKits.slice(startIndex, endIndex);
+    const kitsToShow = availableKits.slice(startIndex, startIndex + KITS_PER_PAGE);
 
     const form = new ActionFormData()
         .title(`Available Kits (Page ${page}/${totalPages})`)
@@ -52,10 +47,9 @@ function showKitList(player, page) {
     }
 
     form.show(player).then(response => {
-        if (response.canceled) { return; }
+        if (response.canceled || response.selection === undefined) {return;}
 
         const selection = response.selection;
-        let selectedIndex = selection;
 
         if (selection >= kitsToShow.length) {
             let buttonIndex = selection - kitsToShow.length;
@@ -69,13 +63,12 @@ function showKitList(player, page) {
             if (page < totalPages) {
                 if (buttonIndex === 0) {
                     showKitList(player, page + 1);
-                    return;
                 }
             }
-            return; // Should not happen
+            return;
         }
 
-        const selectedKitIndex = startIndex + selectedIndex;
+        const selectedKitIndex = startIndex + selection;
         const selectedKitName = availableKits[selectedKitIndex].name;
         const result = kitsManager.giveKit(player, selectedKitName);
         if (result.success) {
@@ -88,50 +81,49 @@ function showKitList(player, page) {
     });
 }
 
-commandManager.register({
+const kitCommand: CustomCommand = {
     name: 'kit',
     description: 'Claims a specific kit. Leave blank to see a list of available kits.',
-    category: 'General',
-    permissionLevel: 1024, // Everyone
+    permissionLevel: 1024,
     parameters: [
-        { name: 'kitName', type: 'string', description: 'The name of the kit to claim. Leave blank to see a list.', optional: true }
+        { name: 'kitName', type: 'string', optional: true }
     ],
-    execute: (player, args) => {
+    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+        if (!(executor instanceof mc.Player)) {return;}
         const config = getConfig();
         if (!config.kits.enabled) {
-            player.sendMessage('§cThe kits system is currently disabled.');
+            executor.sendMessage('§cThe kits system is currently disabled.');
             return;
         }
 
-        const { kitName } = args;
+        const kitName = args.kitName as string | undefined;
 
         if (!kitName) {
-            showKitList(player, 1);
+            showKitList(executor, 1);
             return;
         }
 
-        // Original logic to claim a kit by name
-        const result = kitsManager.giveKit(player, kitName);
+        const result = kitsManager.giveKit(executor, kitName);
 
         if (result.success) {
-            player.sendMessage(`§a${result.message}`);
+            executor.sendMessage(`§a${result.message}`);
         } else {
-            player.sendMessage(`§c${result.message}`);
+            executor.sendMessage(`§c${result.message}`);
         }
     }
-});
+};
 
-commandManager.register({
+const addKitCommand: CustomCommand = {
     name: 'addkit',
     description: 'Create a new kit from your inventory and open the editor.',
-    category: 'Administration',
     permissionLevel: 1, // Admins only
     allowConsole: false,
     parameters: [
-        { name: 'kitName', type: 'string', description: 'The name for the new kit. Leave blank to auto-generate.', optional: true }
+        { name: 'kitName', type: 'string', optional: true }
     ],
-    execute: (player, args) => {
-        let { kitName } = args;
+    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+        if (!(executor instanceof mc.Player)) {return;}
+        let kitName = args.kitName as string | undefined;
 
         if (!kitName) {
             const allKits = getAllKits();
@@ -143,9 +135,13 @@ commandManager.register({
             }
         }
 
-        const inventory = player.getComponent('minecraft:inventory').container;
+        const inventory = executor.getComponent('minecraft:inventory')?.container;
+        if (!inventory) {
+            return executor.sendMessage('§cCould not access your inventory.');
+        }
+
         const items = [];
-        for (let i = 0; i < 36; i++) {
+        for (let i = 0; i < inventory.size; i++) {
             const item = inventory.getItem(i);
             if (item) {
                 items.push({
@@ -158,12 +154,12 @@ commandManager.register({
         }
 
         if (items.length === 0) {
-            return player.sendMessage('§cYour inventory is empty. Cannot create an empty kit.');
+            return executor.sendMessage('§cYour inventory is empty. Cannot create an empty kit.');
         }
 
         const createResult = createKit(kitName);
         if (!createResult.success) {
-            return player.sendMessage(`§c${createResult.message}`);
+            return executor.sendMessage(`§c${createResult.message}`);
         }
 
         const lowerCaseKitName = kitName.toLowerCase();
@@ -171,7 +167,9 @@ commandManager.register({
             addItemToKit(lowerCaseKitName, item);
         }
 
-        player.sendMessage(`§aSuccessfully created kit '${lowerCaseKitName}'. Opening editor...`);
-        showPanel(player, `kitActionMenu_${lowerCaseKitName}`);
+        executor.sendMessage(`§aSuccessfully created kit '${lowerCaseKitName}'. Opening editor...`);
+        showPanel(executor, `kitActionMenu_${lowerCaseKitName}`);
     }
-});
+};
+
+export default [kitCommand, addKitCommand];

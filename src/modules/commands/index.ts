@@ -26,10 +26,10 @@ const commandFiles = [
     'warp.ts',        // Migrated
 
     // --- Economy System ---
-    'balance.js',     // Contains /baltop
-    'pay.js',         // Contains /payconfirm
-    'bounty.js',      // Contains /listbounty, /removebounty
-    'kit.js',
+    'balance.ts',     // Migrated
+    'pay.ts',         // Migrated
+    'bounty.ts',      // Migrated
+    'kit.ts', // Migrated
     'shop.ts', // Migrated
 
     // --- Moderation Commands ---
