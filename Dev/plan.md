@@ -1,13 +1,13 @@
 # AddonExe TypeScript Migration Plan
 
 ## Current Status
-**Phase 4 Completed.** The next task is **Phase 5: UI System**.
+**Phase 5 (UI System) Completed.** The next task is **Phase 6: Commands**.
 
 ## Instructions for Next Session
-1. **Goal:** Migrate the UI system to TypeScript.
-2. **Scope:** Convert all files in `src/core/ui/` and `src/core/uiManager.js`.
+1. **Goal:** Migrate the command system to TypeScript.
+2. **Scope:** Convert `src/modules/commands/commandManager.js` and all individual command files in `src/modules/commands/`.
 3. **Verification:** Run `npm run build` frequently. Use `npm run lint:fix` to clean up.
-4. **Note:** The UI system relies heavily on `@minecraft/server-ui`. Ensure strict typing is applied where possible, but use `any` if necessary for complex dynamic panel generators to avoid getting stuck on circular type definitions.
+4. **Note:** The command manager is a critical component. Ensure type safety for command registration and execution.
 
 ## Phase 1: Environment Setup & Utils (Completed)
 - [x] Create `src` directory and move files.
@@ -62,22 +62,48 @@
 - [x] `teamManager.js`
 - [x] `economyUtils.js`
 
-## Phase 5a: UI System - Part 1 (Foundations)
-- [ ] `src/core/iconDB.js` -> `src/core/iconDB.ts`
-- [ ] `src/core/ui/components.js` -> `src/core/ui/components.ts`
-- [ ] `src/core/ui/actionRegistry.js` -> `src/core/ui/actionRegistry.ts`
-- [ ] `src/core/ui/configPanelRegistry.js` -> `src/core/ui/configPanelRegistry.ts`
-- [ ] `src/core/ui/panelRegistry.js` -> `src/core/ui/panelRegistry.ts`
-- [ ] `src/core/ui/uiUtils.js` -> `src/core/ui/uiUtils.ts`
-
-## Phase 5b: UI System - Part 2 (Logic)
-- [ ] `src/core/ui/panelBuilder.js`
-- [ ] `src/core/ui/panelHandlers.js`
-- [ ] `src/core/uiManager.js`
+## Phase 5: UI System (Completed)
+- [x] `src/core/iconDB.js` -> `src/core/iconDB.ts`
+- [x] `src/core/ui/components.js` -> `src/core/ui/components.ts`
+- [x] `src/core/ui/actionRegistry.js` -> `src/core/ui/actionRegistry.ts`
+- [x] `src/core/ui/configPanelRegistry.js` -> `src/core/ui/configPanelRegistry.ts`
+- [x] `src/core/ui/panelRegistry.js` -> `src/core/ui/panelRegistry.ts`
+- [x] `src/core/ui/uiUtils.js` -> `src/core/ui/uiUtils.ts`
+- [x] `src/core/ui/panelBuilder.js` -> `src/core/ui/panelBuilder.ts`
+- [x] `src/core/ui/panelHandlers.js` -> `src/core/ui/panelHandlers.ts`
+- [x] `src/core/uiManager.js` -> `src/core/uiManager.ts`
 
 ## Phase 6: Commands
-- [ ] `commandManager.js`
-- [ ] `modules/commands/*.js` (Iterative)
+- [ ] `src/modules/commands/commandManager.js` -> `src/modules/commands/commandManager.ts`
+- [ ] Migrate individual command modules:
+    - [ ] `src/modules/commands/addbalance.js` -> `.ts`
+    - [ ] `src/modules/commands/announcement.js` -> `.ts`
+    - [ ] `src/modules/commands/ban.js` -> `.ts`
+    - [ ] `src/modules/commands/config.js` -> `.ts`
+    - [ ] `src/modules/commands/freeze.js` -> `.ts`
+    - [ ] `src/modules/commands/help.js` -> `.ts`
+    - [ ] `src/modules/commands/hub.js` -> `.ts`
+    - [ ] `src/modules/commands/index.js` -> `.ts`
+    - [ ] `src/modules/commands/kick.js` -> `.ts`
+    - [ ] `src/modules/commands/kit.js` -> `.ts`
+    - [ ] `src/modules/commands/log.js` -> `.ts`
+    - [ ] `src/modules/commands/motd.js` -> `.ts`
+    - [ ] `src/modules/commands/mute.js` -> `.ts`
+    - [ ] `src/modules/commands/removebalance.js` -> `.ts`
+    - [ ] `src/modules/commands/report.js` -> `.ts`
+    - [ ] `src/modules/commands/restart.js` -> `.ts`
+    - [ ] `src/modules/commands/rtp.js` -> `.ts`
+    - [ ] `src/modules/commands/shop.js` -> `.ts`
+    - [ ] `src/modules/commands/stats.js` -> `.ts`
+    - [ ] `src/modules/commands/team.js` -> `.ts`
+    - [ ] `src/modules/commands/tp.js` -> `.ts`
+    - [ ] `src/modules/commands/unban.js` -> `.ts`
+    - [ ] `src/modules/commands/unfreeze.js` -> `.ts`
+    - [ ] `src/modules/commands/unmute.js` -> `.ts`
+    - [ ] `src/modules/commands/vanish.js` -> `.ts`
+    - [ ] `src/modules/commands/version.js` -> `.ts`
+    - [ ] `src/modules/commands/warp.js` -> `.ts`
+    - [ ] `src/modules/commands/xraynotify.js` -> `.ts`
 
 ## Phase 7: Main & Event Orchestration
 - [ ] `main.js`
