@@ -1,7 +1,9 @@
 import { errorLog } from '../../core/logger.js';
+import { commandManager, CustomCommand } from './commandManager.js';
 
 // This file is used to load all command modules.
-// By importing this single file, all commands within the imported modules will be registered.
+// New TypeScript commands should export their command definition(s) as the default export.
+// Legacy JavaScript commands will register themselves upon being imported.
 
 const commandFiles = [
     // --- General Commands ---
@@ -10,13 +12,13 @@ const commandFiles = [
     'rules.js',
     'links.js',
     'status.js',
-    'version.js',
+    'version.ts', // Migrated
     'deathcoords.js',
     'spawn.js',       // Contains /setspawn (admin)
     'rtp.js',
 
     // --- TPA System ---
-    'tpa.js',         // Contains /tpa, /tpahere, /tpaccept, /tpadeny, /tpacancel, /tpastatus
+    'tpa.js',         // Contains /tpa, /tpahere, /tpaccept, /padeny, /tpacancel, /tpastatus
     'team.js',        // Contains /teamchat, /hq
 
     // --- Home System ---
@@ -28,7 +30,7 @@ const commandFiles = [
     'pay.js',         // Contains /payconfirm
     'bounty.js',      // Contains /listbounty, /removebounty
     'kit.js',
-    'shop.js',
+    'shop.ts', // Migrated
 
     // --- Moderation Commands ---
     'report.js',      // Contains /reports, /clearreports (admin)
@@ -46,7 +48,7 @@ const commandFiles = [
     // --- Administration Commands ---
     'announcement.js',
     'dimensionLock.js',
-    'log.js',
+    'log.ts', // Migrated
     'gamemode.js',
     'rank.js',
     'reload.js',
@@ -62,8 +64,22 @@ const commandFiles = [
 async function loadCommands() {
     for (const file of commandFiles) {
         try {
-            await import('./' + file);
-        } catch (e) {
+            const commandModule = await import('./' + file);
+
+            // New TypeScript modules will have a default export
+            if (commandModule.default) {
+                const commandDefinition = commandModule.default;
+
+                // Handle modules that export a single command or an array of commands
+                if (Array.isArray(commandDefinition)) {
+                    commandDefinition.forEach((cmd: CustomCommand) => commandManager.register(cmd));
+                } else {
+                    commandManager.register(commandDefinition as CustomCommand);
+                }
+            }
+            // Legacy JS modules will register themselves upon import, so no further action is needed.
+
+        } catch (e: any) {
             errorLog(`[CommandLoader] Failed to load command file '${file}': ${e.message}`);
             if (e.stack) {
                 errorLog(`[CommandLoader] Stack trace: ${e.stack}`);
