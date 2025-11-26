@@ -1,11 +1,13 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import { getPlayer } from '../../core/playerDataManager.js';
-import { playSound } from '../../core/utils.js';
-import { findPlayerByName } from '../../core/playerCache.js';
+
+import { constants } from '../../core/constants.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { constants } from '../../core/constants.js';
+import { findPlayerByName } from '../../core/playerCache.js';
+import { getPlayer } from '../../core/playerDataManager.js';
+import { playSound } from '../../core/utils.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, reason: string) {
     if (!targetPlayer) {
@@ -72,9 +74,11 @@ const kickCommand: CustomCommand = {
         { name: 'reason', type: 'text', optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const { target: targetName, reason = 'No reason provided' } = args as { target: string, reason?: string };
+        const { target: targetName, reason = 'No reason provided' } = args as { target: string; reason?: string };
         const targetPlayer = findPlayerByName(targetName);
-        kickPlayer(executor, targetPlayer, reason);
+        if (targetPlayer) {
+            kickPlayer(executor, targetPlayer, reason);
+        }
     }
 };
 

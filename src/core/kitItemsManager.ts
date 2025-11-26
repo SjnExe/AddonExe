@@ -1,7 +1,8 @@
+import * as mc from '@minecraft/server';
+
 import { getKitsConfig, saveKitsConfig } from './configurations.js';
 import { errorLog } from './logger.js';
 import { debugLog } from './logger.js';
-import * as mc from '@minecraft/server';
 
 const MAX_KIT_SLOTS = 36;
 
@@ -43,7 +44,9 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
 
         if (itemInfo.amount > maxAmount) {
             itemInfo.amount = maxAmount;
-            debugLog(`[KitItemsManager] Item amount for ${itemInfo.typeId} in kit ${kitName} exceeded max stack size. Capping at ${maxAmount}.`);
+            debugLog(
+                `[KitItemsManager] Item amount for ${itemInfo.typeId} in kit ${kitName} exceeded max stack size. Capping at ${maxAmount}.`
+            );
         }
 
         if (itemInfo.amount <= 0) {
@@ -51,11 +54,11 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
         }
 
         kit.items.push(itemInfo);
-        saveKitsConfig();
+        saveKitsConfig(config);
         debugLog(`[KitItemsManager] Added item ${itemInfo.typeId} x${itemInfo.amount} to kit ${kitName}`);
         return { success: true, message: 'Item added successfully.' };
     } catch (e: unknown) {
-         if (e instanceof Error) {
+        if (e instanceof Error) {
             errorLog(`[KitItemsManager] Failed to add item to kit: ${e.stack}`);
         } else {
             errorLog(`[KitItemsManager] Failed to add item to kit: ${String(e)}`);
@@ -84,7 +87,7 @@ export function removeItemFromKit(kitName: string, itemIndex: number): ActionRes
     }
 
     kit.items.splice(itemIndex, 1);
-    saveKitsConfig();
+    saveKitsConfig(config);
     debugLog(`[KitItemsManager] Removed item at index ${itemIndex} from kit ${kitName}`);
     return { success: true, message: 'Item removed successfully.' };
 }
@@ -120,11 +123,13 @@ export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo:
 
         if (newItemInfo.amount > maxAmount) {
             newItemInfo.amount = maxAmount;
-            debugLog(`[KitItemsManager] Item amount for ${newItemInfo.typeId} in kit ${kitName} exceeded max stack size. Capping at ${maxAmount}.`);
+            debugLog(
+                `[KitItemsManager] Item amount for ${newItemInfo.typeId} in kit ${kitName} exceeded max stack size. Capping at ${maxAmount}.`
+            );
         }
 
         kit.items[itemIndex] = newItemInfo;
-        saveKitsConfig();
+        saveKitsConfig(config);
         debugLog(`[KitItemsManager] Updated item at index ${itemIndex} in kit ${kitName}`);
         return { success: true, message: 'Item updated successfully.' };
     } catch (e: unknown) {

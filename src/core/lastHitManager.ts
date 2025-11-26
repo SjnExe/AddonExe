@@ -4,25 +4,23 @@
  * event is unreliable.
  */
 
-/**
- * @typedef {object} LastHitInfo
- * @property {string} attackerId - The ID of the player who was the attacker.
- * @property {number} timestamp - The timestamp of when the hit occurred (in milliseconds).
- */
+interface LastHitInfo {
+    attackerId: string;
+    timestamp: number;
+}
 
 /**
  * A map of player IDs to their last hit information.
  * Key: Victim's Player ID, Value: LastHitInfo
- * @type {Map<string, LastHitInfo>}
  */
-const lastHitData = new Map();
+const lastHitData = new Map<string, LastHitInfo>();
 
 /**
  * Records a hit from an attacker to a victim.
- * @param {string} victimId The ID of the player who was hit.
- * @param {string} attackerId The ID of the player who performed the hit.
+ * @param victimId The ID of the player who was hit.
+ * @param attackerId The ID of the player who performed the hit.
  */
-export function setLastHit(victimId, attackerId) {
+export function setLastHit(victimId: string, attackerId: string): void {
     lastHitData.set(victimId, {
         attackerId: attackerId,
         timestamp: Date.now()
@@ -31,18 +29,17 @@ export function setLastHit(victimId, attackerId) {
 
 /**
  * Retrieves the last hit information for a given player.
- * @param {string} victimId The ID of the player to get the last hit info for.
- * @returns {LastHitInfo | undefined}
+ * @param victimId The ID of the player to get the last hit info for.
  */
-export function getLastHit(victimId) {
+export function getLastHit(victimId: string): LastHitInfo | undefined {
     return lastHitData.get(victimId);
 }
 
 /**
  * Clears the last hit data for a player. This should be called after a bounty
  * is processed to prevent the data from being used again.
- * @param {string} victimId The ID of the player whose last hit data should be cleared.
+ * @param victimId The ID of the player whose last hit data should be cleared.
  */
-export function clearLastHit(victimId) {
+export function clearLastHit(victimId: string): void {
     lastHitData.delete(victimId);
 }

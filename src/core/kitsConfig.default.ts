@@ -43,9 +43,7 @@ export const kitsConfig: KitsConfig = {
             icon: 'textures/items/beef_cooked',
             price: 10,
             permissionLevel: 1024,
-            items: [
-                { typeId: 'minecraft:cooked_beef', amount: 8 }
-            ]
+            items: [{ typeId: 'minecraft:cooked_beef', amount: 8 }]
         },
         warrior: {
             enabled: true,

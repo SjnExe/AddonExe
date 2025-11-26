@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+
 import { errorLog, debugLog } from './logger.js';
 import { isDeepEqual } from './objectUtils.js';
 
@@ -87,15 +88,19 @@ async function spawnAllTexts() {
     for (const textConfig of floatingTexts.values()) {
         try {
             const dimension = mc.world.getDimension(textConfig.dimension);
-            const query: mc.EntityQueryOptions = { type: 'addonexe:floating_text' as any, tags: [`ft_${textConfig.id}`] };
+            const query: mc.EntityQueryOptions = {
+                type: 'addonexe:floating_text' as any,
+                tags: [`ft_${textConfig.id}`]
+            };
             const entities = dimension.getEntities(query);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const entity = entities.length > 0 ? (entities as any)[0] : undefined;
 
             if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-                const isCorrectLocation = Math.abs(entity.location.x - textConfig.location.x) < 0.1 &&
-                                          Math.abs(entity.location.y - textConfig.location.y) < 0.1 &&
-                                          Math.abs(entity.location.z - textConfig.location.z) < 0.1;
+                const isCorrectLocation =
+                    Math.abs(entity.location.x - textConfig.location.x) < 0.1 &&
+                    Math.abs(entity.location.y - textConfig.location.y) < 0.1 &&
+                    Math.abs(entity.location.z - textConfig.location.z) < 0.1;
 
                 if (isCorrectLocation) {
                     debugLog(`[FloatingText] Entity for ID: ${textConfig.id} already exists. Skipping spawn.`);
@@ -106,15 +111,17 @@ async function spawnAllTexts() {
         } catch (error: unknown) {
             if (String(error).includes('LocationInUnloadedChunkError')) {
                 if (!unloadedChunkQueue.has(textConfig.id)) {
-                    debugLog(`[FloatingText] Failed to check text with ID: ${textConfig.id} (chunk unloaded). Adding to retry queue.`);
+                    debugLog(
+                        `[FloatingText] Failed to check text with ID: ${textConfig.id} (chunk unloaded). Adding to retry queue.`
+                    );
                     unloadedChunkQueue.add(textConfig.id);
                 }
             } else {
-                 if (error instanceof Error) {
-                     errorLog(`[FloatingText] Error during initial check for text ID: ${textConfig.id}`, error);
-                 } else {
-                     errorLog(`[FloatingText] Error during initial check for text ID: ${textConfig.id}`, String(error));
-                 }
+                if (error instanceof Error) {
+                    errorLog(`[FloatingText] Error during initial check for text ID: ${textConfig.id}`, error);
+                } else {
+                    errorLog(`[FloatingText] Error during initial check for text ID: ${textConfig.id}`, String(error));
+                }
             }
         }
     }
@@ -134,20 +141,27 @@ function spawnText(textConfig: FloatingTextConfig) {
     } catch (error: unknown) {
         if (String(error).includes('LocationInUnloadedChunkError')) {
             if (!unloadedChunkQueue.has(textConfig.id)) {
-                debugLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id} because the chunk is not loaded. Adding to retry queue.`);
+                debugLog(
+                    `[FloatingText] Failed to spawn text with ID: ${textConfig.id} because the chunk is not loaded. Adding to retry queue.`
+                );
                 unloadedChunkQueue.add(textConfig.id);
             }
         } else {
             if (error instanceof Error) {
                 errorLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id}`, error);
             } else {
-                 errorLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id}`, String(error));
+                errorLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id}`, String(error));
             }
         }
     }
 }
 
-async function findEntityWithRetries(dimension: mc.Dimension, query: mc.EntityQueryOptions, maxRetries = 10, delayBetweenRetries = 4): Promise<mc.Entity | null> {
+async function findEntityWithRetries(
+    dimension: mc.Dimension,
+    query: mc.EntityQueryOptions,
+    maxRetries = 10,
+    delayBetweenRetries = 4
+): Promise<mc.Entity | null> {
     for (let i = 0; i < maxRetries; i++) {
         const entities = dimension.getEntities(query);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -156,7 +170,7 @@ async function findEntityWithRetries(dimension: mc.Dimension, query: mc.EntityQu
             debugLog(`[FloatingText] Found entity for query after ${i + 1} attempt(s).`);
             return entity;
         }
-        await new Promise<void>(resolve => mc.system.runTimeout(resolve, delayBetweenRetries));
+        await new Promise<void>((resolve) => mc.system.runTimeout(resolve, delayBetweenRetries));
     }
     debugLog(`[FloatingText] Could not find entity for query after ${maxRetries} attempts.`);
     return null;
@@ -181,39 +195,40 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig> & { u
     // Remove updateInterval from here, it's deprecated
     const newConfig = { ...oldConfig, ...updates };
     if (updates.expiresAt === undefined && oldConfig.expiresAt === undefined) {
-         // Keep existing if not updating, or set to null if intended?
-         // JS logic: if updates.expiresAt is undefined, it doesn't overwrite.
-         // But the JS code said: if (updates.expiresAt === undefined) { newConfig.expiresAt = null; }
-         // Wait, the original JS was:
-         // if (updates.expiresAt === undefined) { newConfig.expiresAt = null; }
-         // This implies if you DON'T pass an expiration, it clears it? That seems odd for a partial update.
-         // Let's re-read the JS carefully.
-         /*
+        // Keep existing if not updating, or set to null if intended?
+        // JS logic: if updates.expiresAt is undefined, it doesn't overwrite.
+        // But the JS code said: if (updates.expiresAt === undefined) { newConfig.expiresAt = null; }
+        // Wait, the original JS was:
+        // if (updates.expiresAt === undefined) { newConfig.expiresAt = null; }
+        // This implies if you DON'T pass an expiration, it clears it? That seems odd for a partial update.
+        // Let's re-read the JS carefully.
+        /*
          const newConfig = { ...oldConfig, ...updates };
          if (updates.expiresAt === undefined) {
             newConfig.expiresAt = null;
          }
          */
-         // Yes, it clears expiration if not explicitly provided in the update.
-         // This might be intended for "permanent unless specified" logic in updates.
-         // I will preserve this behavior.
-         newConfig.expiresAt = null;
+        // Yes, it clears expiration if not explicitly provided in the update.
+        // This might be intended for "permanent unless specified" logic in updates.
+        // I will preserve this behavior.
+        newConfig.expiresAt = null;
     } else if (updates.expiresAt !== undefined) {
         newConfig.expiresAt = updates.expiresAt;
     }
 
     delete newConfig.updateInterval;
 
-    const locationChanged = (
+    const locationChanged =
         oldConfig.dimension !== newConfig.dimension ||
         Math.abs(oldConfig.location.x - newConfig.location.x) > 0.01 ||
         Math.abs(oldConfig.location.y - newConfig.location.y) > 0.01 ||
-        Math.abs(oldConfig.location.z - newConfig.location.z) > 0.01
-    );
+        Math.abs(oldConfig.location.z - newConfig.location.z) > 0.01;
     const textChanged = oldConfig.text !== newConfig.text;
 
     if (!locationChanged && !textChanged && isDeepEqual(oldConfig, newConfig)) {
-        debugLog(`[FloatingText] updateText called for ID: ${id}, but no functional changes were detected. Only saving.`);
+        debugLog(
+            `[FloatingText] updateText called for ID: ${id}, but no functional changes were detected. Only saving.`
+        );
         floatingTexts.set(id, newConfig);
         saveTexts();
         return;
@@ -239,10 +254,10 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig> & { u
                 debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
             }
         } catch (e: unknown) {
-             if (e instanceof Error) {
+            if (e instanceof Error) {
                 errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, e.stack);
             } else {
-                 errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, String(e));
+                errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, String(e));
             }
             await despawnText(id);
             spawnText(newConfig);
@@ -279,14 +294,16 @@ async function despawnText(id: string) {
     if (pendingDespawns.has(id)) {
         const runId = pendingDespawns.get(id);
         if (runId !== undefined) {
-             mc.system.clearRun(runId);
+            mc.system.clearRun(runId);
         }
         pendingDespawns.delete(id);
     }
     unloadedChunkQueue.delete(id);
 
     const textConfig = getTextById(id);
-    if (!textConfig) { return; }
+    if (!textConfig) {
+        return;
+    }
 
     try {
         const dimension = mc.world.getDimension(textConfig.dimension);
@@ -315,7 +332,10 @@ async function despawnText(id: string) {
             if (e instanceof Error) {
                 errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, e);
             } else {
-                 errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, String(e));
+                errorLog(
+                    `[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`,
+                    String(e)
+                );
             }
         }
     }
@@ -328,9 +348,9 @@ async function despawnText(id: string) {
     } catch (error) {
         if (!String(error).includes('No targets matched selector')) {
             if (error instanceof Error) {
-                 errorLog(`[FloatingText] Error during command-based despawn for ID: ${id}.`, error);
+                errorLog(`[FloatingText] Error during command-based despawn for ID: ${id}.`, error);
             } else {
-                 errorLog(`[FloatingText] Error during command-based despawn for ID: ${id}.`, String(error));
+                errorLog(`[FloatingText] Error during command-based despawn for ID: ${id}.`, String(error));
             }
         }
     }
@@ -340,7 +360,7 @@ async function respawnText(id: string) {
     if (pendingDespawns.has(id)) {
         const runId = pendingDespawns.get(id);
         if (runId !== undefined) {
-             mc.system.clearRun(runId);
+            mc.system.clearRun(runId);
         }
         pendingDespawns.delete(id);
         debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to respawn.`);

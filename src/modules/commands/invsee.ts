@@ -1,6 +1,8 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
 import { sendMessage } from '../../core/messaging.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const invseeCommand: CustomCommand = {
     name: 'invsee',
@@ -12,7 +14,7 @@ const invseeCommand: CustomCommand = {
         { name: 'page', type: 'int', optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const { target, page: pageArg } = args as { target?: mc.Player[], page?: number };
+        const { target, page: pageArg } = args as { target?: mc.Player[]; page?: number };
 
         if (!target || target.length === 0) {
             if (executor instanceof mc.Player) {

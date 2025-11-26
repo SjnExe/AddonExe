@@ -1,10 +1,11 @@
 import * as mc from '@minecraft/server';
-import { getPunishment } from '../punishmentManager.js';
+
 import { commandManager } from '../../modules/commands/commandManager.js';
-import * as playerDataManager from '../playerDataManager.js';
-import * as rankManager from '../rankManager.js';
-import { getConfig } from '../configManager.js';
 import { isTeamChatEnabled, toggleTeamChat } from '../../modules/commands/team.js';
+import { getConfig } from '../configManager.js';
+import * as playerDataManager from '../playerDataManager.js';
+import { getPunishment } from '../punishmentManager.js';
+import * as rankManager from '../rankManager.js';
 import { getTeamByPlayer } from '../teamManager.js';
 
 export const eventName = 'beforeChatSend';
@@ -22,7 +23,9 @@ function handleChatSend(eventData) {
     }
 
     const wasCommand = commandManager.handleChatCommand(eventData);
-    if (wasCommand) { return; }
+    if (wasCommand) {
+        return;
+    }
 
     // Team Chat Check
     if (isTeamChatEnabled(player.id)) {
@@ -32,8 +35,10 @@ function handleChatSend(eventData) {
             const teamMsg = `§a[Team] ${player.name}: §f${eventData.message}`;
             // Broadcast to members
             for (const memberId of team.members) {
-                const member = mc.world.getAllPlayers().find(p => p.id === memberId);
-                if (member) { member.sendMessage(teamMsg); }
+                const member = mc.world.getAllPlayers().find((p) => p.id === memberId);
+                if (member) {
+                    member.sendMessage(teamMsg);
+                }
             }
             // Also log if needed?
             return;
@@ -56,9 +61,7 @@ function handleChatSend(eventData) {
     const teamSuffix = team ? `§e[§r${team.name}§e]§r` : '';
 
     // Hardcode brackets for rank prefix if it exists
-    const rankPrefix = rank && rank.chatFormatting.prefixText
-        ? `§e[§r${rank.chatFormatting.prefixText}§e]§r`
-        : '';
+    const rankPrefix = rank && rank.chatFormatting.prefixText ? `§e[§r${rank.chatFormatting.prefixText}§e]§r` : '';
 
     const formattedMessage = rank
         ? `${rankPrefix}${rank.chatFormatting.nameColor}${player.name}${teamSuffix}§r: ${rank.chatFormatting.messageColor}${eventData.message}`

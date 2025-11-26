@@ -1,9 +1,10 @@
 import * as mc from '@minecraft/server';
+
 import { debugLog, errorLog } from './logger.js';
-import * as utils from './utils.js';
 import { buildPanelForm } from './ui/panelBuilder.js';
 import { handleFormResponse } from './ui/panelHandlers.js';
 import { panelDefinitions, UIContext } from './ui/panelRegistry.js';
+import * as utils from './utils.js';
 
 /**
  * Main entry point for showing a UI panel to a player.
@@ -38,6 +39,8 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
     } catch (e) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         errorLog(`[UIManager] showPanel failed for panel '${panelId}': ${(e as any).stack || e}`);
-        player.sendMessage('§cAn unexpected error occurred while trying to open the UI. Please check the content log for details.');
+        player.sendMessage(
+            '§cAn unexpected error occurred while trying to open the UI. Please check the content log for details.'
+        );
     }
 }

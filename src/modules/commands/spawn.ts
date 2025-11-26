@@ -1,13 +1,15 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
 import { getConfig } from '../../core/configManager.js';
 import { getSpawnConfig, saveSpawnConfig } from '../../core/configurations.js';
-import { playSound, startTeleportWarmup } from '../../core/utils.js';
-import { errorLog } from '../../core/logger.js';
 import { setCooldown } from '../../core/cooldownManager.js';
-import { getPlayerRank } from '../../core/rankManager.js';
-import { initializeSpawnProtection } from '../detections/spawnProtection.js';
+import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
+import { getPlayerRank } from '../../core/rankManager.js';
+import { playSound, startTeleportWarmup } from '../../core/utils.js';
+import { initializeSpawnProtection } from '../detections/spawnProtection.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const spawnCommand: CustomCommand = {
     name: 'spawn',
@@ -16,7 +18,9 @@ const spawnCommand: CustomCommand = {
     permissionLevel: 1024,
     hasCooldown: true,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const config = getConfig();
         const spawnConfig = getSpawnConfig();
@@ -25,8 +29,13 @@ const spawnCommand: CustomCommand = {
         if (!spawnLocation || typeof spawnLocation.x !== 'number') {
             sendMessage('§cThe server spawn point has not been set.', executor);
             const rank = getPlayerRank(executor, config);
-            if (rank.permissionLevel <= 1) { // Is admin or owner
-                sendMessage('§eAs an admin, you can set it by running §a/setspawn§e at the desired location.', executor, { raw: true });
+            if (rank.permissionLevel <= 1) {
+                // Is admin or owner
+                sendMessage(
+                    '§eAs an admin, you can set it by running §a/setspawn§e at the desired location.',
+                    executor,
+                    { raw: true }
+                );
             }
             playSound(executor, 'note.bass');
             return;
@@ -42,7 +51,10 @@ const spawnCommand: CustomCommand = {
                 playSound(executor, 'random.orb');
                 setCooldown(executor, 'spawn');
             } catch (e: any) {
-                sendMessage('§cFailed to teleport to spawn. The dimension may be invalid or the location unsafe.', executor);
+                sendMessage(
+                    '§cFailed to teleport to spawn. The dimension may be invalid or the location unsafe.',
+                    executor
+                );
                 errorLog(`[/spawn] Failed to teleport: ${e.stack}`);
                 playSound(executor, 'note.bass');
             }
@@ -55,7 +67,7 @@ const spawnCommand: CustomCommand = {
 const setSpawnCommand: CustomCommand = {
     name: 'setspawn',
     aliases: ['setworldspawn', 'spawnset'],
-    description: 'Sets the server\'s spawn location to your current position or specified coordinates.',
+    description: "Sets the server's spawn location to your current position or specified coordinates.",
     permissionLevel: 1, // Admins only
     allowConsole: true,
     parameters: [
@@ -77,9 +89,14 @@ const setSpawnCommand: CustomCommand = {
         } else {
             if (!(executor instanceof mc.Player)) {
                 if (executor instanceof mc.Player) {
-                    sendMessage('§cYou must specify X, Y, and Z coordinates when running this command from the console.', executor);
+                    sendMessage(
+                        '§cYou must specify X, Y, and Z coordinates when running this command from the console.',
+                        executor
+                    );
                 } else {
-                    executor.sendMessage('§cYou must specify X, Y, and Z coordinates when running this command from the console.');
+                    executor.sendMessage(
+                        '§cYou must specify X, Y, and Z coordinates when running this command from the console.'
+                    );
                 }
                 return;
             }
@@ -119,9 +136,14 @@ const setSpawnCommand: CustomCommand = {
                 } catch (e: any) {
                     errorLog(`[/setspawn] Failed to set default world spawn: ${e.stack}`);
                     if (executor instanceof mc.Player) {
-                        sendMessage('§cError: Could not set the world spawn point. Check server logs for details.', executor);
+                        sendMessage(
+                            '§cError: Could not set the world spawn point. Check server logs for details.',
+                            executor
+                        );
                     } else {
-                        executor.sendMessage('§cError: Could not set the world spawn point. Check server logs for details.');
+                        executor.sendMessage(
+                            '§cError: Could not set the world spawn point. Check server logs for details.'
+                        );
                     }
                 }
                 try {
@@ -134,14 +156,19 @@ const setSpawnCommand: CustomCommand = {
                 } catch (e: any) {
                     errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${e.stack}`);
                     if (executor instanceof mc.Player) {
-                        sendMessage('§cError: Could not set the spawn radius. Check server logs for details.', executor);
+                        sendMessage(
+                            '§cError: Could not set the spawn radius. Check server logs for details.',
+                            executor
+                        );
                     } else {
                         executor.sendMessage('§cError: Could not set the spawn radius. Check server logs for details.');
                     }
                 }
             }
 
-            if (executor instanceof mc.Player) { playSound(executor, 'random.orb'); }
+            if (executor instanceof mc.Player) {
+                playSound(executor, 'random.orb');
+            }
         } catch (e: any) {
             if (executor instanceof mc.Player) {
                 sendMessage('§cAn unexpected error occurred while setting the spawn.', executor);

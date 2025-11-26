@@ -1,24 +1,32 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
-import { panelDefinitions, UIContext } from './panelRegistry.js';
-import { configPanelSchema } from './configPanelRegistry.js';
-import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
-import { getConfig } from '../configManager.js';
-import { debugLog, errorLog } from '../logger.js';
-import * as rankManager from '../rankManager.js';
+
+import { commandManager } from '../../modules/commands/commandManager.js';
 import * as bountyManager from '../bountyManager.js';
+import { getConfig } from '../configManager.js';
+import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig } from '../configurations.js';
+import * as helpfulLinksManager from '../helpfulLinksManager.js';
+import { iconDB } from '../iconDB.js';
+import { items as allItems } from '../itemsConfig.default.js';
+import { getAllKits } from '../kitAdminManager.js';
+import { debugLog, errorLog } from '../logger.js';
+import { getValueFromPath } from '../objectUtils.js';
+import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
+import * as rankManager from '../rankManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
-import * as helpfulLinksManager from '../helpfulLinksManager.js';
-import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig } from '../configurations.js';
-import { items as allItems } from '../itemsConfig.js';
 // @ts-ignore - Importing from JS file
-import { getAllKits } from '../kitAdminManager.js';
-import { getValueFromPath } from '../objectUtils.js';
 import { formatCurrency } from '../utils.js';
-import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems, addPaginationButtons } from './uiUtils.js';
-import { commandManager } from '../../modules/commands/commandManager.js';
-import { iconDB } from '../iconDB.js';
+
+import { configPanelSchema } from './configPanelRegistry.js';
+import { panelDefinitions, UIContext } from './panelRegistry.js';
+import {
+    getVisibleConfigSystems,
+    itemsPerPage,
+    configHandlers,
+    getPaginatedItems,
+    addPaginationButtons
+} from './uiUtils.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getMenuItems(panelDef: any, permissionLevel: number) {
@@ -36,11 +44,17 @@ export function getMenuItems(panelDef: any, permissionLevel: number) {
         .sort((a: any, b: any) => (a.sortId || 0) - (b.sortId || 0));
 
     if (panelDef.parentPanelId) {
-        items.unshift({ id: '__back__', text: '§l§8< Back', icon: 'textures/gui/controls/left.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: panelDef.parentPanelId });
+        items.unshift({
+            id: '__back__',
+            text: '§l§8< Back',
+            icon: 'textures/gui/controls/left.png',
+            permissionLevel: 1024,
+            actionType: 'openPanel',
+            actionValue: panelDef.parentPanelId
+        });
     }
     return items;
 }
-
 
 async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: string, context: UIContext) {
     const config = getConfig();
@@ -56,12 +70,14 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
         const team = getTeamByPlayer(player.id);
         const teamName = team ? `§b${team.name}` : '§7None';
 
-        form.body([
-            `§fRank: §r${rank.chatFormatting?.nameColor ?? '§7'}${rank.name}`,
-            `§fTeam: ${teamName}`,
-            `§fBalance: §2${formatCurrency(pData.balance)}`,
-            `§fBounty on you: §6${formatCurrency(bounty)}`
-        ].join('\n'));
+        form.body(
+            [
+                `§fRank: §r${rank.chatFormatting?.nameColor ?? '§7'}${rank.name}`,
+                `§fTeam: ${teamName}`,
+                `§fBalance: §2${formatCurrency(pData.balance)}`,
+                `§fBounty on you: §6${formatCurrency(bounty)}`
+            ].join('\n')
+        );
     } else if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
         const pData = context.targetData || loadPlayerData(context.targetPlayerId);
         if (!pData) {
@@ -70,21 +86,25 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
         }
         const rank = rankManager.getRankById(pData.rankId);
         const bounty = bountyManager.getBounty(context.targetPlayerId)?.amount ?? 0;
-        form.body([
-            `§fRank: §r${rank?.chatFormatting?.nameColor ?? '§7'}${rank?.name ?? 'Unknown'}`,
-            `§fBalance: §2${formatCurrency(pData.balance)}`,
-            `§fBounty: §6${formatCurrency(bounty)}`
-        ].join('\n'));
+        form.body(
+            [
+                `§fRank: §r${rank?.chatFormatting?.nameColor ?? '§7'}${rank?.name ?? 'Unknown'}`,
+                `§fBalance: §2${formatCurrency(pData.balance)}`,
+                `§fBounty: §6${formatCurrency(bounty)}`
+            ].join('\n')
+        );
     } else if (panelId === 'reportActionsPanel' && context.targetReport) {
         const { targetReport } = context;
-        form.body([
-            `§fReport ID: §6${targetReport.id}`,
-            `§fReported Player: §6${targetReport.reportedPlayerName}`,
-            `§fReporter: §6${targetReport.reporterName}`,
-            `§fReason: §6${targetReport.reason}`,
-            `§fStatus: §6${targetReport.status}`,
-            `§fDate: §6${new Date(targetReport.timestamp).toLocaleString()}`
-        ].join('\n'));
+        form.body(
+            [
+                `§fReport ID: §6${targetReport.id}`,
+                `§fReported Player: §6${targetReport.reportedPlayerName}`,
+                `§fReporter: §6${targetReport.reporterName}`,
+                `§fReason: §6${targetReport.reason}`,
+                `§fStatus: §6${targetReport.status}`,
+                `§fDate: §6${new Date(targetReport.timestamp).toLocaleString()}`
+            ].join('\n')
+        );
     }
 }
 
@@ -101,7 +121,9 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
         }
         const commandName = item.id;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((config.commandSettings as any)[commandName]?.enabled === false) {continue;}
+        if ((config.commandSettings as any)[commandName]?.enabled === false) {
+            continue;
+        }
         if (context.fromPanel === 'playerManagementPanel' && item.permissionLevel < 1024) {
             visibleItems.push(item);
         } else if (context.fromPanel === 'playerListPanel' && item.permissionLevel >= 1024) {
@@ -115,13 +137,15 @@ function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const shopConfig: any = getShopConfig();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const validCategories = Object.keys(shopConfig.categories).filter((categoryName: any) => {
-        const category = shopConfig.categories[categoryName];
-        const hasItems = Object.keys(category.items).length > 0;
-        const hasSubCategories = Object.keys(category.subCategories).length > 0;
-        return hasItems || hasSubCategories;
-    }).sort();
+
+    const validCategories = Object.keys(shopConfig.categories)
+        .filter((categoryName: any) => {
+            const category = shopConfig.categories[categoryName];
+            const hasItems = Object.keys(category.items).length > 0;
+            const hasSubCategories = Object.keys(category.subCategories).length > 0;
+            return hasItems || hasSubCategories;
+        })
+        .sort();
 
     if (validCategories.length === 0) {
         form.body('§cThe shop is currently empty.');
@@ -146,8 +170,10 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
         return;
     }
 
-    const subCategories = Object.keys(category.subCategories).sort().map(name => ({ name, ...category.subCategories[name], type: 'subCategory' }));
-    const items = Object.keys(category.items).map(id => ({ id, ...category.items[id], type: 'item' }));
+    const subCategories = Object.keys(category.subCategories)
+        .sort()
+        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }));
+    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
 
     const allEntries = [...subCategories, ...items];
     const paginatedEntries = getPaginatedItems(allEntries, page);
@@ -192,7 +218,7 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
         return;
     }
 
-    const items = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
+    const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
     const paginatedItems = getPaginatedItems(items, page);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -259,8 +285,10 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
         return;
     }
 
-    const items = Object.keys(category.items).map(id => ({ id, ...category.items[id], type: 'item' }));
-    const subCategories = Object.keys(category.subCategories).sort().map(name => ({ name, ...category.subCategories[name], type: 'subCategory' }));
+    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
+    const subCategories = Object.keys(category.subCategories)
+        .sort()
+        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }));
 
     const allEntries = [...subCategories, ...items];
     const paginatedEntries = getPaginatedItems(allEntries, page);
@@ -273,7 +301,8 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
             const displayName = entry.displayName || masterItem.displayName || entry.id;
             const icon = entry.icon || masterItem.icon;
             form.button(displayName, icon);
-        } else { // subCategory
+        } else {
+            // subCategory
             form.button(`§e${entry.name}`, entry.icon);
         }
     }
@@ -300,7 +329,7 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
         return;
     }
 
-    const items = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
+    const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
     const paginatedItems = getPaginatedItems(items, page);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -451,7 +480,10 @@ function buildReportListForm(title: string, context: UIContext) {
     // Add Back button
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-    const reports = reportManager.getAllReports().filter(r => r.status === 'open' || r.status === 'assigned').sort((a, b) => a.timestamp - b.timestamp);
+    const reports = reportManager
+        .getAllReports()
+        .filter((r) => r.status === 'open' || r.status === 'assigned')
+        .sort((a, b) => a.timestamp - b.timestamp);
     const totalPages = Math.ceil(reports.length / itemsPerPage);
 
     // Add Previous button if not on the first page
@@ -465,7 +497,9 @@ function buildReportListForm(title: string, context: UIContext) {
         const paginatedReports = getPaginatedItems(reports, page);
         for (const report of paginatedReports) {
             const statusColor = report.status === 'assigned' ? '§6' : '§c';
-            form.button(`[${statusColor}${report.status.toUpperCase()}§r] ${report.reportedPlayerName}\n§8Reported by: ${report.reporterName}`);
+            form.button(
+                `[${statusColor}${report.status.toUpperCase()}§r] ${report.reportedPlayerName}\n§8Reported by: ${report.reporterName}`
+            );
         }
     }
 
@@ -481,10 +515,12 @@ function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
     const { page = 1 } = context;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pData = getPlayer((context as any).player.id);
-    if (!pData) {return;}
+    if (!pData) {
+        return;
+    }
 
     const panelDef = panelDefinitions.rankManagementPanel;
-    const settingsItem = panelDef.items.find(item => item.id === 'rankSettings');
+    const settingsItem = panelDef.items.find((item) => item.id === 'rankSettings');
 
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
     if (settingsItem && pData.permissionLevel <= settingsItem.permissionLevel) {
@@ -586,7 +622,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId.startsWith('config_')) {
             const categoryId = panelId.replace('config_', '');
-            const category = configPanelSchema.find(c => c.id === categoryId);
+            const category = configPanelSchema.find((c) => c.id === categoryId);
             if (!category) {
                 errorLog(`[UIManager] Could not find config category for ID: ${categoryId}`);
                 return null;
@@ -602,7 +638,6 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             }
             const config = handler.get();
 
-
             for (const setting of category.settings) {
                 const currentValue = getValueFromPath(config, setting.key);
                 switch (setting.type) {
@@ -610,10 +645,11 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                         form.toggle(setting.label, { defaultValue: !!currentValue });
                         break;
                     case 'textField':
-                        form.textField(setting.label, setting.description || '', { defaultValue: String(currentValue ?? '') });
+                        form.textField(setting.label, setting.description || '', {
+                            defaultValue: String(currentValue ?? '')
+                        });
                         break;
-                    case 'dropdown':
-                    {
+                    case 'dropdown': {
                         let index = -1;
                         const options = setting.options || [];
                         // Special handling for logLevel, where the value is the index.
@@ -622,7 +658,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                         } else {
                             index = options.indexOf(currentValue as string);
                         }
-                        form.dropdown(setting.label, options, { defaultValueIndex: index >= 0 && index < options.length ? index : 0 });
+                        form.dropdown(setting.label, options, {
+                            defaultValueIndex: index >= 0 && index < options.length ? index : 0
+                        });
                         break;
                     }
                 }
@@ -644,7 +682,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'teamMainPanel') {
             const { getTeamByPlayer } = await import('../teamManager.js');
-            const { teamConfig } = await import('../teamConfig.js');
+            const { teamConfig } = await import('../teamConfig.default.js');
             const panelDef = panelDefinitions[panelId];
 
             const team = getTeamByPlayer(player.id);
@@ -659,12 +697,14 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 const ownerData = loadPlayerData(team.ownerId);
                 const ownerName = ownerData ? ownerData.name : 'Unknown';
 
-                form.body([
-                    `§l§2Team: ${team.name}`,
-                    `§rID: ${team.id}`,
-                    `Owner: ${ownerName}`,
-                    `Members: ${team.members.length}/${teamConfig.maxMembers}`
-                ].join('\n'));
+                form.body(
+                    [
+                        `§l§2Team: ${team.name}`,
+                        `§rID: ${team.id}`,
+                        `Owner: ${ownerName}`,
+                        `Members: ${team.members.length}/${teamConfig.maxMembers}`
+                    ].join('\n')
+                );
 
                 form.button('§l§3Team Members', 'textures/ui/icon_multiplayer');
                 if (isOwnerOrAdmin) {
@@ -672,17 +712,19 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 }
                 form.button('§l§eTeam Settings', 'textures/ui/icon_setting');
                 form.button('§cLeave Team', 'textures/ui/cancel');
-
             } else {
                 // No Team
-                form.button(`§l§2Create Team\n§r§6Cost: ${formatCurrency(teamConfig.creationCost)}`, 'textures/ui/color_plus');
+                form.button(
+                    `§l§2Create Team\n§r§6Cost: ${formatCurrency(teamConfig.creationCost)}`,
+                    'textures/ui/color_plus'
+                );
                 form.button('§l§9Join Team', 'textures/ui/world_glyph_color');
             }
             return form;
         }
 
         if (panelId === 'teamCreatePanel') {
-            const { teamConfig } = await import('../teamConfig.js');
+            const { teamConfig } = await import('../teamConfig.default.js');
             const form = new ModalFormData().title('Create Team');
             form.textField('Team Name', `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`);
             return form;
@@ -699,7 +741,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const pData = getOrCreatePlayer(player);
             const team = getTeamByPlayer(player.id);
 
-            if (!team) {return null;}
+            if (!team) {
+                return null;
+            }
 
             const isOwner = team.ownerId === player.id;
             const isAdmin = team.admins.includes(player.id);
@@ -730,14 +774,19 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 const memData = loadPlayerData(memberId);
                 const name = memData ? memData.name : 'Unknown';
                 let role = 'Member';
-                if (team.ownerId === memberId) {role = '§cOwner';}
-                else if (team.admins.includes(memberId)) {role = '§2Admin';}
+                if (team.ownerId === memberId) {
+                    role = '§cOwner';
+                } else if (team.admins.includes(memberId)) {
+                    role = '§2Admin';
+                }
 
                 let status = '§7(Offline)';
                 // Note: This is O(n) per member, assuming team size is small (<10) it's fine.
                 // For larger lists, a cache lookup is better.
-                const onlineP = mc.world.getAllPlayers().find(p => p.id === memberId);
-                if (onlineP) {status = '§2(Online)';}
+                const onlineP = mc.world.getAllPlayers().find((p) => p.id === memberId);
+                if (onlineP) {
+                    status = '§2(Online)';
+                }
 
                 form.button(`${role} §r${name}\n${status}`, 'textures/ui/icon_steve');
             }
@@ -755,7 +804,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             // Filter out closed teams for non-admins
             const pData = getOrCreatePlayer(player);
             if (pData.permissionLevel >= 1024) {
-                teams = teams.filter(t => t.open !== false);
+                teams = teams.filter((t) => t.open !== false);
             }
 
             teams = teams.sort((a, b) => b.members.length - a.members.length);
@@ -804,7 +853,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 team = getTeamByPlayer(player.id);
             }
 
-            if (!team) {return null;}
+            if (!team) {
+                return null;
+            }
 
             const form = new ActionFormData().title(`Manage: ${team.name}`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
@@ -832,7 +883,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'teamHomePanel') {
             const { getTeamByPlayer } = await import('../teamManager.js');
             const team = getTeamByPlayer(player.id);
-            if (!team) {return null;}
+            if (!team) {
+                return null;
+            }
 
             const isOwner = team.ownerId === player.id;
             const isAdmin = team.admins.includes(player.id);
@@ -863,7 +916,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'teamRequestsPanel') {
             const { getTeamByPlayer } = await import('../teamManager.js');
             const team = getTeamByPlayer(player.id);
-            if (!team) {return null;}
+            if (!team) {
+                return null;
+            }
 
             const form = new ActionFormData().title('Join Requests');
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
@@ -892,7 +947,12 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const subCategory = parts.slice(1).join('_');
             const form = new ActionFormData().title(`§l§2Shop - ${subCategory}`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            buildShopItemListPanel(form, { ...context, categoryName: category, subCategoryName: subCategory, page: context.page || 1 });
+            buildShopItemListPanel(form, {
+                ...context,
+                categoryName: category,
+                subCategoryName: subCategory,
+                page: context.page || 1
+            });
             return form;
         }
 
@@ -957,8 +1017,11 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             for (let i = 0; i < paginatedItems.length; i++) {
                 const item = paginatedItems[i];
-                const itemIndex = ((page - 1) * itemsPerPage) + i;
-                form.button(`${itemIndex + 1}. ${item.typeId.replace('minecraft:', '')} x${item.amount}`, 'textures/items/item_frame');
+                const itemIndex = (page - 1) * itemsPerPage + i;
+                form.button(
+                    `${itemIndex + 1}. ${item.typeId.replace('minecraft:', '')} x${item.amount}`,
+                    'textures/items/item_frame'
+                );
             }
 
             addPaginationButtons(form, page, kit.items.length);
@@ -982,7 +1045,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 .toggle('Enabled', { defaultValue: kit.enabled })
                 .textField('Name', 'The name of the kit.', { defaultValue: kitName })
                 .textField('Description', 'A short description of the kit.', { defaultValue: kit.description || '' })
-                .textField('Icon', 'Texture path for the icon (e.g., textures/items/diamond_sword).', { defaultValue: kit.icon || '' })
+                .textField('Icon', 'Texture path for the icon (e.g., textures/items/diamond_sword).', {
+                    defaultValue: kit.icon || ''
+                })
                 .textField('Cooldown (seconds)', 'Time between uses.', { defaultValue: String(kit.cooldownSeconds) })
                 .textField('Permission Level', '0=Admin, 1024=Member.', { defaultValue: String(kit.permissionLevel) })
                 .textField('Price', 'Cost to claim the kit.', { defaultValue: String(kit.price || 0) });
@@ -1013,7 +1078,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const paginatedLinks = getPaginatedItems(links, page);
 
             paginatedLinks.forEach((link, index) => {
-                const itemIndex = ((page - 1) * itemsPerPage) + index;
+                const itemIndex = (page - 1) * itemsPerPage + index;
                 form.button(`${itemIndex + 1}. ${link.title}`);
             });
 
@@ -1061,12 +1126,20 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ModalFormData()
                 .title(`Edit: ${id}`)
                 .textField('Text Content', 'Enter the text to display', { defaultValue: text.text ?? '' })
-                .textField('X Coordinate', 'Enter the X coordinate', { defaultValue: String(+(text.location?.x ?? 0).toFixed(2)) })
-                .textField('Y Coordinate', 'Enter the Y coordinate', { defaultValue: String(+(text.location?.y ?? 0).toFixed(2)) })
-                .textField('Z Coordinate', 'Enter the Z coordinate', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
+                .textField('X Coordinate', 'Enter the X coordinate', {
+                    defaultValue: String(+(text.location?.x ?? 0).toFixed(2))
+                })
+                .textField('Y Coordinate', 'Enter the Y coordinate', {
+                    defaultValue: String(+(text.location?.y ?? 0).toFixed(2))
+                })
+                .textField('Z Coordinate', 'Enter the Z coordinate', {
+                    defaultValue: String(+(text.location?.z ?? 0).toFixed(2))
+                })
                 .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
                 .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
-                .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' });
+                .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', {
+                    defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0'
+                });
             return form;
         }
 
@@ -1095,10 +1168,11 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             if (!link) {
                 errorLog(`[UIManager] Invalid link index for helpfulLinkActionPanel: ${linkIndex}`);
-                import('../uiManager.js').then(({ showPanel }) => showPanel(player, 'helpfulLinksManagementPanel', context));
+                import('../uiManager.js').then(({ showPanel }) =>
+                    showPanel(player, 'helpfulLinksManagementPanel', context)
+                );
                 return null;
             }
-
 
             const form = new ActionFormData()
                 .title(panelDef.title)
@@ -1135,8 +1209,12 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ModalFormData()
                 .title(`Edit Kit: ${kitName}`)
                 .toggle('Enable this kit', { defaultValue: kit.enabled })
-                .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', { defaultValue: String(kit.cooldownSeconds) })
-                .textField('Permission Level', '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.', { defaultValue: String(kit.permissionLevel ?? 1024) });
+                .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', {
+                    defaultValue: String(kit.cooldownSeconds)
+                })
+                .textField('Permission Level', '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.', {
+                    defaultValue: String(kit.permissionLevel ?? 1024)
+                });
 
             form.submitButton('§l§2Save and Close');
 
@@ -1161,10 +1239,18 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             title = config.serverName || panelDef.title;
         }
 
-        if (panelId === 'bountyListPanel') {return buildBountyListForm(title, context);}
-        if (panelId === 'reportListPanel') {return buildReportListForm(title, context);}
-        if (panelId === 'playerManagementPanel') {return buildPlayerManagementForm(title, context);}
-        if (panelId === 'playerListPanel') {return buildPlayerListForm(title, context);}
+        if (panelId === 'bountyListPanel') {
+            return buildBountyListForm(title, context);
+        }
+        if (panelId === 'reportListPanel') {
+            return buildReportListForm(title, context);
+        }
+        if (panelId === 'playerManagementPanel') {
+            return buildPlayerManagementForm(title, context);
+        }
+        if (panelId === 'playerListPanel') {
+            return buildPlayerListForm(title, context);
+        }
 
         if (panelId === 'rulesManagementPanel') {
             const page = context.page || 1;
@@ -1176,7 +1262,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const paginatedRules = getPaginatedItems(rules, page);
 
             paginatedRules.forEach((rule, index) => {
-                const itemIndex = ((page - 1) * itemsPerPage) + index;
+                const itemIndex = (page - 1) * itemsPerPage + index;
                 form.button(`${itemIndex + 1}. ${rule}`);
             });
 
@@ -1188,9 +1274,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'addRulePanel') {
-            const form = new ModalFormData()
-                .title(panelDef.title)
-                .textField('New rule text', 'Enter the new rule');
+            const form = new ModalFormData().title(panelDef.title).textField('New rule text', 'Enter the new rule');
             return form;
         }
 
@@ -1252,7 +1336,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ModalFormData()
                 .title(`${commandName} Settings`)
                 .toggle('Enable Command', { defaultValue: isEnabled })
-                .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', { defaultValue: String(permissionLevel) });
+                .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', {
+                    defaultValue: String(permissionLevel)
+                });
 
             form.submitButton('§l§2Save Settings');
             return form;
@@ -1379,7 +1465,6 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             if (ores.length === 0) {
                 form.body('No ores are being monitored.');
             } else {
-
                 for (const ore of ores) {
                     form.button(`§e${ore.oreName}§r\n§7${ore.blockId}`);
                 }
@@ -1434,8 +1519,8 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const resettableSystems = [
                 ...configPanelSchema
-                    .filter(c => !c.id.startsWith('general_'))
-                    .map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+                    .filter((c) => !c.id.startsWith('general_'))
+                    .map((c) => ({ id: c.id, title: c.title, icon: c.icon })),
                 { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
                 { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
                 { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
@@ -1465,7 +1550,17 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
             const isSelf = context.targetPlayerId === player.id;
-            const selfDisabledActions = ['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze', 'tpa', 'tpahere', 'report'];
+            const selfDisabledActions = [
+                'kick',
+                'ban',
+                'mute',
+                'unmute',
+                'freeze',
+                'unfreeze',
+                'tpa',
+                'tpahere',
+                'report'
+            ];
 
             for (const item of visibleItems) {
                 if (isSelf && selfDisabledActions.includes(item.id)) {
@@ -1486,7 +1581,10 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         return form;
     } catch (e) {
         // @ts-ignore - Dynamic import
-        const textConfig = panelId === 'floatingTextEditPanel' && context.id ? (await import('../floatingTextManager.js')).floatingTextManager.getTextById(context.id) : null;
+        const textConfig =
+            panelId === 'floatingTextEditPanel' && context.id
+                ? (await import('../floatingTextManager.js')).floatingTextManager.getTextById(context.id)
+                : null;
         errorLog(`[UIManager] Critical error while building form '${panelId}'.`, {
             error: e,
             context: context,

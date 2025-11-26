@@ -1,5 +1,5 @@
 import { getRanksConfig, saveRanksConfig } from './configurations.js';
-import { RankDefinition } from './ranksConfig.js';
+import { RankDefinition } from './ranksConfig.default.js';
 
 /**
  * Gets all ranks from the config.
@@ -14,14 +14,14 @@ export function getRanks(): RankDefinition[] {
  * @param rankId The ID of the rank to find.
  */
 export function getRankById(rankId: string): RankDefinition | undefined {
-    return getRanks().find(r => r.id === rankId);
+    return getRanks().find((r) => r.id === rankId);
 }
 
 /**
  * Adds a new rank to the database.
  * @param rankData
  */
-export function addRank(rankData: RankDefinition): { success: boolean, message: string } {
+export function addRank(rankData: RankDefinition): { success: boolean; message: string } {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ranksConfig: any = getRanksConfig();
     if (getRankById(rankData.id)) {
@@ -37,7 +37,10 @@ export function addRank(rankData: RankDefinition): { success: boolean, message: 
  * @param rankId The ID of the rank to update.
  * @param updatedData
  */
-export function updateRank(rankId: string, updatedData: Partial<RankDefinition>): { success: boolean, message: string } {
+export function updateRank(
+    rankId: string,
+    updatedData: Partial<RankDefinition>
+): { success: boolean; message: string } {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ranksConfig: any = getRanksConfig();
     const rankIndex = ranksConfig.rankDefinitions.findIndex((r: RankDefinition) => r.id === rankId);
@@ -76,7 +79,7 @@ export function updateRank(rankId: string, updatedData: Partial<RankDefinition>)
  * Deletes a rank from the database.
  * @param rankId The ID of the rank to delete.
  */
-export function deleteRank(rankId: string): { success: boolean, message: string } {
+export function deleteRank(rankId: string): { success: boolean; message: string } {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ranksConfig: any = getRanksConfig();
     const rankIndex = ranksConfig.rankDefinitions.findIndex((r: RankDefinition) => r.id === rankId);

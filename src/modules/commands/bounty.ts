@@ -1,9 +1,11 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
 import * as bountyManager from '../../core/bountyManager.js';
-import { getOrCreatePlayer, incrementPlayerBalance } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { findPlayerByName } from '../../core/playerCache.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '../../core/playerDataManager.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 function placeBounty(player: mc.Player, targetPlayer: mc.Player, amount: number) {
     const config = getConfig();
@@ -28,7 +30,7 @@ function placeBounty(player: mc.Player, targetPlayer: mc.Player, amount: number)
 
     const targetData = getOrCreatePlayer(targetPlayer);
     if (!targetData) {
-        player.sendMessage('§cCould not find the target player\'s data. They may need to join the server first.');
+        player.sendMessage("§cCould not find the target player's data. They may need to join the server first.");
         return;
     }
 
@@ -49,8 +51,10 @@ const removeBountyCommand: CustomCommand = {
         { name: 'target', type: 'player', optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
-        const { target, amount } = args as { target?: mc.Player[], amount?: number };
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const { target, amount } = args as { target?: mc.Player[]; amount?: number };
         let targetPlayer = executor;
 
         if (target && target.length > 0) {
@@ -69,7 +73,9 @@ const removeBountyCommand: CustomCommand = {
         }
 
         if (amount > targetBounty.amount) {
-            executor.sendMessage(`§cYou cannot remove more than the bounty amount ($${targetBounty.amount.toFixed(2)}).`);
+            executor.sendMessage(
+                `§cYou cannot remove more than the bounty amount ($${targetBounty.amount.toFixed(2)}).`
+            );
             return;
         }
 
@@ -95,8 +101,10 @@ const bountyCommand: CustomCommand = {
         { name: 'amount', type: 'int' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
-        const { target, amount } = args as { target?: mc.Player[], amount?: number };
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const { target, amount } = args as { target?: mc.Player[]; amount?: number };
         if (!target || target.length === 0) {
             executor.sendMessage('§cPlayer not found.');
             return;
@@ -112,12 +120,10 @@ const bountyCommand: CustomCommand = {
 const listBountyCommand: CustomCommand = {
     name: 'listbounty',
     aliases: ['lbounty', 'bounties', 'bountylist', 'showbounties', 'hitlist'],
-    description: 'Lists all active bounties or a specific player\'s bounty.',
+    description: "Lists all active bounties or a specific player's bounty.",
     permissionLevel: 1024,
     allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'player', optional: true }
-    ],
+    parameters: [{ name: 'target', type: 'player', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
         const targetPlayers = args.target as mc.Player[] | undefined;
         if (targetPlayers && targetPlayers.length > 0) {

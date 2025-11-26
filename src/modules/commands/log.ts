@@ -1,8 +1,10 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
 import { getConfig, updateConfig } from '../../core/configManager.js';
 import { LogLevels, setLogLevel } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const logLevelNames: { [key: number]: string } = {
     [LogLevels.ERROR]: 'ERROR',
@@ -16,9 +18,7 @@ const logCommand: CustomCommand = {
     description: 'Sets the script logging verbosity level.',
     permissionLevel: 1, // Admin and above
     allowConsole: true,
-    parameters: [
-        { name: 'level', type: 'int', optional: true }
-    ],
+    parameters: [{ name: 'level', type: 'int', optional: true }],
     execute: (executor: CommandExecutor, args?: { level?: number }) => {
         const level = args?.level;
         const currentLogLevel = getConfig().logLevel;

@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+
 import { HomeLocation } from './playerDataManager.js';
 
 const WARPS_PROPERTY_ID = 'exe:warps';
@@ -14,7 +15,9 @@ interface ActionResult {
  */
 function getWarps(): Record<string, HomeLocation> {
     const warpsJson = mc.world.getDynamicProperty(WARPS_PROPERTY_ID);
-    if (typeof warpsJson !== 'string') {return {};}
+    if (typeof warpsJson !== 'string') {
+        return {};
+    }
     return JSON.parse(warpsJson);
 }
 

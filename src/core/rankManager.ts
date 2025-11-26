@@ -1,7 +1,8 @@
+import * as mc from '@minecraft/server';
+
 import { getRanksConfig } from './configurations.js';
 import { debugLog, errorLog } from './logger.js';
-import * as mc from '@minecraft/server';
-import { RankDefinition } from './ranksConfig.js';
+import { RankDefinition } from './ranksConfig.default.js';
 
 let sortedRanks: RankDefinition[] = [];
 
@@ -82,7 +83,9 @@ export function getPlayerRank(player: mc.Player, config: any): RankDefinition {
     }
 
     // If the configured default rank doesn't exist, log an error and return a minimal, safe fallback.
-    errorLog(`[RankManager] CRITICAL: The configured default rank with id "${config.playerDefaults.rankId}" was not found. Please check your configuration.`);
+    errorLog(
+        `[RankManager] CRITICAL: The configured default rank with id "${config.playerDefaults.rankId}" was not found. Please check your configuration.`
+    );
     return {
         id: 'fallback',
         name: 'Fallback',
@@ -98,7 +101,7 @@ export function getPlayerRank(player: mc.Player, config: any): RankDefinition {
  */
 export function getRankById(rankId: string): RankDefinition | undefined {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return ((getRanksConfig() as any).rankDefinitions as RankDefinition[]).find(rank => rank.id === rankId);
+    return ((getRanksConfig() as any).rankDefinitions as RankDefinition[]).find((rank) => rank.id === rankId);
 }
 
 /**

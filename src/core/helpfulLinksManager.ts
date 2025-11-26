@@ -31,7 +31,9 @@ function saveHelpfulLinks(links: HelpfulLink[]) {
  * @param url The URL of the new link.
  */
 export function addHelpfulLink(title: string, url: string) {
-    if (!title || !url) { return; }
+    if (!title || !url) {
+        return;
+    }
     const links = getHelpfulLinks();
     links.push({ title, url });
     saveHelpfulLinks(links);
@@ -46,7 +48,9 @@ export function addHelpfulLink(title: string, url: string) {
  */
 export function editHelpfulLink(index: number, newTitle: string, newUrl: string) {
     const links = getHelpfulLinks();
-    if (index < 0 || index >= links.length || !newTitle || !newUrl) { return; }
+    if (index < 0 || index >= links.length || !newTitle || !newUrl) {
+        return;
+    }
     const oldLink = links[index];
     links[index] = { title: newTitle, url: newUrl };
     saveHelpfulLinks(links);
@@ -59,7 +63,9 @@ export function editHelpfulLink(index: number, newTitle: string, newUrl: string)
  */
 export function deleteHelpfulLink(index: number) {
     const links = getHelpfulLinks();
-    if (index < 0 || index >= links.length) { return; }
+    if (index < 0 || index >= links.length) {
+        return;
+    }
     const deletedLink = links.splice(index, 1);
     saveHelpfulLinks(links);
     debugLog(`[HelpfulLinksManager] Deleted link at index ${index}: "${deletedLink[0].title}"`);
@@ -72,14 +78,20 @@ export function deleteHelpfulLink(index: number) {
  */
 export function moveHelpfulLink(index: number, direction: 'up' | 'down') {
     const links = getHelpfulLinks();
-    if (index < 0 || index >= links.length) { return; }
+    if (index < 0 || index >= links.length) {
+        return;
+    }
 
     if (direction === 'up') {
-        if (index === 0) { return; } // Can't move up if already at the top
+        if (index === 0) {
+            return;
+        } // Can't move up if already at the top
         [links[index - 1], links[index]] = [links[index], links[index - 1]];
         debugLog(`[HelpfulLinksManager] Moved link up at index ${index}`);
     } else if (direction === 'down') {
-        if (index === links.length - 1) { return; } // Can't move down if already at the bottom
+        if (index === links.length - 1) {
+            return;
+        } // Can't move down if already at the bottom
         [links[index], links[index + 1]] = [links[index + 1], links[index]];
         debugLog(`[HelpfulLinksManager] Moved link down at index ${index}`);
     }

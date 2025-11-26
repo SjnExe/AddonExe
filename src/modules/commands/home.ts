@@ -1,13 +1,15 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import { errorLog } from '../../core/logger.js';
-import * as homesManager from '../../core/homesManager.js';
+
 import { getConfig } from '../../core/configManager.js';
-import { startTeleportWarmup } from '../../core/utils.js';
-import { setCooldown } from '../../core/cooldownManager.js';
-import { sendMessage } from '../../core/messaging.js';
 import { constants } from '../../core/constants.js';
+import { setCooldown } from '../../core/cooldownManager.js';
+import * as homesManager from '../../core/homesManager.js';
+import { errorLog } from '../../core/logger.js';
+import { sendMessage } from '../../core/messaging.js';
+import { startTeleportWarmup } from '../../core/utils.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const homeCommand: CustomCommand = {
     name: 'home',
@@ -15,11 +17,11 @@ const homeCommand: CustomCommand = {
     permissionLevel: 1024,
     hasCooldown: true,
     cooldownId: 'homes',
-    parameters: [
-        { name: 'homeName', type: 'string', optional: true }
-    ],
+    parameters: [{ name: 'homeName', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.homes.enabled) {
             sendMessage(constants.homesDisabled, executor);
@@ -65,18 +67,22 @@ const homeCommand: CustomCommand = {
             return;
         }
 
-        const form = new ActionFormData()
-            .title('Teleport to Home')
-            .body('Select a home to teleport to:');
+        const form = new ActionFormData().title('Teleport to Home').body('Select a home to teleport to:');
 
-        homeList.forEach(homeName => form.button(homeName));
+        homeList.forEach((homeName) => form.button(homeName));
 
-        form.show(executor).then(response => {
-            if (response.canceled) {return;}
-            if (response.selection === undefined) {return;}
-            const selectedHome = homeList[response.selection];
-            teleportToHome(selectedHome);
-        }).catch(e => errorLog(`[/home UI] ${e.stack}`));
+        form.show(executor)
+            .then((response) => {
+                if (response.canceled) {
+                    return;
+                }
+                if (response.selection === undefined) {
+                    return;
+                }
+                const selectedHome = homeList[response.selection];
+                teleportToHome(selectedHome);
+            })
+            .catch((e) => errorLog(`[/home UI] ${e.stack}`));
     }
 };
 
@@ -86,7 +92,9 @@ const homesCommand: CustomCommand = {
     aliases: ['homelist'],
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.homes.enabled) {
             sendMessage(constants.homesDisabled, executor);
@@ -98,7 +106,10 @@ const homesCommand: CustomCommand = {
         const maxHomes = config.homes.maxHomes;
 
         if (homeCount === 0) {
-            sendMessage(`§aYou have no homes set. Use §e/sethome <name>§a to set one. (${homeCount}/${maxHomes})`, executor);
+            sendMessage(
+                `§aYou have no homes set. Use §e/sethome <name>§a to set one. (${homeCount}/${maxHomes})`,
+                executor
+            );
         } else {
             sendMessage(`§aYour homes (${homeCount}/${maxHomes}): §e${homeList.join(', ')}`, executor);
         }
@@ -110,11 +121,11 @@ const delHomeCommand: CustomCommand = {
     aliases: ['remhome', 'deletehome', 'rmhome', '-home'],
     description: 'Deletes one of your set homes. Leave name blank to choose from a list.',
     permissionLevel: 1024,
-    parameters: [
-        { name: 'homeName', type: 'string', optional: true }
-    ],
+    parameters: [{ name: 'homeName', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.homes.enabled) {
             sendMessage(constants.homesDisabled, executor);
@@ -144,18 +155,22 @@ const delHomeCommand: CustomCommand = {
             return;
         }
 
-        const form = new ActionFormData()
-            .title('Delete a Home')
-            .body('Select a home to delete:');
+        const form = new ActionFormData().title('Delete a Home').body('Select a home to delete:');
 
-        homeList.forEach(homeName => form.button(homeName));
+        homeList.forEach((homeName) => form.button(homeName));
 
-        form.show(executor).then(response => {
-            if (response.canceled) {return;}
-            if (response.selection === undefined) {return;}
-            const selectedHome = homeList[response.selection];
-            deleteHomeByName(selectedHome);
-        }).catch(e => errorLog(`[/delhome UI] ${e.stack}`));
+        form.show(executor)
+            .then((response) => {
+                if (response.canceled) {
+                    return;
+                }
+                if (response.selection === undefined) {
+                    return;
+                }
+                const selectedHome = homeList[response.selection];
+                deleteHomeByName(selectedHome);
+            })
+            .catch((e) => errorLog(`[/delhome UI] ${e.stack}`));
     }
 };
 
@@ -164,11 +179,11 @@ const setHomeCommand: CustomCommand = {
     aliases: ['addhome', '+home'],
     description: 'Sets a home at your current location.',
     permissionLevel: 1024,
-    parameters: [
-        { name: 'homeName', type: 'string', optional: true }
-    ],
+    parameters: [{ name: 'homeName', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.homes.enabled) {
             sendMessage(constants.homesDisabled, executor);

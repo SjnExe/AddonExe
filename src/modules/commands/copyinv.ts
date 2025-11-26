@@ -1,19 +1,21 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import { playSound } from '../../core/utils.js';
+
+import { constants } from '../../core/constants.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { constants } from '../../core/constants.js';
+import { playSound } from '../../core/utils.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const copyinvCommand: CustomCommand = {
     name: 'copyinv',
     description: "Copies a player's inventory, replacing your own.",
     permissionLevel: 2,
-    parameters: [
-        { name: 'target', type: 'player' }
-    ],
+    parameters: [{ name: 'target', type: 'player' }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const { target } = args as { target?: mc.Player[] };
 
         if (!target || target.length === 0) {

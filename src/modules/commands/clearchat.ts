@@ -1,7 +1,9 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const clearchatCommand: CustomCommand = {
     name: 'clearchat',

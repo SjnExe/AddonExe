@@ -1,6 +1,6 @@
-import * as playerDataManager from '../playerDataManager.js';
-import * as playerCache from '../playerCache.js';
 import { debugLog } from '../logger.js';
+import * as playerCache from '../playerCache.js';
+import * as playerDataManager from '../playerDataManager.js';
 
 export const eventName = 'playerLeave';
 

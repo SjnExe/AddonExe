@@ -57,7 +57,7 @@ export const shopConfig: ShopConfig = {
             icon: 'textures/items/diamond_sword',
             items: {},
             subCategories: {
-                'Diamond': {
+                Diamond: {
                     icon: 'textures/items/diamond',
                     items: {
                         diamondSword: { buyPrice: 2500, sellPrice: 1000, permissionLevel: 1024 },
@@ -67,7 +67,7 @@ export const shopConfig: ShopConfig = {
                         diamondHoe: { buyPrice: 2500, sellPrice: 1000, permissionLevel: 1024 }
                     }
                 },
-                'Netherite': {
+                Netherite: {
                     icon: 'textures/items/netherite_ingot',
                     items: {
                         netheriteSword: { buyPrice: 15000, sellPrice: 7500, permissionLevel: 1024 },
@@ -76,11 +76,11 @@ export const shopConfig: ShopConfig = {
                 }
             }
         },
-        'Armor': {
+        Armor: {
             icon: 'textures/items/diamond_chestplate',
             items: {},
             subCategories: {
-                'Diamond': {
+                Diamond: {
                     icon: 'textures/items/diamond',
                     items: {
                         diamondHelmet: { buyPrice: 5000, sellPrice: 2000, permissionLevel: 1024 },
@@ -89,7 +89,7 @@ export const shopConfig: ShopConfig = {
                         diamondBoots: { buyPrice: 4000, sellPrice: 1800, permissionLevel: 1024 }
                     }
                 },
-                'Netherite': {
+                Netherite: {
                     icon: 'textures/items/netherite_ingot',
                     items: {
                         netheriteHelmet: { buyPrice: 20000, sellPrice: 10000, permissionLevel: 1024 },
@@ -100,7 +100,7 @@ export const shopConfig: ShopConfig = {
                 }
             }
         },
-        'Logs': {
+        Logs: {
             icon: 'textures/blocks/sapling_oak',
             items: {
                 oakLog: { buyPrice: 20, sellPrice: 10, permissionLevel: 1024 },
@@ -136,7 +136,7 @@ export const shopConfig: ShopConfig = {
             },
             subCategories: {}
         },
-        'Food': {
+        Food: {
             icon: 'textures/items/bread',
             items: {
                 steak: { buyPrice: 20, sellPrice: 10, permissionLevel: 1024 },
@@ -149,7 +149,7 @@ export const shopConfig: ShopConfig = {
             },
             subCategories: {}
         },
-        'Farming': {
+        Farming: {
             icon: 'textures/items/diamond_hoe',
             items: {
                 wheat: { buyPrice: 5, sellPrice: 2, permissionLevel: 1024 },
@@ -160,7 +160,7 @@ export const shopConfig: ShopConfig = {
                 sugarCane: { buyPrice: 8, sellPrice: 4, permissionLevel: 1024 }
             },
             subCategories: {
-                'Potions': {
+                Potions: {
                     icon: 'textures/items/potion_bottle_empty',
                     items: {
                         netherWart: { buyPrice: 25, sellPrice: 10, permissionLevel: 1024 }
@@ -168,18 +168,18 @@ export const shopConfig: ShopConfig = {
                 }
             }
         },
-        'Enchantments': {
+        Enchantments: {
             icon: 'textures/items/book_enchanted',
             items: {},
             subCategories: {
-                'General': {
+                General: {
                     icon: 'textures/items/book_normal',
                     items: {
                         enchantMending: { buyPrice: 8000, sellPrice: -1, permissionLevel: 1024 },
                         enchantUnbreaking3: { buyPrice: 4000, sellPrice: -1, permissionLevel: 1024 }
                     }
                 },
-                'Sword': {
+                Sword: {
                     icon: 'textures/items/diamond_sword',
                     items: {
                         enchantSharpness5: { buyPrice: 5000, sellPrice: -1, permissionLevel: 1024 },
@@ -187,14 +187,14 @@ export const shopConfig: ShopConfig = {
                         enchantFireAspect2: { buyPrice: 2000, sellPrice: -1, permissionLevel: 1024 }
                     }
                 },
-                'Armour': {
+                Armour: {
                     icon: 'textures/items/diamond_chestplate',
                     items: {
                         enchantProtection4: { buyPrice: 4500, sellPrice: -1, permissionLevel: 1024 },
                         enchantFeatherFalling4: { buyPrice: 3500, sellPrice: -1, permissionLevel: 1024 }
                     }
                 },
-                'Tools': {
+                Tools: {
                     icon: 'textures/items/diamond_pickaxe',
                     items: {
                         enchantEfficiency5: { buyPrice: 5000, sellPrice: -1, permissionLevel: 1024 },
@@ -202,7 +202,7 @@ export const shopConfig: ShopConfig = {
                         enchantSilkTouch: { buyPrice: 6000, sellPrice: -1, permissionLevel: 1024 }
                     }
                 },
-                'Bow': {
+                Bow: {
                     icon: 'textures/items/bow_standby',
                     items: {
                         enchantPower5: { buyPrice: 5000, sellPrice: -1, permissionLevel: 1024 },
@@ -210,7 +210,7 @@ export const shopConfig: ShopConfig = {
                         enchantFlame: { buyPrice: 2000, sellPrice: -1, permissionLevel: 1024 }
                     }
                 },
-                'Trident': {
+                Trident: {
                     icon: 'textures/items/trident',
                     items: {
                         enchantImpaling5: { buyPrice: 3000, sellPrice: -1, permissionLevel: 1024 },
@@ -219,7 +219,7 @@ export const shopConfig: ShopConfig = {
                         enchantRiptide3: { buyPrice: 3500, sellPrice: -1, permissionLevel: 1024 }
                     }
                 },
-                'Mace': {
+                Mace: {
                     icon: 'textures/items/mace',
                     items: {
                         enchantDensity5: { buyPrice: 5000, sellPrice: -1, permissionLevel: 1024 },
@@ -227,7 +227,7 @@ export const shopConfig: ShopConfig = {
                         enchantWindBurst3: { buyPrice: 6000, sellPrice: -1, permissionLevel: 1024 }
                     }
                 },
-                'Crossbow': {
+                Crossbow: {
                     icon: 'textures/items/crossbow_standby',
                     items: {
                         enchantMultishot1: { buyPrice: 4000, sellPrice: -1, permissionLevel: 1024 },

@@ -1,19 +1,19 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import { getOrCreatePlayer, getLeaderboard } from '../../core/playerDataManager.js';
+
 import { getConfig } from '../../core/configManager.js';
-import { sendMessage } from '../../core/messaging.js';
-import { formatCurrency } from '../../core/utils.js';
 import { constants } from '../../core/constants.js';
+import { sendMessage } from '../../core/messaging.js';
+import { getOrCreatePlayer, getLeaderboard } from '../../core/playerDataManager.js';
+import { formatCurrency } from '../../core/utils.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const balanceCommand: CustomCommand = {
     name: 'balance',
     aliases: ['bal', 'money', 'cash'],
     description: "Checks your or another player's balance.",
     permissionLevel: 1024,
-    parameters: [
-        { name: 'target', type: 'player', optional: true }
-    ],
+    parameters: [{ name: 'target', type: 'player', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
         const config = getConfig();
         if (!config.economy.enabled) {
@@ -102,7 +102,7 @@ const baltopCommand: CustomCommand = {
         const rankColors: { [key: number]: string } = {
             1: '§4', // Dark Red
             2: '§c', // Red
-            3: '§6'  // Gold
+            3: '§6' // Gold
         };
         const defaultColor = '§e'; // Yellow
 

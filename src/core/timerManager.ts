@@ -1,5 +1,5 @@
-
 import * as mc from '@minecraft/server';
+
 import { debugLog } from './logger.js';
 
 /**
@@ -8,16 +8,16 @@ import { debugLog } from './logger.js';
  */
 
 // Use Sets to store the IDs of active timers. Sets provide O(1) for add/delete.
-const intervalIds = new Set();
-const timeoutIds = new Set();
+const intervalIds = new Set<number>();
+const timeoutIds = new Set<number>();
 
 /**
  * A wrapper for system.runInterval that tracks the interval ID.
- * @param {() => void} callback The function to execute.
- * @param {number} tickInterval The interval in ticks.
- * @returns {number} The ID of the interval.
+ * @param callback The function to execute.
+ * @param tickInterval The interval in ticks.
+ * @returns The ID of the interval.
  */
-export function setTrackedInterval(callback, tickInterval) {
+export function setTrackedInterval(callback: () => void, tickInterval: number): number {
     const id = mc.system.runInterval(callback, tickInterval);
     intervalIds.add(id);
     return id;
@@ -25,11 +25,11 @@ export function setTrackedInterval(callback, tickInterval) {
 
 /**
  * A wrapper for system.runTimeout that tracks the timeout ID.
- * @param {() => void} callback The function to execute.
- * @param {number} tickDelay The delay in ticks.
- * @returns {number} The ID of the timeout.
+ * @param callback The function to execute.
+ * @param tickDelay The delay in ticks.
+ * @returns The ID of the timeout.
  */
-export function setTrackedTimeout(callback, tickDelay) {
+export function setTrackedTimeout(callback: () => void, tickDelay: number): number {
     const id = mc.system.runTimeout(callback, tickDelay);
     timeoutIds.add(id);
     // When the timeout completes, it no longer needs to be tracked.
@@ -41,9 +41,9 @@ export function setTrackedTimeout(callback, tickDelay) {
 
 /**
  * Clears a specific interval and removes it from tracking.
- * @param {number} id The ID of the interval to clear.
+ * @param id The ID of the interval to clear.
  */
-export function clearTrackedInterval(id) {
+export function clearTrackedInterval(id: number): void {
     if (intervalIds.has(id)) {
         mc.system.clearRun(id);
         intervalIds.delete(id);
@@ -52,9 +52,9 @@ export function clearTrackedInterval(id) {
 
 /**
  * Clears a specific timeout and removes it from tracking.
- * @param {number} id The ID of the timeout to clear.
+ * @param id The ID of the timeout to clear.
  */
-export function clearTrackedTimeout(id) {
+export function clearTrackedTimeout(id: number): void {
     if (timeoutIds.has(id)) {
         mc.system.clearRun(id);
         timeoutIds.delete(id);
@@ -65,7 +65,7 @@ export function clearTrackedTimeout(id) {
  * Clears all tracked intervals and timeouts.
  * This is crucial for handling script reloads gracefully.
  */
-export function cleanupTimers() {
+export function cleanupTimers(): void {
     debugLog(`[TimerManager] Clearing ${intervalIds.size} intervals and ${timeoutIds.size} timeouts.`);
 
     for (const id of intervalIds) {

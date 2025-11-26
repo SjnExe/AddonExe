@@ -1,13 +1,20 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
+import { constants } from '../../core/constants.js';
+import { sendMessage } from '../../core/messaging.js';
+import { findPlayerByName } from '../../core/playerCache.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
 import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
 import { parseDuration, playSound } from '../../core/utils.js';
-import { findPlayerByName } from '../../core/playerCache.js';
-import { sendMessage } from '../../core/messaging.js';
-import { constants } from '../../core/constants.js';
 
-export function mutePlayer(executor: CommandExecutor, targetPlayer: mc.Player, duration: string | undefined, reason: string) {
+import { CustomCommand, CommandExecutor } from './commandManager.js';
+
+export function mutePlayer(
+    executor: CommandExecutor,
+    targetPlayer: mc.Player,
+    duration: string | undefined,
+    reason: string
+) {
     if (!targetPlayer) {
         if (executor instanceof mc.Player) {
             sendMessage('§cPlayer not found.', executor);
@@ -69,7 +76,7 @@ const muteCommand: CustomCommand = {
     ],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
         const targetPlayers = args.target as mc.Player[] | undefined;
-        let { duration, reason } = args as { duration?: string, reason?: string };
+        let { duration, reason } = args as { duration?: string; reason?: string };
 
         if (!targetPlayers || targetPlayers.length === 0) {
             if (executor instanceof mc.Player) {
@@ -139,9 +146,7 @@ const unmuteCommand: CustomCommand = {
     aliases: ['um'],
     permissionLevel: 2,
     allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'string' }
-    ],
+    parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
         unmutePlayer(executor, args.target as string);
     }

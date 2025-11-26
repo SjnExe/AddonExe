@@ -1,11 +1,12 @@
 import * as mc from '@minecraft/server';
-import { getOrCreatePlayer } from '../playerDataManager.js';
-import { updatePlayerRank } from '../main.js';
-import { debugLog, infoLog, errorLog } from '../logger.js';
-import { getPunishment, initializePunishmentManager } from '../punishmentManager.js';
+
 import { getConfig } from '../configManager.js';
-import { formatLocation } from '../utils.js';
+import { debugLog, infoLog, errorLog } from '../logger.js';
+import { updatePlayerRank } from '../main.js';
 import { sendMessage } from '../messaging.js';
+import { getOrCreatePlayer } from '../playerDataManager.js';
+import { getPunishment, initializePunishmentManager } from '../punishmentManager.js';
+import { formatLocation } from '../utils.js';
 
 let isFirstPlayerJoined = false;
 
@@ -13,10 +14,10 @@ function onFirstPlayerJoin() {
     infoLog('[Add-on] First player has joined. Finalizing manager initializations.');
     initializePunishmentManager();
 
-    import('../reportManager.js').catch(e => {
+    import('../reportManager.js').catch((e) => {
         errorLog('Failed to initialize ReportManager on first player join:', e);
     });
-    import('../cooldownManager.js').catch(e => {
+    import('../cooldownManager.js').catch((e) => {
         errorLog('Failed to initialize CooldownManager on first player join:', e);
     });
 }
@@ -28,7 +29,10 @@ function handlePlayerJoin(player: mc.Player) {
     const punishment = getPunishment(player.id);
     if (punishment?.type === 'ban') {
         const banReason = punishment.reason || 'You are banned.';
-        mc.system.runTimeout(() => mc.world.getDimension('overworld').runCommand(`kick "${player.name}" ${banReason}`), 5);
+        mc.system.runTimeout(
+            () => mc.world.getDimension('overworld').runCommand(`kick "${player.name}" ${banReason}`),
+            5
+        );
         return;
     }
 

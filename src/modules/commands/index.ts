@@ -1,4 +1,5 @@
 import { errorLog } from '../../core/logger.js';
+
 import { commandManager, CustomCommand } from './commandManager.js';
 
 // This file is used to load all command modules.
@@ -14,29 +15,29 @@ const commandFiles = [
     'status.ts', // Migrated
     'version.ts', // Migrated
     'deathcoords.ts', // Migrated
-    'spawn.ts',       // Migrated
+    'spawn.ts', // Migrated
     'rtp.ts', // Migrated
 
     // --- TPA System ---
-    'tpa.ts',         // Migrated
-    'team.ts',        // Migrated
+    'tpa.ts', // Migrated
+    'team.ts', // Migrated
 
     // --- Home System ---
-    'home.ts',        // Migrated
-    'warp.ts',        // Migrated
+    'home.ts', // Migrated
+    'warp.ts', // Migrated
 
     // --- Economy System ---
-    'balance.ts',     // Migrated
-    'pay.ts',         // Migrated
-    'bounty.ts',      // Migrated
+    'balance.ts', // Migrated
+    'pay.ts', // Migrated
+    'bounty.ts', // Migrated
     'kit.ts', // Migrated
     'shop.ts', // Migrated
 
     // --- Moderation Commands ---
-    'report.ts',      // Migrated
+    'report.ts', // Migrated
     'kick.ts', // Migrated
-    'ban.ts',         // Migrated
-    'mute.ts',        // Migrated
+    'ban.ts', // Migrated
+    'mute.ts', // Migrated
     'freeze.ts', // Migrated
     'vanish.ts', // Migrated
     'clear.ts', // Migrated
@@ -78,7 +79,6 @@ async function loadCommands() {
                 }
             }
             // Legacy JS modules will register themselves upon import, so no further action is needed.
-
         } catch (e: any) {
             errorLog(`[CommandLoader] Failed to load command file '${file}': ${e.message}`);
             if (e.stack) {

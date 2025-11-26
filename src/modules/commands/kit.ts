@@ -1,13 +1,15 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import * as kitsManager from '../../core/kitsManager.js';
+
 import { getConfig } from '../../core/configManager.js';
-import { errorLog } from '../../core/logger.js';
 import { createKit, getAllKits } from '../../core/kitAdminManager.js';
 import { addItemToKit } from '../../core/kitItemsManager.js';
-import { formatCooldown } from '../../core/utils.js';
+import * as kitsManager from '../../core/kitsManager.js';
+import { errorLog } from '../../core/logger.js';
 import { showPanel } from '../../core/uiManager.js';
+import { formatCooldown } from '../../core/utils.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const KITS_PER_PAGE = 8;
 
@@ -28,7 +30,7 @@ function showKitList(player: mc.Player, page: number) {
         .title(`Available Kits (Page ${page}/${totalPages})`)
         .body('Select a kit to claim:');
 
-    kitsToShow.forEach(kit => {
+    kitsToShow.forEach((kit) => {
         let buttonText = kit.name;
         if (kit.price > 0) {
             buttonText += ` - $${kit.price}`;
@@ -46,50 +48,54 @@ function showKitList(player: mc.Player, page: number) {
         form.button('§eNext Page >');
     }
 
-    form.show(player).then(response => {
-        if (response.canceled || response.selection === undefined) {return;}
-
-        const selection = response.selection;
-
-        if (selection >= kitsToShow.length) {
-            let buttonIndex = selection - kitsToShow.length;
-            if (page > 1) {
-                if (buttonIndex === 0) {
-                    showKitList(player, page - 1);
-                    return;
-                }
-                buttonIndex--;
+    form.show(player)
+        .then((response) => {
+            if (response.canceled || response.selection === undefined) {
+                return;
             }
-            if (page < totalPages) {
-                if (buttonIndex === 0) {
-                    showKitList(player, page + 1);
-                }
-            }
-            return;
-        }
 
-        const selectedKitIndex = startIndex + selection;
-        const selectedKitName = availableKits[selectedKitIndex].name;
-        const result = kitsManager.giveKit(player, selectedKitName);
-        if (result.success) {
-            player.sendMessage(`§a${result.message}`);
-        } else {
-            player.sendMessage(`§c${result.message}`);
-        }
-    }).catch(error => {
-        errorLog(`[Kit UI] Error showing form: ${error}`);
-    });
+            const selection = response.selection;
+
+            if (selection >= kitsToShow.length) {
+                let buttonIndex = selection - kitsToShow.length;
+                if (page > 1) {
+                    if (buttonIndex === 0) {
+                        showKitList(player, page - 1);
+                        return;
+                    }
+                    buttonIndex--;
+                }
+                if (page < totalPages) {
+                    if (buttonIndex === 0) {
+                        showKitList(player, page + 1);
+                    }
+                }
+                return;
+            }
+
+            const selectedKitIndex = startIndex + selection;
+            const selectedKitName = availableKits[selectedKitIndex].name;
+            const result = kitsManager.giveKit(player, selectedKitName);
+            if (result.success) {
+                player.sendMessage(`§a${result.message}`);
+            } else {
+                player.sendMessage(`§c${result.message}`);
+            }
+        })
+        .catch((error) => {
+            errorLog(`[Kit UI] Error showing form: ${error}`);
+        });
 }
 
 const kitCommand: CustomCommand = {
     name: 'kit',
     description: 'Claims a specific kit. Leave blank to see a list of available kits.',
     permissionLevel: 1024,
-    parameters: [
-        { name: 'kitName', type: 'string', optional: true }
-    ],
+    parameters: [{ name: 'kitName', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.kits.enabled) {
             executor.sendMessage('§cThe kits system is currently disabled.');
@@ -118,11 +124,11 @@ const addKitCommand: CustomCommand = {
     description: 'Create a new kit from your inventory and open the editor.',
     permissionLevel: 1, // Admins only
     allowConsole: false,
-    parameters: [
-        { name: 'kitName', type: 'string', optional: true }
-    ],
+    parameters: [{ name: 'kitName', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         let kitName = args.kitName as string | undefined;
 
         if (!kitName) {

@@ -1,36 +1,38 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
-import { getOrCreatePlayer, incrementPlayerBalance } from '../playerDataManager.js';
-import * as utils from '../utils.js';
-import { formatCurrency } from '../utils.js';
-import * as rulesManager from '../rulesManager.js';
-import * as helpfulLinksManager from '../helpfulLinksManager.js';
-import * as reportManager from '../reportManager.js';
-import * as bountyManager from '../bountyManager.js';
-import * as tpaManager from '../tpaManager.js';
-import * as playerCache from '../playerCache.js';
-// @ts-ignore - Importing from JS file
-import { kickPlayer } from '../../modules/commands/kick.js';
-// @ts-ignore - Importing from JS file
-import { mutePlayer, unmutePlayer } from '../../modules/commands/mute.js';
-// @ts-ignore - Importing from JS file
+
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '../../modules/commands/ban.js';
-// @ts-ignore - Importing from JS file
 import { freezePlayer, unfreezePlayer } from '../../modules/commands/freeze.js';
-import { showPanel } from '../uiManager.js';
+import { kickPlayer } from '../../modules/commands/kick.js';
+import { mutePlayer, unmutePlayer } from '../../modules/commands/mute.js';
+import * as bountyManager from '../bountyManager.js';
 import { getConfig } from '../configManager.js';
+import * as helpfulLinksManager from '../helpfulLinksManager.js';
+import * as playerCache from '../playerCache.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '../playerDataManager.js';
+import * as reportManager from '../reportManager.js';
+import * as rulesManager from '../rulesManager.js';
+import * as tpaManager from '../tpaManager.js';
+// @ts-ignore - Importing from JS file
+// @ts-ignore - Importing from JS file
+// @ts-ignore - Importing from JS file
+// @ts-ignore - Importing from JS file
+import { showPanel } from '../uiManager.js';
+import { formatCurrency } from '../utils.js';
+import * as utils from '../utils.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type UIContext = any;
 
-export const uiActionFunctions: Record<string, (player: mc.Player, context: UIContext, panelId: string) => void | Promise<void | boolean>> = {
+export const uiActionFunctions: Record<
+    string,
+    (player: mc.Player, context: UIContext, panelId: string) => void | Promise<void | boolean>
+> = {
     showRules: async (player: mc.Player) => {
         const rules = rulesManager.getRules();
         const pData = getOrCreatePlayer(player);
 
-        const rulesForm = new ActionFormData()
-            .title('§l§6Server Rules')
-            .body(rules.join('\n'));
+        const rulesForm = new ActionFormData().title('§l§6Server Rules').body(rules.join('\n'));
 
         if (pData && pData.permissionLevel <= 1) {
             rulesForm.button('§l§4Edit Rules', 'textures/ui/icon_setting');
@@ -40,7 +42,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
 
         const response = await utils.uiWait(player, rulesForm);
 
-        if (response.canceled) { return; }
+        if (response.canceled) {
+            return;
+        }
 
         if (pData && pData.permissionLevel <= 1 && response.selection === 0) {
             return showPanel(player, 'rulesManagementPanel');
@@ -51,13 +55,12 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
         const links = helpfulLinksManager.getHelpfulLinks();
         const pData = getOrCreatePlayer(player);
 
-        const form = new ActionFormData()
-            .title('§l§9Helpful Links');
+        const form = new ActionFormData().title('§l§9Helpful Links');
 
         if (links.length === 0) {
             form.body('§cNo helpful links have been configured by the admin.');
         } else {
-            const bodyText = links.map(link => `§f${link.title}: §r${link.url}`).join('\n\n');
+            const bodyText = links.map((link) => `§f${link.title}: §r${link.url}`).join('\n\n');
             form.body(bodyText);
         }
 
@@ -69,7 +72,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
 
         const response = await utils.uiWait(player, form);
 
-        if (response.canceled) { return; }
+        if (response.canceled) {
+            return;
+        }
 
         if (pData && pData.permissionLevel <= 1 && response.selection === 0) {
             return showPanel(player, 'helpfulLinksManagementPanel');
@@ -97,7 +102,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
     showUnbanForm: async (player: mc.Player) => {
         const form = new ModalFormData().title('Unban Player').textField('Player Name', 'Enter player name');
         const response = await utils.uiWait(player, form);
-        if (!response || response.canceled) { return true; }
+        if (!response || response.canceled) {
+            return true;
+        }
         const [targetName] = response.formValues as [string];
         if (!targetName) {
             player.sendMessage('§cYou must enter a player name.');
@@ -110,7 +117,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
     showUnmuteForm: async (player: mc.Player) => {
         const form = new ModalFormData().title('Unmute Player').textField('Player Name', 'Enter player name');
         const response = await utils.uiWait(player, form);
-        if (!response || response.canceled) { return true; }
+        if (!response || response.canceled) {
+            return true;
+        }
         const [targetName] = response.formValues as [string];
         if (!targetName) {
             player.sendMessage('§cYou must enter a player name.');
@@ -147,7 +156,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             player.sendMessage(`§c${targetPlayerName} is not online.`);
             return true;
         }
-        const form = new ModalFormData().title(`Kick ${targetPlayerName}`).textField('Reason', 'Enter reason for kicking', { defaultValue: 'No reason provided.' });
+        const form = new ModalFormData()
+            .title(`Kick ${targetPlayerName}`)
+            .textField('Reason', 'Enter reason for kicking', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
             const [reason] = response.formValues as [string];
@@ -207,7 +218,10 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             player.sendMessage(`§c${targetPlayerName} is not online. Use /offlinemute instead.`);
             return true;
         }
-        const form = new ModalFormData().title(`Mute ${targetPlayerName}`).textField('Duration', 'e.g., 30m, 2h, 7d. Default: perm', { defaultValue: 'perm' }).textField('Reason', 'Enter reason for muting', { defaultValue: 'No reason provided.' });
+        const form = new ModalFormData()
+            .title(`Mute ${targetPlayerName}`)
+            .textField('Duration', 'e.g., 30m, 2h, 7d. Default: perm', { defaultValue: 'perm' })
+            .textField('Reason', 'Enter reason for muting', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
             const [duration, reason] = response.formValues as [string, string];
@@ -222,7 +236,10 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             player.sendMessage('§cYou cannot ban yourself.');
             return true;
         }
-        const form = new ModalFormData().title(`Ban ${targetPlayerName}`).textField('Duration', 'e.g., 30m, 2h, 7d. Default: perm', { defaultValue: 'perm' }).textField('Reason', 'Enter reason for banning', { defaultValue: 'No reason provided.' });
+        const form = new ModalFormData()
+            .title(`Ban ${targetPlayerName}`)
+            .textField('Duration', 'e.g., 30m, 2h, 7d. Default: perm', { defaultValue: 'perm' })
+            .textField('Reason', 'Enter reason for banning', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
             const [duration, reason] = response.formValues as [string, string];
@@ -271,7 +288,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
         const result = tpaManager.createRequest(player, targetPlayer, 'tpahere');
         if (result.success) {
             player.sendMessage(`§2TPAHere request sent to ${targetPlayerName}.`);
-            targetPlayer.sendMessage(`§2${player.name} has requested for you to teleport to them. Use !tpaccept or !tpadeny.`);
+            targetPlayer.sendMessage(
+                `§2${player.name} has requested for you to teleport to them. Use !tpaccept or !tpadeny.`
+            );
         } else {
             player.sendMessage(`§cError: ${result.message}`);
         }
@@ -288,7 +307,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const config = getConfig() as any;
             if (isNaN(amount) || amount < config.bounties.minimumBounty) {
-                player.sendMessage(`§cInvalid amount. The minimum bounty is ${formatCurrency(config.bounties.minimumBounty)}.`);
+                player.sendMessage(
+                    `§cInvalid amount. The minimum bounty is ${formatCurrency(config.bounties.minimumBounty)}.`
+                );
                 return true;
             }
             const pData = getOrCreatePlayer(player);
@@ -300,7 +321,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, amount);
             player.sendMessage(`§2You have placed a bounty of §6${formatCurrency(amount)}§2 on ${targetPlayerName}.`);
-            mc.world.sendMessage(`§cSomeone has placed a bounty of §6${formatCurrency(amount)}§c on ${targetPlayerName}!`);
+            mc.world.sendMessage(
+                `§cSomeone has placed a bounty of §6${formatCurrency(amount)}§c on ${targetPlayerName}!`
+            );
         }
         return true;
     },
@@ -311,7 +334,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             player.sendMessage('§cYou cannot report yourself.');
             return true;
         }
-        const form = new ModalFormData().title(`Report ${targetPlayerName}`).textField('Reason for report:', 'Enter the reason here');
+        const form = new ModalFormData()
+            .title(`Report ${targetPlayerName}`)
+            .textField('Reason for report:', 'Enter the reason here');
         const response = await utils.uiWait(player, form);
         if (response.canceled) {
             player.sendMessage('§cReport canceled.');
@@ -338,7 +363,10 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
 
         const form = new ModalFormData()
             .title(`Remove Bounty from ${targetPlayerName}`)
-            .textField(`Bounty Amount: ${formatCurrency(targetBounty.amount)}\nEnter amount to remove:`, 'Enter amount');
+            .textField(
+                `Bounty Amount: ${formatCurrency(targetBounty.amount)}\nEnter amount to remove:`,
+                'Enter amount'
+            );
 
         const response = await utils.uiWait(player, form);
 
@@ -352,7 +380,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             }
 
             if (amount > targetBounty.amount) {
-                player.sendMessage(`§cYou cannot remove more than the bounty amount (${formatCurrency(targetBounty.amount)}).`);
+                player.sendMessage(
+                    `§cYou cannot remove more than the bounty amount (${formatCurrency(targetBounty.amount)}).`
+                );
                 return true;
             }
 
@@ -365,7 +395,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, -amount);
             player.sendMessage(`§2You have removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty.`);
-            mc.world.sendMessage(`§2${player.name} has removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty!`);
+            mc.world.sendMessage(
+                `§2${player.name} has removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty!`
+            );
         }
 
         return true;

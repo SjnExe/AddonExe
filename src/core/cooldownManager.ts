@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+
 import { getConfig } from './configManager.js';
 import { debugLog, errorLog } from './logger.js';
 
@@ -32,7 +33,9 @@ export function loadCooldowns() {
  * Saves cooldowns to world dynamic properties if a change has occurred.
  */
 function saveCooldowns() {
-    if (!needsSave) {return;}
+    if (!needsSave) {
+        return;
+    }
     try {
         // Convert Map to an array for JSON serialization
         const dataToSave = Array.from(cooldowns.entries());
@@ -76,7 +79,9 @@ export function setCooldown(player: mc.Player, commandName: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const config: any = getConfig();
     const commandConfig = config[commandName];
-    if (!commandConfig || !commandConfig.cooldownSeconds) {return;}
+    if (!commandConfig || !commandConfig.cooldownSeconds) {
+        return;
+    }
 
     const cooldownSeconds = commandConfig.cooldownSeconds;
     setCooldownCustom(player.id, commandName, cooldownSeconds);
@@ -89,7 +94,9 @@ export function setCooldown(player: mc.Player, commandName: string) {
  * @param durationSeconds The length of the cooldown in seconds.
  */
 export function setCooldownCustom(playerId: string, identifier: string, durationSeconds: number) {
-    if (durationSeconds <= 0) {return;}
+    if (durationSeconds <= 0) {
+        return;
+    }
     const key = getCooldownKey(playerId, identifier);
     const cooldownMs = durationSeconds * 1000;
     cooldowns.set(key, Date.now() + cooldownMs);
@@ -107,7 +114,9 @@ export function getCooldown(playerId: string, identifier: string): number {
     const key = getCooldownKey(playerId, identifier);
     const expiry = cooldowns.get(key);
 
-    if (!expiry) {return 0;}
+    if (!expiry) {
+        return 0;
+    }
 
     const now = Date.now();
     if (now >= expiry) {

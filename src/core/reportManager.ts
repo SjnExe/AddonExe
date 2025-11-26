@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
-import { debugLog, errorLog } from './logger.js';
+
 import { getConfig } from './configManager.js';
+import { debugLog, errorLog } from './logger.js';
 
 const reportsDbKey = 'exe:reports';
 
@@ -43,7 +44,9 @@ export function loadReports() {
  */
 export function saveReports(options: { force?: boolean } = {}) {
     const { force = false } = options;
-    if (!needsSave && !force) {return;}
+    if (!needsSave && !force) {
+        return;
+    }
 
     try {
         mc.world.setDynamicProperty(reportsDbKey, JSON.stringify(reports));
@@ -61,7 +64,12 @@ export function saveReports(options: { force?: boolean } = {}) {
  * @param reportedPlayerName The name of the player being reported.
  * @param reason The reason for the report.
  */
-export function createReport(reporter: mc.Player, reportedPlayerId: string, reportedPlayerName: string, reason: string) {
+export function createReport(
+    reporter: mc.Player,
+    reportedPlayerId: string,
+    reportedPlayerName: string,
+    reason: string
+) {
     const report: Report = {
         id: Math.random().toString(36).substring(2, 9),
         reporterId: reporter.id,
@@ -92,7 +100,7 @@ export function getAllReports(): Report[] {
  * @param adminId The ID of the admin to assign the report to.
  */
 export function assignReport(reportId: string, adminId: string) {
-    const report = reports.find(r => r.id === reportId);
+    const report = reports.find((r) => r.id === reportId);
     if (report) {
         report.status = 'assigned';
         report.assignedAdminId = adminId;
@@ -106,7 +114,7 @@ export function assignReport(reportId: string, adminId: string) {
  * @param reportId The ID of the report to resolve.
  */
 export function resolveReport(reportId: string) {
-    const report = reports.find(r => r.id === reportId);
+    const report = reports.find((r) => r.id === reportId);
     if (report) {
         report.status = 'resolved';
         needsSave = true;
@@ -119,7 +127,7 @@ export function resolveReport(reportId: string) {
  * @param reportId The ID of the report to clear.
  */
 export function clearReport(reportId: string) {
-    const index = reports.findIndex(r => r.id === reportId);
+    const index = reports.findIndex((r) => r.id === reportId);
     if (index !== -1) {
         reports.splice(index, 1);
         needsSave = true;
@@ -154,9 +162,9 @@ export function clearOldResolvedReports() {
     const now = Date.now();
     const originalCount = reports.length;
 
-    reports = reports.filter(report => {
+    reports = reports.filter((report) => {
         if (report.status === 'resolved') {
-            return (now - report.timestamp) < lifetimeMs;
+            return now - report.timestamp < lifetimeMs;
         }
         return true; // Keep all non-resolved reports
     });

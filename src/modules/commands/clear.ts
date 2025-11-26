@@ -1,9 +1,11 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import { playSound } from '../../core/utils.js';
-import { getPlayer } from '../../core/playerDataManager.js';
-import { sendMessage } from '../../core/messaging.js';
+
 import { constants } from '../../core/constants.js';
+import { sendMessage } from '../../core/messaging.js';
+import { getPlayer } from '../../core/playerDataManager.js';
+import { playSound } from '../../core/utils.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const clearCommand: CustomCommand = {
     name: 'clear',
@@ -12,9 +14,7 @@ const clearCommand: CustomCommand = {
     aliases: ['ci', 'clearinv'],
     permissionLevel: 2,
     allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'player', optional: true }
-    ],
+    parameters: [{ name: 'target', type: 'player', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
         let targetPlayer: mc.Player;
         const targetPlayers = args.target as mc.Player[] | undefined;
@@ -45,7 +45,10 @@ const clearCommand: CustomCommand = {
                 return;
             }
             if (executorData.permissionLevel >= targetData.permissionLevel && executor.id !== targetPlayer.id) {
-                sendMessage('§cYou cannot clear the inventory of a player with the same or higher rank than you.', executor);
+                sendMessage(
+                    '§cYou cannot clear the inventory of a player with the same or higher rank than you.',
+                    executor
+                );
                 playSound(executor, constants.soundError);
                 return;
             }
@@ -75,7 +78,9 @@ const clearCommand: CustomCommand = {
         } else {
             sendMessage('§aYour inventory has been cleared.', executor);
         }
-        if (executor instanceof mc.Player) {playSound(executor, constants.soundTeleport);}
+        if (executor instanceof mc.Player) {
+            playSound(executor, constants.soundTeleport);
+        }
     }
 };
 

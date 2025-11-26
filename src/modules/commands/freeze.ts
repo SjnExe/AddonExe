@@ -1,8 +1,10 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
+import { constants } from '../../core/constants.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { constants } from '../../core/constants.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
     if (targetPlayer.hasTag(constants.frozenTag)) {
@@ -70,9 +72,7 @@ const freezeCommand: CustomCommand = {
     description: 'Freezes a player, preventing them from moving or looking around.',
     permissionLevel: 2,
     allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'player' }
-    ],
+    parameters: [{ name: 'target', type: 'player' }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
         const targetPlayers = args.target as mc.Player[] | undefined;
         if (!targetPlayers || targetPlayers.length === 0) {
@@ -97,9 +97,7 @@ const unfreezeCommand: CustomCommand = {
     description: 'Unfreezes a player, allowing them to move and look around again.',
     permissionLevel: 2,
     allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'player' }
-    ],
+    parameters: [{ name: 'target', type: 'player' }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
         const targetPlayers = args.target as mc.Player[] | undefined;
         if (!targetPlayers || targetPlayers.length === 0) {

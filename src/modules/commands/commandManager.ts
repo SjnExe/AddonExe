@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
-import { errorLog } from '../../core/logger.js';
-import { getCooldown } from '../../core/cooldownManager.js';
-import { getPlayer } from '../../core/playerDataManager.js';
-import { getConfig } from '../../core/configManager.js';
 
+import { getConfig } from '../../core/configManager.js';
+import { getCooldown } from '../../core/cooldownManager.js';
+import { errorLog } from '../../core/logger.js';
+import { getPlayer } from '../../core/playerDataManager.js';
 
 // --- Type Definitions ---
 
@@ -19,22 +19,26 @@ export interface CommandParameter {
     optional?: boolean;
     /** A list of possible values for an enum parameter. */
     enumOptions?: string[];
+    /** A brief description of the parameter. */
+    description?: string;
 }
 
 /**
  * Represents the entity executing a command, which can be a player or the console.
  */
-export type CommandExecutor = mc.Player | {
-    isConsole: true;
-    sendMessage: (message: string) => void;
-};
+export type CommandExecutor =
+    | mc.Player
+    | {
+          isConsole: true;
+          sendMessage: (message: string) => void;
+      };
 
 /**
  * Represents the structure for defining a custom command.
  */
 export interface CustomCommand {
     /** The primary name of the command. */
-    name:string;
+    name: string;
     /** A brief description of what the command does. */
     description: string;
     /** The UI category for the command. */
@@ -71,15 +75,17 @@ class CommandManager {
 
     constructor() {
         mc.system.beforeEvents.startup.subscribe(({ customCommandRegistry }: any) => {
-            this.commands.forEach(command => {
-                if (command.disableSlashCommand) { return; }
+            this.commands.forEach((command) => {
+                if (command.disableSlashCommand) {
+                    return;
+                }
 
                 // Register the primary command name
                 this._registerSlashCommand(customCommandRegistry, command, command.slashName || command.name);
 
                 // Register all aliases as separate slash commands
                 if (command.aliases) {
-                    command.aliases.forEach(alias => {
+                    command.aliases.forEach((alias) => {
                         if (command.disabledSlashAliases && command.disabledSlashAliases.includes(alias)) {
                             return; // Skip slash command registration for this alias
                         }
@@ -113,8 +119,7 @@ class CommandManager {
      * @private
      */
     private _executeCommand(executor: CommandExecutor, command: CustomCommand, args: Record<string, any>) {
-        const config = getConfig();
-        // @ts-expect-error - This property is dynamically added and will be typed later.
+        const config: any = getConfig();
         const commandSettings = config.commandSettings[command.name] || {};
 
         if (commandSettings.enabled === false) {
@@ -159,9 +164,8 @@ class CommandManager {
 
         // Permission Check
         const pData = getPlayer(player.id);
-        const requiredPermissionLevel = commandSettings.permissionLevel !== undefined
-            ? commandSettings.permissionLevel
-            : command.permissionLevel;
+        const requiredPermissionLevel =
+            commandSettings.permissionLevel !== undefined ? commandSettings.permissionLevel : command.permissionLevel;
 
         if (!pData || pData.permissionLevel > requiredPermissionLevel!) {
             player.sendMessage('§cYou do not have permission to use this command.');
@@ -173,7 +177,9 @@ class CommandManager {
             try {
                 command.execute(player, args);
             } catch (error: any) {
-                errorLog(`[CommandManager] Error executing command '${command.name}' for player '${player.name}': ${error.stack}`);
+                errorLog(
+                    `[CommandManager] Error executing command '${command.name}' for player '${player.name}': ${error.stack}`
+                );
                 player.sendMessage('§cAn unexpected error occurred while running this command.');
             }
         });
@@ -186,7 +192,7 @@ class CommandManager {
      */
     getUsageString(command: CustomCommand): string {
         const params = command.parameters || [];
-        const parts = params.map(p => {
+        const parts = params.map((p) => {
             if (p.optional) {
                 return `[${p.name}]`;
             } else {
@@ -210,10 +216,13 @@ class CommandManager {
         const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
         const commandCallback = (origin: any, ...rawArgs: any[]) => {
-            const executor: CommandExecutor = origin.sourceEntity || { isConsole: true, sendMessage: (msg: string) => console.log(msg.replace(/§[0-9a-fklmnor]/g, '')) };
+            const executor: CommandExecutor = origin.sourceEntity || {
+                isConsole: true,
+                sendMessage: (msg: string) => console.log(msg.replace(/§[0-9a-fklmnor]/g, ''))
+            };
 
             // Prepare arguments
-            const allParams = (command.parameters || []);
+            const allParams = command.parameters || [];
             const parsedArgs: Record<string, any> = {};
             for (let i = 0; i < allParams.length; i++) {
                 if (rawArgs[i] !== undefined) {
@@ -243,11 +252,11 @@ class CommandManager {
     private prepareCommandData(command: CustomCommand, nameOverride: string, registry: any) {
         const slashCommandName = nameOverride || command.slashName || command.name;
         const mandatoryParameters = (command.parameters || [])
-            .filter(p => !p.optional)
-            .map(p => this.formatParameter(p, slashCommandName, registry));
+            .filter((p) => !p.optional)
+            .map((p) => this.formatParameter(p, slashCommandName, registry));
         const optionalParameters = (command.parameters || [])
-            .filter(p => p.optional)
-            .map(p => this.formatParameter(p, slashCommandName, registry));
+            .filter((p) => p.optional)
+            .map((p) => this.formatParameter(p, slashCommandName, registry));
 
         return {
             name: `${this.prefix}:${slashCommandName}`,
@@ -287,24 +296,25 @@ class CommandManager {
         }
 
         // --- Standard Types ---
-        const paramTypeMap = {
-            'player': mc.CustomCommandParamType.PlayerSelector,
-            'string': mc.CustomCommandParamType.String,
-            'text': mc.CustomCommandParamType.String, // For greedy strings
-            'int': mc.CustomCommandParamType.Integer,
-            'float': mc.CustomCommandParamType.Float,
-            'boolean': mc.CustomCommandParamType.Boolean,
-            'block': mc.CustomCommandParamType.BlockType,
-            'item': mc.CustomCommandParamType.ItemType,
-            'position': mc.CustomCommandParamType.String, // Reverted to string for safety
-            'target': mc.CustomCommandParamType.PlayerSelector
+        const paramTypeMap: Record<string, mc.CustomCommandParamType> = {
+            player: mc.CustomCommandParamType.PlayerSelector,
+            string: mc.CustomCommandParamType.String,
+            text: mc.CustomCommandParamType.String, // For greedy strings
+            int: mc.CustomCommandParamType.Integer,
+            float: mc.CustomCommandParamType.Float,
+            boolean: mc.CustomCommandParamType.Boolean,
+            block: mc.CustomCommandParamType.BlockType,
+            item: mc.CustomCommandParamType.ItemType,
+            position: mc.CustomCommandParamType.String, // Reverted to string for safety
+            target: mc.CustomCommandParamType.PlayerSelector
         };
 
-        // @ts-expect-error - The type mapping is correct, but TypeScript can't infer it.
         const type = paramTypeMap[param.type.toLowerCase()];
 
         if (!type) {
-            errorLog(`[CommandManager] Unknown parameter type '${param.type}' for parameter '${param.name}'. Defaulting to String.`);
+            errorLog(
+                `[CommandManager] Unknown parameter type '${param.type}' for parameter '${param.name}'. Defaulting to String.`
+            );
             return {
                 name: param.name,
                 type: mc.CustomCommandParamType.String
@@ -316,7 +326,6 @@ class CommandManager {
             type: type
         };
     }
-
 
     /**
      * Translates the numeric permission level to the API's enum.
@@ -340,14 +349,18 @@ class CommandManager {
     handleChatCommand(eventData: any): boolean {
         const config = getConfig();
         const { sender: player, message } = eventData;
-        if (!message.startsWith(config.commandPrefix)) { return false; }
+        if (!message.startsWith(config.commandPrefix)) {
+            return false;
+        }
 
         eventData.cancel = true;
 
         // Using a regex to split by spaces while respecting quoted strings.
         const commandString = message.slice(config.commandPrefix.length).trim();
         const rawArgs = commandString.match(/"[^"]*"|'[^']*'|\S+/g) || [];
-        if (rawArgs.length === 0) { return true; }
+        if (rawArgs.length === 0) {
+            return true;
+        }
 
         const cleanedArgs = rawArgs.map((arg: any) =>
             (arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'"))
@@ -365,7 +378,6 @@ class CommandManager {
             return true;
         }
 
-        // @ts-expect-error - This property is dynamically added and will be typed later.
         const commandSettings = config.commandSettings[command.name] || {};
         if (commandSettings.enabled === false) {
             player.sendMessage('§cThis command is currently disabled.');
@@ -387,7 +399,8 @@ class CommandManager {
                 break; // No more args to process
             }
 
-            if (paramDef.type === 'text') { // Greedy parameter (consumes the rest)
+            if (paramDef.type === 'text') {
+                // Greedy parameter (consumes the rest)
                 parsedArgs[paramDef.name] = cleanedArgs.slice(currentArgIndex).join(' ');
                 currentArgIndex = cleanedArgs.length; // Mark all as consumed
                 break;

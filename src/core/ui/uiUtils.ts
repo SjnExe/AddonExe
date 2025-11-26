@@ -1,8 +1,19 @@
 import { ActionFormData } from '@minecraft/server-ui';
-import { configPanelSchema } from './configPanelRegistry.js';
+
 import { getConfig, updateMultipleConfig } from '../configManager.js';
-import { getSpawnConfig, saveSpawnConfig, getEconomyConfig, saveEconomyConfig, getXrayConfig, saveXrayConfig, getTeamConfig, saveTeamConfig } from '../configurations.js';
+import {
+    getSpawnConfig,
+    saveSpawnConfig,
+    getEconomyConfig,
+    saveEconomyConfig,
+    getXrayConfig,
+    saveXrayConfig,
+    getTeamConfig,
+    saveTeamConfig
+} from '../configurations.js';
 import { PlayerData } from '../playerDataManager.js';
+
+import { configPanelSchema } from './configPanelRegistry.js';
 
 export const itemsPerPage = 8;
 
@@ -12,23 +23,23 @@ interface ConfigHandler {
 }
 
 export const configHandlers: Record<string, ConfigHandler> = {
-    'main': {
+    main: {
         get: getConfig,
         save: (updates: any) => updateMultipleConfig(updates)
     },
-    'spawn': {
+    spawn: {
         get: getSpawnConfig,
         save: (config: any) => saveSpawnConfig(config)
     },
-    'economy': {
+    economy: {
         get: getEconomyConfig,
         save: (config: any) => saveEconomyConfig(config)
     },
-    'xray': {
+    xray: {
         get: getXrayConfig,
         save: (config: any) => saveXrayConfig(config)
     },
-    'team': {
+    team: {
         get: getTeamConfig,
         save: (config: any) => saveTeamConfig(config)
     }
@@ -70,14 +81,20 @@ export interface SystemItem {
  */
 export function getVisibleConfigSystems(pData: PlayerData): SystemItem[] {
     const allSystems: SystemItem[] = [
-        ...configPanelSchema.filter(c => c.id !== 'economyGeneralSettings').map(c => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
+        ...configPanelSchema
+            .filter((c) => c.id !== 'economyGeneralSettings')
+            .map((c) => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
     ];
 
     if (pData.permissionLevel <= 1) {
         allSystems.push({ id: 'commandSystemPanel', title: '§l§1Command System§r', icon: 'textures/ui/Wrenches1' });
         allSystems.push({ id: 'kitManagementPanel', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' });
         allSystems.push({ id: 'shopManagementPanel', title: '§l§2Shop System§r', icon: 'textures/items/emerald' });
-        allSystems.push({ id: 'rankManagementPanel', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' });
+        allSystems.push({
+            id: 'rankManagementPanel',
+            title: '§l§4Rank System§r',
+            icon: 'textures/ui/permissions_member_star.png'
+        });
         allSystems.push({ id: 'economyPanel', title: '§l§6Economy System§r', icon: 'textures/items/emerald' });
     }
     if (pData.permissionLevel === 0) {
@@ -85,25 +102,34 @@ export function getVisibleConfigSystems(pData: PlayerData): SystemItem[] {
     }
 
     // Custom sorting: Server Info first, Gameplay, System, Reset last, rest alphabetical
-    const serverInfo = allSystems.find(s => s.id === 'config_general_server');
-    const gameplay = allSystems.find(s => s.id === 'config_general_gameplay');
-    const system = allSystems.find(s => s.id === 'config_general_system');
-    const resetSystem = allSystems.find(s => s.id === 'configResetPanel');
+    const serverInfo = allSystems.find((s) => s.id === 'config_general_server');
+    const gameplay = allSystems.find((s) => s.id === 'config_general_gameplay');
+    const system = allSystems.find((s) => s.id === 'config_general_system');
+    const resetSystem = allSystems.find((s) => s.id === 'configResetPanel');
 
-    const otherSystems = allSystems.filter(s =>
-        s.id !== 'config_general_server' &&
-        s.id !== 'config_general_gameplay' &&
-        s.id !== 'config_general_system' &&
-        s.id !== 'configResetPanel'
+    const otherSystems = allSystems.filter(
+        (s) =>
+            s.id !== 'config_general_server' &&
+            s.id !== 'config_general_gameplay' &&
+            s.id !== 'config_general_system' &&
+            s.id !== 'configResetPanel'
     );
     otherSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
 
     const sortedSystems: SystemItem[] = [];
-    if (serverInfo) { sortedSystems.push(serverInfo); }
-    if (gameplay) { sortedSystems.push(gameplay); }
-    if (system) { sortedSystems.push(system); }
+    if (serverInfo) {
+        sortedSystems.push(serverInfo);
+    }
+    if (gameplay) {
+        sortedSystems.push(gameplay);
+    }
+    if (system) {
+        sortedSystems.push(system);
+    }
     sortedSystems.push(...otherSystems);
-    if (resetSystem) { sortedSystems.push(resetSystem); }
+    if (resetSystem) {
+        sortedSystems.push(resetSystem);
+    }
 
     return sortedSystems;
 }

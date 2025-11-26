@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+
 import { getConfig } from './configManager.js';
 import { debugLog, errorLog } from './logger.js';
 
@@ -56,7 +57,9 @@ export function clearExpiredPunishments() {
  * Saves punishment data to world dynamic properties if a change has occurred.
  */
 function savePunishments() {
-    if (!needsSave) {return;}
+    if (!needsSave) {
+        return;
+    }
     try {
         // JSON can't stringify a Map directly, so convert to an array first.
         const dataToSave = Array.from(punishments.entries());
@@ -77,7 +80,9 @@ export function addPunishment(playerId: string, punishment: Punishment) {
     punishments.set(playerId, punishment);
     needsSave = true;
     savePunishments(); // Save immediately for critical actions
-    debugLog(`[PunishmentManager] Added ${punishment.type} for player ${playerId}. Expires: ${new Date(punishment.expires).toLocaleString()}`);
+    debugLog(
+        `[PunishmentManager] Added ${punishment.type} for player ${playerId}. Expires: ${new Date(punishment.expires).toLocaleString()}`
+    );
 }
 
 /**
@@ -119,8 +124,11 @@ export function initializePunishmentManager() {
     // Periodically clear expired punishments and save to the world
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const config: any = getConfig();
-    mc.system.runInterval(() => {
-        clearExpiredPunishments();
-        savePunishments();
-    }, (config.data?.autoSaveIntervalSeconds ?? 30) * 20);
+    mc.system.runInterval(
+        () => {
+            clearExpiredPunishments();
+            savePunishments();
+        },
+        (config.data?.autoSaveIntervalSeconds ?? 30) * 20
+    );
 }

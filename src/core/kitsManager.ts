@@ -1,8 +1,9 @@
 import * as mc from '@minecraft/server';
-import { getOrCreatePlayer, setKitCooldown, incrementPlayerBalance } from './playerDataManager.js';
+
 import { getConfig } from './configManager.js';
 import { getKitsConfig } from './configurations.js';
 import { errorLog } from './logger.js';
+import { getOrCreatePlayer, setKitCooldown, incrementPlayerBalance } from './playerDataManager.js';
 import { formatCooldown } from './utils.js';
 
 interface KitItem {
@@ -62,18 +63,22 @@ export function listKits(player: mc.Player): KitInfo[] {
     }
 
     const pData = getOrCreatePlayer(player);
-    if (!pData) { return []; }
+    if (!pData) {
+        return [];
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const kitDefs = kitsConfig.kitDefinitions as any;
     return Object.keys(kitDefs)
-        .filter(kitName => {
+        .filter((kitName) => {
             const kit = kitDefs[kitName];
-            if (!kit.enabled) { return false; }
+            if (!kit.enabled) {
+                return false;
+            }
             const requiredPermission = kit.permissionLevel ?? 1024;
             return pData.permissionLevel <= requiredPermission;
         })
-        .map(kitName => {
+        .map((kitName) => {
             const kit = kitDefs[kitName];
             return {
                 name: kitName,
@@ -92,10 +97,14 @@ export function listKits(player: mc.Player): KitInfo[] {
  */
 export function getKitCooldown(player: mc.Player, kitName: string): number {
     const pData = getOrCreatePlayer(player);
-    if (!pData) { return 0; }
+    if (!pData) {
+        return 0;
+    }
 
     const cooldownExpiry = pData.kitCooldowns[kitName.toLowerCase()];
-    if (!cooldownExpiry) { return 0; }
+    if (!cooldownExpiry) {
+        return 0;
+    }
 
     const now = Date.now();
     if (now >= cooldownExpiry) {
@@ -142,7 +151,10 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
 
     const remainingCooldown = getKitCooldown(player, lowerCaseKitName);
     if (remainingCooldown > 0) {
-        return { success: false, message: `You must wait ${formatCooldown(remainingCooldown)} more to claim this kit.` };
+        return {
+            success: false,
+            message: `You must wait ${formatCooldown(remainingCooldown)} more to claim this kit.`
+        };
     }
 
     // Check for price
@@ -154,7 +166,7 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
 
     const inventoryComp = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
     if (!inventoryComp || !inventoryComp.container) {
-         return { success: false, message: 'Could not access inventory.' };
+        return { success: false, message: 'Could not access inventory.' };
     }
     const inventory = inventoryComp.container;
 

@@ -1,14 +1,17 @@
-import { commandManager } from './commandManager.js';
 import { startRestart } from '../../core/restartManager.js';
 
-commandManager.register({
+import { CustomCommand } from './commandManager.js';
+
+const command: CustomCommand = {
     name: 'restart',
     description: 'Initiates the server restart sequence.',
     category: 'Administration',
     permissionLevel: 1, // Admin only
     allowConsole: true,
     parameters: [],
-    execute: (player, args) => {
-        startRestart(player);
+    execute: (executor, args) => {
+        startRestart(executor);
     }
-});
+};
+
+export default command;

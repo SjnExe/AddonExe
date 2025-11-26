@@ -17,17 +17,22 @@ export interface ConfirmationDialogOptions {
  */
 export function showConfirmationDialog(
     player: mc.Player,
-    { title, body, onConfirm, onCancel, confirmButtonText = '§aConfirm', cancelButtonText = '§cCancel' }: ConfirmationDialogOptions
+    {
+        title,
+        body,
+        onConfirm,
+        onCancel,
+        confirmButtonText = '§aConfirm',
+        cancelButtonText = '§cCancel'
+    }: ConfirmationDialogOptions
 ) {
-    const form = new MessageFormData()
-        .title(title)
-        .body(body)
-        .button1(confirmButtonText)
-        .button2(cancelButtonText);
+    const form = new MessageFormData().title(title).body(body).button1(confirmButtonText).button2(cancelButtonText);
 
     form.show(player).then(({ canceled, selection }) => {
         if (canceled) {
-            if (onCancel) {onCancel();}
+            if (onCancel) {
+                onCancel();
+            }
             return;
         }
 

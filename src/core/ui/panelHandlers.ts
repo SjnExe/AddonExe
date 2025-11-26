@@ -1,47 +1,64 @@
 import * as mc from '@minecraft/server';
-import { ModalFormData, ActionFormData, ActionFormResponse, ModalFormResponse, MessageFormResponse } from '@minecraft/server-ui';
-import { getPlayer, loadPlayerData, setLockState, getAllPlayerNameIdMap } from '../playerDataManager.js';
-import { getConfig, updateMultipleConfig, resetConfigSection } from '../configManager.js';
-import { errorLog } from '../logger.js';
-import * as rankManager from '../rankManager.js';
-import * as rankDb from '../rankDb.js';
-import * as utils from '../utils.js';
-import { setValueByPath } from '../objectUtils.js';
-import * as reportManager from '../reportManager.js';
-import * as bountyManager from '../bountyManager.js';
-// @ts-ignore - Importing from JS file
+import {
+    ModalFormData,
+    ActionFormData,
+    ActionFormResponse,
+    ModalFormResponse,
+    MessageFormResponse
+} from '@minecraft/server-ui';
+
+import { config as defaultConfig } from '../../config.default.js';
 import { restartAnnouncer } from '../../modules/commands/announcement.js';
-import * as rulesManager from '../rulesManager.js';
-import * as helpfulLinksManager from '../helpfulLinksManager.js';
-import * as shopManager from '../shopManager.js';
-import { getKitsConfig, saveKitsConfig, getShopConfig, getEconomyConfig, saveEconomyConfig, getXrayConfig, saveXrayConfig } from '../configurations.js';
-import { items as allItems } from '../itemsConfig.js';
-// @ts-ignore - Importing from JS file
-import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from '../kitAdminManager.js';
-// @ts-ignore - Importing from JS file
-import { addItemToKit, updateItemInKit } from '../kitItemsManager.js';
-import * as shopAdminManager from '../shopAdminManager.js';
-// @ts-ignore - Importing from JS file
 import { initializeSpawnProtection } from '../../modules/detections/spawnProtection.js';
-import { showPanel } from '../uiManager.js';
-import { getVisiblePlayerActionItems, getMenuItems } from './panelBuilder.js';
-import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems } from './uiUtils.js';
-import { panelDefinitions, configPanelSchema, ConfigSetting } from './panelRegistry.js';
-import { showConfirmationDialog } from './components.js';
-import { uiActionFunctions } from './actionRegistry.js';
-// @ts-ignore - Importing from JS file
+import * as bountyManager from '../bountyManager.js';
+import { getConfig, updateMultipleConfig, resetConfigSection } from '../configManager.js';
+import {
+    getKitsConfig,
+    saveKitsConfig,
+    getShopConfig,
+    getEconomyConfig,
+    saveEconomyConfig,
+    getXrayConfig,
+    saveXrayConfig
+} from '../configurations.js';
+import { economyConfig as defaultEconomyConfig } from '../economyConfig.default.js';
 import { floatingTextManager } from '../floatingTextManager.js';
-import { config as defaultConfig } from '../../config.js';
+import * as helpfulLinksManager from '../helpfulLinksManager.js';
+import { items as allItems } from '../itemsConfig.default.js';
+import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from '../kitAdminManager.js';
+import { addItemToKit, updateItemInKit } from '../kitItemsManager.js';
+import { errorLog } from '../logger.js';
+import { setValueByPath } from '../objectUtils.js';
+import { getPlayer, loadPlayerData, setLockState, getAllPlayerNameIdMap } from '../playerDataManager.js';
+import * as rankDb from '../rankDb.js';
+import * as rankManager from '../rankManager.js';
+import * as reportManager from '../reportManager.js';
+import * as rulesManager from '../rulesManager.js';
+import * as shopAdminManager from '../shopAdminManager.js';
+import * as shopManager from '../shopManager.js';
 import { spawnConfig as defaultSpawnConfig } from '../spawnConfig.js';
-import { economyConfig as defaultEconomyConfig } from '../economyConfig.js';
-import { xrayConfig as defaultXrayConfig } from '../xrayConfig.js';
+import { showPanel } from '../uiManager.js';
+import * as utils from '../utils.js';
+// @ts-ignore - Importing from JS file
+// @ts-ignore - Importing from JS file
+// @ts-ignore - Importing from JS file
+// @ts-ignore - Importing from JS file
+import { xrayConfig as defaultXrayConfig } from '../xrayConfig.default.js';
+
+import { uiActionFunctions } from './actionRegistry.js';
+import { showConfirmationDialog } from './components.js';
+import { getVisiblePlayerActionItems, getMenuItems } from './panelBuilder.js';
+import { panelDefinitions, configPanelSchema, ConfigSetting } from './panelRegistry.js';
+import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems } from './uiUtils.js';
+
+// @ts-ignore - Importing from JS file
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const allDefaultConfigs: Record<string, any> = {
-    'main': defaultConfig,
-    'spawn': defaultSpawnConfig,
-    'economy': defaultEconomyConfig,
-    'xray': defaultXrayConfig
+    main: defaultConfig,
+    spawn: defaultSpawnConfig,
+    economy: defaultEconomyConfig,
+    xray: defaultXrayConfig
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,13 +68,17 @@ type UIContext = Record<string, any>;
 export async function handleFormResponse(player: mc.Player, panelId: string, response: any, context: UIContext) {
     const { selection, canceled, formValues } = response;
     const pData = getPlayer(player.id);
-    if (!pData) {return;}
+    if (!pData) {
+        return;
+    }
 
     if (panelId === 'floatingTextListPanel') {
-        if (selection === 0) { // Back
+        if (selection === 0) {
+            // Back
             return showPanel(player, 'mainPanel', context);
         }
-        if (selection === 1) { // Create New
+        if (selection === 1) {
+            // Create New
             return showPanel(player, 'floatingTextCreatePanel', context);
         }
         const texts = floatingTextManager.getAllTexts();
@@ -102,7 +123,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         const team = getTeamByPlayer(player.id);
 
-        if (selection === 0) { return showPanel(player, 'mainPanel', context); }
+        if (selection === 0) {
+            return showPanel(player, 'mainPanel', context);
+        }
 
         if (team) {
             const isOwner = team.ownerId === player.id;
@@ -117,26 +140,32 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
             let btnIndex = 1;
 
-            if (selection === btnIndex) { // Members
+            if (selection === btnIndex) {
+                // Members
                 return showPanel(player, 'teamMembersPanel', context);
             }
             btnIndex++;
 
             if (isOwnerOrAdmin) {
-                if (selection === btnIndex) { // Manage
+                if (selection === btnIndex) {
+                    // Manage
                     return showPanel(player, 'teamManagePanel', context);
                 }
                 btnIndex++;
             }
 
-            if (selection === btnIndex) { // Settings
+            if (selection === btnIndex) {
+                // Settings
                 return showPanel(player, 'teamSettingsPanel', context);
             }
             btnIndex++;
 
-            if (selection === btnIndex) { // Leave
+            if (selection === btnIndex) {
+                // Leave
                 if (isOwner) {
-                    player.sendMessage('§cOwners cannot leave their team. You must transfer ownership or delete the team.');
+                    player.sendMessage(
+                        '§cOwners cannot leave their team. You must transfer ownership or delete the team.'
+                    );
                 } else {
                     showConfirmationDialog(player, {
                         title: 'Leave Team',
@@ -156,13 +185,14 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 }
                 return;
             }
-
         } else {
             // No Team
-            if (selection === 1) { // Create
+            if (selection === 1) {
+                // Create
                 return showPanel(player, 'teamCreatePanel', context);
             }
-            if (selection === 2) { // Join
+            if (selection === 2) {
+                // Join
                 return showPanel(player, 'teamJoinPanel', context);
             }
         }
@@ -170,7 +200,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'teamCreatePanel') {
-        if (canceled) {return showPanel(player, 'teamMainPanel', context);}
+        if (canceled) {
+            return showPanel(player, 'teamMainPanel', context);
+        }
         const [name] = formValues as string[];
         if (!name) {
             player.sendMessage('§cTeam name is required.');
@@ -185,15 +217,25 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'teamJoinPanel') {
-        if (selection === 0) {return showPanel(player, 'teamMainPanel', context);}
-        if (selection === 1) {return showPanel(player, 'teamInvitesPanel', context);}
-        if (selection === 2) {return showPanel(player, 'teamSearchPanel', context);}
-        if (selection === 3) {return showPanel(player, 'teamBrowserPanel', context);}
+        if (selection === 0) {
+            return showPanel(player, 'teamMainPanel', context);
+        }
+        if (selection === 1) {
+            return showPanel(player, 'teamInvitesPanel', context);
+        }
+        if (selection === 2) {
+            return showPanel(player, 'teamSearchPanel', context);
+        }
+        if (selection === 3) {
+            return showPanel(player, 'teamBrowserPanel', context);
+        }
         return;
     }
 
     if (panelId === 'teamSearchPanel') {
-        if (canceled) {return showPanel(player, 'teamJoinPanel', context);}
+        if (canceled) {
+            return showPanel(player, 'teamJoinPanel', context);
+        }
         const [idStr] = formValues as string[];
         const teamId = parseInt(idStr);
         if (isNaN(teamId)) {
@@ -230,16 +272,20 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const invites = (pData as any).pendingInvites || [];
 
-        if (selection === 0) {return showPanel(player, 'teamJoinPanel', context);} // Back
+        if (selection === 0) {
+            return showPanel(player, 'teamJoinPanel', context);
+        } // Back
 
-        if (invites.length === 0) {return;} // Body text only
+        if (invites.length === 0) {
+            return;
+        } // Body text only
 
         const denyAllIndex = invites.length + 1;
 
         if (selection === denyAllIndex) {
             const { updatePlayerData } = await import('../playerDataManager.js');
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            updatePlayerData(player.id, (d: any) => d.pendingInvites = []);
+            updatePlayerData(player.id, (d: any) => (d.pendingInvites = []));
             player.sendMessage('§aCleared all pending invites.');
             return showPanel(player, panelId, context);
         }
@@ -258,13 +304,15 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
             const res = await utils.uiWait(player, form);
             if (!res.canceled) {
-                if (res.selection === 0) { // Accept
+                if (res.selection === 0) {
+                    // Accept
                     const result = acceptInvite(player, invite.teamId);
                     player.sendMessage(result.message || '§cUnknown error.');
                     if (result.success) {
                         return showPanel(player, 'teamMainPanel', context);
                     }
-                } else { // Deny
+                } else {
+                    // Deny
                     const result = denyInvite(player.id, invite.teamId);
                     player.sendMessage(result.message || '§cUnknown error.');
                 }
@@ -282,7 +330,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const teams = getAllTeams().sort((a: any, b: any) => b.members.length - a.members.length);
         const paginatedTeams = getPaginatedItems(teams, page);
 
-        if (selection === 0) {return showPanel(player, 'teamJoinPanel', context);}
+        if (selection === 0) {
+            return showPanel(player, 'teamJoinPanel', context);
+        }
 
         const selectionIndex = selection - 1;
 
@@ -314,9 +364,15 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
 
-        if (hasPrev && buttonIndex === 0) {return showPanel(player, panelId, { ...context, page: page - 1 });}
-        if (hasPrev) {buttonIndex--;}
-        if (hasNext && buttonIndex === 0) {return showPanel(player, panelId, { ...context, page: page + 1 });}
+        if (hasPrev && buttonIndex === 0) {
+            return showPanel(player, panelId, { ...context, page: page - 1 });
+        }
+        if (hasPrev) {
+            buttonIndex--;
+        }
+        if (hasNext && buttonIndex === 0) {
+            return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
 
         return;
     }
@@ -325,25 +381,35 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         // @ts-ignore - Dynamic import
         const { getTeamByPlayer, deleteTeam } = await import('../teamManager.js');
         const team = getTeamByPlayer(player.id);
-        if (!team) {return;}
+        if (!team) {
+            return;
+        }
 
-        if (selection === 0) {return showPanel(player, 'teamMainPanel', context);}
+        if (selection === 0) {
+            return showPanel(player, 'teamMainPanel', context);
+        }
 
-        if (selection === 1) { // Invite Player
+        if (selection === 1) {
+            // Invite Player
             return showPanel(player, 'playerListPanel', { ...context, fromPanel: 'teamManagePanel' });
         }
 
-        if (selection === 2) {return showPanel(player, 'teamRequestsPanel', context);}
+        if (selection === 2) {
+            return showPanel(player, 'teamRequestsPanel', context);
+        }
 
-        if (selection === 3) { // Manage Members
+        if (selection === 3) {
+            // Manage Members
             return showPanel(player, 'teamMembersPanel', { ...context, mode: 'manage' });
         }
 
-        if (selection === 4) { // Team Home
+        if (selection === 4) {
+            // Team Home
             return showPanel(player, 'teamHomePanel', context);
         }
 
-        if (selection === 5) { // Delete Team (Owner Only)
+        if (selection === 5) {
+            // Delete Team (Owner Only)
             showConfirmationDialog(player, {
                 title: 'Delete Team?',
                 body: '§cWARNING: This will disband the team and cannot be undone.',
@@ -362,12 +428,16 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'teamHomePanel') {
-        if (selection === 0) {return showPanel(player, 'teamManagePanel', context);}
+        if (selection === 0) {
+            return showPanel(player, 'teamManagePanel', context);
+        }
 
         // @ts-ignore - Dynamic import
         const { getTeamByPlayer, setTeamHome, deleteTeamHome } = await import('../teamManager.js');
         const team = getTeamByPlayer(player.id);
-        if (!team) {return;}
+        if (!team) {
+            return;
+        }
 
         const isOwner = team.ownerId === player.id;
 
@@ -377,9 +447,12 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         let btnIndex = 1;
 
         if (team.home) {
-            if (selection === btnIndex) { // Teleport
+            if (selection === btnIndex) {
+                // Teleport
                 const { x, y, z, dimensionId } = team.home;
-                const targetDimension = dimensionId ? (await import('@minecraft/server')).world.getDimension(dimensionId) : player.dimension;
+                const targetDimension = dimensionId
+                    ? (await import('@minecraft/server')).world.getDimension(dimensionId)
+                    : player.dimension;
                 if (targetDimension) {
                     player.teleport({ x, y, z }, { dimension: targetDimension });
                     player.sendMessage('§aTeleported to team home.');
@@ -392,7 +465,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         }
 
         if (canManage) {
-            if (selection === btnIndex) { // Update Location
+            if (selection === btnIndex) {
+                // Update Location
                 setTeamHome(team.id, player.location, player.dimension.id);
                 player.sendMessage('§aTeam home updated to your current location.');
                 return showPanel(player, panelId, context);
@@ -400,7 +474,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             btnIndex++;
 
             if (team.home) {
-                if (selection === btnIndex) { // Delete Home
+                if (selection === btnIndex) {
+                    // Delete Home
                     deleteTeamHome(team.id);
                     player.sendMessage('§aTeam home deleted.');
                     return showPanel(player, panelId, context);
@@ -414,9 +489,13 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         // @ts-ignore - Dynamic import
         const { getTeamByPlayer, acceptApplication, denyApplication } = await import('../teamManager.js');
         const team = getTeamByPlayer(player.id);
-        if (!team) {return;}
+        if (!team) {
+            return;
+        }
 
-        if (selection === 0) {return showPanel(player, 'teamManagePanel', context);}
+        if (selection === 0) {
+            return showPanel(player, 'teamManagePanel', context);
+        }
 
         const appIndex = selection - 1;
         if (appIndex >= 0 && appIndex < team.applications.length) {
@@ -429,10 +508,12 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
             const res = await utils.uiWait(player, form);
             if (!res.canceled) {
-                if (res.selection === 0) { // Accept
+                if (res.selection === 0) {
+                    // Accept
                     const result = acceptApplication(team.id, app.playerId);
                     player.sendMessage(result.message || '§cUnknown error.');
-                } else { // Deny
+                } else {
+                    // Deny
                     const result = denyApplication(team.id, app.playerId);
                     player.sendMessage(result.message || '§cUnknown error.');
                 }
@@ -443,14 +524,18 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'teamSettingsPanel') {
-        if (canceled) {return showPanel(player, 'teamMainPanel', context);}
+        if (canceled) {
+            return showPanel(player, 'teamMainPanel', context);
+        }
 
         // @ts-ignore - Dynamic import
         const { getTeamByPlayer, setTeamOpenStatus } = await import('../teamManager.js');
         const { updatePlayerData } = await import('../playerDataManager.js');
 
         const team = getTeamByPlayer(player.id);
-        if (!team) { return showPanel(player, 'teamMainPanel', context); }
+        if (!team) {
+            return showPanel(player, 'teamMainPanel', context);
+        }
 
         const isOwner = team.ownerId === player.id;
 
@@ -461,7 +546,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         updatePlayerData(player.id, (d: any) => {
-            if (!d.teamSettings) {d.teamSettings = {};}
+            if (!d.teamSettings) {
+                d.teamSettings = {};
+            }
             d.teamSettings.autoTpAccept = autoTp;
         });
 
@@ -475,19 +562,27 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'teamMembersPanel') {
-        if (selection === 0) {return showPanel(player, 'teamMainPanel', context);}
+        if (selection === 0) {
+            return showPanel(player, 'teamMainPanel', context);
+        }
 
         // @ts-ignore - Dynamic import
-        const { getTeamByPlayer, kickMember, promoteMember, demoteMember, transferOwnership } = await import('../teamManager.js');
+        const { getTeamByPlayer, kickMember, promoteMember, demoteMember, transferOwnership } = await import(
+            '../teamManager.js'
+        );
         const team = getTeamByPlayer(player.id);
-        if (!team) {return;}
+        if (!team) {
+            return;
+        }
 
         const memberIndex = selection - 1;
         if (memberIndex >= 0 && memberIndex < team.members.length) {
             const memberId = team.members[memberIndex];
 
             // Self-interaction check?
-            if (memberId === player.id) {return showPanel(player, panelId, context);}
+            if (memberId === player.id) {
+                return showPanel(player, panelId, context);
+            }
 
             const isOwner = team.ownerId === player.id;
 
@@ -508,19 +603,26 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 const form = new ActionFormData().title('Manage Member');
                 form.button('Kick Member', 'textures/ui/cancel');
                 if (isOwner) {
-                    if (targetIsAdmin) {form.button('Demote to Member', 'textures/ui/arrow_down');}
-                    else {form.button('Promote to Admin', 'textures/ui/arrow_up');}
+                    if (targetIsAdmin) {
+                        form.button('Demote to Member', 'textures/ui/arrow_down');
+                    } else {
+                        form.button('Promote to Admin', 'textures/ui/arrow_up');
+                    }
 
                     form.button('Transfer Ownership', 'textures/ui/op');
                 }
 
                 const res = await utils.uiWait(player, form);
-                if (res.canceled) {return showPanel(player, panelId, context);}
+                if (res.canceled) {
+                    return showPanel(player, panelId, context);
+                }
 
-                if (res.selection === 0) { // Kick
+                if (res.selection === 0) {
+                    // Kick
                     const result = kickMember(team.id, memberId);
                     player.sendMessage(result.message || '§cUnknown error.');
-                } else if (res.selection === 1) { // Promote/Demote
+                } else if (res.selection === 1) {
+                    // Promote/Demote
                     if (isOwner) {
                         if (targetIsAdmin) {
                             const result = demoteMember(team.id, memberId);
@@ -530,7 +632,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                             player.sendMessage(result.message || '§cUnknown error.');
                         }
                     }
-                } else if (res.selection === 2) { // Transfer
+                } else if (res.selection === 2) {
+                    // Transfer
                     showConfirmationDialog(player, {
                         title: 'Transfer Ownership?',
                         body: 'You will become a regular member.',
@@ -552,10 +655,12 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'xrayOresPanel') {
-        if (selection === 0) { // Back
+        if (selection === 0) {
+            // Back
             return showPanel(player, 'config_xray', context);
         }
-        if (selection === 1) { // Add New Ore
+        if (selection === 1) {
+            // Add New Ore
             return showPanel(player, 'addXrayOrePanel', context);
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -582,7 +687,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const xrayConfig: any = getXrayConfig();
-            if (!xrayConfig.monitoredOres) {xrayConfig.monitoredOres = [];}
+            if (!xrayConfig.monitoredOres) {
+                xrayConfig.monitoredOres = [];
+            }
             xrayConfig.monitoredOres.push({ blockId, dimensionId, minY, maxY, oreName });
             saveXrayConfig(xrayConfig);
             player.sendMessage('§2Successfully added new monitored ore.');
@@ -619,7 +726,15 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, 'floatingTextActionPanel', context);
         }
         const { id } = context;
-        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = formValues as [string, string, string, string, number, boolean, string];
+        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = formValues as [
+            string,
+            string,
+            string,
+            string,
+            number,
+            boolean,
+            string
+        ];
 
         const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
         const selectedDimension = dimensionIds[dimensionIndex] ?? 'minecraft:overworld';
@@ -628,7 +743,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             text: textContent,
             location: { x: parseFloat(x), y: parseFloat(y), z: parseFloat(z) },
             dimension: selectedDimension,
-            expiresAt: useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
+            expiresAt:
+                useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
         };
         floatingTextManager.updateText(id, updatedConfig);
         player.sendMessage(`§aSuccessfully updated floating text: ${id}`);
@@ -672,7 +788,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         // Handle rule selection
         if (selectionIndex < paginatedRules.length) {
-            const ruleIndex = ((page - 1) * itemsPerPage) + selectionIndex;
+            const ruleIndex = (page - 1) * itemsPerPage + selectionIndex;
             return showPanel(player, 'ruleActionPanel', { ...context, ruleIndex });
         }
 
@@ -686,12 +802,16 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             if (hasPrev && buttonIndex === 0) {
                 return showPanel(player, panelId, { ...context, page: page - 1 });
             }
-            if (hasPrev) {buttonIndex--;}
+            if (hasPrev) {
+                buttonIndex--;
+            }
 
             if (hasNext && buttonIndex === 0) {
                 return showPanel(player, panelId, { ...context, page: page + 1 });
             }
-            if (hasNext) {buttonIndex--;}
+            if (hasNext) {
+                buttonIndex--;
+            }
         }
         return;
     }
@@ -726,7 +846,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         // Handle link selection
         if (selectionIndex < paginatedLinks.length) {
-            const linkIndex = ((page - 1) * itemsPerPage) + selectionIndex;
+            const linkIndex = (page - 1) * itemsPerPage + selectionIndex;
             return showPanel(player, 'helpfulLinkActionPanel', { ...context, linkIndex });
         }
 
@@ -740,12 +860,16 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             if (hasPrev && buttonIndex === 0) {
                 return showPanel(player, panelId, { ...context, page: page - 1 });
             }
-            if (hasPrev) {buttonIndex--;}
+            if (hasPrev) {
+                buttonIndex--;
+            }
 
             if (hasNext && buttonIndex === 0) {
                 return showPanel(player, panelId, { ...context, page: page + 1 });
             }
-            if (hasNext) {buttonIndex--;}
+            if (hasNext) {
+                buttonIndex--;
+            }
         }
         return;
     }
@@ -765,7 +889,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     if (panelId === 'helpfulLinkActionPanel') {
         const { linkIndex } = context;
         switch (selection) {
-            case 0: { // Edit
+            case 0: {
+                // Edit
                 const links = helpfulLinksManager.getHelpfulLinks();
                 const currentLink = links[linkIndex];
                 const editForm = new ModalFormData()
@@ -789,7 +914,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             case 2: // Move Down
                 helpfulLinksManager.moveHelpfulLink(linkIndex, 'down');
                 return showPanel(player, 'helpfulLinksManagementPanel', context);
-            case 3: { // Delete Link
+            case 3: {
+                // Delete Link
                 showConfirmationDialog(player, {
                     title: '§cConfirm Deletion',
                     body: 'Are you sure you want to delete this link?',
@@ -816,7 +942,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const { ruleIndex } = context;
 
         switch (selection) {
-            case 0: { // Edit Text
+            case 0: {
+                // Edit Text
                 const rules = rulesManager.getRules();
                 const currentText = rules[ruleIndex];
                 const editForm = new ModalFormData()
@@ -841,7 +968,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             case 2: // Move Down
                 rulesManager.moveRule(ruleIndex, 'down');
                 return showPanel(player, 'rulesManagementPanel', context);
-            case 3: { // Delete Rule
+            case 3: {
+                // Delete Rule
                 showConfirmationDialog(player, {
                     title: '§cConfirm Deletion',
                     body: 'Are you sure you want to delete this rule?',
@@ -866,18 +994,25 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
     // --- Shop Panel Handlers ---
     if (panelId === 'shopMainPanel') {
-        if (selection === 0) { return showPanel(player, 'mainPanel'); }
+        if (selection === 0) {
+            return showPanel(player, 'mainPanel');
+        }
         const shopConfig = getShopConfig();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const validCategories = Object.keys(shopConfig.categories).filter((categoryName: any) => {
-            const category = shopConfig.categories[categoryName];
-            const hasItems = Object.keys(category.items).length > 0;
-            const hasSubCategories = Object.keys(category.subCategories).length > 0;
-            return hasItems || hasSubCategories;
-        }).sort();
+
+        const validCategories = Object.keys(shopConfig.categories)
+            .filter((categoryName: any) => {
+                const category = shopConfig.categories[categoryName];
+                const hasItems = Object.keys(category.items).length > 0;
+                const hasSubCategories = Object.keys(category.subCategories).length > 0;
+                return hasItems || hasSubCategories;
+            })
+            .sort();
         const selectedCategoryName = validCategories[selection - 1];
         if (selectedCategoryName) {
-            return showPanel(player, `shopCategoryPanel_${selectedCategoryName}`, { ...context, categoryName: selectedCategoryName });
+            return showPanel(player, `shopCategoryPanel_${selectedCategoryName}`, {
+                ...context,
+                categoryName: selectedCategoryName
+            });
         }
         return;
     }
@@ -886,8 +1021,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const page = context.page || 1;
         const resettableSystems = [
             ...configPanelSchema
-                .filter(c => !c.id.startsWith('general_')) // General settings are not individually resettable via this panel
-                .map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+                .filter((c) => !c.id.startsWith('general_')) // General settings are not individually resettable via this panel
+                .map((c) => ({ id: c.id, title: c.title, icon: c.icon })),
             { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
             { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
             { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
@@ -896,7 +1031,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         const sortedSystems = resettableSystems;
 
-        if (selection === 0) { // Back button
+        if (selection === 0) {
+            // Back button
             return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
         }
 
@@ -917,7 +1053,10 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
                     const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
-                    if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].trim().toLowerCase() !== 'confirm') {
+                    if (
+                        finalConfirmResponse.canceled ||
+                        finalConfirmResponse.formValues[0].trim().toLowerCase() !== 'confirm'
+                    ) {
                         player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
                     }
@@ -926,8 +1065,12 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                     if (result.success) {
                         player.sendMessage(`§2${result.message}`);
                     } else {
-                        player.sendMessage('§cFailed to reset the configuration. Please check the console for details.');
-                        errorLog(`[UIManager] Failed to reset config section '${selectedSystem.id}': ${result.message}`);
+                        player.sendMessage(
+                            '§cFailed to reset the configuration. Please check the console for details.'
+                        );
+                        errorLog(
+                            `[UIManager] Failed to reset config section '${selectedSystem.id}': ${result.message}`
+                        );
                     }
                     return showPanel(player, 'configResetPanel', { ...context, page: 1 });
                 },
@@ -957,7 +1100,10 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
                         const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
-                        if (finalConfirmResponse.canceled || finalConfirmResponse.formValues[0].trim().toLowerCase() !== 'confirm') {
+                        if (
+                            finalConfirmResponse.canceled ||
+                            finalConfirmResponse.formValues[0].trim().toLowerCase() !== 'confirm'
+                        ) {
                             player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                             return showPanel(player, 'configResetPanel', { ...context, page });
                         }
@@ -966,7 +1112,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                         if (result.success) {
                             player.sendMessage(`§2${result.message}`);
                         } else {
-                            player.sendMessage('§cFailed to reset all configurations. Please check the console for details.');
+                            player.sendMessage(
+                                '§cFailed to reset all configurations. Please check the console for details.'
+                            );
                             errorLog(`[UIManager] Failed to reset all config sections: ${result.message}`);
                         }
                         return showPanel(player, 'configResetPanel', { ...context, page: 1 });
@@ -987,7 +1135,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         if (hasPrev && buttonIndex === 0) {
             return showPanel(player, panelId, { ...context, page: page - 1 });
         }
-        if (buttonIndex >= 0) { // Should be next page
+        if (buttonIndex >= 0) {
+            // Should be next page
             return showPanel(player, panelId, { ...context, page: page + 1 });
         }
 
@@ -1004,7 +1153,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const page = context.page || 1;
         const view = context.view || 'shop';
 
-        if (selection === 0) { // Back button
+        if (selection === 0) {
+            // Back button
             const parentPanel = isItemList ? `shopCategoryPanel_${categoryName}` : 'shopMainPanel';
             return showPanel(player, parentPanel, { ...context, page: 1 });
         }
@@ -1017,10 +1167,13 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         let allEntries: any[] = [];
         if (isItemList && subCategoryName) {
             const subCategory = category.subCategories[subCategoryName];
-            allEntries = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
-        } else { // shopCategoryPanel
-            const subCategories = Object.keys(category.subCategories).sort().map(name => ({ name, ...category.subCategories[name], type: 'subCategory' }));
-            const items = Object.keys(category.items).map(id => ({ id, ...category.items[id], type: 'item' }));
+            allEntries = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
+        } else {
+            // shopCategoryPanel
+            const subCategories = Object.keys(category.subCategories)
+                .sort()
+                .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }));
+            const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
             allEntries = [...subCategories, ...items];
         }
 
@@ -1047,7 +1200,12 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const selectedEntry: any = paginatedEntries[selectionIndex];
 
         if (selectedEntry.type === 'subCategory') {
-            return showPanel(player, `shopItemListPanel_${categoryName}_${selectedEntry.name}`, { ...context, categoryName, subCategoryName: selectedEntry.name, page: 1 });
+            return showPanel(player, `shopItemListPanel_${categoryName}_${selectedEntry.name}`, {
+                ...context,
+                categoryName,
+                subCategoryName: selectedEntry.name,
+                page: 1
+            });
         }
 
         // It's an item
@@ -1074,10 +1232,15 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             modal.dropdown('Action', options, { defaultValueIndex: 0 });
             hasDropdown = true;
         } else if (canBuy) {
-            modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', { defaultValue: '1' });
+            modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', {
+                defaultValue: '1'
+            });
             action = 'buy';
-        } else { // canSell
-            modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', { defaultValue: '1' });
+        } else {
+            // canSell
+            modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', {
+                defaultValue: '1'
+            });
             action = 'sell';
         }
 
@@ -1089,7 +1252,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         let amount;
         if (hasDropdown) {
-
             const [amountStr, actionIndex] = modalResponse.formValues as [string, number];
             amount = parseInt(amountStr, 10);
             const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
@@ -1108,7 +1270,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         let result;
         if (action === 'buy') {
             result = shopManager.buyItem(player, itemId, amount);
-        } else { // action === 'sell'
+        } else {
+            // action === 'sell'
             result = shopManager.sellItem(player, itemId, amount);
         }
         player.sendMessage(result.message);
@@ -1119,10 +1282,14 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     // --- Admin Edit Shop Panel Handlers ---
     if (panelId.startsWith('shopAddItemPanel_')) {
         const { categoryName, page = 1 } = context;
-        if (selection === 0) { return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context); }
+        if (selection === 0) {
+            return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
+        }
 
-        if (selection === 1) { // Add Custom Item
-            const form = new ModalFormData().title('Add Custom Item')
+        if (selection === 1) {
+            // Add Custom Item
+            const form = new ModalFormData()
+                .title('Add Custom Item')
                 .textField('Item ID (unique key)', 'e.g., custom_sword')
                 .textField('Display Name', 'e.g., Sword of Awesome')
                 .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword')
@@ -1131,16 +1298,38 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 .textField('Sell Price', '-1 to disable', { defaultValue: '-1' })
                 .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
             const response = await utils.uiWait(player, form);
-            if (response.canceled) { return showPanel(player, panelId, context); }
+            if (response.canceled) {
+                return showPanel(player, panelId, context);
+            }
             const [customId, displayName, mcId, icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues;
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
             const permissionLevel = parseInt(permLevelStr, 10);
 
-            if (customId && displayName && mcId && icon && !isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
-                shopAdminManager.addCustomItemToConfig(customId, { itemId: mcId, icon, buyPrice, sellPrice, displayName });
+            if (
+                customId &&
+                displayName &&
+                mcId &&
+                icon &&
+                !isNaN(buyPrice) &&
+                !isNaN(sellPrice) &&
+                !isNaN(permissionLevel)
+            ) {
+                shopAdminManager.addCustomItemToConfig(customId, {
+                    itemId: mcId,
+                    icon,
+                    buyPrice,
+                    sellPrice,
+                    displayName
+                });
                 // @ts-ignore - Type mismatch in ItemData
-                shopAdminManager.setItem(categoryName, null, customId, { buyPrice, sellPrice, permissionLevel, icon, displayName });
+                shopAdminManager.setItem(categoryName, null, customId, {
+                    buyPrice,
+                    sellPrice,
+                    permissionLevel,
+                    icon,
+                    displayName
+                });
                 player.sendMessage(`§2Successfully added custom item '${displayName}'.`);
             } else {
                 player.sendMessage('§cInvalid custom item data.');
@@ -1155,20 +1344,28 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         if (selectedItemId) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const masterItem = (allItems as any)[selectedItemId];
-            const form = new ModalFormData().title(`Add ${masterItem.displayName}`)
+            const form = new ModalFormData()
+                .title(`Add ${masterItem.displayName}`)
                 .textField('Icon Path', 'e.g., textures/items/diamond_sword', { defaultValue: masterItem.icon })
                 .textField('Buy Price', '-1 to disable', { defaultValue: `${masterItem.buyPrice}` })
                 .textField('Sell Price', '-1 to disable', { defaultValue: `${masterItem.sellPrice}` })
                 .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
             const response = await utils.uiWait(player, form);
-            if (response.canceled) { return showPanel(player, panelId, context); }
+            if (response.canceled) {
+                return showPanel(player, panelId, context);
+            }
             const [icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues;
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
             const permissionLevel = parseInt(permLevelStr, 10);
             if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
                 // @ts-ignore - Type mismatch in ItemData
-                const result = shopAdminManager.setItem(categoryName, null, selectedItemId, { buyPrice, sellPrice, permissionLevel, icon });
+                const result = shopAdminManager.setItem(categoryName, null, selectedItemId, {
+                    buyPrice,
+                    sellPrice,
+                    permissionLevel,
+                    icon
+                });
                 player.sendMessage(result.message);
             }
             return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
@@ -1190,7 +1387,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
     if (panelId === 'shopManagementPanel') {
         const page = context.page || 1;
-        if (selection === 0) { return showPanel(player, 'configCategoryPanel'); }
+        if (selection === 0) {
+            return showPanel(player, 'configCategoryPanel');
+        }
 
         if (selection === 1) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1201,10 +1400,16 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
         }
 
-        if (selection === 2) { // Add Category
-            const form = new ModalFormData().title('Add Category').textField('Category Name', 'Enter category name').textField('Icon', 'Enter icon texture path');
+        if (selection === 2) {
+            // Add Category
+            const form = new ModalFormData()
+                .title('Add Category')
+                .textField('Category Name', 'Enter category name')
+                .textField('Icon', 'Enter icon texture path');
             const response = await utils.uiWait(player, form);
-            if (response.canceled) { return showPanel(player, panelId, context); }
+            if (response.canceled) {
+                return showPanel(player, panelId, context);
+            }
             const [name, icon] = response.formValues;
             if (name) {
                 const result = shopAdminManager.addCategory(name, icon);
@@ -1219,7 +1424,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const selectedCategoryName = paginatedCategories[selection - 3];
 
         if (selectedCategoryName) {
-            return showPanel(player, `shopAdminCategoryPanel_${selectedCategoryName}`, { categoryName: selectedCategoryName });
+            return showPanel(player, `shopAdminCategoryPanel_${selectedCategoryName}`, {
+                categoryName: selectedCategoryName
+            });
         }
         // Handle pagination
         let newPage = page;
@@ -1238,14 +1445,23 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
     if (panelId.startsWith('shopAdminCategoryPanel_')) {
         const { categoryName, page = 1 } = context;
-        if (selection === 0) { return showPanel(player, 'shopManagementPanel'); }
-        if (selection === 1) { // Add Item
+        if (selection === 0) {
+            return showPanel(player, 'shopManagementPanel');
+        }
+        if (selection === 1) {
+            // Add Item
             return showPanel(player, `shopAddItemPanel_${categoryName}`, context);
         }
-        if (selection === 2) { // Add Subcategory
-            const form = new ModalFormData().title('Add Subcategory').textField('Subcategory Name', 'Enter subcategory name').textField('Icon', 'Enter icon texture path');
+        if (selection === 2) {
+            // Add Subcategory
+            const form = new ModalFormData()
+                .title('Add Subcategory')
+                .textField('Subcategory Name', 'Enter subcategory name')
+                .textField('Icon', 'Enter icon texture path');
             const response = await utils.uiWait(player, form);
-            if (response.canceled) { return showPanel(player, panelId, context); }
+            if (response.canceled) {
+                return showPanel(player, panelId, context);
+            }
             const [name, icon] = response.formValues;
             if (name) {
                 const result = shopAdminManager.addSubCategory(categoryName, name, icon);
@@ -1253,15 +1469,18 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             }
             return showPanel(player, panelId, { ...context, page: 1 });
         }
-        if (selection === 3) { // Edit Category
+        if (selection === 3) {
+            // Edit Category
             return showPanel(player, `shopAdminCategoryActionPanel_${categoryName}`, context);
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const shopConfig: any = getShopConfig();
         const category = shopConfig.categories[categoryName];
-        const subCategories = Object.keys(category.subCategories).sort().map(name => ({ name, ...category.subCategories[name], type: 'subCategory' }));
-        const items = Object.keys(category.items).map(id => ({ id, ...category.items[id], type: 'item' }));
+        const subCategories = Object.keys(category.subCategories)
+            .sort()
+            .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }));
+        const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
         const allEntries = [...subCategories, ...items];
         const paginatedEntries = getPaginatedItems(allEntries, page);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1269,46 +1488,79 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         if (selectedEntry) {
             if (selectedEntry.type === 'item') {
-                const form = new ActionFormData().title('Edit Item')
+                const form = new ActionFormData()
+                    .title('Edit Item')
                     .button('Edit', 'textures/ui/icon_setting')
                     .button('Delete', 'textures/ui/trash');
                 const response = await utils.uiWait(player, form);
-                if (response.canceled) { return showPanel(player, panelId, context); }
-                if (response.selection === 0) { // Edit
+                if (response.canceled) {
+                    return showPanel(player, panelId, context);
+                }
+                if (response.selection === 0) {
+                    // Edit
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const masterItem = (allItems as any)[selectedEntry.id] || {};
-                    const editForm = new ModalFormData().title(`Edit Item: ${selectedEntry.id}`)
-                        .textField('Display Name', 'e.g., Magical Sword', { defaultValue: selectedEntry.displayName || masterItem.displayName })
-                        .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', { defaultValue: masterItem.itemId })
-                        .textField('Icon Path', 'e.g., textures/items/diamond_sword', { defaultValue: selectedEntry.icon || masterItem.icon })
+                    const editForm = new ModalFormData()
+                        .title(`Edit Item: ${selectedEntry.id}`)
+                        .textField('Display Name', 'e.g., Magical Sword', {
+                            defaultValue: selectedEntry.displayName || masterItem.displayName
+                        })
+                        .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', {
+                            defaultValue: masterItem.itemId
+                        })
+                        .textField('Icon Path', 'e.g., textures/items/diamond_sword', {
+                            defaultValue: selectedEntry.icon || masterItem.icon
+                        })
                         .textField('Buy Price', '-1 to disable', { defaultValue: String(selectedEntry.buyPrice) })
                         .textField('Sell Price', '-1 to disable', { defaultValue: String(selectedEntry.sellPrice) })
-                        .textField('Permission Level', 'e.g., 1024', { defaultValue: String(selectedEntry.permissionLevel) });
+                        .textField('Permission Level', 'e.g., 1024', {
+                            defaultValue: String(selectedEntry.permissionLevel)
+                        });
 
                     const editResponse = await utils.uiWait(player, editForm);
-                    if (editResponse.canceled) { return showPanel(player, panelId, context); }
+                    if (editResponse.canceled) {
+                        return showPanel(player, panelId, context);
+                    }
 
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] = editResponse.formValues as any[];
+
+                    const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] =
+                        editResponse.formValues as any[];
                     const buyPrice = Number(buyPriceStr);
                     const sellPrice = Number(sellPriceStr);
                     const permissionLevel = Number(permLevelStr);
 
-                    if (displayName && minecraftId && icon && !isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
+                    if (
+                        displayName &&
+                        minecraftId &&
+                        icon &&
+                        !isNaN(buyPrice) &&
+                        !isNaN(sellPrice) &&
+                        !isNaN(permissionLevel)
+                    ) {
                         const result = shopAdminManager.updateShopItem(categoryName, null, selectedEntry.id, {
                             // @ts-ignore - Type mismatch in ItemData
-                            buyPrice, sellPrice, permissionLevel, icon, minecraftId, displayName
+                            buyPrice,
+                            sellPrice,
+                            permissionLevel,
+                            icon,
+                            minecraftId,
+                            displayName
                         });
                         player.sendMessage(result.message);
                     } else {
                         player.sendMessage('§cInvalid data. Please check all fields.');
                     }
-                } else { // Delete
+                } else {
+                    // Delete
                     const result = shopAdminManager.removeItem(categoryName, null, selectedEntry.id);
                     player.sendMessage(result.message);
                 }
-            } else { // subCategory
-                return showPanel(player, `shopAdminSubCategoryItemPanel_${selectedEntry.name}`, { ...context, subCategoryName: selectedEntry.name });
+            } else {
+                // subCategory
+                return showPanel(player, `shopAdminSubCategoryItemPanel_${selectedEntry.name}`, {
+                    ...context,
+                    subCategoryName: selectedEntry.name
+                });
             }
             return showPanel(player, panelId, { ...context, page: 1 });
         }
@@ -1330,15 +1582,19 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     if (panelId.startsWith('shopAdminCategoryActionPanel_')) {
         const categoryName = panelId.replace('shopAdminCategoryActionPanel_', '');
 
-        if (selection === 0) { // Edit
+        if (selection === 0) {
+            // Edit
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const shopConfig: any = getShopConfig();
             const category = shopConfig.categories[categoryName];
-            const form = new ModalFormData().title('Edit Category')
+            const form = new ModalFormData()
+                .title('Edit Category')
                 .textField('Category Name', 'Enter new name', { defaultValue: categoryName })
                 .textField('Icon', 'Enter icon texture path', { defaultValue: category.icon });
             const response = await utils.uiWait(player, form);
-            if (response.canceled) { return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context); }
+            if (response.canceled) {
+                return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
+            }
             const [newName, newIcon] = response.formValues;
             if (newName) {
                 const result = shopAdminManager.editCategory(categoryName, newName, newIcon);
@@ -1346,7 +1602,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             }
             return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
         }
-        if (selection === 1) { // Delete
+        if (selection === 1) {
+            // Delete
             showConfirmationDialog(player, {
                 title: 'Confirm Deletion',
                 body: 'Are you sure?',
@@ -1363,64 +1620,98 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             });
             return;
         }
-        if (selection === 2) { // Back
+        if (selection === 2) {
+            // Back
             return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
         }
     }
 
     if (panelId.startsWith('shopAdminSubCategoryItemPanel_')) {
         const { categoryName, subCategoryName, page = 1 } = context;
-        if (selection === 0) { return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context); }
-        if (selection === 1) { // Add Item
+        if (selection === 0) {
+            return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
+        }
+        if (selection === 1) {
+            // Add Item
             return showPanel(player, `shopAddItemPanel_${categoryName}`, { ...context, subCategoryName });
         }
-        if (selection === 2) { // Edit Subcategory
+        if (selection === 2) {
+            // Edit Subcategory
             return showPanel(player, `shopAdminSubCategoryActionPanel_${subCategoryName}`, context);
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const shopConfig: any = getShopConfig();
         const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
-        const items = Object.keys(subCategory.items).map(id => ({ id, ...subCategory.items[id], type: 'item' }));
+        const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
         const paginatedItems = getPaginatedItems(items, page);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const selectedItem: any = paginatedItems[selection - 3];
 
         if (selectedItem) {
-            const form = new ActionFormData().title('Edit Item')
+            const form = new ActionFormData()
+                .title('Edit Item')
                 .button('Edit', 'textures/ui/icon_setting')
                 .button('Delete', 'textures/ui/trash');
             const response = await utils.uiWait(player, form);
-            if (response.canceled) { return showPanel(player, panelId, context); }
-            if (response.selection === 0) { // Edit
+            if (response.canceled) {
+                return showPanel(player, panelId, context);
+            }
+            if (response.selection === 0) {
+                // Edit
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const masterItem = (allItems as any)[selectedItem.id] || {};
-                const editForm = new ModalFormData().title(`Edit Item: ${selectedItem.id}`)
-                    .textField('Display Name', 'e.g., Magical Sword', { defaultValue: selectedItem.displayName || masterItem.displayName })
-                    .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', { defaultValue: masterItem.itemId })
-                    .textField('Icon Path', 'e.g., textures/items/diamond_sword', { defaultValue: selectedItem.icon || masterItem.icon })
+                const editForm = new ModalFormData()
+                    .title(`Edit Item: ${selectedItem.id}`)
+                    .textField('Display Name', 'e.g., Magical Sword', {
+                        defaultValue: selectedItem.displayName || masterItem.displayName
+                    })
+                    .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', {
+                        defaultValue: masterItem.itemId
+                    })
+                    .textField('Icon Path', 'e.g., textures/items/diamond_sword', {
+                        defaultValue: selectedItem.icon || masterItem.icon
+                    })
                     .textField('Buy Price', '-1 to disable', { defaultValue: String(selectedItem.buyPrice) })
                     .textField('Sell Price', '-1 to disable', { defaultValue: String(selectedItem.sellPrice) })
-                    .textField('Permission Level', 'e.g., 1024', { defaultValue: String(selectedItem.permissionLevel) });
+                    .textField('Permission Level', 'e.g., 1024', {
+                        defaultValue: String(selectedItem.permissionLevel)
+                    });
 
                 const editResponse = await utils.uiWait(player, editForm);
-                if (editResponse.canceled) { return showPanel(player, panelId, context); }
+                if (editResponse.canceled) {
+                    return showPanel(player, panelId, context);
+                }
 
-                const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] = editResponse.formValues;
+                const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] =
+                    editResponse.formValues;
                 const buyPrice = Number(buyPriceStr);
                 const sellPrice = Number(sellPriceStr);
                 const permissionLevel = Number(permLevelStr);
 
-                if (displayName && minecraftId && icon && !isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
+                if (
+                    displayName &&
+                    minecraftId &&
+                    icon &&
+                    !isNaN(buyPrice) &&
+                    !isNaN(sellPrice) &&
+                    !isNaN(permissionLevel)
+                ) {
                     const result = shopAdminManager.updateShopItem(categoryName, subCategoryName, selectedItem.id, {
                         // @ts-ignore - Type mismatch in ItemData
-                        buyPrice, sellPrice, permissionLevel, icon, minecraftId, displayName
+                        buyPrice,
+                        sellPrice,
+                        permissionLevel,
+                        icon,
+                        minecraftId,
+                        displayName
                     });
                     player.sendMessage(result.message);
                 } else {
                     player.sendMessage('§cInvalid data. Please check all fields.');
                 }
-            } else { // Delete
+            } else {
+                // Delete
                 const result = shopAdminManager.removeItem(categoryName, subCategoryName, selectedItem.id);
                 player.sendMessage(result.message);
             }
@@ -1445,15 +1736,19 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     if (panelId.startsWith('shopAdminSubCategoryActionPanel_')) {
         const subCategoryName = panelId.replace('shopAdminSubCategoryActionPanel_', '');
         const { categoryName } = context;
-        if (selection === 0) { // Edit
+        if (selection === 0) {
+            // Edit
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const shopConfig: any = getShopConfig();
             const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
-            const form = new ModalFormData().title('Edit Subcategory')
+            const form = new ModalFormData()
+                .title('Edit Subcategory')
                 .textField('Subcategory Name', 'Enter new name', { defaultValue: subCategoryName })
                 .textField('Icon', 'Enter icon texture path', { defaultValue: subCategory.icon });
             const response = await utils.uiWait(player, form);
-            if (response.canceled) { return showPanel(player, `shopAdminSubCategoryItemPanel_${subCategoryName}`, context); }
+            if (response.canceled) {
+                return showPanel(player, `shopAdminSubCategoryItemPanel_${subCategoryName}`, context);
+            }
             const [newName, newIcon] = response.formValues;
             if (newName) {
                 const result = shopAdminManager.editSubCategory(categoryName, subCategoryName, newName, newIcon);
@@ -1461,7 +1756,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             }
             return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
         }
-        if (selection === 1) { // Delete
+        if (selection === 1) {
+            // Delete
             showConfirmationDialog(player, {
                 title: 'Confirm Deletion',
                 body: 'Are you sure?',
@@ -1478,7 +1774,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             });
             return;
         }
-        if (selection === 2) { // Back
+        if (selection === 2) {
+            // Back
             return showPanel(player, `shopAdminSubCategoryItemPanel_${subCategoryName}`, context);
         }
     }
@@ -1489,7 +1786,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const page = context.page || 1;
 
         // Handle Back button
-        if (selection === 0) { return showPanel(player, 'configCategoryPanel'); }
+        if (selection === 0) {
+            return showPanel(player, 'configCategoryPanel');
+        }
 
         // Handle global toggle button
         if (selection === 1) {
@@ -1550,13 +1849,15 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         // After kit items, check for pagination buttons
         let currentButtonIndex = kitEndIndex + 1;
 
-        if (page > 1) { // Previous Page button exists
+        if (page > 1) {
+            // Previous Page button exists
             if (selection === currentButtonIndex) {
                 return showPanel(player, panelId, { ...context, page: page - 1 });
             }
             currentButtonIndex++;
         }
-        if (page < totalPages) { // Next Page button exists
+        if (page < totalPages) {
+            // Next Page button exists
             if (selection === currentButtonIndex) {
                 return showPanel(player, panelId, { ...context, page: page + 1 });
             }
@@ -1564,9 +1865,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         return; // Should not be reached
     }
-
-
-
 
     if (panelId.startsWith('kitSettingsPanel_')) {
         const kitName = panelId.replace('kitSettingsPanel_', ''); // This is the original (lowercase) name
@@ -1612,7 +1910,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 return showPanel(player, `kitSettingsPanel_${kitName}`, context);
             case 1: // Edit Items
                 return showPanel(player, `kitItemsPanel_${kitName}`, context);
-            case 2: { // Delete Kit
+            case 2: {
+                // Delete Kit
                 showConfirmationDialog(player, {
                     title: `Delete Kit: ${kitName}?`,
                     body: 'This action cannot be undone.',
@@ -1642,7 +1941,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const kit = allKits[kitName];
         const page = context.page || 1;
 
-        if (selection === 0) { // Add New Item
+        if (selection === 0) {
+            // Add New Item
             const form = new ModalFormData()
                 .title('Add New Item')
                 .textField('Item ID', 'e.g., minecraft:diamond')
@@ -1672,7 +1972,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         if (selection >= itemStartIndex && selection <= itemEndIndex) {
             const selectedItemIndexInPage = selection - itemStartIndex;
-            const selectedItemIndex = ((page - 1) * itemsPerPage) + selectedItemIndexInPage;
+            const selectedItemIndex = (page - 1) * itemsPerPage + selectedItemIndexInPage;
             const selectedItem = kit.items[selectedItemIndex];
 
             const form = new ModalFormData()
@@ -1716,7 +2016,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             }
             buttonIndex++;
         }
-        if (selection === buttonIndex) { // Back button
+        if (selection === buttonIndex) {
+            // Back button
             return showPanel(player, `kitActionMenu_${kitName}`, context);
         }
         return;
@@ -1742,13 +2043,12 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, panelId, context);
         }
 
-
         const kitsConfig = getKitsConfig();
         if (kitsConfig.kitDefinitions[kitName]) {
             kitsConfig.kitDefinitions[kitName].enabled = isEnabled;
             kitsConfig.kitDefinitions[kitName].cooldownSeconds = cooldown;
             kitsConfig.kitDefinitions[kitName].permissionLevel = permissionLevel;
-            saveKitsConfig();
+            saveKitsConfig(kitsConfig);
             player.sendMessage(`§2Successfully updated kit '${kitName}'.`);
         }
 
@@ -1758,7 +2058,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     if (panelId === 'commandSystemPanel') {
         const page = context.page || 1;
 
-        if (selection === 0) { // Back button
+        if (selection === 0) {
+            // Back button
             // Reset page to 1 when going back to the main category panel to prevent page number leakage
             return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
         }
@@ -1789,7 +2090,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             if (hasPrev && buttonIndex === 0) {
                 return showPanel(player, panelId, { ...context, page: page - 1 });
             }
-            if (hasPrev) { buttonIndex--; }
+            if (hasPrev) {
+                buttonIndex--;
+            }
 
             if (hasNext && buttonIndex === 0) {
                 return showPanel(player, panelId, { ...context, page: page + 1 });
@@ -1833,17 +2136,27 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         return showPanel(player, 'commandSystemPanel', context);
     }
 
-    if (panelId === 'bountyListPanel' || panelId === 'reportListPanel' || panelId === 'playerManagementPanel' || panelId === 'playerListPanel') {
+    if (
+        panelId === 'bountyListPanel' ||
+        panelId === 'reportListPanel' ||
+        panelId === 'playerManagementPanel' ||
+        panelId === 'playerListPanel'
+    ) {
         const page = context.page || 1;
 
-        if (selection === 0) { return showPanel(player, 'mainPanel'); }
+        if (selection === 0) {
+            return showPanel(player, 'mainPanel');
+        }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let allItems: any[] = [];
         if (panelId === 'bountyListPanel') {
             allItems = Array.from(bountyManager.getAllBounties().values()).sort((a, b) => b.amount - a.amount);
         } else if (panelId === 'reportListPanel') {
-            allItems = reportManager.getAllReports().filter(r => r.status === 'open' || r.status === 'assigned').sort((a, b) => a.timestamp - b.timestamp);
+            allItems = reportManager
+                .getAllReports()
+                .filter((r) => r.status === 'open' || r.status === 'assigned')
+                .sort((a, b) => a.timestamp - b.timestamp);
         } else if (panelId === 'playerManagementPanel') {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             allItems = Array.from(getAllPlayerNameIdMap().entries()).sort((a, b) => a[0].localeCompare(b[0])) as any[];
@@ -1881,11 +2194,23 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 const [selectedName, selectedId] = selectedItem;
                 const targetData = loadPlayerData(selectedId);
                 const contextName = targetData ? targetData.name : selectedName;
-                return showPanel(player, 'playerActionsPanel', { ...context, targetPlayerName: contextName, targetPlayerId: selectedId, fromPanel: panelId, targetData });
+                return showPanel(player, 'playerActionsPanel', {
+                    ...context,
+                    targetPlayerName: contextName,
+                    targetPlayerId: selectedId,
+                    fromPanel: panelId,
+                    targetData
+                });
             }
             if (panelId === 'playerListPanel') {
                 const targetData = getPlayer(selectedItem.id);
-                return showPanel(player, 'playerActionsPanel', { ...context, targetPlayerName: selectedItem.name, targetPlayerId: selectedItem.id, fromPanel: panelId, targetData });
+                return showPanel(player, 'playerActionsPanel', {
+                    ...context,
+                    targetPlayerName: selectedItem.name,
+                    targetPlayerId: selectedItem.id,
+                    fromPanel: panelId,
+                    targetData
+                });
             }
         }
 
@@ -1909,7 +2234,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         switch (selection) {
             case 0: // Edit Rank
                 return showPanel(player, 'editRankPanel', { ...context, rankId: rank.id });
-            case 1: { // Delete Rank
+            case 1: {
+                // Delete Rank
                 showConfirmationDialog(player, {
                     title: `§cDelete ${rank.name}?`,
                     body: 'This action cannot be undone.',
@@ -1977,7 +2303,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         if (selection >= rankStartIndex && selection <= rankEndIndex) {
             const selectedRank = paginatedRanks[selection - rankStartIndex];
-            const isSpecialRank = selectedRank.conditions.some((c: any) => c.type === 'isOwner' || c.type === 'default');
+            const isSpecialRank = selectedRank.conditions.some(
+                (c: any) => c.type === 'isOwner' || c.type === 'default'
+            );
 
             if (isSpecialRank) {
                 return showPanel(player, 'editRankPanel', { ...context, rankId: selectedRank.id });
@@ -1988,13 +2316,15 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         // Handle pagination
         let currentButtonIndex = rankEndIndex + 1;
-        if (page > 1) { // Previous Page
+        if (page > 1) {
+            // Previous Page
             if (selection === currentButtonIndex) {
                 return showPanel(player, panelId, { ...context, page: page - 1 });
             }
             currentButtonIndex++;
         }
-        if (page < totalPages) { // Next Page
+        if (page < totalPages) {
+            // Next Page
             if (selection === currentButtonIndex) {
                 return showPanel(player, panelId, { ...context, page: page + 1 });
             }
@@ -2004,10 +2334,12 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
     if (panelId === 'mobDropsSystemPanel') {
         const { page = 1 } = context;
-        if (selection === 0) { // Back
+        if (selection === 0) {
+            // Back
             return showPanel(player, 'economyPanel', context);
         }
-        if (selection === 1) { // Add New Mob
+        if (selection === 1) {
+            // Add New Mob
             return showPanel(player, 'addMobDropPanel', context);
         }
 
@@ -2054,9 +2386,13 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
     if (panelId === 'editMobDropPanel') {
         const { mobId } = context;
-        if (selection === 0) { // Edit Amount
-            const form = new ModalFormData().title(`Edit ${mobId}`)
-                .textField('Amount', 'Enter the new amount', { defaultValue: String(getEconomyConfig().mobMoney[mobId]) });
+        if (selection === 0) {
+            // Edit Amount
+            const form = new ModalFormData()
+                .title(`Edit ${mobId}`)
+                .textField('Amount', 'Enter the new amount', {
+                    defaultValue: String(getEconomyConfig().mobMoney[mobId])
+                });
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, 'mobDropsSystemPanel', context);
@@ -2073,21 +2409,24 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             player.sendMessage(`§2Successfully updated mob drop for ${mobId}.`);
             return showPanel(player, 'mobDropsSystemPanel', { ...context, page: 1 });
         }
-        if (selection === 1) { // Delete
+        if (selection === 1) {
+            // Delete
             const economyConfig = getEconomyConfig();
             delete economyConfig.mobMoney[mobId];
             saveEconomyConfig(economyConfig);
             player.sendMessage(`§2Successfully deleted mob drop for ${mobId}.`);
             return showPanel(player, 'mobDropsSystemPanel', { ...context, page: 1 });
         }
-        if (selection === 2) { // Back
+        if (selection === 2) {
+            // Back
             return showPanel(player, 'mobDropsSystemPanel', context);
         }
     }
 
-
     if (panelId === 'addRankPanel') {
-        if (canceled) { return showPanel(player, 'rankManagementPanel', context); }
+        if (canceled) {
+            return showPanel(player, 'rankManagementPanel', context);
+        }
 
         const [name, id, permLevelStr, nameColor, chatColor, prefix] = formValues;
         const permissionLevel = parseInt(permLevelStr, 10);
@@ -2187,7 +2526,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
     if (panelId === 'configCategoryPanel') {
         const page = context.page || 1;
-        if (selection === 0) { return showPanel(player, 'mainPanel'); }
+        if (selection === 0) {
+            return showPanel(player, 'mainPanel');
+        }
 
         const sortedSystems = getVisibleConfigSystems(pData);
         const paginatedSystems = getPaginatedItems(sortedSystems, page);
@@ -2213,11 +2554,12 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         return showPanel(player, panelId, { ...context, page: newPage });
     }
 
-
     if (panelId.startsWith('config_')) {
         const categoryId = panelId.replace('config_', '');
-        const category = configPanelSchema.find(c => c.id === categoryId);
-        if (!category) { return; }
+        const category = configPanelSchema.find((c) => c.id === categoryId);
+        if (!category) {
+            return;
+        }
 
         const configSource = category.configSource || 'main';
         const handler = configHandlers[configSource];
@@ -2251,18 +2593,22 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 return defaultValue ?? ''; // Fallback to empty string if default is not found
             }
 
-            const isNumericField = setting.key.includes('Seconds') ||
-                                   setting.key.includes('Balance') ||
-                                   setting.key.includes('maxHomes') ||
-                                   setting.key.includes('Interval') ||
-                                   setting.key.includes('Radius') ||
-                                   setting.key.endsWith('.x') ||
-                                   setting.key.endsWith('.y') ||
-                                   setting.key.endsWith('.z');
+            const isNumericField =
+                setting.key.includes('Seconds') ||
+                setting.key.includes('Balance') ||
+                setting.key.includes('maxHomes') ||
+                setting.key.includes('Interval') ||
+                setting.key.includes('Radius') ||
+                setting.key.endsWith('.x') ||
+                setting.key.endsWith('.y') ||
+                setting.key.endsWith('.z');
 
             if (setting.type === 'textField' && isNumericField) {
                 // For coordinate fields, an empty string should be treated as null (not set).
-                if (value.trim() === '' && (setting.key.endsWith('.x') || setting.key.endsWith('.y') || setting.key.endsWith('.z'))) {
+                if (
+                    value.trim() === '' &&
+                    (setting.key.endsWith('.x') || setting.key.endsWith('.y') || setting.key.endsWith('.z'))
+                ) {
                     return null;
                 }
 
@@ -2281,24 +2627,32 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const updates: Record<string, any> = {};
             category.settings.forEach((setting, index) => {
-                if (validationFailed) { return; }
+                if (validationFailed) {
+                    return;
+                }
                 const newValue = processAndValidate(setting, newValues[index]);
                 if (!validationFailed) {
                     updates[setting.key] = newValue;
                 }
             });
-            if (validationFailed) { return showPanel(player, panelId); }
+            if (validationFailed) {
+                return showPanel(player, panelId);
+            }
             handler.save(updates);
         } else {
             const configToSave = handler.get();
             category.settings.forEach((setting, index) => {
-                if (validationFailed) { return; }
+                if (validationFailed) {
+                    return;
+                }
                 const newValue = processAndValidate(setting, newValues[index]);
                 if (!validationFailed) {
                     setValueByPath(configToSave, setting.key, newValue);
                 }
             });
-            if (validationFailed) { return showPanel(player, panelId); }
+            if (validationFailed) {
+                return showPanel(player, panelId);
+            }
             handler.save(configToSave);
 
             // If the spawn config was just updated, re-initialize spawn protection
@@ -2325,7 +2679,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         if (categoryId === 'xray') {
             // Sync alertPermissionLevel with command permission
             // category.settings is in order of configPanelSchema. We find the index of alertPermissionLevel.
-            const permSettingIndex = category.settings.findIndex(s => s.key === 'notifications.alertPermissionLevel');
+            const permSettingIndex = category.settings.findIndex((s) => s.key === 'notifications.alertPermissionLevel');
             if (permSettingIndex !== -1) {
                 const newPermLevel = Number(newValues[permSettingIndex]);
                 if (!isNaN(newPermLevel)) {
@@ -2337,9 +2691,12 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         }
 
         // Dynamic redirect: Find which panel links to this config panel
-        const parentPanelId = Object.keys(panelDefinitions).find(pid =>
-            panelDefinitions[pid].items && panelDefinitions[pid].items.some(item => item.actionValue === panelId)
-        ) || 'configCategoryPanel';
+        const parentPanelId =
+            Object.keys(panelDefinitions).find(
+                (pid) =>
+                    panelDefinitions[pid].items &&
+                    panelDefinitions[pid].items.some((item) => item.actionValue === panelId)
+            ) || 'configCategoryPanel';
 
         // Ensure we return to the correct page if the parent supports pagination
         const { page } = context;
@@ -2374,15 +2731,23 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     const panelDef = panelDefinitions[panelId];
     const menuItems = getMenuItems(panelDef, pData.permissionLevel);
     const selectedItem = menuItems[selection];
-    if (!selectedItem) {return;}
+    if (!selectedItem) {
+        return;
+    }
 
-    if (selectedItem.id === '__back__') {return showPanel(player, selectedItem.actionValue, context);}
-    if (selectedItem.actionType === 'openPanel') {return showPanel(player, selectedItem.actionValue, context);}
+    if (selectedItem.id === '__back__') {
+        return showPanel(player, selectedItem.actionValue, context);
+    }
+    if (selectedItem.actionType === 'openPanel') {
+        return showPanel(player, selectedItem.actionValue, context);
+    }
     if (selectedItem.actionType === 'functionCall') {
         const actionFunction = uiActionFunctions[selectedItem.actionValue];
         if (actionFunction) {
             const shouldReload = await actionFunction(player, context, panelId);
-            if (shouldReload) {showPanel(player, panelId, context);}
+            if (shouldReload) {
+                showPanel(player, panelId, context);
+            }
         }
     }
 }

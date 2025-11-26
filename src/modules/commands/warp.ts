@@ -1,13 +1,15 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import { errorLog } from '../../core/logger.js';
-import * as warpsManager from '../../core/warpsManager.js';
+
 import { getConfig } from '../../core/configManager.js';
-import { startTeleportWarmup } from '../../core/utils.js';
-import { setCooldown } from '../../core/cooldownManager.js';
-import { sendMessage } from '../../core/messaging.js';
 import { constants } from '../../core/constants.js';
+import { setCooldown } from '../../core/cooldownManager.js';
+import { errorLog } from '../../core/logger.js';
+import { sendMessage } from '../../core/messaging.js';
+import { startTeleportWarmup } from '../../core/utils.js';
+import * as warpsManager from '../../core/warpsManager.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const warpCommand: CustomCommand = {
     name: 'warp',
@@ -16,11 +18,11 @@ const warpCommand: CustomCommand = {
     permissionLevel: 1024,
     hasCooldown: true,
     cooldownId: 'warp',
-    parameters: [
-        { name: 'warpName', type: 'string', optional: true }
-    ],
+    parameters: [{ name: 'warpName', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.warps.enabled) {
             sendMessage(constants.warpsDisabled, executor);
@@ -61,23 +63,29 @@ const warpCommand: CustomCommand = {
             return;
         }
 
-        const form = new ActionFormData()
-            .title('Teleport to a Warp')
-            .body('Select a warp to teleport to:');
+        const form = new ActionFormData().title('Teleport to a Warp').body('Select a warp to teleport to:');
 
         warpList.forEach((warpName: string) => {
             const location = warpsManager.getWarp(warpName);
             if (location) {
-                form.button(`${warpName}\n§7(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`);
+                form.button(
+                    `${warpName}\n§7(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`
+                );
             }
         });
 
-        form.show(executor).then(response => {
-            if (response.canceled) {return;}
-            if (response.selection === undefined) {return;}
-            const selectedWarp = warpList[response.selection];
-            teleportToWarp(selectedWarp);
-        }).catch(e => errorLog(`[/warp UI] ${e.stack}`));
+        form.show(executor)
+            .then((response) => {
+                if (response.canceled) {
+                    return;
+                }
+                if (response.selection === undefined) {
+                    return;
+                }
+                const selectedWarp = warpList[response.selection];
+                teleportToWarp(selectedWarp);
+            })
+            .catch((e) => errorLog(`[/warp UI] ${e.stack}`));
     }
 };
 
@@ -93,8 +101,10 @@ const addWarpCommand: CustomCommand = {
         { name: 'z', type: 'int', optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
-        const { warpName, x, y, z } = args as { warpName: string, x?: number, y?: number, z?: number };
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const { warpName, x, y, z } = args as { warpName: string; x?: number; y?: number; z?: number };
         const hasX = x !== undefined && x !== null;
         const hasY = y !== undefined && y !== null;
         const hasZ = z !== undefined && z !== null;
@@ -106,7 +116,10 @@ const addWarpCommand: CustomCommand = {
         } else if (!hasX && !hasY && !hasZ) {
             location = executor.location;
         } else {
-            sendMessage('§cYou must provide all three coordinates (x, y, z) or none to use your current location.', executor);
+            sendMessage(
+                '§cYou must provide all three coordinates (x, y, z) or none to use your current location.',
+                executor
+            );
             return;
         }
 
@@ -119,11 +132,11 @@ const delWarpCommand: CustomCommand = {
     name: 'delwarp',
     description: 'Deletes an existing warp.',
     permissionLevel: 1, // Admin
-    parameters: [
-        { name: 'warpName', type: 'string', optional: true }
-    ],
+    parameters: [{ name: 'warpName', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const deleteWarpByName = (warpName: string) => {
             const result = warpsManager.deleteWarp(warpName);
@@ -142,18 +155,22 @@ const delWarpCommand: CustomCommand = {
             return;
         }
 
-        const form = new ActionFormData()
-            .title('Delete a Warp')
-            .body('Select a warp to delete:');
+        const form = new ActionFormData().title('Delete a Warp').body('Select a warp to delete:');
 
         warpList.forEach((warpName: string) => form.button(warpName));
 
-        form.show(executor).then(response => {
-            if (response.canceled) {return;}
-            if (response.selection === undefined) {return;}
-            const selectedWarp = warpList[response.selection];
-            deleteWarpByName(selectedWarp);
-        }).catch(e => errorLog(`[/delwarp UI] ${e.stack}`));
+        form.show(executor)
+            .then((response) => {
+                if (response.canceled) {
+                    return;
+                }
+                if (response.selection === undefined) {
+                    return;
+                }
+                const selectedWarp = warpList[response.selection];
+                deleteWarpByName(selectedWarp);
+            })
+            .catch((e) => errorLog(`[/delwarp UI] ${e.stack}`));
     }
 };
 

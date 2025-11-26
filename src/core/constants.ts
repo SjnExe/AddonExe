@@ -3,6 +3,12 @@
  * Using constants helps prevent "magic strings" and makes the code easier to maintain.
  */
 
+export const DimensionId = {
+    Overworld: 'minecraft:overworld',
+    Nether: 'minecraft:nether',
+    End: 'minecraft:the_end'
+};
+
 export const constants = {
     // --- Entity Identifiers ---
     floatingTextId: 'addonexe:floating_text',

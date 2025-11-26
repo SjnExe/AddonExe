@@ -1,8 +1,8 @@
 import { getConfig, updateConfig } from '../configManager.js';
 import { errorLog } from '../logger.js';
 import { updateAllPlayerRanks } from '../main.js';
-import { startRestart } from '../restartManager.js';
 import * as rankManager from '../rankManager.js';
+import { startRestart } from '../restartManager.js';
 
 export function handleScriptEventReceive(event) {
     const { id, sourceEntity } = event;
@@ -16,8 +16,9 @@ export function handleScriptEventReceive(event) {
     }
 
     const config = getConfig(); // Config should be loaded by the time this event fires for custom events.
-    if (!config) { return; }
-
+    if (!config) {
+        return;
+    }
 
     switch (id) {
         case 'exe:restart':
@@ -43,12 +44,14 @@ export function handleScriptEventReceive(event) {
             if (sourceEntity && sourceEntity.addTag) {
                 const adminRank = rankManager.getRankById('admin');
                 if (!adminRank) {
-                    errorLog('[AddonExe] Could not grant admin rank because the "admin" rank definition was not found.');
+                    errorLog(
+                        '[AddonExe] Could not grant admin rank because the "admin" rank definition was not found.'
+                    );
                     sourceEntity.sendMessage('§cError: The admin rank is not configured.');
                     return;
                 }
 
-                const adminTagCondition = adminRank.conditions.find(c => c.type === 'hasTag');
+                const adminTagCondition = adminRank.conditions.find((c) => c.type === 'hasTag');
                 if (!adminTagCondition || !adminTagCondition.value) {
                     errorLog('[AddonExe] Could not grant admin rank because it lacks a valid "hasTag" condition.');
                     sourceEntity.sendMessage('§cError: The admin rank is not configured with a valid tag.');
