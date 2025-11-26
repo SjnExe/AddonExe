@@ -75,7 +75,9 @@ export default tseslint.config(
                 '@minecraft/common',
                 '@minecraft/diagnostics',
                 '@minecraft/debug-utilities',
-                '@minecraft/gameplay-utilities'
+                '@minecraft/gameplay-utilities',
+                '@minecraft/math',
+                '@minecraft/vanilla-data'
             ]
         },
         rules: {
