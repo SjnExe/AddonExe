@@ -7,6 +7,10 @@ import { playSound } from '../../core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
+interface ClearCommandArgs {
+    target?: mc.Player[];
+}
+
 const clearCommand: CustomCommand = {
     name: 'clear',
     slashName: 'xclear',
@@ -15,9 +19,9 @@ const clearCommand: CustomCommand = {
     permissionLevel: 2,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'player', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: ClearCommandArgs) => {
         let targetPlayer: mc.Player;
-        const targetPlayers = args.target as mc.Player[] | undefined;
+        const targetPlayers = args.target;
 
         if (targetPlayers && targetPlayers.length > 0) {
             targetPlayer = targetPlayers[0];

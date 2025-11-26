@@ -11,13 +11,13 @@ import * as teamManager from '../teamManager.js';
 
 export const eventName = 'entityDie';
 
-function handleEntityDie(event) {
+function handleEntityDie(event: mc.EntityDieAfterEvent) {
     const { deadEntity } = event;
     if (deadEntity.typeId !== 'minecraft:player') {
         return;
     }
 
-    const deadPlayer = deadEntity;
+    const deadPlayer = deadEntity as mc.Player;
     const config = getConfig();
 
     if (config.playerInfo.enableDeathCoords) {
@@ -71,7 +71,7 @@ function handleEntityDie(event) {
                 debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
             }
         }
-    } catch (e) {
+    } catch (e: any) {
         errorLog('[BountyClaim] A fatal error occurred during bounty processing.');
         try {
             errorLog(`[BountyClaim] Raw Error: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}`);

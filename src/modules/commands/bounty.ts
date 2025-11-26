@@ -41,6 +41,11 @@ function placeBounty(player: mc.Player, targetPlayer: mc.Player, amount: number)
     mc.world.sendMessage(`§cSomeone has placed a bounty of §e$${amount}§c on ${targetPlayer.name}!`);
 }
 
+interface RemoveBountyArgs {
+    target?: mc.Player[];
+    amount?: number;
+}
+
 const removeBountyCommand: CustomCommand = {
     name: 'removebounty',
     aliases: ['rbounty', 'delbounty', '-bounty'],
@@ -50,11 +55,11 @@ const removeBountyCommand: CustomCommand = {
         { name: 'amount', type: 'float' },
         { name: 'target', type: 'player', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: RemoveBountyArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target, amount } = args as { target?: mc.Player[]; amount?: number };
+        const { target, amount } = args;
         let targetPlayer = executor;
 
         if (target && target.length > 0) {
@@ -91,6 +96,11 @@ const removeBountyCommand: CustomCommand = {
     }
 };
 
+interface BountyCommandArgs {
+    target?: mc.Player[];
+    amount?: number;
+}
+
 const bountyCommand: CustomCommand = {
     name: 'bounty',
     description: 'Place a bounty on a player.',
@@ -100,11 +110,11 @@ const bountyCommand: CustomCommand = {
         { name: 'target', type: 'player' },
         { name: 'amount', type: 'int' }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: BountyCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target, amount } = args as { target?: mc.Player[]; amount?: number };
+        const { target, amount } = args;
         if (!target || target.length === 0) {
             executor.sendMessage('§cPlayer not found.');
             return;
@@ -117,6 +127,10 @@ const bountyCommand: CustomCommand = {
     }
 };
 
+interface ListBountyArgs {
+    target?: mc.Player[];
+}
+
 const listBountyCommand: CustomCommand = {
     name: 'listbounty',
     aliases: ['lbounty', 'bounties', 'bountylist', 'showbounties', 'hitlist'],
@@ -124,8 +138,8 @@ const listBountyCommand: CustomCommand = {
     permissionLevel: 1024,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'player', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const targetPlayers = args.target as mc.Player[] | undefined;
+    execute: (executor: CommandExecutor, args: ListBountyArgs) => {
+        const targetPlayers = args.target;
         if (targetPlayers && targetPlayers.length > 0) {
             const targetPlayer = targetPlayers[0];
             const bounty = bountyManager.getBounty(targetPlayer.id);

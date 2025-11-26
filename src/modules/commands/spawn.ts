@@ -11,6 +11,13 @@ import { initializeSpawnProtection } from '../detections/spawnProtection.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
+interface SpawnLocation {
+    x?: number;
+    y?: number;
+    z?: number;
+    dimensionId: string;
+}
+
 const spawnCommand: CustomCommand = {
     name: 'spawn',
     aliases: ['lobby', 'hub'],
@@ -24,7 +31,7 @@ const spawnCommand: CustomCommand = {
 
         const config = getConfig();
         const spawnConfig = getSpawnConfig();
-        const spawnLocation = spawnConfig.spawn.spawnLocation as any;
+        const spawnLocation = spawnConfig.spawn.spawnLocation as SpawnLocation | undefined;
 
         if (!spawnLocation || typeof spawnLocation.x !== 'number') {
             sendMessage('§cThe server spawn point has not been set.', executor);
@@ -46,16 +53,18 @@ const spawnCommand: CustomCommand = {
         const teleportLogic = () => {
             try {
                 const dimension = mc.world.getDimension(spawnLocation.dimensionId);
-                executor.teleport(spawnLocation, { dimension: dimension });
+                executor.teleport(spawnLocation as mc.Vector3, { dimension: dimension });
                 sendMessage('§aTeleporting you to spawn...', executor);
                 playSound(executor, 'random.orb');
                 setCooldown(executor, 'spawn');
-            } catch (e: any) {
+            } catch (e: unknown) {
                 sendMessage(
                     '§cFailed to teleport to spawn. The dimension may be invalid or the location unsafe.',
                     executor
                 );
-                errorLog(`[/spawn] Failed to teleport: ${e.stack}`);
+                if (e instanceof Error) {
+                    errorLog(`[/spawn] Failed to teleport: ${e.stack}`);
+                }
                 playSound(executor, 'note.bass');
             }
         };
@@ -63,6 +72,12 @@ const spawnCommand: CustomCommand = {
         startTeleportWarmup(executor, warmupSeconds, teleportLogic, 'spawn');
     }
 };
+
+interface SetSpawnArgs {
+    x?: number;
+    y?: number;
+    z?: number;
+}
 
 const setSpawnCommand: CustomCommand = {
     name: 'setspawn',
@@ -75,9 +90,9 @@ const setSpawnCommand: CustomCommand = {
         { name: 'y', type: 'float', optional: true },
         { name: 'z', type: 'float', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        let location;
-        const { x, y, z } = args as { x?: number; y?: number; z?: number };
+    execute: (executor: CommandExecutor, args: SetSpawnArgs) => {
+        let location: SpawnLocation;
+        const { x, y, z } = args;
 
         if (x !== undefined && y !== undefined && z !== undefined) {
             location = {
@@ -110,9 +125,9 @@ const setSpawnCommand: CustomCommand = {
 
         try {
             const spawnConfig = getSpawnConfig();
-            spawnConfig.spawn.spawnLocation = location as any;
+            spawnConfig.spawn.spawnLocation = location;
             saveSpawnConfig(spawnConfig);
-            const locationString = `§aAddon spawn point set to: §fX: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)} in ${location.dimensionId.replace('minecraft:', '')}`;
+            const locationString = `§aAddon spawn point set to: §fX: ${location.x!.toFixed(2)}, Y: ${location.y!.toFixed(2)}, Z: ${location.z!.toFixed(2)} in ${location.dimensionId.replace('minecraft:', '')}`;
 
             if (executor instanceof mc.Player) {
                 sendMessage(locationString, executor);
@@ -126,15 +141,17 @@ const setSpawnCommand: CustomCommand = {
 
             if (location.dimensionId === 'minecraft:overworld') {
                 try {
-                    const spawnPos = { x: location.x, y: location.y, z: location.z };
+                    const spawnPos = { x: location.x!, y: location.y!, z: location.z! };
                     mc.world.setDefaultSpawnLocation(spawnPos);
                     if (executor instanceof mc.Player) {
                         sendMessage('§aWorld spawn point updated successfully.', executor);
                     } else {
                         executor.sendMessage('§aWorld spawn point updated successfully.');
                     }
-                } catch (e: any) {
-                    errorLog(`[/setspawn] Failed to set default world spawn: ${e.stack}`);
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        errorLog(`[/setspawn] Failed to set default world spawn: ${e.stack}`);
+                    }
                     if (executor instanceof mc.Player) {
                         sendMessage(
                             '§cError: Could not set the world spawn point. Check server logs for details.',
@@ -153,8 +170,10 @@ const setSpawnCommand: CustomCommand = {
                     } else {
                         executor.sendMessage('§aWorld spawn radius set to 1.');
                     }
-                } catch (e: any) {
-                    errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${e.stack}`);
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${e.stack}`);
+                    }
                     if (executor instanceof mc.Player) {
                         sendMessage(
                             '§cError: Could not set the spawn radius. Check server logs for details.',
@@ -169,13 +188,15 @@ const setSpawnCommand: CustomCommand = {
             if (executor instanceof mc.Player) {
                 playSound(executor, 'random.orb');
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             if (executor instanceof mc.Player) {
                 sendMessage('§cAn unexpected error occurred while setting the spawn.', executor);
             } else {
                 executor.sendMessage('§cAn unexpected error occurred while setting the spawn.');
             }
-            errorLog(`[/setspawn] General error: ${e.stack}`);
+            if (e instanceof Error) {
+                errorLog(`[/setspawn] General error: ${e.stack}`);
+            }
         }
     }
 };

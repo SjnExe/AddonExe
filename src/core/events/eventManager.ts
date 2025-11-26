@@ -11,13 +11,33 @@ import handlePlayerLeave from './playerLeave.js';
 import { initializePlayerSpawnEvent } from './playerSpawn.js';
 import { handleScriptEventReceive } from './scriptEventReceive.js';
 
-interface EventSubscription<T> {
-    event: T | null;
-    handler: (event?: any) => void;
+type EventSignal =
+    | mc.ChatSendBeforeEventSignal
+    | mc.EntityDieAfterEventSignal
+    | mc.EntityHurtAfterEventSignal
+    | mc.ItemUseAfterEventSignal
+    | mc.PlayerDimensionChangeAfterEventSignal
+    | mc.PlayerLeaveAfterEventSignal
+    | mc.ScriptEventReceiveAfterEventSignal;
+
+type EventHandler = (
+    event:
+        | mc.ChatSendBeforeEvent
+        | mc.EntityDieAfterEvent
+        | mc.EntityHurtAfterEvent
+        | mc.ItemUseAfterEvent
+        | mc.PlayerDimensionChangeAfterEvent
+        | mc.PlayerLeaveAfterEvent
+        | mc.ScriptEventReceiveAfterEvent
+) => void;
+
+interface EventSubscription {
+    event: EventSignal | null;
+    handler: EventHandler | (() => void);
     name: string;
 }
 
-export const events: EventSubscription<any>[] = [
+export const events: EventSubscription[] = [
     { event: mc.world.beforeEvents.chatSend, handler: handleBeforeChatSend, name: 'beforeChatSend' },
     { event: null, handler: initializePlayerSpawnEvent, name: 'playerSpawn' },
     { event: mc.world.afterEvents.entityHurt, handler: handleEntityHurt, name: 'entityHurt' },
@@ -36,17 +56,17 @@ export function initializeEventManager() {
     for (const { event, handler, name } of events) {
         if (event) {
             try {
-                event.subscribe(handler);
-            } catch (e: any) {
+                event.subscribe(handler as (event: any) => void);
+            } catch (e: unknown) {
                 errorLog(
-                    `[EventManager] Failed to subscribe to event '${name}'. Error: ${e.message}\nStack: ${e.stack}`
+                    `[EventManager] Failed to subscribe to event '${name}'. Error: ${e}`
                 );
             }
         } else if (name === 'playerSpawn' && typeof handler === 'function') {
             try {
-                handler();
-            } catch (e: any) {
-                errorLog(`[EventManager] Failed to run initializer '${name}'. Error: ${e.message}\nStack: ${e.stack}`);
+                (handler as () => void)();
+            } catch (e: unknown) {
+                errorLog(`[EventManager] Failed to run initializer '${name}'. Error: ${e}`);
             }
         } else {
             errorLog(
@@ -60,10 +80,10 @@ export function cleanupEventManager() {
     for (const { event, handler, name } of events) {
         if (event) {
             try {
-                event.unsubscribe(handler);
-            } catch (e: any) {
+                event.unsubscribe(handler as (event: any) => void);
+            } catch (e: unknown) {
                 errorLog(
-                    `[EventManager] Failed to unsubscribe from event '${name}'. It may have not been subscribed. Error: ${e.message}`
+                    `[EventManager] Failed to unsubscribe from event '${name}'. It may have not been subscribed. Error: ${e}`
                 );
             }
         }

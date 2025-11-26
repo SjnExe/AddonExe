@@ -1,9 +1,10 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ModalFormData, MessageFormData } from '@minecraft/server-ui';
+import { ActionFormData, ModalFormData, MessageFormData, ActionFormResponse, ModalFormResponse, MessageFormResponse } from '@minecraft/server-ui';
 
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { errorLog } from './logger.js';
+import { Config } from './configManager.js';
 
 /**
  * Parses a duration string (e.g., "10m", "2h", "7d") and returns the duration in milliseconds.
@@ -52,7 +53,7 @@ export function parseDuration(durationString: string): number {
 export function playSound(player: mc.Player, soundId: string, options: mc.PlayerSoundOptions = {}): void {
     try {
         player.playSound(soundId, options);
-    } catch (e) {
+    } catch (e: unknown) {
         errorLog(`Failed to play sound "${soundId}" for player ${player.name}: ${e}`);
     }
 }
@@ -63,7 +64,7 @@ export function playSound(player: mc.Player, soundId: string, options: mc.Player
  * @param form The form to show.
  * @returns A promise that resolves with the form response, or undefined if it times out or is cancelled for other reasons.
  */
-export async function uiWait(player: mc.Player, form: ActionFormData | ModalFormData | MessageFormData): Promise<any> {
+export async function uiWait(player: mc.Player, form: ActionFormData | ModalFormData | MessageFormData): Promise<ActionFormResponse | ModalFormResponse | MessageFormResponse> {
     // REMOVED: playSound(player, 'random.click', { volume: 0.5, pitch: 1.0 });
     // The vanilla UI system already plays a click sound. Removing duplicate.
 
@@ -88,7 +89,18 @@ export async function uiWait(player: mc.Player, form: ActionFormData | ModalForm
         // We'll trust the loop.
     }
 
-    return undefined; // Timeout
+    return { canceled: true, cancelationReason: 'Timeout' } as ActionFormResponse; // Timeout
+}
+
+interface SoundEventConfig {
+    soundEvents?: {
+        [key: string]: {
+            enabled: boolean;
+            soundId: string;
+            volume: number;
+            pitch: number;
+        };
+    };
 }
 
 /**
@@ -98,8 +110,7 @@ export async function uiWait(player: mc.Player, form: ActionFormData | ModalForm
  */
 export function playSoundFromConfig(player: mc.Player, soundEventKey: string): void {
     try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const config: any = getConfig();
+        const config = getConfig() as SoundEventConfig;
         const soundEvent = config.soundEvents?.[soundEventKey];
         if (soundEvent && soundEvent.enabled) {
             player.playSound(soundEvent.soundId, {
@@ -107,7 +118,7 @@ export function playSoundFromConfig(player: mc.Player, soundEventKey: string): v
                 pitch: soundEvent.pitch
             });
         }
-    } catch (error) {
+    } catch (error: unknown) {
         errorLog(`Failed to play sound from config for key "${soundEventKey}": ${error}`);
     }
 }
@@ -155,8 +166,7 @@ export function startTeleportWarmup(
     const initialLocation = { x: player.location.x, y: player.location.y, z: player.location.z };
     const dimensionId = player.dimension.id;
     let intervalId: number | null = null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let hurtListener: any = null;
+    let hurtListener: ((event: mc.EntityHurtAfterEvent) => void) | null = null;
 
     const cleanup = () => {
         if (intervalId !== null) {
@@ -176,14 +186,16 @@ export function startTeleportWarmup(
         }
     };
 
-    hurtListener = mc.world.afterEvents.entityHurt.subscribe(
-        (event) => {
-            if (event.hurtEntity.id === player.id) {
-                player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
-                playSound(player, 'note.bass', { volume: 1.0, pitch: 0.5 });
-                cleanup();
-            }
-        },
+    hurtListener = (event: mc.EntityHurtAfterEvent) => {
+        if (event.hurtEntity.id === player.id) {
+            player.onScreenDisplay.setActionBar('§cTeleport canceled because you took damage.');
+            playSound(player, 'note.bass', { volume: 1.0, pitch: 0.5 });
+            cleanup();
+        }
+    };
+
+    mc.world.afterEvents.entityHurt.subscribe(
+        hurtListener,
         { entityTypes: ['minecraft:player'] }
     );
 
@@ -225,7 +237,7 @@ export function startTeleportWarmup(
                 cleanup();
                 onWarmupComplete();
             }
-        } catch (e) {
+        } catch (e: unknown) {
             errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${e}`);
             cleanup();
         }
@@ -238,8 +250,7 @@ export function startTeleportWarmup(
  * @param context An object containing the values to substitute.
  * @returns The formatted string.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function formatString(template: string, context: Record<string, any>): string {
+export function formatString(template: string, context: Record<string, string | number | boolean>): string {
     if (!template) {
         return '';
     }
@@ -325,6 +336,10 @@ export function formatLocation(location: { x: number; y: number; z: number; dime
     return `X: ${x}, Y: ${y}, Z: ${z} in ${dimensionName}`;
 }
 
+interface EconomyConfig {
+    currencySymbol?: string;
+}
+
 /**
  * Formats a number as a currency string, using the symbol from the config.
  * Supports short forms like k, M, B, T.
@@ -332,8 +347,7 @@ export function formatLocation(location: { x: number; y: number; z: number; dime
  * @returns The formatted currency string (e.g., "$105k").
  */
 export function formatCurrency(amount: number): string {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const economyConfig: any = getEconomyConfig();
+    const economyConfig = getEconomyConfig() as EconomyConfig;
     const symbol = economyConfig.currencySymbol || '$';
     const isNegative = amount < 0;
     const absAmount = Math.abs(amount);

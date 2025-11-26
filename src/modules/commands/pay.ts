@@ -14,6 +14,11 @@ import { formatCurrency } from '../../core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
+interface PayCommandArgs {
+    target?: mc.Player[];
+    amount?: number;
+}
+
 const payCommand: CustomCommand = {
     name: 'pay',
     aliases: ['givemoney', 'transfer'],
@@ -23,11 +28,11 @@ const payCommand: CustomCommand = {
         { name: 'target', type: 'player' },
         { name: 'amount', type: 'float' }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: PayCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target, amount } = args as { target?: mc.Player[]; amount?: number };
+        const { target, amount } = args;
         const config = getConfig();
         if (!config.economy.enabled) {
             return sendMessage(constants.economyDisabled, executor);

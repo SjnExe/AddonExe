@@ -73,13 +73,20 @@ function setGamemode(executor: CommandExecutor, gamemode: string, targetName?: s
             sendMessage(`§aSuccessfully set §e${targetPlayer.name}§a's gamemode to §e${gamemodeName}§a.`);
             sendMessage(`§aYour gamemode was set to §e${gamemodeName}§a by §e${announcer}§a.`, targetPlayer);
         }
-    } catch (e: any) {
+    } catch (e: unknown) {
         sendMessage('§cFailed to set gamemode. Please check the console for details.');
-        errorLog(`[/gamemode] Failed to set gamemode for ${targetPlayer.name}: ${e.stack}`);
+        if (e instanceof Error) {
+            errorLog(`[/gamemode] Failed to set gamemode for ${targetPlayer.name}: ${e.stack}`);
+        }
     }
 }
 
 // --- Command Definitions ---
+
+interface GamemodeCommandArgs {
+    gamemode: string;
+    target?: string;
+}
 
 const mainGamemodeCommand: CustomCommand = {
     name: 'gamemode',
@@ -98,8 +105,7 @@ const mainGamemodeCommand: CustomCommand = {
         { name: 'target', type: 'string', description: 'The target player name', optional: true }
     ],
     execute: (executor, args) => {
-        const gamemode = args.gamemode as string;
-        const target = args.target as string | undefined;
+        const { gamemode, target } = args as GamemodeCommandArgs;
         setGamemode(executor, gamemode, target);
     }
 };
@@ -128,6 +134,10 @@ const legacyCommandDefs: LegacyCommandDef[] = [
     }
 ];
 
+interface LegacyGamemodeArgs {
+    target?: string;
+}
+
 const legacyCommands: CustomCommand[] = legacyCommandDefs.map((cmd) => ({
     name: cmd.name,
     aliases: cmd.aliases,
@@ -137,7 +147,7 @@ const legacyCommands: CustomCommand[] = legacyCommandDefs.map((cmd) => ({
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string', description: 'The player to set the gamemode for', optional: true }],
     execute: (executor, args) => {
-        const target = args.target as string | undefined;
+        const { target } = args as LegacyGamemodeArgs;
         setGamemode(executor, cmd.gamemode, target);
     }
 }));

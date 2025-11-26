@@ -79,7 +79,7 @@
         "*.{js,ts,json,md}": "prettier --write"
     },
     "dependencies": {
-        "@minecraft/server": "^2.4.0-beta.1.21.124-stable",
-        "@minecraft/server-ui": "^2.1.0-beta.1.21.124-stable"
+        "@minecraft/server": "2.4.0-beta.1.21.124-stable",
+        "@minecraft/server-ui": "2.1.0-beta.1.21.124-stable"
     }
 }

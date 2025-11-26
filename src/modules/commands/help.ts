@@ -134,6 +134,10 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
     }
 }
 
+interface HelpCommandArgs {
+    command?: string;
+}
+
 const helpCommand: CustomCommand = {
     name: 'help',
     slashName: 'xhelp',
@@ -142,7 +146,7 @@ const helpCommand: CustomCommand = {
     permissionLevel: 1024,
     allowConsole: true,
     parameters: [{ name: 'command', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: HelpCommandArgs) => {
         let userPermissionLevel = 1024;
         if (executor instanceof mc.Player) {
             const pData = getPlayer(executor.id);

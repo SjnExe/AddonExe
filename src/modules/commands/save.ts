@@ -23,9 +23,11 @@ const command: CustomCommand = {
             if (executor instanceof mc.Player) {
                 playSoundFromConfig(executor, 'adminNotificationReceived');
             }
-        } catch (e: any) {
-            sendMessage(`§cAn error occurred during save: ${e.message}`);
-            errorLog(`[/save] Manual save failed: ${e.stack}`);
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                sendMessage(`§cAn error occurred during save: ${e.message}`);
+                errorLog(`[/save] Manual save failed: ${e.stack}`);
+            }
         }
     }
 };

@@ -1,10 +1,11 @@
+import * as mc from '@minecraft/server';
 import { getConfig, updateConfig } from '../configManager.js';
 import { errorLog } from '../logger.js';
 import { updateAllPlayerRanks } from '../main.js';
 import * as rankManager from '../rankManager.js';
 import { startRestart } from '../restartManager.js';
 
-export function handleScriptEventReceive(event) {
+export function handleScriptEventReceive(event: mc.ScriptEventReceiveAfterEvent) {
     const { id, sourceEntity } = event;
 
     // Handle script unload event

@@ -11,6 +11,12 @@ import { playSound } from '../../core/utils.js';
 import type { CustomCommand, CommandExecutor } from './commandManager.js';
 import type { RankCondition } from '../../core/ranksConfig.default.js';
 
+interface RankCommandArgs {
+    action?: string;
+    target?: string;
+    rankId?: string;
+}
+
 const command: CustomCommand = {
     name: 'rank',
     description: 'Manages player ranks. Lists all ranks if no arguments are given.',
@@ -22,10 +28,8 @@ const command: CustomCommand = {
         { name: 'target', type: 'string', description: 'The name of the target player.', optional: true },
         { name: 'rankId', type: 'string', description: 'The ID of the rank to set.', optional: true }
     ],
-    execute: (executor, args) => {
-        const action = args.action as string | undefined;
-        const targetName = args.target as string | undefined;
-        const rankId = args.rankId as string | undefined;
+    execute: (executor, args: RankCommandArgs) => {
+        const { action, target: targetName, rankId } = args;
 
         const usageMessage = '§cUsage: /rank <set|remove> <targetName> <rankId>\n§cUsage: /rank list (or /rank)';
 
@@ -133,9 +137,11 @@ const command: CustomCommand = {
             if (executor instanceof mc.Player) {
                 playSound(executor, 'random.orb');
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             sendExecutorMessage('§cFailed to update rank tag.');
-            errorLog(`[/rank] Error: ${e.stack}`);
+            if (e instanceof Error) {
+                errorLog(`[/rank] Error: ${e.stack}`);
+            }
         }
     }
 };

@@ -13,16 +13,13 @@ import { getOrCreatePlayer, incrementPlayerBalance } from '../playerDataManager.
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as tpaManager from '../tpaManager.js';
-// @ts-ignore - Importing from JS file
-// @ts-ignore - Importing from JS file
-// @ts-ignore - Importing from JS file
-// @ts-ignore - Importing from JS file
+// @ts-expect-error - Importing from a JS file that will be migrated later.
 import { showPanel } from '../uiManager.js';
 import { formatCurrency } from '../utils.js';
 import * as utils from '../utils.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UIContext = any;
+type UIContext = Record<string, any>;
 
 export const uiActionFunctions: Record<
     string,
@@ -42,7 +39,7 @@ export const uiActionFunctions: Record<
 
         const response = await utils.uiWait(player, rulesForm);
 
-        if (response.canceled) {
+        if (!response || response.canceled) {
             return;
         }
 
@@ -72,7 +69,7 @@ export const uiActionFunctions: Record<
 
         const response = await utils.uiWait(player, form);
 
-        if (response.canceled) {
+        if (!response || response.canceled) {
             return;
         }
 
@@ -338,7 +335,7 @@ export const uiActionFunctions: Record<
             .title(`Report ${targetPlayerName}`)
             .textField('Reason for report:', 'Enter the reason here');
         const response = await utils.uiWait(player, form);
-        if (response.canceled) {
+        if (!response || response.canceled) {
             player.sendMessage('§cReport canceled.');
             return true;
         }

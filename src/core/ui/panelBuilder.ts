@@ -4,22 +4,23 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { commandManager } from '../../modules/commands/commandManager.js';
 import * as bountyManager from '../bountyManager.js';
 import { getConfig } from '../configManager.js';
-import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig } from '../configurations.js';
+import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig, KitsConfig } from '../configurations.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { iconDB } from '../iconDB.js';
-import { items as allItems } from '../itemsConfig.default.js';
-import { getAllKits } from '../kitAdminManager.js';
+import { items as allItems, Item } from '../itemsConfig.default.js';
+import { getAllKits, Kit } from '../kitAdminManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
 import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
+import { ShopConfig, ShopItem, ShopSubCategory } from '../shopConfig.default.js';
 // @ts-ignore - Importing from JS file
 import { formatCurrency } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
-import { panelDefinitions, UIContext } from './panelRegistry.js';
+import { panelDefinitions, UIContext, PanelDefinition, PanelItem } from './panelRegistry.js';
 import {
     getVisibleConfigSystems,
     itemsPerPage,
@@ -28,20 +29,17 @@ import {
     addPaginationButtons
 } from './uiUtils.js';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getMenuItems(panelDef: any, permissionLevel: number) {
+export function getMenuItems(panelDef: PanelDefinition, permissionLevel: number) {
     const config = getConfig();
 
     const items = (panelDef.items || [])
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .filter((item: any) => {
+        .filter((item: PanelItem) => {
             if (item.actionValue === 'shopMainPanel' && !config.shop.enabled) {
                 return false;
             }
             return permissionLevel <= item.permissionLevel;
         })
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .sort((a: any, b: any) => (a.sortId || 0) - (b.sortId || 0));
+        .sort((a: PanelItem, b: PanelItem) => (a.sortId || 0) - (b.sortId || 0));
 
     if (panelDef.parentPanelId) {
         items.unshift({
@@ -112,16 +110,14 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
     const panelDef = panelDefinitions.playerActionsPanel;
     const config = getConfig();
     const allItems = getMenuItems(panelDef, permissionLevel);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const visibleItems: any[] = [];
+    const visibleItems: PanelItem[] = [];
     for (const item of allItems) {
         if (item.id === '__back__') {
             visibleItems.push(item);
             continue;
         }
         const commandName = item.id;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((config.commandSettings as any)[commandName]?.enabled === false) {
+        if ((config.commandSettings as Record<string, { enabled: boolean }>)[commandName]?.enabled === false) {
             continue;
         }
         if (context.fromPanel === 'playerManagementPanel' && item.permissionLevel < 1024) {
@@ -134,12 +130,10 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
 }
 
 function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const shopConfig: any = getShopConfig();
-
+    const shopConfig = getShopConfig() as ShopConfig;
 
     const validCategories = Object.keys(shopConfig.categories)
-        .filter((categoryName: any) => {
+        .filter((categoryName: string) => {
             const category = shopConfig.categories[categoryName];
             const hasItems = Object.keys(category.items).length > 0;
             const hasSubCategories = Object.keys(category.subCategories).length > 0;
@@ -152,8 +146,7 @@ function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
         return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const categoryName of validCategories as any[]) {
+    for (const categoryName of validCategories) {
         const category = shopConfig.categories[categoryName];
         form.button(categoryName, category.icon);
     }
@@ -161,8 +154,7 @@ function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
 
 function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
     const { categoryName, page = 1, view = 'shop' } = context;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const shopConfig: any = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
     const category = shopConfig.categories[categoryName ?? ''];
 
     if (!category) {
@@ -178,13 +170,11 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
     const allEntries = [...subCategories, ...items];
     const paginatedEntries = getPaginatedItems(allEntries, page);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const entry of paginatedEntries as any[]) {
+    for (const entry of paginatedEntries) {
         if (entry.type === 'subCategory') {
             form.button(`§e${entry.name}`, entry.icon);
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const masterItem = (allItems as any)[entry.id] || {};
+            const masterItem = (allItems as Record<string, Item>)[entry.id] || {};
             const displayName = entry.displayName || masterItem.displayName || entry.id;
             const icon = entry.icon || masterItem.icon;
             let priceString = '';
@@ -205,8 +195,7 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
 
 function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
     const { categoryName, subCategoryName, page = 1, view = 'shop' } = context;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const shopConfig: any = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
     const category = shopConfig.categories[categoryName ?? ''];
     if (!category) {
         form.body('§cCategory not found.');
@@ -221,10 +210,8 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
     const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
     const paginatedItems = getPaginatedItems(items, page);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const item of paginatedItems as any[]) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const masterItem = (allItems as any)[item.id] || {};
+    for (const item of paginatedItems) {
+        const masterItem = (allItems as Record<string, Item>)[item.id] || {};
         const displayName = item.displayName || masterItem.displayName || item.id;
         const icon = item.icon || masterItem.icon;
         let priceString = '';
@@ -244,8 +231,7 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
 
 function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
     const { page = 1 } = context;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mainConfig: any = getConfig();
+    const mainConfig = getConfig();
 
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
@@ -255,13 +241,11 @@ function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
 
     form.button('§l§2+ Add Category', 'textures/ui/color_plus');
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const shopConfig: any = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
     const categories = Object.keys(shopConfig.categories).sort();
     const paginatedCategories = getPaginatedItems(categories, page);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const categoryName of paginatedCategories as any[]) {
+    for (const categoryName of paginatedCategories) {
         const category = shopConfig.categories[categoryName];
         form.button(categoryName, category.icon);
     }
@@ -276,8 +260,7 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
     form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
     form.button('§l§9* Edit Category', 'textures/ui/icon_setting');
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const shopConfig: any = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
     const category = shopConfig.categories[categoryName ?? ''];
 
     if (!category) {
@@ -293,11 +276,9 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
     const allEntries = [...subCategories, ...items];
     const paginatedEntries = getPaginatedItems(allEntries, page);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const entry of paginatedEntries as any[]) {
+    for (const entry of paginatedEntries) {
         if (entry.type === 'item') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const masterItem = (allItems as any)[entry.id] || {};
+            const masterItem = (allItems as Record<string, Item>)[entry.id] || {};
             const displayName = entry.displayName || masterItem.displayName || entry.id;
             const icon = entry.icon || masterItem.icon;
             form.button(displayName, icon);
@@ -316,8 +297,7 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
     form.button('§l§9* Edit Subcategory', 'textures/ui/icon_setting');
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const shopConfig: any = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
     const category = shopConfig.categories[categoryName ?? ''];
     if (!category) {
         form.body('§cCategory not found.');
@@ -332,10 +312,8 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
     const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
     const paginatedItems = getPaginatedItems(items, page);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const item of paginatedItems as any[]) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const masterItem = (allItems as any)[item.id] || {};
+    for (const item of paginatedItems) {
+        const masterItem = (allItems as Record<string, Item>)[item.id] || {};
         const displayName = item.displayName || masterItem.displayName || item.id;
         const icon = item.icon || masterItem.icon;
         form.button(displayName, icon);
@@ -353,8 +331,7 @@ function buildShopAddItemPanel(form: ActionFormData, context: UIContext) {
     const paginatedItems = getPaginatedItems(allPossibleItems, page);
 
     for (const itemId of paginatedItems) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const masterItem = (allItems as any)[itemId];
+        const masterItem = (allItems as Record<string, Item>)[itemId];
         form.button(masterItem.displayName ?? itemId, masterItem.icon);
     }
 
@@ -513,8 +490,7 @@ function buildReportListForm(title: string, context: UIContext) {
 
 function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
     const { page = 1 } = context;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pData = getPlayer((context as any).player.id);
+    const pData = getPlayer((context.player as mc.Player).id);
     if (!pData) {
         return;
     }
@@ -528,8 +504,7 @@ function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
     }
     form.button('§l§2+ Add New Rank', 'textures/ui/color_plus');
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const allRanks = rankManager.getAllRanks().sort((a: any, b: any) => a.permissionLevel - b.permissionLevel);
+    const allRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);
 
     if (allRanks.length === 0) {
         form.body('§cNo ranks have been defined.');
@@ -549,8 +524,7 @@ function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
 
 function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
     const { page = 1 } = context;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mainConfig: any = getConfig();
+    const mainConfig = getConfig();
 
     // Add Back button
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
@@ -564,8 +538,7 @@ function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
     form.button('§l§2+ Create New Kit', 'textures/ui/color_plus');
 
     // Get all kit names and paginate them
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const allKits = getAllKits() as any;
+    const allKits = getAllKits() as Record<string, Kit>;
     const kitNames = Object.keys(allKits);
 
     if (kitNames.length === 0) {
@@ -586,15 +559,13 @@ function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
 
 function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
     const { page = 1 } = context;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config: any = getConfig();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const commandSettings = (config as any).commandSettings || {};
+    const config = getConfig();
+    const commandSettings = config.commandSettings || {};
 
     // Get all command names, filter out hidden ones, and sort alphabetically
 
     const allCommands = Object.keys(commandSettings)
-        .filter((cmd: any) => !cmd.startsWith('_')) // Assuming internal/hidden commands start with an underscore
+        .filter((cmd: string) => !cmd.startsWith('_')) // Assuming internal/hidden commands start with an underscore
         .sort();
 
     if (allCommands.length === 0) {
@@ -607,8 +578,7 @@ function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
     form.body('Toggle commands on or off.\n§2[Enabled]§r / §c[Disabled]§r');
 
     for (const commandName of paginatedCommands) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const isEnabled = (commandSettings as any)[commandName]?.enabled ?? false;
+        const isEnabled = (commandSettings as Record<string, { enabled: boolean }>)[commandName]?.enabled ?? false;
         const statusText = isEnabled ? '§2[Enabled]' : '§c[Disabled]';
         form.button(`${commandName}\n${statusText}`);
     }
@@ -642,12 +612,10 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 const currentValue = getValueFromPath(config, setting.key);
                 switch (setting.type) {
                     case 'toggle':
-                        form.toggle(setting.label, { defaultValue: !!currentValue });
+                        form.toggle(setting.label, !!currentValue);
                         break;
                     case 'textField':
-                        form.textField(setting.label, setting.description || '', {
-                            defaultValue: String(currentValue ?? '')
-                        });
+                        form.textField(setting.label, setting.description || '', String(currentValue ?? ''));
                         break;
                     case 'dropdown': {
                         let index = -1;
@@ -658,9 +626,11 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                         } else {
                             index = options.indexOf(currentValue as string);
                         }
-                        form.dropdown(setting.label, options, {
-                            defaultValueIndex: index >= 0 && index < options.length ? index : 0
-                        });
+                        form.dropdown(
+                            setting.label,
+                            options,
+                            index >= 0 && index < options.length ? index : 0
+                        );
                         break;
                     }
                 }
@@ -751,9 +721,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const form = new ModalFormData().title('Team Settings');
             // Personal Settings
-            form.toggle('Auto-Accept Team Teleport', { defaultValue: pData.teamSettings?.autoTpAccept ?? false });
+            form.toggle('Auto-Accept Team Teleport', pData.teamSettings?.autoTpAccept ?? false);
             if (canManage) {
-                form.toggle('Allow Join Requests', { defaultValue: team.open ?? true });
+                form.toggle('Allow Join Requests', team.open ?? true);
             }
             return form;
         }
@@ -998,8 +968,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId.startsWith('kitItemsPanel_')) {
             const kitName = panelId.replace('kitItemsPanel_', '');
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const allKits = getAllKits() as any;
+            const allKits = getAllKits() as Record<string, Kit>;
             const kit = allKits[kitName];
             const page = context.page || 1;
 
@@ -1012,8 +981,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 .title(`Edit Items: ${kitName}`)
                 .button('§l§2+ Add New Item', 'textures/ui/color_plus');
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const paginatedItems = getPaginatedItems(kit.items, page) as any[];
+            const paginatedItems = getPaginatedItems(kit.items, page);
 
             for (let i = 0; i < paginatedItems.length; i++) {
                 const item = paginatedItems[i];
@@ -1031,8 +999,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId.startsWith('kitSettingsPanel_')) {
             const kitName = panelId.replace('kitSettingsPanel_', '');
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const allKits = getAllKits() as any;
+            const allKits = getAllKits() as Record<string, Kit>;
             const kit = allKits[kitName];
 
             if (!kit) {
@@ -1042,17 +1009,14 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const form = new ModalFormData()
                 .title(`Edit Settings: ${kitName}`)
-                .toggle('Enabled', { defaultValue: kit.enabled })
-                .textField('Name', 'The name of the kit.', { defaultValue: kitName })
-                .textField('Description', 'A short description of the kit.', { defaultValue: kit.description || '' })
-                .textField('Icon', 'Texture path for the icon (e.g., textures/items/diamond_sword).', {
-                    defaultValue: kit.icon || ''
-                })
-                .textField('Cooldown (seconds)', 'Time between uses.', { defaultValue: String(kit.cooldownSeconds) })
-                .textField('Permission Level', '0=Admin, 1024=Member.', { defaultValue: String(kit.permissionLevel) })
-                .textField('Price', 'Cost to claim the kit.', { defaultValue: String(kit.price || 0) });
+                .toggle('Enabled', kit.enabled)
+                .textField('Name', 'The name of the kit.', kitName)
+                .textField('Description', 'A short description of the kit.', kit.description || '')
+                .textField('Icon', 'Texture path for the icon (e.g., textures/items/diamond_sword).', kit.icon || '')
+                .textField('Cooldown (seconds)', 'Time between uses.', String(kit.cooldownSeconds))
+                .textField('Permission Level', '0=Admin, 1024=Member.', String(kit.permissionLevel))
+                .textField('Price', 'Cost to claim the kit.', String(kit.price || 0));
 
-            form.submitButton('§l§2Save Settings');
             return form;
         }
 
@@ -1125,21 +1089,17 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const form = new ModalFormData()
                 .title(`Edit: ${id}`)
-                .textField('Text Content', 'Enter the text to display', { defaultValue: text.text ?? '' })
-                .textField('X Coordinate', 'Enter the X coordinate', {
-                    defaultValue: String(+(text.location?.x ?? 0).toFixed(2))
-                })
-                .textField('Y Coordinate', 'Enter the Y coordinate', {
-                    defaultValue: String(+(text.location?.y ?? 0).toFixed(2))
-                })
-                .textField('Z Coordinate', 'Enter the Z coordinate', {
-                    defaultValue: String(+(text.location?.z ?? 0).toFixed(2))
-                })
-                .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
-                .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
-                .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', {
-                    defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0'
-                });
+                .textField('Text Content', 'Enter the text to display', text.text ?? '')
+                .textField('X Coordinate', 'Enter the X coordinate', String(+(text.location?.x ?? 0).toFixed(2)))
+                .textField('Y Coordinate', 'Enter the Y coordinate', String(+(text.location?.y ?? 0).toFixed(2)))
+                .textField('Z Coordinate', 'Enter the Z coordinate', String(+(text.location?.z ?? 0).toFixed(2)))
+                .dropdown('Dimension', dimensionOptions, defaultDimensionIndex)
+                .toggle('Enable Expiration Timer', !!expiresAt)
+                .textField(
+                    'Expiration (minutes from now)',
+                    'e.g., 60 for 1 hour',
+                    expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0'
+                );
             return form;
         }
 
@@ -1198,7 +1158,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId.startsWith('kitDetailPanel_')) {
             const kitName = panelId.replace('kitDetailPanel_', '');
-            const kitsConfig = getKitsConfig();
+            const kitsConfig = getKitsConfig() as KitsConfig;
             const kit = kitsConfig.kitDefinitions[kitName];
 
             if (!kit) {
@@ -1208,15 +1168,17 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const form = new ModalFormData()
                 .title(`Edit Kit: ${kitName}`)
-                .toggle('Enable this kit', { defaultValue: kit.enabled })
-                .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', {
-                    defaultValue: String(kit.cooldownSeconds)
-                })
-                .textField('Permission Level', '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.', {
-                    defaultValue: String(kit.permissionLevel ?? 1024)
-                });
-
-            form.submitButton('§l§2Save and Close');
+                .toggle('Enable this kit', kit.enabled)
+                .textField(
+                    'Cooldown (seconds)',
+                    'The time a player must wait between claiming this kit.',
+                    String(kit.cooldownSeconds)
+                )
+                .textField(
+                    'Permission Level',
+                    '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.',
+                    String(kit.permissionLevel ?? 1024)
+                );
 
             return form;
         }
@@ -1325,22 +1287,23 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'commandSettingsPanel') {
             const { commandName } = context;
             const config = getConfig();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const commandSettings = (config as any).commandSettings[commandName ?? ''] || {};
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const command = commandManager.commands.get(commandName ?? '') as any;
+            const commandSettings = (config.commandSettings as Record<string, { enabled: boolean; permissionLevel: number }>)[
+                commandName ?? ''
+            ] || {};
+            const command = commandManager.commands.get(commandName ?? '');
 
             const isEnabled = commandSettings.enabled ?? false;
             const permissionLevel = commandSettings.permissionLevel ?? command?.permissionLevel ?? 1024;
 
             const form = new ModalFormData()
                 .title(`${commandName} Settings`)
-                .toggle('Enable Command', { defaultValue: isEnabled })
-                .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', {
-                    defaultValue: String(permissionLevel)
-                });
+                .toggle('Enable Command', isEnabled)
+                .textField(
+                    'Permission Level',
+                    'Enter a number (e.g., 0 for admin, 1024 for member)',
+                    String(permissionLevel)
+                );
 
-            form.submitButton('§l§2Save Settings');
             return form;
         }
 
@@ -1411,8 +1374,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 const amount = mobDrops[mobId];
                 // Check if we have a specific spawn egg icon for this mob
                 const spawnEggId = `${mobId}_spawn_egg`;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const icon = (iconDB as any)[spawnEggId]?.icon || 'textures/ui/help_question_mark';
+                const icon = (iconDB as Record<string, { icon: string }>)[spawnEggId]?.icon || 'textures/ui/help_question_mark';
 
                 form.button(`${mobId}\n§2${formatCurrency(amount)}`, icon);
             }
@@ -1429,7 +1391,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const currentStyle = config.ranks?.nameTagStyle || 'above';
             const defaultIndex = internalStyles.indexOf(currentStyle);
 
-            form.dropdown('Nametag Style', nameTagStyles, { defaultValueIndex: defaultIndex > -1 ? defaultIndex : 0 });
+            form.dropdown('Nametag Style', nameTagStyles, defaultIndex > -1 ? defaultIndex : 0);
             return form;
         }
 
@@ -1442,20 +1404,19 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             // const isSpecialRank = rank.conditions.some((c: any) => c.type === 'isOwner' || c.type === 'default');
 
             const form = new ModalFormData().title(`§l§3Edit Rank: ${rank?.name}`);
-            form.textField('Rank Name', 'e.g., VIP', { defaultValue: rank.name });
+            form.textField('Rank Name', 'e.g., VIP', rank.name);
             // Note: 'disabled' is removed as it's not supported in the types
-            form.textField('Rank ID (tag)', 'e.g., vip', { defaultValue: rank.id });
-            form.textField('Permission Level', '0-1024', { defaultValue: String(rank.permissionLevel) });
-            form.textField('Name Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.nameColor ?? '' });
-            form.textField('Chat Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.messageColor ?? '' });
-            form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', { defaultValue: rank.chatFormatting?.prefixText ?? '' });
-            form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
+            form.textField('Rank ID (tag)', 'e.g., vip', rank.id);
+            form.textField('Permission Level', '0-1024', String(rank.permissionLevel));
+            form.textField('Name Color', 'e.g., §6', rank.chatFormatting?.nameColor ?? '');
+            form.textField('Chat Color', 'e.g., §6', rank.chatFormatting?.messageColor ?? '');
+            form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', rank.chatFormatting?.prefixText ?? '');
+            form.textField('Nametag Prefix', 'e.g., §6VIP', rank.nametagPrefix ?? '');
             return form;
         }
 
         if (panelId === 'xrayOresPanel') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const xrayConfig: any = getXrayConfig();
+            const xrayConfig = getXrayConfig();
             const form = new ActionFormData().title(panelDefinitions[panelId].title);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
             form.button('§l§2+ Add New Ore§r', 'textures/ui/color_plus');
@@ -1483,16 +1444,15 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'editXrayOrePanel') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const xrayConfig: any = getXrayConfig();
+            const xrayConfig = getXrayConfig();
             const ores = xrayConfig.monitoredOres || [];
             const ore = ores[context.oreIndex ?? 0];
             const form = new ModalFormData().title('§l§cEdit Monitored Ore');
-            form.textField('Block ID', 'e.g., minecraft:diamond_ore', { defaultValue: ore.blockId });
-            form.textField('Dimension ID', 'e.g., minecraft:overworld', { defaultValue: ore.dimensionId });
-            form.textField('Min Y', 'e.g., -64', { defaultValue: String(ore.minY) });
-            form.textField('Max Y', 'e.g., 16', { defaultValue: String(ore.maxY) });
-            form.textField('Ore Name', 'e.g., Diamond Ore', { defaultValue: ore.oreName });
+            form.textField('Block ID', 'e.g., minecraft:diamond_ore', ore.blockId);
+            form.textField('Dimension ID', 'e.g., minecraft:overworld', ore.dimensionId);
+            form.textField('Min Y', 'e.g., -64', String(ore.minY));
+            form.textField('Max Y', 'e.g., 16', String(ore.maxY));
+            form.textField('Ore Name', 'e.g., Diamond Ore', ore.oreName);
             return form;
         }
 

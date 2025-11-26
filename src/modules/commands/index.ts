@@ -79,10 +79,12 @@ async function loadCommands() {
                 }
             }
             // Legacy JS modules will register themselves upon import, so no further action is needed.
-        } catch (e: any) {
-            errorLog(`[CommandLoader] Failed to load command file '${file}': ${e.message}`);
-            if (e.stack) {
-                errorLog(`[CommandLoader] Stack trace: ${e.stack}`);
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                errorLog(`[CommandLoader] Failed to load command file '${file}': ${e.message}`);
+                if (e.stack) {
+                    errorLog(`[CommandLoader] Stack trace: ${e.stack}`);
+                }
             }
         }
     }

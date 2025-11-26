@@ -133,10 +133,10 @@ function safeRemoveTickingArea(dimension: mc.Dimension, name: string) {
 }
 
 async function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): Promise<number | null> {
-    for (let y = 150; y >= dimension.heightRange.min; y--) {
+    for (let y = 320; y >= dimension.heightRange.min; y--) {
         try {
             const block = dimension.getBlock({ x, y, z });
-            if (block && block.isSolid) {
+            if (block && !block.isAir) {
                 return y;
             }
         } catch {
@@ -149,7 +149,7 @@ async function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: numb
 function isLocationSafe(dimension: mc.Dimension, location: mc.Vector3): boolean {
     const { x, y, z } = location;
     const groundBlock = dimension.getBlock({ x: Math.floor(x), y: y - 1, z: Math.floor(z) });
-    if (!groundBlock || !groundBlock.isSolid) {
+    if (!groundBlock || groundBlock.isAir) {
         return false;
     }
 
@@ -172,10 +172,10 @@ function isLocationSafe(dimension: mc.Dimension, location: mc.Vector3): boolean 
     const blockHead = dimension.getBlock({ x: Math.floor(x), y: y, z: Math.floor(z) });
     const blockEyes = dimension.getBlock({ x: Math.floor(x), y: y + 1, z: Math.floor(z) });
 
-    if (!blockHead || blockHead.isSolid) {
+    if (!blockHead || !blockHead.isAir) {
         return false;
     }
-    if (!blockEyes || blockEyes.isSolid) {
+    if (!blockEyes || !blockEyes.isAir) {
         return false;
     }
 
