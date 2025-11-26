@@ -1,6 +1,6 @@
 import { ActionFormData } from '@minecraft/server-ui';
 
-import { getConfig, updateMultipleConfig } from '../configManager.js';
+import { getConfig, updateMultipleConfig, Config } from '../configManager.js';
 import {
     getSpawnConfig,
     saveSpawnConfig,
@@ -9,27 +9,42 @@ import {
     getXrayConfig,
     saveXrayConfig,
     getTeamConfig,
-    saveTeamConfig,
-    SpawnConfig,
-    EconomyConfig,
-    XrayConfig,
-    TeamConfig,
-    RanksConfig,
-    KitsConfig,
-    ShopConfig
+    saveTeamConfig
 } from '../configurations.js';
-import { Config } from '../configManager.js';
+import { spawnConfig } from '../spawnConfig.default.js';
+import { economyConfig } from '../economyConfig.default.js';
+import { xrayConfig } from '../xrayConfig.default.js';
+import { teamConfig } from '../teamConfig.default.js';
+import { ranksConfig } from '../ranksConfig.default.js';
+import { kitsConfig } from '../kitsConfig.default.js';
+import { shopConfig } from '../shopConfig.default.js';
 import { PlayerData } from '../playerDataManager.js';
+
+type SpawnConfig = typeof spawnConfig;
+type EconomyConfig = typeof economyConfig;
+type XrayConfig = typeof xrayConfig;
+type TeamConfig = typeof teamConfig;
+type RanksConfig = typeof ranksConfig;
+type KitsConfig = typeof kitsConfig;
+type ShopConfig = typeof shopConfig;
 
 import { configPanelSchema } from './configPanelRegistry.js';
 
 export const itemsPerPage = 8;
 
 interface ConfigHandler {
-    get: () => Config | SpawnConfig | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | KitsConfig | ShopConfig;
+    get: () =>
+        | typeof Config
+        | SpawnConfig
+        | EconomyConfig
+        | XrayConfig
+        | TeamConfig
+        | RanksConfig
+        | KitsConfig
+        | ShopConfig;
     save: (
         config:
-            | Config
+            | typeof Config
             | SpawnConfig
             | EconomyConfig
             | XrayConfig

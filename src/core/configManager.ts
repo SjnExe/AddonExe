@@ -1,16 +1,15 @@
-// @ts-nocheck - This file uses dynamic imports and manages complex, nested
-// configuration objects. While efforts are made to type what's possible,
-// `@ts-nocheck` is used pragmatically to handle the dynamic parts without
-// excessive type gymnastics.
 import * as mc from '@minecraft/server';
 
+import { config as Config } from '../config.default.js';
 import { loadConfig as asyncLoadConfig } from './configLoader.js';
-import createConfigManager from './configManagerFactory.js';
+import createConfigManager, { ConfigManager } from './configManagerFactory.js';
 import { deepClone } from './objectUtils.js';
 
-let mainConfigManager;
+export type { Config };
 
-export async function initializeConfigManager(isMigration) {
+let mainConfigManager: ConfigManager<typeof Config>;
+
+export async function initializeConfigManager(isMigration: boolean) {
     const defaultConfig = await asyncLoadConfig('../config.js');
     mainConfigManager = createConfigManager('exe:config:current', defaultConfig, 'Main');
     await mainConfigManager.load(isMigration);
@@ -29,7 +28,9 @@ export async function resetConfigSection(
 
     if (sectionKey === 'all') {
         const resetPromises = [mainConfigManager.reset()];
-        Object.values(configResetRegistry).forEach((config: any) => resetPromises.push(config.reset()));
+        Object.values(configResetRegistry).forEach((config: { reset: () => Promise<void> }) =>
+            resetPromises.push(config.reset())
+        );
         await Promise.all(resetPromises);
 
         for (const key in configResetCallbacks) {
@@ -72,7 +73,8 @@ export async function resetConfigSection(
         } else {
             return { success: false, message: `Configuration section '${sectionKey}' not found.` };
         }
-    } catch (e: any) {
-        return { success: false, message: `Failed to load default configuration file. Error: ${e.message}` };
+    } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        return { success: false, message: `Failed to load default configuration file. Error: ${errorMessage}` };
     }
 }

@@ -6,14 +6,8 @@ import { errorLog, infoLog, debugLog } from '../../core/logger.js';
 import { getPlayerRank } from '../../core/rankManager.js';
 
 interface TrackedEvent {
-    event:
-        | mc.PlayerBreakBlockBeforeEventSignal
-        | mc.PlayerPlaceBlockAfterEventSignal;
-    handler: (
-        event:
-            | mc.PlayerBreakBlockBeforeEvent
-            | mc.PlayerPlaceBlockAfterEvent
-    ) => void;
+    event: mc.PlayerBreakBlockBeforeEventSignal | mc.PlayerPlaceBlockAfterEventSignal;
+    handler: (event: mc.PlayerBreakBlockBeforeEvent | mc.PlayerPlaceBlockAfterEvent) => void;
 }
 
 let eventHandlers: TrackedEvent[] = [];
@@ -46,14 +40,8 @@ function cleanup(): void {
 }
 
 function subscribe(
-    event:
-        | mc.PlayerBreakBlockBeforeEventSignal
-        | mc.PlayerPlaceBlockAfterEventSignal,
-    handler: (
-        event:
-            | mc.PlayerBreakBlockBeforeEvent
-            | mc.PlayerPlaceBlockAfterEvent
-    ) => void
+    event: mc.PlayerBreakBlockBeforeEventSignal | mc.PlayerPlaceBlockAfterEventSignal,
+    handler: (event: mc.PlayerBreakBlockBeforeEvent | mc.PlayerPlaceBlockAfterEvent) => void
 ): void {
     if (!event) {
         debugLog('[SpawnProtection] Attempted to subscribe to a non-existent event.');
@@ -123,11 +111,16 @@ function initialize(): void {
     infoLog(`[SpawnProtection] Protection ENABLED. Radius: ${spawnProtection.protectionRadius}`);
 
     if (spawnProtection.preventBlockBreaking) {
-        subscribe(mc.world.beforeEvents.playerBreakBlock, (event: mc.PlayerBreakBlockBeforeEvent) => {
-            if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
-                event.cancel = true;
+        subscribe(
+            mc.world.beforeEvents.playerBreakBlock,
+            (event: mc.PlayerBreakBlockBeforeEvent | mc.PlayerPlaceBlockAfterEvent) => {
+                if ('block' in event && isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
+                    if ('cancel' in event) {
+                        event.cancel = true;
+                    }
+                }
             }
-        });
+        );
     }
 
     if (spawnProtection.preventBlockPlacing) {

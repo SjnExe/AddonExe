@@ -28,11 +28,11 @@ const tpaCommand: CustomCommand = {
     permissionLevel: 1024,
     hasCooldown: true,
     parameters: [{ name: 'target', type: 'string' }],
-    execute: (executor: CommandExecutor, args: TpaCommandArgs) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target } = args;
+        const { target } = args as TpaCommandArgs;
         const config = getConfig();
         if (!config.tpa.enabled) {
             sendMessage(constants.tpaDisabled, executor);
@@ -81,11 +81,11 @@ const tpaHereCommand: CustomCommand = {
     hasCooldown: true,
     cooldownId: 'tpa',
     parameters: [{ name: 'target', type: 'string' }],
-    execute: (executor: CommandExecutor, args: TpaCommandArgs) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target } = args;
+        const { target } = args as TpaCommandArgs;
         const config = getConfig();
         if (!config.tpa.enabled) {
             sendMessage(constants.tpaDisabled, executor);

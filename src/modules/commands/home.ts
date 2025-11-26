@@ -45,9 +45,11 @@ const homeCommand: CustomCommand = {
                     executor.teleport(homeLocation, { dimension: mc.world.getDimension(homeLocation.dimensionId) });
                     sendMessage(`§aTeleported to home '${homeName}'.`, executor);
                     setCooldown(executor, 'homes');
-                } catch (e: any) {
-                    sendMessage(`§cFailed to teleport. Error: ${e.message}`, executor);
-                    errorLog(`[/home] Failed to teleport: ${e.stack}`);
+                } catch (e: unknown) {
+                    const message = e instanceof Error ? e.message : String(e);
+                    const stack = e instanceof Error ? e.stack : String(e);
+                    sendMessage(`§cFailed to teleport. Error: ${message}`, executor);
+                    errorLog(`[/home] Failed to teleport: ${stack}`);
                 }
             };
             startTeleportWarmup(executor, warmupSeconds, teleportLogic, `home '${homeName}'`);

@@ -2,7 +2,6 @@ import * as mc from '@minecraft/server';
 
 import { errorLog, warnLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { findPlayerByName } from '../../core/playerCache.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
 import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
 import { parseDuration, playSoundFromConfig } from '../../core/utils.js';
@@ -57,7 +56,7 @@ export function banPlayer(
         const sanitizedReason = reason.replace(/"/g, '\\"');
         const command = `kick "${targetPlayer.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`;
         mc.world.getDimension('overworld').runCommand(command);
-    } catch (error: any) {
+    } catch (error: unknown) {
         warnLog(`[Commands:Ban] Could not kick ${targetPlayer.name} after banning. They will be kicked on next join.`);
         errorLog(`[/ban] Failed to run kick command for ${targetPlayer.name}:`, error);
     }
@@ -157,8 +156,8 @@ const unbanCommand: CustomCommand = {
     permissionLevel: 2,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string' }],
-    execute: (executor: CommandExecutor, args: UnbanCommandArgs) => {
-        unbanPlayer(executor, args.target);
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        unbanPlayer(executor, args.target as string);
     }
 };
 
@@ -234,9 +233,8 @@ const offlineBanCommand: CustomCommand = {
         { name: 'duration', type: 'string', optional: true },
         { name: 'reason', type: 'text', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: OfflineBanCommandArgs) => {
-        const { target: targetName } = args;
-        let { duration, reason } = args;
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const { target: targetName, duration, reason } = args as OfflineBanCommandArgs;
 
         const targetId = getPlayerIdByName(targetName);
         if (!targetId) {

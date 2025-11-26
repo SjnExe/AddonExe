@@ -15,8 +15,9 @@ import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } f
 import * as rankManager from '../rankManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ShopConfig, ShopItem, ShopSubCategory } from '../shopConfig.default.js';
-// @ts-ignore - Importing from JS file
+// @ts-expect-error - Importing from JS file
 import { formatCurrency } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
@@ -626,11 +627,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                         } else {
                             index = options.indexOf(currentValue as string);
                         }
-                        form.dropdown(
-                            setting.label,
-                            options,
-                            index >= 0 && index < options.length ? index : 0
-                        );
+                        form.dropdown(setting.label, options, index >= 0 && index < options.length ? index : 0);
                         break;
                     }
                 }
@@ -1287,9 +1284,10 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'commandSettingsPanel') {
             const { commandName } = context;
             const config = getConfig();
-            const commandSettings = (config.commandSettings as Record<string, { enabled: boolean; permissionLevel: number }>)[
-                commandName ?? ''
-            ] || {};
+            const commandSettings =
+                (config.commandSettings as Record<string, { enabled: boolean; permissionLevel: number }>)[
+                    commandName ?? ''
+                ] || {};
             const command = commandManager.commands.get(commandName ?? '');
 
             const isEnabled = commandSettings.enabled ?? false;
@@ -1374,7 +1372,8 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 const amount = mobDrops[mobId];
                 // Check if we have a specific spawn egg icon for this mob
                 const spawnEggId = `${mobId}_spawn_egg`;
-                const icon = (iconDB as Record<string, { icon: string }>)[spawnEggId]?.icon || 'textures/ui/help_question_mark';
+                const icon =
+                    (iconDB as Record<string, { icon: string }>)[spawnEggId]?.icon || 'textures/ui/help_question_mark';
 
                 form.button(`${mobId}\n§2${formatCurrency(amount)}`, icon);
             }
@@ -1540,7 +1539,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         debugLog(`[UIManager] Successfully built form for panel '${panelId}' with ${menuItems.length} items.`);
         return form;
     } catch (e) {
-        // @ts-ignore - Dynamic import
+        // @ts-expect-error - Dynamic import
         const textConfig =
             panelId === 'floatingTextEditPanel' && context.id
                 ? (await import('../floatingTextManager.js')).floatingTextManager.getTextById(context.id)

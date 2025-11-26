@@ -1,8 +1,7 @@
 import * as mc from '@minecraft/server';
-import { Player } from '@minecraft/server';
 
 import { getXrayConfig } from '../../core/configurations.js';
-import { warnLog, debugLog } from '../../core/logger.js';
+import { warnLog } from '../../core/logger.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '../../core/playerCache.js';
 import { getOrCreatePlayer } from '../../core/playerDataManager.js';
 import { formatString } from '../../core/utils.js';

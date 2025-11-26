@@ -20,16 +20,8 @@ type EventSignal =
     | mc.PlayerLeaveAfterEventSignal
     | mc.ScriptEventReceiveAfterEventSignal;
 
-type EventHandler = (
-    event:
-        | mc.ChatSendBeforeEvent
-        | mc.EntityDieAfterEvent
-        | mc.EntityHurtAfterEvent
-        | mc.ItemUseAfterEvent
-        | mc.PlayerDimensionChangeAfterEvent
-        | mc.PlayerLeaveAfterEvent
-        | mc.ScriptEventReceiveAfterEvent
-) => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EventHandler = (event: any) => void;
 
 interface EventSubscription {
     event: EventSignal | null;
@@ -56,11 +48,9 @@ export function initializeEventManager() {
     for (const { event, handler, name } of events) {
         if (event) {
             try {
-                event.subscribe(handler as (event: any) => void);
+                event.subscribe(handler as EventHandler);
             } catch (e: unknown) {
-                errorLog(
-                    `[EventManager] Failed to subscribe to event '${name}'. Error: ${e}`
-                );
+                errorLog(`[EventManager] Failed to subscribe to event '${name}'. Error: ${e}`);
             }
         } else if (name === 'playerSpawn' && typeof handler === 'function') {
             try {
@@ -80,7 +70,7 @@ export function cleanupEventManager() {
     for (const { event, handler, name } of events) {
         if (event) {
             try {
-                event.unsubscribe(handler as (event: any) => void);
+                event.unsubscribe(handler as EventHandler);
             } catch (e: unknown) {
                 errorLog(
                     `[EventManager] Failed to unsubscribe from event '${name}'. It may have not been subscribed. Error: ${e}`

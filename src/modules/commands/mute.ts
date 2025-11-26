@@ -157,8 +157,8 @@ const unmuteCommand: CustomCommand = {
     permissionLevel: 2,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string' }],
-    execute: (executor: CommandExecutor, args: UnmuteCommandArgs) => {
-        unmutePlayer(executor, args.target);
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        unmutePlayer(executor, args.target as string);
     }
 };
 

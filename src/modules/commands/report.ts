@@ -17,11 +17,11 @@ const reportCommand: CustomCommand = {
     description: 'Reports a player using a UI. The player can be offline.',
     permissionLevel: 1024,
     parameters: [{ name: 'target', type: 'string', optional: true }],
-    execute: async (executor: CommandExecutor, args: ReportCommandArgs) => {
+    execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const reportedPlayerName = args.target;
+        const reportedPlayerName = args.target as string | undefined;
 
         if (!reportedPlayerName) {
             executor.sendMessage('§cUsage: /report <targetName>');
@@ -48,7 +48,7 @@ const reportCommand: CustomCommand = {
             return;
         }
 
-        const [reason] = response.formValues as (string | undefined)[];
+        const [reason] = (response as mc.ModalFormResponse).formValues as (string | undefined)[];
 
         if (!reason || reason.trim().length === 0) {
             executor.sendMessage('§cYou must provide a reason.');

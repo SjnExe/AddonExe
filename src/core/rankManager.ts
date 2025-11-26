@@ -1,12 +1,14 @@
 import * as mc from '@minecraft/server';
 
+import { config as Config } from '../config.default.js';
+
 import { getRanksConfig } from './configurations.js';
 import { debugLog, errorLog } from './logger.js';
 import { RankDefinition } from './ranksConfig.default.js';
 
 let sortedRanks: RankDefinition[] = [];
 
-type ConditionEvaluator = (player: mc.Player, value: any, config: any) => boolean;
+type ConditionEvaluator = (player: mc.Player, value: unknown, config: typeof Config) => boolean;
 
 /**
  * A map of functions that evaluate rank conditions.
@@ -15,16 +17,15 @@ const conditionEvaluators: Record<string, ConditionEvaluator> = {
     /**
      * Checks if the player's name is in the owner list.
      */
-    isOwner: (player, value, config) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const ownerNames = (config.ownerPlayerNames || []).map((name: any) => name.toLowerCase());
+    isOwner: (player, value, config: typeof Config) => {
+        const ownerNames = (config.ownerPlayerNames || []).map((name: string) => name.toLowerCase());
         return ownerNames.includes(player.name.toLowerCase());
     },
     /**
      * Checks if the player has a specific tag.
      */
     hasTag: (player, value) => {
-        return player.hasTag(value);
+        return player.hasTag(value as string);
     },
     /**
      * This is a fallback condition that always returns true.
@@ -39,8 +40,7 @@ const conditionEvaluators: Record<string, ConditionEvaluator> = {
  * This can be called to refresh ranks after they've been modified in the UI.
  */
 export function reloadRanks() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const allRanks = (getRanksConfig() as any).rankDefinitions as RankDefinition[];
+    const allRanks = getRanksConfig().rankDefinitions;
     sortedRanks = [...allRanks].sort((a, b) => a.permissionLevel - b.permissionLevel);
     debugLog(`[RankManager] Reloaded and sorted ${sortedRanks.length} ranks.`);
 }
@@ -59,8 +59,7 @@ export function initialize() {
  * @param player
  * @param config The addon's configuration object.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getPlayerRank(player: mc.Player, config: any): RankDefinition {
+export function getPlayerRank(player: mc.Player, config: typeof Config): RankDefinition {
     for (const rank of sortedRanks) {
         let allConditionsMet = true;
         for (const condition of rank.conditions) {
@@ -100,16 +99,14 @@ export function getPlayerRank(player: mc.Player, config: any): RankDefinition {
  * @param rankId The ID of the rank to get.
  */
 export function getRankById(rankId: string): RankDefinition | undefined {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return ((getRanksConfig() as any).rankDefinitions as RankDefinition[]).find((rank) => rank.id === rankId);
+    return getRanksConfig().rankDefinitions.find((rank) => rank.id === rankId);
 }
 
 /**
  * Gets all rank definitions.
  */
 export function getAllRanks(): RankDefinition[] {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (getRanksConfig() as any).rankDefinitions;
+    return getRanksConfig().rankDefinitions;
 }
 
 /**
@@ -117,8 +114,7 @@ export function getAllRanks(): RankDefinition[] {
  * @param player The player whose nametag should be updated.
  * @param config The addon's configuration object.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function updatePlayerNameTag(player: mc.Player, config: any) {
+export function updatePlayerNameTag(player: mc.Player, config: typeof Config) {
     const rank = getPlayerRank(player, config);
     const rankPrefix = rank.chatFormatting?.prefixText ?? '';
     const { nameTagStyle = 'above' } = config.ranks || {};

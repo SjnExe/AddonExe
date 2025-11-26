@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { config as Config } from '../config.default.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
@@ -129,7 +130,7 @@ function startSystemTimers() {
 async function initializeAddon() {
     infoLog('[AddonExe] Initializing addon...');
 
-    const tempConfig: any = await loadConfig('../config.js');
+    const tempConfig = (await loadConfig('../config.js')) as typeof Config;
     const newVersion = String(tempConfig.version);
     const lastVersion = mc.world.getDynamicProperty('exe:lastVersion') as string | undefined;
     const isMigration = !lastVersion || lastVersion !== newVersion;
@@ -169,28 +170,31 @@ async function initializeAddon() {
 }
 
 function cleanupAddon() {
+    // eslint-disable-next-line no-console
     console.log('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
     floatingTextManager.cleanup();
     cleanupPlayerDataManager();
     cleanupEventManager();
     cleanupTimers();
+    // eslint-disable-next-line no-console
     console.log('[AddonExe] Cleanup complete. The script will now unload.');
 }
 
 mc.system.runTimeout(async () => {
     try {
         await initializeAddon();
-    } catch (e: any) {
+    } catch (e: unknown) {
         errorLog('[AddonExe] A critical error occurred during addon initialization:');
-        errorLog(e.stack);
+        const stack = e instanceof Error ? e.stack : String(e);
+        errorLog(stack);
         mc.world.sendMessage(
             '§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.'
         );
     }
 }, 0);
 
-mc.system.afterEvents.scriptEventReceive.subscribe((event: any) => {
-    const { id } = event;
+mc.system.afterEvents.scriptEventReceive.subscribe((event: unknown) => {
+    const { id } = event as { id: string };
 
     if (id === 'minecraft:script_unload') {
         cleanupAddon();

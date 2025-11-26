@@ -1,5 +1,16 @@
 import { getKitsConfig, saveKitsConfig } from './configurations.js';
+import { ItemInfo } from './kitItemsManager.js';
 import { debugLog } from './logger.js';
+
+export interface Kit {
+    enabled: boolean;
+    description: string;
+    cooldownSeconds: number;
+    permissionLevel: number;
+    price: number;
+    icon: string;
+    items: ItemInfo[];
+}
 
 interface KitOptions {
     cooldown?: number;
@@ -41,7 +52,7 @@ export function createKit(kitName: string, options: KitOptions = {}): ActionResu
         description = 'A new custom kit.'
     } = options;
 
-    const kitDefinitions = config.kitDefinitions as Record<string, any>; // Casting to allow dynamic access/creation
+    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
 
     if (kitDefinitions[lowerCaseKitName]) {
         return { success: false, message: `A kit with the name '${kitName}' already exists.` };
@@ -69,7 +80,7 @@ export function createKit(kitName: string, options: KitOptions = {}): ActionResu
  */
 export function deleteKit(kitName: string): ActionResult {
     const config = getKitsConfig();
-    const kitDefinitions = config.kitDefinitions as Record<string, any>;
+    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
 
     if (!kitDefinitions[kitName]) {
         return { success: false, message: `Kit '${kitName}' not found.` };
@@ -89,7 +100,7 @@ export function deleteKit(kitName: string): ActionResult {
  */
 export function updateKitSettings(kitName: string, newSettings: KitSettings): ActionResult {
     const config = getKitsConfig();
-    const kitDefinitions = config.kitDefinitions as Record<string, any>;
+    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
     if (!kit) {
@@ -108,9 +119,9 @@ export function updateKitSettings(kitName: string, newSettings: KitSettings): Ac
  * Gets all kits from the configuration.
  * @returns The kit definitions object.
  */
-export function getAllKits(): Record<string, any> {
+export function getAllKits(): Record<string, Kit> {
     const config = getKitsConfig();
-    return config.kitDefinitions as Record<string, any>;
+    return config.kitDefinitions as Record<string, Kit>;
 }
 
 /**
@@ -121,7 +132,7 @@ export function getAllKits(): Record<string, any> {
  */
 export function renameKit(oldName: string, newName: string): ActionResult {
     const config = getKitsConfig();
-    const allKits = config.kitDefinitions as Record<string, any>;
+    const allKits = config.kitDefinitions as Record<string, Kit>;
 
     if (!allKits[oldName]) {
         return { success: false, message: `Kit '${oldName}' not found.` };
