@@ -51,8 +51,9 @@ export function initializeMigration(): void {
             runMigrations(currentVersion);
             mc.world.setDynamicProperty(DATA_VERSION_KEY, CURRENT_DATA_VERSION);
             infoLog(`[MigrationManager] Successfully migrated to version ${CURRENT_DATA_VERSION}.`);
-        } catch (e: any) {
-            errorLog(`[MigrationManager] Critical error during migration: ${e.stack}`);
+        } catch (e: unknown) {
+            const stack = e instanceof Error ? e.stack : String(e);
+            errorLog(`[MigrationManager] Critical error during migration: ${stack}`);
             // We do NOT update the version if migration fails, so it can retry next time.
         }
     } else {

@@ -2,7 +2,6 @@ import * as mc from '@minecraft/server';
 
 import * as bountyManager from '../../core/bountyManager.js';
 import { getConfig } from '../../core/configManager.js';
-import { findPlayerByName } from '../../core/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '../../core/playerDataManager.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';

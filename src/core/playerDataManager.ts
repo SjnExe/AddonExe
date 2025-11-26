@@ -1,7 +1,9 @@
 import * as mc from '@minecraft/server';
 
+import { config as Config } from '../config.default.js';
+
 import { getConfig } from './configManager.js';
-import { getEconomyConfig } from './configurations.js';
+import { getEconomyConfig, EconomyConfig } from './configurations.js';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
 
@@ -126,8 +128,9 @@ export function saveNameIdMap() {
         mc.world.setDynamicProperty(playerNameIdMapKey, JSON.stringify(dataToSave));
         isNameIdMapDirty = false;
         debugLog('[PlayerDataManager] Saved name-to-ID map.');
-    } catch (e: any) {
-        errorLog(`[PlayerDataManager] Failed to save name-to-ID map: ${e.stack}`);
+    } catch (e: unknown) {
+        const stack = e instanceof Error ? e.stack : String(e);
+        errorLog(`[PlayerDataManager] Failed to save name-to-ID map: ${stack}`);
     }
 }
 
@@ -135,13 +138,14 @@ export function loadNameIdMap() {
     try {
         const dataString = mc.world.getDynamicProperty(playerNameIdMapKey) as string | undefined;
         if (dataString && typeof dataString === 'string') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const parsedData: any = JSON.parse(dataString);
+
+            const parsedData: [string, string][] = JSON.parse(dataString);
             playerNameIdMap = new Map(parsedData);
             debugLog(`[PlayerDataManager] Loaded ${playerNameIdMap.size} entries into name-to-ID map.`);
         }
-    } catch (e: any) {
-        errorLog(`[PlayerDataManager] Failed to load name-to-ID map: ${e.stack}`);
+    } catch (e: unknown) {
+        const stack = e instanceof Error ? e.stack : String(e);
+        errorLog(`[PlayerDataManager] Failed to load name-to-ID map: ${stack}`);
     }
 }
 
@@ -163,8 +167,9 @@ export function savePlayerData(playerId: string) {
             mc.world.setDynamicProperty(`${playerPropertyPrefix}${playerId}`, dataString);
             playerData.needsSave = false;
         }
-    } catch (e: any) {
-        errorLog(`[PlayerDataManager] Failed to save data for player ${playerId}: ${e.stack}`);
+    } catch (e: unknown) {
+        const stack = e instanceof Error ? e.stack : String(e);
+        errorLog(`[PlayerDataManager] Failed to save data for player ${playerId}: ${stack}`);
     }
 }
 
@@ -192,8 +197,9 @@ export function loadPlayerData(playerId: string): PlayerData | null {
             activePlayerData.set(playerId, playerData);
             return playerData;
         }
-    } catch (e: any) {
-        errorLog(`[PlayerDataManager] Failed to load data for player ${playerId}: ${e.stack}`);
+    } catch (e: unknown) {
+        const stack = e instanceof Error ? e.stack : String(e);
+        errorLog(`[PlayerDataManager] Failed to load data for player ${playerId}: ${stack}`);
     }
     return null;
 }
@@ -219,10 +225,8 @@ function _updateNameMap(player: mc.Player) {
  * @param player
  */
 function _createNewPlayerData(player: mc.Player): PlayerData {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config: any = getConfig();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const economyConfig: any = getEconomyConfig();
+    const config = getConfig() as typeof Config;
+    const economyConfig = getEconomyConfig() as EconomyConfig;
     const newPlayerData: PlayerData = {
         name: player.name,
         ...defaultPlayerData,
@@ -325,8 +329,9 @@ export function initializeLeaderboard() {
             debugLog(`[PlayerDataManager] Loaded ${leaderboardCache.length} players into leaderboard cache.`);
             return;
         }
-    } catch (e: any) {
-        errorLog(`[PlayerDataManager] Failed to load leaderboard from storage: ${e.stack}`);
+    } catch (e: unknown) {
+        const stack = e instanceof Error ? e.stack : String(e);
+        errorLog(`[PlayerDataManager] Failed to load leaderboard from storage: ${stack}`);
     }
     leaderboardCache = [];
 }
@@ -346,14 +351,14 @@ function triggerLeaderboardSave() {
                 triggerLeaderboardSave();
             }
         }, 30 * 20);
-    } catch (e: any) {
-        errorLog(`[PlayerDataManager] Failed to save leaderboard: ${e.stack}`);
+    } catch (e: unknown) {
+        const stack = e instanceof Error ? e.stack : String(e);
+        errorLog(`[PlayerDataManager] Failed to save leaderboard: ${stack}`);
     }
 }
 
 function updateAndSaveLeaderboard(playerId: string, pData: PlayerData) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config: any = getConfig();
+    const config = getConfig() as typeof Config;
     const cacheSize = (config.economy.baltopLimit ?? 10) + 5;
     const lowestBalanceOnBoard =
         leaderboardCache.length < cacheSize ? 0 : (leaderboardCache[leaderboardCache.length - 1]?.balance ?? 0);
@@ -413,8 +418,7 @@ export function clearPendingPayment(sourcePlayerId: string) {
 }
 
 export function clearExpiredPayments() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config: any = getConfig();
+    const config = getConfig() as typeof Config;
     const timeout = config.economy.paymentConfirmationTimeout * 1000; // convert to ms
     const now = Date.now();
 
@@ -423,8 +427,7 @@ export function clearExpiredPayments() {
             pendingPayments.delete(playerId);
             const player = getPlayerFromCache(playerId);
             if (player) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (player as any).sendMessage('§cYour pending payment has expired.');
+                player.sendMessage('§cYour pending payment has expired.');
             }
         }
     }
@@ -501,8 +504,7 @@ export function deletePlayerHome(playerId: string, homeName: string) {
 }
 
 export function setPlayerBalance(playerId: string, newBalance: number) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const economyConfig: any = getEconomyConfig();
+    const economyConfig = getEconomyConfig() as EconomyConfig;
     const min = economyConfig.minBalance ?? -1000000;
     const max = economyConfig.maxBalance ?? 1000000000;
 
@@ -513,8 +515,7 @@ export function setPlayerBalance(playerId: string, newBalance: number) {
 }
 
 export function incrementPlayerBalance(playerId: string, amount: number) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const economyConfig: any = getEconomyConfig();
+    const economyConfig = getEconomyConfig() as EconomyConfig;
     const min = economyConfig.minBalance ?? -1000000;
     const max = economyConfig.maxBalance ?? 1000000000;
 

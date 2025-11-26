@@ -8,6 +8,7 @@ import { getPlayer } from '../../core/playerDataManager.js';
 import * as rankManager from '../../core/rankManager.js';
 import { playSound } from '../../core/utils.js';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { CustomCommand, CommandExecutor } from './commandManager.js';
 import type { RankCondition } from '../../core/ranksConfig.default.js';
 

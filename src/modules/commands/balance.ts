@@ -14,7 +14,7 @@ const balanceCommand: CustomCommand = {
     description: "Checks your or another player's balance.",
     permissionLevel: 1024,
     parameters: [{ name: 'target', type: 'player', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, mc.Player[] | undefined>) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
         if (!config.economy.enabled) {
             const message = constants.economyDisabled;
@@ -27,7 +27,7 @@ const balanceCommand: CustomCommand = {
         }
 
         const isConsole = !(executor instanceof mc.Player);
-        const targetPlayers = args.target;
+        const targetPlayers = args.target as mc.Player[] | undefined;
 
         if (isConsole && (!targetPlayers || targetPlayers.length === 0)) {
             executor.sendMessage('§cYou must specify a target player when running this command from the console.');

@@ -1,10 +1,16 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ModalFormData, MessageFormData, ActionFormResponse, ModalFormResponse, MessageFormResponse } from '@minecraft/server-ui';
+import {
+    ActionFormData,
+    ModalFormData,
+    MessageFormData,
+    ActionFormResponse,
+    ModalFormResponse,
+    MessageFormResponse
+} from '@minecraft/server-ui';
 
-import { getConfig } from './configManager.js';
+import { getConfig, Config } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { errorLog } from './logger.js';
-import { Config } from './configManager.js';
 
 /**
  * Parses a duration string (e.g., "10m", "2h", "7d") and returns the duration in milliseconds.
@@ -64,7 +70,10 @@ export function playSound(player: mc.Player, soundId: string, options: mc.Player
  * @param form The form to show.
  * @returns A promise that resolves with the form response, or undefined if it times out or is cancelled for other reasons.
  */
-export async function uiWait(player: mc.Player, form: ActionFormData | ModalFormData | MessageFormData): Promise<ActionFormResponse | ModalFormResponse | MessageFormResponse> {
+export async function uiWait(
+    player: mc.Player,
+    form: ActionFormData | ModalFormData | MessageFormData
+): Promise<ActionFormResponse | ModalFormResponse | MessageFormResponse> {
     // REMOVED: playSound(player, 'random.click', { volume: 0.5, pitch: 1.0 });
     // The vanilla UI system already plays a click sound. Removing duplicate.
 
@@ -89,7 +98,7 @@ export async function uiWait(player: mc.Player, form: ActionFormData | ModalForm
         // We'll trust the loop.
     }
 
-    return { canceled: true, cancelationReason: 'Timeout' } as ActionFormResponse; // Timeout
+    return { canceled: true, cancelationReason: mc.FormCancelationReason.UserClosed } as ActionFormResponse; // Timeout
 }
 
 interface SoundEventConfig {
@@ -194,10 +203,7 @@ export function startTeleportWarmup(
         }
     };
 
-    mc.world.afterEvents.entityHurt.subscribe(
-        hurtListener,
-        { entityTypes: ['minecraft:player'] }
-    );
+    mc.world.afterEvents.entityHurt.subscribe(hurtListener, { entityTypes: ['minecraft:player'] });
 
     player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 

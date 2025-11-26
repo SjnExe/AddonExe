@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+
 import { getConfig, updateConfig } from '../configManager.js';
 import { errorLog } from '../logger.js';
 import { updateAllPlayerRanks } from '../main.js';

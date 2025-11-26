@@ -113,11 +113,11 @@ const addWarpCommand: CustomCommand = {
         { name: 'y', type: 'int', optional: true },
         { name: 'z', type: 'int', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: AddWarpArgs) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { warpName, x, y, z } = args;
+        const { warpName, x, y, z } = args as AddWarpArgs;
         const hasX = x !== undefined && x !== null;
         const hasY = y !== undefined && y !== null;
         const hasZ = z !== undefined && z !== null;

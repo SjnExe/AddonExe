@@ -1,26 +1,13 @@
 import * as mc from '@minecraft/server';
 
+import { config as Config } from '../config.default.js';
+
 import { getConfig } from './configManager.js';
 import { getKitsConfig } from './configurations.js';
+import { Kit } from './kitAdminManager.js';
 import { errorLog } from './logger.js';
 import { getOrCreatePlayer, setKitCooldown, incrementPlayerBalance } from './playerDataManager.js';
 import { formatCooldown } from './utils.js';
-
-interface KitItem {
-    typeId: string;
-    amount: number;
-    nameTag?: string;
-    lore?: string[];
-}
-
-interface KitDefinition {
-    enabled: boolean;
-    permissionLevel: number;
-    cooldownSeconds: number;
-    items: KitItem[];
-    price?: number;
-    icon?: string;
-}
 
 interface KitInfo {
     name: string;
@@ -39,14 +26,12 @@ interface KitResult {
  * @param kitName The name of the kit.
  * @returns The kit definition or undefined.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getKit(kitName: string): any | undefined {
+export function getKit(kitName: string): Kit | undefined {
     const kitsConfig = getKitsConfig();
     if (!kitsConfig.kitDefinitions) {
         return undefined;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (kitsConfig.kitDefinitions as any)[kitName.toLowerCase()];
+    return (kitsConfig.kitDefinitions as Record<string, Kit>)[kitName.toLowerCase()];
 }
 
 /**
@@ -55,8 +40,7 @@ export function getKit(kitName: string): any | undefined {
  * @returns An array of kit information objects.
  */
 export function listKits(player: mc.Player): KitInfo[] {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mainConfig = getConfig() as any;
+    const mainConfig = getConfig() as typeof Config;
     const kitsConfig = getKitsConfig();
     if (!mainConfig.kits.enabled || !kitsConfig.kitDefinitions) {
         return [];
@@ -67,8 +51,7 @@ export function listKits(player: mc.Player): KitInfo[] {
         return [];
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const kitDefs = kitsConfig.kitDefinitions as any;
+    const kitDefs = kitsConfig.kitDefinitions as Record<string, Kit>;
     return Object.keys(kitDefs)
         .filter((kitName) => {
             const kit = kitDefs[kitName];
@@ -121,8 +104,7 @@ export function getKitCooldown(player: mc.Player, kitName: string): number {
  * @returns The result of the operation.
  */
 export function giveKit(player: mc.Player, kitName: string): KitResult {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mainConfig = getConfig() as any;
+    const mainConfig = getConfig() as typeof Config;
     if (!mainConfig.kits.enabled) {
         return { success: false, message: 'The kit system is currently disabled.' };
     }

@@ -4,6 +4,8 @@ import { getShopConfig, saveShopConfig } from './configurations.js';
 import { iconDB } from './iconDB.js';
 import { items } from './itemsConfig.default.js';
 import { debugLog } from './logger.js';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { ShopConfig, ShopCategory, ShopSubCategory } from './shopConfig.default.js';
 import { generateDisplayName } from './utils.js';
 
 interface ActionResult {
@@ -39,7 +41,7 @@ interface UpdateItemData {
  */
 export function addCategory(categoryName: string, icon: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as any;
+    const categories = config.categories as Record<string, ShopCategory>;
     if (categories[categoryName]) {
         return { success: false, message: `A category with the name '${categoryName}' already exists.` };
     }
@@ -70,7 +72,7 @@ export function editSubCategory(
     newIcon: string
 ): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as any;
+    const categories = config.categories as Record<string, ShopCategory>;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -109,7 +111,7 @@ export function editSubCategory(
  */
 export function editCategory(oldCategoryName: string, newCategoryName: string, newIcon: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as any;
+    const categories = config.categories as Record<string, ShopCategory>;
     if (!categories[oldCategoryName]) {
         return { success: false, message: `Category '${oldCategoryName}' not found.` };
     }
@@ -138,7 +140,7 @@ export function editCategory(oldCategoryName: string, newCategoryName: string, n
  */
 export function renameCategory(oldCategoryName: string, newCategoryName: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as any;
+    const categories = config.categories as Record<string, ShopCategory>;
     if (!categories[oldCategoryName]) {
         return { success: false, message: `Category '${oldCategoryName}' not found.` };
     }
@@ -161,7 +163,7 @@ export function renameCategory(oldCategoryName: string, newCategoryName: string)
  */
 export function deleteCategory(categoryName: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as any;
+    const categories = config.categories as Record<string, ShopCategory>;
     if (!categories[categoryName]) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
@@ -181,7 +183,7 @@ export function deleteCategory(categoryName: string): ActionResult {
  */
 export function addSubCategory(categoryName: string, subCategoryName: string, icon: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as any;
+    const categories = config.categories as Record<string, ShopCategory>;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -216,7 +218,7 @@ export function renameSubCategory(
     newSubCategoryName: string
 ): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as any;
+    const categories = config.categories as Record<string, ShopCategory>;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -249,7 +251,7 @@ export function renameSubCategory(
  */
 export function deleteSubCategory(categoryName: string, subCategoryName: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as any;
+    const categories = config.categories as Record<string, ShopCategory>;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -288,16 +290,16 @@ export function addShopItemFromHand(
 
     // 1. Generate a truly unique ID by checking both the base config and the live shop config.
     const allExistingIds = new Set(Object.keys(items));
-    const shopConfig: any = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
     if (shopConfig && shopConfig.categories) {
-        for (const category of Object.values(shopConfig.categories) as any) {
+        for (const category of Object.values(shopConfig.categories)) {
             if (category.items) {
                 for (const itemId of Object.keys(category.items)) {
                     allExistingIds.add(itemId);
                 }
             }
             if (category.subCategories) {
-                for (const subCategory of Object.values(category.subCategories) as any) {
+                for (const subCategory of Object.values(category.subCategories)) {
                     if (subCategory.items) {
                         for (const itemId of Object.keys(subCategory.items)) {
                             allExistingIds.add(itemId);
@@ -321,10 +323,9 @@ export function addShopItemFromHand(
     let icon;
 
     // Priority 1: Check existing items config
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingItem = Object.values(items as any).find((item: any) => item.itemId === itemStack.typeId) as
-        | ItemData
-        | undefined;
+    const existingItem = Object.values(items as Record<string, ItemData>).find(
+        (item) => item.itemId === itemStack.typeId
+    );
     if (existingItem) {
         icon = existingItem.icon;
         displayName = displayName || existingItem.displayName;
@@ -332,8 +333,7 @@ export function addShopItemFromHand(
     }
 
     // Priority 2: Check the icon and name database
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dbEntry: any = (iconDB as any)[itemStack.typeId];
+    const dbEntry = (iconDB as Record<string, { icon: string; displayName: string }>)[itemStack.typeId];
     if (dbEntry) {
         if (!icon) {
             icon = dbEntry.icon;
@@ -384,8 +384,7 @@ export function addShopItemFromHand(
         return { success: true, message: `Successfully added '${displayName}' to the shop.`, itemId: newId };
     } else {
         // Rollback the addition to the master list if adding to shop fails
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        delete (items as any)[newId];
+        delete (items as Record<string, unknown>)[newId];
         return { success: false, message: `Failed to add item to shop: ${setResult.message}` };
     }
 }
@@ -405,7 +404,7 @@ export function setItem(
     itemData: ItemData
 ): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as any;
+    const categories = config.categories as Record<string, ShopCategory>;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -439,12 +438,10 @@ export function setItem(
  * @returns The result of the operation.
  */
 export function addCustomItemToConfig(itemId: string, itemData: ItemData): ActionResult {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((items as any)[itemId]) {
+    if ((items as Record<string, unknown>)[itemId]) {
         return { success: false, message: `An item with the ID '${itemId}' already exists.` };
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (items as any)[itemId] = {
+    (items as Record<string, unknown>)[itemId] = {
         itemId: itemData.itemId,
         icon: itemData.icon,
         buyPrice: itemData.buyPrice,
@@ -464,7 +461,7 @@ export function addCustomItemToConfig(itemId: string, itemData: ItemData): Actio
  */
 export function removeItem(categoryName: string, subCategoryName: string | null, itemId: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as any;
+    const categories = config.categories as Record<string, ShopCategory>;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -503,12 +500,11 @@ export function updateShopItem(
     newData: UpdateItemData
 ): ActionResult {
     // 1. Update the master item list (items.js)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const itemsAny = items as any;
-    if (itemsAny[itemId]) {
-        itemsAny[itemId].displayName = newData.displayName;
-        itemsAny[itemId].itemId = newData.minecraftId;
-        itemsAny[itemId].icon = newData.icon;
+    const itemsRecord = items as Record<string, ItemData>;
+    if (itemsRecord[itemId]) {
+        itemsRecord[itemId].displayName = newData.displayName;
+        itemsRecord[itemId].itemId = newData.minecraftId;
+        itemsRecord[itemId].icon = newData.icon;
     } else {
         // This case should ideally not happen if the item was added correctly
         addCustomItemToConfig(itemId, {
@@ -522,7 +518,7 @@ export function updateShopItem(
 
     // 2. Update the shop-specific configuration (shop.json)
     const shopConfig = getShopConfig();
-    const categories = shopConfig.categories as any;
+    const categories = shopConfig.categories as Record<string, ShopCategory>;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };

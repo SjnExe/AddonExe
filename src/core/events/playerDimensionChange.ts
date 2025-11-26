@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+
 import { getConfig } from '../configManager.js';
 import { debugLog } from '../logger.js';
 import { errorLog } from '../logger.js';
@@ -41,8 +42,9 @@ function handlePlayerDimensionChange(event: mc.PlayerDimensionChangeAfterEvent) 
         };
         player.teleport(returnLocation, { dimension: fromDimension });
         player.sendMessage(`§cThe ${dimensionId} dimension is currently locked.`);
-    } catch (e: any) {
-        errorLog(`[DimensionLock] Failed to teleport player ${player.name} from locked dimension: ${e.stack}`);
+    } catch (e: unknown) {
+        const stack = e instanceof Error ? e.stack : String(e);
+        errorLog(`[DimensionLock] Failed to teleport player ${player.name} from locked dimension: ${stack}`);
     }
 }
 

@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getKitsConfig, saveKitsConfig } from './configurations.js';
+import { Kit } from './kitAdminManager.js';
 import { errorLog } from './logger.js';
 import { debugLog } from './logger.js';
 
@@ -26,7 +27,7 @@ interface ActionResult {
  */
 export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult {
     const config = getKitsConfig();
-    const kitDefinitions = config.kitDefinitions as Record<string, any>;
+    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
     if (!kit) {
@@ -75,7 +76,7 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
  */
 export function removeItemFromKit(kitName: string, itemIndex: number): ActionResult {
     const config = getKitsConfig();
-    const kitDefinitions = config.kitDefinitions as Record<string, any>;
+    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
     if (!kit) {
@@ -101,7 +102,7 @@ export function removeItemFromKit(kitName: string, itemIndex: number): ActionRes
  */
 export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo: ItemInfo): ActionResult {
     const config = getKitsConfig();
-    const kitDefinitions = config.kitDefinitions as Record<string, any>;
+    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
     if (!kit) {

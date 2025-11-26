@@ -31,16 +31,14 @@ export function setLogLevel(level: number | string): void {
 
 /**
  * Formats an error object or any value into a readable string.
- * @param {any} error The error or object to format.
+ * @param {unknown} error The error or object to format.
  * @returns {string} A string representation of the error.
  */
-function formatError(error: any): string {
+function formatError(error: unknown): string {
+    if (error instanceof Error) {
+        return `\n  Message: ${error.message}\n  Stack: ${error.stack}`;
+    }
     if (typeof error === 'object' && error !== null) {
-        // If the object has a stack, it's likely an error object.
-        if (error.stack) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return `\n  Message: ${(error as any).message}\n  Stack: ${(error as any).stack}`;
-        }
         try {
             // For other objects, attempt to stringify them.
             return JSON.stringify(

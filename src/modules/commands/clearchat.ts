@@ -17,13 +17,14 @@ const clearchatCommand: CustomCommand = {
             const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
             mc.world.sendMessage(emptyLines);
             mc.world.sendMessage(`§aChat has been cleared by ${announcer}.`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             if (executor instanceof mc.Player) {
                 sendMessage('§cFailed to clear chat.', executor);
             } else {
                 executor.sendMessage('§cFailed to clear chat.');
             }
-            errorLog(`[/x:clearchat] ${error.stack}`);
+            const stack = error instanceof Error ? error.stack : String(error);
+            errorLog(`[/x:clearchat] ${stack}`);
         }
     }
 };

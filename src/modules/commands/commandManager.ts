@@ -86,26 +86,28 @@ class CommandManager {
     private readonly prefix = 'exe'; // Namespace for all custom commands
 
     constructor() {
-        mc.system.beforeEvents.startup.subscribe(({ customCommandRegistry }: { customCommandRegistry: mc.CustomCommandRegistry }) => {
-            this.commands.forEach((command) => {
-                if (command.disableSlashCommand) {
-                    return;
-                }
+        mc.system.beforeEvents.startup.subscribe(
+            ({ customCommandRegistry }: { customCommandRegistry: mc.CustomCommandRegistry }) => {
+                this.commands.forEach((command) => {
+                    if (command.disableSlashCommand) {
+                        return;
+                    }
 
-                // Register the primary command name
-                this._registerSlashCommand(customCommandRegistry, command, command.slashName || command.name);
+                    // Register the primary command name
+                    this._registerSlashCommand(customCommandRegistry, command, command.slashName || command.name);
 
-                // Register all aliases as separate slash commands
-                if (command.aliases) {
-                    command.aliases.forEach((alias) => {
-                        if (command.disabledSlashAliases && command.disabledSlashAliases.includes(alias)) {
-                            return; // Skip slash command registration for this alias
-                        }
-                        this._registerSlashCommand(customCommandRegistry, command, alias);
-                    });
-                }
-            });
-        });
+                    // Register all aliases as separate slash commands
+                    if (command.aliases) {
+                        command.aliases.forEach((alias) => {
+                            if (command.disabledSlashAliases && command.disabledSlashAliases.includes(alias)) {
+                                return; // Skip slash command registration for this alias
+                            }
+                            this._registerSlashCommand(customCommandRegistry, command, alias);
+                        });
+                    }
+                });
+            }
+        );
     }
 
     /**
@@ -146,16 +148,15 @@ class CommandManager {
         // --- Console Execution ---
         if (!isPlayer) {
             if (!command.allowConsole) {
-                // eslint-disable-next-line no-console
-                console.warn(`[CommandManager] Command '${command.name}' cannot be run from the console.`);
+                executor.sendMessage(`[CommandManager] Command '${command.name}' cannot be run from the console.`);
                 return;
             }
             mc.system.run(() => {
                 try {
                     command.execute(executor, args);
-                } catch (error: any) {
-                    // eslint-disable-next-line no-console
-                    console.error(`[CommandManager] Error executing console command '${command.name}': ${error.stack}`);
+                } catch (error: unknown) {
+                    const stack = error instanceof Error ? error.stack : String(error);
+                    executor.sendMessage(`[CommandManager] Error executing console command '${command.name}': ${stack}`);
                 }
             });
             return;
@@ -188,9 +189,10 @@ class CommandManager {
         mc.system.run(() => {
             try {
                 command.execute(player, args);
-            } catch (error: any) {
+            } catch (error: unknown) {
+                const stack = error instanceof Error ? error.stack : String(error);
                 errorLog(
-                    `[CommandManager] Error executing command '${command.name}' for player '${player.name}': ${error.stack}`
+                    `[CommandManager] Error executing command '${command.name}' for player '${player.name}': ${stack}`
                 );
                 player.sendMessage('§cAn unexpected error occurred while running this command.');
             }
@@ -224,13 +226,17 @@ class CommandManager {
      * @param {string} name The name to register (either primary or an alias).
      * @private
      */
-    private _registerSlashCommand(customCommandRegistry: mc.CustomCommandRegistry, command: CustomCommand, name: string) {
+    private _registerSlashCommand(
+        customCommandRegistry: mc.CustomCommandRegistry,
+        command: CustomCommand,
+        name: string
+    ) {
         const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
         const commandCallback = (origin: mc.CustomCommandOrigin, ...rawArgs: unknown[]) => {
-            const executor: CommandExecutor = origin.sourceEntity || {
+            const executor: CommandExecutor = (origin.sourceEntity as mc.Player) || {
                 isConsole: true,
-                sendMessage: (msg: string) => console.log(msg.replace(/§[0-9a-fklmnor]/g, ''))
+                sendMessage: (msg: string) => errorLog(msg.replace(/§[0-9a-fklmnor]/g, ''))
             };
 
             // Prepare arguments
@@ -245,9 +251,12 @@ class CommandManager {
         };
 
         try {
-            customCommandRegistry.registerCommand(commandData, commandCallback);
-        } catch (e: any) {
-            if (!e.toString().includes('already in use')) {
+            customCommandRegistry.registerCommand(
+                commandData,
+                commandCallback as (origin: mc.CustomCommandOrigin, ...args: any[]) => void
+            );
+        } catch (e: unknown) {
+            if (e instanceof Error && !e.toString().includes('already in use')) {
                 errorLog(`[CommandManager] Failed to register slash command '${name}':`, e);
             }
         }
@@ -261,7 +270,11 @@ class CommandManager {
      * @returns {mc.CustomCommand} The formatted command data.
      * @private
      */
-    private prepareCommandData(command: CustomCommand, nameOverride: string, registry: mc.CustomCommandRegistry): mc.CustomCommand {
+    private prepareCommandData(
+        command: CustomCommand,
+        nameOverride: string,
+        registry: mc.CustomCommandRegistry
+    ): mc.CustomCommand {
         const slashCommandName = nameOverride || command.slashName || command.name;
         const mandatoryParameters = (command.parameters || [])
             .filter((p) => !p.optional)
@@ -287,7 +300,11 @@ class CommandManager {
      * @returns {mc.CustomCommandParameter} The formatted parameter data.
      * @private
      */
-    private formatParameter(param: CommandParameter, commandName: string, registry: mc.CustomCommandRegistry): mc.CustomCommandParameter {
+    private formatParameter(
+        param: CommandParameter,
+        commandName: string,
+        registry: mc.CustomCommandRegistry
+    ): mc.CustomCommandParameter {
         // --- Enum Handling ---
         if (param.enumOptions && Array.isArray(param.enumOptions) && registry) {
             const safeCmdName = (commandName || 'cmd').replace(/[^a-zA-Z0-9_]/g, '');

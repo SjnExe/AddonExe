@@ -5,17 +5,33 @@ import { initializeSpawnProtection } from '../modules/detections/spawnProtection
 
 import { loadConfig as asyncLoadConfig } from './configLoader.js';
 import { getConfig } from './configManager.js';
-import createConfigManager from './configManagerFactory.js';
+import createConfigManager, { ConfigManager } from './configManagerFactory.js';
 import { setLockState } from './playerDataManager.js';
 import { reloadRanks } from './rankManager.js';
+import { kitsConfig } from './kitsConfig.default.js';
+import { shopConfig } from './shopConfig.default.js';
+import { spawnConfig } from './spawnConfig.default.js';
+import { ranksConfig } from './ranksConfig.default.js';
+import { economyConfig } from './economyConfig.default.js';
+import { xrayConfig } from './xrayConfig.default.js';
+import { teamConfig } from './teamConfig.default.js';
+import { config as Config } from '../config.default.js';
 
-let kitsConfigManager: any,
-    shopConfigManager: any,
-    spawnConfigManager: any,
-    ranksConfigManager: any,
-    economyConfigManager: any,
-    xrayConfigManager: any,
-    teamConfigManager: any;
+export type KitsConfig = typeof kitsConfig;
+export type ShopConfig = typeof shopConfig;
+export type SpawnConfig = typeof spawnConfig;
+export type RanksConfig = typeof ranksConfig;
+export type EconomyConfig = typeof economyConfig;
+export type XrayConfig = typeof xrayConfig;
+export type TeamConfig = typeof teamConfig;
+
+let kitsConfigManager: ConfigManager<KitsConfig>,
+    shopConfigManager: ConfigManager<ShopConfig>,
+    spawnConfigManager: ConfigManager<SpawnConfig>,
+    ranksConfigManager: ConfigManager<RanksConfig>,
+    economyConfigManager: ConfigManager<EconomyConfig>,
+    xrayConfigManager: ConfigManager<XrayConfig>,
+    teamConfigManager: ConfigManager<TeamConfig>;
 
 export const loadKitsConfig = async (isMigration: boolean) => {
     const defaultConfig = await asyncLoadConfig('./kitsConfig.js');
@@ -23,7 +39,7 @@ export const loadKitsConfig = async (isMigration: boolean) => {
     await kitsConfigManager.load(isMigration);
 };
 export const getKitsConfig = () => kitsConfigManager.get();
-export const saveKitsConfig = (config: any) => kitsConfigManager.save(config);
+export const saveKitsConfig = (config: KitsConfig) => kitsConfigManager.save(config);
 export const resetKitsConfig = () => kitsConfigManager.reset();
 
 export const loadShopConfig = async (isMigration: boolean) => {
@@ -32,7 +48,7 @@ export const loadShopConfig = async (isMigration: boolean) => {
     await shopConfigManager.load(isMigration);
 };
 export const getShopConfig = () => shopConfigManager.get();
-export const saveShopConfig = (config: any) => shopConfigManager.save(config);
+export const saveShopConfig = (config: ShopConfig) => shopConfigManager.save(config);
 export const resetShopConfig = () => shopConfigManager.reset();
 
 export const loadSpawnConfig = async (isMigration: boolean) => {
@@ -41,7 +57,7 @@ export const loadSpawnConfig = async (isMigration: boolean) => {
     await spawnConfigManager.load(isMigration);
 };
 export const getSpawnConfig = () => spawnConfigManager.get();
-export const saveSpawnConfig = (config: any) => spawnConfigManager.set(config);
+export const saveSpawnConfig = (config: SpawnConfig) => spawnConfigManager.set(config);
 export const resetSpawnConfig = () => spawnConfigManager.reset();
 
 export const loadRanksConfig = async (isMigration: boolean) => {
@@ -50,7 +66,7 @@ export const loadRanksConfig = async (isMigration: boolean) => {
     await ranksConfigManager.load(isMigration);
 };
 export const getRanksConfig = () => ranksConfigManager.get();
-export const saveRanksConfig = (config: any) => ranksConfigManager.set(config);
+export const saveRanksConfig = (config: RanksConfig) => ranksConfigManager.set(config);
 export const resetRanksConfig = () => ranksConfigManager.reset();
 
 export const loadEconomyConfig = async (isMigration: boolean) => {
@@ -59,7 +75,7 @@ export const loadEconomyConfig = async (isMigration: boolean) => {
     await economyConfigManager.load(isMigration);
 };
 export const getEconomyConfig = () => economyConfigManager.get();
-export const saveEconomyConfig = (config: any) => economyConfigManager.set(config);
+export const saveEconomyConfig = (config: EconomyConfig) => economyConfigManager.set(config);
 export const resetEconomyConfig = () => economyConfigManager.reset();
 
 export const loadXrayConfig = async (isMigration: boolean) => {
@@ -68,7 +84,7 @@ export const loadXrayConfig = async (isMigration: boolean) => {
     await xrayConfigManager.load(isMigration);
 };
 export const getXrayConfig = () => xrayConfigManager.get();
-export const saveXrayConfig = (config: any) => xrayConfigManager.set(config);
+export const saveXrayConfig = (config: XrayConfig) => xrayConfigManager.set(config);
 export const resetXrayConfig = () => xrayConfigManager.reset();
 
 export const loadTeamConfig = async (isMigration: boolean) => {
@@ -77,7 +93,7 @@ export const loadTeamConfig = async (isMigration: boolean) => {
     await teamConfigManager.load(isMigration);
 };
 export const getTeamConfig = () => teamConfigManager.get();
-export const saveTeamConfig = (config: any) => teamConfigManager.set(config);
+export const saveTeamConfig = (config: TeamConfig) => teamConfigManager.set(config);
 export const resetTeamConfig = () => teamConfigManager.reset();
 
 type ResetRegistryEntry = {
@@ -137,9 +153,9 @@ export const configResetCallbacks: Record<string, (player?: mc.Player) => void> 
         }
     },
     dimensionLock: (player) => {
-        const config: any = getConfig();
-        setLockState('nether', !!config.dimensionLock.lockNether);
-        setLockState('end', !!config.dimensionLock.lockEnd);
+        const config = getConfig() as typeof Config;
+        setLockState('nether', !!config.dimensionLock.netherLock);
+        setLockState('end', !!config.dimensionLock.endLock);
         if (player) {
             player.sendMessage('§aLive dimension lock states have been updated to match config.');
         }

@@ -1,5 +1,3 @@
-// @ts-nocheck - This is necessary because the module paths are dynamic and TypeScript
-// cannot reasonably infer their types at compile time.
 import { errorLog } from './logger';
 
 /**

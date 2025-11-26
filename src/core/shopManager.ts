@@ -63,14 +63,15 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
 
 /**
  * Finds a shop item definition by its ID.
+import { ShopConfig } from './shopConfig.default.js';
+
  * @param itemId The item ID to look up.
  * @returns The item definition or null if not found.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function findShopItem(itemId: string): any | null {
-    const shopConfig = getShopConfig();
-    const categories = shopConfig.categories as any;
-    const items = allItems as any;
+function findShopItem(itemId: string): ItemInfo | null {
+    const shopConfig = getShopConfig() as ShopConfig;
+    const categories = shopConfig.categories;
+    const items = allItems as Record<string, ItemInfo>;
 
     for (const categoryName in categories) {
         const category = categories[categoryName];

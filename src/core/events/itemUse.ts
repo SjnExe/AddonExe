@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+
 import * as playerDataManager from '../playerDataManager.js';
 import { showPanel } from '../uiManager.js';
 

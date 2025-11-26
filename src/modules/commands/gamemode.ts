@@ -105,8 +105,8 @@ const mainGamemodeCommand: CustomCommand = {
         { name: 'target', type: 'string', description: 'The target player name', optional: true }
     ],
     execute: (executor, args) => {
-        const { gamemode, target } = args as GamemodeCommandArgs;
-        setGamemode(executor, gamemode, target);
+        const { gamemode, target } = args;
+        setGamemode(executor, gamemode as string, target as string | undefined);
     }
 };
 
@@ -147,8 +147,8 @@ const legacyCommands: CustomCommand[] = legacyCommandDefs.map((cmd) => ({
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string', description: 'The player to set the gamemode for', optional: true }],
     execute: (executor, args) => {
-        const { target } = args as LegacyGamemodeArgs;
-        setGamemode(executor, cmd.gamemode, target);
+        const { target } = args;
+        setGamemode(executor, cmd.gamemode, target as string | undefined);
     }
 }));
 

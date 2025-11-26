@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+
 import * as lastHitManager from '../lastHitManager.js';
 
 export const eventName = 'entityHurt';

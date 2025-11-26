@@ -71,14 +71,18 @@ function handleEntityDie(event: mc.EntityDieAfterEvent) {
                 debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
             }
         }
-    } catch (e: any) {
+    } catch (e: unknown) {
         errorLog('[BountyClaim] A fatal error occurred during bounty processing.');
-        try {
-            errorLog(`[BountyClaim] Raw Error: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}`);
-        } catch {
-            errorLog(`[BountyClaim] Could not stringify error object. Message: ${e?.message}`);
+        if (e instanceof Error) {
+            errorLog(`[BountyClaim] Error: ${e.message}`);
+            errorLog(`[BountyClaim] Stack: ${e.stack}`);
+        } else {
+            try {
+                errorLog(`[BountyClaim] Raw Error: ${JSON.stringify(e)}`);
+            } catch {
+                errorLog(`[BountyClaim] Could not stringify error object.`);
+            }
         }
-        errorLog(`[BountyClaim] Error Stack: ${e?.stack}`);
     }
 }
 

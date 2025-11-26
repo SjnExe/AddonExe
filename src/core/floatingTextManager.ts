@@ -89,12 +89,12 @@ async function spawnAllTexts() {
         try {
             const dimension = mc.world.getDimension(textConfig.dimension);
             const query: mc.EntityQueryOptions = {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Custom entity types are not in the standard API definitions
                 type: 'addonexe:floating_text' as any,
                 tags: [`ft_${textConfig.id}`]
             };
             const entities = dimension.getEntities(query);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const entity = entities.length > 0 ? (entities as any)[0] : undefined;
+            const entity = entities.length > 0 ? entities[0] : undefined;
 
             if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
                 const isCorrectLocation =
@@ -132,7 +132,7 @@ function spawnText(textConfig: FloatingTextConfig) {
         const dimension = mc.world.getDimension(textConfig.dimension);
         dimension.runCommand(`kill @e[type=addonexe:floating_text,tag="ft_${textConfig.id}"]`);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Custom entity types are not in the standard API definitions
         const entity = dimension.spawnEntity('addonexe:floating_text' as any, textConfig.location);
         entity.nameTag = textConfig.text.replace(/\\n/g, '\n');
         entity.addTag(`ft_${textConfig.id}`);
@@ -164,8 +164,7 @@ async function findEntityWithRetries(
 ): Promise<mc.Entity | null> {
     for (let i = 0; i < maxRetries; i++) {
         const entities = dimension.getEntities(query);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const entity = entities.length > 0 ? (entities as any)[0] : undefined;
+        const entity = entities.length > 0 ? entities[0] : undefined;
         if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
             debugLog(`[FloatingText] Found entity for query after ${i + 1} attempt(s).`);
             return entity;
@@ -184,8 +183,7 @@ function getTextById(id: string): FloatingTextConfig | undefined {
     return floatingTexts.get(id);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function updateText(id: string, updates: Partial<FloatingTextConfig> & { updateInterval?: any }) {
+async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
     const oldConfig = getTextById(id);
     if (!oldConfig) {
         errorLog(`[FloatingText] updateText failed: Could not find config for ID: ${id}`);
@@ -241,7 +239,11 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig> & { u
     mc.system.run(async () => {
         try {
             const dimension = mc.world.getDimension(newConfig.dimension);
-            const query: mc.EntityQueryOptions = { type: 'addonexe:floating_text' as any, tags: [`ft_${id}`] };
+            const query: mc.EntityQueryOptions = {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Custom entity types are not in the standard API definitions
+                type: 'addonexe:floating_text' as any,
+                tags: [`ft_${id}`]
+            };
             const entity = await findEntityWithRetries(dimension, query);
 
             if (locationChanged || !entity) {
@@ -307,13 +309,16 @@ async function despawnText(id: string) {
 
     try {
         const dimension = mc.world.getDimension(textConfig.dimension);
-        const query: mc.EntityQueryOptions = { type: 'addonexe:floating_text' as any, tags: [`ft_${id}`] };
+        const query: mc.EntityQueryOptions = {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Custom entity types are not in the standard API definitions
+            type: 'addonexe:floating_text' as any,
+            tags: [`ft_${id}`]
+        };
         const entities = dimension.getEntities(query);
 
         // Iterate and remove all matches, just in case duplication occurred
         let found = false;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        for (const entity of entities as any) {
+        for (const entity of entities) {
             if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
                 entity.remove();
                 found = true;

@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ModalFormData, ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
+import { ModalFormData, ActionFormData, ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
 import { config as defaultConfig } from '../../config.default.js';
 import { restartAnnouncer } from '../../modules/commands/announcement.js';
@@ -14,6 +14,7 @@ import {
     saveEconomyConfig,
     getXrayConfig,
     saveXrayConfig,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     RanksConfig
 } from '../configurations.js';
 import { economyConfig as defaultEconomyConfig } from '../economyConfig.default.js';
@@ -53,7 +54,7 @@ const allDefaultConfigs: Record<string, object> = {
 export async function handleFormResponse(
     player: mc.Player,
     panelId: string,
-    response: ActionFormResponse,
+    response: ActionFormResponse | ModalFormResponse,
     context: UIContext
 ) {
     const { selection, canceled, formValues } = response;
@@ -191,7 +192,7 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'teamMainPanel', context);
         }
-        const [name] = formValues as string[];
+        const [name] = (response as ModalFormResponse).formValues as string[];
         if (!name) {
             player.sendMessage('§cTeam name is required.');
             return showPanel(player, panelId, context);
@@ -223,7 +224,7 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'teamJoinPanel', context);
         }
-        const [idStr] = formValues as string[];
+        const [idStr] = (response as ModalFormResponse).formValues as string[];
         const teamId = parseInt(idStr);
         if (isNaN(teamId)) {
             player.sendMessage('§cInvalid Team ID.');
@@ -517,7 +518,7 @@ export async function handleFormResponse(
         const isAdmin = team.admins.includes(player.id);
         const canManage = isOwner || isAdmin;
 
-        const autoTp = formValues[0];
+        const autoTp = (response as ModalFormResponse).formValues[0];
 
         updatePlayerData(player.id, (d: PlayerData) => {
             if (!d.teamSettings) {
@@ -653,7 +654,7 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'xrayOresPanel', context);
         }
-        const [blockId, dimensionId, minYStr, maxYStr, oreName] = formValues as string[];
+        const [blockId, dimensionId, minYStr, maxYStr, oreName] = (response as ModalFormResponse).formValues as string[];
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
@@ -675,7 +676,7 @@ export async function handleFormResponse(
             return showPanel(player, 'xrayOresPanel', context);
         }
         const { oreIndex } = context;
-        const [blockId, dimensionId, minYStr, maxYStr, oreName] = formValues as string[];
+        const [blockId, dimensionId, minYStr, maxYStr, oreName] = (response as ModalFormResponse).formValues as string[];
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
@@ -696,7 +697,9 @@ export async function handleFormResponse(
             return showPanel(player, 'floatingTextActionPanel', context);
         }
         const { id } = context;
-        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = formValues as [
+        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = (
+            response as ModalFormResponse
+        ).formValues as [
             string,
             string,
             string,
@@ -725,7 +728,7 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'floatingTextListPanel', context);
         }
-        const [id, text] = formValues as string[];
+        const [id, text] = (response as ModalFormResponse).formValues as string[];
         if (!id) {
             player.sendMessage('§cID cannot be empty.');
             return showPanel(player, 'floatingTextCreatePanel', context);
@@ -790,7 +793,7 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'rulesManagementPanel', context);
         }
-        const [newRuleText] = formValues as string[];
+        const [newRuleText] = (response as ModalFormResponse).formValues as string[];
         if (newRuleText) {
             rulesManager.addRule(newRuleText);
             player.sendMessage('§2Rule added successfully.');
@@ -848,7 +851,7 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'helpfulLinksManagementPanel', context);
         }
-        const [title, url] = formValues as string[];
+        const [title, url] = (response as ModalFormResponse).formValues as string[];
         if (title && url) {
             helpfulLinksManager.addHelpfulLink(title, url);
             player.sendMessage('§2Link added successfully.');
@@ -858,6 +861,7 @@ export async function handleFormResponse(
 
     if (panelId === 'helpfulLinkActionPanel') {
         const { linkIndex } = context;
+        if (selection === undefined) return;
         switch (selection) {
             case 0: {
                 // Edit
@@ -865,13 +869,13 @@ export async function handleFormResponse(
                 const currentLink = links[linkIndex];
                 const editForm = new ModalFormData()
                     .title('Edit Link')
-                    .textField('Link Title', 'Enter the new title', currentLink.title)
-                    .textField('Link URL', 'Enter the new URL', currentLink.url);
+                    .textField('Link Title', 'Enter the new title', { defaultValue: currentLink.title })
+                    .textField('Link URL', 'Enter the new URL', { defaultValue: currentLink.url });
                 const editResponse = await utils.uiWait(player, editForm);
                 if (editResponse.canceled) {
                     return showPanel(player, 'helpfulLinkActionPanel', context);
                 }
-                const [newTitle, newUrl] = editResponse.formValues as string[];
+                const [newTitle, newUrl] = (editResponse as ModalFormResponse).formValues as string[];
                 if (newTitle && newUrl) {
                     helpfulLinksManager.editHelpfulLink(linkIndex, newTitle, newUrl);
                     player.sendMessage('§2Link updated successfully.');
@@ -911,19 +915,22 @@ export async function handleFormResponse(
     if (panelId === 'ruleActionPanel') {
         const { ruleIndex } = context;
 
+        if (selection === undefined) return;
         switch (selection) {
             case 0: {
                 // Edit Text
                 const rules = rulesManager.getRules();
                 const currentText = rules[ruleIndex];
-                const editForm = new ModalFormData().title('Edit Rule Text').textField('Rule text', 'Enter the new text', currentText);
+                const editForm = new ModalFormData()
+                    .title('Edit Rule Text')
+                    .textField('Rule text', 'Enter the new text', { defaultValue: currentText });
 
                 const editResponse = await utils.uiWait(player, editForm);
                 if (editResponse.canceled) {
                     return showPanel(player, 'ruleActionPanel', context);
                 }
 
-                const [newText] = editResponse.formValues as string[];
+                const [newText] = (editResponse as ModalFormResponse).formValues as string[];
                 if (newText) {
                     rulesManager.editRule(ruleIndex, newText);
                     player.sendMessage('§2Rule updated successfully.');
@@ -1017,13 +1024,15 @@ export async function handleFormResponse(
                 onConfirm: async () => {
                     const finalConfirmForm = new ModalFormData()
                         .title('Final Confirmation')
-                        .textField(`Type "confirm" to reset ${selectedSystem.title}.`, 'Case-insensitive');
+                .textField(`Type "confirm" to reset ${selectedSystem.title}.`, 'Case-insensitive', { defaultValue: '' });
 
                     const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
                     if (
                         finalConfirmResponse.canceled ||
-                        (finalConfirmResponse.formValues?.[0] as string).trim().toLowerCase() !== 'confirm'
+                        ((finalConfirmResponse as ModalFormResponse).formValues?.[0] as string)
+                            .trim()
+                            .toLowerCase() !== 'confirm'
                     ) {
                         player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
@@ -1064,7 +1073,7 @@ export async function handleFormResponse(
                     onConfirm: async () => {
                         const finalConfirmForm = new ModalFormData()
                             .title('Final Confirmation')
-                            .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive');
+                            .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', { defaultValue: '' });
 
                         const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
@@ -1197,16 +1206,20 @@ export async function handleFormResponse(
         let hasDropdown = false;
 
         if (canBuy && canSell) {
-            modal.textField('Amount', 'Enter the amount', '1');
+            modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
             const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
             modal.dropdown('Action', options, 0);
             hasDropdown = true;
         } else if (canBuy) {
-            modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', '1');
+            modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', {
+                defaultValue: '1'
+            });
             action = 'buy';
         } else {
             // canSell
-            modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', '1');
+            modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', {
+                defaultValue: '1'
+            });
             action = 'sell';
         }
 
@@ -1218,13 +1231,13 @@ export async function handleFormResponse(
 
         let amount;
         if (hasDropdown) {
-            const [amountStr, actionIndex] = modalResponse.formValues as [string, number];
+            const [amountStr, actionIndex] = (modalResponse as ModalFormResponse).formValues as [string, number];
             amount = parseInt(amountStr, 10);
             const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
             const selectedActionString = options[actionIndex];
             action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
         } else {
-            const [amountStr] = modalResponse.formValues as [string];
+            const [amountStr] = (modalResponse as ModalFormResponse).formValues as [string];
             amount = parseInt(amountStr, 10);
         }
 
@@ -1260,14 +1273,16 @@ export async function handleFormResponse(
                 .textField('Display Name', 'e.g., Sword of Awesome')
                 .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword')
                 .textField('Icon Path', 'e.g., textures/items/diamond_sword')
-                .textField('Buy Price', '-1 to disable', '-1')
-                .textField('Sell Price', '-1 to disable', '-1')
-                .textField('Permission Level', 'e.g., 1024', '1024');
+                .textField('Buy Price', '-1 to disable', { defaultValue: '-1' })
+                .textField('Sell Price', '-1 to disable', { defaultValue: '-1' })
+                .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const [customId, displayName, mcId, icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues as string[];
+            const [customId, displayName, mcId, icon, buyPriceStr, sellPriceStr, permLevelStr] = (
+                response as ModalFormResponse
+            ).formValues as string[];
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
             const permissionLevel = parseInt(permLevelStr, 10);
@@ -1310,15 +1325,16 @@ export async function handleFormResponse(
             const masterItem = allItems[selectedItemId];
             const form = new ModalFormData()
                 .title(`Add ${masterItem.displayName}`)
-                .textField('Icon Path', 'e.g., textures/items/diamond_sword', masterItem.icon)
-                .textField('Buy Price', '-1 to disable', `${masterItem.buyPrice}`)
-                .textField('Sell Price', '-1 to disable', `${masterItem.sellPrice}`)
-                .textField('Permission Level', 'e.g., 1024', '1024');
+                .textField('Icon Path', 'e.g., textures/items/diamond_sword', { defaultValue: masterItem.icon })
+                .textField('Buy Price', '-1 to disable', { defaultValue: `${masterItem.buyPrice}` })
+                .textField('Sell Price', '-1 to disable', { defaultValue: `${masterItem.sellPrice}` })
+                .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const [icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues as string[];
+            const [icon, buyPriceStr, sellPriceStr, permLevelStr] = (response as ModalFormResponse)
+                .formValues as string[];
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
             const permissionLevel = parseInt(permLevelStr, 10);
@@ -1366,13 +1382,13 @@ export async function handleFormResponse(
             // Add Category
             const form = new ModalFormData()
                 .title('Add Category')
-                .textField('Category Name', 'Enter category name')
-                .textField('Icon', 'Enter icon texture path');
+                .textField('Category Name', 'Enter category name', { defaultValue: '' })
+                .textField('Icon', 'Enter icon texture path', { defaultValue: '' });
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const [name, icon] = response.formValues as string[];
+            const [name, icon] = (response as ModalFormResponse).formValues as string[];
             if (name) {
                 const result = shopAdminManager.addCategory(name, icon);
                 player.sendMessage(result.message);
@@ -1418,13 +1434,13 @@ export async function handleFormResponse(
             // Add Subcategory
             const form = new ModalFormData()
                 .title('Add Subcategory')
-                .textField('Subcategory Name', 'Enter subcategory name')
-                .textField('Icon', 'Enter icon texture path');
+                .textField('Subcategory Name', 'Enter subcategory name', { defaultValue: '' })
+                .textField('Icon', 'Enter icon texture path', { defaultValue: '' });
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const [name, icon] = response.formValues as string[];
+            const [name, icon] = (response as ModalFormResponse).formValues as string[];
             if (name) {
                 const result = shopAdminManager.addSubCategory(categoryName, name, icon);
                 player.sendMessage(result.message);
@@ -1470,20 +1486,29 @@ export async function handleFormResponse(
                     const masterItem = allItems[selectedEntry.id] || {};
                     const editForm = new ModalFormData()
                         .title(`Edit Item: ${selectedEntry.id}`)
-                        .textField('Display Name', 'e.g., Magical Sword', selectedEntry.displayName || masterItem.displayName)
-                        .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', masterItem.itemId)
-                        .textField('Icon Path', 'e.g., textures/items/diamond_sword', selectedEntry.icon || masterItem.icon)
-                        .textField('Buy Price', '-1 to disable', String(selectedEntry.buyPrice))
-                        .textField('Sell Price', '-1 to disable', String(selectedEntry.sellPrice))
-                        .textField('Permission Level', 'e.g., 1024', String(selectedEntry.permissionLevel));
+                        .textField('Display Name', 'e.g., Magical Sword', {
+                            defaultValue: selectedEntry.displayName || masterItem.displayName
+                        })
+                        .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', {
+                            defaultValue: masterItem.itemId
+                        })
+                        .textField('Icon Path', 'e.g., textures/items/diamond_sword', {
+                            defaultValue: selectedEntry.icon || masterItem.icon
+                        })
+                        .textField('Buy Price', '-1 to disable', { defaultValue: String(selectedEntry.buyPrice) })
+                        .textField('Sell Price', '-1 to disable', { defaultValue: String(selectedEntry.sellPrice) })
+                        .textField('Permission Level', 'e.g., 1024', {
+                            defaultValue: String(selectedEntry.permissionLevel)
+                        });
 
                     const editResponse = await utils.uiWait(player, editForm);
                     if (editResponse.canceled) {
                         return showPanel(player, panelId, context);
                     }
 
-                    const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] =
-                        editResponse.formValues as string[];
+                    const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] = (
+                        editResponse as ModalFormResponse
+                    ).formValues as string[];
                     const buyPrice = Number(buyPriceStr);
                     const sellPrice = Number(sellPriceStr);
                     const permissionLevel = Number(permLevelStr);
@@ -1546,13 +1571,13 @@ export async function handleFormResponse(
             const category = shopConfig.categories[categoryName];
             const form = new ModalFormData()
                 .title('Edit Category')
-                .textField('Category Name', 'Enter new name', categoryName)
-                .textField('Icon', 'Enter icon texture path', category.icon);
+                .textField('Category Name', 'Enter new name', { defaultValue: categoryName })
+                .textField('Icon', 'Enter icon texture path', { defaultValue: category.icon });
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
             }
-            const [newName, newIcon] = response.formValues as string[];
+            const [newName, newIcon] = (response as ModalFormResponse).formValues as string[];
             if (newName) {
                 const result = shopAdminManager.editCategory(categoryName, newName, newIcon);
                 player.sendMessage(result.message);
@@ -1624,20 +1649,29 @@ export async function handleFormResponse(
                 const masterItem = allItems[selectedItem.id] || {};
                 const editForm = new ModalFormData()
                     .title(`Edit Item: ${selectedItem.id}`)
-                    .textField('Display Name', 'e.g., Magical Sword', selectedItem.displayName || masterItem.displayName)
-                    .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', masterItem.itemId)
-                    .textField('Icon Path', 'e.g., textures/items/diamond_sword', selectedItem.icon || masterItem.icon)
-                    .textField('Buy Price', '-1 to disable', String(selectedItem.buyPrice))
-                    .textField('Sell Price', '-1 to disable', String(selectedItem.sellPrice))
-                    .textField('Permission Level', 'e.g., 1024', String(selectedItem.permissionLevel));
+                    .textField('Display Name', 'e.g., Magical Sword', {
+                        defaultValue: selectedItem.displayName || masterItem.displayName
+                    })
+                    .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', {
+                        defaultValue: masterItem.itemId
+                    })
+                    .textField('Icon Path', 'e.g., textures/items/diamond_sword', {
+                        defaultValue: selectedItem.icon || masterItem.icon
+                    })
+                    .textField('Buy Price', '-1 to disable', { defaultValue: String(selectedItem.buyPrice) })
+                    .textField('Sell Price', '-1 to disable', { defaultValue: String(selectedItem.sellPrice) })
+                    .textField('Permission Level', 'e.g., 1024', {
+                        defaultValue: String(selectedItem.permissionLevel)
+                    });
 
                 const editResponse = await utils.uiWait(player, editForm);
                 if (editResponse.canceled) {
                     return showPanel(player, panelId, context);
                 }
 
-                const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] =
-                    editResponse.formValues as string[];
+                const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] = (
+                    editResponse as ModalFormResponse
+                ).formValues as string[];
                 const buyPrice = Number(buyPriceStr);
                 const sellPrice = Number(sellPriceStr);
                 const permissionLevel = Number(permLevelStr);
@@ -1694,13 +1728,13 @@ export async function handleFormResponse(
             const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
             const form = new ModalFormData()
                 .title('Edit Subcategory')
-                .textField('Subcategory Name', 'Enter new name', subCategoryName)
-                .textField('Icon', 'Enter icon texture path', subCategory.icon);
+                .textField('Subcategory Name', 'Enter new name', { defaultValue: subCategoryName })
+                .textField('Icon', 'Enter icon texture path', { defaultValue: subCategory.icon });
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, `shopAdminSubCategoryItemPanel_${subCategoryName}`, context);
             }
-            const [newName, newIcon] = response.formValues as string[];
+            const [newName, newIcon] = (response as ModalFormResponse).formValues as string[];
             if (newName) {
                 const result = shopAdminManager.editSubCategory(categoryName, subCategoryName, newName, newIcon);
                 player.sendMessage(result.message);
@@ -1753,16 +1787,17 @@ export async function handleFormResponse(
             const form = new ModalFormData()
                 .title('Create New Kit')
                 .textField('Kit Name', 'Enter a unique name for the kit')
-                .textField('Cooldown (seconds)', 'e.g., 3600', '3600')
-                .textField('Permission Level', '0=Admin, 1024=Member', '1024')
-                .textField('Price', 'Cost to claim', '0');
+                .textField('Cooldown (seconds)', 'e.g., 3600', { defaultValue: '3600' })
+                .textField('Permission Level', '0=Admin, 1024=Member', { defaultValue: '1024' })
+                .textField('Price', 'Cost to claim', { defaultValue: '0' });
 
             const createResponse = await utils.uiWait(player, form);
             if (createResponse.canceled) {
                 return showPanel(player, 'kitManagementPanel', context);
             }
 
-            const [kitName, cooldownStr, permissionLevelStr, priceStr] = createResponse.formValues as string[];
+            const [kitName, cooldownStr, permissionLevelStr, priceStr] = (createResponse as ModalFormResponse)
+                .formValues as string[];
             const cooldown = Number(cooldownStr);
             const permissionLevel = Number(permissionLevelStr);
             const price = Number(priceStr);
@@ -1821,7 +1856,17 @@ export async function handleFormResponse(
             return showPanel(player, `kitActionMenu_${kitName}`, context);
         }
 
-        const [isEnabled, newKitName, description, icon, cooldownStr, permissionLevelStr, priceStr] = formValues as [boolean, string, string, string, string, string, string];
+        const [isEnabled, newKitName, description, icon, cooldownStr, permissionLevelStr, priceStr] = (
+            response as ModalFormResponse
+        ).formValues as [
+            boolean,
+            string,
+            string,
+            string,
+            string,
+            string,
+            string
+        ];
 
         let finalKitName = kitName;
         // Check if the name has changed (case-insensitive)
@@ -1893,15 +1938,15 @@ export async function handleFormResponse(
             // Add New Item
             const form = new ModalFormData()
                 .title('Add New Item')
-                .textField('Item ID', 'e.g., minecraft:diamond')
-                .textField('Amount', 'e.g., 16');
+                .textField('Item ID', 'e.g., minecraft:diamond', { defaultValue: '' })
+                .textField('Amount', 'e.g., 16', { defaultValue: '' });
 
             const addResponse = await utils.uiWait(player, form);
             if (addResponse.canceled) {
                 return showPanel(player, panelId, context);
             }
 
-            const [typeId, amountStr] = addResponse.formValues as string[];
+            const [typeId, amountStr] = (addResponse as ModalFormResponse).formValues as string[];
             const amount = Number(amountStr);
 
             if (!typeId || isNaN(amount) || amount <= 0) {
@@ -1925,15 +1970,15 @@ export async function handleFormResponse(
 
             const form = new ModalFormData()
                 .title('Edit Item')
-                .textField('Item ID', 'e.g., minecraft:diamond', selectedItem.typeId)
-                .textField('Amount', 'Set to 0 to delete.', String(selectedItem.amount));
+                .textField('Item ID', 'e.g., minecraft:diamond', { defaultValue: selectedItem.typeId })
+                .textField('Amount', 'Set to 0 to delete.', { defaultValue: String(selectedItem.amount) });
 
             const editResponse = await utils.uiWait(player, form);
             if (editResponse.canceled) {
                 return showPanel(player, panelId, context);
             }
 
-            const [typeId, amountStr] = editResponse.formValues as string[];
+            const [typeId, amountStr] = (editResponse as ModalFormResponse).formValues as string[];
             const amount = Number(amountStr);
 
             if (!typeId || isNaN(amount)) {
@@ -1978,7 +2023,11 @@ export async function handleFormResponse(
         }
 
         // The last form value is the decorative item display, which we ignore.
-        const [isEnabled, cooldownStr, permissionLevelStr] = formValues as [boolean, string, string];
+        const [isEnabled, cooldownStr, permissionLevelStr] = (response as ModalFormResponse).formValues as [
+            boolean,
+            string,
+            string
+        ];
         const cooldown = Number(cooldownStr);
         const permissionLevel = Number(permissionLevelStr);
 
@@ -2054,7 +2103,7 @@ export async function handleFormResponse(
         }
 
         const { commandName } = context;
-        const [isEnabled, permissionLevelStr] = formValues as [boolean, string];
+        const [isEnabled, permissionLevelStr] = (response as ModalFormResponse).formValues as [boolean, string];
         const permissionLevel = parseInt(permissionLevelStr, 10);
 
         if (isNaN(permissionLevel)) {
@@ -2210,7 +2259,7 @@ export async function handleFormResponse(
         }
 
         const { updateAllPlayerRanks } = await import('../main.js');
-        const [nameTagStyleIndex] = formValues as number[];
+        const [nameTagStyleIndex] = (response as ModalFormResponse).formValues as number[];
         const nameTagStyles = ['above', 'before', 'after', 'under'];
         const selectedStyle = nameTagStyles[nameTagStyleIndex];
 
@@ -2314,7 +2363,7 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'mobDropsSystemPanel', context);
         }
-        const [mobId, amountStr] = formValues as string[];
+        const [mobId, amountStr] = (response as ModalFormResponse).formValues as string[];
         const amount = Number(amountStr);
         if (!mobId || isNaN(amount)) {
             player.sendMessage('§cInvalid mob ID or amount.');
@@ -2333,7 +2382,9 @@ export async function handleFormResponse(
             // Edit Amount
             const form = new ModalFormData()
                 .title(`Edit ${mobId}`)
-                .textField('Amount', 'Enter the new amount', String(getEconomyConfig().mobMoney[mobId]));
+                .textField('Amount', 'Enter the new amount', {
+                    defaultValue: String(getEconomyConfig().mobMoney[mobId])
+                });
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, 'mobDropsSystemPanel', context);
@@ -2415,7 +2466,9 @@ export async function handleFormResponse(
             player.sendMessage('§cRank not found.');
             return showPanel(player, 'rankManagementPanel', context);
         }
-        const isSpecialRank = rank.conditions.some((c: { type: string }) => c.type === 'isOwner' || c.type === 'default');
+        const isSpecialRank = rank.conditions.some(
+            (c: { type: string }) => c.type === 'isOwner' || c.type === 'default'
+        );
 
         if (canceled) {
             const fromPanel = isSpecialRank ? 'rankManagementPanel' : `rankActionMenu_${rank.id}`;
