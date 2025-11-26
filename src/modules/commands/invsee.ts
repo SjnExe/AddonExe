@@ -4,6 +4,11 @@ import { sendMessage } from '../../core/messaging.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
+interface InvseeCommandArgs {
+    target?: mc.Player[];
+    page?: number;
+}
+
 const invseeCommand: CustomCommand = {
     name: 'invsee',
     description: "Views a player's inventory in chat.",
@@ -13,8 +18,8 @@ const invseeCommand: CustomCommand = {
         { name: 'target', type: 'player' },
         { name: 'page', type: 'int', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const { target, page: pageArg } = args as { target?: mc.Player[]; page?: number };
+    execute: (executor: CommandExecutor, args: InvseeCommandArgs) => {
+        const { target, page: pageArg } = args;
 
         if (!target || target.length === 0) {
             if (executor instanceof mc.Player) {

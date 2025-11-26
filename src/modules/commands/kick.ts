@@ -51,15 +51,22 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, r
         } else {
             executor.sendMessage(`§aSuccessfully kicked ${targetPlayer.name}. Reason: ${reason}`);
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (executor instanceof mc.Player) {
             sendMessage(`§cFailed to kick ${targetPlayer.name}. See console for details.`, executor);
             playSound(executor, constants.soundError);
         } else {
             executor.sendMessage(`§cFailed to kick ${targetPlayer.name}. See console for details.`);
         }
-        errorLog(`[/kick] Failed to run kick command for ${targetPlayer.name}:`, error);
+        if (error instanceof Error) {
+            errorLog(`[/kick] Failed to run kick command for ${targetPlayer.name}:`, error);
+        }
     }
+}
+
+interface KickCommandArgs {
+    target: string;
+    reason?: string;
 }
 
 const kickCommand: CustomCommand = {
@@ -73,8 +80,8 @@ const kickCommand: CustomCommand = {
         { name: 'target', type: 'string' },
         { name: 'reason', type: 'text', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const { target: targetName, reason = 'No reason provided' } = args as { target: string; reason?: string };
+    execute: (executor: CommandExecutor, args: KickCommandArgs) => {
+        const { target: targetName, reason = 'No reason provided' } = args;
         const targetPlayer = findPlayerByName(targetName);
         if (targetPlayer) {
             kickPlayer(executor, targetPlayer, reason);

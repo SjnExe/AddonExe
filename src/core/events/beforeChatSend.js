@@ -10,7 +10,7 @@ import { getTeamByPlayer } from '../teamManager.js';
 
 export const eventName = 'beforeChatSend';
 
-function handleChatSend(eventData) {
+function handleChatSend(eventData: mc.ChatSendBeforeEvent) {
     const player = eventData.sender;
 
     const punishment = getPunishment(player.id);

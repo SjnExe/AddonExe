@@ -50,7 +50,7 @@ export interface CustomCommand {
     /** An array of parameters the command accepts. */
     parameters?: CommandParameter[];
     /** The function to execute when the command is run. */
-    execute: (executor: CommandExecutor, args: Record<string, any>) => void;
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => void;
     /** Whether the command can be run from the server console. Defaults to false. */
     allowConsole?: boolean;
     /** Whether the command has a cooldown. */
@@ -65,6 +65,18 @@ export interface CustomCommand {
     slashName?: string;
 }
 
+interface CommandSettings {
+    [key: string]: {
+        enabled?: boolean;
+        permissionLevel?: number;
+    };
+}
+
+interface Config {
+    commandSettings: CommandSettings;
+    commandPrefix: string;
+}
+
 /**
  * Manages the registration and execution of both slash and chat commands.
  */
@@ -74,7 +86,7 @@ class CommandManager {
     private readonly prefix = 'exe'; // Namespace for all custom commands
 
     constructor() {
-        mc.system.beforeEvents.startup.subscribe(({ customCommandRegistry }: any) => {
+        mc.system.beforeEvents.startup.subscribe(({ customCommandRegistry }: { customCommandRegistry: mc.CustomCommandRegistry }) => {
             this.commands.forEach((command) => {
                 if (command.disableSlashCommand) {
                     return;
@@ -115,11 +127,11 @@ class CommandManager {
      * The core command execution logic, shared by slash and chat commands.
      * @param {CommandExecutor} executor The player or a console identifier.
      * @param {CustomCommand} command The command to execute.
-     * @param {Record<string, any>} args The parsed arguments for the command.
+     * @param {Record<string, unknown>} args The parsed arguments for the command.
      * @private
      */
-    private _executeCommand(executor: CommandExecutor, command: CustomCommand, args: Record<string, any>) {
-        const config: any = getConfig();
+    private _executeCommand(executor: CommandExecutor, command: CustomCommand, args: Record<string, unknown>) {
+        const config = getConfig() as Config;
         const commandSettings = config.commandSettings[command.name] || {};
 
         if (commandSettings.enabled === false) {
@@ -207,15 +219,15 @@ class CommandManager {
 
     /**
      * Registers a single slash command or alias.
-     * @param {any} customCommandRegistry The registry object from the startup event.
+     * @param {mc.CustomCommandRegistry} customCommandRegistry The registry object from the startup event.
      * @param {CustomCommand} command The command definition.
      * @param {string} name The name to register (either primary or an alias).
      * @private
      */
-    private _registerSlashCommand(customCommandRegistry: any, command: CustomCommand, name: string) {
+    private _registerSlashCommand(customCommandRegistry: mc.CustomCommandRegistry, command: CustomCommand, name: string) {
         const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
-        const commandCallback = (origin: any, ...rawArgs: any[]) => {
+        const commandCallback = (origin: mc.CustomCommandOrigin, ...rawArgs: unknown[]) => {
             const executor: CommandExecutor = origin.sourceEntity || {
                 isConsole: true,
                 sendMessage: (msg: string) => console.log(msg.replace(/§[0-9a-fklmnor]/g, ''))
@@ -223,7 +235,7 @@ class CommandManager {
 
             // Prepare arguments
             const allParams = command.parameters || [];
-            const parsedArgs: Record<string, any> = {};
+            const parsedArgs: Record<string, unknown> = {};
             for (let i = 0; i < allParams.length; i++) {
                 if (rawArgs[i] !== undefined) {
                     parsedArgs[allParams[i].name] = rawArgs[i];
@@ -245,11 +257,11 @@ class CommandManager {
      * Prepares the command data for registration with the Minecraft API.
      * @param {CustomCommand} command The command definition.
      * @param {string} nameOverride The specific name to use for this registration (main name or alias).
-     * @param {object} registry The custom command registry for enum registration.
-     * @returns {object} The formatted command data.
+     * @param {mc.CustomCommandRegistry} registry The custom command registry for enum registration.
+     * @returns {mc.CustomCommand} The formatted command data.
      * @private
      */
-    private prepareCommandData(command: CustomCommand, nameOverride: string, registry: any) {
+    private prepareCommandData(command: CustomCommand, nameOverride: string, registry: mc.CustomCommandRegistry): mc.CustomCommand {
         const slashCommandName = nameOverride || command.slashName || command.name;
         const mandatoryParameters = (command.parameters || [])
             .filter((p) => !p.optional)
@@ -271,11 +283,11 @@ class CommandManager {
      * Formats a parameter for registration with the Minecraft API.
      * @param {CommandParameter} param The parameter definition.
      * @param {string} commandName The name of the command (for unique enum naming).
-     * @param {any} registry The registry to register enums with.
-     * @returns {any} The formatted parameter data.
+     * @param {mc.CustomCommandRegistry} registry The registry to register enums with.
+     * @returns {mc.CustomCommandParameter} The formatted parameter data.
      * @private
      */
-    private formatParameter(param: CommandParameter, commandName: string, registry: any) {
+    private formatParameter(param: CommandParameter, commandName: string, registry: mc.CustomCommandRegistry): mc.CustomCommandParameter {
         // --- Enum Handling ---
         if (param.enumOptions && Array.isArray(param.enumOptions) && registry) {
             const safeCmdName = (commandName || 'cmd').replace(/[^a-zA-Z0-9_]/g, '');
@@ -343,11 +355,11 @@ class CommandManager {
 
     /**
      * Handles an incoming chat message and schedules it for execution if it's a valid command.
-     * @param {any} eventData The chat event data.
+     * @param {mc.ChatSendBeforeEvent} eventData The chat event data.
      * @returns {boolean} `true` if the message was a command, otherwise `false`.
      */
-    handleChatCommand(eventData: any): boolean {
-        const config = getConfig();
+    handleChatCommand(eventData: mc.ChatSendBeforeEvent): boolean {
+        const config = getConfig() as Config;
         const { sender: player, message } = eventData;
         if (!message.startsWith(config.commandPrefix)) {
             return false;
@@ -362,7 +374,7 @@ class CommandManager {
             return true;
         }
 
-        const cleanedArgs = rawArgs.map((arg: any) =>
+        const cleanedArgs = rawArgs.map((arg: string) =>
             (arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'"))
                 ? arg.slice(1, -1)
                 : arg
@@ -385,7 +397,7 @@ class CommandManager {
         }
 
         // --- Argument Parsing ---
-        const parsedArgs: Record<string, any> = {};
+        const parsedArgs: Record<string, unknown> = {};
         const paramDefs = command.parameters || [];
         let currentArgIndex = 0;
 

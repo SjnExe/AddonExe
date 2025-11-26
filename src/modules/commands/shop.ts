@@ -90,7 +90,7 @@ const sellHandCommand: CustomCommand = {
         }
 
         const itemTypeId = item.typeId;
-        const shopItemKey = Object.keys(allItems).find((key) => allItems[key].itemId === itemTypeId);
+        const shopItemKey = Object.keys(allItems).find((key) => (allItems as any)[key].itemId === itemTypeId);
 
         if (!shopItemKey) {
             return executor.sendMessage("§cYou can't sell this item to the shop.");
@@ -100,6 +100,13 @@ const sellHandCommand: CustomCommand = {
         executor.sendMessage(result.message);
     }
 };
+
+interface AddShopCommandArgs {
+    category: string;
+    buyPrice: number;
+    sellPrice: number;
+    subCategory?: string;
+}
 
 const addShopCommand: CustomCommand = {
     name: 'addshop',
@@ -112,16 +119,11 @@ const addShopCommand: CustomCommand = {
         { name: 'sellPrice', type: 'float' },
         { name: 'subCategory', type: 'string', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: AddShopCommandArgs) => {
         if (!(executor instanceof mc.Player) || !args) {
             return;
         }
-        const { category, buyPrice, sellPrice, subCategory } = args as {
-            category: string;
-            buyPrice: number;
-            sellPrice: number;
-            subCategory?: string;
-        };
+        const { category, buyPrice, sellPrice, subCategory } = args;
 
         const equipment = executor.getComponent('minecraft:equippable');
         if (!equipment) {

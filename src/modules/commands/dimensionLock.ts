@@ -9,10 +9,14 @@ import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 type Dimension = 'nether' | 'end';
 
+interface LockCommandArgs {
+    isLocked?: boolean;
+}
+
 /**
  * Creates the execution logic for a dimension lock command.
  */
-function createLockCommandExecute(dimension: Dimension): (executor: CommandExecutor, args: any) => void {
+function createLockCommandExecute(dimension: Dimension): (executor: CommandExecutor, args: LockCommandArgs) => void {
     return (executor, args) => {
         const currentState = getLockState(dimension);
         let newState: boolean;

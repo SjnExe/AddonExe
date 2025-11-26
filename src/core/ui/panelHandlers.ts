@@ -1,11 +1,5 @@
 import * as mc from '@minecraft/server';
-import {
-    ModalFormData,
-    ActionFormData,
-    ActionFormResponse,
-    ModalFormResponse,
-    MessageFormResponse
-} from '@minecraft/server-ui';
+import { ModalFormData, ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { config as defaultConfig } from '../../config.default.js';
 import { restartAnnouncer } from '../../modules/commands/announcement.js';
@@ -19,7 +13,8 @@ import {
     getEconomyConfig,
     saveEconomyConfig,
     getXrayConfig,
-    saveXrayConfig
+    saveXrayConfig,
+    RanksConfig
 } from '../configurations.js';
 import { economyConfig as defaultEconomyConfig } from '../economyConfig.default.js';
 import { floatingTextManager } from '../floatingTextManager.js';
@@ -29,43 +24,38 @@ import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from '
 import { addItemToKit, updateItemInKit } from '../kitItemsManager.js';
 import { errorLog } from '../logger.js';
 import { setValueByPath } from '../objectUtils.js';
-import { getPlayer, loadPlayerData, setLockState, getAllPlayerNameIdMap } from '../playerDataManager.js';
+import { getPlayer, loadPlayerData, setLockState, getAllPlayerNameIdMap, PlayerData } from '../playerDataManager.js';
 import * as rankDb from '../rankDb.js';
 import * as rankManager from '../rankManager.js';
+import { RankDefinition } from '../ranksConfig.default.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as shopAdminManager from '../shopAdminManager.js';
 import * as shopManager from '../shopManager.js';
-import { spawnConfig as defaultSpawnConfig } from '../spawnConfig.js';
+import { spawnConfig as defaultSpawnConfig } from '../spawnConfig.default.js';
 import { showPanel } from '../uiManager.js';
 import * as utils from '../utils.js';
-// @ts-ignore - Importing from JS file
-// @ts-ignore - Importing from JS file
-// @ts-ignore - Importing from JS file
-// @ts-ignore - Importing from JS file
 import { xrayConfig as defaultXrayConfig } from '../xrayConfig.default.js';
 
 import { uiActionFunctions } from './actionRegistry.js';
 import { showConfirmationDialog } from './components.js';
 import { getVisiblePlayerActionItems, getMenuItems } from './panelBuilder.js';
-import { panelDefinitions, configPanelSchema, ConfigSetting } from './panelRegistry.js';
+import { panelDefinitions, configPanelSchema, ConfigSetting, UIContext } from './panelRegistry.js';
 import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems } from './uiUtils.js';
 
-// @ts-ignore - Importing from JS file
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const allDefaultConfigs: Record<string, any> = {
+const allDefaultConfigs: Record<string, object> = {
     main: defaultConfig,
     spawn: defaultSpawnConfig,
     economy: defaultEconomyConfig,
     xray: defaultXrayConfig
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UIContext = Record<string, any>;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function handleFormResponse(player: mc.Player, panelId: string, response: any, context: UIContext) {
+export async function handleFormResponse(
+    player: mc.Player,
+    panelId: string,
+    response: ActionFormResponse,
+    context: UIContext
+) {
     const { selection, canceled, formValues } = response;
     const pData = getPlayer(player.id);
     if (!pData) {
@@ -118,7 +108,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'teamMainPanel') {
-        // @ts-ignore - Dynamic import
         const { getTeamByPlayer } = await import('../teamManager.js');
 
         const team = getTeamByPlayer(player.id);
@@ -173,7 +162,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                         confirmButtonText: '§cYes, Leave',
                         cancelButtonText: 'No',
                         onConfirm: async () => {
-                            // @ts-ignore - Dynamic import
                             const { kickMember } = await import('../teamManager.js');
                             // Kick self
                             kickMember(team.id, player.id);
@@ -209,7 +197,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, panelId, context);
         }
 
-        // @ts-ignore - Dynamic import
         const { createTeam } = await import('../teamManager.js');
         const result = createTeam(player, name);
         player.sendMessage(result.message || '§cUnknown error.');
@@ -244,7 +231,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         }
 
         // Confirm Application
-        // @ts-ignore - Dynamic import
         const { getTeam, applyToTeam } = await import('../teamManager.js');
         const team = getTeam(teamId);
         if (!team) {
@@ -268,9 +254,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'teamInvitesPanel') {
-        const pData = getPlayer(player.id);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const invites = (pData as any).pendingInvites || [];
+        const pData = getPlayer(player.id) as PlayerData;
+        const invites = pData.pendingInvites || [];
 
         if (selection === 0) {
             return showPanel(player, 'teamJoinPanel', context);
@@ -284,8 +269,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         if (selection === denyAllIndex) {
             const { updatePlayerData } = await import('../playerDataManager.js');
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            updatePlayerData(player.id, (d: any) => (d.pendingInvites = []));
+            updatePlayerData(player.id, (d: PlayerData) => (d.pendingInvites = []));
             player.sendMessage('§aCleared all pending invites.');
             return showPanel(player, panelId, context);
         }
@@ -294,7 +278,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         if (inviteIndex >= 0 && inviteIndex < invites.length) {
             const invite = invites[inviteIndex];
             // Options: Accept, Deny
-            // @ts-ignore - Dynamic import
             const { acceptInvite, denyInvite } = await import('../teamManager.js');
 
             const form = new ActionFormData()
@@ -323,11 +306,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'teamBrowserPanel') {
-        // @ts-ignore - Dynamic import
         const { getAllTeams } = await import('../teamManager.js');
         const page = context.page || 1;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const teams = getAllTeams().sort((a: any, b: any) => b.members.length - a.members.length);
+        const teams = getAllTeams().sort((a, b) => b.members.length - a.members.length);
         const paginatedTeams = getPaginatedItems(teams, page);
 
         if (selection === 0) {
@@ -338,9 +319,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         if (selectionIndex < paginatedTeams.length) {
             // Apply to selected team
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const team: any = paginatedTeams[selectionIndex];
-            // @ts-ignore - Dynamic import
+            const team = paginatedTeams[selectionIndex];
             const { applyToTeam } = await import('../teamManager.js');
 
             showConfirmationDialog(player, {
@@ -378,7 +357,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'teamManagePanel') {
-        // @ts-ignore - Dynamic import
         const { getTeamByPlayer, deleteTeam } = await import('../teamManager.js');
         const team = getTeamByPlayer(player.id);
         if (!team) {
@@ -432,7 +410,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, 'teamManagePanel', context);
         }
 
-        // @ts-ignore - Dynamic import
         const { getTeamByPlayer, setTeamHome, deleteTeamHome } = await import('../teamManager.js');
         const team = getTeamByPlayer(player.id);
         if (!team) {
@@ -486,7 +463,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'teamRequestsPanel') {
-        // @ts-ignore - Dynamic import
         const { getTeamByPlayer, acceptApplication, denyApplication } = await import('../teamManager.js');
         const team = getTeamByPlayer(player.id);
         if (!team) {
@@ -528,7 +504,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, 'teamMainPanel', context);
         }
 
-        // @ts-ignore - Dynamic import
         const { getTeamByPlayer, setTeamOpenStatus } = await import('../teamManager.js');
         const { updatePlayerData } = await import('../playerDataManager.js');
 
@@ -544,17 +519,16 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         const autoTp = formValues[0];
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        updatePlayerData(player.id, (d: any) => {
+        updatePlayerData(player.id, (d: PlayerData) => {
             if (!d.teamSettings) {
-                d.teamSettings = {};
+                d.teamSettings = { autoTpAccept: false };
             }
-            d.teamSettings.autoTpAccept = autoTp;
+            d.teamSettings.autoTpAccept = autoTp as boolean;
         });
 
         if (canManage && formValues.length > 1) {
             const allowRequests = formValues[1];
-            setTeamOpenStatus(team.id, allowRequests);
+            setTeamOpenStatus(team.id, allowRequests as boolean);
         }
 
         player.sendMessage('§aSettings updated.');
@@ -566,7 +540,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, 'teamMainPanel', context);
         }
 
-        // @ts-ignore - Dynamic import
         const { getTeamByPlayer, kickMember, promoteMember, demoteMember, transferOwnership } = await import(
             '../teamManager.js'
         );
@@ -663,8 +636,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             // Add New Ore
             return showPanel(player, 'addXrayOrePanel', context);
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const xrayConfig: any = getXrayConfig();
+        const xrayConfig = getXrayConfig();
         // Use 'monitoredOreTypes' if 'monitoredOres' is not present (based on xrayConfig.ts structure)
         // Assuming structure is array for dynamic list in panel, but config is object.
         // The original JS code referenced monitoredOres array which implies a mismatch or transformation.
@@ -685,8 +657,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const xrayConfig: any = getXrayConfig();
+            const xrayConfig = getXrayConfig();
             if (!xrayConfig.monitoredOres) {
                 xrayConfig.monitoredOres = [];
             }
@@ -708,8 +679,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const xrayConfig: any = getXrayConfig();
+            const xrayConfig = getXrayConfig();
             if (xrayConfig.monitoredOres && xrayConfig.monitoredOres[oreIndex]) {
                 xrayConfig.monitoredOres[oreIndex] = { blockId, dimensionId, minY, maxY, oreName };
                 saveXrayConfig(xrayConfig);
@@ -895,8 +865,8 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 const currentLink = links[linkIndex];
                 const editForm = new ModalFormData()
                     .title('Edit Link')
-                    .textField('Link Title', 'Enter the new title', { defaultValue: currentLink.title })
-                    .textField('Link URL', 'Enter the new URL', { defaultValue: currentLink.url });
+                    .textField('Link Title', 'Enter the new title', currentLink.title)
+                    .textField('Link URL', 'Enter the new URL', currentLink.url);
                 const editResponse = await utils.uiWait(player, editForm);
                 if (editResponse.canceled) {
                     return showPanel(player, 'helpfulLinkActionPanel', context);
@@ -946,9 +916,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 // Edit Text
                 const rules = rulesManager.getRules();
                 const currentText = rules[ruleIndex];
-                const editForm = new ModalFormData()
-                    .title('Edit Rule Text')
-                    .textField('Rule text', 'Enter the new text', { defaultValue: currentText });
+                const editForm = new ModalFormData().title('Edit Rule Text').textField('Rule text', 'Enter the new text', currentText);
 
                 const editResponse = await utils.uiWait(player, editForm);
                 if (editResponse.canceled) {
@@ -1000,7 +968,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const shopConfig = getShopConfig();
 
         const validCategories = Object.keys(shopConfig.categories)
-            .filter((categoryName: any) => {
+            .filter((categoryName: string) => {
                 const category = shopConfig.categories[categoryName];
                 const hasItems = Object.keys(category.items).length > 0;
                 const hasSubCategories = Object.keys(category.subCategories).length > 0;
@@ -1055,7 +1023,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
                     if (
                         finalConfirmResponse.canceled ||
-                        finalConfirmResponse.formValues[0].trim().toLowerCase() !== 'confirm'
+                        (finalConfirmResponse.formValues?.[0] as string).trim().toLowerCase() !== 'confirm'
                     ) {
                         player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
@@ -1102,7 +1070,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
                         if (
                             finalConfirmResponse.canceled ||
-                            finalConfirmResponse.formValues[0].trim().toLowerCase() !== 'confirm'
+                            (finalConfirmResponse.formValues?.[0] as string).trim().toLowerCase() !== 'confirm'
                         ) {
                             player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                             return showPanel(player, 'configResetPanel', { ...context, page });
@@ -1160,11 +1128,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         }
 
         // Reconstruct the list of entries that was shown to the player
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const shopConfig: any = getShopConfig();
+        const shopConfig = getShopConfig();
         const category = shopConfig.categories[categoryName];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let allEntries: any[] = [];
+        let allEntries: { type: string }[] = [];
         if (isItemList && subCategoryName) {
             const subCategory = category.subCategories[subCategoryName];
             allEntries = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
@@ -1196,8 +1162,13 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, panelId, { ...context, page: newPage });
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const selectedEntry: any = paginatedEntries[selectionIndex];
+        const selectedEntry = paginatedEntries[selectionIndex] as {
+            type: string;
+            name: string;
+            id: string;
+            buyPrice: number;
+            sellPrice: number;
+        };
 
         if (selectedEntry.type === 'subCategory') {
             return showPanel(player, `shopItemListPanel_${categoryName}_${selectedEntry.name}`, {
@@ -1210,8 +1181,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         // It's an item
         const itemId = selectedEntry.id;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const masterItem = (allItems as any)[itemId];
+        const masterItem = allItems[itemId];
         const shopItem = selectedEntry;
 
         const canBuy = view !== 'sell' && shopItem.buyPrice > 0;
@@ -1227,20 +1197,16 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         let hasDropdown = false;
 
         if (canBuy && canSell) {
-            modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
+            modal.textField('Amount', 'Enter the amount', '1');
             const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
-            modal.dropdown('Action', options, { defaultValueIndex: 0 });
+            modal.dropdown('Action', options, 0);
             hasDropdown = true;
         } else if (canBuy) {
-            modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', {
-                defaultValue: '1'
-            });
+            modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', '1');
             action = 'buy';
         } else {
             // canSell
-            modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', {
-                defaultValue: '1'
-            });
+            modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', '1');
             action = 'sell';
         }
 
@@ -1294,14 +1260,14 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 .textField('Display Name', 'e.g., Sword of Awesome')
                 .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword')
                 .textField('Icon Path', 'e.g., textures/items/diamond_sword')
-                .textField('Buy Price', '-1 to disable', { defaultValue: '-1' })
-                .textField('Sell Price', '-1 to disable', { defaultValue: '-1' })
-                .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
+                .textField('Buy Price', '-1 to disable', '-1')
+                .textField('Sell Price', '-1 to disable', '-1')
+                .textField('Permission Level', 'e.g., 1024', '1024');
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const [customId, displayName, mcId, icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues;
+            const [customId, displayName, mcId, icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues as string[];
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
             const permissionLevel = parseInt(permLevelStr, 10);
@@ -1322,7 +1288,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                     sellPrice,
                     displayName
                 });
-                // @ts-ignore - Type mismatch in ItemData
                 shopAdminManager.setItem(categoryName, null, customId, {
                     buyPrice,
                     sellPrice,
@@ -1342,24 +1307,22 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const selectedItemId = paginatedItems[selection - 2];
 
         if (selectedItemId) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const masterItem = (allItems as any)[selectedItemId];
+            const masterItem = allItems[selectedItemId];
             const form = new ModalFormData()
                 .title(`Add ${masterItem.displayName}`)
-                .textField('Icon Path', 'e.g., textures/items/diamond_sword', { defaultValue: masterItem.icon })
-                .textField('Buy Price', '-1 to disable', { defaultValue: `${masterItem.buyPrice}` })
-                .textField('Sell Price', '-1 to disable', { defaultValue: `${masterItem.sellPrice}` })
-                .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
+                .textField('Icon Path', 'e.g., textures/items/diamond_sword', masterItem.icon)
+                .textField('Buy Price', '-1 to disable', `${masterItem.buyPrice}`)
+                .textField('Sell Price', '-1 to disable', `${masterItem.sellPrice}`)
+                .textField('Permission Level', 'e.g., 1024', '1024');
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const [icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues;
+            const [icon, buyPriceStr, sellPriceStr, permLevelStr] = response.formValues as string[];
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
             const permissionLevel = parseInt(permLevelStr, 10);
             if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
-                // @ts-ignore - Type mismatch in ItemData
                 const result = shopAdminManager.setItem(categoryName, null, selectedItemId, {
                     buyPrice,
                     sellPrice,
@@ -1392,8 +1355,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         }
 
         if (selection === 1) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const mainConfig: any = getConfig();
+            const mainConfig = getConfig();
             const newStatus = !mainConfig.shop.enabled;
             updateMultipleConfig({ 'shop.enabled': newStatus });
             player.sendMessage(`§2Shop system has been ${newStatus ? 'enabled' : 'disabled'}.`);
@@ -1410,7 +1372,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const [name, icon] = response.formValues;
+            const [name, icon] = response.formValues as string[];
             if (name) {
                 const result = shopAdminManager.addCategory(name, icon);
                 player.sendMessage(result.message);
@@ -1462,7 +1424,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const [name, icon] = response.formValues;
+            const [name, icon] = response.formValues as string[];
             if (name) {
                 const result = shopAdminManager.addSubCategory(categoryName, name, icon);
                 player.sendMessage(result.message);
@@ -1474,8 +1436,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, `shopAdminCategoryActionPanel_${categoryName}`, context);
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const shopConfig: any = getShopConfig();
+        const shopConfig = getShopConfig();
         const category = shopConfig.categories[categoryName];
         const subCategories = Object.keys(category.subCategories)
             .sort()
@@ -1483,8 +1444,16 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
         const allEntries = [...subCategories, ...items];
         const paginatedEntries = getPaginatedItems(allEntries, page);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const selectedEntry: any = paginatedEntries[selection - 4];
+        const selectedEntry = paginatedEntries[selection - 4] as {
+            type: string;
+            id: string;
+            displayName: string;
+            icon: string;
+            buyPrice: number;
+            sellPrice: number;
+            permissionLevel: number;
+            name: string;
+        };
 
         if (selectedEntry) {
             if (selectedEntry.type === 'item') {
@@ -1498,33 +1467,23 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 }
                 if (response.selection === 0) {
                     // Edit
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const masterItem = (allItems as any)[selectedEntry.id] || {};
+                    const masterItem = allItems[selectedEntry.id] || {};
                     const editForm = new ModalFormData()
                         .title(`Edit Item: ${selectedEntry.id}`)
-                        .textField('Display Name', 'e.g., Magical Sword', {
-                            defaultValue: selectedEntry.displayName || masterItem.displayName
-                        })
-                        .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', {
-                            defaultValue: masterItem.itemId
-                        })
-                        .textField('Icon Path', 'e.g., textures/items/diamond_sword', {
-                            defaultValue: selectedEntry.icon || masterItem.icon
-                        })
-                        .textField('Buy Price', '-1 to disable', { defaultValue: String(selectedEntry.buyPrice) })
-                        .textField('Sell Price', '-1 to disable', { defaultValue: String(selectedEntry.sellPrice) })
-                        .textField('Permission Level', 'e.g., 1024', {
-                            defaultValue: String(selectedEntry.permissionLevel)
-                        });
+                        .textField('Display Name', 'e.g., Magical Sword', selectedEntry.displayName || masterItem.displayName)
+                        .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', masterItem.itemId)
+                        .textField('Icon Path', 'e.g., textures/items/diamond_sword', selectedEntry.icon || masterItem.icon)
+                        .textField('Buy Price', '-1 to disable', String(selectedEntry.buyPrice))
+                        .textField('Sell Price', '-1 to disable', String(selectedEntry.sellPrice))
+                        .textField('Permission Level', 'e.g., 1024', String(selectedEntry.permissionLevel));
 
                     const editResponse = await utils.uiWait(player, editForm);
                     if (editResponse.canceled) {
                         return showPanel(player, panelId, context);
                     }
 
-
                     const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] =
-                        editResponse.formValues as any[];
+                        editResponse.formValues as string[];
                     const buyPrice = Number(buyPriceStr);
                     const sellPrice = Number(sellPriceStr);
                     const permissionLevel = Number(permLevelStr);
@@ -1538,7 +1497,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                         !isNaN(permissionLevel)
                     ) {
                         const result = shopAdminManager.updateShopItem(categoryName, null, selectedEntry.id, {
-                            // @ts-ignore - Type mismatch in ItemData
                             buyPrice,
                             sellPrice,
                             permissionLevel,
@@ -1584,18 +1542,17 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         if (selection === 0) {
             // Edit
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const shopConfig: any = getShopConfig();
+            const shopConfig = getShopConfig();
             const category = shopConfig.categories[categoryName];
             const form = new ModalFormData()
                 .title('Edit Category')
-                .textField('Category Name', 'Enter new name', { defaultValue: categoryName })
-                .textField('Icon', 'Enter icon texture path', { defaultValue: category.icon });
+                .textField('Category Name', 'Enter new name', categoryName)
+                .textField('Icon', 'Enter icon texture path', category.icon);
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
             }
-            const [newName, newIcon] = response.formValues;
+            const [newName, newIcon] = response.formValues as string[];
             if (newName) {
                 const result = shopAdminManager.editCategory(categoryName, newName, newIcon);
                 player.sendMessage(result.message);
@@ -1640,13 +1597,18 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, `shopAdminSubCategoryActionPanel_${subCategoryName}`, context);
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const shopConfig: any = getShopConfig();
+        const shopConfig = getShopConfig();
         const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
         const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
         const paginatedItems = getPaginatedItems(items, page);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const selectedItem: any = paginatedItems[selection - 3];
+        const selectedItem = paginatedItems[selection - 3] as {
+            id: string;
+            displayName: string;
+            icon: string;
+            buyPrice: number;
+            sellPrice: number;
+            permissionLevel: number;
+        };
 
         if (selectedItem) {
             const form = new ActionFormData()
@@ -1659,24 +1621,15 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             }
             if (response.selection === 0) {
                 // Edit
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const masterItem = (allItems as any)[selectedItem.id] || {};
+                const masterItem = allItems[selectedItem.id] || {};
                 const editForm = new ModalFormData()
                     .title(`Edit Item: ${selectedItem.id}`)
-                    .textField('Display Name', 'e.g., Magical Sword', {
-                        defaultValue: selectedItem.displayName || masterItem.displayName
-                    })
-                    .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', {
-                        defaultValue: masterItem.itemId
-                    })
-                    .textField('Icon Path', 'e.g., textures/items/diamond_sword', {
-                        defaultValue: selectedItem.icon || masterItem.icon
-                    })
-                    .textField('Buy Price', '-1 to disable', { defaultValue: String(selectedItem.buyPrice) })
-                    .textField('Sell Price', '-1 to disable', { defaultValue: String(selectedItem.sellPrice) })
-                    .textField('Permission Level', 'e.g., 1024', {
-                        defaultValue: String(selectedItem.permissionLevel)
-                    });
+                    .textField('Display Name', 'e.g., Magical Sword', selectedItem.displayName || masterItem.displayName)
+                    .textField('Minecraft Item ID', 'e.g., minecraft:diamond_sword', masterItem.itemId)
+                    .textField('Icon Path', 'e.g., textures/items/diamond_sword', selectedItem.icon || masterItem.icon)
+                    .textField('Buy Price', '-1 to disable', String(selectedItem.buyPrice))
+                    .textField('Sell Price', '-1 to disable', String(selectedItem.sellPrice))
+                    .textField('Permission Level', 'e.g., 1024', String(selectedItem.permissionLevel));
 
                 const editResponse = await utils.uiWait(player, editForm);
                 if (editResponse.canceled) {
@@ -1684,7 +1637,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 }
 
                 const [displayName, minecraftId, icon, buyPriceStr, sellPriceStr, permLevelStr] =
-                    editResponse.formValues;
+                    editResponse.formValues as string[];
                 const buyPrice = Number(buyPriceStr);
                 const sellPrice = Number(sellPriceStr);
                 const permissionLevel = Number(permLevelStr);
@@ -1698,7 +1651,6 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                     !isNaN(permissionLevel)
                 ) {
                     const result = shopAdminManager.updateShopItem(categoryName, subCategoryName, selectedItem.id, {
-                        // @ts-ignore - Type mismatch in ItemData
                         buyPrice,
                         sellPrice,
                         permissionLevel,
@@ -1738,18 +1690,17 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         const { categoryName } = context;
         if (selection === 0) {
             // Edit
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const shopConfig: any = getShopConfig();
+            const shopConfig = getShopConfig();
             const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
             const form = new ModalFormData()
                 .title('Edit Subcategory')
-                .textField('Subcategory Name', 'Enter new name', { defaultValue: subCategoryName })
-                .textField('Icon', 'Enter icon texture path', { defaultValue: subCategory.icon });
+                .textField('Subcategory Name', 'Enter new name', subCategoryName)
+                .textField('Icon', 'Enter icon texture path', subCategory.icon);
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, `shopAdminSubCategoryItemPanel_${subCategoryName}`, context);
             }
-            const [newName, newIcon] = response.formValues;
+            const [newName, newIcon] = response.formValues as string[];
             if (newName) {
                 const result = shopAdminManager.editSubCategory(categoryName, subCategoryName, newName, newIcon);
                 player.sendMessage(result.message);
@@ -1781,8 +1732,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
     }
 
     if (panelId === 'kitManagementPanel') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mainConfig: any = getConfig();
+        const mainConfig = getConfig();
         const page = context.page || 1;
 
         // Handle Back button
@@ -1803,16 +1753,16 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             const form = new ModalFormData()
                 .title('Create New Kit')
                 .textField('Kit Name', 'Enter a unique name for the kit')
-                .textField('Cooldown (seconds)', 'e.g., 3600', { defaultValue: '3600' })
-                .textField('Permission Level', '0=Admin, 1024=Member', { defaultValue: '1024' })
-                .textField('Price', 'Cost to claim', { defaultValue: '0' });
+                .textField('Cooldown (seconds)', 'e.g., 3600', '3600')
+                .textField('Permission Level', '0=Admin, 1024=Member', '1024')
+                .textField('Price', 'Cost to claim', '0');
 
             const createResponse = await utils.uiWait(player, form);
             if (createResponse.canceled) {
                 return showPanel(player, 'kitManagementPanel', context);
             }
 
-            const [kitName, cooldownStr, permissionLevelStr, priceStr] = createResponse.formValues;
+            const [kitName, cooldownStr, permissionLevelStr, priceStr] = createResponse.formValues as string[];
             const cooldown = Number(cooldownStr);
             const permissionLevel = Number(permissionLevelStr);
             const price = Number(priceStr);
@@ -1832,8 +1782,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const allKits = getAllKits() as any;
+        const allKits = getAllKits();
         const kitNames = Object.keys(allKits);
         const paginatedKits = getPaginatedItems(kitNames, page);
         const totalPages = Math.ceil(kitNames.length / itemsPerPage);
@@ -1872,7 +1821,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, `kitActionMenu_${kitName}`, context);
         }
 
-        const [isEnabled, newKitName, description, icon, cooldownStr, permissionLevelStr, priceStr] = formValues;
+        const [isEnabled, newKitName, description, icon, cooldownStr, permissionLevelStr, priceStr] = formValues as [boolean, string, string, string, string, string, string];
 
         let finalKitName = kitName;
         // Check if the name has changed (case-insensitive)
@@ -1936,8 +1885,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
     if (panelId.startsWith('kitItemsPanel_')) {
         const kitName = panelId.replace('kitItemsPanel_', '');
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const allKits = getAllKits() as any;
+        const allKits = getAllKits();
         const kit = allKits[kitName];
         const page = context.page || 1;
 
@@ -1953,7 +1901,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 return showPanel(player, panelId, context);
             }
 
-            const [typeId, amountStr] = addResponse.formValues;
+            const [typeId, amountStr] = addResponse.formValues as string[];
             const amount = Number(amountStr);
 
             if (!typeId || isNaN(amount) || amount <= 0) {
@@ -1977,15 +1925,15 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
             const form = new ModalFormData()
                 .title('Edit Item')
-                .textField('Item ID', 'e.g., minecraft:diamond', { defaultValue: selectedItem.typeId })
-                .textField('Amount', 'Set to 0 to delete.', { defaultValue: String(selectedItem.amount) });
+                .textField('Item ID', 'e.g., minecraft:diamond', selectedItem.typeId)
+                .textField('Amount', 'Set to 0 to delete.', String(selectedItem.amount));
 
             const editResponse = await utils.uiWait(player, form);
             if (editResponse.canceled) {
                 return showPanel(player, panelId, context);
             }
 
-            const [typeId, amountStr] = editResponse.formValues;
+            const [typeId, amountStr] = editResponse.formValues as string[];
             const amount = Number(amountStr);
 
             if (!typeId || isNaN(amount)) {
@@ -2030,7 +1978,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         }
 
         // The last form value is the decorative item display, which we ignore.
-        const [isEnabled, cooldownStr, permissionLevelStr] = formValues;
+        const [isEnabled, cooldownStr, permissionLevelStr] = formValues as [boolean, string, string];
         const cooldown = Number(cooldownStr);
         const permissionLevel = Number(permissionLevelStr);
 
@@ -2064,12 +2012,11 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const config: any = getConfig();
+        const config = getConfig();
         const commandSettings = config.commandSettings || {};
 
         const allCommands = Object.keys(commandSettings)
-            .filter((cmd: any) => !cmd.startsWith('_'))
+            .filter((cmd: string) => !cmd.startsWith('_'))
             .sort();
 
         const paginatedCommands = getPaginatedItems(allCommands, page);
@@ -2107,7 +2054,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         }
 
         const { commandName } = context;
-        const [isEnabled, permissionLevelStr] = formValues;
+        const [isEnabled, permissionLevelStr] = formValues as [boolean, string];
         const permissionLevel = parseInt(permissionLevelStr, 10);
 
         if (isNaN(permissionLevel)) {
@@ -2123,8 +2070,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         // Sync with xray config if this is the xraynotify command
         if (commandName === 'xraynotify') {
             try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const xrayConfig: any = getXrayConfig();
+                const xrayConfig = getXrayConfig();
                 xrayConfig.notifications.alertPermissionLevel = permissionLevel;
                 saveXrayConfig(xrayConfig);
             } catch (e) {
@@ -2148,8 +2094,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, 'mainPanel');
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let allItems: any[] = [];
+        let allItems: unknown[] = [];
         if (panelId === 'bountyListPanel') {
             allItems = Array.from(bountyManager.getAllBounties().values()).sort((a, b) => b.amount - a.amount);
         } else if (panelId === 'reportListPanel') {
@@ -2158,11 +2103,9 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 .filter((r) => r.status === 'open' || r.status === 'assigned')
                 .sort((a, b) => a.timestamp - b.timestamp);
         } else if (panelId === 'playerManagementPanel') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            allItems = Array.from(getAllPlayerNameIdMap().entries()).sort((a, b) => a[0].localeCompare(b[0])) as any[];
+            allItems = Array.from(getAllPlayerNameIdMap().entries()).sort((a, b) => a[0].localeCompare(b[0]));
         } else if (panelId === 'playerListPanel') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const onlinePlayers = Array.from((await import('@minecraft/server')).world.getAllPlayers()) as any[];
+            const onlinePlayers = Array.from((await import('@minecraft/server')).world.getAllPlayers());
             allItems = onlinePlayers.sort((a, b) => a.name.localeCompare(b.name));
         }
 
@@ -2191,7 +2134,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 return showPanel(player, 'reportActionsPanel', { ...context, targetReport: selectedItem });
             }
             if (panelId === 'playerManagementPanel') {
-                const [selectedName, selectedId] = selectedItem;
+                const [selectedName, selectedId] = selectedItem as [string, string];
                 const targetData = loadPlayerData(selectedId);
                 const contextName = targetData ? targetData.name : selectedName;
                 return showPanel(player, 'playerActionsPanel', {
@@ -2203,11 +2146,11 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 });
             }
             if (panelId === 'playerListPanel') {
-                const targetData = getPlayer(selectedItem.id);
+                const targetData = getPlayer((selectedItem as mc.Player).id);
                 return showPanel(player, 'playerActionsPanel', {
                     ...context,
-                    targetPlayerName: selectedItem.name,
-                    targetPlayerId: selectedItem.id,
+                    targetPlayerName: (selectedItem as mc.Player).name,
+                    targetPlayerId: (selectedItem as mc.Player).id,
                     fromPanel: panelId,
                     targetData
                 });
@@ -2267,7 +2210,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         }
 
         const { updateAllPlayerRanks } = await import('../main.js');
-        const [nameTagStyleIndex] = formValues;
+        const [nameTagStyleIndex] = formValues as number[];
         const nameTagStyles = ['above', 'before', 'after', 'under'];
         const selectedStyle = nameTagStyles[nameTagStyleIndex];
 
@@ -2304,7 +2247,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         if (selection >= rankStartIndex && selection <= rankEndIndex) {
             const selectedRank = paginatedRanks[selection - rankStartIndex];
             const isSpecialRank = selectedRank.conditions.some(
-                (c: any) => c.type === 'isOwner' || c.type === 'default'
+                (c: { type: string }) => c.type === 'isOwner' || c.type === 'default'
             );
 
             if (isSpecialRank) {
@@ -2371,7 +2314,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         if (canceled) {
             return showPanel(player, 'mobDropsSystemPanel', context);
         }
-        const [mobId, amountStr] = formValues;
+        const [mobId, amountStr] = formValues as string[];
         const amount = Number(amountStr);
         if (!mobId || isNaN(amount)) {
             player.sendMessage('§cInvalid mob ID or amount.');
@@ -2390,14 +2333,12 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             // Edit Amount
             const form = new ModalFormData()
                 .title(`Edit ${mobId}`)
-                .textField('Amount', 'Enter the new amount', {
-                    defaultValue: String(getEconomyConfig().mobMoney[mobId])
-                });
+                .textField('Amount', 'Enter the new amount', String(getEconomyConfig().mobMoney[mobId]));
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, 'mobDropsSystemPanel', context);
             }
-            const [amountStr] = response.formValues;
+            const [amountStr] = response.formValues as string[];
             const amount = Number(amountStr);
             if (isNaN(amount)) {
                 player.sendMessage('§cInvalid amount.');
@@ -2428,7 +2369,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, 'rankManagementPanel', context);
         }
 
-        const [name, id, permLevelStr, nameColor, chatColor, prefix] = formValues;
+        const [name, id, permLevelStr, nameColor, chatColor, prefix] = formValues as string[];
         const permissionLevel = parseInt(permLevelStr, 10);
 
         if (!name || !id || isNaN(permissionLevel)) {
@@ -2444,7 +2385,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, panelId, context);
         }
 
-        const newRank = {
+        const newRank: RankDefinition = {
             id,
             name,
             permissionLevel,
@@ -2474,7 +2415,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             player.sendMessage('§cRank not found.');
             return showPanel(player, 'rankManagementPanel', context);
         }
-        const isSpecialRank = rank.conditions.some((c: any) => c.type === 'isOwner' || c.type === 'default');
+        const isSpecialRank = rank.conditions.some((c: { type: string }) => c.type === 'isOwner' || c.type === 'default');
 
         if (canceled) {
             const fromPanel = isSpecialRank ? 'rankManagementPanel' : `rankActionMenu_${rank.id}`;
@@ -2497,7 +2438,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             return showPanel(player, panelId, context);
         }
 
-        const updatedData = {
+        const updatedData: Partial<RankDefinition> = {
             name,
             id,
             permissionLevel,
@@ -2570,11 +2511,10 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
 
         const { getValueFromPath } = await import('../objectUtils.js');
 
-        const newValues = formValues;
+        const newValues = formValues as (string | number | boolean)[];
         let validationFailed = false;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const processAndValidate = (setting: ConfigSetting, value: any) => {
+        const processAndValidate = (setting: ConfigSetting, value: string | number | boolean) => {
             if (setting.type === 'toggle') {
                 return !!value;
             }
@@ -2583,11 +2523,11 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
                 if (setting.key === 'logLevel') {
                     return value;
                 }
-                return setting.options![value];
+                return setting.options![value as number];
             }
 
             // If a textField is empty, fallback to the default value.
-            if (setting.type === 'textField' && value.trim() === '') {
+            if (setting.type === 'textField' && (value as string).trim() === '') {
                 const defaultConfig = allDefaultConfigs[configSource];
                 const defaultValue = getValueFromPath(defaultConfig, setting.key);
                 return defaultValue ?? ''; // Fallback to empty string if default is not found
@@ -2606,7 +2546,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
             if (setting.type === 'textField' && isNumericField) {
                 // For coordinate fields, an empty string should be treated as null (not set).
                 if (
-                    value.trim() === '' &&
+                    (value as string).trim() === '' &&
                     (setting.key.endsWith('.x') || setting.key.endsWith('.y') || setting.key.endsWith('.z'))
                 ) {
                     return null;
@@ -2624,8 +2564,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         };
 
         if (configSource === 'main') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const updates: Record<string, any> = {};
+            const updates: Record<string, unknown> = {};
             category.settings.forEach((setting, index) => {
                 if (validationFailed) {
                     return;

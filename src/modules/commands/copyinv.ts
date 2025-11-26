@@ -7,16 +7,20 @@ import { playSound } from '../../core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
+interface CopyInvCommandArgs {
+    target?: mc.Player[];
+}
+
 const copyinvCommand: CustomCommand = {
     name: 'copyinv',
     description: "Copies a player's inventory, replacing your own.",
     permissionLevel: 2,
     parameters: [{ name: 'target', type: 'player' }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: CopyInvCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target } = args as { target?: mc.Player[] };
+        const { target } = args;
 
         if (!target || target.length === 0) {
             sendMessage('§cPlayer not found.', executor);
@@ -49,9 +53,11 @@ const copyinvCommand: CustomCommand = {
             }
             sendMessage(`§aSuccessfully copied inventory from ${targetPlayer.name}.`, executor);
             playSound(executor, constants.soundTeleport);
-        } catch (e: any) {
+        } catch (e: unknown) {
             sendMessage('§cFailed to copy inventory.', executor);
-            errorLog(`[/copyinv] Error: ${e.stack}`);
+            if (e instanceof Error) {
+                errorLog(`[/copyinv] Error: ${e.stack}`);
+            }
         }
     }
 };

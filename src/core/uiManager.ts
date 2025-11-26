@@ -36,9 +36,8 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
         }
 
         await handleFormResponse(player, panelId, response, context);
-    } catch (e) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        errorLog(`[UIManager] showPanel failed for panel '${panelId}': ${(e as any).stack || e}`);
+    } catch (e: unknown) {
+        errorLog(`[UIManager] showPanel failed for panel '${panelId}': ${e}`);
         player.sendMessage(
             '§cAn unexpected error occurred while trying to open the UI. Please check the content log for details.'
         );

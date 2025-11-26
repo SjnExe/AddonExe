@@ -26,9 +26,11 @@ const command: CustomCommand = {
             updateAllPlayerRanks();
 
             sendMessage('§aAll online player ranks have been re-evaluated.');
-        } catch (error: any) {
+        } catch (error: unknown) {
             sendMessage('§cFailed to reload configuration. Check the console for errors.');
-            errorLog(`[/reload] ${error.stack}`);
+            if (error instanceof Error) {
+                errorLog(`[/reload] ${error.stack}`);
+            }
         }
     }
 };

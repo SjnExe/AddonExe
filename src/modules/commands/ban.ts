@@ -63,6 +63,12 @@ export function banPlayer(
     }
 }
 
+interface BanCommandArgs {
+    target?: mc.Player[];
+    duration?: string;
+    reason?: string;
+}
+
 const banCommand: CustomCommand = {
     name: 'ban',
     description: 'Bans a player for a specified duration with a reason.',
@@ -73,9 +79,9 @@ const banCommand: CustomCommand = {
         { name: 'duration', type: 'string', optional: true },
         { name: 'reason', type: 'text', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const targetPlayers = args.target as mc.Player[] | undefined;
-        let { duration, reason } = args as { duration?: string; reason?: string };
+    execute: (executor: CommandExecutor, args: BanCommandArgs) => {
+        const targetPlayers = args.target;
+        let { duration, reason } = args;
 
         if (!targetPlayers || targetPlayers.length === 0) {
             if (executor instanceof mc.Player) {
@@ -140,6 +146,10 @@ export function unbanPlayer(executor: CommandExecutor, targetName: string) {
     }
 }
 
+interface UnbanCommandArgs {
+    target: string;
+}
+
 const unbanCommand: CustomCommand = {
     name: 'unban',
     aliases: ['pardon'],
@@ -147,8 +157,8 @@ const unbanCommand: CustomCommand = {
     permissionLevel: 2,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string' }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        unbanPlayer(executor, args.target as string);
+    execute: (executor: CommandExecutor, args: UnbanCommandArgs) => {
+        unbanPlayer(executor, args.target);
     }
 };
 
@@ -207,6 +217,12 @@ export function offlineBanPlayer(
     }
 }
 
+interface OfflineBanCommandArgs {
+    target: string;
+    duration?: string;
+    reason?: string;
+}
+
 const offlineBanCommand: CustomCommand = {
     name: 'offlineban',
     aliases: ['oban'],
@@ -218,9 +234,9 @@ const offlineBanCommand: CustomCommand = {
         { name: 'duration', type: 'string', optional: true },
         { name: 'reason', type: 'text', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const { target: targetName } = args as { target: string };
-        let { duration, reason } = args as { duration?: string; reason?: string };
+    execute: (executor: CommandExecutor, args: OfflineBanCommandArgs) => {
+        const { target: targetName } = args;
+        let { duration, reason } = args;
 
         const targetId = getPlayerIdByName(targetName);
         if (!targetId) {

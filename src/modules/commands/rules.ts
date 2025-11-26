@@ -5,6 +5,10 @@ import { sendMessage } from '../../core/messaging.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
+interface RulesCommandArgs {
+    ruleNumber?: number;
+}
+
 const rulesCommand: CustomCommand = {
     name: 'rules',
     aliases: ['rule'],
@@ -12,7 +16,7 @@ const rulesCommand: CustomCommand = {
     permissionLevel: 1024,
     allowConsole: true,
     parameters: [{ name: 'ruleNumber', type: 'int', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: RulesCommandArgs) => {
         const config = getConfig();
         const rules = config.serverInfo.rules;
 

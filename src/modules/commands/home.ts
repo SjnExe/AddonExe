@@ -11,6 +11,10 @@ import { startTeleportWarmup } from '../../core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
+interface HomeCommandArgs {
+    homeName?: string;
+}
+
 const homeCommand: CustomCommand = {
     name: 'home',
     description: 'Teleports you to one of your set homes.',
@@ -18,7 +22,7 @@ const homeCommand: CustomCommand = {
     hasCooldown: true,
     cooldownId: 'homes',
     parameters: [{ name: 'homeName', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: HomeCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -49,7 +53,7 @@ const homeCommand: CustomCommand = {
             startTeleportWarmup(executor, warmupSeconds, teleportLogic, `home '${homeName}'`);
         };
 
-        const homeNameArg = args.homeName as string | undefined;
+        const homeNameArg = args.homeName;
         if (homeNameArg) {
             teleportToHome(homeNameArg);
             return;
@@ -122,7 +126,7 @@ const delHomeCommand: CustomCommand = {
     description: 'Deletes one of your set homes. Leave name blank to choose from a list.',
     permissionLevel: 1024,
     parameters: [{ name: 'homeName', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: HomeCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -137,7 +141,7 @@ const delHomeCommand: CustomCommand = {
             sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`, executor);
         };
 
-        const homeNameArg = args.homeName as string | undefined;
+        const homeNameArg = args.homeName;
         if (homeNameArg) {
             deleteHomeByName(homeNameArg);
             return;
@@ -180,7 +184,7 @@ const setHomeCommand: CustomCommand = {
     description: 'Sets a home at your current location.',
     permissionLevel: 1024,
     parameters: [{ name: 'homeName', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: HomeCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -191,7 +195,7 @@ const setHomeCommand: CustomCommand = {
         }
 
         let homeNameToSet;
-        const homeNameArg = args.homeName as string | undefined;
+        const homeNameArg = args.homeName;
 
         if (homeNameArg) {
             homeNameToSet = homeNameArg;

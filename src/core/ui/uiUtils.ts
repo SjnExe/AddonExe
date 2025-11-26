@@ -9,8 +9,16 @@ import {
     getXrayConfig,
     saveXrayConfig,
     getTeamConfig,
-    saveTeamConfig
+    saveTeamConfig,
+    SpawnConfig,
+    EconomyConfig,
+    XrayConfig,
+    TeamConfig,
+    RanksConfig,
+    KitsConfig,
+    ShopConfig
 } from '../configurations.js';
+import { Config } from '../configManager.js';
 import { PlayerData } from '../playerDataManager.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
@@ -18,30 +26,41 @@ import { configPanelSchema } from './configPanelRegistry.js';
 export const itemsPerPage = 8;
 
 interface ConfigHandler {
-    get: () => any;
-    save: (config: any) => void;
+    get: () => Config | SpawnConfig | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | KitsConfig | ShopConfig;
+    save: (
+        config:
+            | Config
+            | SpawnConfig
+            | EconomyConfig
+            | XrayConfig
+            | TeamConfig
+            | RanksConfig
+            | KitsConfig
+            | ShopConfig
+            | Record<string, unknown>
+    ) => void;
 }
 
 export const configHandlers: Record<string, ConfigHandler> = {
     main: {
         get: getConfig,
-        save: (updates: any) => updateMultipleConfig(updates)
+        save: (updates: Record<string, unknown>) => updateMultipleConfig(updates)
     },
     spawn: {
         get: getSpawnConfig,
-        save: (config: any) => saveSpawnConfig(config)
+        save: (config: SpawnConfig) => saveSpawnConfig(config)
     },
     economy: {
         get: getEconomyConfig,
-        save: (config: any) => saveEconomyConfig(config)
+        save: (config: EconomyConfig) => saveEconomyConfig(config)
     },
     xray: {
         get: getXrayConfig,
-        save: (config: any) => saveXrayConfig(config)
+        save: (config: XrayConfig) => saveXrayConfig(config)
     },
     team: {
         get: getTeamConfig,
-        save: (config: any) => saveTeamConfig(config)
+        save: (config: TeamConfig) => saveTeamConfig(config)
     }
 };
 

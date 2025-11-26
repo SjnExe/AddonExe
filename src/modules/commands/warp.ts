@@ -11,6 +11,10 @@ import * as warpsManager from '../../core/warpsManager.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
+interface WarpCommandArgs {
+    warpName?: string;
+}
+
 const warpCommand: CustomCommand = {
     name: 'warp',
     description: 'Teleports you to a set warp location.',
@@ -19,7 +23,7 @@ const warpCommand: CustomCommand = {
     hasCooldown: true,
     cooldownId: 'warp',
     parameters: [{ name: 'warpName', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: WarpCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -42,15 +46,17 @@ const warpCommand: CustomCommand = {
                     executor.teleport(warpLocation, { dimension: mc.world.getDimension(warpLocation.dimensionId) });
                     sendMessage(`§aTeleported to warp '${warpName}'.`, executor);
                     setCooldown(executor, 'warp');
-                } catch (e: any) {
-                    sendMessage(`§cFailed to teleport. Error: ${e.message}`, executor);
-                    errorLog(`[/warp] Failed to teleport: ${e.stack}`);
+                } catch (e: unknown) {
+                    if (e instanceof Error) {
+                        sendMessage(`§cFailed to teleport. Error: ${e.message}`, executor);
+                        errorLog(`[/warp] Failed to teleport: ${e.stack}`);
+                    }
                 }
             };
             startTeleportWarmup(executor, warmupSeconds, teleportLogic, `warp '${warpName}'`);
         };
 
-        const warpNameArg = args.warpName as string | undefined;
+        const warpNameArg = args.warpName;
         if (warpNameArg) {
             teleportToWarp(warpNameArg);
             return;
@@ -85,9 +91,16 @@ const warpCommand: CustomCommand = {
                 const selectedWarp = warpList[response.selection];
                 teleportToWarp(selectedWarp);
             })
-            .catch((e) => errorLog(`[/warp UI] ${e.stack}`));
+            .catch((e: unknown) => errorLog(`[/warp UI] ${e}`));
     }
 };
+
+interface AddWarpArgs {
+    warpName: string;
+    x?: number;
+    y?: number;
+    z?: number;
+}
 
 const addWarpCommand: CustomCommand = {
     name: 'addwarp',
@@ -100,11 +113,11 @@ const addWarpCommand: CustomCommand = {
         { name: 'y', type: 'int', optional: true },
         { name: 'z', type: 'int', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: AddWarpArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { warpName, x, y, z } = args as { warpName: string; x?: number; y?: number; z?: number };
+        const { warpName, x, y, z } = args;
         const hasX = x !== undefined && x !== null;
         const hasY = y !== undefined && y !== null;
         const hasZ = z !== undefined && z !== null;
@@ -133,7 +146,7 @@ const delWarpCommand: CustomCommand = {
     description: 'Deletes an existing warp.',
     permissionLevel: 1, // Admin
     parameters: [{ name: 'warpName', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: WarpCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -143,7 +156,7 @@ const delWarpCommand: CustomCommand = {
             sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`, executor);
         };
 
-        const warpNameArg = args.warpName as string | undefined;
+        const warpNameArg = args.warpName;
         if (warpNameArg) {
             deleteWarpByName(warpNameArg);
             return;
@@ -170,7 +183,7 @@ const delWarpCommand: CustomCommand = {
                 const selectedWarp = warpList[response.selection];
                 deleteWarpByName(selectedWarp);
             })
-            .catch((e) => errorLog(`[/delwarp UI] ${e.stack}`));
+            .catch((e: unknown) => errorLog(`[/delwarp UI] ${e}`));
     }
 };
 

@@ -63,6 +63,12 @@ export function mutePlayer(
     sendMessage(`§cYou have been muted ${durationText} by ${announcer}.`, targetPlayer);
 }
 
+interface MuteCommandArgs {
+    target?: mc.Player[];
+    duration?: string;
+    reason?: string;
+}
+
 const muteCommand: CustomCommand = {
     name: 'mute',
     description: 'Mutes a player for a specified duration with a reason.',
@@ -74,9 +80,9 @@ const muteCommand: CustomCommand = {
         { name: 'duration', type: 'string', optional: true },
         { name: 'reason', type: 'text', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const targetPlayers = args.target as mc.Player[] | undefined;
-        let { duration, reason } = args as { duration?: string; reason?: string };
+    execute: (executor: CommandExecutor, args: MuteCommandArgs) => {
+        const targetPlayers = args.target;
+        let { duration, reason } = args;
 
         if (!targetPlayers || targetPlayers.length === 0) {
             if (executor instanceof mc.Player) {
@@ -140,6 +146,10 @@ export function unmutePlayer(executor: CommandExecutor, targetName: string) {
     }
 }
 
+interface UnmuteCommandArgs {
+    target: string;
+}
+
 const unmuteCommand: CustomCommand = {
     name: 'unmute',
     description: 'Unmutes a player.',
@@ -147,8 +157,8 @@ const unmuteCommand: CustomCommand = {
     permissionLevel: 2,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string' }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        unmutePlayer(executor, args.target as string);
+    execute: (executor: CommandExecutor, args: UnmuteCommandArgs) => {
+        unmutePlayer(executor, args.target);
     }
 };
 

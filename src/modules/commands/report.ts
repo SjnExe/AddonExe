@@ -8,16 +8,20 @@ import { uiWait } from '../../core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
+interface ReportCommandArgs {
+    target?: string;
+}
+
 const reportCommand: CustomCommand = {
     name: 'report',
     description: 'Reports a player using a UI. The player can be offline.',
     permissionLevel: 1024,
     parameters: [{ name: 'target', type: 'string', optional: true }],
-    execute: async (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: async (executor: CommandExecutor, args: ReportCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const reportedPlayerName = args.target as string | undefined;
+        const reportedPlayerName = args.target;
 
         if (!reportedPlayerName) {
             executor.sendMessage('§cUsage: /report <targetName>');
@@ -39,7 +43,7 @@ const reportCommand: CustomCommand = {
 
         const response = await uiWait(executor, form);
 
-        if (response.canceled) {
+        if (!response || response.canceled) {
             executor.sendMessage('§cReport canceled.');
             return;
         }

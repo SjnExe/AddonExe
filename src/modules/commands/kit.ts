@@ -87,12 +87,16 @@ function showKitList(player: mc.Player, page: number) {
         });
 }
 
+interface KitCommandArgs {
+    kitName?: string;
+}
+
 const kitCommand: CustomCommand = {
     name: 'kit',
     description: 'Claims a specific kit. Leave blank to see a list of available kits.',
     permissionLevel: 1024,
     parameters: [{ name: 'kitName', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: KitCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -102,7 +106,7 @@ const kitCommand: CustomCommand = {
             return;
         }
 
-        const kitName = args.kitName as string | undefined;
+        const kitName = args.kitName;
 
         if (!kitName) {
             showKitList(executor, 1);
@@ -125,11 +129,11 @@ const addKitCommand: CustomCommand = {
     permissionLevel: 1, // Admins only
     allowConsole: false,
     parameters: [{ name: 'kitName', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    execute: (executor: CommandExecutor, args: KitCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        let kitName = args.kitName as string | undefined;
+        let kitName = args.kitName;
 
         if (!kitName) {
             const allKits = getAllKits();

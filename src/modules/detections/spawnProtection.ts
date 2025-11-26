@@ -2,13 +2,18 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '../../core/configManager.js';
 import { getSpawnConfig } from '../../core/configurations.js';
-import { DimensionId } from '../../core/constants.js';
 import { errorLog, infoLog, debugLog } from '../../core/logger.js';
 import { getPlayerRank } from '../../core/rankManager.js';
 
 interface TrackedEvent {
-    event: any;
-    handler: (...args: any[]) => void;
+    event:
+        | mc.PlayerBreakBlockBeforeEventSignal
+        | mc.PlayerPlaceBlockAfterEventSignal;
+    handler: (
+        event:
+            | mc.PlayerBreakBlockBeforeEvent
+            | mc.PlayerPlaceBlockAfterEvent
+    ) => void;
 }
 
 let eventHandlers: TrackedEvent[] = [];
@@ -19,8 +24,8 @@ function cleanup(): void {
     for (const { event, handler } of eventHandlers) {
         try {
             event.unsubscribe(handler);
-        } catch (e: any) {
-            errorLog(`[SpawnProtection] Failed to unsubscribe from an event: ${e.message}`);
+        } catch (e: unknown) {
+            errorLog(`[SpawnProtection] Failed to unsubscribe from an event: ${e}`);
         }
     }
     eventHandlers = [];
@@ -40,7 +45,16 @@ function cleanup(): void {
     }
 }
 
-function subscribe(event: any, handler: (...args: any[]) => void): void {
+function subscribe(
+    event:
+        | mc.PlayerBreakBlockBeforeEventSignal
+        | mc.PlayerPlaceBlockAfterEventSignal,
+    handler: (
+        event:
+            | mc.PlayerBreakBlockBeforeEvent
+            | mc.PlayerPlaceBlockAfterEvent
+    ) => void
+): void {
     if (!event) {
         debugLog('[SpawnProtection] Attempted to subscribe to a non-existent event.');
         return;
@@ -117,9 +131,9 @@ function initialize(): void {
     }
 
     if (spawnProtection.preventBlockPlacing) {
-        subscribe(mc.world.beforeEvents.playerPlaceBlock, (event: mc.PlayerPlaceBlockBeforeEvent) => {
+        subscribe(mc.world.afterEvents.playerPlaceBlock, (event: mc.PlayerPlaceBlockAfterEvent) => {
             if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
-                event.cancel = true;
+                event.block.setType('minecraft:air');
             }
         });
     }
