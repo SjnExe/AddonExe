@@ -424,17 +424,91 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         parentPanelId: 'mainPanel', // This will be dynamically overridden
         items: [
             // Admin Actions (for Player Management panel)
-            { id: 'kick', text: 'Kick', icon: 'textures/ui/cancel.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'kickPlayer' },
-            { id: 'mute', text: 'Mute', icon: 'textures/ui/mute_on.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'mutePlayer' },
-            { id: 'unmute', text: 'Unmute', icon: 'textures/ui/mute_off.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unmutePlayer' },
-            { id: 'ban', text: 'Ban', icon: 'textures/ui/hammer_l.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'banPlayer' },
-            { id: 'freeze', text: 'Freeze', icon: 'textures/ui/icon_lock.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'freezePlayer' },
-            { id: 'unfreeze', text: 'Unfreeze', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
+            {
+                id: 'kick',
+                text: 'Kick',
+                icon: 'textures/ui/cancel.png',
+                permissionLevel: 2,
+                actionType: 'functionCall',
+                actionValue: 'kickPlayer'
+            },
+            {
+                id: 'mute',
+                text: 'Mute',
+                icon: 'textures/ui/mute_on.png',
+                permissionLevel: 2,
+                actionType: 'functionCall',
+                actionValue: 'mutePlayer'
+            },
+            {
+                id: 'unmute',
+                text: 'Unmute',
+                icon: 'textures/ui/mute_off.png',
+                permissionLevel: 2,
+                actionType: 'functionCall',
+                actionValue: 'unmutePlayer'
+            },
+            {
+                id: 'ban',
+                text: 'Ban',
+                icon: 'textures/ui/hammer_l.png',
+                permissionLevel: 2,
+                actionType: 'functionCall',
+                actionValue: 'banPlayer'
+            },
+            {
+                id: 'freeze',
+                text: 'Freeze',
+                icon: 'textures/ui/icon_lock.png',
+                permissionLevel: 2,
+                actionType: 'functionCall',
+                actionValue: 'freezePlayer'
+            },
+            {
+                id: 'unfreeze',
+                text: 'Unfreeze',
+                icon: 'textures/ui/icon_unlocked.png',
+                permissionLevel: 2,
+                actionType: 'functionCall',
+                actionValue: 'unfreezePlayer'
+            },
             // Player Actions (for Player List panel)
-            { id: 'tpa', text: 'TPA', icon: 'textures/gui/controls/jump.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer', sortId: 10 },
-            { id: 'tpahere', text: 'TPAHere', icon: 'textures/gui/controls/sneak.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaherePlayer', sortId: 20 },
-            { id: 'bounty', text: 'Bounty', icon: 'textures/items/netherite_sword.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'bountyActionsPanel', sortId: 30 },
-            { id: 'report', text: 'Report Player', icon: 'textures/ui/WarningGlyph', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'reportPlayer', sortId: 40 }
+            {
+                id: 'tpa',
+                text: 'TPA',
+                icon: 'textures/gui/controls/jump.png',
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'tpaPlayer',
+                sortId: 10
+            },
+            {
+                id: 'tpahere',
+                text: 'TPAHere',
+                icon: 'textures/gui/controls/sneak.png',
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'tpaherePlayer',
+                sortId: 20
+            },
+            {
+                id: 'bounty',
+                text: 'Bounty',
+                icon: 'textures/items/netherite_sword.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'bountyActionsPanel',
+                sortId: 30
+            },
+            {
+                id: 'report',
+                text: 'Report Player',
+                icon: 'textures/ui/WarningGlyph',
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'reportPlayer',
+                sortId: 40
+            }
         ]
     },
     rulesManagementPanel: {

@@ -38,9 +38,7 @@ export const rankDefinitions: RankDefinition[] = [
             messageColor: '§f'
         },
         nametagPrefix: '§4Owner',
-        conditions: [
-            { type: 'isOwner' }
-        ]
+        conditions: [{ type: 'isOwner' }]
     },
     {
         id: 'admin',
@@ -53,9 +51,7 @@ export const rankDefinitions: RankDefinition[] = [
             messageColor: '§f'
         },
         nametagPrefix: '§cAdmin',
-        conditions: [
-            { type: 'hasTag', value: 'admin' }
-        ]
+        conditions: [{ type: 'hasTag', value: 'admin' }]
     },
     {
         id: 'moderator',
@@ -67,9 +63,7 @@ export const rankDefinitions: RankDefinition[] = [
             messageColor: '§f'
         },
         nametagPrefix: '§2Mod',
-        conditions: [
-            { type: 'hasTag', value: 'moderator' }
-        ]
+        conditions: [{ type: 'hasTag', value: 'moderator' }]
     },
     {
         id: 'helper',
@@ -81,9 +75,7 @@ export const rankDefinitions: RankDefinition[] = [
             messageColor: '§f'
         },
         nametagPrefix: '§eHelper',
-        conditions: [
-            { type: 'hasTag', value: 'helper' }
-        ]
+        conditions: [{ type: 'hasTag', value: 'helper' }]
     },
     {
         id: 'donator',
@@ -95,9 +87,7 @@ export const rankDefinitions: RankDefinition[] = [
             messageColor: '§f'
         },
         nametagPrefix: '§dDonator',
-        conditions: [
-            { type: 'hasTag', value: 'donator' }
-        ]
+        conditions: [{ type: 'hasTag', value: 'donator' }]
     },
     {
         id: 'vip',
@@ -109,9 +99,7 @@ export const rankDefinitions: RankDefinition[] = [
             messageColor: '§f'
         },
         nametagPrefix: '§6VIP',
-        conditions: [
-            { type: 'hasTag', value: 'vip' }
-        ]
+        conditions: [{ type: 'hasTag', value: 'vip' }]
     },
     {
         id: 'verified',
@@ -123,9 +111,7 @@ export const rankDefinitions: RankDefinition[] = [
             messageColor: '§f'
         },
         nametagPrefix: '§bVerified',
-        conditions: [
-            { type: 'hasTag', value: 'verified' }
-        ]
+        conditions: [{ type: 'hasTag', value: 'verified' }]
     },
     {
         id: 'member',
@@ -134,8 +120,6 @@ export const rankDefinitions: RankDefinition[] = [
         locked: true,
         chatFormatting: defaultChatFormatting,
         nametagPrefix: '§8Member',
-        conditions: [
-            { type: 'default' }
-        ]
+        conditions: [{ type: 'default' }]
     }
 ];

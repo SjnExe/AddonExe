@@ -1,12 +1,25 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import { createRequest, acceptRequest, denyRequest, cancelRequest, getOutgoingRequest, getIncomingRequest } from '../../core/tpaManager.js';
+
 import { getConfig } from '../../core/configManager.js';
-import { playSound } from '../../core/utils.js';
-import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '../../core/playerDataManager.js';
-import { sendMessage } from '../../core/messaging.js';
 import { constants } from '../../core/constants.js';
+import { sendMessage } from '../../core/messaging.js';
 import { findPlayerByName } from '../../core/playerCache.js';
+import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '../../core/playerDataManager.js';
+import {
+    createRequest,
+    acceptRequest,
+    denyRequest,
+    cancelRequest,
+    getOutgoingRequest,
+    getIncomingRequest
+} from '../../core/tpaManager.js';
+import { playSound } from '../../core/utils.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
+
+interface TpaCommandArgs {
+    target: string;
+}
 
 const tpaCommand: CustomCommand = {
     name: 'tpa',
@@ -14,12 +27,12 @@ const tpaCommand: CustomCommand = {
     aliases: ['tprequest', 'asktp', 'requesttp'],
     permissionLevel: 1024,
     hasCooldown: true,
-    parameters: [
-        { name: 'target', type: 'string' }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
-        const { target } = args as { target: string };
+    parameters: [{ name: 'target', type: 'string' }],
+    execute: (executor: CommandExecutor, args: TpaCommandArgs) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const { target } = args;
         const config = getConfig();
         if (!config.tpa.enabled) {
             sendMessage(constants.tpaDisabled, executor);
@@ -46,8 +59,14 @@ const tpaCommand: CustomCommand = {
         const result = createRequest(executor, targetPlayer, 'tpa');
 
         if (result.success) {
-            sendMessage(`§aTPA request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`, executor);
-            sendMessage(`§a${executor.name} has requested to teleport to you. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`, targetPlayer);
+            sendMessage(
+                `§aTPA request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`,
+                executor
+            );
+            sendMessage(
+                `§a${executor.name} has requested to teleport to you. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`,
+                targetPlayer
+            );
         } else {
             sendMessage(`§c${result.message}`, executor);
         }
@@ -61,12 +80,12 @@ const tpaHereCommand: CustomCommand = {
     permissionLevel: 1024,
     hasCooldown: true,
     cooldownId: 'tpa',
-    parameters: [
-        { name: 'target', type: 'string' }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
-        const { target } = args as { target: string };
+    parameters: [{ name: 'target', type: 'string' }],
+    execute: (executor: CommandExecutor, args: TpaCommandArgs) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const { target } = args;
         const config = getConfig();
         if (!config.tpa.enabled) {
             sendMessage(constants.tpaDisabled, executor);
@@ -93,31 +112,41 @@ const tpaHereCommand: CustomCommand = {
         const result = createRequest(executor, targetPlayer, 'tpahere');
 
         if (result.success) {
-            sendMessage(`§aTPA Here request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`, executor);
-            sendMessage(`§a${executor.name} has requested for you to teleport to them. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`, targetPlayer);
+            sendMessage(
+                `§aTPA Here request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`,
+                executor
+            );
+            sendMessage(
+                `§a${executor.name} has requested for you to teleport to them. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`,
+                targetPlayer
+            );
         } else {
             sendMessage(`§c${result.message}`, executor);
         }
     }
 };
 
+interface TpaResponseArgs {
+    player?: string;
+}
+
 const tpaAcceptCommand: CustomCommand = {
     name: 'tpaccept',
     aliases: ['tpyes', 'tpac'],
     description: 'Accepts an incoming TPA request.',
     permissionLevel: 1024,
-    parameters: [
-        { name: 'player', type: 'string', optional: true }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
+    parameters: [{ name: 'player', type: 'string', optional: true }],
+    execute: (executor: CommandExecutor, args: TpaResponseArgs) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.tpa.enabled) {
             sendMessage(constants.tpaDisabled, executor);
             return;
         }
 
-        let targetName = args.player as string | undefined;
+        let targetName = args.player;
 
         if (targetName) {
             const targetPlayer = findPlayerByName(targetName);
@@ -135,18 +164,18 @@ const tpaDenyCommand: CustomCommand = {
     aliases: ['tpno', 'tpdeny'],
     description: 'Denies an incoming TPA request.',
     permissionLevel: 1024,
-    parameters: [
-        { name: 'player', type: 'string', optional: true }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
+    parameters: [{ name: 'player', type: 'string', optional: true }],
+    execute: (executor: CommandExecutor, args: TpaResponseArgs) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.tpa.enabled) {
             sendMessage(constants.tpaDisabled, executor);
             return;
         }
 
-        let targetName = args.player as string | undefined;
+        let targetName = args.player;
 
         if (targetName) {
             const targetPlayer = findPlayerByName(targetName);
@@ -164,7 +193,9 @@ const tpaCancelCommand: CustomCommand = {
     description: 'Cancels your outgoing TPA request.',
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.tpa.enabled) {
             sendMessage(constants.tpaDisabled, executor);
@@ -180,7 +211,9 @@ const tpaStatusCommand: CustomCommand = {
     description: 'Checks the status of your outgoing and incoming TPA requests.',
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const outgoing = getOutgoingRequest(executor);
         const incoming = getIncomingRequest(executor);
 
@@ -215,12 +248,12 @@ const tpaStopCommand: CustomCommand = {
     aliases: ['tpstop', 'tpablock', 'tpblock'],
     description: 'Disables TPA requests or blocks a specific player.',
     permissionLevel: 1024,
-    parameters: [
-        { name: 'player', type: 'string', optional: true }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
-        const targetName = args.player as string | undefined;
+    parameters: [{ name: 'player', type: 'string', optional: true }],
+    execute: (executor: CommandExecutor, args: TpaResponseArgs) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const targetName = args.player;
 
         if (targetName) {
             const target = findPlayerByName(targetName);
@@ -242,12 +275,12 @@ const tpaStartCommand: CustomCommand = {
     aliases: ['tpstart', 'tpaunblock', 'tpunblock'],
     description: 'Enables TPA requests or unblocks a specific player.',
     permissionLevel: 1024,
-    parameters: [
-        { name: 'player', type: 'string', optional: true }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
-        const targetName = args.player as string | undefined;
+    parameters: [{ name: 'player', type: 'string', optional: true }],
+    execute: (executor: CommandExecutor, args: TpaResponseArgs) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const targetName = args.player;
 
         if (targetName) {
             const target = findPlayerByName(targetName);

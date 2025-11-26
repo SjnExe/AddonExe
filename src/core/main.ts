@@ -1,8 +1,27 @@
 import * as mc from '@minecraft/server';
-import { loadConfig, getConfig } from './configManager.js';
-import { getSpawnConfig, loadEconomyConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSpawnConfig, loadXrayConfig } from './configurations.js';
+
+import { restartAnnouncer } from '../modules/commands/announcement.js';
+import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
+import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
+
+import * as bountyManager from './bountyManager.js';
+import { loadConfig } from './configLoader.js';
+import { getConfig, initializeConfigManager } from './configManager.js';
+import {
+    getSpawnConfig,
+    loadEconomyConfig,
+    loadKitsConfig,
+    loadRanksConfig,
+    loadShopConfig,
+    loadSpawnConfig,
+    loadXrayConfig
+} from './configurations.js';
+import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
 import * as dataManager from './dataManager.js';
-import * as rankManager from './rankManager.js';
+import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
+import { floatingTextManager } from './floatingTextManager.js';
+import { errorLog, setLogLevel, infoLog } from './logger.js';
+import { initializeMigration } from './migrationManager.js';
 import {
     getOrCreatePlayer,
     setPlayerRank,
@@ -12,27 +31,23 @@ import {
     initializeLeaderboard
 } from './playerDataManager.js';
 import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
+import * as rankManager from './rankManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
-import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
-import * as bountyManager from './bountyManager.js';
 import * as teamManager from './teamManager.js';
-import { errorLog, setLogLevel, infoLog } from './logger.js';
-import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
-import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
-import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
-import { restartAnnouncer } from '../modules/commands/announcement.js';
-import { floatingTextManager } from './floatingTextManager.js';
-import { initializeMigration } from './migrationManager.js';
 import '../modules/commands/index.js';
 import './mobDeathEvents.js';
 
 export function updatePlayerRank(player: mc.Player) {
     const pData = getOrCreatePlayer(player);
-    if (!pData) { return; }
+    if (!pData) {
+        return;
+    }
 
     const config = getConfig();
-    if (!config) {return;}
+    if (!config) {
+        return;
+    }
     const oldRankId = pData.rankId;
     const newRank = rankManager.getPlayerRank(player, config);
 
@@ -81,21 +96,26 @@ function initializeManagers() {
     clearExpiredPayments();
 }
 
-function checkConfiguration() {
+async function checkConfiguration() {
     const config = getConfig();
     const spawnConfig = getSpawnConfig();
 
     const ownerNames = config?.ownerPlayerNames;
-    const isOwnerConfigured = Array.isArray(ownerNames) && ownerNames.length > 0 && (ownerNames.length > 1 || ownerNames[0] !== 'Your•Name•Here');
+    const isOwnerConfigured =
+        Array.isArray(ownerNames) &&
+        ownerNames.length > 0 &&
+        (ownerNames.length > 1 || ownerNames[0] !== 'Your•Name•Here');
 
     if (!isOwnerConfigured) {
-        const warningMessage = '§l§c[AddonExe] WARNING: No owner is configured. Please set `ownerPlayerNames` in `scripts/config.js` to gain access to admin commands.';
+        const warningMessage =
+            '§l§c[AddonExe] WARNING: No owner is configured. Please set `ownerPlayerNames` in `scripts/config.js` to gain access to admin commands.';
         mc.system.runTimeout(() => mc.world.sendMessage(warningMessage), 20);
         errorLog('[AddonExe] No owner configured.');
     }
 
     if (!spawnConfig.spawn || !spawnConfig.spawn.spawnLocation) {
-        const spawnWarning = '§l§e[AddonExe] NOTICE: The server spawn has not been set. Spawn protection and the /spawn command will not function until an admin runs /setspawn.';
+        const spawnWarning =
+            '§l§e[AddonExe] NOTICE: The server spawn has not been set. Spawn protection and the /spawn command will not function until an admin runs /setspawn.';
         mc.system.runTimeout(() => mc.world.sendMessage(spawnWarning), 40);
         errorLog('[AddonExe] Server spawn not set.');
     }
@@ -109,18 +129,18 @@ function startSystemTimers() {
 async function initializeAddon() {
     infoLog('[AddonExe] Initializing addon...');
 
-    const { config: tempConfig } = await import('../config.js');
+    const tempConfig: any = await loadConfig('../config.js');
     const newVersion = String(tempConfig.version);
     const lastVersion = mc.world.getDynamicProperty('exe:lastVersion') as string | undefined;
     const isMigration = !lastVersion || lastVersion !== newVersion;
 
-    loadConfig(isMigration);
-    loadKitsConfig(isMigration);
-    loadShopConfig(isMigration);
-    loadRanksConfig(isMigration);
-    loadSpawnConfig(isMigration);
-    loadEconomyConfig(isMigration);
-    loadXrayConfig(isMigration);
+    await initializeConfigManager(isMigration);
+    await loadKitsConfig(isMigration);
+    await loadShopConfig(isMigration);
+    await loadRanksConfig(isMigration);
+    await loadSpawnConfig(isMigration);
+    await loadEconomyConfig(isMigration);
+    await loadXrayConfig(isMigration);
 
     const config = getConfig();
     setLogLevel(config.logLevel);
@@ -136,7 +156,7 @@ async function initializeAddon() {
     initializePlayerCache();
 
     initializeManagers();
-    checkConfiguration();
+    await checkConfiguration();
     initializeEventManager();
     initializeSpawnProtection();
     initializeXrayDetection();
@@ -163,7 +183,9 @@ mc.system.runTimeout(async () => {
     } catch (e: any) {
         errorLog('[AddonExe] A critical error occurred during addon initialization:');
         errorLog(e.stack);
-        mc.world.sendMessage('§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.');
+        mc.world.sendMessage(
+            '§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.'
+        );
     }
 }, 0);
 

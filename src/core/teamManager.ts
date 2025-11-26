@@ -1,8 +1,9 @@
 import * as mc from '@minecraft/server';
-import { teamConfig } from './teamConfig.js';
+
 import { debugLog, errorLog } from './logger.js';
 import { getPlayer, getOrCreatePlayer, updatePlayerData, HomeLocation } from './playerDataManager.js';
 import { incrementPlayerBalance } from './playerDataManager.js';
+import { teamConfig } from './teamConfig.default.js';
 
 const teamPropertyPrefix = 'exe:team.';
 const nextTeamIdKey = 'exe:nextTeamId';
@@ -73,7 +74,9 @@ export function initialize() {
 
 function saveTeam(teamId: number) {
     const team = activeTeams.get(teamId);
-    if (!team) {return;}
+    if (!team) {
+        return;
+    }
     try {
         mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`, JSON.stringify(team));
     } catch (e: unknown) {
@@ -101,11 +104,16 @@ function saveNextTeamId() {
  * @returns The result of the operation.
  */
 export function createTeam(player: mc.Player, name: string): ActionResult {
-    if (!teamConfig.enabled) {return { success: false, message: '§cTeam system is disabled.' };}
+    if (!teamConfig.enabled) {
+        return { success: false, message: '§cTeam system is disabled.' };
+    }
 
     // Validation
     if (name.length < teamConfig.nameMinLength || name.length > teamConfig.nameMaxLength) {
-        return { success: false, message: `§cName must be between ${teamConfig.nameMinLength} and ${teamConfig.nameMaxLength} characters.` };
+        return {
+            success: false,
+            message: `§cName must be between ${teamConfig.nameMinLength} and ${teamConfig.nameMaxLength} characters.`
+        };
     }
 
     const nameRegex = /^[0-9a-zA-Z §&+-]+$/;
@@ -119,7 +127,7 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
     }
 
     const lowerName = name.toLowerCase();
-    if (teamConfig.nameBlacklist.some(blacklisted => lowerName.includes(blacklisted))) {
+    if (teamConfig.nameBlacklist.some((blacklisted) => lowerName.includes(blacklisted))) {
         return { success: false, message: '§cName contains forbidden words.' };
     }
 
@@ -173,12 +181,14 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
  */
 export function deleteTeam(teamId: number): boolean {
     const team = activeTeams.get(teamId);
-    if (!team) {return false;}
+    if (!team) {
+        return false;
+    }
 
     // Remove all members
     for (const memberId of team.members) {
         setPlayerTeam(memberId, null);
-        const p = mc.world.getAllPlayers().find(pl => pl.id === memberId);
+        const p = mc.world.getAllPlayers().find((pl) => pl.id === memberId);
         if (p) {
             p.sendMessage('§cYour team has been deleted by the owner.');
         }
@@ -225,14 +235,16 @@ export function setPlayerTeam(playerId: string, teamId: number | null) {
 
 export function kickMember(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {return { success: false, message: 'Team not found.' };}
+    if (!team) {
+        return { success: false, message: 'Team not found.' };
+    }
 
     if (targetId === team.ownerId) {
         return { success: false, message: 'Cannot kick the owner.' };
     }
 
-    team.members = team.members.filter(id => id !== targetId);
-    team.admins = team.admins.filter(id => id !== targetId);
+    team.members = team.members.filter((id) => id !== targetId);
+    team.admins = team.admins.filter((id) => id !== targetId);
 
     setPlayerTeam(targetId, null);
     saveTeam(teamId);
@@ -242,9 +254,15 @@ export function kickMember(teamId: number, targetId: string): ActionResult {
 
 export function promoteMember(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {return { success: false };}
-    if (!team.members.includes(targetId)) {return { success: false, message: 'Player not in team.' };}
-    if (team.admins.includes(targetId)) {return { success: false, message: 'Player is already admin.' };}
+    if (!team) {
+        return { success: false };
+    }
+    if (!team.members.includes(targetId)) {
+        return { success: false, message: 'Player not in team.' };
+    }
+    if (team.admins.includes(targetId)) {
+        return { success: false, message: 'Player is already admin.' };
+    }
 
     team.admins.push(targetId);
     saveTeam(teamId);
@@ -253,20 +271,26 @@ export function promoteMember(teamId: number, targetId: string): ActionResult {
 
 export function demoteMember(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {return { success: false };}
-    team.admins = team.admins.filter(id => id !== targetId);
+    if (!team) {
+        return { success: false };
+    }
+    team.admins = team.admins.filter((id) => id !== targetId);
     saveTeam(teamId);
     return { success: true, message: 'Player demoted.' };
 }
 
 export function transferOwnership(teamId: number, newOwnerId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {return { success: false };}
-    if (!team.members.includes(newOwnerId)) {return { success: false, message: 'Player not in team.' };}
+    if (!team) {
+        return { success: false };
+    }
+    if (!team.members.includes(newOwnerId)) {
+        return { success: false, message: 'Player not in team.' };
+    }
 
     team.ownerId = newOwnerId;
     // Ensure new owner is not in admin list (redundant)
-    team.admins = team.admins.filter(id => id !== newOwnerId);
+    team.admins = team.admins.filter((id) => id !== newOwnerId);
     // Old owner becomes admin? Or just member. Let's make them member.
     saveTeam(teamId);
     return { success: true, message: 'Ownership transferred.' };
@@ -277,7 +301,9 @@ export function transferOwnership(teamId: number, newOwnerId: string): ActionRes
 
 export function invitePlayer(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {return { success: false };}
+    if (!team) {
+        return { success: false };
+    }
 
     if (team.members.length >= teamConfig.maxMembers) {
         return { success: false, message: '§cTeam is full.' };
@@ -291,17 +317,21 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
             msg = '§cPlayer is already in a team.';
             return;
         }
-        if (!data.pendingInvites) {data.pendingInvites = [];}
+        if (!data.pendingInvites) {
+            data.pendingInvites = [];
+        }
 
         // Clean expired
         const now = Date.now();
-        data.pendingInvites = data.pendingInvites.filter(inv => now - inv.timestamp < teamConfig.requestExpirySeconds * 1000);
+        data.pendingInvites = data.pendingInvites.filter(
+            (inv) => now - inv.timestamp < teamConfig.requestExpirySeconds * 1000
+        );
 
         if (data.pendingInvites.length >= teamConfig.maxPlayerInvites) {
             msg = '§cPlayer has too many pending invites.';
             return;
         }
-        if (data.pendingInvites.some(inv => inv.teamId === teamId)) {
+        if (data.pendingInvites.some((inv) => inv.teamId === teamId)) {
             msg = '§cPlayer already has an invite from this team.';
             return;
         }
@@ -320,16 +350,22 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
 
 export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
     const pData = getOrCreatePlayer(player);
-    if (pData.teamId) {return { success: false, message: '§cYou are already in a team.' };}
+    if (pData.teamId) {
+        return { success: false, message: '§cYou are already in a team.' };
+    }
 
-    const inviteIndex = (pData.pendingInvites || []).findIndex(inv => inv.teamId === teamId);
-    if (inviteIndex === -1) {return { success: false, message: '§cInvite not found or expired.' };}
+    const inviteIndex = (pData.pendingInvites || []).findIndex((inv) => inv.teamId === teamId);
+    if (inviteIndex === -1) {
+        return { success: false, message: '§cInvite not found or expired.' };
+    }
 
     const team = activeTeams.get(teamId);
     if (!team) {
         // Clean up invalid invite
-        updatePlayerData(player.id, d => {
-             if (d.pendingInvites) {d.pendingInvites.splice(inviteIndex, 1);}
+        updatePlayerData(player.id, (d) => {
+            if (d.pendingInvites) {
+                d.pendingInvites.splice(inviteIndex, 1);
+            }
         });
         return { success: false, message: '§cTeam no longer exists.' };
     }
@@ -343,7 +379,7 @@ export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
     saveTeam(teamId);
 
     // Update player
-    updatePlayerData(player.id, d => {
+    updatePlayerData(player.id, (d) => {
         d.teamId = teamId;
         d.pendingInvites = []; // Clear all invites on join
     });
@@ -353,11 +389,15 @@ export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
 
 export function denyInvite(playerId: string, teamId: number): ActionResult {
     let found = false;
-    updatePlayerData(playerId, d => {
-        if (!d.pendingInvites) {return;}
+    updatePlayerData(playerId, (d) => {
+        if (!d.pendingInvites) {
+            return;
+        }
         const initialLength = d.pendingInvites.length;
-        d.pendingInvites = d.pendingInvites.filter(inv => inv.teamId !== teamId);
-        if (d.pendingInvites.length < initialLength) {found = true;}
+        d.pendingInvites = d.pendingInvites.filter((inv) => inv.teamId !== teamId);
+        if (d.pendingInvites.length < initialLength) {
+            found = true;
+        }
     });
     return { success: found, message: found ? '§aInvite denied.' : '§cInvite not found.' };
 }
@@ -367,10 +407,14 @@ export function denyInvite(playerId: string, teamId: number): ActionResult {
 
 export function applyToTeam(player: mc.Player, teamId: number): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {return { success: false, message: '§cTeam not found.' };}
+    if (!team) {
+        return { success: false, message: '§cTeam not found.' };
+    }
 
     const pData = getOrCreatePlayer(player);
-    if (pData.teamId) {return { success: false, message: '§cYou are already in a team.' };}
+    if (pData.teamId) {
+        return { success: false, message: '§cYou are already in a team.' };
+    }
 
     // Check if team accepts requests
     if (team.open === false) {
@@ -378,13 +422,13 @@ export function applyToTeam(player: mc.Player, teamId: number): ActionResult {
     }
 
     // Check existing application
-    if (team.applications.some(app => app.playerId === player.id)) {
+    if (team.applications.some((app) => app.playerId === player.id)) {
         return { success: false, message: '§cYou have already applied to this team.' };
     }
 
     // Clean expired
     const now = Date.now();
-    team.applications = team.applications.filter(app => now - app.timestamp < teamConfig.requestExpirySeconds * 1000);
+    team.applications = team.applications.filter((app) => now - app.timestamp < teamConfig.requestExpirySeconds * 1000);
 
     if (team.applications.length >= teamConfig.maxApplications) {
         return { success: false, message: '§cTeam has too many pending applications.' };
@@ -402,14 +446,18 @@ export function applyToTeam(player: mc.Player, teamId: number): ActionResult {
 
 export function acceptApplication(teamId: number, playerId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {return { success: false, message: 'Team error.' };}
+    if (!team) {
+        return { success: false, message: 'Team error.' };
+    }
 
     if (team.members.length >= teamConfig.maxMembers) {
         return { success: false, message: '§cTeam is full.' };
     }
 
-    const appIndex = team.applications.findIndex(app => app.playerId === playerId);
-    if (appIndex === -1) {return { success: false, message: 'Application not found.' };}
+    const appIndex = team.applications.findIndex((app) => app.playerId === playerId);
+    if (appIndex === -1) {
+        return { success: false, message: 'Application not found.' };
+    }
 
     const pData = getPlayer(playerId);
 
@@ -426,9 +474,11 @@ export function acceptApplication(teamId: number, playerId: string): ActionResul
 
 export function denyApplication(teamId: number, playerId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {return { success: false };}
+    if (!team) {
+        return { success: false };
+    }
 
-    team.applications = team.applications.filter(app => app.playerId !== playerId);
+    team.applications = team.applications.filter((app) => app.playerId !== playerId);
     saveTeam(teamId);
     return { success: true, message: '§aApplication denied.' };
 }
@@ -437,7 +487,9 @@ export function denyApplication(teamId: number, playerId: string): ActionResult 
 
 export function setTeamHome(teamId: number, location: mc.Vector3, dimensionId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {return { success: false };}
+    if (!team) {
+        return { success: false };
+    }
     team.home = { x: location.x, y: location.y, z: location.z, dimensionId };
     saveTeam(teamId);
     return { success: true, message: '§aTeam home set!' };
@@ -445,7 +497,9 @@ export function setTeamHome(teamId: number, location: mc.Vector3, dimensionId: s
 
 export function deleteTeamHome(teamId: number): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {return { success: false };}
+    if (!team) {
+        return { success: false };
+    }
     team.home = null;
     saveTeam(teamId);
     return { success: true, message: '§aTeam home deleted!' };
@@ -453,7 +507,9 @@ export function deleteTeamHome(teamId: number): ActionResult {
 
 export function setTeamOpenStatus(teamId: number, isOpen: boolean): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {return { success: false };}
+    if (!team) {
+        return { success: false };
+    }
     team.open = !!isOpen;
     saveTeam(teamId);
     return { success: true, message: `§aTeam is now ${isOpen ? 'open' : 'closed'} to requests.` };

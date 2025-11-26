@@ -1,8 +1,9 @@
+import * as mc from '@minecraft/server';
 import * as lastHitManager from '../lastHitManager.js';
 
 export const eventName = 'entityHurt';
 
-function handleEntityHurt(event) {
+function handleEntityHurt(event: mc.EntityHurtAfterEvent) {
     const { hurtEntity, damageSource } = event;
     const victim = hurtEntity;
 
@@ -18,7 +19,7 @@ function handleEntityHurt(event) {
     const attacker = damagingEntity.owner ?? damagingEntity;
 
     if (attacker?.typeId === 'minecraft:player' && attacker.id !== victim.id) {
-        lastHitManager.setLastHit(victim.id, attacker.id);
+        lastHitManager.setLastHit(victim.id, (attacker as mc.Player).id);
 
         // Friendly Fire Check
         // Note: This event is AFTER damage. We cannot cancel it here efficiently for vanilla damage.

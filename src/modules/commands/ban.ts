@@ -1,13 +1,20 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
+import { errorLog, warnLog } from '../../core/logger.js';
+import { sendMessage } from '../../core/messaging.js';
+import { findPlayerByName } from '../../core/playerCache.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
 import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
 import { parseDuration, playSoundFromConfig } from '../../core/utils.js';
-import { findPlayerByName } from '../../core/playerCache.js';
-import { errorLog, warnLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
 
-export function banPlayer(executor: CommandExecutor, targetPlayer: mc.Player, duration: string | undefined, reason: string) {
+import { CustomCommand, CommandExecutor } from './commandManager.js';
+
+export function banPlayer(
+    executor: CommandExecutor,
+    targetPlayer: mc.Player,
+    duration: string | undefined,
+    reason: string
+) {
     if (executor instanceof mc.Player && executor.id === targetPlayer.id) {
         sendMessage('§cYou cannot ban yourself.', executor);
         return;
@@ -56,6 +63,12 @@ export function banPlayer(executor: CommandExecutor, targetPlayer: mc.Player, du
     }
 }
 
+interface BanCommandArgs {
+    target?: mc.Player[];
+    duration?: string;
+    reason?: string;
+}
+
 const banCommand: CustomCommand = {
     name: 'ban',
     description: 'Bans a player for a specified duration with a reason.',
@@ -66,9 +79,9 @@ const banCommand: CustomCommand = {
         { name: 'duration', type: 'string', optional: true },
         { name: 'reason', type: 'text', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const targetPlayers = args.target as mc.Player[] | undefined;
-        let { duration, reason } = args as { duration?: string, reason?: string };
+    execute: (executor: CommandExecutor, args: BanCommandArgs) => {
+        const targetPlayers = args.target;
+        let { duration, reason } = args;
 
         if (!targetPlayers || targetPlayers.length === 0) {
             if (executor instanceof mc.Player) {
@@ -94,9 +107,14 @@ export function unbanPlayer(executor: CommandExecutor, targetName: string) {
 
     if (!targetId) {
         if (executor instanceof mc.Player) {
-            sendMessage(`§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`, executor);
+            sendMessage(
+                `§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`,
+                executor
+            );
         } else {
-            executor.sendMessage(`§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`);
+            executor.sendMessage(
+                `§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`
+            );
         }
         return;
     }
@@ -128,21 +146,29 @@ export function unbanPlayer(executor: CommandExecutor, targetName: string) {
     }
 }
 
+interface UnbanCommandArgs {
+    target: string;
+}
+
 const unbanCommand: CustomCommand = {
     name: 'unban',
     aliases: ['pardon'],
     description: 'Unbans a player.',
     permissionLevel: 2,
     allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'string' }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        unbanPlayer(executor, args.target as string);
+    parameters: [{ name: 'target', type: 'string' }],
+    execute: (executor: CommandExecutor, args: UnbanCommandArgs) => {
+        unbanPlayer(executor, args.target);
     }
 };
 
-export function offlineBanPlayer(executor: CommandExecutor, targetId: string, targetName: string, duration: string | undefined, reason: string) {
+export function offlineBanPlayer(
+    executor: CommandExecutor,
+    targetId: string,
+    targetName: string,
+    duration: string | undefined,
+    reason: string
+) {
     if (executor instanceof mc.Player) {
         if (executor.id === targetId) {
             sendMessage('§cYou cannot ban yourself.', executor);
@@ -183,10 +209,18 @@ export function offlineBanPlayer(executor: CommandExecutor, targetId: string, ta
 
     try {
         const sanitizedReason = reason.replace(/"/g, '\\"');
-        mc.world.getDimension('overworld').runCommand(`kick "${targetName}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
+        mc.world
+            .getDimension('overworld')
+            .runCommand(`kick "${targetName}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
     } catch {
         // Player is likely offline, which is fine.
     }
+}
+
+interface OfflineBanCommandArgs {
+    target: string;
+    duration?: string;
+    reason?: string;
 }
 
 const offlineBanCommand: CustomCommand = {
@@ -200,9 +234,9 @@ const offlineBanCommand: CustomCommand = {
         { name: 'duration', type: 'string', optional: true },
         { name: 'reason', type: 'text', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const { target: targetName } = args as { target: string };
-        let { duration, reason } = args as { duration?: string, reason?: string };
+    execute: (executor: CommandExecutor, args: OfflineBanCommandArgs) => {
+        const { target: targetName } = args;
+        let { duration, reason } = args;
 
         const targetId = getPlayerIdByName(targetName);
         if (!targetId) {

@@ -1,10 +1,16 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import { getPlayer } from '../../core/playerDataManager.js';
-import { playSound } from '../../core/utils.js';
+
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
 import { findPlayerByName } from '../../core/playerCache.js';
+import { getPlayer } from '../../core/playerDataManager.js';
+import { playSound } from '../../core/utils.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
+
+interface EcwipeCommandArgs {
+    target?: string;
+}
 
 const ecwipeCommand: CustomCommand = {
     name: 'ecwipe',
@@ -12,12 +18,10 @@ const ecwipeCommand: CustomCommand = {
     aliases: ['clearec', 'ecclear'],
     permissionLevel: 2,
     allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'string', optional: true }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    parameters: [{ name: 'target', type: 'string', optional: true }],
+    execute: (executor: CommandExecutor, args: EcwipeCommandArgs) => {
         let targetPlayer: mc.Player;
-        const targetName = args.target as string | undefined;
+        const targetName = args.target;
 
         if (!targetName) {
             if (!(executor instanceof mc.Player)) {
@@ -49,7 +53,10 @@ const ecwipeCommand: CustomCommand = {
                 }
 
                 if (executorData.permissionLevel > targetData.permissionLevel) {
-                    sendMessage('§cYou cannot clear the Ender Chest of a player with a higher rank than you.', executor);
+                    sendMessage(
+                        '§cYou cannot clear the Ender Chest of a player with a higher rank than you.',
+                        executor
+                    );
                     playSound(executor, 'note.bass');
                     return;
                 }
@@ -72,9 +79,13 @@ const ecwipeCommand: CustomCommand = {
             } else {
                 sendMessage('§aYour Ender Chest has been cleared.', executor);
             }
-            if (executor instanceof mc.Player) {playSound(executor, 'random.orb');}
-        } catch (error: any) {
-            errorLog(`Failed to clear Ender Chest for ${targetPlayer.name}: ${error}`);
+            if (executor instanceof mc.Player) {
+                playSound(executor, 'random.orb');
+            }
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                errorLog(`Failed to clear Ender Chest for ${targetPlayer.name}: ${error.stack}`);
+            }
             if (executor instanceof mc.Player) {
                 sendMessage('§cAn error occurred while trying to clear the Ender Chest.', executor);
                 playSound(executor, 'note.bass');

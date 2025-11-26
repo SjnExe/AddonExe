@@ -1,10 +1,23 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
 import { getConfig } from '../../core/configManager.js';
-import { getPlayer, createPendingPayment, getPendingPayment, clearPendingPayment, transfer } from '../../core/playerDataManager.js';
-import { sendMessage } from '../../core/messaging.js';
-import { formatCurrency } from '../../core/utils.js';
 import { constants } from '../../core/constants.js';
+import { sendMessage } from '../../core/messaging.js';
+import {
+    getPlayer,
+    createPendingPayment,
+    getPendingPayment,
+    clearPendingPayment,
+    transfer
+} from '../../core/playerDataManager.js';
+import { formatCurrency } from '../../core/utils.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
+
+interface PayCommandArgs {
+    target?: mc.Player[];
+    amount?: number;
+}
 
 const payCommand: CustomCommand = {
     name: 'pay',
@@ -15,9 +28,11 @@ const payCommand: CustomCommand = {
         { name: 'target', type: 'player' },
         { name: 'amount', type: 'float' }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player)) {return;}
-        const { target, amount } = args as { target?: mc.Player[], amount?: number };
+    execute: (executor: CommandExecutor, args: PayCommandArgs) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const { target, amount } = args;
         const config = getConfig();
         if (!config.economy.enabled) {
             return sendMessage(constants.economyDisabled, executor);
@@ -54,7 +69,10 @@ const payCommand: CustomCommand = {
         if (amount > config.economy.paymentConfirmationThreshold) {
             createPendingPayment(executor.id, targetPlayer.id, amount);
             sendMessage(`§ePayment of ${formatCurrency(amount)} to ${targetPlayer.name} is pending.`, executor);
-            sendMessage(`§eType §a/payconfirm§e within ${config.economy.paymentConfirmationTimeout} seconds to complete the transaction.`, executor);
+            sendMessage(
+                `§eType §a/payconfirm§e within ${config.economy.paymentConfirmationTimeout} seconds to complete the transaction.`,
+                executor
+            );
         } else {
             const result = transfer(executor.id, targetPlayer.id, amount);
             if (result.success) {
@@ -73,7 +91,9 @@ const payConfirmCommand: CustomCommand = {
     description: 'Confirms a pending payment.',
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const pendingPayment = getPendingPayment(executor.id);
 
         if (!pendingPayment) {
@@ -81,7 +101,7 @@ const payConfirmCommand: CustomCommand = {
         }
 
         const { targetPlayerId, amount } = pendingPayment;
-        const targetPlayer = Array.from(mc.world.getPlayers()).find(p => p.id === targetPlayerId);
+        const targetPlayer = Array.from(mc.world.getPlayers()).find((p) => p.id === targetPlayerId);
 
         if (!targetPlayer) {
             clearPendingPayment(executor.id);
@@ -91,7 +111,10 @@ const payConfirmCommand: CustomCommand = {
         const result = transfer(executor.id, targetPlayerId, amount);
 
         if (result.success) {
-            sendMessage(`§aPayment confirmed. You sent §e${formatCurrency(amount)}§a to ${targetPlayer.name}.`, executor);
+            sendMessage(
+                `§aPayment confirmed. You sent §e${formatCurrency(amount)}§a to ${targetPlayer.name}.`,
+                executor
+            );
             sendMessage(`§aYou have received §e${formatCurrency(amount)}§a from ${executor.name}.`, targetPlayer);
         } else {
             sendMessage(`§cPayment failed: ${result.message}`, executor);

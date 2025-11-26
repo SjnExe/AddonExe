@@ -1,10 +1,11 @@
 import * as mc from '@minecraft/server';
+
 import { getEconomyConfig } from './configurations.js';
-import { incrementPlayerBalance, getPlayer } from './playerDataManager.js';
 import { infoLog } from './logger.js';
-import { formatCurrency } from './utils.js';
+import { incrementPlayerBalance, getPlayer } from './playerDataManager.js';
 import { handlePvPDeath } from './pvpManager.js';
 import { getTeamByPlayer } from './teamManager.js';
+import { formatCurrency } from './utils.js';
 
 mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     const { deadEntity, damageSource } = event;
@@ -61,8 +62,6 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
 
     if (reward && reward > 0) {
         incrementPlayerBalance(killer.id, reward);
-        infoLog(
-            `Gave ${killer.name} ${formatCurrency(reward)} for killing a ${mobId}.`
-        );
+        infoLog(`Gave ${killer.name} ${formatCurrency(reward)} for killing a ${mobId}.`);
     }
 });

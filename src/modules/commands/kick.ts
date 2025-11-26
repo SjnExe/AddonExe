@@ -1,11 +1,13 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import { getPlayer } from '../../core/playerDataManager.js';
-import { playSound } from '../../core/utils.js';
-import { findPlayerByName } from '../../core/playerCache.js';
+
+import { constants } from '../../core/constants.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { constants } from '../../core/constants.js';
+import { findPlayerByName } from '../../core/playerCache.js';
+import { getPlayer } from '../../core/playerDataManager.js';
+import { playSound } from '../../core/utils.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, reason: string) {
     if (!targetPlayer) {
@@ -49,15 +51,22 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, r
         } else {
             executor.sendMessage(`§aSuccessfully kicked ${targetPlayer.name}. Reason: ${reason}`);
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (executor instanceof mc.Player) {
             sendMessage(`§cFailed to kick ${targetPlayer.name}. See console for details.`, executor);
             playSound(executor, constants.soundError);
         } else {
             executor.sendMessage(`§cFailed to kick ${targetPlayer.name}. See console for details.`);
         }
-        errorLog(`[/kick] Failed to run kick command for ${targetPlayer.name}:`, error);
+        if (error instanceof Error) {
+            errorLog(`[/kick] Failed to run kick command for ${targetPlayer.name}:`, error);
+        }
     }
+}
+
+interface KickCommandArgs {
+    target: string;
+    reason?: string;
 }
 
 const kickCommand: CustomCommand = {
@@ -71,10 +80,12 @@ const kickCommand: CustomCommand = {
         { name: 'target', type: 'string' },
         { name: 'reason', type: 'text', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const { target: targetName, reason = 'No reason provided' } = args as { target: string, reason?: string };
+    execute: (executor: CommandExecutor, args: KickCommandArgs) => {
+        const { target: targetName, reason = 'No reason provided' } = args;
         const targetPlayer = findPlayerByName(targetName);
-        kickPlayer(executor, targetPlayer, reason);
+        if (targetPlayer) {
+            kickPlayer(executor, targetPlayer, reason);
+        }
     }
 };
 

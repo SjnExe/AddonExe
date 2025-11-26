@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+
 import { warnLog } from './logger.js';
 
 /**

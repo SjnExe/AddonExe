@@ -1,3 +1,16 @@
+export interface MonitoredBlock {
+    blockId: string;
+    dimensionId: string;
+    minY: number;
+    maxY: number;
+}
+
+export interface MonitoredOreType {
+    enabled: boolean;
+    oreName: string;
+    blocks: MonitoredBlock[];
+}
+
 export const xrayConfig = {
     notifications: {
         logToConsole: true,

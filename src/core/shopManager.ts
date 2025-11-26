@@ -1,8 +1,9 @@
 import * as mc from '@minecraft/server';
-import { getOrCreatePlayer, incrementPlayerBalance } from './playerDataManager.js';
+
 import { getShopConfig } from './configurations.js';
-import { items as allItems } from './itemsConfig.js';
+import { items as allItems } from './itemsConfig.default.js';
 import { errorLog } from './logger.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from './playerDataManager.js';
 import { formatCurrency } from './utils.js';
 
 interface ItemInfo {
@@ -119,12 +120,15 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     }
 
     if (pData.balance < initialCost) {
-        return { success: false, message: `§cInsufficient funds. You need §e${formatCurrency(initialCost)}§c to attempt this purchase.` };
+        return {
+            success: false,
+            message: `§cInsufficient funds. You need §e${formatCurrency(initialCost)}§c to attempt this purchase.`
+        };
     }
 
     const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent;
     if (!inventoryComp || !inventoryComp.container) {
-         return { success: false, message: '§cCould not access inventory.' };
+        return { success: false, message: '§cCould not access inventory.' };
     }
     const inventory = inventoryComp.container;
     const itemStackTemplate = createShopItemStack(shopItem, 1);
@@ -137,7 +141,8 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     let spaceFound = 0;
     const maxStackSize = itemStackTemplate.maxAmount;
 
-    if (maxStackSize > 1) { // Item is stackable
+    if (maxStackSize > 1) {
+        // Item is stackable
         for (let i = 0; i < inventory.size; i++) {
             const item = inventory.getItem(i);
             if (!item) {
@@ -146,7 +151,8 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
                 spaceFound += maxStackSize - item.amount;
             }
         }
-    } else { // Item is not stackable
+    } else {
+        // Item is not stackable
         spaceFound = inventory.emptySlotsCount;
     }
 
@@ -165,7 +171,10 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     const finalCost = buyPrice * finalQuantity;
     if (pData.balance < finalCost) {
         // This can happen if the adjusted quantity is still too expensive, though unlikely if the initial check passed.
-        return { success: false, message: `§cInsufficient funds. You need §e${formatCurrency(finalCost)}§c to buy ${finalQuantity}.` };
+        return {
+            success: false,
+            message: `§cInsufficient funds. You need §e${formatCurrency(finalCost)}§c to buy ${finalQuantity}.`
+        };
     }
 
     incrementPlayerBalance(player.id, -finalCost);
@@ -178,7 +187,10 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
         }
     }
 
-    return { success: true, message: `§2Successfully purchased ${finalQuantity}x ${shopItem.displayName ?? itemId} for §e${formatCurrency(finalCost)}§2.` };
+    return {
+        success: true,
+        message: `§2Successfully purchased ${finalQuantity}x ${shopItem.displayName ?? itemId} for §e${formatCurrency(finalCost)}§2.`
+    };
 }
 
 /**
@@ -206,7 +218,7 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
 
     const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent;
     if (!inventoryComp || !inventoryComp.container) {
-         return { success: false, message: '§cCould not access inventory.' };
+        return { success: false, message: '§cCould not access inventory.' };
     }
     const inventory = inventoryComp.container;
     const itemType = mc.ItemTypes.get(shopItem.itemId);
@@ -235,5 +247,8 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
     const totalGain = sellPrice * quantity;
     incrementPlayerBalance(player.id, totalGain);
 
-    return { success: true, message: `§2Successfully sold ${quantity}x ${shopItem.displayName ?? itemId} for §e${formatCurrency(totalGain)}§2.` };
+    return {
+        success: true,
+        message: `§2Successfully sold ${quantity}x ${shopItem.displayName ?? itemId} for §e${formatCurrency(totalGain)}§2.`
+    };
 }

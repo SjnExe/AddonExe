@@ -4,6 +4,7 @@
  */
 
 import * as mc from '@minecraft/server';
+
 import { debugLog } from './logger.js';
 import { errorLog } from './logger.js';
 import * as playerDataManager from './playerDataManager.js';
@@ -117,7 +118,6 @@ export function incrementBounty(playerId: string, amountToAdd: number) {
     const existingBounty = activeBounties.get(playerId)?.amount ?? 0;
     setBounty(playerId, existingBounty + amountToAdd);
 }
-
 
 /**
  * Removes a bounty from a player.

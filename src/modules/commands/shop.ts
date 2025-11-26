@@ -1,10 +1,12 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import { showPanel } from '../../core/uiManager.js';
-import * as shopManager from '../../core/shopManager.js';
-import * as shopAdminManager from '../../core/shopAdminManager.js';
-import { items as allItems } from '../../core/itemsConfig.js';
+
 import { getConfig } from '../../core/configManager.js';
+import { items as allItems } from '../../core/itemsConfig.default.js';
+import * as shopAdminManager from '../../core/shopAdminManager.js';
+import * as shopManager from '../../core/shopManager.js';
+import { showPanel } from '../../core/uiManager.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const shopCommand: CustomCommand = {
     name: 'shop',
@@ -12,7 +14,9 @@ const shopCommand: CustomCommand = {
     permissionLevel: 1024,
     allowConsole: false,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.shop.enabled) {
             return executor.sendMessage('§cThe shop is currently disabled.');
@@ -27,7 +31,9 @@ const buyCommand: CustomCommand = {
     permissionLevel: 1024,
     allowConsole: false,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.shop.enabled) {
             return executor.sendMessage('§cThe shop is currently disabled.');
@@ -42,7 +48,9 @@ const sellCommand: CustomCommand = {
     permissionLevel: 1024,
     allowConsole: false,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.shop.enabled) {
             return executor.sendMessage('§cThe shop is currently disabled.');
@@ -58,7 +66,9 @@ const sellHandCommand: CustomCommand = {
     permissionLevel: 1024,
     allowConsole: false,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.shop.enabled) {
             return executor.sendMessage('§cThe shop is currently disabled.');
@@ -74,11 +84,13 @@ const sellHandCommand: CustomCommand = {
         }
 
         if (item.maxAmount === 1) {
-            return executor.sendMessage('§cYou cannot use /sellhand for unstackable items. Please use the shop UI instead.');
+            return executor.sendMessage(
+                '§cYou cannot use /sellhand for unstackable items. Please use the shop UI instead.'
+            );
         }
 
         const itemTypeId = item.typeId;
-        const shopItemKey = Object.keys(allItems).find(key => allItems[key].itemId === itemTypeId);
+        const shopItemKey = Object.keys(allItems).find((key) => (allItems as any)[key].itemId === itemTypeId);
 
         if (!shopItemKey) {
             return executor.sendMessage("§cYou can't sell this item to the shop.");
@@ -88,6 +100,13 @@ const sellHandCommand: CustomCommand = {
         executor.sendMessage(result.message);
     }
 };
+
+interface AddShopCommandArgs {
+    category: string;
+    buyPrice: number;
+    sellPrice: number;
+    subCategory?: string;
+}
 
 const addShopCommand: CustomCommand = {
     name: 'addshop',
@@ -100,9 +119,11 @@ const addShopCommand: CustomCommand = {
         { name: 'sellPrice', type: 'float' },
         { name: 'subCategory', type: 'string', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        if (!(executor instanceof mc.Player) || !args) {return;}
-        const { category, buyPrice, sellPrice, subCategory } = args as { category: string; buyPrice: number; sellPrice: number; subCategory?: string };
+    execute: (executor: CommandExecutor, args: AddShopCommandArgs) => {
+        if (!(executor instanceof mc.Player) || !args) {
+            return;
+        }
+        const { category, buyPrice, sellPrice, subCategory } = args;
 
         const equipment = executor.getComponent('minecraft:equippable');
         if (!equipment) {

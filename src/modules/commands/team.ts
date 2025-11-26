@@ -1,9 +1,11 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
 import { getPlayer } from '../../core/playerDataManager.js';
+import { teamConfig } from '../../core/teamConfig.default.js';
 import { getTeamByPlayer } from '../../core/teamManager.js';
 import { startTeleportWarmup } from '../../core/utils.js';
-import { teamConfig } from '../../core/teamConfig.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const teamChatActive = new Map<string, boolean>();
 
@@ -23,10 +25,14 @@ const teamChatCommand: CustomCommand = {
     permissionLevel: 1024,
     aliases: ['tc'],
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const pData = getPlayer(executor.id);
-        if (!pData) {return;}
+        if (!pData) {
+            return;
+        }
 
         const team = getTeamByPlayer(executor.id);
         if (!team) {
@@ -45,7 +51,9 @@ const hqCommand: CustomCommand = {
     permissionLevel: 1024,
     aliases: ['teamhome'],
     execute: async (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const team = getTeamByPlayer(executor.id);
 
@@ -67,14 +75,19 @@ const hqCommand: CustomCommand = {
             return;
         }
 
-        startTeleportWarmup(executor, teamConfig.teleportWarmupSeconds, () => {
-            try {
-                executor.teleport({ x, y, z }, { dimension: dimension });
-                executor.sendMessage('§aTeleported to team home.');
-            } catch {
-                executor.sendMessage('§cFailed to teleport to team home.');
-            }
-        }, 'team home');
+        startTeleportWarmup(
+            executor,
+            teamConfig.teleportWarmupSeconds,
+            () => {
+                try {
+                    executor.teleport({ x, y, z }, { dimension: dimension });
+                    executor.sendMessage('§aTeleported to team home.');
+                } catch {
+                    executor.sendMessage('§cFailed to teleport to team home.');
+                }
+            },
+            'team home'
+        );
     }
 };
 

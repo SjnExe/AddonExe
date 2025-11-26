@@ -24,7 +24,10 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:nether_star': { icon: 'textures/items/nether_star', displayName: 'Nether Star' },
     'minecraft:shulker_shell': { icon: 'textures/items/shulker_shell', displayName: 'Shulker Shell' },
     'minecraft:elytra': { icon: 'textures/items/elytra', displayName: 'Elytra' },
-    'minecraft:wither_skeleton_skull': { icon: 'textures/items/spawn_eggs/spawn_egg_wither_skeleton', displayName: 'Wither Skeleton Skull' },
+    'minecraft:wither_skeleton_skull': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_wither_skeleton',
+        displayName: 'Wither Skeleton Skull'
+    },
     'minecraft:enchanted_golden_apple': { icon: 'textures/items/apple_golden', displayName: 'Enchanted Golden Apple' },
     'minecraft:diamond_sword': { icon: 'textures/items/diamond_sword', displayName: 'Diamond Sword' },
     'minecraft:diamond_pickaxe': { icon: 'textures/items/diamond_pickaxe', displayName: 'Diamond Pickaxe' },
@@ -38,7 +41,10 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:diamond_leggings': { icon: 'textures/items/diamond_leggings', displayName: 'Diamond Leggings' },
     'minecraft:diamond_boots': { icon: 'textures/items/diamond_boots', displayName: 'Diamond Boots' },
     'minecraft:netherite_helmet': { icon: 'textures/items/netherite_helmet', displayName: 'Netherite Helmet' },
-    'minecraft:netherite_chestplate': { icon: 'textures/items/netherite_chestplate', displayName: 'Netherite Chestplate' },
+    'minecraft:netherite_chestplate': {
+        icon: 'textures/items/netherite_chestplate',
+        displayName: 'Netherite Chestplate'
+    },
     'minecraft:netherite_leggings': { icon: 'textures/items/netherite_leggings', displayName: 'Netherite Leggings' },
     'minecraft:netherite_boots': { icon: 'textures/items/netherite_boots', displayName: 'Netherite Boots' },
     'minecraft:oak_log': { icon: 'textures/blocks/log_oak_top', displayName: 'Oak Log' },
@@ -151,9 +157,15 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:magma_cream': { icon: 'textures/items/magma_cream', displayName: 'Magma Cream' },
     'minecraft:map': { icon: 'textures/items/map_empty', displayName: 'Empty Map' },
     'minecraft:filled_map': { icon: 'textures/items/map_filled', displayName: 'Map' },
-    'minecraft:glistering_melon_slice': { icon: 'textures/items/melon_speckled', displayName: 'Glistering Melon Slice' },
+    'minecraft:glistering_melon_slice': {
+        icon: 'textures/items/melon_speckled',
+        displayName: 'Glistering Melon Slice'
+    },
     'minecraft:chest_minecart': { icon: 'textures/items/minecart_chest', displayName: 'Minecart with Chest' },
-    'minecraft:command_block_minecart': { icon: 'textures/items/minecart_command_block', displayName: 'Minecart with Command Block' },
+    'minecraft:command_block_minecart': {
+        icon: 'textures/items/minecart_command_block',
+        displayName: 'Minecart with Command Block'
+    },
     'minecraft:furnace_minecart': { icon: 'textures/items/minecart_furnace', displayName: 'Minecart with Furnace' },
     'minecraft:hopper_minecart': { icon: 'textures/items/minecart_hopper', displayName: 'Minecart with Hopper' },
     'minecraft:minecart': { icon: 'textures/items/minecart_normal', displayName: 'Minecart' },
@@ -191,11 +203,17 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:music_disc_wait': { icon: 'textures/items/record_wait', displayName: 'Music Disc (wait)' },
     'minecraft:music_disc_ward': { icon: 'textures/items/record_ward', displayName: 'Music Disc (ward)' },
     'minecraft:music_disc_pigstep': { icon: 'textures/items/record_pigstep', displayName: 'Music Disc (Pigstep)' },
-    'minecraft:music_disc_otherside': { icon: 'textures/items/record_otherside', displayName: 'Music Disc (otherside)' },
+    'minecraft:music_disc_otherside': {
+        icon: 'textures/items/record_otherside',
+        displayName: 'Music Disc (otherside)'
+    },
     'minecraft:music_disc_5': { icon: 'textures/items/record_5', displayName: 'Music Disc (5)' },
     'minecraft:music_disc_relic': { icon: 'textures/items/music_disc_relic', displayName: 'Music Disc (Relic)' },
     'minecraft:music_disc_creator': { icon: 'textures/items/music_disc_creator', displayName: 'Music Disc (Creator)' },
-    'minecraft:music_disc_precipice': { icon: 'textures/items/music_disc_precipice', displayName: 'Music Disc (Precipice)' },
+    'minecraft:music_disc_precipice': {
+        icon: 'textures/items/music_disc_precipice',
+        displayName: 'Music Disc (Precipice)'
+    },
     'minecraft:redstone': { icon: 'textures/items/redstone_dust', displayName: 'Redstone Dust' },
     'minecraft:repeater': { icon: 'textures/items/repeater', displayName: 'Redstone Repeater' },
     'minecraft:rotten_flesh': { icon: 'textures/items/rotten_flesh', displayName: 'Rotten Flesh' },
@@ -220,16 +238,28 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:birch_hanging_sign': { icon: 'textures/items/birch_hanging_sign', displayName: 'Birch Hanging Sign' },
     'minecraft:jungle_hanging_sign': { icon: 'textures/items/jungle_hanging_sign', displayName: 'Jungle Hanging Sign' },
     'minecraft:acacia_hanging_sign': { icon: 'textures/items/acacia_hanging_sign', displayName: 'Acacia Hanging Sign' },
-    'minecraft:dark_oak_hanging_sign': { icon: 'textures/items/dark_oak_hanging_sign', displayName: 'Dark Oak Hanging Sign' },
-    'minecraft:crimson_hanging_sign': { icon: 'textures/items/crimson_hanging_sign', displayName: 'Crimson Hanging Sign' },
+    'minecraft:dark_oak_hanging_sign': {
+        icon: 'textures/items/dark_oak_hanging_sign',
+        displayName: 'Dark Oak Hanging Sign'
+    },
+    'minecraft:crimson_hanging_sign': {
+        icon: 'textures/items/crimson_hanging_sign',
+        displayName: 'Crimson Hanging Sign'
+    },
     'minecraft:warped_hanging_sign': { icon: 'textures/items/warped_hanging_sign', displayName: 'Warped Hanging Sign' },
-    'minecraft:mangrove_hanging_sign': { icon: 'textures/items/mangrove_hanging_sign', displayName: 'Mangrove Hanging Sign' },
+    'minecraft:mangrove_hanging_sign': {
+        icon: 'textures/items/mangrove_hanging_sign',
+        displayName: 'Mangrove Hanging Sign'
+    },
     'minecraft:bamboo_hanging_sign': { icon: 'textures/items/bamboo_hanging_sign', displayName: 'Bamboo Hanging Sign' },
     'minecraft:cherry_hanging_sign': { icon: 'textures/items/cherry_hanging_sign', displayName: 'Cherry Hanging Sign' },
     'minecraft:slime_ball': { icon: 'textures/items/slimeball', displayName: 'Slimeball' },
     'minecraft:snowball': { icon: 'textures/items/snowball', displayName: 'Snowball' },
     'minecraft:spider_eye': { icon: 'textures/items/spider_eye', displayName: 'Spider Eye' },
-    'minecraft:fermented_spider_eye': { icon: 'textures/items/spider_eye_fermented', displayName: 'Fermented Spider Eye' },
+    'minecraft:fermented_spider_eye': {
+        icon: 'textures/items/spider_eye_fermented',
+        displayName: 'Fermented Spider Eye'
+    },
     'minecraft:stick': { icon: 'textures/items/stick', displayName: 'Stick' },
     'minecraft:string': { icon: 'textures/items/string', displayName: 'String' },
     'minecraft:sugar': { icon: 'textures/items/sugar', displayName: 'Sugar' },
@@ -249,7 +279,10 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:honeycomb': { icon: 'textures/items/honeycomb', displayName: 'Honeycomb' },
     'minecraft:honey_bottle': { icon: 'textures/items/honey_bottle', displayName: 'Honey Bottle' },
     'minecraft:lodestone_compass': { icon: 'textures/items/lodestonecompass_item', displayName: 'Lodestone Compass' },
-    'minecraft:warped_fungus_on_a_stick': { icon: 'textures/items/warped_fungus_on_a_stick', displayName: 'Warped Fungus on a Stick' },
+    'minecraft:warped_fungus_on_a_stick': {
+        icon: 'textures/items/warped_fungus_on_a_stick',
+        displayName: 'Warped Fungus on a Stick'
+    },
     'minecraft:chain': { icon: 'textures/items/chain', displayName: 'Chain' },
     'minecraft:soul_campfire': { icon: 'textures/items/soul_campfire', displayName: 'Soul Campfire' },
     'minecraft:nether_sprouts': { icon: 'textures/items/nether_sprouts', displayName: 'Nether Sprouts' },
@@ -270,149 +303,431 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:torchflower_seeds': { icon: 'textures/items/torchflower_seeds', displayName: 'Torchflower Seeds' },
     'minecraft:bamboo_door': { icon: 'textures/items/bamboo_door', displayName: 'Bamboo Door' },
     'minecraft:cherry_door': { icon: 'textures/items/cherry_door', displayName: 'Cherry Door' },
-    'minecraft:angler_pottery_sherd': { icon: 'textures/items/angler_pottery_sherd', displayName: 'Angler Pottery Sherd' },
-    'minecraft:archer_pottery_sherd': { icon: 'textures/items/archer_pottery_sherd', displayName: 'Archer Pottery Sherd' },
-    'minecraft:arms_up_pottery_sherd': { icon: 'textures/items/arms_up_pottery_sherd', displayName: 'Arms Up Pottery Sherd' },
+    'minecraft:angler_pottery_sherd': {
+        icon: 'textures/items/angler_pottery_sherd',
+        displayName: 'Angler Pottery Sherd'
+    },
+    'minecraft:archer_pottery_sherd': {
+        icon: 'textures/items/archer_pottery_sherd',
+        displayName: 'Archer Pottery Sherd'
+    },
+    'minecraft:arms_up_pottery_sherd': {
+        icon: 'textures/items/arms_up_pottery_sherd',
+        displayName: 'Arms Up Pottery Sherd'
+    },
     'minecraft:blade_pottery_sherd': { icon: 'textures/items/blade_pottery_sherd', displayName: 'Blade Pottery Sherd' },
-    'minecraft:brewer_pottery_sherd': { icon: 'textures/items/brewer_pottery_sherd', displayName: 'Brewer Pottery Sherd' },
+    'minecraft:brewer_pottery_sherd': {
+        icon: 'textures/items/brewer_pottery_sherd',
+        displayName: 'Brewer Pottery Sherd'
+    },
     'minecraft:burn_pottery_sherd': { icon: 'textures/items/burn_pottery_sherd', displayName: 'Burn Pottery Sherd' },
-    'minecraft:danger_pottery_sherd': { icon: 'textures/items/danger_pottery_sherd', displayName: 'Danger Pottery Sherd' },
-    'minecraft:explorer_pottery_sherd': { icon: 'textures/items/explorer_pottery_sherd', displayName: 'Explorer Pottery Sherd' },
-    'minecraft:friend_pottery_sherd': { icon: 'textures/items/friend_pottery_sherd', displayName: 'Friend Pottery Sherd' },
+    'minecraft:danger_pottery_sherd': {
+        icon: 'textures/items/danger_pottery_sherd',
+        displayName: 'Danger Pottery Sherd'
+    },
+    'minecraft:explorer_pottery_sherd': {
+        icon: 'textures/items/explorer_pottery_sherd',
+        displayName: 'Explorer Pottery Sherd'
+    },
+    'minecraft:friend_pottery_sherd': {
+        icon: 'textures/items/friend_pottery_sherd',
+        displayName: 'Friend Pottery Sherd'
+    },
     'minecraft:heart_pottery_sherd': { icon: 'textures/items/heart_pottery_sherd', displayName: 'Heart Pottery Sherd' },
-    'minecraft:heartbreak_pottery_sherd': { icon: 'textures/items/heartbreak_pottery_sherd', displayName: 'Heartbreak Pottery Sherd' },
+    'minecraft:heartbreak_pottery_sherd': {
+        icon: 'textures/items/heartbreak_pottery_sherd',
+        displayName: 'Heartbreak Pottery Sherd'
+    },
     'minecraft:howl_pottery_sherd': { icon: 'textures/items/howl_pottery_sherd', displayName: 'Howl Pottery Sherd' },
     'minecraft:miner_pottery_sherd': { icon: 'textures/items/miner_pottery_sherd', displayName: 'Miner Pottery Sherd' },
-    'minecraft:mourner_pottery_sherd': { icon: 'textures/items/mourner_pottery_sherd', displayName: 'Mourner Pottery Sherd' },
-    'minecraft:plenty_pottery_sherd': { icon: 'textures/items/plenty_pottery_sherd', displayName: 'Plenty Pottery Sherd' },
+    'minecraft:mourner_pottery_sherd': {
+        icon: 'textures/items/mourner_pottery_sherd',
+        displayName: 'Mourner Pottery Sherd'
+    },
+    'minecraft:plenty_pottery_sherd': {
+        icon: 'textures/items/plenty_pottery_sherd',
+        displayName: 'Plenty Pottery Sherd'
+    },
     'minecraft:prize_pottery_sherd': { icon: 'textures/items/prize_pottery_sherd', displayName: 'Prize Pottery Sherd' },
     'minecraft:sheaf_pottery_sherd': { icon: 'textures/items/sheaf_pottery_sherd', displayName: 'Sheaf Pottery Sherd' },
-    'minecraft:shelter_pottery_sherd': { icon: 'textures/items/shelter_pottery_sherd', displayName: 'Shelter Pottery Sherd' },
+    'minecraft:shelter_pottery_sherd': {
+        icon: 'textures/items/shelter_pottery_sherd',
+        displayName: 'Shelter Pottery Sherd'
+    },
     'minecraft:skull_pottery_sherd': { icon: 'textures/items/skull_pottery_sherd', displayName: 'Skull Pottery Sherd' },
     'minecraft:snort_pottery_sherd': { icon: 'textures/items/snort_pottery_sherd', displayName: 'Snort Pottery Sherd' },
     'minecraft:brush': { icon: 'textures/items/brush', displayName: 'Brush' },
-    'minecraft:netherite_upgrade_smithing_template': { icon: 'textures/items/netherite_upgrade_smithing_template', displayName: 'Netherite Upgrade' },
-    'minecraft:sentry_armor_trim_smithing_template': { icon: 'textures/items/sentry_armor_trim_smithing_template', displayName: 'Sentry Armor Trim' },
-    'minecraft:dune_armor_trim_smithing_template': { icon: 'textures/items/dune_armor_trim_smithing_template', displayName: 'Dune Armor Trim' },
-    'minecraft:coast_armor_trim_smithing_template': { icon: 'textures/items/coast_armor_trim_smithing_template', displayName: 'Coast Armor Trim' },
-    'minecraft:wild_armor_trim_smithing_template': { icon: 'textures/items/wild_armor_trim_smithing_template', displayName: 'Wild Armor Trim' },
-    'minecraft:ward_armor_trim_smithing_template': { icon: 'textures/items/ward_armor_trim_smithing_template', displayName: 'Ward Armor Trim' },
-    'minecraft:eye_armor_trim_smithing_template': { icon: 'textures/items/eye_armor_trim_smithing_template', displayName: 'Eye Armor Trim' },
-    'minecraft:vex_armor_trim_smithing_template': { icon: 'textures/items/vex_armor_trim_smithing_template', displayName: 'Vex Armor Trim' },
-    'minecraft:tide_armor_trim_smithing_template': { icon: 'textures/items/tide_armor_trim_smithing_template', displayName: 'Tide Armor Trim' },
-    'minecraft:snout_armor_trim_smithing_template': { icon: 'textures/items/snout_armor_trim_smithing_template', displayName: 'Snout Armor Trim' },
-    'minecraft:rib_armor_trim_smithing_template': { icon: 'textures/items/rib_armor_trim_smithing_template', displayName: 'Rib Armor Trim' },
-    'minecraft:spire_armor_trim_smithing_template': { icon: 'textures/items/spire_armor_trim_smithing_template', displayName: 'Spire Armor Trim' },
-    'minecraft:silence_armor_trim_smithing_template': { icon: 'textures/items/silence_armor_trim_smithing_template', displayName: 'Silence Armor Trim' },
-    'minecraft:wayfinder_armor_trim_smithing_template': { icon: 'textures/items/wayfinder_armor_trim_smithing_template', displayName: 'Wayfinder Armor Trim' },
-    'minecraft:raiser_armor_trim_smithing_template': { icon: 'textures/items/raiser_armor_trim_smithing_template', displayName: 'Raiser Armor Trim' },
-    'minecraft:shaper_armor_trim_smithing_template': { icon: 'textures/items/shaper_armor_trim_smithing_template', displayName: 'Shaper Armor Trim' },
-    'minecraft:host_armor_trim_smithing_template': { icon: 'textures/items/host_armor_trim_smithing_template', displayName: 'Host Armor Trim' },
+    'minecraft:netherite_upgrade_smithing_template': {
+        icon: 'textures/items/netherite_upgrade_smithing_template',
+        displayName: 'Netherite Upgrade'
+    },
+    'minecraft:sentry_armor_trim_smithing_template': {
+        icon: 'textures/items/sentry_armor_trim_smithing_template',
+        displayName: 'Sentry Armor Trim'
+    },
+    'minecraft:dune_armor_trim_smithing_template': {
+        icon: 'textures/items/dune_armor_trim_smithing_template',
+        displayName: 'Dune Armor Trim'
+    },
+    'minecraft:coast_armor_trim_smithing_template': {
+        icon: 'textures/items/coast_armor_trim_smithing_template',
+        displayName: 'Coast Armor Trim'
+    },
+    'minecraft:wild_armor_trim_smithing_template': {
+        icon: 'textures/items/wild_armor_trim_smithing_template',
+        displayName: 'Wild Armor Trim'
+    },
+    'minecraft:ward_armor_trim_smithing_template': {
+        icon: 'textures/items/ward_armor_trim_smithing_template',
+        displayName: 'Ward Armor Trim'
+    },
+    'minecraft:eye_armor_trim_smithing_template': {
+        icon: 'textures/items/eye_armor_trim_smithing_template',
+        displayName: 'Eye Armor Trim'
+    },
+    'minecraft:vex_armor_trim_smithing_template': {
+        icon: 'textures/items/vex_armor_trim_smithing_template',
+        displayName: 'Vex Armor Trim'
+    },
+    'minecraft:tide_armor_trim_smithing_template': {
+        icon: 'textures/items/tide_armor_trim_smithing_template',
+        displayName: 'Tide Armor Trim'
+    },
+    'minecraft:snout_armor_trim_smithing_template': {
+        icon: 'textures/items/snout_armor_trim_smithing_template',
+        displayName: 'Snout Armor Trim'
+    },
+    'minecraft:rib_armor_trim_smithing_template': {
+        icon: 'textures/items/rib_armor_trim_smithing_template',
+        displayName: 'Rib Armor Trim'
+    },
+    'minecraft:spire_armor_trim_smithing_template': {
+        icon: 'textures/items/spire_armor_trim_smithing_template',
+        displayName: 'Spire Armor Trim'
+    },
+    'minecraft:silence_armor_trim_smithing_template': {
+        icon: 'textures/items/silence_armor_trim_smithing_template',
+        displayName: 'Silence Armor Trim'
+    },
+    'minecraft:wayfinder_armor_trim_smithing_template': {
+        icon: 'textures/items/wayfinder_armor_trim_smithing_template',
+        displayName: 'Wayfinder Armor Trim'
+    },
+    'minecraft:raiser_armor_trim_smithing_template': {
+        icon: 'textures/items/raiser_armor_trim_smithing_template',
+        displayName: 'Raiser Armor Trim'
+    },
+    'minecraft:shaper_armor_trim_smithing_template': {
+        icon: 'textures/items/shaper_armor_trim_smithing_template',
+        displayName: 'Shaper Armor Trim'
+    },
+    'minecraft:host_armor_trim_smithing_template': {
+        icon: 'textures/items/host_armor_trim_smithing_template',
+        displayName: 'Host Armor Trim'
+    },
     'minecraft:armadillo_scute': { icon: 'textures/items/armadillo_scute', displayName: 'Armadillo Scute' },
     'minecraft:wolf_armor': { icon: 'textures/items/wolf_armor', displayName: 'Wolf Armor' },
     'minecraft:copper_door': { icon: 'textures/items/copper_door', displayName: 'Copper Door' },
     'minecraft:exposed_copper_door': { icon: 'textures/items/exposed_copper_door', displayName: 'Exposed Copper Door' },
-    'minecraft:weathered_copper_door': { icon: 'textures/items/weathered_copper_door', displayName: 'Weathered Copper Door' },
-    'minecraft:oxidized_copper_door': { icon: 'textures/items/oxidized_copper_door', displayName: 'Oxidized Copper Door' },
+    'minecraft:weathered_copper_door': {
+        icon: 'textures/items/weathered_copper_door',
+        displayName: 'Weathered Copper Door'
+    },
+    'minecraft:oxidized_copper_door': {
+        icon: 'textures/items/oxidized_copper_door',
+        displayName: 'Oxidized Copper Door'
+    },
     'minecraft:trial_key': { icon: 'textures/items/trial_key', displayName: 'Trial Key' },
     'minecraft:ominous_trial_key': { icon: 'textures/items/ominous_trial_key', displayName: 'Ominous Trial Key' },
     'minecraft:wind_charge': { icon: 'textures/items/wind_charge', displayName: 'Wind Charge' },
-    'minecraft:guster_pottery_sherd': { icon: 'textures/items/guster_pottery_sherd', displayName: 'Guster Pottery Sherd' },
+    'minecraft:guster_pottery_sherd': {
+        icon: 'textures/items/guster_pottery_sherd',
+        displayName: 'Guster Pottery Sherd'
+    },
     'minecraft:flow_pottery_sherd': { icon: 'textures/items/flow_pottery_sherd', displayName: 'Flow Pottery Sherd' },
-    'minecraft:scrape_pottery_sherd': { icon: 'textures/items/scrape_pottery_sherd', displayName: 'Scrape Pottery Sherd' },
+    'minecraft:scrape_pottery_sherd': {
+        icon: 'textures/items/scrape_pottery_sherd',
+        displayName: 'Scrape Pottery Sherd'
+    },
     'minecraft:flow_banner_pattern': { icon: 'textures/items/flow_banner_pattern', displayName: 'Flow Banner Pattern' },
-    'minecraft:guster_banner_pattern': { icon: 'textures/items/guster_banner_pattern', displayName: 'Guster Banner Pattern' },
-    'minecraft:creeper_banner_pattern': { icon: 'textures/items/creeper_banner_pattern', displayName: 'Creeper Banner Pattern' },
-    'minecraft:skull_banner_pattern': { icon: 'textures/items/skull_banner_pattern', displayName: 'Skull Banner Pattern' },
-    'minecraft:flower_banner_pattern': { icon: 'textures/items/flower_banner_pattern', displayName: 'Flower Banner Pattern' },
-    'minecraft:mojang_banner_pattern': { icon: 'textures/items/mojang_banner_pattern', displayName: 'Mojang Banner Pattern' },
-    'minecraft:globe_banner_pattern': { icon: 'textures/items/globe_banner_pattern', displayName: 'Globe Banner Pattern' },
-    'minecraft:piglin_banner_pattern': { icon: 'textures/items/piglin_banner_pattern', displayName: 'Piglin Banner Pattern' },
+    'minecraft:guster_banner_pattern': {
+        icon: 'textures/items/guster_banner_pattern',
+        displayName: 'Guster Banner Pattern'
+    },
+    'minecraft:creeper_banner_pattern': {
+        icon: 'textures/items/creeper_banner_pattern',
+        displayName: 'Creeper Banner Pattern'
+    },
+    'minecraft:skull_banner_pattern': {
+        icon: 'textures/items/skull_banner_pattern',
+        displayName: 'Skull Banner Pattern'
+    },
+    'minecraft:flower_banner_pattern': {
+        icon: 'textures/items/flower_banner_pattern',
+        displayName: 'Flower Banner Pattern'
+    },
+    'minecraft:mojang_banner_pattern': {
+        icon: 'textures/items/mojang_banner_pattern',
+        displayName: 'Mojang Banner Pattern'
+    },
+    'minecraft:globe_banner_pattern': {
+        icon: 'textures/items/globe_banner_pattern',
+        displayName: 'Globe Banner Pattern'
+    },
+    'minecraft:piglin_banner_pattern': {
+        icon: 'textures/items/piglin_banner_pattern',
+        displayName: 'Piglin Banner Pattern'
+    },
     'minecraft:breeze_rod': { icon: 'textures/items/breeze_rod', displayName: 'Breeze Rod' },
-    'minecraft:flow_armor_trim_smithing_template': { icon: 'textures/items/flow_armor_trim_smithing_template', displayName: 'Flow Armor Trim' },
-    'minecraft:bolt_armor_trim_smithing_template': { icon: 'textures/items/bolt_armor_trim_smithing_template', displayName: 'Bolt Armor Trim' },
+    'minecraft:flow_armor_trim_smithing_template': {
+        icon: 'textures/items/flow_armor_trim_smithing_template',
+        displayName: 'Flow Armor Trim'
+    },
+    'minecraft:bolt_armor_trim_smithing_template': {
+        icon: 'textures/items/bolt_armor_trim_smithing_template',
+        displayName: 'Bolt Armor Trim'
+    },
     'minecraft:ominous_bottle': { icon: 'textures/items/ominous_bottle', displayName: 'Ominous Bottle' },
     'minecraft:tipped_arrow': { icon: 'textures/items/tipped_arrow', displayName: 'Tipped Arrow' },
 
     // Spawn Eggs
     'minecraft:allay_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_allay', displayName: 'Allay Spawn Egg' },
-    'minecraft:axolotl_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_axolotl', displayName: 'Axolotl Spawn Egg' },
+    'minecraft:axolotl_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_axolotl',
+        displayName: 'Axolotl Spawn Egg'
+    },
     'minecraft:bat_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_bat', displayName: 'Bat Spawn Egg' },
     'minecraft:bee_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_bee', displayName: 'Bee Spawn Egg' },
     'minecraft:blaze_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_blaze', displayName: 'Blaze Spawn Egg' },
-    'minecraft:bogged_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_bogged', displayName: 'Bogged Spawn Egg' },
-    'minecraft:breeze_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_breeze', displayName: 'Breeze Spawn Egg' },
+    'minecraft:bogged_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_bogged',
+        displayName: 'Bogged Spawn Egg'
+    },
+    'minecraft:breeze_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_breeze',
+        displayName: 'Breeze Spawn Egg'
+    },
     'minecraft:camel_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_camel', displayName: 'Camel Spawn Egg' },
     'minecraft:cat_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_cat', displayName: 'Cat Spawn Egg' },
-    'minecraft:cave_spider_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_cave_spider', displayName: 'Cave Spider Spawn Egg' },
-    'minecraft:chicken_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_chicken', displayName: 'Chicken Spawn Egg' },
+    'minecraft:cave_spider_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_cave_spider',
+        displayName: 'Cave Spider Spawn Egg'
+    },
+    'minecraft:chicken_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_chicken',
+        displayName: 'Chicken Spawn Egg'
+    },
     'minecraft:cod_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_cod', displayName: 'Cod Spawn Egg' },
     'minecraft:cow_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_cow', displayName: 'Cow Spawn Egg' },
-    'minecraft:creeper_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_creeper', displayName: 'Creeper Spawn Egg' },
-    'minecraft:dolphin_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_dolphin', displayName: 'Dolphin Spawn Egg' },
-    'minecraft:donkey_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_donkey', displayName: 'Donkey Spawn Egg' },
-    'minecraft:drowned_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_drowned', displayName: 'Drowned Spawn Egg' },
-    'minecraft:elder_guardian_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_elder_guardian', displayName: 'Elder Guardian Spawn Egg' },
-    'minecraft:ender_dragon_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_ender_dragon', displayName: 'Ender Dragon Spawn Egg' },
-    'minecraft:enderman_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_enderman', displayName: 'Enderman Spawn Egg' },
-    'minecraft:endermite_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_endermite', displayName: 'Endermite Spawn Egg' },
-    'minecraft:evoker_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_evoker', displayName: 'Evoker Spawn Egg' },
+    'minecraft:creeper_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_creeper',
+        displayName: 'Creeper Spawn Egg'
+    },
+    'minecraft:dolphin_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_dolphin',
+        displayName: 'Dolphin Spawn Egg'
+    },
+    'minecraft:donkey_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_donkey',
+        displayName: 'Donkey Spawn Egg'
+    },
+    'minecraft:drowned_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_drowned',
+        displayName: 'Drowned Spawn Egg'
+    },
+    'minecraft:elder_guardian_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_elder_guardian',
+        displayName: 'Elder Guardian Spawn Egg'
+    },
+    'minecraft:ender_dragon_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_ender_dragon',
+        displayName: 'Ender Dragon Spawn Egg'
+    },
+    'minecraft:enderman_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_enderman',
+        displayName: 'Enderman Spawn Egg'
+    },
+    'minecraft:endermite_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_endermite',
+        displayName: 'Endermite Spawn Egg'
+    },
+    'minecraft:evoker_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_evoker',
+        displayName: 'Evoker Spawn Egg'
+    },
     'minecraft:fox_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_fox', displayName: 'Fox Spawn Egg' },
     'minecraft:frog_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_frog', displayName: 'Frog Spawn Egg' },
     'minecraft:ghast_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_ghast', displayName: 'Ghast Spawn Egg' },
-    'minecraft:glow_squid_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_glow_squid', displayName: 'Glow Squid Spawn Egg' },
+    'minecraft:glow_squid_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_glow_squid',
+        displayName: 'Glow Squid Spawn Egg'
+    },
     'minecraft:goat_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_goat', displayName: 'Goat Spawn Egg' },
-    'minecraft:guardian_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_guardian', displayName: 'Guardian Spawn Egg' },
-    'minecraft:hoglin_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_hoglin', displayName: 'Hoglin Spawn Egg' },
+    'minecraft:guardian_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_guardian',
+        displayName: 'Guardian Spawn Egg'
+    },
+    'minecraft:hoglin_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_hoglin',
+        displayName: 'Hoglin Spawn Egg'
+    },
     'minecraft:horse_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_horse', displayName: 'Horse Spawn Egg' },
     'minecraft:husk_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_husk', displayName: 'Husk Spawn Egg' },
-    'minecraft:iron_golem_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_iron_golem', displayName: 'Iron Golem Spawn Egg' },
+    'minecraft:iron_golem_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_iron_golem',
+        displayName: 'Iron Golem Spawn Egg'
+    },
     'minecraft:llama_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_llama', displayName: 'Llama Spawn Egg' },
-    'minecraft:magma_cube_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_magma_cube', displayName: 'Magma Cube Spawn Egg' },
-    'minecraft:mooshroom_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_mooshroom', displayName: 'Mooshroom Spawn Egg' },
+    'minecraft:magma_cube_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_magma_cube',
+        displayName: 'Magma Cube Spawn Egg'
+    },
+    'minecraft:mooshroom_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_mooshroom',
+        displayName: 'Mooshroom Spawn Egg'
+    },
     'minecraft:mule_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_mule', displayName: 'Mule Spawn Egg' },
-    'minecraft:ocelot_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_ocelot', displayName: 'Ocelot Spawn Egg' },
+    'minecraft:ocelot_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_ocelot',
+        displayName: 'Ocelot Spawn Egg'
+    },
     'minecraft:panda_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_panda', displayName: 'Panda Spawn Egg' },
-    'minecraft:parrot_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_parrot', displayName: 'Parrot Spawn Egg' },
-    'minecraft:phantom_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_phantom', displayName: 'Phantom Spawn Egg' },
+    'minecraft:parrot_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_parrot',
+        displayName: 'Parrot Spawn Egg'
+    },
+    'minecraft:phantom_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_phantom',
+        displayName: 'Phantom Spawn Egg'
+    },
     'minecraft:pig_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_pig', displayName: 'Pig Spawn Egg' },
-    'minecraft:piglin_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_piglin', displayName: 'Piglin Spawn Egg' },
-    'minecraft:piglin_brute_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_piglin_brute', displayName: 'Piglin Brute Spawn Egg' },
-    'minecraft:pillager_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_pillager', displayName: 'Pillager Spawn Egg' },
-    'minecraft:polar_bear_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_polar_bear', displayName: 'Polar Bear Spawn Egg' },
-    'minecraft:pufferfish_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_pufferfish', displayName: 'Pufferfish Spawn Egg' },
-    'minecraft:rabbit_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_rabbit', displayName: 'Rabbit Spawn Egg' },
-    'minecraft:ravager_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_ravager', displayName: 'Ravager Spawn Egg' },
-    'minecraft:salmon_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_salmon', displayName: 'Salmon Spawn Egg' },
+    'minecraft:piglin_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_piglin',
+        displayName: 'Piglin Spawn Egg'
+    },
+    'minecraft:piglin_brute_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_piglin_brute',
+        displayName: 'Piglin Brute Spawn Egg'
+    },
+    'minecraft:pillager_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_pillager',
+        displayName: 'Pillager Spawn Egg'
+    },
+    'minecraft:polar_bear_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_polar_bear',
+        displayName: 'Polar Bear Spawn Egg'
+    },
+    'minecraft:pufferfish_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_pufferfish',
+        displayName: 'Pufferfish Spawn Egg'
+    },
+    'minecraft:rabbit_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_rabbit',
+        displayName: 'Rabbit Spawn Egg'
+    },
+    'minecraft:ravager_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_ravager',
+        displayName: 'Ravager Spawn Egg'
+    },
+    'minecraft:salmon_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_salmon',
+        displayName: 'Salmon Spawn Egg'
+    },
     'minecraft:sheep_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_sheep', displayName: 'Sheep Spawn Egg' },
-    'minecraft:shulker_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_shulker', displayName: 'Shulker Spawn Egg' },
-    'minecraft:silverfish_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_silverfish', displayName: 'Silverfish Spawn Egg' },
-    'minecraft:skeleton_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_skeleton', displayName: 'Skeleton Spawn Egg' },
-    'minecraft:skeleton_horse_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_skeleton_horse', displayName: 'Skeleton Horse Spawn Egg' },
+    'minecraft:shulker_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_shulker',
+        displayName: 'Shulker Spawn Egg'
+    },
+    'minecraft:silverfish_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_silverfish',
+        displayName: 'Silverfish Spawn Egg'
+    },
+    'minecraft:skeleton_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_skeleton',
+        displayName: 'Skeleton Spawn Egg'
+    },
+    'minecraft:skeleton_horse_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_skeleton_horse',
+        displayName: 'Skeleton Horse Spawn Egg'
+    },
     'minecraft:slime_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_slime', displayName: 'Slime Spawn Egg' },
-    'minecraft:sniffer_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_sniffer', displayName: 'Sniffer Spawn Egg' },
-    'minecraft:snow_golem_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_snow_golem', displayName: 'Snow Golem Spawn Egg' },
-    'minecraft:spider_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_spider', displayName: 'Spider Spawn Egg' },
+    'minecraft:sniffer_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_sniffer',
+        displayName: 'Sniffer Spawn Egg'
+    },
+    'minecraft:snow_golem_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_snow_golem',
+        displayName: 'Snow Golem Spawn Egg'
+    },
+    'minecraft:spider_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_spider',
+        displayName: 'Spider Spawn Egg'
+    },
     'minecraft:squid_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_squid', displayName: 'Squid Spawn Egg' },
     'minecraft:stray_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_stray', displayName: 'Stray Spawn Egg' },
-    'minecraft:strider_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_strider', displayName: 'Strider Spawn Egg' },
-    'minecraft:tadpole_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_tadpole', displayName: 'Tadpole Spawn Egg' },
-    'minecraft:trader_llama_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_trader_llama', displayName: 'Trader Llama Spawn Egg' },
-    'minecraft:tropical_fish_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_tropicalfish', displayName: 'Tropical Fish Spawn Egg' },
-    'minecraft:turtle_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_turtle', displayName: 'Turtle Spawn Egg' },
+    'minecraft:strider_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_strider',
+        displayName: 'Strider Spawn Egg'
+    },
+    'minecraft:tadpole_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_tadpole',
+        displayName: 'Tadpole Spawn Egg'
+    },
+    'minecraft:trader_llama_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_trader_llama',
+        displayName: 'Trader Llama Spawn Egg'
+    },
+    'minecraft:tropical_fish_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_tropicalfish',
+        displayName: 'Tropical Fish Spawn Egg'
+    },
+    'minecraft:turtle_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_turtle',
+        displayName: 'Turtle Spawn Egg'
+    },
     'minecraft:vex_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_vex', displayName: 'Vex Spawn Egg' },
-    'minecraft:villager_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_villager', displayName: 'Villager Spawn Egg' },
-    'minecraft:vindicator_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_vindicator', displayName: 'Vindicator Spawn Egg' },
-    'minecraft:warden_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_warden', displayName: 'Warden Spawn Egg' },
+    'minecraft:villager_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_villager',
+        displayName: 'Villager Spawn Egg'
+    },
+    'minecraft:vindicator_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_vindicator',
+        displayName: 'Vindicator Spawn Egg'
+    },
+    'minecraft:warden_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_warden',
+        displayName: 'Warden Spawn Egg'
+    },
     'minecraft:witch_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_witch', displayName: 'Witch Spawn Egg' },
-    'minecraft:wither_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_wither', displayName: 'Wither Spawn Egg' },
+    'minecraft:wither_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_wither',
+        displayName: 'Wither Spawn Egg'
+    },
     'minecraft:wolf_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_wolf', displayName: 'Wolf Spawn Egg' },
-    'minecraft:zoglin_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_zoglin', displayName: 'Zoglin Spawn Egg' },
-    'minecraft:zombie_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_zombie', displayName: 'Zombie Spawn Egg' },
-    'minecraft:zombie_horse_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_zombie_horse', displayName: 'Zombie Horse Spawn Egg' },
-    'minecraft:zombified_piglin_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_zombified_piglin', displayName: 'Zombified Piglin Spawn Egg' },
-    'minecraft:zombie_villager_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_zombie_villager', displayName: 'Zombie Villager Spawn Egg' },
-    'minecraft:armadillo_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_armadillo', displayName: 'Armadillo Spawn Egg' },
+    'minecraft:zoglin_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_zoglin',
+        displayName: 'Zoglin Spawn Egg'
+    },
+    'minecraft:zombie_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_zombie',
+        displayName: 'Zombie Spawn Egg'
+    },
+    'minecraft:zombie_horse_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_zombie_horse',
+        displayName: 'Zombie Horse Spawn Egg'
+    },
+    'minecraft:zombified_piglin_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_zombified_piglin',
+        displayName: 'Zombified Piglin Spawn Egg'
+    },
+    'minecraft:zombie_villager_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_zombie_villager',
+        displayName: 'Zombie Villager Spawn Egg'
+    },
+    'minecraft:armadillo_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_armadillo',
+        displayName: 'Armadillo Spawn Egg'
+    },
     'minecraft:acacia_boat': { icon: 'textures/items/acacia_boat', displayName: 'Acacia Boat' },
     'minecraft:acacia_button': { icon: 'textures/blocks/acacia_button', displayName: 'Acacia Button' },
     'minecraft:acacia_chest_boat': { icon: 'textures/items/acacia_chest_boat', displayName: 'Acacia Chest Boat' },
@@ -421,12 +736,18 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:acacia_fence_gate': { icon: 'textures/blocks/acacia_fence_gate', displayName: 'Acacia Fence Gate' },
     'minecraft:acacia_leaves': { icon: 'textures/blocks/acacia_leaves', displayName: 'Acacia Leaves' },
     'minecraft:acacia_planks': { icon: 'textures/blocks/acacia_planks', displayName: 'Acacia Planks' },
-    'minecraft:acacia_pressure_plate': { icon: 'textures/blocks/acacia_pressure_plate', displayName: 'Acacia Pressure Plate' },
+    'minecraft:acacia_pressure_plate': {
+        icon: 'textures/blocks/acacia_pressure_plate',
+        displayName: 'Acacia Pressure Plate'
+    },
     'minecraft:acacia_sapling': { icon: 'textures/blocks/acacia_sapling', displayName: 'Acacia Sapling' },
     'minecraft:acacia_shelf': { icon: 'textures/items/acacia_shelf', displayName: 'Acacia Shelf' },
     'minecraft:acacia_slab': { icon: 'textures/blocks/acacia_slab', displayName: 'Acacia Slab' },
     'minecraft:acacia_stairs': { icon: 'textures/blocks/acacia_stairs', displayName: 'Acacia Stairs' },
-    'minecraft:acacia_standing_sign': { icon: 'textures/items/acacia_standing_sign', displayName: 'Acacia Standing Sign' },
+    'minecraft:acacia_standing_sign': {
+        icon: 'textures/items/acacia_standing_sign',
+        displayName: 'Acacia Standing Sign'
+    },
     'minecraft:acacia_trapdoor': { icon: 'textures/blocks/acacia_trapdoor', displayName: 'Acacia Trapdoor' },
     'minecraft:acacia_wall_sign': { icon: 'textures/items/acacia_wall_sign', displayName: 'Acacia Wall Sign' },
     'minecraft:acacia_wood': { icon: 'textures/blocks/acacia_wood', displayName: 'Acacia Wood' },
@@ -436,7 +757,10 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:amethyst_block': { icon: 'textures/blocks/amethyst_block', displayName: 'Amethyst Block' },
     'minecraft:amethyst_cluster': { icon: 'textures/items/amethyst_cluster', displayName: 'Amethyst Cluster' },
     'minecraft:andesite': { icon: 'textures/blocks/andesite', displayName: 'Andesite' },
-    'minecraft:andesite_double_slab': { icon: 'textures/blocks/andesite_double_slab', displayName: 'Andesite Double Slab' },
+    'minecraft:andesite_double_slab': {
+        icon: 'textures/blocks/andesite_double_slab',
+        displayName: 'Andesite Double Slab'
+    },
     'minecraft:andesite_slab': { icon: 'textures/blocks/andesite_slab', displayName: 'Andesite Slab' },
     'minecraft:andesite_stairs': { icon: 'textures/blocks/andesite_stairs', displayName: 'Andesite Stairs' },
     'minecraft:andesite_wall': { icon: 'textures/blocks/andesite_wall', displayName: 'Andesite Wall' },
@@ -444,7 +768,10 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:axolotl_bucket': { icon: 'textures/items/axolotl_bucket', displayName: 'Axolotl Bucket' },
     'minecraft:azalea': { icon: 'textures/items/azalea', displayName: 'Azalea' },
     'minecraft:azalea_leaves': { icon: 'textures/blocks/azalea_leaves', displayName: 'Azalea Leaves' },
-    'minecraft:azalea_leaves_flowered': { icon: 'textures/blocks/azalea_leaves_flowered', displayName: 'Azalea Leaves Flowered' },
+    'minecraft:azalea_leaves_flowered': {
+        icon: 'textures/blocks/azalea_leaves_flowered',
+        displayName: 'Azalea Leaves Flowered'
+    },
     'minecraft:azure_bluet': { icon: 'textures/items/azure_bluet', displayName: 'Azure Bluet' },
     'minecraft:bamboo': { icon: 'textures/items/bamboo', displayName: 'Bamboo' },
     'minecraft:bamboo_block': { icon: 'textures/blocks/bamboo_block', displayName: 'Bamboo Block' },
@@ -454,17 +781,29 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:bamboo_fence': { icon: 'textures/blocks/bamboo_fence', displayName: 'Bamboo Fence' },
     'minecraft:bamboo_fence_gate': { icon: 'textures/blocks/bamboo_fence_gate', displayName: 'Bamboo Fence Gate' },
     'minecraft:bamboo_mosaic': { icon: 'textures/items/bamboo_mosaic', displayName: 'Bamboo Mosaic' },
-    'minecraft:bamboo_mosaic_double_slab': { icon: 'textures/blocks/bamboo_mosaic_double_slab', displayName: 'Bamboo Mosaic Double Slab' },
+    'minecraft:bamboo_mosaic_double_slab': {
+        icon: 'textures/blocks/bamboo_mosaic_double_slab',
+        displayName: 'Bamboo Mosaic Double Slab'
+    },
     'minecraft:bamboo_mosaic_slab': { icon: 'textures/blocks/bamboo_mosaic_slab', displayName: 'Bamboo Mosaic Slab' },
-    'minecraft:bamboo_mosaic_stairs': { icon: 'textures/blocks/bamboo_mosaic_stairs', displayName: 'Bamboo Mosaic Stairs' },
+    'minecraft:bamboo_mosaic_stairs': {
+        icon: 'textures/blocks/bamboo_mosaic_stairs',
+        displayName: 'Bamboo Mosaic Stairs'
+    },
     'minecraft:bamboo_planks': { icon: 'textures/blocks/bamboo_planks', displayName: 'Bamboo Planks' },
-    'minecraft:bamboo_pressure_plate': { icon: 'textures/blocks/bamboo_pressure_plate', displayName: 'Bamboo Pressure Plate' },
+    'minecraft:bamboo_pressure_plate': {
+        icon: 'textures/blocks/bamboo_pressure_plate',
+        displayName: 'Bamboo Pressure Plate'
+    },
     'minecraft:bamboo_raft': { icon: 'textures/items/bamboo_raft', displayName: 'Bamboo Raft' },
     'minecraft:bamboo_sapling': { icon: 'textures/blocks/bamboo_sapling', displayName: 'Bamboo Sapling' },
     'minecraft:bamboo_shelf': { icon: 'textures/items/bamboo_shelf', displayName: 'Bamboo Shelf' },
     'minecraft:bamboo_slab': { icon: 'textures/blocks/bamboo_slab', displayName: 'Bamboo Slab' },
     'minecraft:bamboo_stairs': { icon: 'textures/blocks/bamboo_stairs', displayName: 'Bamboo Stairs' },
-    'minecraft:bamboo_standing_sign': { icon: 'textures/items/bamboo_standing_sign', displayName: 'Bamboo Standing Sign' },
+    'minecraft:bamboo_standing_sign': {
+        icon: 'textures/items/bamboo_standing_sign',
+        displayName: 'Bamboo Standing Sign'
+    },
     'minecraft:bamboo_trapdoor': { icon: 'textures/blocks/bamboo_trapdoor', displayName: 'Bamboo Trapdoor' },
     'minecraft:bamboo_wall_sign': { icon: 'textures/items/bamboo_wall_sign', displayName: 'Bamboo Wall Sign' },
     'minecraft:banner': { icon: 'textures/items/banner', displayName: 'Banner' },
@@ -485,7 +824,10 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:birch_fence_gate': { icon: 'textures/blocks/birch_fence_gate', displayName: 'Birch Fence Gate' },
     'minecraft:birch_leaves': { icon: 'textures/blocks/birch_leaves', displayName: 'Birch Leaves' },
     'minecraft:birch_planks': { icon: 'textures/blocks/birch_planks', displayName: 'Birch Planks' },
-    'minecraft:birch_pressure_plate': { icon: 'textures/blocks/birch_pressure_plate', displayName: 'Birch Pressure Plate' },
+    'minecraft:birch_pressure_plate': {
+        icon: 'textures/blocks/birch_pressure_plate',
+        displayName: 'Birch Pressure Plate'
+    },
     'minecraft:birch_sapling': { icon: 'textures/blocks/birch_sapling', displayName: 'Birch Sapling' },
     'minecraft:birch_shelf': { icon: 'textures/items/birch_shelf', displayName: 'Birch Shelf' },
     'minecraft:birch_slab': { icon: 'textures/blocks/birch_slab', displayName: 'Birch Slab' },
@@ -498,17 +840,32 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:black_candle_cake': { icon: 'textures/items/black_candle_cake', displayName: 'Black Candle Cake' },
     'minecraft:black_carpet': { icon: 'textures/items/black_carpet', displayName: 'Black Carpet' },
     'minecraft:black_concrete': { icon: 'textures/blocks/black_concrete', displayName: 'Black Concrete' },
-    'minecraft:black_concrete_powder': { icon: 'textures/items/black_concrete_powder', displayName: 'Black Concrete Powder' },
+    'minecraft:black_concrete_powder': {
+        icon: 'textures/items/black_concrete_powder',
+        displayName: 'Black Concrete Powder'
+    },
     'minecraft:black_dye': { icon: 'textures/items/black_dye', displayName: 'Black Dye' },
-    'minecraft:black_glazed_terracotta': { icon: 'textures/blocks/black_glazed_terracotta', displayName: 'Black Glazed Terracotta' },
+    'minecraft:black_glazed_terracotta': {
+        icon: 'textures/blocks/black_glazed_terracotta',
+        displayName: 'Black Glazed Terracotta'
+    },
     'minecraft:black_harness': { icon: 'textures/items/black_harness', displayName: 'Black Harness' },
     'minecraft:black_shulker_box': { icon: 'textures/items/black_shulker_box', displayName: 'Black Shulker Box' },
-    'minecraft:black_stained_glass': { icon: 'textures/blocks/black_stained_glass', displayName: 'Black Stained Glass' },
-    'minecraft:black_stained_glass_pane': { icon: 'textures/blocks/black_stained_glass_pane', displayName: 'Black Stained Glass Pane' },
+    'minecraft:black_stained_glass': {
+        icon: 'textures/blocks/black_stained_glass',
+        displayName: 'Black Stained Glass'
+    },
+    'minecraft:black_stained_glass_pane': {
+        icon: 'textures/blocks/black_stained_glass_pane',
+        displayName: 'Black Stained Glass Pane'
+    },
     'minecraft:black_terracotta': { icon: 'textures/blocks/black_terracotta', displayName: 'Black Terracotta' },
     'minecraft:black_wool': { icon: 'textures/items/black_wool', displayName: 'Black Wool' },
     'minecraft:blackstone': { icon: 'textures/blocks/blackstone', displayName: 'Blackstone' },
-    'minecraft:blackstone_double_slab': { icon: 'textures/blocks/blackstone_double_slab', displayName: 'Blackstone Double Slab' },
+    'minecraft:blackstone_double_slab': {
+        icon: 'textures/blocks/blackstone_double_slab',
+        displayName: 'Blackstone Double Slab'
+    },
     'minecraft:blackstone_slab': { icon: 'textures/blocks/blackstone_slab', displayName: 'Blackstone Slab' },
     'minecraft:blackstone_stairs': { icon: 'textures/blocks/blackstone_stairs', displayName: 'Blackstone Stairs' },
     'minecraft:blackstone_wall': { icon: 'textures/blocks/blackstone_wall', displayName: 'Blackstone Wall' },
@@ -517,27 +874,42 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:blue_candle_cake': { icon: 'textures/items/blue_candle_cake', displayName: 'Blue Candle Cake' },
     'minecraft:blue_carpet': { icon: 'textures/items/blue_carpet', displayName: 'Blue Carpet' },
     'minecraft:blue_concrete': { icon: 'textures/blocks/blue_concrete', displayName: 'Blue Concrete' },
-    'minecraft:blue_concrete_powder': { icon: 'textures/items/blue_concrete_powder', displayName: 'Blue Concrete Powder' },
+    'minecraft:blue_concrete_powder': {
+        icon: 'textures/items/blue_concrete_powder',
+        displayName: 'Blue Concrete Powder'
+    },
     'minecraft:blue_dye': { icon: 'textures/items/blue_dye', displayName: 'Blue Dye' },
     'minecraft:blue_egg': { icon: 'textures/items/blue_egg', displayName: 'Blue Egg' },
-    'minecraft:blue_glazed_terracotta': { icon: 'textures/blocks/blue_glazed_terracotta', displayName: 'Blue Glazed Terracotta' },
+    'minecraft:blue_glazed_terracotta': {
+        icon: 'textures/blocks/blue_glazed_terracotta',
+        displayName: 'Blue Glazed Terracotta'
+    },
     'minecraft:blue_harness': { icon: 'textures/items/blue_harness', displayName: 'Blue Harness' },
     'minecraft:blue_ice': { icon: 'textures/blocks/blue_ice', displayName: 'Blue Ice' },
     'minecraft:blue_orchid': { icon: 'textures/items/blue_orchid', displayName: 'Blue Orchid' },
     'minecraft:blue_shulker_box': { icon: 'textures/items/blue_shulker_box', displayName: 'Blue Shulker Box' },
     'minecraft:blue_stained_glass': { icon: 'textures/blocks/blue_stained_glass', displayName: 'Blue Stained Glass' },
-    'minecraft:blue_stained_glass_pane': { icon: 'textures/blocks/blue_stained_glass_pane', displayName: 'Blue Stained Glass Pane' },
+    'minecraft:blue_stained_glass_pane': {
+        icon: 'textures/blocks/blue_stained_glass_pane',
+        displayName: 'Blue Stained Glass Pane'
+    },
     'minecraft:blue_terracotta': { icon: 'textures/blocks/blue_terracotta', displayName: 'Blue Terracotta' },
     'minecraft:blue_wool': { icon: 'textures/items/blue_wool', displayName: 'Blue Wool' },
     'minecraft:boat': { icon: 'textures/items/boat', displayName: 'Boat' },
     'minecraft:bone_block': { icon: 'textures/items/bone_block', displayName: 'Bone Block' },
     'minecraft:bone_meal': { icon: 'textures/items/bone_meal', displayName: 'Bone Meal' },
     'minecraft:bookshelf': { icon: 'textures/items/bookshelf', displayName: 'Bookshelf' },
-    'minecraft:bordure_indented_banner_pattern': { icon: 'textures/items/bordure_indented_banner_pattern', displayName: 'Bordure Indented Banner Pattern' },
+    'minecraft:bordure_indented_banner_pattern': {
+        icon: 'textures/items/bordure_indented_banner_pattern',
+        displayName: 'Bordure Indented Banner Pattern'
+    },
     'minecraft:brain_coral': { icon: 'textures/blocks/brain_coral', displayName: 'Brain Coral' },
     'minecraft:brain_coral_block': { icon: 'textures/blocks/brain_coral_block', displayName: 'Brain Coral Block' },
     'minecraft:brain_coral_fan': { icon: 'textures/blocks/brain_coral_fan', displayName: 'Brain Coral Fan' },
-    'minecraft:brain_coral_wall_fan': { icon: 'textures/blocks/brain_coral_wall_fan', displayName: 'Brain Coral Wall Fan' },
+    'minecraft:brain_coral_wall_fan': {
+        icon: 'textures/blocks/brain_coral_wall_fan',
+        displayName: 'Brain Coral Wall Fan'
+    },
     'minecraft:brick_block': { icon: 'textures/items/brick_block', displayName: 'Brick Block' },
     'minecraft:brick_double_slab': { icon: 'textures/items/brick_double_slab', displayName: 'Brick Double Slab' },
     'minecraft:brick_slab': { icon: 'textures/items/brick_slab', displayName: 'Brick Slab' },
@@ -547,29 +919,50 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:brown_candle_cake': { icon: 'textures/items/brown_candle_cake', displayName: 'Brown Candle Cake' },
     'minecraft:brown_carpet': { icon: 'textures/items/brown_carpet', displayName: 'Brown Carpet' },
     'minecraft:brown_concrete': { icon: 'textures/blocks/brown_concrete', displayName: 'Brown Concrete' },
-    'minecraft:brown_concrete_powder': { icon: 'textures/items/brown_concrete_powder', displayName: 'Brown Concrete Powder' },
+    'minecraft:brown_concrete_powder': {
+        icon: 'textures/items/brown_concrete_powder',
+        displayName: 'Brown Concrete Powder'
+    },
     'minecraft:brown_dye': { icon: 'textures/items/brown_dye', displayName: 'Brown Dye' },
     'minecraft:brown_egg': { icon: 'textures/items/brown_egg', displayName: 'Brown Egg' },
-    'minecraft:brown_glazed_terracotta': { icon: 'textures/blocks/brown_glazed_terracotta', displayName: 'Brown Glazed Terracotta' },
+    'minecraft:brown_glazed_terracotta': {
+        icon: 'textures/blocks/brown_glazed_terracotta',
+        displayName: 'Brown Glazed Terracotta'
+    },
     'minecraft:brown_harness': { icon: 'textures/items/brown_harness', displayName: 'Brown Harness' },
     'minecraft:brown_mushroom': { icon: 'textures/items/brown_mushroom', displayName: 'Brown Mushroom' },
-    'minecraft:brown_mushroom_block': { icon: 'textures/blocks/brown_mushroom_block', displayName: 'Brown Mushroom Block' },
+    'minecraft:brown_mushroom_block': {
+        icon: 'textures/blocks/brown_mushroom_block',
+        displayName: 'Brown Mushroom Block'
+    },
     'minecraft:brown_shulker_box': { icon: 'textures/items/brown_shulker_box', displayName: 'Brown Shulker Box' },
-    'minecraft:brown_stained_glass': { icon: 'textures/blocks/brown_stained_glass', displayName: 'Brown Stained Glass' },
-    'minecraft:brown_stained_glass_pane': { icon: 'textures/blocks/brown_stained_glass_pane', displayName: 'Brown Stained Glass Pane' },
+    'minecraft:brown_stained_glass': {
+        icon: 'textures/blocks/brown_stained_glass',
+        displayName: 'Brown Stained Glass'
+    },
+    'minecraft:brown_stained_glass_pane': {
+        icon: 'textures/blocks/brown_stained_glass_pane',
+        displayName: 'Brown Stained Glass Pane'
+    },
     'minecraft:brown_terracotta': { icon: 'textures/blocks/brown_terracotta', displayName: 'Brown Terracotta' },
     'minecraft:brown_wool': { icon: 'textures/items/brown_wool', displayName: 'Brown Wool' },
     'minecraft:bubble_column': { icon: 'textures/items/bubble_column', displayName: 'Bubble Column' },
     'minecraft:bubble_coral': { icon: 'textures/blocks/bubble_coral', displayName: 'Bubble Coral' },
     'minecraft:bubble_coral_block': { icon: 'textures/blocks/bubble_coral_block', displayName: 'Bubble Coral Block' },
     'minecraft:bubble_coral_fan': { icon: 'textures/blocks/bubble_coral_fan', displayName: 'Bubble Coral Fan' },
-    'minecraft:bubble_coral_wall_fan': { icon: 'textures/blocks/bubble_coral_wall_fan', displayName: 'Bubble Coral Wall Fan' },
+    'minecraft:bubble_coral_wall_fan': {
+        icon: 'textures/blocks/bubble_coral_wall_fan',
+        displayName: 'Bubble Coral Wall Fan'
+    },
     'minecraft:budding_amethyst': { icon: 'textures/items/budding_amethyst', displayName: 'Budding Amethyst' },
     'minecraft:bush': { icon: 'textures/items/bush', displayName: 'Bush' },
     'minecraft:cactus': { icon: 'textures/items/cactus', displayName: 'Cactus' },
     'minecraft:cactus_flower': { icon: 'textures/items/cactus_flower', displayName: 'Cactus Flower' },
     'minecraft:calcite': { icon: 'textures/items/calcite', displayName: 'Calcite' },
-    'minecraft:calibrated_sculk_sensor': { icon: 'textures/items/calibrated_sculk_sensor', displayName: 'Calibrated Sculk Sensor' },
+    'minecraft:calibrated_sculk_sensor': {
+        icon: 'textures/items/calibrated_sculk_sensor',
+        displayName: 'Calibrated Sculk Sensor'
+    },
     'minecraft:candle': { icon: 'textures/items/candle', displayName: 'Candle' },
     'minecraft:candle_cake': { icon: 'textures/items/candle_cake', displayName: 'Candle Cake' },
     'minecraft:carpet': { icon: 'textures/items/carpet', displayName: 'Carpet' },
@@ -577,11 +970,23 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:cartography_table': { icon: 'textures/items/cartography_table', displayName: 'Cartography Table' },
     'minecraft:carved_pumpkin': { icon: 'textures/items/carved_pumpkin', displayName: 'Carved Pumpkin' },
     'minecraft:cave_vines': { icon: 'textures/blocks/cave_vines', displayName: 'Cave Vines' },
-    'minecraft:cave_vines_body_with_berries': { icon: 'textures/blocks/cave_vines_body_with_berries', displayName: 'Cave Vines Body With Berries' },
-    'minecraft:cave_vines_head_with_berries': { icon: 'textures/blocks/cave_vines_head_with_berries', displayName: 'Cave Vines Head With Berries' },
-    'minecraft:chain_command_block': { icon: 'textures/blocks/chain_command_block', displayName: 'Chain Command Block' },
+    'minecraft:cave_vines_body_with_berries': {
+        icon: 'textures/blocks/cave_vines_body_with_berries',
+        displayName: 'Cave Vines Body With Berries'
+    },
+    'minecraft:cave_vines_head_with_berries': {
+        icon: 'textures/blocks/cave_vines_head_with_berries',
+        displayName: 'Cave Vines Head With Berries'
+    },
+    'minecraft:chain_command_block': {
+        icon: 'textures/blocks/chain_command_block',
+        displayName: 'Chain Command Block'
+    },
     'minecraft:chainmail_boots': { icon: 'textures/items/chainmail_boots', displayName: 'Chainmail Boots' },
-    'minecraft:chainmail_chestplate': { icon: 'textures/items/chainmail_chestplate', displayName: 'Chainmail Chestplate' },
+    'minecraft:chainmail_chestplate': {
+        icon: 'textures/items/chainmail_chestplate',
+        displayName: 'Chainmail Chestplate'
+    },
     'minecraft:chainmail_helmet': { icon: 'textures/items/chainmail_helmet', displayName: 'Chainmail Helmet' },
     'minecraft:chainmail_leggings': { icon: 'textures/items/chainmail_leggings', displayName: 'Chainmail Leggings' },
     'minecraft:cherry_boat': { icon: 'textures/items/cherry_boat', displayName: 'Cherry Boat' },
@@ -592,12 +997,18 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:cherry_fence_gate': { icon: 'textures/blocks/cherry_fence_gate', displayName: 'Cherry Fence Gate' },
     'minecraft:cherry_leaves': { icon: 'textures/blocks/cherry_leaves', displayName: 'Cherry Leaves' },
     'minecraft:cherry_planks': { icon: 'textures/blocks/cherry_planks', displayName: 'Cherry Planks' },
-    'minecraft:cherry_pressure_plate': { icon: 'textures/blocks/cherry_pressure_plate', displayName: 'Cherry Pressure Plate' },
+    'minecraft:cherry_pressure_plate': {
+        icon: 'textures/blocks/cherry_pressure_plate',
+        displayName: 'Cherry Pressure Plate'
+    },
     'minecraft:cherry_sapling': { icon: 'textures/blocks/cherry_sapling', displayName: 'Cherry Sapling' },
     'minecraft:cherry_shelf': { icon: 'textures/items/cherry_shelf', displayName: 'Cherry Shelf' },
     'minecraft:cherry_slab': { icon: 'textures/blocks/cherry_slab', displayName: 'Cherry Slab' },
     'minecraft:cherry_stairs': { icon: 'textures/blocks/cherry_stairs', displayName: 'Cherry Stairs' },
-    'minecraft:cherry_standing_sign': { icon: 'textures/items/cherry_standing_sign', displayName: 'Cherry Standing Sign' },
+    'minecraft:cherry_standing_sign': {
+        icon: 'textures/items/cherry_standing_sign',
+        displayName: 'Cherry Standing Sign'
+    },
     'minecraft:cherry_trapdoor': { icon: 'textures/blocks/cherry_trapdoor', displayName: 'Cherry Trapdoor' },
     'minecraft:cherry_wall_sign': { icon: 'textures/items/cherry_wall_sign', displayName: 'Cherry Wall Sign' },
     'minecraft:cherry_wood': { icon: 'textures/blocks/cherry_wood', displayName: 'Cherry Wood' },
@@ -607,15 +1018,36 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:chiseled_bookshelf': { icon: 'textures/items/chiseled_bookshelf', displayName: 'Chiseled Bookshelf' },
     'minecraft:chiseled_copper': { icon: 'textures/items/chiseled_copper', displayName: 'Chiseled Copper' },
     'minecraft:chiseled_deepslate': { icon: 'textures/blocks/chiseled_deepslate', displayName: 'Chiseled Deepslate' },
-    'minecraft:chiseled_nether_bricks': { icon: 'textures/items/chiseled_nether_bricks', displayName: 'Chiseled Nether Bricks' },
-    'minecraft:chiseled_polished_blackstone': { icon: 'textures/blocks/chiseled_polished_blackstone', displayName: 'Chiseled Polished Blackstone' },
-    'minecraft:chiseled_quartz_block': { icon: 'textures/blocks/chiseled_quartz_block', displayName: 'Chiseled Quartz Block' },
-    'minecraft:chiseled_red_sandstone': { icon: 'textures/blocks/chiseled_red_sandstone', displayName: 'Chiseled Red Sandstone' },
-    'minecraft:chiseled_resin_bricks': { icon: 'textures/items/chiseled_resin_bricks', displayName: 'Chiseled Resin Bricks' },
+    'minecraft:chiseled_nether_bricks': {
+        icon: 'textures/items/chiseled_nether_bricks',
+        displayName: 'Chiseled Nether Bricks'
+    },
+    'minecraft:chiseled_polished_blackstone': {
+        icon: 'textures/blocks/chiseled_polished_blackstone',
+        displayName: 'Chiseled Polished Blackstone'
+    },
+    'minecraft:chiseled_quartz_block': {
+        icon: 'textures/blocks/chiseled_quartz_block',
+        displayName: 'Chiseled Quartz Block'
+    },
+    'minecraft:chiseled_red_sandstone': {
+        icon: 'textures/blocks/chiseled_red_sandstone',
+        displayName: 'Chiseled Red Sandstone'
+    },
+    'minecraft:chiseled_resin_bricks': {
+        icon: 'textures/items/chiseled_resin_bricks',
+        displayName: 'Chiseled Resin Bricks'
+    },
     'minecraft:chiseled_sandstone': { icon: 'textures/blocks/chiseled_sandstone', displayName: 'Chiseled Sandstone' },
-    'minecraft:chiseled_stone_bricks': { icon: 'textures/items/chiseled_stone_bricks', displayName: 'Chiseled Stone Bricks' },
+    'minecraft:chiseled_stone_bricks': {
+        icon: 'textures/items/chiseled_stone_bricks',
+        displayName: 'Chiseled Stone Bricks'
+    },
     'minecraft:chiseled_tuff': { icon: 'textures/blocks/chiseled_tuff', displayName: 'Chiseled Tuff' },
-    'minecraft:chiseled_tuff_bricks': { icon: 'textures/items/chiseled_tuff_bricks', displayName: 'Chiseled Tuff Bricks' },
+    'minecraft:chiseled_tuff_bricks': {
+        icon: 'textures/items/chiseled_tuff_bricks',
+        displayName: 'Chiseled Tuff Bricks'
+    },
     'minecraft:chorus_flower': { icon: 'textures/items/chorus_flower', displayName: 'Chorus Flower' },
     'minecraft:chorus_plant': { icon: 'textures/items/chorus_plant', displayName: 'Chorus Plant' },
     'minecraft:clay': { icon: 'textures/items/clay', displayName: 'Clay' },
@@ -624,19 +1056,40 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:coal_ore': { icon: 'textures/items/coal_ore', displayName: 'Coal Ore' },
     'minecraft:coarse_dirt': { icon: 'textures/blocks/coarse_dirt', displayName: 'Coarse Dirt' },
     'minecraft:cobbled_deepslate': { icon: 'textures/blocks/cobbled_deepslate', displayName: 'Cobbled Deepslate' },
-    'minecraft:cobbled_deepslate_double_slab': { icon: 'textures/blocks/cobbled_deepslate_double_slab', displayName: 'Cobbled Deepslate Double Slab' },
-    'minecraft:cobbled_deepslate_slab': { icon: 'textures/blocks/cobbled_deepslate_slab', displayName: 'Cobbled Deepslate Slab' },
-    'minecraft:cobbled_deepslate_stairs': { icon: 'textures/blocks/cobbled_deepslate_stairs', displayName: 'Cobbled Deepslate Stairs' },
-    'minecraft:cobbled_deepslate_wall': { icon: 'textures/blocks/cobbled_deepslate_wall', displayName: 'Cobbled Deepslate Wall' },
-    'minecraft:cobblestone_double_slab': { icon: 'textures/blocks/cobblestone_double_slab', displayName: 'Cobblestone Double Slab' },
+    'minecraft:cobbled_deepslate_double_slab': {
+        icon: 'textures/blocks/cobbled_deepslate_double_slab',
+        displayName: 'Cobbled Deepslate Double Slab'
+    },
+    'minecraft:cobbled_deepslate_slab': {
+        icon: 'textures/blocks/cobbled_deepslate_slab',
+        displayName: 'Cobbled Deepslate Slab'
+    },
+    'minecraft:cobbled_deepslate_stairs': {
+        icon: 'textures/blocks/cobbled_deepslate_stairs',
+        displayName: 'Cobbled Deepslate Stairs'
+    },
+    'minecraft:cobbled_deepslate_wall': {
+        icon: 'textures/blocks/cobbled_deepslate_wall',
+        displayName: 'Cobbled Deepslate Wall'
+    },
+    'minecraft:cobblestone_double_slab': {
+        icon: 'textures/blocks/cobblestone_double_slab',
+        displayName: 'Cobblestone Double Slab'
+    },
     'minecraft:cobblestone_slab': { icon: 'textures/blocks/cobblestone_slab', displayName: 'Cobblestone Slab' },
     'minecraft:cobblestone_wall': { icon: 'textures/blocks/cobblestone_wall', displayName: 'Cobblestone Wall' },
     'minecraft:cocoa': { icon: 'textures/items/cocoa', displayName: 'Cocoa' },
     'minecraft:cocoa_beans': { icon: 'textures/items/cocoa_beans', displayName: 'Cocoa Beans' },
     'minecraft:cod_bucket': { icon: 'textures/items/cod_bucket', displayName: 'Cod Bucket' },
     'minecraft:colored_torch_blue': { icon: 'textures/blocks/colored_torch_blue', displayName: 'Colored Torch Blue' },
-    'minecraft:colored_torch_green': { icon: 'textures/blocks/colored_torch_green', displayName: 'Colored Torch Green' },
-    'minecraft:colored_torch_purple': { icon: 'textures/blocks/colored_torch_purple', displayName: 'Colored Torch Purple' },
+    'minecraft:colored_torch_green': {
+        icon: 'textures/blocks/colored_torch_green',
+        displayName: 'Colored Torch Green'
+    },
+    'minecraft:colored_torch_purple': {
+        icon: 'textures/blocks/colored_torch_purple',
+        displayName: 'Colored Torch Purple'
+    },
     'minecraft:colored_torch_red': { icon: 'textures/blocks/colored_torch_red', displayName: 'Colored Torch Red' },
     'minecraft:composter': { icon: 'textures/blocks/composter', displayName: 'Composter' },
     'minecraft:concrete': { icon: 'textures/blocks/concrete', displayName: 'Concrete' },
@@ -653,7 +1106,10 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:copper_chain': { icon: 'textures/items/copper_chain', displayName: 'Copper Chain' },
     'minecraft:copper_chest': { icon: 'textures/blocks/copper_chest', displayName: 'Copper Chest' },
     'minecraft:copper_chestplate': { icon: 'textures/blocks/copper_chestplate', displayName: 'Copper Chestplate' },
-    'minecraft:copper_golem_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_copper_golem', displayName: 'Copper Golem Spawn Egg' },
+    'minecraft:copper_golem_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_copper_golem',
+        displayName: 'Copper Golem Spawn Egg'
+    },
     'minecraft:copper_golem_statue': { icon: 'textures/items/copper_golem_statue', displayName: 'Copper Golem Statue' },
     'minecraft:copper_grate': { icon: 'textures/items/copper_grate', displayName: 'Copper Grate' },
     'minecraft:copper_helmet': { icon: 'textures/items/copper_helmet', displayName: 'Copper Helmet' },
@@ -673,31 +1129,58 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:coral_fan': { icon: 'textures/blocks/coral_fan', displayName: 'Coral Fan' },
     'minecraft:coral_fan_dead': { icon: 'textures/blocks/coral_fan_dead', displayName: 'Coral Fan Dead' },
     'minecraft:cornflower': { icon: 'textures/items/cornflower', displayName: 'Cornflower' },
-    'minecraft:cracked_deepslate_bricks': { icon: 'textures/items/cracked_deepslate_bricks', displayName: 'Cracked Deepslate Bricks' },
-    'minecraft:cracked_deepslate_tiles': { icon: 'textures/blocks/cracked_deepslate_tiles', displayName: 'Cracked Deepslate Tiles' },
-    'minecraft:cracked_nether_bricks': { icon: 'textures/items/cracked_nether_bricks', displayName: 'Cracked Nether Bricks' },
-    'minecraft:cracked_polished_blackstone_bricks': { icon: 'textures/items/cracked_polished_blackstone_bricks', displayName: 'Cracked Polished Blackstone Bricks' },
-    'minecraft:cracked_stone_bricks': { icon: 'textures/items/cracked_stone_bricks', displayName: 'Cracked Stone Bricks' },
+    'minecraft:cracked_deepslate_bricks': {
+        icon: 'textures/items/cracked_deepslate_bricks',
+        displayName: 'Cracked Deepslate Bricks'
+    },
+    'minecraft:cracked_deepslate_tiles': {
+        icon: 'textures/blocks/cracked_deepslate_tiles',
+        displayName: 'Cracked Deepslate Tiles'
+    },
+    'minecraft:cracked_nether_bricks': {
+        icon: 'textures/items/cracked_nether_bricks',
+        displayName: 'Cracked Nether Bricks'
+    },
+    'minecraft:cracked_polished_blackstone_bricks': {
+        icon: 'textures/items/cracked_polished_blackstone_bricks',
+        displayName: 'Cracked Polished Blackstone Bricks'
+    },
+    'minecraft:cracked_stone_bricks': {
+        icon: 'textures/items/cracked_stone_bricks',
+        displayName: 'Cracked Stone Bricks'
+    },
     'minecraft:crafter': { icon: 'textures/items/crafter', displayName: 'Crafter' },
     'minecraft:crafting_table': { icon: 'textures/items/crafting_table', displayName: 'Crafting Table' },
     'minecraft:creaking_heart': { icon: 'textures/items/creaking_heart', displayName: 'Creaking Heart' },
-    'minecraft:creaking_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_creaking', displayName: 'Creaking Spawn Egg' },
+    'minecraft:creaking_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_creaking',
+        displayName: 'Creaking Spawn Egg'
+    },
     'minecraft:creeper_head': { icon: 'textures/items/creeper_head', displayName: 'Creeper Head' },
     'minecraft:crimson_button': { icon: 'textures/blocks/crimson_button', displayName: 'Crimson Button' },
     'minecraft:crimson_door': { icon: 'textures/items/crimson_door', displayName: 'Crimson Door' },
-    'minecraft:crimson_double_slab': { icon: 'textures/blocks/crimson_double_slab', displayName: 'Crimson Double Slab' },
+    'minecraft:crimson_double_slab': {
+        icon: 'textures/blocks/crimson_double_slab',
+        displayName: 'Crimson Double Slab'
+    },
     'minecraft:crimson_fence': { icon: 'textures/blocks/crimson_fence', displayName: 'Crimson Fence' },
     'minecraft:crimson_fence_gate': { icon: 'textures/blocks/crimson_fence_gate', displayName: 'Crimson Fence Gate' },
     'minecraft:crimson_fungus': { icon: 'textures/blocks/crimson_fungus', displayName: 'Crimson Fungus' },
     'minecraft:crimson_hyphae': { icon: 'textures/blocks/crimson_hyphae', displayName: 'Crimson Hyphae' },
     'minecraft:crimson_nylium': { icon: 'textures/blocks/crimson_nylium', displayName: 'Crimson Nylium' },
     'minecraft:crimson_planks': { icon: 'textures/blocks/crimson_planks', displayName: 'Crimson Planks' },
-    'minecraft:crimson_pressure_plate': { icon: 'textures/blocks/crimson_pressure_plate', displayName: 'Crimson Pressure Plate' },
+    'minecraft:crimson_pressure_plate': {
+        icon: 'textures/blocks/crimson_pressure_plate',
+        displayName: 'Crimson Pressure Plate'
+    },
     'minecraft:crimson_roots': { icon: 'textures/blocks/crimson_roots', displayName: 'Crimson Roots' },
     'minecraft:crimson_shelf': { icon: 'textures/items/crimson_shelf', displayName: 'Crimson Shelf' },
     'minecraft:crimson_slab': { icon: 'textures/blocks/crimson_slab', displayName: 'Crimson Slab' },
     'minecraft:crimson_stairs': { icon: 'textures/blocks/crimson_stairs', displayName: 'Crimson Stairs' },
-    'minecraft:crimson_standing_sign': { icon: 'textures/items/crimson_standing_sign', displayName: 'Crimson Standing Sign' },
+    'minecraft:crimson_standing_sign': {
+        icon: 'textures/items/crimson_standing_sign',
+        displayName: 'Crimson Standing Sign'
+    },
     'minecraft:crimson_trapdoor': { icon: 'textures/blocks/crimson_trapdoor', displayName: 'Crimson Trapdoor' },
     'minecraft:crimson_wall_sign': { icon: 'textures/items/crimson_wall_sign', displayName: 'Crimson Wall Sign' },
     'minecraft:crying_obsidian': { icon: 'textures/blocks/crying_obsidian', displayName: 'Crying Obsidian' },
@@ -705,22 +1188,40 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:cut_copper_slab': { icon: 'textures/blocks/cut_copper_slab', displayName: 'Cut Copper Slab' },
     'minecraft:cut_copper_stairs': { icon: 'textures/blocks/cut_copper_stairs', displayName: 'Cut Copper Stairs' },
     'minecraft:cut_red_sandstone': { icon: 'textures/blocks/cut_red_sandstone', displayName: 'Cut Red Sandstone' },
-    'minecraft:cut_red_sandstone_double_slab': { icon: 'textures/blocks/cut_red_sandstone_double_slab', displayName: 'Cut Red Sandstone Double Slab' },
-    'minecraft:cut_red_sandstone_slab': { icon: 'textures/blocks/cut_red_sandstone_slab', displayName: 'Cut Red Sandstone Slab' },
+    'minecraft:cut_red_sandstone_double_slab': {
+        icon: 'textures/blocks/cut_red_sandstone_double_slab',
+        displayName: 'Cut Red Sandstone Double Slab'
+    },
+    'minecraft:cut_red_sandstone_slab': {
+        icon: 'textures/blocks/cut_red_sandstone_slab',
+        displayName: 'Cut Red Sandstone Slab'
+    },
     'minecraft:cut_sandstone': { icon: 'textures/blocks/cut_sandstone', displayName: 'Cut Sandstone' },
-    'minecraft:cut_sandstone_double_slab': { icon: 'textures/blocks/cut_sandstone_double_slab', displayName: 'Cut Sandstone Double Slab' },
+    'minecraft:cut_sandstone_double_slab': {
+        icon: 'textures/blocks/cut_sandstone_double_slab',
+        displayName: 'Cut Sandstone Double Slab'
+    },
     'minecraft:cut_sandstone_slab': { icon: 'textures/blocks/cut_sandstone_slab', displayName: 'Cut Sandstone Slab' },
     'minecraft:cyan_candle': { icon: 'textures/items/cyan_candle', displayName: 'Cyan Candle' },
     'minecraft:cyan_candle_cake': { icon: 'textures/items/cyan_candle_cake', displayName: 'Cyan Candle Cake' },
     'minecraft:cyan_carpet': { icon: 'textures/items/cyan_carpet', displayName: 'Cyan Carpet' },
     'minecraft:cyan_concrete': { icon: 'textures/blocks/cyan_concrete', displayName: 'Cyan Concrete' },
-    'minecraft:cyan_concrete_powder': { icon: 'textures/items/cyan_concrete_powder', displayName: 'Cyan Concrete Powder' },
+    'minecraft:cyan_concrete_powder': {
+        icon: 'textures/items/cyan_concrete_powder',
+        displayName: 'Cyan Concrete Powder'
+    },
     'minecraft:cyan_dye': { icon: 'textures/items/cyan_dye', displayName: 'Cyan Dye' },
-    'minecraft:cyan_glazed_terracotta': { icon: 'textures/blocks/cyan_glazed_terracotta', displayName: 'Cyan Glazed Terracotta' },
+    'minecraft:cyan_glazed_terracotta': {
+        icon: 'textures/blocks/cyan_glazed_terracotta',
+        displayName: 'Cyan Glazed Terracotta'
+    },
     'minecraft:cyan_harness': { icon: 'textures/items/cyan_harness', displayName: 'Cyan Harness' },
     'minecraft:cyan_shulker_box': { icon: 'textures/items/cyan_shulker_box', displayName: 'Cyan Shulker Box' },
     'minecraft:cyan_stained_glass': { icon: 'textures/blocks/cyan_stained_glass', displayName: 'Cyan Stained Glass' },
-    'minecraft:cyan_stained_glass_pane': { icon: 'textures/blocks/cyan_stained_glass_pane', displayName: 'Cyan Stained Glass Pane' },
+    'minecraft:cyan_stained_glass_pane': {
+        icon: 'textures/blocks/cyan_stained_glass_pane',
+        displayName: 'Cyan Stained Glass Pane'
+    },
     'minecraft:cyan_terracotta': { icon: 'textures/blocks/cyan_terracotta', displayName: 'Cyan Terracotta' },
     'minecraft:cyan_wool': { icon: 'textures/items/cyan_wool', displayName: 'Cyan Wool' },
     'minecraft:damaged_anvil': { icon: 'textures/blocks/damaged_anvil', displayName: 'Damaged Anvil' },
@@ -728,12 +1229,21 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:dark_oak_boat': { icon: 'textures/items/dark_oak_boat', displayName: 'Dark Oak Boat' },
     'minecraft:dark_oak_button': { icon: 'textures/blocks/dark_oak_button', displayName: 'Dark Oak Button' },
     'minecraft:dark_oak_chest_boat': { icon: 'textures/items/dark_oak_chest_boat', displayName: 'Dark Oak Chest Boat' },
-    'minecraft:dark_oak_double_slab': { icon: 'textures/blocks/dark_oak_double_slab', displayName: 'Dark Oak Double Slab' },
+    'minecraft:dark_oak_double_slab': {
+        icon: 'textures/blocks/dark_oak_double_slab',
+        displayName: 'Dark Oak Double Slab'
+    },
     'minecraft:dark_oak_fence': { icon: 'textures/blocks/dark_oak_fence', displayName: 'Dark Oak Fence' },
-    'minecraft:dark_oak_fence_gate': { icon: 'textures/blocks/dark_oak_fence_gate', displayName: 'Dark Oak Fence Gate' },
+    'minecraft:dark_oak_fence_gate': {
+        icon: 'textures/blocks/dark_oak_fence_gate',
+        displayName: 'Dark Oak Fence Gate'
+    },
     'minecraft:dark_oak_leaves': { icon: 'textures/blocks/dark_oak_leaves', displayName: 'Dark Oak Leaves' },
     'minecraft:dark_oak_planks': { icon: 'textures/blocks/dark_oak_planks', displayName: 'Dark Oak Planks' },
-    'minecraft:dark_oak_pressure_plate': { icon: 'textures/blocks/dark_oak_pressure_plate', displayName: 'Dark Oak Pressure Plate' },
+    'minecraft:dark_oak_pressure_plate': {
+        icon: 'textures/blocks/dark_oak_pressure_plate',
+        displayName: 'Dark Oak Pressure Plate'
+    },
     'minecraft:dark_oak_sapling': { icon: 'textures/blocks/dark_oak_sapling', displayName: 'Dark Oak Sapling' },
     'minecraft:dark_oak_shelf': { icon: 'textures/items/dark_oak_shelf', displayName: 'Dark Oak Shelf' },
     'minecraft:dark_oak_slab': { icon: 'textures/blocks/dark_oak_slab', displayName: 'Dark Oak Slab' },
@@ -741,70 +1251,187 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:dark_oak_trapdoor': { icon: 'textures/blocks/dark_oak_trapdoor', displayName: 'Dark Oak Trapdoor' },
     'minecraft:dark_oak_wood': { icon: 'textures/blocks/dark_oak_wood', displayName: 'Dark Oak Wood' },
     'minecraft:dark_prismarine': { icon: 'textures/items/dark_prismarine', displayName: 'Dark Prismarine' },
-    'minecraft:dark_prismarine_double_slab': { icon: 'textures/blocks/dark_prismarine_double_slab', displayName: 'Dark Prismarine Double Slab' },
-    'minecraft:dark_prismarine_slab': { icon: 'textures/blocks/dark_prismarine_slab', displayName: 'Dark Prismarine Slab' },
-    'minecraft:dark_prismarine_stairs': { icon: 'textures/blocks/dark_prismarine_stairs', displayName: 'Dark Prismarine Stairs' },
-    'minecraft:darkoak_standing_sign': { icon: 'textures/items/darkoak_standing_sign', displayName: 'Darkoak Standing Sign' },
+    'minecraft:dark_prismarine_double_slab': {
+        icon: 'textures/blocks/dark_prismarine_double_slab',
+        displayName: 'Dark Prismarine Double Slab'
+    },
+    'minecraft:dark_prismarine_slab': {
+        icon: 'textures/blocks/dark_prismarine_slab',
+        displayName: 'Dark Prismarine Slab'
+    },
+    'minecraft:dark_prismarine_stairs': {
+        icon: 'textures/blocks/dark_prismarine_stairs',
+        displayName: 'Dark Prismarine Stairs'
+    },
+    'minecraft:darkoak_standing_sign': {
+        icon: 'textures/items/darkoak_standing_sign',
+        displayName: 'Darkoak Standing Sign'
+    },
     'minecraft:darkoak_wall_sign': { icon: 'textures/items/darkoak_wall_sign', displayName: 'Darkoak Wall Sign' },
     'minecraft:daylight_detector': { icon: 'textures/items/daylight_detector', displayName: 'Daylight Detector' },
-    'minecraft:daylight_detector_inverted': { icon: 'textures/items/daylight_detector_inverted', displayName: 'Daylight Detector Inverted' },
+    'minecraft:daylight_detector_inverted': {
+        icon: 'textures/items/daylight_detector_inverted',
+        displayName: 'Daylight Detector Inverted'
+    },
     'minecraft:dead_brain_coral': { icon: 'textures/blocks/dead_brain_coral', displayName: 'Dead Brain Coral' },
-    'minecraft:dead_brain_coral_block': { icon: 'textures/blocks/dead_brain_coral_block', displayName: 'Dead Brain Coral Block' },
-    'minecraft:dead_brain_coral_fan': { icon: 'textures/blocks/dead_brain_coral_fan', displayName: 'Dead Brain Coral Fan' },
-    'minecraft:dead_brain_coral_wall_fan': { icon: 'textures/blocks/dead_brain_coral_wall_fan', displayName: 'Dead Brain Coral Wall Fan' },
+    'minecraft:dead_brain_coral_block': {
+        icon: 'textures/blocks/dead_brain_coral_block',
+        displayName: 'Dead Brain Coral Block'
+    },
+    'minecraft:dead_brain_coral_fan': {
+        icon: 'textures/blocks/dead_brain_coral_fan',
+        displayName: 'Dead Brain Coral Fan'
+    },
+    'minecraft:dead_brain_coral_wall_fan': {
+        icon: 'textures/blocks/dead_brain_coral_wall_fan',
+        displayName: 'Dead Brain Coral Wall Fan'
+    },
     'minecraft:dead_bubble_coral': { icon: 'textures/blocks/dead_bubble_coral', displayName: 'Dead Bubble Coral' },
-    'minecraft:dead_bubble_coral_block': { icon: 'textures/blocks/dead_bubble_coral_block', displayName: 'Dead Bubble Coral Block' },
-    'minecraft:dead_bubble_coral_fan': { icon: 'textures/blocks/dead_bubble_coral_fan', displayName: 'Dead Bubble Coral Fan' },
-    'minecraft:dead_bubble_coral_wall_fan': { icon: 'textures/blocks/dead_bubble_coral_wall_fan', displayName: 'Dead Bubble Coral Wall Fan' },
+    'minecraft:dead_bubble_coral_block': {
+        icon: 'textures/blocks/dead_bubble_coral_block',
+        displayName: 'Dead Bubble Coral Block'
+    },
+    'minecraft:dead_bubble_coral_fan': {
+        icon: 'textures/blocks/dead_bubble_coral_fan',
+        displayName: 'Dead Bubble Coral Fan'
+    },
+    'minecraft:dead_bubble_coral_wall_fan': {
+        icon: 'textures/blocks/dead_bubble_coral_wall_fan',
+        displayName: 'Dead Bubble Coral Wall Fan'
+    },
     'minecraft:dead_fire_coral': { icon: 'textures/blocks/dead_fire_coral', displayName: 'Dead Fire Coral' },
-    'minecraft:dead_fire_coral_block': { icon: 'textures/blocks/dead_fire_coral_block', displayName: 'Dead Fire Coral Block' },
-    'minecraft:dead_fire_coral_fan': { icon: 'textures/blocks/dead_fire_coral_fan', displayName: 'Dead Fire Coral Fan' },
-    'minecraft:dead_fire_coral_wall_fan': { icon: 'textures/blocks/dead_fire_coral_wall_fan', displayName: 'Dead Fire Coral Wall Fan' },
+    'minecraft:dead_fire_coral_block': {
+        icon: 'textures/blocks/dead_fire_coral_block',
+        displayName: 'Dead Fire Coral Block'
+    },
+    'minecraft:dead_fire_coral_fan': {
+        icon: 'textures/blocks/dead_fire_coral_fan',
+        displayName: 'Dead Fire Coral Fan'
+    },
+    'minecraft:dead_fire_coral_wall_fan': {
+        icon: 'textures/blocks/dead_fire_coral_wall_fan',
+        displayName: 'Dead Fire Coral Wall Fan'
+    },
     'minecraft:dead_horn_coral': { icon: 'textures/blocks/dead_horn_coral', displayName: 'Dead Horn Coral' },
-    'minecraft:dead_horn_coral_block': { icon: 'textures/blocks/dead_horn_coral_block', displayName: 'Dead Horn Coral Block' },
-    'minecraft:dead_horn_coral_fan': { icon: 'textures/blocks/dead_horn_coral_fan', displayName: 'Dead Horn Coral Fan' },
-    'minecraft:dead_horn_coral_wall_fan': { icon: 'textures/blocks/dead_horn_coral_wall_fan', displayName: 'Dead Horn Coral Wall Fan' },
+    'minecraft:dead_horn_coral_block': {
+        icon: 'textures/blocks/dead_horn_coral_block',
+        displayName: 'Dead Horn Coral Block'
+    },
+    'minecraft:dead_horn_coral_fan': {
+        icon: 'textures/blocks/dead_horn_coral_fan',
+        displayName: 'Dead Horn Coral Fan'
+    },
+    'minecraft:dead_horn_coral_wall_fan': {
+        icon: 'textures/blocks/dead_horn_coral_wall_fan',
+        displayName: 'Dead Horn Coral Wall Fan'
+    },
     'minecraft:dead_tube_coral': { icon: 'textures/blocks/dead_tube_coral', displayName: 'Dead Tube Coral' },
-    'minecraft:dead_tube_coral_block': { icon: 'textures/blocks/dead_tube_coral_block', displayName: 'Dead Tube Coral Block' },
-    'minecraft:dead_tube_coral_fan': { icon: 'textures/blocks/dead_tube_coral_fan', displayName: 'Dead Tube Coral Fan' },
-    'minecraft:dead_tube_coral_wall_fan': { icon: 'textures/blocks/dead_tube_coral_wall_fan', displayName: 'Dead Tube Coral Wall Fan' },
+    'minecraft:dead_tube_coral_block': {
+        icon: 'textures/blocks/dead_tube_coral_block',
+        displayName: 'Dead Tube Coral Block'
+    },
+    'minecraft:dead_tube_coral_fan': {
+        icon: 'textures/blocks/dead_tube_coral_fan',
+        displayName: 'Dead Tube Coral Fan'
+    },
+    'minecraft:dead_tube_coral_wall_fan': {
+        icon: 'textures/blocks/dead_tube_coral_wall_fan',
+        displayName: 'Dead Tube Coral Wall Fan'
+    },
     'minecraft:deadbush': { icon: 'textures/items/deadbush', displayName: 'Deadbush' },
     'minecraft:decorated_pot': { icon: 'textures/items/decorated_pot', displayName: 'Decorated Pot' },
     'minecraft:deepslate': { icon: 'textures/blocks/deepslate', displayName: 'Deepslate' },
-    'minecraft:deepslate_brick_double_slab': { icon: 'textures/items/deepslate_brick_double_slab', displayName: 'Deepslate Brick Double Slab' },
-    'minecraft:deepslate_brick_slab': { icon: 'textures/items/deepslate_brick_slab', displayName: 'Deepslate Brick Slab' },
-    'minecraft:deepslate_brick_stairs': { icon: 'textures/items/deepslate_brick_stairs', displayName: 'Deepslate Brick Stairs' },
-    'minecraft:deepslate_brick_wall': { icon: 'textures/items/deepslate_brick_wall', displayName: 'Deepslate Brick Wall' },
+    'minecraft:deepslate_brick_double_slab': {
+        icon: 'textures/items/deepslate_brick_double_slab',
+        displayName: 'Deepslate Brick Double Slab'
+    },
+    'minecraft:deepslate_brick_slab': {
+        icon: 'textures/items/deepslate_brick_slab',
+        displayName: 'Deepslate Brick Slab'
+    },
+    'minecraft:deepslate_brick_stairs': {
+        icon: 'textures/items/deepslate_brick_stairs',
+        displayName: 'Deepslate Brick Stairs'
+    },
+    'minecraft:deepslate_brick_wall': {
+        icon: 'textures/items/deepslate_brick_wall',
+        displayName: 'Deepslate Brick Wall'
+    },
     'minecraft:deepslate_bricks': { icon: 'textures/items/deepslate_bricks', displayName: 'Deepslate Bricks' },
     'minecraft:deepslate_coal_ore': { icon: 'textures/items/deepslate_coal_ore', displayName: 'Deepslate Coal Ore' },
-    'minecraft:deepslate_copper_ore': { icon: 'textures/blocks/deepslate_copper_ore', displayName: 'Deepslate Copper Ore' },
-    'minecraft:deepslate_diamond_ore': { icon: 'textures/blocks/deepslate_diamond_ore', displayName: 'Deepslate Diamond Ore' },
-    'minecraft:deepslate_emerald_ore': { icon: 'textures/blocks/deepslate_emerald_ore', displayName: 'Deepslate Emerald Ore' },
+    'minecraft:deepslate_copper_ore': {
+        icon: 'textures/blocks/deepslate_copper_ore',
+        displayName: 'Deepslate Copper Ore'
+    },
+    'minecraft:deepslate_diamond_ore': {
+        icon: 'textures/blocks/deepslate_diamond_ore',
+        displayName: 'Deepslate Diamond Ore'
+    },
+    'minecraft:deepslate_emerald_ore': {
+        icon: 'textures/blocks/deepslate_emerald_ore',
+        displayName: 'Deepslate Emerald Ore'
+    },
     'minecraft:deepslate_gold_ore': { icon: 'textures/blocks/deepslate_gold_ore', displayName: 'Deepslate Gold Ore' },
     'minecraft:deepslate_iron_ore': { icon: 'textures/blocks/deepslate_iron_ore', displayName: 'Deepslate Iron Ore' },
-    'minecraft:deepslate_lapis_ore': { icon: 'textures/blocks/deepslate_lapis_ore', displayName: 'Deepslate Lapis Ore' },
-    'minecraft:deepslate_redstone_ore': { icon: 'textures/blocks/deepslate_redstone_ore', displayName: 'Deepslate Redstone Ore' },
-    'minecraft:deepslate_tile_double_slab': { icon: 'textures/blocks/deepslate_tile_double_slab', displayName: 'Deepslate Tile Double Slab' },
-    'minecraft:deepslate_tile_slab': { icon: 'textures/blocks/deepslate_tile_slab', displayName: 'Deepslate Tile Slab' },
-    'minecraft:deepslate_tile_stairs': { icon: 'textures/blocks/deepslate_tile_stairs', displayName: 'Deepslate Tile Stairs' },
-    'minecraft:deepslate_tile_wall': { icon: 'textures/blocks/deepslate_tile_wall', displayName: 'Deepslate Tile Wall' },
+    'minecraft:deepslate_lapis_ore': {
+        icon: 'textures/blocks/deepslate_lapis_ore',
+        displayName: 'Deepslate Lapis Ore'
+    },
+    'minecraft:deepslate_redstone_ore': {
+        icon: 'textures/blocks/deepslate_redstone_ore',
+        displayName: 'Deepslate Redstone Ore'
+    },
+    'minecraft:deepslate_tile_double_slab': {
+        icon: 'textures/blocks/deepslate_tile_double_slab',
+        displayName: 'Deepslate Tile Double Slab'
+    },
+    'minecraft:deepslate_tile_slab': {
+        icon: 'textures/blocks/deepslate_tile_slab',
+        displayName: 'Deepslate Tile Slab'
+    },
+    'minecraft:deepslate_tile_stairs': {
+        icon: 'textures/blocks/deepslate_tile_stairs',
+        displayName: 'Deepslate Tile Stairs'
+    },
+    'minecraft:deepslate_tile_wall': {
+        icon: 'textures/blocks/deepslate_tile_wall',
+        displayName: 'Deepslate Tile Wall'
+    },
     'minecraft:deepslate_tiles': { icon: 'textures/blocks/deepslate_tiles', displayName: 'Deepslate Tiles' },
     'minecraft:detector_rail': { icon: 'textures/items/detector_rail', displayName: 'Detector Rail' },
     'minecraft:diamond_block': { icon: 'textures/blocks/diamond_block', displayName: 'Diamond Block' },
     'minecraft:diamond_ore': { icon: 'textures/blocks/diamond_ore', displayName: 'Diamond Ore' },
     'minecraft:diorite': { icon: 'textures/blocks/diorite', displayName: 'Diorite' },
-    'minecraft:diorite_double_slab': { icon: 'textures/blocks/diorite_double_slab', displayName: 'Diorite Double Slab' },
+    'minecraft:diorite_double_slab': {
+        icon: 'textures/blocks/diorite_double_slab',
+        displayName: 'Diorite Double Slab'
+    },
     'minecraft:diorite_slab': { icon: 'textures/blocks/diorite_slab', displayName: 'Diorite Slab' },
     'minecraft:diorite_stairs': { icon: 'textures/blocks/diorite_stairs', displayName: 'Diorite Stairs' },
     'minecraft:diorite_wall': { icon: 'textures/blocks/diorite_wall', displayName: 'Diorite Wall' },
     'minecraft:dirt_with_roots': { icon: 'textures/blocks/dirt_with_roots', displayName: 'Dirt With Roots' },
     'minecraft:dispenser': { icon: 'textures/blocks/dispenser', displayName: 'Dispenser' },
-    'minecraft:double_cut_copper_slab': { icon: 'textures/blocks/double_cut_copper_slab', displayName: 'Double Cut Copper Slab' },
+    'minecraft:double_cut_copper_slab': {
+        icon: 'textures/blocks/double_cut_copper_slab',
+        displayName: 'Double Cut Copper Slab'
+    },
     'minecraft:double_plant': { icon: 'textures/items/double_plant', displayName: 'Double Plant' },
-    'minecraft:double_stone_block_slab': { icon: 'textures/blocks/double_stone_block_slab', displayName: 'Double Stone Block Slab' },
-    'minecraft:double_stone_block_slab2': { icon: 'textures/blocks/double_stone_block_slab2', displayName: 'Double Stone Block Slab2' },
-    'minecraft:double_stone_block_slab3': { icon: 'textures/blocks/double_stone_block_slab3', displayName: 'Double Stone Block Slab3' },
-    'minecraft:double_stone_block_slab4': { icon: 'textures/blocks/double_stone_block_slab4', displayName: 'Double Stone Block Slab4' },
+    'minecraft:double_stone_block_slab': {
+        icon: 'textures/blocks/double_stone_block_slab',
+        displayName: 'Double Stone Block Slab'
+    },
+    'minecraft:double_stone_block_slab2': {
+        icon: 'textures/blocks/double_stone_block_slab2',
+        displayName: 'Double Stone Block Slab2'
+    },
+    'minecraft:double_stone_block_slab3': {
+        icon: 'textures/blocks/double_stone_block_slab3',
+        displayName: 'Double Stone Block Slab3'
+    },
+    'minecraft:double_stone_block_slab4': {
+        icon: 'textures/blocks/double_stone_block_slab4',
+        displayName: 'Double Stone Block Slab4'
+    },
     'minecraft:dragon_head': { icon: 'textures/items/dragon_head', displayName: 'Dragon Head' },
     'minecraft:dried_ghast': { icon: 'textures/items/dried_ghast', displayName: 'Dried Ghast' },
     'minecraft:dried_kelp_block': { icon: 'textures/items/dried_kelp_block', displayName: 'Dried Kelp Block' },
@@ -818,34 +1445,82 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:end_brick_stairs': { icon: 'textures/items/end_brick_stairs', displayName: 'End Brick Stairs' },
     'minecraft:end_bricks': { icon: 'textures/items/end_bricks', displayName: 'End Bricks' },
     'minecraft:end_rod': { icon: 'textures/items/end_rod', displayName: 'End Rod' },
-    'minecraft:end_stone_brick_double_slab': { icon: 'textures/items/end_stone_brick_double_slab', displayName: 'End Stone Brick Double Slab' },
-    'minecraft:end_stone_brick_slab': { icon: 'textures/items/end_stone_brick_slab', displayName: 'End Stone Brick Slab' },
-    'minecraft:end_stone_brick_wall': { icon: 'textures/items/end_stone_brick_wall', displayName: 'End Stone Brick Wall' },
+    'minecraft:end_stone_brick_double_slab': {
+        icon: 'textures/items/end_stone_brick_double_slab',
+        displayName: 'End Stone Brick Double Slab'
+    },
+    'minecraft:end_stone_brick_slab': {
+        icon: 'textures/items/end_stone_brick_slab',
+        displayName: 'End Stone Brick Slab'
+    },
+    'minecraft:end_stone_brick_wall': {
+        icon: 'textures/items/end_stone_brick_wall',
+        displayName: 'End Stone Brick Wall'
+    },
     'minecraft:ender_chest': { icon: 'textures/blocks/ender_chest', displayName: 'Ender Chest' },
-    'minecraft:exposed_chiseled_copper': { icon: 'textures/items/exposed_chiseled_copper', displayName: 'Exposed Chiseled Copper' },
+    'minecraft:exposed_chiseled_copper': {
+        icon: 'textures/items/exposed_chiseled_copper',
+        displayName: 'Exposed Chiseled Copper'
+    },
     'minecraft:exposed_copper': { icon: 'textures/items/exposed_copper', displayName: 'Exposed Copper' },
     'minecraft:exposed_copper_bars': { icon: 'textures/items/exposed_copper_bars', displayName: 'Exposed Copper Bars' },
     'minecraft:exposed_copper_bulb': { icon: 'textures/items/exposed_copper_bulb', displayName: 'Exposed Copper Bulb' },
-    'minecraft:exposed_copper_chain': { icon: 'textures/items/exposed_copper_chain', displayName: 'Exposed Copper Chain' },
-    'minecraft:exposed_copper_chest': { icon: 'textures/blocks/exposed_copper_chest', displayName: 'Exposed Copper Chest' },
-    'minecraft:exposed_copper_golem_statue': { icon: 'textures/items/exposed_copper_golem_statue', displayName: 'Exposed Copper Golem Statue' },
-    'minecraft:exposed_copper_grate': { icon: 'textures/items/exposed_copper_grate', displayName: 'Exposed Copper Grate' },
-    'minecraft:exposed_copper_lantern': { icon: 'textures/blocks/exposed_copper_lantern', displayName: 'Exposed Copper Lantern' },
-    'minecraft:exposed_copper_trapdoor': { icon: 'textures/blocks/exposed_copper_trapdoor', displayName: 'Exposed Copper Trapdoor' },
+    'minecraft:exposed_copper_chain': {
+        icon: 'textures/items/exposed_copper_chain',
+        displayName: 'Exposed Copper Chain'
+    },
+    'minecraft:exposed_copper_chest': {
+        icon: 'textures/blocks/exposed_copper_chest',
+        displayName: 'Exposed Copper Chest'
+    },
+    'minecraft:exposed_copper_golem_statue': {
+        icon: 'textures/items/exposed_copper_golem_statue',
+        displayName: 'Exposed Copper Golem Statue'
+    },
+    'minecraft:exposed_copper_grate': {
+        icon: 'textures/items/exposed_copper_grate',
+        displayName: 'Exposed Copper Grate'
+    },
+    'minecraft:exposed_copper_lantern': {
+        icon: 'textures/blocks/exposed_copper_lantern',
+        displayName: 'Exposed Copper Lantern'
+    },
+    'minecraft:exposed_copper_trapdoor': {
+        icon: 'textures/blocks/exposed_copper_trapdoor',
+        displayName: 'Exposed Copper Trapdoor'
+    },
     'minecraft:exposed_cut_copper': { icon: 'textures/items/exposed_cut_copper', displayName: 'Exposed Cut Copper' },
-    'minecraft:exposed_cut_copper_slab': { icon: 'textures/blocks/exposed_cut_copper_slab', displayName: 'Exposed Cut Copper Slab' },
-    'minecraft:exposed_cut_copper_stairs': { icon: 'textures/blocks/exposed_cut_copper_stairs', displayName: 'Exposed Cut Copper Stairs' },
-    'minecraft:exposed_double_cut_copper_slab': { icon: 'textures/blocks/exposed_double_cut_copper_slab', displayName: 'Exposed Double Cut Copper Slab' },
-    'minecraft:exposed_lightning_rod': { icon: 'textures/items/exposed_lightning_rod', displayName: 'Exposed Lightning Rod' },
+    'minecraft:exposed_cut_copper_slab': {
+        icon: 'textures/blocks/exposed_cut_copper_slab',
+        displayName: 'Exposed Cut Copper Slab'
+    },
+    'minecraft:exposed_cut_copper_stairs': {
+        icon: 'textures/blocks/exposed_cut_copper_stairs',
+        displayName: 'Exposed Cut Copper Stairs'
+    },
+    'minecraft:exposed_double_cut_copper_slab': {
+        icon: 'textures/blocks/exposed_double_cut_copper_slab',
+        displayName: 'Exposed Double Cut Copper Slab'
+    },
+    'minecraft:exposed_lightning_rod': {
+        icon: 'textures/items/exposed_lightning_rod',
+        displayName: 'Exposed Lightning Rod'
+    },
     'minecraft:farmland': { icon: 'textures/blocks/farmland', displayName: 'Farmland' },
     'minecraft:fence': { icon: 'textures/blocks/fence', displayName: 'Fence' },
     'minecraft:fence_gate': { icon: 'textures/blocks/fence_gate', displayName: 'Fence Gate' },
     'minecraft:fern': { icon: 'textures/items/fern', displayName: 'Fern' },
-    'minecraft:field_masoned_banner_pattern': { icon: 'textures/items/field_masoned_banner_pattern', displayName: 'Field Masoned Banner Pattern' },
+    'minecraft:field_masoned_banner_pattern': {
+        icon: 'textures/items/field_masoned_banner_pattern',
+        displayName: 'Field Masoned Banner Pattern'
+    },
     'minecraft:fire_coral': { icon: 'textures/blocks/fire_coral', displayName: 'Fire Coral' },
     'minecraft:fire_coral_block': { icon: 'textures/blocks/fire_coral_block', displayName: 'Fire Coral Block' },
     'minecraft:fire_coral_fan': { icon: 'textures/blocks/fire_coral_fan', displayName: 'Fire Coral Fan' },
-    'minecraft:fire_coral_wall_fan': { icon: 'textures/blocks/fire_coral_wall_fan', displayName: 'Fire Coral Wall Fan' },
+    'minecraft:fire_coral_wall_fan': {
+        icon: 'textures/blocks/fire_coral_wall_fan',
+        displayName: 'Fire Coral Wall Fan'
+    },
     'minecraft:firefly_bush': { icon: 'textures/items/firefly_bush', displayName: 'Firefly Bush' },
     'minecraft:fletching_table': { icon: 'textures/items/fletching_table', displayName: 'Fletching Table' },
     'minecraft:flint': { icon: 'textures/items/flint', displayName: 'Flint' },
@@ -877,7 +1552,10 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:golden_shovel': { icon: 'textures/items/golden_shovel', displayName: 'Golden Shovel' },
     'minecraft:golden_sword': { icon: 'textures/items/golden_sword', displayName: 'Golden Sword' },
     'minecraft:granite': { icon: 'textures/blocks/granite', displayName: 'Granite' },
-    'minecraft:granite_double_slab': { icon: 'textures/blocks/granite_double_slab', displayName: 'Granite Double Slab' },
+    'minecraft:granite_double_slab': {
+        icon: 'textures/blocks/granite_double_slab',
+        displayName: 'Granite Double Slab'
+    },
     'minecraft:granite_slab': { icon: 'textures/blocks/granite_slab', displayName: 'Granite Slab' },
     'minecraft:granite_stairs': { icon: 'textures/blocks/granite_stairs', displayName: 'Granite Stairs' },
     'minecraft:granite_wall': { icon: 'textures/blocks/granite_wall', displayName: 'Granite Wall' },
@@ -887,75 +1565,201 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:gray_candle_cake': { icon: 'textures/items/gray_candle_cake', displayName: 'Gray Candle Cake' },
     'minecraft:gray_carpet': { icon: 'textures/items/gray_carpet', displayName: 'Gray Carpet' },
     'minecraft:gray_concrete': { icon: 'textures/blocks/gray_concrete', displayName: 'Gray Concrete' },
-    'minecraft:gray_concrete_powder': { icon: 'textures/items/gray_concrete_powder', displayName: 'Gray Concrete Powder' },
+    'minecraft:gray_concrete_powder': {
+        icon: 'textures/items/gray_concrete_powder',
+        displayName: 'Gray Concrete Powder'
+    },
     'minecraft:gray_dye': { icon: 'textures/items/gray_dye', displayName: 'Gray Dye' },
-    'minecraft:gray_glazed_terracotta': { icon: 'textures/blocks/gray_glazed_terracotta', displayName: 'Gray Glazed Terracotta' },
+    'minecraft:gray_glazed_terracotta': {
+        icon: 'textures/blocks/gray_glazed_terracotta',
+        displayName: 'Gray Glazed Terracotta'
+    },
     'minecraft:gray_harness': { icon: 'textures/items/gray_harness', displayName: 'Gray Harness' },
     'minecraft:gray_shulker_box': { icon: 'textures/items/gray_shulker_box', displayName: 'Gray Shulker Box' },
     'minecraft:gray_stained_glass': { icon: 'textures/blocks/gray_stained_glass', displayName: 'Gray Stained Glass' },
-    'minecraft:gray_stained_glass_pane': { icon: 'textures/blocks/gray_stained_glass_pane', displayName: 'Gray Stained Glass Pane' },
+    'minecraft:gray_stained_glass_pane': {
+        icon: 'textures/blocks/gray_stained_glass_pane',
+        displayName: 'Gray Stained Glass Pane'
+    },
     'minecraft:gray_terracotta': { icon: 'textures/blocks/gray_terracotta', displayName: 'Gray Terracotta' },
     'minecraft:gray_wool': { icon: 'textures/items/gray_wool', displayName: 'Gray Wool' },
     'minecraft:green_candle': { icon: 'textures/items/green_candle', displayName: 'Green Candle' },
     'minecraft:green_candle_cake': { icon: 'textures/items/green_candle_cake', displayName: 'Green Candle Cake' },
     'minecraft:green_carpet': { icon: 'textures/items/green_carpet', displayName: 'Green Carpet' },
     'minecraft:green_concrete': { icon: 'textures/blocks/green_concrete', displayName: 'Green Concrete' },
-    'minecraft:green_concrete_powder': { icon: 'textures/items/green_concrete_powder', displayName: 'Green Concrete Powder' },
+    'minecraft:green_concrete_powder': {
+        icon: 'textures/items/green_concrete_powder',
+        displayName: 'Green Concrete Powder'
+    },
     'minecraft:green_dye': { icon: 'textures/items/green_dye', displayName: 'Green Dye' },
-    'minecraft:green_glazed_terracotta': { icon: 'textures/blocks/green_glazed_terracotta', displayName: 'Green Glazed Terracotta' },
+    'minecraft:green_glazed_terracotta': {
+        icon: 'textures/blocks/green_glazed_terracotta',
+        displayName: 'Green Glazed Terracotta'
+    },
     'minecraft:green_harness': { icon: 'textures/items/green_harness', displayName: 'Green Harness' },
     'minecraft:green_shulker_box': { icon: 'textures/items/green_shulker_box', displayName: 'Green Shulker Box' },
-    'minecraft:green_stained_glass': { icon: 'textures/blocks/green_stained_glass', displayName: 'Green Stained Glass' },
-    'minecraft:green_stained_glass_pane': { icon: 'textures/blocks/green_stained_glass_pane', displayName: 'Green Stained Glass Pane' },
+    'minecraft:green_stained_glass': {
+        icon: 'textures/blocks/green_stained_glass',
+        displayName: 'Green Stained Glass'
+    },
+    'minecraft:green_stained_glass_pane': {
+        icon: 'textures/blocks/green_stained_glass_pane',
+        displayName: 'Green Stained Glass Pane'
+    },
     'minecraft:green_terracotta': { icon: 'textures/blocks/green_terracotta', displayName: 'Green Terracotta' },
     'minecraft:green_wool': { icon: 'textures/items/green_wool', displayName: 'Green Wool' },
     'minecraft:grindstone': { icon: 'textures/blocks/grindstone', displayName: 'Grindstone' },
-    'minecraft:hard_black_stained_glass': { icon: 'textures/blocks/hard_black_stained_glass', displayName: 'Hard Black Stained Glass' },
-    'minecraft:hard_black_stained_glass_pane': { icon: 'textures/blocks/hard_black_stained_glass_pane', displayName: 'Hard Black Stained Glass Pane' },
-    'minecraft:hard_blue_stained_glass': { icon: 'textures/blocks/hard_blue_stained_glass', displayName: 'Hard Blue Stained Glass' },
-    'minecraft:hard_blue_stained_glass_pane': { icon: 'textures/blocks/hard_blue_stained_glass_pane', displayName: 'Hard Blue Stained Glass Pane' },
-    'minecraft:hard_brown_stained_glass': { icon: 'textures/blocks/hard_brown_stained_glass', displayName: 'Hard Brown Stained Glass' },
-    'minecraft:hard_brown_stained_glass_pane': { icon: 'textures/blocks/hard_brown_stained_glass_pane', displayName: 'Hard Brown Stained Glass Pane' },
-    'minecraft:hard_cyan_stained_glass': { icon: 'textures/blocks/hard_cyan_stained_glass', displayName: 'Hard Cyan Stained Glass' },
-    'minecraft:hard_cyan_stained_glass_pane': { icon: 'textures/blocks/hard_cyan_stained_glass_pane', displayName: 'Hard Cyan Stained Glass Pane' },
+    'minecraft:hard_black_stained_glass': {
+        icon: 'textures/blocks/hard_black_stained_glass',
+        displayName: 'Hard Black Stained Glass'
+    },
+    'minecraft:hard_black_stained_glass_pane': {
+        icon: 'textures/blocks/hard_black_stained_glass_pane',
+        displayName: 'Hard Black Stained Glass Pane'
+    },
+    'minecraft:hard_blue_stained_glass': {
+        icon: 'textures/blocks/hard_blue_stained_glass',
+        displayName: 'Hard Blue Stained Glass'
+    },
+    'minecraft:hard_blue_stained_glass_pane': {
+        icon: 'textures/blocks/hard_blue_stained_glass_pane',
+        displayName: 'Hard Blue Stained Glass Pane'
+    },
+    'minecraft:hard_brown_stained_glass': {
+        icon: 'textures/blocks/hard_brown_stained_glass',
+        displayName: 'Hard Brown Stained Glass'
+    },
+    'minecraft:hard_brown_stained_glass_pane': {
+        icon: 'textures/blocks/hard_brown_stained_glass_pane',
+        displayName: 'Hard Brown Stained Glass Pane'
+    },
+    'minecraft:hard_cyan_stained_glass': {
+        icon: 'textures/blocks/hard_cyan_stained_glass',
+        displayName: 'Hard Cyan Stained Glass'
+    },
+    'minecraft:hard_cyan_stained_glass_pane': {
+        icon: 'textures/blocks/hard_cyan_stained_glass_pane',
+        displayName: 'Hard Cyan Stained Glass Pane'
+    },
     'minecraft:hard_glass': { icon: 'textures/blocks/hard_glass', displayName: 'Hard Glass' },
     'minecraft:hard_glass_pane': { icon: 'textures/blocks/hard_glass_pane', displayName: 'Hard Glass Pane' },
-    'minecraft:hard_gray_stained_glass': { icon: 'textures/blocks/hard_gray_stained_glass', displayName: 'Hard Gray Stained Glass' },
-    'minecraft:hard_gray_stained_glass_pane': { icon: 'textures/blocks/hard_gray_stained_glass_pane', displayName: 'Hard Gray Stained Glass Pane' },
-    'minecraft:hard_green_stained_glass': { icon: 'textures/blocks/hard_green_stained_glass', displayName: 'Hard Green Stained Glass' },
-    'minecraft:hard_green_stained_glass_pane': { icon: 'textures/blocks/hard_green_stained_glass_pane', displayName: 'Hard Green Stained Glass Pane' },
-    'minecraft:hard_light_blue_stained_glass': { icon: 'textures/blocks/hard_light_blue_stained_glass', displayName: 'Hard Light Blue Stained Glass' },
-    'minecraft:hard_light_blue_stained_glass_pane': { icon: 'textures/blocks/hard_light_blue_stained_glass_pane', displayName: 'Hard Light Blue Stained Glass Pane' },
-    'minecraft:hard_light_gray_stained_glass': { icon: 'textures/blocks/hard_light_gray_stained_glass', displayName: 'Hard Light Gray Stained Glass' },
-    'minecraft:hard_light_gray_stained_glass_pane': { icon: 'textures/blocks/hard_light_gray_stained_glass_pane', displayName: 'Hard Light Gray Stained Glass Pane' },
-    'minecraft:hard_lime_stained_glass': { icon: 'textures/blocks/hard_lime_stained_glass', displayName: 'Hard Lime Stained Glass' },
-    'minecraft:hard_lime_stained_glass_pane': { icon: 'textures/blocks/hard_lime_stained_glass_pane', displayName: 'Hard Lime Stained Glass Pane' },
-    'minecraft:hard_magenta_stained_glass': { icon: 'textures/blocks/hard_magenta_stained_glass', displayName: 'Hard Magenta Stained Glass' },
-    'minecraft:hard_magenta_stained_glass_pane': { icon: 'textures/blocks/hard_magenta_stained_glass_pane', displayName: 'Hard Magenta Stained Glass Pane' },
-    'minecraft:hard_orange_stained_glass': { icon: 'textures/blocks/hard_orange_stained_glass', displayName: 'Hard Orange Stained Glass' },
-    'minecraft:hard_orange_stained_glass_pane': { icon: 'textures/blocks/hard_orange_stained_glass_pane', displayName: 'Hard Orange Stained Glass Pane' },
-    'minecraft:hard_pink_stained_glass': { icon: 'textures/blocks/hard_pink_stained_glass', displayName: 'Hard Pink Stained Glass' },
-    'minecraft:hard_pink_stained_glass_pane': { icon: 'textures/blocks/hard_pink_stained_glass_pane', displayName: 'Hard Pink Stained Glass Pane' },
-    'minecraft:hard_purple_stained_glass': { icon: 'textures/blocks/hard_purple_stained_glass', displayName: 'Hard Purple Stained Glass' },
-    'minecraft:hard_purple_stained_glass_pane': { icon: 'textures/blocks/hard_purple_stained_glass_pane', displayName: 'Hard Purple Stained Glass Pane' },
-    'minecraft:hard_red_stained_glass': { icon: 'textures/blocks/hard_red_stained_glass', displayName: 'Hard Red Stained Glass' },
-    'minecraft:hard_red_stained_glass_pane': { icon: 'textures/blocks/hard_red_stained_glass_pane', displayName: 'Hard Red Stained Glass Pane' },
+    'minecraft:hard_gray_stained_glass': {
+        icon: 'textures/blocks/hard_gray_stained_glass',
+        displayName: 'Hard Gray Stained Glass'
+    },
+    'minecraft:hard_gray_stained_glass_pane': {
+        icon: 'textures/blocks/hard_gray_stained_glass_pane',
+        displayName: 'Hard Gray Stained Glass Pane'
+    },
+    'minecraft:hard_green_stained_glass': {
+        icon: 'textures/blocks/hard_green_stained_glass',
+        displayName: 'Hard Green Stained Glass'
+    },
+    'minecraft:hard_green_stained_glass_pane': {
+        icon: 'textures/blocks/hard_green_stained_glass_pane',
+        displayName: 'Hard Green Stained Glass Pane'
+    },
+    'minecraft:hard_light_blue_stained_glass': {
+        icon: 'textures/blocks/hard_light_blue_stained_glass',
+        displayName: 'Hard Light Blue Stained Glass'
+    },
+    'minecraft:hard_light_blue_stained_glass_pane': {
+        icon: 'textures/blocks/hard_light_blue_stained_glass_pane',
+        displayName: 'Hard Light Blue Stained Glass Pane'
+    },
+    'minecraft:hard_light_gray_stained_glass': {
+        icon: 'textures/blocks/hard_light_gray_stained_glass',
+        displayName: 'Hard Light Gray Stained Glass'
+    },
+    'minecraft:hard_light_gray_stained_glass_pane': {
+        icon: 'textures/blocks/hard_light_gray_stained_glass_pane',
+        displayName: 'Hard Light Gray Stained Glass Pane'
+    },
+    'minecraft:hard_lime_stained_glass': {
+        icon: 'textures/blocks/hard_lime_stained_glass',
+        displayName: 'Hard Lime Stained Glass'
+    },
+    'minecraft:hard_lime_stained_glass_pane': {
+        icon: 'textures/blocks/hard_lime_stained_glass_pane',
+        displayName: 'Hard Lime Stained Glass Pane'
+    },
+    'minecraft:hard_magenta_stained_glass': {
+        icon: 'textures/blocks/hard_magenta_stained_glass',
+        displayName: 'Hard Magenta Stained Glass'
+    },
+    'minecraft:hard_magenta_stained_glass_pane': {
+        icon: 'textures/blocks/hard_magenta_stained_glass_pane',
+        displayName: 'Hard Magenta Stained Glass Pane'
+    },
+    'minecraft:hard_orange_stained_glass': {
+        icon: 'textures/blocks/hard_orange_stained_glass',
+        displayName: 'Hard Orange Stained Glass'
+    },
+    'minecraft:hard_orange_stained_glass_pane': {
+        icon: 'textures/blocks/hard_orange_stained_glass_pane',
+        displayName: 'Hard Orange Stained Glass Pane'
+    },
+    'minecraft:hard_pink_stained_glass': {
+        icon: 'textures/blocks/hard_pink_stained_glass',
+        displayName: 'Hard Pink Stained Glass'
+    },
+    'minecraft:hard_pink_stained_glass_pane': {
+        icon: 'textures/blocks/hard_pink_stained_glass_pane',
+        displayName: 'Hard Pink Stained Glass Pane'
+    },
+    'minecraft:hard_purple_stained_glass': {
+        icon: 'textures/blocks/hard_purple_stained_glass',
+        displayName: 'Hard Purple Stained Glass'
+    },
+    'minecraft:hard_purple_stained_glass_pane': {
+        icon: 'textures/blocks/hard_purple_stained_glass_pane',
+        displayName: 'Hard Purple Stained Glass Pane'
+    },
+    'minecraft:hard_red_stained_glass': {
+        icon: 'textures/blocks/hard_red_stained_glass',
+        displayName: 'Hard Red Stained Glass'
+    },
+    'minecraft:hard_red_stained_glass_pane': {
+        icon: 'textures/blocks/hard_red_stained_glass_pane',
+        displayName: 'Hard Red Stained Glass Pane'
+    },
     'minecraft:hard_stained_glass': { icon: 'textures/blocks/hard_stained_glass', displayName: 'Hard Stained Glass' },
-    'minecraft:hard_stained_glass_pane': { icon: 'textures/blocks/hard_stained_glass_pane', displayName: 'Hard Stained Glass Pane' },
-    'minecraft:hard_white_stained_glass': { icon: 'textures/blocks/hard_white_stained_glass', displayName: 'Hard White Stained Glass' },
-    'minecraft:hard_white_stained_glass_pane': { icon: 'textures/blocks/hard_white_stained_glass_pane', displayName: 'Hard White Stained Glass Pane' },
-    'minecraft:hard_yellow_stained_glass': { icon: 'textures/blocks/hard_yellow_stained_glass', displayName: 'Hard Yellow Stained Glass' },
-    'minecraft:hard_yellow_stained_glass_pane': { icon: 'textures/blocks/hard_yellow_stained_glass_pane', displayName: 'Hard Yellow Stained Glass Pane' },
+    'minecraft:hard_stained_glass_pane': {
+        icon: 'textures/blocks/hard_stained_glass_pane',
+        displayName: 'Hard Stained Glass Pane'
+    },
+    'minecraft:hard_white_stained_glass': {
+        icon: 'textures/blocks/hard_white_stained_glass',
+        displayName: 'Hard White Stained Glass'
+    },
+    'minecraft:hard_white_stained_glass_pane': {
+        icon: 'textures/blocks/hard_white_stained_glass_pane',
+        displayName: 'Hard White Stained Glass Pane'
+    },
+    'minecraft:hard_yellow_stained_glass': {
+        icon: 'textures/blocks/hard_yellow_stained_glass',
+        displayName: 'Hard Yellow Stained Glass'
+    },
+    'minecraft:hard_yellow_stained_glass_pane': {
+        icon: 'textures/blocks/hard_yellow_stained_glass_pane',
+        displayName: 'Hard Yellow Stained Glass Pane'
+    },
     'minecraft:hardened_clay': { icon: 'textures/items/hardened_clay', displayName: 'Hardened Clay' },
     'minecraft:hay_block': { icon: 'textures/blocks/hay_block', displayName: 'Hay Block' },
     'minecraft:heavy_core': { icon: 'textures/blocks/heavy_core', displayName: 'Heavy Core' },
-    'minecraft:heavy_weighted_pressure_plate': { icon: 'textures/blocks/heavy_weighted_pressure_plate', displayName: 'Heavy Weighted Pressure Plate' },
+    'minecraft:heavy_weighted_pressure_plate': {
+        icon: 'textures/blocks/heavy_weighted_pressure_plate',
+        displayName: 'Heavy Weighted Pressure Plate'
+    },
     'minecraft:honey_block': { icon: 'textures/blocks/honey_block', displayName: 'Honey Block' },
     'minecraft:honeycomb_block': { icon: 'textures/blocks/honeycomb_block', displayName: 'Honeycomb Block' },
     'minecraft:horn_coral': { icon: 'textures/blocks/horn_coral', displayName: 'Horn Coral' },
     'minecraft:horn_coral_block': { icon: 'textures/blocks/horn_coral_block', displayName: 'Horn Coral Block' },
     'minecraft:horn_coral_fan': { icon: 'textures/blocks/horn_coral_fan', displayName: 'Horn Coral Fan' },
-    'minecraft:horn_coral_wall_fan': { icon: 'textures/blocks/horn_coral_wall_fan', displayName: 'Horn Coral Wall Fan' },
+    'minecraft:horn_coral_wall_fan': {
+        icon: 'textures/blocks/horn_coral_wall_fan',
+        displayName: 'Horn Coral Wall Fan'
+    },
     'minecraft:ice': { icon: 'textures/blocks/ice', displayName: 'Ice' },
     'minecraft:ink_sac': { icon: 'textures/items/ink_sac', displayName: 'Ink Sac' },
     'minecraft:iron_axe': { icon: 'textures/items/iron_axe', displayName: 'Iron Axe' },
@@ -981,12 +1785,18 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:jungle_fence_gate': { icon: 'textures/blocks/jungle_fence_gate', displayName: 'Jungle Fence Gate' },
     'minecraft:jungle_leaves': { icon: 'textures/blocks/jungle_leaves', displayName: 'Jungle Leaves' },
     'minecraft:jungle_planks': { icon: 'textures/blocks/jungle_planks', displayName: 'Jungle Planks' },
-    'minecraft:jungle_pressure_plate': { icon: 'textures/blocks/jungle_pressure_plate', displayName: 'Jungle Pressure Plate' },
+    'minecraft:jungle_pressure_plate': {
+        icon: 'textures/blocks/jungle_pressure_plate',
+        displayName: 'Jungle Pressure Plate'
+    },
     'minecraft:jungle_sapling': { icon: 'textures/blocks/jungle_sapling', displayName: 'Jungle Sapling' },
     'minecraft:jungle_shelf': { icon: 'textures/items/jungle_shelf', displayName: 'Jungle Shelf' },
     'minecraft:jungle_slab': { icon: 'textures/blocks/jungle_slab', displayName: 'Jungle Slab' },
     'minecraft:jungle_stairs': { icon: 'textures/blocks/jungle_stairs', displayName: 'Jungle Stairs' },
-    'minecraft:jungle_standing_sign': { icon: 'textures/items/jungle_standing_sign', displayName: 'Jungle Standing Sign' },
+    'minecraft:jungle_standing_sign': {
+        icon: 'textures/items/jungle_standing_sign',
+        displayName: 'Jungle Standing Sign'
+    },
     'minecraft:jungle_trapdoor': { icon: 'textures/blocks/jungle_trapdoor', displayName: 'Jungle Trapdoor' },
     'minecraft:jungle_wall_sign': { icon: 'textures/items/jungle_wall_sign', displayName: 'Jungle Wall Sign' },
     'minecraft:jungle_wood': { icon: 'textures/blocks/jungle_wood', displayName: 'Jungle Wood' },
@@ -1007,31 +1817,79 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:leaves2': { icon: 'textures/blocks/leaves2', displayName: 'Leaves2' },
     'minecraft:lectern': { icon: 'textures/blocks/lectern', displayName: 'Lectern' },
     'minecraft:light_blue_candle': { icon: 'textures/items/light_blue_candle', displayName: 'Light Blue Candle' },
-    'minecraft:light_blue_candle_cake': { icon: 'textures/items/light_blue_candle_cake', displayName: 'Light Blue Candle Cake' },
+    'minecraft:light_blue_candle_cake': {
+        icon: 'textures/items/light_blue_candle_cake',
+        displayName: 'Light Blue Candle Cake'
+    },
     'minecraft:light_blue_carpet': { icon: 'textures/items/light_blue_carpet', displayName: 'Light Blue Carpet' },
-    'minecraft:light_blue_concrete': { icon: 'textures/blocks/light_blue_concrete', displayName: 'Light Blue Concrete' },
-    'minecraft:light_blue_concrete_powder': { icon: 'textures/items/light_blue_concrete_powder', displayName: 'Light Blue Concrete Powder' },
+    'minecraft:light_blue_concrete': {
+        icon: 'textures/blocks/light_blue_concrete',
+        displayName: 'Light Blue Concrete'
+    },
+    'minecraft:light_blue_concrete_powder': {
+        icon: 'textures/items/light_blue_concrete_powder',
+        displayName: 'Light Blue Concrete Powder'
+    },
     'minecraft:light_blue_dye': { icon: 'textures/items/light_blue_dye', displayName: 'Light Blue Dye' },
-    'minecraft:light_blue_glazed_terracotta': { icon: 'textures/blocks/light_blue_glazed_terracotta', displayName: 'Light Blue Glazed Terracotta' },
+    'minecraft:light_blue_glazed_terracotta': {
+        icon: 'textures/blocks/light_blue_glazed_terracotta',
+        displayName: 'Light Blue Glazed Terracotta'
+    },
     'minecraft:light_blue_harness': { icon: 'textures/items/light_blue_harness', displayName: 'Light Blue Harness' },
-    'minecraft:light_blue_shulker_box': { icon: 'textures/items/light_blue_shulker_box', displayName: 'Light Blue Shulker Box' },
-    'minecraft:light_blue_stained_glass': { icon: 'textures/blocks/light_blue_stained_glass', displayName: 'Light Blue Stained Glass' },
-    'minecraft:light_blue_stained_glass_pane': { icon: 'textures/blocks/light_blue_stained_glass_pane', displayName: 'Light Blue Stained Glass Pane' },
-    'minecraft:light_blue_terracotta': { icon: 'textures/blocks/light_blue_terracotta', displayName: 'Light Blue Terracotta' },
+    'minecraft:light_blue_shulker_box': {
+        icon: 'textures/items/light_blue_shulker_box',
+        displayName: 'Light Blue Shulker Box'
+    },
+    'minecraft:light_blue_stained_glass': {
+        icon: 'textures/blocks/light_blue_stained_glass',
+        displayName: 'Light Blue Stained Glass'
+    },
+    'minecraft:light_blue_stained_glass_pane': {
+        icon: 'textures/blocks/light_blue_stained_glass_pane',
+        displayName: 'Light Blue Stained Glass Pane'
+    },
+    'minecraft:light_blue_terracotta': {
+        icon: 'textures/blocks/light_blue_terracotta',
+        displayName: 'Light Blue Terracotta'
+    },
     'minecraft:light_blue_wool': { icon: 'textures/items/light_blue_wool', displayName: 'Light Blue Wool' },
     'minecraft:light_gray_candle': { icon: 'textures/items/light_gray_candle', displayName: 'Light Gray Candle' },
-    'minecraft:light_gray_candle_cake': { icon: 'textures/items/light_gray_candle_cake', displayName: 'Light Gray Candle Cake' },
+    'minecraft:light_gray_candle_cake': {
+        icon: 'textures/items/light_gray_candle_cake',
+        displayName: 'Light Gray Candle Cake'
+    },
     'minecraft:light_gray_carpet': { icon: 'textures/items/light_gray_carpet', displayName: 'Light Gray Carpet' },
-    'minecraft:light_gray_concrete': { icon: 'textures/blocks/light_gray_concrete', displayName: 'Light Gray Concrete' },
-    'minecraft:light_gray_concrete_powder': { icon: 'textures/items/light_gray_concrete_powder', displayName: 'Light Gray Concrete Powder' },
+    'minecraft:light_gray_concrete': {
+        icon: 'textures/blocks/light_gray_concrete',
+        displayName: 'Light Gray Concrete'
+    },
+    'minecraft:light_gray_concrete_powder': {
+        icon: 'textures/items/light_gray_concrete_powder',
+        displayName: 'Light Gray Concrete Powder'
+    },
     'minecraft:light_gray_dye': { icon: 'textures/items/light_gray_dye', displayName: 'Light Gray Dye' },
     'minecraft:light_gray_harness': { icon: 'textures/items/light_gray_harness', displayName: 'Light Gray Harness' },
-    'minecraft:light_gray_shulker_box': { icon: 'textures/items/light_gray_shulker_box', displayName: 'Light Gray Shulker Box' },
-    'minecraft:light_gray_stained_glass': { icon: 'textures/blocks/light_gray_stained_glass', displayName: 'Light Gray Stained Glass' },
-    'minecraft:light_gray_stained_glass_pane': { icon: 'textures/blocks/light_gray_stained_glass_pane', displayName: 'Light Gray Stained Glass Pane' },
-    'minecraft:light_gray_terracotta': { icon: 'textures/blocks/light_gray_terracotta', displayName: 'Light Gray Terracotta' },
+    'minecraft:light_gray_shulker_box': {
+        icon: 'textures/items/light_gray_shulker_box',
+        displayName: 'Light Gray Shulker Box'
+    },
+    'minecraft:light_gray_stained_glass': {
+        icon: 'textures/blocks/light_gray_stained_glass',
+        displayName: 'Light Gray Stained Glass'
+    },
+    'minecraft:light_gray_stained_glass_pane': {
+        icon: 'textures/blocks/light_gray_stained_glass_pane',
+        displayName: 'Light Gray Stained Glass Pane'
+    },
+    'minecraft:light_gray_terracotta': {
+        icon: 'textures/blocks/light_gray_terracotta',
+        displayName: 'Light Gray Terracotta'
+    },
     'minecraft:light_gray_wool': { icon: 'textures/items/light_gray_wool', displayName: 'Light Gray Wool' },
-    'minecraft:light_weighted_pressure_plate': { icon: 'textures/blocks/light_weighted_pressure_plate', displayName: 'Light Weighted Pressure Plate' },
+    'minecraft:light_weighted_pressure_plate': {
+        icon: 'textures/blocks/light_weighted_pressure_plate',
+        displayName: 'Light Weighted Pressure Plate'
+    },
     'minecraft:lightning_rod': { icon: 'textures/items/lightning_rod', displayName: 'Lightning Rod' },
     'minecraft:lilac': { icon: 'textures/items/lilac', displayName: 'Lilac' },
     'minecraft:lily_of_the_valley': { icon: 'textures/items/lily_of_the_valley', displayName: 'Lily Of The Valley' },
@@ -1039,17 +1897,29 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:lime_candle_cake': { icon: 'textures/items/lime_candle_cake', displayName: 'Lime Candle Cake' },
     'minecraft:lime_carpet': { icon: 'textures/items/lime_carpet', displayName: 'Lime Carpet' },
     'minecraft:lime_concrete': { icon: 'textures/blocks/lime_concrete', displayName: 'Lime Concrete' },
-    'minecraft:lime_concrete_powder': { icon: 'textures/items/lime_concrete_powder', displayName: 'Lime Concrete Powder' },
+    'minecraft:lime_concrete_powder': {
+        icon: 'textures/items/lime_concrete_powder',
+        displayName: 'Lime Concrete Powder'
+    },
     'minecraft:lime_dye': { icon: 'textures/items/lime_dye', displayName: 'Lime Dye' },
-    'minecraft:lime_glazed_terracotta': { icon: 'textures/blocks/lime_glazed_terracotta', displayName: 'Lime Glazed Terracotta' },
+    'minecraft:lime_glazed_terracotta': {
+        icon: 'textures/blocks/lime_glazed_terracotta',
+        displayName: 'Lime Glazed Terracotta'
+    },
     'minecraft:lime_harness': { icon: 'textures/items/lime_harness', displayName: 'Lime Harness' },
     'minecraft:lime_shulker_box': { icon: 'textures/items/lime_shulker_box', displayName: 'Lime Shulker Box' },
     'minecraft:lime_stained_glass': { icon: 'textures/blocks/lime_stained_glass', displayName: 'Lime Stained Glass' },
-    'minecraft:lime_stained_glass_pane': { icon: 'textures/blocks/lime_stained_glass_pane', displayName: 'Lime Stained Glass Pane' },
+    'minecraft:lime_stained_glass_pane': {
+        icon: 'textures/blocks/lime_stained_glass_pane',
+        displayName: 'Lime Stained Glass Pane'
+    },
     'minecraft:lime_terracotta': { icon: 'textures/blocks/lime_terracotta', displayName: 'Lime Terracotta' },
     'minecraft:lime_wool': { icon: 'textures/items/lime_wool', displayName: 'Lime Wool' },
     'minecraft:lit_blast_furnace': { icon: 'textures/blocks/lit_blast_furnace', displayName: 'Lit Blast Furnace' },
-    'minecraft:lit_deepslate_redstone_ore': { icon: 'textures/blocks/lit_deepslate_redstone_ore', displayName: 'Lit Deepslate Redstone Ore' },
+    'minecraft:lit_deepslate_redstone_ore': {
+        icon: 'textures/blocks/lit_deepslate_redstone_ore',
+        displayName: 'Lit Deepslate Redstone Ore'
+    },
     'minecraft:lit_furnace': { icon: 'textures/blocks/lit_furnace', displayName: 'Lit Furnace' },
     'minecraft:lit_pumpkin': { icon: 'textures/items/lit_pumpkin', displayName: 'Lit Pumpkin' },
     'minecraft:lit_redstone_lamp': { icon: 'textures/blocks/lit_redstone_lamp', displayName: 'Lit Redstone Lamp' },
@@ -1064,13 +1934,25 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:magenta_candle_cake': { icon: 'textures/items/magenta_candle_cake', displayName: 'Magenta Candle Cake' },
     'minecraft:magenta_carpet': { icon: 'textures/items/magenta_carpet', displayName: 'Magenta Carpet' },
     'minecraft:magenta_concrete': { icon: 'textures/blocks/magenta_concrete', displayName: 'Magenta Concrete' },
-    'minecraft:magenta_concrete_powder': { icon: 'textures/items/magenta_concrete_powder', displayName: 'Magenta Concrete Powder' },
+    'minecraft:magenta_concrete_powder': {
+        icon: 'textures/items/magenta_concrete_powder',
+        displayName: 'Magenta Concrete Powder'
+    },
     'minecraft:magenta_dye': { icon: 'textures/items/magenta_dye', displayName: 'Magenta Dye' },
-    'minecraft:magenta_glazed_terracotta': { icon: 'textures/blocks/magenta_glazed_terracotta', displayName: 'Magenta Glazed Terracotta' },
+    'minecraft:magenta_glazed_terracotta': {
+        icon: 'textures/blocks/magenta_glazed_terracotta',
+        displayName: 'Magenta Glazed Terracotta'
+    },
     'minecraft:magenta_harness': { icon: 'textures/items/magenta_harness', displayName: 'Magenta Harness' },
     'minecraft:magenta_shulker_box': { icon: 'textures/items/magenta_shulker_box', displayName: 'Magenta Shulker Box' },
-    'minecraft:magenta_stained_glass': { icon: 'textures/blocks/magenta_stained_glass', displayName: 'Magenta Stained Glass' },
-    'minecraft:magenta_stained_glass_pane': { icon: 'textures/blocks/magenta_stained_glass_pane', displayName: 'Magenta Stained Glass Pane' },
+    'minecraft:magenta_stained_glass': {
+        icon: 'textures/blocks/magenta_stained_glass',
+        displayName: 'Magenta Stained Glass'
+    },
+    'minecraft:magenta_stained_glass_pane': {
+        icon: 'textures/blocks/magenta_stained_glass_pane',
+        displayName: 'Magenta Stained Glass Pane'
+    },
     'minecraft:magenta_terracotta': { icon: 'textures/blocks/magenta_terracotta', displayName: 'Magenta Terracotta' },
     'minecraft:magenta_wool': { icon: 'textures/items/magenta_wool', displayName: 'Magenta Wool' },
     'minecraft:magma': { icon: 'textures/items/magma', displayName: 'Magma' },
@@ -1078,18 +1960,30 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:mangrove_button': { icon: 'textures/blocks/mangrove_button', displayName: 'Mangrove Button' },
     'minecraft:mangrove_chest_boat': { icon: 'textures/items/mangrove_chest_boat', displayName: 'Mangrove Chest Boat' },
     'minecraft:mangrove_door': { icon: 'textures/items/mangrove_door', displayName: 'Mangrove Door' },
-    'minecraft:mangrove_double_slab': { icon: 'textures/blocks/mangrove_double_slab', displayName: 'Mangrove Double Slab' },
+    'minecraft:mangrove_double_slab': {
+        icon: 'textures/blocks/mangrove_double_slab',
+        displayName: 'Mangrove Double Slab'
+    },
     'minecraft:mangrove_fence': { icon: 'textures/blocks/mangrove_fence', displayName: 'Mangrove Fence' },
-    'minecraft:mangrove_fence_gate': { icon: 'textures/blocks/mangrove_fence_gate', displayName: 'Mangrove Fence Gate' },
+    'minecraft:mangrove_fence_gate': {
+        icon: 'textures/blocks/mangrove_fence_gate',
+        displayName: 'Mangrove Fence Gate'
+    },
     'minecraft:mangrove_leaves': { icon: 'textures/blocks/mangrove_leaves', displayName: 'Mangrove Leaves' },
     'minecraft:mangrove_planks': { icon: 'textures/blocks/mangrove_planks', displayName: 'Mangrove Planks' },
-    'minecraft:mangrove_pressure_plate': { icon: 'textures/blocks/mangrove_pressure_plate', displayName: 'Mangrove Pressure Plate' },
+    'minecraft:mangrove_pressure_plate': {
+        icon: 'textures/blocks/mangrove_pressure_plate',
+        displayName: 'Mangrove Pressure Plate'
+    },
     'minecraft:mangrove_propagule': { icon: 'textures/items/mangrove_propagule', displayName: 'Mangrove Propagule' },
     'minecraft:mangrove_roots': { icon: 'textures/blocks/mangrove_roots', displayName: 'Mangrove Roots' },
     'minecraft:mangrove_shelf': { icon: 'textures/items/mangrove_shelf', displayName: 'Mangrove Shelf' },
     'minecraft:mangrove_slab': { icon: 'textures/blocks/mangrove_slab', displayName: 'Mangrove Slab' },
     'minecraft:mangrove_stairs': { icon: 'textures/blocks/mangrove_stairs', displayName: 'Mangrove Stairs' },
-    'minecraft:mangrove_standing_sign': { icon: 'textures/items/mangrove_standing_sign', displayName: 'Mangrove Standing Sign' },
+    'minecraft:mangrove_standing_sign': {
+        icon: 'textures/items/mangrove_standing_sign',
+        displayName: 'Mangrove Standing Sign'
+    },
     'minecraft:mangrove_trapdoor': { icon: 'textures/blocks/mangrove_trapdoor', displayName: 'Mangrove Trapdoor' },
     'minecraft:mangrove_wall_sign': { icon: 'textures/items/mangrove_wall_sign', displayName: 'Mangrove Wall Sign' },
     'minecraft:mangrove_wood': { icon: 'textures/blocks/mangrove_wood', displayName: 'Mangrove Wood' },
@@ -1100,28 +1994,67 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:moss_block': { icon: 'textures/blocks/moss_block', displayName: 'Moss Block' },
     'minecraft:moss_carpet': { icon: 'textures/items/moss_carpet', displayName: 'Moss Carpet' },
     'minecraft:mossy_cobblestone': { icon: 'textures/blocks/mossy_cobblestone', displayName: 'Mossy Cobblestone' },
-    'minecraft:mossy_cobblestone_double_slab': { icon: 'textures/blocks/mossy_cobblestone_double_slab', displayName: 'Mossy Cobblestone Double Slab' },
-    'minecraft:mossy_cobblestone_slab': { icon: 'textures/blocks/mossy_cobblestone_slab', displayName: 'Mossy Cobblestone Slab' },
-    'minecraft:mossy_cobblestone_stairs': { icon: 'textures/blocks/mossy_cobblestone_stairs', displayName: 'Mossy Cobblestone Stairs' },
-    'minecraft:mossy_cobblestone_wall': { icon: 'textures/blocks/mossy_cobblestone_wall', displayName: 'Mossy Cobblestone Wall' },
-    'minecraft:mossy_stone_brick_double_slab': { icon: 'textures/items/mossy_stone_brick_double_slab', displayName: 'Mossy Stone Brick Double Slab' },
-    'minecraft:mossy_stone_brick_slab': { icon: 'textures/items/mossy_stone_brick_slab', displayName: 'Mossy Stone Brick Slab' },
-    'minecraft:mossy_stone_brick_stairs': { icon: 'textures/items/mossy_stone_brick_stairs', displayName: 'Mossy Stone Brick Stairs' },
-    'minecraft:mossy_stone_brick_wall': { icon: 'textures/items/mossy_stone_brick_wall', displayName: 'Mossy Stone Brick Wall' },
+    'minecraft:mossy_cobblestone_double_slab': {
+        icon: 'textures/blocks/mossy_cobblestone_double_slab',
+        displayName: 'Mossy Cobblestone Double Slab'
+    },
+    'minecraft:mossy_cobblestone_slab': {
+        icon: 'textures/blocks/mossy_cobblestone_slab',
+        displayName: 'Mossy Cobblestone Slab'
+    },
+    'minecraft:mossy_cobblestone_stairs': {
+        icon: 'textures/blocks/mossy_cobblestone_stairs',
+        displayName: 'Mossy Cobblestone Stairs'
+    },
+    'minecraft:mossy_cobblestone_wall': {
+        icon: 'textures/blocks/mossy_cobblestone_wall',
+        displayName: 'Mossy Cobblestone Wall'
+    },
+    'minecraft:mossy_stone_brick_double_slab': {
+        icon: 'textures/items/mossy_stone_brick_double_slab',
+        displayName: 'Mossy Stone Brick Double Slab'
+    },
+    'minecraft:mossy_stone_brick_slab': {
+        icon: 'textures/items/mossy_stone_brick_slab',
+        displayName: 'Mossy Stone Brick Slab'
+    },
+    'minecraft:mossy_stone_brick_stairs': {
+        icon: 'textures/items/mossy_stone_brick_stairs',
+        displayName: 'Mossy Stone Brick Stairs'
+    },
+    'minecraft:mossy_stone_brick_wall': {
+        icon: 'textures/items/mossy_stone_brick_wall',
+        displayName: 'Mossy Stone Brick Wall'
+    },
     'minecraft:mossy_stone_bricks': { icon: 'textures/items/mossy_stone_bricks', displayName: 'Mossy Stone Bricks' },
     'minecraft:mud': { icon: 'textures/items/mud', displayName: 'Mud' },
-    'minecraft:mud_brick_double_slab': { icon: 'textures/items/mud_brick_double_slab', displayName: 'Mud Brick Double Slab' },
+    'minecraft:mud_brick_double_slab': {
+        icon: 'textures/items/mud_brick_double_slab',
+        displayName: 'Mud Brick Double Slab'
+    },
     'minecraft:mud_brick_slab': { icon: 'textures/items/mud_brick_slab', displayName: 'Mud Brick Slab' },
     'minecraft:mud_brick_stairs': { icon: 'textures/items/mud_brick_stairs', displayName: 'Mud Brick Stairs' },
     'minecraft:mud_brick_wall': { icon: 'textures/items/mud_brick_wall', displayName: 'Mud Brick Wall' },
     'minecraft:mud_bricks': { icon: 'textures/items/mud_bricks', displayName: 'Mud Bricks' },
-    'minecraft:muddy_mangrove_roots': { icon: 'textures/blocks/muddy_mangrove_roots', displayName: 'Muddy Mangrove Roots' },
+    'minecraft:muddy_mangrove_roots': {
+        icon: 'textures/blocks/muddy_mangrove_roots',
+        displayName: 'Muddy Mangrove Roots'
+    },
     'minecraft:mushroom_stem': { icon: 'textures/blocks/mushroom_stem_top', displayName: 'Mushroom Stem' },
-    'minecraft:music_disc_creator_music_box': { icon: 'textures/items/music_disc_creator_music_box', displayName: 'Music Disc Creator Music Box' },
-    'minecraft:music_disc_lava_chicken': { icon: 'textures/items/music_disc_lava_chicken', displayName: 'Music Disc Lava Chicken' },
+    'minecraft:music_disc_creator_music_box': {
+        icon: 'textures/items/music_disc_creator_music_box',
+        displayName: 'Music Disc Creator Music Box'
+    },
+    'minecraft:music_disc_lava_chicken': {
+        icon: 'textures/items/music_disc_lava_chicken',
+        displayName: 'Music Disc Lava Chicken'
+    },
     'minecraft:music_disc_tears': { icon: 'textures/items/music_disc_tears', displayName: 'Music Disc Tears' },
     'minecraft:mycelium': { icon: 'textures/blocks/mycelium', displayName: 'Mycelium' },
-    'minecraft:nether_brick_double_slab': { icon: 'textures/items/nether_brick_double_slab', displayName: 'Nether Brick Double Slab' },
+    'minecraft:nether_brick_double_slab': {
+        icon: 'textures/items/nether_brick_double_slab',
+        displayName: 'Nether Brick Double Slab'
+    },
     'minecraft:nether_brick_fence': { icon: 'textures/items/nether_brick_fence', displayName: 'Nether Brick Fence' },
     'minecraft:nether_brick_slab': { icon: 'textures/items/nether_brick_slab', displayName: 'Nether Brick Slab' },
     'minecraft:nether_brick_stairs': { icon: 'textures/items/nether_brick_stairs', displayName: 'Nether Brick Stairs' },
@@ -1133,9 +2066,15 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:netherite_block': { icon: 'textures/blocks/netherite_block', displayName: 'Netherite Block' },
     'minecraft:netherite_hoe': { icon: 'textures/items/netherite_hoe', displayName: 'Netherite Hoe' },
     'minecraft:netherite_shovel': { icon: 'textures/items/netherite_shovel', displayName: 'Netherite Shovel' },
-    'minecraft:normal_stone_double_slab': { icon: 'textures/blocks/normal_stone_double_slab', displayName: 'Normal Stone Double Slab' },
+    'minecraft:normal_stone_double_slab': {
+        icon: 'textures/blocks/normal_stone_double_slab',
+        displayName: 'Normal Stone Double Slab'
+    },
     'minecraft:normal_stone_slab': { icon: 'textures/blocks/normal_stone_slab', displayName: 'Normal Stone Slab' },
-    'minecraft:normal_stone_stairs': { icon: 'textures/blocks/normal_stone_stairs', displayName: 'Normal Stone Stairs' },
+    'minecraft:normal_stone_stairs': {
+        icon: 'textures/blocks/normal_stone_stairs',
+        displayName: 'Normal Stone Stairs'
+    },
     'minecraft:noteblock': { icon: 'textures/blocks/noteblock', displayName: 'Noteblock' },
     'minecraft:oak_boat': { icon: 'textures/items/oak_boat', displayName: 'Oak Boat' },
     'minecraft:oak_chest_boat': { icon: 'textures/items/oak_chest_boat', displayName: 'Oak Chest Boat' },
@@ -1155,32 +2094,83 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:orange_candle_cake': { icon: 'textures/items/orange_candle_cake', displayName: 'Orange Candle Cake' },
     'minecraft:orange_carpet': { icon: 'textures/items/orange_carpet', displayName: 'Orange Carpet' },
     'minecraft:orange_concrete': { icon: 'textures/blocks/orange_concrete', displayName: 'Orange Concrete' },
-    'minecraft:orange_concrete_powder': { icon: 'textures/items/orange_concrete_powder', displayName: 'Orange Concrete Powder' },
+    'minecraft:orange_concrete_powder': {
+        icon: 'textures/items/orange_concrete_powder',
+        displayName: 'Orange Concrete Powder'
+    },
     'minecraft:orange_dye': { icon: 'textures/items/orange_dye', displayName: 'Orange Dye' },
-    'minecraft:orange_glazed_terracotta': { icon: 'textures/blocks/orange_glazed_terracotta', displayName: 'Orange Glazed Terracotta' },
+    'minecraft:orange_glazed_terracotta': {
+        icon: 'textures/blocks/orange_glazed_terracotta',
+        displayName: 'Orange Glazed Terracotta'
+    },
     'minecraft:orange_harness': { icon: 'textures/items/orange_harness', displayName: 'Orange Harness' },
     'minecraft:orange_shulker_box': { icon: 'textures/items/orange_shulker_box', displayName: 'Orange Shulker Box' },
-    'minecraft:orange_stained_glass': { icon: 'textures/blocks/orange_stained_glass', displayName: 'Orange Stained Glass' },
-    'minecraft:orange_stained_glass_pane': { icon: 'textures/blocks/orange_stained_glass_pane', displayName: 'Orange Stained Glass Pane' },
+    'minecraft:orange_stained_glass': {
+        icon: 'textures/blocks/orange_stained_glass',
+        displayName: 'Orange Stained Glass'
+    },
+    'minecraft:orange_stained_glass_pane': {
+        icon: 'textures/blocks/orange_stained_glass_pane',
+        displayName: 'Orange Stained Glass Pane'
+    },
     'minecraft:orange_terracotta': { icon: 'textures/blocks/orange_terracotta', displayName: 'Orange Terracotta' },
     'minecraft:orange_tulip': { icon: 'textures/items/orange_tulip', displayName: 'Orange Tulip' },
     'minecraft:orange_wool': { icon: 'textures/items/orange_wool', displayName: 'Orange Wool' },
     'minecraft:oxeye_daisy': { icon: 'textures/items/oxeye_daisy', displayName: 'Oxeye Daisy' },
-    'minecraft:oxidized_chiseled_copper': { icon: 'textures/items/oxidized_chiseled_copper', displayName: 'Oxidized Chiseled Copper' },
+    'minecraft:oxidized_chiseled_copper': {
+        icon: 'textures/items/oxidized_chiseled_copper',
+        displayName: 'Oxidized Chiseled Copper'
+    },
     'minecraft:oxidized_copper': { icon: 'textures/items/oxidized_copper', displayName: 'Oxidized Copper' },
-    'minecraft:oxidized_copper_bars': { icon: 'textures/items/oxidized_copper_bars', displayName: 'Oxidized Copper Bars' },
-    'minecraft:oxidized_copper_bulb': { icon: 'textures/items/oxidized_copper_bulb', displayName: 'Oxidized Copper Bulb' },
-    'minecraft:oxidized_copper_chain': { icon: 'textures/items/oxidized_copper_chain', displayName: 'Oxidized Copper Chain' },
-    'minecraft:oxidized_copper_chest': { icon: 'textures/blocks/oxidized_copper_chest', displayName: 'Oxidized Copper Chest' },
-    'minecraft:oxidized_copper_golem_statue': { icon: 'textures/items/oxidized_copper_golem_statue', displayName: 'Oxidized Copper Golem Statue' },
-    'minecraft:oxidized_copper_grate': { icon: 'textures/items/oxidized_copper_grate', displayName: 'Oxidized Copper Grate' },
-    'minecraft:oxidized_copper_lantern': { icon: 'textures/blocks/oxidized_copper_lantern', displayName: 'Oxidized Copper Lantern' },
-    'minecraft:oxidized_copper_trapdoor': { icon: 'textures/blocks/oxidized_copper_trapdoor', displayName: 'Oxidized Copper Trapdoor' },
+    'minecraft:oxidized_copper_bars': {
+        icon: 'textures/items/oxidized_copper_bars',
+        displayName: 'Oxidized Copper Bars'
+    },
+    'minecraft:oxidized_copper_bulb': {
+        icon: 'textures/items/oxidized_copper_bulb',
+        displayName: 'Oxidized Copper Bulb'
+    },
+    'minecraft:oxidized_copper_chain': {
+        icon: 'textures/items/oxidized_copper_chain',
+        displayName: 'Oxidized Copper Chain'
+    },
+    'minecraft:oxidized_copper_chest': {
+        icon: 'textures/blocks/oxidized_copper_chest',
+        displayName: 'Oxidized Copper Chest'
+    },
+    'minecraft:oxidized_copper_golem_statue': {
+        icon: 'textures/items/oxidized_copper_golem_statue',
+        displayName: 'Oxidized Copper Golem Statue'
+    },
+    'minecraft:oxidized_copper_grate': {
+        icon: 'textures/items/oxidized_copper_grate',
+        displayName: 'Oxidized Copper Grate'
+    },
+    'minecraft:oxidized_copper_lantern': {
+        icon: 'textures/blocks/oxidized_copper_lantern',
+        displayName: 'Oxidized Copper Lantern'
+    },
+    'minecraft:oxidized_copper_trapdoor': {
+        icon: 'textures/blocks/oxidized_copper_trapdoor',
+        displayName: 'Oxidized Copper Trapdoor'
+    },
     'minecraft:oxidized_cut_copper': { icon: 'textures/items/oxidized_cut_copper', displayName: 'Oxidized Cut Copper' },
-    'minecraft:oxidized_cut_copper_slab': { icon: 'textures/blocks/oxidized_cut_copper_slab', displayName: 'Oxidized Cut Copper Slab' },
-    'minecraft:oxidized_cut_copper_stairs': { icon: 'textures/blocks/oxidized_cut_copper_stairs', displayName: 'Oxidized Cut Copper Stairs' },
-    'minecraft:oxidized_double_cut_copper_slab': { icon: 'textures/blocks/oxidized_double_cut_copper_slab', displayName: 'Oxidized Double Cut Copper Slab' },
-    'minecraft:oxidized_lightning_rod': { icon: 'textures/items/oxidized_lightning_rod', displayName: 'Oxidized Lightning Rod' },
+    'minecraft:oxidized_cut_copper_slab': {
+        icon: 'textures/blocks/oxidized_cut_copper_slab',
+        displayName: 'Oxidized Cut Copper Slab'
+    },
+    'minecraft:oxidized_cut_copper_stairs': {
+        icon: 'textures/blocks/oxidized_cut_copper_stairs',
+        displayName: 'Oxidized Cut Copper Stairs'
+    },
+    'minecraft:oxidized_double_cut_copper_slab': {
+        icon: 'textures/blocks/oxidized_double_cut_copper_slab',
+        displayName: 'Oxidized Double Cut Copper Slab'
+    },
+    'minecraft:oxidized_lightning_rod': {
+        icon: 'textures/items/oxidized_lightning_rod',
+        displayName: 'Oxidized Lightning Rod'
+    },
     'minecraft:packed_ice': { icon: 'textures/blocks/packed_ice', displayName: 'Packed Ice' },
     'minecraft:packed_mud': { icon: 'textures/items/packed_mud', displayName: 'Packed Mud' },
     'minecraft:pale_hanging_moss': { icon: 'textures/items/pale_hanging_moss', displayName: 'Pale Hanging Moss' },
@@ -1190,83 +2180,197 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:pale_oak_button': { icon: 'textures/blocks/pale_oak_button', displayName: 'Pale Oak Button' },
     'minecraft:pale_oak_chest_boat': { icon: 'textures/items/pale_oak_chest_boat', displayName: 'Pale Oak Chest Boat' },
     'minecraft:pale_oak_door': { icon: 'textures/items/pale_oak_door', displayName: 'Pale Oak Door' },
-    'minecraft:pale_oak_double_slab': { icon: 'textures/blocks/pale_oak_double_slab', displayName: 'Pale Oak Double Slab' },
+    'minecraft:pale_oak_double_slab': {
+        icon: 'textures/blocks/pale_oak_double_slab',
+        displayName: 'Pale Oak Double Slab'
+    },
     'minecraft:pale_oak_fence': { icon: 'textures/blocks/pale_oak_fence', displayName: 'Pale Oak Fence' },
-    'minecraft:pale_oak_fence_gate': { icon: 'textures/blocks/pale_oak_fence_gate', displayName: 'Pale Oak Fence Gate' },
-    'minecraft:pale_oak_hanging_sign': { icon: 'textures/items/pale_oak_hanging_sign', displayName: 'Pale Oak Hanging Sign' },
+    'minecraft:pale_oak_fence_gate': {
+        icon: 'textures/blocks/pale_oak_fence_gate',
+        displayName: 'Pale Oak Fence Gate'
+    },
+    'minecraft:pale_oak_hanging_sign': {
+        icon: 'textures/items/pale_oak_hanging_sign',
+        displayName: 'Pale Oak Hanging Sign'
+    },
     'minecraft:pale_oak_leaves': { icon: 'textures/blocks/pale_oak_leaves', displayName: 'Pale Oak Leaves' },
     'minecraft:pale_oak_log': { icon: 'textures/blocks/pale_oak_log_top', displayName: 'Pale Oak Log' },
     'minecraft:pale_oak_planks': { icon: 'textures/blocks/pale_oak_planks', displayName: 'Pale Oak Planks' },
-    'minecraft:pale_oak_pressure_plate': { icon: 'textures/blocks/pale_oak_pressure_plate', displayName: 'Pale Oak Pressure Plate' },
+    'minecraft:pale_oak_pressure_plate': {
+        icon: 'textures/blocks/pale_oak_pressure_plate',
+        displayName: 'Pale Oak Pressure Plate'
+    },
     'minecraft:pale_oak_sapling': { icon: 'textures/blocks/pale_oak_sapling', displayName: 'Pale Oak Sapling' },
     'minecraft:pale_oak_shelf': { icon: 'textures/items/pale_oak_shelf', displayName: 'Pale Oak Shelf' },
     'minecraft:pale_oak_sign': { icon: 'textures/items/pale_oak_sign', displayName: 'Pale Oak Sign' },
     'minecraft:pale_oak_slab': { icon: 'textures/blocks/pale_oak_slab', displayName: 'Pale Oak Slab' },
     'minecraft:pale_oak_stairs': { icon: 'textures/blocks/pale_oak_stairs', displayName: 'Pale Oak Stairs' },
-    'minecraft:pale_oak_standing_sign': { icon: 'textures/items/pale_oak_standing_sign', displayName: 'Pale Oak Standing Sign' },
+    'minecraft:pale_oak_standing_sign': {
+        icon: 'textures/items/pale_oak_standing_sign',
+        displayName: 'Pale Oak Standing Sign'
+    },
     'minecraft:pale_oak_trapdoor': { icon: 'textures/blocks/pale_oak_trapdoor', displayName: 'Pale Oak Trapdoor' },
     'minecraft:pale_oak_wall_sign': { icon: 'textures/items/pale_oak_wall_sign', displayName: 'Pale Oak Wall Sign' },
     'minecraft:pale_oak_wood': { icon: 'textures/blocks/pale_oak_wood', displayName: 'Pale Oak Wood' },
-    'minecraft:pearlescent_froglight': { icon: 'textures/items/pearlescent_froglight', displayName: 'Pearlescent Froglight' },
+    'minecraft:pearlescent_froglight': {
+        icon: 'textures/items/pearlescent_froglight',
+        displayName: 'Pearlescent Froglight'
+    },
     'minecraft:peony': { icon: 'textures/items/peony', displayName: 'Peony' },
-    'minecraft:petrified_oak_double_slab': { icon: 'textures/blocks/petrified_oak_double_slab', displayName: 'Petrified Oak Double Slab' },
+    'minecraft:petrified_oak_double_slab': {
+        icon: 'textures/blocks/petrified_oak_double_slab',
+        displayName: 'Petrified Oak Double Slab'
+    },
     'minecraft:piglin_head': { icon: 'textures/items/piglin_head', displayName: 'Piglin Head' },
     'minecraft:pink_candle': { icon: 'textures/items/pink_candle', displayName: 'Pink Candle' },
     'minecraft:pink_candle_cake': { icon: 'textures/items/pink_candle_cake', displayName: 'Pink Candle Cake' },
     'minecraft:pink_carpet': { icon: 'textures/items/pink_carpet', displayName: 'Pink Carpet' },
     'minecraft:pink_concrete': { icon: 'textures/blocks/pink_concrete', displayName: 'Pink Concrete' },
-    'minecraft:pink_concrete_powder': { icon: 'textures/items/pink_concrete_powder', displayName: 'Pink Concrete Powder' },
+    'minecraft:pink_concrete_powder': {
+        icon: 'textures/items/pink_concrete_powder',
+        displayName: 'Pink Concrete Powder'
+    },
     'minecraft:pink_dye': { icon: 'textures/items/pink_dye', displayName: 'Pink Dye' },
-    'minecraft:pink_glazed_terracotta': { icon: 'textures/blocks/pink_glazed_terracotta', displayName: 'Pink Glazed Terracotta' },
+    'minecraft:pink_glazed_terracotta': {
+        icon: 'textures/blocks/pink_glazed_terracotta',
+        displayName: 'Pink Glazed Terracotta'
+    },
     'minecraft:pink_harness': { icon: 'textures/items/pink_harness', displayName: 'Pink Harness' },
     'minecraft:pink_petals': { icon: 'textures/items/pink_petals', displayName: 'Pink Petals' },
     'minecraft:pink_shulker_box': { icon: 'textures/items/pink_shulker_box', displayName: 'Pink Shulker Box' },
     'minecraft:pink_stained_glass': { icon: 'textures/blocks/pink_stained_glass', displayName: 'Pink Stained Glass' },
-    'minecraft:pink_stained_glass_pane': { icon: 'textures/blocks/pink_stained_glass_pane', displayName: 'Pink Stained Glass Pane' },
+    'minecraft:pink_stained_glass_pane': {
+        icon: 'textures/blocks/pink_stained_glass_pane',
+        displayName: 'Pink Stained Glass Pane'
+    },
     'minecraft:pink_terracotta': { icon: 'textures/blocks/pink_terracotta', displayName: 'Pink Terracotta' },
     'minecraft:pink_tulip': { icon: 'textures/items/pink_tulip', displayName: 'Pink Tulip' },
     'minecraft:pink_wool': { icon: 'textures/items/pink_wool', displayName: 'Pink Wool' },
     'minecraft:piston': { icon: 'textures/blocks/piston', displayName: 'Piston' },
-    'minecraft:piston_arm_collision': { icon: 'textures/blocks/piston_arm_collision', displayName: 'Piston Arm Collision' },
+    'minecraft:piston_arm_collision': {
+        icon: 'textures/blocks/piston_arm_collision',
+        displayName: 'Piston Arm Collision'
+    },
     'minecraft:pitcher_crop': { icon: 'textures/items/pitcher_crop', displayName: 'Pitcher Crop' },
     'minecraft:pitcher_plant': { icon: 'textures/items/pitcher_plant', displayName: 'Pitcher Plant' },
     'minecraft:planks': { icon: 'textures/blocks/planks', displayName: 'Planks' },
     'minecraft:podzol': { icon: 'textures/blocks/podzol', displayName: 'Podzol' },
     'minecraft:pointed_dripstone': { icon: 'textures/blocks/pointed_dripstone', displayName: 'Pointed Dripstone' },
     'minecraft:polished_andesite': { icon: 'textures/blocks/polished_andesite', displayName: 'Polished Andesite' },
-    'minecraft:polished_andesite_double_slab': { icon: 'textures/blocks/polished_andesite_double_slab', displayName: 'Polished Andesite Double Slab' },
-    'minecraft:polished_andesite_slab': { icon: 'textures/blocks/polished_andesite_slab', displayName: 'Polished Andesite Slab' },
-    'minecraft:polished_andesite_stairs': { icon: 'textures/blocks/polished_andesite_stairs', displayName: 'Polished Andesite Stairs' },
+    'minecraft:polished_andesite_double_slab': {
+        icon: 'textures/blocks/polished_andesite_double_slab',
+        displayName: 'Polished Andesite Double Slab'
+    },
+    'minecraft:polished_andesite_slab': {
+        icon: 'textures/blocks/polished_andesite_slab',
+        displayName: 'Polished Andesite Slab'
+    },
+    'minecraft:polished_andesite_stairs': {
+        icon: 'textures/blocks/polished_andesite_stairs',
+        displayName: 'Polished Andesite Stairs'
+    },
     'minecraft:polished_basalt': { icon: 'textures/blocks/polished_basalt', displayName: 'Polished Basalt' },
-    'minecraft:polished_blackstone': { icon: 'textures/blocks/polished_blackstone', displayName: 'Polished Blackstone' },
-    'minecraft:polished_blackstone_brick_double_slab': { icon: 'textures/items/polished_blackstone_brick_double_slab', displayName: 'Polished Blackstone Brick Double Slab' },
-    'minecraft:polished_blackstone_brick_slab': { icon: 'textures/items/polished_blackstone_brick_slab', displayName: 'Polished Blackstone Brick Slab' },
-    'minecraft:polished_blackstone_brick_stairs': { icon: 'textures/items/polished_blackstone_brick_stairs', displayName: 'Polished Blackstone Brick Stairs' },
-    'minecraft:polished_blackstone_brick_wall': { icon: 'textures/items/polished_blackstone_brick_wall', displayName: 'Polished Blackstone Brick Wall' },
-    'minecraft:polished_blackstone_bricks': { icon: 'textures/items/polished_blackstone_bricks', displayName: 'Polished Blackstone Bricks' },
-    'minecraft:polished_blackstone_button': { icon: 'textures/blocks/polished_blackstone_button', displayName: 'Polished Blackstone Button' },
-    'minecraft:polished_blackstone_double_slab': { icon: 'textures/blocks/polished_blackstone_double_slab', displayName: 'Polished Blackstone Double Slab' },
-    'minecraft:polished_blackstone_pressure_plate': { icon: 'textures/blocks/polished_blackstone_pressure_plate', displayName: 'Polished Blackstone Pressure Plate' },
-    'minecraft:polished_blackstone_slab': { icon: 'textures/blocks/polished_blackstone_slab', displayName: 'Polished Blackstone Slab' },
-    'minecraft:polished_blackstone_stairs': { icon: 'textures/blocks/polished_blackstone_stairs', displayName: 'Polished Blackstone Stairs' },
-    'minecraft:polished_blackstone_wall': { icon: 'textures/blocks/polished_blackstone_wall', displayName: 'Polished Blackstone Wall' },
+    'minecraft:polished_blackstone': {
+        icon: 'textures/blocks/polished_blackstone',
+        displayName: 'Polished Blackstone'
+    },
+    'minecraft:polished_blackstone_brick_double_slab': {
+        icon: 'textures/items/polished_blackstone_brick_double_slab',
+        displayName: 'Polished Blackstone Brick Double Slab'
+    },
+    'minecraft:polished_blackstone_brick_slab': {
+        icon: 'textures/items/polished_blackstone_brick_slab',
+        displayName: 'Polished Blackstone Brick Slab'
+    },
+    'minecraft:polished_blackstone_brick_stairs': {
+        icon: 'textures/items/polished_blackstone_brick_stairs',
+        displayName: 'Polished Blackstone Brick Stairs'
+    },
+    'minecraft:polished_blackstone_brick_wall': {
+        icon: 'textures/items/polished_blackstone_brick_wall',
+        displayName: 'Polished Blackstone Brick Wall'
+    },
+    'minecraft:polished_blackstone_bricks': {
+        icon: 'textures/items/polished_blackstone_bricks',
+        displayName: 'Polished Blackstone Bricks'
+    },
+    'minecraft:polished_blackstone_button': {
+        icon: 'textures/blocks/polished_blackstone_button',
+        displayName: 'Polished Blackstone Button'
+    },
+    'minecraft:polished_blackstone_double_slab': {
+        icon: 'textures/blocks/polished_blackstone_double_slab',
+        displayName: 'Polished Blackstone Double Slab'
+    },
+    'minecraft:polished_blackstone_pressure_plate': {
+        icon: 'textures/blocks/polished_blackstone_pressure_plate',
+        displayName: 'Polished Blackstone Pressure Plate'
+    },
+    'minecraft:polished_blackstone_slab': {
+        icon: 'textures/blocks/polished_blackstone_slab',
+        displayName: 'Polished Blackstone Slab'
+    },
+    'minecraft:polished_blackstone_stairs': {
+        icon: 'textures/blocks/polished_blackstone_stairs',
+        displayName: 'Polished Blackstone Stairs'
+    },
+    'minecraft:polished_blackstone_wall': {
+        icon: 'textures/blocks/polished_blackstone_wall',
+        displayName: 'Polished Blackstone Wall'
+    },
     'minecraft:polished_deepslate': { icon: 'textures/blocks/polished_deepslate', displayName: 'Polished Deepslate' },
-    'minecraft:polished_deepslate_double_slab': { icon: 'textures/blocks/polished_deepslate_double_slab', displayName: 'Polished Deepslate Double Slab' },
-    'minecraft:polished_deepslate_slab': { icon: 'textures/blocks/polished_deepslate_slab', displayName: 'Polished Deepslate Slab' },
-    'minecraft:polished_deepslate_stairs': { icon: 'textures/blocks/polished_deepslate_stairs', displayName: 'Polished Deepslate Stairs' },
-    'minecraft:polished_deepslate_wall': { icon: 'textures/blocks/polished_deepslate_wall', displayName: 'Polished Deepslate Wall' },
+    'minecraft:polished_deepslate_double_slab': {
+        icon: 'textures/blocks/polished_deepslate_double_slab',
+        displayName: 'Polished Deepslate Double Slab'
+    },
+    'minecraft:polished_deepslate_slab': {
+        icon: 'textures/blocks/polished_deepslate_slab',
+        displayName: 'Polished Deepslate Slab'
+    },
+    'minecraft:polished_deepslate_stairs': {
+        icon: 'textures/blocks/polished_deepslate_stairs',
+        displayName: 'Polished Deepslate Stairs'
+    },
+    'minecraft:polished_deepslate_wall': {
+        icon: 'textures/blocks/polished_deepslate_wall',
+        displayName: 'Polished Deepslate Wall'
+    },
     'minecraft:polished_diorite': { icon: 'textures/blocks/polished_diorite', displayName: 'Polished Diorite' },
-    'minecraft:polished_diorite_double_slab': { icon: 'textures/blocks/polished_diorite_double_slab', displayName: 'Polished Diorite Double Slab' },
-    'minecraft:polished_diorite_slab': { icon: 'textures/blocks/polished_diorite_slab', displayName: 'Polished Diorite Slab' },
-    'minecraft:polished_diorite_stairs': { icon: 'textures/blocks/polished_diorite_stairs', displayName: 'Polished Diorite Stairs' },
+    'minecraft:polished_diorite_double_slab': {
+        icon: 'textures/blocks/polished_diorite_double_slab',
+        displayName: 'Polished Diorite Double Slab'
+    },
+    'minecraft:polished_diorite_slab': {
+        icon: 'textures/blocks/polished_diorite_slab',
+        displayName: 'Polished Diorite Slab'
+    },
+    'minecraft:polished_diorite_stairs': {
+        icon: 'textures/blocks/polished_diorite_stairs',
+        displayName: 'Polished Diorite Stairs'
+    },
     'minecraft:polished_granite': { icon: 'textures/blocks/polished_granite', displayName: 'Polished Granite' },
-    'minecraft:polished_granite_double_slab': { icon: 'textures/blocks/polished_granite_double_slab', displayName: 'Polished Granite Double Slab' },
-    'minecraft:polished_granite_slab': { icon: 'textures/blocks/polished_granite_slab', displayName: 'Polished Granite Slab' },
-    'minecraft:polished_granite_stairs': { icon: 'textures/blocks/polished_granite_stairs', displayName: 'Polished Granite Stairs' },
+    'minecraft:polished_granite_double_slab': {
+        icon: 'textures/blocks/polished_granite_double_slab',
+        displayName: 'Polished Granite Double Slab'
+    },
+    'minecraft:polished_granite_slab': {
+        icon: 'textures/blocks/polished_granite_slab',
+        displayName: 'Polished Granite Slab'
+    },
+    'minecraft:polished_granite_stairs': {
+        icon: 'textures/blocks/polished_granite_stairs',
+        displayName: 'Polished Granite Stairs'
+    },
     'minecraft:polished_tuff': { icon: 'textures/blocks/polished_tuff', displayName: 'Polished Tuff' },
-    'minecraft:polished_tuff_double_slab': { icon: 'textures/blocks/polished_tuff_double_slab', displayName: 'Polished Tuff Double Slab' },
+    'minecraft:polished_tuff_double_slab': {
+        icon: 'textures/blocks/polished_tuff_double_slab',
+        displayName: 'Polished Tuff Double Slab'
+    },
     'minecraft:polished_tuff_slab': { icon: 'textures/blocks/polished_tuff_slab', displayName: 'Polished Tuff Slab' },
-    'minecraft:polished_tuff_stairs': { icon: 'textures/blocks/polished_tuff_stairs', displayName: 'Polished Tuff Stairs' },
+    'minecraft:polished_tuff_stairs': {
+        icon: 'textures/blocks/polished_tuff_stairs',
+        displayName: 'Polished Tuff Stairs'
+    },
     'minecraft:polished_tuff_wall': { icon: 'textures/blocks/polished_tuff_wall', displayName: 'Polished Tuff Wall' },
     'minecraft:poppy': { icon: 'textures/items/poppy', displayName: 'Poppy' },
     'minecraft:potatoes': { icon: 'textures/items/potatoes', displayName: 'Potatoes' },
@@ -1275,11 +2379,23 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:powered_comparator': { icon: 'textures/items/powered_comparator', displayName: 'Powered Comparator' },
     'minecraft:powered_repeater': { icon: 'textures/items/powered_repeater', displayName: 'Powered Repeater' },
     'minecraft:prismarine': { icon: 'textures/items/prismarine', displayName: 'Prismarine' },
-    'minecraft:prismarine_brick_double_slab': { icon: 'textures/items/prismarine_brick_double_slab', displayName: 'Prismarine Brick Double Slab' },
-    'minecraft:prismarine_brick_slab': { icon: 'textures/items/prismarine_brick_slab', displayName: 'Prismarine Brick Slab' },
+    'minecraft:prismarine_brick_double_slab': {
+        icon: 'textures/items/prismarine_brick_double_slab',
+        displayName: 'Prismarine Brick Double Slab'
+    },
+    'minecraft:prismarine_brick_slab': {
+        icon: 'textures/items/prismarine_brick_slab',
+        displayName: 'Prismarine Brick Slab'
+    },
     'minecraft:prismarine_bricks': { icon: 'textures/items/prismarine_bricks', displayName: 'Prismarine Bricks' },
-    'minecraft:prismarine_bricks_stairs': { icon: 'textures/items/prismarine_bricks_stairs', displayName: 'Prismarine Bricks Stairs' },
-    'minecraft:prismarine_double_slab': { icon: 'textures/blocks/prismarine_double_slab', displayName: 'Prismarine Double Slab' },
+    'minecraft:prismarine_bricks_stairs': {
+        icon: 'textures/items/prismarine_bricks_stairs',
+        displayName: 'Prismarine Bricks Stairs'
+    },
+    'minecraft:prismarine_double_slab': {
+        icon: 'textures/blocks/prismarine_double_slab',
+        displayName: 'Prismarine Double Slab'
+    },
     'minecraft:prismarine_slab': { icon: 'textures/blocks/prismarine_slab', displayName: 'Prismarine Slab' },
     'minecraft:prismarine_stairs': { icon: 'textures/blocks/prismarine_stairs', displayName: 'Prismarine Stairs' },
     'minecraft:prismarine_wall': { icon: 'textures/blocks/prismarine_wall', displayName: 'Prismarine Wall' },
@@ -1289,13 +2405,25 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:purple_candle_cake': { icon: 'textures/items/purple_candle_cake', displayName: 'Purple Candle Cake' },
     'minecraft:purple_carpet': { icon: 'textures/items/purple_carpet', displayName: 'Purple Carpet' },
     'minecraft:purple_concrete': { icon: 'textures/blocks/purple_concrete', displayName: 'Purple Concrete' },
-    'minecraft:purple_concrete_powder': { icon: 'textures/items/purple_concrete_powder', displayName: 'Purple Concrete Powder' },
+    'minecraft:purple_concrete_powder': {
+        icon: 'textures/items/purple_concrete_powder',
+        displayName: 'Purple Concrete Powder'
+    },
     'minecraft:purple_dye': { icon: 'textures/items/purple_dye', displayName: 'Purple Dye' },
-    'minecraft:purple_glazed_terracotta': { icon: 'textures/blocks/purple_glazed_terracotta', displayName: 'Purple Glazed Terracotta' },
+    'minecraft:purple_glazed_terracotta': {
+        icon: 'textures/blocks/purple_glazed_terracotta',
+        displayName: 'Purple Glazed Terracotta'
+    },
     'minecraft:purple_harness': { icon: 'textures/items/purple_harness', displayName: 'Purple Harness' },
     'minecraft:purple_shulker_box': { icon: 'textures/items/purple_shulker_box', displayName: 'Purple Shulker Box' },
-    'minecraft:purple_stained_glass': { icon: 'textures/blocks/purple_stained_glass', displayName: 'Purple Stained Glass' },
-    'minecraft:purple_stained_glass_pane': { icon: 'textures/blocks/purple_stained_glass_pane', displayName: 'Purple Stained Glass Pane' },
+    'minecraft:purple_stained_glass': {
+        icon: 'textures/blocks/purple_stained_glass',
+        displayName: 'Purple Stained Glass'
+    },
+    'minecraft:purple_stained_glass_pane': {
+        icon: 'textures/blocks/purple_stained_glass_pane',
+        displayName: 'Purple Stained Glass Pane'
+    },
     'minecraft:purple_terracotta': { icon: 'textures/blocks/purple_terracotta', displayName: 'Purple Terracotta' },
     'minecraft:purple_wool': { icon: 'textures/items/purple_wool', displayName: 'Purple Wool' },
     'minecraft:purpur_double_slab': { icon: 'textures/blocks/purpur_double_slab', displayName: 'Purpur Double Slab' },
@@ -1321,24 +2449,48 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:red_concrete_powder': { icon: 'textures/items/red_concrete_powder', displayName: 'Red Concrete Powder' },
     'minecraft:red_dye': { icon: 'textures/items/red_dye', displayName: 'Red Dye' },
     'minecraft:red_flower': { icon: 'textures/items/red_flower', displayName: 'Red Flower' },
-    'minecraft:red_glazed_terracotta': { icon: 'textures/blocks/red_glazed_terracotta', displayName: 'Red Glazed Terracotta' },
+    'minecraft:red_glazed_terracotta': {
+        icon: 'textures/blocks/red_glazed_terracotta',
+        displayName: 'Red Glazed Terracotta'
+    },
     'minecraft:red_harness': { icon: 'textures/items/red_harness', displayName: 'Red Harness' },
     'minecraft:red_mushroom': { icon: 'textures/items/red_mushroom', displayName: 'Red Mushroom' },
     'minecraft:red_mushroom_block': { icon: 'textures/blocks/red_mushroom_block', displayName: 'Red Mushroom Block' },
     'minecraft:red_nether_brick': { icon: 'textures/items/red_nether_brick', displayName: 'Red Nether Brick' },
-    'minecraft:red_nether_brick_double_slab': { icon: 'textures/items/red_nether_brick_double_slab', displayName: 'Red Nether Brick Double Slab' },
-    'minecraft:red_nether_brick_slab': { icon: 'textures/items/red_nether_brick_slab', displayName: 'Red Nether Brick Slab' },
-    'minecraft:red_nether_brick_stairs': { icon: 'textures/items/red_nether_brick_stairs', displayName: 'Red Nether Brick Stairs' },
-    'minecraft:red_nether_brick_wall': { icon: 'textures/items/red_nether_brick_wall', displayName: 'Red Nether Brick Wall' },
+    'minecraft:red_nether_brick_double_slab': {
+        icon: 'textures/items/red_nether_brick_double_slab',
+        displayName: 'Red Nether Brick Double Slab'
+    },
+    'minecraft:red_nether_brick_slab': {
+        icon: 'textures/items/red_nether_brick_slab',
+        displayName: 'Red Nether Brick Slab'
+    },
+    'minecraft:red_nether_brick_stairs': {
+        icon: 'textures/items/red_nether_brick_stairs',
+        displayName: 'Red Nether Brick Stairs'
+    },
+    'minecraft:red_nether_brick_wall': {
+        icon: 'textures/items/red_nether_brick_wall',
+        displayName: 'Red Nether Brick Wall'
+    },
     'minecraft:red_sand': { icon: 'textures/blocks/red_sand', displayName: 'Red Sand' },
     'minecraft:red_sandstone': { icon: 'textures/blocks/red_sandstone', displayName: 'Red Sandstone' },
-    'minecraft:red_sandstone_double_slab': { icon: 'textures/blocks/red_sandstone_double_slab', displayName: 'Red Sandstone Double Slab' },
+    'minecraft:red_sandstone_double_slab': {
+        icon: 'textures/blocks/red_sandstone_double_slab',
+        displayName: 'Red Sandstone Double Slab'
+    },
     'minecraft:red_sandstone_slab': { icon: 'textures/blocks/red_sandstone_slab', displayName: 'Red Sandstone Slab' },
-    'minecraft:red_sandstone_stairs': { icon: 'textures/blocks/red_sandstone_stairs', displayName: 'Red Sandstone Stairs' },
+    'minecraft:red_sandstone_stairs': {
+        icon: 'textures/blocks/red_sandstone_stairs',
+        displayName: 'Red Sandstone Stairs'
+    },
     'minecraft:red_sandstone_wall': { icon: 'textures/blocks/red_sandstone_wall', displayName: 'Red Sandstone Wall' },
     'minecraft:red_shulker_box': { icon: 'textures/items/red_shulker_box', displayName: 'Red Shulker Box' },
     'minecraft:red_stained_glass': { icon: 'textures/blocks/red_stained_glass', displayName: 'Red Stained Glass' },
-    'minecraft:red_stained_glass_pane': { icon: 'textures/blocks/red_stained_glass_pane', displayName: 'Red Stained Glass Pane' },
+    'minecraft:red_stained_glass_pane': {
+        icon: 'textures/blocks/red_stained_glass_pane',
+        displayName: 'Red Stained Glass Pane'
+    },
     'minecraft:red_terracotta': { icon: 'textures/blocks/red_terracotta', displayName: 'Red Terracotta' },
     'minecraft:red_tulip': { icon: 'textures/items/red_tulip', displayName: 'Red Tulip' },
     'minecraft:red_wool': { icon: 'textures/items/red_wool', displayName: 'Red Wool' },
@@ -1347,12 +2499,18 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:redstone_ore': { icon: 'textures/blocks/redstone_ore', displayName: 'Redstone Ore' },
     'minecraft:redstone_torch': { icon: 'textures/blocks/redstone_torch', displayName: 'Redstone Torch' },
     'minecraft:redstone_wire': { icon: 'textures/blocks/redstone_wire', displayName: 'Redstone Wire' },
-    'minecraft:reinforced_deepslate': { icon: 'textures/blocks/reinforced_deepslate', displayName: 'Reinforced Deepslate' },
+    'minecraft:reinforced_deepslate': {
+        icon: 'textures/blocks/reinforced_deepslate',
+        displayName: 'Reinforced Deepslate'
+    },
     'minecraft:respawn_anchor': { icon: 'textures/items/respawn_anchor', displayName: 'Respawn Anchor' },
     'minecraft:rose_bush': { icon: 'textures/items/rose_bush', displayName: 'Rose Bush' },
     'minecraft:salmon_bucket': { icon: 'textures/items/salmon_bucket', displayName: 'Salmon Bucket' },
     'minecraft:sandstone': { icon: 'textures/blocks/sandstone', displayName: 'Sandstone' },
-    'minecraft:sandstone_double_slab': { icon: 'textures/blocks/sandstone_double_slab', displayName: 'Sandstone Double Slab' },
+    'minecraft:sandstone_double_slab': {
+        icon: 'textures/blocks/sandstone_double_slab',
+        displayName: 'Sandstone Double Slab'
+    },
     'minecraft:sandstone_slab': { icon: 'textures/blocks/sandstone_slab', displayName: 'Sandstone Slab' },
     'minecraft:sandstone_stairs': { icon: 'textures/blocks/sandstone_stairs', displayName: 'Sandstone Stairs' },
     'minecraft:sandstone_wall': { icon: 'textures/blocks/sandstone_wall', displayName: 'Sandstone Wall' },
@@ -1371,29 +2529,65 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:short_grass': { icon: 'textures/items/short_grass', displayName: 'Short Grass' },
     'minecraft:shroomlight': { icon: 'textures/blocks/shroomlight', displayName: 'Shroomlight' },
     'minecraft:shulker_box': { icon: 'textures/items/shulker_box', displayName: 'Shulker Box' },
-    'minecraft:silver_glazed_terracotta': { icon: 'textures/blocks/silver_glazed_terracotta', displayName: 'Silver Glazed Terracotta' },
+    'minecraft:silver_glazed_terracotta': {
+        icon: 'textures/blocks/silver_glazed_terracotta',
+        displayName: 'Silver Glazed Terracotta'
+    },
     'minecraft:skeleton_skull': { icon: 'textures/items/skeleton_skull', displayName: 'Skeleton Skull' },
     'minecraft:skull': { icon: 'textures/items/skull', displayName: 'Skull' },
     'minecraft:slime': { icon: 'textures/items/slime', displayName: 'Slime' },
     'minecraft:small_amethyst_bud': { icon: 'textures/items/small_amethyst_bud', displayName: 'Small Amethyst Bud' },
-    'minecraft:small_dripleaf_block': { icon: 'textures/blocks/small_dripleaf_block', displayName: 'Small Dripleaf Block' },
+    'minecraft:small_dripleaf_block': {
+        icon: 'textures/blocks/small_dripleaf_block',
+        displayName: 'Small Dripleaf Block'
+    },
     'minecraft:smithing_table': { icon: 'textures/blocks/smithing_table', displayName: 'Smithing Table' },
     'minecraft:smoker': { icon: 'textures/blocks/smoker', displayName: 'Smoker' },
     'minecraft:smooth_basalt': { icon: 'textures/blocks/smooth_basalt', displayName: 'Smooth Basalt' },
     'minecraft:smooth_quartz': { icon: 'textures/items/smooth_quartz', displayName: 'Smooth Quartz' },
-    'minecraft:smooth_quartz_double_slab': { icon: 'textures/blocks/smooth_quartz_double_slab', displayName: 'Smooth Quartz Double Slab' },
+    'minecraft:smooth_quartz_double_slab': {
+        icon: 'textures/blocks/smooth_quartz_double_slab',
+        displayName: 'Smooth Quartz Double Slab'
+    },
     'minecraft:smooth_quartz_slab': { icon: 'textures/blocks/smooth_quartz_slab', displayName: 'Smooth Quartz Slab' },
-    'minecraft:smooth_quartz_stairs': { icon: 'textures/blocks/smooth_quartz_stairs', displayName: 'Smooth Quartz Stairs' },
-    'minecraft:smooth_red_sandstone': { icon: 'textures/blocks/smooth_red_sandstone', displayName: 'Smooth Red Sandstone' },
-    'minecraft:smooth_red_sandstone_double_slab': { icon: 'textures/blocks/smooth_red_sandstone_double_slab', displayName: 'Smooth Red Sandstone Double Slab' },
-    'minecraft:smooth_red_sandstone_slab': { icon: 'textures/blocks/smooth_red_sandstone_slab', displayName: 'Smooth Red Sandstone Slab' },
-    'minecraft:smooth_red_sandstone_stairs': { icon: 'textures/blocks/smooth_red_sandstone_stairs', displayName: 'Smooth Red Sandstone Stairs' },
+    'minecraft:smooth_quartz_stairs': {
+        icon: 'textures/blocks/smooth_quartz_stairs',
+        displayName: 'Smooth Quartz Stairs'
+    },
+    'minecraft:smooth_red_sandstone': {
+        icon: 'textures/blocks/smooth_red_sandstone',
+        displayName: 'Smooth Red Sandstone'
+    },
+    'minecraft:smooth_red_sandstone_double_slab': {
+        icon: 'textures/blocks/smooth_red_sandstone_double_slab',
+        displayName: 'Smooth Red Sandstone Double Slab'
+    },
+    'minecraft:smooth_red_sandstone_slab': {
+        icon: 'textures/blocks/smooth_red_sandstone_slab',
+        displayName: 'Smooth Red Sandstone Slab'
+    },
+    'minecraft:smooth_red_sandstone_stairs': {
+        icon: 'textures/blocks/smooth_red_sandstone_stairs',
+        displayName: 'Smooth Red Sandstone Stairs'
+    },
     'minecraft:smooth_sandstone': { icon: 'textures/blocks/smooth_sandstone', displayName: 'Smooth Sandstone' },
-    'minecraft:smooth_sandstone_double_slab': { icon: 'textures/blocks/smooth_sandstone_double_slab', displayName: 'Smooth Sandstone Double Slab' },
-    'minecraft:smooth_sandstone_slab': { icon: 'textures/blocks/smooth_sandstone_slab', displayName: 'Smooth Sandstone Slab' },
-    'minecraft:smooth_sandstone_stairs': { icon: 'textures/blocks/smooth_sandstone_stairs', displayName: 'Smooth Sandstone Stairs' },
+    'minecraft:smooth_sandstone_double_slab': {
+        icon: 'textures/blocks/smooth_sandstone_double_slab',
+        displayName: 'Smooth Sandstone Double Slab'
+    },
+    'minecraft:smooth_sandstone_slab': {
+        icon: 'textures/blocks/smooth_sandstone_slab',
+        displayName: 'Smooth Sandstone Slab'
+    },
+    'minecraft:smooth_sandstone_stairs': {
+        icon: 'textures/blocks/smooth_sandstone_stairs',
+        displayName: 'Smooth Sandstone Stairs'
+    },
     'minecraft:smooth_stone': { icon: 'textures/blocks/smooth_stone', displayName: 'Smooth Stone' },
-    'minecraft:smooth_stone_double_slab': { icon: 'textures/blocks/smooth_stone_double_slab', displayName: 'Smooth Stone Double Slab' },
+    'minecraft:smooth_stone_double_slab': {
+        icon: 'textures/blocks/smooth_stone_double_slab',
+        displayName: 'Smooth Stone Double Slab'
+    },
     'minecraft:smooth_stone_slab': { icon: 'textures/blocks/smooth_stone_slab', displayName: 'Smooth Stone Slab' },
     'minecraft:sniffer_egg': { icon: 'textures/items/sniffer_egg', displayName: 'Sniffer Egg' },
     'minecraft:snow': { icon: 'textures/blocks/snow', displayName: 'Snow' },
@@ -1413,64 +2607,145 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:spruce_fence_gate': { icon: 'textures/blocks/spruce_fence_gate', displayName: 'Spruce Fence Gate' },
     'minecraft:spruce_leaves': { icon: 'textures/blocks/spruce_leaves', displayName: 'Spruce Leaves' },
     'minecraft:spruce_planks': { icon: 'textures/blocks/spruce_planks', displayName: 'Spruce Planks' },
-    'minecraft:spruce_pressure_plate': { icon: 'textures/blocks/spruce_pressure_plate', displayName: 'Spruce Pressure Plate' },
+    'minecraft:spruce_pressure_plate': {
+        icon: 'textures/blocks/spruce_pressure_plate',
+        displayName: 'Spruce Pressure Plate'
+    },
     'minecraft:spruce_sapling': { icon: 'textures/blocks/spruce_sapling', displayName: 'Spruce Sapling' },
     'minecraft:spruce_shelf': { icon: 'textures/items/spruce_shelf', displayName: 'Spruce Shelf' },
     'minecraft:spruce_slab': { icon: 'textures/blocks/spruce_slab', displayName: 'Spruce Slab' },
     'minecraft:spruce_stairs': { icon: 'textures/blocks/spruce_stairs', displayName: 'Spruce Stairs' },
-    'minecraft:spruce_standing_sign': { icon: 'textures/items/spruce_standing_sign', displayName: 'Spruce Standing Sign' },
+    'minecraft:spruce_standing_sign': {
+        icon: 'textures/items/spruce_standing_sign',
+        displayName: 'Spruce Standing Sign'
+    },
     'minecraft:spruce_trapdoor': { icon: 'textures/blocks/spruce_trapdoor', displayName: 'Spruce Trapdoor' },
     'minecraft:spruce_wall_sign': { icon: 'textures/items/spruce_wall_sign', displayName: 'Spruce Wall Sign' },
     'minecraft:spruce_wood': { icon: 'textures/blocks/spruce_wood', displayName: 'Spruce Wood' },
     'minecraft:stained_glass': { icon: 'textures/blocks/stained_glass', displayName: 'Stained Glass' },
     'minecraft:stained_glass_pane': { icon: 'textures/blocks/stained_glass_pane', displayName: 'Stained Glass Pane' },
-    'minecraft:stained_hardened_clay': { icon: 'textures/items/stained_hardened_clay', displayName: 'Stained Hardened Clay' },
+    'minecraft:stained_hardened_clay': {
+        icon: 'textures/items/stained_hardened_clay',
+        displayName: 'Stained Hardened Clay'
+    },
     'minecraft:standing_banner': { icon: 'textures/items/standing_banner', displayName: 'Standing Banner' },
     'minecraft:standing_sign': { icon: 'textures/items/standing_sign', displayName: 'Standing Sign' },
     'minecraft:sticky_piston': { icon: 'textures/items/sticky_piston', displayName: 'Sticky Piston' },
-    'minecraft:sticky_piston_arm_collision': { icon: 'textures/items/sticky_piston_arm_collision', displayName: 'Sticky Piston Arm Collision' },
+    'minecraft:sticky_piston_arm_collision': {
+        icon: 'textures/items/sticky_piston_arm_collision',
+        displayName: 'Sticky Piston Arm Collision'
+    },
     'minecraft:stone_axe': { icon: 'textures/items/stone_axe', displayName: 'Stone Axe' },
     'minecraft:stone_block_slab': { icon: 'textures/blocks/stone_block_slab', displayName: 'Stone Block Slab' },
     'minecraft:stone_block_slab2': { icon: 'textures/blocks/stone_block_slab2', displayName: 'Stone Block Slab2' },
     'minecraft:stone_block_slab3': { icon: 'textures/blocks/stone_block_slab3', displayName: 'Stone Block Slab3' },
     'minecraft:stone_block_slab4': { icon: 'textures/blocks/stone_block_slab4', displayName: 'Stone Block Slab4' },
-    'minecraft:stone_brick_double_slab': { icon: 'textures/items/stone_brick_double_slab', displayName: 'Stone Brick Double Slab' },
+    'minecraft:stone_brick_double_slab': {
+        icon: 'textures/items/stone_brick_double_slab',
+        displayName: 'Stone Brick Double Slab'
+    },
     'minecraft:stone_brick_slab': { icon: 'textures/items/stone_brick_slab', displayName: 'Stone Brick Slab' },
     'minecraft:stone_brick_stairs': { icon: 'textures/items/stone_brick_stairs', displayName: 'Stone Brick Stairs' },
     'minecraft:stone_brick_wall': { icon: 'textures/items/stone_brick_wall', displayName: 'Stone Brick Wall' },
     'minecraft:stone_button': { icon: 'textures/blocks/stone_button', displayName: 'Stone Button' },
     'minecraft:stone_hoe': { icon: 'textures/items/stone_hoe', displayName: 'Stone Hoe' },
     'minecraft:stone_pickaxe': { icon: 'textures/items/stone_pickaxe', displayName: 'Stone Pickaxe' },
-    'minecraft:stone_pressure_plate': { icon: 'textures/blocks/stone_pressure_plate', displayName: 'Stone Pressure Plate' },
+    'minecraft:stone_pressure_plate': {
+        icon: 'textures/blocks/stone_pressure_plate',
+        displayName: 'Stone Pressure Plate'
+    },
     'minecraft:stone_shovel': { icon: 'textures/items/stone_shovel', displayName: 'Stone Shovel' },
     'minecraft:stone_stairs': { icon: 'textures/blocks/stone_stairs', displayName: 'Stone Stairs' },
     'minecraft:stone_sword': { icon: 'textures/items/stone_sword', displayName: 'Stone Sword' },
     'minecraft:stonebrick': { icon: 'textures/items/stonebrick', displayName: 'Stonebrick' },
     'minecraft:stonecutter': { icon: 'textures/blocks/stonecutter', displayName: 'Stonecutter' },
     'minecraft:stonecutter_block': { icon: 'textures/blocks/stonecutter_block', displayName: 'Stonecutter Block' },
-    'minecraft:stripped_acacia_log': { icon: 'textures/blocks/stripped_acacia_log_top', displayName: 'Stripped Acacia Log' },
-    'minecraft:stripped_acacia_wood': { icon: 'textures/blocks/stripped_acacia_wood', displayName: 'Stripped Acacia Wood' },
-    'minecraft:stripped_bamboo_block': { icon: 'textures/blocks/stripped_bamboo_block', displayName: 'Stripped Bamboo Block' },
-    'minecraft:stripped_birch_log': { icon: 'textures/blocks/stripped_birch_log_top', displayName: 'Stripped Birch Log' },
-    'minecraft:stripped_birch_wood': { icon: 'textures/blocks/stripped_birch_wood', displayName: 'Stripped Birch Wood' },
-    'minecraft:stripped_cherry_log': { icon: 'textures/blocks/stripped_cherry_log_top', displayName: 'Stripped Cherry Log' },
-    'minecraft:stripped_cherry_wood': { icon: 'textures/blocks/stripped_cherry_wood', displayName: 'Stripped Cherry Wood' },
-    'minecraft:stripped_crimson_hyphae': { icon: 'textures/blocks/stripped_crimson_hyphae', displayName: 'Stripped Crimson Hyphae' },
-    'minecraft:stripped_crimson_stem': { icon: 'textures/blocks/stripped_crimson_stem_top', displayName: 'Stripped Crimson Stem' },
-    'minecraft:stripped_dark_oak_log': { icon: 'textures/blocks/stripped_dark_oak_log_top', displayName: 'Stripped Dark Oak Log' },
-    'minecraft:stripped_dark_oak_wood': { icon: 'textures/blocks/stripped_dark_oak_wood', displayName: 'Stripped Dark Oak Wood' },
-    'minecraft:stripped_jungle_log': { icon: 'textures/blocks/stripped_jungle_log_top', displayName: 'Stripped Jungle Log' },
-    'minecraft:stripped_jungle_wood': { icon: 'textures/blocks/stripped_jungle_wood', displayName: 'Stripped Jungle Wood' },
-    'minecraft:stripped_mangrove_log': { icon: 'textures/blocks/stripped_mangrove_log_top', displayName: 'Stripped Mangrove Log' },
-    'minecraft:stripped_mangrove_wood': { icon: 'textures/blocks/stripped_mangrove_wood', displayName: 'Stripped Mangrove Wood' },
+    'minecraft:stripped_acacia_log': {
+        icon: 'textures/blocks/stripped_acacia_log_top',
+        displayName: 'Stripped Acacia Log'
+    },
+    'minecraft:stripped_acacia_wood': {
+        icon: 'textures/blocks/stripped_acacia_wood',
+        displayName: 'Stripped Acacia Wood'
+    },
+    'minecraft:stripped_bamboo_block': {
+        icon: 'textures/blocks/stripped_bamboo_block',
+        displayName: 'Stripped Bamboo Block'
+    },
+    'minecraft:stripped_birch_log': {
+        icon: 'textures/blocks/stripped_birch_log_top',
+        displayName: 'Stripped Birch Log'
+    },
+    'minecraft:stripped_birch_wood': {
+        icon: 'textures/blocks/stripped_birch_wood',
+        displayName: 'Stripped Birch Wood'
+    },
+    'minecraft:stripped_cherry_log': {
+        icon: 'textures/blocks/stripped_cherry_log_top',
+        displayName: 'Stripped Cherry Log'
+    },
+    'minecraft:stripped_cherry_wood': {
+        icon: 'textures/blocks/stripped_cherry_wood',
+        displayName: 'Stripped Cherry Wood'
+    },
+    'minecraft:stripped_crimson_hyphae': {
+        icon: 'textures/blocks/stripped_crimson_hyphae',
+        displayName: 'Stripped Crimson Hyphae'
+    },
+    'minecraft:stripped_crimson_stem': {
+        icon: 'textures/blocks/stripped_crimson_stem_top',
+        displayName: 'Stripped Crimson Stem'
+    },
+    'minecraft:stripped_dark_oak_log': {
+        icon: 'textures/blocks/stripped_dark_oak_log_top',
+        displayName: 'Stripped Dark Oak Log'
+    },
+    'minecraft:stripped_dark_oak_wood': {
+        icon: 'textures/blocks/stripped_dark_oak_wood',
+        displayName: 'Stripped Dark Oak Wood'
+    },
+    'minecraft:stripped_jungle_log': {
+        icon: 'textures/blocks/stripped_jungle_log_top',
+        displayName: 'Stripped Jungle Log'
+    },
+    'minecraft:stripped_jungle_wood': {
+        icon: 'textures/blocks/stripped_jungle_wood',
+        displayName: 'Stripped Jungle Wood'
+    },
+    'minecraft:stripped_mangrove_log': {
+        icon: 'textures/blocks/stripped_mangrove_log_top',
+        displayName: 'Stripped Mangrove Log'
+    },
+    'minecraft:stripped_mangrove_wood': {
+        icon: 'textures/blocks/stripped_mangrove_wood',
+        displayName: 'Stripped Mangrove Wood'
+    },
     'minecraft:stripped_oak_log': { icon: 'textures/blocks/stripped_oak_log_top', displayName: 'Stripped Oak Log' },
     'minecraft:stripped_oak_wood': { icon: 'textures/blocks/stripped_oak_wood', displayName: 'Stripped Oak Wood' },
-    'minecraft:stripped_pale_oak_log': { icon: 'textures/blocks/stripped_pale_oak_log_top', displayName: 'Stripped Pale Oak Log' },
-    'minecraft:stripped_pale_oak_wood': { icon: 'textures/blocks/stripped_pale_oak_wood', displayName: 'Stripped Pale Oak Wood' },
-    'minecraft:stripped_spruce_log': { icon: 'textures/blocks/stripped_spruce_log_top', displayName: 'Stripped Spruce Log' },
-    'minecraft:stripped_spruce_wood': { icon: 'textures/blocks/stripped_spruce_wood', displayName: 'Stripped Spruce Wood' },
-    'minecraft:stripped_warped_hyphae': { icon: 'textures/blocks/stripped_warped_hyphae', displayName: 'Stripped Warped Hyphae' },
-    'minecraft:stripped_warped_stem': { icon: 'textures/blocks/stripped_warped_stem_top', displayName: 'Stripped Warped Stem' },
+    'minecraft:stripped_pale_oak_log': {
+        icon: 'textures/blocks/stripped_pale_oak_log_top',
+        displayName: 'Stripped Pale Oak Log'
+    },
+    'minecraft:stripped_pale_oak_wood': {
+        icon: 'textures/blocks/stripped_pale_oak_wood',
+        displayName: 'Stripped Pale Oak Wood'
+    },
+    'minecraft:stripped_spruce_log': {
+        icon: 'textures/blocks/stripped_spruce_log_top',
+        displayName: 'Stripped Spruce Log'
+    },
+    'minecraft:stripped_spruce_wood': {
+        icon: 'textures/blocks/stripped_spruce_wood',
+        displayName: 'Stripped Spruce Wood'
+    },
+    'minecraft:stripped_warped_hyphae': {
+        icon: 'textures/blocks/stripped_warped_hyphae',
+        displayName: 'Stripped Warped Hyphae'
+    },
+    'minecraft:stripped_warped_stem': {
+        icon: 'textures/blocks/stripped_warped_stem_top',
+        displayName: 'Stripped Warped Stem'
+    },
     'minecraft:sunflower': { icon: 'textures/items/sunflower', displayName: 'Sunflower' },
     'minecraft:suspicious_gravel': { icon: 'textures/blocks/suspicious_gravel', displayName: 'Suspicious Gravel' },
     'minecraft:suspicious_sand': { icon: 'textures/blocks/suspicious_sand', displayName: 'Suspicious Sand' },
@@ -1490,13 +2765,22 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:trident': { icon: 'textures/items/trident', displayName: 'Trident' },
     'minecraft:trip_wire': { icon: 'textures/items/trip_wire', displayName: 'Trip Wire' },
     'minecraft:tripwire_hook': { icon: 'textures/items/tripwire_hook', displayName: 'Tripwire Hook' },
-    'minecraft:tropical_fish_bucket': { icon: 'textures/items/tropical_fish_bucket', displayName: 'Tropical Fish Bucket' },
+    'minecraft:tropical_fish_bucket': {
+        icon: 'textures/items/tropical_fish_bucket',
+        displayName: 'Tropical Fish Bucket'
+    },
     'minecraft:tube_coral': { icon: 'textures/blocks/tube_coral', displayName: 'Tube Coral' },
     'minecraft:tube_coral_block': { icon: 'textures/blocks/tube_coral_block', displayName: 'Tube Coral Block' },
     'minecraft:tube_coral_fan': { icon: 'textures/blocks/tube_coral_fan', displayName: 'Tube Coral Fan' },
-    'minecraft:tube_coral_wall_fan': { icon: 'textures/blocks/tube_coral_wall_fan', displayName: 'Tube Coral Wall Fan' },
+    'minecraft:tube_coral_wall_fan': {
+        icon: 'textures/blocks/tube_coral_wall_fan',
+        displayName: 'Tube Coral Wall Fan'
+    },
     'minecraft:tuff': { icon: 'textures/blocks/tuff', displayName: 'Tuff' },
-    'minecraft:tuff_brick_double_slab': { icon: 'textures/items/tuff_brick_double_slab', displayName: 'Tuff Brick Double Slab' },
+    'minecraft:tuff_brick_double_slab': {
+        icon: 'textures/items/tuff_brick_double_slab',
+        displayName: 'Tuff Brick Double Slab'
+    },
     'minecraft:tuff_brick_slab': { icon: 'textures/items/tuff_brick_slab', displayName: 'Tuff Brick Slab' },
     'minecraft:tuff_brick_stairs': { icon: 'textures/items/tuff_brick_stairs', displayName: 'Tuff Brick Stairs' },
     'minecraft:tuff_brick_wall': { icon: 'textures/items/tuff_brick_wall', displayName: 'Tuff Brick Wall' },
@@ -1509,15 +2793,24 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:turtle_scute': { icon: 'textures/items/turtle_scute', displayName: 'Turtle Scute' },
     'minecraft:twisting_vines': { icon: 'textures/blocks/twisting_vines', displayName: 'Twisting Vines' },
     'minecraft:undyed_shulker_box': { icon: 'textures/items/undyed_shulker_box', displayName: 'Undyed Shulker Box' },
-    'minecraft:unlit_redstone_torch': { icon: 'textures/blocks/unlit_redstone_torch', displayName: 'Unlit Redstone Torch' },
-    'minecraft:unpowered_comparator': { icon: 'textures/items/unpowered_comparator', displayName: 'Unpowered Comparator' },
+    'minecraft:unlit_redstone_torch': {
+        icon: 'textures/blocks/unlit_redstone_torch',
+        displayName: 'Unlit Redstone Torch'
+    },
+    'minecraft:unpowered_comparator': {
+        icon: 'textures/items/unpowered_comparator',
+        displayName: 'Unpowered Comparator'
+    },
     'minecraft:unpowered_repeater': { icon: 'textures/items/unpowered_repeater', displayName: 'Unpowered Repeater' },
     'minecraft:vault': { icon: 'textures/items/vault', displayName: 'Vault' },
     'minecraft:verdant_froglight': { icon: 'textures/items/verdant_froglight', displayName: 'Verdant Froglight' },
     'minecraft:vine': { icon: 'textures/items/vine', displayName: 'Vine' },
     'minecraft:wall_banner': { icon: 'textures/items/wall_banner', displayName: 'Wall Banner' },
     'minecraft:wall_sign': { icon: 'textures/items/wall_sign', displayName: 'Wall Sign' },
-    'minecraft:wandering_trader_spawn_egg': { icon: 'textures/items/spawn_eggs/spawn_egg_wandering_trader', displayName: 'Wandering Trader Spawn Egg' },
+    'minecraft:wandering_trader_spawn_egg': {
+        icon: 'textures/items/spawn_eggs/spawn_egg_wandering_trader',
+        displayName: 'Wandering Trader Spawn Egg'
+    },
     'minecraft:warped_button': { icon: 'textures/blocks/warped_button', displayName: 'Warped Button' },
     'minecraft:warped_door': { icon: 'textures/items/warped_door', displayName: 'Warped Door' },
     'minecraft:warped_double_slab': { icon: 'textures/blocks/warped_double_slab', displayName: 'Warped Double Slab' },
@@ -1527,95 +2820,278 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:warped_hyphae': { icon: 'textures/blocks/warped_hyphae', displayName: 'Warped Hyphae' },
     'minecraft:warped_nylium': { icon: 'textures/blocks/warped_nylium', displayName: 'Warped Nylium' },
     'minecraft:warped_planks': { icon: 'textures/blocks/warped_planks', displayName: 'Warped Planks' },
-    'minecraft:warped_pressure_plate': { icon: 'textures/blocks/warped_pressure_plate', displayName: 'Warped Pressure Plate' },
+    'minecraft:warped_pressure_plate': {
+        icon: 'textures/blocks/warped_pressure_plate',
+        displayName: 'Warped Pressure Plate'
+    },
     'minecraft:warped_roots': { icon: 'textures/blocks/warped_roots', displayName: 'Warped Roots' },
     'minecraft:warped_shelf': { icon: 'textures/items/warped_shelf', displayName: 'Warped Shelf' },
     'minecraft:warped_slab': { icon: 'textures/blocks/warped_slab', displayName: 'Warped Slab' },
     'minecraft:warped_stairs': { icon: 'textures/blocks/warped_stairs', displayName: 'Warped Stairs' },
-    'minecraft:warped_standing_sign': { icon: 'textures/items/warped_standing_sign', displayName: 'Warped Standing Sign' },
+    'minecraft:warped_standing_sign': {
+        icon: 'textures/items/warped_standing_sign',
+        displayName: 'Warped Standing Sign'
+    },
     'minecraft:warped_trapdoor': { icon: 'textures/blocks/warped_trapdoor', displayName: 'Warped Trapdoor' },
     'minecraft:warped_wall_sign': { icon: 'textures/items/warped_wall_sign', displayName: 'Warped Wall Sign' },
     'minecraft:warped_wart_block': { icon: 'textures/blocks/warped_wart_block', displayName: 'Warped Wart Block' },
     'minecraft:water': { icon: 'textures/items/water', displayName: 'Water' },
     'minecraft:water_bucket': { icon: 'textures/items/water_bucket', displayName: 'Water Bucket' },
     'minecraft:waterlily': { icon: 'textures/items/waterlily', displayName: 'Waterlily' },
-    'minecraft:waxed_chiseled_copper': { icon: 'textures/items/waxed_chiseled_copper', displayName: 'Waxed Chiseled Copper' },
+    'minecraft:waxed_chiseled_copper': {
+        icon: 'textures/items/waxed_chiseled_copper',
+        displayName: 'Waxed Chiseled Copper'
+    },
     'minecraft:waxed_copper': { icon: 'textures/items/waxed_copper', displayName: 'Waxed Copper' },
     'minecraft:waxed_copper_bars': { icon: 'textures/items/waxed_copper_bars', displayName: 'Waxed Copper Bars' },
     'minecraft:waxed_copper_bulb': { icon: 'textures/items/waxed_copper_bulb', displayName: 'Waxed Copper Bulb' },
     'minecraft:waxed_copper_chain': { icon: 'textures/items/waxed_copper_chain', displayName: 'Waxed Copper Chain' },
     'minecraft:waxed_copper_chest': { icon: 'textures/blocks/waxed_copper_chest', displayName: 'Waxed Copper Chest' },
     'minecraft:waxed_copper_door': { icon: 'textures/items/waxed_copper_door', displayName: 'Waxed Copper Door' },
-    'minecraft:waxed_copper_golem_statue': { icon: 'textures/items/waxed_copper_golem_statue', displayName: 'Waxed Copper Golem Statue' },
+    'minecraft:waxed_copper_golem_statue': {
+        icon: 'textures/items/waxed_copper_golem_statue',
+        displayName: 'Waxed Copper Golem Statue'
+    },
     'minecraft:waxed_copper_grate': { icon: 'textures/items/waxed_copper_grate', displayName: 'Waxed Copper Grate' },
-    'minecraft:waxed_copper_lantern': { icon: 'textures/blocks/waxed_copper_lantern', displayName: 'Waxed Copper Lantern' },
-    'minecraft:waxed_copper_trapdoor': { icon: 'textures/blocks/waxed_copper_trapdoor', displayName: 'Waxed Copper Trapdoor' },
+    'minecraft:waxed_copper_lantern': {
+        icon: 'textures/blocks/waxed_copper_lantern',
+        displayName: 'Waxed Copper Lantern'
+    },
+    'minecraft:waxed_copper_trapdoor': {
+        icon: 'textures/blocks/waxed_copper_trapdoor',
+        displayName: 'Waxed Copper Trapdoor'
+    },
     'minecraft:waxed_cut_copper': { icon: 'textures/items/waxed_cut_copper', displayName: 'Waxed Cut Copper' },
-    'minecraft:waxed_cut_copper_slab': { icon: 'textures/blocks/waxed_cut_copper_slab', displayName: 'Waxed Cut Copper Slab' },
-    'minecraft:waxed_cut_copper_stairs': { icon: 'textures/blocks/waxed_cut_copper_stairs', displayName: 'Waxed Cut Copper Stairs' },
-    'minecraft:waxed_double_cut_copper_slab': { icon: 'textures/blocks/waxed_double_cut_copper_slab', displayName: 'Waxed Double Cut Copper Slab' },
-    'minecraft:waxed_exposed_chiseled_copper': { icon: 'textures/items/waxed_exposed_chiseled_copper', displayName: 'Waxed Exposed Chiseled Copper' },
-    'minecraft:waxed_exposed_copper': { icon: 'textures/items/waxed_exposed_copper', displayName: 'Waxed Exposed Copper' },
-    'minecraft:waxed_exposed_copper_bars': { icon: 'textures/items/waxed_exposed_copper_bars', displayName: 'Waxed Exposed Copper Bars' },
-    'minecraft:waxed_exposed_copper_bulb': { icon: 'textures/items/waxed_exposed_copper_bulb', displayName: 'Waxed Exposed Copper Bulb' },
-    'minecraft:waxed_exposed_copper_chain': { icon: 'textures/items/waxed_exposed_copper_chain', displayName: 'Waxed Exposed Copper Chain' },
-    'minecraft:waxed_exposed_copper_chest': { icon: 'textures/blocks/waxed_exposed_copper_chest', displayName: 'Waxed Exposed Copper Chest' },
-    'minecraft:waxed_exposed_copper_door': { icon: 'textures/items/waxed_exposed_copper_door', displayName: 'Waxed Exposed Copper Door' },
-    'minecraft:waxed_exposed_copper_golem_statue': { icon: 'textures/items/waxed_exposed_copper_golem_statue', displayName: 'Waxed Exposed Copper Golem Statue' },
-    'minecraft:waxed_exposed_copper_grate': { icon: 'textures/items/waxed_exposed_copper_grate', displayName: 'Waxed Exposed Copper Grate' },
-    'minecraft:waxed_exposed_copper_lantern': { icon: 'textures/blocks/waxed_exposed_copper_lantern', displayName: 'Waxed Exposed Copper Lantern' },
-    'minecraft:waxed_exposed_copper_trapdoor': { icon: 'textures/blocks/waxed_exposed_copper_trapdoor', displayName: 'Waxed Exposed Copper Trapdoor' },
-    'minecraft:waxed_exposed_cut_copper': { icon: 'textures/items/waxed_exposed_cut_copper', displayName: 'Waxed Exposed Cut Copper' },
-    'minecraft:waxed_exposed_cut_copper_slab': { icon: 'textures/blocks/waxed_exposed_cut_copper_slab', displayName: 'Waxed Exposed Cut Copper Slab' },
-    'minecraft:waxed_exposed_cut_copper_stairs': { icon: 'textures/blocks/waxed_exposed_cut_copper_stairs', displayName: 'Waxed Exposed Cut Copper Stairs' },
-    'minecraft:waxed_exposed_double_cut_copper_slab': { icon: 'textures/blocks/waxed_exposed_double_cut_copper_slab', displayName: 'Waxed Exposed Double Cut Copper Slab' },
-    'minecraft:waxed_exposed_lightning_rod': { icon: 'textures/items/waxed_exposed_lightning_rod', displayName: 'Waxed Exposed Lightning Rod' },
+    'minecraft:waxed_cut_copper_slab': {
+        icon: 'textures/blocks/waxed_cut_copper_slab',
+        displayName: 'Waxed Cut Copper Slab'
+    },
+    'minecraft:waxed_cut_copper_stairs': {
+        icon: 'textures/blocks/waxed_cut_copper_stairs',
+        displayName: 'Waxed Cut Copper Stairs'
+    },
+    'minecraft:waxed_double_cut_copper_slab': {
+        icon: 'textures/blocks/waxed_double_cut_copper_slab',
+        displayName: 'Waxed Double Cut Copper Slab'
+    },
+    'minecraft:waxed_exposed_chiseled_copper': {
+        icon: 'textures/items/waxed_exposed_chiseled_copper',
+        displayName: 'Waxed Exposed Chiseled Copper'
+    },
+    'minecraft:waxed_exposed_copper': {
+        icon: 'textures/items/waxed_exposed_copper',
+        displayName: 'Waxed Exposed Copper'
+    },
+    'minecraft:waxed_exposed_copper_bars': {
+        icon: 'textures/items/waxed_exposed_copper_bars',
+        displayName: 'Waxed Exposed Copper Bars'
+    },
+    'minecraft:waxed_exposed_copper_bulb': {
+        icon: 'textures/items/waxed_exposed_copper_bulb',
+        displayName: 'Waxed Exposed Copper Bulb'
+    },
+    'minecraft:waxed_exposed_copper_chain': {
+        icon: 'textures/items/waxed_exposed_copper_chain',
+        displayName: 'Waxed Exposed Copper Chain'
+    },
+    'minecraft:waxed_exposed_copper_chest': {
+        icon: 'textures/blocks/waxed_exposed_copper_chest',
+        displayName: 'Waxed Exposed Copper Chest'
+    },
+    'minecraft:waxed_exposed_copper_door': {
+        icon: 'textures/items/waxed_exposed_copper_door',
+        displayName: 'Waxed Exposed Copper Door'
+    },
+    'minecraft:waxed_exposed_copper_golem_statue': {
+        icon: 'textures/items/waxed_exposed_copper_golem_statue',
+        displayName: 'Waxed Exposed Copper Golem Statue'
+    },
+    'minecraft:waxed_exposed_copper_grate': {
+        icon: 'textures/items/waxed_exposed_copper_grate',
+        displayName: 'Waxed Exposed Copper Grate'
+    },
+    'minecraft:waxed_exposed_copper_lantern': {
+        icon: 'textures/blocks/waxed_exposed_copper_lantern',
+        displayName: 'Waxed Exposed Copper Lantern'
+    },
+    'minecraft:waxed_exposed_copper_trapdoor': {
+        icon: 'textures/blocks/waxed_exposed_copper_trapdoor',
+        displayName: 'Waxed Exposed Copper Trapdoor'
+    },
+    'minecraft:waxed_exposed_cut_copper': {
+        icon: 'textures/items/waxed_exposed_cut_copper',
+        displayName: 'Waxed Exposed Cut Copper'
+    },
+    'minecraft:waxed_exposed_cut_copper_slab': {
+        icon: 'textures/blocks/waxed_exposed_cut_copper_slab',
+        displayName: 'Waxed Exposed Cut Copper Slab'
+    },
+    'minecraft:waxed_exposed_cut_copper_stairs': {
+        icon: 'textures/blocks/waxed_exposed_cut_copper_stairs',
+        displayName: 'Waxed Exposed Cut Copper Stairs'
+    },
+    'minecraft:waxed_exposed_double_cut_copper_slab': {
+        icon: 'textures/blocks/waxed_exposed_double_cut_copper_slab',
+        displayName: 'Waxed Exposed Double Cut Copper Slab'
+    },
+    'minecraft:waxed_exposed_lightning_rod': {
+        icon: 'textures/items/waxed_exposed_lightning_rod',
+        displayName: 'Waxed Exposed Lightning Rod'
+    },
     'minecraft:waxed_lightning_rod': { icon: 'textures/items/waxed_lightning_rod', displayName: 'Waxed Lightning Rod' },
-    'minecraft:waxed_oxidized_chiseled_copper': { icon: 'textures/items/waxed_oxidized_chiseled_copper', displayName: 'Waxed Oxidized Chiseled Copper' },
-    'minecraft:waxed_oxidized_copper': { icon: 'textures/items/waxed_oxidized_copper', displayName: 'Waxed Oxidized Copper' },
-    'minecraft:waxed_oxidized_copper_bars': { icon: 'textures/items/waxed_oxidized_copper_bars', displayName: 'Waxed Oxidized Copper Bars' },
-    'minecraft:waxed_oxidized_copper_bulb': { icon: 'textures/items/waxed_oxidized_copper_bulb', displayName: 'Waxed Oxidized Copper Bulb' },
-    'minecraft:waxed_oxidized_copper_chain': { icon: 'textures/items/waxed_oxidized_copper_chain', displayName: 'Waxed Oxidized Copper Chain' },
-    'minecraft:waxed_oxidized_copper_chest': { icon: 'textures/blocks/waxed_oxidized_copper_chest', displayName: 'Waxed Oxidized Copper Chest' },
-    'minecraft:waxed_oxidized_copper_door': { icon: 'textures/items/waxed_oxidized_copper_door', displayName: 'Waxed Oxidized Copper Door' },
-    'minecraft:waxed_oxidized_copper_golem_statue': { icon: 'textures/items/waxed_oxidized_copper_golem_statue', displayName: 'Waxed Oxidized Copper Golem Statue' },
-    'minecraft:waxed_oxidized_copper_grate': { icon: 'textures/items/waxed_oxidized_copper_grate', displayName: 'Waxed Oxidized Copper Grate' },
-    'minecraft:waxed_oxidized_copper_lantern': { icon: 'textures/blocks/waxed_oxidized_copper_lantern', displayName: 'Waxed Oxidized Copper Lantern' },
-    'minecraft:waxed_oxidized_copper_trapdoor': { icon: 'textures/blocks/waxed_oxidized_copper_trapdoor', displayName: 'Waxed Oxidized Copper Trapdoor' },
-    'minecraft:waxed_oxidized_cut_copper': { icon: 'textures/items/waxed_oxidized_cut_copper', displayName: 'Waxed Oxidized Cut Copper' },
-    'minecraft:waxed_oxidized_cut_copper_slab': { icon: 'textures/blocks/waxed_oxidized_cut_copper_slab', displayName: 'Waxed Oxidized Cut Copper Slab' },
-    'minecraft:waxed_oxidized_cut_copper_stairs': { icon: 'textures/blocks/waxed_oxidized_cut_copper_stairs', displayName: 'Waxed Oxidized Cut Copper Stairs' },
-    'minecraft:waxed_oxidized_double_cut_copper_slab': { icon: 'textures/blocks/waxed_oxidized_double_cut_copper_slab', displayName: 'Waxed Oxidized Double Cut Copper Slab' },
-    'minecraft:waxed_oxidized_lightning_rod': { icon: 'textures/items/waxed_oxidized_lightning_rod', displayName: 'Waxed Oxidized Lightning Rod' },
-    'minecraft:waxed_weathered_chiseled_copper': { icon: 'textures/items/waxed_weathered_chiseled_copper', displayName: 'Waxed Weathered Chiseled Copper' },
-    'minecraft:waxed_weathered_copper': { icon: 'textures/items/waxed_weathered_copper', displayName: 'Waxed Weathered Copper' },
-    'minecraft:waxed_weathered_copper_bars': { icon: 'textures/items/waxed_weathered_copper_bars', displayName: 'Waxed Weathered Copper Bars' },
-    'minecraft:waxed_weathered_copper_bulb': { icon: 'textures/items/waxed_weathered_copper_bulb', displayName: 'Waxed Weathered Copper Bulb' },
-    'minecraft:waxed_weathered_copper_chain': { icon: 'textures/items/waxed_weathered_copper_chain', displayName: 'Waxed Weathered Copper Chain' },
-    'minecraft:waxed_weathered_copper_chest': { icon: 'textures/blocks/waxed_weathered_copper_chest', displayName: 'Waxed Weathered Copper Chest' },
-    'minecraft:waxed_weathered_copper_door': { icon: 'textures/items/waxed_weathered_copper_door', displayName: 'Waxed Weathered Copper Door' },
-    'minecraft:weathered_copper_golem_statue': { icon: 'textures/items/weathered_copper_golem_statue', displayName: 'Weathered Copper Golem Statue' },
-    'minecraft:weathered_copper_grate': { icon: 'textures/items/weathered_copper_grate', displayName: 'Weathered Copper Grate' },
-    'minecraft:weathered_copper_lantern': { icon: 'textures/blocks/weathered_copper_lantern', displayName: 'Weathered Copper Lantern' },
-    'minecraft:weathered_copper_trapdoor': { icon: 'textures/blocks/weathered_copper_trapdoor', displayName: 'Weathered Copper Trapdoor' },
-    'minecraft:weathered_cut_copper': { icon: 'textures/items/weathered_cut_copper', displayName: 'Weathered Cut Copper' },
-    'minecraft:weathered_cut_copper_slab': { icon: 'textures/blocks/weathered_cut_copper_slab', displayName: 'Weathered Cut Copper Slab' },
-    'minecraft:weathered_cut_copper_stairs': { icon: 'textures/blocks/weathered_cut_copper_stairs', displayName: 'Weathered Cut Copper Stairs' },
-    'minecraft:weathered_double_cut_copper_slab': { icon: 'textures/blocks/weathered_double_cut_copper_slab', displayName: 'Weathered Double Cut Copper Slab' },
-    'minecraft:weathered_lightning_rod': { icon: 'textures/items/weathered_lightning_rod', displayName: 'Weathered Lightning Rod' },
+    'minecraft:waxed_oxidized_chiseled_copper': {
+        icon: 'textures/items/waxed_oxidized_chiseled_copper',
+        displayName: 'Waxed Oxidized Chiseled Copper'
+    },
+    'minecraft:waxed_oxidized_copper': {
+        icon: 'textures/items/waxed_oxidized_copper',
+        displayName: 'Waxed Oxidized Copper'
+    },
+    'minecraft:waxed_oxidized_copper_bars': {
+        icon: 'textures/items/waxed_oxidized_copper_bars',
+        displayName: 'Waxed Oxidized Copper Bars'
+    },
+    'minecraft:waxed_oxidized_copper_bulb': {
+        icon: 'textures/items/waxed_oxidized_copper_bulb',
+        displayName: 'Waxed Oxidized Copper Bulb'
+    },
+    'minecraft:waxed_oxidized_copper_chain': {
+        icon: 'textures/items/waxed_oxidized_copper_chain',
+        displayName: 'Waxed Oxidized Copper Chain'
+    },
+    'minecraft:waxed_oxidized_copper_chest': {
+        icon: 'textures/blocks/waxed_oxidized_copper_chest',
+        displayName: 'Waxed Oxidized Copper Chest'
+    },
+    'minecraft:waxed_oxidized_copper_door': {
+        icon: 'textures/items/waxed_oxidized_copper_door',
+        displayName: 'Waxed Oxidized Copper Door'
+    },
+    'minecraft:waxed_oxidized_copper_golem_statue': {
+        icon: 'textures/items/waxed_oxidized_copper_golem_statue',
+        displayName: 'Waxed Oxidized Copper Golem Statue'
+    },
+    'minecraft:waxed_oxidized_copper_grate': {
+        icon: 'textures/items/waxed_oxidized_copper_grate',
+        displayName: 'Waxed Oxidized Copper Grate'
+    },
+    'minecraft:waxed_oxidized_copper_lantern': {
+        icon: 'textures/blocks/waxed_oxidized_copper_lantern',
+        displayName: 'Waxed Oxidized Copper Lantern'
+    },
+    'minecraft:waxed_oxidized_copper_trapdoor': {
+        icon: 'textures/blocks/waxed_oxidized_copper_trapdoor',
+        displayName: 'Waxed Oxidized Copper Trapdoor'
+    },
+    'minecraft:waxed_oxidized_cut_copper': {
+        icon: 'textures/items/waxed_oxidized_cut_copper',
+        displayName: 'Waxed Oxidized Cut Copper'
+    },
+    'minecraft:waxed_oxidized_cut_copper_slab': {
+        icon: 'textures/blocks/waxed_oxidized_cut_copper_slab',
+        displayName: 'Waxed Oxidized Cut Copper Slab'
+    },
+    'minecraft:waxed_oxidized_cut_copper_stairs': {
+        icon: 'textures/blocks/waxed_oxidized_cut_copper_stairs',
+        displayName: 'Waxed Oxidized Cut Copper Stairs'
+    },
+    'minecraft:waxed_oxidized_double_cut_copper_slab': {
+        icon: 'textures/blocks/waxed_oxidized_double_cut_copper_slab',
+        displayName: 'Waxed Oxidized Double Cut Copper Slab'
+    },
+    'minecraft:waxed_oxidized_lightning_rod': {
+        icon: 'textures/items/waxed_oxidized_lightning_rod',
+        displayName: 'Waxed Oxidized Lightning Rod'
+    },
+    'minecraft:waxed_weathered_chiseled_copper': {
+        icon: 'textures/items/waxed_weathered_chiseled_copper',
+        displayName: 'Waxed Weathered Chiseled Copper'
+    },
+    'minecraft:waxed_weathered_copper': {
+        icon: 'textures/items/waxed_weathered_copper',
+        displayName: 'Waxed Weathered Copper'
+    },
+    'minecraft:waxed_weathered_copper_bars': {
+        icon: 'textures/items/waxed_weathered_copper_bars',
+        displayName: 'Waxed Weathered Copper Bars'
+    },
+    'minecraft:waxed_weathered_copper_bulb': {
+        icon: 'textures/items/waxed_weathered_copper_bulb',
+        displayName: 'Waxed Weathered Copper Bulb'
+    },
+    'minecraft:waxed_weathered_copper_chain': {
+        icon: 'textures/items/waxed_weathered_copper_chain',
+        displayName: 'Waxed Weathered Copper Chain'
+    },
+    'minecraft:waxed_weathered_copper_chest': {
+        icon: 'textures/blocks/waxed_weathered_copper_chest',
+        displayName: 'Waxed Weathered Copper Chest'
+    },
+    'minecraft:waxed_weathered_copper_door': {
+        icon: 'textures/items/waxed_weathered_copper_door',
+        displayName: 'Waxed Weathered Copper Door'
+    },
+    'minecraft:weathered_copper_golem_statue': {
+        icon: 'textures/items/weathered_copper_golem_statue',
+        displayName: 'Weathered Copper Golem Statue'
+    },
+    'minecraft:weathered_copper_grate': {
+        icon: 'textures/items/weathered_copper_grate',
+        displayName: 'Weathered Copper Grate'
+    },
+    'minecraft:weathered_copper_lantern': {
+        icon: 'textures/blocks/weathered_copper_lantern',
+        displayName: 'Weathered Copper Lantern'
+    },
+    'minecraft:weathered_copper_trapdoor': {
+        icon: 'textures/blocks/weathered_copper_trapdoor',
+        displayName: 'Weathered Copper Trapdoor'
+    },
+    'minecraft:weathered_cut_copper': {
+        icon: 'textures/items/weathered_cut_copper',
+        displayName: 'Weathered Cut Copper'
+    },
+    'minecraft:weathered_cut_copper_slab': {
+        icon: 'textures/blocks/weathered_cut_copper_slab',
+        displayName: 'Weathered Cut Copper Slab'
+    },
+    'minecraft:weathered_cut_copper_stairs': {
+        icon: 'textures/blocks/weathered_cut_copper_stairs',
+        displayName: 'Weathered Cut Copper Stairs'
+    },
+    'minecraft:weathered_double_cut_copper_slab': {
+        icon: 'textures/blocks/weathered_double_cut_copper_slab',
+        displayName: 'Weathered Double Cut Copper Slab'
+    },
+    'minecraft:weathered_lightning_rod': {
+        icon: 'textures/items/weathered_lightning_rod',
+        displayName: 'Weathered Lightning Rod'
+    },
     'minecraft:web': { icon: 'textures/blocks/web', displayName: 'Web' },
     'minecraft:weeping_vines': { icon: 'textures/blocks/weeping_vines', displayName: 'Weeping Vines' },
     'minecraft:wet_sponge': { icon: 'textures/items/wet_sponge', displayName: 'Wet Sponge' },
     'minecraft:white_candle': { icon: 'textures/items/white_candle', displayName: 'White Candle' },
     'minecraft:white_candle_cake': { icon: 'textures/items/white_candle_cake', displayName: 'White Candle Cake' },
     'minecraft:white_carpet': { icon: 'textures/items/white_carpet', displayName: 'White Carpet' },
-    'minecraft:white_concrete_powder': { icon: 'textures/items/white_concrete_powder', displayName: 'White Concrete Powder' },
+    'minecraft:white_concrete_powder': {
+        icon: 'textures/items/white_concrete_powder',
+        displayName: 'White Concrete Powder'
+    },
     'minecraft:white_dye': { icon: 'textures/items/white_dye', displayName: 'White Dye' },
-    'minecraft:white_glazed_terracotta': { icon: 'textures/blocks/white_glazed_terracotta', displayName: 'White Glazed Terracotta' },
+    'minecraft:white_glazed_terracotta': {
+        icon: 'textures/blocks/white_glazed_terracotta',
+        displayName: 'White Glazed Terracotta'
+    },
     'minecraft:white_harness': { icon: 'textures/items/white_harness', displayName: 'White Harness' },
     'minecraft:white_shulker_box': { icon: 'textures/items/white_shulker_box', displayName: 'White Shulker Box' },
-    'minecraft:white_stained_glass': { icon: 'textures/blocks/white_stained_glass', displayName: 'White Stained Glass' },
-    'minecraft:white_stained_glass_pane': { icon: 'textures/blocks/white_stained_glass_pane', displayName: 'White Stained Glass Pane' },
+    'minecraft:white_stained_glass': {
+        icon: 'textures/blocks/white_stained_glass',
+        displayName: 'White Stained Glass'
+    },
+    'minecraft:white_stained_glass_pane': {
+        icon: 'textures/blocks/white_stained_glass_pane',
+        displayName: 'White Stained Glass Pane'
+    },
     'minecraft:white_terracotta': { icon: 'textures/blocks/white_terracotta', displayName: 'White Terracotta' },
     'minecraft:white_tulip': { icon: 'textures/items/white_tulip', displayName: 'White Tulip' },
     'minecraft:white_wool': { icon: 'textures/items/white_wool', displayName: 'White Wool' },
@@ -1627,7 +3103,10 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:wooden_door': { icon: 'textures/items/wooden_door', displayName: 'Wooden Door' },
     'minecraft:wooden_hoe': { icon: 'textures/items/wooden_hoe', displayName: 'Wooden Hoe' },
     'minecraft:wooden_pickaxe': { icon: 'textures/items/wooden_pickaxe', displayName: 'Wooden Pickaxe' },
-    'minecraft:wooden_pressure_plate': { icon: 'textures/blocks/wooden_pressure_plate', displayName: 'Wooden Pressure Plate' },
+    'minecraft:wooden_pressure_plate': {
+        icon: 'textures/blocks/wooden_pressure_plate',
+        displayName: 'Wooden Pressure Plate'
+    },
     'minecraft:wooden_shovel': { icon: 'textures/items/wooden_shovel', displayName: 'Wooden Shovel' },
     'minecraft:wooden_slab': { icon: 'textures/blocks/wooden_slab', displayName: 'Wooden Slab' },
     'minecraft:wooden_sword': { icon: 'textures/items/wooden_sword', displayName: 'Wooden Sword' },
@@ -1636,13 +3115,25 @@ export const iconDB: Record<string, IconEntry> = {
     'minecraft:yellow_candle_cake': { icon: 'textures/items/yellow_candle_cake', displayName: 'Yellow Candle Cake' },
     'minecraft:yellow_carpet': { icon: 'textures/items/yellow_carpet', displayName: 'Yellow Carpet' },
     'minecraft:yellow_concrete': { icon: 'textures/blocks/yellow_concrete', displayName: 'Yellow Concrete' },
-    'minecraft:yellow_concrete_powder': { icon: 'textures/items/yellow_concrete_powder', displayName: 'Yellow Concrete Powder' },
+    'minecraft:yellow_concrete_powder': {
+        icon: 'textures/items/yellow_concrete_powder',
+        displayName: 'Yellow Concrete Powder'
+    },
     'minecraft:yellow_dye': { icon: 'textures/items/yellow_dye', displayName: 'Yellow Dye' },
-    'minecraft:yellow_glazed_terracotta': { icon: 'textures/blocks/yellow_glazed_terracotta', displayName: 'Yellow Glazed Terracotta' },
+    'minecraft:yellow_glazed_terracotta': {
+        icon: 'textures/blocks/yellow_glazed_terracotta',
+        displayName: 'Yellow Glazed Terracotta'
+    },
     'minecraft:yellow_harness': { icon: 'textures/items/yellow_harness', displayName: 'Yellow Harness' },
     'minecraft:yellow_shulker_box': { icon: 'textures/items/yellow_shulker_box', displayName: 'Yellow Shulker Box' },
-    'minecraft:yellow_stained_glass': { icon: 'textures/blocks/yellow_stained_glass', displayName: 'Yellow Stained Glass' },
-    'minecraft:yellow_stained_glass_pane': { icon: 'textures/blocks/yellow_stained_glass_pane', displayName: 'Yellow Stained Glass Pane' },
+    'minecraft:yellow_stained_glass': {
+        icon: 'textures/blocks/yellow_stained_glass',
+        displayName: 'Yellow Stained Glass'
+    },
+    'minecraft:yellow_stained_glass_pane': {
+        icon: 'textures/blocks/yellow_stained_glass_pane',
+        displayName: 'Yellow Stained Glass Pane'
+    },
     'minecraft:yellow_terracotta': { icon: 'textures/blocks/yellow_terracotta', displayName: 'Yellow Terracotta' },
     'minecraft:yellow_wool': { icon: 'textures/items/yellow_wool', displayName: 'Yellow Wool' },
     'minecraft:zombie_head': { icon: 'textures/items/zombie_head', displayName: 'Zombie Head' }

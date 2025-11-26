@@ -1,11 +1,13 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
 import { getConfig } from '../../core/configManager.js';
+import { constants } from '../../core/constants.js';
 import { setCooldown } from '../../core/cooldownManager.js';
-import { startTeleportWarmup } from '../../core/utils.js';
 import { errorLog, debugLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { constants } from '../../core/constants.js';
+import { startTeleportWarmup } from '../../core/utils.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const rtpCommand: CustomCommand = {
     name: 'rtp',
@@ -14,7 +16,9 @@ const rtpCommand: CustomCommand = {
     permissionLevel: 1024,
     hasCooldown: true,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {return;}
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const config = getConfig();
         if (!config.rtp.enabled) {
@@ -37,8 +41,12 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
     const searchRadius = 16;
 
     for (let i = 0; i < searchAttempts; i++) {
-        const centerX = Math.floor(player.location.x + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
-        const centerZ = Math.floor(player.location.z + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
+        const centerX = Math.floor(
+            player.location.x + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1)
+        );
+        const centerZ = Math.floor(
+            player.location.z + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1)
+        );
 
         const tickingAreaName = `rtp_${player.id}`;
 
@@ -49,7 +57,7 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
             let waitAttempts = 0;
             const maxWaitAttempts = 10;
 
-            await new Promise<void>(resolve => mc.system.runTimeout(resolve, 60));
+            await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 60));
 
             while (!chunkLoaded && waitAttempts < maxWaitAttempts) {
                 try {
@@ -57,13 +65,13 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
                     chunkLoaded = true;
                 } catch {
                     waitAttempts++;
-                    await new Promise<void>(resolve => mc.system.runTimeout(resolve, 10));
+                    await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 10));
                 }
             }
 
             if (!chunkLoaded) {
-                 safeRemoveTickingArea(player.dimension, tickingAreaName);
-                 continue;
+                safeRemoveTickingArea(player.dimension, tickingAreaName);
+                continue;
             }
 
             sendMessage(`§7Searching... Attempt ${i + 1}/${searchAttempts}`, player);
@@ -90,7 +98,10 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
                             }
                         };
 
-                        sendMessage(`§aSafe location found! Teleportation will begin in ${warmupSeconds} seconds. Please do not move.`, player);
+                        sendMessage(
+                            `§aSafe location found! Teleportation will begin in ${warmupSeconds} seconds. Please do not move.`,
+                            player
+                        );
                         startTeleportWarmup(player, warmupSeconds, teleportLogic, 'a random location');
 
                         safeRemoveTickingArea(player.dimension, tickingAreaName);
@@ -104,10 +115,13 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
             safeRemoveTickingArea(player.dimension, tickingAreaName);
         }
 
-        await new Promise<void>(resolve => mc.system.runTimeout(resolve, 20));
+        await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 20));
     }
 
-    sendMessage('§cCould not find a safe location after multiple attempts. Please try again or try walking a bit further.', player);
+    sendMessage(
+        '§cCould not find a safe location after multiple attempts. Please try again or try walking a bit further.',
+        player
+    );
 }
 
 function safeRemoveTickingArea(dimension: mc.Dimension, name: string) {
@@ -119,10 +133,10 @@ function safeRemoveTickingArea(dimension: mc.Dimension, name: string) {
 }
 
 async function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): Promise<number | null> {
-    for (let y = 150; y >= dimension.heightRange.min; y--) {
+    for (let y = 320; y >= dimension.heightRange.min; y--) {
         try {
             const block = dimension.getBlock({ x, y, z });
-            if (block && block.isSolid) {
+            if (block && !block.isAir) {
                 return y;
             }
         } catch {
@@ -135,23 +149,39 @@ async function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: numb
 function isLocationSafe(dimension: mc.Dimension, location: mc.Vector3): boolean {
     const { x, y, z } = location;
     const groundBlock = dimension.getBlock({ x: Math.floor(x), y: y - 1, z: Math.floor(z) });
-    if (!groundBlock || !groundBlock.isSolid) { return false; }
+    if (!groundBlock || groundBlock.isAir) {
+        return false;
+    }
 
     const unsafeGroundBlocks = [
-        'minecraft:lava', 'minecraft:flowing_lava',
-        'minecraft:fire', 'minecraft:magma_block',
-        'minecraft:cactus', 'minecraft:water', 'minecraft:flowing_water'
+        'minecraft:lava',
+        'minecraft:flowing_lava',
+        'minecraft:fire',
+        'minecraft:magma_block',
+        'minecraft:cactus',
+        'minecraft:water',
+        'minecraft:flowing_water'
     ];
-    if (unsafeGroundBlocks.includes(groundBlock.typeId)) { return false; }
-    if (groundBlock.typeId.includes('leaves')) { return false; }
+    if (unsafeGroundBlocks.includes(groundBlock.typeId)) {
+        return false;
+    }
+    if (groundBlock.typeId.includes('leaves')) {
+        return false;
+    }
 
     const blockHead = dimension.getBlock({ x: Math.floor(x), y: y, z: Math.floor(z) });
     const blockEyes = dimension.getBlock({ x: Math.floor(x), y: y + 1, z: Math.floor(z) });
 
-    if (!blockHead || blockHead.isSolid) { return false; }
-    if (!blockEyes || blockEyes.isSolid) { return false; }
+    if (!blockHead || !blockHead.isAir) {
+        return false;
+    }
+    if (!blockEyes || !blockEyes.isAir) {
+        return false;
+    }
 
-    if (blockHead.isLiquid || blockEyes.isLiquid) { return false; }
+    if (blockHead.isLiquid || blockEyes.isLiquid) {
+        return false;
+    }
 
     return true;
 }

@@ -1,6 +1,7 @@
+import * as mc from '@minecraft/server';
+
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
-import * as mc from '@minecraft/server';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
 
@@ -52,7 +53,6 @@ let isSaveOnCooldown = false;
 
 const activePlayerData = new Map<string, PlayerData>();
 
-
 let playerNameIdMap = new Map<string, string>();
 
 const playerIdNameMap = new Map<string, string>();
@@ -76,7 +76,6 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     teamSettings: { autoTpAccept: false },
     pendingInvites: []
 };
-
 
 // --- Generic Data Handling ---
 
@@ -262,7 +261,9 @@ export function getOrCreatePlayer(player: mc.Player): PlayerData {
 
     // Ensure name in data matches current player name
     if (pData.name !== player.name) {
-        updatePlayerData(player.id, data => { data.name = player.name; });
+        updatePlayerData(player.id, (data) => {
+            data.name = player.name;
+        });
     }
 
     return pData;
@@ -354,18 +355,23 @@ function updateAndSaveLeaderboard(playerId: string, pData: PlayerData) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const config: any = getConfig();
     const cacheSize = (config.economy.baltopLimit ?? 10) + 5;
-    const lowestBalanceOnBoard = leaderboardCache.length < cacheSize ? 0 : (leaderboardCache[leaderboardCache.length - 1]?.balance ?? 0);
-    const existingIndex = leaderboardCache.findIndex(p => p.playerId === playerId);
+    const lowestBalanceOnBoard =
+        leaderboardCache.length < cacheSize ? 0 : (leaderboardCache[leaderboardCache.length - 1]?.balance ?? 0);
+    const existingIndex = leaderboardCache.findIndex((p) => p.playerId === playerId);
     const playerIsOnBoard = existingIndex !== -1;
 
     // Optimization: Skip if player is not on board AND their balance is too low to enter
-    if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) { return; }
+    if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) {
+        return;
+    }
 
     // Optimization: If player is on board, check if their balance actually changed enough to matter?
     // Actually, if they are on the board, we always need to update their entry.
     // But we can check if the balance value is identical to what we have in cache.
     if (playerIsOnBoard) {
-        if (leaderboardCache[existingIndex].balance === pData.balance) { return; } // No change in value
+        if (leaderboardCache[existingIndex].balance === pData.balance) {
+            return;
+        } // No change in value
         leaderboardCache.splice(existingIndex, 1);
     }
 
@@ -377,7 +383,6 @@ function updateAndSaveLeaderboard(playerId: string, pData: PlayerData) {
     }
     triggerLeaderboardSave();
 }
-
 
 // --- Pending Payment Management ---
 
@@ -425,7 +430,6 @@ export function clearExpiredPayments() {
     }
 }
 
-
 // --- Dimension Lock State Management ---
 
 const netherLockKey = 'exe:dimensionLock_nether';
@@ -435,7 +439,9 @@ export function getLockState(dimension: string): boolean {
     const key = dimension === 'nether' ? netherLockKey : endLockKey;
     try {
         return !!mc.world.getDynamicProperty(key);
-    } catch { return false; }
+    } catch {
+        return false;
+    }
 }
 
 export function setLockState(dimension: string, isLocked: boolean) {
@@ -450,22 +456,26 @@ export function setLockState(dimension: string, isLocked: boolean) {
 // --- Data Modification Wrappers ---
 
 export function setPlayerRank(playerId: string, rankId: string, permissionLevel: number) {
-    updatePlayerData(playerId, pData => {
+    updatePlayerData(playerId, (pData) => {
         pData.rankId = rankId;
         pData.permissionLevel = permissionLevel;
     });
 }
 
 export function setPlayerAnnouncementsMuted(playerId: string, isMuted: boolean) {
-    updatePlayerData(playerId, pData => { pData.announcementsMuted = isMuted; });
+    updatePlayerData(playerId, (pData) => {
+        pData.announcementsMuted = isMuted;
+    });
 }
 
 export function setTpaRequestsDisabled(playerId: string, isDisabled: boolean) {
-    updatePlayerData(playerId, pData => { pData.tpaRequestsDisabled = isDisabled; });
+    updatePlayerData(playerId, (pData) => {
+        pData.tpaRequestsDisabled = isDisabled;
+    });
 }
 
 export function addTpaBlockedPlayer(playerId: string, blockedPlayerId: string) {
-    updatePlayerData(playerId, pData => {
+    updatePlayerData(playerId, (pData) => {
         if (!pData.tpaBlockedPlayerIds.includes(blockedPlayerId)) {
             pData.tpaBlockedPlayerIds.push(blockedPlayerId);
         }
@@ -473,17 +483,21 @@ export function addTpaBlockedPlayer(playerId: string, blockedPlayerId: string) {
 }
 
 export function removeTpaBlockedPlayer(playerId: string, unblockedPlayerId: string) {
-    updatePlayerData(playerId, pData => {
-        pData.tpaBlockedPlayerIds = pData.tpaBlockedPlayerIds.filter(id => id !== unblockedPlayerId);
+    updatePlayerData(playerId, (pData) => {
+        pData.tpaBlockedPlayerIds = pData.tpaBlockedPlayerIds.filter((id) => id !== unblockedPlayerId);
     });
 }
 
 export function setPlayerHome(playerId: string, homeName: string, location: HomeLocation) {
-    updatePlayerData(playerId, pData => { pData.homes[homeName] = location; });
+    updatePlayerData(playerId, (pData) => {
+        pData.homes[homeName] = location;
+    });
 }
 
 export function deletePlayerHome(playerId: string, homeName: string) {
-    updatePlayerData(playerId, pData => { delete pData.homes[homeName]; });
+    updatePlayerData(playerId, (pData) => {
+        delete pData.homes[homeName];
+    });
 }
 
 export function setPlayerBalance(playerId: string, newBalance: number) {
@@ -492,7 +506,7 @@ export function setPlayerBalance(playerId: string, newBalance: number) {
     const min = economyConfig.minBalance ?? -1000000;
     const max = economyConfig.maxBalance ?? 1000000000;
 
-    updatePlayerData(playerId, pData => {
+    updatePlayerData(playerId, (pData) => {
         pData.balance = Math.max(min, Math.min(newBalance, max));
         updateAndSaveLeaderboard(playerId, pData);
     });
@@ -504,7 +518,7 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
     const min = economyConfig.minBalance ?? -1000000;
     const max = economyConfig.maxBalance ?? 1000000000;
 
-    updatePlayerData(playerId, pData => {
+    updatePlayerData(playerId, (pData) => {
         const potentialBalance = pData.balance + amount;
         pData.balance = Math.max(min, Math.min(potentialBalance, max));
         updateAndSaveLeaderboard(playerId, pData);
@@ -512,15 +526,19 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
 }
 
 export function setKitCooldown(playerId: string, kitName: string, timestamp: number) {
-    updatePlayerData(playerId, pData => { pData.kitCooldowns[kitName] = timestamp; });
+    updatePlayerData(playerId, (pData) => {
+        pData.kitCooldowns[kitName] = timestamp;
+    });
 }
 
 export function setPlayerXrayNotifications(playerId: string, status: boolean) {
-    updatePlayerData(playerId, pData => { pData.xrayNotificationsEnabled = status; });
+    updatePlayerData(playerId, (pData) => {
+        pData.xrayNotificationsEnabled = status;
+    });
 }
 
 export function setPlayerLastDeathLocation(playerId: string, location: HomeLocation | null) {
-    updatePlayerData(playerId, pData => {
+    updatePlayerData(playerId, (pData) => {
         pData.lastDeathLocation = location;
         if (location) {
             pData.deathNotificationSent = false;
@@ -529,7 +547,9 @@ export function setPlayerLastDeathLocation(playerId: string, location: HomeLocat
 }
 
 export function setDeathNotificationSent(playerId: string, status: boolean) {
-    updatePlayerData(playerId, pData => { pData.deathNotificationSent = status; });
+    updatePlayerData(playerId, (pData) => {
+        pData.deathNotificationSent = status;
+    });
 }
 
 // --- Economy Specific Logic ---
@@ -539,7 +559,11 @@ export function getBalance(playerId: string): number | null {
     return pData?.balance ?? null;
 }
 
-export function transfer(sourcePlayerId: string, targetPlayerId: string, amount: number): { success: boolean, message: string } {
+export function transfer(
+    sourcePlayerId: string,
+    targetPlayerId: string,
+    amount: number
+): { success: boolean; message: string } {
     if (amount <= 0) {
         return { success: false, message: 'Transfer amount must be positive.' };
     }
@@ -552,7 +576,7 @@ export function transfer(sourcePlayerId: string, targetPlayerId: string, amount:
     }
     const targetData = getPlayer(targetPlayerId);
     if (!targetData) {
-        return { success: false, message: 'Could not find the target player\'s data.' };
+        return { success: false, message: "Could not find the target player's data." };
     }
 
     incrementPlayerBalance(sourcePlayerId, -amount);

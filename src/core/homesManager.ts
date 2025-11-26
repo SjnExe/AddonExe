@@ -1,6 +1,12 @@
 import * as mc from '@minecraft/server';
-import { getOrCreatePlayer, setPlayerHome as setPlayerDataHome, deletePlayerHome as deletePlayerDataHome, HomeLocation } from './playerDataManager.js';
+
 import { getConfig } from './configManager.js';
+import {
+    getOrCreatePlayer,
+    setPlayerHome as setPlayerDataHome,
+    deletePlayerHome as deletePlayerDataHome,
+    HomeLocation
+} from './playerDataManager.js';
 
 interface ActionResult {
     success: boolean;
@@ -23,7 +29,10 @@ export function setHome(player: mc.Player, homeName: string): ActionResult {
 
     // Prevent overwriting an existing home
     if (pData.homes[lowerCaseHomeName]) {
-        return { success: false, message: `You already have a home named '${homeName}'. Use /delhome to remove it first.` };
+        return {
+            success: false,
+            message: `You already have a home named '${homeName}'. Use /delhome to remove it first.`
+        };
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -58,7 +67,9 @@ export function setHome(player: mc.Player, homeName: string): ActionResult {
  */
 export function getHome(player: mc.Player, homeName: string): HomeLocation | null {
     const pData = getOrCreatePlayer(player);
-    if (!pData) {return null;}
+    if (!pData) {
+        return null;
+    }
     return pData.homes[homeName.toLowerCase()] || null;
 }
 
@@ -91,7 +102,9 @@ export function deleteHome(player: mc.Player, homeName: string): ActionResult {
  */
 export function listHomes(player: mc.Player): string[] {
     const pData = getOrCreatePlayer(player);
-    if (!pData) {return [];}
+    if (!pData) {
+        return [];
+    }
     return Object.keys(pData.homes);
 }
 
@@ -102,6 +115,8 @@ export function listHomes(player: mc.Player): string[] {
  */
 export function getHomeCount(player: mc.Player): number {
     const pData = getOrCreatePlayer(player);
-    if (!pData) {return 0;}
+    if (!pData) {
+        return 0;
+    }
     return Object.keys(pData.homes).length;
 }

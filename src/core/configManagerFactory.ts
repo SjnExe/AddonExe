@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
-import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, reconcileConfig } from './objectUtils.js';
+
 import { errorLog, debugLog } from './logger.js';
+import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, reconcileConfig } from './objectUtils.js';
 
 /**
  * Creates a configuration manager for a specific configuration type.
@@ -12,12 +13,15 @@ import { errorLog, debugLog } from './logger.js';
  * @returns An object with methods to manage the configuration.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function createConfigManager<T = any>(key: string, defaultConfig: T, name: string, wrapperKey: string | null = null) {
+export default function createConfigManager<T = any>(
+    key: string,
+    defaultConfig: T,
+    name: string,
+    wrapperKey: string | null = null
+) {
     const lastLoadedKey = `${key}:last_loaded`;
 
-    const initialDefaultConfig = wrapperKey
-        ? { [wrapperKey]: deepClone(defaultConfig) }
-        : deepClone(defaultConfig);
+    const initialDefaultConfig = wrapperKey ? { [wrapperKey]: deepClone(defaultConfig) } : deepClone(defaultConfig);
 
     let currentConfig = deepClone(initialDefaultConfig);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,7 +61,9 @@ export default function createConfigManager<T = any>(key: string, defaultConfig:
 
             if (name === 'Main' && userSavedConfig.spawnLocation && typeof userSavedConfig.spawnLocation === 'object') {
                 debugLog(`[${name}ConfigManager] Migrating legacy spawnLocation to spawn.spawnLocation.`);
-                if (!userSavedConfig.spawn) {userSavedConfig.spawn = {};}
+                if (!userSavedConfig.spawn) {
+                    userSavedConfig.spawn = {};
+                }
                 if (!userSavedConfig.spawn.spawnLocation) {
                     userSavedConfig.spawn.spawnLocation = deepClone(userSavedConfig.spawnLocation);
                 }
@@ -86,16 +92,24 @@ export default function createConfigManager<T = any>(key: string, defaultConfig:
                         );
                         currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks };
                     } else if (name === 'Kits' || name === 'Shop') {
-                        currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig, lastLoadedConfigForMerge || {});
+                        currentConfig = mergeObjectMaps(
+                            userSavedConfig,
+                            newDefaultConfig,
+                            lastLoadedConfigForMerge || {}
+                        );
                     } else {
                         currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
                     }
                 } else {
-                    debugLog(`[${name}ConfigManager] Last-loaded config was unparsable. Falling back to default merge.`);
+                    debugLog(
+                        `[${name}ConfigManager] Last-loaded config was unparsable. Falling back to default merge.`
+                    );
                     currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
                 }
             } else {
-                if (!isMigration) {debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);}
+                if (!isMigration) {
+                    debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
+                }
                 currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
             }
 
@@ -107,13 +121,19 @@ export default function createConfigManager<T = any>(key: string, defaultConfig:
             // After all merging, specifically handle the "sticky" ownerPlayerNames.
             const userSavedConfigForOwner = userSavedConfigStr ? JSON.parse(userSavedConfigStr) : {};
             const storedOwner = userSavedConfigForOwner.ownerPlayerNames;
-            const isStoredOwnerValid = storedOwner && Array.isArray(storedOwner) && storedOwner.length > 0 && JSON.stringify(storedOwner) !== JSON.stringify(['Your•Name•Here']);
+            const isStoredOwnerValid =
+                storedOwner &&
+                Array.isArray(storedOwner) &&
+                storedOwner.length > 0 &&
+                JSON.stringify(storedOwner) !== JSON.stringify(['Your•Name•Here']);
 
             if (isStoredOwnerValid) {
                 // If a valid owner is in the user's saved config, it always takes precedence.
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (currentConfig as any).ownerPlayerNames = storedOwner;
-                debugLog(`[${name}ConfigManager] Applied "sticky" owner from user-saved config: ${JSON.stringify(storedOwner)}`);
+                debugLog(
+                    `[${name}ConfigManager] Applied "sticky" owner from user-saved config: ${JSON.stringify(storedOwner)}`
+                );
             }
         }
 

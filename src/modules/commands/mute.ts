@@ -1,13 +1,20 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
+import { constants } from '../../core/constants.js';
+import { sendMessage } from '../../core/messaging.js';
+import { findPlayerByName } from '../../core/playerCache.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
 import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
 import { parseDuration, playSound } from '../../core/utils.js';
-import { findPlayerByName } from '../../core/playerCache.js';
-import { sendMessage } from '../../core/messaging.js';
-import { constants } from '../../core/constants.js';
 
-export function mutePlayer(executor: CommandExecutor, targetPlayer: mc.Player, duration: string | undefined, reason: string) {
+import { CustomCommand, CommandExecutor } from './commandManager.js';
+
+export function mutePlayer(
+    executor: CommandExecutor,
+    targetPlayer: mc.Player,
+    duration: string | undefined,
+    reason: string
+) {
     if (!targetPlayer) {
         if (executor instanceof mc.Player) {
             sendMessage('§cPlayer not found.', executor);
@@ -56,6 +63,12 @@ export function mutePlayer(executor: CommandExecutor, targetPlayer: mc.Player, d
     sendMessage(`§cYou have been muted ${durationText} by ${announcer}.`, targetPlayer);
 }
 
+interface MuteCommandArgs {
+    target?: mc.Player[];
+    duration?: string;
+    reason?: string;
+}
+
 const muteCommand: CustomCommand = {
     name: 'mute',
     description: 'Mutes a player for a specified duration with a reason.',
@@ -67,9 +80,9 @@ const muteCommand: CustomCommand = {
         { name: 'duration', type: 'string', optional: true },
         { name: 'reason', type: 'text', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const targetPlayers = args.target as mc.Player[] | undefined;
-        let { duration, reason } = args as { duration?: string, reason?: string };
+    execute: (executor: CommandExecutor, args: MuteCommandArgs) => {
+        const targetPlayers = args.target;
+        let { duration, reason } = args;
 
         if (!targetPlayers || targetPlayers.length === 0) {
             if (executor instanceof mc.Player) {
@@ -133,17 +146,19 @@ export function unmutePlayer(executor: CommandExecutor, targetName: string) {
     }
 }
 
+interface UnmuteCommandArgs {
+    target: string;
+}
+
 const unmuteCommand: CustomCommand = {
     name: 'unmute',
     description: 'Unmutes a player.',
     aliases: ['um'],
     permissionLevel: 2,
     allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'string' }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        unmutePlayer(executor, args.target as string);
+    parameters: [{ name: 'target', type: 'string' }],
+    execute: (executor: CommandExecutor, args: UnmuteCommandArgs) => {
+        unmutePlayer(executor, args.target);
     }
 };
 

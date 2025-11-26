@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
-import { debugLog, infoLog, errorLog } from './logger.js';
+
+import { debugLog, errorLog, infoLog } from './logger.js';
 
 /**
  * The current data version of the addon.
@@ -12,11 +13,28 @@ const CURRENT_DATA_VERSION = 1;
  */
 const DATA_VERSION_KEY = 'exe:data_version';
 
+// --- Interfaces for Migrated Data --- //
+
+interface ChatFormatting {
+    prefixText: string;
+}
+
+interface RankDefinition {
+    chatFormatting?: ChatFormatting;
+    nametagPrefix?: string;
+}
+
+interface RanksConfig {
+    rankDefinitions: RankDefinition[];
+}
+
+// --- Migration Manager --- //
+
 /**
  * Initializes the migration manager and runs any pending migrations.
  * This should be called during addon initialization, after configs are loaded but before data is fully utilized.
  */
-export function initializeMigration() {
+export function initializeMigration(): void {
     debugLog('[MigrationManager] Checking for pending migrations...');
 
     let currentVersion = mc.world.getDynamicProperty(DATA_VERSION_KEY);
@@ -33,7 +51,7 @@ export function initializeMigration() {
             runMigrations(currentVersion);
             mc.world.setDynamicProperty(DATA_VERSION_KEY, CURRENT_DATA_VERSION);
             infoLog(`[MigrationManager] Successfully migrated to version ${CURRENT_DATA_VERSION}.`);
-        } catch (e) {
+        } catch (e: any) {
             errorLog(`[MigrationManager] Critical error during migration: ${e.stack}`);
             // We do NOT update the version if migration fails, so it can retry next time.
         }
@@ -44,9 +62,9 @@ export function initializeMigration() {
 
 /**
  * Runs migrations sequentially from the current version up to the latest.
- * @param {number} startVersion The version to start migrating from.
+ * @param startVersion The version to start migrating from.
  */
-function runMigrations(startVersion) {
+function runMigrations(startVersion: number): void {
     if (startVersion < 1) {
         migrateToV1();
     }
@@ -57,20 +75,19 @@ function runMigrations(startVersion) {
  * This ensures ranks are clean names (e.g. "Owner") instead of "[Owner]".
  * The system now adds standard brackets `§7[...]` automatically.
  */
-function migrateToV1() {
+function migrateToV1(): void {
     infoLog('[MigrationManager] Running v1 migration: Cleaning rank prefixes...');
 
-    // Migrate stored Ranks Config
     const ranksConfigKey = 'exe:ranksConfig';
 
     try {
-        const ranksDataStr = mc.world.getDynamicProperty(ranksConfigKey);
+        const ranksDataStr = mc.world.getDynamicProperty(ranksConfigKey) as string | undefined;
         if (!ranksDataStr) {
             infoLog('[MigrationManager] No saved rank data found to migrate.');
             return;
         }
 
-        let ranksData;
+        let ranksData: RanksConfig;
         try {
             ranksData = JSON.parse(ranksDataStr);
         } catch (e) {
@@ -81,7 +98,7 @@ function migrateToV1() {
         if (ranksData && Array.isArray(ranksData.rankDefinitions)) {
             let modified = false;
             for (const rank of ranksData.rankDefinitions) {
-                if (rank.chatFormatting) {
+                if (rank.chatFormatting?.prefixText) {
                     const oldPrefix = rank.chatFormatting.prefixText;
                     const newPrefix = cleanRankName(oldPrefix);
                     if (oldPrefix !== newPrefix) {
@@ -108,7 +125,6 @@ function migrateToV1() {
         } else {
             infoLog('[MigrationManager] Rank data structure did not match expected format. Skipping.');
         }
-
     } catch (e) {
         errorLog('[MigrationManager] Error migrating rank configs:', e);
     }
@@ -116,13 +132,14 @@ function migrateToV1() {
 
 /**
  * Helper to strip brackets and specific colors from a rank string.
- * @param {string} name
- * @returns {string}
+ * @param name The string to clean.
+ * @returns The cleaned string.
  */
-export function cleanRankName(name) {
-    if (!name) {return name;}
+export function cleanRankName(name: string): string {
+    if (!name) {
+        return name;
+    }
     // Remove §0, [, ]
     // Also remove the hardcoded space if present at the end often used in old config '... ] '
-    let cleaned = name.replace(/§0/g, '').replace(/\[|\]/g, '').trim();
-    return cleaned;
+    return name.replace(/§0/g, '').replace(/\[|\]/g, '').trim();
 }

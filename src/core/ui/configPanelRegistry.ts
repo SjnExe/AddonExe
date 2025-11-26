@@ -106,7 +106,8 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'announcements.interval',
                 label: 'Interval (seconds)',
                 type: 'textField',
-                description: 'How often the message is broadcast, in seconds. A reload is required for changes to take effect.'
+                description:
+                    'How often the message is broadcast, in seconds. A reload is required for changes to take effect.'
             }
         ]
     },
@@ -574,7 +575,7 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'steal.percent',
                 label: 'Steal Percentage',
                 type: 'textField',
-                description: 'Percentage of victim\'s balance to steal (0-100).'
+                description: "Percentage of victim's balance to steal (0-100)."
             },
             {
                 key: 'steal.sameTeamImmunity',
@@ -600,7 +601,7 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'pvp.defaultWinPercent',
                 label: 'Default Win %',
                 type: 'textField',
-                description: 'Percentage of loser\'s money won if no wager is set.'
+                description: "Percentage of loser's money won if no wager is set."
             },
             {
                 key: 'pvp.requestTimeout',

@@ -1,8 +1,10 @@
 import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+
+import { constants } from '../../core/constants.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
-import { constants } from '../../core/constants.js';
+
+import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
     if (targetPlayer.hasTag(constants.frozenTag)) {
@@ -25,13 +27,15 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
             executor.sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`);
         }
         sendMessage(`§cYou have been frozen by ${announcer}.`, targetPlayer);
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (executor instanceof mc.Player) {
             sendMessage(`§cFailed to freeze ${targetPlayer.name}.`, executor);
         } else {
             executor.sendMessage(`§cFailed to freeze ${targetPlayer.name}.`);
         }
-        errorLog(`[Freeze] Failed to run /inputpermission on ${targetPlayer.name}: ${error}`);
+        if (error instanceof Error) {
+            errorLog(`[Freeze] Failed to run /inputpermission on ${targetPlayer.name}: ${error.stack}`);
+        }
     }
 }
 
@@ -55,14 +59,20 @@ export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Playe
             executor.sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`);
         }
         sendMessage('§aYou have been unfrozen.', targetPlayer);
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (executor instanceof mc.Player) {
             sendMessage(`§cFailed to unfreeze ${targetPlayer.name}.`, executor);
         } else {
             executor.sendMessage(`§cFailed to unfreeze ${targetPlayer.name}.`);
         }
-        errorLog(`[Unfreeze] Failed to run /inputpermission on ${targetPlayer.name}: ${error}`);
+        if (error instanceof Error) {
+            errorLog(`[Unfreeze] Failed to run /inputpermission on ${targetPlayer.name}: ${error.stack}`);
+        }
     }
+}
+
+interface FreezeCommandArgs {
+    target?: mc.Player[];
 }
 
 const freezeCommand: CustomCommand = {
@@ -70,11 +80,9 @@ const freezeCommand: CustomCommand = {
     description: 'Freezes a player, preventing them from moving or looking around.',
     permissionLevel: 2,
     allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'player' }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const targetPlayers = args.target as mc.Player[] | undefined;
+    parameters: [{ name: 'target', type: 'player' }],
+    execute: (executor: CommandExecutor, args: FreezeCommandArgs) => {
+        const targetPlayers = args.target;
         if (!targetPlayers || targetPlayers.length === 0) {
             if (executor instanceof mc.Player) {
                 sendMessage('§cPlayer not found.', executor);
@@ -97,11 +105,9 @@ const unfreezeCommand: CustomCommand = {
     description: 'Unfreezes a player, allowing them to move and look around again.',
     permissionLevel: 2,
     allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'player' }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
-        const targetPlayers = args.target as mc.Player[] | undefined;
+    parameters: [{ name: 'target', type: 'player' }],
+    execute: (executor: CommandExecutor, args: FreezeCommandArgs) => {
+        const targetPlayers = args.target;
         if (!targetPlayers || targetPlayers.length === 0) {
             if (executor instanceof mc.Player) {
                 sendMessage('§cPlayer not found.', executor);

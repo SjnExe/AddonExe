@@ -57,7 +57,7 @@ export function createKit(kitName: string, options: KitOptions = {}): ActionResu
         items: []
     };
 
-    saveKitsConfig();
+    saveKitsConfig(config);
     debugLog(`[KitAdminManager] Created new kit: ${lowerCaseKitName}`);
     return { success: true, message: `Successfully created kit '${kitName}'.` };
 }
@@ -76,7 +76,7 @@ export function deleteKit(kitName: string): ActionResult {
     }
 
     delete kitDefinitions[kitName];
-    saveKitsConfig();
+    saveKitsConfig(config);
     debugLog(`[KitAdminManager] Deleted kit: ${kitName}`);
     return { success: true, message: `Successfully deleted kit '${kitName}'.` };
 }
@@ -99,7 +99,7 @@ export function updateKitSettings(kitName: string, newSettings: KitSettings): Ac
     // Update the kit object with the new settings
     Object.assign(kit, newSettings);
 
-    saveKitsConfig();
+    saveKitsConfig(config);
     debugLog(`[KitAdminManager] Updated settings for kit: ${kitName}`);
     return { success: true, message: `Successfully updated settings for kit '${kitName}'.` };
 }
@@ -136,7 +136,7 @@ export function renameKit(oldName: string, newName: string): ActionResult {
     // Delete the old kit
     delete allKits[oldName];
 
-    saveKitsConfig();
+    saveKitsConfig(config);
     debugLog(`[KitAdminManager] Renamed kit from '${oldName}' to '${newName}'.`);
     return { success: true, message: `Successfully renamed kit to '${newName}'.` };
 }

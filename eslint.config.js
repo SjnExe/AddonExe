@@ -7,6 +7,7 @@ import jsonc from 'eslint-plugin-jsonc';
 import importPlugin from 'eslint-plugin-import';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import prettierConfig from 'eslint-config-prettier';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -74,63 +75,35 @@ export default tseslint.config(
             'import/namespace': 'error',
             'import/default': 'error',
             'import/export': 'error',
+            'import/order': [
+                'error',
+                {
+                    groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
+                    'newlines-between': 'always',
+                    alphabetize: { order: 'asc', caseInsensitive: true }
+                }
+            ],
 
             camelcase: ['error', { properties: 'always', ignoreDestructuring: true, allow: ['^UNSAFE_'] }],
-            quotes: ['error', 'single', { avoidEscape: true }],
-            semi: ['error', 'always'],
-            'no-trailing-spaces': 'error',
             'no-unused-vars': 'off', // handled by TS
             '@typescript-eslint/no-unused-vars': ['warn', { args: 'none' }],
             'no-undef': 'off', // handled by TS
-            'object-curly-spacing': ['error', 'always'],
-            'comma-dangle': ['error', 'never'],
             'no-console': 'warn',
-            'key-spacing': ['error', { beforeColon: false, afterColon: true }],
-            'keyword-spacing': ['error', { before: true, after: true }],
-            'space-before-function-paren': [
-                'error',
-                {
-                    anonymous: 'always',
-                    named: 'never',
-                    asyncArrow: 'always'
-                }
-            ],
-            'arrow-spacing': ['error', { before: true, after: true }],
-            curly: ['error', 'all'],
             eqeqeq: ['error', 'always'],
             'no-var': 'error',
-            'comma-spacing': ['error', { before: false, after: true }],
-            'space-infix-ops': 'error',
-            'space-in-parens': ['error', 'never'],
-            'space-before-blocks': 'error',
-            'max-len': [
-                'warn',
-                {
-                    code: 256,
-                    ignoreUrls: true,
-                    ignoreStrings: true,
-                    ignoreTemplateLiterals: true,
-                    ignoreRegExpLiterals: true
-                }
-            ],
 
             // TS specific
             '@typescript-eslint/no-explicit-any': 'warn',
             '@typescript-eslint/no-var-requires': 'off'
         }
     },
+
     // JSONC configuration
     ...jsonc.configs['flat/recommended-with-jsonc'],
     {
         files: ['**/*.json'],
         rules: {
-            'jsonc/indent': ['error', 4],
-            'jsonc/object-curly-spacing': ['error', 'always'],
-            'jsonc/array-bracket-spacing': ['error', 'never'],
-            'jsonc/comma-dangle': ['error', 'never'],
-            'jsonc/key-spacing': ['error', { beforeColon: false, afterColon: true }],
-            'jsonc/object-curly-newline': ['error', { multiline: true, consistent: true }],
-            'jsonc/object-property-newline': ['error', { allowAllPropertiesOnSameLine: true }]
+            // Add any non-stylistic JSON rules here if needed in the future
         }
     },
     // Jest test file configuration
@@ -148,5 +121,8 @@ export default tseslint.config(
         rules: {
             'no-console': 'off'
         }
-    }
+    },
+
+    // Prettier config must be last to override other formatting rules
+    prettierConfig
 );

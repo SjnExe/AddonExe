@@ -1,8 +1,9 @@
 import * as mc from '@minecraft/server';
+
 import { getConfig } from './configManager.js';
+import { setCooldown } from './cooldownManager.js';
 import { getPlayerFromCache } from './playerCache.js';
 import { getOrCreatePlayer } from './playerDataManager.js';
-import { setCooldown } from './cooldownManager.js';
 import { startTeleportWarmup } from './utils.js';
 
 type TpaRequestType = 'tpa' | 'tpahere';
@@ -30,12 +31,14 @@ const incomingRequests = new Map<string, TpaRequest[]>();
  * @param request The request to clear.
  */
 function clearRequest(request: TpaRequest | undefined) {
-    if (!request) {return;}
+    if (!request) {
+        return;
+    }
     mc.system.clearRun(request.timeoutId);
     outgoingRequests.delete(request.sourcePlayerId);
     const targetRequests = incomingRequests.get(request.targetPlayerId);
     if (targetRequests) {
-        const index = targetRequests.findIndex(r => r.sourcePlayerId === request.sourcePlayerId);
+        const index = targetRequests.findIndex((r) => r.sourcePlayerId === request.sourcePlayerId);
         if (index !== -1) {
             targetRequests.splice(index, 1);
         }
@@ -52,14 +55,18 @@ function clearRequest(request: TpaRequest | undefined) {
  * @param onlineOnly If true and no sourcePlayerName is given, only the most recent request from an online player is returned.
  * @returns The request or undefined.
  */
-function _findIncomingRequest(targetPlayerId: string, sourcePlayerName?: string, onlineOnly: boolean = false): TpaRequest | undefined {
+function _findIncomingRequest(
+    targetPlayerId: string,
+    sourcePlayerName?: string,
+    onlineOnly: boolean = false
+): TpaRequest | undefined {
     const requests = incomingRequests.get(targetPlayerId);
     if (!requests || requests.length === 0) {
         return undefined;
     }
 
     if (sourcePlayerName) {
-        return requests.find(r => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
+        return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
     }
 
     // If no name is given, find the most recent request based on the onlineOnly flag.
@@ -146,7 +153,7 @@ export function getIncomingRequest(player: mc.Player, sourcePlayerName?: string)
         return undefined;
     }
     if (sourcePlayerName) {
-        return requests.find(r => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
+        return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
     }
     // Return the most recent request if no name is specified
     return requests[requests.length - 1];
@@ -209,7 +216,8 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
             freshSource.teleport(freshTarget.location, { dimension: freshTarget.dimension });
             freshSource.sendMessage(`§aTeleported to ${freshTarget.name}.`);
             freshTarget.sendMessage(`§a${freshSource.name} has teleported to you.`);
-        } else { // 'tpahere'
+        } else {
+            // 'tpahere'
             // Target teleports to Source
             freshTarget.teleport(freshSource.location, { dimension: freshSource.dimension });
             freshTarget.sendMessage(`§aTeleported to ${freshSource.name}.`);
@@ -225,7 +233,8 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
         startTeleportWarmup(sourcePlayer, warmupSeconds, teleportLogic, `TPA to ${targetPlayer.name}`);
         // The utility only messages the player being teleported, so we add a message for the other player.
         targetPlayer.sendMessage(`§aTeleport accepted. ${sourcePlayer.name} is teleporting to you.`);
-    } else { // 'tpahere'
+    } else {
+        // 'tpahere'
         startTeleportWarmup(targetPlayer, warmupSeconds, teleportLogic, `TPA from ${sourcePlayer.name}`);
         sourcePlayer.sendMessage(`§aTeleport accepted. ${targetPlayer.name} is teleporting to you.`);
     }

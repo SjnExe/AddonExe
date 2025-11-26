@@ -25,7 +25,9 @@ function saveRules(rules: string[]) {
  * @param ruleText The text of the new rule.
  */
 export function addRule(ruleText: string) {
-    if (!ruleText || typeof ruleText !== 'string') {return;}
+    if (!ruleText || typeof ruleText !== 'string') {
+        return;
+    }
     const rules = getRules();
     rules.push(ruleText);
     saveRules(rules);
@@ -39,7 +41,9 @@ export function addRule(ruleText: string) {
  */
 export function editRule(index: number, newText: string) {
     const rules = getRules();
-    if (index < 0 || index >= rules.length || !newText) {return;}
+    if (index < 0 || index >= rules.length || !newText) {
+        return;
+    }
     const oldText = rules[index];
     rules[index] = newText;
     saveRules(rules);
@@ -52,7 +56,9 @@ export function editRule(index: number, newText: string) {
  */
 export function deleteRule(index: number) {
     const rules = getRules();
-    if (index < 0 || index >= rules.length) {return;}
+    if (index < 0 || index >= rules.length) {
+        return;
+    }
     const deletedRule = rules.splice(index, 1);
     saveRules(rules);
     debugLog(`[RulesManager] Deleted rule at index ${index}: "${deletedRule[0]}"`);
@@ -65,14 +71,20 @@ export function deleteRule(index: number) {
  */
 export function moveRule(index: number, direction: 'up' | 'down') {
     const rules = getRules();
-    if (index < 0 || index >= rules.length) {return;}
+    if (index < 0 || index >= rules.length) {
+        return;
+    }
 
     if (direction === 'up') {
-        if (index === 0) {return;} // Can't move up if already at the top
+        if (index === 0) {
+            return;
+        } // Can't move up if already at the top
         [rules[index - 1], rules[index]] = [rules[index], rules[index - 1]];
         debugLog(`[RulesManager] Moved rule up at index ${index}`);
     } else if (direction === 'down') {
-        if (index === rules.length - 1) {return;} // Can't move down if already at the bottom
+        if (index === rules.length - 1) {
+            return;
+        } // Can't move down if already at the bottom
         [rules[index], rules[index + 1]] = [rules[index + 1], rules[index]];
         debugLog(`[RulesManager] Moved rule down at index ${index}`);
     }

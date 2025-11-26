@@ -1,8 +1,10 @@
 import * as mc from '@minecraft/server';
-import { commandManager, CustomCommand, CommandExecutor } from './commandManager.js';
-import { getPlayer } from '../../core/playerDataManager.js';
-import { sendMessage } from '../../core/messaging.js';
+
 import { constants } from '../../core/constants.js';
+import { sendMessage } from '../../core/messaging.js';
+import { getPlayer } from '../../core/playerDataManager.js';
+
+import { commandManager, CustomCommand, CommandExecutor } from './commandManager.js';
 
 /**
  * Displays a categorized list of commands available to the player.
@@ -13,11 +15,13 @@ function showCategorizedHelp(executor: CommandExecutor, userPermissionLevel: num
 
     let commandList = Array.from(commandManager.commands.values());
     if (isConsole) {
-        commandList = commandList.filter(cmd => cmd.allowConsole);
+        commandList = commandList.filter((cmd) => cmd.allowConsole);
     }
 
     for (const cmd of commandList) {
-        if (userPermissionLevel > (cmd.permissionLevel ?? 1024)) { continue; }
+        if (userPermissionLevel > (cmd.permissionLevel ?? 1024)) {
+            continue;
+        }
 
         const category = cmd.category || 'General';
         if (!categorizedCommands[category]) {
@@ -27,8 +31,14 @@ function showCategorizedHelp(executor: CommandExecutor, userPermissionLevel: num
     }
 
     const categoryOrder = [
-        'Administration', 'Moderation', 'Economy', 'Shop System', 'Bounty System',
-        'Home System', 'TPA System', 'General'
+        'Administration',
+        'Moderation',
+        'Economy',
+        'Shop System',
+        'Bounty System',
+        'Home System',
+        'TPA System',
+        'General'
     ];
 
     let helpMessage = '§a--- Available Commands ---';
@@ -97,10 +107,14 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
 
     let paramString = '';
     if (cmd.parameters && cmd.parameters.length > 0) {
-        paramString = ' ' + cmd.parameters.map(p => {
-            const name = p.enumOptions ? p.enumOptions.join('|') : p.name;
-            return p.optional ? `[${name}]` : `<${name}>`;
-        }).join(' ');
+        paramString =
+            ' ' +
+            cmd.parameters
+                .map((p) => {
+                    const name = p.enumOptions ? p.enumOptions.join('|') : p.name;
+                    return p.optional ? `[${name}]` : `<${name}>`;
+                })
+                .join(' ');
     }
 
     let helpMessage = `§a--- Help: /${slashCommand} ---§r\n`;
@@ -120,6 +134,10 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
     }
 }
 
+interface HelpCommandArgs {
+    command?: string;
+}
+
 const helpCommand: CustomCommand = {
     name: 'help',
     slashName: 'xhelp',
@@ -127,10 +145,8 @@ const helpCommand: CustomCommand = {
     description: 'Displays a list of available commands or help for a specific command.',
     permissionLevel: 1024,
     allowConsole: true,
-    parameters: [
-        { name: 'command', type: 'string', optional: true }
-    ],
-    execute: (executor: CommandExecutor, args: Record<string, any>) => {
+    parameters: [{ name: 'command', type: 'string', optional: true }],
+    execute: (executor: CommandExecutor, args: HelpCommandArgs) => {
         let userPermissionLevel = 1024;
         if (executor instanceof mc.Player) {
             const pData = getPlayer(executor.id);
