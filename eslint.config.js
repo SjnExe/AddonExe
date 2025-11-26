@@ -8,6 +8,7 @@ import importPlugin from 'eslint-plugin-import';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import prettierConfig from 'eslint-config-prettier';
+import minecraftLinting from 'eslint-plugin-minecraft-linting';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,6 +36,10 @@ export default tseslint.config(
     ...tseslint.configs.recommended,
     {
         files: ['**/*.js', '**/*.ts'],
+        plugins: {
+            'minecraft-linting': minecraftLinting,
+            import: importPlugin
+        },
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'module',
@@ -54,9 +59,6 @@ export default tseslint.config(
                 'mojang-net': 'readonly'
             }
         },
-        plugins: {
-            import: importPlugin
-        },
         settings: {
             'import/resolver': {
                 typescript: {
@@ -66,9 +68,20 @@ export default tseslint.config(
                     extensions: ['.js', '.ts']
                 }
             },
-            'import/core-modules': ['@minecraft/server', '@minecraft/server-ui']
+            'import/core-modules': [
+                '@minecraft/server',
+                '@minecraft/server-ui',
+                '@minecraft/server-gametest',
+                '@minecraft/common',
+                '@minecraft/diagnostics',
+                '@minecraft/debug-utilities',
+                '@minecraft/gameplay-utilities',
+                '@minecraft/math',
+                '@minecraft/vanilla-data'
+            ]
         },
         rules: {
+            ...minecraftLinting.configs.recommended.rules,
             // Import rules
             'import/no-unresolved': ['error', { commonjs: true, amd: true }],
             'import/named': 'error',

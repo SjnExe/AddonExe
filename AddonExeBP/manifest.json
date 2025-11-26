@@ -33,6 +33,22 @@
             "version": "beta"
         },
         {
+            "module_name": "@minecraft/server-gametest",
+            "version": "beta"
+        },
+        {
+            "module_name": "@minecraft/common",
+            "version": "1.2.0"
+        },
+        {
+            "module_name": "@minecraft/diagnostics",
+            "version": "beta"
+        },
+        {
+            "module_name": "@minecraft/debug-utilities",
+            "version": "beta"
+        },
+        {
             "uuid": "9dca0c93-f6ec-4701-a74c-a774600640a4",
             "version": [1, 0, 0]
         }
