@@ -1101,7 +1101,7 @@ export async function handleFormResponse(
             return;
         }
 
-        let buttonIndex = selectionIndex >= 0 ? selectionIndex - paginatedSystems.length : -1;
+        const buttonIndex = selectionIndex >= 0 ? selectionIndex - paginatedSystems.length : -1;
 
         const totalPages = Math.ceil(resettableSystems.length / itemsPerPage);
 
