@@ -12,7 +12,19 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "incremental": true,
-        "types": ["node", "@minecraft/server", "@minecraft/server-ui", "jest"]
+        "types": [
+            "node",
+            "@minecraft/server",
+            "@minecraft/server-ui",
+            "@minecraft/server-gametest",
+            "@minecraft/common",
+            "@minecraft/diagnostics",
+            "@minecraft/debug-utilities",
+            "@minecraft/gameplay-utilities",
+            "@minecraft/math",
+            "@minecraft/vanilla-data",
+            "jest"
+        ]
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules", "src/**/__tests__"]
