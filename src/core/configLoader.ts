@@ -1,41 +1,21 @@
-import { errorLog } from './logger';
+import { errorLog } from './logger.js';
 
 /**
  * Dynamically loads a configuration module.
- * It first tries to load the user-provided version (e.g., `config.js`).
- * If that fails, it silently falls back to loading the default version (e.g., `config.default.js`).
- * Throws a fatal error if neither can be found.
+ * It strictly attempts to load the requested configuration file (e.g., `config.js`).
+ * If the file is missing, it will throw an error, as the build process guarantees
+ * the existence of these files (copying defaults if necessary).
  * @param modulePath The relative path to the config module from the compiled `scripts` directory.
  * For example, for a file at `src/core/economyConfig.ts`, the path would be `./core/economyConfig.js`.
  * @returns A promise that resolves with the loaded config module's default export.
  */
 export async function loadConfig<T>(modulePath: string): Promise<T> {
-    const userPath = modulePath;
-    const defaultPath = modulePath.replace(/\.js$/, '.default.js');
-
     try {
-        // Try loading user config
-        const module = await import(userPath);
+        const module = await import(modulePath);
         return module.default as T;
     } catch (e: unknown) {
         const err = e as Error;
-        // Check if it's a 'Module not found' error
-        if (
-            (err.message && err.message.includes('Module not found')) ||
-            (err.stack && err.stack.includes('Module not found'))
-        ) {
-            try {
-                // Fallback to default config
-                const module = await import(defaultPath);
-                return module.default as T;
-            } catch (defaultError) {
-                errorLog(`[ConfigLoader] FATAL: Could not load default config file: ${defaultPath}`);
-                throw defaultError;
-            }
-        } else {
-            // A different error occurred (e.g., syntax error in user's file)
-            errorLog(`[ConfigLoader] Error loading user config file: ${userPath}`, err);
-            throw err;
-        }
+        errorLog(`[ConfigLoader] FATAL: Failed to load config file: ${modulePath}`, err);
+        throw err;
     }
 }

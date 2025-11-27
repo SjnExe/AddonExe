@@ -854,3 +854,5 @@ export const items: Record<string, ItemData> = {
         enchantment: { id: 'quick_charge', level: 3 }
     }
 };
+
+export default items;

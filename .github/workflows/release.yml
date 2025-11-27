@@ -75,8 +75,31 @@ jobs:
           fi
           echo "--- End Verification ---"
 
+      - name: Cache TypeScript Build Info
+        uses: actions/cache@v4
+        with:
+          path: tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-tsbuildinfo-
+
       - name: Build TypeScript
         run: npm run build
+
+      - name: Process Config Files
+        shell: bash
+        run: |
+          set -e
+          echo "Processing default config files..."
+          find AddonExeBP/scripts -name "*.default.js" | while read default_file; do
+            target_file="${default_file%.default.js}.js"
+            if [ ! -f "$target_file" ]; then
+              cp "$default_file" "$target_file"
+              echo "Created config: $target_file"
+            fi
+            rm "$default_file"
+            echo "Removed default: $default_file"
+          done
 
       - name: Create staging directory and copy addon folders
         run: |
