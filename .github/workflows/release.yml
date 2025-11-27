@@ -65,7 +65,14 @@ jobs:
           echo "RP Manifest:"
           cat AddonExeRP/manifest.json
           echo "Config Source:"
-          head -n 15 src/config.ts
+          if [ -f "src/config.ts" ]; then
+            head -n 15 src/config.ts
+          elif [ -f "src/config.default.ts" ]; then
+            head -n 15 src/config.default.ts
+          else
+            echo "Error: No config file found."
+            exit 1
+          fi
           echo "--- End Verification ---"
 
       - name: Build TypeScript
