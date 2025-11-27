@@ -119,7 +119,15 @@ console.log(`Is Beta: ${IS_BETA_RELEASE}`);
 
 updateManifest('AddonExeBP/manifest.json');
 updateManifest('AddonExeRP/manifest.json');
+
 // Update the TypeScript source config
-updateConfig('src/config.ts');
+// Priority: src/config.ts (User Custom) -> src/config.default.ts (Repo Default)
+if (fs.existsSync(path.join(baseDir, 'src/config.ts'))) {
+    updateConfig('src/config.ts');
+} else if (fs.existsSync(path.join(baseDir, 'src/config.default.ts'))) {
+    updateConfig('src/config.default.ts');
+} else {
+    console.warn('Warning: Neither src/config.ts nor src/config.default.ts found. Config version update skipped.');
+}
 
 console.log('--- Release Preparation Complete ---');
