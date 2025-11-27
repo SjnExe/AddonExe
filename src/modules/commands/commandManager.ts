@@ -156,7 +156,9 @@ class CommandManager {
                     command.execute(executor, args);
                 } catch (error: unknown) {
                     const stack = error instanceof Error ? error.stack : String(error);
-                    executor.sendMessage(`[CommandManager] Error executing console command '${command.name}': ${stack}`);
+                    executor.sendMessage(
+                        `[CommandManager] Error executing console command '${command.name}': ${stack}`
+                    );
                 }
             });
             return;
@@ -253,7 +255,7 @@ class CommandManager {
         try {
             customCommandRegistry.registerCommand(
                 commandData,
-                commandCallback as (origin: mc.CustomCommandOrigin, ...args: any[]) => void
+                commandCallback as (origin: mc.CustomCommandOrigin, ...args: unknown[]) => void
             );
         } catch (e: unknown) {
             if (e instanceof Error && !e.toString().includes('already in use')) {

@@ -654,7 +654,8 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'xrayOresPanel', context);
         }
-        const [blockId, dimensionId, minYStr, maxYStr, oreName] = (response as ModalFormResponse).formValues as string[];
+        const [blockId, dimensionId, minYStr, maxYStr, oreName] = (response as ModalFormResponse)
+            .formValues as string[];
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
@@ -676,7 +677,8 @@ export async function handleFormResponse(
             return showPanel(player, 'xrayOresPanel', context);
         }
         const { oreIndex } = context;
-        const [blockId, dimensionId, minYStr, maxYStr, oreName] = (response as ModalFormResponse).formValues as string[];
+        const [blockId, dimensionId, minYStr, maxYStr, oreName] = (response as ModalFormResponse)
+            .formValues as string[];
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
@@ -697,17 +699,8 @@ export async function handleFormResponse(
             return showPanel(player, 'floatingTextActionPanel', context);
         }
         const { id } = context;
-        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = (
-            response as ModalFormResponse
-        ).formValues as [
-            string,
-            string,
-            string,
-            string,
-            number,
-            boolean,
-            string
-        ];
+        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = (response as ModalFormResponse)
+            .formValues as [string, string, string, string, number, boolean, string];
 
         const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
         const selectedDimension = dimensionIds[dimensionIndex] ?? 'minecraft:overworld';
@@ -1024,15 +1017,16 @@ export async function handleFormResponse(
                 onConfirm: async () => {
                     const finalConfirmForm = new ModalFormData()
                         .title('Final Confirmation')
-                .textField(`Type "confirm" to reset ${selectedSystem.title}.`, 'Case-insensitive', { defaultValue: '' });
+                        .textField(`Type "confirm" to reset ${selectedSystem.title}.`, 'Case-insensitive', {
+                            defaultValue: ''
+                        });
 
                     const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
                     if (
                         finalConfirmResponse.canceled ||
-                        ((finalConfirmResponse as ModalFormResponse).formValues?.[0] as string)
-                            .trim()
-                            .toLowerCase() !== 'confirm'
+                        ((finalConfirmResponse as ModalFormResponse).formValues?.[0] as string).trim().toLowerCase() !==
+                            'confirm'
                     ) {
                         player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
@@ -1073,7 +1067,9 @@ export async function handleFormResponse(
                     onConfirm: async () => {
                         const finalConfirmForm = new ModalFormData()
                             .title('Final Confirmation')
-                            .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', { defaultValue: '' });
+                            .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', {
+                                defaultValue: ''
+                            });
 
                         const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
@@ -1858,15 +1854,7 @@ export async function handleFormResponse(
 
         const [isEnabled, newKitName, description, icon, cooldownStr, permissionLevelStr, priceStr] = (
             response as ModalFormResponse
-        ).formValues as [
-            boolean,
-            string,
-            string,
-            string,
-            string,
-            string,
-            string
-        ];
+        ).formValues as [boolean, string, string, string, string, string, string];
 
         let finalKitName = kitName;
         // Check if the name has changed (case-insensitive)
@@ -2380,11 +2368,9 @@ export async function handleFormResponse(
         const { mobId } = context;
         if (selection === 0) {
             // Edit Amount
-            const form = new ModalFormData()
-                .title(`Edit ${mobId}`)
-                .textField('Amount', 'Enter the new amount', {
-                    defaultValue: String(getEconomyConfig().mobMoney[mobId])
-                });
+            const form = new ModalFormData().title(`Edit ${mobId}`).textField('Amount', 'Enter the new amount', {
+                defaultValue: String(getEconomyConfig().mobMoney[mobId])
+            });
             const response = await utils.uiWait(player, form);
             if (response.canceled) {
                 return showPanel(player, 'mobDropsSystemPanel', context);

@@ -11,14 +11,14 @@ import {
     getTeamConfig,
     saveTeamConfig
 } from '../configurations.js';
-import { spawnConfig } from '../spawnConfig.default.js';
 import { economyConfig } from '../economyConfig.default.js';
-import { xrayConfig } from '../xrayConfig.default.js';
-import { teamConfig } from '../teamConfig.default.js';
-import { ranksConfig } from '../ranksConfig.default.js';
 import { kitsConfig } from '../kitsConfig.default.js';
-import { shopConfig } from '../shopConfig.default.js';
 import { PlayerData } from '../playerDataManager.js';
+import { ranksConfig } from '../ranksConfig.default.js';
+import { shopConfig } from '../shopConfig.default.js';
+import { spawnConfig } from '../spawnConfig.default.js';
+import { teamConfig } from '../teamConfig.default.js';
+import { xrayConfig } from '../xrayConfig.default.js';
 
 type SpawnConfig = typeof spawnConfig;
 type EconomyConfig = typeof economyConfig;

@@ -33,9 +33,9 @@ function cleanup(): void {
     debugLog('[SpawnProtection] Forcefully removing protection effects from all online players.');
     for (const player of mc.world.getAllPlayers()) {
         player.removeTag('inSpawn');
-        player.runCommand('event entity @s exe:remove_spawn_protection');
-        player.runCommand('event entity @s exe:enable_pvp');
-        player.runCommand('event entity @s exe:enable_hostile_damage');
+        player.triggerEvent('exe:remove_spawn_protection');
+        player.triggerEvent('exe:enable_pvp');
+        player.triggerEvent('exe:enable_hostile_damage');
     }
 }
 
@@ -114,7 +114,11 @@ function initialize(): void {
         subscribe(
             mc.world.beforeEvents.playerBreakBlock,
             (event: mc.PlayerBreakBlockBeforeEvent | mc.PlayerPlaceBlockAfterEvent) => {
-                if ('block' in event && isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
+                if (
+                    'block' in event &&
+                    isWithinSpawnProtection(event.block.location, event.block.dimension.id) &&
+                    !canBypass(event.player)
+                ) {
                     if ('cancel' in event) {
                         event.cancel = true;
                     }
@@ -150,14 +154,14 @@ function initialize(): void {
                 if (canBypass(player)) continue;
 
                 if (protection.preventItemPickup || protection.preventItemDropping)
-                    player.runCommand('event entity @s exe:apply_spawn_protection');
-                if (protection.preventPvP) player.runCommand('event entity @s exe:disable_pvp');
-                if (protection.preventHostileDamage) player.runCommand('event entity @s exe:disable_hostile_damage');
+                    player.triggerEvent('exe:apply_spawn_protection');
+                if (protection.preventPvP) player.triggerEvent('exe:disable_pvp');
+                if (protection.preventHostileDamage) player.triggerEvent('exe:disable_hostile_damage');
             } else if (!isInSpawn && wasInSpawn) {
                 player.removeTag('inSpawn');
-                player.runCommand('event entity @s exe:remove_spawn_protection');
-                player.runCommand('event entity @s exe:enable_pvp');
-                player.runCommand('event entity @s exe:enable_hostile_damage');
+                player.triggerEvent('exe:remove_spawn_protection');
+                player.triggerEvent('exe:enable_pvp');
+                player.triggerEvent('exe:enable_hostile_damage');
             }
         }
     }, 40);

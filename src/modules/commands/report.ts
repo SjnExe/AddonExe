@@ -8,10 +8,6 @@ import { uiWait } from '../../core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
-interface ReportCommandArgs {
-    target?: string;
-}
-
 const reportCommand: CustomCommand = {
     name: 'report',
     description: 'Reports a player using a UI. The player can be offline.',
