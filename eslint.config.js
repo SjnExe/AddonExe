@@ -81,7 +81,7 @@ export default tseslint.config(
             ]
         },
         rules: {
-            ...minecraftLinting.configs.recommended.rules,
+            'minecraft-linting/avoid-unnecessary-command': 'error',
             // Import rules
             'import/no-unresolved': ['error', { commonjs: true, amd: true }],
             'import/named': 'error',
