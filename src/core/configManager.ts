@@ -11,15 +11,15 @@ export type { Config };
 let mainConfigManager: ConfigManager<typeof Config>;
 
 export async function initializeConfigManager(isMigration: boolean) {
-    const defaultConfig = await asyncLoadConfig('../config.js');
+    const defaultConfig = await asyncLoadConfig<typeof Config>('../config.js');
     mainConfigManager = createConfigManager('exe:config:current', defaultConfig, 'Main');
     await mainConfigManager.load(isMigration);
 }
 
 export const getConfig = () => mainConfigManager.get();
-export const updateConfig = (key, value) => mainConfigManager.update(key, value);
+export const updateConfig = (key: string, value: any) => mainConfigManager.update(key, value);
 export const reloadConfig = () => mainConfigManager.reload();
-export const updateMultipleConfig = (updates) => mainConfigManager.updateMultiple(updates);
+export const updateMultipleConfig = (updates: Record<string, any>) => mainConfigManager.updateMultiple(updates);
 
 export async function resetConfigSection(
     sectionKey: string,
@@ -59,8 +59,9 @@ export async function resetConfigSection(
 
     try {
         const freshDefaultConfig = await asyncLoadConfig('../config.js');
-        if (Object.prototype.hasOwnProperty.call(freshDefaultConfig, sectionKey)) {
-            updateConfig(sectionKey, deepClone(freshDefaultConfig[sectionKey]));
+        const configRecord = freshDefaultConfig as Record<string, any>;
+        if (Object.prototype.hasOwnProperty.call(configRecord, sectionKey)) {
+            updateConfig(sectionKey, deepClone(configRecord[sectionKey]));
 
             if (configResetCallbacks[sectionKey]) {
                 configResetCallbacks[sectionKey](player);

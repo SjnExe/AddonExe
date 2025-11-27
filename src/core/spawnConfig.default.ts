@@ -28,3 +28,5 @@ export const spawnConfig = {
         preventBlockInteraction: true
     }
 };
+
+export default spawnConfig;

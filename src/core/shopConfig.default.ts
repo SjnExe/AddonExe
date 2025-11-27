@@ -239,3 +239,5 @@ export const shopConfig: ShopConfig = {
         }
     }
 };
+
+export default shopConfig;

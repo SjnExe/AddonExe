@@ -11,3 +11,5 @@ export const teamConfig = {
     nameMaxLength: 16,
     teleportWarmupSeconds: 10
 };
+
+export default teamConfig;

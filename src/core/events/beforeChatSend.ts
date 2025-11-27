@@ -61,13 +61,15 @@ function handleChatSend(eventData: mc.ChatSendBeforeEvent) {
     const teamSuffix = team ? `§e[§r${team.name}§e]§r` : '';
 
     // Hardcode brackets for rank prefix if it exists
-    const rankPrefix = rank && rank.chatFormatting.prefixText ? `§e[§r${rank.chatFormatting.prefixText}§e]§r` : '';
+    const rankPrefix = rank && rank.chatFormatting?.prefixText ? `§e[§r${rank.chatFormatting.prefixText}§e]§r` : '';
 
-    const formattedMessage = rank
-        ? `${rankPrefix}${rank.chatFormatting.nameColor}${player.name}${teamSuffix}§r: ${rank.chatFormatting.messageColor}${eventData.message}`
-        : `§7${player.name}${teamSuffix}§r: ${eventData.message}`;
+    const formattedMessage =
+        rank && rank.chatFormatting
+            ? `${rankPrefix}${rank.chatFormatting.nameColor}${player.name}${teamSuffix}§r: ${rank.chatFormatting.messageColor}${eventData.message}`
+            : `§7${player.name}${teamSuffix}§r: ${eventData.message}`;
 
     // Log to console if enabled
+    // @ts-expect-error - chat config might be partial during load
     if (getConfig().chat?.logToConsole) {
         // Using a plain-text version for the console log to avoid clutter from formatting codes
         // eslint-disable-next-line no-console

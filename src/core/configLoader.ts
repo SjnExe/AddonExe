@@ -17,9 +17,13 @@ export async function loadConfig<T>(modulePath: string): Promise<T> {
         // Try loading user config
         const module = await import(userPath);
         return module.default as T;
-    } catch (e) {
+    } catch (e: unknown) {
+        const err = e as Error;
         // Check if it's a 'Module not found' error
-        if (e.message.includes('Module not found') || e.stack.includes('Module not found')) {
+        if (
+            (err.message && err.message.includes('Module not found')) ||
+            (err.stack && err.stack.includes('Module not found'))
+        ) {
             try {
                 // Fallback to default config
                 const module = await import(defaultPath);
@@ -30,8 +34,8 @@ export async function loadConfig<T>(modulePath: string): Promise<T> {
             }
         } else {
             // A different error occurred (e.g., syntax error in user's file)
-            errorLog(`[ConfigLoader] Error loading user config file: ${userPath}`, e);
-            throw e;
+            errorLog(`[ConfigLoader] Error loading user config file: ${userPath}`, err);
+            throw err;
         }
     }
 }

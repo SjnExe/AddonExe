@@ -101,3 +101,5 @@ export const economyConfig: EconomyConfig = {
         maxConcurrentDuels: 1
     }
 };
+
+export default economyConfig;

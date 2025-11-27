@@ -123,3 +123,5 @@ export const rankDefinitions: RankDefinition[] = [
         conditions: [{ type: 'default' }]
     }
 ];
+
+export default { rankDefinitions, defaultChatFormatting };

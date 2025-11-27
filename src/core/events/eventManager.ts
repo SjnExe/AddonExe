@@ -18,7 +18,7 @@ type EventSignal =
     | mc.ItemUseAfterEventSignal
     | mc.PlayerDimensionChangeAfterEventSignal
     | mc.PlayerLeaveAfterEventSignal
-    | mc.ScriptEventReceiveAfterEventSignal;
+    | mc.ScriptEventCommandMessageAfterEventSignal;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type EventHandler = (event: any) => void;

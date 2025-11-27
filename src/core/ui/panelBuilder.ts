@@ -9,13 +9,6 @@ import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { iconDB } from '../iconDB.js';
 // @ts-expect-error - Importing from JS file
 import { items as allItems } from '../itemsConfig.default.js';
-
-interface Item {
-    displayName?: string;
-    icon?: string;
-    buyPrice?: number;
-    sellPrice?: number;
-}
 import { getAllKits, Kit } from '../kitAdminManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
@@ -37,6 +30,13 @@ import {
     getPaginatedItems,
     addPaginationButtons
 } from './uiUtils.js';
+
+interface Item {
+    displayName?: string;
+    icon?: string;
+    buyPrice?: number;
+    sellPrice?: number;
+}
 
 export function getMenuItems(panelDef: PanelDefinition, permissionLevel: number) {
     const config = getConfig();
@@ -705,10 +705,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'teamCreatePanel') {
             const { teamConfig } = await import('../teamConfig.default.js');
             const form = new ModalFormData().title('Create Team');
-            form.textField(
-                'Team Name',
-                `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`
-            );
+            form.textField('Team Name', `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`);
             return form;
         }
 
