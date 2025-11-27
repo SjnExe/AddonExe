@@ -203,8 +203,12 @@ mc.system.runTimeout(async () => {
         await initializeAddon();
     } catch (e: unknown) {
         errorLog('[AddonExe] A critical error occurred during addon initialization:');
-        const stack = e instanceof Error ? (e.stack ?? e.message) : String(e);
-        errorLog(stack);
+        if (e instanceof Error) {
+            errorLog(`Message: ${e.message}`);
+            if (e.stack) errorLog(`Stack: ${e.stack}`);
+        } else {
+            errorLog(`Error: ${String(e)}`);
+        }
         mc.world.sendMessage(
             '§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.'
         );
