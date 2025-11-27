@@ -105,11 +105,6 @@ export async function handleFormResponse(
             const isAdmin = team.admins.includes(player.id);
             const isOwnerOrAdmin = isOwner || isAdmin;
 
-            // Members button is index 1 (after back)
-            // Manage Team is next if owner/admin
-            // Settings is next
-            // Leave is next
-
             let btnIndex = 1;
 
             if (selection === btnIndex) {
@@ -465,7 +460,7 @@ export async function handleFormResponse(
             return showPanel(player, 'teamManagePanel', context);
         }
 
-        const appIndex = selection - 1;
+        const appIndex = selection && selection > 0 ? selection - 1 : -1;
         if (appIndex >= 0 && appIndex < team.applications.length) {
             const app = team.applications[appIndex];
 
@@ -1051,9 +1046,9 @@ export async function handleFormResponse(
         }
 
         const paginatedSystems = getPaginatedItems(sortedSystems, page);
-        const selectionIndex = selection - 1;
+        const selectionIndex = selection && selection > 0 ? selection - 1 : -1;
 
-        if (selectionIndex < paginatedSystems.length) {
+        if (selectionIndex >= 0 && selectionIndex < paginatedSystems.length) {
             const selectedSystem = paginatedSystems[selectionIndex];
             showConfirmationDialog(player, {
                 title: `Confirm Reset: ${selectedSystem.title}`,
@@ -1104,59 +1099,56 @@ export async function handleFormResponse(
             return;
         }
 
-        let buttonIndex = selectionIndex - paginatedSystems.length;
+        let buttonIndex = selectionIndex >= 0 ? selectionIndex - paginatedSystems.length : -1;
 
         const totalPages = Math.ceil(resettableSystems.length / itemsPerPage);
 
-        if (page >= totalPages) {
-            if (buttonIndex === 0) {
-                showConfirmationDialog(player, {
-                    title: 'Confirm Reset All',
-                    body: 'This action cannot be undone. Are you sure you want to reset ALL system configurations to their default values?',
-                    confirmButtonText: '§cYes, Reset All',
-                    cancelButtonText: '§2No, Cancel',
-                    onConfirm: async () => {
-                        const finalConfirmForm = new ModalFormData()
-                            .title('Final Confirmation')
-                            .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', {
-                                defaultValue: ''
-                            });
+        if (page >= totalPages && buttonIndex === 0) {
+            showConfirmationDialog(player, {
+                title: 'Confirm Reset All',
+                body: 'This action cannot be undone. Are you sure you want to reset ALL system configurations to their default values?',
+                confirmButtonText: '§cYes, Reset All',
+                cancelButtonText: '§2No, Cancel',
+                onConfirm: async () => {
+                    const finalConfirmForm = new ModalFormData()
+                        .title('Final Confirmation')
+                        .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', {
+                            defaultValue: ''
+                        });
 
-                        const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
+                    const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
-                        if (finalConfirmResponse.canceled) {
-                            player.sendMessage('§cFinal confirmation failed. Reset canceled.');
-                            return showPanel(player, 'configResetPanel', { ...context, page });
-                        }
-
-                        const response = finalConfirmResponse as ModalFormResponse;
-                        const confirmationValue =
-                            response.formValues && response.formValues[0] ? String(response.formValues[0]) : '';
-
-                        if (confirmationValue.trim().toLowerCase() !== 'confirm') {
-                            player.sendMessage('§cFinal confirmation failed. Reset canceled.');
-                            return showPanel(player, 'configResetPanel', { ...context, page });
-                        }
-
-                        const result = await resetConfigSection('all', player);
-                        if (result.success) {
-                            player.sendMessage(`§2${result.message}`);
-                        } else {
-                            player.sendMessage(
-                                '§cFailed to reset all configurations. Please check the console for details.'
-                            );
-                            errorLog(`[UIManager] Failed to reset all config sections: ${result.message}`);
-                        }
-                        return showPanel(player, 'configResetPanel', { ...context, page: 1 });
-                    },
-                    onCancel: () => {
-                        player.sendMessage('§2Reset canceled.');
+                    if (finalConfirmResponse.canceled) {
+                        player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
                     }
-                });
-                return;
-            }
-            buttonIndex--;
+
+                    const response = finalConfirmResponse as ModalFormResponse;
+                    const confirmationValue =
+                        response.formValues && response.formValues[0] ? String(response.formValues[0]) : '';
+
+                    if (confirmationValue.trim().toLowerCase() !== 'confirm') {
+                        player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                        return showPanel(player, 'configResetPanel', { ...context, page });
+                    }
+
+                    const result = await resetConfigSection('all', player);
+                    if (result.success) {
+                        player.sendMessage(`§2${result.message}`);
+                    } else {
+                        player.sendMessage(
+                            '§cFailed to reset all configurations. Please check the console for details.'
+                        );
+                        errorLog(`[UIManager] Failed to reset all config sections: ${result.message}`);
+                    }
+                    return showPanel(player, 'configResetPanel', { ...context, page: 1 });
+                },
+                onCancel: () => {
+                    player.sendMessage('§2Reset canceled.');
+                    return showPanel(player, 'configResetPanel', { ...context, page });
+                }
+            });
+            return;
         }
 
         // Handle pagination
@@ -1206,7 +1198,7 @@ export async function handleFormResponse(
         }
 
         const paginatedEntries = getPaginatedItems(allEntries, page);
-        const selectionIndex = selection - 1;
+        const selectionIndex = selection && selection > 0 ? selection - 1 : -1;
 
         // Handle pagination
         if (selectionIndex >= paginatedEntries.length) {
@@ -1224,16 +1216,15 @@ export async function handleFormResponse(
             return showPanel(player, panelId, { ...context, page: newPage });
         }
 
-        const selectedEntry = paginatedEntries[selectionIndex] as {
+        const selectedEntry = selectionIndex >= 0 ? paginatedEntries[selectionIndex] as {
             type: string;
             name: string;
             id: string;
             buyPrice: number;
             sellPrice: number;
-            permissionLevel: number;
-        };
+        } : undefined;
 
-        if (selectedEntry.type === 'subCategory') {
+        if (selectedEntry && selectedEntry.type === 'subCategory') {
             return showPanel(player, `shopItemListPanel_${categoryName}_${selectedEntry.name}`, {
                 ...context,
                 categoryName,
@@ -1243,76 +1234,78 @@ export async function handleFormResponse(
         }
 
         // It's an item
-        const itemId = selectedEntry.id;
-        const masterItem = allItems[itemId];
-        const shopItem = selectedEntry;
+        if (selectedEntry) {
+            const itemId = selectedEntry.id;
+            const masterItem = allItems[itemId];
+            const shopItem = selectedEntry;
 
-        const canBuy = view !== 'sell' && shopItem.buyPrice > 0;
-        const canSell = view !== 'buy' && shopItem.sellPrice > 0;
+            const canBuy = view !== 'sell' && shopItem.buyPrice > 0;
+            const canSell = view !== 'buy' && shopItem.sellPrice > 0;
 
-        if (!canBuy && !canSell) {
-            player.sendMessage('§cThis item cannot be bought or sold currently.');
-            return showPanel(player, panelId, context);
+            if (!canBuy && !canSell) {
+                player.sendMessage('§cThis item cannot be bought or sold currently.');
+                return showPanel(player, panelId, context);
+            }
+
+            const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
+            let action;
+            let hasDropdown = false;
+
+            if (canBuy && canSell) {
+                modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
+                const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
+                modal.dropdown('Action', options, { defaultValueIndex: 0 });
+                hasDropdown = true;
+            } else if (canBuy) {
+                modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', {
+                    defaultValue: '1'
+                });
+                action = 'buy';
+            } else {
+                // canSell
+                modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', {
+                    defaultValue: '1'
+                });
+                action = 'sell';
+            }
+
+            const modalResponse = await utils.uiWait(player, modal);
+
+            if (modalResponse.canceled) {
+                return showPanel(player, panelId, context);
+            }
+
+            let amount;
+            if (hasDropdown) {
+                const values = (modalResponse as ModalFormResponse).formValues as [string, number];
+                const amountStr = values[0];
+                const actionIndex = values[1];
+                amount = parseInt(amountStr, 10);
+                const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
+                const selectedActionString = options[actionIndex];
+                action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
+            } else {
+                const values = (modalResponse as ModalFormResponse).formValues as [string];
+                const amountStr = values[0];
+                amount = parseInt(amountStr, 10);
+            }
+
+            if (isNaN(amount) || amount <= 0) {
+                player.sendMessage('§cInvalid amount.');
+                return showPanel(player, panelId, context);
+            }
+
+            let result;
+            if (action === 'buy') {
+                result = shopManager.buyItem(player, itemId, amount);
+            } else {
+                // action === 'sell'
+                result = shopManager.sellItem(player, itemId, amount);
+            }
+            player.sendMessage(result.message);
+
+            return showPanel(player, panelId, context); // Refresh the panel
         }
-
-        const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
-        let action;
-        let hasDropdown = false;
-
-        if (canBuy && canSell) {
-            modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
-            const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
-            modal.dropdown('Action', options, { defaultValueIndex: 0 });
-            hasDropdown = true;
-        } else if (canBuy) {
-            modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', {
-                defaultValue: '1'
-            });
-            action = 'buy';
-        } else {
-            // canSell
-            modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', {
-                defaultValue: '1'
-            });
-            action = 'sell';
-        }
-
-        const modalResponse = await utils.uiWait(player, modal);
-
-        if (modalResponse.canceled) {
-            return showPanel(player, panelId, context);
-        }
-
-        let amount;
-        if (hasDropdown) {
-            const values = (modalResponse as ModalFormResponse).formValues as [string, number];
-            const amountStr = values[0];
-            const actionIndex = values[1];
-            amount = parseInt(amountStr, 10);
-            const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
-            const selectedActionString = options[actionIndex];
-            action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
-        } else {
-            const values = (modalResponse as ModalFormResponse).formValues as [string];
-            const amountStr = values[0];
-            amount = parseInt(amountStr, 10);
-        }
-
-        if (isNaN(amount) || amount <= 0) {
-            player.sendMessage('§cInvalid amount.');
-            return showPanel(player, panelId, context);
-        }
-
-        let result;
-        if (action === 'buy') {
-            result = shopManager.buyItem(player, itemId, amount);
-        } else {
-            // action === 'sell'
-            result = shopManager.sellItem(player, itemId, amount);
-        }
-        player.sendMessage(result.message);
-
-        return showPanel(player, panelId, context); // Refresh the panel
     }
 
     // --- Admin Edit Shop Panel Handlers ---
@@ -1377,7 +1370,7 @@ export async function handleFormResponse(
 
         const allPossibleItems = Object.keys(allItems);
         const paginatedItems = getPaginatedItems(allPossibleItems, page);
-        const selectedItemId = paginatedItems[selection - 2];
+        const selectedItemId = selection && selection > 1 ? paginatedItems[selection - 2] : undefined;
 
         if (selectedItemId) {
             const masterItem = allItems[selectedItemId];
@@ -1415,7 +1408,7 @@ export async function handleFormResponse(
         const totalPages = Math.ceil(allPossibleItems.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        const buttonIndex = selection - 2 - paginatedItems.length;
+        const buttonIndex = selection && selection > 1 ? selection - 2 - paginatedItems.length : -1;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;
@@ -1461,7 +1454,7 @@ export async function handleFormResponse(
         const shopConfig = getShopConfig();
         const categories = Object.keys(shopConfig.categories).sort();
         const paginatedCategories = getPaginatedItems(categories, page);
-        const selectedCategoryName = paginatedCategories[selection - 3];
+        const selectedCategoryName = selection && selection > 2 ? paginatedCategories[selection - 3] : undefined;
 
         if (selectedCategoryName) {
             return showPanel(player, `shopAdminCategoryPanel_${selectedCategoryName}`, {
@@ -1473,7 +1466,7 @@ export async function handleFormResponse(
         const totalPages = Math.ceil(categories.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        const buttonIndex = selection - 3 - paginatedCategories.length;
+        const buttonIndex = selection && selection > 2 ? selection - 3 - paginatedCategories.length : -1;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;
@@ -1523,7 +1516,7 @@ export async function handleFormResponse(
         const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
         const allEntries = [...subCategories, ...items];
         const paginatedEntries = getPaginatedItems(allEntries, page);
-        const selectedEntry = paginatedEntries[selection - 4] as {
+        const selectedEntry = selection && selection > 3 ? paginatedEntries[selection - 4] as {
             type: string;
             id: string;
             displayName: string;
@@ -1532,7 +1525,7 @@ export async function handleFormResponse(
             sellPrice: number;
             permissionLevel: number;
             name: string;
-        };
+        } : undefined;
 
         if (selectedEntry) {
             if (selectedEntry.type === 'item') {
@@ -1616,7 +1609,7 @@ export async function handleFormResponse(
         const totalPages = Math.ceil(allEntries.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        const buttonIndex = selection - 4 - paginatedEntries.length;
+        const buttonIndex = selection && selection > 3 ? selection - 4 - paginatedEntries.length : -1;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;
@@ -1691,14 +1684,14 @@ export async function handleFormResponse(
         const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
         const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
         const paginatedItems = getPaginatedItems(items, page);
-        const selectedItem = paginatedItems[selection - 3] as {
+        const selectedItem = selection && selection > 2 ? paginatedItems[selection - 3] as {
             id: string;
             displayName: string;
             icon: string;
             buyPrice: number;
             sellPrice: number;
             permissionLevel: number;
-        };
+        } : undefined;
 
         if (selectedItem) {
             const form = new ActionFormData()
@@ -1775,7 +1768,7 @@ export async function handleFormResponse(
         const totalPages = Math.ceil(items.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        const buttonIndex = selection - 3 - paginatedItems.length;
+        const buttonIndex = selection && selection > 2 ? selection - 3 - paginatedItems.length : -1;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;

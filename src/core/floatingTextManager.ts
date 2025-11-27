@@ -88,7 +88,7 @@ async function spawnAllTexts() {
         try {
             const dimension = mc.world.getDimension(textConfig.dimension);
             const query: mc.EntityQueryOptions = {
-                type: 'addonexe:floating_text' as unknown as string,
+                type: 'addonexe:floating_text',
                 tags: [`ft_${textConfig.id}`]
             };
             const entities = dimension.getEntities(query);
@@ -129,7 +129,10 @@ function spawnText(textConfig: FloatingTextConfig) {
         const dimension = mc.world.getDimension(textConfig.dimension);
         dimension.runCommand(`kill @e[type=addonexe:floating_text,tag="ft_${textConfig.id}"]`);
 
-        const entity = dimension.spawnEntity('addonexe:floating_text' as unknown as string, textConfig.location);
+        const entity = dimension.spawnEntity(
+            'addonexe:floating_text' as unknown as Parameters<typeof dimension.spawnEntity>[0],
+            textConfig.location
+        );
         entity.nameTag = textConfig.text.replace(/\\n/g, '\n');
         entity.addTag(`ft_${textConfig.id}`);
 
@@ -219,7 +222,7 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
         try {
             const dimension = mc.world.getDimension(newConfig.dimension);
             const query: mc.EntityQueryOptions = {
-                type: 'addonexe:floating_text' as unknown as string,
+                type: 'addonexe:floating_text',
                 tags: [`ft_${id}`]
             };
             const entity = await findEntityWithRetries(dimension, query);
@@ -288,7 +291,7 @@ async function despawnText(id: string) {
     try {
         const dimension = mc.world.getDimension(textConfig.dimension);
         const query: mc.EntityQueryOptions = {
-            type: 'addonexe:floating_text' as unknown as string,
+            type: 'addonexe:floating_text',
             tags: [`ft_${id}`]
         };
         const entities = dimension.getEntities(query);
