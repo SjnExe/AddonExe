@@ -76,9 +76,8 @@ function getCooldownKey(playerId: string, identifier: string): string {
  * @param commandName The name of the command (must have a section in config.js).
  */
 export function setCooldown(player: mc.Player, commandName: string) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config: any = getConfig();
-    const commandConfig = config[commandName];
+    const config = getConfig();
+    const commandConfig = (config as unknown as Record<string, { cooldownSeconds?: number }>)[commandName];
     if (!commandConfig || !commandConfig.cooldownSeconds) {
         return;
     }

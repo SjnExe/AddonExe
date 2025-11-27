@@ -11,8 +11,7 @@ export interface HelpfulLink {
  * @returns The array of link objects.
  */
 export function getHelpfulLinks(): HelpfulLink[] {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config: any = getConfig();
+    const config = getConfig();
     return config.serverInfo.helpfulLinks || [];
 }
 

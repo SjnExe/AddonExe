@@ -150,8 +150,7 @@ export function clearAllReports() {
  * Clears old, resolved reports from the system to prevent data bloat.
  */
 export function clearOldResolvedReports() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config: any = getConfig();
+    const config = getConfig();
     const lifetimeDays = config.reports?.resolvedReportLifetimeDays;
 
     if (typeof lifetimeDays !== 'number' || lifetimeDays <= 0) {

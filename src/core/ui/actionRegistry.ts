@@ -300,8 +300,7 @@ export const uiActionFunctions: Record<
         if (response && !response.canceled) {
             const [amountStr] = (response as ModalFormResponse).formValues as [string];
             const amount = Number(amountStr);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const config = getConfig() as any;
+            const config = getConfig();
             if (isNaN(amount) || amount < config.bounties.minimumBounty) {
                 player.sendMessage(
                     `§cInvalid amount. The minimum bounty is ${formatCurrency(config.bounties.minimumBounty)}.`

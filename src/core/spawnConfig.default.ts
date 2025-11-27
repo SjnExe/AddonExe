@@ -5,9 +5,9 @@ export const spawnConfig = {
         teleportWarmupSeconds: 10,
         // Default spawn location. Can be set manually here (e.g., { x: 0, y: 100, z: 0, dimensionId: 'minecraft:overworld' }) or with the in-game /setspawn command.
         spawnLocation: {
-            x: undefined,
-            y: undefined,
-            z: undefined,
+            x: undefined as number | undefined,
+            y: undefined as number | undefined,
+            z: undefined as number | undefined,
             dimensionId: 'minecraft:overworld'
         }
     },

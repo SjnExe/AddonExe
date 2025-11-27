@@ -5,8 +5,7 @@ import { RankDefinition } from './ranksConfig.default.js';
  * Gets all ranks from the config.
  */
 export function getRanks(): RankDefinition[] {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (getRanksConfig() as any).rankDefinitions;
+    return getRanksConfig().rankDefinitions;
 }
 
 /**
@@ -22,8 +21,7 @@ export function getRankById(rankId: string): RankDefinition | undefined {
  * @param rankData
  */
 export function addRank(rankData: RankDefinition): { success: boolean; message: string } {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ranksConfig: any = getRanksConfig();
+    const ranksConfig = getRanksConfig();
     if (getRankById(rankData.id)) {
         return { success: false, message: `Rank with ID '${rankData.id}' already exists.` };
     }
@@ -41,8 +39,7 @@ export function updateRank(
     rankId: string,
     updatedData: Partial<RankDefinition>
 ): { success: boolean; message: string } {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ranksConfig: any = getRanksConfig();
+    const ranksConfig = getRanksConfig();
     const rankIndex = ranksConfig.rankDefinitions.findIndex((r: RankDefinition) => r.id === rankId);
     if (rankIndex === -1) {
         return { success: false, message: `Rank with ID '${rankId}' not found.` };
@@ -80,8 +77,7 @@ export function updateRank(
  * @param rankId The ID of the rank to delete.
  */
 export function deleteRank(rankId: string): { success: boolean; message: string } {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ranksConfig: any = getRanksConfig();
+    const ranksConfig = getRanksConfig();
     const rankIndex = ranksConfig.rankDefinitions.findIndex((r: RankDefinition) => r.id === rankId);
     if (rankIndex === -1) {
         return { success: false, message: `Rank with ID '${rankId}' not found.` };

@@ -2,12 +2,7 @@ import * as mc from '@minecraft/server';
 import { ModalFormData, ActionFormData, ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getConfig, updateMultipleConfig, resetConfigSection } from '../configManager.js';
-import {
-    getShopConfig,
-    getXrayConfig,
-    saveXrayConfig,
-    XrayConfig
-} from '../configurations.js';
+import { getShopConfig, getXrayConfig, saveXrayConfig, XrayConfig } from '../configurations.js';
 import { floatingTextManager } from '../floatingTextManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { items as allItems } from '../itemsConfig.default.js';
@@ -627,8 +622,8 @@ export async function handleFormResponse(
             return showPanel(player, 'addXrayOrePanel', context);
         }
         const xrayConfig = getXrayConfig() as XrayConfig;
-        const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a: MonitoredOreType, b: MonitoredOreType) =>
-            a.oreName.localeCompare(b.oreName)
+        const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort(
+            (a: MonitoredOreType, b: MonitoredOreType) => a.oreName.localeCompare(b.oreName)
         );
         if (typeof selection === 'number') {
             const selectedOreIndex = selection - 2;
@@ -1218,13 +1213,16 @@ export async function handleFormResponse(
             return showPanel(player, panelId, { ...context, page: newPage });
         }
 
-        const selectedEntry = selectionIndex >= 0 ? paginatedEntries[selectionIndex] as {
-            type: string;
-            name: string;
-            id: string;
-            buyPrice: number;
-            sellPrice: number;
-        } : undefined;
+        const selectedEntry =
+            selectionIndex >= 0
+                ? (paginatedEntries[selectionIndex] as {
+                      type: string;
+                      name: string;
+                      id: string;
+                      buyPrice: number;
+                      sellPrice: number;
+                  })
+                : undefined;
 
         if (selectedEntry && selectedEntry.type === 'subCategory') {
             return showPanel(player, `shopItemListPanel_${categoryName}_${selectedEntry.name}`, {
@@ -1537,16 +1535,19 @@ export async function handleFormResponse(
         const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
         const allEntries = [...subCategories, ...items];
         const paginatedEntries = getPaginatedItems(allEntries, page);
-        const selectedEntry = selection && selection > 3 ? paginatedEntries[selection - 4] as {
-            type: string;
-            id: string;
-            displayName: string;
-            icon: string;
-            buyPrice: number;
-            sellPrice: number;
-            permissionLevel: number;
-            name: string;
-        } : undefined;
+        const selectedEntry =
+            selection && selection > 3
+                ? (paginatedEntries[selection - 4] as {
+                      type: string;
+                      id: string;
+                      displayName: string;
+                      icon: string;
+                      buyPrice: number;
+                      sellPrice: number;
+                      permissionLevel: number;
+                      name: string;
+                  })
+                : undefined;
 
         if (selectedEntry) {
             if (selectedEntry.type === 'item') {
@@ -1708,14 +1709,17 @@ export async function handleFormResponse(
         const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
         const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
         const paginatedItems = getPaginatedItems(items, page);
-        const selectedItem = selection && selection > 2 ? paginatedItems[selection - 3] as {
-            id: string;
-            displayName: string;
-            icon: string;
-            buyPrice: number;
-            sellPrice: number;
-            permissionLevel: number;
-        } : undefined;
+        const selectedItem =
+            selection && selection > 2
+                ? (paginatedItems[selection - 3] as {
+                      id: string;
+                      displayName: string;
+                      icon: string;
+                      buyPrice: number;
+                      sellPrice: number;
+                      permissionLevel: number;
+                  })
+                : undefined;
 
         if (selectedItem) {
             const form = new ActionFormData()
