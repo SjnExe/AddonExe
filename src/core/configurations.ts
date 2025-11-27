@@ -1,21 +1,22 @@
 import * as mc from '@minecraft/server';
 
-import { config as Config } from '../config.default.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 
 import { loadConfig as asyncLoadConfig } from './configLoader.js';
 import { getConfig } from './configManager.js';
 import createConfigManager, { ConfigManager } from './configManagerFactory.js';
-import { economyConfig } from './economyConfig.default.js';
-import { kitsConfig } from './kitsConfig.default.js';
 import { setLockState } from './playerDataManager.js';
 import { reloadRanks } from './rankManager.js';
-import ranksConfig from './ranksConfig.default.js';
-import { shopConfig } from './shopConfig.default.js';
-import { spawnConfig } from './spawnConfig.default.js';
-import { teamConfig } from './teamConfig.default.js';
-import { xrayConfig } from './xrayConfig.default.js';
+
+import type { economyConfig } from './economyConfig.default.js';
+import type { kitsConfig } from './kitsConfig.default.js';
+import type { config as Config } from '../config.default.js';
+import type ranksConfig from './ranksConfig.default.js';
+import type { shopConfig } from './shopConfig.default.js';
+import type { spawnConfig } from './spawnConfig.default.js';
+import type { teamConfig } from './teamConfig.default.js';
+import type { xrayConfig } from './xrayConfig.default.js';
 
 export type KitsConfig = typeof kitsConfig;
 export type ShopConfig = typeof shopConfig;
