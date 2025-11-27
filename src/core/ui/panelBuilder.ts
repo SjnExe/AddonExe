@@ -7,7 +7,15 @@ import { getConfig } from '../configManager.js';
 import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig, KitsConfig } from '../configurations.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { iconDB } from '../iconDB.js';
-import { items as allItems, Item } from '../itemsConfig.default.js';
+// @ts-expect-error - Importing from JS file
+import { items as allItems } from '../itemsConfig.default.js';
+
+interface Item {
+    displayName?: string;
+    icon?: string;
+    buyPrice?: number;
+    sellPrice?: number;
+}
 import { getAllKits, Kit } from '../kitAdminManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
@@ -172,20 +180,20 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
     const paginatedEntries = getPaginatedItems(allEntries, page);
 
     for (const entry of paginatedEntries) {
-        if (entry.type === 'subCategory') {
+        if ('items' in entry) {
             form.button(`§e${entry.name}`, entry.icon);
         } else {
             const masterItem = (allItems as Record<string, Item>)[entry.id] || {};
             const displayName = entry.displayName || masterItem.displayName || entry.id;
             const icon = entry.icon || masterItem.icon;
             let priceString = '';
-            if (view === 'buy' && entry.buyPrice > 0) {
+            if (view === 'buy' && (entry.buyPrice || 0) > 0) {
                 priceString = `§2Buy: ${formatCurrency(entry.buyPrice)}`;
-            } else if (view === 'sell' && entry.sellPrice > 0) {
+            } else if (view === 'sell' && (entry.sellPrice || 0) > 0) {
                 priceString = `§cSell: ${formatCurrency(entry.sellPrice)}`;
             } else {
-                const buy = entry.buyPrice > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
-                const sell = entry.sellPrice > 0 ? `§cS: ${formatCurrency(entry.sellPrice)}` : '';
+                const buy = (entry.buyPrice || 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
+                const sell = (entry.sellPrice || 0) > 0 ? `§cS: ${formatCurrency(entry.sellPrice)}` : '';
                 priceString = [buy, sell].filter(Boolean).join(' ');
             }
             form.button(`${displayName}\n${priceString}`, icon);
@@ -278,14 +286,14 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
     const paginatedEntries = getPaginatedItems(allEntries, page);
 
     for (const entry of paginatedEntries) {
-        if (entry.type === 'item') {
+        if ('items' in entry) {
+            // subCategory
+            form.button(`§e${entry.name}`, entry.icon);
+        } else {
             const masterItem = (allItems as Record<string, Item>)[entry.id] || {};
             const displayName = entry.displayName || masterItem.displayName || entry.id;
             const icon = entry.icon || masterItem.icon;
             form.button(displayName, icon);
-        } else {
-            // subCategory
-            form.button(`§e${entry.name}`, entry.icon);
         }
     }
 
@@ -613,10 +621,12 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 const currentValue = getValueFromPath(config, setting.key);
                 switch (setting.type) {
                     case 'toggle':
-                        form.toggle(setting.label, !!currentValue);
+                        form.toggle(setting.label, { defaultValue: !!currentValue });
                         break;
                     case 'textField':
-                        form.textField(setting.label, setting.description || '', String(currentValue ?? ''));
+                        form.textField(setting.label, setting.description || '', {
+                            defaultValue: String(currentValue ?? '')
+                        });
                         break;
                     case 'dropdown': {
                         let index = -1;
@@ -627,7 +637,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                         } else {
                             index = options.indexOf(currentValue as string);
                         }
-                        form.dropdown(setting.label, options, index >= 0 && index < options.length ? index : 0);
+                        form.dropdown(setting.label, options, {
+                            defaultValueIndex: index >= 0 && index < options.length ? index : 0
+                        });
                         break;
                     }
                 }
@@ -693,7 +705,10 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'teamCreatePanel') {
             const { teamConfig } = await import('../teamConfig.default.js');
             const form = new ModalFormData().title('Create Team');
-            form.textField('Team Name', `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`);
+            form.textField(
+                'Team Name',
+                `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`
+            );
             return form;
         }
 
@@ -718,9 +733,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const form = new ModalFormData().title('Team Settings');
             // Personal Settings
-            form.toggle('Auto-Accept Team Teleport', pData.teamSettings?.autoTpAccept ?? false);
+            form.toggle('Auto-Accept Team Teleport', { defaultValue: pData.teamSettings?.autoTpAccept ?? false });
             if (canManage) {
-                form.toggle('Allow Join Requests', team.open ?? true);
+                form.toggle('Allow Join Requests', { defaultValue: team.open ?? true });
             }
             return form;
         }
@@ -1006,13 +1021,15 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const form = new ModalFormData()
                 .title(`Edit Settings: ${kitName}`)
-                .toggle('Enabled', kit.enabled)
-                .textField('Name', 'The name of the kit.', kitName)
-                .textField('Description', 'A short description of the kit.', kit.description || '')
-                .textField('Icon', 'Texture path for the icon (e.g., textures/items/diamond_sword).', kit.icon || '')
-                .textField('Cooldown (seconds)', 'Time between uses.', String(kit.cooldownSeconds))
-                .textField('Permission Level', '0=Admin, 1024=Member.', String(kit.permissionLevel))
-                .textField('Price', 'Cost to claim the kit.', String(kit.price || 0));
+                .toggle('Enabled', { defaultValue: kit.enabled })
+                .textField('Name', 'The name of the kit.', { defaultValue: kitName })
+                .textField('Description', 'A short description of the kit.', { defaultValue: kit.description || '' })
+                .textField('Icon', 'Texture path for the icon (e.g., textures/items/diamond_sword).', {
+                    defaultValue: kit.icon || ''
+                })
+                .textField('Cooldown (seconds)', 'Time between uses.', { defaultValue: String(kit.cooldownSeconds) })
+                .textField('Permission Level', '0=Admin, 1024=Member.', { defaultValue: String(kit.permissionLevel) })
+                .textField('Price', 'Cost to claim the kit.', { defaultValue: String(kit.price || 0) });
 
             return form;
         }
@@ -1086,17 +1103,21 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const form = new ModalFormData()
                 .title(`Edit: ${id}`)
-                .textField('Text Content', 'Enter the text to display', text.text ?? '')
-                .textField('X Coordinate', 'Enter the X coordinate', String(+(text.location?.x ?? 0).toFixed(2)))
-                .textField('Y Coordinate', 'Enter the Y coordinate', String(+(text.location?.y ?? 0).toFixed(2)))
-                .textField('Z Coordinate', 'Enter the Z coordinate', String(+(text.location?.z ?? 0).toFixed(2)))
-                .dropdown('Dimension', dimensionOptions, defaultDimensionIndex)
-                .toggle('Enable Expiration Timer', !!expiresAt)
-                .textField(
-                    'Expiration (minutes from now)',
-                    'e.g., 60 for 1 hour',
-                    expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0'
-                );
+                .textField('Text Content', 'Enter the text to display', { defaultValue: text.text ?? '' })
+                .textField('X Coordinate', 'Enter the X coordinate', {
+                    defaultValue: String(+(text.location?.x ?? 0).toFixed(2))
+                })
+                .textField('Y Coordinate', 'Enter the Y coordinate', {
+                    defaultValue: String(+(text.location?.y ?? 0).toFixed(2))
+                })
+                .textField('Z Coordinate', 'Enter the Z coordinate', {
+                    defaultValue: String(+(text.location?.z ?? 0).toFixed(2))
+                })
+                .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
+                .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
+                .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', {
+                    defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0'
+                });
             return form;
         }
 
@@ -1165,17 +1186,13 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const form = new ModalFormData()
                 .title(`Edit Kit: ${kitName}`)
-                .toggle('Enable this kit', kit.enabled)
-                .textField(
-                    'Cooldown (seconds)',
-                    'The time a player must wait between claiming this kit.',
-                    String(kit.cooldownSeconds)
-                )
-                .textField(
-                    'Permission Level',
-                    '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.',
-                    String(kit.permissionLevel ?? 1024)
-                );
+                .toggle('Enable this kit', { defaultValue: kit.enabled })
+                .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', {
+                    defaultValue: String(kit.cooldownSeconds)
+                })
+                .textField('Permission Level', '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.', {
+                    defaultValue: String(kit.permissionLevel ?? 1024)
+                });
 
             return form;
         }
@@ -1295,12 +1312,10 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const form = new ModalFormData()
                 .title(`${commandName} Settings`)
-                .toggle('Enable Command', isEnabled)
-                .textField(
-                    'Permission Level',
-                    'Enter a number (e.g., 0 for admin, 1024 for member)',
-                    String(permissionLevel)
-                );
+                .toggle('Enable Command', { defaultValue: isEnabled })
+                .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', {
+                    defaultValue: String(permissionLevel)
+                });
 
             return form;
         }
@@ -1333,12 +1348,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             return form;
         }
 
-        if (panelId === 'addMobDropPanel') {
-            const form = new ModalFormData().title('§l§2Add Mob Drop');
-            form.textField('Mob ID', 'e.g., minecraft:creeper');
-            form.textField('Amount', 'e.g., 10');
-            return form;
-        }
+        // Removed duplicate addMobDropPanel block
 
         if (panelId === 'addRankPanel') {
             const form = new ModalFormData().title('§l§2Add New Rank');
@@ -1390,7 +1400,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const currentStyle = config.ranks?.nameTagStyle || 'above';
             const defaultIndex = internalStyles.indexOf(currentStyle);
 
-            form.dropdown('Nametag Style', nameTagStyles, defaultIndex > -1 ? defaultIndex : 0);
+            form.dropdown('Nametag Style', nameTagStyles, {
+                defaultValueIndex: defaultIndex > -1 ? defaultIndex : 0
+            });
             return form;
         }
 
@@ -1403,14 +1415,16 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             // const isSpecialRank = rank.conditions.some((c: any) => c.type === 'isOwner' || c.type === 'default');
 
             const form = new ModalFormData().title(`§l§3Edit Rank: ${rank?.name}`);
-            form.textField('Rank Name', 'e.g., VIP', rank.name);
+            form.textField('Rank Name', 'e.g., VIP', { defaultValue: rank.name });
             // Note: 'disabled' is removed as it's not supported in the types
-            form.textField('Rank ID (tag)', 'e.g., vip', rank.id);
-            form.textField('Permission Level', '0-1024', String(rank.permissionLevel));
-            form.textField('Name Color', 'e.g., §6', rank.chatFormatting?.nameColor ?? '');
-            form.textField('Chat Color', 'e.g., §6', rank.chatFormatting?.messageColor ?? '');
-            form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', rank.chatFormatting?.prefixText ?? '');
-            form.textField('Nametag Prefix', 'e.g., §6VIP', rank.nametagPrefix ?? '');
+            form.textField('Rank ID (tag)', 'e.g., vip', { defaultValue: rank.id });
+            form.textField('Permission Level', '0-1024', { defaultValue: String(rank.permissionLevel) });
+            form.textField('Name Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.nameColor ?? '' });
+            form.textField('Chat Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.messageColor ?? '' });
+            form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', {
+                defaultValue: rank.chatFormatting?.prefixText ?? ''
+            });
+            form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
             return form;
         }
 
@@ -1447,11 +1461,11 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const ores = xrayConfig.monitoredOres || [];
             const ore = ores[context.oreIndex ?? 0];
             const form = new ModalFormData().title('§l§cEdit Monitored Ore');
-            form.textField('Block ID', 'e.g., minecraft:diamond_ore', ore.blockId);
-            form.textField('Dimension ID', 'e.g., minecraft:overworld', ore.dimensionId);
-            form.textField('Min Y', 'e.g., -64', String(ore.minY));
-            form.textField('Max Y', 'e.g., 16', String(ore.maxY));
-            form.textField('Ore Name', 'e.g., Diamond Ore', ore.oreName);
+            form.textField('Block ID', 'e.g., minecraft:diamond_ore', { defaultValue: ore.blockId });
+            form.textField('Dimension ID', 'e.g., minecraft:overworld', { defaultValue: ore.dimensionId });
+            form.textField('Min Y', 'e.g., -64', { defaultValue: String(ore.minY) });
+            form.textField('Max Y', 'e.g., 16', { defaultValue: String(ore.maxY) });
+            form.textField('Ore Name', 'e.g., Diamond Ore', { defaultValue: ore.oreName });
             return form;
         }
 

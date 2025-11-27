@@ -57,11 +57,15 @@ export async function handleFormResponse(
     response: ActionFormResponse | ModalFormResponse,
     context: UIContext
 ) {
-    const { selection, canceled, formValues } = response;
+    const { canceled } = response;
     const pData = getPlayer(player.id);
     if (!pData) {
         return;
     }
+
+    // Helper properties with type guards implicitly handled by usage context
+    const selection = (response as ActionFormResponse).selection;
+    const formValues = (response as ModalFormResponse).formValues;
 
     if (panelId === 'floatingTextListPanel') {
         if (selection === 0) {
@@ -73,39 +77,44 @@ export async function handleFormResponse(
             return showPanel(player, 'floatingTextCreatePanel', context);
         }
         const texts = floatingTextManager.getAllTexts();
-        const selectedText = texts[selection - 2];
-        if (selectedText) {
-            return showPanel(player, 'floatingTextActionPanel', { ...context, id: selectedText.id });
+        if (typeof selection === 'number') {
+            const selectedText = texts[selection - 2];
+            if (selectedText) {
+                return showPanel(player, 'floatingTextActionPanel', { ...context, id: selectedText.id });
+            }
         }
         return;
     }
 
     if (panelId === 'floatingTextActionPanel') {
-        const { id } = context;
-        try {
-            switch (selection) {
-                case 0: // Edit
-                    return showPanel(player, 'floatingTextEditPanel', context);
-                case 1: // Respawn
-                    await floatingTextManager.respawnText(id);
-                    player.sendMessage(`§aRespawned floating text: ${id}`);
-                    break;
-                case 2: // Despawn
-                    await floatingTextManager.despawnText(id);
-                    player.sendMessage(`§aDespawned floating text: ${id}`);
-                    break;
-                case 3: // Delete
-                    await floatingTextManager.deleteText(player, id);
-                    break; // The deleteText function sends its own success message.
-                case 4: // Back
-                    break;
+        if (typeof selection === 'number') {
+            const { id } = context;
+            try {
+                switch (selection) {
+                    case 0: // Edit
+                        return showPanel(player, 'floatingTextEditPanel', context);
+                    case 1: // Respawn
+                        await floatingTextManager.respawnText(id);
+                        player.sendMessage(`§aRespawned floating text: ${id}`);
+                        break;
+                    case 2: // Despawn
+                        await floatingTextManager.despawnText(id);
+                        player.sendMessage(`§aDespawned floating text: ${id}`);
+                        break;
+                    case 3: // Delete
+                        await floatingTextManager.deleteText(player, id);
+                        break; // The deleteText function sends its own success message.
+                    case 4: // Back
+                        break;
+                }
+            } catch (error) {
+                errorLog(`[UIManager] Error in floatingTextActionPanel for ID '${id}':`, error);
+                player.sendMessage('§cAn error occurred. Please check the logs.');
             }
-        } catch (error) {
-            errorLog(`[UIManager] Error in floatingTextActionPanel for ID '${id}':`, error);
-            player.sendMessage('§cAn error occurred. Please check the logs.');
+            // Always refresh the list panel, even on error or 'Back'
+            return showPanel(player, 'floatingTextListPanel', context);
         }
-        // Always refresh the list panel, even on error or 'Back'
-        return showPanel(player, 'floatingTextListPanel', context);
+        return;
     }
 
     if (panelId === 'teamMainPanel') {
@@ -192,7 +201,10 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'teamMainPanel', context);
         }
-        const [name] = (response as ModalFormResponse).formValues as string[];
+        const values = (response as ModalFormResponse).formValues;
+        if (!values) return;
+
+        const [name] = values as string[];
         if (!name) {
             player.sendMessage('§cTeam name is required.');
             return showPanel(player, panelId, context);
@@ -224,7 +236,10 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'teamJoinPanel', context);
         }
-        const [idStr] = (response as ModalFormResponse).formValues as string[];
+        const values = (response as ModalFormResponse).formValues;
+        if (!values) return;
+
+        const [idStr] = values as string[];
         const teamId = parseInt(idStr);
         if (isNaN(teamId)) {
             player.sendMessage('§cInvalid Team ID.');
@@ -275,6 +290,7 @@ export async function handleFormResponse(
             return showPanel(player, panelId, context);
         }
 
+        if (typeof selection !== 'number') return;
         const inviteIndex = selection - 1;
         if (inviteIndex >= 0 && inviteIndex < invites.length) {
             const invite = invites[inviteIndex];
@@ -316,6 +332,7 @@ export async function handleFormResponse(
             return showPanel(player, 'teamJoinPanel', context);
         }
 
+        if (typeof selection !== 'number') return;
         const selectionIndex = selection - 1;
 
         if (selectionIndex < paginatedTeams.length) {
@@ -549,6 +566,7 @@ export async function handleFormResponse(
             return;
         }
 
+        if (typeof selection !== 'number') return;
         const memberIndex = selection - 1;
         if (memberIndex >= 0 && memberIndex < team.members.length) {
             const memberId = team.members[memberIndex];
@@ -643,9 +661,11 @@ export async function handleFormResponse(
         // The original JS code referenced monitoredOres array which implies a mismatch or transformation.
         // We will access it safely.
         const ores = xrayConfig.monitoredOres || [];
-        const selectedOreIndex = selection - 2;
-        if (selectedOreIndex >= 0 && selectedOreIndex < ores.length) {
-            return showPanel(player, 'editXrayOrePanel', { ...context, oreIndex: selectedOreIndex });
+        if (typeof selection === 'number') {
+            const selectedOreIndex = selection - 2;
+            if (selectedOreIndex >= 0 && selectedOreIndex < ores.length) {
+                return showPanel(player, 'editXrayOrePanel', { ...context, oreIndex: selectedOreIndex });
+            }
         }
         return;
     }
@@ -654,8 +674,10 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'xrayOresPanel', context);
         }
-        const [blockId, dimensionId, minYStr, maxYStr, oreName] = (response as ModalFormResponse)
-            .formValues as string[];
+        const values = (response as ModalFormResponse).formValues;
+        if (!values) return;
+
+        const [blockId, dimensionId, minYStr, maxYStr, oreName] = values as string[];
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
@@ -676,9 +698,11 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'xrayOresPanel', context);
         }
+        const values = (response as ModalFormResponse).formValues;
+        if (!values) return;
+
         const { oreIndex } = context;
-        const [blockId, dimensionId, minYStr, maxYStr, oreName] = (response as ModalFormResponse)
-            .formValues as string[];
+        const [blockId, dimensionId, minYStr, maxYStr, oreName] = values as string[];
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
@@ -698,9 +722,19 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'floatingTextActionPanel', context);
         }
+        const values = (response as ModalFormResponse).formValues;
+        if (!values) return;
+
         const { id } = context;
-        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = (response as ModalFormResponse)
-            .formValues as [string, string, string, string, number, boolean, string];
+        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = values as [
+            string,
+            string,
+            string,
+            string,
+            number,
+            boolean,
+            string
+        ];
 
         const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
         const selectedDimension = dimensionIds[dimensionIndex] ?? 'minecraft:overworld';
@@ -721,7 +755,10 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'floatingTextListPanel', context);
         }
-        const [id, text] = (response as ModalFormResponse).formValues as string[];
+        const values = (response as ModalFormResponse).formValues;
+        if (!values) return;
+
+        const [id, text] = values as string[];
         if (!id) {
             player.sendMessage('§cID cannot be empty.');
             return showPanel(player, 'floatingTextCreatePanel', context);
@@ -750,6 +787,7 @@ export async function handleFormResponse(
         }
 
         const paginatedRules = getPaginatedItems(rules, page);
+        if (typeof selection !== 'number') return;
         const selectionIndex = selection - 2;
 
         // Handle rule selection
@@ -786,7 +824,10 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'rulesManagementPanel', context);
         }
-        const [newRuleText] = (response as ModalFormResponse).formValues as string[];
+        const values = (response as ModalFormResponse).formValues;
+        if (!values) return;
+
+        const [newRuleText] = values as string[];
         if (newRuleText) {
             rulesManager.addRule(newRuleText);
             player.sendMessage('§2Rule added successfully.');
@@ -808,6 +849,7 @@ export async function handleFormResponse(
         }
 
         const paginatedLinks = getPaginatedItems(links, page);
+        if (typeof selection !== 'number') return;
         const selectionIndex = selection - 2;
 
         // Handle link selection
@@ -844,7 +886,10 @@ export async function handleFormResponse(
         if (canceled) {
             return showPanel(player, 'helpfulLinksManagementPanel', context);
         }
-        const [title, url] = (response as ModalFormResponse).formValues as string[];
+        const values = (response as ModalFormResponse).formValues;
+        if (!values) return;
+
+        const [title, url] = values as string[];
         if (title && url) {
             helpfulLinksManager.addHelpfulLink(title, url);
             player.sendMessage('§2Link added successfully.');
@@ -854,7 +899,7 @@ export async function handleFormResponse(
 
     if (panelId === 'helpfulLinkActionPanel') {
         const { linkIndex } = context;
-        if (selection === undefined) return;
+        if (typeof selection !== 'number') return;
         switch (selection) {
             case 0: {
                 // Edit
@@ -868,7 +913,10 @@ export async function handleFormResponse(
                 if (editResponse.canceled) {
                     return showPanel(player, 'helpfulLinkActionPanel', context);
                 }
-                const [newTitle, newUrl] = (editResponse as ModalFormResponse).formValues as string[];
+                const values = (editResponse as ModalFormResponse).formValues;
+                if (!values) return;
+
+                const [newTitle, newUrl] = values as string[];
                 if (newTitle && newUrl) {
                     helpfulLinksManager.editHelpfulLink(linkIndex, newTitle, newUrl);
                     player.sendMessage('§2Link updated successfully.');
@@ -908,7 +956,7 @@ export async function handleFormResponse(
     if (panelId === 'ruleActionPanel') {
         const { ruleIndex } = context;
 
-        if (selection === undefined) return;
+        if (typeof selection !== 'number') return;
         switch (selection) {
             case 0: {
                 // Edit Text
@@ -923,7 +971,10 @@ export async function handleFormResponse(
                     return showPanel(player, 'ruleActionPanel', context);
                 }
 
-                const [newText] = (editResponse as ModalFormResponse).formValues as string[];
+                const values = (editResponse as ModalFormResponse).formValues;
+                if (!values) return;
+
+                const [newText] = values as string[];
                 if (newText) {
                     rulesManager.editRule(ruleIndex, newText);
                     player.sendMessage('§2Rule updated successfully.');
@@ -1852,9 +1903,18 @@ export async function handleFormResponse(
             return showPanel(player, `kitActionMenu_${kitName}`, context);
         }
 
-        const [isEnabled, newKitName, description, icon, cooldownStr, permissionLevelStr, priceStr] = (
-            response as ModalFormResponse
-        ).formValues as [boolean, string, string, string, string, string, string];
+        const values = (response as ModalFormResponse).formValues;
+        if (!values) return;
+
+        const [isEnabled, newKitName, description, icon, cooldownStr, permissionLevelStr, priceStr] = values as [
+            boolean,
+            string,
+            string,
+            string,
+            string,
+            string,
+            string
+        ];
 
         let finalKitName = kitName;
         // Check if the name has changed (case-insensitive)
@@ -1951,7 +2011,12 @@ export async function handleFormResponse(
         const itemStartIndex = 1;
         const itemEndIndex = itemStartIndex + paginatedItems.length - 1;
 
-        if (selection >= itemStartIndex && selection <= itemEndIndex) {
+        // Ensure selection is treated as number
+        if (
+            typeof selection === 'number' &&
+            selection >= itemStartIndex &&
+            selection <= itemEndIndex
+        ) {
             const selectedItemIndexInPage = selection - itemStartIndex;
             const selectedItemIndex = (page - 1) * itemsPerPage + selectedItemIndexInPage;
             const selectedItem = kit.items[selectedItemIndex];
@@ -2091,7 +2156,10 @@ export async function handleFormResponse(
         }
 
         const { commandName } = context;
-        const [isEnabled, permissionLevelStr] = (response as ModalFormResponse).formValues as [boolean, string];
+        const values = (response as ModalFormResponse).formValues;
+        if (!values) return;
+
+        const [isEnabled, permissionLevelStr] = values as [boolean, string];
         const permissionLevel = parseInt(permissionLevelStr, 10);
 
         if (isNaN(permissionLevel)) {
@@ -2160,7 +2228,11 @@ export async function handleFormResponse(
         }
 
         // Handle Item click
-        if (selection >= itemStartIndex && selection <= itemEndIndex) {
+        if (
+            typeof selection === 'number' &&
+            selection >= itemStartIndex &&
+            selection <= itemEndIndex
+        ) {
             const selectedItemIndex = selection - itemStartIndex;
             const selectedItem = paginatedItems[selectedItemIndex];
 
@@ -2551,6 +2623,8 @@ export async function handleFormResponse(
         const { getValueFromPath } = await import('../objectUtils.js');
 
         const newValues = formValues as (string | number | boolean)[];
+        if (!newValues) return;
+
         let validationFailed = false;
 
         const processAndValidate = (setting: ConfigSetting, value: string | number | boolean) => {
@@ -2683,6 +2757,7 @@ export async function handleFormResponse(
 
     if (panelId === 'playerActionsPanel') {
         const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
+        if (typeof selection !== 'number') return;
         const selectedItem = visibleItems[selection];
         if (!selectedItem) {
             return;
@@ -2708,6 +2783,7 @@ export async function handleFormResponse(
 
     const panelDef = panelDefinitions[panelId];
     const menuItems = getMenuItems(panelDef, pData.permissionLevel);
+    if (typeof selection !== 'number') return;
     const selectedItem = menuItems[selection];
     if (!selectedItem) {
         return;
