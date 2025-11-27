@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ModalFormData } from '@minecraft/server-ui';
+import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
 import * as reportManager from '../../core/reportManager.js';
@@ -44,7 +44,7 @@ const reportCommand: CustomCommand = {
             return;
         }
 
-        const [reason] = (response as mc.ModalFormResponse).formValues as (string | undefined)[];
+        const [reason] = (response as ModalFormResponse).formValues as (string | undefined)[];
 
         if (!reason || reason.trim().length === 0) {
             executor.sendMessage('§cYou must provide a reason.');

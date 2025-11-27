@@ -235,7 +235,8 @@ class CommandManager {
     ) {
         const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
-        const commandCallback = (origin: mc.CustomCommandOrigin, ...rawArgs: unknown[]) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const commandCallback = (origin: mc.CustomCommandOrigin, ...rawArgs: any[]) => {
             const executor: CommandExecutor = (origin.sourceEntity as mc.Player) || {
                 isConsole: true,
                 sendMessage: (msg: string) => errorLog(msg.replace(/§[0-9a-fklmnor]/g, ''))
@@ -250,12 +251,14 @@ class CommandManager {
                 }
             }
             this._executeCommand(executor, command, parsedArgs);
+            return undefined;
         };
 
         try {
             customCommandRegistry.registerCommand(
                 commandData,
-                commandCallback as (origin: mc.CustomCommandOrigin, ...args: unknown[]) => void
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                commandCallback as any
             );
         } catch (e: unknown) {
             if (e instanceof Error && !e.toString().includes('already in use')) {

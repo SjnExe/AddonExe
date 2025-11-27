@@ -230,7 +230,8 @@ const offlineBanCommand: CustomCommand = {
         { name: 'reason', type: 'text', optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        const { target: targetName, duration, reason } = args as OfflineBanCommandArgs;
+        // eslint-disable-next-line prefer-const
+        let { target: targetName, duration, reason } = args as unknown as OfflineBanCommandArgs;
 
         const targetId = getPlayerIdByName(targetName);
         if (!targetId) {

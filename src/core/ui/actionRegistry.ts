@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '../../modules/commands/ban.js';
 import { freezePlayer, unfreezePlayer } from '../../modules/commands/freeze.js';
@@ -13,7 +13,6 @@ import { getOrCreatePlayer, incrementPlayerBalance } from '../playerDataManager.
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as tpaManager from '../tpaManager.js';
-// @ts-expect-error - Importing from a JS file that will be migrated later.
 import { showPanel } from '../uiManager.js';
 import { formatCurrency } from '../utils.js';
 import * as utils from '../utils.js';
@@ -43,7 +42,7 @@ export const uiActionFunctions: Record<
             return;
         }
 
-        if (pData && pData.permissionLevel <= 1 && response.selection === 0) {
+        if (pData && pData.permissionLevel <= 1 && (response as ActionFormResponse).selection === 0) {
             return showPanel(player, 'rulesManagementPanel');
         }
     },
@@ -73,7 +72,7 @@ export const uiActionFunctions: Record<
             return;
         }
 
-        if (pData && pData.permissionLevel <= 1 && response.selection === 0) {
+        if (pData && pData.permissionLevel <= 1 && (response as ActionFormResponse).selection === 0) {
             return showPanel(player, 'helpfulLinksManagementPanel');
         }
     },
@@ -102,7 +101,7 @@ export const uiActionFunctions: Record<
         if (!response || response.canceled) {
             return true;
         }
-        const [targetName] = response.formValues as [string];
+        const [targetName] = (response as ModalFormResponse).formValues as [string];
         if (!targetName) {
             player.sendMessage('§cYou must enter a player name.');
             return true;
@@ -117,7 +116,7 @@ export const uiActionFunctions: Record<
         if (!response || response.canceled) {
             return true;
         }
-        const [targetName] = response.formValues as [string];
+        const [targetName] = (response as ModalFormResponse).formValues as [string];
         if (!targetName) {
             player.sendMessage('§cYou must enter a player name.');
             return true;
@@ -158,7 +157,7 @@ export const uiActionFunctions: Record<
             .textField('Reason', 'Enter reason for kicking', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
-            const [reason] = response.formValues as [string];
+            const [reason] = (response as ModalFormResponse).formValues as [string];
             kickPlayer(player, targetPlayer, reason);
         }
         return true;
@@ -221,7 +220,7 @@ export const uiActionFunctions: Record<
             .textField('Reason', 'Enter reason for muting', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
-            const [duration, reason] = response.formValues as [string, string];
+            const [duration, reason] = (response as ModalFormResponse).formValues as [string, string];
             mutePlayer(player, targetPlayer, duration, reason);
         }
         return true;
@@ -239,7 +238,7 @@ export const uiActionFunctions: Record<
             .textField('Reason', 'Enter reason for banning', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
-            const [duration, reason] = response.formValues as [string, string];
+            const [duration, reason] = (response as ModalFormResponse).formValues as [string, string];
             const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
             if (targetPlayer) {
                 banPlayer(player, targetPlayer, duration, reason);
@@ -299,7 +298,7 @@ export const uiActionFunctions: Record<
         const form = new ModalFormData().title(`Set Bounty on ${targetPlayerName}`).textField('Amount', 'Enter amount');
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
-            const [amountStr] = response.formValues as [string];
+            const [amountStr] = (response as ModalFormResponse).formValues as [string];
             const amount = Number(amountStr);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const config = getConfig() as any;
@@ -339,7 +338,7 @@ export const uiActionFunctions: Record<
             player.sendMessage('§cReport canceled.');
             return true;
         }
-        const [reason] = response.formValues as [string];
+        const [reason] = (response as ModalFormResponse).formValues as [string];
         if (!reason || reason.trim().length === 0) {
             player.sendMessage('§cYou must provide a reason.');
             return true;
@@ -368,7 +367,7 @@ export const uiActionFunctions: Record<
         const response = await utils.uiWait(player, form);
 
         if (response && !response.canceled) {
-            const [amountStr] = response.formValues as [string];
+            const [amountStr] = (response as ModalFormResponse).formValues as [string];
             const amount = Number(amountStr);
 
             if (isNaN(amount) || amount <= 0) {

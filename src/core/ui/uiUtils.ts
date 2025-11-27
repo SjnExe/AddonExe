@@ -14,7 +14,7 @@ import {
 import { economyConfig } from '../economyConfig.default.js';
 import { kitsConfig } from '../kitsConfig.default.js';
 import { PlayerData } from '../playerDataManager.js';
-import { ranksConfig } from '../ranksConfig.default.js';
+import ranksConfig from '../ranksConfig.default.js';
 import { shopConfig } from '../shopConfig.default.js';
 import { spawnConfig } from '../spawnConfig.default.js';
 import { teamConfig } from '../teamConfig.default.js';
@@ -42,40 +42,29 @@ interface ConfigHandler {
         | RanksConfig
         | KitsConfig
         | ShopConfig;
-    save: (
-        config:
-            | typeof Config
-            | SpawnConfig
-            | EconomyConfig
-            | XrayConfig
-            | TeamConfig
-            | RanksConfig
-            | KitsConfig
-            | ShopConfig
-            | Record<string, unknown>
-    ) => void;
+    save: (config: unknown) => void;
 }
 
 export const configHandlers: Record<string, ConfigHandler> = {
     main: {
         get: getConfig,
-        save: (updates: Record<string, unknown>) => updateMultipleConfig(updates)
+        save: (updates: unknown) => updateMultipleConfig(updates as Record<string, unknown>)
     },
     spawn: {
         get: getSpawnConfig,
-        save: (config: SpawnConfig) => saveSpawnConfig(config)
+        save: (config: unknown) => saveSpawnConfig(config as SpawnConfig)
     },
     economy: {
         get: getEconomyConfig,
-        save: (config: EconomyConfig) => saveEconomyConfig(config)
+        save: (config: unknown) => saveEconomyConfig(config as EconomyConfig)
     },
     xray: {
         get: getXrayConfig,
-        save: (config: XrayConfig) => saveXrayConfig(config)
+        save: (config: unknown) => saveXrayConfig(config as XrayConfig)
     },
     team: {
         get: getTeamConfig,
-        save: (config: TeamConfig) => saveTeamConfig(config)
+        save: (config: unknown) => saveTeamConfig(config as TeamConfig)
     }
 };
 

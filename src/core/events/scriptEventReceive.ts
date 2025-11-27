@@ -37,11 +37,8 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
             break;
 
         case 'exe:toggle_chat_log': {
-            // @ts-expect-error - chat config partial
             const chatConfig = config.chat || { logToConsole: false };
-            // @ts-expect-error - chat config partial
             const newValue = !chatConfig.logToConsole;
-            // @ts-expect-error - chat config partial
             chatConfig.logToConsole = newValue;
             updateConfig('chat', chatConfig);
 

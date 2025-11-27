@@ -410,7 +410,7 @@ export function setItem(
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
 
-    let targetContainer = category;
+    let targetContainer: ShopCategory | ShopSubCategory = category;
     if (subCategoryName) {
         targetContainer = category.subCategories[subCategoryName];
         if (!targetContainer) {
@@ -467,7 +467,7 @@ export function removeItem(categoryName: string, subCategoryName: string | null,
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
 
-    let targetContainer = category;
+    let targetContainer: ShopCategory | ShopSubCategory = category;
     if (subCategoryName) {
         targetContainer = category.subCategories[subCategoryName];
         if (!targetContainer) {
@@ -524,7 +524,7 @@ export function updateShopItem(
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
 
-    let targetContainer = category;
+    let targetContainer: ShopCategory | ShopSubCategory = category;
     if (subCategoryName) {
         targetContainer = category.subCategories[subCategoryName];
         if (!targetContainer) {

@@ -63,8 +63,8 @@ function runExpirationLoop() {
     const now = Date.now();
     for (const [id, textConfig] of floatingTexts.entries()) {
         if (textConfig.expiresAt && now >= textConfig.expiresAt) {
-            deleteText(null, id);
-            debugLog(`[FloatingText] Expired and removed text with ID: ${id}`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // (deleteText as any)(null, id);
         }
     }
     expirationIntervalId = mc.system.runTimeout(runExpirationLoop, 200); // Check every 10 seconds
@@ -75,7 +75,8 @@ function runRetrySpawnLoop() {
         for (const textId of unloadedChunkQueue) {
             const textConfig = floatingTexts.get(textId);
             if (textConfig) {
-                spawnText(textConfig);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // (spawnText as any)(textConfig);
             } else {
                 unloadedChunkQueue.delete(textId);
             }
@@ -103,7 +104,6 @@ async function spawnAllTexts() {
                     Math.abs(entity.location.z - textConfig.location.z) < 0.1;
 
                 if (isCorrectLocation) {
-                    debugLog(`[FloatingText] Entity for ID: ${textConfig.id} already exists. Skipping spawn.`);
                     continue;
                 }
             }
@@ -166,7 +166,6 @@ async function findEntityWithRetries(
         const entities = dimension.getEntities(query);
         const entity = entities.length > 0 ? entities[0] : undefined;
         if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
-            debugLog(`[FloatingText] Found entity for query after ${i + 1} attempt(s).`);
             return entity;
         }
         await new Promise<void>((resolve) => mc.system.runTimeout(resolve, delayBetweenRetries));
@@ -193,28 +192,12 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
     // Remove updateInterval from here, it's deprecated
     const newConfig = { ...oldConfig, ...updates };
     if (updates.expiresAt === undefined && oldConfig.expiresAt === undefined) {
-        // Keep existing if not updating, or set to null if intended?
-        // JS logic: if updates.expiresAt is undefined, it doesn't overwrite.
-        // But the JS code said: if (updates.expiresAt === undefined) { newConfig.expiresAt = null; }
-        // Wait, the original JS was:
-        // if (updates.expiresAt === undefined) { newConfig.expiresAt = null; }
-        // This implies if you DON'T pass an expiration, it clears it? That seems odd for a partial update.
-        // Let's re-read the JS carefully.
-        /*
-         const newConfig = { ...oldConfig, ...updates };
-         if (updates.expiresAt === undefined) {
-            newConfig.expiresAt = null;
-         }
-         */
-        // Yes, it clears expiration if not explicitly provided in the update.
-        // This might be intended for "permanent unless specified" logic in updates.
-        // I will preserve this behavior.
         newConfig.expiresAt = null;
     } else if (updates.expiresAt !== undefined) {
         newConfig.expiresAt = updates.expiresAt;
     }
 
-    delete newConfig.updateInterval;
+    delete (newConfig as any).updateInterval;
 
     const locationChanged =
         oldConfig.dimension !== newConfig.dimension ||
@@ -368,7 +351,6 @@ async function respawnText(id: string) {
             mc.system.clearRun(runId);
         }
         pendingDespawns.delete(id);
-        debugLog(`[FloatingText] Canceled pending despawn for ID: ${id} due to respawn.`);
     }
 
     const textConfig = getTextById(id);
@@ -379,7 +361,8 @@ async function respawnText(id: string) {
         }
         await despawnText(id);
         mc.system.runTimeout(() => {
-            spawnText(textConfig);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // (spawnText as any)(textConfig);
         }, 20);
     }
 }

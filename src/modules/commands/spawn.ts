@@ -30,7 +30,8 @@ const spawnCommand: CustomCommand = {
         }
 
         const config = getConfig();
-        const spawnConfig = getSpawnConfig();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const spawnConfig = getSpawnConfig() as any;
         const spawnLocation = spawnConfig.spawn.spawnLocation as SpawnLocation | undefined;
 
         if (!spawnLocation || typeof spawnLocation.x !== 'number') {
@@ -124,7 +125,8 @@ const setSpawnCommand: CustomCommand = {
         }
 
         try {
-            const spawnConfig = getSpawnConfig();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const spawnConfig = getSpawnConfig() as any;
             spawnConfig.spawn.spawnLocation = location;
             saveSpawnConfig(spawnConfig);
             const locationString = `§aAddon spawn point set to: §fX: ${location.x!.toFixed(2)}, Y: ${location.y!.toFixed(2)}, Z: ${location.z!.toFixed(2)} in ${location.dimensionId.replace('minecraft:', '')}`;

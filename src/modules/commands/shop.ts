@@ -125,7 +125,7 @@ const addShopCommand: CustomCommand = {
         if (!(executor instanceof mc.Player) || !args) {
             return;
         }
-        const { category, buyPrice, sellPrice, subCategory } = args as AddShopCommandArgs;
+        const { category, buyPrice, sellPrice, subCategory } = args as unknown as AddShopCommandArgs;
 
         const equipment = executor.getComponent('minecraft:equippable');
         if (!equipment) {

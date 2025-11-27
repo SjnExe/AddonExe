@@ -81,7 +81,7 @@ const kickCommand: CustomCommand = {
         { name: 'reason', type: 'text', optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        const { target: targetName, reason = 'No reason provided' } = args as KickCommandArgs;
+        const { target: targetName, reason = 'No reason provided' } = args as unknown as KickCommandArgs;
         const targetPlayer = findPlayerByName(targetName);
         if (targetPlayer) {
             kickPlayer(executor, targetPlayer, reason);
