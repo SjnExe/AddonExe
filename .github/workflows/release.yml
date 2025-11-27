@@ -75,6 +75,14 @@ jobs:
           fi
           echo "--- End Verification ---"
 
+      - name: Cache TypeScript Build Info
+        uses: actions/cache@v4
+        with:
+          path: tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-tsbuildinfo-
+
       - name: Build TypeScript
         run: npm run build
 
