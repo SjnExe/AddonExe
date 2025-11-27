@@ -12,14 +12,14 @@ import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, reco
  * @param wrapperKey If provided, the default config data will be wrapped in an object with this key.
  * @returns An object with methods to manage the configuration.
  */
-export interface ConfigManager<T = any> {
+export interface ConfigManager<T = unknown> {
     load: (isMigration: boolean) => boolean;
     get: () => T;
     save: () => void;
     set: (newConfig: T) => void;
     reload: () => void;
-    update: (path: string, value: any) => void;
-    updateMultiple: (updates: Record<string, any>) => void;
+    update: (path: string, value: unknown) => void;
+    updateMultiple: (updates: Record<string, unknown>) => void;
     reset: () => Promise<void>;
 }
 

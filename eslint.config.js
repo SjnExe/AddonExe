@@ -106,7 +106,7 @@ export default tseslint.config(
             'no-var': 'error',
 
             // TS specific
-            '@typescript-eslint/no-explicit-any': 'warn',
+            '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/no-var-requires': 'off'
         }
     },

@@ -17,9 +17,9 @@ export async function initializeConfigManager(isMigration: boolean) {
 }
 
 export const getConfig = () => mainConfigManager.get();
-export const updateConfig = (key: string, value: any) => mainConfigManager.update(key, value);
+export const updateConfig = (key: string, value: unknown) => mainConfigManager.update(key, value);
 export const reloadConfig = () => mainConfigManager.reload();
-export const updateMultipleConfig = (updates: Record<string, any>) => mainConfigManager.updateMultiple(updates);
+export const updateMultipleConfig = (updates: Record<string, unknown>) => mainConfigManager.updateMultiple(updates);
 
 export async function resetConfigSection(
     sectionKey: string,
@@ -59,7 +59,7 @@ export async function resetConfigSection(
 
     try {
         const freshDefaultConfig = await asyncLoadConfig('../config.js');
-        const configRecord = freshDefaultConfig as Record<string, any>;
+        const configRecord = freshDefaultConfig as Record<string, unknown>;
         if (Object.prototype.hasOwnProperty.call(configRecord, sectionKey)) {
             updateConfig(sectionKey, deepClone(configRecord[sectionKey]));
 
