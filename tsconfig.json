@@ -11,6 +11,7 @@
         "forceConsistentCasingInFileNames": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
+        "incremental": true,
         "types": ["node", "@minecraft/server", "@minecraft/server-ui", "jest"]
     },
     "include": ["src/**/*"],
