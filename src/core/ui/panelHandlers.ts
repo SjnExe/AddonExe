@@ -1006,6 +1006,8 @@ export async function handleFormResponse(
         if (selection === 0) {
             return showPanel(player, 'mainPanel');
         }
+        if (typeof selection !== 'number') return;
+
         const shopConfig = getShopConfig();
 
         const validCategories = Object.keys(shopConfig.categories)
@@ -1330,8 +1332,16 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const values = (response as ModalFormResponse).formValues as string[];
-            const [customId, displayName, mcId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const customId = values[0] as string;
+            const displayName = values[1] as string;
+            const mcId = values[2] as string;
+            const iconStr = values[3] as string;
+            const buyPriceStr = values[4] as string;
+            const sellPriceStr = values[5] as string;
+            const permLevelStr = values[6] as string;
+
             const icon = iconStr || '';
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
@@ -1384,8 +1394,13 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const values = (response as ModalFormResponse).formValues as string[];
-            const [iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const iconStr = values[0] as string;
+            const buyPriceStr = values[1] as string;
+            const sellPriceStr = values[2] as string;
+            const permLevelStr = values[3] as string;
+
             const icon = iconStr || '';
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
@@ -1442,8 +1457,11 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const values = (response as ModalFormResponse).formValues as string[];
-            const [name, iconStr] = values;
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const name = values[0] as string;
+            const iconStr = values[1] as string;
+
             if (name) {
                 const result = shopAdminManager.addCategory(name, iconStr || '');
                 player.sendMessage(result.message);
@@ -1495,8 +1513,11 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const values = (response as ModalFormResponse).formValues as string[];
-            const [name, iconStr] = values;
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const name = values[0] as string;
+            const iconStr = values[1] as string;
+
             if (name) {
                 const result = shopAdminManager.addSubCategory(categoryName, name, iconStr || '');
                 player.sendMessage(result.message);
@@ -1634,8 +1655,11 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
             }
-            const values = (response as ModalFormResponse).formValues as string[];
-            const [newName, newIcon] = values;
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const newName = values[0] as string;
+            const newIcon = values[1] as string;
+
             if (newName) {
                 const result = shopAdminManager.editCategory(categoryName, newName, newIcon || '');
                 player.sendMessage(result.message);
@@ -1793,8 +1817,11 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, `shopAdminSubCategoryItemPanel_${subCategoryName}`, context);
             }
-            const values = (response as ModalFormResponse).formValues as string[];
-            const [newName, newIcon] = values;
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const newName = values[0] as string;
+            const newIcon = values[1] as string;
+
             if (newName) {
                 const result = shopAdminManager.editSubCategory(categoryName, subCategoryName, newName, newIcon || '');
                 player.sendMessage(result.message);
