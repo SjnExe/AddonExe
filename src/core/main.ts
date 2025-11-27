@@ -1,6 +1,5 @@
 import * as mc from '@minecraft/server';
 
-import { config as Config } from '../config.default.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
@@ -36,6 +35,8 @@ import * as rankManager from './rankManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import * as teamManager from './teamManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
+
+import type { config as Config } from '../config.default.js';
 import '../modules/commands/index.js';
 import './mobDeathEvents.js';
 
@@ -131,9 +132,26 @@ async function initializeAddon() {
     infoLog('[AddonExe] Initializing addon...');
 
     const tempConfig = (await loadConfig('../config.js')) as typeof Config;
-    const newVersion = String(tempConfig.version);
-    const lastVersion = mc.world.getDynamicProperty('exe:lastVersion') as string | undefined;
-    const isMigration = !lastVersion || lastVersion !== newVersion;
+    const newVersion = tempConfig.version;
+    const newVersionStr = String(newVersion);
+    const lastVersionStr = mc.world.getDynamicProperty('exe:lastVersion') as string | undefined;
+
+    let isMigration = true;
+    if (lastVersionStr) {
+        const lastVersion = lastVersionStr.split(',').map(Number);
+        // Only trigger migration if Major or Minor versions differ.
+        // Array format is [Major, Minor, Patch]
+        if (
+            Array.isArray(lastVersion) &&
+            lastVersion.length >= 2 &&
+            Array.isArray(newVersion) &&
+            newVersion.length >= 2
+        ) {
+            if (lastVersion[0] === newVersion[0] && lastVersion[1] === newVersion[1]) {
+                isMigration = false;
+            }
+        }
+    }
 
     await initializeConfigManager(isMigration);
     await loadKitsConfig(isMigration);
@@ -146,7 +164,7 @@ async function initializeAddon() {
     const config = getConfig();
     setLogLevel(config.logLevel);
 
-    mc.world.setDynamicProperty('exe:lastVersion', newVersion);
+    mc.world.setDynamicProperty('exe:lastVersion', newVersionStr);
 
     dataManager.initializeDataManager();
     loadPersistentData();

@@ -75,8 +75,38 @@ jobs:
           fi
           echo "--- End Verification ---"
 
+      - name: Cache TypeScript Build Info
+        uses: actions/cache@v4
+        with:
+          path: tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-tsbuildinfo-
+
       - name: Build TypeScript
         run: npm run build
+
+      - name: Process Config Files
+        shell: bash
+        run: |
+          set -e
+          echo "Processing default config files..."
+
+          # Rewrite imports in all JS files to point to .js instead of .default.js
+          # This ensures the runtime code looks for the active config files (e.g., config.js).
+          echo "Rewriting imports..."
+          find AddonExeBP/scripts -name "*.js" -type f -exec sed -i 's/\.default\.js/\.js/g' {} +
+
+          # Rename default config files to active config files
+          find AddonExeBP/scripts -name "*.default.js" | while read default_file; do
+            target_file="${default_file%.default.js}.js"
+            if [ ! -f "$target_file" ]; then
+              cp "$default_file" "$target_file"
+              echo "Created config: $target_file"
+            fi
+            rm "$default_file"
+            echo "Removed default: $default_file"
+          done
 
       - name: Create staging directory and copy addon folders
         run: |

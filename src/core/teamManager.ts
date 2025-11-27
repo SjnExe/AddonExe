@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
+import { getTeamConfig } from './configurations.js';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayer, getOrCreatePlayer, updatePlayerData, HomeLocation } from './playerDataManager.js';
 import { incrementPlayerBalance } from './playerDataManager.js';
-import { teamConfig } from './teamConfig.default.js';
 
 const teamPropertyPrefix = 'exe:team.';
 const nextTeamIdKey = 'exe:nextTeamId';
@@ -104,6 +104,7 @@ function saveNextTeamId() {
  * @returns The result of the operation.
  */
 export function createTeam(player: mc.Player, name: string): ActionResult {
+    const teamConfig = getTeamConfig();
     if (!teamConfig.enabled) {
         return { success: false, message: '§cTeam system is disabled.' };
     }
@@ -305,6 +306,7 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
         return { success: false };
     }
 
+    const teamConfig = getTeamConfig();
     if (team.members.length >= teamConfig.maxMembers) {
         return { success: false, message: '§cTeam is full.' };
     }
@@ -370,6 +372,7 @@ export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
         return { success: false, message: '§cTeam no longer exists.' };
     }
 
+    const teamConfig = getTeamConfig();
     if (team.members.length >= teamConfig.maxMembers) {
         return { success: false, message: '§cTeam is full.' };
     }
@@ -411,6 +414,7 @@ export function applyToTeam(player: mc.Player, teamId: number): ActionResult {
         return { success: false, message: '§cTeam not found.' };
     }
 
+    const teamConfig = getTeamConfig();
     const pData = getOrCreatePlayer(player);
     if (pData.teamId) {
         return { success: false, message: '§cYou are already in a team.' };
@@ -450,6 +454,7 @@ export function acceptApplication(teamId: number, playerId: string): ActionResul
         return { success: false, message: 'Team error.' };
     }
 
+    const teamConfig = getTeamConfig();
     if (team.members.length >= teamConfig.maxMembers) {
         return { success: false, message: '§cTeam is full.' };
     }
