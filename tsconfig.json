@@ -12,6 +12,7 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "incremental": true,
+        "tsBuildInfoFile": "./tsconfig.tsbuildinfo",
         "types": [
             "node",
             "@minecraft/server",
