@@ -23,7 +23,7 @@ const warpCommand: CustomCommand = {
     hasCooldown: true,
     cooldownId: 'warp',
     parameters: [{ name: 'warpName', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: WarpCommandArgs) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -56,7 +56,7 @@ const warpCommand: CustomCommand = {
             startTeleportWarmup(executor, warmupSeconds, teleportLogic, `warp '${warpName}'`);
         };
 
-        const warpNameArg = args.warpName;
+        const warpNameArg = (args as unknown as WarpCommandArgs).warpName;
         if (warpNameArg) {
             teleportToWarp(warpNameArg);
             return;
@@ -117,7 +117,7 @@ const addWarpCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { warpName, x, y, z } = args as AddWarpArgs;
+        const { warpName, x, y, z } = args as unknown as AddWarpArgs;
         const hasX = x !== undefined && x !== null;
         const hasY = y !== undefined && y !== null;
         const hasZ = z !== undefined && z !== null;
@@ -146,7 +146,7 @@ const delWarpCommand: CustomCommand = {
     description: 'Deletes an existing warp.',
     permissionLevel: 1, // Admin
     parameters: [{ name: 'warpName', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: WarpCommandArgs) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -156,7 +156,7 @@ const delWarpCommand: CustomCommand = {
             sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`, executor);
         };
 
-        const warpNameArg = args.warpName;
+        const warpNameArg = (args as unknown as WarpCommandArgs).warpName;
         if (warpNameArg) {
             deleteWarpByName(warpNameArg);
             return;

@@ -32,7 +32,7 @@ const tpaCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target } = args as TpaCommandArgs;
+        const { target } = args as unknown as TpaCommandArgs;
         const config = getConfig();
         if (!config.tpa.enabled) {
             sendMessage(constants.tpaDisabled, executor);
@@ -85,7 +85,7 @@ const tpaHereCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target } = args as TpaCommandArgs;
+        const { target } = args as unknown as TpaCommandArgs;
         const config = getConfig();
         if (!config.tpa.enabled) {
             sendMessage(constants.tpaDisabled, executor);
@@ -136,7 +136,7 @@ const tpaAcceptCommand: CustomCommand = {
     description: 'Accepts an incoming TPA request.',
     permissionLevel: 1024,
     parameters: [{ name: 'player', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: TpaResponseArgs) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -146,7 +146,8 @@ const tpaAcceptCommand: CustomCommand = {
             return;
         }
 
-        let targetName = args.player;
+        const typedArgs = args as unknown as TpaResponseArgs;
+        let targetName = typedArgs.player;
 
         if (targetName) {
             const targetPlayer = findPlayerByName(targetName);
@@ -165,7 +166,7 @@ const tpaDenyCommand: CustomCommand = {
     description: 'Denies an incoming TPA request.',
     permissionLevel: 1024,
     parameters: [{ name: 'player', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: TpaResponseArgs) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -175,7 +176,8 @@ const tpaDenyCommand: CustomCommand = {
             return;
         }
 
-        let targetName = args.player;
+        const typedArgs = args as unknown as TpaResponseArgs;
+        let targetName = typedArgs.player;
 
         if (targetName) {
             const targetPlayer = findPlayerByName(targetName);
@@ -249,11 +251,12 @@ const tpaStopCommand: CustomCommand = {
     description: 'Disables TPA requests or blocks a specific player.',
     permissionLevel: 1024,
     parameters: [{ name: 'player', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: TpaResponseArgs) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const targetName = args.player;
+        const typedArgs = args as unknown as TpaResponseArgs;
+        const targetName = typedArgs.player;
 
         if (targetName) {
             const target = findPlayerByName(targetName);
@@ -276,11 +279,12 @@ const tpaStartCommand: CustomCommand = {
     description: 'Enables TPA requests or unblocks a specific player.',
     permissionLevel: 1024,
     parameters: [{ name: 'player', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: TpaResponseArgs) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const targetName = args.player;
+        const typedArgs = args as unknown as TpaResponseArgs;
+        const targetName = typedArgs.player;
 
         if (targetName) {
             const target = findPlayerByName(targetName);

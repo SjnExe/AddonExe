@@ -7,7 +7,6 @@ import { getConfig } from '../configManager.js';
 import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig, KitsConfig } from '../configurations.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { iconDB } from '../iconDB.js';
-// @ts-expect-error - Importing from JS file
 import { items as allItems } from '../itemsConfig.default.js';
 import { getAllKits, Kit } from '../kitAdminManager.js';
 import { debugLog, errorLog } from '../logger.js';
@@ -18,7 +17,6 @@ import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ShopConfig, ShopItem, ShopSubCategory } from '../shopConfig.default.js';
-// @ts-expect-error - Importing from JS file
 import { formatCurrency } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
@@ -126,7 +124,8 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
             continue;
         }
         const commandName = item.id;
-        if ((config.commandSettings as Record<string, { enabled: boolean }>)[commandName]?.enabled === false) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((config.commandSettings as any)[commandName]?.enabled === false) {
             continue;
         }
         if (context.fromPanel === 'playerManagementPanel' && item.permissionLevel < 1024) {
@@ -587,7 +586,8 @@ function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
     form.body('Toggle commands on or off.\n§2[Enabled]§r / §c[Disabled]§r');
 
     for (const commandName of paginatedCommands) {
-        const isEnabled = (commandSettings as Record<string, { enabled: boolean }>)[commandName]?.enabled ?? false;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const isEnabled = (commandSettings as any)[commandName]?.enabled ?? false;
         const statusText = isEnabled ? '§2[Enabled]' : '§c[Disabled]';
         form.button(`${commandName}\n${statusText}`);
     }
@@ -1298,8 +1298,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'commandSettingsPanel') {
             const { commandName } = context;
             const config = getConfig();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const commandSettings =
-                (config.commandSettings as Record<string, { enabled: boolean; permissionLevel: number }>)[
+                (config.commandSettings as any)[
                     commandName ?? ''
                 ] || {};
             const command = commandManager.commands.get(commandName ?? '');
@@ -1432,12 +1433,15 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             form.button('§l§2+ Add New Ore§r', 'textures/ui/color_plus');
             // Use monitoredOreTypes if monitoredOres doesn't exist or as needed.
             // Assuming config migration logic or legacy support:
-            const ores = xrayConfig.monitoredOres || [];
+            const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a, b) =>
+                a.oreName.localeCompare(b.oreName)
+            );
             if (ores.length === 0) {
                 form.body('No ores are being monitored.');
             } else {
                 for (const ore of ores) {
-                    form.button(`§e${ore.oreName}§r\n§7${ore.blockId}`);
+                    const blockId = ore.blocks?.[0]?.blockId ?? 'Unknown';
+                    form.button(`§e${ore.oreName}§r\n§7${blockId}`);
                 }
             }
             return form;
@@ -1455,13 +1459,20 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'editXrayOrePanel') {
             const xrayConfig = getXrayConfig();
-            const ores = xrayConfig.monitoredOres || [];
+            const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a, b) =>
+                a.oreName.localeCompare(b.oreName)
+            );
             const ore = ores[context.oreIndex ?? 0];
             const form = new ModalFormData().title('§l§cEdit Monitored Ore');
-            form.textField('Block ID', 'e.g., minecraft:diamond_ore', { defaultValue: ore.blockId });
-            form.textField('Dimension ID', 'e.g., minecraft:overworld', { defaultValue: ore.dimensionId });
-            form.textField('Min Y', 'e.g., -64', { defaultValue: String(ore.minY) });
-            form.textField('Max Y', 'e.g., 16', { defaultValue: String(ore.maxY) });
+            const blockId = ore.blocks?.[0]?.blockId ?? '';
+            const dimensionId = ore.blocks?.[0]?.dimensionId ?? '';
+            const minY = ore.blocks?.[0]?.minY ?? -64;
+            const maxY = ore.blocks?.[0]?.maxY ?? 16;
+
+            form.textField('Block ID', 'e.g., minecraft:diamond_ore', { defaultValue: blockId });
+            form.textField('Dimension ID', 'e.g., minecraft:overworld', { defaultValue: dimensionId });
+            form.textField('Min Y', 'e.g., -64', { defaultValue: String(minY) });
+            form.textField('Max Y', 'e.g., 16', { defaultValue: String(maxY) });
             form.textField('Ore Name', 'e.g., Diamond Ore', { defaultValue: ore.oreName });
             return form;
         }
@@ -1550,7 +1561,6 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         debugLog(`[UIManager] Successfully built form for panel '${panelId}' with ${menuItems.length} items.`);
         return form;
     } catch (e) {
-        // @ts-expect-error - Dynamic import
         const textConfig =
             panelId === 'floatingTextEditPanel' && context.id
                 ? (await import('../floatingTextManager.js')).floatingTextManager.getTextById(context.id)

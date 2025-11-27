@@ -5,7 +5,8 @@ import {
     MessageFormData,
     ActionFormResponse,
     ModalFormResponse,
-    MessageFormResponse
+    MessageFormResponse,
+    FormCancelationReason
 } from '@minecraft/server-ui';
 
 import { getConfig } from './configManager.js';
@@ -98,7 +99,7 @@ export async function uiWait(
         // We'll trust the loop.
     }
 
-    return { canceled: true, cancelationReason: mc.FormCancelationReason.UserClosed } as ActionFormResponse; // Timeout
+    return { canceled: true, cancelationReason: FormCancelationReason.UserClosed } as ActionFormResponse; // Timeout
 }
 
 interface SoundEventConfig {

@@ -69,7 +69,6 @@ function handleChatSend(eventData: mc.ChatSendBeforeEvent) {
             : `§7${player.name}${teamSuffix}§r: ${eventData.message}`;
 
     // Log to console if enabled
-    // @ts-expect-error - chat config might be partial during load
     if (getConfig().chat?.logToConsole) {
         // Using a plain-text version for the console log to avoid clutter from formatting codes
         // eslint-disable-next-line no-console

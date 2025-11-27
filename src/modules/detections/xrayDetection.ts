@@ -111,7 +111,7 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
     if (!xrayConfig?.monitoredOreTypes) return;
 
     for (const oreTypeKey in xrayConfig.monitoredOreTypes) {
-        const oreType = xrayConfig.monitoredOreTypes[oreTypeKey];
+        const oreType = (xrayConfig.monitoredOreTypes as Record<string, MonitoredOreType>)[oreTypeKey];
         if (!oreType.enabled) continue;
 
         const monitoredBlock = oreType.blocks.find((b: { blockId: string }) => b.blockId === blockId);

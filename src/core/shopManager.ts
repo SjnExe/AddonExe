@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getShopConfig } from './configurations.js';
+import { ShopConfig } from './shopConfig.default.js';
 import { items as allItems } from './itemsConfig.default.js';
 import { errorLog } from './logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from './playerDataManager.js';
@@ -63,8 +64,6 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
 
 /**
  * Finds a shop item definition by its ID.
-import { ShopConfig } from './shopConfig.default.js';
-
  * @param itemId The item ID to look up.
  * @returns The item definition or null if not found.
  */

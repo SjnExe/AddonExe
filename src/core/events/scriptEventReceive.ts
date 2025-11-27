@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { CommandExecutor } from '../../modules/commands/commandManager.js';
 import { getConfig, updateConfig } from '../configManager.js';
 import { errorLog } from '../logger.js';
 import { updateAllPlayerRanks } from '../main.js';
@@ -31,16 +32,13 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
                 startRestart({
                     sendMessage: (msg: string) => console.warn(msg),
                     name: 'Console'
-                } as any);
+                } as unknown as CommandExecutor);
             }
             break;
 
         case 'exe:toggle_chat_log': {
-            // @ts-expect-error - chat config partial
             const chatConfig = config.chat || { logToConsole: false };
-            // @ts-expect-error - chat config partial
             const newValue = !chatConfig.logToConsole;
-            // @ts-expect-error - chat config partial
             chatConfig.logToConsole = newValue;
             updateConfig('chat', chatConfig);
 

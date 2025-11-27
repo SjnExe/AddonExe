@@ -89,5 +89,16 @@
     "dependencies": {
         "@minecraft/server": "beta",
         "@minecraft/server-ui": "beta"
+    },
+    "overrides": {
+        "@minecraft/server": "beta",
+        "@minecraft/server-ui": "beta",
+        "@minecraft/server-gametest": "beta",
+        "@minecraft/diagnostics": "beta",
+        "@minecraft/debug-utilities": "beta",
+        "@minecraft/common": "latest",
+        "@minecraft/math": "latest",
+        "@minecraft/vanilla-data": "latest",
+        "@minecraft/gameplay-utilities": "latest"
     }
 }
