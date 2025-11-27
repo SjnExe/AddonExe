@@ -37,3 +37,10 @@ src/core/shopConfig.ts
 src/core/spawnConfig.ts
 src/core/teamConfig.ts
 src/core/xrayConfig.ts
+
+# Reports
+eslint_report.txt
+validation_report
+
+# TypeScript
+*.tsbuildinfo
