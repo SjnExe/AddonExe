@@ -1,55 +1,28 @@
 import * as mc from '@minecraft/server';
 import { ModalFormData, ActionFormData, ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
-import { config as defaultConfig } from '../../config.default.js';
-import { restartAnnouncer } from '../../modules/commands/announcement.js';
-import { initializeSpawnProtection } from '../../modules/detections/spawnProtection.js';
-import * as bountyManager from '../bountyManager.js';
 import { getConfig, updateMultipleConfig, resetConfigSection } from '../configManager.js';
 import {
-    getKitsConfig,
-    saveKitsConfig,
     getShopConfig,
-    getEconomyConfig,
-    saveEconomyConfig,
     getXrayConfig,
     saveXrayConfig,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    RanksConfig
+    XrayConfig
 } from '../configurations.js';
-import { economyConfig as defaultEconomyConfig } from '../economyConfig.default.js';
 import { floatingTextManager } from '../floatingTextManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { items as allItems } from '../itemsConfig.default.js';
-import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from '../kitAdminManager.js';
-import { addItemToKit, updateItemInKit } from '../kitItemsManager.js';
 import { errorLog } from '../logger.js';
-import { setValueByPath } from '../objectUtils.js';
-import { getPlayer, loadPlayerData, setLockState, getAllPlayerNameIdMap, PlayerData } from '../playerDataManager.js';
-import * as rankDb from '../rankDb.js';
-import * as rankManager from '../rankManager.js';
-import { RankDefinition } from '../ranksConfig.default.js';
-import * as reportManager from '../reportManager.js';
+import { getPlayer, PlayerData } from '../playerDataManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as shopAdminManager from '../shopAdminManager.js';
 import * as shopManager from '../shopManager.js';
-import { spawnConfig as defaultSpawnConfig } from '../spawnConfig.default.js';
 import { showPanel } from '../uiManager.js';
 import * as utils from '../utils.js';
-import { xrayConfig as defaultXrayConfig } from '../xrayConfig.default.js';
+import { MonitoredOreType } from '../xrayConfig.default.js';
 
-import { uiActionFunctions } from './actionRegistry.js';
 import { showConfirmationDialog } from './components.js';
-import { getVisiblePlayerActionItems, getMenuItems } from './panelBuilder.js';
-import { panelDefinitions, configPanelSchema, ConfigSetting, UIContext } from './panelRegistry.js';
-import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems } from './uiUtils.js';
-
-const allDefaultConfigs: Record<string, object> = {
-    main: defaultConfig,
-    spawn: defaultSpawnConfig,
-    economy: defaultEconomyConfig,
-    xray: defaultXrayConfig
-};
+import { configPanelSchema, UIContext } from './panelRegistry.js';
+import { itemsPerPage, getPaginatedItems } from './uiUtils.js';
 
 export async function handleFormResponse(
     player: mc.Player,
@@ -64,10 +37,8 @@ export async function handleFormResponse(
     }
 
     // Helper properties with type guards implicitly handled by usage context
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const selection = (response as any).selection;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formValues = (response as any).formValues;
+    const selection = (response as ActionFormResponse).selection;
+    const formValues = (response as ModalFormResponse).formValues;
 
     if (panelId === 'floatingTextListPanel') {
         if (selection === 0) {
@@ -133,11 +104,6 @@ export async function handleFormResponse(
 
             const isAdmin = team.admins.includes(player.id);
             const isOwnerOrAdmin = isOwner || isAdmin;
-
-            // Members button is index 1 (after back)
-            // Manage Team is next if owner/admin
-            // Settings is next
-            // Leave is next
 
             let btnIndex = 1;
 
@@ -306,8 +272,7 @@ export async function handleFormResponse(
 
             const res = await utils.uiWait(player, form);
             if (!res.canceled) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const resSelection = (res as any).selection;
+                const resSelection = (res as ActionFormResponse).selection;
                 if (resSelection === 0) {
                     // Accept
                     const result = acceptInvite(player, invite.teamId);
@@ -495,7 +460,7 @@ export async function handleFormResponse(
             return showPanel(player, 'teamManagePanel', context);
         }
 
-        const appIndex = selection - 1;
+        const appIndex = selection && selection > 0 ? selection - 1 : -1;
         if (appIndex >= 0 && appIndex < team.applications.length) {
             const app = team.applications[appIndex];
 
@@ -506,8 +471,7 @@ export async function handleFormResponse(
 
             const res = await utils.uiWait(player, form);
             if (!res.canceled) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const resSelection = (res as any).selection;
+                const resSelection = (res as ActionFormResponse).selection;
                 if (resSelection === 0) {
                     // Accept
                     const result = acceptApplication(team.id, app.playerId);
@@ -564,9 +528,8 @@ export async function handleFormResponse(
             return showPanel(player, 'teamMainPanel', context);
         }
 
-        const { getTeamByPlayer, kickMember, promoteMember, demoteMember, transferOwnership } = await import(
-            '../teamManager.js'
-        );
+        const { getTeamByPlayer, kickMember, promoteMember, demoteMember, transferOwnership } =
+            await import('../teamManager.js');
         const team = getTeamByPlayer(player.id);
         if (!team) {
             return;
@@ -615,8 +578,7 @@ export async function handleFormResponse(
                     return showPanel(player, panelId, context);
                 }
 
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const resSelection = (res as any).selection;
+                const resSelection = (res as ActionFormResponse).selection;
 
                 if (resSelection === 0) {
                     // Kick
@@ -664,10 +626,8 @@ export async function handleFormResponse(
             // Add New Ore
             return showPanel(player, 'addXrayOrePanel', context);
         }
-        const xrayConfig = getXrayConfig();
-        // Use 'monitoredOreTypes' sorted
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a: any, b: any) =>
+        const xrayConfig = getXrayConfig() as XrayConfig;
+        const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a: MonitoredOreType, b: MonitoredOreType) =>
             a.oreName.localeCompare(b.oreName)
         );
         if (typeof selection === 'number') {
@@ -690,14 +650,14 @@ export async function handleFormResponse(
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
-            const xrayConfig = getXrayConfig();
-            if (!xrayConfig.monitoredOreTypes) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (xrayConfig as any).monitoredOreTypes = {};
+            const xrayConfig = getXrayConfig() as XrayConfig;
+            // Define an extended type for mutable config locally since XrayConfig.monitoredOreTypes is likely partial or specific keys in default
+            const mutableConfig = xrayConfig as { monitoredOreTypes: Record<string, MonitoredOreType> };
+            if (!mutableConfig.monitoredOreTypes) {
+                mutableConfig.monitoredOreTypes = {};
             }
             const key = oreName.toLowerCase().replace(/\s+/g, '_');
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (xrayConfig.monitoredOreTypes as any)[key] = {
+            mutableConfig.monitoredOreTypes[key] = {
                 enabled: true,
                 oreName,
                 blocks: [{ blockId, dimensionId, minY, maxY }]
@@ -722,9 +682,10 @@ export async function handleFormResponse(
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
-            const xrayConfig = getXrayConfig();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const oreTypes = xrayConfig.monitoredOreTypes as Record<string, any>;
+            const xrayConfig = getXrayConfig() as XrayConfig;
+            const mutableConfig = xrayConfig as { monitoredOreTypes: Record<string, MonitoredOreType> };
+
+            const oreTypes = mutableConfig.monitoredOreTypes;
             const oreKeys = Object.keys(oreTypes || {}).sort((a, b) => {
                 const nameA = oreTypes[a].oreName;
                 const nameB = oreTypes[b].oreName;
@@ -1045,6 +1006,8 @@ export async function handleFormResponse(
         if (selection === 0) {
             return showPanel(player, 'mainPanel');
         }
+        if (typeof selection !== 'number') return;
+
         const shopConfig = getShopConfig();
 
         const validCategories = Object.keys(shopConfig.categories)
@@ -1085,9 +1048,9 @@ export async function handleFormResponse(
         }
 
         const paginatedSystems = getPaginatedItems(sortedSystems, page);
-        const selectionIndex = selection - 1;
+        const selectionIndex = selection && selection > 0 ? selection - 1 : -1;
 
-        if (selectionIndex < paginatedSystems.length) {
+        if (selectionIndex >= 0 && selectionIndex < paginatedSystems.length) {
             const selectedSystem = paginatedSystems[selectionIndex];
             showConfirmationDialog(player, {
                 title: `Confirm Reset: ${selectedSystem.title}`,
@@ -1103,12 +1066,16 @@ export async function handleFormResponse(
 
                     const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
-                    if (
-                        finalConfirmResponse.canceled ||
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        ((finalConfirmResponse as any).formValues?.[0] as string).trim().toLowerCase() !==
-                            'confirm'
-                    ) {
+                    if (finalConfirmResponse.canceled) {
+                        player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                        return showPanel(player, 'configResetPanel', { ...context, page });
+                    }
+
+                    const response = finalConfirmResponse as ModalFormResponse;
+                    const confirmationValue =
+                        response.formValues && response.formValues[0] ? String(response.formValues[0]) : '';
+
+                    if (confirmationValue.trim().toLowerCase() !== 'confirm') {
                         player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
                     }
@@ -1134,54 +1101,56 @@ export async function handleFormResponse(
             return;
         }
 
-        let buttonIndex = selectionIndex - paginatedSystems.length;
+        const buttonIndex = selectionIndex >= 0 ? selectionIndex - paginatedSystems.length : -1;
 
         const totalPages = Math.ceil(resettableSystems.length / itemsPerPage);
 
-        if (page >= totalPages) {
-            if (buttonIndex === 0) {
-                showConfirmationDialog(player, {
-                    title: 'Confirm Reset All',
-                    body: 'This action cannot be undone. Are you sure you want to reset ALL system configurations to their default values?',
-                    confirmButtonText: '§cYes, Reset All',
-                    cancelButtonText: '§2No, Cancel',
-                    onConfirm: async () => {
-                        const finalConfirmForm = new ModalFormData()
-                            .title('Final Confirmation')
-                            .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', {
-                                defaultValue: ''
-                            });
+        if (page >= totalPages && buttonIndex === 0) {
+            showConfirmationDialog(player, {
+                title: 'Confirm Reset All',
+                body: 'This action cannot be undone. Are you sure you want to reset ALL system configurations to their default values?',
+                confirmButtonText: '§cYes, Reset All',
+                cancelButtonText: '§2No, Cancel',
+                onConfirm: async () => {
+                    const finalConfirmForm = new ModalFormData()
+                        .title('Final Confirmation')
+                        .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', {
+                            defaultValue: ''
+                        });
 
-                        const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
+                    const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
-                        if (
-                            finalConfirmResponse.canceled ||
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            ((finalConfirmResponse as any).formValues?.[0] as string).trim().toLowerCase() !== 'confirm'
-                        ) {
-                            player.sendMessage('§cFinal confirmation failed. Reset canceled.');
-                            return showPanel(player, 'configResetPanel', { ...context, page });
-                        }
-
-                        const result = await resetConfigSection('all', player);
-                        if (result.success) {
-                            player.sendMessage(`§2${result.message}`);
-                        } else {
-                            player.sendMessage(
-                                '§cFailed to reset all configurations. Please check the console for details.'
-                            );
-                            errorLog(`[UIManager] Failed to reset all config sections: ${result.message}`);
-                        }
-                        return showPanel(player, 'configResetPanel', { ...context, page: 1 });
-                    },
-                    onCancel: () => {
-                        player.sendMessage('§2Reset canceled.');
+                    if (finalConfirmResponse.canceled) {
+                        player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
                     }
-                });
-                return;
-            }
-            buttonIndex--;
+
+                    const response = finalConfirmResponse as ModalFormResponse;
+                    const confirmationValue =
+                        response.formValues && response.formValues[0] ? String(response.formValues[0]) : '';
+
+                    if (confirmationValue.trim().toLowerCase() !== 'confirm') {
+                        player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                        return showPanel(player, 'configResetPanel', { ...context, page });
+                    }
+
+                    const result = await resetConfigSection('all', player);
+                    if (result.success) {
+                        player.sendMessage(`§2${result.message}`);
+                    } else {
+                        player.sendMessage(
+                            '§cFailed to reset all configurations. Please check the console for details.'
+                        );
+                        errorLog(`[UIManager] Failed to reset all config sections: ${result.message}`);
+                    }
+                    return showPanel(player, 'configResetPanel', { ...context, page: 1 });
+                },
+                onCancel: () => {
+                    player.sendMessage('§2Reset canceled.');
+                    return showPanel(player, 'configResetPanel', { ...context, page });
+                }
+            });
+            return;
         }
 
         // Handle pagination
@@ -1231,7 +1200,7 @@ export async function handleFormResponse(
         }
 
         const paginatedEntries = getPaginatedItems(allEntries, page);
-        const selectionIndex = selection - 1;
+        const selectionIndex = selection && selection > 0 ? selection - 1 : -1;
 
         // Handle pagination
         if (selectionIndex >= paginatedEntries.length) {
@@ -1249,15 +1218,15 @@ export async function handleFormResponse(
             return showPanel(player, panelId, { ...context, page: newPage });
         }
 
-        const selectedEntry = paginatedEntries[selectionIndex] as {
+        const selectedEntry = selectionIndex >= 0 ? paginatedEntries[selectionIndex] as {
             type: string;
             name: string;
             id: string;
             buyPrice: number;
             sellPrice: number;
-        };
+        } : undefined;
 
-        if (selectedEntry.type === 'subCategory') {
+        if (selectedEntry && selectedEntry.type === 'subCategory') {
             return showPanel(player, `shopItemListPanel_${categoryName}_${selectedEntry.name}`, {
                 ...context,
                 categoryName,
@@ -1267,75 +1236,78 @@ export async function handleFormResponse(
         }
 
         // It's an item
-        const itemId = selectedEntry.id;
-        const masterItem = allItems[itemId];
-        const shopItem = selectedEntry;
+        if (selectedEntry) {
+            const itemId = selectedEntry.id;
+            const masterItem = allItems[itemId];
+            const shopItem = selectedEntry;
 
-        const canBuy = view !== 'sell' && shopItem.buyPrice > 0;
-        const canSell = view !== 'buy' && shopItem.sellPrice > 0;
+            const canBuy = view !== 'sell' && shopItem.buyPrice > 0;
+            const canSell = view !== 'buy' && shopItem.sellPrice > 0;
 
-        if (!canBuy && !canSell) {
-            player.sendMessage('§cThis item cannot be bought or sold currently.');
-            return showPanel(player, panelId, context);
+            if (!canBuy && !canSell) {
+                player.sendMessage('§cThis item cannot be bought or sold currently.');
+                return showPanel(player, panelId, context);
+            }
+
+            const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
+            let action;
+            let hasDropdown = false;
+
+            if (canBuy && canSell) {
+                modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
+                const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
+                modal.dropdown('Action', options, { defaultValueIndex: 0 });
+                hasDropdown = true;
+            } else if (canBuy) {
+                modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', {
+                    defaultValue: '1'
+                });
+                action = 'buy';
+            } else {
+                // canSell
+                modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', {
+                    defaultValue: '1'
+                });
+                action = 'sell';
+            }
+
+            const modalResponse = await utils.uiWait(player, modal);
+
+            if (modalResponse.canceled) {
+                return showPanel(player, panelId, context);
+            }
+
+            let amount;
+            if (hasDropdown) {
+                const values = (modalResponse as ModalFormResponse).formValues as [string, number];
+                const amountStr = values[0];
+                const actionIndex = values[1];
+                amount = parseInt(amountStr, 10);
+                const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
+                const selectedActionString = options[actionIndex];
+                action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
+            } else {
+                const values = (modalResponse as ModalFormResponse).formValues as [string];
+                const amountStr = values[0];
+                amount = parseInt(amountStr, 10);
+            }
+
+            if (isNaN(amount) || amount <= 0) {
+                player.sendMessage('§cInvalid amount.');
+                return showPanel(player, panelId, context);
+            }
+
+            let result;
+            if (action === 'buy') {
+                result = shopManager.buyItem(player, itemId, amount);
+            } else {
+                // action === 'sell'
+                result = shopManager.sellItem(player, itemId, amount);
+            }
+            player.sendMessage(result.message);
+
+            return showPanel(player, panelId, context); // Refresh the panel
         }
-
-        const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
-        let action;
-        let hasDropdown = false;
-
-        if (canBuy && canSell) {
-            modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
-            const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
-            modal.dropdown('Action', options, { defaultValueIndex: 0 });
-            hasDropdown = true;
-        } else if (canBuy) {
-            modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', {
-                defaultValue: '1'
-            });
-            action = 'buy';
-        } else {
-            // canSell
-            modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', {
-                defaultValue: '1'
-            });
-            action = 'sell';
-        }
-
-        const modalResponse = await utils.uiWait(player, modal);
-
-        if (modalResponse.canceled) {
-            return showPanel(player, panelId, context);
-        }
-
-        let amount;
-        if (hasDropdown) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [amountStr, actionIndex] = (modalResponse as any).formValues as [string, number];
-            amount = parseInt(amountStr, 10);
-            const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
-            const selectedActionString = options[actionIndex];
-            action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
-        } else {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [amountStr] = (modalResponse as any).formValues as [string];
-            amount = parseInt(amountStr, 10);
-        }
-
-        if (isNaN(amount) || amount <= 0) {
-            player.sendMessage('§cInvalid amount.');
-            return showPanel(player, panelId, context);
-        }
-
-        let result;
-        if (action === 'buy') {
-            result = shopManager.buyItem(player, itemId, amount);
-        } else {
-            // action === 'sell'
-            result = shopManager.sellItem(player, itemId, amount);
-        }
-        player.sendMessage(result.message);
-
-        return showPanel(player, panelId, context); // Refresh the panel
     }
 
     // --- Admin Edit Shop Panel Handlers ---
@@ -1360,9 +1332,16 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [customId, displayName, mcId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = (response as any)
-                .formValues as string[];
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const customId = values[0] as string;
+            const displayName = values[1] as string;
+            const mcId = values[2] as string;
+            const iconStr = values[3] as string;
+            const buyPriceStr = values[4] as string;
+            const sellPriceStr = values[5] as string;
+            const permLevelStr = values[6] as string;
+
             const icon = iconStr || '';
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
@@ -1401,7 +1380,7 @@ export async function handleFormResponse(
 
         const allPossibleItems = Object.keys(allItems);
         const paginatedItems = getPaginatedItems(allPossibleItems, page);
-        const selectedItemId = paginatedItems[selection - 2];
+        const selectedItemId = selection && selection > 1 ? paginatedItems[selection - 2] : undefined;
 
         if (selectedItemId) {
             const masterItem = allItems[selectedItemId];
@@ -1415,8 +1394,13 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [iconStr, buyPriceStr, sellPriceStr, permLevelStr] = (response as any).formValues as string[];
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const iconStr = values[0] as string;
+            const buyPriceStr = values[1] as string;
+            const sellPriceStr = values[2] as string;
+            const permLevelStr = values[3] as string;
+
             const icon = iconStr || '';
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
@@ -1428,7 +1412,7 @@ export async function handleFormResponse(
                     permissionLevel,
                     icon,
                     itemId: selectedItemId, // ADDED
-                    displayName: masterItem.displayName // ADDED
+                    displayName: masterItem.displayName || '' // ADDED
                 });
                 player.sendMessage(result.message);
             }
@@ -1439,7 +1423,7 @@ export async function handleFormResponse(
         const totalPages = Math.ceil(allPossibleItems.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        const buttonIndex = selection - 2 - paginatedItems.length;
+        const buttonIndex = selection && selection > 1 ? selection - 2 - paginatedItems.length : -1;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;
@@ -1473,8 +1457,11 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [name, iconStr] = (response as any).formValues as string[];
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const name = values[0] as string;
+            const iconStr = values[1] as string;
+
             if (name) {
                 const result = shopAdminManager.addCategory(name, iconStr || '');
                 player.sendMessage(result.message);
@@ -1485,7 +1472,7 @@ export async function handleFormResponse(
         const shopConfig = getShopConfig();
         const categories = Object.keys(shopConfig.categories).sort();
         const paginatedCategories = getPaginatedItems(categories, page);
-        const selectedCategoryName = paginatedCategories[selection - 3];
+        const selectedCategoryName = selection && selection > 2 ? paginatedCategories[selection - 3] : undefined;
 
         if (selectedCategoryName) {
             return showPanel(player, `shopAdminCategoryPanel_${selectedCategoryName}`, {
@@ -1497,7 +1484,7 @@ export async function handleFormResponse(
         const totalPages = Math.ceil(categories.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        const buttonIndex = selection - 3 - paginatedCategories.length;
+        const buttonIndex = selection && selection > 2 ? selection - 3 - paginatedCategories.length : -1;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;
@@ -1526,8 +1513,11 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [name, iconStr] = (response as any).formValues as string[];
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const name = values[0] as string;
+            const iconStr = values[1] as string;
+
             if (name) {
                 const result = shopAdminManager.addSubCategory(categoryName, name, iconStr || '');
                 player.sendMessage(result.message);
@@ -1547,7 +1537,7 @@ export async function handleFormResponse(
         const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
         const allEntries = [...subCategories, ...items];
         const paginatedEntries = getPaginatedItems(allEntries, page);
-        const selectedEntry = paginatedEntries[selection - 4] as {
+        const selectedEntry = selection && selection > 3 ? paginatedEntries[selection - 4] as {
             type: string;
             id: string;
             displayName: string;
@@ -1556,7 +1546,7 @@ export async function handleFormResponse(
             sellPrice: number;
             permissionLevel: number;
             name: string;
-        };
+        } : undefined;
 
         if (selectedEntry) {
             if (selectedEntry.type === 'item') {
@@ -1568,8 +1558,7 @@ export async function handleFormResponse(
                 if (response.canceled) {
                     return showPanel(player, panelId, context);
                 }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const selection = (response as any).selection;
+                const selection = (response as ActionFormResponse).selection;
                 if (selection === 0) {
                     // Edit
                     const masterItem = allItems[selectedEntry.id] || {};
@@ -1595,10 +1584,8 @@ export async function handleFormResponse(
                         return showPanel(player, panelId, context);
                     }
 
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const [displayName, minecraftId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = (
-                        editResponse as any
-                    ).formValues as string[];
+                    const values = (editResponse as ModalFormResponse).formValues as string[];
+                    const [displayName, minecraftId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
                     const icon = iconStr || '';
                     const buyPrice = Number(buyPriceStr);
                     const sellPrice = Number(sellPriceStr);
@@ -1643,7 +1630,7 @@ export async function handleFormResponse(
         const totalPages = Math.ceil(allEntries.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        const buttonIndex = selection - 4 - paginatedEntries.length;
+        const buttonIndex = selection && selection > 3 ? selection - 4 - paginatedEntries.length : -1;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;
@@ -1668,8 +1655,11 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [newName, newIcon] = (response as any).formValues as string[];
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const newName = values[0] as string;
+            const newIcon = values[1] as string;
+
             if (newName) {
                 const result = shopAdminManager.editCategory(categoryName, newName, newIcon || '');
                 player.sendMessage(result.message);
@@ -1718,14 +1708,14 @@ export async function handleFormResponse(
         const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
         const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
         const paginatedItems = getPaginatedItems(items, page);
-        const selectedItem = paginatedItems[selection - 3] as {
+        const selectedItem = selection && selection > 2 ? paginatedItems[selection - 3] as {
             id: string;
             displayName: string;
             icon: string;
             buyPrice: number;
             sellPrice: number;
             permissionLevel: number;
-        };
+        } : undefined;
 
         if (selectedItem) {
             const form = new ActionFormData()
@@ -1736,8 +1726,7 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const selection = (response as any).selection;
+            const selection = (response as ActionFormResponse).selection;
             if (selection === 0) {
                 // Edit
                 const masterItem = allItems[selectedItem.id] || {};
@@ -1763,10 +1752,8 @@ export async function handleFormResponse(
                     return showPanel(player, panelId, context);
                 }
 
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const [displayName, minecraftId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = (
-                    editResponse as any
-                ).formValues as string[];
+                const values = (editResponse as ModalFormResponse).formValues as string[];
+                const [displayName, minecraftId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
                 const icon = iconStr || '';
                 const buyPrice = Number(buyPriceStr);
                 const sellPrice = Number(sellPriceStr);
@@ -1805,7 +1792,7 @@ export async function handleFormResponse(
         const totalPages = Math.ceil(items.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        const buttonIndex = selection - 3 - paginatedItems.length;
+        const buttonIndex = selection && selection > 2 ? selection - 3 - paginatedItems.length : -1;
 
         if (hasPrev && buttonIndex === 0) {
             newPage--;
@@ -1830,8 +1817,11 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, `shopAdminSubCategoryItemPanel_${subCategoryName}`, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [newName, newIcon] = (response as any).formValues as string[];
+            const values = (response as ModalFormResponse).formValues;
+            if (!values) return;
+            const newName = values[0] as string;
+            const newIcon = values[1] as string;
+
             if (newName) {
                 const result = shopAdminManager.editSubCategory(categoryName, subCategoryName, newName, newIcon || '');
                 player.sendMessage(result.message);

@@ -1299,10 +1299,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const { commandName } = context;
             const config = getConfig();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const commandSettings =
-                (config.commandSettings as any)[
-                    commandName ?? ''
-                ] || {};
+            const commandSettings = (config.commandSettings as any)[commandName ?? ''] || {};
             const command = commandManager.commands.get(commandName ?? '');
 
             const isEnabled = commandSettings.enabled ?? false;
