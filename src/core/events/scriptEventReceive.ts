@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor } from '../../modules/commands/commandManager.js';
 import { getConfig, updateConfig } from '../configManager.js';
-import { errorLog } from '../logger.js';
+import { errorLog, infoLog, warnLog } from '../logger.js';
 import { updateAllPlayerRanks } from '../main.js';
 import * as rankManager from '../rankManager.js';
 import { startRestart } from '../restartManager.js';
@@ -30,7 +30,7 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
             } else if (!sourceEntity) {
                 // If no source entity, assume console/server
                 startRestart({
-                    sendMessage: (msg: string) => console.warn(msg),
+                    sendMessage: (msg: string) => warnLog(msg),
                     name: 'Console'
                 } as unknown as CommandExecutor);
             }
@@ -46,8 +46,7 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
             if (sourceEntity instanceof mc.Player) {
                 sourceEntity.sendMessage(feedbackMessage);
             }
-            // eslint-disable-next-line no-console
-            console.log(`[AddonExe] ${feedbackMessage}`);
+            infoLog(`[AddonExe] ${feedbackMessage}`);
             break;
         }
 

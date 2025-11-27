@@ -61,9 +61,8 @@ async function initialize() {
 
 function runExpirationLoop() {
     const now = Date.now();
-    for (const [id, textConfig] of floatingTexts.entries()) {
+    for (const textConfig of floatingTexts.values()) {
         if (textConfig.expiresAt && now >= textConfig.expiresAt) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             // (deleteText as any)(null, id);
         }
     }
@@ -75,7 +74,6 @@ function runRetrySpawnLoop() {
         for (const textId of unloadedChunkQueue) {
             const textConfig = floatingTexts.get(textId);
             if (textConfig) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 // (spawnText as any)(textConfig);
             } else {
                 unloadedChunkQueue.delete(textId);
@@ -90,8 +88,7 @@ async function spawnAllTexts() {
         try {
             const dimension = mc.world.getDimension(textConfig.dimension);
             const query: mc.EntityQueryOptions = {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Custom entity types are not in the standard API definitions
-                type: 'addonexe:floating_text' as any,
+                type: 'addonexe:floating_text' as unknown as string,
                 tags: [`ft_${textConfig.id}`]
             };
             const entities = dimension.getEntities(query);
@@ -132,8 +129,7 @@ function spawnText(textConfig: FloatingTextConfig) {
         const dimension = mc.world.getDimension(textConfig.dimension);
         dimension.runCommand(`kill @e[type=addonexe:floating_text,tag="ft_${textConfig.id}"]`);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Custom entity types are not in the standard API definitions
-        const entity = dimension.spawnEntity('addonexe:floating_text' as any, textConfig.location);
+        const entity = dimension.spawnEntity('addonexe:floating_text' as unknown as string, textConfig.location);
         entity.nameTag = textConfig.text.replace(/\\n/g, '\n');
         entity.addTag(`ft_${textConfig.id}`);
 
@@ -197,7 +193,7 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
         newConfig.expiresAt = updates.expiresAt;
     }
 
-    delete (newConfig as any).updateInterval;
+    delete (newConfig as unknown as { updateInterval?: number }).updateInterval;
 
     const locationChanged =
         oldConfig.dimension !== newConfig.dimension ||
@@ -223,8 +219,7 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
         try {
             const dimension = mc.world.getDimension(newConfig.dimension);
             const query: mc.EntityQueryOptions = {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Custom entity types are not in the standard API definitions
-                type: 'addonexe:floating_text' as any,
+                type: 'addonexe:floating_text' as unknown as string,
                 tags: [`ft_${id}`]
             };
             const entity = await findEntityWithRetries(dimension, query);
@@ -293,8 +288,7 @@ async function despawnText(id: string) {
     try {
         const dimension = mc.world.getDimension(textConfig.dimension);
         const query: mc.EntityQueryOptions = {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Custom entity types are not in the standard API definitions
-            type: 'addonexe:floating_text' as any,
+            type: 'addonexe:floating_text' as unknown as string,
             tags: [`ft_${id}`]
         };
         const entities = dimension.getEntities(query);
@@ -361,7 +355,6 @@ async function respawnText(id: string) {
         }
         await despawnText(id);
         mc.system.runTimeout(() => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             // (spawnText as any)(textConfig);
         }, 20);
     }

@@ -1,55 +1,28 @@
 import * as mc from '@minecraft/server';
 import { ModalFormData, ActionFormData, ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
-import { config as defaultConfig } from '../../config.default.js';
-import { restartAnnouncer } from '../../modules/commands/announcement.js';
-import { initializeSpawnProtection } from '../../modules/detections/spawnProtection.js';
-import * as bountyManager from '../bountyManager.js';
 import { getConfig, updateMultipleConfig, resetConfigSection } from '../configManager.js';
 import {
-    getKitsConfig,
-    saveKitsConfig,
     getShopConfig,
-    getEconomyConfig,
-    saveEconomyConfig,
     getXrayConfig,
     saveXrayConfig,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    RanksConfig
+    XrayConfig
 } from '../configurations.js';
-import { economyConfig as defaultEconomyConfig } from '../economyConfig.default.js';
 import { floatingTextManager } from '../floatingTextManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { items as allItems } from '../itemsConfig.default.js';
-import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from '../kitAdminManager.js';
-import { addItemToKit, updateItemInKit } from '../kitItemsManager.js';
 import { errorLog } from '../logger.js';
-import { setValueByPath } from '../objectUtils.js';
-import { getPlayer, loadPlayerData, setLockState, getAllPlayerNameIdMap, PlayerData } from '../playerDataManager.js';
-import * as rankDb from '../rankDb.js';
-import * as rankManager from '../rankManager.js';
-import { RankDefinition } from '../ranksConfig.default.js';
-import * as reportManager from '../reportManager.js';
+import { getPlayer, PlayerData } from '../playerDataManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as shopAdminManager from '../shopAdminManager.js';
 import * as shopManager from '../shopManager.js';
-import { spawnConfig as defaultSpawnConfig } from '../spawnConfig.default.js';
 import { showPanel } from '../uiManager.js';
 import * as utils from '../utils.js';
-import { xrayConfig as defaultXrayConfig } from '../xrayConfig.default.js';
+import { MonitoredOreType } from '../xrayConfig.default.js';
 
-import { uiActionFunctions } from './actionRegistry.js';
 import { showConfirmationDialog } from './components.js';
-import { getVisiblePlayerActionItems, getMenuItems } from './panelBuilder.js';
-import { panelDefinitions, configPanelSchema, ConfigSetting, UIContext } from './panelRegistry.js';
-import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems } from './uiUtils.js';
-
-const allDefaultConfigs: Record<string, object> = {
-    main: defaultConfig,
-    spawn: defaultSpawnConfig,
-    economy: defaultEconomyConfig,
-    xray: defaultXrayConfig
-};
+import { configPanelSchema, UIContext } from './panelRegistry.js';
+import { itemsPerPage, getPaginatedItems } from './uiUtils.js';
 
 export async function handleFormResponse(
     player: mc.Player,
@@ -64,10 +37,8 @@ export async function handleFormResponse(
     }
 
     // Helper properties with type guards implicitly handled by usage context
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const selection = (response as any).selection;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formValues = (response as any).formValues;
+    const selection = (response as ActionFormResponse).selection;
+    const formValues = (response as ModalFormResponse).formValues;
 
     if (panelId === 'floatingTextListPanel') {
         if (selection === 0) {
@@ -306,8 +277,7 @@ export async function handleFormResponse(
 
             const res = await utils.uiWait(player, form);
             if (!res.canceled) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const resSelection = (res as any).selection;
+                const resSelection = (res as ActionFormResponse).selection;
                 if (resSelection === 0) {
                     // Accept
                     const result = acceptInvite(player, invite.teamId);
@@ -506,8 +476,7 @@ export async function handleFormResponse(
 
             const res = await utils.uiWait(player, form);
             if (!res.canceled) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const resSelection = (res as any).selection;
+                const resSelection = (res as ActionFormResponse).selection;
                 if (resSelection === 0) {
                     // Accept
                     const result = acceptApplication(team.id, app.playerId);
@@ -564,9 +533,8 @@ export async function handleFormResponse(
             return showPanel(player, 'teamMainPanel', context);
         }
 
-        const { getTeamByPlayer, kickMember, promoteMember, demoteMember, transferOwnership } = await import(
-            '../teamManager.js'
-        );
+        const { getTeamByPlayer, kickMember, promoteMember, demoteMember, transferOwnership } =
+            await import('../teamManager.js');
         const team = getTeamByPlayer(player.id);
         if (!team) {
             return;
@@ -615,8 +583,7 @@ export async function handleFormResponse(
                     return showPanel(player, panelId, context);
                 }
 
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const resSelection = (res as any).selection;
+                const resSelection = (res as ActionFormResponse).selection;
 
                 if (resSelection === 0) {
                     // Kick
@@ -664,10 +631,8 @@ export async function handleFormResponse(
             // Add New Ore
             return showPanel(player, 'addXrayOrePanel', context);
         }
-        const xrayConfig = getXrayConfig();
-        // Use 'monitoredOreTypes' sorted
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a: any, b: any) =>
+        const xrayConfig = getXrayConfig() as XrayConfig;
+        const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a: MonitoredOreType, b: MonitoredOreType) =>
             a.oreName.localeCompare(b.oreName)
         );
         if (typeof selection === 'number') {
@@ -690,14 +655,14 @@ export async function handleFormResponse(
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
-            const xrayConfig = getXrayConfig();
-            if (!xrayConfig.monitoredOreTypes) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (xrayConfig as any).monitoredOreTypes = {};
+            const xrayConfig = getXrayConfig() as XrayConfig;
+            // Define an extended type for mutable config locally since XrayConfig.monitoredOreTypes is likely partial or specific keys in default
+            const mutableConfig = xrayConfig as { monitoredOreTypes: Record<string, MonitoredOreType> };
+            if (!mutableConfig.monitoredOreTypes) {
+                mutableConfig.monitoredOreTypes = {};
             }
             const key = oreName.toLowerCase().replace(/\s+/g, '_');
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (xrayConfig.monitoredOreTypes as any)[key] = {
+            mutableConfig.monitoredOreTypes[key] = {
                 enabled: true,
                 oreName,
                 blocks: [{ blockId, dimensionId, minY, maxY }]
@@ -722,9 +687,10 @@ export async function handleFormResponse(
         const minY = parseInt(minYStr, 10);
         const maxY = parseInt(maxYStr, 10);
         if (blockId && dimensionId && !isNaN(minY) && !isNaN(maxY) && oreName) {
-            const xrayConfig = getXrayConfig();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const oreTypes = xrayConfig.monitoredOreTypes as Record<string, any>;
+            const xrayConfig = getXrayConfig() as XrayConfig;
+            const mutableConfig = xrayConfig as { monitoredOreTypes: Record<string, MonitoredOreType> };
+
+            const oreTypes = mutableConfig.monitoredOreTypes;
             const oreKeys = Object.keys(oreTypes || {}).sort((a, b) => {
                 const nameA = oreTypes[a].oreName;
                 const nameB = oreTypes[b].oreName;
@@ -1103,12 +1069,16 @@ export async function handleFormResponse(
 
                     const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
-                    if (
-                        finalConfirmResponse.canceled ||
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        ((finalConfirmResponse as any).formValues?.[0] as string).trim().toLowerCase() !==
-                            'confirm'
-                    ) {
+                    if (finalConfirmResponse.canceled) {
+                        player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                        return showPanel(player, 'configResetPanel', { ...context, page });
+                    }
+
+                    const response = finalConfirmResponse as ModalFormResponse;
+                    const confirmationValue =
+                        response.formValues && response.formValues[0] ? String(response.formValues[0]) : '';
+
+                    if (confirmationValue.trim().toLowerCase() !== 'confirm') {
                         player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
                     }
@@ -1154,11 +1124,16 @@ export async function handleFormResponse(
 
                         const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
-                        if (
-                            finalConfirmResponse.canceled ||
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            ((finalConfirmResponse as any).formValues?.[0] as string).trim().toLowerCase() !== 'confirm'
-                        ) {
+                        if (finalConfirmResponse.canceled) {
+                            player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                            return showPanel(player, 'configResetPanel', { ...context, page });
+                        }
+
+                        const response = finalConfirmResponse as ModalFormResponse;
+                        const confirmationValue =
+                            response.formValues && response.formValues[0] ? String(response.formValues[0]) : '';
+
+                        if (confirmationValue.trim().toLowerCase() !== 'confirm') {
                             player.sendMessage('§cFinal confirmation failed. Reset canceled.');
                             return showPanel(player, 'configResetPanel', { ...context, page });
                         }
@@ -1255,6 +1230,7 @@ export async function handleFormResponse(
             id: string;
             buyPrice: number;
             sellPrice: number;
+            permissionLevel: number;
         };
 
         if (selectedEntry.type === 'subCategory') {
@@ -1309,15 +1285,16 @@ export async function handleFormResponse(
 
         let amount;
         if (hasDropdown) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [amountStr, actionIndex] = (modalResponse as any).formValues as [string, number];
+            const values = (modalResponse as ModalFormResponse).formValues as [string, number];
+            const amountStr = values[0];
+            const actionIndex = values[1];
             amount = parseInt(amountStr, 10);
             const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
             const selectedActionString = options[actionIndex];
             action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [amountStr] = (modalResponse as any).formValues as [string];
+            const values = (modalResponse as ModalFormResponse).formValues as [string];
+            const amountStr = values[0];
             amount = parseInt(amountStr, 10);
         }
 
@@ -1360,9 +1337,8 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [customId, displayName, mcId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = (response as any)
-                .formValues as string[];
+            const values = (response as ModalFormResponse).formValues as string[];
+            const [customId, displayName, mcId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
             const icon = iconStr || '';
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
@@ -1415,8 +1391,8 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [iconStr, buyPriceStr, sellPriceStr, permLevelStr] = (response as any).formValues as string[];
+            const values = (response as ModalFormResponse).formValues as string[];
+            const [iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
             const icon = iconStr || '';
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
@@ -1473,8 +1449,8 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [name, iconStr] = (response as any).formValues as string[];
+            const values = (response as ModalFormResponse).formValues as string[];
+            const [name, iconStr] = values;
             if (name) {
                 const result = shopAdminManager.addCategory(name, iconStr || '');
                 player.sendMessage(result.message);
@@ -1526,8 +1502,8 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [name, iconStr] = (response as any).formValues as string[];
+            const values = (response as ModalFormResponse).formValues as string[];
+            const [name, iconStr] = values;
             if (name) {
                 const result = shopAdminManager.addSubCategory(categoryName, name, iconStr || '');
                 player.sendMessage(result.message);
@@ -1568,8 +1544,7 @@ export async function handleFormResponse(
                 if (response.canceled) {
                     return showPanel(player, panelId, context);
                 }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const selection = (response as any).selection;
+                const selection = (response as ActionFormResponse).selection;
                 if (selection === 0) {
                     // Edit
                     const masterItem = allItems[selectedEntry.id] || {};
@@ -1595,10 +1570,8 @@ export async function handleFormResponse(
                         return showPanel(player, panelId, context);
                     }
 
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const [displayName, minecraftId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = (
-                        editResponse as any
-                    ).formValues as string[];
+                    const values = (editResponse as ModalFormResponse).formValues as string[];
+                    const [displayName, minecraftId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
                     const icon = iconStr || '';
                     const buyPrice = Number(buyPriceStr);
                     const sellPrice = Number(sellPriceStr);
@@ -1668,8 +1641,8 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [newName, newIcon] = (response as any).formValues as string[];
+            const values = (response as ModalFormResponse).formValues as string[];
+            const [newName, newIcon] = values;
             if (newName) {
                 const result = shopAdminManager.editCategory(categoryName, newName, newIcon || '');
                 player.sendMessage(result.message);
@@ -1736,8 +1709,7 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, panelId, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const selection = (response as any).selection;
+            const selection = (response as ActionFormResponse).selection;
             if (selection === 0) {
                 // Edit
                 const masterItem = allItems[selectedItem.id] || {};
@@ -1763,10 +1735,8 @@ export async function handleFormResponse(
                     return showPanel(player, panelId, context);
                 }
 
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const [displayName, minecraftId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = (
-                    editResponse as any
-                ).formValues as string[];
+                const values = (editResponse as ModalFormResponse).formValues as string[];
+                const [displayName, minecraftId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
                 const icon = iconStr || '';
                 const buyPrice = Number(buyPriceStr);
                 const sellPrice = Number(sellPriceStr);
@@ -1830,8 +1800,8 @@ export async function handleFormResponse(
             if (response.canceled) {
                 return showPanel(player, `shopAdminSubCategoryItemPanel_${subCategoryName}`, context);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const [newName, newIcon] = (response as any).formValues as string[];
+            const values = (response as ModalFormResponse).formValues as string[];
+            const [newName, newIcon] = values;
             if (newName) {
                 const result = shopAdminManager.editSubCategory(categoryName, subCategoryName, newName, newIcon || '');
                 player.sendMessage(result.message);
