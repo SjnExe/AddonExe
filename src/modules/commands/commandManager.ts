@@ -226,12 +226,14 @@ class CommandManager {
      * @param {mc.CustomCommandRegistry} customCommandRegistry The registry object from the startup event.
      * @param {CustomCommand} command The command definition.
      * @param {string} name The name to register (either primary or an alias).
+     * @param {boolean} isRetry Whether this is a retry attempt (e.g. after collision).
      * @private
      */
     private _registerSlashCommand(
         customCommandRegistry: mc.CustomCommandRegistry,
         command: CustomCommand,
-        name: string
+        name: string,
+        isRetry = false
     ) {
         const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
@@ -260,7 +262,16 @@ class CommandManager {
                 commandCallback as any
             );
         } catch (e: unknown) {
-            if (e instanceof Error && !e.toString().includes('already in use')) {
+            const errStr = String(e);
+            if (errStr.includes('already in use')) {
+                if (!isRetry) {
+                    const newName = `x${name}`;
+                    errorLog(`[CommandManager] Command alias '${name}' collision. Retrying as '${newName}'.`);
+                    this._registerSlashCommand(customCommandRegistry, command, newName, true);
+                    return;
+                }
+            }
+            if (e instanceof Error) {
                 errorLog(`[CommandManager] Failed to register slash command '${name}':`, e);
             }
         }
@@ -317,8 +328,13 @@ class CommandManager {
 
             try {
                 registry.registerEnum(enumName, param.enumOptions);
-            } catch {
+            } catch (e) {
                 // Ignore if enum already exists (e.g. alias sharing same params)
+                // But log other errors to debug issues
+                const errStr = String(e);
+                if (!errStr.includes('already exists')) {
+                    errorLog(`[CommandManager] Failed to register enum '${enumName}':`, e);
+                }
             }
 
             return {
