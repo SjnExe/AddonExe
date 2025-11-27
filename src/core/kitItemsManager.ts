@@ -7,7 +7,7 @@ import { debugLog } from './logger.js';
 
 const MAX_KIT_SLOTS = 36;
 
-interface ItemInfo {
+export interface ItemInfo {
     typeId: string;
     amount: number;
     nameTag?: string;

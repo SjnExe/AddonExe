@@ -6,7 +6,7 @@ import { updateAllPlayerRanks } from '../main.js';
 import * as rankManager from '../rankManager.js';
 import { startRestart } from '../restartManager.js';
 
-export function handleScriptEventReceive(event: mc.ScriptEventReceiveAfterEvent) {
+export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfterEvent) {
     const { id, sourceEntity } = event;
 
     // Handle script unload event
@@ -24,17 +24,28 @@ export function handleScriptEventReceive(event: mc.ScriptEventReceiveAfterEvent)
 
     switch (id) {
         case 'exe:restart':
-            startRestart(sourceEntity);
+            if (sourceEntity instanceof mc.Player) {
+                startRestart(sourceEntity);
+            } else if (!sourceEntity) {
+                // If no source entity, assume console/server
+                startRestart({
+                    sendMessage: (msg: string) => console.warn(msg),
+                    name: 'Console'
+                } as any);
+            }
             break;
 
         case 'exe:toggle_chat_log': {
+            // @ts-expect-error - chat config partial
             const chatConfig = config.chat || { logToConsole: false };
+            // @ts-expect-error - chat config partial
             const newValue = !chatConfig.logToConsole;
+            // @ts-expect-error - chat config partial
             chatConfig.logToConsole = newValue;
             updateConfig('chat', chatConfig);
 
             const feedbackMessage = `§aChat-to-console has been ${newValue ? '§aenabled' : '§cdisabled'}§a.`;
-            if (sourceEntity && sourceEntity.sendMessage) {
+            if (sourceEntity instanceof mc.Player) {
                 sourceEntity.sendMessage(feedbackMessage);
             }
             // eslint-disable-next-line no-console
@@ -43,7 +54,7 @@ export function handleScriptEventReceive(event: mc.ScriptEventReceiveAfterEvent)
         }
 
         case 'exe:grant_admin_self': {
-            if (sourceEntity && sourceEntity.addTag) {
+            if (sourceEntity instanceof mc.Player) {
                 const adminRank = rankManager.getRankById('admin');
                 if (!adminRank) {
                     errorLog(

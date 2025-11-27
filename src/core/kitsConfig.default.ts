@@ -110,3 +110,5 @@ export const kitsConfig: KitsConfig = {
         }
     }
 };
+
+export default kitsConfig;

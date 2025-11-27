@@ -11,7 +11,7 @@ import { economyConfig } from './economyConfig.default.js';
 import { kitsConfig } from './kitsConfig.default.js';
 import { setLockState } from './playerDataManager.js';
 import { reloadRanks } from './rankManager.js';
-import { ranksConfig } from './ranksConfig.default.js';
+import ranksConfig from './ranksConfig.default.js';
 import { shopConfig } from './shopConfig.default.js';
 import { spawnConfig } from './spawnConfig.default.js';
 import { teamConfig } from './teamConfig.default.js';
@@ -34,25 +34,25 @@ let kitsConfigManager: ConfigManager<KitsConfig>,
     teamConfigManager: ConfigManager<TeamConfig>;
 
 export const loadKitsConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig('./kitsConfig.js');
+    const defaultConfig = await asyncLoadConfig<KitsConfig>('./kitsConfig.js');
     kitsConfigManager = createConfigManager('exe:kitsConfig:current', defaultConfig, 'Kits');
     await kitsConfigManager.load(isMigration);
 };
 export const getKitsConfig = () => kitsConfigManager.get();
-export const saveKitsConfig = (config: KitsConfig) => kitsConfigManager.save(config);
+export const saveKitsConfig = (config: KitsConfig) => kitsConfigManager.set(config);
 export const resetKitsConfig = () => kitsConfigManager.reset();
 
 export const loadShopConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig('./shopConfig.js');
+    const defaultConfig = await asyncLoadConfig<ShopConfig>('./shopConfig.js');
     shopConfigManager = createConfigManager('exe:shopConfig:current', defaultConfig, 'Shop');
     await shopConfigManager.load(isMigration);
 };
 export const getShopConfig = () => shopConfigManager.get();
-export const saveShopConfig = (config: ShopConfig) => shopConfigManager.save(config);
+export const saveShopConfig = (config: ShopConfig) => shopConfigManager.set(config);
 export const resetShopConfig = () => shopConfigManager.reset();
 
 export const loadSpawnConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig('./spawnConfig.js');
+    const defaultConfig = await asyncLoadConfig<SpawnConfig>('./spawnConfig.js');
     spawnConfigManager = createConfigManager('exe:spawnConfig:current', defaultConfig, 'Spawn');
     await spawnConfigManager.load(isMigration);
 };
@@ -61,7 +61,7 @@ export const saveSpawnConfig = (config: SpawnConfig) => spawnConfigManager.set(c
 export const resetSpawnConfig = () => spawnConfigManager.reset();
 
 export const loadRanksConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig('./ranksConfig.js');
+    const defaultConfig = await asyncLoadConfig<RanksConfig>('./ranksConfig.js');
     ranksConfigManager = createConfigManager('exe:ranksConfig', defaultConfig, 'Ranks', 'rankDefinitions');
     await ranksConfigManager.load(isMigration);
 };
@@ -70,7 +70,7 @@ export const saveRanksConfig = (config: RanksConfig) => ranksConfigManager.set(c
 export const resetRanksConfig = () => ranksConfigManager.reset();
 
 export const loadEconomyConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig('./economyConfig.js');
+    const defaultConfig = await asyncLoadConfig<EconomyConfig>('./economyConfig.js');
     economyConfigManager = createConfigManager('exe:economyConfig:current', defaultConfig, 'Economy');
     await economyConfigManager.load(isMigration);
 };
@@ -79,7 +79,7 @@ export const saveEconomyConfig = (config: EconomyConfig) => economyConfigManager
 export const resetEconomyConfig = () => economyConfigManager.reset();
 
 export const loadXrayConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig('./xrayConfig.js');
+    const defaultConfig = await asyncLoadConfig<XrayConfig>('./xrayConfig.js');
     xrayConfigManager = createConfigManager('exe:xrayConfig:current', defaultConfig, 'X-Ray');
     await xrayConfigManager.load(isMigration);
 };
@@ -88,7 +88,7 @@ export const saveXrayConfig = (config: XrayConfig) => xrayConfigManager.set(conf
 export const resetXrayConfig = () => xrayConfigManager.reset();
 
 export const loadTeamConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig('./teamConfig.js');
+    const defaultConfig = await asyncLoadConfig<TeamConfig>('./teamConfig.js');
     teamConfigManager = createConfigManager('exe:teamConfig:current', defaultConfig, 'Teams');
     await teamConfigManager.load(isMigration);
 };
@@ -97,7 +97,7 @@ export const saveTeamConfig = (config: TeamConfig) => teamConfigManager.set(conf
 export const resetTeamConfig = () => teamConfigManager.reset();
 
 type ResetRegistryEntry = {
-    reset: () => void;
+    reset: () => Promise<void>;
     message: string;
     postResetCallback?: (player?: mc.Player) => void;
 };

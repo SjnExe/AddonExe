@@ -2012,11 +2012,7 @@ export async function handleFormResponse(
         const itemEndIndex = itemStartIndex + paginatedItems.length - 1;
 
         // Ensure selection is treated as number
-        if (
-            typeof selection === 'number' &&
-            selection >= itemStartIndex &&
-            selection <= itemEndIndex
-        ) {
+        if (typeof selection === 'number' && selection >= itemStartIndex && selection <= itemEndIndex) {
             const selectedItemIndexInPage = selection - itemStartIndex;
             const selectedItemIndex = (page - 1) * itemsPerPage + selectedItemIndexInPage;
             const selectedItem = kit.items[selectedItemIndex];
@@ -2228,11 +2224,7 @@ export async function handleFormResponse(
         }
 
         // Handle Item click
-        if (
-            typeof selection === 'number' &&
-            selection >= itemStartIndex &&
-            selection <= itemEndIndex
-        ) {
+        if (typeof selection === 'number' && selection >= itemStartIndex && selection <= itemEndIndex) {
             const selectedItemIndex = selection - itemStartIndex;
             const selectedItem = paginatedItems[selectedItemIndex];
 

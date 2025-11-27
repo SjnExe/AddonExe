@@ -50,3 +50,5 @@ export const xrayConfig = {
         }
     }
 };
+
+export default xrayConfig;

@@ -12,13 +12,24 @@ import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, reco
  * @param wrapperKey If provided, the default config data will be wrapped in an object with this key.
  * @returns An object with methods to manage the configuration.
  */
+export interface ConfigManager<T = any> {
+    load: (isMigration: boolean) => boolean;
+    get: () => T;
+    save: () => void;
+    set: (newConfig: T) => void;
+    reload: () => void;
+    update: (path: string, value: any) => void;
+    updateMultiple: (updates: Record<string, any>) => void;
+    reset: () => Promise<void>;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function createConfigManager<T = any>(
     key: string,
     defaultConfig: T,
     name: string,
     wrapperKey: string | null = null
-) {
+): ConfigManager<T> {
     const lastLoadedKey = `${key}:last_loaded`;
 
     const initialDefaultConfig = wrapperKey ? { [wrapperKey]: deepClone(defaultConfig) } : deepClone(defaultConfig);
@@ -179,7 +190,7 @@ export default function createConfigManager<T = any>(
         saveConfig();
     }
 
-    function resetConfig() {
+    async function resetConfig() {
         currentConfig = initialDefaultConfig;
         lastLoadedConfig = initialDefaultConfig;
         saveConfig();

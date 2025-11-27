@@ -17,6 +17,7 @@ function handleEntityHurt(event: mc.EntityHurtAfterEvent) {
         return;
     }
 
+    // @ts-expect-error - 'owner' exists on projectiles/tameables at runtime but missing in types
     const attacker = damagingEntity.owner ?? damagingEntity;
 
     if (attacker?.typeId === 'minecraft:player' && attacker.id !== victim.id) {

@@ -53,7 +53,9 @@ export const config = {
     reports: {
         resolvedReportLifetimeDays: 7
     },
-    chat: {},
+    chat: {
+        logToConsole: false
+    },
     economy: {
         enabled: true,
         baltopLimit: 10,
