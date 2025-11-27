@@ -1412,7 +1412,7 @@ export async function handleFormResponse(
                     permissionLevel,
                     icon,
                     itemId: selectedItemId, // ADDED
-                    displayName: masterItem.displayName // ADDED
+                    displayName: masterItem.displayName || '' // ADDED
                 });
                 player.sendMessage(result.message);
             }

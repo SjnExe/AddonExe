@@ -94,7 +94,11 @@ async function spawnAllTexts() {
             const entities = dimension.getEntities(query);
             const entity = entities.length > 0 ? entities[0] : undefined;
 
-            if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+            if (
+                entity &&
+                typeof entity.isValid === 'function' &&
+                (entity as unknown as { isValid: () => boolean }).isValid()
+            ) {
                 const isCorrectLocation =
                     Math.abs(entity.location.x - textConfig.location.x) < 0.1 &&
                     Math.abs(entity.location.y - textConfig.location.y) < 0.1 &&
@@ -164,7 +168,11 @@ async function findEntityWithRetries(
     for (let i = 0; i < maxRetries; i++) {
         const entities = dimension.getEntities(query);
         const entity = entities.length > 0 ? entities[0] : undefined;
-        if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+        if (
+            entity &&
+            typeof entity.isValid === 'function' &&
+            (entity as unknown as { isValid: () => boolean }).isValid()
+        ) {
             return entity;
         }
         await new Promise<void>((resolve) => mc.system.runTimeout(resolve, delayBetweenRetries));
@@ -299,7 +307,11 @@ async function despawnText(id: string) {
         // Iterate and remove all matches, just in case duplication occurred
         let found = false;
         for (const entity of entities) {
-            if (entity && typeof entity.isValid === 'function' && entity.isValid()) {
+            if (
+                entity &&
+                typeof entity.isValid === 'function' &&
+                (entity as unknown as { isValid: () => boolean }).isValid()
+            ) {
                 entity.remove();
                 found = true;
             }
