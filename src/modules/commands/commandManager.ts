@@ -84,6 +84,44 @@ class CommandManager {
     public commands: Map<string, CustomCommand> = new Map();
     public aliases: Map<string, string> = new Map();
     private readonly prefix = 'exe'; // Namespace for all custom commands
+    private vanillaCommands = new Set([
+        'tp',
+        'teleport',
+        'kick',
+        'ban',
+        'list',
+        'help',
+        'spawn',
+        'clear',
+        'difficulty',
+        'gamemode',
+        'gamerule',
+        'give',
+        'kill',
+        'locate',
+        'me',
+        'msg',
+        'op',
+        'deop',
+        'reload',
+        'say',
+        'setblock',
+        'setworldspawn',
+        'spawnpoint',
+        'stop',
+        'summon',
+        'tag',
+        'tell',
+        'testfor',
+        'time',
+        'title',
+        'toggledownfall',
+        'transfer',
+        'w',
+        'weather',
+        'xp',
+        '?'
+    ]);
 
     constructor() {
         mc.system.beforeEvents.startup.subscribe(
@@ -235,6 +273,13 @@ class CommandManager {
         name: string,
         isRetry = false
     ) {
+        // Check for vanilla collision before registering
+        if (!isRetry && this.vanillaCommands.has(name)) {
+            const newName = `x${name}`;
+            this._registerSlashCommand(customCommandRegistry, command, newName, true);
+            return;
+        }
+
         const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
         const commandCallback = (origin: mc.CustomCommandOrigin, ...rawArgs: unknown[]) => {
@@ -324,7 +369,7 @@ class CommandManager {
         if (param.enumOptions && Array.isArray(param.enumOptions) && registry) {
             const safeCmdName = (commandName || 'cmd').replace(/[^a-zA-Z0-9_]/g, '');
             const safeParamName = param.name.replace(/[^a-zA-Z0-9_]/g, '');
-            const enumName = `${this.prefix}_${safeCmdName}_${safeParamName}`;
+            const enumName = `${this.prefix}:${safeCmdName}_${safeParamName}`;
 
             try {
                 registry.registerEnum(enumName, param.enumOptions);
