@@ -3,11 +3,18 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
 import { commandManager } from '../../modules/commands/commandManager.js';
 import * as bountyManager from '../bountyManager.js';
+import { loadConfig } from '../configLoader.js';
 import { getConfig } from '../configManager.js';
-import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig, KitsConfig } from '../configurations.js';
+import {
+    getKitsConfig,
+    getShopConfig,
+    getEconomyConfig,
+    getXrayConfig,
+    getTeamConfig,
+    KitsConfig
+} from '../configurations.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { iconDB } from '../iconDB.js';
-import { items as allItems } from '../itemsConfig.default.js';
 import { getAllKits, Kit } from '../kitAdminManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
@@ -15,8 +22,6 @@ import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } f
 import * as rankManager from '../rankManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ShopConfig, ShopItem, ShopSubCategory } from '../shopConfig.default.js';
 import { formatCurrency } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
@@ -29,12 +34,16 @@ import {
     addPaginationButtons
 } from './uiUtils.js';
 
+import type { ShopConfig, ShopItem, ShopSubCategory } from '../shopConfig.default.js';
+
 interface Item {
     displayName?: string;
     icon?: string;
     buyPrice?: number;
     sellPrice?: number;
 }
+
+let allItems: Record<string, Item> = {};
 
 export function getMenuItems(panelDef: PanelDefinition, permissionLevel: number) {
     const config = getConfig();
@@ -599,6 +608,15 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
     try {
         debugLog(`[UIManager] Building form for panel '${panelId}' for player ${player.name}.`);
 
+        // Load items config if not loaded
+        if (Object.keys(allItems).length === 0) {
+            try {
+                allItems = await loadConfig('../itemsConfig.js');
+            } catch (e) {
+                errorLog('[UIManager] Failed to load items config.', e);
+            }
+        }
+
         if (panelId.startsWith('config_')) {
             const categoryId = panelId.replace('config_', '');
             const category = configPanelSchema.find((c) => c.id === categoryId);
@@ -661,7 +679,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'teamMainPanel') {
             const { getTeamByPlayer } = await import('../teamManager.js');
-            const { teamConfig } = await import('../teamConfig.default.js');
+            const teamConfig = getTeamConfig();
             const panelDef = panelDefinitions[panelId];
 
             const team = getTeamByPlayer(player.id);
@@ -703,7 +721,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'teamCreatePanel') {
-            const { teamConfig } = await import('../teamConfig.default.js');
+            const teamConfig = getTeamConfig();
             const form = new ModalFormData().title('Create Team');
             form.textField('Team Name', `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`);
             return form;
