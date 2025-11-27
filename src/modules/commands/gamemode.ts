@@ -83,11 +83,6 @@ function setGamemode(executor: CommandExecutor, gamemode: string, targetName?: s
 
 // --- Command Definitions ---
 
-interface GamemodeCommandArgs {
-    gamemode: string;
-    target?: string;
-}
-
 const mainGamemodeCommand: CustomCommand = {
     name: 'gamemode',
     aliases: ['gm'],
@@ -133,10 +128,6 @@ const legacyCommandDefs: LegacyCommandDef[] = [
         description: 'Sets your gamemode to Spectator.'
     }
 ];
-
-interface LegacyGamemodeArgs {
-    target?: string;
-}
 
 const legacyCommands: CustomCommand[] = legacyCommandDefs.map((cmd) => ({
     name: cmd.name,

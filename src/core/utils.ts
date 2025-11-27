@@ -8,7 +8,7 @@ import {
     MessageFormResponse
 } from '@minecraft/server-ui';
 
-import { getConfig, Config } from './configManager.js';
+import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { errorLog } from './logger.js';
 

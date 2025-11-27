@@ -146,10 +146,6 @@ export function unmutePlayer(executor: CommandExecutor, targetName: string) {
     }
 }
 
-interface UnmuteCommandArgs {
-    target: string;
-}
-
 const unmuteCommand: CustomCommand = {
     name: 'unmute',
     description: 'Unmutes a player.',

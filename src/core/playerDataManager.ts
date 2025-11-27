@@ -138,7 +138,6 @@ export function loadNameIdMap() {
     try {
         const dataString = mc.world.getDynamicProperty(playerNameIdMapKey) as string | undefined;
         if (dataString && typeof dataString === 'string') {
-
             const parsedData: [string, string][] = JSON.parse(dataString);
             playerNameIdMap = new Map(parsedData);
             debugLog(`[PlayerDataManager] Loaded ${playerNameIdMap.size} entries into name-to-ID map.`);

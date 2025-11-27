@@ -145,10 +145,6 @@ export function unbanPlayer(executor: CommandExecutor, targetName: string) {
     }
 }
 
-interface UnbanCommandArgs {
-    target: string;
-}
-
 const unbanCommand: CustomCommand = {
     name: 'unban',
     aliases: ['pardon'],
