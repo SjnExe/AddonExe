@@ -6,8 +6,7 @@ import { debugLog } from './logger.js';
  * @returns The array of rules.
  */
 export function getRules(): string[] {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config: any = getConfig();
+    const config = getConfig();
     return config.serverInfo.rules || [];
 }
 

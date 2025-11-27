@@ -12,9 +12,9 @@ import { initializeSpawnProtection } from '../detections/spawnProtection.js';
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 interface SpawnLocation {
-    x?: number;
-    y?: number;
-    z?: number;
+    x: number | undefined;
+    y: number | undefined;
+    z: number | undefined;
     dimensionId: string;
 }
 
@@ -30,8 +30,7 @@ const spawnCommand: CustomCommand = {
         }
 
         const config = getConfig();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const spawnConfig = getSpawnConfig() as any;
+        const spawnConfig = getSpawnConfig();
         const spawnLocation = spawnConfig.spawn.spawnLocation as SpawnLocation | undefined;
 
         if (!spawnLocation || typeof spawnLocation.x !== 'number') {
@@ -125,8 +124,7 @@ const setSpawnCommand: CustomCommand = {
         }
 
         try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const spawnConfig = getSpawnConfig() as any;
+            const spawnConfig = getSpawnConfig();
             spawnConfig.spawn.spawnLocation = location;
             saveSpawnConfig(spawnConfig);
             const locationString = `§aAddon spawn point set to: §fX: ${location.x!.toFixed(2)}, Y: ${location.y!.toFixed(2)}, Z: ${location.z!.toFixed(2)} in ${location.dimensionId.replace('minecraft:', '')}`;

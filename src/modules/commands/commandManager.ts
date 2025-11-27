@@ -235,8 +235,7 @@ class CommandManager {
     ) {
         const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const commandCallback = (origin: mc.CustomCommandOrigin, ...rawArgs: any[]) => {
+        const commandCallback = (origin: mc.CustomCommandOrigin, ...rawArgs: unknown[]) => {
             const executor: CommandExecutor = (origin.sourceEntity as mc.Player) || {
                 isConsole: true,
                 sendMessage: (msg: string) => errorLog(msg.replace(/§[0-9a-fklmnor]/g, ''))

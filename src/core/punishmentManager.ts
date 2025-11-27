@@ -122,8 +122,7 @@ export function removePunishment(playerId: string) {
  */
 export function initializePunishmentManager() {
     // Periodically clear expired punishments and save to the world
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config: any = getConfig();
+    const config = getConfig();
     mc.system.runInterval(
         () => {
             clearExpiredPunishments();

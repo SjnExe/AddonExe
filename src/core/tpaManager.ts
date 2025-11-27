@@ -106,8 +106,7 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
         return { success: false, message: `§cYou are blocked from sending TPA requests to ${targetPlayer.name}.` };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config = getConfig() as any;
+    const config = getConfig();
     const timeoutSeconds = config.tpa.requestTimeoutSeconds;
     const expiryTimestamp = Date.now() + timeoutSeconds * 1000;
 
@@ -196,8 +195,7 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
         return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config = getConfig() as any;
+    const config = getConfig();
     const warmupSeconds = config.tpa.teleportWarmupSeconds;
 
     const teleportLogic = () => {

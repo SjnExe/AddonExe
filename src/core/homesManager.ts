@@ -35,8 +35,7 @@ export function setHome(player: mc.Player, homeName: string): ActionResult {
         };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config = getConfig() as any;
+    const config = getConfig();
     const homeCount = Object.keys(pData.homes).length;
 
     // Check if the player has reached the maximum number of homes
