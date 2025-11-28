@@ -10,7 +10,8 @@ import { errorLog } from './logger.js';
  * @param suppressError If true, errors will be thrown but not logged as FATAL.
  * @returns A promise that resolves with the loaded config module's default export.
  */
-export async function loadConfig<T>(modulePath: string, suppressError = false): Promise<T> {
+export async function loadConfig<T>(modulePath: string, suppressError?: boolean): Promise<T> {
+    const shouldSuppress = suppressError ?? false;
     try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const module = (await import(modulePath)) as any;
@@ -37,7 +38,7 @@ export async function loadConfig<T>(modulePath: string, suppressError = false): 
         throw new Error(`Module '${modulePath}' has no default export and auto-discovery failed.`);
     } catch (e: unknown) {
         const err = e as Error;
-        if (!suppressError) {
+        if (!shouldSuppress) {
             errorLog(`[ConfigLoader] FATAL: Failed to load config file: ${modulePath}`, err);
         }
         throw err;
