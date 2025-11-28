@@ -1,13 +1,17 @@
 import * as mc from '@minecraft/server';
 import { ModalFormData, ActionFormData, ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
+import * as bountyManager from '../bountyManager.js';
 import { getConfig, updateMultipleConfig, resetConfigSection } from '../configManager.js';
 import { getShopConfig, getXrayConfig, saveXrayConfig, XrayConfig } from '../configurations.js';
 import { floatingTextManager } from '../floatingTextManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { items as allItems } from '../itemsConfig.default.js';
+import * as kitAdminManager from '../kitAdminManager.js';
 import { errorLog } from '../logger.js';
-import { getPlayer, PlayerData } from '../playerDataManager.js';
+import { getPlayer, PlayerData, loadPlayerData } from '../playerDataManager.js';
+import * as rankManager from '../rankManager.js';
+import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 import * as shopAdminManager from '../shopAdminManager.js';
 import * as shopManager from '../shopManager.js';
@@ -118,6 +122,431 @@ export async function handleFormResponse(
             return showPanel(player, 'floatingTextListPanel', context);
         }
         return;
+    }
+
+    if (panelId === 'reportListPanel') {
+        const page = context.page || 1;
+        if (typeof selection !== 'number') return;
+        if (selection === 0) return showPanel(player, 'mainPanel', context);
+
+        const reports = reportManager.getAllReports()
+            .filter((r) => r.status === 'open' || r.status === 'assigned')
+            .sort((a, b) => a.timestamp - b.timestamp);
+
+        const hasPrev = page > 1;
+        let buttonIndex = selection - 1;
+
+        if (hasPrev) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+             buttonIndex--;
+        }
+
+        const paginatedReports = getPaginatedItems(reports, page);
+        if (buttonIndex >= 0 && buttonIndex < paginatedReports.length) {
+             const report = paginatedReports[buttonIndex];
+             return showPanel(player, 'reportActionsPanel', { ...context, targetReport: report });
+        }
+        buttonIndex -= paginatedReports.length;
+
+        const totalPages = Math.ceil(reports.length / itemsPerPage);
+        if (page < totalPages && buttonIndex === 0) {
+             return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+        return;
+    }
+
+    if (panelId === 'bountyListPanel') {
+        const page = context.page || 1;
+        if (typeof selection !== 'number') return;
+        if (selection === 0) return showPanel(player, 'mainPanel', context);
+
+        const allBounties = Array.from(bountyManager.getAllBounties().entries())
+            .map(([id, val]) => ({ ...val, targetId: id }))
+            .sort((a, b) => b.amount - a.amount);
+
+        const hasPrev = page > 1;
+        let buttonIndex = selection - 1;
+
+        if (hasPrev) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+             buttonIndex--;
+        }
+
+        const paginatedBounties = getPaginatedItems(allBounties, page);
+        if (buttonIndex >= 0 && buttonIndex < paginatedBounties.length) {
+             const bounty = paginatedBounties[buttonIndex];
+             return showPanel(player, 'playerActionsPanel', { ...context, targetPlayerId: bounty.targetId, targetPlayerName: bounty.name, fromPanel: 'bountyListPanel' });
+        }
+        buttonIndex -= paginatedBounties.length;
+
+        const totalPages = Math.ceil(allBounties.length / itemsPerPage);
+        if (page < totalPages && buttonIndex === 0) {
+             return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+        return;
+    }
+
+    if (panelId === 'playerListPanel') {
+        const page = context.page || 1;
+        if (typeof selection !== 'number') return;
+        if (selection === 0) return showPanel(player, 'mainPanel', context);
+
+        const onlinePlayers = Array.from(mc.world.getAllPlayers()).sort((a, b) => a.name.localeCompare(b.name));
+
+        const hasPrev = page > 1;
+        let buttonIndex = selection - 1;
+
+        if (hasPrev) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+             buttonIndex--;
+        }
+
+        const paginatedPlayers = getPaginatedItems(onlinePlayers, page);
+        if (buttonIndex >= 0 && buttonIndex < paginatedPlayers.length) {
+             const target = paginatedPlayers[buttonIndex];
+             return showPanel(player, 'playerActionsPanel', { ...context, targetPlayerId: target.id, targetPlayerName: target.name, fromPanel: 'playerListPanel' });
+        }
+        buttonIndex -= paginatedPlayers.length;
+
+        const totalPages = Math.ceil(onlinePlayers.length / itemsPerPage);
+        if (page < totalPages && buttonIndex === 0) {
+             return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+        return;
+    }
+
+    if (panelId === 'playerManagementPanel') {
+        const page = context.page || 1;
+        if (typeof selection !== 'number') return;
+        if (selection === 0) return showPanel(player, 'mainPanel', context);
+
+        const { getAllPlayerNameIdMap } = await import('../playerDataManager.js');
+        const allPlayersMap = getAllPlayerNameIdMap();
+        const playerEntries = Array.from(allPlayersMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+        const hasPrev = page > 1;
+        let buttonIndex = selection - 1;
+
+        if (hasPrev) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+             buttonIndex--;
+        }
+
+        const paginatedEntries = getPaginatedItems(playerEntries, page);
+        if (buttonIndex >= 0 && buttonIndex < paginatedEntries.length) {
+             const [name, id] = paginatedEntries[buttonIndex];
+             const targetData = loadPlayerData(id);
+             const properName = targetData ? targetData.name : name;
+             return showPanel(player, 'playerActionsPanel', { ...context, targetPlayerId: id, targetPlayerName: properName, fromPanel: 'playerManagementPanel' });
+        }
+        buttonIndex -= paginatedEntries.length;
+
+        const totalPages = Math.ceil(playerEntries.length / itemsPerPage);
+        if (page < totalPages && buttonIndex === 0) {
+             return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+        return;
+    }
+
+    if (panelId === 'kitManagementPanel') {
+        const page = context.page || 1;
+        if (typeof selection !== 'number') return;
+        if (selection === 0) return showPanel(player, 'configCategoryPanel', context);
+
+        const config = getConfig();
+        if (selection === 1) {
+            const newStatus = !config.kits.enabled;
+            updateMultipleConfig({ 'kits.enabled': newStatus });
+            player.sendMessage(`§2Kit system ${newStatus ? 'enabled' : 'disabled'}.`);
+            return showPanel(player, panelId, context);
+        }
+
+        if (selection === 2) {
+             const form = new ModalFormData().title('Create Kit').textField('Kit Name', 'Enter unique name');
+             const res = await utils.uiWait(player, form);
+             if (!res.canceled && (res as ModalFormResponse).formValues) {
+                 const name = (res as ModalFormResponse).formValues![0] as string;
+                 if (name) {
+                     kitAdminManager.createKit(name);
+                     player.sendMessage('§2Kit created.');
+                 }
+             }
+             return showPanel(player, panelId, context);
+        }
+
+        const kitNames = Object.keys(kitAdminManager.getAllKits());
+        const paginatedKits = getPaginatedItems(kitNames, page);
+        let buttonIndex = selection - 3;
+
+        if (buttonIndex >= 0 && buttonIndex < paginatedKits.length) {
+             const kitName = paginatedKits[buttonIndex];
+             return showPanel(player, `kitActionMenu_${kitName}`, context);
+        }
+        buttonIndex -= paginatedKits.length;
+
+        const totalPages = Math.ceil(kitNames.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+
+        if (hasPrev) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+             buttonIndex--;
+        }
+        if (hasNext) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+        return;
+    }
+
+    if (panelId.startsWith('kitActionMenu_')) {
+        const kitName = panelId.replace('kitActionMenu_', '');
+        if (selection === 0) return showPanel(player, `kitSettingsPanel_${kitName}`, context);
+        if (selection === 1) return showPanel(player, `kitItemsPanel_${kitName}`, context);
+        if (selection === 2) {
+             kitAdminManager.deleteKit(kitName);
+             player.sendMessage('§2Kit deleted.');
+             return showPanel(player, 'kitManagementPanel', context);
+        }
+        if (selection === 3) return showPanel(player, 'kitManagementPanel', context);
+        return;
+    }
+
+    if (panelId.startsWith('kitSettingsPanel_')) {
+        const kitName = panelId.replace('kitSettingsPanel_', '');
+        if (canceled) return showPanel(player, `kitActionMenu_${kitName}`, context);
+
+        const values = (response as ModalFormResponse).formValues;
+        if (values) {
+             const [enabled, name, desc, icon, cooldownStr, permStr, priceStr] = values as [boolean, string, string, string, string, string, string];
+             const cooldown = parseInt(cooldownStr) || 0;
+             const perm = parseInt(permStr) || 1024;
+             const price = parseInt(priceStr) || 0;
+
+             kitAdminManager.updateKitSettings(kitName, {
+                 enabled, description: desc, icon, cooldownSeconds: cooldown, permissionLevel: perm, price
+             });
+
+             if (name !== kitName && name) {
+                 const res = kitAdminManager.renameKit(kitName, name);
+                 player.sendMessage(res.message);
+                 if (res.success) {
+                     return showPanel(player, `kitActionMenu_${name}`, context);
+                 }
+             } else {
+                 player.sendMessage('§2Kit settings updated.');
+             }
+        }
+        return showPanel(player, `kitActionMenu_${kitName}`, context);
+    }
+
+    if (panelId.startsWith('kitItemsPanel_')) {
+        const kitName = panelId.replace('kitItemsPanel_', '');
+        const page = context.page || 1;
+        if (typeof selection !== 'number') return;
+        if (selection === 0) {
+             // Add Item
+             const form = new ModalFormData()
+                 .title('Add Item')
+                 .textField('Item ID', 'minecraft:stone')
+                 .textField('Amount', '1', { defaultValue: '1' });
+             const res = await utils.uiWait(player, form);
+             if (!res.canceled && (res as ModalFormResponse).formValues) {
+                 const [typeId, amountStr] = (res as ModalFormResponse).formValues as [string, string];
+                 const amount = parseInt(amountStr);
+                 if (typeId && !isNaN(amount)) {
+                     const { addItemToKit } = await import('../kitItemsManager.js');
+                     const result = addItemToKit(kitName, { typeId, amount });
+                     player.sendMessage(result.message);
+                 }
+             }
+             return showPanel(player, panelId, context);
+        }
+
+        const kit = kitAdminManager.getAllKits()[kitName];
+        if (!kit) return showPanel(player, 'kitManagementPanel', context);
+
+        const paginatedItems = getPaginatedItems(kit.items, page);
+        let buttonIndex = selection - 1;
+
+        if (buttonIndex >= 0 && buttonIndex < paginatedItems.length) {
+             // Edit/Delete Item
+             const itemIndex = (page - 1) * itemsPerPage + buttonIndex;
+             const form = new ActionFormData()
+                 .title('Manage Item')
+                 .button('Delete Item', 'textures/ui/trash')
+                 .button('Cancel', 'textures/ui/cancel');
+             const res = await utils.uiWait(player, form);
+             if (!res.canceled && (res as ActionFormResponse).selection === 0) {
+                 const { removeItemFromKit } = await import('../kitItemsManager.js');
+                 const result = removeItemFromKit(kitName, itemIndex);
+                 player.sendMessage(result.message);
+             }
+             return showPanel(player, panelId, context);
+        }
+        buttonIndex -= paginatedItems.length;
+
+        // Pagination
+        const totalPages = Math.ceil(kit.items.length / itemsPerPage);
+        if (page < totalPages && buttonIndex === 0) {
+             return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+        // Back (Last button)
+        const hasNext = page < totalPages;
+        if ((!hasNext && buttonIndex === 0) || (hasNext && buttonIndex === 1)) {
+             return showPanel(player, `kitActionMenu_${kitName}`, context);
+        }
+        return;
+    }
+
+    if (panelId === 'commandSystemPanel') {
+        const page = context.page || 1;
+        if (typeof selection !== 'number') return;
+        if (selection === 0) return showPanel(player, 'configCategoryPanel', context);
+
+        const config = getConfig();
+        const commandSettings = config.commandSettings || {};
+        const allCommands = Object.keys(commandSettings).filter(c => !c.startsWith('_')).sort();
+
+        const paginatedCommands = getPaginatedItems(allCommands, page);
+        let buttonIndex = selection - 1;
+
+        if (buttonIndex >= 0 && buttonIndex < paginatedCommands.length) {
+             const cmd = paginatedCommands[buttonIndex];
+             return showPanel(player, 'commandSettingsPanel', { ...context, commandName: cmd });
+        }
+        buttonIndex -= paginatedCommands.length;
+
+        const totalPages = Math.ceil(allCommands.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+
+        if (hasPrev) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+             buttonIndex--;
+        }
+        if (hasNext) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+        return;
+    }
+
+    if (panelId === 'commandSettingsPanel') {
+        if (canceled) return showPanel(player, 'commandSystemPanel', context);
+        const values = (response as ModalFormResponse).formValues;
+        const { commandName } = context;
+        if (values && commandName) {
+             const [enabled, permLevelStr] = values as [boolean, string];
+             const permLevel = parseInt(permLevelStr);
+             if (!isNaN(permLevel)) {
+                 updateMultipleConfig({
+                     [`commandSettings.${commandName}.enabled`]: enabled,
+                     [`commandSettings.${commandName}.permissionLevel`]: permLevel
+                 });
+                 player.sendMessage(`§2Updated settings for ${commandName}.`);
+             }
+        }
+        return showPanel(player, 'commandSystemPanel', context);
+    }
+
+    if (panelId === 'rankManagementPanel') {
+        const page = context.page || 1;
+        if (typeof selection !== 'number') return;
+        if (selection === 0) return showPanel(player, 'configCategoryPanel', context);
+        if (selection === 1) return showPanel(player, 'rankSettingsPanel', context);
+        if (selection === 2) return showPanel(player, 'addRankPanel', context);
+
+        const allRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);
+        const paginatedRanks = getPaginatedItems(allRanks, page);
+        let buttonIndex = selection - 3;
+
+        if (buttonIndex >= 0 && buttonIndex < paginatedRanks.length) {
+             const rank = paginatedRanks[buttonIndex];
+             return showPanel(player, `rankActionMenu_${rank.id}`, context);
+        }
+        buttonIndex -= paginatedRanks.length;
+
+        const totalPages = Math.ceil(allRanks.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+
+        if (hasPrev) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+             buttonIndex--;
+        }
+        if (hasNext) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
+        }
+        return;
+    }
+
+    if (panelId === 'addRankPanel') {
+        if (canceled) return showPanel(player, 'rankManagementPanel', context);
+        const values = (response as ModalFormResponse).formValues;
+        if (values) {
+             const [name, id, permStr, nameColor, chatColor, prefix] = values as string[];
+             const perm = parseInt(permStr);
+             if (name && id && !isNaN(perm)) {
+                 const rankDb = await import('../rankDb.js');
+                 const result = rankDb.addRank({
+                     id, name, permissionLevel: perm,
+                     chatFormatting: { nameColor: nameColor || '§7', messageColor: chatColor || '§r', prefixText: prefix || '' },
+                     conditions: [{ type: 'hasTag', value: id }],
+                     locked: false
+                 });
+                 player.sendMessage(result.message);
+                 if (result.success) rankManager.reloadRanks();
+             }
+        }
+        return showPanel(player, 'rankManagementPanel', context);
+    }
+
+    if (panelId.startsWith('rankActionMenu_')) {
+        const rankId = panelId.replace('rankActionMenu_', '');
+        if (selection === 0) return showPanel(player, 'editRankPanel', { ...context, rankId });
+        if (selection === 1) {
+             // Delete
+             const rankDb = await import('../rankDb.js');
+             const result = rankDb.deleteRank(rankId);
+             player.sendMessage(result.message);
+             if (result.success) rankManager.reloadRanks();
+             return showPanel(player, 'rankManagementPanel', context);
+        }
+        if (selection === 2) return showPanel(player, 'rankManagementPanel', context);
+        return;
+    }
+
+    if (panelId === 'editRankPanel') {
+        if (canceled) return showPanel(player, 'rankManagementPanel', context);
+        const values = (response as ModalFormResponse).formValues;
+        const { rankId } = context;
+        if (values && rankId) {
+             const [name, newId, permStr, nameColor, chatColor, prefix, nametag] = values as string[];
+             const perm = parseInt(permStr);
+             if (!isNaN(perm)) {
+                 const rankDb = await import('../rankDb.js');
+                 const result = rankDb.updateRank(rankId, {
+                     id: newId, name, permissionLevel: perm,
+                     chatFormatting: { nameColor: nameColor, messageColor: chatColor, prefixText: prefix },
+                     nametagPrefix: nametag
+                 });
+                 player.sendMessage(result.message);
+                 if (result.success) rankManager.reloadRanks();
+             }
+        }
+        return showPanel(player, 'rankManagementPanel', context);
+    }
+
+    if (panelId === 'rankSettingsPanel') {
+        if (canceled) return showPanel(player, 'rankManagementPanel', context);
+        const values = (response as ModalFormResponse).formValues;
+        if (values) {
+             const styleIndex = values[0] as number;
+             const styles = ['above', 'before', 'after', 'under'];
+             const style = styles[styleIndex];
+             updateMultipleConfig({ 'ranks.nameTagStyle': style });
+             player.sendMessage('§2Rank settings updated.');
+        }
+        return showPanel(player, 'rankManagementPanel', context);
     }
 
     if (panelId === 'teamMainPanel') {
