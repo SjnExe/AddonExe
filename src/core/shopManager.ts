@@ -241,7 +241,21 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
     }
 
     // Remove items
-    player.runCommand(`clear "${player.name}" ${shopItem.itemId.replace('minecraft:', '')} 0 ${quantity}`);
+    let remaining = quantity;
+    for (let i = 0; i < inventory.size; i++) {
+        if (remaining <= 0) break;
+        const item = inventory.getItem(i);
+        if (item && item.typeId === itemType.id) {
+            if (item.amount <= remaining) {
+                remaining -= item.amount;
+                inventory.setItem(i, undefined);
+            } else {
+                item.amount -= remaining;
+                remaining = 0;
+                inventory.setItem(i, item);
+            }
+        }
+    }
 
     // Success
     const totalGain = sellPrice * quantity;
