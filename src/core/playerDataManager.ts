@@ -92,16 +92,6 @@ export function updatePlayerData(playerId: string, modificationCallback: (pData:
     if (pData) {
         modificationCallback(pData);
         pData.needsSave = true; // Mark as dirty
-        // savePlayerData(playerId); // Removed immediate save for batching, or should we keep it?
-        // Original code called savePlayerData(playerId).
-        // If we use batching via dataManager, we might rely on needsSave.
-        // However, saving immediately is safer for crash protection unless performance is issue.
-        // The original code did:
-        // modificationCallback(pData);
-        // savePlayerData(playerId);
-        // I'll stick to original logic + set needsSave for redundancy/batch checks?
-        // Actually, savePlayerData writes to dynamic property immediately.
-        savePlayerData(playerId);
     }
 }
 

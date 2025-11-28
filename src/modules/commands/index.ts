@@ -41,9 +41,7 @@ const commandFiles = [
     'freeze.js', // Migrated
     'vanish.js', // Migrated
     'clear.js', // Migrated
-    'ecwipe.js', // Migrated
-    'invsee.js', // Migrated
-    'copyinv.js', // Migrated
+    'inventory.js', // Consolidated invsee, ecsee, ecwipe, copyinv
     'clearchat.js', // Migrated
 
     // --- Administration Commands ---

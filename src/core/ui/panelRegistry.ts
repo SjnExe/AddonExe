@@ -639,8 +639,8 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [] // Dynamically built in panelBuilder.js
     },
     xrayOresPanel: {
-        title: 'X-Ray Monitored Ores',
-        parentPanelId: 'config_xray',
+        title: '§l§cX-Ray Ores§r',
+        parentPanelId: 'configCategoryPanel',
         items: [
             {
                 id: 'addXrayOre',

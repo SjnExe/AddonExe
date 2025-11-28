@@ -164,7 +164,7 @@ const setSpawnCommand: CustomCommand = {
                     }
                 }
                 try {
-                    mc.world.getDimension('minecraft:overworld').runCommand('gamerule spawnradius 1');
+                    mc.world.gameRules.spawnRadius = 1;
                     if (executor instanceof mc.Player) {
                         sendMessage('§aWorld spawn radius set to 1.', executor);
                     } else {

@@ -63,7 +63,7 @@ function runExpirationLoop() {
     const now = Date.now();
     for (const textConfig of floatingTexts.values()) {
         if (textConfig.expiresAt && now >= textConfig.expiresAt) {
-            // (deleteText as any)(null, id);
+            deleteText(null, textConfig.id);
         }
     }
     expirationIntervalId = mc.system.runTimeout(runExpirationLoop, 200); // Check every 10 seconds
@@ -74,7 +74,7 @@ function runRetrySpawnLoop() {
         for (const textId of unloadedChunkQueue) {
             const textConfig = floatingTexts.get(textId);
             if (textConfig) {
-                // (spawnText as any)(textConfig);
+                spawnText(textConfig);
             } else {
                 unloadedChunkQueue.delete(textId);
             }
@@ -84,46 +84,55 @@ function runRetrySpawnLoop() {
 }
 
 async function spawnAllTexts() {
+    const textsByDimension = new Map<string, FloatingTextConfig[]>();
     for (const textConfig of floatingTexts.values()) {
+        const dim = textConfig.dimension;
+        if (!textsByDimension.has(dim)) {
+            textsByDimension.set(dim, []);
+        }
+        textsByDimension.get(dim)!.push(textConfig);
+    }
+
+    for (const [dimId, texts] of textsByDimension) {
+        const entityMap = new Map<string, mc.Entity>();
+        let dimensionValid = false;
+
         try {
-            const dimension = mc.world.getDimension(textConfig.dimension);
-            const query: mc.EntityQueryOptions = {
-                type: 'addonexe:floating_text',
-                tags: [`ft_${textConfig.id}`]
-            };
-            const entities = dimension.getEntities(query);
-            const entity = entities.length > 0 ? entities[0] : undefined;
-
-            if (
-                entity &&
-                typeof entity.isValid === 'function' &&
-                (entity as unknown as { isValid: () => boolean }).isValid()
-            ) {
-                const isCorrectLocation =
-                    Math.abs(entity.location.x - textConfig.location.x) < 0.1 &&
-                    Math.abs(entity.location.y - textConfig.location.y) < 0.1 &&
-                    Math.abs(entity.location.z - textConfig.location.z) < 0.1;
-
-                if (isCorrectLocation) {
-                    continue;
+            const dimension = mc.world.getDimension(dimId);
+            dimensionValid = true;
+            // Batch query all floating texts in this dimension
+            const entities = dimension.getEntities({ type: 'addonexe:floating_text' });
+            for (const entity of entities) {
+                // @ts-expect-error - isValid check
+                if (typeof entity.isValid === 'function' && !entity.isValid()) continue;
+                for (const tag of entity.getTags()) {
+                    if (tag.startsWith('ft_')) {
+                        const id = tag.substring(3);
+                        if (!entityMap.has(id)) entityMap.set(id, entity);
+                        break;
+                    }
                 }
             }
+        } catch (e) {
+            debugLog(`[FloatingText] Failed to batch query dimension ${dimId}: ${e}`);
+        }
+
+        for (const textConfig of texts) {
+            if (dimensionValid) {
+                const entity = entityMap.get(textConfig.id);
+                if (entity) {
+                    const isCorrectLocation =
+                        Math.abs(entity.location.x - textConfig.location.x) < 0.1 &&
+                        Math.abs(entity.location.y - textConfig.location.y) < 0.1 &&
+                        Math.abs(entity.location.z - textConfig.location.z) < 0.1;
+
+                    if (isCorrectLocation) {
+                        continue;
+                    }
+                }
+            }
+            // If dimension invalid or entity not found/misplaced, try spawnText (which handles creating/moving/errors)
             spawnText(textConfig);
-        } catch (error: unknown) {
-            if (String(error).includes('LocationInUnloadedChunkError')) {
-                if (!unloadedChunkQueue.has(textConfig.id)) {
-                    debugLog(
-                        `[FloatingText] Failed to check text with ID: ${textConfig.id} (chunk unloaded). Adding to retry queue.`
-                    );
-                    unloadedChunkQueue.add(textConfig.id);
-                }
-            } else {
-                if (error instanceof Error) {
-                    errorLog(`[FloatingText] Error during initial check for text ID: ${textConfig.id}`, error);
-                } else {
-                    errorLog(`[FloatingText] Error during initial check for text ID: ${textConfig.id}`, String(error));
-                }
-            }
         }
     }
 }
@@ -370,7 +379,7 @@ async function respawnText(id: string) {
         }
         await despawnText(id);
         mc.system.runTimeout(() => {
-            // (spawnText as any)(textConfig);
+            spawnText(textConfig);
         }, 20);
     }
 }

@@ -66,6 +66,32 @@ export function playSound(player: mc.Player, soundId: string, options: mc.Player
 }
 
 /**
+ * Forces the chat window to close by briefly toggling input permissions.
+ * This is a known workaround for Bedrock UI behavior.
+ */
+async function forceCloseChat(player: mc.Player): Promise<void> {
+    try {
+        // @ts-expect-error - isValid might be a method or property depending on version
+        if (typeof player.isValid === 'function' ? !player.isValid() : !player.isValid) return;
+
+        // Toggle permissions to force close UI/Chat
+        player.dimension.runCommand(`inputpermission set "${player.name}" camera disabled`);
+        player.dimension.runCommand(`inputpermission set "${player.name}" movement disabled`);
+
+        // Small delay to let client process the state change
+        await new Promise((resolve) => mc.system.runTimeout(() => resolve(undefined), 2));
+
+        // @ts-expect-error - isValid might be a method or property depending on version
+        if (typeof player.isValid === 'function' ? player.isValid() : player.isValid) {
+            player.dimension.runCommand(`inputpermission set "${player.name}" camera enabled`);
+            player.dimension.runCommand(`inputpermission set "${player.name}" movement enabled`);
+        }
+    } catch {
+        // Ignore errors (e.g. cheats not enabled, or permissions issue)
+    }
+}
+
+/**
  * Shows a form to a player, handling the 'UserBusy' case by sending a one-time message and then retrying.
  * @param player The player to show the form to.
  * @param form The form to show.
@@ -83,7 +109,15 @@ export async function uiWait(
         return firstAttempt;
     }
 
-    // If the first attempt failed because the UI was busy, send the message and start retrying.
+    // Attempt to force close chat if busy
+    await forceCloseChat(player);
+
+    const secondAttempt = await form.show(player);
+    if (secondAttempt.cancelationReason !== 'UserBusy') {
+        return secondAttempt;
+    }
+
+    // If still busy, send the message and start retrying loop.
     player.sendMessage('§eOpening UI... please close chat to view.§r');
 
     const startTick = mc.system.currentTick;

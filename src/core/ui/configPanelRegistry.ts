@@ -48,6 +48,18 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Command Prefix',
                 type: 'textField',
                 description: 'The prefix used for chat-based commands (e.g., !).'
+            },
+            {
+                key: 'serverInfo.discordLink',
+                label: 'Discord Link',
+                type: 'textField',
+                description: 'Link to your Discord server.'
+            },
+            {
+                key: 'serverInfo.websiteLink',
+                label: 'Website Link',
+                type: 'textField',
+                description: 'Link to your website.'
             }
         ]
     },
@@ -620,6 +632,38 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Max Concurrent Duels',
                 type: 'textField',
                 description: 'Max active duels allowed per player (usually 1).'
+            }
+        ]
+    },
+    {
+        id: 'restart',
+        title: '§l§3Restart Settings§r',
+        icon: 'textures/ui/refresh_light',
+        settings: [
+            {
+                key: 'restart.countdownSeconds',
+                label: 'Countdown (s)',
+                type: 'textField',
+                description: 'Duration of the restart countdown.'
+            },
+            {
+                key: 'restart.kickMessage',
+                label: 'Kick Message',
+                type: 'textField',
+                description: 'Message shown to players when kicked for restart.'
+            }
+        ]
+    },
+    {
+        id: 'reports',
+        title: '§l§4Report Settings§r',
+        icon: 'textures/ui/WarningGlyph',
+        settings: [
+            {
+                key: 'reports.resolvedReportLifetimeDays',
+                label: 'Report Lifetime (Days)',
+                type: 'textField',
+                description: 'How long resolved reports are kept before deletion.'
             }
         ]
     }

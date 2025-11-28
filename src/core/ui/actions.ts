@@ -87,10 +87,10 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
     if (!values) return;
     const [reason] = values as [string];
 
-    // Use dimension.runCommandAsync to bypass permissions
+    // Use dimension.runCommand to bypass permissions
     try {
         // Enclose name in quotes to handle spaces
-        await player.dimension.runCommandAsync(`kick "${target.name}" ${reason}`);
+        await player.dimension.runCommand(`kick "${target.name}" ${reason}`);
         player.sendMessage(`§aKicked ${target.name}.`);
     } catch (e) {
         player.sendMessage(`§cFailed to kick player: ${e}`);
@@ -201,8 +201,8 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     if (target) {
         // Kick immediately
         try {
-            await player.dimension.runCommandAsync(`kick "${target.name}" §cYou have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`);
-        } catch (e) {
+            await player.dimension.runCommand(`kick "${target.name}" §cYou have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`);
+        } catch {
             // Ignore if kick fails (player might have left)
         }
     }
