@@ -38,7 +38,14 @@ function handlePlayerJoin(player: mc.Player) {
 
     const config = getConfig();
     if (config.playerInfo?.enableWelcomer && config.playerInfo?.welcomeMessage) {
-        sendMessage(config.playerInfo.welcomeMessage, player);
+        let welcomeMsg = config.playerInfo.welcomeMessage;
+        welcomeMsg = welcomeMsg.replace(/{playerName}/g, player.name);
+        welcomeMsg = welcomeMsg.replace(/{serverName}/g, config.serverName || 'Server');
+        welcomeMsg = welcomeMsg.replace(/{discordLink}/g, config.serverInfo?.discordLink || '');
+        welcomeMsg = welcomeMsg.replace(/{websiteLink}/g, config.serverInfo?.websiteLink || '');
+        welcomeMsg = welcomeMsg.replace(/\\n/g, '\n');
+
+        sendMessage(welcomeMsg, player);
     }
 
     if (pData.lastDeathLocation && !pData.deathNotificationSent) {

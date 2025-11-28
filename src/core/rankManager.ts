@@ -18,8 +18,16 @@ const conditionEvaluators: Record<string, ConditionEvaluator> = {
      * Checks if the player's name is in the owner list.
      */
     isOwner: (player, _value, config: typeof Config) => {
-        const ownerNames = (config.ownerPlayerNames || []).map((name: string) => name.toLowerCase());
-        return ownerNames.includes(player.name.toLowerCase());
+        const ownerNames = (config.ownerPlayerNames || []).map((name: string) => name.trim().toLowerCase());
+        const playerName = player.name.trim().toLowerCase();
+
+        // Debug log to help diagnose ownership issues (especially with beta release injection)
+        debugLog(
+            `[RankManager] Checking owner status for '${player.name}'. ` +
+                `Configured owners: ${JSON.stringify(config.ownerPlayerNames)}`
+        );
+
+        return ownerNames.includes(playerName);
     },
     /**
      * Checks if the player has a specific tag.
