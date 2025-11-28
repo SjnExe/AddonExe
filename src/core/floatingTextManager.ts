@@ -63,7 +63,7 @@ function runExpirationLoop() {
     const now = Date.now();
     for (const textConfig of floatingTexts.values()) {
         if (textConfig.expiresAt && now >= textConfig.expiresAt) {
-            // (deleteText as any)(null, id);
+            deleteText(null, textConfig.id);
         }
     }
     expirationIntervalId = mc.system.runTimeout(runExpirationLoop, 200); // Check every 10 seconds
@@ -74,7 +74,7 @@ function runRetrySpawnLoop() {
         for (const textId of unloadedChunkQueue) {
             const textConfig = floatingTexts.get(textId);
             if (textConfig) {
-                // (spawnText as any)(textConfig);
+                spawnText(textConfig);
             } else {
                 unloadedChunkQueue.delete(textId);
             }
@@ -370,7 +370,7 @@ async function respawnText(id: string) {
         }
         await despawnText(id);
         mc.system.runTimeout(() => {
-            // (spawnText as any)(textConfig);
+            spawnText(textConfig);
         }, 20);
     }
 }

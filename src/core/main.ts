@@ -223,3 +223,7 @@ mc.system.afterEvents.scriptEventReceive.subscribe((event: unknown) => {
         return;
     }
 });
+
+mc.system.beforeEvents.shutdown.subscribe(() => {
+    cleanupAddon();
+});
