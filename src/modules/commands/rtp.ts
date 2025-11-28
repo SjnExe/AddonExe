@@ -134,6 +134,18 @@ function safeRemoveTickingArea(dimension: mc.Dimension, name: string) {
 }
 
 async function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): Promise<number | null> {
+    // Attempt to use the newer getTopmostBlock API for performance
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((dimension as any).getTopmostBlock) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const block = (dimension as any).getTopmostBlock({ x, z });
+            if (block) return block.location.y;
+        }
+    } catch {
+        // Fallback if API fails
+    }
+
     for (let y = 320; y >= dimension.heightRange.min; y--) {
         try {
             const block = dimension.getBlock({ x, y, z });

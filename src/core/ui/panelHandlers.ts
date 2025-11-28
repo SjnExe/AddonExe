@@ -9,6 +9,7 @@ import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { items as allItems } from '../itemsConfig.default.js';
 import * as kitAdminManager from '../kitAdminManager.js';
 import { errorLog } from '../logger.js';
+import { getValueFromPath, setValueByPath } from '../objectUtils.js';
 import { getPlayer, PlayerData, loadPlayerData } from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
 import * as reportManager from '../reportManager.js';
@@ -23,7 +24,7 @@ import { handleUIAction } from './actions.js';
 import { showConfirmationDialog } from './components.js';
 import { getMenuItems, getVisiblePlayerActionItems } from './panelBuilder.js';
 import { configPanelSchema, UIContext , panelDefinitions, PanelItem } from './panelRegistry.js';
-import { itemsPerPage, getPaginatedItems } from './uiUtils.js';
+import { itemsPerPage, getPaginatedItems, configHandlers } from './uiUtils.js';
 
 
 export async function handleFormResponse(
@@ -1484,6 +1485,61 @@ export async function handleFormResponse(
             });
         }
         return;
+    }
+
+    if (panelId.startsWith('config_')) {
+        if (canceled) {
+            return showPanel(player, 'configCategoryPanel', context);
+        }
+
+        const categoryId = panelId.replace('config_', '');
+        const category = configPanelSchema.find((c) => c.id === categoryId);
+        if (category) {
+            const values = (response as ModalFormResponse).formValues;
+            if (values) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const updates: Record<string, any> = {};
+                category.settings.forEach((setting, index) => {
+                    let value = values[index];
+                    if (setting.type === 'dropdown') {
+                        const options = setting.options || [];
+                        const selectedIndex = value as number;
+                        if (setting.key === 'logLevel') {
+                            value = selectedIndex;
+                        } else {
+                            value = options[selectedIndex];
+                        }
+                    } else if (setting.type === 'textField') {
+                         const strVal = value as string;
+                         const current = getValueFromPath(getConfig(), setting.key);
+                         if (typeof current === 'number' && !isNaN(Number(strVal)) && strVal.trim() !== '') {
+                             value = Number(strVal);
+                         }
+                    }
+                    updates[setting.key] = value;
+                });
+
+                const configSource = category.configSource || 'main';
+                const handler = configHandlers[configSource];
+                if (handler) {
+                    if (configSource === 'main') {
+                        handler.save(updates);
+                    } else {
+                        const currentConfig = handler.get();
+                        for (const key in updates) {
+                            setValueByPath(currentConfig, key, updates[key]);
+                        }
+                        handler.save(currentConfig);
+                    }
+                    player.sendMessage('§2Configuration saved.');
+
+                    if (categoryId === 'data') {
+                        import('../dataManager.js').then(({ restartAutoSave }) => restartAutoSave());
+                    }
+                }
+            }
+        }
+        return showPanel(player, 'configCategoryPanel', context);
     }
 
     if (panelId === 'configResetPanel') {

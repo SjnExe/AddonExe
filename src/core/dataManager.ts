@@ -3,7 +3,33 @@ import * as mc from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 import { getAllPlayerData, savePlayerData, isNameIdMapDirty, saveNameIdMap } from './playerDataManager.js';
-import { setTrackedInterval } from './timerManager.js';
+import { setTrackedInterval, clearTrackedInterval } from './timerManager.js';
+
+let autoSaveIntervalId: number | undefined;
+
+export function restartAutoSave() {
+    if (autoSaveIntervalId !== undefined) {
+        clearTrackedInterval(autoSaveIntervalId);
+        autoSaveIntervalId = undefined;
+    }
+
+    const config = getConfig();
+    const autoSaveIntervalSeconds = config.data?.autoSaveIntervalSeconds ?? 300;
+
+    if (autoSaveIntervalSeconds > 0) {
+        const intervalTicks = autoSaveIntervalSeconds * 20; // 20 ticks/sec
+        autoSaveIntervalId = setTrackedInterval(() => {
+            debugLog('[DataManager] Auto-save triggered by interval.');
+            const wasAnythingSaved = saveAllData({ log: false }); // Don't spam logs for auto-saves
+            if (wasAnythingSaved) {
+                debugLog('[Auto-Save] Server data has been saved.');
+            }
+        }, intervalTicks);
+        debugLog(`[DataManager] Auto-save started. Interval: ${autoSaveIntervalSeconds}s`);
+    } else {
+        debugLog('[DataManager] Auto-save is disabled.');
+    }
+}
 
 /**
  * Saves all "dirty" data to world properties.
@@ -57,23 +83,7 @@ export function saveAllData(options: { log?: boolean } = {}): boolean {
  * Initializes the data manager, including setting up the auto-saver.
  */
 export function initializeDataManager() {
-    const config = getConfig();
-    const autoSaveIntervalSeconds = config.data?.autoSaveIntervalSeconds ?? 300;
-
-    if (autoSaveIntervalSeconds > 0) {
-        const intervalTicks = autoSaveIntervalSeconds * 20; // 20 ticks/sec
-        // Use the tracked interval to ensure it's cleaned up on reload
-        setTrackedInterval(() => {
-            debugLog('[DataManager] Auto-save triggered by interval.');
-            const wasAnythingSaved = saveAllData({ log: false }); // Don't spam logs for auto-saves
-            if (wasAnythingSaved) {
-                debugLog('[Auto-Save] Server data has been saved.');
-            }
-        }, intervalTicks);
-        debugLog(`[DataManager] Auto-save enabled. Interval: ${autoSaveIntervalSeconds} seconds.`);
-    } else {
-        debugLog('[DataManager] Auto-save is disabled.');
-    }
+    restartAutoSave();
 
     // Add a handler to save all data before the script shuts down
     mc.system.beforeEvents.shutdown.subscribe(() => {
