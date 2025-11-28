@@ -24,7 +24,7 @@ import { handleUIAction } from './actions.js';
 import { showConfirmationDialog } from './components.js';
 import { getMenuItems, getVisiblePlayerActionItems } from './panelBuilder.js';
 import { configPanelSchema, UIContext , panelDefinitions, PanelItem } from './panelRegistry.js';
-import { itemsPerPage, getPaginatedItems, configHandlers } from './uiUtils.js';
+import { itemsPerPage, getPaginatedItems, configHandlers, getVisibleConfigSystems } from './uiUtils.js';
 
 
 export async function handleFormResponse(
@@ -1483,6 +1483,36 @@ export async function handleFormResponse(
                 ...context,
                 categoryName: selectedCategoryName
             });
+        }
+        return;
+    }
+
+    if (panelId === 'configCategoryPanel') {
+        const page = context.page || 1;
+        if (typeof selection !== 'number') return;
+        if (selection === 0) return showPanel(player, 'mainPanel', context);
+
+        const sortedSystems = getVisibleConfigSystems(pData);
+        const paginatedSystems = getPaginatedItems(sortedSystems, page);
+
+        let buttonIndex = selection - 1;
+
+        if (buttonIndex >= 0 && buttonIndex < paginatedSystems.length) {
+             const system = paginatedSystems[buttonIndex];
+             return showPanel(player, system.id, context);
+        }
+        buttonIndex -= paginatedSystems.length;
+
+        const totalPages = Math.ceil(sortedSystems.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+
+        if (hasPrev) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+             buttonIndex--;
+        }
+        if (hasNext) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
         }
         return;
     }
