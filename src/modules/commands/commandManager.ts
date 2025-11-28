@@ -83,6 +83,7 @@ interface Config {
 class CommandManager {
     public commands: Map<string, CustomCommand> = new Map();
     public aliases: Map<string, string> = new Map();
+    private registeredSlashCommands = new Set<string>();
     private readonly prefix = 'exe'; // Namespace for all custom commands
     private vanillaCommands = new Set([
         'tp',
@@ -272,6 +273,10 @@ class CommandManager {
         name: string,
         isRetry = false
     ) {
+        if (this.registeredSlashCommands.has(name)) {
+            return;
+        }
+
         // Check for vanilla collision before registering
         if (!isRetry && this.vanillaCommands.has(name)) {
             const newName = `x${name}`;
@@ -305,6 +310,7 @@ class CommandManager {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 commandCallback as any
             );
+            this.registeredSlashCommands.add(name);
         } catch (e: unknown) {
             const errStr = String(e);
             if (errStr.includes('already in use')) {
