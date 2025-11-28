@@ -119,6 +119,7 @@ export function getVisibleConfigSystems(pData: PlayerData): SystemItem[] {
             icon: 'textures/ui/permissions_member_star.png'
         });
         allSystems.push({ id: 'economyPanel', title: '§l§6Economy System§r', icon: 'textures/items/emerald' });
+        allSystems.push({ id: 'xrayOresPanel', title: '§l§cX-Ray Ores§r', icon: 'textures/blocks/diamond_ore' });
     }
     if (pData.permissionLevel === 0) {
         allSystems.push({ id: 'configResetPanel', title: '§l§cReset Settings§r', icon: 'textures/ui/wysiwyg_reset' });
