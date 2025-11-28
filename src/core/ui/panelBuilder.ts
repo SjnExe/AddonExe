@@ -34,7 +34,7 @@ import {
     addPaginationButtons
 } from './uiUtils.js';
 
-import type { ShopConfig, ShopItem, ShopSubCategory } from '../shopConfig.default.js';
+import type { ShopConfig } from '../shopConfig.default.js';
 
 interface Item {
     displayName?: string;
