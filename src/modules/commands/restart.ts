@@ -9,7 +9,7 @@ const command: CustomCommand = {
     permissionLevel: 1, // Admin only
     allowConsole: true,
     parameters: [],
-    execute: (executor, args) => {
+    execute: (executor, _args) => {
         startRestart(executor);
     }
 };

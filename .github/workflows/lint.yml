@@ -8,6 +8,7 @@ jobs:
   lint:
     name: Run Linter
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -24,3 +25,6 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
+
+      - name: Run Tests
+        run: npm test

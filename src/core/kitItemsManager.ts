@@ -2,8 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getKitsConfig, saveKitsConfig } from './configurations.js';
 import { Kit } from './kitAdminManager.js';
-import { errorLog } from './logger.js';
-import { debugLog } from './logger.js';
+import { errorLog , debugLog } from './logger.js';
 
 const MAX_KIT_SLOTS = 36;
 
