@@ -5,7 +5,7 @@ jest.unstable_mockModule('../configManager.js', () => ({ getConfig: () => ({}) }
 jest.unstable_mockModule('../configurations.js', () => ({ getEconomyConfig: () => ({ currencySymbol: '$' }) }));
 jest.unstable_mockModule('../logger.js', () => ({ errorLog: () => {} }));
 
-let utils: any;
+let utils: typeof import('../utils.js');
 
 beforeAll(async () => {
     utils = await import('../utils.js');
