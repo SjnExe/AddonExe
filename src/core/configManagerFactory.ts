@@ -128,25 +128,9 @@ export default function createConfigManager<T = any>(
             saveLastLoadedConfig();
         }
 
-        if (name === 'Main') {
-            // After all merging, specifically handle the "sticky" ownerPlayerNames.
-            const userSavedConfigForOwner = userSavedConfigStr ? JSON.parse(userSavedConfigStr) : {};
-            const storedOwner = userSavedConfigForOwner.ownerPlayerNames;
-            const isStoredOwnerValid =
-                storedOwner &&
-                Array.isArray(storedOwner) &&
-                storedOwner.length > 0 &&
-                JSON.stringify(storedOwner) !== JSON.stringify(['Your•Name•Here']);
-
-            if (isStoredOwnerValid) {
-                // If a valid owner is in the user's saved config, it always takes precedence.
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (currentConfig as any).ownerPlayerNames = storedOwner;
-                debugLog(
-                    `[${name}ConfigManager] Applied "sticky" owner from user-saved config: ${JSON.stringify(storedOwner)}`
-                );
-            }
-        }
+        // Note: ownerPlayerNames are handled via standard config reconciliation.
+        // Manual file edits will override saved config because file vs last-loaded check will detect the change.
+        // (Explicit sticky owner logic removed to allow file updates)
 
         saveConfig();
         debugLog(`[${name}ConfigManager] Config loading finished.`);
