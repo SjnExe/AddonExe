@@ -8,48 +8,48 @@ import { commandManager, CustomCommand } from './commandManager.js';
 
 const commandFiles = [
     // --- General Commands ---
-    'help.ts', // Migrated
-    'panel.ts', // Migrated
-    'rules.ts', // Migrated
-    'links.ts', // Migrated
-    'status.ts', // Migrated
-    'version.ts', // Migrated
-    'deathcoords.ts', // Migrated
-    'spawn.ts', // Migrated
-    'rtp.ts', // Migrated
+    'help.js', // Migrated
+    'panel.js', // Migrated
+    'rules.js', // Migrated
+    'links.js', // Migrated
+    'status.js', // Migrated
+    'version.js', // Migrated
+    'deathcoords.js', // Migrated
+    'spawn.js', // Migrated
+    'rtp.js', // Migrated
 
     // --- TPA System ---
-    'tpa.ts', // Migrated
-    'team.ts', // Migrated
+    'tpa.js', // Migrated
+    'team.js', // Migrated
 
     // --- Home System ---
-    'home.ts', // Migrated
-    'warp.ts', // Migrated
+    'home.js', // Migrated
+    'warp.js', // Migrated
 
     // --- Economy System ---
-    'balance.ts', // Migrated
-    'pay.ts', // Migrated
-    'bounty.ts', // Migrated
-    'kit.ts', // Migrated
-    'shop.ts', // Migrated
+    'balance.js', // Migrated
+    'pay.js', // Migrated
+    'bounty.js', // Migrated
+    'kit.js', // Migrated
+    'shop.js', // Migrated
 
     // --- Moderation Commands ---
-    'report.ts', // Migrated
-    'kick.ts', // Migrated
-    'ban.ts', // Migrated
-    'mute.ts', // Migrated
-    'freeze.ts', // Migrated
-    'vanish.ts', // Migrated
-    'clear.ts', // Migrated
-    'ecwipe.ts', // Migrated
-    'invsee.ts', // Migrated
-    'copyinv.ts', // Migrated
-    'clearchat.ts', // Migrated
+    'report.js', // Migrated
+    'kick.js', // Migrated
+    'ban.js', // Migrated
+    'mute.js', // Migrated
+    'freeze.js', // Migrated
+    'vanish.js', // Migrated
+    'clear.js', // Migrated
+    'ecwipe.js', // Migrated
+    'invsee.js', // Migrated
+    'copyinv.js', // Migrated
+    'clearchat.js', // Migrated
 
     // --- Administration Commands ---
     'announcement.js',
     'dimensionLock.js',
-    'log.ts', // Migrated
+    'log.js', // Migrated
     'gamemode.js',
     'rank.js',
     'reload.js',

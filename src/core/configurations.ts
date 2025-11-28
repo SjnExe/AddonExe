@@ -63,7 +63,7 @@ export const resetSpawnConfig = () => spawnConfigManager.reset();
 
 export const loadRanksConfig = async (isMigration: boolean) => {
     const defaultConfig = await asyncLoadConfig<RanksConfig>('./ranksConfig.js');
-    ranksConfigManager = createConfigManager('exe:ranksConfig', defaultConfig, 'Ranks', 'rankDefinitions');
+    ranksConfigManager = createConfigManager('exe:ranksConfig', defaultConfig, 'Ranks');
     await ranksConfigManager.load(isMigration);
 };
 export const getRanksConfig = () => ranksConfigManager.get();

@@ -91,6 +91,13 @@ jobs:
         run: |
           set -e
           echo "Processing default config files..."
+
+          # Rewrite imports in all JS files to point to .js instead of .default.js
+          # This ensures the runtime code looks for the active config files (e.g., config.js).
+          echo "Rewriting imports..."
+          find AddonExeBP/scripts -name "*.js" -type f -exec sed -i 's/\.default\.js/\.js/g' {} +
+
+          # Rename default config files to active config files
           find AddonExeBP/scripts -name "*.default.js" | while read default_file; do
             target_file="${default_file%.default.js}.js"
             if [ ! -f "$target_file" ]; then

@@ -83,7 +83,45 @@ interface Config {
 class CommandManager {
     public commands: Map<string, CustomCommand> = new Map();
     public aliases: Map<string, string> = new Map();
+    private registeredSlashCommands = new Set<string>();
     private readonly prefix = 'exe'; // Namespace for all custom commands
+    private vanillaCommands = new Set([
+        'tp',
+        'teleport',
+        'kick',
+        'list',
+        'help',
+        'clear',
+        'difficulty',
+        'gamemode',
+        'gamerule',
+        'give',
+        'kill',
+        'locate',
+        'me',
+        'msg',
+        'op',
+        'deop',
+        'reload',
+        'say',
+        'save',
+        'setblock',
+        'setworldspawn',
+        'spawnpoint',
+        'stop',
+        'summon',
+        'tag',
+        'tell',
+        'testfor',
+        'time',
+        'title',
+        'toggledownfall',
+        'transfer',
+        'w',
+        'weather',
+        'xp',
+        '?'
+    ]);
 
     constructor() {
         mc.system.beforeEvents.startup.subscribe(
@@ -226,13 +264,26 @@ class CommandManager {
      * @param {mc.CustomCommandRegistry} customCommandRegistry The registry object from the startup event.
      * @param {CustomCommand} command The command definition.
      * @param {string} name The name to register (either primary or an alias).
+     * @param {boolean} isRetry Whether this is a retry attempt (e.g. after collision).
      * @private
      */
     private _registerSlashCommand(
         customCommandRegistry: mc.CustomCommandRegistry,
         command: CustomCommand,
-        name: string
+        name: string,
+        isRetry = false
     ) {
+        if (this.registeredSlashCommands.has(name)) {
+            return;
+        }
+
+        // Check for vanilla collision before registering
+        if (!isRetry && this.vanillaCommands.has(name)) {
+            const newName = `x${name}`;
+            this._registerSlashCommand(customCommandRegistry, command, newName, true);
+            return;
+        }
+
         const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
         const commandCallback = (origin: mc.CustomCommandOrigin, ...rawArgs: unknown[]) => {
@@ -259,8 +310,18 @@ class CommandManager {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 commandCallback as any
             );
+            this.registeredSlashCommands.add(name);
         } catch (e: unknown) {
-            if (e instanceof Error && !e.toString().includes('already in use')) {
+            const errStr = String(e);
+            if (errStr.includes('already in use')) {
+                if (!isRetry) {
+                    const newName = `x${name}`;
+                    errorLog(`[CommandManager] Command alias '${name}' collision. Retrying as '${newName}'.`);
+                    this._registerSlashCommand(customCommandRegistry, command, newName, true);
+                    return;
+                }
+            }
+            if (e instanceof Error) {
                 errorLog(`[CommandManager] Failed to register slash command '${name}':`, e);
             }
         }
@@ -313,12 +374,17 @@ class CommandManager {
         if (param.enumOptions && Array.isArray(param.enumOptions) && registry) {
             const safeCmdName = (commandName || 'cmd').replace(/[^a-zA-Z0-9_]/g, '');
             const safeParamName = param.name.replace(/[^a-zA-Z0-9_]/g, '');
-            const enumName = `${this.prefix}_${safeCmdName}_${safeParamName}`;
+            const enumName = `${this.prefix}:${safeCmdName}_${safeParamName}`;
 
             try {
                 registry.registerEnum(enumName, param.enumOptions);
-            } catch {
+            } catch (e) {
                 // Ignore if enum already exists (e.g. alias sharing same params)
+                // But log other errors to debug issues
+                const errStr = String(e);
+                if (!errStr.includes('already exists')) {
+                    errorLog(`[CommandManager] Failed to register enum '${enumName}':`, e);
+                }
             }
 
             return {

@@ -200,3 +200,5 @@ export const config = {
         xraynotify: { enabled: true }
     }
 };
+
+export default config;

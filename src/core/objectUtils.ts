@@ -297,9 +297,13 @@ export function deepClone(obj: any, hash = new WeakMap<object, any>()): any {
  * @returns The merged list of ranks.
  */
 export function mergeRanks(currentUserRanks: any[], newFileRanks: any[], lastLoadedRanks: any[]): any[] {
-    const userMap = new Map((currentUserRanks || []).map((r) => [r.id, r]));
-    const fileMap = new Map((newFileRanks || []).map((r) => [r.id, r]));
-    const lastMap = new Map((lastLoadedRanks || []).map((r) => [r.id, r]));
+    const safeUserRanks = Array.isArray(currentUserRanks) ? currentUserRanks : [];
+    const safeFileRanks = Array.isArray(newFileRanks) ? newFileRanks : [];
+    const safeLastRanks = Array.isArray(lastLoadedRanks) ? lastLoadedRanks : [];
+
+    const userMap = new Map(safeUserRanks.map((r) => [r.id, r]));
+    const fileMap = new Map(safeFileRanks.map((r) => [r.id, r]));
+    const lastMap = new Map(safeLastRanks.map((r) => [r.id, r]));
 
     const allIds = new Set([...userMap.keys(), ...fileMap.keys(), ...lastMap.keys()]);
     const finalRanks = [];

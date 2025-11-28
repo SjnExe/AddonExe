@@ -89,3 +89,26 @@ Installing on a Bedrock Dedicated Server is slightly different, as you manually 
     -   AddonExe requires the "Beta APIs" experimental feature to be enabled. This can be tricky on BDS. You have two main options:
         -   **Easy Method (Recommended):** Download your world folder from the server. Open the world in a local version of Minecraft (on PC or mobile), go into the world settings, and enable the "Beta APIs" toggle under "Experiments". Then, re-upload the modified world folder to your server.
         -   **Advanced Method:** Use an NBT editor (like [NBTStudio](https://github.com/tryashtar/nbt-studio)) to manually edit your world's `level.dat` file. You need to find the `experiments` tag and add a tag named `gametest` with a value of `1` (byte). This method is powerful but can corrupt your world if done incorrectly.
+
+---
+
+## How does the customized configuration work?
+
+AddonExe uses a flexible configuration system that works differently depending on whether you are editing the source code (repository) or the installed addon.
+
+### 1. For Developers (Repository)
+If you are developing the addon or building it from source:
+-   **Default Files:** The repository contains template configuration files ending in `.default.ts` (e.g., `src/config.default.ts`). These files define the structure and default values.
+-   **Custom Configuration:** To customize the build, create a copy of the default file and rename it to remove `.default`. For example, copy `src/config.default.ts` to `src/config.ts`.
+-   **Git Ignore:** Your custom `src/config.ts` file is ignored by Git, ensuring your personal settings are not overwritten when you pull updates.
+-   **Build Process:** When you run `npm run build`, the system prioritizes your custom `src/config.ts`. If it doesn't exist, it falls back to the default.
+
+### 2. For Users (Installed Addon)
+If you have downloaded the `.mcaddon` or `.mcpack`:
+-   **Active Config Files:** Inside the `AddonExeBP/scripts/` folder, you will find active configuration files like `config.js`, `economyConfig.js`, etc.
+-   **No Defaults:** The `.default.js` files are automatically removed from the release version to keep things clean.
+-   **Customization:** You can directly edit these `.js` files to configure the addon. Your changes will be loaded the next time the server starts or reloads.
+
+### 3. Updating the Addon
+-   **Patch Updates (e.g., 1.0.0 -> 1.0.1):** These updates are considered safe. Your existing configuration files and in-game settings are preserved.
+-   **Major/Minor Updates (e.g., 1.0.0 -> 1.1.0):** These updates may introduce significant changes. The addon will perform a migration, which resets the configuration to ensure compatibility with new features.

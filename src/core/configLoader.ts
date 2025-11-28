@@ -11,8 +11,29 @@ import { errorLog } from './logger.js';
  */
 export async function loadConfig<T>(modulePath: string): Promise<T> {
     try {
-        const module = await import(modulePath);
-        return module.default as T;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const module = (await import(modulePath)) as any;
+        if (module.default) {
+            return module.default as T;
+        }
+
+        // Fallback for user configs that might lack 'export default'
+        // Strategy 1: Look for an export matching the filename (e.g. config.js -> export const config)
+        const fileName = modulePath.split('/').pop();
+        if (fileName) {
+            const name = fileName.replace('.js', '');
+            if (module[name]) {
+                return module[name] as T;
+            }
+        }
+
+        // Strategy 2: If there's exactly one export, use it
+        const keys = Object.keys(module);
+        if (keys.length === 1 && keys[0] !== 'default') {
+            return module[keys[0]] as T;
+        }
+
+        throw new Error(`Module '${modulePath}' has no default export and auto-discovery failed.`);
     } catch (e: unknown) {
         const err = e as Error;
         errorLog(`[ConfigLoader] FATAL: Failed to load config file: ${modulePath}`, err);
