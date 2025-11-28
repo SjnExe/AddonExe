@@ -7,9 +7,10 @@ import { errorLog } from './logger.js';
  * the existence of these files (copying defaults if necessary).
  * @param modulePath The relative path to the config module from the compiled `scripts` directory.
  * For example, for a file at `src/core/economyConfig.ts`, the path would be `./core/economyConfig.js`.
+ * @param suppressError If true, errors will be thrown but not logged as FATAL.
  * @returns A promise that resolves with the loaded config module's default export.
  */
-export async function loadConfig<T>(modulePath: string): Promise<T> {
+export async function loadConfig<T>(modulePath: string, suppressError = false): Promise<T> {
     try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const module = (await import(modulePath)) as any;
@@ -36,7 +37,9 @@ export async function loadConfig<T>(modulePath: string): Promise<T> {
         throw new Error(`Module '${modulePath}' has no default export and auto-discovery failed.`);
     } catch (e: unknown) {
         const err = e as Error;
-        errorLog(`[ConfigLoader] FATAL: Failed to load config file: ${modulePath}`, err);
+        if (!suppressError) {
+            errorLog(`[ConfigLoader] FATAL: Failed to load config file: ${modulePath}`, err);
+        }
         throw err;
     }
 }
