@@ -7,12 +7,12 @@
         "build": "tsc",
         "watch": "tsc -w",
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-        "lint": "eslint .",
+        "lint": "eslint . && node scripts/validate-filtered.js",
         "lint:fix": "eslint . --fix",
         "lint:report": "eslint . --output-file eslint_report.txt",
         "format": "prettier --write .",
-        "validate": "npx mct validate default PRJINT,UNKJSON,pathlength,BASEGAMEVER100,CHKMANIF105 --display-only",
-        "validate:report": "npx mct validate default PRJINT,UNKJSON,pathlength,BASEGAMEVER100,CHKMANIF105 -o validation_report",
+        "validate": "npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE --display-only",
+        "validate:report": "npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE -o validation_report",
         "prepare": "husky"
     },
     "repository": {
