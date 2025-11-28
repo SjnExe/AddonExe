@@ -14,6 +14,7 @@ import {
     loadRanksConfig,
     loadShopConfig,
     loadSpawnConfig,
+    loadTeamConfig,
     loadXrayConfig
 } from './configurations.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
@@ -159,6 +160,7 @@ async function initializeAddon() {
     await loadRanksConfig(isMigration);
     await loadSpawnConfig(isMigration);
     await loadEconomyConfig(isMigration);
+    await loadTeamConfig(isMigration);
     await loadXrayConfig(isMigration);
 
     const config = getConfig();
