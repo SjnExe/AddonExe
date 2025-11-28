@@ -1258,9 +1258,8 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             const paginatedRules = getPaginatedItems(rules, page);
 
-            paginatedRules.forEach((rule, index) => {
-                const itemIndex = (page - 1) * itemsPerPage + index;
-                form.button(`${itemIndex + 1}. ${rule}`);
+            paginatedRules.forEach((rule) => {
+                form.button(rule);
             });
 
             if (rules.length > itemsPerPage) {
