@@ -104,10 +104,13 @@ export default tseslint.config(
             'no-console': 'warn',
             eqeqeq: ['error', 'always'],
             'no-var': 'error',
+            curly: ['error', 'all'],
+            'import/no-duplicates': 'error',
 
             // TS specific
             '@typescript-eslint/no-explicit-any': 'error',
-            '@typescript-eslint/no-var-requires': 'off'
+            '@typescript-eslint/no-var-requires': 'off',
+            '@typescript-eslint/no-shadow': 'error'
         }
     },
 

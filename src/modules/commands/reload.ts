@@ -13,7 +13,7 @@ const command: CustomCommand = {
     permissionLevel: 1, // Admins only
     allowConsole: true,
     parameters: [],
-    execute: async (executor) => {
+    execute: async (_executor) => {
         try {
             sendMessage('§eReloading configuration...');
 

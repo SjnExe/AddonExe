@@ -432,7 +432,7 @@ class CommandManager {
      * @returns {mc.CommandPermissionLevel} The corresponding enum value.
      * @private
      */
-    private translatePermissionLevel(level?: number): mc.CommandPermissionLevel {
+    private translatePermissionLevel(_level?: number): mc.CommandPermissionLevel {
         // We will handle all permission checks with our custom rank system.
         // Registering all commands with 'Any' allows our more granular check to be the single source of truth.
         return mc.CommandPermissionLevel.Any;

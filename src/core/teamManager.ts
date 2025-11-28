@@ -2,8 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getTeamConfig } from './configurations.js';
 import { debugLog, errorLog } from './logger.js';
-import { getPlayer, getOrCreatePlayer, updatePlayerData, HomeLocation } from './playerDataManager.js';
-import { incrementPlayerBalance } from './playerDataManager.js';
+import { getPlayer, getOrCreatePlayer, updatePlayerData, HomeLocation , incrementPlayerBalance } from './playerDataManager.js';
 
 const teamPropertyPrefix = 'exe:team.';
 const nextTeamIdKey = 'exe:nextTeamId';

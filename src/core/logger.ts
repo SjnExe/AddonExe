@@ -43,7 +43,7 @@ function formatError(error: unknown): string {
             // For other objects, attempt to stringify them.
             return JSON.stringify(
                 error,
-                (key, value) => {
+                (_key, value) => {
                     if (value instanceof Error) {
                         return { message: value.message, stack: value.stack };
                     }

@@ -67,7 +67,9 @@
             ".ts"
         ],
         "moduleNameMapper": {
-            "^(\\.{1,2}/.*)\\.js$": "$1"
+            "^(\\.{1,2}/.*)\\.js$": "$1",
+            "^@minecraft/server$": "<rootDir>/src/core/__tests__/__mocks__/minecraftMock.ts",
+            "^@minecraft/server-ui$": "<rootDir>/src/core/__tests__/__mocks__/minecraftMock.ts"
         },
         "transform": {
             "^.+\\.tsx?$": [
@@ -79,7 +81,8 @@
         },
         "testPathIgnorePatterns": [
             "/node_modules/",
-            "/AddonExeBP/scripts/"
+            "/AddonExeBP/scripts/",
+            "/__mocks__/"
         ]
     },
     "lint-staged": {
