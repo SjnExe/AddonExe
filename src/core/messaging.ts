@@ -14,7 +14,7 @@ export function sendMessage(
     message: string,
     target: mc.Player | 'all' | mc.World = mc.world,
 
-    options: { raw?: boolean; title?: string | null } = {}
+    _options: { raw?: boolean; title?: string | null } = {}
 ) {
     const finalMessage = message;
 

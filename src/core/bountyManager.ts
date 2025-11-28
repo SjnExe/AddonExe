@@ -5,8 +5,7 @@
 
 import * as mc from '@minecraft/server';
 
-import { debugLog } from './logger.js';
-import { errorLog } from './logger.js';
+import { debugLog , errorLog } from './logger.js';
 import * as playerDataManager from './playerDataManager.js';
 
 const bountyDataKey = 'exe:bountyData';

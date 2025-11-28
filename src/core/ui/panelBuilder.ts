@@ -125,9 +125,9 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
 export function getVisiblePlayerActionItems(context: UIContext, permissionLevel: number) {
     const panelDef = panelDefinitions.playerActionsPanel;
     const config = getConfig();
-    const allItems = getMenuItems(panelDef, permissionLevel);
+    const menuItems = getMenuItems(panelDef, permissionLevel);
     const visibleItems: PanelItem[] = [];
-    for (const item of allItems) {
+    for (const item of menuItems) {
         if (item.id === '__back__') {
             visibleItems.push(item);
             continue;
@@ -1293,8 +1293,6 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
         // --- Admin Edit Shop Panels ---
         if (panelId === 'shopManagementPanel') {
-            const panelDef = panelDefinitions[panelId];
-            const title = panelDef.title;
             const form = new ActionFormData().title(title);
             buildShopAdminMainPanel(form, context);
             return form;
@@ -1334,8 +1332,6 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'rankManagementPanel') {
-            const panelDef = panelDefinitions[panelId];
-            const title = panelDef.title;
             const form = new ActionFormData().title(title);
             buildRankManagementPanel(form, { ...context, player });
             return form;

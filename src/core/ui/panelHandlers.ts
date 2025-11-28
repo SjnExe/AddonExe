@@ -233,8 +233,7 @@ export async function handleFormResponse(
     }
 
     if (panelId === 'teamInvitesPanel') {
-        const pData = getPlayer(player.id) as PlayerData;
-        const invites = pData.pendingInvites || [];
+        const invites = (pData as PlayerData).pendingInvites || [];
 
         if (selection === 0) {
             return showPanel(player, 'teamJoinPanel', context);
@@ -1066,9 +1065,9 @@ export async function handleFormResponse(
                         return showPanel(player, 'configResetPanel', { ...context, page });
                     }
 
-                    const response = finalConfirmResponse as ModalFormResponse;
+                    const confirmModal = finalConfirmResponse as ModalFormResponse;
                     const confirmationValue =
-                        response.formValues && response.formValues[0] ? String(response.formValues[0]) : '';
+                        confirmModal.formValues && confirmModal.formValues[0] ? String(confirmModal.formValues[0]) : '';
 
                     if (confirmationValue.trim().toLowerCase() !== 'confirm') {
                         player.sendMessage('§cFinal confirmation failed. Reset canceled.');
@@ -1120,9 +1119,9 @@ export async function handleFormResponse(
                         return showPanel(player, 'configResetPanel', { ...context, page });
                     }
 
-                    const response = finalConfirmResponse as ModalFormResponse;
+                    const confirmModal = finalConfirmResponse as ModalFormResponse;
                     const confirmationValue =
-                        response.formValues && response.formValues[0] ? String(response.formValues[0]) : '';
+                        confirmModal.formValues && confirmModal.formValues[0] ? String(confirmModal.formValues[0]) : '';
 
                     if (confirmationValue.trim().toLowerCase() !== 'confirm') {
                         player.sendMessage('§cFinal confirmation failed. Reset canceled.');
@@ -1326,11 +1325,11 @@ export async function handleFormResponse(
                 .textField('Buy Price', '-1 to disable', { defaultValue: '-1' })
                 .textField('Sell Price', '-1 to disable', { defaultValue: '-1' })
                 .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
-            const response = await utils.uiWait(player, form);
-            if (response.canceled) {
+            const addItemResponse = await utils.uiWait(player, form);
+            if (addItemResponse.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const values = (response as ModalFormResponse).formValues;
+            const values = (addItemResponse as ModalFormResponse).formValues;
             if (!values) return;
             const customId = values[0] as string;
             const displayName = values[1] as string;
@@ -1388,11 +1387,11 @@ export async function handleFormResponse(
                 .textField('Buy Price', '-1 to disable', { defaultValue: `${masterItem.buyPrice}` })
                 .textField('Sell Price', '-1 to disable', { defaultValue: `${masterItem.sellPrice}` })
                 .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
-            const response = await utils.uiWait(player, form);
-            if (response.canceled) {
+            const addItemResponse = await utils.uiWait(player, form);
+            if (addItemResponse.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const values = (response as ModalFormResponse).formValues;
+            const values = (addItemResponse as ModalFormResponse).formValues;
             if (!values) return;
             const iconStr = values[0] as string;
             const buyPriceStr = values[1] as string;
@@ -1451,11 +1450,11 @@ export async function handleFormResponse(
                 .title('Add Category')
                 .textField('Category Name', 'Enter category name', { defaultValue: '' })
                 .textField('Icon', 'Enter icon texture path', { defaultValue: '' });
-            const response = await utils.uiWait(player, form);
-            if (response.canceled) {
+            const addCatResponse = await utils.uiWait(player, form);
+            if (addCatResponse.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const values = (response as ModalFormResponse).formValues;
+            const values = (addCatResponse as ModalFormResponse).formValues;
             if (!values) return;
             const name = values[0] as string;
             const iconStr = values[1] as string;
@@ -1507,11 +1506,11 @@ export async function handleFormResponse(
                 .title('Add Subcategory')
                 .textField('Subcategory Name', 'Enter subcategory name', { defaultValue: '' })
                 .textField('Icon', 'Enter icon texture path', { defaultValue: '' });
-            const response = await utils.uiWait(player, form);
-            if (response.canceled) {
+            const addSubCatResponse = await utils.uiWait(player, form);
+            if (addSubCatResponse.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const values = (response as ModalFormResponse).formValues;
+            const values = (addSubCatResponse as ModalFormResponse).formValues;
             if (!values) return;
             const name = values[0] as string;
             const iconStr = values[1] as string;
@@ -1555,12 +1554,12 @@ export async function handleFormResponse(
                     .title('Edit Item')
                     .button('Edit', 'textures/ui/icon_setting')
                     .button('Delete', 'textures/ui/trash');
-                const response = await utils.uiWait(player, form);
-                if (response.canceled) {
+                const itemActionResponse = await utils.uiWait(player, form);
+                if (itemActionResponse.canceled) {
                     return showPanel(player, panelId, context);
                 }
-                const selection = (response as ActionFormResponse).selection;
-                if (selection === 0) {
+                const itemActionSelection = (itemActionResponse as ActionFormResponse).selection;
+                if (itemActionSelection === 0) {
                     // Edit
                     const masterItem = allItems[selectedEntry.id] || {};
                     const editForm = new ModalFormData()
@@ -1652,11 +1651,11 @@ export async function handleFormResponse(
                 .title('Edit Category')
                 .textField('Category Name', 'Enter new name', { defaultValue: categoryName })
                 .textField('Icon', 'Enter icon texture path', { defaultValue: category.icon });
-            const response = await utils.uiWait(player, form);
-            if (response.canceled) {
+            const editCatResponse = await utils.uiWait(player, form);
+            if (editCatResponse.canceled) {
                 return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
             }
-            const values = (response as ModalFormResponse).formValues;
+            const values = (editCatResponse as ModalFormResponse).formValues;
             if (!values) return;
             const newName = values[0] as string;
             const newIcon = values[1] as string;
@@ -1726,12 +1725,12 @@ export async function handleFormResponse(
                 .title('Edit Item')
                 .button('Edit', 'textures/ui/icon_setting')
                 .button('Delete', 'textures/ui/trash');
-            const response = await utils.uiWait(player, form);
-            if (response.canceled) {
+            const itemActionResponse = await utils.uiWait(player, form);
+            if (itemActionResponse.canceled) {
                 return showPanel(player, panelId, context);
             }
-            const selection = (response as ActionFormResponse).selection;
-            if (selection === 0) {
+            const itemActionSelection = (itemActionResponse as ActionFormResponse).selection;
+            if (itemActionSelection === 0) {
                 // Edit
                 const masterItem = allItems[selectedItem.id] || {};
                 const editForm = new ModalFormData()
@@ -1817,11 +1816,11 @@ export async function handleFormResponse(
                 .title('Edit Subcategory')
                 .textField('Subcategory Name', 'Enter new name', { defaultValue: subCategoryName })
                 .textField('Icon', 'Enter icon texture path', { defaultValue: subCategory.icon });
-            const response = await utils.uiWait(player, form);
-            if (response.canceled) {
+            const editSubCatResponse = await utils.uiWait(player, form);
+            if (editSubCatResponse.canceled) {
                 return showPanel(player, `shopAdminSubCategoryItemPanel_${subCategoryName}`, context);
             }
-            const values = (response as ModalFormResponse).formValues;
+            const values = (editSubCatResponse as ModalFormResponse).formValues;
             if (!values) return;
             const newName = values[0] as string;
             const newIcon = values[1] as string;

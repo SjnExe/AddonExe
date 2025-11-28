@@ -16,7 +16,7 @@ const setBalanceCommand: CustomCommand = {
         { name: 'target', type: 'string', description: "The player's name whose balance to set." },
         { name: 'amount', type: 'float', description: 'The amount to set the balance to.' }
     ],
-    execute: (executor, args) => {
+    execute: (_executor, args) => {
         const targetName = args.target as string;
         const amount = args.amount as number;
 
@@ -48,7 +48,7 @@ const addBalanceCommand: CustomCommand = {
         { name: 'target', type: 'string', description: "The player's name to add balance to." },
         { name: 'amount', type: 'float', description: 'The amount to add.' }
     ],
-    execute: (executor, args) => {
+    execute: (_executor, args) => {
         const targetName = args.target as string;
         const amount = args.amount as number;
 
@@ -83,7 +83,7 @@ const removeBalanceCommand: CustomCommand = {
         { name: 'target', type: 'string', description: "The player's name to remove balance from." },
         { name: 'amount', type: 'float', description: 'The amount to remove.' }
     ],
-    execute: (executor, args) => {
+    execute: (_executor, args) => {
         const targetName = args.target as string;
         const amount = args.amount as number;
 
