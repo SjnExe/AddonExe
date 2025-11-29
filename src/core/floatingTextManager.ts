@@ -101,7 +101,7 @@ async function spawnAllTexts() {
             const dimension = mc.world.getDimension(dimId);
             dimensionValid = true;
             // Batch query all floating texts in this dimension
-            const entities = dimension.getEntities({ type: 'addonexe:floating_text' });
+            const entities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of entities) {
                 // @ts-expect-error - isValid check
                 if (typeof entity.isValid === 'function' && !entity.isValid()) continue;
@@ -140,10 +140,35 @@ async function spawnAllTexts() {
 function spawnText(textConfig: FloatingTextConfig) {
     try {
         const dimension = mc.world.getDimension(textConfig.dimension);
-        dimension.runCommand(`kill @e[type=addonexe:floating_text,tag="ft_${textConfig.id}"]`);
+
+        // Try to remove existing entity via API first to avoid command overhead
+        let removedViaApi = false;
+        try {
+            const entities = dimension.getEntities({
+                type: 'exe:floating_text',
+                tags: [`ft_${textConfig.id}`]
+            });
+
+            for (const entity of entities) {
+                // @ts-expect-error - isValid check
+                if (typeof entity.isValid === 'function' && !entity.isValid()) continue;
+                entity.remove();
+                removedViaApi = true;
+            }
+        } catch {
+            // Ignore API errors during cleanup
+        }
+
+        if (!removedViaApi) {
+            try {
+                dimension.runCommand(`kill @e[type=exe:floating_text,tag="ft_${textConfig.id}"]`);
+            } catch {
+                // Ignore "No targets matched" to prevent spawn failure for new texts
+            }
+        }
 
         const entity = dimension.spawnEntity(
-            'addonexe:floating_text' as unknown as Parameters<typeof dimension.spawnEntity>[0],
+            'exe:floating_text' as unknown as Parameters<typeof dimension.spawnEntity>[0],
             textConfig.location
         );
         entity.nameTag = textConfig.text.replace(/\\n/g, '\n');
@@ -239,7 +264,7 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
         try {
             const dimension = mc.world.getDimension(newConfig.dimension);
             const query: mc.EntityQueryOptions = {
-                type: 'addonexe:floating_text',
+                type: 'exe:floating_text',
                 tags: [`ft_${id}`]
             };
             const entity = await findEntityWithRetries(dimension, query);
@@ -308,7 +333,7 @@ async function despawnText(id: string) {
     try {
         const dimension = mc.world.getDimension(textConfig.dimension);
         const query: mc.EntityQueryOptions = {
-            type: 'addonexe:floating_text',
+            type: 'exe:floating_text',
             tags: [`ft_${id}`]
         };
         const entities = dimension.getEntities(query);
@@ -349,7 +374,7 @@ async function despawnText(id: string) {
     // Fallback for unloaded chunks or if entity.remove() somehow missed
     try {
         const dimension = mc.world.getDimension(textConfig.dimension);
-        const command = `kill @e[type=addonexe:floating_text,tag="ft_${id}"]`;
+        const command = `kill @e[type=exe:floating_text,tag="ft_${id}"]`;
         dimension.runCommand(command);
     } catch (error) {
         if (!String(error).includes('No targets matched selector')) {

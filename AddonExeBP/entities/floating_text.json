@@ -2,7 +2,7 @@
     "format_version": "1.21.0",
     "minecraft:entity": {
         "description": {
-            "identifier": "addonexe:floating_text",
+            "identifier": "exe:floating_text",
             "is_spawnable": false,
             "is_summonable": true,
             "is_experimental": false
@@ -12,8 +12,8 @@
                 "family": ["inanimate", "floating_text"]
             },
             "minecraft:collision_box": {
-                "width": 0,
-                "height": 0
+                "width": 0.1,
+                "height": 0.1
             },
             "minecraft:health": {
                 "value": 1,
