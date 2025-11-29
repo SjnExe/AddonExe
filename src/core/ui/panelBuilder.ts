@@ -129,17 +129,7 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
     const visibleItems: PanelItem[] = [];
 
     const isSelf = viewerId && context.targetPlayerId === viewerId;
-    const selfDisabledActions = [
-        'kick',
-        'ban',
-        'mute',
-        'unmute',
-        'freeze',
-        'unfreeze',
-        'tpa',
-        'tpahere',
-        'report'
-    ];
+    const selfDisabledActions = ['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze', 'tpa', 'tpahere', 'report'];
 
     for (const item of menuItems) {
         if (item.id === '__back__') {

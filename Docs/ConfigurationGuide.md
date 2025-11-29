@@ -11,9 +11,6 @@ The addon's configuration is split across several files, each with a specific pu
 - **`panelLayoutConfig.js`:** Controls the structure and content of the main Admin UI (`/panel`).
 - **`kitsConfig.js`:** Defines the contents and cooldowns for player kits.
 
-> [!NOTE]
-> Other files like `textDatabase.js` (for language/text customization) exist but are not part of the primary configuration workflow.
-
 ---
 
 ## 🛠️ Initial Setup & Permissions (CRITICAL)
@@ -21,17 +18,17 @@ The addon's configuration is split across several files, each with a specific pu
 Follow these steps to gain administrative control of the addon.
 
 ### 1. Set the Server Owner(s)
-- **File:** `AddonExeBP/scripts/config.js`
+- **File:** `packs/behavior/scripts/config.js`
 - **Action:** Find `ownerPlayerNames` and add your **exact** in-game name (case-sensitive).
   ```javascript
-  // Example in AddonExeBP/scripts/config.js
+  // Example in packs/behavior/scripts/config.js
   ownerPlayerNames: ['YourExactPlayerName', 'AnotherOwnerName'],
   ```
 - **Applying Changes:** After editing `config.js`, simply run `/xreload` in-game as an Admin. A full server restart is no longer required for most config changes.
 - **➡️ For a summary, see the [F.A.Q.](F.A.Q.md#how-do-i-change-the-server-owner)**
 
 ### 2. Set Server Admins (Optional)
-- **File:** `AddonExeBP/scripts/config.js`
+- **File:** `packs/behavior/scripts/config.js`
 - **Action:** The `adminTag` setting (default: `"admin"`) determines who gets the Admin rank.
 - **Usage:** To make someone an admin, give them the tag: `/tag "PlayerName" add admin`.
 - **➡️ For a summary, see the [F.A.Q.](F.A.Q.md#how-do-i-make-myself-an-admin)**
@@ -39,7 +36,7 @@ Follow these steps to gain administrative control of the addon.
 ### 3. Configure Ranks and Permissions
 For more advanced control over permissions and visual styles, you can edit the ranks file.
 
-- **File:** `AddonExeBP/scripts/core/ranksConfig.js`
+- **File:** `packs/behavior/scripts/core/ranksConfig.js`
 - **Action:** Modify the `rankDefinitions` array to define your server's roles (e.g., Moderator, VIP). You can set permission levels, chat formats, and nametags for each rank.
 - **➡️ For a complete guide, see: [Rank System Documentation](RankSystem.md)**
 
@@ -75,7 +72,7 @@ After the reload, a new snapshot is taken, and the process repeats on the next `
 ### `config.js` - The Main Hub
 This is the primary file for most top-level settings. **Changes to this file can be reloaded with `/xreload`**.
 
-- **File:** `AddonExeBP/scripts/config.js`
+- **File:** `packs/behavior/scripts/config.js`
 - **Purpose:**
   - Define `ownerPlayerNames` and the `adminTag`.
   - Enable or disable major systems (`tpa.enabled`, `homes.enabled`, `economy.enabled`, etc.).
@@ -117,7 +114,7 @@ This is the primary file for most top-level settings. **Changes to this file can
 ### `ranksConfig.js` - Ranks & Permissions
 This file defines the entire hierarchy of roles on your server. **Requires a server restart to apply changes.**
 
-- **File:** `AddonExeBP/scripts/core/ranksConfig.js`
+- **File:** `packs/behavior/scripts/core/ranksConfig.js`
 - **Purpose:**
   - Define all available ranks (e.g., Owner, Admin, Member, custom ranks).
   - Set the `permissionLevel` for each rank, which controls access to commands.
@@ -128,7 +125,7 @@ This file defines the entire hierarchy of roles on your server. **Requires a ser
 ### `panelLayoutConfig.js` - Admin Panel UI
 This file controls the layout, buttons, and actions of the `/panel` user interface. **Requires a server restart to apply changes.**
 
-- **File:** `AddonExeBP/scripts/core/panelLayoutConfig.js`
+- **File:** `packs/behavior/scripts/core/panelLayoutConfig.js`
 - **Purpose:**
   - Add, remove, or reorder categories and buttons.
   - Change button text, icons, and required permission levels.
@@ -139,7 +136,7 @@ The kit system is configured through a combination of a master file (`kitsConfig
 
 - **`kitsConfig.js` - Master Kit List**
   - This file defines all possible kits that can be available. It serves as a master list that populates the in-game "Kit Management" panel. You should edit this file to add new kits or change the items within a kit. **Requires a server restart to apply changes.**
-  - **File:** `AddonExeBP/scripts/core/kitsConfig.js`
+  - **File:** `packs/behavior/scripts/core/kitsConfig.js`
   - **Purpose:**
     - Define a comprehensive list of all kits you want on your server.
     - For each kit, you define the `items` it contains. The `enabled` status, `cooldownSeconds`, and `permissionLevel` in this file act as the defaults for when a kit is first loaded.
@@ -161,7 +158,7 @@ The shop system is configured through a combination of files and in-game actions
 
 - **`itemsConfig.js` - Master Shop Item List**
   - This file defines all possible items that can be sold in the shop. It serves as a master list from which admins can enable items. **Requires a server restart to apply changes.**
-  - **File:** `AddonExeBP/scripts/core/itemsConfig.js`
+  - **File:** `packs/behavior/scripts/core/itemsConfig.js`
   - **Purpose:**
     - Define a comprehensive list of all items you might ever want to sell.
     - For each item, you can set a default buy price, sell price, category, and icon.
@@ -170,7 +167,7 @@ The shop system is configured through a combination of files and in-game actions
 
 - **`shopCategoryConfig.js` - Shop Category Icons**
   - This file defines the icons used for each category and sub-category in the shop UI. **Requires a server restart to apply changes.**
-  - **File:** `AddonExeBP/scripts/core/shopCategoryConfig.js`
+  - **File:** `packs/behavior/scripts/core/shopCategoryConfig.js`
   - **Purpose:**
     - Assign a specific texture path to each category name (e.g., 'Building Blocks', 'Ores & Minerals').
 

@@ -9,9 +9,7 @@
                         "group_identifier": {
                             "name": "minecraft:itemGroup.name.items"
                         },
-                        "items": [
-                            "exe:panel"
-                        ]
+                        "items": ["exe:panel"]
                     }
                 ]
             }

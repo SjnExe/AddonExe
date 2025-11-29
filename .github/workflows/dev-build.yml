@@ -47,6 +47,10 @@ jobs:
           echo "VERSION_STRING=$VERSION_STR" >> $GITHUB_ENV
           echo "VERSION_ARRAY_STRING=$VERSION_ARR_STR" >> $GITHUB_ENV
 
+          # Generate Date
+          BUILD_DATE=$(date -u)
+          echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
+
           echo "Base Version: $BASE_VER"
           echo "Dev Version: $VERSION_STR"
           echo "Dev Version Array: $VERSION_ARR_STR"
@@ -128,10 +132,10 @@ jobs:
           (cd staging && zip -r -9 "../AddonExe.Nightly.${VERSION_STRING}.mcaddon" ./*)
 
           # Create BP .mcpack with max compression
-          (cd staging/behavior && zip -r -9 "../../AddonExe.BP.Nightly.${VERSION_STRING}.mcpack" ./*)
+          (cd staging/behavior && zip -r -9 "../../AddonExe_BP.Nightly.${VERSION_STRING}.mcpack" ./*)
 
           # Create RP .mcpack with max compression
-          (cd staging/resource && zip -r -9 "../../AddonExe.RP.Nightly.${VERSION_STRING}.mcpack" ./*)
+          (cd staging/resource && zip -r -9 "../../AddonExe_RP.Nightly.${VERSION_STRING}.mcpack" ./*)
           echo "Created release archives."
 
       - name: Publish Nightly Release
@@ -145,10 +149,10 @@ jobs:
             **Latest Nightly Build**
             Version: `${{ env.VERSION_STRING }}`
             Commit: `${{ github.sha }}`
-            Date: `$(date -u)`
+            Date: `${{ env.BUILD_DATE }}`
 
             *This is an automated development build. It may contain bugs.*
           files: |
             ./AddonExe.Nightly.${{ env.VERSION_STRING }}.mcaddon
-            ./AddonExe.BP.Nightly.${{ env.VERSION_STRING }}.mcpack
-            ./AddonExe.RP.Nightly.${{ env.VERSION_STRING }}.mcpack
+            ./AddonExe_BP.Nightly.${{ env.VERSION_STRING }}.mcpack
+            ./AddonExe_RP.Nightly.${{ env.VERSION_STRING }}.mcpack

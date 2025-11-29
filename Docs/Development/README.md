@@ -22,13 +22,13 @@ The primary hub for all official Bedrock addon development documentation is:
 
 ## Target Minecraft Version
 
-The addon currently targets Minecraft Bedrock version 1.21.100 and newer. Please ensure development and testing align with this version.
+The addon currently targets Minecraft Bedrock version 1.21.110 and newer. Please ensure development and testing align with this version.
 
 ## Codebase Architecture Overview
 
 The AddonExe is structured to be modular and configurable.
 
-- **`src/`**: The root for all source code (TypeScript). This is compiled to `AddonExeBP/scripts/`.
+- **`src/`**: The root for all source code (TypeScript). This is compiled to `packs/behavior/scripts/`.
   - **`config.default.ts`**: The template configuration. Developers should copy this to `src/config.ts` for local customization.
   - **`core/`**: Houses the central manager modules that form the backbone of the addon (e.g., `playerDataManager.ts`, `rankManager.ts`).
   - **`modules/`**: Contains feature-specific logic, separated from the core managers (e.g., commands).
@@ -38,7 +38,7 @@ The AddonExe is structured to be modular and configurable.
 The codebase uses **TypeScript** for robustness and maintainability.
 
 - **Source Directory:** All behavior pack scripts are located in `src/`.
-- **Compilation:** Run `npm run build` to compile the TypeScript source into JavaScript in `AddonExeBP/scripts/`.
+- **Compilation:** Run `npm run build` to compile the TypeScript source into JavaScript in `packs/behavior/scripts/`.
 - **Local Configuration:**
   - The repository contains `src/config.default.ts` as the template.
   - **Action:** Create a copy named `src/config.ts`. This file is git-ignored.
@@ -53,11 +53,11 @@ To help identify potential bottlenecks, the addon includes a basic performance p
 
 ## Task Management for Development
 
-Tasks are tracked in the `Dev/tasks/` directory:
-- **`Dev/tasks/ongoing.md`**: Current active task.
-- **`Dev/tasks/todo.md`**: Planned tasks.
-- **`Dev/tasks/completed.md`**: History of completed work.
+Tasks are tracked in the `Docs/Development/tasks/` directory:
+- **`Docs/Development/tasks/ongoing.md`**: Current active task.
+- **`Docs/Development/tasks/todo.md`**: Planned tasks.
+- **`Docs/Development/tasks/completed.md`**: History of completed work.
 
 ## Important Workflow Notes for AI Assistants
 
-For detailed guidelines, project-specific conventions, and workflow instructions tailored for AI assistants (like Jules) working on this codebase, please refer to the main **[AGENTS.md](../../AGENTS.md)** file located in the root of the repository.
+For detailed guidelines, project-specific conventions, and workflow instructions tailored for AI assistants (like Jules) working on this codebase, please refer to the main **[agents.md](../../agents.md)** file located in the root of the repository.
