@@ -140,7 +140,32 @@ async function spawnAllTexts() {
 function spawnText(textConfig: FloatingTextConfig) {
     try {
         const dimension = mc.world.getDimension(textConfig.dimension);
-        dimension.runCommand(`kill @e[type=addonexe:floating_text,tag="ft_${textConfig.id}"]`);
+
+        // Try to remove existing entity via API first to avoid command overhead
+        let removedViaApi = false;
+        try {
+            const entities = dimension.getEntities({
+                type: 'addonexe:floating_text',
+                tags: [`ft_${textConfig.id}`]
+            });
+
+            for (const entity of entities) {
+                // @ts-expect-error - isValid check
+                if (typeof entity.isValid === 'function' && !entity.isValid()) continue;
+                entity.remove();
+                removedViaApi = true;
+            }
+        } catch (e) {
+            // Ignore API errors during cleanup
+        }
+
+        if (!removedViaApi) {
+            try {
+                dimension.runCommand(`kill @e[type=addonexe:floating_text,tag="ft_${textConfig.id}"]`);
+            } catch (e) {
+                // Ignore "No targets matched" to prevent spawn failure for new texts
+            }
+        }
 
         const entity = dimension.spawnEntity(
             'addonexe:floating_text' as unknown as Parameters<typeof dimension.spawnEntity>[0],
