@@ -122,16 +122,35 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
     }
 }
 
-export function getVisiblePlayerActionItems(context: UIContext, permissionLevel: number) {
+export function getVisiblePlayerActionItems(context: UIContext, permissionLevel: number, viewerId?: string) {
     const panelDef = panelDefinitions.playerActionsPanel;
     const config = getConfig();
     const menuItems = getMenuItems(panelDef, permissionLevel);
     const visibleItems: PanelItem[] = [];
+
+    const isSelf = viewerId && context.targetPlayerId === viewerId;
+    const selfDisabledActions = [
+        'kick',
+        'ban',
+        'mute',
+        'unmute',
+        'freeze',
+        'unfreeze',
+        'tpa',
+        'tpahere',
+        'report'
+    ];
+
     for (const item of menuItems) {
         if (item.id === '__back__') {
             visibleItems.push(item);
             continue;
         }
+
+        if (isSelf && selfDisabledActions.includes(item.id)) {
+            continue;
+        }
+
         const commandName = item.id;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((config.commandSettings as any)[commandName]?.enabled === false) {
@@ -1545,24 +1564,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData().title(title);
             addPanelBody(form, player, panelId, context);
 
-            const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
-            const isSelf = context.targetPlayerId === player.id;
-            const selfDisabledActions = [
-                'kick',
-                'ban',
-                'mute',
-                'unmute',
-                'freeze',
-                'unfreeze',
-                'tpa',
-                'tpahere',
-                'report'
-            ];
+            const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel, player.id);
 
             for (const item of visibleItems) {
-                if (isSelf && selfDisabledActions.includes(item.id)) {
-                    continue;
-                }
                 form.button(item.text, item.icon);
             }
             return form;

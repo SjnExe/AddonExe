@@ -50,7 +50,7 @@ export async function handleFormResponse(
         // Specific case for playerActionsPanel which has dynamic visibility logic
         let items: PanelItem[] = [];
         if (panelId === 'playerActionsPanel') {
-             items = getVisiblePlayerActionItems(context, pData.permissionLevel);
+             items = getVisiblePlayerActionItems(context, pData.permissionLevel, player.id);
         } else {
              items = getMenuItems(panelDef, pData.permissionLevel);
         }
