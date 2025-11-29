@@ -348,7 +348,7 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
     if (config.modules?.bounties?.announce ?? true) {
         mc.world.sendMessage(`§6[Bounty] §r${player.name} has placed a ${utils.formatCurrency(amount)} bounty on ${targetData?.name}!`);
     }
-    return showPanel(player, 'bountyActionsPanel', context);
+    return showPanel(player, 'playerActionsPanel', context);
 }
 
 async function removePlayerBounty(player: mc.Player, context: UIContext) {

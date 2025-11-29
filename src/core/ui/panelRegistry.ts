@@ -66,12 +66,120 @@ export type UIContext = Record<string, any>;
 
 export const panelDefinitions: Record<string, PanelDefinition> = {
     mainPanel: {
-        title: 'Panel',
+        title: 'Main Menu',
         parentPanelId: null,
         items: [
             {
+                id: 'gameplay',
+                text: '§l§6Gameplay',
+                icon: 'textures/items/diamond_sword',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'gameplayPanel',
+                sortId: 10
+            },
+            {
+                id: 'info',
+                text: '§l§3Server Info',
+                icon: 'textures/items/book_enchanted.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'infoPanel',
+                sortId: 20
+            },
+            {
+                id: 'admin',
+                text: '§l§4Admin Dashboard',
+                icon: 'textures/ui/op',
+                permissionLevel: 2,
+                actionType: 'openPanel',
+                actionValue: 'adminPanel',
+                sortId: 99
+            }
+        ]
+    },
+    gameplayPanel: {
+        title: 'Gameplay',
+        parentPanelId: 'mainPanel',
+        items: [
+            {
+                id: 'shop',
+                text: '§2Shop',
+                icon: 'textures/ui/trade_icon',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'shopMainPanel',
+                sortId: 10
+            },
+            {
+                id: 'team',
+                text: '§1Team',
+                icon: 'textures/ui/icon_multiplayer.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamMainPanel',
+                sortId: 20
+            },
+            {
+                id: 'bountyList',
+                text: '§6Bounty List',
+                icon: 'textures/items/netherite_sword.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'bountyListPanel',
+                sortId: 30
+            },
+            {
+                id: 'myStats',
+                text: '§3My Stats',
+                icon: 'textures/ui/profile_glyph_color.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'myStatsPanel',
+                sortId: 40
+            }
+        ]
+    },
+    infoPanel: {
+        title: 'Server Information',
+        parentPanelId: 'mainPanel',
+        items: [
+            {
+                id: 'rules',
+                text: '§9Rules',
+                icon: 'textures/items/book_enchanted.png',
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'showRules',
+                sortId: 10
+            },
+            {
+                id: 'helpfulLinks',
+                text: '§9Helpful Links',
+                icon: 'textures/items/chain',
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'showHelpfulLinks',
+                sortId: 20
+            },
+            {
+                id: 'playerList',
+                text: '§2Player List',
+                icon: 'textures/ui/icon_steve.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'playerListPanel',
+                sortId: 30
+            }
+        ]
+    },
+    adminPanel: {
+        title: 'Admin Dashboard',
+        parentPanelId: 'mainPanel',
+        items: [
+            {
                 id: 'reportManagement',
-                text: '§4Report Management', // Dark Red
+                text: '§4Report Management',
                 icon: 'textures/ui/WarningGlyph',
                 permissionLevel: 2,
                 actionType: 'openPanel',
@@ -80,108 +188,45 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'playerManagement',
-                text: '§3Player Management', // Dark Aqua
+                text: '§3Player Management',
                 icon: 'textures/ui/icon_multiplayer.png',
-                permissionLevel: 2, // Admin only
+                permissionLevel: 2,
                 actionType: 'openPanel',
                 actionValue: 'playerManagementPanel',
-                sortId: 15
+                sortId: 20
             },
             {
                 id: 'moderation',
-                text: '§4Moderation', // Red
+                text: '§4Moderation',
                 icon: 'textures/ui/hammer_l.png',
                 permissionLevel: 1,
                 actionType: 'openPanel',
                 actionValue: 'moderationPanel',
-                sortId: 20
-            },
-            {
-                id: 'floatingText',
-                text: '§5Floating Text', // Dark Purple
-                icon: 'textures/ui/text_color_paintbrush',
-                permissionLevel: 1, // Admin and above
-                actionType: 'openPanel',
-                actionValue: 'floatingTextListPanel',
-                sortId: 25
-            },
-            {
-                id: 'config',
-                text: '§8Config', // Dark Grey
-                icon: 'textures/ui/settings_glyph_color_2x',
-                permissionLevel: 1, // Admin and above
-                actionType: 'openPanel',
-                actionValue: 'configCategoryPanel',
                 sortId: 30
             },
             {
-                id: 'bountyList',
-                text: '§6Bounty List', // Gold
-                icon: 'textures/items/netherite_sword.png',
-                permissionLevel: 1024,
+                id: 'floatingText',
+                text: '§5Floating Text',
+                icon: 'textures/ui/text_color_paintbrush',
+                permissionLevel: 1,
                 actionType: 'openPanel',
-                actionValue: 'bountyListPanel',
+                actionValue: 'floatingTextListPanel',
                 sortId: 40
             },
             {
-                id: 'playerList',
-                text: '§2Player List', // Dark Green
-                icon: 'textures/ui/icon_steve.png',
-                permissionLevel: 1024, // Everyone
+                id: 'config',
+                text: '§8Config',
+                icon: 'textures/ui/settings_glyph_color_2x',
+                permissionLevel: 1,
                 actionType: 'openPanel',
-                actionValue: 'playerListPanel',
-                sortId: 45
-            },
-            {
-                id: 'rules',
-                text: '§9Rules', // Blue
-                icon: 'textures/items/book_enchanted.png',
-                permissionLevel: 1024,
-                actionType: 'functionCall',
-                actionValue: 'showRules',
+                actionValue: 'configCategoryPanel',
                 sortId: 50
-            },
-            {
-                id: 'myStats',
-                text: '§3My Stats', // Dark Aqua
-                icon: 'textures/ui/profile_glyph_color.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'myStatsPanel',
-                sortId: 60
-            },
-            {
-                id: 'team',
-                text: '§1Team', // Dark Blue
-                icon: 'textures/ui/icon_multiplayer.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'teamMainPanel',
-                sortId: 65
-            },
-            {
-                id: 'helpfulLinks',
-                text: '§9Helpful Links', // Blue
-                icon: 'textures/items/chain',
-                permissionLevel: 1024,
-                actionType: 'functionCall',
-                actionValue: 'showHelpfulLinks',
-                sortId: 70
-            },
-            {
-                id: 'shop',
-                text: '§2Shop', // Dark Green
-                icon: 'textures/ui/trade_icon',
-                permissionLevel: 1024, // Everyone
-                actionType: 'openPanel',
-                actionValue: 'shopMainPanel',
-                sortId: 5
             }
         ]
     },
     teamMainPanel: {
         title: 'Team System',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'gameplayPanel',
         items: [] // Dynamic: Shows Create/Join OR Team Info
     },
     teamCreatePanel: {
@@ -261,7 +306,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     shopMainPanel: {
         title: 'Shop Categories',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'gameplayPanel',
         items: [] // Dynamically populated
     },
     configResetPanel: {
@@ -276,7 +321,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     reportListPanel: {
         title: 'Active Reports',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'adminPanel',
         items: [] // Dynamically populated
     },
     reportActionsPanel: {
@@ -311,22 +356,22 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     bountyListPanel: {
         title: 'Bounty List',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'gameplayPanel',
         items: [] // Dynamically populated
     },
     myStatsPanel: {
         title: 'Your Stats',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'gameplayPanel',
         items: [] // Body is dynamically generated
     },
     helpfulLinksPanel: {
         title: 'Helpful Links',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'infoPanel',
         items: [] // Body is dynamically generated
     },
     moderationPanel: {
         title: 'Moderation Tools',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'adminPanel',
         items: [
             {
                 id: 'unbanPlayer',
@@ -348,7 +393,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     configCategoryPanel: {
         title: 'Configuration',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'adminPanel',
         items: [] // Dynamically populated
     },
     kitManagementPanel: {
@@ -387,12 +432,12 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     playerManagementPanel: {
         title: 'Player Management',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'adminPanel',
         items: [] // Dynamically populated
     },
     playerListPanel: {
         title: 'Online Players',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'infoPanel',
         items: [] // Dynamically populated
     },
     bountyActionsPanel: {
@@ -513,7 +558,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     rulesManagementPanel: {
         title: 'Rules Management',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'infoPanel',
         items: [] // Dynamically populated
     },
     addRulePanel: {
@@ -528,7 +573,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     helpfulLinksManagementPanel: {
         title: 'Links Management',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'infoPanel',
         items: [] // Dynamically populated
     },
     addHelpfulLinkPanel: {
@@ -558,7 +603,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     floatingTextListPanel: {
         title: 'Floating Text',
-        parentPanelId: 'mainPanel',
+        parentPanelId: 'adminPanel',
         items: [] // Dynamically populated
     },
     floatingTextEditPanel: {

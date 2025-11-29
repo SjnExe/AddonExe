@@ -380,6 +380,8 @@ async function buildPlayerManagementForm(title: string, context: UIContext) {
 
     // Add Back button
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    // Add Search button
+    form.button('§l§2Search Player', 'textures/ui/magnifyingGlass');
 
     const allPlayersMap = getAllPlayerNameIdMap();
     const playerEntries = Array.from(allPlayersMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
@@ -421,6 +423,8 @@ async function buildPlayerListForm(title: string, context: UIContext) {
 
     // Add Back button
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    // Add Search button
+    form.button('§l§2Search Online Player', 'textures/ui/magnifyingGlass');
 
     const onlinePlayers = Array.from(mc.world.getAllPlayers()).sort((a, b) => a.name.localeCompare(b.name));
     const totalPages = Math.ceil(onlinePlayers.length / itemsPerPage);
@@ -755,6 +759,12 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'teamSearchPanel') {
             const form = new ModalFormData().title('Search Team');
             form.textField('Team ID', 'Enter the numeric Team ID');
+            return form;
+        }
+
+        if (panelId === 'playerSearchPanel') {
+            const form = new ModalFormData().title('Search Player');
+            form.textField('Player Name', 'Enter partial or full name');
             return form;
         }
 
@@ -1272,8 +1282,13 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const page = context.page || 1;
             const form = new ActionFormData().title(`${title} (Page ${page})`);
             const rules = rulesManager.getRules();
+
+            const isAdmin = pData.permissionLevel <= 1;
+
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            form.button('§l§2+ Add Rule', 'textures/ui/color_plus');
+            if (isAdmin) {
+                form.button('§l§2+ Add Rule', 'textures/ui/color_plus');
+            }
 
             const paginatedRules = getPaginatedItems(rules, page);
 
