@@ -2,7 +2,7 @@
     "format_version": "1.21.0",
     "minecraft:client_entity": {
         "description": {
-            "identifier": "addonexe:floating_text",
+            "identifier": "exe:floating_text",
             "materials": {
                 "default": "entity_alphatest"
             },

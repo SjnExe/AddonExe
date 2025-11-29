@@ -83,7 +83,7 @@ The following patterns must be verified and adhered to when working on the codeb
   - Source of Truth: `src/core/ui/panelRegistry.js` contains the schema for UI panels.
   - Dynamic Config IDs: Panels generated from schema use IDs like `config_<schemaId>`.
 - **Floating Text:**
-  - Implementation: Uses invisible entity `addonexe:floating_text`.
+  - Implementation: Uses invisible entity `exe:floating_text`.
   - Management: `floatingTextManager.js`. Requires killing existing entity before spawning new one to prevent duplicates.
 - **Scripting API Specifics:**
   - **Versions:** Use exact versions from `manifest.json`.

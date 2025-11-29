@@ -11,7 +11,7 @@ export const DimensionId = {
 
 export const constants = {
     // --- Entity Identifiers ---
-    floatingTextId: 'addonexe:floating_text',
+    floatingTextId: 'exe:floating_text',
 
     // --- Common Tags ---
     adminTag: 'admin',
