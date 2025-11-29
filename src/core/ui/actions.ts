@@ -16,11 +16,7 @@ import { UIContext } from './panelRegistry.js';
 /**
  * Handles the logic for various UI actions triggered by buttons.
  */
-export async function handleUIAction(
-    player: mc.Player,
-    actionName: string,
-    context: UIContext = {}
-): Promise<void> {
+export async function handleUIAction(player: mc.Player, actionName: string, context: UIContext = {}): Promise<void> {
     switch (actionName) {
         case 'showRules':
             return showPanel(player, 'rulesManagementPanel', context);
@@ -190,9 +186,10 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     }
 
     // If 0, use a very distant future date (e.g., 100 years)
-    const expires = durationHours === 0
-        ? Date.now() + 100 * 365 * 24 * 60 * 60 * 1000
-        : Date.now() + durationHours * 60 * 60 * 1000;
+    const expires =
+        durationHours === 0
+            ? Date.now() + 100 * 365 * 24 * 60 * 60 * 1000
+            : Date.now() + durationHours * 60 * 60 * 1000;
 
     punishmentManager.addPunishment(targetId, {
         type: 'ban',
@@ -204,7 +201,9 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     if (target) {
         // Kick immediately
         try {
-            await player.dimension.runCommand(`kick "${target.name}" §4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`);
+            await player.dimension.runCommand(
+                `kick "${target.name}" §4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`
+            );
         } catch {
             // Ignore if kick fails (player might have left)
         }
@@ -337,7 +336,9 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
     }
 
     // Deduct money and set bounty
-    updatePlayerData(player.id, (d) => { d.balance -= amount; });
+    updatePlayerData(player.id, (d) => {
+        d.balance -= amount;
+    });
     bountyManager.incrementBounty(targetId, amount);
     player.sendMessage(`§2Added bounty of ${utils.formatCurrency(amount)} to ${targetData?.name}.`);
 
@@ -346,7 +347,9 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const config = configManager.getConfig() as any;
     if (config.modules?.bounties?.announce ?? true) {
-        mc.world.sendMessage(`§6[Bounty] §r${player.name} has placed a ${utils.formatCurrency(amount)} bounty on ${targetData?.name}!`);
+        mc.world.sendMessage(
+            `§6[Bounty] §r${player.name} has placed a ${utils.formatCurrency(amount)} bounty on ${targetData?.name}!`
+        );
     }
     return showPanel(player, 'playerActionsPanel', context);
 }

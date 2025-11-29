@@ -20,10 +20,7 @@
                     "remove_effects": "bad_omen"
                 },
                 "minecraft:timer": {
-                    "time": [
-                        0,
-                        0
-                    ],
+                    "time": [0, 0],
                     "looping": false,
                     "time_down_event": {
                         "event": "minecraft:clear_add_raid_omen",
@@ -92,9 +89,7 @@
                 "on_death": "Math.Min(query.player_level * 7, 100)"
             },
             "minecraft:type_family": {
-                "family": [
-                    "player"
-                ]
+                "family": ["player"]
             },
             "minecraft:is_hidden_when_invisible": {},
             "minecraft:loot": {
@@ -174,27 +169,17 @@
             },
             "minecraft:rideable": {
                 "seat_count": 2,
-                "family_types": [
-                    "parrot_tame"
-                ],
+                "family_types": ["parrot_tame"],
                 "pull_in_entities": true,
                 "seats": [
                     {
-                        "position": [
-                            0.4,
-                            -0.2,
-                            -0.1
-                        ],
+                        "position": [0.4, -0.2, -0.1],
                         "min_rider_count": 0,
                         "max_rider_count": 0,
                         "lock_rider_rotation": 0
                     },
                     {
-                        "position": [
-                            -0.4,
-                            -0.2,
-                            -0.1
-                        ],
+                        "position": [-0.4, -0.2, -0.1],
                         "min_rider_count": 1,
                         "max_rider_count": 2,
                         "lock_rider_rotation": 0
@@ -226,77 +211,55 @@
         "events": {
             "minecraft:gain_raid_omen": {
                 "add": {
-                    "component_groups": [
-                        "minecraft:add_raid_omen"
-                    ]
+                    "component_groups": ["minecraft:add_raid_omen"]
                 }
             },
             "minecraft:clear_add_raid_omen": {
                 "remove": {
-                    "component_groups": [
-                        "minecraft:add_raid_omen"
-                    ]
+                    "component_groups": ["minecraft:add_raid_omen"]
                 },
                 "add": {
-                    "component_groups": [
-                        "minecraft:clear_raid_omen_spell_effect"
-                    ]
+                    "component_groups": ["minecraft:clear_raid_omen_spell_effect"]
                 }
             },
             "minecraft:trigger_raid": {
                 "add": {
-                    "component_groups": [
-                        "minecraft:raid_trigger"
-                    ]
+                    "component_groups": ["minecraft:raid_trigger"]
                 }
             },
             "minecraft:remove_raid_trigger": {
                 "remove": {
-                    "component_groups": [
-                        "minecraft:raid_trigger"
-                    ]
+                    "component_groups": ["minecraft:raid_trigger"]
                 }
             },
             "exe:apply_spawn_protection": {
                 "add": {
-                    "component_groups": [
-                        "exe:spawn_protected"
-                    ]
+                    "component_groups": ["exe:spawn_protected"]
                 }
             },
             "exe:remove_spawn_protection": {
                 "remove": {
-                    "component_groups": [
-                        "exe:spawn_protected"
-                    ]
+                    "component_groups": ["exe:spawn_protected"]
                 }
             },
             "exe:disable_pvp": {
                 "add": {
-                    "component_groups": [
-                        "exe:pvp_disabled"
-                    ]
+                    "component_groups": ["exe:pvp_disabled"]
                 }
             },
             "exe:enable_pvp": {
                 "remove": {
-                    "component_groups": [
-                        "exe:pvp_disabled"
-                    ]
+                    "component_groups": ["exe:pvp_disabled"]
                 }
             },
             "exe:disable_hostile_damage": {
                 "add": {
-                    "component_groups": [
-                        "exe:hostile_damage_disabled"
-                    ]
+                    "component_groups": ["exe:hostile_damage_disabled"]
                 }
             },
             "exe:enable_hostile_damage": {
                 "remove": {
-                    "component_groups": [
-                        "exe:hostile_damage_disabled"
-                    ]
+                    "component_groups": ["exe:hostile_damage_disabled"]
                 }
             }
         }

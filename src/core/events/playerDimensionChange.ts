@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '../configManager.js';
-import { debugLog , errorLog } from '../logger.js';
+import { debugLog, errorLog } from '../logger.js';
 import { getLockState } from '../playerDataManager.js';
 import * as playerDataManager from '../playerDataManager.js';
 
