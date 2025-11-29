@@ -101,9 +101,6 @@ export async function uiWait(
     player: mc.Player,
     form: ActionFormData | ModalFormData | MessageFormData
 ): Promise<ActionFormResponse | ModalFormResponse | MessageFormResponse> {
-    // REMOVED: playSound(player, 'random.click', { volume: 0.5, pitch: 1.0 });
-    // The vanilla UI system already plays a click sound. Removing duplicate.
-
     const firstAttempt = await form.show(player);
     if (firstAttempt.cancelationReason !== 'UserBusy') {
         return firstAttempt;
