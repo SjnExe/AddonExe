@@ -1073,7 +1073,7 @@ export async function handleFormResponse(
                 return showPanel(player, panelId, context);
             }
         }
-        return;
+        return showPanel(player, panelId, context);
     }
 
     if (panelId === 'xrayOresPanel') {
