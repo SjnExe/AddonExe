@@ -59,7 +59,7 @@ export async function handleUIAction(
         case 'showUnmuteForm':
             return showUnmuteForm(player, context);
         default:
-            player.sendMessage(`§cAction '${actionName}' is not implemented yet.`);
+            player.sendMessage(`§4Action '${actionName}' is not implemented yet.`);
     }
 }
 
@@ -72,7 +72,7 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
     // but the API requires an online player reference or a name selector.
     // If offline, we can't really kick them (they are already gone).
     if (!target) {
-        player.sendMessage('§cPlayer is offline or not found.');
+        player.sendMessage('§4Player is offline or not found.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
@@ -91,9 +91,9 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
     try {
         // Enclose name in quotes to handle spaces
         await player.dimension.runCommand(`kick "${target.name}" ${reason}`);
-        player.sendMessage(`§aKicked ${target.name}.`);
+        player.sendMessage(`§2Kicked ${target.name}.`);
     } catch (e) {
-        player.sendMessage(`§cFailed to kick player: ${e}`);
+        player.sendMessage(`§4Failed to kick player: ${e}`);
     }
     return showPanel(player, 'playerActionsPanel', context);
 }
@@ -103,7 +103,7 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
     if (!targetId) return;
     const targetData = getPlayer(targetId);
     if (!targetData) {
-        player.sendMessage('§cPlayer data not found.');
+        player.sendMessage('§4Player data not found.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
@@ -122,7 +122,7 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
     const durationMins = parseInt(durationStr);
 
     if (isNaN(durationMins) || durationMins <= 0) {
-        player.sendMessage('§cInvalid duration.');
+        player.sendMessage('§4Invalid duration.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
@@ -133,10 +133,10 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
         reason
     });
 
-    player.sendMessage(`§aMuted ${targetData.name} for ${durationMins} minutes.`);
+    player.sendMessage(`§2Muted ${targetData.name} for ${durationMins} minutes.`);
     const target = getPlayerFromCache(targetId);
     if (target) {
-        target.sendMessage(`§cYou have been muted for ${durationMins} minutes. Reason: ${reason}`);
+        target.sendMessage(`§4You have been muted for ${durationMins} minutes. Reason: ${reason}`);
     }
     return showPanel(player, 'playerActionsPanel', context);
 }
@@ -147,16 +147,16 @@ async function unmutePlayer(player: mc.Player, context: UIContext) {
 
     const punishment = punishmentManager.getPunishment(targetId);
     if (!punishment || punishment.type !== 'mute') {
-        player.sendMessage('§cPlayer is not muted.');
+        player.sendMessage('§4Player is not muted.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
     punishmentManager.removePunishment(targetId);
-    player.sendMessage(`§aUnmuted player.`);
+    player.sendMessage(`§2Unmuted player.`);
 
     const target = getPlayerFromCache(targetId);
     if (target) {
-        target.sendMessage('§aYou have been unmuted.');
+        target.sendMessage('§2You have been unmuted.');
     }
     return showPanel(player, 'playerActionsPanel', context);
 }
@@ -166,7 +166,7 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     if (!targetId) return;
     const targetData = getPlayer(targetId);
     if (!targetData) {
-        player.sendMessage('§cPlayer data not found.');
+        player.sendMessage('§4Player data not found.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
@@ -185,7 +185,7 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     const durationHours = parseInt(durationStr);
 
     if (isNaN(durationHours) || durationHours < 0) {
-        player.sendMessage('§cInvalid duration.');
+        player.sendMessage('§4Invalid duration.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
@@ -204,12 +204,12 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     if (target) {
         // Kick immediately
         try {
-            await player.dimension.runCommand(`kick "${target.name}" §cYou have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`);
+            await player.dimension.runCommand(`kick "${target.name}" §4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`);
         } catch {
             // Ignore if kick fails (player might have left)
         }
     }
-    player.sendMessage(`§aBanned ${targetData.name}.`);
+    player.sendMessage(`§2Banned ${targetData.name}.`);
     return showPanel(player, 'playerActionsPanel', context);
 }
 
@@ -219,14 +219,14 @@ async function freezePlayer(player: mc.Player, context: UIContext) {
     const target = getPlayerFromCache(targetId);
 
     if (!target) {
-        player.sendMessage('§cPlayer is offline.');
+        player.sendMessage('§4Player is offline.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
     // Set a tag or freeze property
     target.addTag('frozen');
-    target.sendMessage('§cYou have been frozen by a moderator.');
-    player.sendMessage(`§aFrozen ${target.name}.`);
+    target.sendMessage('§4You have been frozen by a moderator.');
+    player.sendMessage(`§2Frozen ${target.name}.`);
     return showPanel(player, 'playerActionsPanel', context);
 }
 
@@ -236,13 +236,13 @@ async function unfreezePlayer(player: mc.Player, context: UIContext) {
     const target = getPlayerFromCache(targetId);
 
     if (!target) {
-        player.sendMessage('§cPlayer is offline.');
+        player.sendMessage('§4Player is offline.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
     target.removeTag('frozen');
-    target.sendMessage('§aYou have been unfrozen.');
-    player.sendMessage(`§aUnfrozen ${target.name}.`);
+    target.sendMessage('§2You have been unfrozen.');
+    player.sendMessage(`§2Unfrozen ${target.name}.`);
     return showPanel(player, 'playerActionsPanel', context);
 }
 
@@ -251,7 +251,7 @@ async function tpaPlayer(player: mc.Player, context: UIContext) {
     if (!targetId) return;
     const target = getPlayerFromCache(targetId);
     if (!target) {
-        player.sendMessage('§cPlayer is offline.');
+        player.sendMessage('§4Player is offline.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
@@ -265,7 +265,7 @@ async function tpaherePlayer(player: mc.Player, context: UIContext) {
     if (!targetId) return;
     const target = getPlayerFromCache(targetId);
     if (!target) {
-        player.sendMessage('§cPlayer is offline.');
+        player.sendMessage('§4Player is offline.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
@@ -279,7 +279,7 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
     if (!targetId) return;
     const targetData = getPlayer(targetId);
     if (!targetData) {
-        player.sendMessage('§cPlayer data not found.');
+        player.sendMessage('§4Player data not found.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
@@ -295,12 +295,12 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
 
     const [reason] = values as [string];
     if (!reason) {
-        player.sendMessage('§cReason is required.');
+        player.sendMessage('§4Reason is required.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
     reportManager.createReport(player, targetId, targetData.name, reason);
-    player.sendMessage('§aReport sent successfully. Admins have been notified.');
+    player.sendMessage('§2Report sent successfully. Admins have been notified.');
     return showPanel(player, 'playerActionsPanel', context);
 }
 
@@ -327,19 +327,19 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
     const amount = parseInt(amountStr);
 
     if (isNaN(amount) || amount <= 0) {
-        player.sendMessage('§cInvalid amount.');
+        player.sendMessage('§4Invalid amount.');
         return showPanel(player, 'bountyActionsPanel', context);
     }
 
     if (myData.balance < amount) {
-        player.sendMessage(`§cInsufficient funds. You have ${utils.formatCurrency(myData.balance)}.`);
+        player.sendMessage(`§4Insufficient funds. You have ${utils.formatCurrency(myData.balance)}.`);
         return showPanel(player, 'bountyActionsPanel', context);
     }
 
     // Deduct money and set bounty
     updatePlayerData(player.id, (d) => { d.balance -= amount; });
     bountyManager.incrementBounty(targetId, amount);
-    player.sendMessage(`§aAdded bounty of ${utils.formatCurrency(amount)} to ${targetData?.name}.`);
+    player.sendMessage(`§2Added bounty of ${utils.formatCurrency(amount)} to ${targetData?.name}.`);
 
     // Announce?
     // Using simple boolean check directly as modules type is dynamic
@@ -356,7 +356,7 @@ async function removePlayerBounty(player: mc.Player, context: UIContext) {
     if (!targetId) return;
 
     bountyManager.removeBounty(targetId);
-    player.sendMessage('§aBounty removed.');
+    player.sendMessage('§2Bounty removed.');
     return showPanel(player, 'bountyActionsPanel', context);
 }
 
@@ -365,7 +365,7 @@ async function assignReport(player: mc.Player, context: UIContext) {
     if (!report) return;
 
     reportManager.assignReport(report.id, player.id);
-    player.sendMessage('§aReport assigned to you.');
+    player.sendMessage('§2Report assigned to you.');
     // Refresh the panel
     showPanel(player, 'reportActionsPanel', context);
 }
@@ -375,7 +375,7 @@ async function resolveReport(player: mc.Player, context: UIContext) {
     if (!report) return;
 
     reportManager.resolveReport(report.id);
-    player.sendMessage('§aReport marked as resolved.');
+    player.sendMessage('§2Report marked as resolved.');
     // Go back to list
     showPanel(player, 'reportListPanel', context);
 }
@@ -385,7 +385,7 @@ async function clearReport(player: mc.Player, context: UIContext) {
     if (!report) return;
 
     reportManager.clearReport(report.id);
-    player.sendMessage('§aReport cleared.');
+    player.sendMessage('§2Report cleared.');
     showPanel(player, 'reportListPanel', context);
 }
 
@@ -407,12 +407,12 @@ async function showUnbanForm(player: mc.Player, context: UIContext) {
     const targetId = getPlayerIdByName(name);
 
     if (!targetId) {
-        player.sendMessage('§cPlayer not found in database.');
+        player.sendMessage('§4Player not found in database.');
         return showPanel(player, 'moderationPanel', context);
     }
 
     punishmentManager.removePunishment(targetId);
-    player.sendMessage(`§aUnbanned ${name}.`);
+    player.sendMessage(`§2Unbanned ${name}.`);
     return showPanel(player, 'moderationPanel', context);
 }
 
@@ -432,11 +432,11 @@ async function showUnmuteForm(player: mc.Player, context: UIContext) {
     const targetId = getPlayerIdByName(name);
 
     if (!targetId) {
-        player.sendMessage('§cPlayer not found in database.');
+        player.sendMessage('§4Player not found in database.');
         return showPanel(player, 'moderationPanel', context);
     }
 
     punishmentManager.removePunishment(targetId);
-    player.sendMessage(`§aUnmuted ${name}.`);
+    player.sendMessage(`§2Unmuted ${name}.`);
     return showPanel(player, 'moderationPanel', context);
 }

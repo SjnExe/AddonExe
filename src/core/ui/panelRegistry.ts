@@ -89,7 +89,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'moderation',
-                text: '§cModeration', // Red
+                text: '§4Moderation', // Red
                 icon: 'textures/ui/hammer_l.png',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -639,7 +639,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [] // Dynamically built in panelBuilder.js
     },
     xrayOresPanel: {
-        title: '§l§cX-Ray Ores§r',
+        title: '§l§4X-Ray Ores§r',
         parentPanelId: 'configCategoryPanel',
         items: [
             {
