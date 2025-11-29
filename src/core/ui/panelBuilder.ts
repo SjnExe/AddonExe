@@ -76,62 +76,81 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
         const pData = getOrCreatePlayer(player);
         const rank = rankManager.getPlayerRank(player, config);
         if (!pData || !rank) {
-            form.body('§cCould not retrieve your stats.');
+            form.body('§4Could not retrieve your stats.');
             return;
         }
         const bounty = bountyManager.getBounty(player.id)?.amount ?? 0;
         const { getTeamByPlayer } = await import('../teamManager.js');
         const team = getTeamByPlayer(player.id);
-        const teamName = team ? `§b${team.name}` : '§7None';
+        const teamName = team ? `§3${team.name}` : '§8None';
 
         form.body(
             [
-                `§fRank: §r${rank.chatFormatting?.nameColor ?? '§7'}${rank.name}`,
-                `§fTeam: ${teamName}`,
-                `§fBalance: §2${formatCurrency(pData.balance)}`,
-                `§fBounty on you: §6${formatCurrency(bounty)}`
+                `§8Rank: §r${rank.chatFormatting?.nameColor ?? '§8'}${rank.name}`,
+                `§8Team: ${teamName}`,
+                `§8Balance: §2${formatCurrency(pData.balance)}`,
+                `§8Bounty on you: §6${formatCurrency(bounty)}`
             ].join('\n')
         );
     } else if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
         const pData = context.targetData || loadPlayerData(context.targetPlayerId);
         if (!pData) {
-            form.body('§cCould not load player data.');
+            form.body('§4Could not load player data.');
             return;
         }
         const rank = rankManager.getRankById(pData.rankId);
         const bounty = bountyManager.getBounty(context.targetPlayerId)?.amount ?? 0;
         form.body(
             [
-                `§fRank: §r${rank?.chatFormatting?.nameColor ?? '§7'}${rank?.name ?? 'Unknown'}`,
-                `§fBalance: §2${formatCurrency(pData.balance)}`,
-                `§fBounty: §6${formatCurrency(bounty)}`
+                `§8Rank: §r${rank?.chatFormatting?.nameColor ?? '§8'}${rank?.name ?? 'Unknown'}`,
+                `§8Balance: §2${formatCurrency(pData.balance)}`,
+                `§8Bounty: §6${formatCurrency(bounty)}`
             ].join('\n')
         );
     } else if (panelId === 'reportActionsPanel' && context.targetReport) {
         const { targetReport } = context;
         form.body(
             [
-                `§fReport ID: §6${targetReport.id}`,
-                `§fReported Player: §6${targetReport.reportedPlayerName}`,
-                `§fReporter: §6${targetReport.reporterName}`,
-                `§fReason: §6${targetReport.reason}`,
-                `§fStatus: §6${targetReport.status}`,
-                `§fDate: §6${new Date(targetReport.timestamp).toLocaleString()}`
+                `§8Report ID: §6${targetReport.id}`,
+                `§8Reported Player: §6${targetReport.reportedPlayerName}`,
+                `§8Reporter: §6${targetReport.reporterName}`,
+                `§8Reason: §6${targetReport.reason}`,
+                `§8Status: §6${targetReport.status}`,
+                `§8Date: §6${new Date(targetReport.timestamp).toLocaleString()}`
             ].join('\n')
         );
     }
 }
 
-export function getVisiblePlayerActionItems(context: UIContext, permissionLevel: number) {
+export function getVisiblePlayerActionItems(context: UIContext, permissionLevel: number, viewerId?: string) {
     const panelDef = panelDefinitions.playerActionsPanel;
     const config = getConfig();
     const menuItems = getMenuItems(panelDef, permissionLevel);
     const visibleItems: PanelItem[] = [];
+
+    const isSelf = viewerId && context.targetPlayerId === viewerId;
+    const selfDisabledActions = [
+        'kick',
+        'ban',
+        'mute',
+        'unmute',
+        'freeze',
+        'unfreeze',
+        'tpa',
+        'tpahere',
+        'report'
+    ];
+
     for (const item of menuItems) {
         if (item.id === '__back__') {
             visibleItems.push(item);
             continue;
         }
+
+        if (isSelf && selfDisabledActions.includes(item.id)) {
+            continue;
+        }
+
         const commandName = item.id;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((config.commandSettings as any)[commandName]?.enabled === false) {
@@ -159,7 +178,7 @@ function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
         .sort();
 
     if (validCategories.length === 0) {
-        form.body('§cThe shop is currently empty.');
+        form.body('§4The shop is currently empty.');
         return;
     }
 
@@ -175,7 +194,7 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
     const category = shopConfig.categories[categoryName ?? ''];
 
     if (!category) {
-        form.body('§cCategory not found.');
+        form.body('§4Category not found.');
         return;
     }
 
@@ -189,7 +208,7 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
 
     for (const entry of paginatedEntries) {
         if ('items' in entry) {
-            form.button(`§e${entry.name}`, entry.icon);
+            form.button(`§6${entry.name}`, entry.icon);
         } else {
             const masterItem = (allItems as Record<string, Item>)[entry.id] || {};
             const displayName = entry.displayName || masterItem.displayName || entry.id;
@@ -198,10 +217,10 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
             if (view === 'buy' && (entry.buyPrice || 0) > 0) {
                 priceString = `§2Buy: ${formatCurrency(entry.buyPrice)}`;
             } else if (view === 'sell' && (entry.sellPrice || 0) > 0) {
-                priceString = `§cSell: ${formatCurrency(entry.sellPrice)}`;
+                priceString = `§4Sell: ${formatCurrency(entry.sellPrice)}`;
             } else {
                 const buy = (entry.buyPrice || 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
-                const sell = (entry.sellPrice || 0) > 0 ? `§cS: ${formatCurrency(entry.sellPrice)}` : '';
+                const sell = (entry.sellPrice || 0) > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
                 priceString = [buy, sell].filter(Boolean).join(' ');
             }
             form.button(`${displayName}\n${priceString}`, icon);
@@ -215,12 +234,12 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
     const shopConfig = getShopConfig() as ShopConfig;
     const category = shopConfig.categories[categoryName ?? ''];
     if (!category) {
-        form.body('§cCategory not found.');
+        form.body('§4Category not found.');
         return;
     }
     const subCategory = category.subCategories[subCategoryName ?? ''];
     if (!subCategory) {
-        form.body('§cSubcategory not found.');
+        form.body('§4Subcategory not found.');
         return;
     }
 
@@ -235,10 +254,10 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
         if (view === 'buy' && item.buyPrice > 0) {
             priceString = `§2Buy: ${formatCurrency(item.buyPrice)}`;
         } else if (view === 'sell' && item.sellPrice > 0) {
-            priceString = `§cSell: ${formatCurrency(item.sellPrice)}`;
+            priceString = `§4Sell: ${formatCurrency(item.sellPrice)}`;
         } else {
             const buy = item.buyPrice > 0 ? `§2B: ${formatCurrency(item.buyPrice)}` : '';
-            const sell = item.sellPrice > 0 ? `§cS: ${formatCurrency(item.sellPrice)}` : '';
+            const sell = item.sellPrice > 0 ? `§4S: ${formatCurrency(item.sellPrice)}` : '';
             priceString = [buy, sell].filter(Boolean).join(' ');
         }
         form.button(`${displayName}\n${priceString}`, icon);
@@ -253,7 +272,7 @@ function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
     const isEnabled = mainConfig.shop.enabled;
-    const toggleText = isEnabled ? '§2Shop System: ENABLED' : '§cShop System: DISABLED';
+    const toggleText = isEnabled ? '§2Shop System: ENABLED' : '§4Shop System: DISABLED';
     form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
 
     form.button('§l§2+ Add Category', 'textures/ui/color_plus');
@@ -281,7 +300,7 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
     const category = shopConfig.categories[categoryName ?? ''];
 
     if (!category) {
-        form.body('§cCategory not found.');
+        form.body('§4Category not found.');
         return;
     }
 
@@ -296,7 +315,7 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
     for (const entry of paginatedEntries) {
         if ('items' in entry) {
             // subCategory
-            form.button(`§e${entry.name}`, entry.icon);
+            form.button(`§6${entry.name}`, entry.icon);
         } else {
             const masterItem = (allItems as Record<string, Item>)[entry.id] || {};
             const displayName = entry.displayName || masterItem.displayName || entry.id;
@@ -317,12 +336,12 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
     const shopConfig = getShopConfig() as ShopConfig;
     const category = shopConfig.categories[categoryName ?? ''];
     if (!category) {
-        form.body('§cCategory not found.');
+        form.body('§4Category not found.');
         return;
     }
     const subCategory = category.subCategories[subCategoryName ?? ''];
     if (!subCategory) {
-        form.body('§cSubcategory not found.');
+        form.body('§4Subcategory not found.');
         return;
     }
 
@@ -361,6 +380,8 @@ async function buildPlayerManagementForm(title: string, context: UIContext) {
 
     // Add Back button
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    // Add Search button
+    form.button('§l§2Search Player', 'textures/ui/magnifyingGlass');
 
     const allPlayersMap = getAllPlayerNameIdMap();
     const playerEntries = Array.from(allPlayersMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
@@ -372,7 +393,7 @@ async function buildPlayerManagementForm(title: string, context: UIContext) {
     }
 
     if (playerEntries.length === 0) {
-        form.body('§cNo player data found.');
+        form.body('§4No player data found.');
     } else {
         const { getTeamByPlayer } = await import('../teamManager.js');
         const paginatedEntries = getPaginatedItems(playerEntries, page);
@@ -380,10 +401,10 @@ async function buildPlayerManagementForm(title: string, context: UIContext) {
             const pData = loadPlayerData(id); // Load data for the player on the current page
             const rank = pData ? rankManager.getRankById(pData.rankId) : null;
             const prefix = rank?.chatFormatting?.prefixText ?? '';
-            const rankPrefix = prefix ? `§e[§r${prefix}§e]§r ` : '';
+            const rankPrefix = prefix ? `§6[§r${prefix}§6]§r ` : '';
             const properName = pData ? pData.name : lowerCaseName; // Fallback to lowercase name if data fails to load
             const team = getTeamByPlayer(id);
-            const teamSuffix = team ? `\n§e[§r${team.name}§e]` : '';
+            const teamSuffix = team ? `\n§6[§r${team.name}§6]` : '';
             form.button(`${rankPrefix}${properName}${teamSuffix}`);
         }
     }
@@ -402,6 +423,8 @@ async function buildPlayerListForm(title: string, context: UIContext) {
 
     // Add Back button
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
+    // Add Search button
+    form.button('§l§2Search Online Player', 'textures/ui/magnifyingGlass');
 
     const onlinePlayers = Array.from(mc.world.getAllPlayers()).sort((a, b) => a.name.localeCompare(b.name));
     const totalPages = Math.ceil(onlinePlayers.length / itemsPerPage);
@@ -412,7 +435,7 @@ async function buildPlayerListForm(title: string, context: UIContext) {
     }
 
     if (onlinePlayers.length === 0) {
-        form.body('§cNo players are currently online.');
+        form.body('§4No players are currently online.');
     } else {
         const { getTeamByPlayer } = await import('../teamManager.js');
         const paginatedPlayers = getPaginatedItems(onlinePlayers, page);
@@ -420,9 +443,9 @@ async function buildPlayerListForm(title: string, context: UIContext) {
         for (const player of paginatedPlayers) {
             const rank = rankManager.getPlayerRank(player, config);
             const prefix = rank?.chatFormatting?.prefixText ?? '';
-            const rankPrefix = prefix ? `§e[§r${prefix}§e]§r ` : '';
+            const rankPrefix = prefix ? `§6[§r${prefix}§6]§r ` : '';
             const team = getTeamByPlayer(player.id);
-            const teamSuffix = team ? `\n§e[§r${team.name}§e]` : '';
+            const teamSuffix = team ? `\n§6[§r${team.name}§6]` : '';
             form.button(`${rankPrefix}${player.name}${teamSuffix}`);
         }
     }
@@ -490,7 +513,7 @@ function buildReportListForm(title: string, context: UIContext) {
     } else {
         const paginatedReports = getPaginatedItems(reports, page);
         for (const report of paginatedReports) {
-            const statusColor = report.status === 'assigned' ? '§6' : '§c';
+            const statusColor = report.status === 'assigned' ? '§6' : '§4';
             form.button(
                 `[${statusColor}${report.status.toUpperCase()}§r] ${report.reportedPlayerName}\n§8Reported by: ${report.reporterName}`
             );
@@ -524,7 +547,7 @@ function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
     const allRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);
 
     if (allRanks.length === 0) {
-        form.body('§cNo ranks have been defined.');
+        form.body('§4No ranks have been defined.');
         return;
     }
 
@@ -548,7 +571,7 @@ function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
 
     // Add the global toggle button
     const isEnabled = mainConfig.kits.enabled;
-    const toggleText = isEnabled ? '§2Kit System: ENABLED' : '§cKit System: DISABLED';
+    const toggleText = isEnabled ? '§2Kit System: ENABLED' : '§4Kit System: DISABLED';
     form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
 
     // Add Create New Kit button
@@ -559,7 +582,7 @@ function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
     const kitNames = Object.keys(allKits);
 
     if (kitNames.length === 0) {
-        form.body('§cNo kits have been defined.');
+        form.body('§4No kits have been defined.');
         return;
     }
 
@@ -567,7 +590,7 @@ function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
 
     for (const kitName of paginatedKits) {
         const kit = allKits[kitName];
-        const status = kit.enabled ? '§2[Enabled]' : '§c[Disabled]';
+        const status = kit.enabled ? '§2[Enabled]' : '§4[Disabled]';
         form.button(`${kitName}\n${status}`, 'textures/ui/inventory_icon');
     }
 
@@ -586,18 +609,18 @@ function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
         .sort();
 
     if (allCommands.length === 0) {
-        form.body('§cNo commands are available for configuration.');
+        form.body('§4No commands are available for configuration.');
         return;
     }
 
     const paginatedCommands = getPaginatedItems(allCommands, page);
 
-    form.body('Toggle commands on or off.\n§2[Enabled]§r / §c[Disabled]§r');
+    form.body('Toggle commands on or off.\n§2[Enabled]§r / §4[Disabled]§r');
 
     for (const commandName of paginatedCommands) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const isEnabled = (commandSettings as any)[commandName]?.enabled ?? false;
-        const statusText = isEnabled ? '§2[Enabled]' : '§c[Disabled]';
+        const statusText = isEnabled ? '§2[Enabled]' : '§4[Disabled]';
         form.button(`${commandName}\n${statusText}`);
     }
 
@@ -678,7 +701,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 .button('Edit', 'textures/ui/icon_setting')
                 .button('Respawn', 'textures/ui/refresh_light')
                 .button('Despawn', 'textures/ui/cancel')
-                .button('§cDelete', 'textures/ui/trash')
+                .button('§4Delete', 'textures/ui/trash')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
             return form;
         }
@@ -711,10 +734,10 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
                 form.button('§l§3Team Members', 'textures/ui/icon_multiplayer');
                 if (isOwnerOrAdmin) {
-                    form.button('§l§cManage Team', 'textures/ui/op');
+                    form.button('§l§4Manage Team', 'textures/ui/op');
                 }
-                form.button('§l§eTeam Settings', 'textures/ui/icon_setting');
-                form.button('§cLeave Team', 'textures/ui/cancel');
+                form.button('§l§6Team Settings', 'textures/ui/icon_setting');
+                form.button('§4Leave Team', 'textures/ui/cancel');
             } else {
                 // No Team
                 form.button(
@@ -736,6 +759,12 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'teamSearchPanel') {
             const form = new ModalFormData().title('Search Team');
             form.textField('Team ID', 'Enter the numeric Team ID');
+            return form;
+        }
+
+        if (panelId === 'playerSearchPanel') {
+            const form = new ModalFormData().title('Search Player');
+            form.textField('Player Name', 'Enter partial or full name');
             return form;
         }
 
@@ -765,7 +794,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const { getTeamByPlayer } = await import('../teamManager.js');
             const team = getTeamByPlayer(player.id);
             if (!team) {
-                player.sendMessage('§cYou are not in a team.');
+                player.sendMessage('§4You are not in a team.');
                 return null;
             }
 
@@ -778,12 +807,12 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 const name = memData ? memData.name : 'Unknown';
                 let role = 'Member';
                 if (team.ownerId === memberId) {
-                    role = '§cOwner';
+                    role = '§4Owner';
                 } else if (team.admins.includes(memberId)) {
                     role = '§2Admin';
                 }
 
-                let status = '§7(Offline)';
+                let status = '§8(Offline)';
                 // Note: This is O(n) per member, assuming team size is small (<10) it's fine.
                 // For larger lists, a cache lookup is better.
                 const onlineP = mc.world.getAllPlayers().find((p) => p.id === memberId);
@@ -816,7 +845,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             for (const team of paginatedTeams) {
                 const ownerData = loadPlayerData(team.ownerId);
                 const ownerName = ownerData ? ownerData.name : 'Unknown';
-                form.button(`${team.name} §7(ID: ${team.id})\n§rOwner: ${ownerName} | Members: ${team.members.length}`);
+                form.button(`${team.name} §8(ID: ${team.id})\n§rOwner: ${ownerName} | Members: ${team.members.length}`);
             }
 
             addPaginationButtons(form, page, teams.length);
@@ -834,9 +863,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             } else {
                 for (const invite of invites) {
                     const date = new Date(invite.timestamp).toLocaleDateString();
-                    form.button(`${invite.teamName}\n§7Received: ${date}`);
+                    form.button(`${invite.teamName}\n§8Received: ${date}`);
                 }
-                form.button('§cDeny All Invites', 'textures/ui/cancel');
+                form.button('§4Deny All Invites', 'textures/ui/cancel');
             }
             return form;
         }
@@ -869,16 +898,16 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             if (isOwner || isAdmin || isServerAdmin) {
                 form.button('§l§2Invite Player', 'textures/ui/color_plus');
-                form.button(`§l§eJoin Requests §r(${team.applications.length})`, 'textures/ui/mail_icon');
-                form.button('§l§bManage Members', 'textures/ui/icon_multiplayer');
+                form.button(`§l§6Join Requests §r(${team.applications.length})`, 'textures/ui/mail_icon');
+                form.button('§l§3Manage Members', 'textures/ui/icon_multiplayer');
             }
 
             if (isOwner || isAdmin) {
-                form.button('§l§dTeam Home', 'textures/ui/icon_recipe_nature');
+                form.button('§l§5Team Home', 'textures/ui/icon_recipe_nature');
             }
 
             if (isOwner || isServerAdmin) {
-                form.button('§l§cDelete Team', 'textures/ui/trash');
+                form.button('§l§4Delete Team', 'textures/ui/trash');
             }
             return form;
         }
@@ -901,16 +930,16 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 const { x, y, z, dimensionId } = team.home;
                 const dim = dimensionId.replace('minecraft:', '');
                 const coords = `${x.toFixed(0)}, ${y.toFixed(0)}, ${z.toFixed(0)} (${dim})`;
-                form.body(`Home Location:\n§a${coords}`);
+                form.body(`Home Location:\n§2${coords}`);
                 form.button('§l§2Teleport', 'textures/items/ender_pearl');
             } else {
-                form.body('§cNo team home set.');
+                form.body('§4No team home set.');
             }
 
             if (canManage) {
-                form.button('§l§eUpdate Location', 'textures/ui/icon_recipe_nature');
+                form.button('§l§6Update Location', 'textures/ui/icon_recipe_nature');
                 if (team.home) {
-                    form.button('§l§cDelete Home', 'textures/ui/trash');
+                    form.button('§l§4Delete Home', 'textures/ui/trash');
                 }
             }
             return form;
@@ -977,7 +1006,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData()
                 .title(`Manage Category: ${categoryName}`)
                 .button('Edit', 'textures/ui/icon_setting')
-                .button('§cDelete', 'textures/ui/trash')
+                .button('§4Delete', 'textures/ui/trash')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
             return form;
         }
@@ -994,7 +1023,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData()
                 .title(`Manage Subcategory: ${subCategoryName}`)
                 .button('Edit', 'textures/ui/icon_setting')
-                .button('§cDelete', 'textures/ui/trash')
+                .button('§4Delete', 'textures/ui/trash')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
             return form;
         }
@@ -1061,7 +1090,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData()
                 .title(`Manage Rank: ${rank?.name}`)
                 .button('Edit Rank', 'textures/ui/icon_setting')
-                .button('§cDelete Rank', 'textures/ui/trash')
+                .button('§4Delete Rank', 'textures/ui/trash')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
             return form;
         }
@@ -1179,7 +1208,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 .button('Edit', 'textures/ui/editIcon')
                 .button('Move Up', 'textures/gui/controls/up')
                 .button('Move Down', 'textures/gui/controls/down')
-                .button('§cDelete Link', 'textures/ui/trash')
+                .button('§4Delete Link', 'textures/ui/trash')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
             return form;
         }
@@ -1190,7 +1219,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 .title(`Manage Kit: ${kitName}`)
                 .button('Edit Settings', 'textures/ui/icon_setting')
                 .button('Edit Items', 'textures/ui/inventory_icon')
-                .button('§cDelete Kit', 'textures/ui/cancel')
+                .button('§4Delete Kit', 'textures/ui/cancel')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
             return form;
         }
@@ -1226,7 +1255,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         const pData = getPlayer(player.id);
         if (!pData) {
             debugLog(`[UIManager] Player data not found for ${player.name} (viewer). Cannot build panel.`);
-            player.sendMessage('§cCould not find your player data. Please rejoin and try again.');
+            player.sendMessage('§4Could not find your player data. Please rejoin and try again.');
             return null;
         }
         let title = panelDef.title.replace('{playerName}', context.targetPlayerName ?? '');
@@ -1253,8 +1282,13 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const page = context.page || 1;
             const form = new ActionFormData().title(`${title} (Page ${page})`);
             const rules = rulesManager.getRules();
+
+            const isAdmin = pData.permissionLevel <= 1;
+
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            form.button('§l§2+ Add Rule', 'textures/ui/color_plus');
+            if (isAdmin) {
+                form.button('§l§2+ Add Rule', 'textures/ui/color_plus');
+            }
 
             const paginatedRules = getPaginatedItems(rules, page);
 
@@ -1285,7 +1319,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 .button('Edit Text', 'textures/ui/editIcon')
                 .button('Move Up', 'textures/gui/controls/up')
                 .button('Move Down', 'textures/gui/controls/down')
-                .button('§cDelete Rule', 'textures/ui/trash')
+                .button('§4Delete Rule', 'textures/ui/trash')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
             return form;
         }
@@ -1356,8 +1390,8 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData()
                 .title(`Edit: ${mobId}`)
                 .body(`Current amount: §2${formatCurrency(currentAmount)}`)
-                .button('§l§eEdit Amount§r', 'textures/ui/icon_setting')
-                .button('§l§cDelete Mob Drop§r', 'textures/ui/trash')
+                .button('§l§6Edit Amount§r', 'textures/ui/icon_setting')
+                .button('§l§4Delete Mob Drop§r', 'textures/ui/trash')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
             return form;
         }
@@ -1386,7 +1420,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const mobIds = Object.keys(mobDrops).sort();
 
             if (mobIds.length === 0) {
-                form.body('§cNo mob drops have been configured.');
+                form.body('§4No mob drops have been configured.');
                 return form;
             }
 
@@ -1457,14 +1491,14 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             } else {
                 for (const ore of ores) {
                     const blockId = ore.blocks?.[0]?.blockId ?? 'Unknown';
-                    form.button(`§e${ore.oreName}§r\n§7${blockId}`);
+                    form.button(`§6${ore.oreName}§r\n§8${blockId}`);
                 }
             }
             return form;
         }
 
         if (panelId === 'addXrayOrePanel') {
-            const form = new ModalFormData().title('§l§cAdd Monitored Ore');
+            const form = new ModalFormData().title('§l§4Add Monitored Ore');
             form.textField('Block ID', 'e.g., minecraft:diamond_ore');
             form.textField('Dimension ID', 'e.g., minecraft:overworld');
             form.textField('Min Y', 'e.g., -64');
@@ -1479,7 +1513,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 a.oreName.localeCompare(b.oreName)
             );
             const ore = ores[context.oreIndex ?? 0];
-            const form = new ModalFormData().title('§l§cEdit Monitored Ore');
+            const form = new ModalFormData().title('§l§4Edit Monitored Ore');
             const blockId = ore.blocks?.[0]?.blockId ?? '';
             const dimensionId = ore.blocks?.[0]?.dimensionId ?? '';
             const minY = ore.blocks?.[0]?.minY ?? -64;
@@ -1518,7 +1552,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 ...configPanelSchema
                     .filter((c) => !c.id.startsWith('general_'))
                     .map((c) => ({ id: c.id, title: c.title, icon: c.icon })),
-                { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
+                { id: 'kits', title: '§l§5Kit System§r', icon: 'textures/ui/inventory_icon' },
                 { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
                 { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
             ];
@@ -1529,11 +1563,11 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const paginatedSystems = getPaginatedItems(sortedSystems, page);
 
             for (const system of paginatedSystems) {
-                form.button(`§cReset ${system.title}`, system.icon);
+                form.button(`§4Reset ${system.title}`, system.icon);
             }
 
             if (page >= Math.ceil(resettableSystems.length / itemsPerPage)) {
-                form.button('§l§cReset All Systems', 'textures/ui/trash');
+                form.button('§l§4Reset All Systems', 'textures/ui/trash');
             }
 
             addPaginationButtons(form, page, resettableSystems.length);
@@ -1545,24 +1579,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData().title(title);
             addPanelBody(form, player, panelId, context);
 
-            const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel);
-            const isSelf = context.targetPlayerId === player.id;
-            const selfDisabledActions = [
-                'kick',
-                'ban',
-                'mute',
-                'unmute',
-                'freeze',
-                'unfreeze',
-                'tpa',
-                'tpahere',
-                'report'
-            ];
+            const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel, player.id);
 
             for (const item of visibleItems) {
-                if (isSelf && selfDisabledActions.includes(item.id)) {
-                    continue;
-                }
                 form.button(item.text, item.icon);
             }
             return form;

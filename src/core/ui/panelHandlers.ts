@@ -50,7 +50,7 @@ export async function handleFormResponse(
         // Specific case for playerActionsPanel which has dynamic visibility logic
         let items: PanelItem[] = [];
         if (panelId === 'playerActionsPanel') {
-             items = getVisiblePlayerActionItems(context, pData.permissionLevel);
+             items = getVisiblePlayerActionItems(context, pData.permissionLevel, player.id);
         } else {
              items = getMenuItems(panelDef, pData.permissionLevel);
         }
@@ -103,11 +103,11 @@ export async function handleFormResponse(
                         return showPanel(player, 'floatingTextEditPanel', context);
                     case 1: // Respawn
                         await floatingTextManager.respawnText(id);
-                        player.sendMessage(`§aRespawned floating text: ${id}`);
+                        player.sendMessage(`§2Respawned floating text: ${id}`);
                         break;
                     case 2: // Despawn
                         await floatingTextManager.despawnText(id);
-                        player.sendMessage(`§aDespawned floating text: ${id}`);
+                        player.sendMessage(`§2Despawned floating text: ${id}`);
                         break;
                     case 3: // Delete
                         await floatingTextManager.deleteText(player, id);
@@ -117,7 +117,7 @@ export async function handleFormResponse(
                 }
             } catch (error) {
                 errorLog(`[UIManager] Error in floatingTextActionPanel for ID '${id}':`, error);
-                player.sendMessage('§cAn error occurred. Please check the logs.');
+                player.sendMessage('§4An error occurred. Please check the logs.');
             }
             // Always refresh the list panel, even on error or 'Back'
             return showPanel(player, 'floatingTextListPanel', context);
@@ -190,12 +190,13 @@ export async function handleFormResponse(
     if (panelId === 'playerListPanel') {
         const page = context.page || 1;
         if (typeof selection !== 'number') return;
-        if (selection === 0) return showPanel(player, 'mainPanel', context);
+        if (selection === 0) return showPanel(player, 'infoPanel', context);
+        if (selection === 1) return showPanel(player, 'playerSearchPanel', { ...context, fromPanel: 'playerListPanel' });
 
         const onlinePlayers = Array.from(mc.world.getAllPlayers()).sort((a, b) => a.name.localeCompare(b.name));
 
         const hasPrev = page > 1;
-        let buttonIndex = selection - 1;
+        let buttonIndex = selection - 2;
 
         if (hasPrev) {
              if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
@@ -219,14 +220,15 @@ export async function handleFormResponse(
     if (panelId === 'playerManagementPanel') {
         const page = context.page || 1;
         if (typeof selection !== 'number') return;
-        if (selection === 0) return showPanel(player, 'mainPanel', context);
+        if (selection === 0) return showPanel(player, 'adminPanel', context);
+        if (selection === 1) return showPanel(player, 'playerSearchPanel', { ...context, fromPanel: 'playerManagementPanel' });
 
         const { getAllPlayerNameIdMap } = await import('../playerDataManager.js');
         const allPlayersMap = getAllPlayerNameIdMap();
         const playerEntries = Array.from(allPlayersMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
         const hasPrev = page > 1;
-        let buttonIndex = selection - 1;
+        let buttonIndex = selection - 2;
 
         if (hasPrev) {
              if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
@@ -247,6 +249,49 @@ export async function handleFormResponse(
              return showPanel(player, panelId, { ...context, page: page + 1 });
         }
         return;
+    }
+
+    if (panelId === 'playerSearchPanel') {
+        if (canceled) {
+            const from = context.fromPanel || 'mainPanel';
+            return showPanel(player, from, context);
+        }
+        const values = (response as ModalFormResponse).formValues;
+        if (!values) return;
+
+        const [searchName] = values as string[];
+        if (!searchName) {
+             player.sendMessage('§4Search name is required.');
+             return showPanel(player, panelId, context);
+        }
+
+        const { getPlayerIdByName, getAllPlayerNameIdMap } = await import('../playerDataManager.js');
+        let targetId = getPlayerIdByName(searchName);
+        let targetName = searchName;
+
+        if (!targetId) {
+             const allPlayers = getAllPlayerNameIdMap();
+             const searchLower = searchName.toLowerCase();
+             for (const [name, id] of allPlayers.entries()) {
+                 if (name.includes(searchLower)) {
+                     targetId = id;
+                     const targetData = loadPlayerData(id);
+                     targetName = targetData ? targetData.name : name;
+                     break;
+                 }
+             }
+        }
+
+        if (targetId) {
+             return showPanel(player, 'playerActionsPanel', {
+                 ...context,
+                 targetPlayerId: targetId,
+                 targetPlayerName: targetName
+             });
+        } else {
+             player.sendMessage(`§4Player '${searchName}' not found.`);
+             return showPanel(player, panelId, context);
+        }
     }
 
     if (panelId === 'kitManagementPanel') {
@@ -388,15 +433,24 @@ export async function handleFormResponse(
 
         // Pagination
         const totalPages = Math.ceil(kit.items.length / itemsPerPage);
-        if (page < totalPages && buttonIndex === 0) {
-             return showPanel(player, panelId, { ...context, page: page + 1 });
-        }
-        // Back (Last button)
+        const hasPrev = page > 1;
         const hasNext = page < totalPages;
-        if ((!hasNext && buttonIndex === 0) || (hasNext && buttonIndex === 1)) {
+
+        if (hasPrev) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+             buttonIndex--;
+        }
+
+        if (hasNext) {
+             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
+             buttonIndex--;
+        }
+
+        // Back (Last button)
+        if (buttonIndex === 0) {
              return showPanel(player, `kitActionMenu_${kitName}`, context);
         }
-        return;
+        return showPanel(player, panelId, context);
     }
 
     if (panelId === 'commandSystemPanel') {
@@ -490,7 +544,7 @@ export async function handleFormResponse(
                  const rankDb = await import('../rankDb.js');
                  const result = rankDb.addRank({
                      id, name, permissionLevel: perm,
-                     chatFormatting: { nameColor: nameColor || '§7', messageColor: chatColor || '§r', prefixText: prefix || '' },
+                     chatFormatting: { nameColor: nameColor || '§8', messageColor: chatColor || '§r', prefixText: prefix || '' },
                      conditions: [{ type: 'hasTag', value: id }],
                      locked: false
                  });
@@ -591,19 +645,19 @@ export async function handleFormResponse(
                 // Leave
                 if (isOwner) {
                     player.sendMessage(
-                        '§cOwners cannot leave their team. You must transfer ownership or delete the team.'
+                        '§4Owners cannot leave their team. You must transfer ownership or delete the team.'
                     );
                 } else {
                     showConfirmationDialog(player, {
                         title: 'Leave Team',
                         body: 'Are you sure you want to leave the team?',
-                        confirmButtonText: '§cYes, Leave',
+                        confirmButtonText: '§4Yes, Leave',
                         cancelButtonText: 'No',
                         onConfirm: async () => {
                             const { kickMember } = await import('../teamManager.js');
                             // Kick self
                             kickMember(team.id, player.id);
-                            player.sendMessage('§aYou have left the team.');
+                            player.sendMessage('§2You have left the team.');
                             showPanel(player, 'teamMainPanel', context);
                         },
                         onCancel: () => showPanel(player, 'teamMainPanel', context)
@@ -634,13 +688,13 @@ export async function handleFormResponse(
 
         const [name] = values as string[];
         if (!name) {
-            player.sendMessage('§cTeam name is required.');
+            player.sendMessage('§4Team name is required.');
             return showPanel(player, panelId, context);
         }
 
         const { createTeam } = await import('../teamManager.js');
         const result = createTeam(player, name);
-        player.sendMessage(result.message || '§cUnknown error.');
+        player.sendMessage(result.message || '§4Unknown error.');
         return showPanel(player, 'teamMainPanel', context);
     }
 
@@ -670,7 +724,7 @@ export async function handleFormResponse(
         const [idStr] = values as string[];
         const teamId = parseInt(idStr);
         if (isNaN(teamId)) {
-            player.sendMessage('§cInvalid Team ID.');
+            player.sendMessage('§4Invalid Team ID.');
             return showPanel(player, panelId, context);
         }
 
@@ -678,18 +732,18 @@ export async function handleFormResponse(
         const { getTeam, applyToTeam } = await import('../teamManager.js');
         const team = getTeam(teamId);
         if (!team) {
-            player.sendMessage('§cTeam not found.');
+            player.sendMessage('§4Team not found.');
             return showPanel(player, panelId, context);
         }
 
         showConfirmationDialog(player, {
             title: `Apply to ${team.name}?`,
             body: `Do you want to send a join request to ${team.name}?`,
-            confirmButtonText: '§aApply',
+            confirmButtonText: '§2Apply',
             cancelButtonText: 'Cancel',
             onConfirm: () => {
                 const result = applyToTeam(player, teamId);
-                player.sendMessage(result.message || '§cUnknown error.');
+                player.sendMessage(result.message || '§4Unknown error.');
                 showPanel(player, 'teamJoinPanel', context);
             },
             onCancel: () => showPanel(player, 'teamJoinPanel', context)
@@ -713,7 +767,7 @@ export async function handleFormResponse(
         if (selection === denyAllIndex) {
             const { updatePlayerData } = await import('../playerDataManager.js');
             updatePlayerData(player.id, (d: PlayerData) => (d.pendingInvites = []));
-            player.sendMessage('§aCleared all pending invites.');
+            player.sendMessage('§2Cleared all pending invites.');
             return showPanel(player, panelId, context);
         }
 
@@ -726,8 +780,8 @@ export async function handleFormResponse(
 
             const form = new ActionFormData()
                 .title(`Invite: ${invite.teamName}`)
-                .button('§aAccept Invite', 'textures/ui/check')
-                .button('§cDeny Invite', 'textures/ui/cancel');
+                .button('§2Accept Invite', 'textures/ui/check')
+                .button('§4Deny Invite', 'textures/ui/cancel');
 
             const res = await utils.uiWait(player, form);
             if (!res.canceled) {
@@ -735,14 +789,14 @@ export async function handleFormResponse(
                 if (resSelection === 0) {
                     // Accept
                     const result = acceptInvite(player, invite.teamId);
-                    player.sendMessage(result.message || '§cUnknown error.');
+                    player.sendMessage(result.message || '§4Unknown error.');
                     if (result.success) {
                         return showPanel(player, 'teamMainPanel', context);
                     }
                 } else {
                     // Deny
                     const result = denyInvite(player.id, invite.teamId);
-                    player.sendMessage(result.message || '§cUnknown error.');
+                    player.sendMessage(result.message || '§4Unknown error.');
                 }
             }
             return showPanel(player, panelId, context);
@@ -771,11 +825,11 @@ export async function handleFormResponse(
             showConfirmationDialog(player, {
                 title: `Apply to ${team.name}?`,
                 body: `Do you want to send a join request to ${team.name}?`,
-                confirmButtonText: '§aApply',
+                confirmButtonText: '§2Apply',
                 cancelButtonText: 'Cancel',
                 onConfirm: () => {
                     const result = applyToTeam(player, team.id);
-                    player.sendMessage(result.message || '§cUnknown error.');
+                    player.sendMessage(result.message || '§4Unknown error.');
                     showPanel(player, panelId, context);
                 },
                 onCancel: () => showPanel(player, panelId, context)
@@ -836,12 +890,12 @@ export async function handleFormResponse(
             // Delete Team (Owner Only)
             showConfirmationDialog(player, {
                 title: 'Delete Team?',
-                body: '§cWARNING: This will disband the team and cannot be undone.',
-                confirmButtonText: '§cDELETE',
+                body: '§4WARNING: This will disband the team and cannot be undone.',
+                confirmButtonText: '§4DELETE',
                 cancelButtonText: 'Cancel',
                 onConfirm: () => {
                     deleteTeam(team.id);
-                    player.sendMessage('§aTeam deleted.');
+                    player.sendMessage('§2Team deleted.');
                     showPanel(player, 'mainPanel', {});
                 },
                 onCancel: () => showPanel(player, panelId, context)
@@ -878,9 +932,9 @@ export async function handleFormResponse(
                     : player.dimension;
                 if (targetDimension) {
                     player.teleport({ x, y, z }, { dimension: targetDimension });
-                    player.sendMessage('§aTeleported to team home.');
+                    player.sendMessage('§2Teleported to team home.');
                 } else {
-                    player.sendMessage('§cInvalid dimension for team home.');
+                    player.sendMessage('§4Invalid dimension for team home.');
                 }
                 return;
             }
@@ -891,7 +945,7 @@ export async function handleFormResponse(
             if (selection === btnIndex) {
                 // Update Location
                 setTeamHome(team.id, player.location, player.dimension.id);
-                player.sendMessage('§aTeam home updated to your current location.');
+                player.sendMessage('§2Team home updated to your current location.');
                 return showPanel(player, panelId, context);
             }
             btnIndex++;
@@ -900,7 +954,7 @@ export async function handleFormResponse(
                 if (selection === btnIndex) {
                     // Delete Home
                     deleteTeamHome(team.id);
-                    player.sendMessage('§aTeam home deleted.');
+                    player.sendMessage('§2Team home deleted.');
                     return showPanel(player, panelId, context);
                 }
             }
@@ -925,8 +979,8 @@ export async function handleFormResponse(
 
             const form = new ActionFormData()
                 .title(`App: ${app.playerName}`)
-                .button('§aAccept', 'textures/ui/check')
-                .button('§cDeny', 'textures/ui/cancel');
+                .button('§2Accept', 'textures/ui/check')
+                .button('§4Deny', 'textures/ui/cancel');
 
             const res = await utils.uiWait(player, form);
             if (!res.canceled) {
@@ -934,11 +988,11 @@ export async function handleFormResponse(
                 if (resSelection === 0) {
                     // Accept
                     const result = acceptApplication(team.id, app.playerId);
-                    player.sendMessage(result.message || '§cUnknown error.');
+                    player.sendMessage(result.message || '§4Unknown error.');
                 } else {
                     // Deny
                     const result = denyApplication(team.id, app.playerId);
-                    player.sendMessage(result.message || '§cUnknown error.');
+                    player.sendMessage(result.message || '§4Unknown error.');
                 }
             }
             return showPanel(player, panelId, context);
@@ -978,7 +1032,7 @@ export async function handleFormResponse(
             setTeamOpenStatus(team.id, allowRequests as boolean);
         }
 
-        player.sendMessage('§aSettings updated.');
+        player.sendMessage('§2Settings updated.');
         return showPanel(player, 'teamMainPanel', context);
     }
 
@@ -1016,7 +1070,7 @@ export async function handleFormResponse(
 
                 // Access control
                 if (isAdmin && (targetIsOwner || targetIsAdmin)) {
-                    player.sendMessage('§cYou cannot modify this member.');
+                    player.sendMessage('§4You cannot modify this member.');
                     return showPanel(player, panelId, context);
                 }
 
@@ -1042,16 +1096,16 @@ export async function handleFormResponse(
                 if (resSelection === 0) {
                     // Kick
                     const result = kickMember(team.id, memberId);
-                    player.sendMessage(result.message || '§cUnknown error.');
+                    player.sendMessage(result.message || '§4Unknown error.');
                 } else if (resSelection === 1) {
                     // Promote/Demote
                     if (isOwner) {
                         if (targetIsAdmin) {
                             const result = demoteMember(team.id, memberId);
-                            player.sendMessage(result.message || '§cUnknown error.');
+                            player.sendMessage(result.message || '§4Unknown error.');
                         } else {
                             const result = promoteMember(team.id, memberId);
-                            player.sendMessage(result.message || '§cUnknown error.');
+                            player.sendMessage(result.message || '§4Unknown error.');
                         }
                     }
                 } else if (resSelection === 2) {
@@ -1059,11 +1113,11 @@ export async function handleFormResponse(
                     showConfirmationDialog(player, {
                         title: 'Transfer Ownership?',
                         body: 'You will become a regular member.',
-                        confirmButtonText: '§cConfirm',
+                        confirmButtonText: '§4Confirm',
                         cancelButtonText: 'Cancel',
                         onConfirm: () => {
                             const result = transferOwnership(team.id, memberId);
-                            player.sendMessage(result.message || '§cUnknown error.');
+                            player.sendMessage(result.message || '§4Unknown error.');
                             showPanel(player, panelId, context);
                         },
                         onCancel: () => showPanel(player, panelId, context)
@@ -1073,7 +1127,7 @@ export async function handleFormResponse(
                 return showPanel(player, panelId, context);
             }
         }
-        return;
+        return showPanel(player, panelId, context);
     }
 
     if (panelId === 'xrayOresPanel') {
@@ -1124,7 +1178,7 @@ export async function handleFormResponse(
             saveXrayConfig(xrayConfig);
             player.sendMessage('§2Successfully added new monitored ore.');
         } else {
-            player.sendMessage('§cInvalid data. Please check all fields.');
+            player.sendMessage('§4Invalid data. Please check all fields.');
         }
         return showPanel(player, 'xrayOresPanel', context);
     }
@@ -1162,7 +1216,7 @@ export async function handleFormResponse(
                 player.sendMessage('§2Successfully updated monitored ore.');
             }
         } else {
-            player.sendMessage('§cInvalid data. Please check all fields.');
+            player.sendMessage('§4Invalid data. Please check all fields.');
         }
         return showPanel(player, 'xrayOresPanel', context);
     }
@@ -1196,7 +1250,7 @@ export async function handleFormResponse(
                 useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
         };
         floatingTextManager.updateText(id, updatedConfig);
-        player.sendMessage(`§aSuccessfully updated floating text: ${id}`);
+        player.sendMessage(`§2Successfully updated floating text: ${id}`);
         return showPanel(player, 'floatingTextActionPanel', context);
     }
 
@@ -1209,11 +1263,11 @@ export async function handleFormResponse(
 
         const [id, text] = values as string[];
         if (!id) {
-            player.sendMessage('§cID cannot be empty.');
+            player.sendMessage('§4ID cannot be empty.');
             return showPanel(player, 'floatingTextCreatePanel', context);
         }
         if (id.includes(' ')) {
-            player.sendMessage('§cID cannot contain spaces. Please use a single word.');
+            player.sendMessage('§4ID cannot contain spaces. Please use a single word.');
             return showPanel(player, 'floatingTextCreatePanel', context);
         }
         if (floatingTextManager.createText(player, id, text)) {
@@ -1228,16 +1282,21 @@ export async function handleFormResponse(
 
         // Back button
         if (selection === 0) {
-            return showPanel(player, 'mainPanel', context);
+            return showPanel(player, 'infoPanel', context);
         }
-        // "Add Rule" button
-        if (selection === 1) {
-            return showPanel(player, 'addRulePanel', context);
+
+        let offset = 1;
+        if (pData.permissionLevel <= 1) {
+            // "Add Rule" button
+            if (selection === 1) {
+                return showPanel(player, 'addRulePanel', context);
+            }
+            offset++;
         }
 
         const paginatedRules = getPaginatedItems(rules, page);
         if (typeof selection !== 'number') return;
-        const selectionIndex = selection - 2;
+        const selectionIndex = selection - offset;
 
         // Handle rule selection
         if (selectionIndex < paginatedRules.length) {
@@ -1290,16 +1349,21 @@ export async function handleFormResponse(
 
         // Back button
         if (selection === 0) {
-            return showPanel(player, 'mainPanel', context);
+            return showPanel(player, 'infoPanel', context);
         }
-        // Add Link button
-        if (selection === 1) {
-            return showPanel(player, 'addHelpfulLinkPanel', context);
+
+        let offset = 1;
+        if (pData.permissionLevel <= 1) {
+            // Add Link button
+            if (selection === 1) {
+                return showPanel(player, 'addHelpfulLinkPanel', context);
+            }
+            offset++;
         }
 
         const paginatedLinks = getPaginatedItems(links, page);
         if (typeof selection !== 'number') return;
-        const selectionIndex = selection - 2;
+        const selectionIndex = selection - offset;
 
         // Handle link selection
         if (selectionIndex < paginatedLinks.length) {
@@ -1381,9 +1445,9 @@ export async function handleFormResponse(
             case 3: {
                 // Delete Link
                 showConfirmationDialog(player, {
-                    title: '§cConfirm Deletion',
+                    title: '§4Confirm Deletion',
                     body: 'Are you sure you want to delete this link?',
-                    confirmButtonText: '§cYes, Delete',
+                    confirmButtonText: '§4Yes, Delete',
                     cancelButtonText: '§2No, Cancel',
                     onConfirm: () => {
                         helpfulLinksManager.deleteHelpfulLink(linkIndex);
@@ -1439,9 +1503,9 @@ export async function handleFormResponse(
             case 3: {
                 // Delete Rule
                 showConfirmationDialog(player, {
-                    title: '§cConfirm Deletion',
+                    title: '§4Confirm Deletion',
                     body: 'Are you sure you want to delete this rule?',
-                    confirmButtonText: '§cYes, Delete',
+                    confirmButtonText: '§4Yes, Delete',
                     cancelButtonText: '§2No, Cancel',
                     onConfirm: () => {
                         rulesManager.deleteRule(ruleIndex);
@@ -1578,7 +1642,7 @@ export async function handleFormResponse(
             ...configPanelSchema
                 .filter((c) => !c.id.startsWith('general_')) // General settings are not individually resettable via this panel
                 .map((c) => ({ id: c.id, title: c.title, icon: c.icon })),
-            { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
+            { id: 'kits', title: '§l§5Kit System§r', icon: 'textures/ui/inventory_icon' },
             { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
             { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
         ];
@@ -1599,7 +1663,7 @@ export async function handleFormResponse(
             showConfirmationDialog(player, {
                 title: `Confirm Reset: ${selectedSystem.title}`,
                 body: `This action cannot be undone. Are you sure you want to reset the ${selectedSystem.title} configuration to its default values?`,
-                confirmButtonText: '§cYes, Reset',
+                confirmButtonText: '§4Yes, Reset',
                 cancelButtonText: '§2No, Cancel',
                 onConfirm: async () => {
                     const finalConfirmForm = new ModalFormData()
@@ -1611,7 +1675,7 @@ export async function handleFormResponse(
                     const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
                     if (finalConfirmResponse.canceled) {
-                        player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                        player.sendMessage('§4Final confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
                     }
 
@@ -1620,7 +1684,7 @@ export async function handleFormResponse(
                         confirmModal.formValues && confirmModal.formValues[0] ? String(confirmModal.formValues[0]) : '';
 
                     if (confirmationValue.trim().toLowerCase() !== 'confirm') {
-                        player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                        player.sendMessage('§4Final confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
                     }
 
@@ -1629,7 +1693,7 @@ export async function handleFormResponse(
                         player.sendMessage(`§2${result.message}`);
                     } else {
                         player.sendMessage(
-                            '§cFailed to reset the configuration. Please check the console for details.'
+                            '§4Failed to reset the configuration. Please check the console for details.'
                         );
                         errorLog(
                             `[UIManager] Failed to reset config section '${selectedSystem.id}': ${result.message}`
@@ -1653,7 +1717,7 @@ export async function handleFormResponse(
             showConfirmationDialog(player, {
                 title: 'Confirm Reset All',
                 body: 'This action cannot be undone. Are you sure you want to reset ALL system configurations to their default values?',
-                confirmButtonText: '§cYes, Reset All',
+                confirmButtonText: '§4Yes, Reset All',
                 cancelButtonText: '§2No, Cancel',
                 onConfirm: async () => {
                     const finalConfirmForm = new ModalFormData()
@@ -1665,7 +1729,7 @@ export async function handleFormResponse(
                     const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
 
                     if (finalConfirmResponse.canceled) {
-                        player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                        player.sendMessage('§4Final confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
                     }
 
@@ -1674,7 +1738,7 @@ export async function handleFormResponse(
                         confirmModal.formValues && confirmModal.formValues[0] ? String(confirmModal.formValues[0]) : '';
 
                     if (confirmationValue.trim().toLowerCase() !== 'confirm') {
-                        player.sendMessage('§cFinal confirmation failed. Reset canceled.');
+                        player.sendMessage('§4Final confirmation failed. Reset canceled.');
                         return showPanel(player, 'configResetPanel', { ...context, page });
                     }
 
@@ -1683,7 +1747,7 @@ export async function handleFormResponse(
                         player.sendMessage(`§2${result.message}`);
                     } else {
                         player.sendMessage(
-                            '§cFailed to reset all configurations. Please check the console for details.'
+                            '§4Failed to reset all configurations. Please check the console for details.'
                         );
                         errorLog(`[UIManager] Failed to reset all config sections: ${result.message}`);
                     }
@@ -1792,7 +1856,7 @@ export async function handleFormResponse(
             const canSell = view !== 'buy' && shopItem.sellPrice > 0;
 
             if (!canBuy && !canSell) {
-                player.sendMessage('§cThis item cannot be bought or sold currently.');
+                player.sendMessage('§4This item cannot be bought or sold currently.');
                 return showPanel(player, panelId, context);
             }
 
@@ -1840,7 +1904,7 @@ export async function handleFormResponse(
             }
 
             if (isNaN(amount) || amount <= 0) {
-                player.sendMessage('§cInvalid amount.');
+                player.sendMessage('§4Invalid amount.');
                 return showPanel(player, panelId, context);
             }
 
@@ -1920,7 +1984,7 @@ export async function handleFormResponse(
                 });
                 player.sendMessage(`§2Successfully added custom item '${displayName}'.`);
             } else {
-                player.sendMessage('§cInvalid custom item data.');
+                player.sendMessage('§4Invalid custom item data.');
             }
             return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
         }
@@ -2159,7 +2223,7 @@ export async function handleFormResponse(
                         });
                         player.sendMessage(result.message);
                     } else {
-                        player.sendMessage('§cInvalid data. Please check all fields.');
+                        player.sendMessage('§4Invalid data. Please check all fields.');
                     }
                 } else {
                     // Delete
@@ -2221,7 +2285,7 @@ export async function handleFormResponse(
             showConfirmationDialog(player, {
                 title: 'Confirm Deletion',
                 body: 'Are you sure?',
-                confirmButtonText: '§cYes, Delete',
+                confirmButtonText: '§4Yes, Delete',
                 cancelButtonText: '§2No, Cancel',
                 onConfirm: () => {
                     const result = shopAdminManager.deleteCategory(categoryName);
@@ -2330,7 +2394,7 @@ export async function handleFormResponse(
                     });
                     player.sendMessage(result.message);
                 } else {
-                    player.sendMessage('§cInvalid data. Please check all fields.');
+                    player.sendMessage('§4Invalid data. Please check all fields.');
                 }
             } else {
                 // Delete
@@ -2386,7 +2450,7 @@ export async function handleFormResponse(
             showConfirmationDialog(player, {
                 title: 'Confirm Deletion',
                 body: 'Are you sure?',
-                confirmButtonText: '§cYes, Delete',
+                confirmButtonText: '§4Yes, Delete',
                 cancelButtonText: '§2No, Cancel',
                 onConfirm: () => {
                     const result = shopAdminManager.deleteSubCategory(categoryName, subCategoryName);

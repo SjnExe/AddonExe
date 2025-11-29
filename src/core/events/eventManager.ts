@@ -72,6 +72,12 @@ export function cleanupEventManager() {
             try {
                 event.unsubscribe(handler as EventHandler);
             } catch (e: unknown) {
+                const errorMessage = e instanceof Error ? e.message : String(e);
+                // Suppress "does not have required privileges" errors during shutdown
+                if (errorMessage.includes('does not have required privileges')) {
+                    continue;
+                }
+
                 errorLog(
                     `[EventManager] Failed to unsubscribe from event '${name}'. It may have not been subscribed. Error: ${e}`
                 );
