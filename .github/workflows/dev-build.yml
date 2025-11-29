@@ -1,8 +1,9 @@
-name: Release mcaddon
+name: Dev Build (Nightly)
 on:
   push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+*"
+    branches:
+      - "Dev"
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,33 +23,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Extract version from tag
+      - name: Generate Dev Version
         shell: bash
         run: |
           set -e
-          RAW_TAG_NAME="${{ github.ref_name }}"
-          echo "FULL_TAG_NAME=$RAW_TAG_NAME" >> $GITHUB_ENV
+          # Read base version from package.json (e.g., 0.7.0)
+          BASE_VER=$(node -p "require('./package.json').version")
 
-          # Check for -beta suffix
-          IS_BETA="false"
-          if [[ "$RAW_TAG_NAME" == *"-beta" ]]; then
-            IS_BETA="true"
-          fi
+          MAJOR=$(echo $BASE_VER | cut -d. -f1)
+          MINOR=$(echo $BASE_VER | cut -d. -f2)
+          PATCH=${{ github.run_number }}
+
+          VERSION_STR="${MAJOR}.${MINOR}.${PATCH}"
+          VERSION_ARR_STR="[${MAJOR}, ${MINOR}, ${PATCH}]"
+
+          # Treat all dev builds as Beta/Debug builds
+          IS_BETA="true"
+
+          FULL_TAG_NAME="nightly"
+
+          echo "FULL_TAG_NAME=$FULL_TAG_NAME" >> $GITHUB_ENV
           echo "IS_BETA_RELEASE=$IS_BETA" >> $GITHUB_ENV
-
-          # Strip 'v' prefix and '-beta' suffix to get the clean version string
-          VERSION_STR="${RAW_TAG_NAME#v}"
-          VERSION_STR="${VERSION_STR%-beta}"
           echo "VERSION_STRING=$VERSION_STR" >> $GITHUB_ENV
-
-          # Create version array string
-          VERSION_ARR_STR="[$(echo "$VERSION_STR" | tr '.' ',')]"
           echo "VERSION_ARRAY_STRING=$VERSION_ARR_STR" >> $GITHUB_ENV
 
-          echo "Full tag: $RAW_TAG_NAME"
-          echo "Is Beta: $IS_BETA"
-          echo "Clean Version String: $VERSION_STR"
-          echo "Version Array String: $VERSION_ARR_STR"
+          echo "Base Version: $BASE_VER"
+          echo "Dev Version: $VERSION_STR"
+          echo "Dev Version Array: $VERSION_ARR_STR"
 
       - name: Prepare Release (Update Source)
         shell: bash
@@ -94,7 +95,6 @@ jobs:
           echo "Processing default config files..."
 
           # Rewrite imports in all JS files to point to .js instead of .default.js
-          # This ensures the runtime code looks for the active config files (e.g., config.js).
           echo "Rewriting imports..."
           find packs/behavior/scripts -name "*.js" -type f -exec sed -i 's/\.default\.js/\.js/g' {} +
 
@@ -120,23 +120,35 @@ jobs:
         shell: bash
         env:
           FULL_TAG_NAME: ${{ env.FULL_TAG_NAME }}
+          VERSION_STRING: ${{ env.VERSION_STRING }}
         run: |
           set -e
           # Create main .mcaddon with max compression
-          (cd staging && zip -r -9 "../AddonExe.${FULL_TAG_NAME}.mcaddon" ./*)
+          # We name the file using the Version String (e.g. 0.7.145) to make it distinct
+          (cd staging && zip -r -9 "../AddonExe.Nightly.${VERSION_STRING}.mcaddon" ./*)
 
           # Create BP .mcpack with max compression
-          (cd staging/behavior && zip -r -9 "../../AddonExe.BP${FULL_TAG_NAME}.mcpack" ./*)
+          (cd staging/behavior && zip -r -9 "../../AddonExe.BP.Nightly.${VERSION_STRING}.mcpack" ./*)
 
           # Create RP .mcpack with max compression
-          (cd staging/resource && zip -r -9 "../../AddonExe.RP${FULL_TAG_NAME}.mcpack" ./*)
-          echo "Created release archives with maximum compression."
+          (cd staging/resource && zip -r -9 "../../AddonExe.RP.Nightly.${VERSION_STRING}.mcpack" ./*)
+          echo "Created release archives."
 
-      - name: Upload Release Assets
+      - name: Publish Nightly Release
         uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          name: Nightly Build (Latest Dev)
+          tag_name: nightly
+          prerelease: true
+          make_latest: false
+          body: |
+            **Latest Nightly Build**
+            Version: `${{ env.VERSION_STRING }}`
+            Commit: `${{ github.sha }}`
+            Date: `$(date -u)`
+
+            *This is an automated development build. It may contain bugs.*
           files: |
-            ./AddonExe.${{ env.FULL_TAG_NAME }}.mcaddon
-            ./AddonExe.BP${{ env.FULL_TAG_NAME }}.mcpack
-            ./AddonExe.RP${{ env.FULL_TAG_NAME }}.mcpack
+            ./AddonExe.Nightly.${{ env.VERSION_STRING }}.mcaddon
+            ./AddonExe.BP.Nightly.${{ env.VERSION_STRING }}.mcpack
+            ./AddonExe.RP.Nightly.${{ env.VERSION_STRING }}.mcpack

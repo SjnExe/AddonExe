@@ -9,7 +9,7 @@
         "noUnusedParameters": true,
         "allowJs": true,
         "checkJs": false,
-        "outDir": "./AddonExeBP/scripts",
+        "outDir": "./packs/behavior/scripts",
         "rootDir": "./src",
         "forceConsistentCasingInFileNames": true,
         "esModuleInterop": true,
