@@ -81,7 +81,7 @@
         },
         "testPathIgnorePatterns": [
             "/node_modules/",
-            "/AddonExeBP/scripts/",
+            "/packs/behavior/scripts/",
             "/__mocks__/"
         ]
     },

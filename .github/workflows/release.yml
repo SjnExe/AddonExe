@@ -62,9 +62,9 @@ jobs:
 
           echo "--- Verification ---"
           echo "BP Manifest:"
-          cat AddonExeBP/manifest.json
+          cat packs/behavior/manifest.json
           echo "RP Manifest:"
-          cat AddonExeRP/manifest.json
+          cat packs/resource/manifest.json
           echo "Config Source:"
           if [ -f "src/config.ts" ]; then
             head -n 15 src/config.ts
@@ -96,10 +96,10 @@ jobs:
           # Rewrite imports in all JS files to point to .js instead of .default.js
           # This ensures the runtime code looks for the active config files (e.g., config.js).
           echo "Rewriting imports..."
-          find AddonExeBP/scripts -name "*.js" -type f -exec sed -i 's/\.default\.js/\.js/g' {} +
+          find packs/behavior/scripts -name "*.js" -type f -exec sed -i 's/\.default\.js/\.js/g' {} +
 
           # Rename default config files to active config files
-          find AddonExeBP/scripts -name "*.default.js" | while read default_file; do
+          find packs/behavior/scripts -name "*.default.js" | while read default_file; do
             target_file="${default_file%.default.js}.js"
             if [ ! -f "$target_file" ]; then
               cp "$default_file" "$target_file"
@@ -113,8 +113,8 @@ jobs:
         run: |
           set -e
           mkdir staging
-          cp -r AddonExeBP staging/
-          cp -r AddonExeRP staging/
+          cp -r packs/behavior staging/
+          cp -r packs/resource staging/
 
       - name: Create Release Archives
         shell: bash
@@ -126,10 +126,10 @@ jobs:
           (cd staging && zip -r -9 "../AddonExe.${FULL_TAG_NAME}.mcaddon" ./*)
 
           # Create BP .mcpack with max compression
-          (cd staging/AddonExeBP && zip -r -9 "../../AddonExe.BP${FULL_TAG_NAME}.mcpack" ./*)
+          (cd staging/behavior && zip -r -9 "../../AddonExe.BP${FULL_TAG_NAME}.mcpack" ./*)
 
           # Create RP .mcpack with max compression
-          (cd staging/AddonExeRP && zip -r -9 "../../AddonExe.RP${FULL_TAG_NAME}.mcpack" ./*)
+          (cd staging/resource && zip -r -9 "../../AddonExe.RP${FULL_TAG_NAME}.mcpack" ./*)
           echo "Created release archives with maximum compression."
 
       - name: Upload Release Assets
