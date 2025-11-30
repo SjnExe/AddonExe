@@ -11,9 +11,10 @@
 # production
 /build
 /dist
-/AddonExeBP
-/AddonExeRP
-/packs
+/packs/behavior/scripts/
+/staging/
+/packs/behavior/pack_icon.png
+/packs/resource/pack_icon.png
 
 # misc
 .DS_Store

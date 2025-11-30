@@ -13,6 +13,27 @@ if (!VERSION_STRING || !VERSION_ARRAY_STRING) {
 // We now modify the source files directly in the checked-out repo before building.
 const baseDir = '.';
 
+// Function to copy the master icon to packs
+function copyIcon() {
+    const iconPath = path.join(baseDir, 'assets/pack_icon.png');
+    if (!fs.existsSync(iconPath)) {
+        console.warn('Warning: assets/pack_icon.png not found. Skipping icon copy.');
+        return;
+    }
+    const bpPath = path.join(baseDir, 'packs/behavior/pack_icon.png');
+    const rpPath = path.join(baseDir, 'packs/resource/pack_icon.png');
+
+    // Ensure directories exist (though they should)
+    if (fs.existsSync(path.dirname(bpPath))) {
+        fs.copyFileSync(iconPath, bpPath);
+        console.log(`Copied icon to ${bpPath}`);
+    }
+    if (fs.existsSync(path.dirname(rpPath))) {
+        fs.copyFileSync(iconPath, rpPath);
+        console.log(`Copied icon to ${rpPath}`);
+    }
+}
+
 // Function to update JSON manifest
 function updateManifest(filePath) {
     const fullPath = path.join(baseDir, filePath);
@@ -117,8 +138,9 @@ console.log(`Version: ${VERSION_STRING}`);
 console.log(`Version Array: ${VERSION_ARRAY_STRING}`);
 console.log(`Is Beta: ${IS_BETA_RELEASE}`);
 
-updateManifest('AddonExeBP/manifest.json');
-updateManifest('AddonExeRP/manifest.json');
+copyIcon();
+updateManifest('packs/behavior/manifest.json');
+updateManifest('packs/resource/manifest.json');
 
 // Update the TypeScript source config
 // Priority: src/config.ts (User Custom) -> src/config.default.ts (Repo Default)
