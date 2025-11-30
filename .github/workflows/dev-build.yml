@@ -81,14 +81,6 @@ jobs:
           fi
           echo "--- End Verification ---"
 
-      - name: Cache TypeScript Build Info
-        uses: actions/cache@v4
-        with:
-          path: tsconfig.tsbuildinfo
-          key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-tsbuildinfo-
-
       - name: Build TypeScript
         run: npm run build
 
@@ -142,7 +134,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete-asset nightly --all --yes || true
+          gh release delete nightly --cleanup-tag --yes || true
 
       - name: Publish Nightly Release
         uses: softprops/action-gh-release@v2
