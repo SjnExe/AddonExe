@@ -4,7 +4,7 @@ import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 import * as bountyManager from '../bountyManager.js';
 import * as configManager from '../configManager.js';
 import { getPlayerFromCache } from '../playerCache.js';
-import { getPlayer, updatePlayerData } from '../playerDataManager.js';
+import { getPlayer, incrementPlayerBalance } from '../playerDataManager.js';
 import * as punishmentManager from '../punishmentManager.js';
 import * as reportManager from '../reportManager.js';
 import * as tpaManager from '../tpaManager.js';
@@ -336,9 +336,7 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
     }
 
     // Deduct money and set bounty
-    updatePlayerData(player.id, (d) => {
-        d.balance -= amount;
-    });
+    incrementPlayerBalance(player.id, -amount);
     bountyManager.incrementBounty(targetId, amount);
     player.sendMessage(`§2Added bounty of ${utils.formatCurrency(amount)} to ${targetData?.name}.`);
 

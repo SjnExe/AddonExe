@@ -2,8 +2,9 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '../../core/configManager.js';
 import { constants } from '../../core/constants.js';
+import { getLeaderboard } from '../../core/leaderboardManager.js';
 import { sendMessage } from '../../core/messaging.js';
-import { getOrCreatePlayer, getLeaderboard } from '../../core/playerDataManager.js';
+import { getOrCreatePlayer } from '../../core/playerDataManager.js';
 import { formatCurrency } from '../../core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
