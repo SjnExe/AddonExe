@@ -11,7 +11,12 @@ import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';
 import { configPanelSchema, UIContext } from '../panelRegistry.js';
-import { itemsPerPage, getPaginatedItems, configHandlers as uiConfigHandlers, getVisibleConfigSystems } from '../uiUtils.js';
+import {
+    itemsPerPage,
+    getPaginatedItems,
+    configHandlers as uiConfigHandlers,
+    getVisibleConfigSystems
+} from '../uiUtils.js';
 
 export async function handleConfigPanel(
     player: mc.Player,
@@ -102,7 +107,7 @@ export async function handleConfigPanel(
                     player.sendMessage('§2Configuration saved.');
 
                     if (categoryId === 'data') {
-                        import('../../dataManager.js').then(({ restartAutoSave }) => restartAutoSave());
+                        await import('../../dataManager.js').then(({ restartAutoSave }) => restartAutoSave());
                     }
                 }
             }
@@ -576,7 +581,6 @@ export async function handleConfigPanel(
         }
         return showPanel(player, 'rankManagementPanel', context);
     }
-
 
     if (panelId === 'xrayOresPanel') {
         if (selection === 0) {

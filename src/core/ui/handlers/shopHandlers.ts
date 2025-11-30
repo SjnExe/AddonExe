@@ -558,7 +558,6 @@ export async function handleShopPanel(
         if (selection === 1) {
             // Delete
             await showConfirmationDialog(player, {
-            await showConfirmationDialog(player, {
                 title: 'Confirm Deletion',
                 body: 'Are you sure?',
                 confirmButtonText: '§4Yes, Delete',
@@ -723,7 +722,7 @@ export async function handleShopPanel(
         }
         if (selection === 1) {
             // Delete
-            showConfirmationDialog(player, {
+            await showConfirmationDialog(player, {
                 title: 'Confirm Deletion',
                 body: 'Are you sure?',
                 confirmButtonText: '§4Yes, Delete',

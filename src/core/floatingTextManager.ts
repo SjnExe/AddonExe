@@ -63,7 +63,7 @@ function runExpirationLoop() {
     const now = Date.now();
     for (const textConfig of floatingTexts.values()) {
         if (textConfig.expiresAt && now >= textConfig.expiresAt) {
-            deleteText(null, textConfig.id);
+            void deleteText(null, textConfig.id);
         }
     }
     expirationIntervalId = mc.system.runTimeout(runExpirationLoop, 200); // Check every 10 seconds
@@ -260,33 +260,37 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
     saveTexts();
     debugLog(`[FloatingText] Saved updated config for ID: ${id}`);
 
-    mc.system.run(async () => {
-        try {
-            const dimension = mc.world.getDimension(newConfig.dimension);
-            const query: mc.EntityQueryOptions = {
-                type: 'exe:floating_text',
-                tags: [`ft_${id}`]
-            };
-            const entity = await findEntityWithRetries(dimension, query);
+    mc.system.run(() => {
+        void (async () => {
+            try {
+                const dimension = mc.world.getDimension(newConfig.dimension);
+                const query: mc.EntityQueryOptions = {
+                    type: 'exe:floating_text',
+                    tags: [`ft_${id}`]
+                };
+                const entity = await findEntityWithRetries(dimension, query);
 
-            if (locationChanged || !entity) {
-                debugLog(`[FloatingText] Location changed or entity not found for ID: ${id}. Performing full respawn.`);
+                if (locationChanged || !entity) {
+                    debugLog(
+                        `[FloatingText] Location changed or entity not found for ID: ${id}. Performing full respawn.`
+                    );
+                    await despawnText(id);
+                    spawnText(newConfig);
+                } else if (textChanged) {
+                    debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
+                    entity.nameTag = newConfig.text.replace(/\\n/g, '\n');
+                    debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
+                }
+            } catch (e: unknown) {
+                if (e instanceof Error) {
+                    errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, e.stack);
+                } else {
+                    errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, String(e));
+                }
                 await despawnText(id);
                 spawnText(newConfig);
-            } else if (textChanged) {
-                debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
-                entity.nameTag = newConfig.text.replace(/\\n/g, '\n');
-                debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
             }
-        } catch (e: unknown) {
-            if (e instanceof Error) {
-                errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, e.stack);
-            } else {
-                errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, String(e));
-            }
-            await despawnText(id);
-            spawnText(newConfig);
-        }
+        })();
     });
 }
 
