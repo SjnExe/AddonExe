@@ -23,9 +23,8 @@ import { MonitoredOreType } from '../xrayConfig.default.js';
 import { handleUIAction } from './actions.js';
 import { showConfirmationDialog } from './components.js';
 import { getMenuItems, getVisiblePlayerActionItems } from './panelBuilder.js';
-import { configPanelSchema, UIContext , panelDefinitions, PanelItem } from './panelRegistry.js';
+import { configPanelSchema, UIContext, panelDefinitions, PanelItem } from './panelRegistry.js';
 import { itemsPerPage, getPaginatedItems, configHandlers, getVisibleConfigSystems } from './uiUtils.js';
-
 
 export async function handleFormResponse(
     player: mc.Player,
@@ -45,14 +44,22 @@ export async function handleFormResponse(
 
     // Generic handler for registry-defined panels
     const panelDef = panelDefinitions[panelId];
-    if (panelDef && !panelId.startsWith('shop') && !panelId.startsWith('team') && !panelId.startsWith('floating') && !panelId.startsWith('rules') && !panelId.startsWith('helpfulLinks') && !panelId.startsWith('config') && !panelId.startsWith('xray')) {
-
+    if (
+        panelDef &&
+        !panelId.startsWith('shop') &&
+        !panelId.startsWith('team') &&
+        !panelId.startsWith('floating') &&
+        !panelId.startsWith('rules') &&
+        !panelId.startsWith('helpfulLinks') &&
+        !panelId.startsWith('config') &&
+        !panelId.startsWith('xray')
+    ) {
         // Specific case for playerActionsPanel which has dynamic visibility logic
         let items: PanelItem[] = [];
         if (panelId === 'playerActionsPanel') {
-             items = getVisiblePlayerActionItems(context, pData.permissionLevel, player.id);
+            items = getVisiblePlayerActionItems(context, pData.permissionLevel, player.id);
         } else {
-             items = getMenuItems(panelDef, pData.permissionLevel);
+            items = getMenuItems(panelDef, pData.permissionLevel);
         }
 
         if (typeof selection === 'number') {
@@ -130,7 +137,8 @@ export async function handleFormResponse(
         if (typeof selection !== 'number') return;
         if (selection === 0) return showPanel(player, 'mainPanel', context);
 
-        const reports = reportManager.getAllReports()
+        const reports = reportManager
+            .getAllReports()
             .filter((r) => r.status === 'open' || r.status === 'assigned')
             .sort((a, b) => a.timestamp - b.timestamp);
 
@@ -138,20 +146,20 @@ export async function handleFormResponse(
         let buttonIndex = selection - 1;
 
         if (hasPrev) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
-             buttonIndex--;
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+            buttonIndex--;
         }
 
         const paginatedReports = getPaginatedItems(reports, page);
         if (buttonIndex >= 0 && buttonIndex < paginatedReports.length) {
-             const report = paginatedReports[buttonIndex];
-             return showPanel(player, 'reportActionsPanel', { ...context, targetReport: report });
+            const report = paginatedReports[buttonIndex];
+            return showPanel(player, 'reportActionsPanel', { ...context, targetReport: report });
         }
         buttonIndex -= paginatedReports.length;
 
         const totalPages = Math.ceil(reports.length / itemsPerPage);
         if (page < totalPages && buttonIndex === 0) {
-             return showPanel(player, panelId, { ...context, page: page + 1 });
+            return showPanel(player, panelId, { ...context, page: page + 1 });
         }
         return;
     }
@@ -169,20 +177,25 @@ export async function handleFormResponse(
         let buttonIndex = selection - 1;
 
         if (hasPrev) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
-             buttonIndex--;
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+            buttonIndex--;
         }
 
         const paginatedBounties = getPaginatedItems(allBounties, page);
         if (buttonIndex >= 0 && buttonIndex < paginatedBounties.length) {
-             const bounty = paginatedBounties[buttonIndex];
-             return showPanel(player, 'playerActionsPanel', { ...context, targetPlayerId: bounty.targetId, targetPlayerName: bounty.name, fromPanel: 'bountyListPanel' });
+            const bounty = paginatedBounties[buttonIndex];
+            return showPanel(player, 'playerActionsPanel', {
+                ...context,
+                targetPlayerId: bounty.targetId,
+                targetPlayerName: bounty.name,
+                fromPanel: 'bountyListPanel'
+            });
         }
         buttonIndex -= paginatedBounties.length;
 
         const totalPages = Math.ceil(allBounties.length / itemsPerPage);
         if (page < totalPages && buttonIndex === 0) {
-             return showPanel(player, panelId, { ...context, page: page + 1 });
+            return showPanel(player, panelId, { ...context, page: page + 1 });
         }
         return;
     }
@@ -191,7 +204,8 @@ export async function handleFormResponse(
         const page = context.page || 1;
         if (typeof selection !== 'number') return;
         if (selection === 0) return showPanel(player, 'infoPanel', context);
-        if (selection === 1) return showPanel(player, 'playerSearchPanel', { ...context, fromPanel: 'playerListPanel' });
+        if (selection === 1)
+            return showPanel(player, 'playerSearchPanel', { ...context, fromPanel: 'playerListPanel' });
 
         const onlinePlayers = Array.from(mc.world.getAllPlayers()).sort((a, b) => a.name.localeCompare(b.name));
 
@@ -199,20 +213,25 @@ export async function handleFormResponse(
         let buttonIndex = selection - 2;
 
         if (hasPrev) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
-             buttonIndex--;
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+            buttonIndex--;
         }
 
         const paginatedPlayers = getPaginatedItems(onlinePlayers, page);
         if (buttonIndex >= 0 && buttonIndex < paginatedPlayers.length) {
-             const target = paginatedPlayers[buttonIndex];
-             return showPanel(player, 'playerActionsPanel', { ...context, targetPlayerId: target.id, targetPlayerName: target.name, fromPanel: 'playerListPanel' });
+            const target = paginatedPlayers[buttonIndex];
+            return showPanel(player, 'playerActionsPanel', {
+                ...context,
+                targetPlayerId: target.id,
+                targetPlayerName: target.name,
+                fromPanel: 'playerListPanel'
+            });
         }
         buttonIndex -= paginatedPlayers.length;
 
         const totalPages = Math.ceil(onlinePlayers.length / itemsPerPage);
         if (page < totalPages && buttonIndex === 0) {
-             return showPanel(player, panelId, { ...context, page: page + 1 });
+            return showPanel(player, panelId, { ...context, page: page + 1 });
         }
         return;
     }
@@ -221,7 +240,8 @@ export async function handleFormResponse(
         const page = context.page || 1;
         if (typeof selection !== 'number') return;
         if (selection === 0) return showPanel(player, 'adminPanel', context);
-        if (selection === 1) return showPanel(player, 'playerSearchPanel', { ...context, fromPanel: 'playerManagementPanel' });
+        if (selection === 1)
+            return showPanel(player, 'playerSearchPanel', { ...context, fromPanel: 'playerManagementPanel' });
 
         const { getAllPlayerNameIdMap } = await import('../playerDataManager.js');
         const allPlayersMap = getAllPlayerNameIdMap();
@@ -231,22 +251,27 @@ export async function handleFormResponse(
         let buttonIndex = selection - 2;
 
         if (hasPrev) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
-             buttonIndex--;
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+            buttonIndex--;
         }
 
         const paginatedEntries = getPaginatedItems(playerEntries, page);
         if (buttonIndex >= 0 && buttonIndex < paginatedEntries.length) {
-             const [name, id] = paginatedEntries[buttonIndex];
-             const targetData = loadPlayerData(id);
-             const properName = targetData ? targetData.name : name;
-             return showPanel(player, 'playerActionsPanel', { ...context, targetPlayerId: id, targetPlayerName: properName, fromPanel: 'playerManagementPanel' });
+            const [name, id] = paginatedEntries[buttonIndex];
+            const targetData = loadPlayerData(id);
+            const properName = targetData ? targetData.name : name;
+            return showPanel(player, 'playerActionsPanel', {
+                ...context,
+                targetPlayerId: id,
+                targetPlayerName: properName,
+                fromPanel: 'playerManagementPanel'
+            });
         }
         buttonIndex -= paginatedEntries.length;
 
         const totalPages = Math.ceil(playerEntries.length / itemsPerPage);
         if (page < totalPages && buttonIndex === 0) {
-             return showPanel(player, panelId, { ...context, page: page + 1 });
+            return showPanel(player, panelId, { ...context, page: page + 1 });
         }
         return;
     }
@@ -261,8 +286,8 @@ export async function handleFormResponse(
 
         const [searchName] = values as string[];
         if (!searchName) {
-             player.sendMessage('§4Search name is required.');
-             return showPanel(player, panelId, context);
+            player.sendMessage('§4Search name is required.');
+            return showPanel(player, panelId, context);
         }
 
         const { getPlayerIdByName, getAllPlayerNameIdMap } = await import('../playerDataManager.js');
@@ -270,27 +295,27 @@ export async function handleFormResponse(
         let targetName = searchName;
 
         if (!targetId) {
-             const allPlayers = getAllPlayerNameIdMap();
-             const searchLower = searchName.toLowerCase();
-             for (const [name, id] of allPlayers.entries()) {
-                 if (name.includes(searchLower)) {
-                     targetId = id;
-                     const targetData = loadPlayerData(id);
-                     targetName = targetData ? targetData.name : name;
-                     break;
-                 }
-             }
+            const allPlayers = getAllPlayerNameIdMap();
+            const searchLower = searchName.toLowerCase();
+            for (const [name, id] of allPlayers.entries()) {
+                if (name.includes(searchLower)) {
+                    targetId = id;
+                    const targetData = loadPlayerData(id);
+                    targetName = targetData ? targetData.name : name;
+                    break;
+                }
+            }
         }
 
         if (targetId) {
-             return showPanel(player, 'playerActionsPanel', {
-                 ...context,
-                 targetPlayerId: targetId,
-                 targetPlayerName: targetName
-             });
+            return showPanel(player, 'playerActionsPanel', {
+                ...context,
+                targetPlayerId: targetId,
+                targetPlayerName: targetName
+            });
         } else {
-             player.sendMessage(`§4Player '${searchName}' not found.`);
-             return showPanel(player, panelId, context);
+            player.sendMessage(`§4Player '${searchName}' not found.`);
+            return showPanel(player, panelId, context);
         }
     }
 
@@ -308,16 +333,16 @@ export async function handleFormResponse(
         }
 
         if (selection === 2) {
-             const form = new ModalFormData().title('Create Kit').textField('Kit Name', 'Enter unique name');
-             const res = await utils.uiWait(player, form);
-             if (!res.canceled && (res as ModalFormResponse).formValues) {
-                 const name = (res as ModalFormResponse).formValues![0] as string;
-                 if (name) {
-                     kitAdminManager.createKit(name);
-                     player.sendMessage('§2Kit created.');
-                 }
-             }
-             return showPanel(player, panelId, context);
+            const form = new ModalFormData().title('Create Kit').textField('Kit Name', 'Enter unique name');
+            const res = await utils.uiWait(player, form);
+            if (!res.canceled && (res as ModalFormResponse).formValues) {
+                const name = (res as ModalFormResponse).formValues![0] as string;
+                if (name) {
+                    kitAdminManager.createKit(name);
+                    player.sendMessage('§2Kit created.');
+                }
+            }
+            return showPanel(player, panelId, context);
         }
 
         const kitNames = Object.keys(kitAdminManager.getAllKits());
@@ -325,8 +350,8 @@ export async function handleFormResponse(
         let buttonIndex = selection - 3;
 
         if (buttonIndex >= 0 && buttonIndex < paginatedKits.length) {
-             const kitName = paginatedKits[buttonIndex];
-             return showPanel(player, `kitActionMenu_${kitName}`, context);
+            const kitName = paginatedKits[buttonIndex];
+            return showPanel(player, `kitActionMenu_${kitName}`, context);
         }
         buttonIndex -= paginatedKits.length;
 
@@ -335,11 +360,11 @@ export async function handleFormResponse(
         const hasNext = page < totalPages;
 
         if (hasPrev) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
-             buttonIndex--;
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+            buttonIndex--;
         }
         if (hasNext) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
         }
         return;
     }
@@ -349,9 +374,9 @@ export async function handleFormResponse(
         if (selection === 0) return showPanel(player, `kitSettingsPanel_${kitName}`, context);
         if (selection === 1) return showPanel(player, `kitItemsPanel_${kitName}`, context);
         if (selection === 2) {
-             kitAdminManager.deleteKit(kitName);
-             player.sendMessage('§2Kit deleted.');
-             return showPanel(player, 'kitManagementPanel', context);
+            kitAdminManager.deleteKit(kitName);
+            player.sendMessage('§2Kit deleted.');
+            return showPanel(player, 'kitManagementPanel', context);
         }
         if (selection === 3) return showPanel(player, 'kitManagementPanel', context);
         return;
@@ -363,24 +388,37 @@ export async function handleFormResponse(
 
         const values = (response as ModalFormResponse).formValues;
         if (values) {
-             const [enabled, name, desc, icon, cooldownStr, permStr, priceStr] = values as [boolean, string, string, string, string, string, string];
-             const cooldown = parseInt(cooldownStr) || 0;
-             const perm = parseInt(permStr) || 1024;
-             const price = parseInt(priceStr) || 0;
+            const [enabled, name, desc, icon, cooldownStr, permStr, priceStr] = values as [
+                boolean,
+                string,
+                string,
+                string,
+                string,
+                string,
+                string
+            ];
+            const cooldown = parseInt(cooldownStr) || 0;
+            const perm = parseInt(permStr) || 1024;
+            const price = parseInt(priceStr) || 0;
 
-             kitAdminManager.updateKitSettings(kitName, {
-                 enabled, description: desc, icon, cooldownSeconds: cooldown, permissionLevel: perm, price
-             });
+            kitAdminManager.updateKitSettings(kitName, {
+                enabled,
+                description: desc,
+                icon,
+                cooldownSeconds: cooldown,
+                permissionLevel: perm,
+                price
+            });
 
-             if (name !== kitName && name) {
-                 const res = kitAdminManager.renameKit(kitName, name);
-                 player.sendMessage(res.message);
-                 if (res.success) {
-                     return showPanel(player, `kitActionMenu_${name}`, context);
-                 }
-             } else {
-                 player.sendMessage('§2Kit settings updated.');
-             }
+            if (name !== kitName && name) {
+                const res = kitAdminManager.renameKit(kitName, name);
+                player.sendMessage(res.message);
+                if (res.success) {
+                    return showPanel(player, `kitActionMenu_${name}`, context);
+                }
+            } else {
+                player.sendMessage('§2Kit settings updated.');
+            }
         }
         return showPanel(player, `kitActionMenu_${kitName}`, context);
     }
@@ -390,22 +428,22 @@ export async function handleFormResponse(
         const page = context.page || 1;
         if (typeof selection !== 'number') return;
         if (selection === 0) {
-             // Add Item
-             const form = new ModalFormData()
-                 .title('Add Item')
-                 .textField('Item ID', 'minecraft:stone')
-                 .textField('Amount', '1', { defaultValue: '1' });
-             const res = await utils.uiWait(player, form);
-             if (!res.canceled && (res as ModalFormResponse).formValues) {
-                 const [typeId, amountStr] = (res as ModalFormResponse).formValues as [string, string];
-                 const amount = parseInt(amountStr);
-                 if (typeId && !isNaN(amount)) {
-                     const { addItemToKit } = await import('../kitItemsManager.js');
-                     const result = addItemToKit(kitName, { typeId, amount });
-                     player.sendMessage(result.message);
-                 }
-             }
-             return showPanel(player, panelId, context);
+            // Add Item
+            const form = new ModalFormData()
+                .title('Add Item')
+                .textField('Item ID', 'minecraft:stone')
+                .textField('Amount', '1', { defaultValue: '1' });
+            const res = await utils.uiWait(player, form);
+            if (!res.canceled && (res as ModalFormResponse).formValues) {
+                const [typeId, amountStr] = (res as ModalFormResponse).formValues as [string, string];
+                const amount = parseInt(amountStr);
+                if (typeId && !isNaN(amount)) {
+                    const { addItemToKit } = await import('../kitItemsManager.js');
+                    const result = addItemToKit(kitName, { typeId, amount });
+                    player.sendMessage(result.message);
+                }
+            }
+            return showPanel(player, panelId, context);
         }
 
         const kit = kitAdminManager.getAllKits()[kitName];
@@ -415,19 +453,19 @@ export async function handleFormResponse(
         let buttonIndex = selection - 1;
 
         if (buttonIndex >= 0 && buttonIndex < paginatedItems.length) {
-             // Edit/Delete Item
-             const itemIndex = (page - 1) * itemsPerPage + buttonIndex;
-             const form = new ActionFormData()
-                 .title('Manage Item')
-                 .button('Delete Item', 'textures/ui/trash')
-                 .button('Cancel', 'textures/ui/cancel');
-             const res = await utils.uiWait(player, form);
-             if (!res.canceled && (res as ActionFormResponse).selection === 0) {
-                 const { removeItemFromKit } = await import('../kitItemsManager.js');
-                 const result = removeItemFromKit(kitName, itemIndex);
-                 player.sendMessage(result.message);
-             }
-             return showPanel(player, panelId, context);
+            // Edit/Delete Item
+            const itemIndex = (page - 1) * itemsPerPage + buttonIndex;
+            const form = new ActionFormData()
+                .title('Manage Item')
+                .button('Delete Item', 'textures/ui/trash')
+                .button('Cancel', 'textures/ui/cancel');
+            const res = await utils.uiWait(player, form);
+            if (!res.canceled && (res as ActionFormResponse).selection === 0) {
+                const { removeItemFromKit } = await import('../kitItemsManager.js');
+                const result = removeItemFromKit(kitName, itemIndex);
+                player.sendMessage(result.message);
+            }
+            return showPanel(player, panelId, context);
         }
         buttonIndex -= paginatedItems.length;
 
@@ -437,18 +475,18 @@ export async function handleFormResponse(
         const hasNext = page < totalPages;
 
         if (hasPrev) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
-             buttonIndex--;
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+            buttonIndex--;
         }
 
         if (hasNext) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
-             buttonIndex--;
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
+            buttonIndex--;
         }
 
         // Back (Last button)
         if (buttonIndex === 0) {
-             return showPanel(player, `kitActionMenu_${kitName}`, context);
+            return showPanel(player, `kitActionMenu_${kitName}`, context);
         }
         return showPanel(player, panelId, context);
     }
@@ -460,14 +498,16 @@ export async function handleFormResponse(
 
         const config = getConfig();
         const commandSettings = config.commandSettings || {};
-        const allCommands = Object.keys(commandSettings).filter(c => !c.startsWith('_')).sort();
+        const allCommands = Object.keys(commandSettings)
+            .filter((c) => !c.startsWith('_'))
+            .sort();
 
         const paginatedCommands = getPaginatedItems(allCommands, page);
         let buttonIndex = selection - 1;
 
         if (buttonIndex >= 0 && buttonIndex < paginatedCommands.length) {
-             const cmd = paginatedCommands[buttonIndex];
-             return showPanel(player, 'commandSettingsPanel', { ...context, commandName: cmd });
+            const cmd = paginatedCommands[buttonIndex];
+            return showPanel(player, 'commandSettingsPanel', { ...context, commandName: cmd });
         }
         buttonIndex -= paginatedCommands.length;
 
@@ -476,11 +516,11 @@ export async function handleFormResponse(
         const hasNext = page < totalPages;
 
         if (hasPrev) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
-             buttonIndex--;
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+            buttonIndex--;
         }
         if (hasNext) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
         }
         return;
     }
@@ -490,15 +530,15 @@ export async function handleFormResponse(
         const values = (response as ModalFormResponse).formValues;
         const { commandName } = context;
         if (values && commandName) {
-             const [enabled, permLevelStr] = values as [boolean, string];
-             const permLevel = parseInt(permLevelStr);
-             if (!isNaN(permLevel)) {
-                 updateMultipleConfig({
-                     [`commandSettings.${commandName}.enabled`]: enabled,
-                     [`commandSettings.${commandName}.permissionLevel`]: permLevel
-                 });
-                 player.sendMessage(`§2Updated settings for ${commandName}.`);
-             }
+            const [enabled, permLevelStr] = values as [boolean, string];
+            const permLevel = parseInt(permLevelStr);
+            if (!isNaN(permLevel)) {
+                updateMultipleConfig({
+                    [`commandSettings.${commandName}.enabled`]: enabled,
+                    [`commandSettings.${commandName}.permissionLevel`]: permLevel
+                });
+                player.sendMessage(`§2Updated settings for ${commandName}.`);
+            }
         }
         return showPanel(player, 'commandSystemPanel', context);
     }
@@ -515,8 +555,8 @@ export async function handleFormResponse(
         let buttonIndex = selection - 3;
 
         if (buttonIndex >= 0 && buttonIndex < paginatedRanks.length) {
-             const rank = paginatedRanks[buttonIndex];
-             return showPanel(player, `rankActionMenu_${rank.id}`, context);
+            const rank = paginatedRanks[buttonIndex];
+            return showPanel(player, `rankActionMenu_${rank.id}`, context);
         }
         buttonIndex -= paginatedRanks.length;
 
@@ -525,11 +565,11 @@ export async function handleFormResponse(
         const hasNext = page < totalPages;
 
         if (hasPrev) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
-             buttonIndex--;
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+            buttonIndex--;
         }
         if (hasNext) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
         }
         return;
     }
@@ -538,19 +578,25 @@ export async function handleFormResponse(
         if (canceled) return showPanel(player, 'rankManagementPanel', context);
         const values = (response as ModalFormResponse).formValues;
         if (values) {
-             const [name, id, permStr, nameColor, chatColor, prefix] = values as string[];
-             const perm = parseInt(permStr);
-             if (name && id && !isNaN(perm)) {
-                 const rankDb = await import('../rankDb.js');
-                 const result = rankDb.addRank({
-                     id, name, permissionLevel: perm,
-                     chatFormatting: { nameColor: nameColor || '§8', messageColor: chatColor || '§r', prefixText: prefix || '' },
-                     conditions: [{ type: 'hasTag', value: id }],
-                     locked: false
-                 });
-                 player.sendMessage(result.message);
-                 if (result.success) rankManager.reloadRanks();
-             }
+            const [name, id, permStr, nameColor, chatColor, prefix] = values as string[];
+            const perm = parseInt(permStr);
+            if (name && id && !isNaN(perm)) {
+                const rankDb = await import('../rankDb.js');
+                const result = rankDb.addRank({
+                    id,
+                    name,
+                    permissionLevel: perm,
+                    chatFormatting: {
+                        nameColor: nameColor || '§8',
+                        messageColor: chatColor || '§r',
+                        prefixText: prefix || ''
+                    },
+                    conditions: [{ type: 'hasTag', value: id }],
+                    locked: false
+                });
+                player.sendMessage(result.message);
+                if (result.success) rankManager.reloadRanks();
+            }
         }
         return showPanel(player, 'rankManagementPanel', context);
     }
@@ -559,12 +605,12 @@ export async function handleFormResponse(
         const rankId = panelId.replace('rankActionMenu_', '');
         if (selection === 0) return showPanel(player, 'editRankPanel', { ...context, rankId });
         if (selection === 1) {
-             // Delete
-             const rankDb = await import('../rankDb.js');
-             const result = rankDb.deleteRank(rankId);
-             player.sendMessage(result.message);
-             if (result.success) rankManager.reloadRanks();
-             return showPanel(player, 'rankManagementPanel', context);
+            // Delete
+            const rankDb = await import('../rankDb.js');
+            const result = rankDb.deleteRank(rankId);
+            player.sendMessage(result.message);
+            if (result.success) rankManager.reloadRanks();
+            return showPanel(player, 'rankManagementPanel', context);
         }
         if (selection === 2) return showPanel(player, 'rankManagementPanel', context);
         return;
@@ -575,18 +621,20 @@ export async function handleFormResponse(
         const values = (response as ModalFormResponse).formValues;
         const { rankId } = context;
         if (values && rankId) {
-             const [name, newId, permStr, nameColor, chatColor, prefix, nametag] = values as string[];
-             const perm = parseInt(permStr);
-             if (!isNaN(perm)) {
-                 const rankDb = await import('../rankDb.js');
-                 const result = rankDb.updateRank(rankId, {
-                     id: newId, name, permissionLevel: perm,
-                     chatFormatting: { nameColor: nameColor, messageColor: chatColor, prefixText: prefix },
-                     nametagPrefix: nametag
-                 });
-                 player.sendMessage(result.message);
-                 if (result.success) rankManager.reloadRanks();
-             }
+            const [name, newId, permStr, nameColor, chatColor, prefix, nametag] = values as string[];
+            const perm = parseInt(permStr);
+            if (!isNaN(perm)) {
+                const rankDb = await import('../rankDb.js');
+                const result = rankDb.updateRank(rankId, {
+                    id: newId,
+                    name,
+                    permissionLevel: perm,
+                    chatFormatting: { nameColor: nameColor, messageColor: chatColor, prefixText: prefix },
+                    nametagPrefix: nametag
+                });
+                player.sendMessage(result.message);
+                if (result.success) rankManager.reloadRanks();
+            }
         }
         return showPanel(player, 'rankManagementPanel', context);
     }
@@ -595,11 +643,11 @@ export async function handleFormResponse(
         if (canceled) return showPanel(player, 'rankManagementPanel', context);
         const values = (response as ModalFormResponse).formValues;
         if (values) {
-             const styleIndex = values[0] as number;
-             const styles = ['above', 'before', 'after', 'under'];
-             const style = styles[styleIndex];
-             updateMultipleConfig({ 'ranks.nameTagStyle': style });
-             player.sendMessage('§2Rank settings updated.');
+            const styleIndex = values[0] as number;
+            const styles = ['above', 'before', 'after', 'under'];
+            const style = styles[styleIndex];
+            updateMultipleConfig({ 'ranks.nameTagStyle': style });
+            player.sendMessage('§2Rank settings updated.');
         }
         return showPanel(player, 'rankManagementPanel', context);
     }
@@ -1562,8 +1610,8 @@ export async function handleFormResponse(
         let buttonIndex = selection - 1;
 
         if (buttonIndex >= 0 && buttonIndex < paginatedSystems.length) {
-             const system = paginatedSystems[buttonIndex];
-             return showPanel(player, system.id, context);
+            const system = paginatedSystems[buttonIndex];
+            return showPanel(player, system.id, context);
         }
         buttonIndex -= paginatedSystems.length;
 
@@ -1572,11 +1620,11 @@ export async function handleFormResponse(
         const hasNext = page < totalPages;
 
         if (hasPrev) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
-             buttonIndex--;
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
+            buttonIndex--;
         }
         if (hasNext) {
-             if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
+            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page + 1 });
         }
         return;
     }
@@ -1604,11 +1652,11 @@ export async function handleFormResponse(
                             value = options[selectedIndex];
                         }
                     } else if (setting.type === 'textField') {
-                         const strVal = value as string;
-                         const current = getValueFromPath(getConfig(), setting.key);
-                         if (typeof current === 'number' && !isNaN(Number(strVal)) && strVal.trim() !== '') {
-                             value = Number(strVal);
-                         }
+                        const strVal = value as string;
+                        const current = getValueFromPath(getConfig(), setting.key);
+                        if (typeof current === 'number' && !isNaN(Number(strVal)) && strVal.trim() !== '') {
+                            value = Number(strVal);
+                        }
                     }
                     updates[setting.key] = value;
                 });

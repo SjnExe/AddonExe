@@ -457,7 +457,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'removePlayerBounty',
                 text: 'Remove Bounty',
                 icon: 'textures/ui/cancel.png',
-                permissionLevel: 1024,
+                permissionLevel: 2,
                 actionType: 'functionCall',
                 actionValue: 'removePlayerBounty',
                 sortId: 20

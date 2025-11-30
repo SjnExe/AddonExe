@@ -8,52 +8,52 @@ Your primary goal is to assist users by completing coding tasks, such as solving
 
 ## 2. Understanding the Codebase
 
-Before implementing changes, strive to understand the relevant parts of the codebase. Key architectural information can be found in `Dev/README.md`. Pay attention to:
+Before implementing changes, strive to understand the relevant parts of the codebase. Key architectural information can be found in `Docs/Development/README.md`. Pay attention to:
 
-- **Source Directory (`src/`):** All Behavior Pack scripts are now located in the `src/` directory. They are compiled to `AddonExeBP/scripts/`.
+- **Source Directory (`src/`):** All Behavior Pack scripts are now located in the `src/` directory. They are compiled to `packs/behavior/scripts/`.
 - **Core Managers (`src/core/`):** Understand how modules like `playerDataManager.js` (or `.ts`), `rankManager.js`, `punishmentManager.js`, and `cooldownManager.js` interact. The `commandManager.js` in `src/modules/commands/` is also critical.
 - **Configuration Files:**
   - `src/config.js` (or `.ts`): Main settings, feature toggles, owner/admin setup.
   - `src/core/ranksConfig.js`: Defines all ranks and their visual styles.
   - `src/core/panelLayoutConfig.js`: Defines the layout and content of the UI panels.
-- **Coding Conventions:** Strictly follow guidelines in `Dev/CodingStyle.md` and `Dev/StandardizationGuidelines.md`.
+- **Coding Conventions:** Strictly follow guidelines in `Docs/Development/CodingStyle.md` and `Docs/Development/StandardizationGuidelines.md`.
 - **Naming Conventions:**
   - The general rule for all project-specific JavaScript/TypeScript identifiers is that **any code style is allowed, but not snake_case**.
   - The use of `snake_case` (e.g., `my_variable`) or `UPPER_SNAKE_CASE` (e.g., `MY_CONSTANT`) is disallowed.
   - An exception is when interacting with native Minecraft APIs that require `snake_case` identifiers. In those cases, the required style must be used.
-  - For full details, always refer to the latest `Dev/CodingStyle.md` and `Dev/StandardizationGuidelines.md`.
+  - For full details, always refer to the latest `Docs/Development/CodingStyle.md` and `Docs/Development/StandardizationGuidelines.md`.
 
 ## 3. Workflow and Task Management
 
-This project uses a simple task management system in the `Dev/tasks/` directory.
+This project uses a simple task management system in the `Docs/Development/tasks/` directory.
 
 - **Before Starting New Work:**
-  - Review `Dev/tasks/ongoing.md` to see if any tasks are in progress.
-  - Review `Dev/tasks/todo.md` for planned tasks.
+  - Review `Docs/Development/tasks/ongoing.md` to see if any tasks are in progress.
+  - Review `Docs/Development/tasks/todo.md` for planned tasks.
 - **Working on a Task:**
-  - If continuing a previous task, ensure `Dev/tasks/ongoing.md` reflects this.
-  - When starting a new task (usually from `Dev/tasks/todo.md` or a new user request):
-    - **Update `Dev/tasks/ongoing.md`**: Describe the task you are about to work on, including its objectives and your name/session identifier.
-    - If the task was from `Dev/tasks/todo.md`, remove it from there.
+  - If continuing a previous task, ensure `Docs/Development/tasks/ongoing.md` reflects this.
+  - When starting a new task (usually from `Docs/Development/tasks/todo.md` or a new user request):
+    - **Update `Docs/Development/tasks/ongoing.md`**: Describe the task you are about to work on, including its objectives and your name/session identifier.
+    - If the task was from `Docs/Development/tasks/todo.md`, remove it from there.
 - **Completing a Task:**
   - Upon successful completion and submission of all changes for a task:
-    - **Update `Dev/tasks/completed.md`**: Add a summary of the completed task, including the work done and a reference to the submission (e.g., branch name or commit message theme).
-    - **Clear/Update `Dev/tasks/ongoing.md`**: If no immediate follow-up task, clear it to indicate no task is ongoing. If starting another task, update it for the new task.
+    - **Update `Docs/Development/tasks/completed.md`**: Add a summary of the completed task, including the work done and a reference to the submission (e.g., branch name or commit message theme).
+    - **Clear/Update `Docs/Development/tasks/ongoing.md`**: If no immediate follow-up task, clear it to indicate no task is ongoing. If starting another task, update it for the new task.
 - **Identifying New Work:**
-  - If you identify potential future work, bugs, or ideas during your session, add them as new items to `Dev/tasks/todo.md` with a suggested priority if possible.
+  - If you identify potential future work, bugs, or ideas during your session, add them as new items to `Docs/Development/tasks/todo.md` with a suggested priority if possible.
 
 ## 4. Documentation Responsibilities
 
 - **Update Root `README.md`**: If you add significant new user-facing features or make major changes to the addon's functionality or setup, you **must** also update the main project `README.md` (located in the repository root) to reflect these changes. This keeps the primary user documentation current.
 - **Update `Docs/` Folder**: For substantial feature changes or additions, relevant files in the `Docs/` folder (e.g., `FeaturesOverview.md`, `ConfigurationGuide.md`, `Commands.md`) should also be updated.
-- **JSDoc/TSDoc Comments**: Adhere to the JSDoc/TSDoc standards outlined in `Dev/StandardizationGuidelines.md`. Add comments for new functions (especially exported ones) and complex logic. Ensure types are accurate (now enforced by TypeScript).
+- **JSDoc/TSDoc Comments**: Adhere to the JSDoc/TSDoc standards outlined in `Docs/Development/StandardizationGuidelines.md`. Add comments for new functions (especially exported ones) and complex logic. Ensure types are accurate (now enforced by TypeScript).
 
 ## 5. Code Style and Quality
 
-- **Adherence to Guidelines:** Strictly follow `Dev/CodingStyle.md` and `Dev/StandardizationGuidelines.md`.
+- **Adherence to Guidelines:** Strictly follow `Docs/Development/CodingStyle.md` and `Docs/Development/StandardizationGuidelines.md`.
 - **TypeScript:** All Behavior Pack scripts are written in TypeScript (or JavaScript migrating to TypeScript) in the `src/` directory.
-- **Build Artifacts:** Do not edit files in `AddonExeBP/scripts/` directly. Always edit the source in `src/` and run `npm run build`.
-- **Error Handling:** Implement robust error handling (e.g., `try...catch` blocks for risky operations, validation of inputs). Refer to `Dev/StandardizationGuidelines.md` (Section 6) for detailed error logging standards.
+- **Build Artifacts:** Do not edit files in `packs/behavior/scripts/` directly. Always edit the source in `src/` and run `npm run build`.
+- **Error Handling:** Implement robust error handling (e.g., `try...catch` blocks for risky operations, validation of inputs). Refer to `Docs/Development/StandardizationGuidelines.md` (Section 6) for detailed error logging standards.
 - **Logging:** Utilize the `debugLog()` function from `core/logger.ts` for development messages. This is conditional on `config.debug` being true.
   - **User-Facing Text:** Most user-facing text is hardcoded directly in the command or UI files where it is used. Configurable messages (like the welcome message or rules) are in `config.js`. Button texts for dynamically generated panels are defined in `src/core/panelLayoutConfig.js`.
 - **Linting & Formatting:**

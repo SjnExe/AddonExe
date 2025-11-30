@@ -8,9 +8,7 @@
                     "*": "Material.default"
                 }
             ],
-            "textures": [
-                "Texture.default"
-            ]
+            "textures": ["Texture.default"]
         }
     }
 }
