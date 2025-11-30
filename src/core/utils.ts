@@ -417,3 +417,47 @@ export function formatCurrency(amount: number): string {
 
     return `${isNegative ? '-' : ''}${symbol}${formattedAmount}`;
 }
+
+/**
+ * Parses a currency string (e.g., "1.5k", "2M", "500") into a number.
+ * Supports k, m, b, t suffixes (case insensitive).
+ * Returns NaN if the format is invalid.
+ * @param input The input string to parse.
+ * @returns The parsed number or NaN.
+ */
+export function parseCurrency(input: string): number {
+    if (!input) return NaN;
+
+    const normalized = input.trim().toLowerCase();
+    const regex = /^([\d.]+)([kmbt]?)$/;
+    const match = normalized.match(regex);
+
+    if (!match) {
+        return NaN;
+    }
+
+    const value = parseFloat(match[1]);
+    const suffix = match[2];
+
+    if (isNaN(value)) {
+        return NaN;
+    }
+
+    let multiplier = 1;
+    switch (suffix) {
+        case 'k':
+            multiplier = 1000;
+            break;
+        case 'm':
+            multiplier = 1000000;
+            break;
+        case 'b':
+            multiplier = 1000000000;
+            break;
+        case 't':
+            multiplier = 1000000000000;
+            break;
+    }
+
+    return value * multiplier;
+}

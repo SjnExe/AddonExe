@@ -153,6 +153,11 @@ export function savePlayerData(playerId: string) {
  * @returns The loaded player data, or null if not found.
  */
 export function loadPlayerData(playerId: string): PlayerData | null {
+    // Safe Load: If data is already in memory, return it to avoid overwriting with stale disk data.
+    if (activePlayerData.has(playerId)) {
+        return activePlayerData.get(playerId)!;
+    }
+
     try {
         const dataString = mc.world.getDynamicProperty(`${playerPropertyPrefix}${playerId}`) as string | undefined;
         if (dataString && typeof dataString === 'string') {
@@ -410,7 +415,9 @@ export function setPlayerBalance(playerId: string, newBalance: number) {
     const max = economyConfig.maxBalance ?? 1000000000;
 
     updatePlayerData(playerId, (pData) => {
-        pData.balance = Math.max(min, Math.min(newBalance, max));
+        const clampedBalance = Math.max(min, Math.min(newBalance, max));
+        // Strict 2-decimal precision
+        pData.balance = parseFloat(clampedBalance.toFixed(2));
         updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
     });
 }
@@ -425,7 +432,9 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
         const currentBal = Number(pData.balance);
         const safeBal = isNaN(currentBal) ? 0 : currentBal;
         const potentialBalance = safeBal + amount;
-        pData.balance = Math.max(min, Math.min(potentialBalance, max));
+        const clampedBalance = Math.max(min, Math.min(potentialBalance, max));
+        // Strict 2-decimal precision
+        pData.balance = parseFloat(clampedBalance.toFixed(2));
         debugLog(`[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`);
         updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
     });

@@ -5,6 +5,7 @@ import { items as allItems } from '../../core/itemsConfig.default.js';
 import * as shopAdminManager from '../../core/shopAdminManager.js';
 import * as shopManager from '../../core/shopManager.js';
 import { showPanel } from '../../core/uiManager.js';
+import { parseCurrency } from '../../core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -105,8 +106,8 @@ const sellHandCommand: CustomCommand = {
 
 interface AddShopCommandArgs {
     category: string;
-    buyPrice: number;
-    sellPrice: number;
+    buyPrice: string;
+    sellPrice: string;
     subCategory?: string;
 }
 
@@ -117,15 +118,41 @@ const addShopCommand: CustomCommand = {
     allowConsole: false,
     parameters: [
         { name: 'category', type: 'string' },
-        { name: 'buyPrice', type: 'float' },
-        { name: 'sellPrice', type: 'float' },
+        { name: 'buyPrice', type: 'string' },
+        { name: 'sellPrice', type: 'string' },
         { name: 'subCategory', type: 'string', optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player) || !args) {
             return;
         }
-        const { category, buyPrice, sellPrice, subCategory } = args as unknown as AddShopCommandArgs;
+        const {
+            category,
+            buyPrice: buyPriceStr,
+            sellPrice: sellPriceStr,
+            subCategory
+        } = args as unknown as AddShopCommandArgs;
+
+        if (!buyPriceStr || !sellPriceStr) {
+            return executor.sendMessage('§cPlease specify buy and sell prices.');
+        }
+
+        const buyPrice = parseCurrency(buyPriceStr);
+        const sellPrice = parseCurrency(sellPriceStr);
+
+        if (isNaN(buyPrice) || buyPrice < 0 || isNaN(sellPrice) || sellPrice < 0) {
+            return executor.sendMessage('§cInvalid prices. Please enter non-negative numbers.');
+        }
+
+        // Validate max 2 decimal places
+        if (
+            Math.abs(buyPrice - parseFloat(buyPrice.toFixed(2))) > 0.001 ||
+            Math.abs(sellPrice - parseFloat(sellPrice.toFixed(2))) > 0.001
+        ) {
+            return executor.sendMessage(
+                '§cInvalid precision. Prices can only have up to 2 decimal places (e.g. 10.55).'
+            );
+        }
 
         const equipment = executor.getComponent('minecraft:equippable');
         if (!equipment) {
