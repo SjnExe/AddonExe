@@ -10,13 +10,13 @@ import {
     clearPendingPayment,
     transfer
 } from '../../core/playerDataManager.js';
-import { formatCurrency } from '../../core/utils.js';
+import { formatCurrency, parseCurrency } from '../../core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 interface PayCommandArgs {
     target?: mc.Player[];
-    amount?: number;
+    amount?: string;
 }
 
 const payCommand: CustomCommand = {
@@ -28,13 +28,13 @@ const payCommand: CustomCommand = {
     defaultCooldown: 5,
     parameters: [
         { name: 'target', type: 'player' },
-        { name: 'amount', type: 'float' }
+        { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: PayCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target, amount } = args;
+        const { target, amount: amountStr } = args;
         const config = getConfig();
         if (!config.economy.enabled) {
             return sendMessage(constants.economyDisabled, executor);
@@ -50,8 +50,22 @@ const payCommand: CustomCommand = {
             return sendMessage('§cYou cannot pay yourself.', executor);
         }
 
-        if (amount === undefined || isNaN(amount) || amount <= 0) {
-            return sendMessage('§cInvalid amount. Please enter a positive number.', executor);
+        if (!amountStr) {
+            return sendMessage('§cPlease specify an amount.', executor);
+        }
+
+        const amount = parseCurrency(amountStr);
+
+        if (isNaN(amount) || amount <= 0) {
+            return sendMessage('§cInvalid amount. Please enter a positive number (e.g. 100, 2.5k).', executor);
+        }
+
+        // Validate max 2 decimal places
+        if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001) {
+            return sendMessage(
+                '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123',
+                executor
+            );
         }
 
         const sourceData = getPlayer(executor.id);

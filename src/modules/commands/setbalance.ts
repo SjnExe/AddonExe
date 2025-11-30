@@ -1,7 +1,7 @@
 import { sendMessage } from '../../core/messaging.js';
 import { findPlayerByName } from '../../core/playerCache.js';
 import { getOrCreatePlayer, setPlayerBalance, incrementPlayerBalance } from '../../core/playerDataManager.js';
-import { formatCurrency } from '../../core/utils.js';
+import { formatCurrency, parseCurrency } from '../../core/utils.js';
 
 import { CustomCommand } from './commandManager.js';
 
@@ -14,11 +14,11 @@ const setBalanceCommand: CustomCommand = {
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string', description: "The player's name whose balance to set." },
-        { name: 'amount', type: 'float', description: 'The amount to set the balance to.' }
+        { name: 'amount', type: 'string', description: 'The amount to set the balance to.' }
     ],
     execute: (_executor, args) => {
         const targetName = args.target as string;
-        const amount = args.amount as number;
+        const amountStr = args.amount as string;
 
         const targetPlayer = findPlayerByName(targetName);
         if (!targetPlayer) {
@@ -26,8 +26,23 @@ const setBalanceCommand: CustomCommand = {
             return;
         }
 
+        if (!amountStr) {
+            sendMessage('§cPlease specify an amount.');
+            return;
+        }
+
+        const amount = parseCurrency(amountStr);
+
         if (isNaN(amount) || amount < 0) {
-            sendMessage('§cInvalid amount. Please enter a non-negative number.');
+            sendMessage('§cInvalid amount. Please enter a non-negative number (e.g. 100, 2.5k).');
+            return;
+        }
+
+        // Validate max 2 decimal places
+        if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001) {
+            sendMessage(
+                '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123'
+            );
             return;
         }
 
@@ -46,11 +61,11 @@ const addBalanceCommand: CustomCommand = {
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string', description: "The player's name to add balance to." },
-        { name: 'amount', type: 'float', description: 'The amount to add.' }
+        { name: 'amount', type: 'string', description: 'The amount to add.' }
     ],
     execute: (_executor, args) => {
         const targetName = args.target as string;
-        const amount = args.amount as number;
+        const amountStr = args.amount as string;
 
         const targetPlayer = findPlayerByName(targetName);
         if (!targetPlayer) {
@@ -58,8 +73,23 @@ const addBalanceCommand: CustomCommand = {
             return;
         }
 
+        if (!amountStr) {
+            sendMessage('§cPlease specify an amount.');
+            return;
+        }
+
+        const amount = parseCurrency(amountStr);
+
         if (isNaN(amount) || amount <= 0) {
-            sendMessage('§cInvalid amount. Please enter a positive number.');
+            sendMessage('§cInvalid amount. Please enter a positive number (e.g. 100, 2.5k).');
+            return;
+        }
+
+        // Validate max 2 decimal places
+        if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001) {
+            sendMessage(
+                '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123'
+            );
             return;
         }
 
@@ -81,11 +111,11 @@ const removeBalanceCommand: CustomCommand = {
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string', description: "The player's name to remove balance from." },
-        { name: 'amount', type: 'float', description: 'The amount to remove.' }
+        { name: 'amount', type: 'string', description: 'The amount to remove.' }
     ],
     execute: (_executor, args) => {
         const targetName = args.target as string;
-        const amount = args.amount as number;
+        const amountStr = args.amount as string;
 
         const targetPlayer = findPlayerByName(targetName);
         if (!targetPlayer) {
@@ -93,8 +123,23 @@ const removeBalanceCommand: CustomCommand = {
             return;
         }
 
+        if (!amountStr) {
+            sendMessage('§cPlease specify an amount.');
+            return;
+        }
+
+        const amount = parseCurrency(amountStr);
+
         if (isNaN(amount) || amount <= 0) {
-            sendMessage('§cInvalid amount. Please enter a positive number.');
+            sendMessage('§cInvalid amount. Please enter a positive number (e.g. 100, 2.5k).');
+            return;
+        }
+
+        // Validate max 2 decimal places
+        if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001) {
+            sendMessage(
+                '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123'
+            );
             return;
         }
 

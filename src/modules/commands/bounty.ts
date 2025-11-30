@@ -4,6 +4,7 @@ import * as bountyManager from '../../core/bountyManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { infoLog } from '../../core/logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '../../core/playerDataManager.js';
+import { parseCurrency } from '../../core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -44,7 +45,7 @@ function placeBounty(player: mc.Player, targetPlayer: mc.Player, amount: number)
 
 interface RemoveBountyArgs {
     target?: mc.Player[];
-    amount?: number;
+    amount?: string;
 }
 
 const removeBountyCommand: CustomCommand = {
@@ -53,22 +54,37 @@ const removeBountyCommand: CustomCommand = {
     description: 'Removes a bounty from a player using your money.',
     permissionLevel: 1024,
     parameters: [
-        { name: 'amount', type: 'float' },
+        { name: 'amount', type: 'string' },
         { name: 'target', type: 'player', optional: true }
     ],
     execute: (executor: CommandExecutor, args: RemoveBountyArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target, amount } = args;
+        const { target, amount: amountStr } = args;
         let targetPlayer = executor;
 
         if (target && target.length > 0) {
             targetPlayer = target[0];
         }
 
-        if (amount === undefined || isNaN(amount) || amount <= 0) {
-            executor.sendMessage('§cInvalid amount. Please enter a positive number.');
+        if (!amountStr) {
+            executor.sendMessage('§cPlease specify an amount.');
+            return;
+        }
+
+        const amount = parseCurrency(amountStr);
+
+        if (isNaN(amount) || amount <= 0) {
+            executor.sendMessage('§cInvalid amount. Please enter a positive number (e.g. 100, 2.5k).');
+            return;
+        }
+
+        // Validate max 2 decimal places
+        if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001) {
+            executor.sendMessage(
+                '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123'
+            );
             return;
         }
 
@@ -99,7 +115,7 @@ const removeBountyCommand: CustomCommand = {
 
 interface BountyCommandArgs {
     target?: mc.Player[];
-    amount?: number;
+    amount?: string;
 }
 
 const bountyCommand: CustomCommand = {
@@ -109,21 +125,37 @@ const bountyCommand: CustomCommand = {
     permissionLevel: 1024,
     parameters: [
         { name: 'target', type: 'player' },
-        { name: 'amount', type: 'int' }
+        { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: BountyCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target, amount } = args;
+        const { target, amount: amountStr } = args;
         if (!target || target.length === 0) {
             executor.sendMessage('§cPlayer not found.');
             return;
         }
-        if (amount === undefined) {
+        if (!amountStr) {
             executor.sendMessage('§cUsage: /bounty <playerName> <amount>');
             return;
         }
+
+        const amount = parseCurrency(amountStr);
+
+        if (isNaN(amount) || amount <= 0) {
+            executor.sendMessage('§cInvalid amount. Please enter a positive number (e.g. 100, 2.5k).');
+            return;
+        }
+
+        // Validate max 2 decimal places
+        if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001) {
+            executor.sendMessage(
+                '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123'
+            );
+            return;
+        }
+
         placeBounty(executor, target[0], amount);
     }
 };

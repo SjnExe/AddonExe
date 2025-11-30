@@ -18,21 +18,42 @@ const logCommand: CustomCommand = {
     description: 'Sets the script logging verbosity level.',
     permissionLevel: 1, // Admin and above
     allowConsole: true,
-    parameters: [{ name: 'level', type: 'int', optional: true }],
-    execute: (executor: CommandExecutor, args?: { level?: number }) => {
-        const level = args?.level;
+    parameters: [
+        {
+            name: 'level',
+            type: 'string',
+            optional: true,
+            enumOptions: ['ERROR', 'WARN', 'INFO', 'DEBUG']
+        }
+    ],
+    execute: (executor: CommandExecutor, args?: { level?: string }) => {
+        const levelStr = args?.level;
         const currentLogLevel = getConfig().logLevel;
 
-        if (level === undefined || !logLevelNames[level]) {
+        let level: number | undefined;
+        if (levelStr) {
+            switch (levelStr.toUpperCase()) {
+                case 'ERROR':
+                    level = LogLevels.ERROR;
+                    break;
+                case 'WARN':
+                    level = LogLevels.WARN;
+                    break;
+                case 'INFO':
+                    level = LogLevels.INFO;
+                    break;
+                case 'DEBUG':
+                    level = LogLevels.DEBUG;
+                    break;
+            }
+        }
+
+        if (level === undefined) {
             const usageMessage =
                 `§aCurrent log level is §e${logLevelNames[currentLogLevel]}§a.\n` +
                 '§eUsage: /log <level>\n' +
                 '§fSets the console log verbosity.\n' +
-                '§fAvailable levels:\n' +
-                '  §c0 - ERROR:§r Only critical errors.\n' +
-                '  §61 - WARN:§r Errors and warnings.\n' +
-                '  §a2 - INFO:§r (Default) Errors, warnings, and general info.\n' +
-                '  §b3 - DEBUG:§r All messages, for development.';
+                '§fAvailable levels: ERROR, WARN, INFO, DEBUG';
 
             if (executor instanceof mc.Player) {
                 sendMessage(usageMessage, executor, { raw: true });

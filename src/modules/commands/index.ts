@@ -61,7 +61,7 @@ const commandFiles = [
     'test.js'
 ];
 
-async function loadCommands() {
+export async function loadCommands() {
     for (const file of commandFiles) {
         try {
             const commandModule = await import('./' + file);
@@ -88,5 +88,3 @@ async function loadCommands() {
         }
     }
 }
-
-void loadCommands();

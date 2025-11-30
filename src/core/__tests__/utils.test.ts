@@ -57,4 +57,35 @@ describe('Utils', () => {
             expect(utils.formatString('Hello {name}!', { name: 'World' })).toBe('Hello World!');
         });
     });
+
+    describe('parseCurrency', () => {
+        test('parses plain numbers', () => {
+            expect(utils.parseCurrency('100')).toBe(100);
+            expect(utils.parseCurrency('0')).toBe(0);
+            expect(utils.parseCurrency('10.5')).toBe(10.5);
+        });
+
+        test('parses k/K suffix', () => {
+            expect(utils.parseCurrency('1k')).toBe(1000);
+            expect(utils.parseCurrency('1.5k')).toBe(1500);
+            expect(utils.parseCurrency('100K')).toBe(100000);
+        });
+
+        test('parses m/M suffix', () => {
+            expect(utils.parseCurrency('1m')).toBe(1000000);
+            expect(utils.parseCurrency('2.5M')).toBe(2500000);
+        });
+
+        test('parses b/B suffix', () => {
+            expect(utils.parseCurrency('1b')).toBe(1000000000);
+        });
+
+        test('returns NaN for invalid inputs', () => {
+            expect(utils.parseCurrency('abc')).toBeNaN();
+            expect(utils.parseCurrency('10kk')).toBeNaN();
+            expect(utils.parseCurrency('10km')).toBeNaN();
+            expect(utils.parseCurrency('10k5')).toBeNaN();
+            expect(utils.parseCurrency('k')).toBeNaN();
+        });
+    });
 });
