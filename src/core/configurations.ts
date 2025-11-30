@@ -11,7 +11,6 @@ import { reloadRanks } from './rankManager.js';
 
 import type { economyConfig } from './economyConfig.default.js';
 import type { kitsConfig } from './kitsConfig.default.js';
-import type { config as Config } from '../config.default.js';
 import type ranksConfig from './ranksConfig.default.js';
 import type { shopConfig } from './shopConfig.default.js';
 import type { spawnConfig } from './spawnConfig.default.js';

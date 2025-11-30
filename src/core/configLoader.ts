@@ -13,8 +13,7 @@ import { errorLog } from './logger.js';
 export async function loadConfig<T>(modulePath: string, suppressError?: boolean): Promise<T> {
     const shouldSuppress = suppressError ?? false;
     try {
-
-        const module = (await import(modulePath));
+        const module = await import(modulePath);
         if (module.default) {
             return module.default as T;
         }

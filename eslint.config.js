@@ -27,6 +27,7 @@ export default tseslint.config(
             'packs/behavior/scripts/',
             'OldAntiCheatsBP/',
             'OldAntiCheatsRP/',
+            'src/**/__tests__/',
             'eslint.config.js',
             'package.json'
         ]

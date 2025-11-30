@@ -80,7 +80,7 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
             for (let j = 0; j < locationAttempts; j++) {
                 const x = centerX + Math.floor(Math.random() * (searchRadius * 2) - searchRadius);
                 const z = centerZ + Math.floor(Math.random() * (searchRadius * 2) - searchRadius);
-            const y = findHighestSolidBlock(player.dimension, x, z);
+                const y = findHighestSolidBlock(player.dimension, x, z);
 
                 if (y !== null) {
                     const potentialLoc = { x: x + 0.5, y: y + 1, z: z + 0.5 };
