@@ -77,10 +77,10 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
         .textField('Reason', 'Enter reason for kick', { defaultValue: 'Kicked by admin' });
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, 'playerActionsPanel', context);
+    if (res.canceled) return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, 'playerActionsPanel', context);
+    if (!values) return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
     const [reason] = values as [string];
 
     // Use dimension.runCommand to bypass permissions
@@ -100,7 +100,7 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
     const targetData = getPlayer(targetId);
     if (!targetData) {
         player.sendMessage('§4Player data not found.');
-        return showPanel(player, 'playerActionsPanel', context);
+        return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
     }
 
     const form = new ModalFormData()
@@ -287,20 +287,20 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
         .textField('Reason', 'Why are you reporting this player?');
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, 'playerActionsPanel', context);
+    if (res.canceled) return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, 'playerActionsPanel', context);
+    if (!values) return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
 
     const [reason] = values as [string];
     if (!reason) {
         player.sendMessage('§4Reason is required.');
-        return showPanel(player, 'playerActionsPanel', context);
+        return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
     }
 
     reportManager.createReport(player, targetId, targetData.name, reason);
     player.sendMessage('§2Report sent successfully. Admins have been notified.');
-    return showPanel(player, 'playerActionsPanel', context);
+    return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
 }
 
 async function bountyPlayer(player: mc.Player, context: UIContext) {
@@ -355,9 +355,45 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
 async function removePlayerBounty(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId;
     if (!targetId) return;
+    const targetBounty = bountyManager.getBounty(targetId);
 
-    bountyManager.removeBounty(targetId);
-    player.sendMessage('§2Bounty removed.');
+    if (!targetBounty) {
+        player.sendMessage('§4Target has no bounty.');
+        return showPanel(player, 'bountyActionsPanel', context);
+    }
+
+    const form = new ModalFormData()
+        .title('Remove Bounty')
+        .textField(`Current Bounty: ${utils.formatCurrency(targetBounty.amount)}`, 'Amount to pay off');
+
+    const res = await utils.uiWait(player, form);
+    if (res.canceled) return showPanel(player, 'bountyActionsPanel', context);
+
+    const values = (res as ModalFormResponse).formValues;
+    if (!values) return showPanel(player, 'bountyActionsPanel', context);
+
+    const [amountStr] = values as [string];
+    const amount = parseInt(amountStr);
+
+    if (isNaN(amount) || amount <= 0) {
+        player.sendMessage('§4Invalid amount.');
+        return showPanel(player, 'bountyActionsPanel', context);
+    }
+
+    if (amount > targetBounty.amount) {
+        player.sendMessage(`§4You cannot remove more than the current bounty.`);
+        return showPanel(player, 'bountyActionsPanel', context);
+    }
+
+    const myData = getPlayer(player.id);
+    if (!myData || myData.balance < amount) {
+        player.sendMessage(`§4Insufficient funds.`);
+        return showPanel(player, 'bountyActionsPanel', context);
+    }
+
+    incrementPlayerBalance(player.id, -amount);
+    bountyManager.incrementBounty(targetId, -amount);
+    player.sendMessage(`§2Removed ${utils.formatCurrency(amount)} from bounty.`);
     return showPanel(player, 'bountyActionsPanel', context);
 }
 

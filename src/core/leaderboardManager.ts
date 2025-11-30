@@ -1,7 +1,5 @@
 import * as mc from '@minecraft/server';
 
-import { config as Config } from '../config.default.js';
-
 import { getConfig } from './configManager.js';
 import { debugLog, errorLog } from './logger.js';
 import { setTrackedTimeout } from './timerManager.js';

@@ -1,7 +1,5 @@
 import * as mc from '@minecraft/server';
 
-import { config as Config } from '../config.default.js';
-
 import { getConfig } from './configManager.js';
 import { getKitsConfig } from './configurations.js';
 import { Kit } from './kitAdminManager.js';

@@ -4,7 +4,7 @@ import { getShopConfig, saveShopConfig } from './configurations.js';
 import { iconDB } from './iconDB.js';
 import { items } from './itemsConfig.default.js';
 import { debugLog } from './logger.js';
-import { ShopConfig, ShopCategory, ShopSubCategory } from './shopConfig.default.js';
+import { ShopCategory, ShopSubCategory } from './shopConfig.default.js';
 import { generateDisplayName } from './utils.js';
 
 interface ActionResult {
