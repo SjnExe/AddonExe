@@ -40,7 +40,7 @@ interface UpdateItemData {
  */
 export function addCategory(categoryName: string, icon: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as Record<string, ShopCategory>;
+    const categories = config.categories;
     if (categories[categoryName]) {
         return { success: false, message: `A category with the name '${categoryName}' already exists.` };
     }
@@ -71,7 +71,7 @@ export function editSubCategory(
     newIcon: string
 ): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as Record<string, ShopCategory>;
+    const categories = config.categories;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -110,7 +110,7 @@ export function editSubCategory(
  */
 export function editCategory(oldCategoryName: string, newCategoryName: string, newIcon: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as Record<string, ShopCategory>;
+    const categories = config.categories;
     if (!categories[oldCategoryName]) {
         return { success: false, message: `Category '${oldCategoryName}' not found.` };
     }
@@ -139,7 +139,7 @@ export function editCategory(oldCategoryName: string, newCategoryName: string, n
  */
 export function renameCategory(oldCategoryName: string, newCategoryName: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as Record<string, ShopCategory>;
+    const categories = config.categories;
     if (!categories[oldCategoryName]) {
         return { success: false, message: `Category '${oldCategoryName}' not found.` };
     }
@@ -162,7 +162,7 @@ export function renameCategory(oldCategoryName: string, newCategoryName: string)
  */
 export function deleteCategory(categoryName: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as Record<string, ShopCategory>;
+    const categories = config.categories;
     if (!categories[categoryName]) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
@@ -182,7 +182,7 @@ export function deleteCategory(categoryName: string): ActionResult {
  */
 export function addSubCategory(categoryName: string, subCategoryName: string, icon: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as Record<string, ShopCategory>;
+    const categories = config.categories;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -217,7 +217,7 @@ export function renameSubCategory(
     newSubCategoryName: string
 ): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as Record<string, ShopCategory>;
+    const categories = config.categories;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -250,7 +250,7 @@ export function renameSubCategory(
  */
 export function deleteSubCategory(categoryName: string, subCategoryName: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as Record<string, ShopCategory>;
+    const categories = config.categories;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -289,7 +289,7 @@ export function addShopItemFromHand(
 
     // 1. Generate a truly unique ID by checking both the base config and the live shop config.
     const allExistingIds = new Set(Object.keys(items));
-    const shopConfig = getShopConfig() as ShopConfig;
+    const shopConfig = getShopConfig();
     if (shopConfig && shopConfig.categories) {
         for (const category of Object.values(shopConfig.categories)) {
             if (category.items) {
@@ -403,7 +403,7 @@ export function setItem(
     itemData: ItemData
 ): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as Record<string, ShopCategory>;
+    const categories = config.categories;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -460,7 +460,7 @@ export function addCustomItemToConfig(itemId: string, itemData: ItemData): Actio
  */
 export function removeItem(categoryName: string, subCategoryName: string | null, itemId: string): ActionResult {
     const config = getShopConfig();
-    const categories = config.categories as Record<string, ShopCategory>;
+    const categories = config.categories;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
@@ -517,7 +517,7 @@ export function updateShopItem(
 
     // 2. Update the shop-specific configuration (shop.json)
     const shopConfig = getShopConfig();
-    const categories = shopConfig.categories as Record<string, ShopCategory>;
+    const categories = shopConfig.categories;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };

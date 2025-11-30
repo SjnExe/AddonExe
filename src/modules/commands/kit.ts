@@ -13,7 +13,7 @@ import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const KITS_PER_PAGE = 8;
 
-function showKitList(player: mc.Player, page: number) {
+async function showKitList(player: mc.Player, page: number) {
     const availableKits = kitsManager.listKits(player);
     if (availableKits.length === 0) {
         player.sendMessage('§cThere are no kits available for you.');
@@ -48,43 +48,42 @@ function showKitList(player: mc.Player, page: number) {
         form.button('§eNext Page >');
     }
 
-    form.show(player)
-        .then((response) => {
-            if (response.canceled || response.selection === undefined) {
-                return;
-            }
+    try {
+        const response = await form.show(player);
+        if (response.canceled || response.selection === undefined) {
+            return;
+        }
 
-            const selection = response.selection;
+        const selection = response.selection;
 
-            if (selection >= kitsToShow.length) {
-                let buttonIndex = selection - kitsToShow.length;
-                if (page > 1) {
-                    if (buttonIndex === 0) {
-                        showKitList(player, page - 1);
-                        return;
-                    }
-                    buttonIndex--;
+        if (selection >= kitsToShow.length) {
+            let buttonIndex = selection - kitsToShow.length;
+            if (page > 1) {
+                if (buttonIndex === 0) {
+                    await showKitList(player, page - 1);
+                    return;
                 }
-                if (page < totalPages) {
-                    if (buttonIndex === 0) {
-                        showKitList(player, page + 1);
-                    }
+                buttonIndex--;
+            }
+            if (page < totalPages) {
+                if (buttonIndex === 0) {
+                    await showKitList(player, page + 1);
                 }
-                return;
             }
+            return;
+        }
 
-            const selectedKitIndex = startIndex + selection;
-            const selectedKitName = availableKits[selectedKitIndex].name;
-            const result = kitsManager.giveKit(player, selectedKitName);
-            if (result.success) {
-                player.sendMessage(`§a${result.message}`);
-            } else {
-                player.sendMessage(`§c${result.message}`);
-            }
-        })
-        .catch((error) => {
-            errorLog(`[Kit UI] Error showing form: ${error}`);
-        });
+        const selectedKitIndex = startIndex + selection;
+        const selectedKitName = availableKits[selectedKitIndex].name;
+        const result = kitsManager.giveKit(player, selectedKitName);
+        if (result.success) {
+            player.sendMessage(`§a${result.message}`);
+        } else {
+            player.sendMessage(`§c${result.message}`);
+        }
+    } catch (error) {
+        errorLog(`[Kit UI] Error showing form: ${error}`);
+    }
 }
 
 interface KitCommandArgs {
@@ -96,7 +95,7 @@ const kitCommand: CustomCommand = {
     description: 'Claims a specific kit. Leave blank to see a list of available kits.',
     permissionLevel: 1024,
     parameters: [{ name: 'kitName', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: KitCommandArgs) => {
+    execute: async (executor: CommandExecutor, args: KitCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -109,7 +108,7 @@ const kitCommand: CustomCommand = {
         const kitName = args.kitName;
 
         if (!kitName) {
-            showKitList(executor, 1);
+            await showKitList(executor, 1);
             return;
         }
 
@@ -129,7 +128,7 @@ const addKitCommand: CustomCommand = {
     permissionLevel: 1, // Admins only
     allowConsole: false,
     parameters: [{ name: 'kitName', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: KitCommandArgs) => {
+    execute: async (executor: CommandExecutor, args: KitCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -178,7 +177,7 @@ const addKitCommand: CustomCommand = {
         }
 
         executor.sendMessage(`§aSuccessfully created kit '${lowerCaseKitName}'. Opening editor...`);
-        showPanel(executor, `kitActionMenu_${lowerCaseKitName}`);
+        await showPanel(executor, `kitActionMenu_${lowerCaseKitName}`);
     }
 };
 

@@ -132,7 +132,7 @@ function startSystemTimers() {
 async function initializeAddon() {
     infoLog('[AddonExe] Initializing addon...');
 
-    const tempConfig = (await loadConfig('../config.js')) as typeof Config;
+    const tempConfig = (await loadConfig('../config.js'));
     const newVersion = tempConfig.version;
     const newVersionStr = String(newVersion);
     const lastVersionStr = mc.world.getDynamicProperty('exe:lastVersion') as string | undefined;
@@ -201,21 +201,23 @@ function cleanupAddon() {
     console.log('[AddonExe] Cleanup complete. The script will now unload.');
 }
 
-mc.system.runTimeout(async () => {
-    try {
-        await initializeAddon();
-    } catch (e: unknown) {
-        errorLog('[AddonExe] A critical error occurred during addon initialization:');
-        if (e instanceof Error) {
-            errorLog(`Message: ${e.message}`);
-            if (e.stack) errorLog(`Stack: ${e.stack}`);
-        } else {
-            errorLog(`Error: ${String(e)}`);
+mc.system.runTimeout(() => {
+    void (async () => {
+        try {
+            await initializeAddon();
+        } catch (e: unknown) {
+            errorLog('[AddonExe] A critical error occurred during addon initialization:');
+            if (e instanceof Error) {
+                errorLog(`Message: ${e.message}`);
+                if (e.stack) errorLog(`Stack: ${e.stack}`);
+            } else {
+                errorLog(`Error: ${String(e)}`);
+            }
+            mc.world.sendMessage(
+                '§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.'
+            );
         }
-        mc.world.sendMessage(
-            '§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.'
-        );
-    }
+    })();
 }, 0);
 
 mc.system.afterEvents.scriptEventReceive.subscribe((event: unknown) => {

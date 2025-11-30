@@ -13,8 +13,8 @@ import { errorLog } from './logger.js';
 export async function loadConfig<T>(modulePath: string, suppressError?: boolean): Promise<T> {
     const shouldSuppress = suppressError ?? false;
     try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const module = (await import(modulePath)) as any;
+
+        const module = (await import(modulePath));
         if (module.default) {
             return module.default as T;
         }

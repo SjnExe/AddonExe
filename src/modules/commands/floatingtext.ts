@@ -23,7 +23,7 @@ const command: CustomCommand = {
         { name: 'id', type: 'string', optional: true, description: 'The ID of the floating text.' },
         { name: 'text', type: 'text', optional: true, description: 'The text to display.' }
     ],
-    execute: (executor, args) => {
+    execute: async (executor, args) => {
         if (!(executor instanceof mc.Player)) return;
 
         const subcommand = typeof args.subcommand === 'string' ? args.subcommand.toLowerCase() : undefined;
@@ -31,7 +31,7 @@ const command: CustomCommand = {
         const text = typeof args.text === 'string' ? args.text : undefined;
 
         if (!subcommand) {
-            showPanel(executor, 'floatingTextListPanel');
+            await showPanel(executor, 'floatingTextListPanel');
             return;
         }
 
@@ -52,7 +52,7 @@ const command: CustomCommand = {
                     executor.sendMessage('§cUsage: /floatingtext delete <id>');
                     return;
                 }
-                floatingTextManager.deleteText(executor, id);
+                await floatingTextManager.deleteText(executor, id);
                 break;
             case 'list':
                 floatingTextManager.listTexts(executor);
@@ -66,9 +66,9 @@ const command: CustomCommand = {
                 break;
             case 'edit':
                 if (!id) {
-                    showPanel(executor, 'floatingTextListPanel');
+                    await showPanel(executor, 'floatingTextListPanel');
                 } else {
-                    showPanel(executor, 'floatingTextEditPanel', { id });
+                    await showPanel(executor, 'floatingTextEditPanel', { id });
                 }
                 break;
             default:

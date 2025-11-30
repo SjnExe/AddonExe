@@ -201,8 +201,8 @@ function _updateNameMap(player: mc.Player) {
  * @param player
  */
 function _createNewPlayerData(player: mc.Player): PlayerData {
-    const config = getConfig() as typeof Config;
-    const economyConfig = getEconomyConfig() as EconomyConfig;
+    const config = getConfig();
+    const economyConfig = getEconomyConfig();
     const newPlayerData: PlayerData = {
         name: player.name,
         ...defaultPlayerData,
@@ -320,7 +320,7 @@ export function clearPendingPayment(sourcePlayerId: string) {
 }
 
 export function clearExpiredPayments() {
-    const config = getConfig() as typeof Config;
+    const config = getConfig();
     const timeout = config.economy.paymentConfirmationTimeout * 1000; // convert to ms
     const now = Date.now();
 
@@ -406,7 +406,7 @@ export function deletePlayerHome(playerId: string, homeName: string) {
 }
 
 export function setPlayerBalance(playerId: string, newBalance: number) {
-    const economyConfig = getEconomyConfig() as EconomyConfig;
+    const economyConfig = getEconomyConfig();
     const min = economyConfig.minBalance ?? -1000000;
     const max = economyConfig.maxBalance ?? 1000000000;
 
@@ -417,7 +417,7 @@ export function setPlayerBalance(playerId: string, newBalance: number) {
 }
 
 export function incrementPlayerBalance(playerId: string, amount: number) {
-    const economyConfig = getEconomyConfig() as EconomyConfig;
+    const economyConfig = getEconomyConfig();
     const min = economyConfig.minBalance ?? -1000000;
     const max = economyConfig.maxBalance ?? 1000000000;
 

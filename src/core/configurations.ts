@@ -154,7 +154,7 @@ export const configResetCallbacks: Record<string, (player?: mc.Player) => void> 
         }
     },
     dimensionLock: (player) => {
-        const config = getConfig() as typeof Config;
+        const config = getConfig();
         setLockState('nether', !!config.dimensionLock.netherLock);
         setLockState('end', !!config.dimensionLock.endLock);
         if (player) {

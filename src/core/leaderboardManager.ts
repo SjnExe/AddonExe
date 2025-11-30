@@ -59,7 +59,7 @@ function triggerLeaderboardSave() {
 }
 
 export function updateAndSaveLeaderboard(playerId: string, name: string, balance: number) {
-    const config = getConfig() as typeof Config;
+    const config = getConfig();
     const cacheSize = (config.economy.baltopLimit ?? 10) + 5;
     const lowestBalanceOnBoard =
         leaderboardCache.length < cacheSize ? 0 : (leaderboardCache[leaderboardCache.length - 1]?.balance ?? 0);

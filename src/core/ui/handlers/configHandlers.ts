@@ -134,7 +134,7 @@ export async function handleConfigPanel(
 
         if (selectionIndex >= 0 && selectionIndex < paginatedSystems.length) {
             const selectedSystem = paginatedSystems[selectionIndex];
-            showConfirmationDialog(player, {
+            await showConfirmationDialog(player, {
                 title: `Confirm Reset: ${selectedSystem.title}`,
                 body: `This action cannot be undone. Are you sure you want to reset the ${selectedSystem.title} configuration to its default values?`,
                 confirmButtonText: '§4Yes, Reset',
@@ -188,7 +188,7 @@ export async function handleConfigPanel(
         const totalPages = Math.ceil(resettableSystems.length / itemsPerPage);
 
         if (page >= totalPages && buttonIndex === 0) {
-            showConfirmationDialog(player, {
+            await showConfirmationDialog(player, {
                 title: 'Confirm Reset All',
                 body: 'This action cannot be undone. Are you sure you want to reset ALL system configurations to their default values?',
                 confirmButtonText: '§4Yes, Reset All',

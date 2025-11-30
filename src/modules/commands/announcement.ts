@@ -61,7 +61,7 @@ const announcementCommand: CustomCommand = {
             description: 'Globally enable or disable announcements (true=ON, false=OFF).'
         }
     ],
-    execute: (executor, args) => {
+    execute: async (executor, args) => {
         if (args.enabled !== undefined && typeof args.enabled === 'boolean') {
             const announcementsConfig = getConfig()?.announcements;
             if (!announcementsConfig) {
@@ -80,11 +80,12 @@ const announcementCommand: CustomCommand = {
             return;
         }
 
-        import('../../core/uiManager.js')
-            .then((uiManager) => {
-                uiManager.showPanel(executor, announcementPanelId);
-            })
-            .catch((e) => errorLog(`Failed to load uiManager for announcements panel: ${e}`));
+        try {
+            const uiManager = await import('../../core/uiManager.js');
+            await uiManager.showPanel(executor, announcementPanelId);
+        } catch (e) {
+            errorLog(`Failed to load uiManager for announcements panel: ${e}`);
+        }
     }
 };
 

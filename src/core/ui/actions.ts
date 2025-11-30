@@ -368,7 +368,7 @@ async function assignReport(player: mc.Player, context: UIContext) {
     reportManager.assignReport(report.id, player.id);
     player.sendMessage('§2Report assigned to you.');
     // Refresh the panel
-    showPanel(player, 'reportActionsPanel', context);
+    return showPanel(player, 'reportActionsPanel', context);
 }
 
 async function resolveReport(player: mc.Player, context: UIContext) {
@@ -378,7 +378,7 @@ async function resolveReport(player: mc.Player, context: UIContext) {
     reportManager.resolveReport(report.id);
     player.sendMessage('§2Report marked as resolved.');
     // Go back to list
-    showPanel(player, 'reportListPanel', context);
+    return showPanel(player, 'reportListPanel', context);
 }
 
 async function clearReport(player: mc.Player, context: UIContext) {
@@ -387,7 +387,7 @@ async function clearReport(player: mc.Player, context: UIContext) {
 
     reportManager.clearReport(report.id);
     player.sendMessage('§2Report cleared.');
-    showPanel(player, 'reportListPanel', context);
+    return showPanel(player, 'reportListPanel', context);
 }
 
 async function showUnbanForm(player: mc.Player, context: UIContext) {
