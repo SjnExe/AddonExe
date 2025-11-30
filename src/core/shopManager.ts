@@ -4,7 +4,6 @@ import { getShopConfig } from './configurations.js';
 import { items as allItems } from './itemsConfig.default.js';
 import { errorLog } from './logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from './playerDataManager.js';
-import { ShopConfig } from './shopConfig.default.js';
 import { formatCurrency } from './utils.js';
 
 interface ItemInfo {

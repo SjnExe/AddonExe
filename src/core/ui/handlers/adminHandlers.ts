@@ -96,7 +96,7 @@ export async function handleAdminPanel(
             expiresAt:
                 useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
         };
-        floatingTextManager.updateText(id, updatedConfig);
+        await floatingTextManager.updateText(id, updatedConfig);
         player.sendMessage(`§2Successfully updated floating text: ${id}`);
         return showPanel(player, 'floatingTextActionPanel', context);
     }

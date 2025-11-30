@@ -10,12 +10,11 @@ import {
     getShopConfig,
     getEconomyConfig,
     getXrayConfig,
-    getTeamConfig,
-    KitsConfig
+    getTeamConfig
 } from '../configurations.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { iconDB } from '../iconDB.js';
-import { getAllKits, Kit } from '../kitAdminManager.js';
+import { getAllKits } from '../kitAdminManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
 import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
@@ -33,8 +32,6 @@ import {
     getPaginatedItems,
     addPaginationButtons
 } from './uiUtils.js';
-
-import type { ShopConfig } from '../shopConfig.default.js';
 
 interface Item {
     displayName?: string;
@@ -200,7 +197,7 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
         if ('items' in entry) {
             form.button(`§6${entry.name}`, entry.icon);
         } else {
-            const masterItem = (allItems)[entry.id] || {};
+            const masterItem = allItems[entry.id] || {};
             const displayName = entry.displayName || masterItem.displayName || entry.id;
             const icon = entry.icon || masterItem.icon;
             let priceString = '';
@@ -237,7 +234,7 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
     const paginatedItems = getPaginatedItems(items, page);
 
     for (const item of paginatedItems) {
-        const masterItem = (allItems)[item.id] || {};
+        const masterItem = allItems[item.id] || {};
         const displayName = item.displayName || masterItem.displayName || item.id;
         const icon = item.icon || masterItem.icon;
         let priceString = '';
@@ -307,7 +304,7 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
             // subCategory
             form.button(`§6${entry.name}`, entry.icon);
         } else {
-            const masterItem = (allItems)[entry.id] || {};
+            const masterItem = allItems[entry.id] || {};
             const displayName = entry.displayName || masterItem.displayName || entry.id;
             const icon = entry.icon || masterItem.icon;
             form.button(displayName, icon);
@@ -339,7 +336,7 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
     const paginatedItems = getPaginatedItems(items, page);
 
     for (const item of paginatedItems) {
-        const masterItem = (allItems)[item.id] || {};
+        const masterItem = allItems[item.id] || {};
         const displayName = item.displayName || masterItem.displayName || item.id;
         const icon = item.icon || masterItem.icon;
         form.button(displayName, icon);
@@ -357,7 +354,7 @@ function buildShopAddItemPanel(form: ActionFormData, context: UIContext) {
     const paginatedItems = getPaginatedItems(allPossibleItems, page);
 
     for (const itemId of paginatedItems) {
-        const masterItem = (allItems)[itemId];
+        const masterItem = allItems[itemId];
         form.button(masterItem.displayName ?? itemId, masterItem.icon);
     }
 
@@ -1186,7 +1183,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             if (!link) {
                 errorLog(`[UIManager] Invalid link index for helpfulLinkActionPanel: ${linkIndex}`);
-                import('../uiManager.js').then(({ showPanel }) =>
+                await import('../uiManager.js').then(({ showPanel }) =>
                     showPanel(player, 'helpfulLinksManagementPanel', context)
                 );
                 return null;
@@ -1250,7 +1247,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
         let title = panelDef.title.replace('{playerName}', context.targetPlayerName ?? '');
 
-        if (panelId === 'mainPanel') {
+        if (context.customTitle) {
+            title = context.customTitle;
+        } else if (panelId === 'mainPanel') {
             const config = getConfig();
             title = config.serverName || panelDef.title;
         }
@@ -1567,7 +1566,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'playerActionsPanel') {
             panelDef.parentPanelId = context.fromPanel || 'mainPanel';
             const form = new ActionFormData().title(title);
-            addPanelBody(form, player, panelId, context);
+            await addPanelBody(form, player, panelId, context);
 
             const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel, player.id);
 

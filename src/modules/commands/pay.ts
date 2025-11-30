@@ -24,6 +24,8 @@ const payCommand: CustomCommand = {
     aliases: ['givemoney', 'transfer'],
     description: 'Pays another player from your balance.',
     permissionLevel: 1024,
+    hasCooldown: true,
+    defaultCooldown: 5,
     parameters: [
         { name: 'target', type: 'player' },
         { name: 'amount', type: 'float' }

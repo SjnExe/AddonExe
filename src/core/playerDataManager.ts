@@ -1,9 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { config as Config } from '../config.default.js';
-
 import { getConfig } from './configManager.js';
-import { getEconomyConfig, EconomyConfig } from './configurations.js';
+import { getEconomyConfig } from './configurations.js';
 import { updateAndSaveLeaderboard } from './leaderboardManager.js';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
@@ -272,6 +270,7 @@ export function getPlayer(playerId: string): PlayerData | undefined {
  */
 export function handlePlayerLeave(playerId: string) {
     if (activePlayerData.has(playerId)) {
+        savePlayerData(playerId);
         activePlayerData.delete(playerId);
         debugLog(`[PlayerDataManager] Unloaded data for player ${playerId} from cache.`);
     }
@@ -427,6 +426,7 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
         const safeBal = isNaN(currentBal) ? 0 : currentBal;
         const potentialBalance = safeBal + amount;
         pData.balance = Math.max(min, Math.min(potentialBalance, max));
+        debugLog(`[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`);
         updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
     });
 }

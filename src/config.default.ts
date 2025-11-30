@@ -1,6 +1,7 @@
 export const config = {
     // --- System & Core Settings ---
     version: [1, 0, 0], // This will be replaced by the release workflow
+    isNightly: false, // Updated by release workflow
     ownerPlayerNames: ['Your•Name•Here'], // Default : ['Your•Name•Here']
     commandPrefix: '!',
     serverName: '§cServerExe§r',

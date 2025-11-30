@@ -10,7 +10,7 @@ function handleItemUse(event: mc.ItemUseAfterEvent) {
     if (itemStack.typeId === 'exe:panel') {
         const pData = playerDataManager.getOrCreatePlayer(player);
         if (pData) {
-            showPanel(player, 'mainPanel');
+            void showPanel(player, 'mainPanel');
         }
     }
 }

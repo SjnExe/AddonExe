@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import * as bountyManager from '../../core/bountyManager.js';
 import { getConfig } from '../../core/configManager.js';
+import { infoLog } from '../../core/logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '../../core/playerDataManager.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
@@ -33,6 +34,7 @@ function placeBounty(player: mc.Player, targetPlayer: mc.Player, amount: number)
         return;
     }
 
+    infoLog(`[Bounty] Deducting ${amount} from ${player.name} (${player.id})`);
     incrementPlayerBalance(player.id, -amount);
     bountyManager.incrementBounty(targetPlayer.id, amount);
 

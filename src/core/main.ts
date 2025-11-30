@@ -86,11 +86,11 @@ function loadPersistentData() {
     bountyManager.loadBounties();
 }
 
-function initializeManagers() {
+async function initializeManagers() {
     infoLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
-    floatingTextManager.initialize();
+    await floatingTextManager.initialize();
     teamManager.initialize();
     initializeLeaderboard();
     clearExpiredPunishments();
@@ -112,14 +112,18 @@ async function checkConfiguration() {
     if (!isOwnerConfigured) {
         const warningMessage =
             '§l§c[AddonExe] WARNING: No owner is configured. Please set `ownerPlayerNames` in `scripts/config.js` to gain access to admin commands.';
-        mc.system.runTimeout(() => mc.world.sendMessage(warningMessage), 20);
+        mc.system.runTimeout(() => {
+            void mc.world.sendMessage(warningMessage);
+        }, 20);
         errorLog('[AddonExe] No owner configured.');
     }
 
     if (!spawnConfig.spawn || !spawnConfig.spawn.spawnLocation) {
         const spawnWarning =
             '§l§e[AddonExe] NOTICE: The server spawn has not been set. Spawn protection and the /spawn command will not function until an admin runs /setspawn.';
-        mc.system.runTimeout(() => mc.world.sendMessage(spawnWarning), 40);
+        mc.system.runTimeout(() => {
+            void mc.world.sendMessage(spawnWarning);
+        }, 40);
         errorLog('[AddonExe] Server spawn not set.');
     }
 }
@@ -132,7 +136,7 @@ function startSystemTimers() {
 async function initializeAddon() {
     infoLog('[AddonExe] Initializing addon...');
 
-    const tempConfig = (await loadConfig('../config.js'));
+    const tempConfig = await loadConfig<typeof Config>('../config.js');
     const newVersion = tempConfig.version;
     const newVersionStr = String(newVersion);
     const lastVersionStr = mc.world.getDynamicProperty('exe:lastVersion') as string | undefined;
@@ -176,7 +180,7 @@ async function initializeAddon() {
     const { initializePlayerCache } = await import('./playerCache.js');
     initializePlayerCache();
 
-    initializeManagers();
+    await initializeManagers();
     await checkConfiguration();
     initializeEventManager();
     initializeSpawnProtection();
@@ -185,20 +189,27 @@ async function initializeAddon() {
 
     reinitializeOnlinePlayers();
 
+    if (config.isNightly) {
+        try {
+            await import('../gametests/BountyTests.js');
+            infoLog('[AddonExe] Nightly build detected. GameTests loaded.');
+        } catch (e) {
+            errorLog('[AddonExe] Failed to load GameTests:', e);
+        }
+    }
+
     startSystemTimers();
     infoLog('[AddonExe] Addon initialized successfully.');
 }
 
 function cleanupAddon() {
-    // eslint-disable-next-line no-console
-    console.log('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
+    infoLog('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
     floatingTextManager.cleanup();
     cleanupPlayerDataManager();
     cleanupLeaderboardManager();
     cleanupEventManager();
     cleanupTimers();
-    // eslint-disable-next-line no-console
-    console.log('[AddonExe] Cleanup complete. The script will now unload.');
+    infoLog('[AddonExe] Cleanup complete. The script will now unload.');
 }
 
 mc.system.runTimeout(() => {
