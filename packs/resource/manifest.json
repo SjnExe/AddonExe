@@ -5,11 +5,8 @@
         "description": "§aThe required resource pack for AddonExe. Provides UI elements and assets for the moderation tools. By Sjn.exe. Version §uv1.0.0§r",
         "uuid": "9dca0c93-f6ec-4701-a74c-a774600640a4",
         "version": [1, 0, 0],
-        "min_engine_version": [1,21,110],
-        "capabilities": [
-            "pbr",
-            "raytraced"
-        ]
+        "min_engine_version": [1, 21, 110],
+        "capabilities": ["pbr", "raytraced"]
     },
     "modules": [
         {
@@ -26,9 +23,7 @@
         }
     ],
     "metadata": {
-        "authors": [
-            "§6Sjn.exe§r"
-        ],
+        "authors": ["§6Sjn.exe§r"],
         "license": "MIT",
         "url": "https://github.com/SjnExe/AddonExe"
     }
