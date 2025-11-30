@@ -90,7 +90,7 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
         }
     }
 
-    const pData = isConsole ? null : getPlayer((executor).id);
+    const pData = isConsole ? null : getPlayer(executor.id);
     const userPermissionLevel = isConsole ? 0 : (pData?.permissionLevel ?? 1024);
 
     if (!cmd || (isConsole && !cmd.allowConsole) || userPermissionLevel > (cmd.permissionLevel ?? 1024)) {
