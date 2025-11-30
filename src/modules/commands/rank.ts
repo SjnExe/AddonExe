@@ -7,15 +7,19 @@ import { findPlayerByName } from '../../core/playerCache.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import * as rankManager from '../../core/rankManager.js';
 import { playSound } from '../../core/utils.js';
+import { getRanksConfig } from '../../core/configurations.js';
 
 import type { CustomCommand } from './commandManager.js';
-import type { RankCondition } from '../../core/ranksConfig.default.js';
+import type { RankCondition, RankDefinition } from '../../core/ranksConfig.default.js';
 
 interface RankCommandArgs {
     action?: string;
     target?: string;
     rankId?: string;
 }
+
+const ranksConfig = getRanksConfig();
+const validRankIds = ranksConfig.rankDefinitions.map((r: RankDefinition) => r.id);
 
 const command: CustomCommand = {
     name: 'rank',
@@ -24,9 +28,20 @@ const command: CustomCommand = {
     permissionLevel: 1, // Admin and above
     allowConsole: true,
     parameters: [
-        { name: 'action', type: 'string', optional: true },
+        {
+            name: 'action',
+            type: 'string',
+            optional: true,
+            enumOptions: ['set', 'remove', 'list']
+        },
         { name: 'target', type: 'string', description: 'The name of the target player.', optional: true },
-        { name: 'rankId', type: 'string', description: 'The ID of the rank to set.', optional: true }
+        {
+            name: 'rankId',
+            type: 'string',
+            description: 'The ID of the rank to set.',
+            optional: true,
+            enumOptions: validRankIds
+        }
     ],
     execute: (executor, args: RankCommandArgs) => {
         const { action, target: targetName, rankId } = args;

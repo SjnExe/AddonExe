@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { restartAnnouncer } from '../modules/commands/announcement.js';
+import { loadCommands } from '../modules/commands/index.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
 
@@ -38,7 +39,6 @@ import * as teamManager from './teamManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 
 import type { config as Config } from '../config.default.js';
-import '../modules/commands/index.js';
 import './mobDeathEvents.js';
 
 export function updatePlayerRank(player: mc.Player) {
@@ -166,6 +166,9 @@ async function initializeAddon() {
     await loadEconomyConfig(isMigration);
     await loadTeamConfig(isMigration);
     await loadXrayConfig(isMigration);
+
+    // Load commands after config is ready (required for dynamic enums)
+    await loadCommands();
 
     const config = getConfig();
     setLogLevel(config.logLevel);
