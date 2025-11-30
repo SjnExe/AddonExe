@@ -58,7 +58,7 @@ const commandFiles = [
     'chattoconsole.js',
     'xraynotify.js',
     'floatingtext.js',
-    'debug.js'
+    'test.js'
 ];
 
 async function loadCommands() {

@@ -40,7 +40,6 @@ import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 import type { config as Config } from '../config.default.js';
 import '../modules/commands/index.js';
 import './mobDeathEvents.js';
-import '../gametests/BountyTests.js';
 
 export function updatePlayerRank(player: mc.Player) {
     const pData = getOrCreatePlayer(player);
@@ -189,6 +188,15 @@ async function initializeAddon() {
     restartAnnouncer();
 
     reinitializeOnlinePlayers();
+
+    if (config.isNightly) {
+        try {
+            await import('../gametests/BountyTests.js');
+            infoLog('[AddonExe] Nightly build detected. GameTests loaded.');
+        } catch (e) {
+            errorLog('[AddonExe] Failed to load GameTests:', e);
+        }
+    }
 
     startSystemTimers();
     infoLog('[AddonExe] Addon initialized successfully.');

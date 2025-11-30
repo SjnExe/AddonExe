@@ -1,7 +1,7 @@
 import * as GameTest from '@minecraft/server-gametest';
-import * as mc from '@minecraft/server';
+
+import { incrementBounty, setBounty, getBounty } from '../core/bountyManager.js';
 import { incrementPlayerBalance, getOrCreatePlayer, setPlayerBalance } from '../core/playerDataManager.js';
-import { setBounty, getBounty, incrementBounty } from '../core/bountyManager.js';
 
 GameTest.register('AddonExe', 'BountyLogic', (test) => {
     // We can't easily spawn a SimulatedPlayer and expect it to have persisted data or valid session
@@ -15,7 +15,7 @@ GameTest.register('AddonExe', 'BountyLogic', (test) => {
 
     test.runAfterDelay(20, () => {
         // Ensure player data exists
-        const pData = getOrCreatePlayer(simPlayer);
+        getOrCreatePlayer(simPlayer);
 
         // Reset state
         setPlayerBalance(simPlayer.id, 1000);

@@ -127,6 +127,9 @@ function updateConfig(filePath) {
         // Update logLevel
         // Regex matches: logLevel: 2
         content = content.replace(/logLevel:\s*2/g, 'logLevel: 3');
+
+        // Update isNightly
+        content = content.replace(/isNightly:\s*false/g, 'isNightly: true');
     }
 
     fs.writeFileSync(fullPath, content);

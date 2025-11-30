@@ -1,14 +1,13 @@
-import * as mc from '@minecraft/server';
-import { CustomCommand, CommandExecutor } from './commandManager.js';
-import { setLogLevel, LogLevels } from '../../core/logger.js';
-import { getAllPlayerData } from '../../core/playerDataManager.js';
 import { getAllBounties } from '../../core/bountyManager.js';
+import { getAllPlayerData } from '../../core/playerDataManager.js';
+
+import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 const debugCommand: CustomCommand = {
-    name: 'exedebug',
-    description: 'Debug tools for AddonExe.',
+    name: 'test',
+    description: 'Debug and testing tools for AddonExe.',
     permissionLevel: 1, // Admin only
-    aliases: ['exelog'],
+    aliases: ['exetest', 'exedump', 'debug'],
     parameters: [
         { name: 'action', type: 'string', optional: true }
     ],
@@ -32,7 +31,7 @@ const debugCommand: CustomCommand = {
             return;
         }
 
-        executor.sendMessage('§eUsage: /exedebug dump');
+        executor.sendMessage('§eUsage: /test dump');
     }
 };
 
