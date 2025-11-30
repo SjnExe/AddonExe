@@ -55,8 +55,8 @@ const balanceCommand: CustomCommand = {
             return;
         }
 
-        if (!isConsole && targetPlayer.id === (executor as mc.Player).id) {
-            sendMessage(`§aYour balance is: §e${formatCurrency(balance)}`, executor as mc.Player);
+        if (!isConsole && targetPlayer.id === (executor).id) {
+            sendMessage(`§aYour balance is: §e${formatCurrency(balance)}`, executor);
         } else {
             const message = `§a${targetPlayer.name}'s balance is: §e${formatCurrency(balance)}`;
             if (executor instanceof mc.Player) {

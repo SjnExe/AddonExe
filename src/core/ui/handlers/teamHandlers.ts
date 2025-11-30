@@ -63,7 +63,7 @@ export async function handleTeamPanel(
                         '§4Owners cannot leave their team. You must transfer ownership or delete the team.'
                     );
                 } else {
-                    showConfirmationDialog(player, {
+                    await showConfirmationDialog(player, {
                         title: 'Leave Team',
                         body: 'Are you sure you want to leave the team?',
                         confirmButtonText: '§4Yes, Leave',
@@ -73,7 +73,7 @@ export async function handleTeamPanel(
                             // Kick self
                             kickMember(team.id, player.id);
                             player.sendMessage('§2You have left the team.');
-                            showPanel(player, 'teamMainPanel', context);
+                            return showPanel(player, 'teamMainPanel', context);
                         },
                         onCancel: () => showPanel(player, 'teamMainPanel', context)
                     });
@@ -151,7 +151,7 @@ export async function handleTeamPanel(
             return showPanel(player, panelId, context);
         }
 
-        showConfirmationDialog(player, {
+        await showConfirmationDialog(player, {
             title: `Apply to ${team.name}?`,
             body: `Do you want to send a join request to ${team.name}?`,
             confirmButtonText: '§2Apply',
@@ -159,7 +159,7 @@ export async function handleTeamPanel(
             onConfirm: () => {
                 const result = applyToTeam(player, teamId);
                 player.sendMessage(result.message || '§4Unknown error.');
-                showPanel(player, 'teamJoinPanel', context);
+                return showPanel(player, 'teamJoinPanel', context);
             },
             onCancel: () => showPanel(player, 'teamJoinPanel', context)
         });
@@ -237,7 +237,7 @@ export async function handleTeamPanel(
             const team = paginatedTeams[selectionIndex];
             const { applyToTeam } = await import('../../teamManager.js');
 
-            showConfirmationDialog(player, {
+            await showConfirmationDialog(player, {
                 title: `Apply to ${team.name}?`,
                 body: `Do you want to send a join request to ${team.name}?`,
                 confirmButtonText: '§2Apply',
@@ -245,7 +245,7 @@ export async function handleTeamPanel(
                 onConfirm: () => {
                     const result = applyToTeam(player, team.id);
                     player.sendMessage(result.message || '§4Unknown error.');
-                    showPanel(player, panelId, context);
+                    return showPanel(player, panelId, context);
                 },
                 onCancel: () => showPanel(player, panelId, context)
             });
@@ -303,7 +303,7 @@ export async function handleTeamPanel(
 
         if (selection === 5) {
             // Delete Team (Owner Only)
-            showConfirmationDialog(player, {
+            await showConfirmationDialog(player, {
                 title: 'Delete Team?',
                 body: '§4WARNING: This will disband the team and cannot be undone.',
                 confirmButtonText: '§4DELETE',
@@ -311,7 +311,7 @@ export async function handleTeamPanel(
                 onConfirm: () => {
                     deleteTeam(team.id);
                     player.sendMessage('§2Team deleted.');
-                    showPanel(player, 'mainPanel', {});
+                    return showPanel(player, 'mainPanel', {});
                 },
                 onCancel: () => showPanel(player, panelId, context)
             });
@@ -525,7 +525,7 @@ export async function handleTeamPanel(
                     }
                 } else if (resSelection === 2) {
                     // Transfer
-                    showConfirmationDialog(player, {
+                    await showConfirmationDialog(player, {
                         title: 'Transfer Ownership?',
                         body: 'You will become a regular member.',
                         confirmButtonText: '§4Confirm',
@@ -533,7 +533,7 @@ export async function handleTeamPanel(
                         onConfirm: () => {
                             const result = transferOwnership(team.id, memberId);
                             player.sendMessage(result.message || '§4Unknown error.');
-                            showPanel(player, panelId, context);
+                            return showPanel(player, panelId, context);
                         },
                         onCancel: () => showPanel(player, panelId, context)
                     });

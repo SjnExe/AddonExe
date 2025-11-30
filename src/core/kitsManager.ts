@@ -40,7 +40,7 @@ export function getKit(kitName: string): Kit | undefined {
  * @returns An array of kit information objects.
  */
 export function listKits(player: mc.Player): KitInfo[] {
-    const mainConfig = getConfig() as typeof Config;
+    const mainConfig = getConfig();
     const kitsConfig = getKitsConfig();
     if (!mainConfig.kits.enabled || !kitsConfig.kitDefinitions) {
         return [];
@@ -104,7 +104,7 @@ export function getKitCooldown(player: mc.Player, kitName: string): number {
  * @returns The result of the operation.
  */
 export function giveKit(player: mc.Player, kitName: string): KitResult {
-    const mainConfig = getConfig() as typeof Config;
+    const mainConfig = getConfig();
     if (!mainConfig.kits.enabled) {
         return { success: false, message: 'The kit system is currently disabled.' };
     }

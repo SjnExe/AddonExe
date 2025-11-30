@@ -50,7 +50,7 @@ export interface CustomCommand {
     /** An array of parameters the command accepts. */
     parameters?: CommandParameter[];
     /** The function to execute when the command is run. */
-    execute: (executor: CommandExecutor, args: Record<string, unknown>) => void;
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => void | Promise<void>;
     /** Whether the command can be run from the server console. Defaults to false. */
     allowConsole?: boolean;
     /** Whether the command has a cooldown. */
@@ -203,7 +203,7 @@ class CommandManager {
         }
 
         // --- Player Execution ---
-        const player = executor as mc.Player;
+        const player = executor;
 
         // Cooldown Check
         if (command.hasCooldown) {
@@ -228,7 +228,16 @@ class CommandManager {
         // Execute Command
         mc.system.run(() => {
             try {
-                command.execute(player, args);
+                const result = command.execute(player, args);
+                if (result instanceof Promise) {
+                    result.catch((error: unknown) => {
+                        const stack = error instanceof Error ? error.stack : String(error);
+                        errorLog(
+                            `[CommandManager] Error executing async command '${command.name}' for player '${player.name}': ${stack}`
+                        );
+                        player.sendMessage('§cAn unexpected error occurred while running this command.');
+                    });
+                }
             } catch (error: unknown) {
                 const stack = error instanceof Error ? error.stack : String(error);
                 errorLog(
@@ -305,11 +314,7 @@ class CommandManager {
         };
 
         try {
-            customCommandRegistry.registerCommand(
-                commandData,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                commandCallback as any
-            );
+            customCommandRegistry.registerCommand(commandData, commandCallback);
             this.registeredSlashCommands.add(name);
         } catch (e: unknown) {
             const errStr = String(e);

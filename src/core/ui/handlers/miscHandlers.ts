@@ -125,7 +125,7 @@ export async function handleMiscPanel(
                 return showPanel(player, 'rulesManagementPanel', context);
             case 3: {
                 // Delete Rule
-                showConfirmationDialog(player, {
+                await showConfirmationDialog(player, {
                     title: '§4Confirm Deletion',
                     body: 'Are you sure you want to delete this rule?',
                     confirmButtonText: '§4Yes, Delete',
@@ -133,10 +133,10 @@ export async function handleMiscPanel(
                     onConfirm: () => {
                         rulesManager.deleteRule(ruleIndex);
                         player.sendMessage('§2Rule deleted successfully.');
-                        showPanel(player, 'rulesManagementPanel', context);
+                        return showPanel(player, 'rulesManagementPanel', context);
                     },
                     onCancel: () => {
-                        showPanel(player, 'rulesManagementPanel', context);
+                        return showPanel(player, 'rulesManagementPanel', context);
                     }
                 });
                 return;
@@ -247,7 +247,7 @@ export async function handleMiscPanel(
                 return showPanel(player, 'helpfulLinksManagementPanel', context);
             case 3: {
                 // Delete Link
-                showConfirmationDialog(player, {
+                await showConfirmationDialog(player, {
                     title: '§4Confirm Deletion',
                     body: 'Are you sure you want to delete this link?',
                     confirmButtonText: '§4Yes, Delete',
@@ -255,10 +255,10 @@ export async function handleMiscPanel(
                     onConfirm: () => {
                         helpfulLinksManager.deleteHelpfulLink(linkIndex);
                         player.sendMessage('§2Link deleted successfully.');
-                        showPanel(player, 'helpfulLinksManagementPanel', context);
+                        return showPanel(player, 'helpfulLinksManagementPanel', context);
                     },
                     onCancel: () => {
-                        showPanel(player, 'helpfulLinksManagementPanel', context);
+                        return showPanel(player, 'helpfulLinksManagementPanel', context);
                     }
                 });
                 return;

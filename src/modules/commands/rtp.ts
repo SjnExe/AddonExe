@@ -15,7 +15,7 @@ const rtpCommand: CustomCommand = {
     description: 'Teleports you to a random safe location in the world.',
     permissionLevel: 1024,
     hasCooldown: true,
-    execute: (executor: CommandExecutor) => {
+    execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -31,7 +31,7 @@ const rtpCommand: CustomCommand = {
             return;
         }
 
-        findSafeLocationAndTeleport(executor, config.rtp.minRange, config.rtp.maxRange);
+        await findSafeLocationAndTeleport(executor, config.rtp.minRange, config.rtp.maxRange);
     }
 };
 
@@ -80,7 +80,7 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
             for (let j = 0; j < locationAttempts; j++) {
                 const x = centerX + Math.floor(Math.random() * (searchRadius * 2) - searchRadius);
                 const z = centerZ + Math.floor(Math.random() * (searchRadius * 2) - searchRadius);
-                const y = await findHighestSolidBlock(player.dimension, x, z);
+            const y = findHighestSolidBlock(player.dimension, x, z);
 
                 if (y !== null) {
                     const potentialLoc = { x: x + 0.5, y: y + 1, z: z + 0.5 };
@@ -133,7 +133,7 @@ function safeRemoveTickingArea(dimension: mc.Dimension, name: string) {
     }
 }
 
-async function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): Promise<number | null> {
+function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): number | null {
     // Attempt to use the newer getTopmostBlock API for performance
     try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

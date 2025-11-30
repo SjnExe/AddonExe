@@ -50,7 +50,7 @@ const hqCommand: CustomCommand = {
     description: "Teleports you to your team's home.",
     permissionLevel: 1024,
     aliases: ['teamhome'],
-    execute: async (executor: CommandExecutor) => {
+    execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }

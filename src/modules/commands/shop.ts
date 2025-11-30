@@ -13,7 +13,7 @@ const shopCommand: CustomCommand = {
     description: 'Opens the server shop.',
     permissionLevel: 1024,
     allowConsole: false,
-    execute: (executor: CommandExecutor) => {
+    execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -21,7 +21,7 @@ const shopCommand: CustomCommand = {
         if (!config.shop.enabled) {
             return executor.sendMessage('§cThe shop is currently disabled.');
         }
-        showPanel(executor, 'shopMainPanel', { view: 'shop' });
+        await showPanel(executor, 'shopMainPanel', { view: 'shop' });
     }
 };
 
@@ -30,7 +30,7 @@ const buyCommand: CustomCommand = {
     description: 'Opens the shop to buy items.',
     permissionLevel: 1024,
     allowConsole: false,
-    execute: (executor: CommandExecutor) => {
+    execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -38,7 +38,7 @@ const buyCommand: CustomCommand = {
         if (!config.shop.enabled) {
             return executor.sendMessage('§cThe shop is currently disabled.');
         }
-        showPanel(executor, 'shopMainPanel', { view: 'buy' });
+        await showPanel(executor, 'shopMainPanel', { view: 'buy' });
     }
 };
 
@@ -47,7 +47,7 @@ const sellCommand: CustomCommand = {
     description: 'Opens the shop to sell items.',
     permissionLevel: 1024,
     allowConsole: false,
-    execute: (executor: CommandExecutor) => {
+    execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -55,7 +55,7 @@ const sellCommand: CustomCommand = {
         if (!config.shop.enabled) {
             return executor.sendMessage('§cThe shop is currently disabled.');
         }
-        showPanel(executor, 'shopMainPanel', { view: 'sell' });
+        await showPanel(executor, 'shopMainPanel', { view: 'sell' });
     }
 };
 

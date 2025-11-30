@@ -31,23 +31,24 @@ export default tseslint.config(
             'package.json'
         ]
     },
-    // Base JS/TS configuration
+    // Base JS configuration
     eslint.configs.recommended,
-    ...tseslint.configs.recommended,
+
+    // TS Configuration (Type-Checked)
     {
-        files: ['**/*.js', '**/*.ts'],
-        plugins: {
-            'minecraft-linting': minecraftLinting,
-            import: importPlugin
-        },
+        files: ['src/**/*.ts'],
+        extends: [...tseslint.configs.recommendedTypeChecked],
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'module',
+            parserOptions: {
+                project: './tsconfig.json',
+                tsconfigRootDir: __dirname
+            },
             globals: {
                 ...globals.browser,
                 ...globals.node,
                 ...globals.es2021,
-                // Minecraft Bedrock Scripting API globals
                 system: 'readonly',
                 world: 'readonly',
                 mc: 'readonly',
@@ -58,6 +59,10 @@ export default tseslint.config(
                 'mojang-server-admin': 'readonly',
                 'mojang-net': 'readonly'
             }
+        },
+        plugins: {
+            'minecraft-linting': minecraftLinting,
+            import: importPlugin
         },
         settings: {
             'import/resolver': {
@@ -82,7 +87,6 @@ export default tseslint.config(
         },
         rules: {
             'minecraft-linting/avoid-unnecessary-command': 'error',
-            // Import rules
             'import/no-unresolved': ['error', { commonjs: true, amd: true }],
             'import/named': 'error',
             'import/namespace': 'error',
@@ -96,21 +100,37 @@ export default tseslint.config(
                     alphabetize: { order: 'asc', caseInsensitive: true }
                 }
             ],
-
             camelcase: ['error', { properties: 'always', ignoreDestructuring: true, allow: ['^UNSAFE_'] }],
-            'no-unused-vars': 'off', // handled by TS
-            '@typescript-eslint/no-unused-vars': ['warn', { args: 'none' }],
-            'no-undef': 'off', // handled by TS
             'no-console': 'warn',
             eqeqeq: ['error', 'always'],
             'no-var': 'error',
             curly: ['error', 'all'],
             'import/no-duplicates': 'error',
-
-            // TS specific
             '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/no-var-requires': 'off',
-            '@typescript-eslint/no-shadow': 'error'
+            '@typescript-eslint/no-shadow': 'error',
+            '@typescript-eslint/no-floating-promises': 'error',
+            '@typescript-eslint/no-misused-promises': 'error',
+            '@typescript-eslint/no-unused-vars': ['warn', { args: 'none' }],
+            // Disable strict type safety rules for now to facilitate migration
+            '@typescript-eslint/no-unsafe-argument': 'off',
+            '@typescript-eslint/no-unsafe-assignment': 'off',
+            '@typescript-eslint/no-unsafe-call': 'off',
+            '@typescript-eslint/no-unsafe-member-access': 'off',
+            '@typescript-eslint/no-unsafe-return': 'off',
+            '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+            '@typescript-eslint/restrict-template-expressions': 'off',
+            '@typescript-eslint/await-thenable': 'off',
+            '@typescript-eslint/require-await': 'off'
+        }
+    },
+
+    // JS Configuration (Scripts)
+    {
+        files: ['scripts/**/*.js'],
+        extends: [...tseslint.configs.recommended],
+        rules: {
+            'no-console': 'off'
         }
     },
 
@@ -118,27 +138,9 @@ export default tseslint.config(
     ...jsonc.configs['flat/recommended-with-jsonc'],
     {
         files: ['**/*.json'],
-        rules: {
-            // Add any non-stylistic JSON rules here if needed in the future
-        }
-    },
-    // Jest test file configuration
-    {
-        files: ['**/__tests__/**/*.js', '**/__tests__/**/*.ts'],
-        languageOptions: {
-            globals: {
-                ...globals.jest
-            }
-        }
-    },
-    // Scripts configuration
-    {
-        files: ['scripts/**/*.js'],
-        rules: {
-            'no-console': 'off'
-        }
+        rules: {}
     },
 
-    // Prettier config must be last to override other formatting rules
+    // Prettier
     prettierConfig
 );

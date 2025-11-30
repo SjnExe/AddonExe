@@ -60,9 +60,9 @@ const reportsCommand: CustomCommand = {
     name: 'reports',
     description: 'Views the list of active reports.',
     permissionLevel: 2,
-    execute: (executor: CommandExecutor) => {
+    execute: async (executor: CommandExecutor) => {
         if (executor instanceof mc.Player) {
-            showPanel(executor, 'reportListPanel');
+            await showPanel(executor, 'reportListPanel');
         }
     }
 };

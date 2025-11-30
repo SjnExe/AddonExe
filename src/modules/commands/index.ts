@@ -88,4 +88,4 @@ async function loadCommands() {
     }
 }
 
-loadCommands();
+void loadCommands();

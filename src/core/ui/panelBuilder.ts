@@ -156,7 +156,7 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
 }
 
 function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
-    const shopConfig = getShopConfig() as ShopConfig;
+    const shopConfig = getShopConfig();
 
     const validCategories = Object.keys(shopConfig.categories)
         .filter((categoryName: string) => {
@@ -180,7 +180,7 @@ function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
 
 function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
     const { categoryName, page = 1, view = 'shop' } = context;
-    const shopConfig = getShopConfig() as ShopConfig;
+    const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName ?? ''];
 
     if (!category) {
@@ -200,7 +200,7 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
         if ('items' in entry) {
             form.button(`§6${entry.name}`, entry.icon);
         } else {
-            const masterItem = (allItems as Record<string, Item>)[entry.id] || {};
+            const masterItem = (allItems)[entry.id] || {};
             const displayName = entry.displayName || masterItem.displayName || entry.id;
             const icon = entry.icon || masterItem.icon;
             let priceString = '';
@@ -221,7 +221,7 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
 
 function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
     const { categoryName, subCategoryName, page = 1, view = 'shop' } = context;
-    const shopConfig = getShopConfig() as ShopConfig;
+    const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName ?? ''];
     if (!category) {
         form.body('§4Category not found.');
@@ -237,7 +237,7 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
     const paginatedItems = getPaginatedItems(items, page);
 
     for (const item of paginatedItems) {
-        const masterItem = (allItems as Record<string, Item>)[item.id] || {};
+        const masterItem = (allItems)[item.id] || {};
         const displayName = item.displayName || masterItem.displayName || item.id;
         const icon = item.icon || masterItem.icon;
         let priceString = '';
@@ -267,7 +267,7 @@ function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
 
     form.button('§l§2+ Add Category', 'textures/ui/color_plus');
 
-    const shopConfig = getShopConfig() as ShopConfig;
+    const shopConfig = getShopConfig();
     const categories = Object.keys(shopConfig.categories).sort();
     const paginatedCategories = getPaginatedItems(categories, page);
 
@@ -286,7 +286,7 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
     form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
     form.button('§l§9* Edit Category', 'textures/ui/icon_setting');
 
-    const shopConfig = getShopConfig() as ShopConfig;
+    const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName ?? ''];
 
     if (!category) {
@@ -307,7 +307,7 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
             // subCategory
             form.button(`§6${entry.name}`, entry.icon);
         } else {
-            const masterItem = (allItems as Record<string, Item>)[entry.id] || {};
+            const masterItem = (allItems)[entry.id] || {};
             const displayName = entry.displayName || masterItem.displayName || entry.id;
             const icon = entry.icon || masterItem.icon;
             form.button(displayName, icon);
@@ -323,7 +323,7 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
     form.button('§l§9* Edit Subcategory', 'textures/ui/icon_setting');
 
-    const shopConfig = getShopConfig() as ShopConfig;
+    const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName ?? ''];
     if (!category) {
         form.body('§4Category not found.');
@@ -339,7 +339,7 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
     const paginatedItems = getPaginatedItems(items, page);
 
     for (const item of paginatedItems) {
-        const masterItem = (allItems as Record<string, Item>)[item.id] || {};
+        const masterItem = (allItems)[item.id] || {};
         const displayName = item.displayName || masterItem.displayName || item.id;
         const icon = item.icon || masterItem.icon;
         form.button(displayName, icon);
@@ -357,7 +357,7 @@ function buildShopAddItemPanel(form: ActionFormData, context: UIContext) {
     const paginatedItems = getPaginatedItems(allPossibleItems, page);
 
     for (const itemId of paginatedItems) {
-        const masterItem = (allItems as Record<string, Item>)[itemId];
+        const masterItem = (allItems)[itemId];
         form.button(masterItem.displayName ?? itemId, masterItem.icon);
     }
 
@@ -568,7 +568,7 @@ function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
     form.button('§l§2+ Create New Kit', 'textures/ui/color_plus');
 
     // Get all kit names and paginate them
-    const allKits = getAllKits() as Record<string, Kit>;
+    const allKits = getAllKits();
     const kitNames = Object.keys(allKits);
 
     if (kitNames.length === 0) {
@@ -1020,7 +1020,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId.startsWith('kitItemsPanel_')) {
             const kitName = panelId.replace('kitItemsPanel_', '');
-            const allKits = getAllKits() as Record<string, Kit>;
+            const allKits = getAllKits();
             const kit = allKits[kitName];
             const page = context.page || 1;
 
@@ -1051,7 +1051,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId.startsWith('kitSettingsPanel_')) {
             const kitName = panelId.replace('kitSettingsPanel_', '');
-            const allKits = getAllKits() as Record<string, Kit>;
+            const allKits = getAllKits();
             const kit = allKits[kitName];
 
             if (!kit) {
@@ -1216,7 +1216,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId.startsWith('kitDetailPanel_')) {
             const kitName = panelId.replace('kitDetailPanel_', '');
-            const kitsConfig = getKitsConfig() as KitsConfig;
+            const kitsConfig = getKitsConfig();
             const kit = kitsConfig.kitDefinitions[kitName];
 
             if (!kit) {

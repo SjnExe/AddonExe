@@ -13,12 +13,12 @@ const command: CustomCommand = {
     permissionLevel: 1, // Admins only
     allowConsole: true,
     parameters: [],
-    execute: async (_executor) => {
+    execute: (_executor) => {
         try {
             sendMessage('§eReloading configuration...');
 
             // This function contains the new priority-merge logic
-            await reloadConfig();
+            reloadConfig();
 
             sendMessage('§aConfiguration reloaded successfully.');
 

@@ -68,7 +68,7 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
  * @returns The item definition or null if not found.
  */
 function findShopItem(itemId: string): ItemInfo | null {
-    const shopConfig = getShopConfig() as ShopConfig;
+    const shopConfig = getShopConfig();
     const categories = shopConfig.categories;
     const items = allItems as Record<string, ItemInfo>;
 

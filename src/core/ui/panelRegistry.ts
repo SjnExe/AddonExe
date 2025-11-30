@@ -137,6 +137,15 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 actionType: 'openPanel',
                 actionValue: 'myStatsPanel',
                 sortId: 40
+            },
+            {
+                id: 'playerList',
+                text: '§2Player List',
+                icon: 'textures/ui/icon_steve.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'playerListPanel',
+                sortId: 50
             }
         ]
     },
@@ -161,15 +170,6 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 actionType: 'functionCall',
                 actionValue: 'showHelpfulLinks',
                 sortId: 20
-            },
-            {
-                id: 'playerList',
-                text: '§2Player List',
-                icon: 'textures/ui/icon_steve.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'playerListPanel',
-                sortId: 30
             }
         ]
     },
