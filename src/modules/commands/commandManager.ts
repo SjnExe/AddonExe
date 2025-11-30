@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '../../core/configManager.js';
-import { getCooldown } from '../../core/cooldownManager.js';
+import { getCooldown, setCooldownCustom } from '../../core/cooldownManager.js';
 import { errorLog } from '../../core/logger.js';
 import { findPlayerByName } from '../../core/playerCache.js';
 import { getPlayer } from '../../core/playerDataManager.js';
@@ -58,6 +58,8 @@ export interface CustomCommand {
     hasCooldown?: boolean;
     /** A unique identifier for the command's cooldown. Defaults to the command name. */
     cooldownId?: string;
+    /** Default cooldown duration in seconds. */
+    defaultCooldown?: number;
     /** If true, the command will not be registered as a slash command. */
     disableSlashCommand?: boolean;
     /** A list of aliases that should not be registered as slash commands. */
@@ -246,6 +248,17 @@ class CommandManager {
                         );
                         player.sendMessage('§cAn unexpected error occurred while running this command.');
                     });
+                }
+
+                // Set Cooldown
+                if (command.hasCooldown) {
+                    const cooldownId = command.cooldownId || command.name;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const cmdConfig = (config.commandSettings as any)[command.name];
+                    const duration = cmdConfig?.cooldownSeconds ?? command.defaultCooldown ?? 0;
+                    if (duration > 0) {
+                        setCooldownCustom(player.id, cooldownId, duration);
+                    }
                 }
             } catch (error: unknown) {
                 const stack = error instanceof Error ? error.stack : String(error);
@@ -529,6 +542,15 @@ class CommandManager {
             } else if (paramDef.type === 'player' || paramDef.type === 'target') {
                 const p = findPlayerByName(rawValue);
                 parsedArgs[paramDef.name] = p ? [p] : [];
+                currentArgIndex++;
+            } else if (paramDef.enumOptions && paramDef.enumOptions.length > 0) {
+                if (!paramDef.enumOptions.includes(rawValue)) {
+                    player.sendMessage(
+                        `§cInvalid option '${rawValue}' for parameter '${paramDef.name}'. Valid options: ${paramDef.enumOptions.join(', ')}`
+                    );
+                    return true;
+                }
+                parsedArgs[paramDef.name] = rawValue;
                 currentArgIndex++;
             } else {
                 parsedArgs[paramDef.name] = rawValue;

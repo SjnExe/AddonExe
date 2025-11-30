@@ -1,26 +1,35 @@
 import * as mc from '@minecraft/server';
-import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
 import * as reportManager from '../../core/reportManager.js';
+import { handleUIAction } from '../../core/ui/actions.js';
 import { showPanel } from '../../core/uiManager.js';
-import { uiWait } from '../../core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const reportCommand: CustomCommand = {
     name: 'report',
-    description: 'Reports a player using a UI. The player can be offline.',
+    description: 'Reports a player. Usage: /report [target] [reason]',
     permissionLevel: 1024,
-    parameters: [{ name: 'target', type: 'string', optional: true }],
+    hasCooldown: true,
+    defaultCooldown: 60,
+    parameters: [
+        { name: 'target', type: 'string', optional: true },
+        { name: 'message', type: 'text', optional: true }
+    ],
     execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
         const reportedPlayerName = args.target as string | undefined;
+        const message = args.message as string | undefined;
 
         if (!reportedPlayerName) {
-            executor.sendMessage('§cUsage: /report <targetName>');
+            // Show list
+            await showPanel(executor, 'playerListPanel', {
+                customTitle: 'Select Player to Report',
+                action: 'report'
+            });
             return;
         }
 
@@ -33,26 +42,16 @@ const reportCommand: CustomCommand = {
         const offlineData = loadPlayerData(targetId);
         const correctTargetName = offlineData ? offlineData.name : reportedPlayerName;
 
-        const form = new ModalFormData()
-            .title(`Report ${correctTargetName}`)
-            .textField('Reason for report:', 'Enter the reason here');
-
-        const response = await uiWait(executor, form);
-
-        if (!response || response.canceled) {
-            executor.sendMessage('§cReport canceled.');
-            return;
+        if (message) {
+            reportManager.createReport(executor, targetId, correctTargetName, message);
+            executor.sendMessage('§aReport submitted. Thank you for your help.');
+        } else {
+            await handleUIAction(executor, 'reportPlayer', {
+                targetPlayerId: targetId,
+                targetPlayerName: correctTargetName,
+                returnPanel: null // Close, don't return to list
+            });
         }
-
-        const [reason] = (response as ModalFormResponse).formValues as (string | undefined)[];
-
-        if (!reason || reason.trim().length === 0) {
-            executor.sendMessage('§cYou must provide a reason.');
-            return;
-        }
-
-        reportManager.createReport(executor, targetId, correctTargetName, reason);
-        executor.sendMessage('§aReport submitted. Thank you for your help.');
     }
 };
 

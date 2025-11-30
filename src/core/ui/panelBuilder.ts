@@ -1247,7 +1247,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
         let title = panelDef.title.replace('{playerName}', context.targetPlayerName ?? '');
 
-        if (panelId === 'mainPanel') {
+        if (context.customTitle) {
+            title = context.customTitle;
+        } else if (panelId === 'mainPanel') {
             const config = getConfig();
             title = config.serverName || panelDef.title;
         }

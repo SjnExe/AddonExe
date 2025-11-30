@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
 import { loadPlayerData, getAllPlayerNameIdMap, getPlayerIdByName } from '../../playerDataManager.js';
+import { handleUIAction } from '../../ui/actions.js';
 import { showPanel } from '../../uiManager.js';
 import { UIContext } from '../panelRegistry.js';
 import { itemsPerPage, getPaginatedItems } from '../uiUtils.js';
@@ -35,6 +36,13 @@ export async function handlePlayerPanel(
         const paginatedPlayers = getPaginatedItems(onlinePlayers, page);
         if (buttonIndex >= 0 && buttonIndex < paginatedPlayers.length) {
             const target = paginatedPlayers[buttonIndex];
+            if (context.action === 'report') {
+                return handleUIAction(player, 'reportPlayer', {
+                    targetPlayerId: target.id,
+                    targetPlayerName: target.name,
+                    returnPanel: 'playerListPanel'
+                });
+            }
             return showPanel(player, 'playerActionsPanel', {
                 ...context,
                 targetPlayerId: target.id,
