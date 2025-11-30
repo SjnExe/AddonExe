@@ -314,7 +314,7 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
 
     const form = new ModalFormData()
         .title(`Set Bounty: ${targetData?.name}`)
-        .textField('Amount', 'Enter bounty amount');
+        .textField('Amount', 'Enter bounty amount (e.g. 100, 2.5k)');
 
     const res = await utils.uiWait(player, form);
     if (res.canceled) return showPanel(player, 'bountyActionsPanel', context);
@@ -323,10 +323,18 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
     if (!values) return showPanel(player, 'bountyActionsPanel', context);
 
     const [amountStr] = values as [string];
-    const amount = parseInt(amountStr);
+    const amount = utils.parseCurrency(amountStr);
 
     if (isNaN(amount) || amount <= 0) {
-        player.sendMessage('§4Invalid amount.');
+        player.sendMessage('§4Invalid amount. Please enter a positive number (e.g. 100, 2.5k).');
+        return showPanel(player, 'bountyActionsPanel', context);
+    }
+
+    // Validate max 2 decimal places
+    if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001) {
+        player.sendMessage(
+            '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123'
+        );
         return showPanel(player, 'bountyActionsPanel', context);
     }
 
@@ -373,10 +381,18 @@ async function removePlayerBounty(player: mc.Player, context: UIContext) {
     if (!values) return showPanel(player, 'bountyActionsPanel', context);
 
     const [amountStr] = values as [string];
-    const amount = parseInt(amountStr);
+    const amount = utils.parseCurrency(amountStr);
 
     if (isNaN(amount) || amount <= 0) {
-        player.sendMessage('§4Invalid amount.');
+        player.sendMessage('§4Invalid amount. Please enter a positive number (e.g. 100, 2.5k).');
+        return showPanel(player, 'bountyActionsPanel', context);
+    }
+
+    // Validate max 2 decimal places
+    if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001) {
+        player.sendMessage(
+            '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123'
+        );
         return showPanel(player, 'bountyActionsPanel', context);
     }
 
