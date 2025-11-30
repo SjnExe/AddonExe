@@ -6,6 +6,7 @@ import { sendMessage } from '../../core/messaging.js';
 import { findPlayerByName } from '../../core/playerCache.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import * as rankManager from '../../core/rankManager.js';
+import { rankDefinitions } from '../../core/ranksConfig.default.js';
 import { playSound } from '../../core/utils.js';
 import { getRanksConfig } from '../../core/configurations.js';
 
@@ -18,8 +19,9 @@ interface RankCommandArgs {
     rankId?: string;
 }
 
-const ranksConfig = getRanksConfig();
-const validRankIds = ranksConfig.rankDefinitions.map((r: RankDefinition) => r.id);
+// Use default ranks for static registration to ensure safety during startup.
+// Custom ranks added via config will still work in execution but won't be suggested in the enum.
+const validRankIds = rankDefinitions.map((r: RankDefinition) => r.id);
 
 const command: CustomCommand = {
     name: 'rank',

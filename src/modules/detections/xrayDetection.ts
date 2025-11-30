@@ -32,7 +32,8 @@ function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Ve
     const message = formatString('§7{playerName}§r mined §e{count} {oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r', context);
 
     if (xrayConfig.notifications.logToConsole) {
-        warnLog(message);
+        // eslint-disable-next-line no-console
+        console.warn(`[X-Ray] ${message.replace(/§./g, '')}`);
     }
 
     const onlinePlayers = getAllPlayersFromCache();

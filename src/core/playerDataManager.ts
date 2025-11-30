@@ -435,7 +435,9 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
         const clampedBalance = Math.max(min, Math.min(potentialBalance, max));
         // Strict 2-decimal precision
         pData.balance = parseFloat(clampedBalance.toFixed(2));
-        debugLog(`[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`);
+        // Log transaction regardless of debug level
+        // eslint-disable-next-line no-console
+        console.info(`[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`);
         updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
     });
 }
