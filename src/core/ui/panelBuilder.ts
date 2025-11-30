@@ -616,7 +616,7 @@ function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
 
 export async function buildPanelForm(player: mc.Player, panelId: string, context: UIContext) {
     try {
-        debugLog(`[UIManager] Building form for panel '${panelId}' for player ${player.name}.`);
+        // debugLog(`[UIManager] Building form for panel '${panelId}' for player ${player.name}.`);
 
         // Load items config if not loaded
         if (Object.keys(allItems).length === 0) {
@@ -640,7 +640,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 errorLog(`[UIManager] Could not find config category for ID: ${categoryId}`);
                 return null;
             }
-            debugLog(`[UIManager] Building config settings form for category: ${categoryId}`);
+            // debugLog(`[UIManager] Building config settings form for category: ${categoryId}`);
             const form = new ModalFormData().title(category.title);
 
             const configSource = category.configSource || 'main';
@@ -1582,7 +1582,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         for (const item of menuItems) {
             form.button(item.text, item.icon);
         }
-        debugLog(`[UIManager] Successfully built form for panel '${panelId}' with ${menuItems.length} items.`);
+        // debugLog(`[UIManager] Successfully built form for panel '${panelId}' with ${menuItems.length} items.`);
         return form;
     } catch (e) {
         const textConfig =
