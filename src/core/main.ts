@@ -189,6 +189,15 @@ async function initializeAddon() {
 
     reinitializeOnlinePlayers();
 
+    if (config.isNightly) {
+        try {
+            await import('../gametests/BountyTests.js');
+            infoLog('[AddonExe] Nightly build detected. GameTests loaded.');
+        } catch (e) {
+            errorLog('[AddonExe] Failed to load GameTests:', e);
+        }
+    }
+
     startSystemTimers();
     infoLog('[AddonExe] Addon initialized successfully.');
 }

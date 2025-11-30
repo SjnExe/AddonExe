@@ -425,6 +425,7 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
         const safeBal = isNaN(currentBal) ? 0 : currentBal;
         const potentialBalance = safeBal + amount;
         pData.balance = Math.max(min, Math.min(potentialBalance, max));
+        debugLog(`[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`);
         updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
     });
 }
