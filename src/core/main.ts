@@ -40,6 +40,7 @@ import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 import type { config as Config } from '../config.default.js';
 import '../modules/commands/index.js';
 import './mobDeathEvents.js';
+import '../gametests/BountyTests.js';
 
 export function updatePlayerRank(player: mc.Player) {
     const pData = getOrCreatePlayer(player);
