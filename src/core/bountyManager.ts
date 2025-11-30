@@ -97,15 +97,18 @@ export function setBounty(playerId: string, amount: number) {
         return;
     }
 
+    // Strict 2-decimal precision
+    const roundedAmount = parseFloat(amount.toFixed(2));
+
     const bountyEntry: BountyEntry = {
         playerId: playerId,
         name: pData.name,
-        amount: amount
+        amount: roundedAmount
     };
 
     activeBounties.set(playerId, bountyEntry);
     saveBounties();
-    debugLog(`[BountyManager] Set bounty for ${pData.name} to ${amount}.`);
+    debugLog(`[BountyManager] Set bounty for ${pData.name} to ${roundedAmount}.`);
 }
 
 /**
