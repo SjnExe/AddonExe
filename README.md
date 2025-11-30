@@ -119,7 +119,7 @@ This method is ideal for those who fork the repository to make their own custom 
     -   To create your own custom configuration, simply **copy and rename** the default file, removing the `.default` part.
     -   For example, copy `config.default.ts` and rename the new file to `config.ts`.
 4.  **Customize:** Open your new `config.ts` file and make any changes you desire.
-5.  **Build:** Run `npm run build` to compile your changes into the `AddonExeBP` folder.
+5.  **Build:** Run `npm run build` to compile your changes into the `packs/behavior` folder.
 
 **How it Works:**
 -   When you build the addon, the system will automatically use your local `config.ts` if it exists.
@@ -160,7 +160,7 @@ All detailed information has been moved to our `Docs` folder for clarity:
 
 This addon is designed to be as lightweight as possible. However, performance can be influenced by the number of checks enabled, their sensitivity, and the server's player count. We recommend starting with default configurations and adjusting based on your server's needs.
 
-For developers, the addon includes a basic performance profiling feature that can be enabled in `config.js` to help identify potential bottlenecks. For more details, see the [**Developer README**](Dev/README.md).
+For developers, the addon includes a basic performance profiling feature that can be enabled in `config.js` to help identify potential bottlenecks. For more details, see the [**Developer README**](Docs/Development/README.md).
 
 ---
 
@@ -175,14 +175,14 @@ Contributions are highly welcome and appreciated! Help us make this addon even b
 **Crediting:** Please note that contributions are generally not credited directly in the codebase. Significant contributions will be acknowledged in the project's changelog or a dedicated contributors file.
 
 - **Fork & Branch:** Create your own fork and make changes in a dedicated branch.
-- **Code Style:** Follow our 📄 [**Coding Style Guide**](Dev/CodingStyle.md).
+- **Code Style:** Follow our 📄 [**Coding Style Guide**](Docs/Development/CodingStyle.md).
 - **Test Thoroughly:** Ensure your changes are stable and don't introduce new issues.
 - **Document Changes:** Update relevant documentation in the `Docs` folder if you add or modify features.
 - **Pull Request:** Submit your changes for review. Explain what you've changed and why.
 
 Looking for a place to start? Check out our [**issues tab**](https://github.com/SjnExe/AddonExe/issues) – we often tag issues that are great for new contributors.
 
-➡️ For more on development processes, see our [**Developer README**](Dev/README.md).
+➡️ For more on development processes, see our [**Developer README**](Docs/Development/README.md).
 
 ---
 

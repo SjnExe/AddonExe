@@ -21,6 +21,7 @@ import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
 import * as dataManager from './dataManager.js';
 import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
 import { floatingTextManager } from './floatingTextManager.js';
+import { initializeLeaderboard, cleanupLeaderboardManager } from './leaderboardManager.js';
 import { errorLog, setLogLevel, infoLog } from './logger.js';
 import { initializeMigration } from './migrationManager.js';
 import {
@@ -28,8 +29,7 @@ import {
     setPlayerRank,
     cleanupPlayerDataManager,
     clearExpiredPayments,
-    loadNameIdMap,
-    initializeLeaderboard
+    loadNameIdMap
 } from './playerDataManager.js';
 import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
 import * as rankManager from './rankManager.js';
@@ -84,7 +84,6 @@ function loadPersistentData() {
     loadReports();
     loadCooldowns();
     bountyManager.loadBounties();
-    initializeLeaderboard();
 }
 
 function initializeManagers() {
@@ -93,6 +92,7 @@ function initializeManagers() {
     initializePunishmentManager();
     floatingTextManager.initialize();
     teamManager.initialize();
+    initializeLeaderboard();
     clearExpiredPunishments();
     clearOldResolvedReports();
     clearExpiredCooldowns();
@@ -194,6 +194,7 @@ function cleanupAddon() {
     console.log('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
     floatingTextManager.cleanup();
     cleanupPlayerDataManager();
+    cleanupLeaderboardManager();
     cleanupEventManager();
     cleanupTimers();
     // eslint-disable-next-line no-console

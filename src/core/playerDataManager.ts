@@ -4,12 +4,12 @@ import { config as Config } from '../config.default.js';
 
 import { getConfig } from './configManager.js';
 import { getEconomyConfig, EconomyConfig } from './configurations.js';
+import { updateAndSaveLeaderboard } from './leaderboardManager.js';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
 
 const playerPropertyPrefix = 'exe:player.';
 const playerNameIdMapKey = 'exe:playerNameIdMap';
-const leaderboardKey = 'exe:economyLeaderboard';
 
 export interface HomeLocation {
     x: number;
@@ -42,16 +42,6 @@ export interface PlayerData {
     pendingInvites: PendingInvite[];
     needsSave?: boolean;
 }
-
-export interface LeaderboardEntry {
-    playerId: string;
-    name: string;
-    balance: number;
-}
-
-let leaderboardCache: LeaderboardEntry[] = [];
-let isLeaderboardDirty = false;
-let isSaveOnCooldown = false;
 
 const activePlayerData = new Map<string, PlayerData>();
 
@@ -99,9 +89,6 @@ export function updatePlayerData(playerId: string, modificationCallback: (pData:
  * Resets all in-memory caches and state variables.
  */
 export function cleanupPlayerDataManager() {
-    leaderboardCache = [];
-    isLeaderboardDirty = false;
-    isSaveOnCooldown = false;
     activePlayerData.clear();
     playerNameIdMap.clear();
     playerIdNameMap.clear();
@@ -304,80 +291,6 @@ export function getAllPlayerNameIdMap(): Map<string, string> {
     return playerNameIdMap;
 }
 
-// --- Leaderboard Management ---
-
-export function getLeaderboard(): LeaderboardEntry[] {
-    return leaderboardCache;
-}
-
-export function initializeLeaderboard() {
-    try {
-        const dataString = mc.world.getDynamicProperty(leaderboardKey) as string | undefined;
-        if (dataString && typeof dataString === 'string') {
-            leaderboardCache = JSON.parse(dataString);
-            debugLog(`[PlayerDataManager] Loaded ${leaderboardCache.length} players into leaderboard cache.`);
-            return;
-        }
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
-        errorLog(`[PlayerDataManager] Failed to load leaderboard from storage: ${stack}`);
-    }
-    leaderboardCache = [];
-}
-
-function triggerLeaderboardSave() {
-    if (isSaveOnCooldown) {
-        isLeaderboardDirty = true;
-        return;
-    }
-    try {
-        mc.world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
-        isLeaderboardDirty = false;
-        isSaveOnCooldown = true;
-        mc.system.runTimeout(() => {
-            isSaveOnCooldown = false;
-            if (isLeaderboardDirty) {
-                triggerLeaderboardSave();
-            }
-        }, 30 * 20);
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
-        errorLog(`[PlayerDataManager] Failed to save leaderboard: ${stack}`);
-    }
-}
-
-function updateAndSaveLeaderboard(playerId: string, pData: PlayerData) {
-    const config = getConfig() as typeof Config;
-    const cacheSize = (config.economy.baltopLimit ?? 10) + 5;
-    const lowestBalanceOnBoard =
-        leaderboardCache.length < cacheSize ? 0 : (leaderboardCache[leaderboardCache.length - 1]?.balance ?? 0);
-    const existingIndex = leaderboardCache.findIndex((p) => p.playerId === playerId);
-    const playerIsOnBoard = existingIndex !== -1;
-
-    // Optimization: Skip if player is not on board AND their balance is too low to enter
-    if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) {
-        return;
-    }
-
-    // Optimization: If player is on board, check if their balance actually changed enough to matter?
-    // Actually, if they are on the board, we always need to update their entry.
-    // But we can check if the balance value is identical to what we have in cache.
-    if (playerIsOnBoard) {
-        if (leaderboardCache[existingIndex].balance === pData.balance) {
-            return;
-        } // No change in value
-        leaderboardCache.splice(existingIndex, 1);
-    }
-
-    leaderboardCache.push({ playerId: playerId, name: pData.name, balance: pData.balance });
-    leaderboardCache.sort((a, b) => b.balance - a.balance);
-
-    if (leaderboardCache.length > cacheSize) {
-        leaderboardCache.length = cacheSize;
-    }
-    triggerLeaderboardSave();
-}
-
 // --- Pending Payment Management ---
 
 export interface PendingPayment {
@@ -499,7 +412,7 @@ export function setPlayerBalance(playerId: string, newBalance: number) {
 
     updatePlayerData(playerId, (pData) => {
         pData.balance = Math.max(min, Math.min(newBalance, max));
-        updateAndSaveLeaderboard(playerId, pData);
+        updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
     });
 }
 
@@ -509,9 +422,12 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
     const max = economyConfig.maxBalance ?? 1000000000;
 
     updatePlayerData(playerId, (pData) => {
-        const potentialBalance = pData.balance + amount;
+        // Ensure current balance is treated as a number to prevent string concatenation or NaN issues
+        const currentBal = Number(pData.balance);
+        const safeBal = isNaN(currentBal) ? 0 : currentBal;
+        const potentialBalance = safeBal + amount;
         pData.balance = Math.max(min, Math.min(potentialBalance, max));
-        updateAndSaveLeaderboard(playerId, pData);
+        updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
     });
 }
 

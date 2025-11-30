@@ -1,6 +1,6 @@
 {
     "name": "app",
-    "version": "1.0.0",
+    "version": "0.7.0",
     "description": "<p align=\"center\">   <!-- TODO: Add a cool project logo/banner here. Example: <img src=\"link_to_your_logo.png\" alt=\"AddonExe Logo\" width=\"200\"/> -->   <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
     "main": "index.js",
     "scripts": {
@@ -81,7 +81,7 @@
         },
         "testPathIgnorePatterns": [
             "/node_modules/",
-            "/AddonExeBP/scripts/",
+            "/packs/behavior/scripts/",
             "/__mocks__/"
         ]
     },

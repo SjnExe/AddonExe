@@ -12,9 +12,7 @@
             "geometry": {
                 "default": "geometry.invisible"
             },
-            "render_controllers": [
-                "controller.render.floating_text"
-            ]
+            "render_controllers": ["controller.render.floating_text"]
         }
     }
 }
