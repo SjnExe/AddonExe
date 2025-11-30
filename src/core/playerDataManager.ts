@@ -270,6 +270,7 @@ export function getPlayer(playerId: string): PlayerData | undefined {
  */
 export function handlePlayerLeave(playerId: string) {
     if (activePlayerData.has(playerId)) {
+        savePlayerData(playerId);
         activePlayerData.delete(playerId);
         debugLog(`[PlayerDataManager] Unloaded data for player ${playerId} from cache.`);
     }
