@@ -22,6 +22,7 @@ child.stdout.on('data', (data) => {
             cleanLine.includes('Test Success:') ||
             cleanLine.includes('> app@') ||
             cleanLine.includes('> npx mct') ||
+            (cleanLine.includes('UNLINK323') && cleanLine.includes('minecraft:stick')) ||
             cleanLine.trim() === ''
         ) {
             return;
