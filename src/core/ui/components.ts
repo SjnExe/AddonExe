@@ -46,7 +46,7 @@ export async function showConfirmationDialog(
                 await onCancel();
             }
         }
-    } catch (e) {
+    } catch {
         // Log error if needed, but components shouldn't crash the addon
     }
 }

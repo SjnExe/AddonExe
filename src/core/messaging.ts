@@ -24,7 +24,7 @@ export function sendMessage(
         } else if (target && typeof (target as mc.Player).sendMessage === 'function') {
             (target as mc.Player).sendMessage(finalMessage);
         } else {
-            warnLog(`[sendMessage] Invalid target provided: ${target}`);
+            warnLog(`[sendMessage] Invalid target provided.`);
         }
     } catch {
         // Suppress potential errors if the target player is invalid or has left.

@@ -191,7 +191,15 @@ class CommandManager {
             }
             mc.system.run(() => {
                 try {
-                    command.execute(executor, args);
+                    const result = command.execute(executor, args);
+                    if (result instanceof Promise) {
+                        void result.catch((error: unknown) => {
+                            const stack = error instanceof Error ? error.stack : String(error);
+                            executor.sendMessage(
+                                `[CommandManager] Error executing async console command '${command.name}': ${stack}`
+                            );
+                        });
+                    }
                 } catch (error: unknown) {
                     const stack = error instanceof Error ? error.stack : String(error);
                     executor.sendMessage(
@@ -230,7 +238,7 @@ class CommandManager {
             try {
                 const result = command.execute(player, args);
                 if (result instanceof Promise) {
-                    result.catch((error: unknown) => {
+                    void result.catch((error: unknown) => {
                         const stack = error instanceof Error ? error.stack : String(error);
                         errorLog(
                             `[CommandManager] Error executing async command '${command.name}' for player '${player.name}': ${stack}`

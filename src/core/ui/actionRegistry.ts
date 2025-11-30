@@ -77,22 +77,22 @@ export const uiActionFunctions: Record<
         }
     },
 
-    assignReport: (player: mc.Player, context: UIContext, panelId: string) => {
+    assignReport: async (player: mc.Player, context: UIContext, panelId: string) => {
         reportManager.assignReport(context.targetReport.id, player.id);
         player.sendMessage(`§2Report ${context.targetReport.id} has been assigned to you.`);
-        showPanel(player, panelId, context);
+        await showPanel(player, panelId, context);
     },
 
-    resolveReport: (player: mc.Player, context: UIContext) => {
+    resolveReport: async (player: mc.Player, context: UIContext) => {
         reportManager.resolveReport(context.targetReport.id);
         player.sendMessage(`§2Report ${context.targetReport.id} has been marked as resolved.`);
-        showPanel(player, 'reportListPanel');
+        await showPanel(player, 'reportListPanel');
     },
 
-    clearReport: (player: mc.Player, context: UIContext) => {
+    clearReport: async (player: mc.Player, context: UIContext) => {
         reportManager.clearReport(context.targetReport.id);
         player.sendMessage(`§2Report ${context.targetReport.id} has been cleared.`);
-        showPanel(player, 'reportListPanel');
+        await showPanel(player, 'reportListPanel');
     },
 
     showUnbanForm: async (player: mc.Player) => {
