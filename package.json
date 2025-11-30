@@ -82,7 +82,8 @@
         "testPathIgnorePatterns": [
             "/node_modules/",
             "/packs/behavior/scripts/",
-            "/__mocks__/"
+            "/__mocks__/",
+            "<rootDir>/src/modules/commands/test.ts"
         ]
     },
     "lint-staged": {
