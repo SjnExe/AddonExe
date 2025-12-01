@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import * as bountyManager from '../../core/bountyManager.js';
-import { getConfig } from '../../core/configManager.js';
-import { infoLog } from '../../core/logger.js';
-import { getOrCreatePlayer, incrementPlayerBalance } from '../../core/playerDataManager.js';
-import { parseCurrency } from '../../core/utils.js';
+import * as bountyManager from '@core/bountyManager.js';
+import { getConfig } from '@core/configManager.js';
+import { infoLog } from '@core/logger.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
+import { parseCurrency } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 

@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { constants } from '../../core/constants.js';
-import { sendMessage } from '../../core/messaging.js';
-import { findPlayerByName } from '../../core/playerCache.js';
-import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '../../core/playerDataManager.js';
+import { getConfig } from '@core/configManager.js';
+import { constants } from '@core/constants.js';
+import { sendMessage } from '@core/messaging.js';
+import { findPlayerByName } from '@core/playerCache.js';
+import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '@core/playerDataManager.js';
 import {
     createRequest,
     acceptRequest,
@@ -12,8 +12,8 @@ import {
     cancelRequest,
     getOutgoingRequest,
     getIncomingRequest
-} from '../../core/tpaManager.js';
-import { playSound } from '../../core/utils.js';
+} from '@core/tpaManager.js';
+import { playSound } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 

@@ -1,4 +1,4 @@
-import { errorLog } from '../../core/logger.js';
+import { errorLog } from '@core/logger.js';
 
 import { commandManager, CustomCommand } from './commandManager.js';
 

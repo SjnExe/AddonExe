@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { getCooldown, setCooldownCustom } from '../../core/cooldownManager.js';
-import { errorLog } from '../../core/logger.js';
-import { findPlayerByName } from '../../core/playerCache.js';
-import { getPlayer } from '../../core/playerDataManager.js';
+import { getConfig } from '@core/configManager.js';
+import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
+import { errorLog } from '@core/logger.js';
+import { findPlayerByName } from '@core/playerCache.js';
+import { getPlayer } from '@core/playerDataManager.js';
 
 // --- Type Definitions ---
 

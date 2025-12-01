@@ -1,7 +1,8 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
-import { commandManager } from '../../modules/commands/commandManager.js';
+import { commandManager } from '@modules/commands/commandManager.js';
+
 import * as bountyManager from '../bountyManager.js';
 import { loadConfig } from '../configLoader.js';
 import { getConfig } from '../configManager.js';

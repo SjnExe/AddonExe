@@ -5,6 +5,7 @@ import tseslint from 'typescript-eslint';
 import globals from 'globals';
 import jsonc from 'eslint-plugin-jsonc';
 import importPlugin from 'eslint-plugin-import';
+import unusedImports from 'eslint-plugin-unused-imports';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import prettierConfig from 'eslint-config-prettier';
@@ -63,7 +64,8 @@ export default tseslint.config(
         },
         plugins: {
             'minecraft-linting': minecraftLinting,
-            import: importPlugin
+            import: importPlugin,
+            'unused-imports': unusedImports
         },
         settings: {
             'import/resolver': {
@@ -107,6 +109,7 @@ export default tseslint.config(
             'no-var': 'error',
             curly: ['error', 'all'],
             'import/no-duplicates': 'error',
+            'unused-imports/no-unused-imports': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/no-var-requires': 'off',
             '@typescript-eslint/no-shadow': 'error',

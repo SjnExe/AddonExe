@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { saveAllData } from '../../core/dataManager.js';
-import { errorLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
-import { playSoundFromConfig } from '../../core/utils.js';
+import { saveAllData } from '@core/dataManager.js';
+import { errorLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
+import { playSoundFromConfig } from '@core/utils.js';
 
 import { CustomCommand } from './commandManager.js';
 

@@ -16,6 +16,12 @@
         "skipLibCheck": true,
         "incremental": true,
         "tsBuildInfoFile": "./tsconfig.tsbuildinfo",
+        "sourceMap": true,
+        "baseUrl": "./src",
+        "paths": {
+            "@core/*": ["./core/*"],
+            "@modules/*": ["./modules/*"]
+        },
         "types": [
             "node",
             "@minecraft/server",

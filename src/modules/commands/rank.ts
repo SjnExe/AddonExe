@@ -1,16 +1,16 @@
 import * as mc from '@minecraft/server';
 
-import { errorLog } from '../../core/logger.js';
-import { updatePlayerRank } from '../../core/main.js';
-import { sendMessage } from '../../core/messaging.js';
-import { findPlayerByName } from '../../core/playerCache.js';
-import { getPlayer } from '../../core/playerDataManager.js';
-import * as rankManager from '../../core/rankManager.js';
-import { rankDefinitions } from '../../core/ranksConfig.default.js';
-import { playSound } from '../../core/utils.js';
+import { errorLog } from '@core/logger.js';
+import { updatePlayerRank } from '@core/main.js';
+import { sendMessage } from '@core/messaging.js';
+import { findPlayerByName } from '@core/playerCache.js';
+import { getPlayer } from '@core/playerDataManager.js';
+import * as rankManager from '@core/rankManager.js';
+import { rankDefinitions } from '@core/ranksConfig.default.js';
+import { playSound } from '@core/utils.js';
 
 import type { CustomCommand } from './commandManager.js';
-import type { RankCondition, RankDefinition } from '../../core/ranksConfig.default.js';
+import type { RankCondition, RankDefinition } from '@core/ranksConfig.default.js';
 
 interface RankCommandArgs {
     action?: string;

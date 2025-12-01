@@ -1,12 +1,13 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { getSpawnConfig, saveSpawnConfig } from '../../core/configurations.js';
-import { setCooldown } from '../../core/cooldownManager.js';
-import { errorLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
-import { getPlayerRank } from '../../core/rankManager.js';
-import { playSound, startTeleportWarmup } from '../../core/utils.js';
+import { getConfig } from '@core/configManager.js';
+import { getSpawnConfig, saveSpawnConfig } from '@core/configurations.js';
+import { setCooldown } from '@core/cooldownManager.js';
+import { errorLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
+import { getPlayerRank } from '@core/rankManager.js';
+import { playSound, startTeleportWarmup } from '@core/utils.js';
+
 import { initializeSpawnProtection } from '../detections/spawnProtection.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';

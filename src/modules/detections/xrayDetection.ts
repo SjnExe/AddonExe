@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
-import { getXrayConfig } from '../../core/configurations.js';
-import { warnLog } from '../../core/logger.js';
-import { getAllPlayersFromCache, getPlayerFromCache } from '../../core/playerCache.js';
-import { getOrCreatePlayer, getPlayer } from '../../core/playerDataManager.js';
-import { formatString } from '../../core/utils.js';
-import { MonitoredOreType } from '../../core/xrayConfig.default.js';
+import { getXrayConfig } from '@core/configurations.js';
+import { warnLog } from '@core/logger.js';
+import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
+import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
+import { formatString } from '@core/utils.js';
+import { MonitoredOreType } from '@core/xrayConfig.default.js';
 
 interface AlertData {
     count: number;

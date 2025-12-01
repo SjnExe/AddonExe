@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { updateMultipleConfig } from '../../core/configManager.js';
-import { sendMessage } from '../../core/messaging.js';
-import { getLockState, setLockState } from '../../core/playerDataManager.js';
-import { playSound } from '../../core/utils.js';
+import { updateMultipleConfig } from '@core/configManager.js';
+import { sendMessage } from '@core/messaging.js';
+import { getLockState, setLockState } from '@core/playerDataManager.js';
+import { playSound } from '@core/utils.js';
 
 import { CommandExecutor, CustomCommand } from './commandManager.js';
 

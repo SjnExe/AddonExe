@@ -1,7 +1,8 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
-import { refreshXrayCache } from '../../../modules/detections/xrayDetection.js';
+import { refreshXrayCache } from '@modules/detections/xrayDetection.js';
+
 import { getXrayConfig, saveXrayConfig } from '../../configurations.js';
 import { showPanel } from '../../uiManager.js';
 import { UIContext } from '../panelRegistry.js';

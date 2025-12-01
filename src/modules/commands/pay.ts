@@ -1,16 +1,16 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { constants } from '../../core/constants.js';
-import { sendMessage } from '../../core/messaging.js';
+import { getConfig } from '@core/configManager.js';
+import { constants } from '@core/constants.js';
+import { sendMessage } from '@core/messaging.js';
 import {
     getPlayer,
     createPendingPayment,
     getPendingPayment,
     clearPendingPayment,
     transfer
-} from '../../core/playerDataManager.js';
-import { formatCurrency, parseCurrency } from '../../core/utils.js';
+} from '@core/playerDataManager.js';
+import { formatCurrency, parseCurrency } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 

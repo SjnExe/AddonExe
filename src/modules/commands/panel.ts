@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { showPanel } from '../../core/uiManager.js';
+import { showPanel } from '@core/uiManager.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 

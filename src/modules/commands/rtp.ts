@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { constants } from '../../core/constants.js';
-import { setCooldown } from '../../core/cooldownManager.js';
-import { errorLog, debugLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
-import { startTeleportWarmup } from '../../core/utils.js';
+import { getConfig } from '@core/configManager.js';
+import { constants } from '@core/constants.js';
+import { setCooldown } from '@core/cooldownManager.js';
+import { errorLog, debugLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
+import { startTeleportWarmup } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 

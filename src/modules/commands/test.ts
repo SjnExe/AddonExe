@@ -1,6 +1,6 @@
-import { getAllBounties } from '../../core/bountyManager.js';
-import { debugLog } from '../../core/logger.js';
-import { getAllPlayerData } from '../../core/playerDataManager.js';
+import { getAllBounties } from '@core/bountyManager.js';
+import { debugLog } from '@core/logger.js';
+import { getAllPlayerData } from '@core/playerDataManager.js';
 
 import { CommandExecutor, CustomCommand } from './commandManager.js';
 

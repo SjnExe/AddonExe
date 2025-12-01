@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig, updateConfig } from '../../core/configManager.js';
-import { LogLevels, setLogLevel } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
+import { getConfig, updateConfig } from '@core/configManager.js';
+import { LogLevels, setLogLevel } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 

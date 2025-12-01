@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { sendMessage } from '../../core/messaging.js';
+import { getConfig } from '@core/configManager.js';
+import { sendMessage } from '@core/messaging.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 

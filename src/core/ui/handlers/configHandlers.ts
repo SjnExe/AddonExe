@@ -1,7 +1,8 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse, ModalFormData } from '@minecraft/server-ui';
 
-import { refreshXrayCache } from '../../../modules/detections/xrayDetection.js';
+import { refreshXrayCache } from '@modules/detections/xrayDetection.js';
+
 import { getConfig, resetConfigSection } from '../../configManager.js';
 import { errorLog } from '../../logger.js';
 import { getValueFromPath, setValueByPath } from '../../objectUtils.js';

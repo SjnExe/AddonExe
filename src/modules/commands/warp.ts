@@ -1,13 +1,13 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
 
-import { getConfig } from '../../core/configManager.js';
-import { constants } from '../../core/constants.js';
-import { setCooldown } from '../../core/cooldownManager.js';
-import { errorLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
-import { startTeleportWarmup } from '../../core/utils.js';
-import * as warpsManager from '../../core/warpsManager.js';
+import { getConfig } from '@core/configManager.js';
+import { constants } from '@core/constants.js';
+import { setCooldown } from '@core/cooldownManager.js';
+import { errorLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
+import { startTeleportWarmup } from '@core/utils.js';
+import * as warpsManager from '@core/warpsManager.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 

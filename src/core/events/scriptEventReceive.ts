@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { CommandExecutor } from '../../modules/commands/commandManager.js';
+import { CommandExecutor } from '@modules/commands/commandManager.js';
+
 import { getConfig, updateConfig } from '../configManager.js';
 import { errorLog, infoLog, warnLog } from '../logger.js';
 import { updateAllPlayerRanks } from '../main.js';

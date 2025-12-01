@@ -1,13 +1,13 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
 
-import { getConfig } from '../../core/configManager.js';
-import { createKit, getAllKits } from '../../core/kitAdminManager.js';
-import { addItemToKit } from '../../core/kitItemsManager.js';
-import * as kitsManager from '../../core/kitsManager.js';
-import { errorLog } from '../../core/logger.js';
-import { showPanel } from '../../core/uiManager.js';
-import { formatCooldown } from '../../core/utils.js';
+import { getConfig } from '@core/configManager.js';
+import { createKit, getAllKits } from '@core/kitAdminManager.js';
+import { addItemToKit } from '@core/kitItemsManager.js';
+import * as kitsManager from '@core/kitsManager.js';
+import { errorLog } from '@core/logger.js';
+import { showPanel } from '@core/uiManager.js';
+import { formatCooldown } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 

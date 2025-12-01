@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
-import { constants } from '../../core/constants.js';
-import { sendMessage } from '../../core/messaging.js';
-import { getPlayer } from '../../core/playerDataManager.js';
+import { constants } from '@core/constants.js';
+import { sendMessage } from '@core/messaging.js';
+import { getPlayer } from '@core/playerDataManager.js';
 
 import { commandManager, CustomCommand, CommandExecutor } from './commandManager.js';
 

@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { getPlayer } from '../../core/playerDataManager.js';
-import { teamConfig } from '../../core/teamConfig.default.js';
-import { getTeamByPlayer } from '../../core/teamManager.js';
-import { startTeleportWarmup } from '../../core/utils.js';
+import { getPlayer } from '@core/playerDataManager.js';
+import { teamConfig } from '@core/teamConfig.default.js';
+import { getTeamByPlayer } from '@core/teamManager.js';
+import { startTeleportWarmup } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 

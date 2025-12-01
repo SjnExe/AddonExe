@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
-import * as reportManager from '../../core/reportManager.js';
-import { handleUIAction } from '../../core/ui/actions.js';
-import { showPanel } from '../../core/uiManager.js';
+import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
+import * as reportManager from '@core/reportManager.js';
+import { handleUIAction } from '@core/ui/actions.js';
+import { showPanel } from '@core/uiManager.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
