@@ -11,11 +11,24 @@ import { getPlayer } from '../../core/playerDataManager.js';
 /**
  * Represents a parameter for a custom command.
  */
+export enum CustomCommandParamType {
+    Player = 'player',
+    String = 'string',
+    Text = 'text',
+    Integer = 'int',
+    Float = 'float',
+    Boolean = 'boolean',
+    Block = 'block',
+    Item = 'item',
+    Position = 'position',
+    Target = 'target'
+}
+
 export interface CommandParameter {
     /** The name of the parameter. */
     name: string;
     /** The data type of the parameter. */
-    type: 'player' | 'string' | 'text' | 'int' | 'float' | 'boolean' | 'block' | 'item' | 'position' | 'target';
+    type: CustomCommandParamType | 'player' | 'string' | 'text' | 'int' | 'float' | 'boolean' | 'block' | 'item' | 'position' | 'target';
     /** Whether the parameter is optional. */
     optional?: boolean;
     /** A list of possible values for an enum parameter. */

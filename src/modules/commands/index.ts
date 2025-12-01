@@ -56,9 +56,9 @@ const commandFiles = [
     'setbalance.js',
     'tp.js',
     'chattoconsole.js',
-    'xraynotify.js',
     'floatingtext.js',
-    'test.js'
+    'test.js',
+    'xray.js'
 ];
 
 export async function loadCommands() {

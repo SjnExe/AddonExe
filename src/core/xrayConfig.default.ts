@@ -17,9 +17,24 @@ export const xrayConfig = {
         alertBufferingSeconds: 10,
         alertPermissionLevel: 2
     },
+    obfuscation: {
+        enabled: false,
+        radius: 1, // Chunk radius
+        updateInterval: 10 // Seconds
+    },
+    heuristics: {
+        enabled: false,
+        lightLevelCheck: false,
+        tunnelCheck: false,
+        gazeTracking: false,
+        baitOres: false
+    },
+    performance: {
+        maxBlockUpdatesPerTick: 100
+    },
     monitoredOreTypes: {
         diamond: {
-            enabled: true,
+            enabled: false,
             oreName: 'Diamond Ore',
             blocks: [
                 {
@@ -37,7 +52,7 @@ export const xrayConfig = {
             ]
         },
         ancientDebris: {
-            enabled: true,
+            enabled: false,
             oreName: 'Ancient Debris',
             blocks: [
                 {
@@ -45,6 +60,30 @@ export const xrayConfig = {
                     dimensionId: 'minecraft:nether',
                     minY: 8,
                     maxY: 119
+                }
+            ]
+        },
+        gold: {
+            enabled: false,
+            oreName: 'Gold Ore',
+            blocks: [
+                {
+                    blockId: 'minecraft:gold_ore',
+                    dimensionId: 'minecraft:overworld',
+                    minY: -64,
+                    maxY: 32
+                },
+                {
+                    blockId: 'minecraft:deepslate_gold_ore',
+                    dimensionId: 'minecraft:overworld',
+                    minY: -64,
+                    maxY: 32
+                },
+                {
+                    blockId: 'minecraft:nether_gold_ore',
+                    dimensionId: 'minecraft:nether',
+                    minY: 10,
+                    maxY: 117
                 }
             ]
         }

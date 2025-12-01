@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
+import { initializeXray } from '../modules/anticheat/xray/index.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { loadCommands } from '../modules/commands/index.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
-import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
 
 import * as bountyManager from './bountyManager.js';
 import { loadConfig } from './configLoader.js';
@@ -187,7 +187,7 @@ async function initializeAddon() {
     await checkConfiguration();
     initializeEventManager();
     initializeSpawnProtection();
-    initializeXrayDetection();
+    initializeXray();
     restartAnnouncer();
 
     reinitializeOnlinePlayers();

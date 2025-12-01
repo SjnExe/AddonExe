@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+// import { getRanksConfig } from '../../core/configurations.js';
 import { errorLog } from '../../core/logger.js';
 import { updatePlayerRank } from '../../core/main.js';
 import { sendMessage } from '../../core/messaging.js';
@@ -8,7 +9,6 @@ import { getPlayer } from '../../core/playerDataManager.js';
 import * as rankManager from '../../core/rankManager.js';
 import { rankDefinitions } from '../../core/ranksConfig.default.js';
 import { playSound } from '../../core/utils.js';
-import { getRanksConfig } from '../../core/configurations.js';
 
 import type { CustomCommand } from './commandManager.js';
 import type { RankCondition, RankDefinition } from '../../core/ranksConfig.default.js';

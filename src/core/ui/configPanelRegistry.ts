@@ -471,16 +471,16 @@ export const configPanelSchema: ConfigCategory[] = [
         configSource: 'xray',
         settings: [
             {
-                key: 'monitoredOreTypes.diamond.enabled',
-                label: 'Enable Diamond Ore Alerts',
+                key: 'obfuscation.enabled',
+                label: 'Obfuscation Enabled',
                 type: 'toggle',
-                description: 'Enables or disables alerts for Diamond Ore.'
+                description: 'Enables the "Smart Hide" system that hides buried ores.'
             },
             {
-                key: 'monitoredOreTypes.ancientDebris.enabled',
-                label: 'Enable Ancient Debris Alerts',
+                key: 'heuristics.enabled',
+                label: 'Heuristics Enabled',
                 type: 'toggle',
-                description: 'Enables or disables alerts for Ancient Debris.'
+                description: 'Enables behavioral analysis (Bait Ores, Gaze Tracking, etc.).'
             },
             {
                 key: 'notifications.logToConsole',
@@ -489,16 +489,40 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Logs X-ray notifications to the server console.'
             },
             {
-                key: 'notifications.alertBufferingSeconds',
-                label: 'Alert Buffering (s)',
-                type: 'textField',
-                description: 'Groups multiple alerts into one message within this time window.'
-            },
-            {
                 key: 'notifications.alertPermissionLevel',
                 label: 'Alert Permission Level',
                 type: 'textField',
                 description: 'Minimum permission level required to receive X-ray alerts (0=Owner, 1=Admin, 2=Mod).'
+            },
+            {
+                key: 'monitoredOreTypes.diamond.enabled',
+                label: 'Alert: Diamond Ore',
+                type: 'toggle',
+                description: 'Enables alerts for Diamond Ore.'
+            },
+            {
+                key: 'monitoredOreTypes.ancientDebris.enabled',
+                label: 'Alert: Ancient Debris',
+                type: 'toggle',
+                description: 'Enables alerts for Ancient Debris.'
+            },
+             {
+                key: 'monitoredOreTypes.gold.enabled',
+                label: 'Alert: Gold Ore',
+                type: 'toggle',
+                description: 'Enables alerts for Gold Ore.'
+            },
+            {
+                key: 'heuristics.baitOres',
+                label: 'Enable Bait Ores',
+                type: 'toggle',
+                description: 'Randomly places fake ores to trap X-Ray users.'
+            },
+            {
+                key: 'heuristics.gazeTracking',
+                label: 'Enable Gaze Tracking',
+                type: 'toggle',
+                description: 'Detects players staring at hidden ores through walls.'
             }
         ]
     },
