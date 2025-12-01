@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { constants } from '../../core/constants.js';
-import { getLeaderboard } from '../../core/leaderboardManager.js';
-import { sendMessage } from '../../core/messaging.js';
-import { getOrCreatePlayer } from '../../core/playerDataManager.js';
-import { formatCurrency } from '../../core/utils.js';
+import { getConfig } from '@core/configManager.js';
+import { constants } from '@core/constants.js';
+import { getLeaderboard } from '@core/leaderboardManager.js';
+import { sendMessage } from '@core/messaging.js';
+import { getOrCreatePlayer } from '@core/playerDataManager.js';
+import { formatCurrency } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -13,6 +13,7 @@ const balanceCommand: CustomCommand = {
     name: 'balance',
     aliases: ['bal', 'money', 'cash'],
     description: "Checks your or another player's balance.",
+    category: 'Economy',
     permissionLevel: 1024,
     parameters: [{ name: 'target', type: 'player', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -72,6 +73,7 @@ const baltopCommand: CustomCommand = {
     name: 'baltop',
     aliases: ['topbal', 'leaderboard', 'richlist'],
     description: 'Shows the players with the highest balances on the server.',
+    category: 'Economy',
     permissionLevel: 1024,
     allowConsole: true,
     execute: (executor: CommandExecutor) => {

@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { constants } from '../../core/constants.js';
-import { sendMessage } from '../../core/messaging.js';
+import { constants } from '@core/constants.js';
+import { sendMessage } from '@core/messaging.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -9,6 +9,7 @@ const vanishCommand: CustomCommand = {
     name: 'vanish',
     aliases: ['v'],
     description: 'Makes you invisible to other players.',
+    category: 'Moderation',
     permissionLevel: 2,
     allowConsole: false,
     execute: (executor: CommandExecutor) => {

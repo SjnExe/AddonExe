@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { errorLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
-import { findPlayerByName } from '../../core/playerCache.js';
-import { getPlayer } from '../../core/playerDataManager.js';
+import { errorLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
+import { findPlayerByName } from '@core/playerCache.js';
+import { getPlayer } from '@core/playerDataManager.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -87,7 +87,7 @@ const mainGamemodeCommand: CustomCommand = {
     name: 'gamemode',
     aliases: ['gm'],
     description: "Sets your or another player's gamemode.",
-    category: 'Moderation',
+    category: 'Administration',
     permissionLevel: 1,
     allowConsole: true,
     parameters: [
@@ -133,7 +133,7 @@ const legacyCommands: CustomCommand[] = legacyCommandDefs.map((cmd) => ({
     name: cmd.name,
     aliases: cmd.aliases,
     description: cmd.description,
-    category: 'Moderation',
+    category: 'Administration',
     permissionLevel: 1,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string', description: 'The player to set the gamemode for', optional: true }],

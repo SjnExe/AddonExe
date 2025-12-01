@@ -1,13 +1,13 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
 
-import { getConfig } from '../../core/configManager.js';
-import { constants } from '../../core/constants.js';
-import { setCooldown } from '../../core/cooldownManager.js';
-import { errorLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
-import { startTeleportWarmup } from '../../core/utils.js';
-import * as warpsManager from '../../core/warpsManager.js';
+import { getConfig } from '@core/configManager.js';
+import { constants } from '@core/constants.js';
+import { setCooldown } from '@core/cooldownManager.js';
+import { errorLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
+import { startTeleportWarmup } from '@core/utils.js';
+import * as warpsManager from '@core/warpsManager.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -18,6 +18,7 @@ interface WarpCommandArgs {
 const warpCommand: CustomCommand = {
     name: 'warp',
     description: 'Teleports you to a set warp location.',
+    category: 'Transportation',
     aliases: ['warps'],
     permissionLevel: 1024,
     hasCooldown: true,
@@ -105,6 +106,7 @@ interface AddWarpArgs {
 const addWarpCommand: CustomCommand = {
     name: 'addwarp',
     description: 'Creates a new warp at your current location or at specified coordinates.',
+    category: 'Transportation',
     aliases: ['setwarp'],
     permissionLevel: 1, // Admin
     parameters: [
@@ -144,6 +146,7 @@ const addWarpCommand: CustomCommand = {
 const delWarpCommand: CustomCommand = {
     name: 'delwarp',
     description: 'Deletes an existing warp.',
+    category: 'Transportation',
     permissionLevel: 1, // Admin
     parameters: [{ name: 'warpName', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {

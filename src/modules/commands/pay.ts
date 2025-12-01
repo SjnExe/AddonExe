@@ -1,16 +1,16 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { constants } from '../../core/constants.js';
-import { sendMessage } from '../../core/messaging.js';
+import { getConfig } from '@core/configManager.js';
+import { constants } from '@core/constants.js';
+import { sendMessage } from '@core/messaging.js';
 import {
     getPlayer,
     createPendingPayment,
     getPendingPayment,
     clearPendingPayment,
     transfer
-} from '../../core/playerDataManager.js';
-import { formatCurrency, parseCurrency } from '../../core/utils.js';
+} from '@core/playerDataManager.js';
+import { formatCurrency, parseCurrency } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -23,6 +23,7 @@ const payCommand: CustomCommand = {
     name: 'pay',
     aliases: ['givemoney', 'transfer'],
     description: 'Pays another player from your balance.',
+    category: 'Economy',
     permissionLevel: 1024,
     hasCooldown: true,
     defaultCooldown: 5,
@@ -105,6 +106,7 @@ const payConfirmCommand: CustomCommand = {
     name: 'payconfirm',
     aliases: ['confirmpay'],
     description: 'Confirms a pending payment.',
+    category: 'Economy',
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {

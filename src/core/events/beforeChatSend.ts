@@ -1,7 +1,8 @@
 import * as mc from '@minecraft/server';
 
-import { commandManager } from '../../modules/commands/commandManager.js';
-import { isTeamChatEnabled, toggleTeamChat } from '../../modules/commands/team.js';
+import { commandManager } from '@modules/commands/commandManager.js';
+import { isTeamChatEnabled, toggleTeamChat } from '@modules/commands/team.js';
+
 import { getConfig } from '../configManager.js';
 import * as playerDataManager from '../playerDataManager.js';
 import { getPunishment } from '../punishmentManager.js';

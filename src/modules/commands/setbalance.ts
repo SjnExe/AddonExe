@@ -1,7 +1,7 @@
-import { sendMessage } from '../../core/messaging.js';
-import { findPlayerByName } from '../../core/playerCache.js';
-import { getOrCreatePlayer, setPlayerBalance, incrementPlayerBalance } from '../../core/playerDataManager.js';
-import { formatCurrency, parseCurrency } from '../../core/utils.js';
+import { sendMessage } from '@core/messaging.js';
+import { findPlayerByName } from '@core/playerCache.js';
+import { getOrCreatePlayer, setPlayerBalance, incrementPlayerBalance } from '@core/playerDataManager.js';
+import { formatCurrency, parseCurrency } from '@core/utils.js';
 
 import { CustomCommand } from './commandManager.js';
 

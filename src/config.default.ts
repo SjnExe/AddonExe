@@ -127,6 +127,11 @@ export const config = {
 
     // --- Miscellaneous ---
 
+    // --- Help System ---
+    helpSystem: {
+        defaultMode: 'chat' // Options: 'chat', 'ui'
+    },
+
     // --- Sound Events ---
     soundEvents: {
         tpaRequestReceived: { enabled: true, soundId: 'random.orb', volume: 1.0, pitch: 1.2 },

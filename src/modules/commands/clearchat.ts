@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { errorLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
+import { errorLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -9,6 +9,7 @@ const clearchatCommand: CustomCommand = {
     name: 'clearchat',
     aliases: ['cc'],
     description: 'Clears the chat for all players.',
+    category: 'Moderation',
     permissionLevel: 2,
     allowConsole: true,
     execute: (executor: CommandExecutor) => {

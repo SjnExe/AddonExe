@@ -1,12 +1,13 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { getSpawnConfig, saveSpawnConfig } from '../../core/configurations.js';
-import { setCooldown } from '../../core/cooldownManager.js';
-import { errorLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
-import { getPlayerRank } from '../../core/rankManager.js';
-import { playSound, startTeleportWarmup } from '../../core/utils.js';
+import { getConfig } from '@core/configManager.js';
+import { getSpawnConfig, saveSpawnConfig } from '@core/configurations.js';
+import { setCooldown } from '@core/cooldownManager.js';
+import { errorLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
+import { getPlayerRank } from '@core/rankManager.js';
+import { playSound, startTeleportWarmup } from '@core/utils.js';
+
 import { initializeSpawnProtection } from '../detections/spawnProtection.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
@@ -22,6 +23,7 @@ const spawnCommand: CustomCommand = {
     name: 'spawn',
     aliases: ['lobby', 'hub'],
     description: 'Teleports you to the server spawn point.',
+    category: 'Transportation',
     permissionLevel: 1024,
     hasCooldown: true,
     execute: (executor: CommandExecutor) => {
@@ -83,6 +85,7 @@ const setSpawnCommand: CustomCommand = {
     name: 'setspawn',
     aliases: ['setworldspawn', 'spawnset'],
     description: "Sets the server's spawn location to your current position or specified coordinates.",
+    category: 'Transportation',
     permissionLevel: 1, // Admins only
     allowConsole: true,
     parameters: [

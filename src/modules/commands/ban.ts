@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { errorLog, warnLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
-import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
-import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
-import { parseDuration, playSoundFromConfig } from '../../core/utils.js';
+import { errorLog, warnLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
+import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
+import { addPunishment, removePunishment } from '@core/punishmentManager.js';
+import { parseDuration, playSoundFromConfig } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -71,6 +71,7 @@ interface BanCommandArgs {
 const banCommand: CustomCommand = {
     name: 'ban',
     description: 'Bans a player for a specified duration with a reason.',
+    category: 'Moderation',
     permissionLevel: 2,
     allowConsole: true,
     parameters: [
@@ -149,6 +150,7 @@ const unbanCommand: CustomCommand = {
     name: 'unban',
     aliases: ['pardon'],
     description: 'Unbans a player.',
+    category: 'Moderation',
     permissionLevel: 2,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string' }],
@@ -222,6 +224,7 @@ const offlineBanCommand: CustomCommand = {
     name: 'offlineban',
     aliases: ['oban'],
     description: 'Bans a player who is currently offline.',
+    category: 'Moderation',
     permissionLevel: 2,
     allowConsole: true,
     parameters: [

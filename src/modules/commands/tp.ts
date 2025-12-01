@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { sendMessage } from '../../core/messaging.js';
-import { findPlayerByName } from '../../core/playerCache.js';
+import { sendMessage } from '@core/messaging.js';
+import { findPlayerByName } from '@core/playerCache.js';
 
 import { CustomCommand } from './commandManager.js';
 

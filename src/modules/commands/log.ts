@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig, updateConfig } from '../../core/configManager.js';
-import { LogLevels, setLogLevel } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
+import { getConfig, updateConfig } from '@core/configManager.js';
+import { LogLevels, setLogLevel } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -16,6 +16,7 @@ const logLevelNames: { [key: number]: string } = {
 const logCommand: CustomCommand = {
     name: 'log',
     description: 'Sets the script logging verbosity level.',
+    category: 'Administration',
     permissionLevel: 1, // Admin and above
     allowConsole: true,
     parameters: [
@@ -78,6 +79,7 @@ const logCommand: CustomCommand = {
 const debugCommand: CustomCommand = {
     name: 'debug',
     description: 'Toggles the script debug log level on or off.',
+    category: 'Administration',
     permissionLevel: 1, // Admin and above
     allowConsole: true,
     execute: (executor: CommandExecutor) => {

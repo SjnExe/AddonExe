@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { sendMessage } from '../../core/messaging.js';
+import { getConfig } from '@core/configManager.js';
+import { sendMessage } from '@core/messaging.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -13,6 +13,7 @@ const rulesCommand: CustomCommand = {
     name: 'rules',
     aliases: ['rule'],
     description: 'Displays the server rules.',
+    category: 'General',
     permissionLevel: 1024,
     allowConsole: true,
     parameters: [{ name: 'ruleNumber', type: 'int', optional: true }],

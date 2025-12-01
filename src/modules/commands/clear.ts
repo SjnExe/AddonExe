@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { constants } from '../../core/constants.js';
-import { sendMessage } from '../../core/messaging.js';
-import { getPlayer } from '../../core/playerDataManager.js';
-import { playSound } from '../../core/utils.js';
+import { constants } from '@core/constants.js';
+import { sendMessage } from '@core/messaging.js';
+import { getPlayer } from '@core/playerDataManager.js';
+import { playSound } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 

@@ -1,13 +1,13 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData } from '@minecraft/server-ui';
 
-import { getConfig } from '../../core/configManager.js';
-import { createKit, getAllKits } from '../../core/kitAdminManager.js';
-import { addItemToKit } from '../../core/kitItemsManager.js';
-import * as kitsManager from '../../core/kitsManager.js';
-import { errorLog } from '../../core/logger.js';
-import { showPanel } from '../../core/uiManager.js';
-import { formatCooldown } from '../../core/utils.js';
+import { getConfig } from '@core/configManager.js';
+import { createKit, getAllKits } from '@core/kitAdminManager.js';
+import { addItemToKit } from '@core/kitItemsManager.js';
+import * as kitsManager from '@core/kitsManager.js';
+import { errorLog } from '@core/logger.js';
+import { showPanel } from '@core/uiManager.js';
+import { formatCooldown } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -93,6 +93,7 @@ interface KitCommandArgs {
 const kitCommand: CustomCommand = {
     name: 'kit',
     description: 'Claims a specific kit. Leave blank to see a list of available kits.',
+    category: 'Economy',
     permissionLevel: 1024,
     parameters: [{ name: 'kitName', type: 'string', optional: true }],
     execute: async (executor: CommandExecutor, args: KitCommandArgs) => {
@@ -125,6 +126,7 @@ const kitCommand: CustomCommand = {
 const addKitCommand: CustomCommand = {
     name: 'addkit',
     description: 'Create a new kit from your inventory and open the editor.',
+    category: 'Economy',
     permissionLevel: 1, // Admins only
     allowConsole: false,
     parameters: [{ name: 'kitName', type: 'string', optional: true }],

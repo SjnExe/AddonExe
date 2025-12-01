@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
-import { constants } from '../../core/constants.js';
-import { errorLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
-import { findPlayerByName } from '../../core/playerCache.js';
-import { getPlayer } from '../../core/playerDataManager.js';
-import { playSound } from '../../core/utils.js';
+import { constants } from '@core/constants.js';
+import { errorLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
+import { findPlayerByName } from '@core/playerCache.js';
+import { getPlayer } from '@core/playerDataManager.js';
+import { playSound } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -17,6 +17,7 @@ interface InvseeCommandArgs {
 const invseeCommand: CustomCommand = {
     name: 'invsee',
     description: "Views a player's inventory in chat.",
+    category: 'Moderation',
     permissionLevel: 2,
     allowConsole: true,
     parameters: [
@@ -87,6 +88,7 @@ const invseeCommand: CustomCommand = {
 const ecseeCommand: CustomCommand = {
     name: 'ecsee',
     description: "Views a player's ender chest inventory in chat.",
+    category: 'Moderation',
     aliases: ['seeec'],
     permissionLevel: 2,
     allowConsole: true,
@@ -165,6 +167,7 @@ interface EcwipeCommandArgs {
 const ecwipeCommand: CustomCommand = {
     name: 'ecwipe',
     description: "Clears a player's Ender Chest.",
+    category: 'Moderation',
     aliases: ['clearec', 'ecclear'],
     permissionLevel: 2,
     allowConsole: true,
@@ -263,6 +266,7 @@ interface CopyInvCommandArgs {
 const copyinvCommand: CustomCommand = {
     name: 'copyinv',
     description: "Copies a player's inventory, replacing your own.",
+    category: 'Moderation',
     permissionLevel: 2,
     parameters: [{ name: 'target', type: 'player' }],
     execute: (executor: CommandExecutor, args: CopyInvCommandArgs) => {

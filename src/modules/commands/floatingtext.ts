@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { floatingTextManager } from '../../core/floatingTextManager.js';
-import { showPanel } from '../../core/uiManager.js';
+import { floatingTextManager } from '@core/floatingTextManager.js';
+import { showPanel } from '@core/uiManager.js';
 
 import { CustomCommand } from './commandManager.js';
 

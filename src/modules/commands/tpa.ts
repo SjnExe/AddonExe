@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { constants } from '../../core/constants.js';
-import { sendMessage } from '../../core/messaging.js';
-import { findPlayerByName } from '../../core/playerCache.js';
-import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '../../core/playerDataManager.js';
+import { getConfig } from '@core/configManager.js';
+import { constants } from '@core/constants.js';
+import { sendMessage } from '@core/messaging.js';
+import { findPlayerByName } from '@core/playerCache.js';
+import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '@core/playerDataManager.js';
 import {
     createRequest,
     acceptRequest,
@@ -12,8 +12,8 @@ import {
     cancelRequest,
     getOutgoingRequest,
     getIncomingRequest
-} from '../../core/tpaManager.js';
-import { playSound } from '../../core/utils.js';
+} from '@core/tpaManager.js';
+import { playSound } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -24,6 +24,7 @@ interface TpaCommandArgs {
 const tpaCommand: CustomCommand = {
     name: 'tpa',
     description: 'Sends a request to teleport to another player.',
+    category: 'Transportation',
     aliases: ['tprequest', 'asktp', 'requesttp'],
     permissionLevel: 1024,
     hasCooldown: true,
@@ -76,6 +77,7 @@ const tpaCommand: CustomCommand = {
 const tpaHereCommand: CustomCommand = {
     name: 'tpahere',
     description: 'Requests another player to teleport to you.',
+    category: 'Transportation',
     aliases: ['tphere', 'tprequesthere'],
     permissionLevel: 1024,
     hasCooldown: true,
@@ -134,6 +136,7 @@ const tpaAcceptCommand: CustomCommand = {
     name: 'tpaccept',
     aliases: ['tpyes', 'tpac'],
     description: 'Accepts an incoming TPA request.',
+    category: 'Transportation',
     permissionLevel: 1024,
     parameters: [{ name: 'player', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -164,6 +167,7 @@ const tpaDenyCommand: CustomCommand = {
     name: 'tpadeny',
     aliases: ['tpno', 'tpdeny'],
     description: 'Denies an incoming TPA request.',
+    category: 'Transportation',
     permissionLevel: 1024,
     parameters: [{ name: 'player', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -193,6 +197,7 @@ const tpaDenyCommand: CustomCommand = {
 const tpaCancelCommand: CustomCommand = {
     name: 'tpacancel',
     description: 'Cancels your outgoing TPA request.',
+    category: 'Transportation',
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
@@ -211,6 +216,7 @@ const tpaCancelCommand: CustomCommand = {
 const tpaStatusCommand: CustomCommand = {
     name: 'tpastatus',
     description: 'Checks the status of your outgoing and incoming TPA requests.',
+    category: 'Transportation',
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
@@ -249,6 +255,7 @@ const tpaStopCommand: CustomCommand = {
     name: 'tpastop',
     aliases: ['tpstop', 'tpablock', 'tpblock'],
     description: 'Disables TPA requests or blocks a specific player.',
+    category: 'Transportation',
     permissionLevel: 1024,
     parameters: [{ name: 'player', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -277,6 +284,7 @@ const tpaStartCommand: CustomCommand = {
     name: 'tpastart',
     aliases: ['tpstart', 'tpaunblock', 'tpunblock'],
     description: 'Enables TPA requests or unblocks a specific player.',
+    category: 'Transportation',
     permissionLevel: 1024,
     parameters: [{ name: 'player', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {

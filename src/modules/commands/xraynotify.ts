@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { getXrayConfig, saveXrayConfig } from '../../core/configurations.js';
-import { infoLog } from '../../core/logger.js';
-import { sendMessage } from '../../core/messaging.js';
-import { getOrCreatePlayer, setPlayerXrayNotifications } from '../../core/playerDataManager.js';
-import { playSound } from '../../core/utils.js';
+import { getXrayConfig, saveXrayConfig } from '@core/configurations.js';
+import { infoLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
+import { getOrCreatePlayer, setPlayerXrayNotifications } from '@core/playerDataManager.js';
+import { playSound } from '@core/utils.js';
 
 import { CustomCommand } from './commandManager.js';
 
@@ -12,7 +12,7 @@ const command: CustomCommand = {
     name: 'xraynotify',
     aliases: ['xray'],
     description: 'Toggles X-ray notifications for yourself or the console.',
-    category: 'X-Ray Detection',
+    category: 'Administration',
     permissionLevel: 2, // Moderator
     allowConsole: true,
     parameters: [],

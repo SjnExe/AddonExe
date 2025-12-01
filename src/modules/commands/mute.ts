@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
-import { constants } from '../../core/constants.js';
-import { sendMessage } from '../../core/messaging.js';
-import { findPlayerByName } from '../../core/playerCache.js';
-import { getPlayer, getPlayerIdByName, loadPlayerData } from '../../core/playerDataManager.js';
-import { addPunishment, removePunishment } from '../../core/punishmentManager.js';
-import { parseDuration, playSound } from '../../core/utils.js';
+import { constants } from '@core/constants.js';
+import { sendMessage } from '@core/messaging.js';
+import { findPlayerByName } from '@core/playerCache.js';
+import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
+import { addPunishment, removePunishment } from '@core/punishmentManager.js';
+import { parseDuration, playSound } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -72,6 +72,7 @@ interface MuteCommandArgs {
 const muteCommand: CustomCommand = {
     name: 'mute',
     description: 'Mutes a player for a specified duration with a reason.',
+    category: 'Moderation',
     aliases: ['silence'],
     permissionLevel: 2,
     allowConsole: true,
@@ -149,6 +150,7 @@ export function unmutePlayer(executor: CommandExecutor, targetName: string) {
 const unmuteCommand: CustomCommand = {
     name: 'unmute',
     description: 'Unmutes a player.',
+    category: 'Moderation',
     aliases: ['um'],
     permissionLevel: 2,
     allowConsole: true,

@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { getSpawnConfig } from '../../core/configurations.js';
-import { errorLog, infoLog, debugLog } from '../../core/logger.js';
-import { getPlayerRank } from '../../core/rankManager.js';
+import { getConfig } from '@core/configManager.js';
+import { getSpawnConfig } from '@core/configurations.js';
+import { errorLog, infoLog, debugLog } from '@core/logger.js';
+import { getPlayerRank } from '@core/rankManager.js';
 
 interface TrackedEvent {
     event: mc.PlayerBreakBlockBeforeEventSignal | mc.PlayerPlaceBlockAfterEventSignal;

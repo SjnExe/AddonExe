@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig, updateConfig } from '../../core/configManager.js';
-import { errorLog } from '../../core/logger.js';
-import { getPlayer, setPlayerAnnouncementsMuted } from '../../core/playerDataManager.js';
+import { getConfig, updateConfig } from '@core/configManager.js';
+import { errorLog } from '@core/logger.js';
+import { getPlayer, setPlayerAnnouncementsMuted } from '@core/playerDataManager.js';
 
 import { CustomCommand } from './commandManager.js';
 
@@ -81,7 +81,7 @@ const announcementCommand: CustomCommand = {
         }
 
         try {
-            const uiManager = await import('../../core/uiManager.js');
+            const uiManager = await import('@core/uiManager.js');
             await uiManager.showPanel(executor, announcementPanelId);
         } catch (e) {
             errorLog(`Failed to load uiManager for announcements panel: ${e}`);
@@ -93,7 +93,7 @@ const motdNotifyCommand: CustomCommand = {
     name: 'motdnotify',
     aliases: ['togglemotd'],
     description: 'Toggles or sets your personal announcement preference.',
-    category: 'General',
+    category: 'Administration',
     permissionLevel: 1024,
     allowConsole: false,
     parameters: [
@@ -125,7 +125,7 @@ const startAnnounceCommand: CustomCommand = {
     name: 'startannounce',
     aliases: ['annon'],
     description: 'Force-enables announcements for yourself.',
-    category: 'General',
+    category: 'Administration',
     permissionLevel: 1024,
     allowConsole: false,
     parameters: [],
@@ -140,7 +140,7 @@ const stopAnnounceCommand: CustomCommand = {
     name: 'stopannounce',
     aliases: ['annoff'],
     description: 'Force-disables announcements for yourself.',
-    category: 'General',
+    category: 'Administration',
     permissionLevel: 1024,
     allowConsole: false,
     parameters: [],

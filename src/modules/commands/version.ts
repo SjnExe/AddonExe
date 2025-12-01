@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { sendMessage } from '../../core/messaging.js';
+import { getConfig } from '@core/configManager.js';
+import { sendMessage } from '@core/messaging.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -9,6 +9,7 @@ const command: CustomCommand = {
     name: 'version',
     aliases: ['ver'],
     description: 'Displays the current version of the addon.',
+    category: 'General',
     permissionLevel: 1024, // Everyone
     parameters: [],
     execute: (executor: CommandExecutor) => {
