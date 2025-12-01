@@ -52,7 +52,6 @@ export function loadCommands() {
 `;
 
     fs.writeFileSync(INDEX_FILE, content);
-    console.log(`Generated command index with ${commandFiles.length} commands.`);
 }
 
 generate();
