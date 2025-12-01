@@ -6,6 +6,7 @@ import { CommandExecutor, CustomCommand } from './commandManager.js';
 const debugCommand: CustomCommand = {
     name: 'test',
     description: 'Debug and testing tools for AddonExe.',
+    category: 'General',
     permissionLevel: 1, // Admin only
     aliases: ['exetest', 'exedump', 'debug'],
     parameters: [{ name: 'action', type: 'string', optional: true }],

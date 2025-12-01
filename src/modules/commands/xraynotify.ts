@@ -12,7 +12,7 @@ const command: CustomCommand = {
     name: 'xraynotify',
     aliases: ['xray'],
     description: 'Toggles X-ray notifications for yourself or the console.',
-    category: 'X-Ray Detection',
+    category: 'Administration',
     permissionLevel: 2, // Moderator
     allowConsole: true,
     parameters: [],

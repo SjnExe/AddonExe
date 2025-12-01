@@ -18,6 +18,7 @@ interface HomeCommandArgs {
 const homeCommand: CustomCommand = {
     name: 'home',
     description: 'Teleports you to one of your set homes.',
+    category: 'Transportation',
     permissionLevel: 1024,
     hasCooldown: true,
     cooldownId: 'homes',
@@ -95,6 +96,7 @@ const homeCommand: CustomCommand = {
 const homesCommand: CustomCommand = {
     name: 'homes',
     description: 'Lists all of your set homes.',
+    category: 'Transportation',
     aliases: ['homelist'],
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
@@ -126,6 +128,7 @@ const delHomeCommand: CustomCommand = {
     name: 'delhome',
     aliases: ['remhome', 'deletehome', 'rmhome', '-home'],
     description: 'Deletes one of your set homes. Leave name blank to choose from a list.',
+    category: 'Transportation',
     permissionLevel: 1024,
     parameters: [{ name: 'homeName', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: HomeCommandArgs) => {
@@ -184,6 +187,7 @@ const setHomeCommand: CustomCommand = {
     name: 'sethome',
     aliases: ['addhome', '+home'],
     description: 'Sets a home at your current location.',
+    category: 'Transportation',
     permissionLevel: 1024,
     parameters: [{ name: 'homeName', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: HomeCommandArgs) => {

@@ -10,6 +10,7 @@ import { CustomCommand, CommandExecutor } from './commandManager.js';
 const reportCommand: CustomCommand = {
     name: 'report',
     description: 'Reports a player. Usage: /report [target] [reason]',
+    category: 'Moderation',
     permissionLevel: 1024,
     hasCooldown: true,
     defaultCooldown: 60,
@@ -58,6 +59,7 @@ const reportCommand: CustomCommand = {
 const reportsCommand: CustomCommand = {
     name: 'reports',
     description: 'Views the list of active reports.',
+    category: 'Moderation',
     permissionLevel: 2,
     execute: async (executor: CommandExecutor) => {
         if (executor instanceof mc.Player) {
@@ -69,6 +71,7 @@ const reportsCommand: CustomCommand = {
 const clearReportsCommand: CustomCommand = {
     name: 'clearreports',
     description: 'Clears all active reports.',
+    category: 'Moderation',
     permissionLevel: 2,
     allowConsole: true,
     execute: (executor: CommandExecutor) => {

@@ -87,7 +87,7 @@ const mainGamemodeCommand: CustomCommand = {
     name: 'gamemode',
     aliases: ['gm'],
     description: "Sets your or another player's gamemode.",
-    category: 'Moderation',
+    category: 'Administration',
     permissionLevel: 1,
     allowConsole: true,
     parameters: [
@@ -133,7 +133,7 @@ const legacyCommands: CustomCommand[] = legacyCommandDefs.map((cmd) => ({
     name: cmd.name,
     aliases: cmd.aliases,
     description: cmd.description,
-    category: 'Moderation',
+    category: 'Administration',
     permissionLevel: 1,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string', description: 'The player to set the gamemode for', optional: true }],

@@ -73,6 +73,7 @@ const kickCommand: CustomCommand = {
     name: 'kick',
     slashName: 'xkick',
     description: 'Kicks a player from the server.',
+    category: 'Moderation',
     aliases: ['boot'],
     permissionLevel: 2,
     allowConsole: true,

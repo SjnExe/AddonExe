@@ -9,6 +9,7 @@ const vanishCommand: CustomCommand = {
     name: 'vanish',
     aliases: ['v'],
     description: 'Makes you invisible to other players.',
+    category: 'Moderation',
     permissionLevel: 2,
     allowConsole: false,
     execute: (executor: CommandExecutor) => {

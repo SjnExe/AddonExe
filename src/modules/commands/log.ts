@@ -16,6 +16,7 @@ const logLevelNames: { [key: number]: string } = {
 const logCommand: CustomCommand = {
     name: 'log',
     description: 'Sets the script logging verbosity level.',
+    category: 'Administration',
     permissionLevel: 1, // Admin and above
     allowConsole: true,
     parameters: [
@@ -78,6 +79,7 @@ const logCommand: CustomCommand = {
 const debugCommand: CustomCommand = {
     name: 'debug',
     description: 'Toggles the script debug log level on or off.',
+    category: 'Administration',
     permissionLevel: 1, // Admin and above
     allowConsole: true,
     execute: (executor: CommandExecutor) => {

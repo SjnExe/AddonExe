@@ -9,7 +9,7 @@ import { CustomCommand } from './commandManager.js';
 const command: CustomCommand = {
     name: 'pvp',
     description: 'Challenge a player to a PvP duel with an optional wager.',
-    category: 'PvP System',
+    category: 'PvP',
     permissionLevel: 1024, // Everyone
     allowConsole: false,
     parameters: [

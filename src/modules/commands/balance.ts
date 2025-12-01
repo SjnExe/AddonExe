@@ -13,6 +13,7 @@ const balanceCommand: CustomCommand = {
     name: 'balance',
     aliases: ['bal', 'money', 'cash'],
     description: "Checks your or another player's balance.",
+    category: 'Economy',
     permissionLevel: 1024,
     parameters: [{ name: 'target', type: 'player', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -72,6 +73,7 @@ const baltopCommand: CustomCommand = {
     name: 'baltop',
     aliases: ['topbal', 'leaderboard', 'richlist'],
     description: 'Shows the players with the highest balances on the server.',
+    category: 'Economy',
     permissionLevel: 1024,
     allowConsole: true,
     execute: (executor: CommandExecutor) => {

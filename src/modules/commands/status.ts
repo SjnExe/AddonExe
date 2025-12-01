@@ -7,6 +7,7 @@ import { CustomCommand, CommandExecutor } from './commandManager.js';
 const statusCommand: CustomCommand = {
     name: 'status',
     description: 'Displays the current server status.',
+    category: 'General',
     permissionLevel: 1024,
     allowConsole: true,
     execute: (executor: CommandExecutor) => {

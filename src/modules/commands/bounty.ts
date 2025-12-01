@@ -52,6 +52,7 @@ const removeBountyCommand: CustomCommand = {
     name: 'removebounty',
     aliases: ['rbounty', 'delbounty', '-bounty'],
     description: 'Removes a bounty from a player using your money.',
+    category: 'Economy',
     permissionLevel: 1024,
     parameters: [
         { name: 'amount', type: 'string' },
@@ -121,6 +122,7 @@ interface BountyCommandArgs {
 const bountyCommand: CustomCommand = {
     name: 'bounty',
     description: 'Place a bounty on a player.',
+    category: 'Economy',
     aliases: ['setbounty', 'addbounty', '+bounty', 'abounty'],
     permissionLevel: 1024,
     parameters: [
@@ -168,6 +170,7 @@ const listBountyCommand: CustomCommand = {
     name: 'listbounty',
     aliases: ['lbounty', 'bounties', 'bountylist', 'showbounties', 'hitlist'],
     description: "Lists all active bounties or a specific player's bounty.",
+    category: 'Economy',
     permissionLevel: 1024,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'player', optional: true }],

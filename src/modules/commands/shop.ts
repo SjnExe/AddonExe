@@ -12,6 +12,7 @@ import { CustomCommand, CommandExecutor } from './commandManager.js';
 const shopCommand: CustomCommand = {
     name: 'shop',
     description: 'Opens the server shop.',
+    category: 'Economy',
     permissionLevel: 1024,
     allowConsole: false,
     execute: async (executor: CommandExecutor) => {
@@ -29,6 +30,7 @@ const shopCommand: CustomCommand = {
 const buyCommand: CustomCommand = {
     name: 'buy',
     description: 'Opens the shop to buy items.',
+    category: 'Economy',
     permissionLevel: 1024,
     allowConsole: false,
     execute: async (executor: CommandExecutor) => {
@@ -46,6 +48,7 @@ const buyCommand: CustomCommand = {
 const sellCommand: CustomCommand = {
     name: 'sell',
     description: 'Opens the shop to sell items.',
+    category: 'Economy',
     permissionLevel: 1024,
     allowConsole: false,
     execute: async (executor: CommandExecutor) => {
@@ -63,6 +66,7 @@ const sellCommand: CustomCommand = {
 const sellHandCommand: CustomCommand = {
     name: 'sellhand',
     description: 'Sells the item currently in your main hand.',
+    category: 'Economy',
     aliases: ['sh'],
     permissionLevel: 1024,
     allowConsole: false,
@@ -114,6 +118,7 @@ interface AddShopCommandArgs {
 const addShopCommand: CustomCommand = {
     name: 'addshop',
     description: 'Adds the item in your hand to a shop category.',
+    category: 'Economy',
     permissionLevel: 1, // Admins only
     allowConsole: false,
     parameters: [

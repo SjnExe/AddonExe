@@ -72,6 +72,7 @@ interface MuteCommandArgs {
 const muteCommand: CustomCommand = {
     name: 'mute',
     description: 'Mutes a player for a specified duration with a reason.',
+    category: 'Moderation',
     aliases: ['silence'],
     permissionLevel: 2,
     allowConsole: true,
@@ -149,6 +150,7 @@ export function unmutePlayer(executor: CommandExecutor, targetName: string) {
 const unmuteCommand: CustomCommand = {
     name: 'unmute',
     description: 'Unmutes a player.',
+    category: 'Moderation',
     aliases: ['um'],
     permissionLevel: 2,
     allowConsole: true,

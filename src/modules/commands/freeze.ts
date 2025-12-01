@@ -78,6 +78,7 @@ interface FreezeCommandArgs {
 const freezeCommand: CustomCommand = {
     name: 'freeze',
     description: 'Freezes a player, preventing them from moving or looking around.',
+    category: 'Moderation',
     permissionLevel: 2,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'player' }],
@@ -103,6 +104,7 @@ const freezeCommand: CustomCommand = {
 const unfreezeCommand: CustomCommand = {
     name: 'unfreeze',
     description: 'Unfreezes a player, allowing them to move and look around again.',
+    category: 'Moderation',
     permissionLevel: 2,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'player' }],

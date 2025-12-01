@@ -13,6 +13,7 @@ const rtpCommand: CustomCommand = {
     name: 'rtp',
     aliases: ['randomtp'],
     description: 'Teleports you to a random safe location in the world.',
+    category: 'Transportation',
     permissionLevel: 1024,
     hasCooldown: true,
     execute: async (executor: CommandExecutor) => {

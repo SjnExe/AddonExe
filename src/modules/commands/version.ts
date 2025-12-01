@@ -9,6 +9,7 @@ const command: CustomCommand = {
     name: 'version',
     aliases: ['ver'],
     description: 'Displays the current version of the addon.',
+    category: 'General',
     permissionLevel: 1024, // Everyone
     parameters: [],
     execute: (executor: CommandExecutor) => {
