@@ -28,7 +28,7 @@ type RanksConfig = typeof ranksConfig;
 type KitsConfig = typeof kitsConfig;
 type ShopConfig = typeof shopConfig;
 
-import { configPanelSchema } from './configPanelRegistry.js';
+import { systemRegistry, SystemDefinition } from './systemRegistry.js';
 
 export const itemsPerPage = 8;
 
@@ -97,30 +97,43 @@ export interface SystemItem {
 }
 
 /**
+ * Returns all registered systems.
+ */
+export function getAllSystems(): SystemDefinition[] {
+    return systemRegistry;
+}
+
+/**
  * Generates a synchronized list of visible configuration systems for a player.
  * This serves as the single source of truth for both building the panel and handling its responses.
  * @param pData The player data object containing permissionLevel.
  * @returns A sorted array of system objects ({ id, title, icon }).
  */
 export function getVisibleConfigSystems(pData: PlayerData): SystemItem[] {
-    const allSystems: SystemItem[] = [
-        ...configPanelSchema
-            .filter((c) => c.id !== 'economyGeneralSettings')
-            .map((c) => ({ id: `config_${c.id}`, title: c.title, icon: c.icon }))
-    ];
+    const allSystems: SystemItem[] = [];
 
-    if (pData.permissionLevel <= 1) {
-        allSystems.push({ id: 'commandSystemPanel', title: '§l§1Command System§r', icon: 'textures/ui/Wrenches1' });
-        allSystems.push({ id: 'kitManagementPanel', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' });
-        allSystems.push({ id: 'shopManagementPanel', title: '§l§2Shop System§r', icon: 'textures/items/emerald' });
-        allSystems.push({
-            id: 'rankManagementPanel',
-            title: '§l§4Rank System§r',
-            icon: 'textures/ui/permissions_member_star.png'
-        });
-        allSystems.push({ id: 'economyPanel', title: '§l§6Economy System§r', icon: 'textures/items/emerald' });
-        allSystems.push({ id: 'xrayOresPanel', title: '§l§cX-Ray Ores§r', icon: 'textures/blocks/diamond_ore' });
-    }
+    // Filter systems based on permissions and other logic
+    systemRegistry.forEach((sys) => {
+        // Skip specific systems if needed (e.g. sub-parts handled elsewhere)
+        if (sys.id === 'economyGeneralSettings') {
+            return;
+        }
+
+        // Determine panel ID to use
+        const panelId = sys.configPanelId;
+
+        // Permission Check (Default simple configs are visible to admins, specific ones handled below)
+        // Actually, let's assume all these are permissionLevel <= 1 (Admin) unless specified
+        // The original code pushed explicit items for permissionLevel <= 1
+        if (pData.permissionLevel <= 1) {
+            allSystems.push({
+                id: panelId,
+                title: sys.title,
+                icon: sys.icon
+            });
+        }
+    });
+
     if (pData.permissionLevel === 0) {
         allSystems.push({ id: 'configResetPanel', title: '§l§cReset Settings§r', icon: 'textures/ui/wysiwyg_reset' });
     }

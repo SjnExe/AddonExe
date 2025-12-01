@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { getXrayConfig } from '../../core/configurations.js';
 import { warnLog } from '../../core/logger.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '../../core/playerCache.js';
-import { getOrCreatePlayer } from '../../core/playerDataManager.js';
+import { getOrCreatePlayer, getPlayer } from '../../core/playerDataManager.js';
 import { formatString } from '../../core/utils.js';
 import { MonitoredOreType } from '../../core/xrayConfig.default.js';
 
@@ -14,7 +14,48 @@ interface AlertData {
     oreType: MonitoredOreType;
 }
 
+interface CachedOreInfo {
+    oreType: MonitoredOreType;
+    minY: number;
+    maxY: number;
+    dimensionId: string;
+}
+
+// Map<BlockId, CachedOreInfo[]>
+const oreCache = new Map<string, CachedOreInfo[]>();
 const alertBuffers = new Map<string, Map<string, AlertData>>();
+
+/**
+ * Rebuilds the fast lookup cache for monitored ores.
+ * This should be called whenever the X-Ray configuration changes.
+ */
+export function refreshXrayCache(): void {
+    const xrayConfig = getXrayConfig();
+    if (!xrayConfig?.monitoredOreTypes) return;
+
+    oreCache.clear();
+
+    // Iterate over all configured ore types
+    for (const oreTypeKey in xrayConfig.monitoredOreTypes) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const oreType = (xrayConfig.monitoredOreTypes as any)[oreTypeKey] as MonitoredOreType;
+        if (!oreType.enabled) continue;
+
+        // Iterate over blocks defined for this ore type
+        for (const blockDef of oreType.blocks) {
+            if (!oreCache.has(blockDef.blockId)) {
+                oreCache.set(blockDef.blockId, []);
+            }
+
+            oreCache.get(blockDef.blockId)!.push({
+                oreType: oreType,
+                minY: blockDef.minY,
+                maxY: blockDef.maxY,
+                dimensionId: blockDef.dimensionId
+            });
+        }
+    }
+}
 
 function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Vector3, count: number): void {
     const xrayConfig = getXrayConfig();
@@ -105,27 +146,42 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
     const { player, brokenBlockPermutation, block } = event;
     if (!block) return;
 
+    // Fast Config & Cache Check
     const blockId = brokenBlockPermutation.type.id;
-    const dimensionId = player.dimension.id;
+    const cachedInfos = oreCache.get(blockId);
+
+    // 1. Optimization: O(1) Check if this block is even monitored
+    if (!cachedInfos) return;
 
     const xrayConfig = getXrayConfig();
-    if (!xrayConfig?.monitoredOreTypes) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const settings = (xrayConfig as any).settings || {};
 
-    for (const oreTypeKey in xrayConfig.monitoredOreTypes) {
-        const oreType = (xrayConfig.monitoredOreTypes as Record<string, MonitoredOreType>)[oreTypeKey];
-        if (!oreType.enabled) continue;
+    // 2. Gamemode Checks
+    const gamemode = player.getGameMode();
+    if (settings.ignoreCreative && gamemode === mc.GameMode.Creative) return;
+    if (settings.ignoreSpectator && gamemode === mc.GameMode.Spectator) return;
 
-        const monitoredBlock = oreType.blocks.find((b: { blockId: string }) => b.blockId === blockId);
-        if (!monitoredBlock) continue;
+    // 3. Admin Bypass Check
+    if (settings.adminBypass) {
+        const pData = getPlayer(player.id);
+        const bypassLevel = settings.bypassPermissionLevel ?? 1;
+        if (pData && pData.permissionLevel <= bypassLevel) return;
+    }
 
-        if (monitoredBlock.dimensionId !== dimensionId) continue;
-        if (block.location.y < monitoredBlock.minY || block.location.y > monitoredBlock.maxY) continue;
+    // 4. Validate Location & Dimension (O(N) where N is small, usually 1 or 2 entries per block)
+    const dimensionId = player.dimension.id;
+    const y = block.location.y;
 
-        bufferAlert(player, oreType, block);
-        return;
+    for (const info of cachedInfos) {
+        if (info.dimensionId === dimensionId && y >= info.minY && y <= info.maxY) {
+            bufferAlert(player, info.oreType, block);
+            return; // Found a match, no need to check other definitions for the same block
+        }
     }
 }
 
 export function initializeXrayDetection(): void {
+    refreshXrayCache(); // Build initial cache
     mc.world.afterEvents.playerBreakBlock.subscribe(handleBlockBreak);
 }

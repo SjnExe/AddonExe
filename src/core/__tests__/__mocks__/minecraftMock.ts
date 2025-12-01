@@ -1,8 +1,17 @@
 export const system = {
     currentTick: 0,
-    runInterval: (cb: () => void) => { cb(); return 1; },
-    runTimeout: (cb: () => void) => { cb(); return 1; },
-    run: (cb: () => void) => { cb(); return 1; },
+    runInterval: (cb: () => void) => {
+        cb();
+        return 1;
+    },
+    runTimeout: (cb: () => void) => {
+        cb();
+        return 1;
+    },
+    run: (cb: () => void) => {
+        cb();
+        return 1;
+    },
     clearRun: () => {}
 };
 

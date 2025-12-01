@@ -6,12 +6,17 @@ import { showPanel } from '../uiManager.js';
 
 import { handleUIAction } from './actions.js';
 import { handleAdminPanel } from './handlers/adminHandlers.js';
+import { handleCommandPanel } from './handlers/commandHandlers.js';
 import { handleConfigPanel } from './handlers/configHandlers.js';
+import { handleEconomyPanel } from './handlers/economyHandlers.js';
 import { handleGameplayPanel } from './handlers/gameplayHandlers.js';
+import { handleKitPanel } from './handlers/kitHandlers.js';
 import { handleMiscPanel } from './handlers/miscHandlers.js';
 import { handlePlayerPanel } from './handlers/playerHandlers.js';
+import { handleRankPanel } from './handlers/rankHandlers.js';
 import { handleShopPanel } from './handlers/shopHandlers.js';
 import { handleTeamPanel } from './handlers/teamHandlers.js';
+import { handleXrayPanel } from './handlers/xrayHandlers.js';
 import { getMenuItems, getVisiblePlayerActionItems } from './panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from './panelRegistry.js';
 
@@ -70,22 +75,42 @@ export async function handleFormResponse(
     }
 
     // Delegate to specialized handlers
+
+    // --- Complex Systems ---
     if (panelId.startsWith('shop')) {
         return handleShopPanel(player, panelId, response, context);
     }
-
     if (panelId.startsWith('team')) {
         return handleTeamPanel(player, panelId, response, context);
     }
+    if (panelId.startsWith('kit')) {
+        return handleKitPanel(player, panelId, response, context);
+    }
+    if (panelId.startsWith('rank')) {
+        return handleRankPanel(player, panelId, response, context);
+    }
+    if (panelId.startsWith('command')) {
+        return handleCommandPanel(player, panelId, response, context);
+    }
+    if (panelId.startsWith('xray')) {
+        return handleXrayPanel(player, panelId, response, context);
+    }
+    if (
+        panelId === 'mobDropsSystemPanel' ||
+        panelId.startsWith('addMob') ||
+        panelId.startsWith('editMob') ||
+        panelId === 'economyPanel'
+    ) {
+        return handleEconomyPanel(player, panelId, response, context);
+    }
 
+    // --- Core Systems ---
     if (panelId.startsWith('player')) {
         return handlePlayerPanel(player, panelId, response, context);
     }
-
     if (panelId.startsWith('floating') || panelId.startsWith('report')) {
         return handleAdminPanel(player, panelId, response, context);
     }
-
     if (
         panelId.startsWith('rules') ||
         panelId.startsWith('helpfulLink') ||
@@ -95,25 +120,13 @@ export async function handleFormResponse(
     ) {
         return handleMiscPanel(player, panelId, response, context);
     }
-
     if (panelId === 'bountyListPanel') {
         return handleGameplayPanel(player, panelId, response, context);
     }
 
-    // Config catch-all (includes config_, kit_, rank_, command_, economy_, xray_)
-    if (
-        panelId.startsWith('config') ||
-        panelId.startsWith('kit') ||
-        panelId.startsWith('rank') ||
-        panelId.startsWith('command') ||
-        panelId.startsWith('economy') ||
-        panelId.startsWith('mob') ||
-        panelId.startsWith('addMob') ||
-        panelId.startsWith('editMob') ||
-        panelId.startsWith('xray') ||
-        panelId.startsWith('addXray') ||
-        panelId.startsWith('editXray')
-    ) {
+    // --- Config Catch-All ---
+    // (Handles configCategoryPanel, configResetPanel, and any panelId starting with 'config_')
+    if (panelId.startsWith('config')) {
         return handleConfigPanel(player, panelId, response, context);
     }
 }

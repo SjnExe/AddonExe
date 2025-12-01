@@ -437,7 +437,9 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
         pData.balance = parseFloat(clampedBalance.toFixed(2));
         // Log transaction regardless of debug level
         // eslint-disable-next-line no-console
-        console.info(`[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`);
+        console.info(
+            `[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`
+        );
         updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
     });
 }

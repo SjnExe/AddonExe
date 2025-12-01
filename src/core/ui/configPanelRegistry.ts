@@ -471,16 +471,28 @@ export const configPanelSchema: ConfigCategory[] = [
         configSource: 'xray',
         settings: [
             {
-                key: 'monitoredOreTypes.diamond.enabled',
-                label: 'Enable Diamond Ore Alerts',
+                key: 'settings.ignoreCreative',
+                label: 'Ignore Creative Mode',
                 type: 'toggle',
-                description: 'Enables or disables alerts for Diamond Ore.'
+                description: 'If enabled, players in Creative Mode will not trigger X-Ray alerts.'
             },
             {
-                key: 'monitoredOreTypes.ancientDebris.enabled',
-                label: 'Enable Ancient Debris Alerts',
+                key: 'settings.ignoreSpectator',
+                label: 'Ignore Spectator Mode',
                 type: 'toggle',
-                description: 'Enables or disables alerts for Ancient Debris.'
+                description: 'If enabled, players in Spectator Mode will not trigger X-Ray alerts.'
+            },
+            {
+                key: 'settings.adminBypass',
+                label: 'Admin Bypass',
+                type: 'toggle',
+                description: 'If enabled, players with high enough permission levels will not trigger X-Ray alerts.'
+            },
+            {
+                key: 'settings.bypassPermissionLevel',
+                label: 'Admin Bypass Level',
+                type: 'textField',
+                description: 'Permission level required to bypass alerts (0=Owner, 1=Admin).'
             },
             {
                 key: 'notifications.logToConsole',

@@ -12,6 +12,12 @@ export interface MonitoredOreType {
 }
 
 export const xrayConfig = {
+    settings: {
+        ignoreCreative: true,
+        ignoreSpectator: true,
+        adminBypass: true,
+        bypassPermissionLevel: 1
+    },
     notifications: {
         logToConsole: true,
         alertBufferingSeconds: 10,
