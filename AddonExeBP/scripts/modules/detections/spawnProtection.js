@@ -1,4 +1,4 @@
-import { world, system, Player } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getSpawnConfig } from '../../core/configurations.js';
 import { getConfig } from '../../core/configManager.js';
 import { getPlayerRank } from '../../core/rankManager.js';
@@ -23,14 +23,14 @@ function cleanup() {
     eventHandlers = [];
 
     if (intervalId !== -1) {
-        system.clearRun(intervalId);
+        mc.system.clearRun(intervalId);
         intervalId = -1;
         debugLog('[SpawnProtection] Interval cleared.');
     }
 
     // Forcefully remove protection effects from all players to ensure a clean state on re-initialization.
     debugLog('[SpawnProtection] Forcefully removing protection effects from all online players.');
-    for (const player of world.getAllPlayers()) {
+    for (const player of mc.world.getAllPlayers()) {
         player.removeTag('inSpawn');
         // Run commands to remove all possible protection component groups
         player.runCommand('event entity @s exe:remove_spawn_protection');
@@ -88,11 +88,11 @@ function isWithinSpawnProtection(location, dimensionId) {
 
 /**
  * Checks if a player can bypass spawn protection.
- * @param {Player | undefined} player The player to check.
+ * @param {mc.Player | undefined} player The player to check.
  * @returns {boolean} True if the player can bypass protection.
  */
 function canBypass(player) {
-    if (!(player instanceof Player)) { return false; }
+    if (!(player instanceof mc.Player)) { return false; }
 
     const spawnConfig = getSpawnConfig();
     const mainConfig = getConfig();
@@ -137,7 +137,7 @@ function initialize() {
     // --- EVENT-BASED PROTECTIONS ---
     if (spawnProtection.preventBlockBreaking) {
         debugLog('[SpawnProtection] Subscribing to block break events.');
-        subscribe(world.beforeEvents.playerBreakBlock, (event) => {
+        subscribe(mc.world.beforeEvents.playerBreakBlock, (event) => {
             if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
@@ -146,7 +146,7 @@ function initialize() {
 
     if (spawnProtection.preventBlockPlacing) {
         debugLog('[SpawnProtection] Subscribing to block place events.');
-        subscribe(world.beforeEvents.playerPlaceBlock, (event) => {
+        subscribe(mc.world.beforeEvents.playerPlaceBlock, (event) => {
             if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
@@ -155,7 +155,7 @@ function initialize() {
 
     if (spawnProtection.preventExplosions) {
         debugLog('[SpawnProtection] Subscribing to explosion events.');
-        subscribe(world.beforeEvents.explosion, (event) => {
+        subscribe(mc.world.beforeEvents.explosion, (event) => {
             if (event.dimension.id !== spawnLocation.dimensionId) { return; }
             const finalImpactedBlocks = event.getImpactedBlocks().filter(block =>
                 !isWithinSpawnProtection(block.location, block.dimension.id)
@@ -166,8 +166,19 @@ function initialize() {
 
     if (spawnProtection.preventBlockInteraction) {
         debugLog('[SpawnProtection] Subscribing to block interaction events.');
-        subscribe(world.beforeEvents.playerInteractWithBlock, (event) => {
+        subscribe(mc.world.beforeEvents.playerInteractWithBlock, (event) => {
             if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
+                event.cancel = true;
+            }
+        });
+    }
+
+    if (spawnProtection.preventItemDropping) {
+        debugLog('[SpawnProtection] Subscribing to item drop events.');
+        subscribe(mc.world.beforeEvents.playerDropItem, (event) => {
+            // Note: event.itemStack is the item being dropped.
+            // We check the player's location.
+            if (isWithinSpawnProtection(event.player.location, event.player.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
             }
         });
@@ -175,7 +186,7 @@ function initialize() {
 
     // --- INTERVAL-BASED PROTECTIONS ---
     debugLog('[SpawnProtection] Starting protection interval...');
-    intervalId = system.runInterval(() => {
+    intervalId = mc.system.runInterval(() => {
         const currentSpawnConfig = getSpawnConfig();
         const protection = currentSpawnConfig?.spawnProtection;
         const loc = currentSpawnConfig?.spawn?.spawnLocation;
@@ -186,7 +197,7 @@ function initialize() {
 
         if (protection.preventHostileMobSpawning) {
             try {
-                const entitiesInSpawn = world.getDimension(loc.dimensionId).getEntities({
+                const entitiesInSpawn = mc.world.getDimension(loc.dimensionId).getEntities({
                     location: loc,
                     maxDistance: protection.protectionRadius,
                     families: ['monster'],
@@ -203,7 +214,7 @@ function initialize() {
             }
         }
 
-        for (const player of world.getAllPlayers()) {
+        for (const player of mc.world.getAllPlayers()) {
             const wasInSpawn = player.hasTag('inSpawn');
             const isInSpawn = isWithinSpawnProtection(player.location, player.dimension.id);
             const playerName = player.name;

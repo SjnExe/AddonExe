@@ -1,7 +1,8 @@
 export const xrayConfig = {
     notifications: {
-        message: '§8[§cX-Ray§8]§r §7{playerName}§r mined §e{oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r',
-        logToConsole: true
+        logToConsole: true,
+        alertBufferingSeconds: 10,
+        alertPermissionLevel: 2
     },
     monitoredOreTypes: {
         diamond: {

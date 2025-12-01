@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { commandManager } from './commandManager.js';
 import { errorLog } from '../../core/logger.js';
 
@@ -15,8 +15,8 @@ commandManager.register({
             // Send 100 empty lines to effectively clear the chat history for all players.
             const emptyLines = '\n'.repeat(100);
             const announcer = player.isConsole ? 'the Console' : player.name;
-            world.sendMessage(emptyLines);
-            world.sendMessage(`§aChat has been cleared by ${announcer}.`);
+            mc.world.sendMessage(emptyLines);
+            mc.world.sendMessage(`§aChat has been cleared by ${announcer}.`);
         } catch (error) {
             player.sendMessage('§cFailed to clear chat.');
             errorLog(`[/x:clearchat] ${error.stack}`);

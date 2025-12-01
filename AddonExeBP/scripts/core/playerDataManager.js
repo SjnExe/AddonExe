@@ -24,11 +24,9 @@
 
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
-import { world, system } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
-import { registerPlaceholder } from './placeholderManager.js';
-import { formatCurrency } from './utils.js';
 
 const playerPropertyPrefix = 'exe:player.';
 const playerNameIdMapKey = 'exe:playerNameIdMap';
@@ -69,7 +67,10 @@ const defaultPlayerData = {
     lastDeathLocation: null,
     deathNotificationSent: true,
     tpaRequestsDisabled: false,
-    announcementsMuted: false
+    announcementsMuted: false,
+    teamId: null,
+    teamSettings: { autoTpAccept: false },
+    pendingInvites: []
 };
 
 
@@ -81,7 +82,7 @@ const defaultPlayerData = {
  * @param {string} playerId The ID of the player to update.
  * @param {(pData: PlayerData) => void} modificationCallback A callback that receives the player data and modifies it.
  */
-function updatePlayerData(playerId, modificationCallback) {
+export function updatePlayerData(playerId, modificationCallback) {
     const pData = getPlayer(playerId);
     if (pData) {
         modificationCallback(pData);
@@ -109,7 +110,7 @@ export function cleanupPlayerDataManager() {
 export function saveNameIdMap() {
     try {
         const dataToSave = Array.from(playerNameIdMap.entries());
-        world.setDynamicProperty(playerNameIdMapKey, JSON.stringify(dataToSave));
+        mc.world.setDynamicProperty(playerNameIdMapKey, JSON.stringify(dataToSave));
         isNameIdMapDirty = false;
         debugLog('[PlayerDataManager] Saved name-to-ID map.');
     } catch (e) {
@@ -119,7 +120,7 @@ export function saveNameIdMap() {
 
 export function loadNameIdMap() {
     try {
-        const dataString = world.getDynamicProperty(playerNameIdMapKey);
+        const dataString = mc.world.getDynamicProperty(playerNameIdMapKey);
         if (dataString && typeof dataString === 'string') {
             const parsedData = JSON.parse(dataString);
             playerNameIdMap = new Map(parsedData);
@@ -142,7 +143,7 @@ export function savePlayerData(playerId) {
     try {
         const playerData = activePlayerData.get(playerId);
         const dataString = JSON.stringify(playerData);
-        world.setDynamicProperty(`${playerPropertyPrefix}${playerId}`, dataString);
+        mc.world.setDynamicProperty(`${playerPropertyPrefix}${playerId}`, dataString);
     } catch (e) {
         errorLog(`[PlayerDataManager] Failed to save data for player ${playerId}: ${e.stack}`);
     }
@@ -155,7 +156,7 @@ export function savePlayerData(playerId) {
  */
 export function loadPlayerData(playerId) {
     try {
-        const dataString = world.getDynamicProperty(`${playerPropertyPrefix}${playerId}`);
+        const dataString = mc.world.getDynamicProperty(`${playerPropertyPrefix}${playerId}`);
         if (dataString && typeof dataString === 'string') {
             /** @type {Partial<PlayerData>} */
             const loadedData = JSON.parse(dataString);
@@ -179,14 +180,11 @@ export function loadPlayerData(playerId) {
 }
 
 /**
- * Gets a player's data from the cache, or loads/creates it if it doesn't exist.
+ * Updates the name-to-ID map if the player's name has changed.
  * @param {import('@minecraft/server').Player} player
- * @returns {PlayerData}
  */
-export function getOrCreatePlayer(player) {
+function _updateNameMap(player) {
     const playerNameLower = player.name.toLowerCase();
-    let mapWasModified = false;
-
     if (playerNameIdMap.get(playerNameLower) !== player.id) {
         const oldName = playerIdNameMap.get(player.id);
         if (oldName) {
@@ -194,29 +192,16 @@ export function getOrCreatePlayer(player) {
         }
         playerNameIdMap.set(playerNameLower, player.id);
         playerIdNameMap.set(player.id, player.name);
-        mapWasModified = true;
-    }
-
-    if (mapWasModified) {
         isNameIdMapDirty = true;
     }
+}
 
-    if (activePlayerData.has(player.id)) {
-        const pData = activePlayerData.get(player.id);
-        if (pData.name !== player.name) {
-            updatePlayerData(player.id, data => { data.name = player.name; });
-        }
-        return pData;
-    }
-
-    const loadedData = loadPlayerData(player.id);
-    if (loadedData) {
-        if (loadedData.name !== player.name) {
-            updatePlayerData(player.id, data => { data.name = player.name; });
-        }
-        return loadedData;
-    }
-
+/**
+ * Creates a new player data object with default values.
+ * @param {import('@minecraft/server').Player} player
+ * @returns {PlayerData}
+ */
+function _createNewPlayerData(player) {
     const config = getConfig();
     const economyConfig = getEconomyConfig();
     const newPlayerData = {
@@ -228,12 +213,40 @@ export function getOrCreatePlayer(player) {
         xrayNotificationsEnabled: config.playerDefaults.xrayNotificationsEnabled,
         homes: {},
         kitCooldowns: {},
-        tpaBlockedPlayerIds: []
+        tpaBlockedPlayerIds: [],
+        teamId: null,
+        teamSettings: { autoTpAccept: false },
+        pendingInvites: []
     };
-
     activePlayerData.set(player.id, newPlayerData);
     savePlayerData(player.id);
     return newPlayerData;
+}
+
+/**
+ * Gets a player's data from the cache, or loads/creates it if it doesn't exist.
+ * @param {import('@minecraft/server').Player} player
+ * @returns {PlayerData}
+ */
+export function getOrCreatePlayer(player) {
+    _updateNameMap(player);
+
+    let pData = activePlayerData.get(player.id);
+
+    if (!pData) {
+        pData = loadPlayerData(player.id);
+    }
+
+    if (!pData) {
+        return _createNewPlayerData(player);
+    }
+
+    // Ensure name in data matches current player name
+    if (pData.name !== player.name) {
+        updatePlayerData(player.id, data => { data.name = player.name; });
+    }
+
+    return pData;
 }
 
 /**
@@ -289,7 +302,7 @@ export function getLeaderboard() {
 
 export function initializeLeaderboard() {
     try {
-        const dataString = world.getDynamicProperty(leaderboardKey);
+        const dataString = mc.world.getDynamicProperty(leaderboardKey);
         if (dataString && typeof dataString === 'string') {
             leaderboardCache = JSON.parse(dataString);
             debugLog(`[PlayerDataManager] Loaded ${leaderboardCache.length} players into leaderboard cache.`);
@@ -307,10 +320,10 @@ function triggerLeaderboardSave() {
         return;
     }
     try {
-        world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
+        mc.world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
         isLeaderboardDirty = false;
         isSaveOnCooldown = true;
-        system.runTimeout(() => {
+        mc.system.runTimeout(() => {
             isSaveOnCooldown = false;
             if (isLeaderboardDirty) {
                 triggerLeaderboardSave();
@@ -328,10 +341,14 @@ function updateAndSaveLeaderboard(playerId, pData) {
     const existingIndex = leaderboardCache.findIndex(p => p.playerId === playerId);
     const playerIsOnBoard = existingIndex !== -1;
 
-    if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) {return;}
+    // Optimization: Skip if player is not on board AND their balance is too low to enter
+    if (!playerIsOnBoard && pData.balance <= lowestBalanceOnBoard) { return; }
 
+    // Optimization: If player is on board, check if their balance actually changed enough to matter?
+    // Actually, if they are on the board, we always need to update their entry.
+    // But we can check if the balance value is identical to what we have in cache.
     if (playerIsOnBoard) {
-        if (leaderboardCache[existingIndex].balance === pData.balance) {return;}
+        if (leaderboardCache[existingIndex].balance === pData.balance) { return; } // No change in value
         leaderboardCache.splice(existingIndex, 1);
     }
 
@@ -400,14 +417,14 @@ const endLockKey = 'exe:dimensionLock_end';
 export function getLockState(dimension) {
     const key = dimension === 'nether' ? netherLockKey : endLockKey;
     try {
-        return !!world.getDynamicProperty(key);
+        return !!mc.world.getDynamicProperty(key);
     } catch { return false; }
 }
 
 export function setLockState(dimension, isLocked) {
     const key = dimension === 'nether' ? netherLockKey : endLockKey;
     try {
-        world.setDynamicProperty(key, isLocked);
+        mc.world.setDynamicProperty(key, isLocked);
     } catch {
         errorLog(`[DimensionLock] Failed to set lock state for ${dimension}.`);
     }
@@ -453,15 +470,24 @@ export function deletePlayerHome(playerId, homeName) {
 }
 
 export function setPlayerBalance(playerId, newBalance) {
+    const economyConfig = getEconomyConfig();
+    const min = economyConfig.minBalance ?? -1000000;
+    const max = economyConfig.maxBalance ?? 1000000000;
+
     updatePlayerData(playerId, pData => {
-        pData.balance = newBalance;
+        pData.balance = Math.max(min, Math.min(newBalance, max));
         updateAndSaveLeaderboard(playerId, pData);
     });
 }
 
 export function incrementPlayerBalance(playerId, amount) {
+    const economyConfig = getEconomyConfig();
+    const min = economyConfig.minBalance ?? -1000000;
+    const max = economyConfig.maxBalance ?? 1000000000;
+
     updatePlayerData(playerId, pData => {
-        pData.balance += amount;
+        const potentialBalance = pData.balance + amount;
+        pData.balance = Math.max(min, Math.min(potentialBalance, max));
         updateAndSaveLeaderboard(playerId, pData);
     });
 }
@@ -514,50 +540,4 @@ export function transfer(sourcePlayerId, targetPlayerId, amount) {
     incrementPlayerBalance(targetPlayerId, amount);
 
     return { success: true, message: 'Transfer successful.' };
-}
-
-export function registerPlayerDataPlaceholders() {
-    registerPlaceholder('topbal', ({ index, valueKey }) => {
-        const config = getConfig();
-        const leaderboard = getLeaderboard();
-        const baltopLimit = config.economy.baltopLimit ?? 10;
-
-        // Case 1: Handle the main {topbal} list placeholder
-        if (valueKey === 'list') {
-            const listLimit = Math.min(5, baltopLimit);
-            const topPlayers = leaderboard.slice(0, listLimit);
-
-            if (topPlayers.length === 0) {
-                return '§cNo players on the leaderboard yet.§r';
-            }
-
-            return topPlayers.map((player, i) => {
-                const rank = i + 1;
-                const formattedBalance = `§a${formatCurrency(player.balance)}§r`;
-                // Example: §e#1 §rSjnTech: §a$1,000.00§r
-                return `§e#${rank} §r${player.name}: ${formattedBalance}`;
-            }).join('\n');
-        }
-
-        // Case 2: Handle indexed placeholders like {topbal1name} or {topbal1value}
-        if (index >= 0) {
-            // Check if the requested rank is within the configured limit and available data
-            if (index >= baltopLimit || index >= leaderboard.length) {
-                return 'N/A';
-            }
-
-            const playerData = leaderboard[index];
-            if (!playerData) {return 'N/A';}
-
-            if (valueKey === 'name') {
-                return playerData.name;
-            }
-            if (valueKey === 'value') {
-                return `§a${formatCurrency(playerData.balance)}§r`;
-            }
-        }
-
-        // Fallback for any unhandled or invalid format
-        return 'N/A';
-    });
 }

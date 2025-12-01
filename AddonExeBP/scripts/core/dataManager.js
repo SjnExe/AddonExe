@@ -1,6 +1,6 @@
 import { getAllPlayerData, savePlayerData, isNameIdMapDirty, saveNameIdMap } from './playerDataManager.js';
 import { getConfig } from './configManager.js';
-import { system } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { debugLog } from './logger.js';
 import { setTrackedInterval } from './timerManager.js';
 
@@ -76,7 +76,7 @@ export function initializeDataManager() {
     }
 
     // Add a handler to save all data before the script shuts down
-    system.beforeEvents.watchdogTerminate.subscribe(event => {
+    mc.system.beforeEvents.watchdogTerminate.subscribe(event => {
         // eslint-disable-next-line no-console
         console.log('[DataManager] Watchdog termination detected. Attempting to save all data...');
         event.cancel = false; // This is a best-effort save, we don't want to prevent termination

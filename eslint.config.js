@@ -3,6 +3,7 @@
 import eslint from '@eslint/js';
 import globals from 'globals';
 import jsonc from 'eslint-plugin-jsonc';
+import importPlugin from 'eslint-plugin-import';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -51,8 +52,26 @@ export default [
         linterOptions: {
             reportUnusedDisableDirectives: 'error',
         },
+        plugins: {
+            'import': importPlugin,
+        },
+        settings: {
+            'import/resolver': {
+                node: {
+                    extensions: ['.js'],
+                },
+            },
+            'import/core-modules': ['@minecraft/server', '@minecraft/server-ui'],
+        },
         rules: {
             ...eslint.configs.recommended.rules,
+            // Import rules
+            'import/no-unresolved': ['error', { commonjs: true, amd: true }],
+            'import/named': 'error',
+            'import/namespace': 'error',
+            'import/default': 'error',
+            'import/export': 'error',
+
             'camelcase': ['error', { 'properties': 'always', 'ignoreDestructuring': true, 'allow': ['^UNSAFE_'] }],
             'indent': ['error', 4, { 'SwitchCase': 1 }],
             'quotes': ['error', 'single', { 'avoidEscape': true }],
@@ -102,6 +121,13 @@ export default [
             globals: {
                 ...globals.jest,
             },
+        },
+    },
+    // Scripts configuration
+    {
+        files: ['scripts/**/*.js'],
+        rules: {
+            'no-console': 'off',
         },
     },
 ];

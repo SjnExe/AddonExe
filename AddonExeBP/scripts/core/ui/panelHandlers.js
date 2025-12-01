@@ -4,7 +4,6 @@ import { getConfig, updateMultipleConfig, resetConfigSection } from '../configMa
 import { errorLog } from '../logger.js';
 import * as rankManager from '../rankManager.js';
 import * as rankDb from '../rankDb.js';
-import * as playerCache from '../playerCache.js';
 import * as utils from '../utils.js';
 import { setValueByPath } from '../objectUtils.js';
 import * as reportManager from '../reportManager.js';
@@ -13,7 +12,7 @@ import { restartAnnouncer } from '../../modules/commands/announcement.js';
 import * as rulesManager from '../rulesManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import * as shopManager from '../shopManager.js';
-import { getKitsConfig, saveKitsConfig, getShopConfig, getSpawnConfig, saveSpawnConfig, getEconomyConfig, saveEconomyConfig, getXrayConfig, saveXrayConfig } from '../configurations.js';
+import { getKitsConfig, saveKitsConfig, getShopConfig, getEconomyConfig, saveEconomyConfig, getXrayConfig, saveXrayConfig } from '../configurations.js';
 import { items as allItems } from '../itemsConfig.js';
 import { createKit, deleteKit, getAllKits, updateKitSettings, renameKit } from '../kitAdminManager.js';
 import { addItemToKit, updateItemInKit } from '../kitItemsManager.js';
@@ -21,7 +20,7 @@ import * as shopAdminManager from '../shopAdminManager.js';
 import { initializeSpawnProtection } from '../../modules/detections/spawnProtection.js';
 import { showPanel } from '../uiManager.js';
 import { getVisiblePlayerActionItems, getMenuItems } from './panelBuilder.js';
-import { getVisibleConfigSystems } from './uiUtils.js';
+import { getVisibleConfigSystems, itemsPerPage, configHandlers, getPaginatedItems } from './uiUtils.js';
 import { panelDefinitions, configPanelSchema } from './panelRegistry.js';
 import { showConfirmationDialog } from './components.js';
 import { uiActionFunctions } from './actionRegistry.js';
@@ -31,38 +30,12 @@ import { spawnConfig as defaultSpawnConfig } from '../spawnConfig.js';
 import { economyConfig as defaultEconomyConfig } from '../economyConfig.js';
 import { xrayConfig as defaultXrayConfig } from '../xrayConfig.js';
 
-const itemsPerPage = 8;
 const allDefaultConfigs = {
     'main': defaultConfig,
     'spawn': defaultSpawnConfig,
     'economy': defaultEconomyConfig,
     'xray': defaultXrayConfig
 };
-
-const configHandlers = {
-    'main': {
-        get: getConfig,
-        save: (updates) => updateMultipleConfig(updates)
-    },
-    'spawn': {
-        get: getSpawnConfig,
-        save: (config) => saveSpawnConfig(config)
-    },
-    'economy': {
-        get: getEconomyConfig,
-        save: (config) => saveEconomyConfig(config)
-    },
-    'xray': {
-        get: getXrayConfig,
-        save: (config) => saveXrayConfig(config)
-    }
-};
-
-function getPaginatedItems(items, page) {
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return items.slice(startIndex, endIndex);
-}
 
 export async function handleFormResponse(player, panelId, response, context) {
     const { selection, canceled, formValues } = response;
@@ -110,6 +83,439 @@ export async function handleFormResponse(player, panelId, response, context) {
         }
         // Always refresh the list panel, even on error or 'Back'
         return showPanel(player, 'floatingTextListPanel', context);
+    }
+
+    if (panelId === 'teamMainPanel') {
+        const { getTeamByPlayer } = await import('../teamManager.js');
+
+        const team = getTeamByPlayer(player.id);
+
+        if (selection === 0) { return showPanel(player, 'mainPanel'); }
+
+        if (team) {
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+            const isOwnerOrAdmin = isOwner || isAdmin;
+
+            // Members button is index 1 (after back)
+            // Manage Team is next if owner/admin
+            // Settings is next
+            // Leave is next
+
+            let btnIndex = 1;
+
+            if (selection === btnIndex) { // Members
+                return showPanel(player, 'teamMembersPanel', context);
+            }
+            btnIndex++;
+
+            if (isOwnerOrAdmin) {
+                if (selection === btnIndex) { // Manage
+                    return showPanel(player, 'teamManagePanel', context);
+                }
+                btnIndex++;
+            }
+
+            if (selection === btnIndex) { // Settings
+                return showPanel(player, 'teamSettingsPanel', context);
+            }
+            btnIndex++;
+
+            if (selection === btnIndex) { // Leave
+                if (isOwner) {
+                    player.sendMessage('§cOwners cannot leave their team. You must transfer ownership or delete the team.');
+                } else {
+                    showConfirmationDialog(player, {
+                        title: 'Leave Team',
+                        body: 'Are you sure you want to leave the team?',
+                        confirmButtonText: '§cYes, Leave',
+                        cancelButtonText: 'No',
+                        onConfirm: async () => {
+                            const { kickMember } = await import('../teamManager.js');
+                            // Kick self
+                            kickMember(team.id, player.id);
+                            player.sendMessage('§aYou have left the team.');
+                            showPanel(player, 'teamMainPanel', context);
+                        },
+                        onCancel: () => showPanel(player, 'teamMainPanel', context)
+                    });
+                }
+                return;
+            }
+
+        } else {
+            // No Team
+            if (selection === 1) { // Create
+                return showPanel(player, 'teamCreatePanel', context);
+            }
+            if (selection === 2) { // Join
+                return showPanel(player, 'teamJoinPanel', context);
+            }
+        }
+        return;
+    }
+
+    if (panelId === 'teamCreatePanel') {
+        if (canceled) {return showPanel(player, 'teamMainPanel', context);}
+        const [name] = formValues;
+        if (!name) {
+            player.sendMessage('§cTeam name is required.');
+            return showPanel(player, panelId, context);
+        }
+
+        const { createTeam } = await import('../teamManager.js');
+        const result = createTeam(player, name);
+        player.sendMessage(result.message);
+        return showPanel(player, 'teamMainPanel', context);
+    }
+
+    if (panelId === 'teamJoinPanel') {
+        if (selection === 0) {return showPanel(player, 'teamMainPanel', context);}
+        if (selection === 1) {return showPanel(player, 'teamInvitesPanel', context);}
+        if (selection === 2) {return showPanel(player, 'teamSearchPanel', context);}
+        if (selection === 3) {return showPanel(player, 'teamBrowserPanel', context);}
+        return;
+    }
+
+    if (panelId === 'teamSearchPanel') {
+        if (canceled) {return showPanel(player, 'teamJoinPanel', context);}
+        const [idStr] = formValues;
+        const teamId = parseInt(idStr);
+        if (isNaN(teamId)) {
+            player.sendMessage('§cInvalid Team ID.');
+            return showPanel(player, panelId, context);
+        }
+
+        // Confirm Application
+        const { getTeam, applyToTeam } = await import('../teamManager.js');
+        const team = getTeam(teamId);
+        if (!team) {
+            player.sendMessage('§cTeam not found.');
+            return showPanel(player, panelId, context);
+        }
+
+        showConfirmationDialog(player, {
+            title: `Apply to ${team.name}?`,
+            body: `Do you want to send a join request to ${team.name}?`,
+            confirmButtonText: '§aApply',
+            cancelButtonText: 'Cancel',
+            onConfirm: () => {
+                const result = applyToTeam(player, teamId);
+                player.sendMessage(result.message);
+                showPanel(player, 'teamJoinPanel', context);
+            },
+            onCancel: () => showPanel(player, 'teamJoinPanel', context)
+        });
+        return;
+    }
+
+    if (panelId === 'teamInvitesPanel') {
+        const pData = getPlayer(player.id);
+        const invites = pData.pendingInvites || [];
+
+        if (selection === 0) {return showPanel(player, 'teamJoinPanel', context);} // Back
+
+        if (invites.length === 0) {return;} // Body text only
+
+        const denyAllIndex = invites.length + 1;
+
+        if (selection === denyAllIndex) {
+            const { updatePlayerData } = await import('../playerDataManager.js');
+            updatePlayerData(player.id, d => d.pendingInvites = []);
+            player.sendMessage('§aCleared all pending invites.');
+            return showPanel(player, panelId, context);
+        }
+
+        const inviteIndex = selection - 1;
+        if (inviteIndex >= 0 && inviteIndex < invites.length) {
+            const invite = invites[inviteIndex];
+            // Options: Accept, Deny
+            const { acceptInvite, denyInvite } = await import('../teamManager.js');
+
+            const form = new ActionFormData()
+                .title(`Invite: ${invite.teamName}`)
+                .button('§aAccept Invite', 'textures/ui/check')
+                .button('§cDeny Invite', 'textures/ui/cancel');
+
+            const res = await utils.uiWait(player, form);
+            if (!res.canceled) {
+                if (res.selection === 0) { // Accept
+                    const result = acceptInvite(player, invite.teamId);
+                    player.sendMessage(result.message);
+                    if (result.success) {
+                        return showPanel(player, 'teamMainPanel', context);
+                    }
+                } else { // Deny
+                    const result = denyInvite(player.id, invite.teamId);
+                    player.sendMessage(result.message);
+                }
+            }
+            return showPanel(player, panelId, context);
+        }
+        return;
+    }
+
+    if (panelId === 'teamBrowserPanel') {
+        const { getAllTeams } = await import('../teamManager.js');
+        const page = context.page || 1;
+        const teams = getAllTeams().sort((a, b) => b.members.length - a.members.length);
+        const paginatedTeams = getPaginatedItems(teams, page);
+
+        if (selection === 0) {return showPanel(player, 'teamJoinPanel', context);}
+
+        const selectionIndex = selection - 1;
+
+        if (selectionIndex < paginatedTeams.length) {
+            // Apply to selected team
+            const team = paginatedTeams[selectionIndex];
+            const { applyToTeam } = await import('../teamManager.js');
+
+            showConfirmationDialog(player, {
+                title: `Apply to ${team.name}?`,
+                body: `Do you want to send a join request to ${team.name}?`,
+                confirmButtonText: '§aApply',
+                cancelButtonText: 'Cancel',
+                onConfirm: () => {
+                    const result = applyToTeam(player, team.id);
+                    player.sendMessage(result.message);
+                    showPanel(player, panelId, context);
+                },
+                onCancel: () => showPanel(player, panelId, context)
+            });
+            return;
+        }
+
+        // Pagination logic
+        let buttonIndex = selectionIndex - paginatedTeams.length;
+        const totalPages = Math.ceil(teams.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+
+        if (hasPrev && buttonIndex === 0) {return showPanel(player, panelId, { ...context, page: page - 1 });}
+        if (hasPrev) {buttonIndex--;}
+        if (hasNext && buttonIndex === 0) {return showPanel(player, panelId, { ...context, page: page + 1 });}
+
+        return;
+    }
+
+    if (panelId === 'teamManagePanel') {
+        const { getTeamByPlayer, deleteTeam } = await import('../teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        if (!team) {return;}
+
+        if (selection === 0) {return showPanel(player, 'teamMainPanel', context);}
+
+        if (selection === 1) { // Invite Player
+            return showPanel(player, 'playerListPanel', { ...context, fromPanel: 'teamManagePanel' });
+        }
+
+        if (selection === 2) {return showPanel(player, 'teamRequestsPanel', context);}
+
+        if (selection === 3) { // Manage Members
+            return showPanel(player, 'teamMembersPanel', { ...context, mode: 'manage' });
+        }
+
+        if (selection === 4) { // Team Home
+            return showPanel(player, 'teamHomePanel', context);
+        }
+
+        if (selection === 5) { // Delete Team (Owner Only)
+            showConfirmationDialog(player, {
+                title: 'Delete Team?',
+                body: '§cWARNING: This will disband the team and cannot be undone.',
+                confirmButtonText: '§cDELETE',
+                cancelButtonText: 'Cancel',
+                onConfirm: () => {
+                    deleteTeam(team.id);
+                    player.sendMessage('§aTeam deleted.');
+                    showPanel(player, 'mainPanel');
+                },
+                onCancel: () => showPanel(player, panelId, context)
+            });
+            return;
+        }
+        return;
+    }
+
+    if (panelId === 'teamHomePanel') {
+        if (selection === 0) {return showPanel(player, 'teamManagePanel', context);}
+
+        const { getTeamByPlayer, setTeamHome, deleteTeamHome } = await import('../teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        if (!team) {return;}
+
+        const isOwner = team.ownerId === player.id;
+        const isAdmin = team.admins.includes(player.id);
+        const canManage = isOwner || isAdmin;
+
+        let btnIndex = 1;
+
+        if (team.home) {
+            if (selection === btnIndex) { // Teleport
+                const { x, y, z, dimensionId } = team.home;
+                const targetDimension = dimensionId ? (await import('@minecraft/server')).world.getDimension(dimensionId) : player.dimension;
+                if (targetDimension) {
+                    player.teleport({ x, y, z }, { dimension: targetDimension });
+                    player.sendMessage('§aTeleported to team home.');
+                } else {
+                    player.sendMessage('§cInvalid dimension for team home.');
+                }
+                return;
+            }
+            btnIndex++;
+        }
+
+        if (canManage) {
+            if (selection === btnIndex) { // Update Location
+                setTeamHome(team.id, player.location, player.dimension.id);
+                player.sendMessage('§aTeam home updated to your current location.');
+                return showPanel(player, panelId, context);
+            }
+            btnIndex++;
+
+            if (team.home) {
+                if (selection === btnIndex) { // Delete Home
+                    deleteTeamHome(team.id);
+                    player.sendMessage('§aTeam home deleted.');
+                    return showPanel(player, panelId, context);
+                }
+            }
+        }
+        return;
+    }
+
+    if (panelId === 'teamRequestsPanel') {
+        const { getTeamByPlayer, acceptApplication, denyApplication } = await import('../teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        if (!team) {return;}
+
+        if (selection === 0) {return showPanel(player, 'teamManagePanel', context);}
+
+        const appIndex = selection - 1;
+        if (appIndex >= 0 && appIndex < team.applications.length) {
+            const app = team.applications[appIndex];
+
+            const form = new ActionFormData()
+                .title(`App: ${app.playerName}`)
+                .button('§aAccept', 'textures/ui/check')
+                .button('§cDeny', 'textures/ui/cancel');
+
+            const res = await utils.uiWait(player, form);
+            if (!res.canceled) {
+                if (res.selection === 0) { // Accept
+                    const result = acceptApplication(team.id, app.playerId);
+                    player.sendMessage(result.message);
+                } else { // Deny
+                    const result = denyApplication(team.id, app.playerId);
+                    player.sendMessage(result.message);
+                }
+            }
+            return showPanel(player, panelId, context);
+        }
+        return;
+    }
+
+    if (panelId === 'teamSettingsPanel') {
+        if (canceled) {return showPanel(player, 'teamMainPanel', context);}
+
+        const { getTeamByPlayer, setTeamOpenStatus } = await import('../teamManager.js');
+        const { updatePlayerData } = await import('../playerDataManager.js');
+
+        const team = getTeamByPlayer(player.id);
+        if (!team) { return showPanel(player, 'teamMainPanel', context); }
+
+        const isOwner = team.ownerId === player.id;
+        const isAdmin = team.admins.includes(player.id);
+        const canManage = isOwner || isAdmin;
+
+        const autoTp = formValues[0];
+
+        updatePlayerData(player.id, d => {
+            if (!d.teamSettings) {d.teamSettings = {};}
+            d.teamSettings.autoTpAccept = autoTp;
+        });
+
+        if (canManage && formValues.length > 1) {
+            const allowRequests = formValues[1];
+            setTeamOpenStatus(team.id, allowRequests);
+        }
+
+        player.sendMessage('§aSettings updated.');
+        return showPanel(player, 'teamMainPanel', context);
+    }
+
+    if (panelId === 'teamMembersPanel') {
+        if (selection === 0) {return showPanel(player, 'teamMainPanel', context);}
+
+        const { getTeamByPlayer, kickMember, promoteMember, demoteMember, transferOwnership } = await import('../teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        if (!team) {return;}
+
+        const memberIndex = selection - 1;
+        if (memberIndex >= 0 && memberIndex < team.members.length) {
+            const memberId = team.members[memberIndex];
+
+            // Self-interaction check?
+            if (memberId === player.id) {return showPanel(player, panelId, context);}
+
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+
+            // If viewing, maybe show profile? For now, if managing mode or high rank, show actions.
+            if (isOwner || isAdmin) {
+                const targetIsOwner = team.ownerId === memberId;
+                const targetIsAdmin = team.admins.includes(memberId);
+
+                // Access control
+                if (isAdmin && (targetIsOwner || targetIsAdmin)) {
+                    player.sendMessage('§cYou cannot modify this member.');
+                    return showPanel(player, panelId, context);
+                }
+
+                const form = new ActionFormData().title('Manage Member');
+                form.button('Kick Member', 'textures/ui/cancel');
+                if (isOwner) {
+                    if (targetIsAdmin) {form.button('Demote to Member', 'textures/ui/arrow_down');}
+                    else {form.button('Promote to Admin', 'textures/ui/arrow_up');}
+
+                    form.button('Transfer Ownership', 'textures/ui/op');
+                }
+
+                const res = await utils.uiWait(player, form);
+                if (res.canceled) {return showPanel(player, panelId, context);}
+
+                if (res.selection === 0) { // Kick
+                    const result = kickMember(team.id, memberId);
+                    player.sendMessage(result.message);
+                } else if (res.selection === 1) { // Promote/Demote
+                    if (isOwner) {
+                        if (targetIsAdmin) {
+                            const result = demoteMember(team.id, memberId);
+                            player.sendMessage(result.message);
+                        } else {
+                            const result = promoteMember(team.id, memberId);
+                            player.sendMessage(result.message);
+                        }
+                    }
+                } else if (res.selection === 2) { // Transfer
+                    showConfirmationDialog(player, {
+                        title: 'Transfer Ownership?',
+                        body: 'You will become a regular member.',
+                        confirmButtonText: '§cConfirm',
+                        cancelButtonText: 'Cancel',
+                        onConfirm: () => {
+                            const result = transferOwnership(team.id, memberId);
+                            player.sendMessage(result.message);
+                            showPanel(player, panelId, context);
+                        },
+                        onCancel: () => showPanel(player, panelId, context)
+                    });
+                    return;
+                }
+                return showPanel(player, panelId, context);
+            }
+        }
+        return;
     }
 
     if (panelId === 'xrayOresPanel') {
@@ -169,15 +575,15 @@ export async function handleFormResponse(player, panelId, response, context) {
             return showPanel(player, 'floatingTextActionPanel', context);
         }
         const { id } = context;
-        const [textContent, x, y, z, intervalIndex, useExpiration, expirationMinutes] = formValues;
+        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = formValues;
 
-        const intervalOptions = [0, 1, 2, 5, 10, 20, 30, 60];
-        const updateIntervalInSeconds = intervalOptions[intervalIndex] ?? 0;
+        const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
+        const selectedDimension = dimensionIds[dimensionIndex] ?? 'minecraft:overworld';
 
         const updatedConfig = {
             text: textContent,
             location: { x: parseFloat(x), y: parseFloat(y), z: parseFloat(z) },
-            updateInterval: updateIntervalInSeconds * 20, // Convert to ticks
+            dimension: selectedDimension,
             expiresAt: useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
         };
         floatingTextManager.updateText(id, updatedConfig);
@@ -434,7 +840,9 @@ export async function handleFormResponse(player, panelId, response, context) {
     if (panelId === 'configResetPanel') {
         const page = context.page || 1;
         const resettableSystems = [
-            ...configPanelSchema.filter(c => c.id !== 'general').map(c => ({ id: c.id, title: c.title, icon: c.icon })),
+            ...configPanelSchema
+                .filter(c => !c.id.startsWith('general_')) // General settings are not individually resettable via this panel
+                .map(c => ({ id: c.id, title: c.title, icon: c.icon })),
             { id: 'kits', title: '§l§dKit System§r', icon: 'textures/ui/inventory_icon' },
             { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
             { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
@@ -1279,6 +1687,81 @@ export async function handleFormResponse(player, panelId, response, context) {
         return showPanel(player, 'kitManagementPanel', context); // Go back to the list
     }
 
+    if (panelId === 'commandSystemPanel') {
+        const page = context.page || 1;
+
+        if (selection === 0) { // Back button
+            // Reset page to 1 when going back to the main category panel to prevent page number leakage
+            return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
+        }
+
+        const config = getConfig();
+        const commandSettings = config.commandSettings || {};
+        const allCommands = Object.keys(commandSettings)
+            .filter(cmd => !cmd.startsWith('_'))
+            .sort();
+
+        const paginatedCommands = getPaginatedItems(allCommands, page);
+        const selectionIndex = selection - 1;
+
+        if (selectionIndex < paginatedCommands.length) {
+            const commandName = paginatedCommands[selectionIndex];
+            return showPanel(player, 'commandSettingsPanel', { ...context, commandName });
+        }
+
+        // Handle pagination
+        let buttonIndex = selectionIndex - paginatedCommands.length;
+        const totalPages = Math.ceil(allCommands.length / itemsPerPage);
+        const hasPrev = page > 1;
+        const hasNext = page < totalPages;
+
+        if (allCommands.length > itemsPerPage) {
+            if (hasPrev && buttonIndex === 0) {
+                return showPanel(player, panelId, { ...context, page: page - 1 });
+            }
+            if (hasPrev) { buttonIndex--; }
+
+            if (hasNext && buttonIndex === 0) {
+                return showPanel(player, panelId, { ...context, page: page + 1 });
+            }
+        }
+        return;
+    }
+
+    if (panelId === 'commandSettingsPanel') {
+        if (canceled) {
+            return showPanel(player, 'commandSystemPanel', context);
+        }
+
+        const { commandName } = context;
+        const [isEnabled, permissionLevelStr] = formValues;
+        const permissionLevel = parseInt(permissionLevelStr, 10);
+
+        if (isNaN(permissionLevel)) {
+            player.sendMessage('§cInvalid permission level. Please enter a number.');
+            return showPanel(player, 'commandSettingsPanel', context);
+        }
+
+        updateMultipleConfig({
+            [`commandSettings.${commandName}.enabled`]: isEnabled,
+            [`commandSettings.${commandName}.permissionLevel`]: permissionLevel
+        });
+
+        // Sync with xray config if this is the xraynotify command
+        if (commandName === 'xraynotify') {
+            try {
+                const xrayConfig = getXrayConfig();
+                xrayConfig.notifications.alertPermissionLevel = permissionLevel;
+                saveXrayConfig(xrayConfig);
+            } catch (e) {
+                errorLog(`Failed to sync xraynotify permission to X-Ray config: ${e}`);
+            }
+        }
+
+        player.sendMessage(`§2Successfully updated settings for '${commandName}'.`);
+        return showPanel(player, 'commandSystemPanel', context);
+    }
+
     if (panelId === 'bountyListPanel' || panelId === 'reportListPanel' || panelId === 'playerManagementPanel' || panelId === 'playerListPanel') {
         const page = context.page || 1;
 
@@ -1292,7 +1775,8 @@ export async function handleFormResponse(player, panelId, response, context) {
         } else if (panelId === 'playerManagementPanel') {
             allItems = Array.from(getAllPlayerNameIdMap().entries()).sort((a, b) => a[0].localeCompare(b[0]));
         } else if (panelId === 'playerListPanel') {
-            allItems = playerCache.getAllPlayersFromCache().sort((a, b) => a.name.localeCompare(b.name));
+            const onlinePlayers = Array.from((await import('@minecraft/server')).world.getAllPlayers());
+            allItems = onlinePlayers.sort((a, b) => a.name.localeCompare(b.name));
         }
 
         const paginatedItems = getPaginatedItems(allItems, page);
@@ -1378,14 +1862,12 @@ export async function handleFormResponse(player, panelId, response, context) {
         }
 
         const { updateAllPlayerRanks } = await import('../main.js');
-        const [nameTagStyleIndex, nameTagPrefix, nameTagSuffix] = formValues;
+        const [nameTagStyleIndex] = formValues;
         const nameTagStyles = ['above', 'before', 'after', 'under'];
         const selectedStyle = nameTagStyles[nameTagStyleIndex];
 
         updateMultipleConfig({
-            'ranks.nameTagStyle': selectedStyle,
-            'ranks.nameTagPrefix': nameTagPrefix,
-            'ranks.nameTagSuffix': nameTagSuffix
+            'ranks.nameTagStyle': selectedStyle
         });
         updateAllPlayerRanks();
         player.sendMessage('§2Rank nametag settings updated. All player nametags have been refreshed.');
@@ -1480,7 +1962,7 @@ export async function handleFormResponse(player, panelId, response, context) {
         }
         const [mobId, amountStr] = formValues;
         const amount = Number(amountStr);
-        if (!mobId || isNaN(amount) || amount < 0) {
+        if (!mobId || isNaN(amount)) {
             player.sendMessage('§cInvalid mob ID or amount.');
             return showPanel(player, 'addMobDropPanel', context);
         }
@@ -1502,7 +1984,7 @@ export async function handleFormResponse(player, panelId, response, context) {
             }
             const [amountStr] = response.formValues;
             const amount = Number(amountStr);
-            if (isNaN(amount) || amount < 0) {
+            if (isNaN(amount)) {
                 player.sendMessage('§cInvalid amount.');
                 return showPanel(player, 'editMobDropPanel', context);
             }
@@ -1759,8 +2241,28 @@ export async function handleFormResponse(player, panelId, response, context) {
             restartAnnouncer();
             player.sendMessage('§2Announcement system has been updated with new settings.');
         }
+        if (categoryId === 'xray') {
+            // Sync alertPermissionLevel with command permission
+            // category.settings is in order of configPanelSchema. We find the index of alertPermissionLevel.
+            const permSettingIndex = category.settings.findIndex(s => s.key === 'notifications.alertPermissionLevel');
+            if (permSettingIndex !== -1) {
+                const newPermLevel = Number(newValues[permSettingIndex]);
+                if (!isNaN(newPermLevel)) {
+                    updateMultipleConfig({
+                        'commandSettings.xraynotify.permissionLevel': newPermLevel
+                    });
+                }
+            }
+        }
 
-        return showPanel(player, 'configCategoryPanel');
+        // Dynamic redirect: Find which panel links to this config panel
+        const parentPanelId = Object.keys(panelDefinitions).find(pid =>
+            panelDefinitions[pid].items && panelDefinitions[pid].items.some(item => item.actionValue === panelId)
+        ) || 'configCategoryPanel';
+
+        // Ensure we return to the correct page if the parent supports pagination
+        const { page } = context;
+        return showPanel(player, parentPanelId, { ...context, page });
     }
 
     if (panelId === 'playerActionsPanel') {

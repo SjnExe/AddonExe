@@ -9,31 +9,31 @@
  */
 
 import { commandManager } from './commandManager.js';
-import { GameMode } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { errorLog } from '../../core/logger.js';
 import { sendMessage } from '../../core/messaging.js';
 
 /**
  * A map of gamemode aliases to their corresponding GameMode enum values.
- * @type {Object<string, GameMode>}
+ * @type {Object<string, mc.GameMode>}
  */
 const gamemodes = {
-    'survival': GameMode.Survival, 's': GameMode.Survival,
-    'creative': GameMode.Creative, 'c': GameMode.Creative,
-    'adventure': GameMode.Adventure, 'a': GameMode.Adventure,
-    'spectator': GameMode.Spectator, 'sp': GameMode.Spectator
+    'survival': mc.GameMode.Survival, 's': mc.GameMode.Survival,
+    'creative': mc.GameMode.Creative, 'c': mc.GameMode.Creative,
+    'adventure': mc.GameMode.Adventure, 'a': mc.GameMode.Adventure,
+    'spectator': mc.GameMode.Spectator, 'sp': mc.GameMode.Spectator
 };
 
 /**
  * A map of GameMode enum values to their display names.
- * @type {Object<GameMode, string>}
+ * @type {Object<mc.GameMode, string>}
  */
 const gamemodeNames = {
-    [GameMode.Survival]: 'Survival',
-    [GameMode.Creative]: 'Creative',
-    [GameMode.Adventure]: 'Adventure',
-    [GameMode.Spectator]: 'Spectator'
+    [mc.GameMode.Survival]: 'Survival',
+    [mc.GameMode.Creative]: 'Creative',
+    [mc.GameMode.Adventure]: 'Adventure',
+    [mc.GameMode.Spectator]: 'Spectator'
 };
 
 /**
@@ -99,7 +99,7 @@ commandManager.register({
     allowConsole: true,
     disableSlashCommand: false,
     parameters: [
-        { name: 'gamemode', type: 'string', description: 'Gamemode (s, c, a, sp, or full name)', optional: false },
+        { name: 'gamemode', type: 'string', description: 'Gamemode (s, c, a, sp, or full name)', enumOptions: ['survival', 'creative', 'adventure', 'spectator', 's', 'c', 'a', 'sp'], optional: false },
         { name: 'target', type: 'player', description: 'The target player', optional: true }
     ],
     /**

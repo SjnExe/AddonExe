@@ -52,12 +52,12 @@
  */
 export const panelDefinitions = {
     mainPanel: {
-        title: '§l§3Panel§r',
+        title: 'Panel',
         parentPanelId: null,
         items: [
             {
                 id: 'reportManagement',
-                text: '§cReport Management§r',
+                text: '§4Report Management', // Dark Red
                 icon: 'textures/ui/WarningGlyph',
                 permissionLevel: 2,
                 actionType: 'openPanel',
@@ -66,7 +66,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'playerManagement',
-                text: '§4Player Management§r',
+                text: '§3Player Management', // Dark Aqua
                 icon: 'textures/ui/icon_multiplayer.png',
                 permissionLevel: 2, // Admin only
                 actionType: 'openPanel',
@@ -75,7 +75,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'moderation',
-                text: '§cModeration§r',
+                text: '§cModeration', // Red
                 icon: 'textures/ui/hammer_l.png',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -84,7 +84,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'floatingText',
-                text: '§9Floating Text§r',
+                text: '§5Floating Text', // Dark Purple
                 icon: 'textures/ui/text_color_paintbrush',
                 permissionLevel: 1, // Admin and above
                 actionType: 'openPanel',
@@ -93,7 +93,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'config',
-                text: '§3Config§r',
+                text: '§8Config', // Dark Grey
                 icon: 'textures/ui/settings_glyph_color_2x',
                 permissionLevel: 1, // Admin and above
                 actionType: 'openPanel',
@@ -102,7 +102,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'bountyList',
-                text: '§6Bounty List§r',
+                text: '§6Bounty List', // Gold
                 icon: 'textures/items/netherite_sword.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
@@ -111,7 +111,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'playerList',
-                text: '§2Player List§r',
+                text: '§2Player List', // Dark Green
                 icon: 'textures/ui/icon_steve.png',
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',
@@ -120,7 +120,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'rules',
-                text: '§cRules§r',
+                text: '§9Rules', // Blue
                 icon: 'textures/items/book_enchanted.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -129,7 +129,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'myStats',
-                text: '§3My Stats§r',
+                text: '§3My Stats', // Dark Aqua
                 icon: 'textures/ui/profile_glyph_color.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
@@ -137,8 +137,17 @@ export const panelDefinitions = {
                 sortId: 60
             },
             {
+                id: 'team',
+                text: '§1Team', // Dark Blue
+                icon: 'textures/ui/icon_multiplayer.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamMainPanel',
+                sortId: 65
+            },
+            {
                 id: 'helpfulLinks',
-                text: '§9Helpful Links§r',
+                text: '§9Helpful Links', // Blue
                 icon: 'textures/items/chain',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -147,7 +156,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'shop',
-                text: '§2Shop§r',
+                text: '§2Shop', // Dark Green
                 icon: 'textures/ui/trade_icon',
                 permissionLevel: 1024, // Everyone
                 actionType: 'openPanel',
@@ -156,33 +165,113 @@ export const panelDefinitions = {
             }
         ]
     },
+    teamMainPanel: {
+        title: 'Team System',
+        parentPanelId: 'mainPanel',
+        items: [] // Dynamic: Shows Create/Join OR Team Info
+    },
+    teamCreatePanel: {
+        title: 'Create Team',
+        parentPanelId: 'teamMainPanel',
+        items: [] // Modal
+    },
+    teamJoinPanel: {
+        title: 'Join Team',
+        parentPanelId: 'teamMainPanel',
+        items: [
+            {
+                id: 'viewInvites',
+                text: 'View Invites',
+                icon: 'textures/ui/mail_icon',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamInvitesPanel'
+            },
+            {
+                id: 'searchTeam',
+                text: 'Search Team ID',
+                icon: 'textures/ui/magnifyingGlass',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamSearchPanel'
+            },
+            {
+                id: 'browseTeams',
+                text: 'Browse Teams',
+                icon: 'textures/ui/world_glyph_color',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamBrowserPanel'
+            }
+        ]
+    },
+    teamInvitesPanel: {
+        title: 'Pending Invites',
+        parentPanelId: 'teamJoinPanel',
+        items: [] // Dynamic
+    },
+    teamSearchPanel: {
+        title: 'Search Team',
+        parentPanelId: 'teamJoinPanel',
+        items: [] // Modal
+    },
+    teamBrowserPanel: {
+        title: 'Browse Teams',
+        parentPanelId: 'teamJoinPanel',
+        items: [] // Dynamic
+    },
+    teamManagePanel: {
+        title: 'Team Management',
+        parentPanelId: 'teamMainPanel',
+        items: [] // Dynamic: Owner/Admin actions
+    },
+    teamMembersPanel: {
+        title: 'Team Members',
+        parentPanelId: 'teamMainPanel',
+        items: [] // Dynamic
+    },
+    teamRequestsPanel: {
+        title: 'Join Requests',
+        parentPanelId: 'teamManagePanel',
+        items: [] // Dynamic
+    },
+    teamSettingsPanel: {
+        title: 'Team Settings',
+        parentPanelId: 'teamMainPanel',
+        items: [] // Modal
+    },
+    teamHomePanel: {
+        title: 'Team Home',
+        parentPanelId: 'teamManagePanel',
+        items: [] // Dynamic: Teleport, Update, Delete
+    },
     shopMainPanel: {
-        title: '§l§aShop Categories§r',
+        title: 'Shop Categories',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     configResetPanel: {
-        title: '§l§cReset Configuration§r',
+        title: 'Reset Configuration',
         parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated
     },
     shopManagementPanel: {
-        title: '§l§2Shop System§r',
+        title: 'Shop System',
         parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated
     },
     reportListPanel: {
-        title: '§l§4Active Reports§r',
+        title: 'Active Reports',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     reportActionsPanel: {
-        title: '§l§4Report Details§r',
+        title: 'Report Details',
         parentPanelId: 'reportListPanel',
         items: [
             {
                 id: 'assignReport',
-                text: '§eAssign to Me',
+                text: 'Assign to Me',
                 icon: 'textures/ui/profile_glyph_color.png',
                 permissionLevel: 2,
                 actionType: 'functionCall',
@@ -190,7 +279,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'resolveReport',
-                text: '§2Mark as Resolved',
+                text: 'Mark as Resolved',
                 icon: 'textures/ui/check.png',
                 permissionLevel: 2,
                 actionType: 'functionCall',
@@ -198,7 +287,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'clearReport',
-                text: '§cClear Report',
+                text: 'Clear Report',
                 icon: 'textures/ui/trash.png',
                 permissionLevel: 2,
                 actionType: 'functionCall',
@@ -207,27 +296,27 @@ export const panelDefinitions = {
         ]
     },
     bountyListPanel: {
-        title: '§l§6Bounty List§r',
+        title: 'Bounty List',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     myStatsPanel: {
-        title: '§l§3Your Stats§r',
+        title: 'Your Stats',
         parentPanelId: 'mainPanel',
         items: [] // Body is dynamically generated
     },
     helpfulLinksPanel: {
-        title: '§l§9Helpful Links§r',
+        title: 'Helpful Links',
         parentPanelId: 'mainPanel',
         items: [] // Body is dynamically generated
     },
     moderationPanel: {
-        title: '§l§cModeration Tools§r',
+        title: 'Moderation Tools',
         parentPanelId: 'mainPanel',
         items: [
             {
                 id: 'unbanPlayer',
-                text: '§2Unban Player§r',
+                text: 'Unban Player',
                 icon: 'textures/ui/check.png',
                 permissionLevel: 1,
                 actionType: 'functionCall',
@@ -235,7 +324,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'unmutePlayer',
-                text: '§2Unmute Player§r',
+                text: 'Unmute Player',
                 icon: 'textures/ui/mute_off.png',
                 permissionLevel: 1,
                 actionType: 'functionCall',
@@ -244,22 +333,22 @@ export const panelDefinitions = {
         ]
     },
     configCategoryPanel: {
-        title: '§l§3Configuration§r',
+        title: 'Configuration',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     kitManagementPanel: {
-        title: '§l§dKit System§r',
+        title: 'Kit System',
         parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated
     },
     rankManagementPanel: {
-        title: '§l§4Rank System§r',
+        title: 'Rank System',
         parentPanelId: 'configCategoryPanel',
         items: [
             {
                 id: 'rankSettings',
-                text: '§l§2Settings§r',
+                text: 'Settings',
                 icon: 'textures/ui/settings_glyph_color_2x',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -268,37 +357,37 @@ export const panelDefinitions = {
         ]
     },
     rankSettingsPanel: {
-        title: '§l§2Rank Settings§r',
+        title: 'Rank Settings',
         parentPanelId: 'rankManagementPanel',
         items: [] // Modal form, no items needed
     },
     editRankPanel: {
-        title: '§l§3Edit Rank§r',
+        title: 'Edit Rank',
         parentPanelId: 'rankManagementPanel',
         items: [] // Dynamically populated
     },
     addRankPanel: {
-        title: '§l§2Add New Rank§r',
+        title: 'Add New Rank',
         parentPanelId: 'rankManagementPanel',
         items: [] // Dynamically populated
     },
     playerManagementPanel: {
-        title: '§l§4Player Management§r',
+        title: 'Player Management',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     playerListPanel: {
-        title: '§l§2Online Players§r',
+        title: 'Online Players',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     bountyActionsPanel: {
-        title: '§l§6Bounty Actions§r',
+        title: 'Bounty Actions',
         parentPanelId: 'playerActionsPanel',
         items: [
             {
                 id: 'setBounty',
-                text: '§eSet Bounty§r',
+                text: 'Set Bounty',
                 icon: 'textures/ui/realms_green_check.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -307,7 +396,7 @@ export const panelDefinitions = {
             },
             {
                 id: 'removePlayerBounty',
-                text: '§cRemove Bounty§r',
+                text: 'Remove Bounty',
                 icon: 'textures/ui/cancel.png',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
@@ -317,95 +406,95 @@ export const panelDefinitions = {
         ]
     },
     playerActionsPanel: {
-        title: '§l§e{playerName}§r', // Title will be dynamic
+        title: '{playerName}', // Title will be dynamic
         parentPanelId: 'mainPanel', // This will be dynamically overridden
         items: [
             // Admin Actions (for Player Management panel)
-            { id: 'kick', text: '§cKick§r', icon: 'textures/ui/cancel.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'kickPlayer' },
-            { id: 'mute', text: '§6Mute§r', icon: 'textures/ui/mute_on.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'mutePlayer' },
-            { id: 'unmute', text: '§2Unmute§r', icon: 'textures/ui/mute_off.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unmutePlayer' },
-            { id: 'ban', text: '§4Ban§r', icon: 'textures/ui/hammer_l.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'banPlayer' },
-            { id: 'freeze', text: '§bFreeze§r', icon: 'textures/ui/icon_lock.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'freezePlayer' },
-            { id: 'unfreeze', text: '§bUnfreeze§r', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
+            { id: 'kick', text: 'Kick', icon: 'textures/ui/cancel.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'kickPlayer' },
+            { id: 'mute', text: 'Mute', icon: 'textures/ui/mute_on.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'mutePlayer' },
+            { id: 'unmute', text: 'Unmute', icon: 'textures/ui/mute_off.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unmutePlayer' },
+            { id: 'ban', text: 'Ban', icon: 'textures/ui/hammer_l.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'banPlayer' },
+            { id: 'freeze', text: 'Freeze', icon: 'textures/ui/icon_lock.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'freezePlayer' },
+            { id: 'unfreeze', text: 'Unfreeze', icon: 'textures/ui/icon_unlocked.png', permissionLevel: 2, actionType: 'functionCall', actionValue: 'unfreezePlayer' },
             // Player Actions (for Player List panel)
-            { id: 'tpa', text: '§eTPA§r', icon: 'textures/gui/controls/jump.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer', sortId: 10 },
-            { id: 'tpahere', text: '§9TPAHere§r', icon: 'textures/gui/controls/sneak.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaherePlayer', sortId: 20 },
-            { id: 'bounty', text: '§6Bounty§r', icon: 'textures/items/netherite_sword.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'bountyActionsPanel', sortId: 30 },
-            { id: 'report', text: '§cReport Player§r', icon: 'textures/ui/WarningGlyph', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'reportPlayer', sortId: 40 }
+            { id: 'tpa', text: 'TPA', icon: 'textures/gui/controls/jump.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaPlayer', sortId: 10 },
+            { id: 'tpahere', text: 'TPAHere', icon: 'textures/gui/controls/sneak.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'tpaherePlayer', sortId: 20 },
+            { id: 'bounty', text: 'Bounty', icon: 'textures/items/netherite_sword.png', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'bountyActionsPanel', sortId: 30 },
+            { id: 'report', text: 'Report Player', icon: 'textures/ui/WarningGlyph', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'reportPlayer', sortId: 40 }
         ]
     },
     rulesManagementPanel: {
-        title: '§l§4Rules Management§r',
+        title: 'Rules Management',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     addRulePanel: {
-        title: 'Add New Rule§r',
+        title: 'Add New Rule',
         parentPanelId: 'rulesManagementPanel',
         items: [] // Modal form, no items needed
     },
     ruleActionPanel: {
-        title: 'Manage Rule§r',
+        title: 'Manage Rule',
         parentPanelId: 'rulesManagementPanel',
         items: [] // Dynamically populated
     },
     helpfulLinksManagementPanel: {
-        title: '§l§9Links Management§r',
+        title: 'Links Management',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     addHelpfulLinkPanel: {
-        title: 'Add New Link§r',
+        title: 'Add New Link',
         parentPanelId: 'helpfulLinksManagementPanel',
         items: [] // Modal form, no items needed
     },
     helpfulLinkActionPanel: {
-        title: 'Manage Link§r',
+        title: 'Manage Link',
         parentPanelId: 'helpfulLinksManagementPanel',
         items: [] // Dynamically populated
     },
     shopAdminCategoryActionPanel: {
-        title: 'Manage Category§r',
+        title: 'Manage Category',
         parentPanelId: 'shopManagementPanel',
         items: [] // Dynamically populated
     },
     shopAdminSubCategoryItemPanel: {
-        title: 'Manage Subcategory Items§r',
+        title: 'Manage Subcategory Items',
         parentPanelId: 'shopAdminCategoryPanel', // This will be dynamic
         items: [] // Dynamically populated
     },
     shopAdminSubCategoryActionPanel: {
-        title: 'Manage Subcategory§r',
+        title: 'Manage Subcategory',
         parentPanelId: 'shopAdminSubCategoryItemPanel', // This will be dynamic
         items: [] // Dynamically populated
     },
     floatingTextListPanel: {
-        title: '§l§9Floating Text§r',
+        title: 'Floating Text',
         parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     floatingTextEditPanel: {
-        title: '§l§9Edit Floating Text§r',
+        title: 'Edit Floating Text',
         parentPanelId: 'floatingTextListPanel',
         items: [] // Modal form, no items needed
     },
     floatingTextCreatePanel: {
-        title: '§l§9Create Floating Text§r',
+        title: 'Create Floating Text',
         parentPanelId: 'floatingTextListPanel',
         items: [] // Modal form, no items needed
     },
     floatingTextActionPanel: {
-        title: '§l§9Floating Text Actions§r',
+        title: 'Floating Text Actions',
         parentPanelId: 'floatingTextListPanel',
         items: [] // Dynamically populated
     },
     economyPanel: {
-        title: '§l§6Economy System§r',
+        title: 'Economy System',
         parentPanelId: 'configCategoryPanel',
         items: [
             {
                 id: 'economyGeneralSettings',
-                text: '§l§3General Settings§r',
+                text: 'General Settings',
                 icon: 'textures/ui/settings_glyph_color_2x',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -413,21 +502,37 @@ export const panelDefinitions = {
             },
             {
                 id: 'mobDropsSystemPanel',
-                text: '§l§2Mob Drops System§r',
+                text: 'Mob Drops System',
                 icon: 'textures/items/bone',
                 permissionLevel: 1,
                 actionType: 'openPanel',
                 actionValue: 'mobDropsSystemPanel'
+            },
+            {
+                id: 'stealSystem',
+                text: 'Steal System',
+                icon: 'textures/items/iron_sword',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'config_stealSystem'
+            },
+            {
+                id: 'pvpSystem',
+                text: 'PvP System',
+                icon: 'textures/items/diamond_sword',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'config_pvpSystem'
             }
         ]
     },
     mobDropsSystemPanel: {
-        title: '§l§2Mob Drops System§r',
+        title: 'Mob Drops System',
         parentPanelId: 'economyPanel',
         items: [
             {
                 id: 'addMobDrop',
-                text: '§l§2Add New Mob§r',
+                text: 'Add New Mob',
                 icon: 'textures/ui/realms_green_check.png',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -436,22 +541,22 @@ export const panelDefinitions = {
         ]
     },
     addMobDropPanel: {
-        title: '§l§2Add Mob Drop§r',
+        title: 'Add Mob Drop',
         parentPanelId: 'mobDropsSystemPanel',
         items: [] // Modal form, no items needed
     },
     editMobDropPanel: {
-        title: '§l§2Edit Mob Drop§r',
+        title: 'Edit Mob Drop',
         parentPanelId: 'mobDropsSystemPanel',
         items: [] // Dynamically built in panelBuilder.js
     },
     xrayOresPanel: {
-        title: '§l§cX-Ray Monitored Ores§r',
+        title: 'X-Ray Monitored Ores',
         parentPanelId: 'config_xray',
         items: [
             {
                 id: 'addXrayOre',
-                text: '§l§2Add New Ore§r',
+                text: 'Add New Ore',
                 icon: 'textures/ui/color_plus',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -460,469 +565,25 @@ export const panelDefinitions = {
         ]
     },
     addXrayOrePanel: {
-        title: '§l§cAdd Monitored Ore§r',
+        title: 'Add Monitored Ore',
         parentPanelId: 'xrayOresPanel',
         items: [] // Modal form
     },
     editXrayOrePanel: {
-        title: '§l§cEdit Monitored Ore§r',
+        title: 'Edit Monitored Ore',
         parentPanelId: 'xrayOresPanel',
         items: [] // Modal form
+    },
+    commandSystemPanel: {
+        title: 'Command System',
+        parentPanelId: 'configCategoryPanel',
+        items: [] // Dynamically populated
+    },
+    commandSettingsPanel: {
+        title: '{commandName} Settings', // Dynamic title
+        parentPanelId: 'commandSystemPanel',
+        items: [] // Modal form, no items needed
     }
 };
 
-/**
- * @type {ConfigCategory[]}
- */
-export const configPanelSchema = [
-    {
-        id: 'general',
-        title: '§l§3General System§r',
-        icon: 'textures/ui/settings_glyph_color_2x',
-        settings: [
-            {
-                key: 'serverName',
-                label: 'Server Name',
-                type: 'textField',
-                description: 'The name of the server, displayed in various messages.'
-            },
-            {
-                key: 'commandPrefix',
-                label: 'Command Prefix',
-                type: 'textField',
-                description: 'The prefix used for chat-based commands (e.g., !).'
-            },
-            {
-                key: 'defaultGamemode',
-                label: 'Default Gamemode',
-                type: 'dropdown',
-                options: ['survival', 'creative', 'adventure', 'spectator'],
-                description: 'The default gamemode for new players.'
-            },
-            {
-                key: 'logLevel',
-                label: 'Log Level',
-                type: 'dropdown',
-                options: ['0: ERROR', '1: WARN', '2: INFO', '3: DEBUG'],
-                description: 'Sets the verbosity of the server console logs.'
-            },
-            {
-                key: 'data.autoSaveIntervalSeconds',
-                label: 'Autosave Interval (s)',
-                type: 'textField',
-                description: 'How often to save player data, in seconds. Set to 0 to disable.'
-            }
-        ]
-    },
-    {
-        id: 'announcements',
-        title: '§l§2Announcement System§r',
-        icon: 'textures/ui/icon_bell',
-        settings: [
-            {
-                key: 'announcements.enabled',
-                label: 'Announcements Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the periodic announcement broadcast.'
-            },
-            {
-                key: 'announcements.message',
-                label: 'Announcement Message',
-                type: 'textField',
-                description: 'The message to be broadcast. Use color codes for formatting.'
-            },
-            {
-                key: 'announcements.interval',
-                label: 'Interval (seconds)',
-                type: 'textField',
-                description: 'How often the message is broadcast, in seconds. A reload is required for changes to take effect.'
-            }
-        ]
-    },
-    {
-        id: 'economyGeneralSettings',
-        title: '§l§6Economy Settings§r',
-        icon: 'textures/ui/Scaffolding',
-        configSource: 'economy',
-        settings: [
-            {
-                key: 'currencySymbol',
-                label: 'Currency Symbol',
-                type: 'textField',
-                description: 'The symbol used for currency (e.g., $).'
-            },
-            {
-                key: 'startingBalance',
-                label: 'Starting Balance',
-                type: 'textField',
-                description: 'The amount of money new players start with.'
-            },
-            {
-                key: 'logToConsole',
-                label: 'Log Transactions',
-                type: 'toggle',
-                description: 'Logs all economy transactions to the console.'
-            }
-        ]
-    },
-    {
-        id: 'warps',
-        title: '§l§dWarp System§r',
-        icon: 'textures/blocks/portal_placeholder',
-        settings: [
-            {
-                key: 'warps.enabled',
-                label: 'Warps Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the entire warp system.'
-            },
-            {
-                key: 'warps.cooldownSeconds',
-                label: 'Cooldown (s)',
-                type: 'textField',
-                description: 'How long a player must wait between using /warp.'
-            },
-            {
-                key: 'warps.teleportWarmupSeconds',
-                label: 'Warmup (s)',
-                type: 'textField',
-                description: 'How long a player must stand still before teleporting.'
-            }
-        ]
-    },
-    {
-        id: 'bounties',
-        title: '§l§cBounty System§r',
-        icon: 'textures/items/diamond_sword',
-        settings: [
-            {
-                key: 'bounties.enabled',
-                label: 'Bounties Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the bounty system.'
-            },
-            {
-                key: 'bounties.bountyCreditTimeoutSeconds',
-                label: 'Credit Timeout (s)',
-                type: 'textField',
-                description: 'How long a player is credited for a kill after their last hit.'
-            },
-            {
-                key: 'bounties.minimumBounty',
-                label: 'Minimum Bounty',
-                type: 'textField',
-                description: 'The minimum amount for setting a bounty.'
-            }
-        ]
-    },
-    {
-        id: 'chat',
-        title: '§l§2Chat Settings§r',
-        icon: 'textures/ui/chat_send',
-        settings: [
-            {
-                key: 'chat.logToConsole',
-                label: 'Log Chat to Console',
-                type: 'toggle',
-                description: 'Prints player chat messages to the server console.'
-            }
-        ]
-    },
-    {
-        id: 'spawn',
-        title: '§l§eSpawn System§r',
-        icon: 'textures/blocks/beacon',
-        configSource: 'spawn',
-        settings: [
-            {
-                key: 'spawn.cooldownSeconds',
-                label: 'Cooldown (s)',
-                type: 'textField',
-                description: 'How long a player must wait between using /spawn.'
-            },
-            {
-                key: 'spawn.teleportWarmupSeconds',
-                label: 'Warmup (s)',
-                type: 'textField',
-                description: 'How long a player must stand still before teleporting to spawn.'
-            },
-            {
-                key: 'spawn.spawnLocation.x',
-                label: 'Spawn X Coordinate',
-                type: 'textField',
-                description: 'Leave blank or set with /setspawn.'
-            },
-            {
-                key: 'spawn.spawnLocation.y',
-                label: 'Spawn Y Coordinate',
-                type: 'textField',
-                description: 'Leave blank or set with /setspawn.'
-            },
-            {
-                key: 'spawn.spawnLocation.z',
-                label: 'Spawn Z Coordinate',
-                type: 'textField',
-                description: 'Leave blank or set with /setspawn.'
-            },
-            {
-                key: 'spawnProtection.enabled',
-                label: 'Protection Enabled',
-                type: 'toggle',
-                description: 'Master switch for all spawn protection features.'
-            },
-            {
-                key: 'spawnProtection.protectionRadius',
-                label: 'Protection Radius',
-                type: 'textField',
-                description: 'The radius (in blocks) from spawn to protect.'
-            },
-            {
-                key: 'spawnProtection.allowAdminBypass',
-                label: 'Admin Bypass',
-                type: 'toggle',
-                description: 'Allows admins to bypass all spawn protection rules.'
-            },
-            {
-                key: 'spawnProtection.preventPvP',
-                label: 'Prevent PvP',
-                type: 'toggle',
-                description: 'Prevents players from damaging other players in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventHostileDamage',
-                label: 'Prevent Hostile Damage',
-                type: 'toggle',
-                description: 'Prevents hostile mobs from damaging players in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventItemPickup',
-                label: 'Prevent Item Pickup',
-                type: 'toggle',
-                description: 'Prevents players from picking up items in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventItemDropping',
-                label: 'Prevent Item Dropping',
-                type: 'toggle',
-                description: 'Prevents players from dropping items in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventHostileMobSpawning',
-                label: 'Prevent Hostile Mob Spawning',
-                type: 'toggle',
-                description: 'Removes hostile mobs that spawn in the protected area.'
-            },
-            {
-                key: 'spawnProtection.preventBlockBreaking',
-                label: 'Prevent Block Breaking',
-                type: 'toggle',
-                description: 'Prevents players from breaking blocks in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventBlockPlacing',
-                label: 'Prevent Block Placing',
-                type: 'toggle',
-                description: 'Prevents players from placing blocks in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventExplosions',
-                label: 'Prevent Explosions',
-                type: 'toggle',
-                description: 'Prevents explosions from destroying blocks in spawn.'
-            },
-            {
-                key: 'spawnProtection.preventBlockInteraction',
-                label: 'Prevent Block Interaction',
-                type: 'toggle',
-                description: 'Prevents interaction with chests, doors, etc., in spawn.'
-            }
-        ]
-    },
-    {
-        id: 'tpa',
-        title: '§l§bTPA System§r',
-        icon: 'textures/ui/icon_multiplayer',
-        settings: [
-            {
-                key: 'tpa.enabled',
-                label: 'TPA Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the entire TPA system.'
-            },
-            {
-                key: 'tpa.requestTimeoutSeconds',
-                label: 'Request Timeout (s)',
-                type: 'textField',
-                description: 'How long a TPA request remains valid before expiring.'
-            },
-            {
-                key: 'tpa.cooldownSeconds',
-                label: 'Cooldown (s)',
-                type: 'textField',
-                description: 'How long a player must wait between TPA uses.'
-            },
-            {
-                key: 'tpa.teleportWarmupSeconds',
-                label: 'Warmup (s)',
-                type: 'textField',
-                description: 'How long a player must stand still before teleporting.'
-            }
-        ]
-    },
-    {
-        id: 'homes',
-        title: '§l§2Home System§r',
-        icon: 'textures/ui/icon_recipe_item',
-        settings: [
-            {
-                key: 'homes.enabled',
-                label: 'Homes Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the entire home system.'
-            },
-            {
-                key: 'homes.maxHomes',
-                label: 'Max Homes',
-                type: 'textField',
-                description: 'The maximum number of homes a player can set.'
-            },
-            {
-                key: 'homes.cooldownSeconds',
-                label: 'Cooldown (s)',
-                type: 'textField',
-                description: 'How long a player must wait between using /home.'
-            },
-            {
-                key: 'homes.teleportWarmupSeconds',
-                label: 'Warmup (s)',
-                type: 'textField',
-                description: 'How long a player must stand still before teleporting.'
-            }
-        ]
-    },
-    {
-        id: 'rtp',
-        title: '§l§9Random Teleport§r',
-        icon: 'textures/items/ender_pearl',
-        settings: [
-            {
-                key: 'rtp.enabled',
-                label: 'RTP Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the /rtp command.'
-            },
-            {
-                key: 'rtp.minRange',
-                label: 'Minimum Range',
-                type: 'textField',
-                description: 'The minimum distance a player can be teleported.'
-            },
-            {
-                key: 'rtp.maxRange',
-                label: 'Maximum Range',
-                type: 'textField',
-                description: 'The maximum distance a player can be teleported.'
-            },
-            {
-                key: 'rtp.cooldownSeconds',
-                label: 'Cooldown (s)',
-                type: 'textField',
-                description: 'How long a player must wait between using /rtp.'
-            },
-            {
-                key: 'rtp.teleportWarmupSeconds',
-                label: 'Warmup (s)',
-                type: 'textField',
-                description: 'How long a player must stand still before teleporting.'
-            }
-        ]
-    },
-    {
-        id: 'playerInfo',
-        title: '§l§ePlayer Info System§r',
-        icon: 'textures/ui/icon_multiplayer',
-        settings: [
-            {
-                key: 'playerInfo.enableWelcomer',
-                label: 'Enable Welcomer',
-                type: 'toggle',
-                description: 'Sends a welcome message to new players.'
-            },
-            {
-                key: 'playerInfo.welcomeMessage',
-                label: 'Welcome Message',
-                type: 'textField',
-                description: 'The message sent to new players. Use {playerName}, etc.'
-            },
-            {
-                key: 'playerInfo.notifyAdminOnNewPlayer',
-                label: 'Notify Admin on New Player',
-                type: 'toggle',
-                description: 'Alerts admins when a new player joins for the first time.'
-            },
-            {
-                key: 'playerInfo.enableDeathCoords',
-                label: 'Enable Death Coords',
-                type: 'toggle',
-                description: 'Tells players their coordinates upon respawning after death.'
-            }
-        ]
-    },
-    {
-        id: 'xray',
-        title: '§l§cX-Ray System§r',
-        icon: 'textures/blocks/diamond_ore',
-        configSource: 'xray',
-        settings: [
-            {
-                key: 'monitoredOreTypes.diamond.enabled',
-                label: 'Enable Diamond Ore Alerts',
-                type: 'toggle',
-                description: 'Enables or disables alerts for Diamond Ore.'
-            },
-            {
-                key: 'monitoredOreTypes.ancientDebris.enabled',
-                label: 'Enable Ancient Debris Alerts',
-                type: 'toggle',
-                description: 'Enables or disables alerts for Ancient Debris.'
-            },
-            {
-                key: 'notifications.message',
-                label: 'Notification Message\nPlaceholders: {playerName}, {oreName}, {x}, {y}, {z}',
-                type: 'textField',
-                description: 'The format of the notification message sent to staff.'
-            },
-            {
-                key: 'notifications.logToConsole',
-                label: 'Log to Console',
-                type: 'toggle',
-                description: 'Logs X-ray notifications to the server console.'
-            }
-        ]
-    },
-    {
-        id: 'dimensionLock',
-        title: '§l§5Dimension Locking§r',
-        icon: 'textures/ui/realmPortalSmall',
-        settings: [
-            {
-                key: 'dimensionLock.netherLock',
-                label: 'Lock Nether Dimension',
-                type: 'toggle',
-                description: 'Prevents non-admins from entering the Nether.'
-            },
-            {
-                key: 'dimensionLock.endLock',
-                label: 'Lock End Dimension',
-                type: 'toggle',
-                description: 'Prevents non-admins from entering the End.'
-            },
-            {
-                key: 'dimensionLock.allowAdminBypass',
-                label: 'Allow Admin Bypass',
-                type: 'toggle',
-                description: 'If enabled, admins can enter locked dimensions.'
-            }
-        ]
-    }
-];
+export { configPanelSchema } from './configPanelRegistry.js';

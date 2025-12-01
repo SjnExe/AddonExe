@@ -1,23 +1,29 @@
-import { world, system } from '@minecraft/server';
-import { loadConfig, getConfig, updateConfig } from './configManager.js';
+import * as mc from '@minecraft/server';
+import { loadConfig, getConfig } from './configManager.js';
 import { getSpawnConfig, loadEconomyConfig, loadKitsConfig, loadRanksConfig, loadShopConfig, loadSpawnConfig, loadXrayConfig } from './configurations.js';
 import * as dataManager from './dataManager.js';
 import * as rankManager from './rankManager.js';
-import * as playerDataManager from './playerDataManager.js';
-import { cleanupPlayerDataManager, clearExpiredPayments } from './playerDataManager.js';
+import {
+    getOrCreatePlayer,
+    setPlayerRank,
+    cleanupPlayerDataManager,
+    clearExpiredPayments,
+    loadNameIdMap,
+    initializeLeaderboard
+} from './playerDataManager.js';
 import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
 import * as bountyManager from './bountyManager.js';
+import * as teamManager from './teamManager.js';
 import { errorLog, setLogLevel, infoLog } from './logger.js';
-import { startRestart } from './restartManager.js';
 import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { floatingTextManager } from './floatingTextManager.js';
-import { registerPlayerDataPlaceholders } from './playerDataManager.js';
+import { initializeMigration } from './migrationManager.js';
 import '../modules/commands/index.js';
 import './mobDeathEvents.js';
 
@@ -26,7 +32,7 @@ import './mobDeathEvents.js';
  * @param {import('@minecraft/server').Player} player The player to check.
  */
 export function updatePlayerRank(player) {
-    const pData = playerDataManager.getOrCreatePlayer(player);
+    const pData = getOrCreatePlayer(player);
     if (!pData) { return; }
 
     const config = getConfig();
@@ -35,7 +41,7 @@ export function updatePlayerRank(player) {
     const newRank = rankManager.getPlayerRank(player, config);
 
     if (oldRankId !== newRank.id) {
-        playerDataManager.setPlayerRank(player.id, newRank.id, newRank.permissionLevel);
+        setPlayerRank(player.id, newRank.id, newRank.permissionLevel);
         infoLog(`[AddonExe] Player ${player.name}'s rank updated from ${oldRankId} to ${newRank.name}.`);
         player.sendMessage(`§aYour rank has been updated to ${newRank.name}.`);
     }
@@ -46,7 +52,7 @@ export function updatePlayerRank(player) {
  * Iterates through all online players and updates their ranks.
  */
 export function updateAllPlayerRanks() {
-    for (const player of world.getAllPlayers()) {
+    for (const player of mc.world.getAllPlayers()) {
         updatePlayerRank(player);
     }
 }
@@ -56,10 +62,10 @@ export function updateAllPlayerRanks() {
  * This is crucial for restoring player data after a script reload.
  */
 function reinitializeOnlinePlayers() {
-    infoLog(`[AddonExe] Re-initializing state for ${world.getAllPlayers().length} online players...`);
-    for (const player of world.getAllPlayers()) {
+    infoLog(`[AddonExe] Re-initializing state for ${mc.world.getAllPlayers().length} online players...`);
+    for (const player of mc.world.getAllPlayers()) {
         // Ensure the player's data is loaded into the system
-        playerDataManager.getOrCreatePlayer(player);
+        getOrCreatePlayer(player);
         // Then, update their rank based on the loaded data and config
         updatePlayerRank(player);
     }
@@ -71,12 +77,12 @@ function reinitializeOnlinePlayers() {
  */
 function loadPersistentData() {
     infoLog('[AddonExe] Loading persistent data...');
-    playerDataManager.loadNameIdMap();
+    loadNameIdMap();
     loadPunishments();
     loadReports();
     loadCooldowns();
     bountyManager.loadBounties();
-    playerDataManager.initializeLeaderboard();
+    initializeLeaderboard();
 }
 
 /**
@@ -86,8 +92,8 @@ function initializeManagers() {
     infoLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
-    registerPlayerDataPlaceholders(); // Must be before managers that use placeholders
     floatingTextManager.initialize();
+    teamManager.initialize();
     // Clear any expired data on startup
     clearExpiredPunishments();
     clearOldResolvedReports();
@@ -101,16 +107,24 @@ function initializeManagers() {
 function checkConfiguration() {
     const config = getConfig();
     const spawnConfig = getSpawnConfig();
-    // Add a guard in case config hasn't loaded yet, though the init flow should prevent this.
-    if (!config || !config.ownerPlayerNames || !config.ownerPlayerNames.length || config.ownerPlayerNames[0] === 'Your•Name•Here') {
+
+    // Correctly check for a configured owner.
+    // The check is now more robust:
+    // 1. It ensures ownerPlayerNames is an array.
+    // 2. It verifies the array is not empty.
+    // 3. It checks that the array doesn't solely contain the default placeholder.
+    const ownerNames = config?.ownerPlayerNames;
+    const isOwnerConfigured = Array.isArray(ownerNames) && ownerNames.length > 0 && (ownerNames.length > 1 || ownerNames[0] !== 'Your•Name•Here');
+
+    if (!isOwnerConfigured) {
         const warningMessage = '§l§c[AddonExe] WARNING: No owner is configured. Please set `ownerPlayerNames` in `scripts/config.js` to gain access to admin commands.';
-        system.runTimeout(() => world.sendMessage(warningMessage), 20);
+        mc.system.runTimeout(() => mc.world.sendMessage(warningMessage), 20);
         errorLog('[AddonExe] No owner configured.');
     }
 
     if (!spawnConfig.spawn || !spawnConfig.spawn.spawnLocation) {
         const spawnWarning = '§l§e[AddonExe] NOTICE: The server spawn has not been set. Spawn protection and the /spawn command will not function until an admin runs /setspawn.';
-        system.runTimeout(() => world.sendMessage(spawnWarning), 40);
+        mc.system.runTimeout(() => mc.world.sendMessage(spawnWarning), 40);
         errorLog('[AddonExe] Server spawn not set.');
     }
 }
@@ -119,8 +133,8 @@ function checkConfiguration() {
  * Starts all recurring system timers.
  */
 function startSystemTimers() {
-    // Periodically clear expired payment confirmations
-    setTrackedInterval(clearExpiredPayments, 6000); // 5 minutes
+    // Periodically clear expired payment confirmations (every 60 seconds)
+    setTrackedInterval(clearExpiredPayments, 60 * 20);
     // Rank updates are now handled by events (e.g., !admin command)
     infoLog('[AddonExe] System timers started.');
 }
@@ -135,7 +149,7 @@ async function initializeAddon() {
     // This is necessary because we need to know if it's a migration before loading all configs.
     const { config: tempConfig } = await import('../config.js');
     const newVersion = String(tempConfig.version);
-    const lastVersion = world.getDynamicProperty('exe:lastVersion');
+    const lastVersion = mc.world.getDynamicProperty('exe:lastVersion');
     const isMigration = !lastVersion || lastVersion !== newVersion;
 
     // Load all configurations synchronously with the correct migration flag.
@@ -151,10 +165,19 @@ async function initializeAddon() {
     const config = getConfig();
     setLogLevel(config.logLevel);
 
-    world.setDynamicProperty('exe:lastVersion', newVersion);
+    mc.world.setDynamicProperty('exe:lastVersion', newVersion);
 
     dataManager.initializeDataManager();
     loadPersistentData();
+
+    // Run migrations after data load but before managers usage if possible,
+    // or right here as managers initialize.
+    initializeMigration();
+
+    // Initialize player cache first so other managers can rely on it
+    const { initializePlayerCache } = await import('./playerCache.js');
+    initializePlayerCache();
+
     initializeManagers();
     checkConfiguration();
     initializeEventManager();
@@ -178,6 +201,7 @@ function cleanupAddon() {
     // This is crucial for debugging script unload.
     // eslint-disable-next-line no-console
     console.log('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
+    floatingTextManager.cleanup();
     cleanupPlayerDataManager();
     cleanupEventManager();
     cleanupTimers();
@@ -188,70 +212,23 @@ function cleanupAddon() {
 // Defer the entire addon initialization by one tick.
 // This is a crucial step to prevent a race condition where the script tries to access APIs
 // from @minecraft/server before they are fully initialized by the game engine.
-system.runTimeout(async () => {
+mc.system.runTimeout(async () => {
     try {
         await initializeAddon();
     } catch (e) {
         errorLog('[AddonExe] A critical error occurred during addon initialization:');
         errorLog(e.stack);
-        world.sendMessage('§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.');
+        mc.world.sendMessage('§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.');
     }
 }, 0);
 
-system.afterEvents.scriptEventReceive.subscribe((event) => {
-    const { id, sourceEntity } = event;
+mc.system.afterEvents.scriptEventReceive.subscribe((event) => {
+    const { id } = event;
 
     // Handle script unload event
     if (id === 'minecraft:script_unload') {
         cleanupAddon();
         return;
     }
-
-    const config = getConfig(); // Config should be loaded by the time this event fires for custom events.
-    if (!config) { return; }
-
-
-    switch (id) {
-        case 'exe:restart':
-            startRestart(sourceEntity);
-            break;
-
-        case 'exe:toggle_chat_log': {
-            const chatConfig = config.chat || { logToConsole: false };
-            const newValue = !chatConfig.logToConsole;
-            chatConfig.logToConsole = newValue;
-            updateConfig('chat', chatConfig);
-
-            const feedbackMessage = `§aChat-to-console has been ${newValue ? '§aenabled' : '§cdisabled'}§a.`;
-            if (sourceEntity && sourceEntity.sendMessage) {
-                sourceEntity.sendMessage(feedbackMessage);
-            }
-            // eslint-disable-next-line no-console
-            console.log(`[AddonExe] ${feedbackMessage}`);
-            break;
-        }
-
-        case 'exe:grant_admin_self': {
-            if (sourceEntity && sourceEntity.addTag) {
-                const adminRank = rankManager.getRankById('admin');
-                if (!adminRank) {
-                    errorLog('[AddonExe] Could not grant admin rank because the "admin" rank definition was not found.');
-                    sourceEntity.sendMessage('§cError: The admin rank is not configured.');
-                    return;
-                }
-
-                const adminTagCondition = adminRank.conditions.find(c => c.type === 'hasTag');
-                if (!adminTagCondition || !adminTagCondition.value) {
-                    errorLog('[AddonExe] Could not grant admin rank because it lacks a valid "hasTag" condition.');
-                    sourceEntity.sendMessage('§cError: The admin rank is not configured with a valid tag.');
-                    return;
-                }
-
-                sourceEntity.addTag(adminTagCondition.value);
-                sourceEntity.sendMessage('§aYou have been promoted to Admin.');
-                updateAllPlayerRanks();
-            }
-            break;
-        }
-    }
+    // Other script events are handled by handleScriptEventReceive in core/events/scriptEventReceive.js
 });

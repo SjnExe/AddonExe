@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 
 const WARPS_PROPERTY_ID = 'exe:warps';
 
@@ -7,7 +7,7 @@ const WARPS_PROPERTY_ID = 'exe:warps';
  * @returns {Record<string, import('./playerDataManager.js').HomeLocation>}
  */
 function getWarps() {
-    const warpsJson = world.getDynamicProperty(WARPS_PROPERTY_ID);
+    const warpsJson = mc.world.getDynamicProperty(WARPS_PROPERTY_ID);
     return warpsJson ? JSON.parse(warpsJson) : {};
 }
 
@@ -16,7 +16,7 @@ function getWarps() {
  * @param {Record<string, any>} warps
  */
 function saveWarps(warps) {
-    world.setDynamicProperty(WARPS_PROPERTY_ID, JSON.stringify(warps));
+    mc.world.setDynamicProperty(WARPS_PROPERTY_ID, JSON.stringify(warps));
 }
 
 /**

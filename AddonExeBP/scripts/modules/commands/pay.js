@@ -1,7 +1,7 @@
 import { commandManager } from './commandManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { getPlayer, createPendingPayment, getPendingPayment, clearPendingPayment, transfer } from '../../core/playerDataManager.js';
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { sendMessage } from '../../core/messaging.js';
 import { formatCurrency } from '../../core/utils.js';
 import { constants } from '../../core/constants.js';
@@ -46,7 +46,16 @@ commandManager.register({
         }
 
         const sourceData = getPlayer(player.id);
-        if (!sourceData || sourceData.balance < amount) {
+
+        if (!sourceData) {
+            return sendMessage('§cCould not retrieve your data.', player);
+        }
+
+        if (sourceData.balance < 0) {
+            return sendMessage('§cYou cannot transfer money while your balance is negative.', player);
+        }
+
+        if (sourceData.balance < amount) {
             return sendMessage('§cYou do not have enough money for this payment.', player);
         }
 
@@ -85,7 +94,7 @@ commandManager.register({
         }
 
         const { targetPlayerId, amount } = pendingPayment;
-        const targetPlayer = world.getPlayer(targetPlayerId);
+        const targetPlayer = mc.world.getPlayer(targetPlayerId);
 
         if (!targetPlayer) {
             clearPendingPayment(player.id);

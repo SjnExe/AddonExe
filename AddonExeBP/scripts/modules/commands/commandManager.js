@@ -1,8 +1,4 @@
-import { system } from '@minecraft/server';
-import {
-    CommandPermissionLevel,
-    CustomCommandParamType
-} from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { getConfig } from '../../core/configManager.js';
 import { errorLog } from '../../core/logger.js';
@@ -17,7 +13,7 @@ class CommandManager {
         this.aliases = new Map();
         this.prefix = 'exe'; // Namespace for all custom commands
 
-        system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
+        mc.system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             this.commands.forEach(command => {
                 if (command.disableSlashCommand) {return;}
 
@@ -60,19 +56,31 @@ class CommandManager {
      * @private
      */
     _executeCommand(executor, command, args) {
+        const config = getConfig();
+        const commandSettings = config.commandSettings[command.name] || {};
+
+        if (commandSettings.enabled === false) {
+            if (executor.sendMessage) {
+                executor.sendMessage('§cThis command is currently disabled.');
+            }
+            return;
+        }
+
         const isPlayer = !!executor.id; // Check if it's a player or console object
 
         // --- Console Execution ---
         if (!isPlayer) {
             if (!command.allowConsole) {
-                console.warn(`[CommandManager] Command '${command.name}' cannot be run from the console.`); // eslint-disable-line no-console
+                // eslint-disable-next-line no-console
+                console.warn(`[CommandManager] Command '${command.name}' cannot be run from the console.`);
                 return;
             }
-            system.run(() => {
+            mc.system.run(() => {
                 try {
                     command.execute(executor, args);
                 } catch (error) {
-                    console.error(`[CommandManager] Error executing console command '${command.name}': ${error.stack}`); // eslint-disable-line no-console
+                    // eslint-disable-next-line no-console
+                    console.error(`[CommandManager] Error executing console command '${command.name}': ${error.stack}`);
                 }
             });
             return;
@@ -93,13 +101,17 @@ class CommandManager {
 
         // Permission Check
         const pData = getPlayer(player.id);
-        if (!pData || pData.permissionLevel > command.permissionLevel) {
+        const requiredPermissionLevel = commandSettings.permissionLevel !== undefined
+            ? commandSettings.permissionLevel
+            : command.permissionLevel;
+
+        if (!pData || pData.permissionLevel > requiredPermissionLevel) {
             player.sendMessage('§cYou do not have permission to use this command.');
             return;
         }
 
         // Execute Command
-        system.run(() => {
+        mc.system.run(() => {
             try {
                 command.execute(player, args);
             } catch (error) {
@@ -112,6 +124,28 @@ class CommandManager {
     }
 
     /**
+     * Generates a usage string for a command.
+     * @param {object} command
+     * @returns {string} e.g. "Usage: /gm [s|c|a] <target>"
+     */
+    getUsageString(command) {
+        const params = command.parameters || [];
+        const parts = params.map(p => {
+            if (p.optional) {
+                return `[${p.name}]`;
+            } else {
+                // If it's an enum, maybe show options?
+                // For now, keep it simple: <name>
+                if (p.enumOptions && p.enumOptions.length <= 4) {
+                    return `<${p.enumOptions.join('|')}>`;
+                }
+                return `<${p.name}>`;
+            }
+        });
+        return `Usage: /${command.name} ${parts.join(' ')}`;
+    }
+
+    /**
      * Registers a single slash command or alias.
      * @param {object} customCommandRegistry The registry object from the startup event.
      * @param {object} command The command definition.
@@ -119,10 +153,11 @@ class CommandManager {
      * @private
      */
     _registerSlashCommand(customCommandRegistry, command, name) {
-        const commandData = this.prepareCommandData(command, name);
+        const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
         const commandCallback = (origin, ...rawArgs) => {
-            const executor = origin.sourceEntity || { isConsole: true, sendMessage: (msg) => console.log(msg.replace(/§[0-9a-fklmnor]/g, '')) }; // eslint-disable-line no-console
+            // eslint-disable-next-line no-console
+            const executor = origin.sourceEntity || { isConsole: true, sendMessage: (msg) => console.log(msg.replace(/§[0-9a-fklmnor]/g, '')) };
 
             // Prepare arguments
             const allParams = (command.parameters || []);
@@ -150,13 +185,18 @@ class CommandManager {
      * Prepares the command data for registration with the Minecraft API.
      * @param {object} command The command definition.
      * @param {string} nameOverride The specific name to use for this registration (main name or alias).
+     * @param {object} registry The custom command registry for enum registration.
      * @returns {object} The formatted command data.
      * @private
      */
-    prepareCommandData(command, nameOverride) {
+    prepareCommandData(command, nameOverride, registry) {
         const slashCommandName = nameOverride || command.slashName || command.name;
-        const mandatoryParameters = (command.parameters || []).filter(p => !p.optional).map(p => this.formatParameter(p));
-        const optionalParameters = (command.parameters || []).filter(p => p.optional).map(p => this.formatParameter(p));
+        const mandatoryParameters = (command.parameters || [])
+            .filter(p => !p.optional)
+            .map(p => this.formatParameter(p, slashCommandName, registry));
+        const optionalParameters = (command.parameters || [])
+            .filter(p => p.optional)
+            .map(p => this.formatParameter(p, slashCommandName, registry));
 
         return {
             name: `${this.prefix}:${slashCommandName}`,
@@ -170,21 +210,43 @@ class CommandManager {
     /**
      * Formats a parameter for registration with the Minecraft API.
      * @param {object} param The parameter definition.
+     * @param {string} commandName The name of the command (for unique enum naming).
+     * @param {object} registry The registry to register enums with.
      * @returns {object} The formatted parameter data.
      * @private
      */
-    formatParameter(param) {
+    formatParameter(param, commandName, registry) {
+        // --- Enum Handling ---
+        if (param.enumOptions && Array.isArray(param.enumOptions) && registry) {
+            const safeCmdName = (commandName || 'cmd').replace(/[^a-zA-Z0-9_]/g, '');
+            const safeParamName = param.name.replace(/[^a-zA-Z0-9_]/g, '');
+            const enumName = `${this.prefix}_${safeCmdName}_${safeParamName}`;
+
+            try {
+                registry.registerEnum(enumName, param.enumOptions);
+            } catch {
+                // Ignore if enum already exists (e.g. alias sharing same params)
+            }
+
+            return {
+                name: param.name,
+                type: mc.CustomCommandParamType.Enum,
+                enumName: enumName
+            };
+        }
+
+        // --- Standard Types ---
         const paramTypeMap = {
-            'player': CustomCommandParamType.PlayerSelector,
-            'string': CustomCommandParamType.String,
-            'text': CustomCommandParamType.String, // For greedy strings
-            'int': CustomCommandParamType.Integer,
-            'float': CustomCommandParamType.Float,
-            'boolean': CustomCommandParamType.Boolean,
-            'block': CustomCommandParamType.BlockType,
-            'item': CustomCommandParamType.ItemType,
-            'position': CustomCommandParamType.Position,
-            'target': CustomCommandParamType.PlayerSelector
+            'player': mc.CustomCommandParamType.PlayerSelector,
+            'string': mc.CustomCommandParamType.String,
+            'text': mc.CustomCommandParamType.String, // For greedy strings
+            'int': mc.CustomCommandParamType.Integer,
+            'float': mc.CustomCommandParamType.Float,
+            'boolean': mc.CustomCommandParamType.Boolean,
+            'block': mc.CustomCommandParamType.BlockType,
+            'item': mc.CustomCommandParamType.ItemType,
+            'position': mc.CustomCommandParamType.Position,
+            'target': mc.CustomCommandParamType.PlayerSelector
         };
 
         const type = paramTypeMap[param.type.toLowerCase()];
@@ -193,21 +255,14 @@ class CommandManager {
             errorLog(`[CommandManager] Unknown parameter type '${param.type}' for parameter '${param.name}'. Defaulting to String.`);
             return {
                 name: param.name,
-                type: CustomCommandParamType.String
+                type: mc.CustomCommandParamType.String
             };
         }
 
-        const formattedParam = {
+        return {
             name: param.name,
             type: type
         };
-
-        if (param.enumOptions && Array.isArray(param.enumOptions)) {
-            // This is how you define an enum for a string parameter
-            formattedParam.enumOptions = param.enumOptions;
-        }
-
-        return formattedParam;
     }
 
     /**
@@ -219,7 +274,7 @@ class CommandManager {
     translatePermissionLevel(level) {
         // We will handle all permission checks with our custom rank system.
         // Registering all commands with 'Any' allows our more granular check to be the single source of truth.
-        return CommandPermissionLevel.Any;
+        return mc.CommandPermissionLevel.Any;
     }
 
     // --- Chat Command Management ---
@@ -257,6 +312,12 @@ class CommandManager {
             return true;
         }
 
+        const commandSettings = config.commandSettings[command.name] || {};
+        if (commandSettings.enabled === false) {
+            player.sendMessage('§cThis command is currently disabled.');
+            return true;
+        }
+
         // --- Argument Parsing ---
         const parsedArgs = {};
         const paramDefs = command.parameters || [];
@@ -265,7 +326,8 @@ class CommandManager {
         for (const paramDef of paramDefs) {
             if (currentArgIndex >= cleanedArgs.length) {
                 if (!paramDef.optional) {
-                    player.sendMessage(`§cMissing required argument: ${paramDef.name}.`);
+                    const usage = this.getUsageString(command);
+                    player.sendMessage(`§cMissing required argument: ${paramDef.name}.\n${usage}`);
                     return true; // Stop execution
                 }
                 break; // No more args to process

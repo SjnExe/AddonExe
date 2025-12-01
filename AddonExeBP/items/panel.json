@@ -1,5 +1,5 @@
 {
-    "format_version": "1.21.110",
+    "format_version": "1.21.0",
     "minecraft:item": {
         "description": {
             "identifier": "exe:panel",
@@ -8,14 +8,13 @@
             }
         },
         "components": {
-            "minecraft:icon": "breeze_rod",
+            "minecraft:icon": "stick",
             "minecraft:glint": true,
             "minecraft:display_name": {
                 "value": "item.exe:panel.name"
             },
             "minecraft:hand_equipped": true,
             "minecraft:can_destroy_in_creative": false,
-            "minecraft:stacked_by_data": true,
             "minecraft:max_stack_size": 1,
             "minecraft:rarity": "common"
         }

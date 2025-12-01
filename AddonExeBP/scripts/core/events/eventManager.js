@@ -1,15 +1,15 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { errorLog } from '../logger.js';
 
 // Import all event handlers statically
 import handleBeforeChatSend from './beforeChatSend.js';
-import handlePlayerSpawn from './playerSpawn.js';
+import { initializePlayerSpawnEvent } from './playerSpawn.js';
 import handleEntityHurt from './entityHurt.js';
 import handlePlayerLeave from './playerLeave.js';
 import handlePlayerDimensionChange from './playerDimensionChange.js';
 import handleItemUse from './itemUse.js';
 import handleEntityDie from './entityDie.js';
-import handlePlayerBreakBlock from './playerBreakBlock.js';
+import { handleScriptEventReceive } from './scriptEventReceive.js';
 
 /**
  * An array of all event handlers and their corresponding event subscriptions.
@@ -17,14 +17,14 @@ import handlePlayerBreakBlock from './playerBreakBlock.js';
  * and the subscriptions happen predictably.
  */
 export const events = [
-    { event: world.beforeEvents.chatSend, handler: handleBeforeChatSend, name: 'beforeChatSend' },
-    { event: world.afterEvents.playerSpawn, handler: handlePlayerSpawn, name: 'playerSpawn' },
-    { event: world.afterEvents.entityHurt, handler: handleEntityHurt, name: 'entityHurt' },
-    { event: world.afterEvents.playerLeave, handler: handlePlayerLeave, name: 'playerLeave' },
-    { event: world.afterEvents.playerDimensionChange, handler: handlePlayerDimensionChange, name: 'playerDimensionChange' },
-    { event: world.afterEvents.itemUse, handler: handleItemUse, name: 'itemUse' },
-    { event: world.afterEvents.entityDie, handler: handleEntityDie, name: 'entityDie' },
-    { event: world.afterEvents.playerBreakBlock, handler: handlePlayerBreakBlock, name: 'playerBreakBlock' }
+    { event: mc.world.beforeEvents.chatSend, handler: handleBeforeChatSend, name: 'beforeChatSend' },
+    { event: null, handler: initializePlayerSpawnEvent, name: 'playerSpawn' }, // playerSpawn is not a direct event handler, but the initializer for one.
+    { event: mc.world.afterEvents.entityHurt, handler: handleEntityHurt, name: 'entityHurt' },
+    { event: mc.world.afterEvents.playerLeave, handler: handlePlayerLeave, name: 'playerLeave' },
+    { event: mc.world.afterEvents.playerDimensionChange, handler: handlePlayerDimensionChange, name: 'playerDimensionChange' },
+    { event: mc.world.afterEvents.itemUse, handler: handleItemUse, name: 'itemUse' },
+    { event: mc.world.afterEvents.entityDie, handler: handleEntityDie, name: 'entityDie' },
+    { event: mc.system.afterEvents.scriptEventReceive, handler: handleScriptEventReceive, name: 'scriptEventReceive' }
 ];
 
 /**
@@ -42,8 +42,18 @@ export function initializeEventManager() {
                 // Log the error with more detail for easier debugging in the future.
                 errorLog(`[EventManager] Failed to subscribe to event '${name}'. Error: ${e.message}\nStack: ${e.stack}`);
             }
+        } else if (name === 'playerSpawn' && typeof handler === 'function') {
+            // Special case for playerSpawn which is an initializer, not a direct event handler.
+            // For other events like beforeEntityHurt, if the event object is missing, we should NOT run the handler.
+            try {
+                handler();
+            } catch (e) {
+                errorLog(`[EventManager] Failed to run initializer '${name}'. Error: ${e.message}\nStack: ${e.stack}`);
+            }
         } else {
-            errorLog(`[EventManager] Event subscription for '${name}' was skipped because the event is not available in this version of Minecraft.`);
+            // If the event object is missing and it's not an initializer, log a warning but don't crash.
+            // This often happens if an API is experimental or version-mismatched.
+            errorLog(`[EventManager] Event subscription for '${name}' was skipped because the event object is not available.`);
         }
     }
 }

@@ -1,5 +1,5 @@
 
-import { system } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { debugLog } from './logger.js';
 
 /**
@@ -18,7 +18,7 @@ const timeoutIds = new Set();
  * @returns {number} The ID of the interval.
  */
 export function setTrackedInterval(callback, tickInterval) {
-    const id = system.runInterval(callback, tickInterval);
+    const id = mc.system.runInterval(callback, tickInterval);
     intervalIds.add(id);
     return id;
 }
@@ -30,10 +30,10 @@ export function setTrackedInterval(callback, tickInterval) {
  * @returns {number} The ID of the timeout.
  */
 export function setTrackedTimeout(callback, tickDelay) {
-    const id = system.runTimeout(callback, tickDelay);
+    const id = mc.system.runTimeout(callback, tickDelay);
     timeoutIds.add(id);
     // When the timeout completes, it no longer needs to be tracked.
-    system.runTimeout(() => {
+    mc.system.runTimeout(() => {
         timeoutIds.delete(id);
     }, tickDelay);
     return id;
@@ -45,7 +45,7 @@ export function setTrackedTimeout(callback, tickDelay) {
  */
 export function clearTrackedInterval(id) {
     if (intervalIds.has(id)) {
-        system.clearRun(id);
+        mc.system.clearRun(id);
         intervalIds.delete(id);
     }
 }
@@ -56,7 +56,7 @@ export function clearTrackedInterval(id) {
  */
 export function clearTrackedTimeout(id) {
     if (timeoutIds.has(id)) {
-        system.clearRun(id);
+        mc.system.clearRun(id);
         timeoutIds.delete(id);
     }
 }
@@ -69,12 +69,12 @@ export function cleanupTimers() {
     debugLog(`[TimerManager] Clearing ${intervalIds.size} intervals and ${timeoutIds.size} timeouts.`);
 
     for (const id of intervalIds) {
-        system.clearRun(id);
+        mc.system.clearRun(id);
     }
     intervalIds.clear();
 
     for (const id of timeoutIds) {
-        system.clearRun(id);
+        mc.system.clearRun(id);
     }
     timeoutIds.clear();
 

@@ -1,11 +1,21 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 
 const playerCache = new Map();
 
 export function initializePlayerCache() {
-    for (const player of world.getAllPlayers()) {
+    for (const player of mc.world.getAllPlayers()) {
         playerCache.set(player.id, player);
     }
+
+    mc.world.afterEvents.playerSpawn.subscribe((event) => {
+        const { player } = event;
+        addPlayerToCache(player);
+    });
+
+    mc.world.afterEvents.playerLeave.subscribe((event) => {
+        const { playerId } = event;
+        removePlayerFromCache(playerId);
+    });
 }
 
 export function getPlayerFromCache(playerId) {

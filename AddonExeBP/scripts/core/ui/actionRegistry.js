@@ -1,4 +1,4 @@
-import { world } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { getOrCreatePlayer, incrementPlayerBalance } from '../playerDataManager.js';
 import * as utils from '../utils.js';
@@ -124,13 +124,17 @@ export const uiActionFunctions = {
 
         bountyManager.removeBounty(targetPlayerId);
         player.sendMessage(`§2Successfully removed the bounty from ${targetPlayerName}.`);
-        world.sendMessage(`§2The bounty on ${targetPlayerName} has been removed!`);
+        mc.world.sendMessage(`§2The bounty on ${targetPlayerName} has been removed!`);
 
         return true;
     },
 
     kickPlayer: async (player, context) => {
         const { targetPlayerId, targetPlayerName } = context;
+        if (player.id === targetPlayerId) {
+            player.sendMessage('§cYou cannot kick yourself.');
+            return true;
+        }
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
         if (!targetPlayer) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
@@ -147,6 +151,10 @@ export const uiActionFunctions = {
 
     freezePlayer: async (player, context) => {
         const { targetPlayerId, targetPlayerName } = context;
+        if (player.id === targetPlayerId) {
+            player.sendMessage('§cYou cannot freeze yourself.');
+            return true;
+        }
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
         if (!targetPlayer) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
@@ -158,6 +166,10 @@ export const uiActionFunctions = {
 
     unfreezePlayer: async (player, context) => {
         const { targetPlayerId, targetPlayerName } = context;
+        if (player.id === targetPlayerId) {
+            player.sendMessage('§cYou cannot unfreeze yourself.');
+            return true;
+        }
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
         if (!targetPlayer) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
@@ -168,13 +180,21 @@ export const uiActionFunctions = {
     },
 
     unmutePlayer: async (player, context) => {
-        const { targetPlayerName } = context;
+        const { targetPlayerName, targetPlayerId } = context;
+        if (player.id === targetPlayerId) {
+            player.sendMessage('§cYou cannot unmute yourself.');
+            return true;
+        }
         unmutePlayer(player, targetPlayerName);
         return true;
     },
 
     mutePlayer: async (player, context) => {
         const { targetPlayerId, targetPlayerName } = context;
+        if (player.id === targetPlayerId) {
+            player.sendMessage('§cYou cannot mute yourself.');
+            return true;
+        }
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
         if (!targetPlayer) {
             player.sendMessage(`§c${targetPlayerName} is not online. Use /offlinemute instead.`);
@@ -191,6 +211,10 @@ export const uiActionFunctions = {
 
     banPlayer: async (player, context) => {
         const { targetPlayerId, targetPlayerName } = context;
+        if (player.id === targetPlayerId) {
+            player.sendMessage('§cYou cannot ban yourself.');
+            return true;
+        }
         const form = new ModalFormData().title(`Ban ${targetPlayerName}`).textField('Duration', 'e.g., 30m, 2h, 7d. Default: perm', { defaultValue: 'perm' }).textField('Reason', 'Enter reason for banning', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
@@ -268,13 +292,17 @@ export const uiActionFunctions = {
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, amount);
             player.sendMessage(`§2You have placed a bounty of §6${formatCurrency(amount)}§2 on ${targetPlayerName}.`);
-            world.sendMessage(`§cSomeone has placed a bounty of §6${formatCurrency(amount)}§c on ${targetPlayerName}!`);
+            mc.world.sendMessage(`§cSomeone has placed a bounty of §6${formatCurrency(amount)}§c on ${targetPlayerName}!`);
         }
         return true;
     },
 
     reportPlayer: async (player, context) => {
         const { targetPlayerId, targetPlayerName } = context;
+        if (player.id === targetPlayerId) {
+            player.sendMessage('§cYou cannot report yourself.');
+            return true;
+        }
         const form = new ModalFormData().title(`Report ${targetPlayerName}`).textField('Reason for report:', 'Enter the reason here');
         const response = await utils.uiWait(player, form);
         if (response.canceled) {
@@ -329,7 +357,7 @@ export const uiActionFunctions = {
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, -amount);
             player.sendMessage(`§2You have removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty.`);
-            world.sendMessage(`§2${player.name} has removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty!`);
+            mc.world.sendMessage(`§2${player.name} has removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty!`);
         }
 
         return true;
