@@ -9,9 +9,7 @@ const debugCommand: CustomCommand = {
     description: 'Debug and testing tools for AddonExe.',
     permissionLevel: 1, // Admin only
     // aliases removed
-    parameters: [
-        { name: 'action', type: 'string', optional: true }
-    ],
+    parameters: [{ name: 'action', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const action = args.action as string | undefined;
 

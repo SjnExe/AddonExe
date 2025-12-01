@@ -62,5 +62,4 @@ GameTest.register('AddonExe', 'BountyLogic', (test) => {
 
         test.succeed();
     });
-})
-.tag(GameTest.Tags.suiteDefault);
+}).tag(GameTest.Tags.suiteDefault);

@@ -8,7 +8,6 @@ import { getPlayer } from '../../core/playerDataManager.js';
 import * as rankManager from '../../core/rankManager.js';
 import { rankDefinitions } from '../../core/ranksConfig.default.js';
 import { playSound } from '../../core/utils.js';
-import { getRanksConfig } from '../../core/configurations.js';
 
 import type { CustomCommand } from './commandManager.js';
 import type { RankCondition, RankDefinition } from '../../core/ranksConfig.default.js';

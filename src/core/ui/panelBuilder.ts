@@ -5,13 +5,7 @@ import { commandManager } from '../../modules/commands/commandManager.js';
 import * as bountyManager from '../bountyManager.js';
 import { loadConfig } from '../configLoader.js';
 import { getConfig } from '../configManager.js';
-import {
-    getKitsConfig,
-    getShopConfig,
-    getEconomyConfig,
-    getXrayConfig,
-    getTeamConfig
-} from '../configurations.js';
+import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig, getTeamConfig } from '../configurations.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { iconDB } from '../iconDB.js';
 import { getAllKits } from '../kitAdminManager.js';
