@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
+import { refreshXrayCache } from '../../../modules/detections/xrayDetection.js';
 import { getXrayConfig, saveXrayConfig } from '../../configurations.js';
 import { showPanel } from '../../uiManager.js';
 import { UIContext } from '../panelRegistry.js';
@@ -18,6 +19,12 @@ interface XrayOre {
 
 // Full structure matching xrayConfig.default.ts
 interface XrayConfig {
+    settings?: {
+        ignoreCreative: boolean;
+        ignoreSpectator: boolean;
+        adminBypass: boolean;
+        bypassPermissionLevel: number;
+    };
     notifications: {
         logToConsole: boolean;
         alertBufferingSeconds: number;
@@ -86,6 +93,7 @@ export async function handleXrayPanel(
             // Cast back to any/unknown to satisfy the strict saveXrayConfig signature which expects the exact default config type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             saveXrayConfig(xrayConfig as any);
+            refreshXrayCache();
             player.sendMessage('§2Successfully added new monitored ore.');
         } else {
             player.sendMessage('§4Invalid data. Please check all fields.');
@@ -122,6 +130,7 @@ export async function handleXrayPanel(
                 };
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 saveXrayConfig(xrayConfig as any);
+                refreshXrayCache();
                 player.sendMessage('§2Successfully updated monitored ore.');
             }
         } else {

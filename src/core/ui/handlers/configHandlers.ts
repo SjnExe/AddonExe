@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse, ModalFormData } from '@minecraft/server-ui';
 
+import { refreshXrayCache } from '../../../modules/detections/xrayDetection.js';
 import { getConfig, resetConfigSection } from '../../configManager.js';
 import { errorLog } from '../../logger.js';
 import { getValueFromPath, setValueByPath } from '../../objectUtils.js';
@@ -110,6 +111,11 @@ export async function handleConfigPanel(
                     if (categoryId === 'data') {
                         await import('../../dataManager.js').then(({ restartAutoSave }) => restartAutoSave());
                     }
+
+                    // Refresh X-Ray cache if config was X-Ray
+                    if (configSource === 'xray') {
+                        refreshXrayCache();
+                    }
                 }
             }
         }
@@ -168,6 +174,10 @@ export async function handleConfigPanel(
                     const result = await resetConfigSection(selectedSystem.id, player);
                     if (result.success) {
                         player.sendMessage(`§2${result.message}`);
+                        // If X-Ray was reset, refresh its cache
+                        if (selectedSystem.id === 'xray' || selectedSystem.id === 'all') {
+                            refreshXrayCache();
+                        }
                     } else {
                         player.sendMessage(
                             '§4Failed to reset the configuration. Please check the console for details.'
@@ -223,6 +233,7 @@ export async function handleConfigPanel(
                     const result = await resetConfigSection('all', player);
                     if (result.success) {
                         player.sendMessage(`§2${result.message}`);
+                        refreshXrayCache(); // Refresh cache on reset all
                     } else {
                         player.sendMessage(
                             '§4Failed to reset all configurations. Please check the console for details.'
