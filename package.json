@@ -4,8 +4,8 @@
     "description": "<p align=\"center\">   <!-- TODO: Add a cool project logo/banner here. Example: <img src=\"link_to_your_logo.png\" alt=\"AddonExe Logo\" width=\"200\"/> -->   <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
     "main": "index.js",
     "scripts": {
-        "build": "rimraf packs/behavior/scripts && tsc && tsc-alias --resolve-full-paths",
-        "watch": "concurrently \"tsc -w\" \"tsc-alias -w --resolve-full-paths\"",
+        "build": "node scripts/generate-command-index.js && rimraf packs/behavior/scripts && tsc && tsc-alias --resolve-full-paths",
+        "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"tsc-alias -w --resolve-full-paths\"",
         "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js",
         "lint": "eslint . && node scripts/validate-filtered.js",
         "lint:fix": "eslint . --fix",
