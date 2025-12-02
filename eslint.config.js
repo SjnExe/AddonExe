@@ -122,16 +122,16 @@ export default tseslint.config(
             '@typescript-eslint/no-floating-promises': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
             '@typescript-eslint/no-unused-vars': ['warn', { args: 'none' }],
-            // Disable strict type safety rules for now to facilitate migration
-            '@typescript-eslint/no-unsafe-argument': 'off',
-            '@typescript-eslint/no-unsafe-assignment': 'off',
-            '@typescript-eslint/no-unsafe-call': 'off',
-            '@typescript-eslint/no-unsafe-member-access': 'off',
-            '@typescript-eslint/no-unsafe-return': 'off',
-            '@typescript-eslint/no-unsafe-enum-comparison': 'off',
-            '@typescript-eslint/restrict-template-expressions': 'off',
-            '@typescript-eslint/await-thenable': 'off',
-            '@typescript-eslint/require-await': 'off'
+            // Warn for strict type safety rules to facilitate migration
+            '@typescript-eslint/no-unsafe-argument': 'warn',
+            '@typescript-eslint/no-unsafe-assignment': 'warn',
+            '@typescript-eslint/no-unsafe-call': 'warn',
+            '@typescript-eslint/no-unsafe-member-access': 'warn',
+            '@typescript-eslint/no-unsafe-return': 'warn',
+            '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
+            '@typescript-eslint/restrict-template-expressions': 'warn',
+            '@typescript-eslint/await-thenable': 'warn',
+            '@typescript-eslint/require-await': 'warn'
         }
     },
 
