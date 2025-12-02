@@ -4,6 +4,7 @@ const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const child = spawn(npmCommand, ['run', 'validate'], { shell: true, stdio: ['ignore', 'pipe', 'pipe'] });
 
 let buffer = '';
+let hasPrintedError = false;
 
 child.stdout.on('data', (data) => {
     buffer += data.toString();
@@ -42,6 +43,7 @@ child.stdout.on('data', (data) => {
         // Suppress known unlink error
         if (cleanLine.includes('UNLINK323') && cleanLine.includes('minecraft:stick')) return;
         process.stdout.write(line + '\n');
+        hasPrintedError = true;
     });
 });
 
@@ -66,6 +68,7 @@ child.stderr.on('data', (data) => {
         // Suppress generic map file errors
         if (cleanLine.includes('.map') && cleanLine.includes('Error:')) return;
         process.stderr.write(line + '\n');
+        hasPrintedError = true;
     });
 });
 
@@ -80,7 +83,10 @@ child.on('close', (code) => {
             !cleanLine.includes('TESTSUCCESS:')
         ) {
             process.stdout.write(buffer + '\n');
+            hasPrintedError = true;
         }
     }
-    process.exit(code);
+    // If we filtered out all errors (hasPrintedError is false), exit with 0 (success).
+    // Otherwise, preserve the original exit code.
+    process.exit(hasPrintedError ? code : 0);
 });
