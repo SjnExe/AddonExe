@@ -406,29 +406,40 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         parentPanelId: 'configCategoryPanel',
         items: [
             {
+                id: 'addRank',
+                text: 'Create New Rank',
+                icon: 'textures/ui/color_plus',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'addRankPanel',
+                sortId: 0 // Show first
+            },
+            {
                 id: 'rankSettings',
                 text: 'Settings',
                 icon: 'textures/ui/settings_glyph_color_2x',
                 permissionLevel: 1,
                 actionType: 'openPanel',
-                actionValue: 'rankSettingsPanel'
+                actionValue: 'rankSettingsPanel',
+                sortId: 1
             }
+            // Dynamic: List of existing ranks follows
         ]
     },
     rankSettingsPanel: {
         title: 'Rank Settings',
         parentPanelId: 'rankManagementPanel',
-        items: [] // Modal form, no items needed
+        items: [] // Modal form
     },
     editRankPanel: {
         title: 'Edit Rank',
         parentPanelId: 'rankManagementPanel',
-        items: [] // Dynamically populated
+        items: [] // Modal form
     },
     addRankPanel: {
         title: 'Add New Rank',
         parentPanelId: 'rankManagementPanel',
-        items: [] // Dynamically populated
+        items: [] // Modal form
     },
     playerManagementPanel: {
         title: 'Player Management',

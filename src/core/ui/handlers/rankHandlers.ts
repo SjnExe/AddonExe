@@ -2,6 +2,8 @@ import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
 import { updateMultipleConfig } from '../../configManager.js';
+import { updateAllPlayerRanks } from '../../main.js';
+import { getPlayer } from '../../playerDataManager.js';
 import * as rankDb from '../../rankDb.js';
 import * as rankManager from '../../rankManager.js';
 import { showPanel } from '../../uiManager.js';
@@ -57,7 +59,19 @@ export async function handleRankPanel(
         if (formValues) {
             const [name, id, permStr, nameColor, chatColor, prefix] = formValues as string[];
             const perm = parseInt(permStr);
-            if (name && id && !isNaN(perm)) {
+
+            const pData = getPlayer(player.id);
+            if (!pData) return;
+
+            if (!isNaN(perm)) {
+                // Security Check
+                if (pData.permissionLevel >= perm) {
+                    player.sendMessage(
+                        '§cYou cannot create a rank with a permission level equal to or higher than your own.'
+                    );
+                    return showPanel(player, 'rankManagementPanel', context);
+                }
+
                 const result = rankDb.addRank({
                     id,
                     name,
@@ -82,9 +96,22 @@ export async function handleRankPanel(
         if (selection === 0) return showPanel(player, 'editRankPanel', { ...context, rankId });
         if (selection === 1) {
             // Delete
-            const result = rankDb.deleteRank(rankId);
-            player.sendMessage(result.message);
-            if (result.success) rankManager.reloadRanks();
+            const rank = rankManager.getRankById(rankId);
+            const pData = getPlayer(player.id);
+
+            if (rank && pData) {
+                // Security Check
+                if (pData.permissionLevel >= rank.permissionLevel) {
+                    player.sendMessage(
+                        '§cYou cannot delete a rank with a permission level equal to or higher than your own.'
+                    );
+                    return showPanel(player, 'rankManagementPanel', context);
+                }
+
+                const result = rankDb.deleteRank(rankId);
+                player.sendMessage(result.message);
+                if (result.success) rankManager.reloadRanks();
+            }
             return showPanel(player, 'rankManagementPanel', context);
         }
         if (selection === 2) return showPanel(player, 'rankManagementPanel', context);
@@ -95,9 +122,27 @@ export async function handleRankPanel(
         if (canceled) return showPanel(player, 'rankManagementPanel', context);
         const { rankId } = context;
         if (formValues && rankId) {
+            const pData = getPlayer(player.id);
+            const originalRank = rankManager.getRankById(rankId);
+            if (!pData || !originalRank) return;
+
+            // Security Check: Cannot edit a rank equal to or higher than own
+            if (pData.permissionLevel >= originalRank.permissionLevel) {
+                player.sendMessage(
+                    '§cYou cannot edit a rank with a permission level equal to or higher than your own.'
+                );
+                return showPanel(player, 'rankManagementPanel', context);
+            }
+
             const [name, newId, permStr, nameColor, chatColor, prefix, nametag] = formValues as string[];
             const perm = parseInt(permStr);
             if (!isNaN(perm)) {
+                // Security Check: Cannot set new permission level to be equal to or higher than own
+                if (pData.permissionLevel >= perm) {
+                    player.sendMessage('§cYou cannot set a permission level equal to or higher than your own.');
+                    return showPanel(player, 'rankManagementPanel', context);
+                }
+
                 const result = rankDb.updateRank(rankId, {
                     id: newId,
                     name,
@@ -106,7 +151,11 @@ export async function handleRankPanel(
                     nametagPrefix: nametag
                 });
                 player.sendMessage(result.message);
-                if (result.success) rankManager.reloadRanks();
+                if (result.success) {
+                    rankManager.reloadRanks();
+                    // Propagate changes to online players (e.g. if permission level changed)
+                    updateAllPlayerRanks();
+                }
             }
         }
         return showPanel(player, 'rankManagementPanel', context);

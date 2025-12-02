@@ -88,6 +88,7 @@ const homeCommand: CustomCommand = {
                 }
                 const selectedHome = homeList[response.selection];
                 teleportToHome(selectedHome);
+                return;
             })
             .catch((e) => errorLog(`[/home UI] ${e.stack}`));
     }
@@ -178,6 +179,7 @@ const delHomeCommand: CustomCommand = {
                 }
                 const selectedHome = homeList[response.selection];
                 deleteHomeByName(selectedHome);
+                return;
             })
             .catch((e) => errorLog(`[/delhome UI] ${e.stack}`));
     }
