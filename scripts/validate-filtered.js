@@ -22,6 +22,12 @@ child.stdout.on('data', (data) => {
             cleanLine.includes('Test Success:') ||
             cleanLine.includes('> app@') ||
             cleanLine.includes('> npx mct') ||
+            cleanLine.includes('CPACKICON') ||
+            cleanLine.includes('pack_icon') ||
+            cleanLine.includes('FORBFILE102') ||
+            cleanLine.includes('FORBFILE000') ||
+            cleanLine.includes('Check Forbidden Files Generator') ||
+            cleanLine.includes('.map') ||
             (cleanLine.includes('UNLINK323') && cleanLine.includes('minecraft:stick')) ||
             cleanLine.trim() === ''
         ) {
@@ -31,7 +37,27 @@ child.stdout.on('data', (data) => {
     });
 });
 
-child.stderr.pipe(process.stderr);
+child.stderr.on('data', (data) => {
+    const lines = data.toString().split(/\r?\n/);
+    lines.forEach((line) => {
+        // Strip ANSI codes for matching text content
+        // eslint-disable-next-line no-control-regex
+        const cleanLine = line.replace(/\x1B\[\d+m/g, '');
+
+        if (
+            cleanLine.includes('CPACKICON') ||
+            cleanLine.includes('pack_icon') ||
+            cleanLine.includes('FORBFILE102') ||
+            cleanLine.includes('FORBFILE000') ||
+            cleanLine.includes('Check Forbidden Files Generator') ||
+            cleanLine.includes('.map') ||
+            cleanLine.trim() === ''
+        ) {
+            return;
+        }
+        process.stderr.write(line + '\n');
+    });
+});
 
 child.on('close', (code) => {
     if (buffer.trim()) {
