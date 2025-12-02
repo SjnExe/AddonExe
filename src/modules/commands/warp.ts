@@ -91,6 +91,7 @@ const warpCommand: CustomCommand = {
                 }
                 const selectedWarp = warpList[response.selection];
                 teleportToWarp(selectedWarp);
+                return;
             })
             .catch((e: unknown) => errorLog(`[/warp UI] ${e}`));
     }
@@ -185,6 +186,7 @@ const delWarpCommand: CustomCommand = {
                 }
                 const selectedWarp = warpList[response.selection];
                 deleteWarpByName(selectedWarp);
+                return;
             })
             .catch((e: unknown) => errorLog(`[/delwarp UI] ${e}`));
     }

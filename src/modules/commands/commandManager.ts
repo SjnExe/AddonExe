@@ -182,7 +182,9 @@ class CommandManager {
     getEffectivePermissionLevel(command: CustomCommand): number {
         const config = getConfig() as Config;
         const commandSettings = config.commandSettings[command.name] || {};
-        return commandSettings.permissionLevel !== undefined ? commandSettings.permissionLevel : (command.permissionLevel ?? 0);
+        return commandSettings.permissionLevel !== undefined
+            ? commandSettings.permissionLevel
+            : (command.permissionLevel ?? 0);
     }
 
     /**
