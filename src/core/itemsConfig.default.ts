@@ -1,3 +1,5 @@
+import { MinecraftItemTypes } from '@minecraft/vanilla-data';
+
 /**
  * Defines all possible items that can be available in the shop.
  * The 'edit shop' panel will allow admins to enable/disable these items
@@ -5,7 +7,7 @@
  *
  * Structure for each item:
  * {
- *   itemId: string,        // The Minecraft item type ID (e.g., 'minecraft:diamond').
+ *   itemId: string | MinecraftItemTypes, // The Minecraft item type ID (e.g., 'minecraft:diamond').
  *   icon: string,          // The texture path for the icon (e.g., 'textures/items/diamond').
  *   buyPrice: number,      // Default buy price. -1 to disable buying.
  *   sellPrice: number,     // Default sell price. -1 to disable selling.
@@ -15,7 +17,7 @@
  * }
  */
 export interface ItemData {
-    itemId: string;
+    itemId: MinecraftItemTypes | string;
     icon: string;
     buyPrice: number;
     sellPrice: number;
@@ -32,7 +34,7 @@ export interface ItemData {
 export const items: Record<string, ItemData> = {
     // == Ores & Minerals ==
     diamond: {
-        itemId: 'minecraft:diamond',
+        itemId: MinecraftItemTypes.Diamond,
         icon: 'textures/items/diamond',
         buyPrice: 1000,
         sellPrice: 500,
@@ -40,7 +42,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond'
     },
     emerald: {
-        itemId: 'minecraft:emerald',
+        itemId: MinecraftItemTypes.Emerald,
         icon: 'textures/items/emerald',
         buyPrice: 800,
         sellPrice: 400,
@@ -48,7 +50,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Emerald'
     },
     goldIngot: {
-        itemId: 'minecraft:gold_ingot',
+        itemId: MinecraftItemTypes.GoldIngot,
         icon: 'textures/items/gold_ingot',
         buyPrice: 100,
         sellPrice: 50,
@@ -56,7 +58,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Gold Ingot'
     },
     ironIngot: {
-        itemId: 'minecraft:iron_ingot',
+        itemId: MinecraftItemTypes.IronIngot,
         icon: 'textures/items/iron_ingot',
         buyPrice: 50,
         sellPrice: 25,
@@ -64,7 +66,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Iron Ingot'
     },
     netheriteIngot: {
-        itemId: 'minecraft:netherite_ingot',
+        itemId: MinecraftItemTypes.NetheriteIngot,
         icon: 'textures/items/netherite_ingot',
         buyPrice: 10000,
         sellPrice: 5000,
@@ -72,7 +74,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Netherite Ingot'
     },
     netheriteScrap: {
-        itemId: 'minecraft:netherite_scrap',
+        itemId: MinecraftItemTypes.NetheriteScrap,
         icon: 'textures/items/netherite_scrap',
         buyPrice: 2000,
         sellPrice: 1000,
@@ -80,7 +82,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Netherite Scrap'
     },
     ancientDebris: {
-        itemId: 'minecraft:ancient_debris',
+        itemId: MinecraftItemTypes.AncientDebris,
         icon: 'textures/blocks/ancient_debris_side',
         buyPrice: 1800,
         sellPrice: 900,
@@ -88,7 +90,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Ancient Debris'
     },
     lapisLazuli: {
-        itemId: 'minecraft:lapis_lazuli',
+        itemId: MinecraftItemTypes.LapisLazuli,
         icon: 'textures/blocks/lapis_ore',
         buyPrice: 20,
         sellPrice: 10,
@@ -96,7 +98,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Lapis Lazuli'
     },
     quartz: {
-        itemId: 'minecraft:quartz',
+        itemId: MinecraftItemTypes.Quartz,
         icon: 'textures/items/quartz',
         buyPrice: 30,
         sellPrice: 15,
