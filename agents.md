@@ -99,5 +99,6 @@ The following patterns must be verified and adhered to when working on the codeb
 - **Linting & Dependencies:**
   - `eslint.config.js` now enables strict type-checking rules (e.g., `no-unsafe-assignment`) as **warnings**. Strive to resolve these when working on files.
   - Use `@minecraft/vanilla-data` for strict typing of Block, Item, and Entity IDs (e.g., `MinecraftItemTypes.Diamond`) instead of string literals.
+  - Run `npm run check-deps` to verify that `package.json` dependencies match `manifest.json` dependencies. This is integrated into `npm run validate`.
 
 By following these guidelines, you will help ensure the continued quality, consistency, and maintainability of the AddonExe. Thank you!
