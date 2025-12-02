@@ -54,10 +54,16 @@ export function updatePlayerRank(player: mc.Player) {
     const oldRankId = pData.rankId;
     const newRank = rankManager.getPlayerRank(player, config);
 
-    if (oldRankId !== newRank.id) {
+    // Update if rank ID changed OR if the permission level of the current rank has changed in config
+    if (oldRankId !== newRank.id || pData.permissionLevel !== newRank.permissionLevel) {
         setPlayerRank(player.id, newRank.id, newRank.permissionLevel);
-        infoLog(`[AddonExe] Player ${player.name}'s rank updated from ${oldRankId} to ${newRank.name}.`);
-        player.sendMessage(`§aYour rank has been updated to ${newRank.name}.`);
+        if (oldRankId !== newRank.id) {
+            infoLog(`[AddonExe] Player ${player.name}'s rank updated from ${oldRankId} to ${newRank.name}.`);
+            player.sendMessage(`§aYour rank has been updated to ${newRank.name}.`);
+        } else {
+            // Permission level update only (silent or debug log)
+            infoLog(`[AddonExe] Player ${player.name}'s permission level updated to ${newRank.permissionLevel}.`);
+        }
     }
     rankManager.updatePlayerNameTag(player, config);
 }

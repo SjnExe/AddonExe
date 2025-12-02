@@ -3,7 +3,7 @@ import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getEconomyConfig, saveEconomyConfig } from '../../configurations.js';
 import { showPanel } from '../../uiManager.js';
-import { panelDefinitions , UIContext } from '../panelRegistry.js';
+import { panelDefinitions, UIContext } from '../panelRegistry.js';
 import { itemsPerPage, getPaginatedItems } from '../uiUtils.js';
 
 /**
