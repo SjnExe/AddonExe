@@ -727,6 +727,66 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         title: '{commandName} Settings', // Dynamic title
         parentPanelId: 'commandSystemPanel',
         items: [] // Modal form, no items needed
+    },
+    sidebarMainPanel: {
+        title: 'Sidebar/HUD System',
+        parentPanelId: 'configCategoryPanel',
+        items: [
+            {
+                id: 'generalSettings',
+                text: 'General Settings',
+                icon: 'textures/ui/settings_glyph_color_2x',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'config_sidebar'
+            },
+            {
+                id: 'sidebarLines',
+                text: 'Edit Sidebar Lines',
+                icon: 'textures/ui/text_color_paintbrush',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'sidebarLinesPanel'
+            },
+            {
+                id: 'actionBarLines',
+                text: 'Edit Action Bar Lines',
+                icon: 'textures/ui/text_color_paintbrush',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'actionBarLinesPanel'
+            }
+        ]
+    },
+    sidebarLinesPanel: {
+        title: 'Sidebar Lines',
+        parentPanelId: 'sidebarMainPanel',
+        items: [] // Dynamic
+    },
+    actionBarLinesPanel: {
+        title: 'Action Bar Lines',
+        parentPanelId: 'sidebarMainPanel',
+        items: [] // Dynamic
+    },
+    sidebarLineEditPanel: {
+        title: 'Edit Line',
+        parentPanelId: 'sidebarLinesPanel',
+        items: [] // Modal
+    },
+    sidebarLineAddPanel: {
+        title: 'Add Line',
+        parentPanelId: 'sidebarLinesPanel',
+        items: [] // Modal
+    },
+    actionBarLineEditPanel: {
+        title: 'Edit Line',
+        parentPanelId: 'actionBarLinesPanel',
+        items: [] // Modal
+    },
+    actionBarLineAddPanel: {
+        title: 'Add Line',
+        parentPanelId: 'actionBarLinesPanel',
+        items: [] // Modal
     }
 };
 
