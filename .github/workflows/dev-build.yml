@@ -112,6 +112,9 @@ jobs:
           cp -r packs/behavior staging/
           cp -r packs/resource staging/
 
+          # Remove source map files from staging to reduce package size
+          find staging -name "*.map" -type f -delete
+
       - name: Create Release Archives
         shell: bash
         env:
