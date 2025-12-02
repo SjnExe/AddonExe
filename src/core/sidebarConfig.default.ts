@@ -3,28 +3,33 @@ export interface SidebarConfig {
     title: string;
     sidebarLines: string[];
     actionBarEnabled: boolean;
-    actionBarInterval: number; // Ticks between cycling action bar messages
+    actionBarInterval: number; // Ticks between updates
     actionBarLines: string[];
     updateInterval: number; // Ticks for data refresh
     maxPlayers: number; // Cosmetic max players
 }
 
 export const config: SidebarConfig = {
-    enabled: true,
-    title: '§l§eSIDEBAR',
-    sidebarLines: [
+    enabled: false,
+    title: '§l§6Server Name',
+    sidebarLines: [],
+    actionBarEnabled: true,
+    actionBarInterval: 20,
+    actionBarLines: [
         '§7--------------------',
-        ' §fServer: §aServerExe',
+        '§l§6Server Name',
+        ' §fName: §a{name}',
+        ' §fRank: §d{rank}',
+        ' §fMoney: §e{money}',
+        ' ',
+        ' §fKills: §c{kills}',
+        ' §fDeaths: §c{deaths}',
+        ' §fKDR: §e{kdr}',
+        ' ',
         ' §fTPS: §a{tps}',
         ' §fOnline: §b{online}§f/§b{max_players}',
         '§7--------------------',
         '§ewww.yoursite.com'
-    ],
-    actionBarEnabled: true,
-    actionBarInterval: 40,
-    actionBarLines: [
-        '§fName: §a{name} §7| §fRank: §d{rank}',
-        '§fMoney: §e{money} §7| §fKills: §c{kills}'
     ],
     updateInterval: 20,
     maxPlayers: 20
