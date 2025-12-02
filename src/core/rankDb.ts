@@ -46,23 +46,26 @@ export function updateRank(
     }
 
     const originalRank = ranksConfig.rankDefinitions[rankIndex];
+
+    // Check for critical immutable properties on locked ranks
     if (originalRank.locked) {
+        // We prevent changing the ID of locked ranks to avoid breaking internal references (like code that checks for 'admin' rank)
         if (updatedData.id && updatedData.id !== originalRank.id) {
             return { success: false, message: 'Cannot change the ID of a locked rank.' };
         }
-        if (updatedData.permissionLevel && updatedData.permissionLevel !== originalRank.permissionLevel) {
-            return { success: false, message: 'Cannot change the permission level of a locked rank.' };
-        }
+
+        // We allow changing Permission Level now, as requested.
+        // We allow changing Name, Prefix, etc.
     }
 
-    // Ensure the ID is not changed if a new ID is passed in updatedData that already exists
+    // Ensure the ID is not changed if a new ID is passed in updatedData that already exists (and isn't the current one)
     if (updatedData.id && updatedData.id !== rankId && getRankById(updatedData.id)) {
         return { success: false, message: `Cannot rename rank ID to '${updatedData.id}' as it already exists.` };
     }
 
     let message = `Rank '${updatedData.name || originalRank.name}' updated successfully.`;
 
-    // Add a warning if the rank ID (tag) is changed.
+    // Add a warning if the rank ID (tag) is changed on a non-locked rank.
     if (updatedData.id && updatedData.id !== rankId) {
         message += `\n§eWARNING:§r The rank ID (tag) was changed from '${rankId}' to '${updatedData.id}'. Players with the old rank tag will need to be updated manually.`;
     }
@@ -84,6 +87,8 @@ export function deleteRank(rankId: string): { success: boolean; message: string 
     }
 
     const rank = ranksConfig.rankDefinitions[rankIndex];
+
+    // We strictly prevent deleting "locked" ranks (default system ranks) to ensure the system always has its base structure.
     if (rank.locked) {
         return { success: false, message: `Cannot delete locked rank '${rank.name}'.` };
     }

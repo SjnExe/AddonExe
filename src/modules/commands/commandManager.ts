@@ -167,6 +167,36 @@ class CommandManager {
     }
 
     /**
+     * Gets all registered commands.
+     * @returns {CustomCommand[]} An array of all registered commands.
+     */
+    getAllCommands(): CustomCommand[] {
+        return Array.from(this.commands.values());
+    }
+
+    /**
+     * Gets the effective permission level for a command, considering config overrides.
+     * @param {CustomCommand} command The command to check.
+     * @returns {number} The effective permission level.
+     */
+    getEffectivePermissionLevel(command: CustomCommand): number {
+        const config = getConfig() as Config;
+        const commandSettings = config.commandSettings[command.name] || {};
+        return commandSettings.permissionLevel !== undefined ? commandSettings.permissionLevel : (command.permissionLevel ?? 0);
+    }
+
+    /**
+     * Checks if a command is effectively enabled, considering config overrides.
+     * @param {CustomCommand} command The command to check.
+     * @returns {boolean} True if the command is enabled.
+     */
+    isCommandEnabled(command: CustomCommand): boolean {
+        const config = getConfig() as Config;
+        const commandSettings = config.commandSettings[command.name] || {};
+        return commandSettings.enabled !== false;
+    }
+
+    /**
      * The core command execution logic, shared by slash and chat commands.
      * @param {CommandExecutor} executor The player or a console identifier.
      * @param {CustomCommand} command The command to execute.
@@ -228,10 +258,9 @@ class CommandManager {
 
         // Permission Check
         const pData = getPlayer(player.id);
-        const requiredPermissionLevel =
-            commandSettings.permissionLevel !== undefined ? commandSettings.permissionLevel : command.permissionLevel;
+        const requiredPermissionLevel = this.getEffectivePermissionLevel(command);
 
-        if (!pData || pData.permissionLevel > requiredPermissionLevel!) {
+        if (!pData || pData.permissionLevel > requiredPermissionLevel) {
             player.sendMessage('§cYou do not have permission to use this command.');
             return;
         }

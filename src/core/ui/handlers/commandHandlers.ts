@@ -1,7 +1,9 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getConfig, updateMultipleConfig } from '../../configManager.js';
+import { commandManager } from '@modules/commands/commandManager.js';
+
+import { updateConfig } from '../../configManager.js';
 import { showPanel } from '../../uiManager.js';
 import { UIContext } from '../panelRegistry.js';
 import { itemsPerPage, getPaginatedItems } from '../uiUtils.js';
@@ -24,22 +26,22 @@ export async function handleCommandPanel(
         if (typeof selection !== 'number') return;
         if (selection === 0) return showPanel(player, 'configCategoryPanel', context);
 
-        const config = getConfig();
-        const commandSettings = config.commandSettings || {};
-        const allCommands = Object.keys(commandSettings)
-            .filter((c) => !c.startsWith('_'))
+        const allCommandNames = commandManager
+            .getAllCommands()
+            .map((c) => c.name)
+            .filter((name) => !name.startsWith('_'))
             .sort();
 
-        const paginatedCommands = getPaginatedItems(allCommands, page);
-        let buttonIndex = selection - 1;
+        const paginatedCommands = getPaginatedItems(allCommandNames, page);
+        let buttonIndex = selection - 1; // Subtract 1 for Back button
 
         if (buttonIndex >= 0 && buttonIndex < paginatedCommands.length) {
-            const cmd = paginatedCommands[buttonIndex];
-            return showPanel(player, 'commandSettingsPanel', { ...context, commandName: cmd });
+            const commandName = paginatedCommands[buttonIndex];
+            return showPanel(player, 'commandSettingsPanel', { ...context, commandName });
         }
         buttonIndex -= paginatedCommands.length;
 
-        const totalPages = Math.ceil(allCommands.length / itemsPerPage);
+        const totalPages = Math.ceil(allCommandNames.length / itemsPerPage);
         const hasPrev = page > 1;
         const hasNext = page < totalPages;
 
@@ -54,18 +56,26 @@ export async function handleCommandPanel(
     }
 
     if (panelId === 'commandSettingsPanel') {
-        if (canceled) return showPanel(player, 'commandSystemPanel', context);
         const { commandName } = context;
+        if (canceled) return showPanel(player, 'commandSystemPanel', context);
+
         if (formValues && commandName) {
-            const [enabled, permLevelStr] = formValues as [boolean, string];
-            const permLevel = parseInt(permLevelStr);
-            if (!isNaN(permLevel)) {
-                updateMultipleConfig({
-                    [`commandSettings.${commandName}.enabled`]: enabled,
-                    [`commandSettings.${commandName}.permissionLevel`]: permLevel
-                });
-                player.sendMessage(`§2Updated settings for ${commandName}.`);
+            const [enabled, permissionLevelStr] = formValues as [boolean, string];
+            const permissionLevel = parseInt(permissionLevelStr);
+
+            if (isNaN(permissionLevel)) {
+                player.sendMessage('§cInvalid permission level. Please enter a valid number.');
+                return showPanel(player, panelId, context);
             }
+
+            // Save settings via command settings map in config
+            // The structure is config.commandSettings[commandName] = { enabled, permissionLevel }
+            updateConfig(`commandSettings.${commandName}`, {
+                enabled,
+                permissionLevel
+            });
+
+            player.sendMessage(`§aSettings for /${commandName} updated successfully.`);
         }
         return showPanel(player, 'commandSystemPanel', context);
     }
