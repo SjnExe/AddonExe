@@ -356,6 +356,34 @@ export function generateDisplayName(typeId: string): string {
 }
 
 /**
+ * Resolves an icon path from an item ID.
+ * Uses heuristics to guess the path based on whether it's a block or item.
+ * @param typeId The item ID (e.g. 'minecraft:diamond').
+ * @returns The resolved icon path.
+ */
+export function resolveIcon(typeId: string): string {
+    if (!typeId) {
+        return 'textures/ui/help_question_mark';
+    }
+
+    const id = typeId.replace('minecraft:', '');
+
+    // Handle spawn eggs
+    if (id.endsWith('_spawn_egg')) {
+        const entityName = id.replace('_spawn_egg', '');
+        return `textures/items/spawn_eggs/spawn_egg_${entityName}`;
+    }
+
+    // Check if it's a block to guess the folder
+    if (mc.BlockTypes.get(typeId)) {
+        return `textures/blocks/${id}`;
+    }
+
+    // Default to item folder
+    return `textures/items/${id}`;
+}
+
+/**
  * Formats a location object into a human-readable string.
  * @param location The location object.
  * @returns A formatted string (e.g., "X: 10.50, Y: 64.00, Z: -12.25 in Overworld").

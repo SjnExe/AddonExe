@@ -11,8 +11,9 @@
         "lint:fix": "eslint . --fix",
         "lint:report": "eslint . --output-file eslint_report.txt",
         "format": "prettier --write .",
-        "validate": "npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE --display-only",
-        "validate:report": "npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE -o validation_report",
+        "check-deps": "node scripts/check-dependencies.js",
+        "validate": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE --display-only",
+        "validate:report": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE -o validation_report",
         "prepare": "husky"
     },
     "repository": {
