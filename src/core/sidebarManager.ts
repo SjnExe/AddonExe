@@ -76,7 +76,6 @@ function startLoops() {
     if (actionBarLoopId === null && config.actionBarEnabled) {
         actionBarLoopId = mc.system.runInterval(() => {
             updateActionBar();
-            actionBarIndex++;
         }, Math.max(1, config.actionBarInterval));
     }
 }
@@ -246,14 +245,13 @@ function updateActionBar() {
     const config = getSidebarConfig();
     if (!config.actionBarEnabled || config.actionBarLines.length === 0) return;
 
-    const lines = config.actionBarLines;
-    const currentLineTemplate = lines[actionBarIndex % lines.length];
+    const linesTemplate = config.actionBarLines.join('\n');
 
     for (const player of mc.world.getAllPlayers()) {
         if (!getSidebarVisible(player.id)) { // Re-using sidebar toggle for HUD
             continue;
         }
-        const text = resolvePersonalPlaceholders(currentLineTemplate, player);
+        const text = resolvePersonalPlaceholders(linesTemplate, player);
         player.onScreenDisplay.setActionBar(text);
     }
 }
