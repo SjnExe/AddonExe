@@ -16,7 +16,7 @@
         "skipLibCheck": true,
         "incremental": true,
         "tsBuildInfoFile": "./tsconfig.tsbuildinfo",
-        "sourceMap": false,
+        "sourceMap": true,
         "baseUrl": "./src",
         "paths": {
             "@core/*": ["./core/*"],
