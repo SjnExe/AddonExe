@@ -678,5 +678,49 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'How long resolved reports are kept before deletion.'
             }
         ]
+    },
+    {
+        id: 'sidebar',
+        title: '§l§eSidebar/HUD System§r',
+        icon: 'textures/ui/sidebar_icon',
+        configSource: 'sidebar',
+        settings: [
+            {
+                key: 'enabled',
+                label: 'Enable System',
+                type: 'toggle',
+                description: 'Master switch for Sidebar and Action Bar.'
+            },
+            {
+                key: 'title',
+                label: 'Sidebar Title',
+                type: 'textField',
+                description: 'The title displayed at the top of the sidebar.'
+            },
+            {
+                key: 'updateInterval',
+                label: 'Update Interval',
+                type: 'textField',
+                description: 'How often the sidebar updates (in ticks, 20 = 1s).'
+            },
+            {
+                key: 'maxPlayers',
+                label: 'Max Players (Visual)',
+                type: 'textField',
+                description: 'Value for {max_players} placeholder.'
+            },
+            {
+                key: 'actionBarEnabled',
+                label: 'Enable Action Bar',
+                type: 'toggle',
+                description: 'Enable the HUD above the hotbar for personal stats.'
+            },
+            {
+                key: 'actionBarInterval',
+                label: 'Action Bar Cycle',
+                type: 'textField',
+                description: 'How fast the Action Bar cycles through lines (in ticks).'
+            }
+        ]
     }
 ];
