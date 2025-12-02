@@ -1,11 +1,10 @@
 import * as mc from '@minecraft/server';
 
 import { getShopConfig, saveShopConfig } from './configurations.js';
-import { iconDB } from './iconDB.js';
 import { items } from './itemsConfig.default.js';
 import { debugLog } from './logger.js';
 import { ShopCategory, ShopSubCategory } from './shopConfig.default.js';
-import { generateDisplayName } from './utils.js';
+import { generateDisplayName, resolveIcon } from './utils.js';
 
 interface ActionResult {
     success: boolean;
@@ -331,25 +330,10 @@ export function addShopItemFromHand(
         debugLog(`[ShopAdminManager] Found existing item for ${itemStack.typeId} in master config.`);
     }
 
-    // Priority 2: Check the icon and name database
-    const dbEntry = (iconDB as Record<string, { icon: string; displayName: string }>)[itemStack.typeId];
-    if (dbEntry) {
-        if (!icon) {
-            icon = dbEntry.icon;
-            debugLog(`[ShopAdminManager] Found icon for ${itemStack.typeId} in database.`);
-        }
-        if (!displayName) {
-            displayName = dbEntry.displayName;
-            debugLog(`[ShopAdminManager] Found display name for ${itemStack.typeId} in database.`);
-        }
-    }
-
-    // Priority 3: Fallback to guessing
+    // Priority 2: Use auto-resolution for icon
     if (!icon) {
-        const iconBaseId = itemStack.typeId.includes(':') ? itemStack.typeId.split(':')[1] : itemStack.typeId;
-        const textureType = mc.BlockTypes.get(itemStack.typeId) ? 'blocks' : 'items';
-        icon = `textures/${textureType}/${iconBaseId}`;
-        debugLog(`[ShopAdminManager] Guessed icon for ${itemStack.typeId} as a ${textureType}.`);
+        icon = resolveIcon(itemStack.typeId);
+        debugLog(`[ShopAdminManager] Resolved icon for ${itemStack.typeId}: ${icon}`);
     }
     if (!displayName) {
         displayName = generateDisplayName(itemStack.typeId);
