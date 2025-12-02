@@ -8,7 +8,6 @@ import { loadConfig } from '../configLoader.js';
 import { getConfig } from '../configManager.js';
 import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig, getTeamConfig } from '../configurations.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
-import { iconDB } from '../iconDB.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
@@ -16,7 +15,7 @@ import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } f
 import * as rankManager from '../rankManager.js';
 import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
-import { formatCurrency } from '../utils.js';
+import { formatCurrency, resolveIcon } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
 import { panelDefinitions, UIContext, PanelDefinition, PanelItem } from './panelRegistry.js';
@@ -1414,8 +1413,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 const amount = mobDrops[mobId];
                 // Check if we have a specific spawn egg icon for this mob
                 const spawnEggId = `${mobId}_spawn_egg`;
-                const icon =
-                    (iconDB as Record<string, { icon: string }>)[spawnEggId]?.icon || 'textures/ui/help_question_mark';
+                const icon = resolveIcon(spawnEggId);
 
                 form.button(`${mobId}\n§2${formatCurrency(amount)}`, icon);
             }

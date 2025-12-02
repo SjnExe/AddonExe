@@ -178,12 +178,15 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
 
     incrementPlayerBalance(player.id, -finalCost);
 
-    // 4. Give items one by one to avoid stack bugs
-    for (let i = 0; i < finalQuantity; i++) {
-        const singleItemStack = createShopItemStack(shopItem, 1);
-        if (singleItemStack) {
-            inventory.addItem(singleItemStack);
+    // 4. Give items in stacks
+    let remaining = finalQuantity;
+    while (remaining > 0) {
+        const amount = Math.min(remaining, itemStackTemplate.maxAmount);
+        const stack = createShopItemStack(shopItem, amount);
+        if (stack) {
+            inventory.addItem(stack);
         }
+        remaining -= amount;
     }
 
     return {
