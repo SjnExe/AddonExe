@@ -41,8 +41,8 @@
   "scoreboard_sidebar": {
     "type": "panel",
     "size": ["100%cm", "100%c"],
-    "anchor_from": "left_middle",
-    "anchor_to": "left_middle",
+    "anchor_from": "right_middle",
+    "anchor_to": "right_middle",
     "controls": [
       {
         "main": {

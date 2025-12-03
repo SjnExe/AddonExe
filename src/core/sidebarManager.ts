@@ -1,8 +1,9 @@
 import * as mc from '@minecraft/server';
 
+import { getConfig } from './configManager.js';
 import { getSidebarConfig } from './configurations.js';
 import { debugLog, errorLog } from './logger.js';
-import { getPlayTime, getSidebarVisible, getPlayer } from './playerDataManager.js';
+import { getPlayTime, getSidebarVisible, getOrCreatePlayer } from './playerDataManager.js';
 import { getRankById } from './rankManager.js';
 import { getTeamByPlayer } from './teamManager.js';
 import { formatCurrency, formatDuration } from './utils.js';
@@ -105,7 +106,8 @@ function getOrCreateSidebarObjective(): mc.ScoreboardObjective | undefined {
     if (!objective) {
         try {
             const config = getSidebarConfig();
-            objective = mc.world.scoreboard.addObjective(SIDEBAR_OBJECTIVE, config.title);
+            const title = resolveGlobalPlaceholders(config.title);
+            objective = mc.world.scoreboard.addObjective(SIDEBAR_OBJECTIVE, title);
         } catch (e) {
             errorLog(`[SidebarManager] Failed to create objective: ${e}`);
             return undefined;
@@ -116,9 +118,11 @@ function getOrCreateSidebarObjective(): mc.ScoreboardObjective | undefined {
 
 function resolveGlobalPlaceholders(text: string): string {
     const config = getSidebarConfig();
+    const mainConfig = getConfig();
     const online = mc.world.getAllPlayers().length;
 
     const result = text
+        .replace(/{server_name}/g, mainConfig?.serverName ?? 'Server')
         .replace(/{tps}/g, currentTPS.toString())
         .replace(/{online}/g, online.toString())
         .replace(/{max_players}/g, config.maxPlayers.toString())
@@ -131,7 +135,7 @@ function resolveGlobalPlaceholders(text: string): string {
 function resolvePersonalPlaceholders(text: string, player: mc.Player): string {
     let result = resolveGlobalPlaceholders(text);
 
-    const pData = getPlayer(player.id);
+    const pData = getOrCreatePlayer(player);
     if (!pData) return result;
 
     const rank = getRankById(pData.rankId);
@@ -166,9 +170,10 @@ function updateSidebar() {
     if (!objective) return;
 
     try {
-        if (objective.displayName !== config.title) {
+        const resolvedTitle = resolveGlobalPlaceholders(config.title);
+        if (objective.displayName !== resolvedTitle) {
             mc.world.scoreboard.removeObjective(SIDEBAR_OBJECTIVE);
-            mc.world.scoreboard.addObjective(SIDEBAR_OBJECTIVE, config.title);
+            mc.world.scoreboard.addObjective(SIDEBAR_OBJECTIVE, resolvedTitle);
             return updateSidebar();
         }
 
