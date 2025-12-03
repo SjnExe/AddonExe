@@ -43,6 +43,11 @@ import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 import type { config as Config } from '../config.default.js';
 import './mobDeathEvents.js';
 
+// Load commands immediately to ensure they are registered before the startup event fires.
+infoLog('[AddonExe] Loading commands...');
+loadCommands();
+infoLog('[AddonExe] Commands loaded.');
+
 export function updatePlayerRank(player: mc.Player) {
     const pData = getOrCreatePlayer(player);
     if (!pData) {
@@ -176,11 +181,6 @@ async function initializeAddon() {
     await loadTeamConfig(isMigration);
     await loadSidebarConfig(isMigration);
     await loadXrayConfig(isMigration);
-
-    infoLog('[AddonExe] Loading commands...');
-    // Load commands after config is ready (required for dynamic enums)
-    await loadCommands();
-    infoLog('[AddonExe] Commands loaded.');
 
     const config = getConfig();
     setLogLevel(config.logLevel);
