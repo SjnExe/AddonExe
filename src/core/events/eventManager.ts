@@ -50,13 +50,13 @@ export function initializeEventManager() {
             try {
                 event.subscribe(handler as EventHandler);
             } catch (e: unknown) {
-                errorLog(`[EventManager] Failed to subscribe to event '${name}'. Error: ${e}`);
+                errorLog(`[EventManager] Failed to subscribe to event '${name}'. Error: ${String(e)}`);
             }
         } else if (name === 'playerSpawn' && typeof handler === 'function') {
             try {
                 (handler as () => void)();
             } catch (e: unknown) {
-                errorLog(`[EventManager] Failed to run initializer '${name}'. Error: ${e}`);
+                errorLog(`[EventManager] Failed to run initializer '${name}'. Error: ${String(e)}`);
             }
         } else {
             errorLog(
@@ -79,7 +79,7 @@ export function cleanupEventManager() {
                 }
 
                 errorLog(
-                    `[EventManager] Failed to unsubscribe from event '${name}'. It may have not been subscribed. Error: ${e}`
+                    `[EventManager] Failed to unsubscribe from event '${name}'. It may have not been subscribed. Error: ${String(e)}`
                 );
             }
         }

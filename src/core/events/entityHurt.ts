@@ -17,8 +17,9 @@ function handleEntityHurt(event: mc.EntityHurtAfterEvent) {
         return;
     }
 
-    // @ts-expect-error - 'owner' exists on projectiles/tameables at runtime but missing in types
-    const attacker = damagingEntity.owner ?? damagingEntity;
+    // Check for owner (e.g. projectile or tameable)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const attacker = (damagingEntity as any).owner ?? damagingEntity;
 
     if (attacker?.typeId === 'minecraft:player' && attacker.id !== victim.id) {
         lastHitManager.setLastHit(victim.id, (attacker as mc.Player).id);
