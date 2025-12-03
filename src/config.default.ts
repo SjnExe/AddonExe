@@ -203,7 +203,8 @@ export const config = {
         unmute: { enabled: true },
         vanish: { enabled: true },
         version: { enabled: true },
-        xraynotify: { enabled: true }
+        xraynotify: { enabled: true },
+        sidebar: { enabled: true }
     }
 };
 

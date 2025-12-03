@@ -52,6 +52,29 @@ export function parseDuration(durationString: string): number {
 }
 
 /**
+ * Formats a duration in milliseconds into a human-readable string (e.g., "1d 2h 30m").
+ * @param ms The duration in milliseconds.
+ * @returns The formatted string.
+ */
+export function formatDuration(ms: number): string {
+    const seconds = Math.floor(ms / 1000);
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+
+    const parts = [];
+    if (d > 0) parts.push(`${d}d`);
+    if (h > 0) parts.push(`${h}h`);
+    if (m > 0) parts.push(`${m}m`);
+    if (s > 0) parts.push(`${s}s`);
+
+    if (parts.length === 0) return '0s';
+
+    return parts.join(' ');
+}
+
+/**
  * Plays a sound for a specific player.
  * @param player The player to play the sound for.
  * @param soundId The ID of the sound to play.

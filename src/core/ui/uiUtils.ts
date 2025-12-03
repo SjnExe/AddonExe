@@ -9,7 +9,10 @@ import {
     getXrayConfig,
     saveXrayConfig,
     getTeamConfig,
-    saveTeamConfig
+    saveTeamConfig,
+    getSidebarConfig,
+    saveSidebarConfig,
+    SidebarConfig
 } from '../configurations.js';
 import { economyConfig } from '../economyConfig.default.js';
 import { kitsConfig } from '../kitsConfig.default.js';
@@ -65,6 +68,10 @@ export const configHandlers: Record<string, ConfigHandler> = {
     team: {
         get: getTeamConfig,
         save: (config: unknown) => saveTeamConfig(config as TeamConfig)
+    },
+    sidebar: {
+        get: getSidebarConfig,
+        save: (config: unknown) => saveSidebarConfig(config as SidebarConfig)
     }
 };
 
