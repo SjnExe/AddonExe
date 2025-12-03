@@ -144,6 +144,18 @@ function resolvePersonalPlaceholders(text: string, player: mc.Player): string {
     const money = formatCurrency(pData.balance);
     const playTime = formatDuration(getPlayTime(player.id));
 
+    // Position
+    const { x, y, z } = player.location;
+
+    // Dimension
+    let dimName = 'Unknown';
+    switch (player.dimension.id) {
+        case 'minecraft:overworld': dimName = 'Overworld'; break;
+        case 'minecraft:nether': dimName = 'Nether'; break;
+        case 'minecraft:the_end': dimName = 'The End'; break;
+        default: dimName = player.dimension.id.replace('minecraft:', '');
+    }
+
     result = result
         .replace(/{name}/g, player.name)
         .replace(/{money}/g, money)
@@ -154,7 +166,11 @@ function resolvePersonalPlaceholders(text: string, player: mc.Player): string {
         .replace(/{kdr}/g, kdr.toString())
         .replace(/{playtime}/g, playTime)
         .replace(/{team}/g, team ? team.name : 'None')
-        .replace(/{ping}/g, 'N/A');
+        .replace(/{ping}/g, 'N/A')
+        .replace(/{x}/g, Math.floor(x).toString())
+        .replace(/{y}/g, Math.floor(y).toString())
+        .replace(/{z}/g, Math.floor(z).toString())
+        .replace(/{dimension}/g, dimName);
 
     return result;
 }
