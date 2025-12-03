@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
-import { errorLog } from '@core/logger.js';
+import { errorLog, debugLog } from '@core/logger.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 
@@ -339,9 +339,12 @@ class CommandManager {
             return;
         }
 
+        debugLog(`[CommandManager] Attempting to register slash command: ${name}`);
+
         // Check for vanilla collision before registering
         if (!isRetry && this.vanillaCommands.has(name)) {
             const newName = `x${name}`;
+            debugLog(`[CommandManager] Collision detected for '${name}'. Retrying as '${newName}'.`);
             this._registerSlashCommand(customCommandRegistry, command, newName, true);
             return;
         }
@@ -369,6 +372,7 @@ class CommandManager {
         try {
             customCommandRegistry.registerCommand(commandData, commandCallback);
             this.registeredSlashCommands.add(name);
+            debugLog(`[CommandManager] Successfully registered slash command: ${name}`);
         } catch (e: unknown) {
             const errStr = String(e);
             if (errStr.includes('already in use')) {
@@ -510,6 +514,7 @@ class CommandManager {
             return false;
         }
 
+        debugLog(`[CommandManager] Intercepted chat command: ${message}`);
         eventData.cancel = true;
 
         // Using a regex to split by spaces while respecting quoted strings.

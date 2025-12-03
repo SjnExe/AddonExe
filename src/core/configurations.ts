@@ -13,6 +13,7 @@ import type { economyConfig } from './economyConfig.default.js';
 import type { kitsConfig } from './kitsConfig.default.js';
 import type ranksConfig from './ranksConfig.default.js';
 import type { shopConfig } from './shopConfig.default.js';
+import type { config as sidebarConfig } from './sidebarConfig.default.js';
 import type { spawnConfig } from './spawnConfig.default.js';
 import type { teamConfig } from './teamConfig.default.js';
 import type { xrayConfig } from './xrayConfig.default.js';
@@ -24,6 +25,7 @@ export type RanksConfig = typeof ranksConfig;
 export type EconomyConfig = typeof economyConfig;
 export type XrayConfig = typeof xrayConfig;
 export type TeamConfig = typeof teamConfig;
+export type SidebarConfig = typeof sidebarConfig;
 
 let kitsConfigManager: ConfigManager<KitsConfig>,
     shopConfigManager: ConfigManager<ShopConfig>,
@@ -31,7 +33,8 @@ let kitsConfigManager: ConfigManager<KitsConfig>,
     ranksConfigManager: ConfigManager<RanksConfig>,
     economyConfigManager: ConfigManager<EconomyConfig>,
     xrayConfigManager: ConfigManager<XrayConfig>,
-    teamConfigManager: ConfigManager<TeamConfig>;
+    teamConfigManager: ConfigManager<TeamConfig>,
+    sidebarConfigManager: ConfigManager<SidebarConfig>;
 
 export const loadKitsConfig = async (isMigration: boolean) => {
     const defaultConfig = await asyncLoadConfig<KitsConfig>('./kitsConfig.js');
@@ -96,6 +99,15 @@ export const getTeamConfig = () => teamConfigManager.get();
 export const saveTeamConfig = (config: TeamConfig) => teamConfigManager.set(config);
 export const resetTeamConfig = () => teamConfigManager.reset();
 
+export const loadSidebarConfig = async (isMigration: boolean) => {
+    const defaultConfig = await asyncLoadConfig<SidebarConfig>('./sidebarConfig.js');
+    sidebarConfigManager = createConfigManager('exe:sidebarConfig:current', defaultConfig, 'Sidebar');
+    await sidebarConfigManager.load(isMigration);
+};
+export const getSidebarConfig = () => sidebarConfigManager.get();
+export const saveSidebarConfig = (config: SidebarConfig) => sidebarConfigManager.set(config);
+export const resetSidebarConfig = () => sidebarConfigManager.reset();
+
 type ResetRegistryEntry = {
     reset: () => Promise<void>;
     message: string;
@@ -108,6 +120,10 @@ export const configResetRegistry: Record<string, ResetRegistryEntry> = {
         message: "The 'team' configuration section has been reset to default."
     },
     xray: {
+        reset: resetXrayConfig,
+        message: "The 'X-ray' configuration section has been reset to default."
+    },
+    xray_ores: {
         reset: resetXrayConfig,
         message: "The 'X-ray' configuration section has been reset to default."
     },
@@ -142,6 +158,10 @@ export const configResetRegistry: Record<string, ResetRegistryEntry> = {
                 player.sendMessage('§aRanks have been reloaded with new settings.');
             }
         }
+    },
+    sidebar: {
+        reset: resetSidebarConfig,
+        message: "The 'sidebar' configuration section has been reset to default."
     }
 };
 

@@ -14,6 +14,7 @@ import {
     loadKitsConfig,
     loadRanksConfig,
     loadShopConfig,
+    loadSidebarConfig,
     loadSpawnConfig,
     loadTeamConfig,
     loadXrayConfig
@@ -35,11 +36,15 @@ import {
 import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
 import * as rankManager from './rankManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
+import * as sidebarManager from './sidebarManager.js';
 import * as teamManager from './teamManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 
 import type { config as Config } from '../config.default.js';
 import './mobDeathEvents.js';
+
+// Load commands immediately to ensure they are registered before the startup event fires.
+loadCommands();
 
 export function updatePlayerRank(player: mc.Player) {
     const pData = getOrCreatePlayer(player);
@@ -98,6 +103,7 @@ async function initializeManagers() {
     initializePunishmentManager();
     await floatingTextManager.initialize();
     teamManager.initialize();
+    sidebarManager.initialize();
     initializeLeaderboard();
     clearExpiredPunishments();
     clearOldResolvedReports();
@@ -171,10 +177,8 @@ async function initializeAddon() {
     await loadSpawnConfig(isMigration);
     await loadEconomyConfig(isMigration);
     await loadTeamConfig(isMigration);
+    await loadSidebarConfig(isMigration);
     await loadXrayConfig(isMigration);
-
-    // Load commands after config is ready (required for dynamic enums)
-    await loadCommands();
 
     const config = getConfig();
     setLogLevel(config.logLevel);
@@ -199,12 +203,7 @@ async function initializeAddon() {
     reinitializeOnlinePlayers();
 
     if (config.isNightly) {
-        try {
-            await import('../gametests/BountyTests.js');
-            infoLog('[AddonExe] Nightly build detected. GameTests loaded.');
-        } catch (e) {
-            errorLog('[AddonExe] Failed to load GameTests:', e);
-        }
+        infoLog('[AddonExe] Nightly build detected.');
     }
 
     startSystemTimers();
@@ -215,6 +214,7 @@ function cleanupAddon() {
     infoLog('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
     floatingTextManager.cleanup();
     cleanupPlayerDataManager();
+    sidebarManager.cleanup();
     cleanupLeaderboardManager();
     cleanupEventManager();
     cleanupTimers();

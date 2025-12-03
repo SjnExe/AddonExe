@@ -1422,6 +1422,42 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             return form;
         }
 
+        if (panelId === 'sidebarLinesPanel' || panelId === 'actionBarLinesPanel') {
+            const isSidebar = panelId === 'sidebarLinesPanel';
+            const { getSidebarConfig } = await import('../configurations.js');
+            const config = getSidebarConfig();
+            const lines = isSidebar ? config.sidebarLines : config.actionBarLines;
+
+            const form = new ActionFormData().title(isSidebar ? 'Sidebar Lines' : 'HUD Lines');
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+            form.button('§l§2+ Add Line', 'textures/ui/color_plus');
+
+            for (let i = 0; i < lines.length; i++) {
+                form.button(`${i + 1}. ${lines[i]}`);
+            }
+            return form;
+        }
+
+        if (panelId === 'sidebarLineEditPanel' || panelId === 'actionBarLineEditPanel') {
+            const isSidebar = panelId === 'sidebarLineEditPanel';
+            const { getSidebarConfig } = await import('../configurations.js');
+            const config = getSidebarConfig();
+            const lines = isSidebar ? config.sidebarLines : config.actionBarLines;
+            const index = context.lineIndex ?? 0;
+            const line = lines[index] ?? '';
+
+            const form = new ModalFormData()
+                .title(`Edit Line ${index + 1}`)
+                .textField('Content', 'Supports {money}, {name}, etc.', { defaultValue: line });
+
+            return form;
+        }
+
+        if (panelId === 'sidebarLineAddPanel' || panelId === 'actionBarLineAddPanel') {
+            const form = new ModalFormData().title('Add Line').textField('Content', 'Supports {money}, {name}, etc.');
+            return form;
+        }
+
         if (panelId === 'rankSettingsPanel') {
             const config = getConfig();
             const form = new ModalFormData().title('§l§2Rank Settings');

@@ -3,12 +3,10 @@
  * Using constants helps prevent "magic strings" and makes the code easier to maintain.
  */
 
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
 export const DimensionId = {
-    Overworld: MinecraftDimensionTypes.Overworld,
-    Nether: MinecraftDimensionTypes.Nether,
-    End: MinecraftDimensionTypes.TheEnd
+    Overworld: 'minecraft:overworld',
+    Nether: 'minecraft:nether',
+    End: 'minecraft:the_end'
 };
 
 export const constants = {

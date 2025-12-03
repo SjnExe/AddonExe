@@ -38,10 +38,16 @@ export interface PlayerData {
     teamId: number | null;
     teamSettings: { autoTpAccept: boolean };
     pendingInvites: PendingInvite[];
+    kills: number;
+    deaths: number;
+    killStreak: number;
+    totalPlayTime: number; // Stored in milliseconds
+    sidebarVisible: boolean;
     needsSave?: boolean;
 }
 
 const activePlayerData = new Map<string, PlayerData>();
+const sessionStartTimes = new Map<string, number>();
 
 let playerNameIdMap = new Map<string, string>();
 
@@ -64,7 +70,12 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     announcementsMuted: false,
     teamId: null,
     teamSettings: { autoTpAccept: false },
-    pendingInvites: []
+    pendingInvites: [],
+    kills: 0,
+    deaths: 0,
+    killStreak: 0,
+    totalPlayTime: 0,
+    sidebarVisible: true
 };
 
 // --- Generic Data Handling ---
@@ -88,6 +99,7 @@ export function updatePlayerData(playerId: string, modificationCallback: (pData:
  */
 export function cleanupPlayerDataManager() {
     activePlayerData.clear();
+    sessionStartTimes.clear();
     playerNameIdMap.clear();
     playerIdNameMap.clear();
     isNameIdMapDirty = false;
@@ -135,6 +147,16 @@ export function savePlayerData(playerId: string) {
     try {
         const playerData = activePlayerData.get(playerId);
         if (playerData) {
+            // Update Playtime before saving
+            const now = Date.now();
+            const sessionStart = sessionStartTimes.get(playerId);
+            if (sessionStart) {
+                const sessionDuration = now - sessionStart;
+                playerData.totalPlayTime = (playerData.totalPlayTime || 0) + sessionDuration;
+                // Reset session start to now to avoid double counting if saved multiple times
+                sessionStartTimes.set(playerId, now);
+            }
+
             // Clean needsSave before saving to disk if we don't want to persist it (it's runtime flag).
             // But serialization includes it. It's harmless.
             const dataString = JSON.stringify(playerData);
@@ -170,6 +192,11 @@ export function loadPlayerData(playerId: string): PlayerData | null {
                 homes: {},
                 kitCooldowns: {},
                 tpaBlockedPlayerIds: [],
+                kills: 0,
+                deaths: 0,
+                killStreak: 0,
+                totalPlayTime: 0,
+                sidebarVisible: true,
                 ...loadedData
             };
 
@@ -218,9 +245,15 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
         tpaBlockedPlayerIds: [],
         teamId: null,
         teamSettings: { autoTpAccept: false },
-        pendingInvites: []
+        pendingInvites: [],
+        kills: 0,
+        deaths: 0,
+        killStreak: 0,
+        totalPlayTime: 0,
+        sidebarVisible: true
     };
     activePlayerData.set(player.id, newPlayerData);
+    sessionStartTimes.set(player.id, Date.now());
     savePlayerData(player.id);
     return newPlayerData;
 }
@@ -247,6 +280,10 @@ export function getOrCreatePlayer(player: mc.Player): PlayerData {
         updatePlayerData(player.id, (data) => {
             data.name = player.name;
         });
+    }
+
+    if (!sessionStartTimes.has(player.id)) {
+        sessionStartTimes.set(player.id, Date.now());
     }
 
     return pData;
@@ -277,6 +314,7 @@ export function handlePlayerLeave(playerId: string) {
     if (activePlayerData.has(playerId)) {
         savePlayerData(playerId);
         activePlayerData.delete(playerId);
+        sessionStartTimes.delete(playerId);
         debugLog(`[PlayerDataManager] Unloaded data for player ${playerId} from cache.`);
     }
 }
@@ -502,4 +540,57 @@ export function transfer(
     incrementPlayerBalance(targetPlayerId, amount);
 
     return { success: true, message: 'Transfer successful.' };
+}
+
+// --- Stats Management ---
+
+export function incrementKillCount(playerId: string) {
+    updatePlayerData(playerId, (pData) => {
+        pData.kills = (pData.kills || 0) + 1;
+    });
+}
+
+export function incrementDeathCount(playerId: string) {
+    updatePlayerData(playerId, (pData) => {
+        pData.deaths = (pData.deaths || 0) + 1;
+    });
+}
+
+export function incrementKillStreak(playerId: string) {
+    updatePlayerData(playerId, (pData) => {
+        pData.killStreak = (pData.killStreak || 0) + 1;
+    });
+}
+
+export function resetKillStreak(playerId: string) {
+    updatePlayerData(playerId, (pData) => {
+        pData.killStreak = 0;
+    });
+}
+
+/**
+ * Gets the total playtime in milliseconds (historical + current session).
+ */
+export function getPlayTime(playerId: string): number {
+    const pData = getPlayer(playerId);
+    if (!pData) return 0;
+
+    let currentSessionTime = 0;
+    const start = sessionStartTimes.get(playerId);
+    if (start) {
+        currentSessionTime = Date.now() - start;
+    }
+
+    return (pData.totalPlayTime || 0) + currentSessionTime;
+}
+
+export function setSidebarVisible(playerId: string, visible: boolean) {
+    updatePlayerData(playerId, (pData) => {
+        pData.sidebarVisible = visible;
+    });
+}
+
+export function getSidebarVisible(playerId: string): boolean {
+    const pData = getPlayer(playerId);
+    return pData?.sidebarVisible ?? true;
 }
