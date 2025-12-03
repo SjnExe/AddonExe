@@ -19,13 +19,15 @@ export interface SystemDefinition {
  */
 export const systemRegistry: SystemDefinition[] = [
     // 1. Add simple schema-based systems first
-    ...configPanelSchema.map((schema) => ({
-        id: schema.id,
-        title: schema.title,
-        icon: schema.icon,
-        configPanelId: `config_${schema.id}`,
-        isSimpleConfig: true
-    })),
+    ...configPanelSchema
+        .filter((s) => s.id !== 'sidebar')
+        .map((schema) => ({
+            id: schema.id,
+            title: schema.title,
+            icon: schema.icon,
+            configPanelId: `config_${schema.id}`,
+            isSimpleConfig: true
+        })),
 
     // 2. Add complex custom systems
     {
@@ -68,6 +70,13 @@ export const systemRegistry: SystemDefinition[] = [
         title: '§l§4X-Ray Ores§r',
         icon: 'textures/blocks/diamond_ore',
         configPanelId: 'xrayOresPanel',
+        isSimpleConfig: false
+    },
+    {
+        id: 'sidebar',
+        title: '§l§eSidebar/HUD System§r',
+        icon: 'textures/items/book_writable',
+        configPanelId: 'sidebarMainPanel',
         isSimpleConfig: false
     }
 ];
