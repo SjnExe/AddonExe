@@ -33,7 +33,12 @@ import {
     clearExpiredPayments,
     loadNameIdMap
 } from './playerDataManager.js';
-import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
+import {
+    loadPunishments,
+    clearExpiredPunishments,
+    initializePunishmentManager,
+    checkAndKickBannedPlayer
+} from './punishmentManager.js';
 import * as rankManager from './rankManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import * as sidebarManager from './sidebarManager.js';
@@ -83,6 +88,9 @@ function reinitializeOnlinePlayers() {
     infoLog(`[AddonExe] Re-initializing state for ${mc.world.getAllPlayers().length} online players...`);
     for (const player of mc.world.getAllPlayers()) {
         getOrCreatePlayer(player);
+        if (checkAndKickBannedPlayer(player)) {
+            continue;
+        }
         updatePlayerRank(player);
     }
     infoLog('[AddonExe] Player re-initialization complete.');
@@ -171,14 +179,16 @@ async function initializeAddon() {
     }
 
     await initializeConfigManager(isMigration);
-    await loadKitsConfig(isMigration);
-    await loadShopConfig(isMigration);
-    await loadRanksConfig(isMigration);
-    await loadSpawnConfig(isMigration);
-    await loadEconomyConfig(isMigration);
-    await loadTeamConfig(isMigration);
-    await loadSidebarConfig(isMigration);
-    await loadXrayConfig(isMigration);
+    await Promise.all([
+        loadKitsConfig(isMigration),
+        loadShopConfig(isMigration),
+        loadRanksConfig(isMigration),
+        loadSpawnConfig(isMigration),
+        loadEconomyConfig(isMigration),
+        loadTeamConfig(isMigration),
+        loadSidebarConfig(isMigration),
+        loadXrayConfig(isMigration)
+    ]);
 
     const config = getConfig();
     setLogLevel(config.logLevel);

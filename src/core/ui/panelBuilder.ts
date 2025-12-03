@@ -133,8 +133,8 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
         }
 
         const commandName = item.id;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((config.commandSettings as any)[commandName]?.enabled === false) {
+        const settings = config.commandSettings as Record<string, { enabled?: boolean }>;
+        if (settings[commandName]?.enabled === false) {
             continue;
         }
         if (context.fromPanel === 'playerManagementPanel' && item.permissionLevel < 1024) {
@@ -599,8 +599,8 @@ function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
     form.body('Toggle commands on or off.\n§2[Enabled]§r / §4[Disabled]§r');
 
     for (const commandName of paginatedCommands) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const isEnabled = (commandSettings as any)[commandName]?.enabled ?? false;
+        const settings = commandSettings as Record<string, { enabled?: boolean }>;
+        const isEnabled = settings[commandName]?.enabled ?? false;
         const statusText = isEnabled ? '§2[Enabled]' : '§4[Disabled]';
         form.button(`${commandName}\n${statusText}`);
     }
@@ -1336,8 +1336,11 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'commandSettingsPanel') {
             const { commandName } = context;
             const config = getConfig();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const commandSettings = (config.commandSettings as any)[commandName ?? ''] || {};
+            const allSettings = config.commandSettings as Record<
+                string,
+                { enabled?: boolean; permissionLevel?: number }
+            >;
+            const commandSettings = allSettings[commandName ?? ''] || {};
             const command = commandManager.commands.get(commandName ?? '');
 
             const isEnabled = commandSettings.enabled ?? false;
@@ -1478,7 +1481,6 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 errorLog(`[UIManager] Edit rank panel: rank with ID ${context.rankId} not found.`);
                 return null;
             }
-            // const isSpecialRank = rank.conditions.some((c: any) => c.type === 'isOwner' || c.type === 'default');
 
             const form = new ModalFormData().title(`§l§3Edit Rank: ${rank?.name}`);
             form.textField('Rank Name', 'e.g., VIP', { defaultValue: rank.name });

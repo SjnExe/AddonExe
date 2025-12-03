@@ -10,7 +10,15 @@ Your primary goal is to assist users by completing coding tasks, such as solving
 
 Before implementing changes, strive to understand the relevant parts of the codebase. Key architectural information can be found in `Docs/Development/README.md`. Pay attention to:
 
-- **Source Directory (`src/`):** All Behavior Pack scripts are now located in the `src/` directory. They are compiled to `packs/behavior/scripts/`.
+- **Project Structure Overview:**
+  - `src/`: Source code for TypeScript Behavior Pack scripts.
+  - `packs/behavior/`: The compiled Behavior Pack (manifest, entities, loot tables, compiled scripts).
+  - `packs/resource/`: The Resource Pack (manifest, textures, UI, models).
+  - `assets/`: Contains asset files like `pack_icon.png`. Note: The copying of `assets` to `packs` is handled by the release workflow in GitHub Actions, not the local build script.
+- **Utilizing Behavior and Resource Packs:**
+  - Do not rely solely on scripts (`src/`) for features.
+  - Use JSON files in `packs/behavior/` (e.g., loot tables, recipes, entities, functions) and `packs/resource/` (e.g., UI, textures) whenever possible for better performance and native integration.
+  - Scripts should primarily handle complex logic, state management, and dynamic interactions that JSONs cannot cover.
 - **Core Managers (`src/core/`):** Understand how modules like `playerDataManager.js` (or `.ts`), `rankManager.js`, `punishmentManager.js`, and `cooldownManager.js` interact. The `commandManager.js` in `src/modules/commands/` is also critical.
 - **Configuration Files:**
   - `src/config.js` (or `.ts`): Main settings, feature toggles, owner/admin setup.
@@ -85,9 +93,12 @@ The following patterns must be verified and adhered to when working on the codeb
 - **Floating Text:**
   - Implementation: Uses invisible entity `exe:floating_text`.
   - Management: `floatingTextManager.js`. Requires killing existing entity before spawning new one to prevent duplicates.
+- **Performance Guidelines:**
+  - **Task Scheduling:** For heavy or long-running tasks (e.g., iterating over large areas or many entities), prefer using `mc.system.runJob` with a generator function to spread execution across ticks and prevent server lag.
+  - **Config Loading:** Configuration files should be loaded in parallel (e.g., using `Promise.all`) during initialization to minimize startup time.
 - **Scripting API Specifics:**
   - **Versions:** Use exact versions from `manifest.json`.
-  - **Timers:** `mc.system.runJob` requires a generator function. Use `mc.system.runTimeout` for simple delays.
+  - **Timers:** Use `mc.system.runTimeout` for simple delays.
   - **Entity References:** Do not cache Entity objects. They become invalid. Store IDs and query fresh objects.
   - **Dimensions:** Use `minecraft:nether` (not `the_nether`).
 - **Commands:**

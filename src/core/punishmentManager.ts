@@ -106,6 +106,25 @@ export function getPunishment(playerId: string): Punishment | undefined {
 }
 
 /**
+ * Checks if a player is banned and kicks them if so.
+ * @param {mc.Player} player The player to check.
+ * @returns {boolean} True if the player was kicked (is banned), false otherwise.
+ */
+export function checkAndKickBannedPlayer(player: mc.Player): boolean {
+    const punishment = getPunishment(player.id);
+    if (punishment?.type === 'ban') {
+        const banReason = punishment.reason || 'You are banned.';
+        // Use a slight delay to ensure the kick command processes after join
+        mc.system.runTimeout(
+            () => mc.world.getDimension('overworld').runCommand(`kick "${player.name}" ${banReason}`),
+            5
+        );
+        return true;
+    }
+    return false;
+}
+
+/**
  * Removes a punishment for a player.
  * @param playerId The ID of the player to unpunish.
  */
