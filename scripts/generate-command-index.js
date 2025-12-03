@@ -11,6 +11,7 @@ const INDEX_FILE = path.join(COMMANDS_DIR, 'index.ts');
 const EXCLUSIONS = ['index.ts', 'commandManager.ts'];
 
 function generate() {
+    console.log('Generating command index...');
     if (!fs.existsSync(COMMANDS_DIR)) {
         console.error('Commands directory not found!');
         process.exit(1);
@@ -18,6 +19,7 @@ function generate() {
 
     const files = fs.readdirSync(COMMANDS_DIR);
     const commandFiles = files.filter((file) => file.endsWith('.ts') && !EXCLUSIONS.includes(file));
+    console.log(`Found ${commandFiles.length} command files.`);
 
     const imports = commandFiles
         .map((file) => {
@@ -59,6 +61,7 @@ export function loadCommands() {
 `;
 
     fs.writeFileSync(INDEX_FILE, content);
+    console.log(`Command index generated at: ${INDEX_FILE}`);
 }
 
 generate();

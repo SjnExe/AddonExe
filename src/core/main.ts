@@ -177,8 +177,10 @@ async function initializeAddon() {
     await loadSidebarConfig(isMigration);
     await loadXrayConfig(isMigration);
 
+    infoLog('[AddonExe] Loading commands...');
     // Load commands after config is ready (required for dynamic enums)
     await loadCommands();
+    infoLog('[AddonExe] Commands loaded.');
 
     const config = getConfig();
     setLogLevel(config.logLevel);
