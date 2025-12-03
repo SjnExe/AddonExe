@@ -18,7 +18,7 @@ export function loadCooldowns() {
     const dataStr = mc.world.getDynamicProperty(cooldownDbKey);
     if (typeof dataStr === 'string') {
         try {
-            const parsedData = JSON.parse(dataStr);
+            const parsedData = JSON.parse(dataStr) as [string, number][];
             // Reconstruct the Map from the saved array
             cooldowns = new Map(parsedData);
             debugLog(`[CooldownManager] Loaded ${cooldowns.size} cooldowns.`);

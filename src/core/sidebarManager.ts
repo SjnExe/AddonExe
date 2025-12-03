@@ -8,17 +8,16 @@ import { getTeamByPlayer } from './teamManager.js';
 import { formatCurrency, formatDuration } from './utils.js';
 
 let sidebarLoopId: number | null = null;
-let actionBarLoopId: number | null = null;
+let hudLoopId: number | null = null;
 let tpsLoopId: number | null = null;
 
 let currentTPS = 20;
 let lastTickTime = Date.now();
 const tickCounts: number[] = [];
 
-let actionBarIndex = 0;
-
 // Sidebar constants
 const SIDEBAR_OBJECTIVE = 'exe:sidebar';
+const MAGIC_STRING_BASE = '§~§s§b';
 
 export function initialize() {
     startTPSCounter();
@@ -30,25 +29,24 @@ export function cleanup() {
     stopLoops();
     stopTPSCounter();
     clearSidebarObjective();
+    for (const player of mc.world.getAllPlayers()) {
+        try {
+            player.onScreenDisplay.setTitle('');
+        } catch { /* ignore */ }
+    }
 }
 
 function startTPSCounter() {
     if (tpsLoopId !== null) return;
 
-    // We count ticks every second
     tpsLoopId = mc.system.runInterval(() => {
         const now = Date.now();
-        // Calculate TPS based on how many ticks happened (always 20 in runInterval relative to game, but time varies)
-        // Wait, runInterval(20) runs every 20 ticks.
-        // If server is lagging, it takes > 1000ms.
-        // TPS = 20 / (duration / 1000)
         const duration = now - lastTickTime;
         lastTickTime = now;
 
         let tps = 20 / (duration / 1000);
-        if (tps > 20) tps = 20; // Clamp
+        if (tps > 20) tps = 20;
 
-        // Smoothing
         tickCounts.push(tps);
         if (tickCounts.length > 5) tickCounts.shift();
 
@@ -73,9 +71,9 @@ function startLoops() {
         }, Math.max(1, config.updateInterval));
     }
 
-    if (actionBarLoopId === null && config.actionBarEnabled) {
-        actionBarLoopId = mc.system.runInterval(() => {
-            updateActionBar();
+    if (hudLoopId === null && config.actionBarEnabled) {
+        hudLoopId = mc.system.runInterval(() => {
+            updateTitleSidebar();
         }, Math.max(1, config.actionBarInterval));
     }
 }
@@ -85,9 +83,9 @@ function stopLoops() {
         mc.system.clearRun(sidebarLoopId);
         sidebarLoopId = null;
     }
-    if (actionBarLoopId !== null) {
-        mc.system.clearRun(actionBarLoopId);
-        actionBarLoopId = null;
+    if (hudLoopId !== null) {
+        mc.system.clearRun(hudLoopId);
+        hudLoopId = null;
     }
 }
 
@@ -124,7 +122,6 @@ function resolveGlobalPlaceholders(text: string): string {
         .replace(/{tps}/g, currentTPS.toString())
         .replace(/{online}/g, online.toString())
         .replace(/{max_players}/g, config.maxPlayers.toString())
-        // Date/Time
         .replace(/{time}/g, new Date().toLocaleTimeString())
         .replace(/{date}/g, new Date().toLocaleDateString());
 
@@ -132,7 +129,6 @@ function resolveGlobalPlaceholders(text: string): string {
 }
 
 function resolvePersonalPlaceholders(text: string, player: mc.Player): string {
-    // Resolve global first
     let result = resolveGlobalPlaceholders(text);
 
     const pData = getPlayer(player.id);
@@ -154,7 +150,7 @@ function resolvePersonalPlaceholders(text: string, player: mc.Player): string {
         .replace(/{kdr}/g, kdr.toString())
         .replace(/{playtime}/g, playTime)
         .replace(/{team}/g, team ? team.name : 'None')
-        .replace(/{ping}/g, 'N/A'); // Ping not supported
+        .replace(/{ping}/g, 'N/A');
 
     return result;
 }
@@ -169,20 +165,10 @@ function updateSidebar() {
     const objective = getOrCreateSidebarObjective();
     if (!objective) return;
 
-    // Vanilla Scoreboard Logic:
-    // To update lines, we must match the participant names.
-    // Score dictates order. Line 1 = Highest Score.
-    // We'll use scores starting from 15 down to 1.
-
     try {
-        // Update Title if changed
         if (objective.displayName !== config.title) {
-            // Need to recreate to change title? No, displayName property is read-only in some versions?
-            // Checking types... ScoreboardObjective.displayName is readonly.
-            // So we must recreate.
             mc.world.scoreboard.removeObjective(SIDEBAR_OBJECTIVE);
             mc.world.scoreboard.addObjective(SIDEBAR_OBJECTIVE, config.title);
-            // Re-fetch
             return updateSidebar();
         }
 
@@ -191,27 +177,13 @@ function updateSidebar() {
             sortOrder: mc.ObjectiveSortOrder.Descending
         });
 
-        // Current participants (lines)
         const participants = objective.getParticipants();
-        const currentLines = new Set<string>();
-        participants.forEach(p => currentLines.add(p.displayName));
-
-        // Desired lines
-        // We only support Global Placeholders here because it's shared.
         const newLines: string[] = [];
         config.sidebarLines.forEach(line => {
             newLines.push(resolveGlobalPlaceholders(line));
         });
 
-        // Set scores
-        // We go from length down to 1.
         let score = newLines.length;
-
-        // We need to remove lines that are no longer present OR are in wrong position?
-        // Actually, if we just setScore, it adds.
-        // We must remove participants that are NOT in the new list.
-
-        // Optimisation: Calculate lines to add/remove
         const desiredLinesSet = new Set(newLines);
 
         for (const p of participants) {
@@ -220,18 +192,14 @@ function updateSidebar() {
             }
         }
 
-        // Add/Update lines
         const usedLines = new Set<string>();
 
         for (let i = 0; i < newLines.length; i++) {
             let lineText = newLines[i];
-
-            // Ensure uniqueness by appending spaces if duplicate found
             while (usedLines.has(lineText)) {
                 lineText += ' ';
             }
             usedLines.add(lineText);
-
             objective.setScore(lineText, score);
             score--;
         }
@@ -241,18 +209,35 @@ function updateSidebar() {
     }
 }
 
-function updateActionBar() {
+function getMagicString(opacity: string): string {
+    switch (opacity) {
+        case 'high': return MAGIC_STRING_BASE + '§1';
+        case 'medium': return MAGIC_STRING_BASE + '§2';
+        case 'low': return MAGIC_STRING_BASE + '§3';
+        case 'none': return MAGIC_STRING_BASE + '§4';
+        default: return MAGIC_STRING_BASE + '§2';
+    }
+}
+
+function updateTitleSidebar() {
     const config = getSidebarConfig();
     if (!config.actionBarEnabled || config.actionBarLines.length === 0) return;
 
+    const magicString = getMagicString(config.opacity || 'medium');
     const linesTemplate = config.actionBarLines.join('\n');
 
     for (const player of mc.world.getAllPlayers()) {
-        if (!getSidebarVisible(player.id)) { // Re-using sidebar toggle for HUD
+        if (!getSidebarVisible(player.id)) {
             continue;
         }
-        const text = resolvePersonalPlaceholders(linesTemplate, player);
-        player.onScreenDisplay.setActionBar(text);
+        const content = resolvePersonalPlaceholders(linesTemplate, player);
+        const fullText = magicString + content;
+
+        player.onScreenDisplay.setTitle(fullText, {
+            fadeInDuration: 0,
+            stayDuration: 60,
+            fadeOutDuration: 0
+        });
     }
 }
 
@@ -260,5 +245,5 @@ export function forceUpdate() {
     stopLoops();
     startLoops();
     updateSidebar();
-    updateActionBar();
+    updateTitleSidebar();
 }

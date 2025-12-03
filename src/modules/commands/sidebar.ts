@@ -1,7 +1,8 @@
 import * as mc from '@minecraft/server';
 
-import { CustomCommand } from './commandManager.js';
 import { getSidebarVisible, setSidebarVisible } from '../../core/playerDataManager.js';
+
+import { CustomCommand } from './commandManager.js';
 
 const command: CustomCommand = {
     name: 'sidebar',
@@ -27,7 +28,7 @@ const command: CustomCommand = {
             player.sendMessage('§aPersonal HUD enabled.');
         } else {
             player.sendMessage('§cPersonal HUD disabled. (Note: The server sidebar is global)');
-            player.onScreenDisplay.setActionBar(''); // Clear immediately
+            player.onScreenDisplay.setTitle(''); // Clear immediately
         }
     }
 };

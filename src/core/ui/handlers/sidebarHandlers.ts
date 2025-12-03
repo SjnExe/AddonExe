@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getSidebarConfig, saveSidebarConfig } from '../../configurations.js';
+import { getSidebarConfig, saveSidebarConfig, SidebarConfig } from '../../configurations.js';
 import { forceUpdate } from '../../sidebarManager.js';
 import { showPanel } from '../../uiManager.js';
 import { UIContext } from '../panelRegistry.js';
@@ -107,8 +107,12 @@ export async function handleSidebarPanel(
     }
 }
 
-function saveAndRefresh(player: mc.Player, isSidebar: boolean, config: any, lines: string[], message: string) {
-    if (isSidebar) config.sidebarLines = lines; else config.actionBarLines = lines;
+function saveAndRefresh(player: mc.Player, isSidebar: boolean, config: SidebarConfig, lines: string[], message: string) {
+    if (isSidebar) {
+        config.sidebarLines = lines;
+    } else {
+        config.actionBarLines = lines;
+    }
     saveSidebarConfig(config);
     forceUpdate();
     player.sendMessage(message);

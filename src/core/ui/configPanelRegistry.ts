@@ -682,14 +682,14 @@ export const configPanelSchema: ConfigCategory[] = [
     {
         id: 'sidebar',
         title: '§l§eSidebar/HUD System§r',
-        icon: 'textures/ui/sidebar_icon',
+        icon: 'textures/items/book_writable',
         configSource: 'sidebar',
         settings: [
             {
                 key: 'enabled',
-                label: 'Enable System',
+                label: 'Enable Global Sidebar',
                 type: 'toggle',
-                description: 'Master switch for Sidebar and Action Bar.'
+                description: 'Enables the Vanilla Sidebar (Scoreboard).'
             },
             {
                 key: 'title',
@@ -711,15 +711,22 @@ export const configPanelSchema: ConfigCategory[] = [
             },
             {
                 key: 'actionBarEnabled',
-                label: 'Enable Action Bar',
+                label: 'Enable Personal HUD',
                 type: 'toggle',
-                description: 'Enable the HUD above the hotbar for personal stats.'
+                description: 'Enables the Personal HUD (Right-aligned, uses Title).'
+            },
+            {
+                key: 'opacity',
+                label: 'HUD Opacity',
+                type: 'dropdown',
+                options: ['high', 'medium', 'low', 'none'],
+                description: 'Transparency of the HUD background.'
             },
             {
                 key: 'actionBarInterval',
-                label: 'Action Bar Cycle',
+                label: 'HUD Update Rate',
                 type: 'textField',
-                description: 'How fast the Action Bar cycles through lines (in ticks).'
+                description: 'How fast the HUD updates (in ticks).'
             }
         ]
     }

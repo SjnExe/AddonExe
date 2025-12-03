@@ -75,7 +75,7 @@ export const systemRegistry: SystemDefinition[] = [
     {
         id: 'sidebar',
         title: '§l§eSidebar/HUD System§r',
-        icon: 'textures/ui/sidebar_icon',
+        icon: 'textures/items/book_writable',
         configPanelId: 'sidebarMainPanel',
         isSimpleConfig: false
     }

@@ -44,7 +44,8 @@ interface ConfigHandler {
         | TeamConfig
         | RanksConfig
         | KitsConfig
-        | ShopConfig;
+        | ShopConfig
+        | SidebarConfig;
     save: (config: unknown) => void;
 }
 

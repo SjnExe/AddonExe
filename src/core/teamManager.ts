@@ -56,14 +56,14 @@ export function initialize() {
         const allIdsStr = mc.world.getDynamicProperty('exe:allTeamIds');
         let allIds: number[] = [];
         if (typeof allIdsStr === 'string') {
-            allIds = JSON.parse(allIdsStr);
+            allIds = JSON.parse(allIdsStr) as number[];
         }
 
         let loadedCount = 0;
         for (const id of allIds) {
             const teamDataStr = mc.world.getDynamicProperty(`${teamPropertyPrefix}${id}`);
             if (teamDataStr && typeof teamDataStr === 'string') {
-                activeTeams.set(id, JSON.parse(teamDataStr));
+                activeTeams.set(id, JSON.parse(teamDataStr) as TeamData);
                 loadedCount++;
             }
         }
