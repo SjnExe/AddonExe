@@ -97,7 +97,7 @@ function finalizeRestart(): void {
                     try {
                         overworld.runCommand(`kick "${player.name}" ${kickMessage}`);
                     } catch (kickError) {
-                        errorLog(`[RestartManager] Failed to kick ${player.name}: ${kickError}`);
+                        errorLog(`[RestartManager] Failed to kick ${player.name}: ${String(kickError)}`);
                     }
                 } else {
                     player.sendMessage('§aYou were not kicked by the restart sequence because you are an admin/owner.');
@@ -105,7 +105,7 @@ function finalizeRestart(): void {
             }
             debugLog('[RestartManager] Kick sequence finished.');
         } catch (error) {
-            errorLog(`[RestartManager] Critical error during kick sequence: ${error}`);
+            errorLog(`[RestartManager] Critical error during kick sequence: ${String(error)}`);
         }
 
         errorLog('[AddonExe] SERVER IS READY FOR RESTART. Data has been saved and players have been kicked.');

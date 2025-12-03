@@ -34,6 +34,7 @@ import cmdRules from './rules.js';
 import cmdSave from './save.js';
 import cmdSetbalance from './setbalance.js';
 import cmdShop from './shop.js';
+import cmdSidebar from './sidebar.js';
 import cmdSpawn from './spawn.js';
 import cmdStatus from './status.js';
 import cmdTeam from './team.js';
@@ -80,6 +81,7 @@ export function loadCommands() {
         cmdSave,
         cmdSetbalance,
         cmdShop,
+        cmdSidebar,
         cmdSpawn,
         cmdStatus,
         cmdTeam,

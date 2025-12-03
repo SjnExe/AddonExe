@@ -1,5 +1,3 @@
-import { MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
-
 /**
  * Defines all possible items that can be available in the shop.
  * The 'edit shop' panel will allow admins to enable/disable these items
@@ -7,7 +5,7 @@ import { MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanill
  *
  * Structure for each item:
  * {
- *   itemId: string | MinecraftItemTypes, // The Minecraft item type ID (e.g., 'minecraft:diamond').
+ *   itemId: string,        // The Minecraft item type ID (e.g., 'minecraft:diamond').
  *   icon: string,          // The texture path for the icon (e.g., 'textures/items/diamond').
  *   buyPrice: number,      // Default buy price. -1 to disable buying.
  *   sellPrice: number,     // Default sell price. -1 to disable selling.
@@ -17,7 +15,7 @@ import { MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanill
  * }
  */
 export interface ItemData {
-    itemId: MinecraftItemTypes | string;
+    itemId: string;
     icon: string;
     buyPrice: number;
     sellPrice: number;
@@ -34,7 +32,7 @@ export interface ItemData {
 export const items: Record<string, ItemData> = {
     // == Ores & Minerals ==
     diamond: {
-        itemId: MinecraftItemTypes.Diamond,
+        itemId: 'minecraft:diamond',
         icon: 'textures/items/diamond',
         buyPrice: 1000,
         sellPrice: 500,
@@ -42,7 +40,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond'
     },
     emerald: {
-        itemId: MinecraftItemTypes.Emerald,
+        itemId: 'minecraft:emerald',
         icon: 'textures/items/emerald',
         buyPrice: 800,
         sellPrice: 400,
@@ -50,7 +48,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Emerald'
     },
     goldIngot: {
-        itemId: MinecraftItemTypes.GoldIngot,
+        itemId: 'minecraft:gold_ingot',
         icon: 'textures/items/gold_ingot',
         buyPrice: 100,
         sellPrice: 50,
@@ -58,7 +56,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Gold Ingot'
     },
     ironIngot: {
-        itemId: MinecraftItemTypes.IronIngot,
+        itemId: 'minecraft:iron_ingot',
         icon: 'textures/items/iron_ingot',
         buyPrice: 50,
         sellPrice: 25,
@@ -66,7 +64,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Iron Ingot'
     },
     netheriteIngot: {
-        itemId: MinecraftItemTypes.NetheriteIngot,
+        itemId: 'minecraft:netherite_ingot',
         icon: 'textures/items/netherite_ingot',
         buyPrice: 10000,
         sellPrice: 5000,
@@ -74,7 +72,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Netherite Ingot'
     },
     netheriteScrap: {
-        itemId: MinecraftItemTypes.NetheriteScrap,
+        itemId: 'minecraft:netherite_scrap',
         icon: 'textures/items/netherite_scrap',
         buyPrice: 2000,
         sellPrice: 1000,
@@ -82,7 +80,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Netherite Scrap'
     },
     ancientDebris: {
-        itemId: MinecraftItemTypes.AncientDebris,
+        itemId: 'minecraft:ancient_debris',
         icon: 'textures/blocks/ancient_debris_side',
         buyPrice: 1800,
         sellPrice: 900,
@@ -90,7 +88,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Ancient Debris'
     },
     lapisLazuli: {
-        itemId: MinecraftItemTypes.LapisLazuli,
+        itemId: 'minecraft:lapis_lazuli',
         icon: 'textures/blocks/lapis_ore',
         buyPrice: 20,
         sellPrice: 10,
@@ -98,7 +96,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Lapis Lazuli'
     },
     quartz: {
-        itemId: MinecraftItemTypes.Quartz,
+        itemId: 'minecraft:quartz',
         icon: 'textures/items/quartz',
         buyPrice: 30,
         sellPrice: 15,
@@ -611,249 +609,249 @@ export const items: Record<string, ItemData> = {
     // == Enchantment Books ==
     // General
     enchantMending: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 8000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'General',
         displayName: 'Mending',
-        enchantment: { id: MinecraftEnchantmentTypes.Mending, level: 1 }
+        enchantment: { id: 'minecraft:mending', level: 1 }
     },
     enchantUnbreaking3: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 4000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'General',
         displayName: 'Unbreaking III',
-        enchantment: { id: MinecraftEnchantmentTypes.Unbreaking, level: 3 }
+        enchantment: { id: 'minecraft:unbreaking', level: 3 }
     },
 
     // Sword
     enchantSharpness5: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 5000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Sword',
         displayName: 'Sharpness V',
-        enchantment: { id: MinecraftEnchantmentTypes.Sharpness, level: 5 }
+        enchantment: { id: 'minecraft:sharpness', level: 5 }
     },
     enchantLooting3: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 3000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Sword',
         displayName: 'Looting III',
-        enchantment: { id: MinecraftEnchantmentTypes.Looting, level: 3 }
+        enchantment: { id: 'minecraft:looting', level: 3 }
     },
     enchantFireAspect2: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 2000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Sword',
         displayName: 'Fire Aspect II',
-        enchantment: { id: MinecraftEnchantmentTypes.FireAspect, level: 2 }
+        enchantment: { id: 'minecraft:fire_aspect', level: 2 }
     },
 
     // Armour
     enchantProtection4: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 4500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Armour',
         displayName: 'Protection IV',
-        enchantment: { id: MinecraftEnchantmentTypes.Protection, level: 4 }
+        enchantment: { id: 'minecraft:protection', level: 4 }
     },
     enchantFeatherFalling4: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 3500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Armour',
         displayName: 'Feather Falling IV',
-        enchantment: { id: MinecraftEnchantmentTypes.FeatherFalling, level: 4 }
+        enchantment: { id: 'minecraft:feather_falling', level: 4 }
     },
 
     // Tools
     enchantEfficiency5: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 5000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Tools',
         displayName: 'Efficiency V',
-        enchantment: { id: MinecraftEnchantmentTypes.Efficiency, level: 5 }
+        enchantment: { id: 'minecraft:efficiency', level: 5 }
     },
     enchantFortune3: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 4000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Tools',
         displayName: 'Fortune III',
-        enchantment: { id: MinecraftEnchantmentTypes.Fortune, level: 3 }
+        enchantment: { id: 'minecraft:fortune', level: 3 }
     },
     enchantSilkTouch: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 6000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Tools',
         displayName: 'Silk Touch',
-        enchantment: { id: MinecraftEnchantmentTypes.SilkTouch, level: 1 }
+        enchantment: { id: 'minecraft:silk_touch', level: 1 }
     },
 
     // Bow
     enchantPower5: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 5000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Bow',
         displayName: 'Power V',
-        enchantment: { id: MinecraftEnchantmentTypes.Power, level: 5 }
+        enchantment: { id: 'minecraft:power', level: 5 }
     },
     enchantInfinity: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 7000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Bow',
         displayName: 'Infinity',
-        enchantment: { id: MinecraftEnchantmentTypes.BowInfinity, level: 1 }
+        enchantment: { id: 'minecraft:infinity', level: 1 }
     },
     enchantFlame: {
         _comment: 'Note: sellPrice changed from 500 to -1',
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 2000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Bow',
         displayName: 'Flame',
-        enchantment: { id: MinecraftEnchantmentTypes.Flame, level: 1 }
+        enchantment: { id: 'minecraft:flame', level: 1 }
     },
 
     // Trident
     enchantImpaling5: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 3000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Trident',
         displayName: 'Impaling V',
-        enchantment: { id: MinecraftEnchantmentTypes.Impaling, level: 5 }
+        enchantment: { id: 'minecraft:impaling', level: 5 }
     },
     enchantLoyalty3: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 2500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Trident',
         displayName: 'Loyalty III',
-        enchantment: { id: MinecraftEnchantmentTypes.Loyalty, level: 3 }
+        enchantment: { id: 'minecraft:loyalty', level: 3 }
     },
     enchantChanneling: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 4000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Trident',
         displayName: 'Channeling',
-        enchantment: { id: MinecraftEnchantmentTypes.Channeling, level: 1 }
+        enchantment: { id: 'minecraft:channeling', level: 1 }
     },
     enchantRiptide3: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 3500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Trident',
         displayName: 'Riptide III',
-        enchantment: { id: MinecraftEnchantmentTypes.Riptide, level: 3 }
+        enchantment: { id: 'minecraft:riptide', level: 3 }
     },
 
     // Mace
     enchantDensity5: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 5000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Mace',
         displayName: 'Density V',
-        enchantment: { id: MinecraftEnchantmentTypes.Density, level: 5 }
+        enchantment: { id: 'minecraft:density', level: 5 }
     },
     enchantBreach4: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 4000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Mace',
         displayName: 'Breach IV',
-        enchantment: { id: MinecraftEnchantmentTypes.Breach, level: 4 }
+        enchantment: { id: 'minecraft:breach', level: 4 }
     },
     enchantWindBurst3: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 6000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Mace',
         displayName: 'Wind Burst III',
-        enchantment: { id: MinecraftEnchantmentTypes.WindBurst, level: 3 }
+        enchantment: { id: 'minecraft:wind_burst', level: 3 }
     },
 
     // Crossbow
     enchantMultishot1: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 4000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Crossbow',
         displayName: 'Multishot',
-        enchantment: { id: MinecraftEnchantmentTypes.Multishot, level: 1 }
+        enchantment: { id: 'minecraft:multishot', level: 1 }
     },
     enchantPiercing4: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 4500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Crossbow',
         displayName: 'Piercing IV',
-        enchantment: { id: MinecraftEnchantmentTypes.Piercing, level: 4 }
+        enchantment: { id: 'minecraft:piercing', level: 4 }
     },
     enchantQuickCharge3: {
-        itemId: MinecraftItemTypes.EnchantedBook,
+        itemId: 'minecraft:enchanted_book',
         icon: 'textures/items/book_enchanted',
         buyPrice: 3500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Crossbow',
         displayName: 'Quick Charge III',
-        enchantment: { id: MinecraftEnchantmentTypes.QuickCharge, level: 3 }
+        enchantment: { id: 'minecraft:quick_charge', level: 3 }
     }
 };
 

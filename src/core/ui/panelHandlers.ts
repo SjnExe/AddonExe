@@ -15,6 +15,7 @@ import { handleMiscPanel } from './handlers/miscHandlers.js';
 import { handlePlayerPanel } from './handlers/playerHandlers.js';
 import { handleRankPanel } from './handlers/rankHandlers.js';
 import { handleShopPanel } from './handlers/shopHandlers.js';
+import { handleSidebarPanel } from './handlers/sidebarHandlers.js';
 import { handleTeamPanel } from './handlers/teamHandlers.js';
 import { handleXrayPanel } from './handlers/xrayHandlers.js';
 import { getMenuItems, getVisiblePlayerActionItems } from './panelBuilder.js';
@@ -79,6 +80,9 @@ export async function handleFormResponse(
     // --- Complex Systems ---
     if (panelId.startsWith('shop')) {
         return handleShopPanel(player, panelId, response, context);
+    }
+    if (panelId.startsWith('sidebar') || panelId.startsWith('actionBar')) {
+        return handleSidebarPanel(player, panelId, response, context);
     }
     if (panelId.startsWith('team')) {
         return handleTeamPanel(player, panelId, response, context);
