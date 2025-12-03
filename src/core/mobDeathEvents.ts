@@ -2,7 +2,14 @@ import * as mc from '@minecraft/server';
 
 import { getEconomyConfig } from './configurations.js';
 import { infoLog } from './logger.js';
-import { incrementPlayerBalance, getPlayer } from './playerDataManager.js';
+import {
+    incrementPlayerBalance,
+    getPlayer,
+    incrementKillCount,
+    incrementDeathCount,
+    incrementKillStreak,
+    resetKillStreak
+} from './playerDataManager.js';
 import { handlePvPDeath } from './pvpManager.js';
 import { getTeamByPlayer } from './teamManager.js';
 import { formatCurrency } from './utils.js';
@@ -11,11 +18,20 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     const { deadEntity, damageSource } = event;
     const { damagingEntity } = damageSource;
 
+    // Handle Player Death (Stat updates)
+    if (deadEntity.typeId === 'minecraft:player') {
+        const victim = deadEntity as mc.Player;
+        incrementDeathCount(victim.id);
+        resetKillStreak(victim.id);
+    }
+
     if (!damagingEntity || damagingEntity.typeId !== 'minecraft:player') {
         return;
     }
 
     const killer = damagingEntity as mc.Player;
+    incrementKillCount(killer.id);
+    incrementKillStreak(killer.id);
     const economyConfig = getEconomyConfig();
 
     if (deadEntity.typeId === 'minecraft:player') {

@@ -50,14 +50,6 @@
             "version": "beta"
         },
         {
-            "module_name": "@minecraft/math",
-            "version": "2.2.11"
-        },
-        {
-            "module_name": "@minecraft/gameplay-utilities",
-            "version": "1.1.0"
-        },
-        {
             "uuid": "9dca0c93-f6ec-4701-a74c-a774600640a4",
             "version": [1, 0, 0]
         }
