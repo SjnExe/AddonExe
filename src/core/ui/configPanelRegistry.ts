@@ -678,5 +678,56 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'How long resolved reports are kept before deletion.'
             }
         ]
+    },
+    {
+        id: 'sidebar',
+        title: '§l§eSidebar/HUD System§r',
+        icon: 'textures/items/book_writable',
+        configSource: 'sidebar',
+        settings: [
+            {
+                key: 'enabled',
+                label: 'Enable Global Sidebar',
+                type: 'toggle',
+                description: 'Enables the Vanilla Sidebar (Scoreboard).'
+            },
+            {
+                key: 'title',
+                label: 'Sidebar Title',
+                type: 'textField',
+                description: 'The title displayed at the top of the sidebar.'
+            },
+            {
+                key: 'updateInterval',
+                label: 'Update Interval',
+                type: 'textField',
+                description: 'How often the sidebar updates (in ticks, 20 = 1s).'
+            },
+            {
+                key: 'maxPlayers',
+                label: 'Max Players (Visual)',
+                type: 'textField',
+                description: 'Value for {max_players} placeholder.'
+            },
+            {
+                key: 'actionBarEnabled',
+                label: 'Enable Personal HUD',
+                type: 'toggle',
+                description: 'Enables the Personal HUD (Right-aligned, uses Title).'
+            },
+            {
+                key: 'opacity',
+                label: 'HUD Opacity',
+                type: 'dropdown',
+                options: ['high', 'medium', 'low', 'none'],
+                description: 'Transparency of the HUD background.'
+            },
+            {
+                key: 'actionBarInterval',
+                label: 'HUD Update Rate',
+                type: 'textField',
+                description: 'How fast the HUD updates (in ticks).'
+            }
+        ]
     }
 ];
