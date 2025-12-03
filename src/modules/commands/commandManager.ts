@@ -127,8 +127,10 @@ class CommandManager {
     ]);
 
     constructor() {
+        infoLog('[CommandManager] Subscribing to startup event for slash commands.');
         mc.system.beforeEvents.startup.subscribe(
             ({ customCommandRegistry }: { customCommandRegistry: mc.CustomCommandRegistry }) => {
+                infoLog('[CommandManager] Startup event received. Registering slash commands...');
                 this.commands.forEach((command) => {
                     if (command.disableSlashCommand) {
                         return;
