@@ -33,7 +33,12 @@ import {
     clearExpiredPayments,
     loadNameIdMap
 } from './playerDataManager.js';
-import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
+import {
+    loadPunishments,
+    clearExpiredPunishments,
+    initializePunishmentManager,
+    checkAndKickBannedPlayer
+} from './punishmentManager.js';
 import * as rankManager from './rankManager.js';
 import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import * as sidebarManager from './sidebarManager.js';
@@ -83,6 +88,9 @@ function reinitializeOnlinePlayers() {
     infoLog(`[AddonExe] Re-initializing state for ${mc.world.getAllPlayers().length} online players...`);
     for (const player of mc.world.getAllPlayers()) {
         getOrCreatePlayer(player);
+        if (checkAndKickBannedPlayer(player)) {
+            continue;
+        }
         updatePlayerRank(player);
     }
     infoLog('[AddonExe] Player re-initialization complete.');

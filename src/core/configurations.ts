@@ -123,7 +123,7 @@ export const configResetRegistry: Record<string, ResetRegistryEntry> = {
         reset: resetXrayConfig,
         message: "The 'X-ray' configuration section has been reset to default."
     },
-    xray_ores: {
+    xrayOres: {
         reset: resetXrayConfig,
         message: "The 'X-ray' configuration section has been reset to default."
     },
