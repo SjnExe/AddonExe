@@ -123,6 +123,10 @@ export const configResetRegistry: Record<string, ResetRegistryEntry> = {
         reset: resetXrayConfig,
         message: "The 'X-ray' configuration section has been reset to default."
     },
+    xray_ores: {
+        reset: resetXrayConfig,
+        message: "The 'X-ray' configuration section has been reset to default."
+    },
     economy: {
         reset: resetEconomyConfig,
         message: "The 'economy' configuration section has been reset to default."

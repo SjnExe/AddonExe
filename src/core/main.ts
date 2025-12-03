@@ -44,9 +44,7 @@ import type { config as Config } from '../config.default.js';
 import './mobDeathEvents.js';
 
 // Load commands immediately to ensure they are registered before the startup event fires.
-infoLog('[AddonExe] Loading commands...');
 loadCommands();
-infoLog('[AddonExe] Commands loaded.');
 
 export function updatePlayerRank(player: mc.Player) {
     const pData = getOrCreatePlayer(player);

@@ -1994,27 +1994,130 @@
   },
 
   "hud_actionbar_text": {
-    "type": "image",
-    "size": [ "100%c + 12px", "100%c + 5px" ],
+    "type": "panel",
+    "size": [ "100%c", "100%c" ],
     "offset": [ 0, -42 ],
     "anchor_from": "bottom_middle",
     "anchor_to": "bottom_middle",
-    "texture": "textures/ui/hud_tip_text_background",
-    "alpha": "@hud.anim_actionbar_text_background_alpha_out",
     "controls": [
       {
-        "actionbar_message": {
-          "type": "label",
-          "anchor_from": "bottom_middle",
-          "anchor_to": "bottom_middle",
-          "text_alignment": "center",
-          "color": "$tool_tip_text",
-          "enable_profanity_filter": true,
-          "layer": 31,
-          "text": "$actionbar_text",
-          "shadow": true,
-          "localize": false,
-          "alpha": "@hud.anim_actionbar_text_alpha_out"
+        "standard_actionbar_frame": {
+          "type": "image",
+          "size": [ "100%c + 12px", "100%c + 5px" ],
+          "texture": "textures/ui/hud_tip_text_background",
+          "alpha": "@hud.anim_actionbar_text_background_alpha_out",
+          "bindings": [
+            {
+              "binding_type": "view",
+              "source_control_name": "standard_actionbar_frame",
+              "resolve_sibling_scope": true,
+              "source_property_name": "(($actionbar_text - '§~§s§b') = $actionbar_text)",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "actionbar_message": {
+                "type": "label",
+                "anchor_from": "bottom_middle",
+                "anchor_to": "bottom_middle",
+                "text_alignment": "center",
+                "color": "$tool_tip_text",
+                "enable_profanity_filter": true,
+                "layer": 31,
+                "text": "$actionbar_text",
+                "shadow": true,
+                "localize": false,
+                "alpha": "@hud.anim_actionbar_text_alpha_out"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sidebar_panel": {
+          "type": "panel",
+          "size": [ "100%cm", "100%c" ],
+          "anchor_from": "right_middle",
+          "anchor_to": "right_middle",
+          "offset": [ -2, 0 ],
+          "bindings": [
+            {
+              "binding_type": "view",
+              "source_control_name": "sidebar_panel",
+              "resolve_sibling_scope": true,
+              "source_property_name": "(not (($actionbar_text - '§~§s§b') = $actionbar_text))",
+              "target_property_name": "#visible"
+            }
+          ],
+          "controls": [
+            {
+              "bg_high": {
+                "type": "image",
+                "texture": "textures/ui/hud_tip_text_background",
+                "alpha": 0.2,
+                "size": [ "100%sm + 6px", "100%sm + 4px" ],
+                "layer": 0,
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "bg_high",
+                    "resolve_sibling_scope": true,
+                    "source_property_name": "(not (($actionbar_text - '§~§s§b§1') = $actionbar_text))",
+                    "target_property_name": "#visible"
+                  }
+                ]
+              }
+            },
+            {
+              "bg_med": {
+                "type": "image",
+                "texture": "textures/ui/hud_tip_text_background",
+                "alpha": 0.5,
+                "size": [ "100%sm + 6px", "100%sm + 4px" ],
+                "layer": 0,
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "bg_med",
+                    "resolve_sibling_scope": true,
+                    "source_property_name": "(not (($actionbar_text - '§~§s§b§2') = $actionbar_text))",
+                    "target_property_name": "#visible"
+                  }
+                ]
+              }
+            },
+            {
+              "bg_low": {
+                "type": "image",
+                "texture": "textures/ui/hud_tip_text_background",
+                "alpha": 0.8,
+                "size": [ "100%sm + 6px", "100%sm + 4px" ],
+                "layer": 0,
+                "bindings": [
+                  {
+                    "binding_type": "view",
+                    "source_control_name": "bg_low",
+                    "resolve_sibling_scope": true,
+                    "source_property_name": "(not (($actionbar_text - '§~§s§b§3') = $actionbar_text))",
+                    "target_property_name": "#visible"
+                  }
+                ]
+              }
+            },
+            {
+              "sidebar_text": {
+                "type": "label",
+                "text": "$actionbar_text",
+                "anchor_from": "right_middle",
+                "anchor_to": "right_middle",
+                "text_alignment": "right",
+                "layer": 1,
+                "color": "$tool_tip_text",
+                "shadow": true
+              }
+            }
+          ]
         }
       }
     ]
@@ -2132,19 +2235,6 @@
           "type": "stack_panel",
           "orientation": "vertical",
           "size": [ "100%", "100%cm" ],
-          "bindings": [
-            {
-              "binding_name": "#hud_title_text_string",
-              "binding_type": "global"
-            },
-            {
-              "binding_type": "view",
-              "source_control_name": "standard_title_stack",
-              "resolve_sibling_scope": true,
-              "source_property_name": "((#hud_title_text_string - '§~§s§b') = #hud_title_text_string)",
-              "target_property_name": "#visible"
-            }
-          ],
           "controls": [
             {
               "title_frame": {
@@ -2267,114 +2357,6 @@
           ]
         }
       },
-      {
-        "sidebar_panel": {
-          "type": "panel",
-          "size": [ "100%cm", "100%c" ],
-          "anchor_from": "right_middle",
-          "anchor_to": "right_middle",
-          "offset": [ -2, 0 ],
-          "bindings": [
-            {
-              "binding_name": "#hud_title_text_string",
-              "binding_type": "global"
-            },
-            {
-              "binding_type": "view",
-              "source_control_name": "sidebar_panel",
-              "resolve_sibling_scope": true,
-              "source_property_name": "(not ((#hud_title_text_string - '§~§s§b') = #hud_title_text_string))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "controls": [
-            {
-              "bg_high": {
-                "type": "image",
-                "texture": "textures/ui/hud_tip_text_background",
-                "alpha": 0.2,
-                "size": [ "100%sm + 6px", "100%sm + 4px" ],
-                "layer": 0,
-                "bindings": [
-                  {
-                    "binding_name": "#hud_title_text_string",
-                    "binding_type": "global"
-                  },
-                  {
-                    "binding_type": "view",
-                    "source_control_name": "bg_high",
-                    "resolve_sibling_scope": true,
-                    "source_property_name": "(not ((#hud_title_text_string - '§~§s§b§1') = #hud_title_text_string))",
-                    "target_property_name": "#visible"
-                  }
-                ]
-              }
-            },
-            {
-              "bg_med": {
-                "type": "image",
-                "texture": "textures/ui/hud_tip_text_background",
-                "alpha": 0.5,
-                "size": [ "100%sm + 6px", "100%sm + 4px" ],
-                "layer": 0,
-                "bindings": [
-                  {
-                    "binding_name": "#hud_title_text_string",
-                    "binding_type": "global"
-                  },
-                  {
-                    "binding_type": "view",
-                    "source_control_name": "bg_med",
-                    "resolve_sibling_scope": true,
-                    "source_property_name": "(not ((#hud_title_text_string - '§~§s§b§2') = #hud_title_text_string))",
-                    "target_property_name": "#visible"
-                  }
-                ]
-              }
-            },
-            {
-              "bg_low": {
-                "type": "image",
-                "texture": "textures/ui/hud_tip_text_background",
-                "alpha": 0.8,
-                "size": [ "100%sm + 6px", "100%sm + 4px" ],
-                "layer": 0,
-                "bindings": [
-                  {
-                    "binding_name": "#hud_title_text_string",
-                    "binding_type": "global"
-                  },
-                  {
-                    "binding_type": "view",
-                    "source_control_name": "bg_low",
-                    "resolve_sibling_scope": true,
-                    "source_property_name": "(not ((#hud_title_text_string - '§~§s§b§3') = #hud_title_text_string))",
-                    "target_property_name": "#visible"
-                  }
-                ]
-              }
-            },
-            {
-              "sidebar_text": {
-                "type": "label",
-                "text": "#hud_title_text_string",
-                "anchor_from": "right_middle",
-                "anchor_to": "right_middle",
-                "text_alignment": "right",
-                "layer": 1,
-                "color": "$tool_tip_text",
-                "shadow": true,
-                "bindings": [
-                  {
-                    "binding_name": "#hud_title_text_string",
-                    "binding_type": "global"
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      }
     ]
   },
 

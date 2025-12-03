@@ -33,6 +33,7 @@ export function cleanup() {
     for (const player of mc.world.getAllPlayers()) {
         try {
             player.onScreenDisplay.setTitle('');
+            player.onScreenDisplay.setActionBar('');
         } catch { /* ignore */ }
     }
 }
@@ -74,7 +75,7 @@ function startLoops() {
 
     if (hudLoopId === null && config.actionBarEnabled) {
         hudLoopId = mc.system.runInterval(() => {
-            updateTitleSidebar();
+            updatePersonalHUD();
         }, Math.max(1, config.actionBarInterval));
     }
 }
@@ -240,7 +241,7 @@ function getMagicString(opacity: string): string {
     }
 }
 
-function updateTitleSidebar() {
+function updatePersonalHUD() {
     const config = getSidebarConfig();
     if (!config.actionBarEnabled || config.actionBarLines.length === 0) return;
 
@@ -254,11 +255,8 @@ function updateTitleSidebar() {
         const content = resolvePersonalPlaceholders(linesTemplate, player);
         const fullText = magicString + content;
 
-        player.onScreenDisplay.setTitle(fullText, {
-            fadeInDuration: 0,
-            stayDuration: 60,
-            fadeOutDuration: 0
-        });
+        // Use Action Bar instead of Title for personal HUD
+        player.onScreenDisplay.setActionBar(fullText);
     }
 }
 
@@ -266,5 +264,5 @@ export function forceUpdate() {
     stopLoops();
     startLoops();
     updateSidebar();
-    updateTitleSidebar();
+    updatePersonalHUD();
 }
