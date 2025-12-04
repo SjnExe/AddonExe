@@ -20,11 +20,14 @@ export function startItemCheckLoop() {
     }, 100); // Check every 5 seconds
 }
 
+interface ItemCheckConfig {
+    bannedItems: string[];
+    maxEnchantLevel: number;
+    illegalEnchantments?: boolean;
+    removeIllegalItems?: boolean;
+}
 
-function checkInventory(
-    player: mc.Player,
-    config: { bannedItems: string[]; maxEnchantLevel: number; [key: string]: any }
-) {
+function checkInventory(player: mc.Player, config: ItemCheckConfig) {
     if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) return;
 
     const inventory = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;

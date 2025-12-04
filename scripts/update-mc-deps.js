@@ -15,7 +15,7 @@ const colors = {
     green: '\x1b[32m',
     yellow: '\x1b[33m',
     blue: '\x1b[34m',
-    red: '\x1b[31m',
+    red: '\x1b[31m'
 };
 
 async function main() {
@@ -33,38 +33,40 @@ async function main() {
         const overrides = packageJson.overrides || {};
 
         // Identify targets: @minecraft/* packages in devDependencies that are NOT 'latest'
-        const targets = Object.keys(devDeps).filter(pkg =>
-            pkg.startsWith('@minecraft/') && devDeps[pkg] !== 'latest'
+        const targets = Object.keys(devDeps).filter(
+            (pkg) => pkg.startsWith('@minecraft/') && devDeps[pkg] !== 'latest'
         );
 
         if (targets.length > 0) {
-            const promiseResults = await Promise.allSettled(targets.map(async (pkg) => {
-                try {
-                    const { stdout } = await execAsync(`npm view ${pkg} versions --json`);
-                    const versions = JSON.parse(stdout);
+            const promiseResults = await Promise.allSettled(
+                targets.map(async (pkg) => {
+                    try {
+                        const { stdout } = await execAsync(`npm view ${pkg} versions --json`);
+                        const versions = JSON.parse(stdout);
 
-                    // Filter: Must include 'beta', end with '-stable', and NOT include 'preview'
-                    const candidates = versions.filter(v =>
-                        v.includes('beta') &&
-                        v.endsWith('-stable') &&
-                        !v.includes('preview')
-                    ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+                        // Filter: Must include 'beta', end with '-stable', and NOT include 'preview'
+                        const candidates = versions
+                            .filter((v) => v.includes('beta') && v.endsWith('-stable') && !v.includes('preview'))
+                            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-                    let newVersion;
-                    if (candidates.length > 0) {
-                        // Pick the last one (which is the latest due to numeric sort)
-                        newVersion = candidates[candidates.length - 1];
-                    } else {
-                        // No matching stable beta found, preserve existing version
+                        let newVersion;
+                        if (candidates.length > 0) {
+                            // Pick the last one (which is the latest due to numeric sort)
+                            newVersion = candidates[candidates.length - 1];
+                        } else {
+                            // No matching stable beta found, preserve existing version
+                            return null;
+                        }
+
+                        return { pkg, newVersion };
+                    } catch (error) {
+                        console.error(
+                            `${colors.yellow}Warning: Failed to fetch versions for ${pkg}: ${error.message}${colors.reset}`
+                        );
                         return null;
                     }
-
-                    return { pkg, newVersion };
-                } catch (error) {
-                    console.error(`${colors.yellow}Warning: Failed to fetch versions for ${pkg}: ${error.message}${colors.reset}`);
-                    return null;
-                }
-            }));
+                })
+            );
 
             let packageJsonUpdated = false;
             for (const result of promiseResults) {
@@ -113,7 +115,9 @@ async function main() {
                     const latestVersion = stdout.trim();
                     return { dep, latestVersion };
                 } catch (error) {
-                    console.error(`${colors.yellow}Warning: Failed to fetch latest version for manifest dependency ${dep.module_name}: ${error.message}${colors.reset}`);
+                    console.error(
+                        `${colors.yellow}Warning: Failed to fetch latest version for manifest dependency ${dep.module_name}: ${error.message}${colors.reset}`
+                    );
                     return null;
                 }
             }
@@ -145,15 +149,17 @@ async function main() {
     // --- Final Output ---
     if (updated) {
         console.log(`${colors.green}Updated Minecraft dependencies:${colors.reset}`);
-        updates.forEach(u => console.log(`  ${u}`));
-        console.log(`${colors.yellow}Dependencies updated. Please run 'npm install' again to install the new versions.${colors.reset}`);
+        updates.forEach((u) => console.log(`  ${u}`));
+        console.log(
+            `${colors.yellow}Dependencies updated. Please run 'npm install' again to install the new versions.${colors.reset}`
+        );
         process.exit(1);
     } else {
         console.log(`${colors.green}All Minecraft dependencies are up to date.${colors.reset}`);
     }
 }
 
-main().catch(err => {
+main().catch((err) => {
     console.error(`${colors.red}Fatal error updating dependencies: ${err}${colors.reset}`);
     process.exit(0);
 });

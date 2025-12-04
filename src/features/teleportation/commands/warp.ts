@@ -115,7 +115,7 @@ const addWarpCommand: CustomCommand = {
         { name: 'y', type: 'int', optional: true },
         { name: 'z', type: 'int', optional: true }
     ],
-    execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
