@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 
+import * as teamManager from '../../features/teams/teamManager.js';
 import * as bountyManager from '../bountyManager.js';
 import { getConfig } from '../configManager.js';
 import * as lastHitManager from '../lastHitManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import * as playerCache from '../playerCache.js';
 import { getOrCreatePlayer, setPlayerLastDeathLocation, incrementPlayerBalance } from '../playerDataManager.js';
-import * as teamManager from '../teamManager.js';
 
 export const eventName = 'entityDie';
 

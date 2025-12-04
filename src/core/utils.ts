@@ -84,7 +84,7 @@ export function playSound(player: mc.Player, soundId: string, options: mc.Player
     try {
         player.playSound(soundId, options);
     } catch (e: unknown) {
-        errorLog(`Failed to play sound "${soundId}" for player ${player.name}: ${e}`);
+        errorLog(`Failed to play sound "${soundId}" for player ${player.name}: ${String(e)}`);
     }
 }
 
@@ -125,7 +125,7 @@ export async function uiWait(
     form: ActionFormData | ModalFormData | MessageFormData
 ): Promise<ActionFormResponse | ModalFormResponse | MessageFormResponse> {
     const firstAttempt = await form.show(player);
-    if (firstAttempt.cancelationReason !== 'UserBusy') {
+    if (firstAttempt.cancelationReason !== FormCancelationReason.UserBusy) {
         return firstAttempt;
     }
 
@@ -133,7 +133,7 @@ export async function uiWait(
     await forceCloseChat(player);
 
     const secondAttempt = await form.show(player);
-    if (secondAttempt.cancelationReason !== 'UserBusy') {
+    if (secondAttempt.cancelationReason !== FormCancelationReason.UserBusy) {
         return secondAttempt;
     }
 
@@ -144,7 +144,7 @@ export async function uiWait(
     while (mc.system.currentTick - startTick < 1200) {
         // 1 minute timeout
         const subsequentAttempt = await form.show(player);
-        if (subsequentAttempt.cancelationReason !== 'UserBusy') {
+        if (subsequentAttempt.cancelationReason !== FormCancelationReason.UserBusy) {
             return subsequentAttempt;
         }
         // Small delay to prevent tight loop, though await form.show is async.
@@ -183,7 +183,7 @@ export function playSoundFromConfig(player: mc.Player, soundEventKey: string): v
             });
         }
     } catch (error: unknown) {
-        errorLog(`Failed to play sound from config for key "${soundEventKey}": ${error}`);
+        errorLog(`Failed to play sound from config for key "${soundEventKey}": ${String(error)}`);
     }
 }
 
@@ -299,7 +299,7 @@ export function startTeleportWarmup(
                 onWarmupComplete();
             }
         } catch (e: unknown) {
-            errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${e}`);
+            errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${String(e)}`);
             cleanup();
         }
     }, 20);

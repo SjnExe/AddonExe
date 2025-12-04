@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ActionFormData, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
+import * as shopAdminManager from '../../../features/shop/shopAdminManager.js';
+import * as shopManager from '../../../features/shop/shopManager.js';
 import { getConfig } from '../../configManager.js';
 import { getShopConfig } from '../../configurations.js';
 import { items as allItems } from '../../itemsConfig.default.js';
-import * as shopAdminManager from '../../shopAdminManager.js';
-import * as shopManager from '../../shopManager.js';
 import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';

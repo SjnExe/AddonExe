@@ -7,7 +7,7 @@ import { addItemToKit } from '@core/kitItemsManager.js';
 import * as kitsManager from '@core/kitsManager.js';
 import { errorLog } from '@core/logger.js';
 import { showPanel } from '@core/uiManager.js';
-import { formatCooldown } from '@core/utils.js';
+import { formatCooldown, uiWait } from '@core/utils.js';
 
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
@@ -49,12 +49,14 @@ async function showKitList(player: mc.Player, page: number) {
     }
 
     try {
-        const response = await form.show(player);
-        if (response.canceled || response.selection === undefined) {
+        const response = await uiWait(player, form);
+        if (!response || response.canceled) {
             return;
         }
 
-        const selection = response.selection;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const selection = (response as any).selection;
+        if (selection === undefined) return;
 
         if (selection >= kitsToShow.length) {
             let buttonIndex = selection - kitsToShow.length;

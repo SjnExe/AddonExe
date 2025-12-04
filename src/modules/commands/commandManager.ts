@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
-import { errorLog, debugLog } from '@core/logger.js';
+import { errorLog, debugLog, infoLog } from '@core/logger.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 
@@ -72,6 +72,7 @@ interface CommandSettings {
     [key: string]: {
         enabled?: boolean;
         permissionLevel?: number;
+        cooldownSeconds?: number;
     };
 }
 
@@ -209,6 +210,14 @@ class CommandManager {
      */
     private _executeCommand(executor: CommandExecutor, command: CustomCommand, args: Record<string, unknown>) {
         const config = getConfig() as Config;
+
+        if (!config) {
+            if ('sendMessage' in executor) {
+                executor.sendMessage('§cServer is starting up. Please wait...');
+            }
+            return;
+        }
+
         const commandSettings = config.commandSettings[command.name] || {};
 
         if (commandSettings.enabled === false) {
@@ -286,8 +295,7 @@ class CommandManager {
                 // Set Cooldown
                 if (command.hasCooldown) {
                     const cooldownId = command.cooldownId || command.name;
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const cmdConfig = (config.commandSettings as any)[command.name];
+                    const cmdConfig = config.commandSettings[command.name];
                     const duration = cmdConfig?.cooldownSeconds ?? command.defaultCooldown ?? 0;
                     if (duration > 0) {
                         setCooldownCustom(player.id, cooldownId, duration);
@@ -442,12 +450,12 @@ class CommandManager {
 
             try {
                 registry.registerEnum(enumName, param.enumOptions);
-            } catch (e) {
+            } catch (e: unknown) {
                 // Ignore if enum already exists (e.g. alias sharing same params)
                 // But log other errors to debug issues
                 const errStr = String(e);
                 if (!errStr.includes('already exists')) {
-                    errorLog(`[CommandManager] Failed to register enum '${enumName}':`, e);
+                    errorLog(`[CommandManager] Failed to register enum '${enumName}': ${errStr}`);
                 }
             }
 

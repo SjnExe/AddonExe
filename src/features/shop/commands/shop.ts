@@ -1,0 +1,182 @@
+import * as mc from '@minecraft/server';
+
+import { getConfig } from '@core/configManager.js';
+import { items as allItems } from '@core/itemsConfig.default.js';
+import { showPanel } from '@core/uiManager.js';
+import { parseCurrency } from '@core/utils.js';
+import { CustomCommand, CommandExecutor } from '@modules/commands/commandManager.js';
+
+import * as shopAdminManager from '../shopAdminManager.js';
+import * as shopManager from '../shopManager.js';
+
+const shopCommand: CustomCommand = {
+    name: 'shop',
+    description: 'Opens the server shop.',
+    category: 'Economy',
+    permissionLevel: 1024,
+    allowConsole: false,
+    execute: async (executor: CommandExecutor) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const config = getConfig();
+        if (!config.shop.enabled) {
+            return executor.sendMessage('§cThe shop is currently disabled.');
+        }
+        await showPanel(executor, 'shopMainPanel', { view: 'shop' });
+    }
+};
+
+const buyCommand: CustomCommand = {
+    name: 'buy',
+    description: 'Opens the shop to buy items.',
+    category: 'Economy',
+    permissionLevel: 1024,
+    allowConsole: false,
+    execute: async (executor: CommandExecutor) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const config = getConfig();
+        if (!config.shop.enabled) {
+            return executor.sendMessage('§cThe shop is currently disabled.');
+        }
+        await showPanel(executor, 'shopMainPanel', { view: 'buy' });
+    }
+};
+
+const sellCommand: CustomCommand = {
+    name: 'sell',
+    description: 'Opens the shop to sell items.',
+    category: 'Economy',
+    permissionLevel: 1024,
+    allowConsole: false,
+    execute: async (executor: CommandExecutor) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const config = getConfig();
+        if (!config.shop.enabled) {
+            return executor.sendMessage('§cThe shop is currently disabled.');
+        }
+        await showPanel(executor, 'shopMainPanel', { view: 'sell' });
+    }
+};
+
+const sellHandCommand: CustomCommand = {
+    name: 'sellhand',
+    description: 'Sells the item currently in your main hand.',
+    category: 'Economy',
+    aliases: ['sh'],
+    permissionLevel: 1024,
+    allowConsole: false,
+    execute: (executor: CommandExecutor) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        const config = getConfig();
+        if (!config.shop.enabled) {
+            return executor.sendMessage('§cThe shop is currently disabled.');
+        }
+        const equipment = executor.getComponent('minecraft:equippable');
+        if (!equipment) {
+            return executor.sendMessage('§cCould not access your inventory.');
+        }
+        const item = equipment.getEquipment(mc.EquipmentSlot.Mainhand);
+
+        if (!item) {
+            return executor.sendMessage("§cYou aren't holding anything.");
+        }
+
+        if (item.maxAmount === 1) {
+            return executor.sendMessage(
+                '§cYou cannot use /sellhand for unstackable items. Please use the shop UI instead.'
+            );
+        }
+
+        const itemTypeId = item.typeId;
+        const shopItemKey = Object.keys(allItems).find(
+            (key) => (allItems as Record<string, { itemId: string }>)[key].itemId === itemTypeId
+        );
+
+        if (!shopItemKey) {
+            return executor.sendMessage("§cYou can't sell this item to the shop.");
+        }
+
+        const result = shopManager.sellItem(executor, shopItemKey, item.amount);
+        executor.sendMessage(result.message);
+    }
+};
+
+interface AddShopCommandArgs {
+    category: string;
+    buyPrice: string;
+    sellPrice: string;
+    subCategory?: string;
+}
+
+const addShopCommand: CustomCommand = {
+    name: 'addshop',
+    description: 'Adds the item in your hand to a shop category.',
+    category: 'Economy',
+    permissionLevel: 1, // Admins only
+    allowConsole: false,
+    parameters: [
+        { name: 'category', type: 'string' },
+        { name: 'buyPrice', type: 'string' },
+        { name: 'sellPrice', type: 'string' },
+        { name: 'subCategory', type: 'string', optional: true }
+    ],
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        if (!(executor instanceof mc.Player) || !args) {
+            return;
+        }
+        const {
+            category,
+            buyPrice: buyPriceStr,
+            sellPrice: sellPriceStr,
+            subCategory
+        } = args as unknown as AddShopCommandArgs;
+
+        if (!buyPriceStr || !sellPriceStr) {
+            return executor.sendMessage('§cPlease specify buy and sell prices.');
+        }
+
+        const buyPrice = parseCurrency(buyPriceStr);
+        const sellPrice = parseCurrency(sellPriceStr);
+
+        if (isNaN(buyPrice) || buyPrice < 0 || isNaN(sellPrice) || sellPrice < 0) {
+            return executor.sendMessage('§cInvalid prices. Please enter non-negative numbers.');
+        }
+
+        // Validate max 2 decimal places
+        if (
+            Math.abs(buyPrice - parseFloat(buyPrice.toFixed(2))) > 0.001 ||
+            Math.abs(sellPrice - parseFloat(sellPrice.toFixed(2))) > 0.001
+        ) {
+            return executor.sendMessage(
+                '§cInvalid precision. Prices can only have up to 2 decimal places (e.g. 10.55).'
+            );
+        }
+
+        const equipment = executor.getComponent('minecraft:equippable');
+        if (!equipment) {
+            return executor.sendMessage('§cCould not access your inventory.');
+        }
+        const item = equipment.getEquipment(mc.EquipmentSlot.Mainhand);
+
+        if (!item) {
+            return executor.sendMessage("§cYou aren't holding anything.");
+        }
+
+        const result = shopAdminManager.addShopItemFromHand(item, category, subCategory || null, buyPrice, sellPrice);
+
+        executor.sendMessage(result.message);
+
+        if (result.success) {
+            executor.sendMessage(`§aUse the panel to edit details for item ID: ${result.itemId}`);
+        }
+    }
+};
+
+export default [shopCommand, buyCommand, sellCommand, sellHandCommand, addShopCommand];

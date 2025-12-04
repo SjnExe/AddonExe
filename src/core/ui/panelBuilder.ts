@@ -3,6 +3,7 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
 import { commandManager } from '@modules/commands/commandManager.js';
 
+import * as reportManager from '../../features/moderation/reportManager.js';
 import * as bountyManager from '../bountyManager.js';
 import { loadConfig } from '../configLoader.js';
 import { getConfig } from '../configManager.js';
@@ -13,7 +14,6 @@ import { debugLog, errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
 import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
-import * as reportManager from '../reportManager.js';
 import * as rulesManager from '../rulesManager.js';
 import { formatCurrency, resolveIcon } from '../utils.js';
 
@@ -71,7 +71,7 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
             return;
         }
         const bounty = bountyManager.getBounty(player.id)?.amount ?? 0;
-        const { getTeamByPlayer } = await import('../teamManager.js');
+        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
         const team = getTeamByPlayer(player.id);
         const teamName = team ? `§3${team.name}` : '§8None';
 
@@ -133,8 +133,8 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
         }
 
         const commandName = item.id;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((config.commandSettings as any)[commandName]?.enabled === false) {
+        const settings = config.commandSettings as Record<string, { enabled?: boolean }>;
+        if (settings[commandName]?.enabled === false) {
             continue;
         }
         if (context.fromPanel === 'playerManagementPanel' && item.permissionLevel < 1024) {
@@ -376,7 +376,7 @@ async function buildPlayerManagementForm(title: string, context: UIContext) {
     if (playerEntries.length === 0) {
         form.body('§4No player data found.');
     } else {
-        const { getTeamByPlayer } = await import('../teamManager.js');
+        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
         const paginatedEntries = getPaginatedItems(playerEntries, page);
         for (const [lowerCaseName, id] of paginatedEntries) {
             const pData = loadPlayerData(id); // Load data for the player on the current page
@@ -418,7 +418,7 @@ async function buildPlayerListForm(title: string, context: UIContext) {
     if (onlinePlayers.length === 0) {
         form.body('§4No players are currently online.');
     } else {
-        const { getTeamByPlayer } = await import('../teamManager.js');
+        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
         const paginatedPlayers = getPaginatedItems(onlinePlayers, page);
         const config = getConfig();
         for (const player of paginatedPlayers) {
@@ -599,8 +599,8 @@ function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
     form.body('Toggle commands on or off.\n§2[Enabled]§r / §4[Disabled]§r');
 
     for (const commandName of paginatedCommands) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const isEnabled = (commandSettings as any)[commandName]?.enabled ?? false;
+        const settings = commandSettings as Record<string, { enabled?: boolean }>;
+        const isEnabled = settings[commandName]?.enabled ?? false;
         const statusText = isEnabled ? '§2[Enabled]' : '§4[Disabled]';
         form.button(`${commandName}\n${statusText}`);
     }
@@ -688,7 +688,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'teamMainPanel') {
-            const { getTeamByPlayer } = await import('../teamManager.js');
+            const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
             const teamConfig = getTeamConfig();
             const panelDef = panelDefinitions[panelId];
 
@@ -750,7 +750,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'teamSettingsPanel') {
-            const { getTeamByPlayer } = await import('../teamManager.js');
+            const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
             const pData = getOrCreatePlayer(player);
             const team = getTeamByPlayer(player.id);
 
@@ -772,7 +772,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'teamMembersPanel') {
-            const { getTeamByPlayer } = await import('../teamManager.js');
+            const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
             const team = getTeamByPlayer(player.id);
             if (!team) {
                 player.sendMessage('§4You are not in a team.');
@@ -807,7 +807,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'teamBrowserPanel') {
-            const { getAllTeams } = await import('../teamManager.js');
+            const { getAllTeams } = await import('../../features/teams/teamManager.js');
             const { page = 1 } = context;
             const form = new ActionFormData().title(`Browse Teams (Page ${page})`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
@@ -852,7 +852,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'teamManagePanel') {
-            const { getTeamByPlayer, getTeam } = await import('../teamManager.js');
+            const { getTeamByPlayer, getTeam } = await import('../../features/teams/teamManager.js');
             const { teamId } = context;
             // If context has teamId, it might be an admin managing another team.
             // Otherwise, manage own team.
@@ -894,7 +894,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'teamHomePanel') {
-            const { getTeamByPlayer } = await import('../teamManager.js');
+            const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
             const team = getTeamByPlayer(player.id);
             if (!team) {
                 return null;
@@ -927,7 +927,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'teamRequestsPanel') {
-            const { getTeamByPlayer } = await import('../teamManager.js');
+            const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
             const team = getTeamByPlayer(player.id);
             if (!team) {
                 return null;
@@ -1336,8 +1336,11 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'commandSettingsPanel') {
             const { commandName } = context;
             const config = getConfig();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const commandSettings = (config.commandSettings as any)[commandName ?? ''] || {};
+            const allSettings = config.commandSettings as Record<
+                string,
+                { enabled?: boolean; permissionLevel?: number }
+            >;
+            const commandSettings = allSettings[commandName ?? ''] || {};
             const command = commandManager.commands.get(commandName ?? '');
 
             const isEnabled = commandSettings.enabled ?? false;
@@ -1478,7 +1481,6 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 errorLog(`[UIManager] Edit rank panel: rank with ID ${context.rankId} not found.`);
                 return null;
             }
-            // const isSpecialRank = rank.conditions.some((c: any) => c.type === 'isOwner' || c.type === 'default');
 
             const form = new ModalFormData().title(`§l§3Edit Rank: ${rank?.name}`);
             form.textField('Rank Name', 'e.g., VIP', { defaultValue: rank.name });
