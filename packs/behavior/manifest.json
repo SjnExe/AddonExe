@@ -4,16 +4,31 @@
         "name": "§l§cAddon§6Exe §2BP§r",
         "description": "§aThe core behavior pack for AddonExe, a powerful server management and moderation tool. By Sjn.exe. Version §uv1.0.0§r",
         "uuid": "1564bfa3-6796-4b67-826a-03ca1ac2f3c1",
-        "version": [1, 0, 0],
-        "min_engine_version": [1, 21, 110],
-        "capabilities": ["pbr", "raytraced"]
+        "version": [
+            1,
+            0,
+            0
+        ],
+        "min_engine_version": [
+            1,
+            21,
+            110
+        ],
+        "capabilities": [
+            "pbr",
+            "raytraced"
+        ]
     },
     "modules": [
         {
             "description": "Core data and functions for AddonExe.",
             "type": "data",
             "uuid": "623bbed8-14c8-45c3-893b-c0492855b668",
-            "version": [1, 0, 0]
+            "version": [
+                1,
+                0,
+                0
+            ]
         },
         {
             "description": "Main scripting engine for AddonExe's features.",
@@ -21,7 +36,11 @@
             "language": "javascript",
             "entry": "scripts/core/main.js",
             "uuid": "ecb49e35-ade4-459d-83ff-85c3770c1e74",
-            "version": [1, 0, 0]
+            "version": [
+                1,
+                0,
+                0
+            ]
         }
     ],
     "dependencies": [
@@ -51,11 +70,17 @@
         },
         {
             "uuid": "9dca0c93-f6ec-4701-a74c-a774600640a4",
-            "version": [1, 0, 0]
+            "version": [
+                1,
+                0,
+                0
+            ]
         }
     ],
     "metadata": {
-        "authors": ["§6Sjn.exe§r"],
+        "authors": [
+            "§6Sjn.exe§r"
+        ],
         "license": "MIT",
         "url": "https://github.com/SjnExe/AddonExe"
     }
