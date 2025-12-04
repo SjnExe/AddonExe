@@ -52,7 +52,7 @@ async function showPunishmentLogs(player: mc.Player, page: number) {
     if (slice.length === 0) {
         form.body('No logs found.');
     } else {
-        slice.forEach(log => {
+        slice.forEach((log) => {
             const date = new Date(log.timestamp).toLocaleString();
             form.button(`${log.playerName} - ${log.type}\n${date}`);
         });
@@ -114,7 +114,7 @@ async function showFlagLogs(player: mc.Player, page: number) {
     if (slice.length === 0) {
         form.body('No logs found.');
     } else {
-        slice.forEach(log => {
+        slice.forEach((log) => {
             const date = new Date(log.timestamp).toLocaleTimeString();
             form.button(`${log.playerName} - ${log.checkName} (VL: ${log.vl})\n${date}`);
         });

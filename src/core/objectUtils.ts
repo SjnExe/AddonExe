@@ -120,7 +120,7 @@ export function getValueFromPath(obj: unknown, path: string): unknown {
         return obj;
     }
     return path.split('.').reduce<unknown>((current, key) => {
-        if (current && typeof current === 'object' && key in (current)) {
+        if (current && typeof current === 'object' && key in current) {
             return (current as Record<string, unknown>)[key];
         }
         return undefined;
@@ -167,11 +167,7 @@ function isNewKey(key: string, oldDefault: Record<string, unknown>): boolean {
  * @param userSavedValue The user's saved value for the nested object.
  * @returns The reconciled nested object.
  */
-function reconcileNestedObject(
-    newDefaultValue: unknown,
-    oldDefaultValue: unknown,
-    userSavedValue: unknown
-): unknown {
+function reconcileNestedObject(newDefaultValue: unknown, oldDefaultValue: unknown, userSavedValue: unknown): unknown {
     const userSavedChild = isObject(userSavedValue) ? userSavedValue : {};
     return reconcileConfig(
         newDefaultValue as Record<string, unknown>,
@@ -197,11 +193,7 @@ function hasDefaultValueChanged(newDefaultValue: unknown, oldDefaultValue: unkno
  * @param userHasSavedValue Whether the user has a saved value for this key.
  * @returns The final value for the key.
  */
-function getFinalValue(
-    newDefaultValue: unknown,
-    userSavedValue: unknown,
-    userHasSavedValue: boolean
-): unknown {
+function getFinalValue(newDefaultValue: unknown, userSavedValue: unknown, userHasSavedValue: boolean): unknown {
     return userHasSavedValue ? userSavedValue : newDefaultValue;
 }
 
@@ -312,8 +304,7 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
         return new RegExp(obj.source, obj.flags) as unknown as T;
     }
 
-
-    const result = (obj instanceof Array ? [] : Object.create(Object.getPrototypeOf(obj)));
+    const result = obj instanceof Array ? [] : Object.create(Object.getPrototypeOf(obj));
 
     hash.set(obj as object, result);
 

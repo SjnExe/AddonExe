@@ -1,80 +1,79 @@
 import * as mc from '@minecraft/server';
 
-import { debugLog } from '../../core/logger.js';
-
 import { getAnticheatConfig } from './anticheatConfigLoader.js';
 import { flag } from './flagManager.js';
 
-/**
- * Checks a player's inventory for illegal items.
- * @param player The player to check.
- */
-export function checkInventory(player: mc.Player) {
-    const config = getAnticheatConfig();
-    if (!config.enabled || !config.itemCheck.enabled) return;
+export function startItemCheckLoop() {
+    mc.system.runInterval(() => {
+        try {
+            const config = getAnticheatConfig();
+            if (!config.enabled || !config.itemCheck.enabled) return;
 
-    const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
+            for (const player of mc.world.getAllPlayers()) {
+                if (player.isValid) {
+                    checkInventory(player, config.itemCheck);
+                }
+            }
+        } catch (e) {
+            console.error('Anticheat Item Loop Error:', e);
+        }
+    }, 100); // Check every 5 seconds
+}
+
+
+function checkInventory(
+    player: mc.Player,
+    config: { bannedItems: string[]; maxEnchantLevel: number; [key: string]: any }
+) {
+    if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) return;
+
+    const inventory = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
     if (!inventory || !inventory.container) return;
 
     const container = inventory.container;
-    const bannedItems = new Set(config.itemCheck.bannedItems);
+    const bannedItems = config.bannedItems;
+    const MAX_ENCHANT_LEVEL = config.maxEnchantLevel || 5;
 
     for (let i = 0; i < container.size; i++) {
         const item = container.getItem(i);
-        if (!item) continue;
+        if (item) {
+            // Check illegal enchants
+            const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
+            if (enchantable && enchantable.getEnchantments) {
+                // getEnchantments() returns readonly array in newer versions
+                const enchants = enchantable.getEnchantments();
+                for (const enchant of enchants) {
+                    if (enchant.level > MAX_ENCHANT_LEVEL && config.illegalEnchantments) {
+                        flag(
+                            player,
+                            'itemCheck',
+                            `Illegal Enchant: ${enchant.type.id} Level ${enchant.level} (Max: ${MAX_ENCHANT_LEVEL})`
+                        );
+                        if (config.removeIllegalItems) {
+                            container.setItem(i); // Remove item
+                            // Break loop for this item since it's gone
+                            break;
+                        }
+                    }
+                }
+            }
 
-        let illegal = false;
-        let reason = '';
+            // Check banned items
+            // If item was removed by enchant check, item is null/undefined now? No, we need to check existence if we continue logic.
+            // But we used 'break' above.
+            // However, we should check `item` typeId again if we didn't break.
+            // Actually, best to check existence again or use continue.
 
-        // Check banned items
-        if (bannedItems.has(item.typeId)) {
-            illegal = true;
-            reason = 'Banned Item';
-        }
+            // Re-fetch item to be safe or just check if we removed it
+            const currentItem = container.getItem(i);
+            if (!currentItem) continue;
 
-        // Check enchantments
-        if (!illegal && config.itemCheck.illegalEnchantments) {
-             const enchantable = item.getComponent('minecraft:enchantable');
-             if (enchantable) {
-                 // Casting to any to access enchantments if type definition is outdated
-                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                 const enchants = (enchantable as any).getEnchantments
-                     ? // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-                       (enchantable as any).getEnchantments()
-                     : [];
-                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                 for (const enchant of enchants as any[]) {
-                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                     if (enchant.level > 5) { // Threshold: 5 is vanilla max for most. 10 is safe "modded but ok".
-                         // But sharpness goes up to 5.
-                         // Let's set 10 as hard limit for now.
-                         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                         if (enchant.level > 10) {
-                             illegal = true;
-                             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                             reason = `Illegal Enchantment Level: ${enchant.level}`;
-                             break;
-                         }
-                     }
-                 }
-             }
-        }
-
-        if (illegal) {
-            flag(player, 'itemCheck', `${item.typeId} (${reason})`);
-            if (config.itemCheck.removeIllegalItems) {
-                container.setItem(i, undefined);
-                player.sendMessage(`§cRemoved illegal item: ${item.typeId} (${reason})`);
-                debugLog(`[AntiCheat] Removed ${item.typeId} from ${player.name}. Reason: ${reason}`);
+            if (bannedItems.includes(currentItem.typeId)) {
+                flag(player, 'itemCheck', `Banned Item: ${currentItem.typeId}`);
+                if (config.removeIllegalItems) {
+                    container.setItem(i);
+                }
             }
         }
     }
-}
-
-export function startItemCheckLoop() {
-    mc.system.runInterval(() => {
-        for (const player of mc.world.getAllPlayers()) {
-            checkInventory(player);
-        }
-    }, 100); // Check every 5 seconds
 }

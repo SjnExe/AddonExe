@@ -3,68 +3,246 @@ import * as mc from '@minecraft/server';
 import { getAnticheatConfig } from './anticheatConfigLoader.js';
 import { flag } from './flagManager.js';
 
-const lastLocations = new Map<string, { x: number; y: number; z: number; timestamp: number }>();
+interface PlayerMovementState {
+    lastPos: mc.Vector3;
+    lastTime: number;
+    violationLevel: number; // Token bucket
+}
+
+const movementStates = new Map<string, PlayerMovementState>();
+
+// Slippery blocks that allow faster movement
+const ICE_BLOCKS = new Set([
+    'minecraft:ice',
+    'minecraft:packed_ice',
+    'minecraft:blue_ice',
+    'minecraft:slime',
+    'minecraft:frosted_ice'
+]);
 
 export function startMovementCheckLoop() {
-    // Use runJob for performance if available, or interval
-    // runJob requires beta 1.6.0+. We use "beta".
-    if (mc.system.runJob) {
-        mc.system.runJob(movementCheckGenerator());
-    }
-}
+    // Check world border/roof/movement every few ticks
+    // Using runJob is better for performance if widely supported, but runInterval is safer for stability.
+    // However, for smooth checks, runInterval with a small delay is good.
+    // Let's use 5 ticks (0.25s) for checks.
+    mc.system.runInterval(() => {
+        try {
+            const config = getAnticheatConfig();
+            if (!config.enabled) return;
 
-function* movementCheckGenerator() {
-    while (true) {
-        const config = getAnticheatConfig();
-        if (!config.enabled || !config.movementCheck.enabled) {
-            yield;
-            continue;
-        }
+            const players = mc.world.getAllPlayers();
+            for (const player of players) {
+                if (!player.isValid) continue;
 
-        const players = mc.world.getAllPlayers();
-        for (const player of players) {
-            if (player.isValid) {
-                checkMovement(player, config.movementCheck);
+                // Run checks
+                if (config.movementCheck.enabled) {
+                    checkMovement(player, config.movementCheck);
+                }
+                if (config.worldBorder.enabled) {
+                    checkWorldBorder(player, config.worldBorder);
+                }
+                if (config.antiNetherRoof.enabled) {
+                    checkNetherRoof(player, config.antiNetherRoof);
+                }
             }
-            yield; // Yield after each player to spread load
+        } catch (e) {
+            console.error('Anticheat Movement Loop Error:', e);
         }
-        yield;
-    }
+    }, 5);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function checkMovement(player: mc.Player, config: { maxSpeed: number; [key: string]: any }) {
-    if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) return;
 
-    // Simple speed check
-    const currentLoc = player.location;
+function checkMovement(
+    player: mc.Player,
+    config: { maxSpeed: number; maxSpeedIce: number; maxSpeedElytra: number; [key: string]: any }
+) {
+    if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
+        movementStates.delete(player.id);
+        return;
+    }
+
+    const currentPos = player.location;
     const now = Date.now();
 
-    if (lastLocations.has(player.id)) {
-        const last = lastLocations.get(player.id)!;
-        const timeDiff = (now - last.timestamp) / 1000;
+    let state = movementStates.get(player.id);
+    if (!state) {
+        state = { lastPos: currentPos, lastTime: now, violationLevel: 0 };
+        movementStates.set(player.id, state);
+        return; // Skip first tick to establish baseline
+    }
 
-        if (timeDiff > 0.2) {
-            // Check approx every 4 ticks
-            const dist = Math.sqrt(
-                Math.pow(currentLoc.x - last.x, 2) + Math.pow(currentLoc.z - last.z, 2) // Ignore Y for basic speed check
-            );
+    const timeDiff = (now - state.lastTime) / 1000;
+    if (timeDiff <= 0) return; // Should not happen with interval
 
-            const speed = dist / timeDiff; // blocks per second
+    // Calculate speed (horizontal only usually, but 3D is safer for fly)
+    // For pure speed, 2D distance is often enough, but let's use 3D to catch straight up flying.
+    const distSq =
+        Math.pow(currentPos.x - state.lastPos.x, 2) +
+        Math.pow(currentPos.y - state.lastPos.y, 2) +
+        Math.pow(currentPos.z - state.lastPos.z, 2);
+    const dist = Math.sqrt(distSq);
+    const speed = dist / timeDiff; // Blocks per second
 
-            // Basic threshold check (vanilla sprint jump is ~5.6 m/s, ice can be faster)
-            // Using a lenient default if maxSpeed is low
-            const limit = Math.max(config.maxSpeed, 15);
+    // Determine context-based limit
+    let limit = config.maxSpeed;
 
-            if (speed > limit && !player.isGliding) {
-                // Ensure player isn't riding an entity (API check needed if available, or tag)
-                flag(player, 'movementCheck', `Speed: ${speed.toFixed(2)} bps (Limit: ${limit})`);
-            }
-
-            // Update last location only after check
-            lastLocations.set(player.id, { x: currentLoc.x, y: currentLoc.y, z: currentLoc.z, timestamp: now });
-        }
+    // Check for Gliding (Elytra)
+    const isGliding = player.isGliding;
+    if (isGliding) {
+        limit = config.maxSpeedElytra;
     } else {
-        lastLocations.set(player.id, { x: currentLoc.x, y: currentLoc.y, z: currentLoc.z, timestamp: now });
+        // Check for Ice/Slime below
+        // We check the block directly below the player and slightly deeper
+        try {
+            const dimension = player.dimension;
+            const blockBelow = dimension.getBlock({
+                x: Math.floor(currentPos.x),
+                y: Math.floor(currentPos.y - 0.5),
+                z: Math.floor(currentPos.z)
+            });
+            const blockBelow2 = dimension.getBlock({
+                x: Math.floor(currentPos.x),
+                y: Math.floor(currentPos.y - 1.5),
+                z: Math.floor(currentPos.z)
+            });
+
+            if (
+                (blockBelow && ICE_BLOCKS.has(blockBelow.typeId)) ||
+                (blockBelow2 && ICE_BLOCKS.has(blockBelow2.typeId))
+            ) {
+                limit = config.maxSpeedIce;
+            }
+        } catch (e) {
+            // Ignore block read errors (unloaded chunks etc)
+        }
+    }
+
+    // Token Bucket / Violation Accumulator
+    // If speed > limit, accumulate violation
+    // If speed < limit, decay violation
+    if (speed > limit) {
+        // Add points proportional to excess speed
+        const excess = speed - limit;
+        state.violationLevel += excess;
+    } else {
+        // Decay
+        state.violationLevel = Math.max(0, state.violationLevel - 2.0); // Decay 2 points per check (approx 8 per second)
+    }
+
+    // Threshold for flagging
+    // A sudden lag spike might add 10-20 points but decay quickly.
+    // Sustained speeding will keep points high.
+    const FLAGGING_THRESHOLD = 20;
+
+    if (state.violationLevel > FLAGGING_THRESHOLD) {
+        flag(
+            player,
+            'movementCheck',
+            `Speed: ${speed.toFixed(1)} bps (Limit: ${limit}, VL: ${state.violationLevel.toFixed(1)})`
+        );
+        // Clamp VL to prevent infinite buildup
+        state.violationLevel = Math.min(state.violationLevel, 50);
+    }
+
+    // Update state
+    state.lastPos = currentPos;
+    state.lastTime = now;
+}
+
+
+function checkWorldBorder(
+    player: mc.Player,
+    config: {
+        enabled: boolean;
+        overworldRadius: number;
+        endRadius: number;
+        netherRadiusRatio: number;
+        center: { x: number; z: number } | null;
+        knockbackAmount: number;
+    }
+) {
+    if (player.getGameMode() === mc.GameMode.Spectator) return;
+
+    const dimensionId = player.dimension.id;
+    let radius = config.overworldRadius;
+    let center = config.center;
+
+    if (!center) {
+        // Default to world spawn if not configured
+        const spawn = mc.world.getDefaultSpawnLocation();
+        center = { x: spawn.x, z: spawn.z };
+    }
+
+    if (dimensionId === 'minecraft:nether') {
+        radius = Math.floor(config.overworldRadius / config.netherRadiusRatio);
+    } else if (dimensionId === 'minecraft:the_end') {
+        radius = config.endRadius;
+        // End usually centers on 0,0 regardless of overworld spawn
+        center = { x: 0, z: 0 };
+    }
+
+    const dx = Math.abs(player.location.x - center.x);
+    const dz = Math.abs(player.location.z - center.z);
+
+    if (dx > radius || dz > radius) {
+        // Player is outside border
+        // Calculate pushback direction (towards center)
+        // Simple teleport to the clamped position
+        const clampedX = Math.max(center.x - radius, Math.min(center.x + radius, player.location.x));
+        const clampedZ = Math.max(center.z - radius, Math.min(center.z + radius, player.location.z));
+
+        // Push them back slightly inside
+        // Determine vector from center to player
+        const vecX = player.location.x - center.x;
+        const vecZ = player.location.z - center.z;
+
+        // Normalize and invert
+        const len = Math.sqrt(vecX * vecX + vecZ * vecZ);
+        const pushX = len > 0 ? (vecX / len) * -config.knockbackAmount : 0;
+        const pushZ = len > 0 ? (vecZ / len) * -config.knockbackAmount : 0;
+
+        try {
+            player.teleport(
+                {
+                    x: clampedX + pushX,
+                    y: player.location.y,
+                    z: clampedZ + pushZ
+                },
+                { dimension: player.dimension }
+            );
+            player.sendMessage(`§cYou have reached the world border!`);
+        } catch (e) {
+            // Teleport might fail if stuck
+        }
+    }
+}
+
+function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
+    if (player.dimension.id !== 'minecraft:nether') return;
+    if (player.getGameMode() === mc.GameMode.Spectator || player.getGameMode() === mc.GameMode.Creative) return; // Allow admins/spectators
+
+    if (player.location.y > config.maxHeight) {
+        // Teleport down or kick
+        // Kick is safest to force reset
+        // Warn first?
+        try {
+            // Check if there is space below, else just run command to kick/kill
+            // We'll teleport them down 5 blocks as a soft fix, if that fails, maybe more drastic
+            // User requested: "gets kicked"
+            // We can't actually "kick" reliably without a command, but we can tp them to spawn or kill them.
+            // User said: "minecraft automatically puts them under the nether roof" when they rejoin.
+            // So kicking is the goal.
+            player.runCommand('kick "Nether Roof Detected"');
+        } catch (e) {
+            // If kick fails (permissions), TP down
+            try {
+                player.teleport(
+                    { x: player.location.x, y: 120, z: player.location.z },
+                    { dimension: player.dimension }
+                );
+            } catch (e2) {
+                // Ignore
+            }
+        }
     }
 }
