@@ -9,14 +9,14 @@ import createConfigManager, { ConfigManager } from './configManagerFactory.js';
 import { setLockState } from './playerDataManager.js';
 import { reloadRanks } from './rankManager.js';
 
-import type { economyConfig } from './economyConfig.default.js';
 import type { kitsConfig } from './kitsConfig.default.js';
 import type ranksConfig from './ranksConfig.default.js';
-import type { shopConfig } from './shopConfig.default.js';
 import type { config as sidebarConfig } from './sidebarConfig.default.js';
 import type { spawnConfig } from './spawnConfig.default.js';
-import type { teamConfig } from './teamConfig.default.js';
 import type { xrayConfig } from './xrayConfig.default.js';
+import type { economyConfig } from '../features/economy/economyConfig.js';
+import type { shopConfig } from '../features/shop/shopConfig.js';
+import type { teamConfig } from '../features/teams/teamConfig.js';
 
 export type KitsConfig = typeof kitsConfig;
 export type ShopConfig = typeof shopConfig;
@@ -46,7 +46,7 @@ export const saveKitsConfig = (config: KitsConfig) => kitsConfigManager.set(conf
 export const resetKitsConfig = () => kitsConfigManager.reset();
 
 export const loadShopConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<ShopConfig>('./shopConfig.js');
+    const defaultConfig = await asyncLoadConfig<ShopConfig>('../features/shop/shopConfig.js');
     shopConfigManager = createConfigManager('exe:shopConfig:current', defaultConfig, 'Shop');
     await shopConfigManager.load(isMigration);
 };
@@ -73,7 +73,7 @@ export const saveRanksConfig = (config: RanksConfig) => ranksConfigManager.set(c
 export const resetRanksConfig = () => ranksConfigManager.reset();
 
 export const loadEconomyConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<EconomyConfig>('./economyConfig.js');
+    const defaultConfig = await asyncLoadConfig<EconomyConfig>('../features/economy/economyConfig.js');
     economyConfigManager = createConfigManager('exe:economyConfig:current', defaultConfig, 'Economy');
     await economyConfigManager.load(isMigration);
 };
@@ -91,7 +91,7 @@ export const saveXrayConfig = (config: XrayConfig) => xrayConfigManager.set(conf
 export const resetXrayConfig = () => xrayConfigManager.reset();
 
 export const loadTeamConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<TeamConfig>('./teamConfig.js');
+    const defaultConfig = await asyncLoadConfig<TeamConfig>('../features/teams/teamConfig.js');
     teamConfigManager = createConfigManager('exe:teamConfig:current', defaultConfig, 'Teams');
     await teamConfigManager.load(isMigration);
 };
@@ -123,7 +123,7 @@ export const configResetRegistry: Record<string, ResetRegistryEntry> = {
         reset: resetXrayConfig,
         message: "The 'X-ray' configuration section has been reset to default."
     },
-    xray_ores: {
+    xrayOres: {
         reset: resetXrayConfig,
         message: "The 'X-ray' configuration section has been reset to default."
     },

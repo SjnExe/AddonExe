@@ -2,97 +2,101 @@
 /* eslint-disable */
 import { commandManager, CustomCommand } from './commandManager.js';
 
-import cmdAnnouncement from './announcement.js';
-import cmdBalance from './balance.js';
-import cmdBan from './ban.js';
-import cmdBounty from './bounty.js';
-import cmdChattoconsole from './chattoconsole.js';
-import cmdClear from './clear.js';
-import cmdClearchat from './clearchat.js';
-import cmdDeathcoords from './deathcoords.js';
-import cmdDimensionLock from './dimensionLock.js';
-import cmdFloatingtext from './floatingtext.js';
-import cmdFreeze from './freeze.js';
-import cmdGamemode from './gamemode.js';
-import cmdHelp from './help.js';
-import cmdHome from './home.js';
-import cmdInventory from './inventory.js';
-import cmdKick from './kick.js';
-import cmdKit from './kit.js';
-import cmdLinks from './links.js';
-import cmdLog from './log.js';
-import cmdMute from './mute.js';
-import cmdPanel from './panel.js';
-import cmdPay from './pay.js';
-import cmdPvp from './pvp.js';
-import cmdRank from './rank.js';
-import cmdReload from './reload.js';
-import cmdReport from './report.js';
-import cmdRestart from './restart.js';
-import cmdRtp from './rtp.js';
-import cmdRules from './rules.js';
-import cmdSave from './save.js';
-import cmdSetbalance from './setbalance.js';
-import cmdShop from './shop.js';
-import cmdSidebar from './sidebar.js';
-import cmdSpawn from './spawn.js';
-import cmdStatus from './status.js';
-import cmdTeam from './team.js';
-import cmdTest from './test.js';
-import cmdTestCommand from './testCommand.js';
-import cmdTp from './tp.js';
-import cmdTpa from './tpa.js';
-import cmdVanish from './vanish.js';
-import cmdVersion from './version.js';
-import cmdWarp from './warp.js';
-import cmdXraynotify from './xraynotify.js';
+import cmdLegacyAnnouncement from './announcement.js';
+import cmdLegacyBounty from './bounty.js';
+import cmdLegacyChattoconsole from './chattoconsole.js';
+import cmdLegacyClear from './clear.js';
+import cmdLegacyClearchat from './clearchat.js';
+import cmdLegacyDimensionLock from './dimensionLock.js';
+import cmdLegacyFloatingtext from './floatingtext.js';
+import cmdLegacyGamemode from './gamemode.js';
+import cmdLegacyHelp from './help.js';
+import cmdLegacyInventory from './inventory.js';
+import cmdLegacyKit from './kit.js';
+import cmdLegacyLinks from './links.js';
+import cmdLegacyLog from './log.js';
+import cmdLegacyPanel from './panel.js';
+import cmdLegacyPvp from './pvp.js';
+import cmdLegacyRank from './rank.js';
+import cmdLegacyReload from './reload.js';
+import cmdLegacyRestart from './restart.js';
+import cmdLegacyRules from './rules.js';
+import cmdLegacySave from './save.js';
+import cmdLegacySidebar from './sidebar.js';
+import cmdLegacySpawn from './spawn.js';
+import cmdLegacyStatus from './status.js';
+import cmdLegacyTest from './test.js';
+import cmdLegacyTestCommand from './testCommand.js';
+import cmdLegacyVanish from './vanish.js';
+import cmdLegacyVersion from './version.js';
+import cmdLegacyXraynotify from './xraynotify.js';
+import cmdAnticheatLogs from '../../features/anticheat/commands/logs.js';
+import cmdAnticheatNotify from '../../features/anticheat/commands/notify.js';
+import cmdEconomyBalance from '../../features/economy/commands/balance.js';
+import cmdEconomyPay from '../../features/economy/commands/pay.js';
+import cmdEconomySetbalance from '../../features/economy/commands/setbalance.js';
+import cmdModerationBan from '../../features/moderation/commands/ban.js';
+import cmdModerationFreeze from '../../features/moderation/commands/freeze.js';
+import cmdModerationKick from '../../features/moderation/commands/kick.js';
+import cmdModerationMute from '../../features/moderation/commands/mute.js';
+import cmdModerationReport from '../../features/moderation/commands/report.js';
+import cmdShopShop from '../../features/shop/commands/shop.js';
+import cmdTeamsTeam from '../../features/teams/commands/team.js';
+import cmdTeleportationDeathcoords from '../../features/teleportation/commands/deathcoords.js';
+import cmdTeleportationHome from '../../features/teleportation/commands/home.js';
+import cmdTeleportationRtp from '../../features/teleportation/commands/rtp.js';
+import cmdTeleportationTp from '../../features/teleportation/commands/tp.js';
+import cmdTeleportationTpa from '../../features/teleportation/commands/tpa.js';
+import cmdTeleportationWarp from '../../features/teleportation/commands/warp.js';
 
 export function loadCommands() {
     const commands = [
-        cmdAnnouncement,
-        cmdBalance,
-        cmdBan,
-        cmdBounty,
-        cmdChattoconsole,
-        cmdClear,
-        cmdClearchat,
-        cmdDeathcoords,
-        cmdDimensionLock,
-        cmdFloatingtext,
-        cmdFreeze,
-        cmdGamemode,
-        cmdHelp,
-        cmdHome,
-        cmdInventory,
-        cmdKick,
-        cmdKit,
-        cmdLinks,
-        cmdLog,
-        cmdMute,
-        cmdPanel,
-        cmdPay,
-        cmdPvp,
-        cmdRank,
-        cmdReload,
-        cmdReport,
-        cmdRestart,
-        cmdRtp,
-        cmdRules,
-        cmdSave,
-        cmdSetbalance,
-        cmdShop,
-        cmdSidebar,
-        cmdSpawn,
-        cmdStatus,
-        cmdTeam,
-        cmdTest,
-        cmdTestCommand,
-        cmdTp,
-        cmdTpa,
-        cmdVanish,
-        cmdVersion,
-        cmdWarp,
-        cmdXraynotify
+        cmdLegacyAnnouncement,
+        cmdLegacyBounty,
+        cmdLegacyChattoconsole,
+        cmdLegacyClear,
+        cmdLegacyClearchat,
+        cmdLegacyDimensionLock,
+        cmdLegacyFloatingtext,
+        cmdLegacyGamemode,
+        cmdLegacyHelp,
+        cmdLegacyInventory,
+        cmdLegacyKit,
+        cmdLegacyLinks,
+        cmdLegacyLog,
+        cmdLegacyPanel,
+        cmdLegacyPvp,
+        cmdLegacyRank,
+        cmdLegacyReload,
+        cmdLegacyRestart,
+        cmdLegacyRules,
+        cmdLegacySave,
+        cmdLegacySidebar,
+        cmdLegacySpawn,
+        cmdLegacyStatus,
+        cmdLegacyTest,
+        cmdLegacyTestCommand,
+        cmdLegacyVanish,
+        cmdLegacyVersion,
+        cmdLegacyXraynotify,
+        cmdAnticheatLogs,
+        cmdAnticheatNotify,
+        cmdEconomyBalance,
+        cmdEconomyPay,
+        cmdEconomySetbalance,
+        cmdModerationBan,
+        cmdModerationFreeze,
+        cmdModerationKick,
+        cmdModerationMute,
+        cmdModerationReport,
+        cmdShopShop,
+        cmdTeamsTeam,
+        cmdTeleportationDeathcoords,
+        cmdTeleportationHome,
+        cmdTeleportationRtp,
+        cmdTeleportationTp,
+        cmdTeleportationTpa,
+        cmdTeleportationWarp
     ];
 
     commands.forEach(cmdModule => {
