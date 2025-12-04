@@ -47,11 +47,15 @@ export function mutePlayer(
     const durationMs = duration ? parseDuration(duration) : Infinity;
     const expires = durationMs === Infinity ? Infinity : Date.now() + durationMs;
     const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
-    addPunishment(targetPlayer.id, {
-        type: 'mute',
-        expires,
-        reason
-    }, announcer);
+    addPunishment(
+        targetPlayer.id,
+        {
+            type: 'mute',
+            expires,
+            reason
+        },
+        announcer
+    );
     const durationText = durationMs === Infinity ? 'permanently' : `for ${durationString}`;
 
     if (executor instanceof mc.Player) {

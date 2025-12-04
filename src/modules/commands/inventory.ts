@@ -37,7 +37,7 @@ const invseeCommand: CustomCommand = {
         }
 
         const targetPlayer = target[0];
-        const inventory = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent | undefined)
+        const inventory = (targetPlayer.getComponent('inventory'))
             ?.container;
         if (!inventory) {
             if (executor instanceof mc.Player) {
@@ -291,9 +291,9 @@ const copyinvCommand: CustomCommand = {
         }
 
         try {
-            const playerInv = (executor.getComponent('inventory') as mc.EntityInventoryComponent | undefined)
+            const playerInv = (executor.getComponent('inventory'))
                 ?.container;
-            const targetInv = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent | undefined)
+            const targetInv = (targetPlayer.getComponent('inventory'))
                 ?.container;
 
             if (!playerInv || !targetInv) {

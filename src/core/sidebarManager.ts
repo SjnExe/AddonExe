@@ -35,7 +35,9 @@ export function cleanup() {
         try {
             player.onScreenDisplay.setTitle('');
             player.onScreenDisplay.setActionBar('');
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
     }
 }
 
@@ -69,15 +71,21 @@ function startLoops() {
     const config = getSidebarConfig();
 
     if (sidebarLoopId === null) {
-        sidebarLoopId = mc.system.runInterval(() => {
-            updateSidebar();
-        }, Math.max(1, config.updateInterval));
+        sidebarLoopId = mc.system.runInterval(
+            () => {
+                updateSidebar();
+            },
+            Math.max(1, config.updateInterval)
+        );
     }
 
     if (hudLoopId === null && config.actionBarEnabled) {
-        hudLoopId = mc.system.runInterval(() => {
-            updatePersonalHUD();
-        }, Math.max(1, config.actionBarInterval));
+        hudLoopId = mc.system.runInterval(
+            () => {
+                updatePersonalHUD();
+            },
+            Math.max(1, config.actionBarInterval)
+        );
     }
 }
 
@@ -152,10 +160,17 @@ function resolvePersonalPlaceholders(text: string, player: mc.Player): string {
     // Dimension
     let dimName = 'Unknown';
     switch (player.dimension.id) {
-        case 'minecraft:overworld': dimName = 'Overworld'; break;
-        case 'minecraft:nether': dimName = 'Nether'; break;
-        case 'minecraft:the_end': dimName = 'The End'; break;
-        default: dimName = player.dimension.id.replace('minecraft:', '');
+        case 'minecraft:overworld':
+            dimName = 'Overworld';
+            break;
+        case 'minecraft:nether':
+            dimName = 'Nether';
+            break;
+        case 'minecraft:the_end':
+            dimName = 'The End';
+            break;
+        default:
+            dimName = player.dimension.id.replace('minecraft:', '');
     }
 
     result = result
@@ -202,7 +217,7 @@ function updateSidebar() {
 
         const participants = objective.getParticipants();
         const newLines: string[] = [];
-        config.sidebarLines.forEach(line => {
+        config.sidebarLines.forEach((line) => {
             newLines.push(resolveGlobalPlaceholders(line));
         });
 
@@ -226,7 +241,6 @@ function updateSidebar() {
             objective.setScore(lineText, score);
             score--;
         }
-
     } catch (e) {
         errorLog(`[SidebarManager] Error updating sidebar: ${e}`);
     }
@@ -234,11 +248,16 @@ function updateSidebar() {
 
 function getMagicString(opacity: string): string {
     switch (opacity) {
-        case 'high': return MAGIC_STRING_BASE + '§1';
-        case 'medium': return MAGIC_STRING_BASE + '§2';
-        case 'low': return MAGIC_STRING_BASE + '§3';
-        case 'none': return MAGIC_STRING_BASE + '§4';
-        default: return MAGIC_STRING_BASE + '§2';
+        case 'high':
+            return MAGIC_STRING_BASE + '§1';
+        case 'medium':
+            return MAGIC_STRING_BASE + '§2';
+        case 'low':
+            return MAGIC_STRING_BASE + '§3';
+        case 'none':
+            return MAGIC_STRING_BASE + '§4';
+        default:
+            return MAGIC_STRING_BASE + '§2';
     }
 }
 

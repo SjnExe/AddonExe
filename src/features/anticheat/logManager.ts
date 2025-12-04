@@ -32,8 +32,8 @@ export function initializeLogManager() {
     // Prune old logs (7 days default)
     const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
     const now = Date.now();
-    flagLogs = flagLogs.filter(l => now - l.timestamp < ONE_WEEK);
-    punishLogs = punishLogs.filter(l => now - l.timestamp < ONE_WEEK);
+    flagLogs = flagLogs.filter((l) => now - l.timestamp < ONE_WEEK);
+    punishLogs = punishLogs.filter((l) => now - l.timestamp < ONE_WEEK);
 
     // Auto-save every 30 seconds
     mc.system.runInterval(() => saveLogs(), 600);
@@ -44,7 +44,13 @@ export function addFlagLog(playerName: string, checkName: string, vl: number, de
     flagLogs.push(log);
 }
 
-export function addPunishmentLog(playerName: string, type: string, reason: string, adminName: string, duration?: string) {
+export function addPunishmentLog(
+    playerName: string,
+    type: string,
+    reason: string,
+    adminName: string,
+    duration?: string
+) {
     const log: PunishmentLog = { timestamp: Date.now(), playerName, type, reason, adminName, duration };
     punishLogs.push(log);
 }
@@ -54,5 +60,9 @@ export function saveLogs() {
     punishStorage.save(punishLogs);
 }
 
-export function getFlagLogs() { return flagLogs; }
-export function getPunishmentLogs() { return punishLogs; }
+export function getFlagLogs() {
+    return flagLogs;
+}
+export function getPunishmentLogs() {
+    return punishLogs;
+}
