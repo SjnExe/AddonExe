@@ -55,7 +55,7 @@ async function main() {
                 v.includes('beta') &&
                 v.endsWith('-stable') &&
                 !v.includes('preview')
-            );
+            ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
             let newVersion;
             if (candidates.length > 0) {
