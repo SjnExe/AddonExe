@@ -33,11 +33,16 @@ import {
     clearExpiredPayments,
     loadNameIdMap
 } from './playerDataManager.js';
-import { loadPunishments, clearExpiredPunishments, initializePunishmentManager } from './punishmentManager.js';
 import * as rankManager from './rankManager.js';
-import { loadReports, clearOldResolvedReports } from './reportManager.js';
 import * as sidebarManager from './sidebarManager.js';
-import * as teamManager from './teamManager.js';
+import {
+    loadPunishments,
+    clearExpiredPunishments,
+    initializePunishmentManager,
+    checkAndKickBannedPlayer
+} from '../features/moderation/punishmentManager.js';
+import { loadReports, clearOldResolvedReports } from '../features/moderation/reportManager.js';
+import * as teamManager from '../features/teams/teamManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 
 import type { config as Config } from '../config.default.js';
@@ -83,6 +88,9 @@ function reinitializeOnlinePlayers() {
     infoLog(`[AddonExe] Re-initializing state for ${mc.world.getAllPlayers().length} online players...`);
     for (const player of mc.world.getAllPlayers()) {
         getOrCreatePlayer(player);
+        if (checkAndKickBannedPlayer(player)) {
+            continue;
+        }
         updatePlayerRank(player);
     }
     infoLog('[AddonExe] Player re-initialization complete.');
@@ -171,14 +179,17 @@ async function initializeAddon() {
     }
 
     await initializeConfigManager(isMigration);
-    await loadKitsConfig(isMigration);
-    await loadShopConfig(isMigration);
-    await loadRanksConfig(isMigration);
-    await loadSpawnConfig(isMigration);
-    await loadEconomyConfig(isMigration);
-    await loadTeamConfig(isMigration);
-    await loadSidebarConfig(isMigration);
-    await loadXrayConfig(isMigration);
+    await Promise.all([
+        loadKitsConfig(isMigration),
+        loadShopConfig(isMigration),
+        loadRanksConfig(isMigration),
+        loadSpawnConfig(isMigration),
+        loadEconomyConfig(isMigration),
+        loadTeamConfig(isMigration),
+        loadSidebarConfig(isMigration),
+        loadXrayConfig(isMigration),
+        import('../features/anticheat/index.js').then(m => m.initialize(isMigration))
+    ]);
 
     const config = getConfig();
     setLogLevel(config.logLevel);

@@ -14,13 +14,13 @@ import {
     saveSidebarConfig,
     SidebarConfig
 } from '../configurations.js';
-import { economyConfig } from '../economyConfig.default.js';
+import { economyConfig } from '../../features/economy/economyConfig.js';
 import { kitsConfig } from '../kitsConfig.default.js';
 import { PlayerData } from '../playerDataManager.js';
 import ranksConfig from '../ranksConfig.default.js';
-import { shopConfig } from '../shopConfig.default.js';
+import { shopConfig } from '../../features/shop/shopConfig.js';
 import { spawnConfig } from '../spawnConfig.default.js';
-import { teamConfig } from '../teamConfig.default.js';
+import { teamConfig } from '../../features/teams/teamConfig.js';
 import { xrayConfig } from '../xrayConfig.default.js';
 
 type SpawnConfig = typeof spawnConfig;

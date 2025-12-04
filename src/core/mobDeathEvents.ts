@@ -11,7 +11,7 @@ import {
     resetKillStreak
 } from './playerDataManager.js';
 import { handlePvPDeath } from './pvpManager.js';
-import { getTeamByPlayer } from './teamManager.js';
+import { getTeamByPlayer } from '../features/teams/teamManager.js';
 import { formatCurrency } from './utils.js';
 
 mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
