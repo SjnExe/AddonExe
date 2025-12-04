@@ -729,5 +729,55 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'How fast the HUD updates (in ticks).'
             }
         ]
+    },
+    {
+        id: 'anticheat',
+        title: '§l§cAnti-Cheat System§r',
+        icon: 'textures/items/iron_chestplate',
+        configSource: 'anticheat',
+        settings: [
+            {
+                key: 'enabled',
+                label: 'Enable Anti-Cheat',
+                type: 'toggle',
+                description: 'Master switch for the entire anti-cheat system.'
+            },
+            {
+                key: 'consoleNotifications',
+                label: 'Console Notifications',
+                type: 'toggle',
+                description: 'If enabled, violations are logged to the server console.'
+            },
+            {
+                key: 'itemCheck.enabled',
+                label: 'Item Check Enabled',
+                type: 'toggle',
+                description: 'Scans inventories for banned or illegal items.'
+            },
+            {
+                key: 'itemCheck.notifyStaff',
+                label: 'Item Check Alerts',
+                type: 'toggle',
+                description: 'Notify staff when illegal items are found.'
+            },
+            {
+                key: 'itemCheck.illegalEnchantments',
+                label: 'Check Enchants',
+                type: 'toggle',
+                description: 'Detects enchantments above vanilla limits.'
+            },
+            {
+                key: 'itemCheck.removeIllegalItems',
+                label: 'Remove Illegal Items',
+                type: 'toggle',
+                description: 'Automatically deletes detected illegal items.'
+            },
+            {
+                key: 'movementCheck.enabled',
+                label: 'Movement Check Enabled',
+                type: 'toggle',
+                description: 'Detects speed and fly hacks (experimental).'
+            }
+        ]
     }
 ];

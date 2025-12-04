@@ -23,8 +23,7 @@ export interface ConfigManager<T = unknown> {
     reset: () => Promise<void>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function createConfigManager<T = any>(
+export default function createConfigManager<T>(
     key: string,
     defaultConfig: T,
     name: string,
@@ -32,11 +31,12 @@ export default function createConfigManager<T = any>(
 ): ConfigManager<T> {
     const lastLoadedKey = `${key}:last_loaded`;
 
-    const initialDefaultConfig = wrapperKey ? { [wrapperKey]: deepClone(defaultConfig) } : deepClone(defaultConfig);
+    const initialDefaultConfig = (
+        wrapperKey ? { [wrapperKey]: deepClone(defaultConfig) } : deepClone(defaultConfig)
+    ) as T;
 
     let currentConfig = deepClone(initialDefaultConfig);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let lastLoadedConfig: any = null;
+    let lastLoadedConfig: T | null = null;
 
     function saveLastLoadedConfig() {
         try {
@@ -94,34 +94,38 @@ export default function createConfigManager<T = any>(
                 if (lastLoadedConfigForMerge) {
                     debugLog(`[${name}ConfigManager] Found last-loaded config. Proceeding with reconciliation.`);
                     if (name === 'Main') {
-                        currentConfig = reconcileConfig(newDefaultConfig, lastLoadedConfigForMerge, userSavedConfig);
+                        currentConfig = reconcileConfig(
+                            newDefaultConfig as Record<string, unknown>,
+                            lastLoadedConfigForMerge,
+                            userSavedConfig
+                        ) as T;
                     } else if (name === 'Ranks') {
                         const mergedRanks = mergeRanks(
                             userSavedConfig.rankDefinitions,
-                            newDefaultConfig.rankDefinitions,
+                            (newDefaultConfig as { rankDefinitions: unknown[] }).rankDefinitions,
                             lastLoadedConfigForMerge?.rankDefinitions || []
                         );
-                        currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks };
+                        currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
                     } else if (name === 'Kits' || name === 'Shop') {
                         currentConfig = mergeObjectMaps(
                             userSavedConfig,
                             newDefaultConfig,
                             lastLoadedConfigForMerge || {}
-                        );
+                        ) as T;
                     } else {
-                        currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+                        currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
                     }
                 } else {
                     debugLog(
                         `[${name}ConfigManager] Last-loaded config was unparsable. Falling back to default merge.`
                     );
-                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
                 }
             } else {
                 if (!isMigration) {
                     debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
                 }
-                currentConfig = deepMerge(newDefaultConfig, userSavedConfig);
+                currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
             }
 
             lastLoadedConfig = newDefaultConfig;
@@ -160,26 +164,27 @@ export default function createConfigManager<T = any>(
         debugLog(`[${name}ConfigManager] Configuration reloaded.`);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function updateConfig(path: string, value: any) {
-        setValueByPath(currentConfig, path, value);
+    function updateConfig(path: string, value: unknown) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setValueByPath(currentConfig as any, path, value);
         saveConfig();
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function updateMultipleConfig(updates: Record<string, any>) {
+    function updateMultipleConfig(updates: Record<string, unknown>) {
         for (const path in updates) {
-            setValueByPath(currentConfig, path, updates[path]);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            setValueByPath(currentConfig as any, path, updates[path]);
         }
         saveConfig();
     }
 
-    async function resetConfig() {
+    function resetConfig(): Promise<void> {
         currentConfig = initialDefaultConfig;
         lastLoadedConfig = initialDefaultConfig;
         saveConfig();
         saveLastLoadedConfig();
         debugLog(`[${name}ConfigManager] Configuration has been reset to default.`);
+        return Promise.resolve();
     }
 
     return {

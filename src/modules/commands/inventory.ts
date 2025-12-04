@@ -37,7 +37,8 @@ const invseeCommand: CustomCommand = {
         }
 
         const targetPlayer = target[0];
-        const inventory = targetPlayer.getComponent('inventory')?.container;
+        const inventory = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent | undefined)
+            ?.container;
         if (!inventory) {
             if (executor instanceof mc.Player) {
                 sendMessage(`§cCould not access the inventory of ${targetPlayer.name}.`, executor);
@@ -109,9 +110,10 @@ const ecseeCommand: CustomCommand = {
         }
 
         const targetPlayer = target[0];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const enderChestComp = targetPlayer.getComponent('minecraft:ender_chest') as any;
-        const inventory = enderChestComp?.container as mc.Container | undefined;
+        const enderChestComp = targetPlayer.getComponent('minecraft:ender_chest') as
+            | { container?: mc.Container }
+            | undefined;
+        const inventory = enderChestComp?.container;
 
         if (!inventory) {
             if (executor instanceof mc.Player) {
@@ -218,9 +220,10 @@ const ecwipeCommand: CustomCommand = {
 
         try {
             // Try native API first
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const enderChestComp = targetPlayer.getComponent('minecraft:ender_chest') as any;
-            const container = enderChestComp?.container as mc.Container | undefined;
+            const enderChestComp = targetPlayer.getComponent('minecraft:ender_chest') as
+                | { container?: mc.Container }
+                | undefined;
+            const container = enderChestComp?.container;
 
             if (container) {
                 container.clearAll();
@@ -288,8 +291,10 @@ const copyinvCommand: CustomCommand = {
         }
 
         try {
-            const playerInv = executor.getComponent('inventory')?.container;
-            const targetInv = targetPlayer.getComponent('inventory')?.container;
+            const playerInv = (executor.getComponent('inventory') as mc.EntityInventoryComponent | undefined)
+                ?.container;
+            const targetInv = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent | undefined)
+                ?.container;
 
             if (!playerInv || !targetInv) {
                 sendMessage('§cCould not access inventories.', executor);

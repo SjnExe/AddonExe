@@ -1,5 +1,13 @@
 import { ActionFormData } from '@minecraft/server-ui';
 
+import {
+    getAnticheatConfig,
+    saveAnticheatConfig,
+    AnticheatConfig
+} from '../../features/anticheat/anticheatConfigLoader.js';
+import { economyConfig } from '../../features/economy/economyConfig.js';
+import { shopConfig } from '../../features/shop/shopConfig.js';
+import { teamConfig } from '../../features/teams/teamConfig.js';
 import { getConfig, updateMultipleConfig, Config } from '../configManager.js';
 import {
     getSpawnConfig,
@@ -14,13 +22,10 @@ import {
     saveSidebarConfig,
     SidebarConfig
 } from '../configurations.js';
-import { economyConfig } from '../economyConfig.default.js';
 import { kitsConfig } from '../kitsConfig.default.js';
 import { PlayerData } from '../playerDataManager.js';
 import ranksConfig from '../ranksConfig.default.js';
-import { shopConfig } from '../shopConfig.default.js';
 import { spawnConfig } from '../spawnConfig.default.js';
-import { teamConfig } from '../teamConfig.default.js';
 import { xrayConfig } from '../xrayConfig.default.js';
 
 type SpawnConfig = typeof spawnConfig;
@@ -45,7 +50,8 @@ interface ConfigHandler {
         | RanksConfig
         | KitsConfig
         | ShopConfig
-        | SidebarConfig;
+        | SidebarConfig
+        | AnticheatConfig;
     save: (config: unknown) => void;
 }
 
@@ -73,6 +79,10 @@ export const configHandlers: Record<string, ConfigHandler> = {
     sidebar: {
         get: getSidebarConfig,
         save: (config: unknown) => saveSidebarConfig(config as SidebarConfig)
+    },
+    anticheat: {
+        get: getAnticheatConfig,
+        save: (config: unknown) => saveAnticheatConfig(config as AnticheatConfig)
     }
 };
 

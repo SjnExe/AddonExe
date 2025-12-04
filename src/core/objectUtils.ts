@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /**
  * Deeply compares two values for equality, handling objects, arrays, dates, and circular references.
  * @param a The first value to compare.
@@ -7,7 +5,7 @@
  * @param map Used internally to handle circular references.
  * @returns True if the values are deeply equal.
  */
-export function isDeepEqual(a: any, b: any, map = new WeakMap<object, any>()): boolean {
+export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, unknown>()): boolean {
     // Strict equality check for primitives and same object reference.
     if (a === b) {
         return true;
@@ -61,7 +59,10 @@ export function isDeepEqual(a: any, b: any, map = new WeakMap<object, any>()): b
     }
 
     for (const key of keysA) {
-        if (!Object.prototype.hasOwnProperty.call(b, key) || !isDeepEqual(a[key], b[key], map)) {
+        if (
+            !Object.prototype.hasOwnProperty.call(b, key) ||
+            !isDeepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], map)
+        ) {
             return false;
         }
     }
@@ -75,22 +76,26 @@ export function isDeepEqual(a: any, b: any, map = new WeakMap<object, any>()): b
  * @param source The source object.
  * @returns The merged object.
  */
-export function deepMerge(target: any, source: any): any {
-    const output = { ...target };
-
-    if (isObject(target) && isObject(source)) {
-        Object.keys(source).forEach((key) => {
-            if (isObject(source[key])) {
-                if (!(key in target)) {
-                    Object.assign(output, { [key]: source[key] });
-                } else {
-                    output[key] = deepMerge(target[key], source[key]);
-                }
-            } else {
-                Object.assign(output, { [key]: source[key] });
-            }
-        });
+export function deepMerge(target: unknown, source: unknown): unknown {
+    if (!isObject(target) || !isObject(source)) {
+        return target;
     }
+    const output = { ...target } as Record<string, unknown>;
+
+    Object.keys(source).forEach((key) => {
+        const sourceValue = source[key];
+        const targetValue = target[key];
+
+        if (isObject(sourceValue)) {
+            if (!(key in target)) {
+                Object.assign(output, { [key]: sourceValue });
+            } else {
+                output[key] = deepMerge(targetValue, sourceValue);
+            }
+        } else {
+            Object.assign(output, { [key]: sourceValue });
+        }
+    });
 
     return output;
 }
@@ -100,8 +105,8 @@ export function deepMerge(target: any, source: any): any {
  * @param item The value to check.
  * @returns True if the value is an object.
  */
-export function isObject(item: any): item is Record<string, any> {
-    return item && typeof item === 'object' && !Array.isArray(item);
+export function isObject(item: unknown): item is Record<string, unknown> {
+    return !!item && typeof item === 'object' && !Array.isArray(item);
 }
 
 /**
@@ -110,13 +115,16 @@ export function isObject(item: any): item is Record<string, any> {
  * @param path The dot-separated path to the property.
  * @returns The value of the property, or undefined if not found.
  */
-export function getValueFromPath(obj: any, path: string): any {
+export function getValueFromPath(obj: unknown, path: string): unknown {
     if (!path) {
         return obj;
     }
-    return path
-        .split('.')
-        .reduce((current, key) => (current && current[key] !== undefined ? current[key] : undefined), obj);
+    return path.split('.').reduce<unknown>((current, key) => {
+        if (current && typeof current === 'object' && key in (current)) {
+            return (current as Record<string, unknown>)[key];
+        }
+        return undefined;
+    }, obj);
 }
 
 /**
@@ -126,13 +134,19 @@ export function getValueFromPath(obj: any, path: string): any {
  * @param path The dot-separated path to the property.
  * @param value The value to set.
  */
-export function setValueByPath(obj: any, path: string, value: any): void {
+export function setValueByPath(obj: unknown, path: string, value: unknown): void {
     const keys = path.split('.');
     const lastKey = keys.pop();
-    if (!lastKey) {
+    if (!lastKey || !isObject(obj)) {
         return;
     }
-    const lastObj = keys.reduce((current, key) => (current[key] = current[key] || {}), obj);
+    const lastObj = keys.reduce<Record<string, unknown>>((current, key) => {
+        const record = current;
+        if (!record[key]) {
+            record[key] = {};
+        }
+        return record[key] as Record<string, unknown>;
+    }, obj);
     lastObj[lastKey] = value;
 }
 
@@ -142,7 +156,7 @@ export function setValueByPath(obj: any, path: string, value: any): void {
  * @param oldDefault The old default configuration object.
  * @returns True if the key is new.
  */
-function isNewKey(key: string, oldDefault: any): boolean {
+function isNewKey(key: string, oldDefault: Record<string, unknown>): boolean {
     return !Object.prototype.hasOwnProperty.call(oldDefault, key);
 }
 
@@ -153,9 +167,17 @@ function isNewKey(key: string, oldDefault: any): boolean {
  * @param userSavedValue The user's saved value for the nested object.
  * @returns The reconciled nested object.
  */
-function reconcileNestedObject(newDefaultValue: any, oldDefaultValue: any, userSavedValue: any): any {
+function reconcileNestedObject(
+    newDefaultValue: unknown,
+    oldDefaultValue: unknown,
+    userSavedValue: unknown
+): unknown {
     const userSavedChild = isObject(userSavedValue) ? userSavedValue : {};
-    return reconcileConfig(newDefaultValue, oldDefaultValue, userSavedChild);
+    return reconcileConfig(
+        newDefaultValue as Record<string, unknown>,
+        oldDefaultValue as Record<string, unknown>,
+        userSavedChild
+    );
 }
 
 /**
@@ -164,7 +186,7 @@ function reconcileNestedObject(newDefaultValue: any, oldDefaultValue: any, userS
  * @param oldDefaultValue The old default value.
  * @returns True if the default value has changed.
  */
-function hasDefaultValueChanged(newDefaultValue: any, oldDefaultValue: any): boolean {
+function hasDefaultValueChanged(newDefaultValue: unknown, oldDefaultValue: unknown): boolean {
     return !isDeepEqual(newDefaultValue, oldDefaultValue);
 }
 
@@ -175,7 +197,11 @@ function hasDefaultValueChanged(newDefaultValue: any, oldDefaultValue: any): boo
  * @param userHasSavedValue Whether the user has a saved value for this key.
  * @returns The final value for the key.
  */
-function getFinalValue(newDefaultValue: any, userSavedValue: any, userHasSavedValue: boolean): any {
+function getFinalValue(
+    newDefaultValue: unknown,
+    userSavedValue: unknown,
+    userHasSavedValue: boolean
+): unknown {
     return userHasSavedValue ? userSavedValue : newDefaultValue;
 }
 
@@ -188,14 +214,18 @@ function getFinalValue(newDefaultValue: any, userSavedValue: any, userHasSavedVa
  * @param userSaved - The user's currently saved config object.
  * @returns The final, reconciled configuration object.
  */
-export function reconcileConfig(newDefault: any, oldDefault: any, userSaved: any): any {
-    const finalConfig: any = {};
+export function reconcileConfig(
+    newDefault: Record<string, unknown>,
+    oldDefault: Record<string, unknown>,
+    userSaved: Record<string, unknown> | null
+): Record<string, unknown> {
+    const finalConfig: Record<string, unknown> = {};
 
     for (const key in newDefault) {
         const newDefaultValue = newDefault[key];
         const oldDefaultValue = oldDefault[key];
         const userSavedValue = userSaved ? userSaved[key] : undefined;
-        const userHasSavedValue = userSaved && Object.prototype.hasOwnProperty.call(userSaved, key);
+        const userHasSavedValue = userSaved ? Object.prototype.hasOwnProperty.call(userSaved, key) : false;
 
         if (isNewKey(key, oldDefault)) {
             finalConfig[key] = newDefaultValue;
@@ -220,16 +250,16 @@ export function reconcileConfig(newDefault: any, oldDefault: any, userSaved: any
  * @returns The merged configuration object.
  */
 export function mergeWithFileChanges(
-    userSavedConfig: any,
-    newDefaultConfig: any,
-    lastLoadedConfig: any,
-    debugLog: (message: string, ...args: any[]) => void,
+    userSavedConfig: unknown,
+    newDefaultConfig: unknown,
+    lastLoadedConfig: unknown,
+    debugLog: (message: string, ...args: unknown[]) => void,
     configName: string
-): any {
+): unknown {
     const mergedConfig = deepClone(userSavedConfig);
 
     // This recursive helper function is the core of the logic.
-    function applyChanges(path: string, fileObj: any, lastLoadedObj: any) {
+    function applyChanges(path: string, fileObj: unknown, lastLoadedObj: unknown) {
         if (!isObject(fileObj)) {
             return;
         }
@@ -266,27 +296,32 @@ export function mergeWithFileChanges(
  * @param hash A map to store references to already cloned objects to handle circular references.
  * @returns A deep clone of the value.
  */
-export function deepClone(obj: any, hash = new WeakMap<object, any>()): any {
+export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
     if (Object(obj) !== obj) {
         // Primitives are returned directly
         return obj;
     }
-    if (hash.has(obj)) {
+    if (hash.has(obj as object)) {
         // Handle circular references
-        return hash.get(obj);
+        return hash.get(obj as object) as T;
     }
     if (obj instanceof Date) {
-        return new Date(obj);
+        return new Date(obj) as unknown as T;
     }
     if (obj instanceof RegExp) {
-        return new RegExp(obj.source, obj.flags);
+        return new RegExp(obj.source, obj.flags) as unknown as T;
     }
 
-    const result = obj instanceof Array ? [] : Object.create(Object.getPrototypeOf(obj));
 
-    hash.set(obj, result);
+    const result = (obj instanceof Array ? [] : Object.create(Object.getPrototypeOf(obj)));
 
-    return Object.assign(result, ...Object.keys(obj).map((key) => ({ [key]: deepClone(obj[key], hash) })));
+    hash.set(obj as object, result);
+
+    return Object.assign(
+        result,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...Object.keys(obj as any).map((key) => ({ [key]: deepClone((obj as any)[key], hash) }))
+    );
 }
 
 /**

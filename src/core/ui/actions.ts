@@ -1,13 +1,13 @@
 import * as mc from '@minecraft/server';
 import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
+import * as punishmentManager from '../../features/moderation/punishmentManager.js';
+import * as reportManager from '../../features/moderation/reportManager.js';
+import * as tpaManager from '../../features/teleportation/tpaManager.js';
 import * as bountyManager from '../bountyManager.js';
 import * as configManager from '../configManager.js';
 import { getPlayerFromCache } from '../playerCache.js';
 import { getPlayer, incrementPlayerBalance } from '../playerDataManager.js';
-import * as punishmentManager from '../punishmentManager.js';
-import * as reportManager from '../reportManager.js';
-import * as tpaManager from '../tpaManager.js';
 import { showPanel } from '../uiManager.js';
 import * as utils from '../utils.js';
 
@@ -127,7 +127,7 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
         type: 'mute',
         expires,
         reason
-    });
+    }, player.name);
 
     player.sendMessage(`§2Muted ${targetData.name} for ${durationMins} minutes.`);
     const target = getPlayerFromCache(targetId);
@@ -195,7 +195,7 @@ async function banPlayer(player: mc.Player, context: UIContext) {
         type: 'ban',
         expires,
         reason
-    });
+    }, player.name);
 
     const target = getPlayerFromCache(targetId);
     if (target) {

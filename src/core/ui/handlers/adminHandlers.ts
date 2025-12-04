@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
+import * as reportManager from '../../../features/moderation/reportManager.js';
 import { floatingTextManager } from '../../floatingTextManager.js';
 import { errorLog } from '../../logger.js';
-import * as reportManager from '../../reportManager.js';
 import { showPanel } from '../../uiManager.js';
 import { UIContext } from '../panelRegistry.js';
 import { itemsPerPage, getPaginatedItems } from '../uiUtils.js';
