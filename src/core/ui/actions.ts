@@ -123,11 +123,15 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
     }
 
     const expires = Date.now() + durationMins * 60 * 1000;
-    punishmentManager.addPunishment(targetId, {
-        type: 'mute',
-        expires,
-        reason
-    }, player.name);
+    punishmentManager.addPunishment(
+        targetId,
+        {
+            type: 'mute',
+            expires,
+            reason
+        },
+        player.name
+    );
 
     player.sendMessage(`§2Muted ${targetData.name} for ${durationMins} minutes.`);
     const target = getPlayerFromCache(targetId);
@@ -191,11 +195,15 @@ async function banPlayer(player: mc.Player, context: UIContext) {
             ? Date.now() + 100 * 365 * 24 * 60 * 60 * 1000
             : Date.now() + durationHours * 60 * 60 * 1000;
 
-    punishmentManager.addPunishment(targetId, {
-        type: 'ban',
-        expires,
-        reason
-    }, player.name);
+    punishmentManager.addPunishment(
+        targetId,
+        {
+            type: 'ban',
+            expires,
+            reason
+        },
+        player.name
+    );
 
     const target = getPlayerFromCache(targetId);
     if (target) {

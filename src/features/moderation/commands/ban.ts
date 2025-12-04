@@ -39,11 +39,15 @@ export function banPlayer(
     const expires = durationMs === Infinity ? Infinity : Date.now() + durationMs;
     const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
 
-    addPunishment(targetPlayer.id, {
-        type: 'ban',
-        expires,
-        reason
-    }, announcer);
+    addPunishment(
+        targetPlayer.id,
+        {
+            type: 'ban',
+            expires,
+            reason
+        },
+        announcer
+    );
 
     const durationText = durationMs === Infinity ? 'permanently' : `for ${durationString}`;
     if (executor instanceof mc.Player) {
@@ -192,11 +196,15 @@ export function offlineBanPlayer(
     const expires = durationMs === Infinity ? Infinity : Date.now() + durationMs;
     const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
 
-    addPunishment(targetId, {
-        type: 'ban',
-        expires,
-        reason
-    }, announcer);
+    addPunishment(
+        targetId,
+        {
+            type: 'ban',
+            expires,
+            reason
+        },
+        announcer
+    );
 
     const durationText = durationMs === Infinity ? 'permanently' : `for ${durationString}`;
     if (executor instanceof mc.Player) {

@@ -188,7 +188,7 @@ async function initializeAddon() {
         loadTeamConfig(isMigration),
         loadSidebarConfig(isMigration),
         loadXrayConfig(isMigration),
-        import('../features/anticheat/index.js').then(m => m.initialize(isMigration))
+        import('../features/anticheat/index.js').then((m) => m.initialize(isMigration))
     ]);
 
     const config = getConfig();

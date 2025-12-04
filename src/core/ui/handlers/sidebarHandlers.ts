@@ -34,7 +34,10 @@ export async function handleSidebarPanel(
         const lineIndex = selection - 2;
         if (lineIndex >= 0 && lineIndex < lines.length) {
             // Open Action Menu instead of direct edit
-            return showPanel(player, isSidebar ? 'sidebarLineActionPanel' : 'actionBarLineActionPanel', { ...context, lineIndex });
+            return showPanel(player, isSidebar ? 'sidebarLineActionPanel' : 'actionBarLineActionPanel', {
+                ...context,
+                lineIndex
+            });
         }
         return;
     }
@@ -75,7 +78,10 @@ export async function handleSidebarPanel(
 
         if (selection === 0) {
             // Edit
-            return showPanel(player, isSidebar ? 'sidebarLineEditForm' : 'actionBarLineEditForm', { ...context, lineIndex: index });
+            return showPanel(player, isSidebar ? 'sidebarLineEditForm' : 'actionBarLineEditForm', {
+                ...context,
+                lineIndex: index
+            });
         }
 
         return showPanel(player, listPanelId, context);
@@ -107,7 +113,13 @@ export async function handleSidebarPanel(
     }
 }
 
-function saveAndRefresh(player: mc.Player, isSidebar: boolean, config: SidebarConfig, lines: string[], message: string) {
+function saveAndRefresh(
+    player: mc.Player,
+    isSidebar: boolean,
+    config: SidebarConfig,
+    lines: string[],
+    message: string
+) {
     if (isSidebar) {
         config.sidebarLines = lines;
     } else {

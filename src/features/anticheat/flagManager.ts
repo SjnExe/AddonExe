@@ -5,7 +5,7 @@ import { getPlayer } from '../../core/playerDataManager.js';
 import { StorageManager } from '../../core/storage/StorageManager.js';
 import { formatString } from '../../core/utils.js';
 
-import { CheckConfig } from './anticheatConfig.js';
+import { BaseCheckConfig } from './anticheatConfig.js';
 import { getAnticheatConfig } from './anticheatConfigLoader.js';
 import { addFlagLog } from './logManager.js';
 
@@ -42,7 +42,7 @@ export function saveFlags() {
 
 export function flag(player: mc.Player, checkName: string, message: string) {
     const config = getAnticheatConfig();
-    const checkConfig = (config as unknown as Record<string, CheckConfig | undefined>)[checkName];
+    const checkConfig = (config as unknown as Record<string, BaseCheckConfig | undefined>)[checkName];
 
     if (!config.enabled || !checkConfig || !checkConfig.enabled) return;
 
@@ -94,7 +94,7 @@ function notifyAdmins(suspect: mc.Player, check: string, vl: number, info: strin
     for (const admin of mc.world.getAllPlayers()) {
         const pData = getPlayer(admin.id);
         if (pData && pData.permissionLevel <= minLevel && !admin.hasTag('exe:ac_notify_off')) {
-             admin.sendMessage(`§c[AC] §e${suspect.name} §7failed §b${check} §7(VL: ${vl}): §f${info}`);
+            admin.sendMessage(`§c[AC] §e${suspect.name} §7failed §b${check} §7(VL: ${vl}): §f${info}`);
         }
     }
 }

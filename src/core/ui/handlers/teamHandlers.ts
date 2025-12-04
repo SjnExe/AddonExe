@@ -378,7 +378,8 @@ export async function handleTeamPanel(
     }
 
     if (panelId === 'teamRequestsPanel') {
-        const { getTeamByPlayer, acceptApplication, denyApplication } = await import('../../../features/teams/teamManager.js');
+        const { getTeamByPlayer, acceptApplication, denyApplication } =
+            await import('../../../features/teams/teamManager.js');
         const team = getTeamByPlayer(player.id);
         if (!team) {
             return;
