@@ -1,13 +1,13 @@
 import * as mc from '@minecraft/server';
 
 import { commandManager } from '@modules/commands/commandManager.js';
-import { isTeamChatEnabled, toggleTeamChat } from '@modules/commands/team.js';
+import { isTeamChatEnabled, toggleTeamChat } from '../../features/teams/commands/team.js';
 
 import { getConfig } from '../configManager.js';
 import * as playerDataManager from '../playerDataManager.js';
-import { getPunishment } from '../punishmentManager.js';
+import { getPunishment } from '../../features/moderation/punishmentManager.js';
 import * as rankManager from '../rankManager.js';
-import { getTeamByPlayer } from '../teamManager.js';
+import { getTeamByPlayer } from '../../features/teams/teamManager.js';
 
 export const eventName = 'beforeChatSend';
 

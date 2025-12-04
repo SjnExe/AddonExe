@@ -1,19 +1,19 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { banPlayer, offlineBanPlayer, unbanPlayer } from '@modules/commands/ban.js';
-import { freezePlayer, unfreezePlayer } from '@modules/commands/freeze.js';
-import { kickPlayer } from '@modules/commands/kick.js';
-import { mutePlayer, unmutePlayer } from '@modules/commands/mute.js';
+import { banPlayer, offlineBanPlayer, unbanPlayer } from '../../features/moderation/commands/ban.js';
+import { freezePlayer, unfreezePlayer } from '../../features/moderation/commands/freeze.js';
+import { kickPlayer } from '../../features/moderation/commands/kick.js';
+import { mutePlayer, unmutePlayer } from '../../features/moderation/commands/mute.js';
 
 import * as bountyManager from '../bountyManager.js';
 import { getConfig } from '../configManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import * as playerCache from '../playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '../playerDataManager.js';
-import * as reportManager from '../reportManager.js';
+import * as reportManager from '../../features/moderation/reportManager.js';
 import * as rulesManager from '../rulesManager.js';
-import * as tpaManager from '../tpaManager.js';
+import * as tpaManager from '../../features/teleportation/tpaManager.js';
 import { showPanel } from '../uiManager.js';
 import { formatCurrency } from '../utils.js';
 import * as utils from '../utils.js';

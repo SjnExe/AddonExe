@@ -22,13 +22,13 @@ export const config = {
 
     // --- Feature Toggles & Settings ---
     tpa: {
-        enabled: true,
+        enabled: false,
         requestTimeoutSeconds: 60,
         cooldownSeconds: 30,
         teleportWarmupSeconds: 10
     },
     homes: {
-        enabled: true,
+        enabled: false,
         maxHomes: 5,
         cooldownSeconds: 60, // 1 minute
         teleportWarmupSeconds: 10
@@ -49,7 +49,7 @@ export const config = {
         enabled: false
     },
     shop: {
-        enabled: true
+        enabled: false
     },
     reports: {
         resolvedReportLifetimeDays: 7
@@ -58,13 +58,13 @@ export const config = {
         logToConsole: false
     },
     economy: {
-        enabled: true,
+        enabled: false,
         baltopLimit: 10,
         paymentConfirmationThreshold: 10000, // Payments over this amount require confirmation
         paymentConfirmationTimeout: 60 // Seconds to confirm a payment
     },
     bounties: {
-        enabled: true,
+        enabled: false,
         minimumBounty: 10,
         // How long (in seconds) after the last hit from a player that they can still be credited for the kill.
         bountyCreditTimeoutSeconds: 15

@@ -5,9 +5,9 @@ import * as bountyManager from '../bountyManager.js';
 import * as configManager from '../configManager.js';
 import { getPlayerFromCache } from '../playerCache.js';
 import { getPlayer, incrementPlayerBalance } from '../playerDataManager.js';
-import * as punishmentManager from '../punishmentManager.js';
-import * as reportManager from '../reportManager.js';
-import * as tpaManager from '../tpaManager.js';
+import * as punishmentManager from '../../features/moderation/punishmentManager.js';
+import * as reportManager from '../../features/moderation/reportManager.js';
+import * as tpaManager from '../../features/teleportation/tpaManager.js';
 import { showPanel } from '../uiManager.js';
 import * as utils from '../utils.js';
 

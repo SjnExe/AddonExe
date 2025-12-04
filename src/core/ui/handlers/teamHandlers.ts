@@ -20,7 +20,7 @@ export async function handleTeamPanel(
     const pData = getPlayer(player.id);
 
     if (panelId === 'teamMainPanel') {
-        const { getTeamByPlayer } = await import('../../teamManager.js');
+        const { getTeamByPlayer } = await import('../../../features/teams/teamManager.js');
 
         const team = getTeamByPlayer(player.id);
 
@@ -69,7 +69,7 @@ export async function handleTeamPanel(
                         confirmButtonText: '§4Yes, Leave',
                         cancelButtonText: 'No',
                         onConfirm: async () => {
-                            const { kickMember } = await import('../../teamManager.js');
+                            const { kickMember } = await import('../../../features/teams/teamManager.js');
                             // Kick self
                             kickMember(team.id, player.id);
                             player.sendMessage('§2You have left the team.');
@@ -107,7 +107,7 @@ export async function handleTeamPanel(
             return showPanel(player, panelId, context);
         }
 
-        const { createTeam } = await import('../../teamManager.js');
+        const { createTeam } = await import('../../../features/teams/teamManager.js');
         const result = createTeam(player, name);
         player.sendMessage(result.message || '§4Unknown error.');
         return showPanel(player, 'teamMainPanel', context);
@@ -144,7 +144,7 @@ export async function handleTeamPanel(
         }
 
         // Confirm Application
-        const { getTeam, applyToTeam } = await import('../../teamManager.js');
+        const { getTeam, applyToTeam } = await import('../../../features/teams/teamManager.js');
         const team = getTeam(teamId);
         if (!team) {
             player.sendMessage('§4Team not found.');
@@ -191,7 +191,7 @@ export async function handleTeamPanel(
         if (inviteIndex >= 0 && inviteIndex < invites.length) {
             const invite = invites[inviteIndex];
             // Options: Accept, Deny
-            const { acceptInvite, denyInvite } = await import('../../teamManager.js');
+            const { acceptInvite, denyInvite } = await import('../../../features/teams/teamManager.js');
 
             const form = new ActionFormData()
                 .title(`Invite: ${invite.teamName}`)
@@ -220,7 +220,7 @@ export async function handleTeamPanel(
     }
 
     if (panelId === 'teamBrowserPanel') {
-        const { getAllTeams } = await import('../../teamManager.js');
+        const { getAllTeams } = await import('../../../features/teams/teamManager.js');
         const page = context.page || 1;
         const teams = getAllTeams().sort((a, b) => b.members.length - a.members.length);
         const paginatedTeams = getPaginatedItems(teams, page);
@@ -235,7 +235,7 @@ export async function handleTeamPanel(
         if (selectionIndex < paginatedTeams.length) {
             // Apply to selected team
             const team = paginatedTeams[selectionIndex];
-            const { applyToTeam } = await import('../../teamManager.js');
+            const { applyToTeam } = await import('../../../features/teams/teamManager.js');
 
             await showConfirmationDialog(player, {
                 title: `Apply to ${team.name}?`,
@@ -272,7 +272,7 @@ export async function handleTeamPanel(
     }
 
     if (panelId === 'teamManagePanel') {
-        const { getTeamByPlayer, deleteTeam } = await import('../../teamManager.js');
+        const { getTeamByPlayer, deleteTeam } = await import('../../../features/teams/teamManager.js');
         const team = getTeamByPlayer(player.id);
         if (!team) {
             return;
@@ -325,7 +325,7 @@ export async function handleTeamPanel(
             return showPanel(player, 'teamManagePanel', context);
         }
 
-        const { getTeamByPlayer, setTeamHome, deleteTeamHome } = await import('../../teamManager.js');
+        const { getTeamByPlayer, setTeamHome, deleteTeamHome } = await import('../../../features/teams/teamManager.js');
         const team = getTeamByPlayer(player.id);
         if (!team) {
             return;
@@ -378,7 +378,7 @@ export async function handleTeamPanel(
     }
 
     if (panelId === 'teamRequestsPanel') {
-        const { getTeamByPlayer, acceptApplication, denyApplication } = await import('../../teamManager.js');
+        const { getTeamByPlayer, acceptApplication, denyApplication } = await import('../../../features/teams/teamManager.js');
         const team = getTeamByPlayer(player.id);
         if (!team) {
             return;
@@ -420,7 +420,7 @@ export async function handleTeamPanel(
             return showPanel(player, 'teamMainPanel', context);
         }
 
-        const { getTeamByPlayer, setTeamOpenStatus } = await import('../../teamManager.js');
+        const { getTeamByPlayer, setTeamOpenStatus } = await import('../../../features/teams/teamManager.js');
         const { updatePlayerData } = await import('../../playerDataManager.js');
 
         const team = getTeamByPlayer(player.id);
@@ -457,7 +457,7 @@ export async function handleTeamPanel(
         }
 
         const { getTeamByPlayer, kickMember, promoteMember, demoteMember, transferOwnership } =
-            await import('../../teamManager.js');
+            await import('../../../features/teams/teamManager.js');
         const team = getTeamByPlayer(player.id);
         if (!team) {
             return;
