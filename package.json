@@ -38,9 +38,9 @@
         "@minecraft/diagnostics": "beta",
         "@minecraft/gameplay-utilities": "latest",
         "@minecraft/math": "latest",
-        "@minecraft/server": "beta",
+        "@minecraft/server": "latest",
         "@minecraft/server-gametest": "beta",
-        "@minecraft/server-ui": "beta",
+        "@minecraft/server-ui": "latest",
         "@minecraft/vanilla-data": "latest",
         "@types/jest": "latest",
         "@types/node": "latest",
@@ -101,8 +101,8 @@
         "*.{js,ts,json,md}": "prettier --write"
     },
     "overrides": {
-        "@minecraft/server": "beta",
-        "@minecraft/server-ui": "beta",
+        "@minecraft/server": "latest",
+        "@minecraft/server-ui": "latest",
         "@minecraft/server-gametest": "beta",
         "@minecraft/diagnostics": "beta",
         "@minecraft/debug-utilities": "beta",
