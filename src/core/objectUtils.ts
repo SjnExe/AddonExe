@@ -310,8 +310,9 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
 
     return Object.assign(
         result,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...Object.keys(obj as any).map((key) => ({ [key]: deepClone((obj as any)[key], hash) }))
+        ...Object.keys(obj as Record<string, unknown>).map((key) => ({
+            [key]: deepClone((obj as Record<string, unknown>)[key], hash)
+        }))
     );
 }
 
@@ -322,14 +323,18 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
  * @param lastLoadedRanks The ranks from the config file as of the last load.
  * @returns The merged list of ranks.
  */
-export function mergeRanks(currentUserRanks: any[], newFileRanks: any[], lastLoadedRanks: any[]): any[] {
+export function mergeRanks(
+    currentUserRanks: Record<string, unknown>[],
+    newFileRanks: Record<string, unknown>[],
+    lastLoadedRanks: Record<string, unknown>[]
+): Record<string, unknown>[] {
     const safeUserRanks = Array.isArray(currentUserRanks) ? currentUserRanks : [];
     const safeFileRanks = Array.isArray(newFileRanks) ? newFileRanks : [];
     const safeLastRanks = Array.isArray(lastLoadedRanks) ? lastLoadedRanks : [];
 
-    const userMap = new Map(safeUserRanks.map((r) => [r.id, r]));
-    const fileMap = new Map(safeFileRanks.map((r) => [r.id, r]));
-    const lastMap = new Map(safeLastRanks.map((r) => [r.id, r]));
+    const userMap = new Map(safeUserRanks.map((r) => [r['id'], r]));
+    const fileMap = new Map(safeFileRanks.map((r) => [r['id'], r]));
+    const lastMap = new Map(safeLastRanks.map((r) => [r['id'], r]));
 
     const allIds = new Set([...userMap.keys(), ...fileMap.keys(), ...lastMap.keys()]);
     const finalRanks = [];
@@ -384,8 +389,8 @@ export function mergeRanks(currentUserRanks: any[], newFileRanks: any[], lastLoa
 
     // Preserve original order as much as possible
     finalRanks.sort((a, b) => {
-        const aIndex = newFileRanks.findIndex((r) => r.id === a.id);
-        const bIndex = newFileRanks.findIndex((r) => r.id === b.id);
+        const aIndex = newFileRanks.findIndex((r) => r['id'] === a['id']);
+        const bIndex = newFileRanks.findIndex((r) => r['id'] === b['id']);
         if (aIndex === -1 || bIndex === -1) {
             return 0;
         }
@@ -402,7 +407,11 @@ export function mergeRanks(currentUserRanks: any[], newFileRanks: any[], lastLoa
  * @param lastLoaded The configuration object from the last time the file was loaded.
  * @returns The merged configuration object.
  */
-export function mergeObjectMaps(currentUser: any, newFile: any, lastLoaded: any): any {
+export function mergeObjectMaps(
+    currentUser: Record<string, unknown>,
+    newFile: Record<string, unknown>,
+    lastLoaded: Record<string, unknown>
+): Record<string, unknown> {
     const finalConfig = deepClone(currentUser);
     const allKeys = new Set([...Object.keys(currentUser), ...Object.keys(newFile), ...Object.keys(lastLoaded)]);
 

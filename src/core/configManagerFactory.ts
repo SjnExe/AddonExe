@@ -61,13 +61,12 @@ export default function createConfigManager<T>(
             errorLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
             saveLastLoadedConfig();
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let userSavedConfig: any;
+            let userSavedConfig: Record<string, unknown>;
             try {
-                userSavedConfig = JSON.parse(userSavedConfigStr);
+                userSavedConfig = JSON.parse(userSavedConfigStr) as Record<string, unknown>;
             } catch (e) {
                 errorLog(`[${name}ConfigManager] Failed to parse user-saved config. It will be reset.`, e);
-                userSavedConfig = newDefaultConfig;
+                userSavedConfig = newDefaultConfig as unknown as Record<string, unknown>;
             }
 
             if (name === 'Main' && userSavedConfig.spawnLocation && typeof userSavedConfig.spawnLocation === 'object') {
@@ -75,17 +74,17 @@ export default function createConfigManager<T>(
                 if (!userSavedConfig.spawn) {
                     userSavedConfig.spawn = {};
                 }
-                if (!userSavedConfig.spawn.spawnLocation) {
-                    userSavedConfig.spawn.spawnLocation = deepClone(userSavedConfig.spawnLocation);
+                const spawn = userSavedConfig.spawn as Record<string, unknown>;
+                if (!spawn.spawnLocation) {
+                    spawn.spawnLocation = deepClone(userSavedConfig.spawnLocation);
                 }
                 delete userSavedConfig.spawnLocation;
             }
 
             if (!isMigration && lastLoadedConfigStr) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                let lastLoadedConfigForMerge: any;
+                let lastLoadedConfigForMerge: Record<string, unknown> | null;
                 try {
-                    lastLoadedConfigForMerge = JSON.parse(lastLoadedConfigStr);
+                    lastLoadedConfigForMerge = JSON.parse(lastLoadedConfigStr) as Record<string, unknown>;
                 } catch (e) {
                     errorLog(`[${name}ConfigManager] Failed to parse last-loaded config. Using default merge.`, e);
                     lastLoadedConfigForMerge = null; // Fallback
@@ -95,23 +94,24 @@ export default function createConfigManager<T>(
                     debugLog(`[${name}ConfigManager] Found last-loaded config. Proceeding with reconciliation.`);
                     if (name === 'Main') {
                         currentConfig = reconcileConfig(
-                            newDefaultConfig as Record<string, unknown>,
+                            newDefaultConfig as unknown as Record<string, unknown>,
                             lastLoadedConfigForMerge,
                             userSavedConfig
-                        ) as T;
+                        ) as unknown as T;
                     } else if (name === 'Ranks') {
                         const mergedRanks = mergeRanks(
-                            userSavedConfig.rankDefinitions,
-                            (newDefaultConfig as { rankDefinitions: unknown[] }).rankDefinitions,
-                            lastLoadedConfigForMerge?.rankDefinitions || []
+                            userSavedConfig.rankDefinitions as Record<string, unknown>[],
+                            (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] })
+                                .rankDefinitions,
+                            (lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]) || []
                         );
                         currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
                     } else if (name === 'Kits' || name === 'Shop') {
                         currentConfig = mergeObjectMaps(
                             userSavedConfig,
-                            newDefaultConfig,
+                            newDefaultConfig as unknown as Record<string, unknown>,
                             lastLoadedConfigForMerge || {}
-                        ) as T;
+                        ) as unknown as T;
                     } else {
                         currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
                     }
@@ -131,10 +131,6 @@ export default function createConfigManager<T>(
             lastLoadedConfig = newDefaultConfig;
             saveLastLoadedConfig();
         }
-
-        // Note: ownerPlayerNames are handled via standard config reconciliation.
-        // Manual file edits will override saved config because file vs last-loaded check will detect the change.
-        // (Explicit sticky owner logic removed to allow file updates)
 
         saveConfig();
         debugLog(`[${name}ConfigManager] Config loading finished.`);
