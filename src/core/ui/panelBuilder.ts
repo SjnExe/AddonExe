@@ -12,7 +12,7 @@ import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
-import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
+import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap, PlayerData } from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
 import * as rulesManager from '../rulesManager.js';
 import { formatCurrency, resolveIcon } from '../utils.js';
@@ -84,13 +84,13 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
             ].join('\n')
         );
     } else if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
-        const pData = context.targetData || loadPlayerData(context.targetPlayerId);
+        const pData = (context.targetData as PlayerData | undefined) || loadPlayerData(context.targetPlayerId as string);
         if (!pData) {
             form.body('§4Could not load player data.');
             return;
         }
         const rank = rankManager.getRankById(pData.rankId);
-        const bounty = bountyManager.getBounty(context.targetPlayerId)?.amount ?? 0;
+        const bounty = bountyManager.getBounty(context.targetPlayerId as string)?.amount ?? 0;
         form.body(
             [
                 `§8Rank: §r${rank?.chatFormatting?.nameColor ?? '§8'}${rank?.name ?? 'Unknown'}`,
@@ -99,7 +99,7 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
             ].join('\n')
         );
     } else if (panelId === 'reportActionsPanel' && context.targetReport) {
-        const { targetReport } = context;
+        const targetReport = context.targetReport as reportManager.Report;
         form.body(
             [
                 `§8Report ID: §6${targetReport.id}`,
@@ -172,7 +172,7 @@ function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
 function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
     const { categoryName, page = 1, view = 'shop' } = context;
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[categoryName ?? ''];
+    const category = shopConfig.categories[(categoryName as string) ?? ''];
 
     if (!category) {
         form.body('§4Category not found.');
@@ -213,12 +213,12 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
 function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
     const { categoryName, subCategoryName, page = 1, view = 'shop' } = context;
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[categoryName ?? ''];
+    const category = shopConfig.categories[(categoryName as string) ?? ''];
     if (!category) {
         form.body('§4Category not found.');
         return;
     }
-    const subCategory = category.subCategories[subCategoryName ?? ''];
+    const subCategory = category.subCategories[(subCategoryName as string) ?? ''];
     if (!subCategory) {
         form.body('§4Subcategory not found.');
         return;
@@ -278,7 +278,7 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
     form.button('§l§9* Edit Category', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[categoryName ?? ''];
+    const category = shopConfig.categories[(categoryName as string) ?? ''];
 
     if (!category) {
         form.body('§4Category not found.');
@@ -315,12 +315,12 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
     form.button('§l§9* Edit Subcategory', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[categoryName ?? ''];
+    const category = shopConfig.categories[(categoryName as string) ?? ''];
     if (!category) {
         form.body('§4Category not found.');
         return;
     }
-    const subCategory = category.subCategories[subCategoryName ?? ''];
+    const subCategory = category.subCategories[(subCategoryName as string) ?? ''];
     if (!subCategory) {
         form.body('§4Subcategory not found.');
         return;
@@ -439,8 +439,8 @@ async function buildPlayerListForm(title: string, context: UIContext) {
     return form;
 }
 
-async function buildBountyListForm(title: string, context: UIContext) {
-    const page = context.page || 1;
+function buildBountyListForm(title: string, context: UIContext) {
+    const page = (context.page as number) || 1;
     const form = new ActionFormData().title(`${title} (Page ${page})`);
 
     // Add Back button
@@ -1179,12 +1179,12 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'helpfulLinkActionPanel') {
             const panelDef = panelDefinitions[panelId];
-            const { linkIndex } = context;
+            const linkIndex = context.linkIndex as number | undefined;
             const links = helpfulLinksManager.getHelpfulLinks();
             const link = links[linkIndex ?? 0];
 
             if (!link) {
-                errorLog(`[UIManager] Invalid link index for helpfulLinkActionPanel: ${linkIndex}`);
+                errorLog(`[UIManager] Invalid link index for helpfulLinkActionPanel: ${String(linkIndex)}`);
                 await import('../uiManager.js').then(({ showPanel }) =>
                     showPanel(player, 'helpfulLinksManagementPanel', context)
                 );
@@ -1300,7 +1300,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'ruleActionPanel') {
-            const { ruleIndex } = context;
+            const ruleIndex = context.ruleIndex as number | undefined;
             const rules = rulesManager.getRules();
             const ruleText = rules[ruleIndex ?? 0] || 'Invalid Rule';
 
@@ -1342,7 +1342,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'commandSettingsPanel') {
-            const { commandName } = context;
+            const commandName = context.commandName as string | undefined;
             const config = getConfig();
             const allSettings = config.commandSettings as Record<
                 string,
@@ -1378,7 +1378,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'editMobDropPanel') {
-            const { mobId } = context;
+            const mobId = context.mobId as string | undefined;
             const economyConfig = getEconomyConfig();
             const currentAmount = economyConfig.mobMoney[mobId ?? ''] ?? 0;
             const form = new ActionFormData()
@@ -1484,9 +1484,10 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'editRankPanel') {
-            const rank = rankManager.getRankById(context.rankId ?? '');
+            const rankId = context.rankId as string | undefined;
+            const rank = rankManager.getRankById(rankId ?? '');
             if (!rank) {
-                errorLog(`[UIManager] Edit rank panel: rank with ID ${context.rankId} not found.`);
+                errorLog(`[UIManager] Edit rank panel: rank with ID ${String(rankId)} not found.`);
                 return null;
             }
 
@@ -1540,7 +1541,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a, b) =>
                 a.oreName.localeCompare(b.oreName)
             );
-            const ore = ores[context.oreIndex ?? 0];
+            const ore = ores[(context.oreIndex as number) ?? 0];
             const form = new ModalFormData().title('§l§4Edit Monitored Ore');
             const blockId = ore.blocks?.[0]?.blockId ?? '';
             const dimensionId = ore.blocks?.[0]?.dimensionId ?? '';
