@@ -3,6 +3,7 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
 import { commandManager } from '@modules/commands/commandManager.js';
 
+import type { TeamData } from '../../features/teams/teamManager.js';
 import * as reportManager from '../../features/moderation/reportManager.js';
 import * as bountyManager from '../bountyManager.js';
 import { loadConfig } from '../configLoader.js';
@@ -12,7 +13,13 @@ import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
-import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap, PlayerData } from '../playerDataManager.js';
+import {
+    getPlayer,
+    getOrCreatePlayer,
+    loadPlayerData,
+    getAllPlayerNameIdMap,
+    PlayerData
+} from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
 import * as rulesManager from '../rulesManager.js';
 import { formatCurrency, resolveIcon } from '../utils.js';
@@ -84,7 +91,8 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
             ].join('\n')
         );
     } else if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
-        const pData = (context.targetData as PlayerData | undefined) || loadPlayerData(context.targetPlayerId as string);
+        const pData =
+            (context.targetData as PlayerData | undefined) || loadPlayerData(String(context.targetPlayerId));
         if (!pData) {
             form.body('§4Could not load player data.');
             return;
@@ -102,7 +110,7 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
         const targetReport = context.targetReport as reportManager.Report;
         form.body(
             [
-                `§8Report ID: §6${targetReport.id}`,
+                `§8Report ID: §6${String(targetReport.id)}`,
                 `§8Reported Player: §6${targetReport.reportedPlayerName}`,
                 `§8Reporter: §6${targetReport.reporterName}`,
                 `§8Reason: §6${targetReport.reason}`,
@@ -174,7 +182,7 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
     const page = (context.page as number) || 1;
     const view = (context.view as string) || 'shop';
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[(categoryName) ?? ''];
+    const category = shopConfig.categories[categoryName ?? ''];
 
     if (!category) {
         form.body('§4Category not found.');
@@ -183,14 +191,14 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
 
     const subCategories = Object.keys(category.subCategories)
         .sort()
-        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }));
-    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
+        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' } as const));
+    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' } as const));
 
     const allEntries = [...subCategories, ...items];
     const paginatedEntries = getPaginatedItems(allEntries, page);
 
     for (const entry of paginatedEntries) {
-        if ('items' in entry) {
+        if (entry.type === 'subCategory') {
             form.button(`§6${entry.name}`, entry.icon);
         } else {
             const masterItem = allItems[entry.id] || {};
@@ -218,12 +226,12 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
     const page = (context.page as number) || 1;
     const view = (context.view as string) || 'shop';
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[(categoryName) ?? ''];
+    const category = shopConfig.categories[categoryName ?? ''];
     if (!category) {
         form.body('§4Category not found.');
         return;
     }
-    const subCategory = category.subCategories[(subCategoryName) ?? ''];
+    const subCategory = category.subCategories[subCategoryName ?? ''];
     if (!subCategory) {
         form.body('§4Subcategory not found.');
         return;
@@ -284,23 +292,23 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
     form.button('§l§9* Edit Category', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[(categoryName) ?? ''];
+    const category = shopConfig.categories[categoryName ?? ''];
 
     if (!category) {
         form.body('§4Category not found.');
         return;
     }
 
-    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
+    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' } as const));
     const subCategories = Object.keys(category.subCategories)
         .sort()
-        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }));
+        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' } as const));
 
     const allEntries = [...subCategories, ...items];
     const paginatedEntries = getPaginatedItems(allEntries, page);
 
     for (const entry of paginatedEntries) {
-        if ('items' in entry) {
+        if (entry.type === 'subCategory') {
             // subCategory
             form.button(`§6${entry.name}`, entry.icon);
         } else {
@@ -323,12 +331,12 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
     form.button('§l§9* Edit Subcategory', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[(categoryName) ?? ''];
+    const category = shopConfig.categories[categoryName ?? ''];
     if (!category) {
         form.body('§4Category not found.');
         return;
     }
-    const subCategory = category.subCategories[(subCategoryName) ?? ''];
+    const subCategory = category.subCategories[subCategoryName ?? ''];
     if (!subCategory) {
         form.body('§4Subcategory not found.');
         return;
@@ -624,11 +632,11 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (Object.keys(allItems).length === 0) {
             try {
                 // Try loading user config first
-                allItems = await loadConfig('./itemsConfig.js', true);
+                allItems = (await loadConfig('./itemsConfig.js', true)) as Record<string, Item>;
             } catch {
                 // If failed, try loading default config
                 try {
-                    allItems = await loadConfig('./itemsConfig.default.js');
+                    allItems = (await loadConfig('./itemsConfig.default.js')) as Record<string, Item>;
                 } catch (defaultError) {
                     errorLog('[UIManager] Failed to load default items config.', defaultError);
                 }
@@ -651,7 +659,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 errorLog(`[UIManager] No config handler found for source: ${configSource}`);
                 return null;
             }
-            const config = handler.get();
+            const config = handler.get() as Record<string, unknown>;
 
             for (const setting of category.settings) {
                 const currentValue = getValueFromPath(config, setting.key);
@@ -708,7 +716,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const teamConfig = getTeamConfig();
             const panelDef = panelDefinitions[panelId];
 
-            const team = getTeamByPlayer(player.id);
+            const team = getTeamByPlayer(player.id) as TeamData | null;
             const form = new ActionFormData().title(panelDef.title);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
@@ -768,7 +776,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'teamSettingsPanel') {
             const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
             const pData = getOrCreatePlayer(player);
-            const team = getTeamByPlayer(player.id);
+            const team = getTeamByPlayer(player.id) as TeamData | null;
 
             if (!team) {
                 return null;
@@ -789,7 +797,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'teamMembersPanel') {
             const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-            const team = getTeamByPlayer(player.id);
+            const team = getTeamByPlayer(player.id) as TeamData | null;
             if (!team) {
                 player.sendMessage('§4You are not in a team.');
                 return null;
@@ -828,7 +836,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData().title(`Browse Teams (Page ${page})`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-            let teams = getAllTeams();
+            let teams = getAllTeams() as TeamData[];
 
             // Filter out closed teams for non-admins
             const pData = getOrCreatePlayer(player);
@@ -873,13 +881,13 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             // If context has teamId, it might be an admin managing another team.
             // Otherwise, manage own team.
 
-            let team = null;
+            let team: TeamData | null = null;
             const pData = getOrCreatePlayer(player);
 
             if (teamId && pData.permissionLevel < 1024) {
-                team = getTeam(teamId);
+                team = getTeam(Number(teamId)) as TeamData | undefined | null || null;
             } else {
-                team = getTeamByPlayer(player.id);
+                team = getTeamByPlayer(player.id) as TeamData | null;
             }
 
             if (!team) {
@@ -911,7 +919,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'teamHomePanel') {
             const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-            const team = getTeamByPlayer(player.id);
+            const team = getTeamByPlayer(player.id) as TeamData | null;
             if (!team) {
                 return null;
             }
@@ -944,7 +952,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'teamRequestsPanel') {
             const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-            const team = getTeamByPlayer(player.id);
+            const team = getTeamByPlayer(player.id) as TeamData | null;
             if (!team) {
                 return null;
             }
@@ -1635,7 +1643,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
     } catch (e) {
         const textConfig =
             panelId === 'floatingTextEditPanel' && context.id
-                ? (await import('../floatingTextManager.js')).floatingTextManager.getTextById(context.id)
+                ? (await import('../floatingTextManager.js')).floatingTextManager.getTextById(context.id as string)
                 : null;
         errorLog(`[UIManager] Critical error while building form '${panelId}'.`, {
             error: e,

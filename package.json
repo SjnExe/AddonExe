@@ -5,8 +5,8 @@
     "main": "index.js",
     "scripts": {
         "preinstall": "node scripts/update-mc-deps.js",
-        "build": "node scripts/generate-command-index.js && rimraf packs/behavior/scripts && tsc && tsc-alias --resolve-full-paths",
-        "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"tsc-alias -w --resolve-full-paths\"",
+        "build": "node scripts/generate-command-index.js && rimraf packs/behavior/scripts && node scripts/build.js",
+        "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"node scripts/build.js --watch\"",
         "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js",
         "lint": "eslint . && node scripts/validate-filtered.js",
         "lint:fix": "eslint . --fix",
@@ -37,12 +37,13 @@
         "@minecraft/creator-tools": "latest",
         "@minecraft/debug-utilities": "1.0.0-beta.1.21.124-stable",
         "@minecraft/diagnostics": "1.0.0-beta.1.21.124-stable",
-        "@minecraft/gameplay-utilities": "latest",
-        "@minecraft/math": "latest",
         "@minecraft/server": "2.4.0-beta.1.21.124-stable",
         "@minecraft/server-gametest": "1.0.0-beta.1.21.124-stable",
         "@minecraft/server-ui": "2.1.0-beta.1.21.124-stable",
         "@minecraft/vanilla-data": "latest",
+        "@minecraft/gameplay-utilities": "latest",
+        "@minecraft/math": "latest",
+        "esbuild": "^0.24.0",
         "@types/jest": "latest",
         "@types/node": "latest",
         "@typescript-eslint/eslint-plugin": "latest",
@@ -108,8 +109,6 @@
         "@minecraft/diagnostics": "1.0.0-beta.1.21.124-stable",
         "@minecraft/debug-utilities": "1.0.0-beta.1.21.124-stable",
         "@minecraft/common": "latest",
-        "@minecraft/math": "latest",
-        "@minecraft/vanilla-data": "latest",
-        "@minecraft/gameplay-utilities": "latest"
+        "@minecraft/vanilla-data": "latest"
     }
 }
