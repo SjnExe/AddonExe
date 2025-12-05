@@ -11,7 +11,8 @@ export type { Config };
 let mainConfigManager: ConfigManager<typeof Config>;
 
 export async function initializeConfigManager(isMigration: boolean) {
-    const defaultConfig = await asyncLoadConfig<typeof Config>('../config.js');
+    // Load external config.js (relative to the bundled script)
+    const defaultConfig = await asyncLoadConfig<typeof Config>('./config.js');
     mainConfigManager = createConfigManager('exe:config:current', defaultConfig, 'Main');
     mainConfigManager.load(isMigration);
 }
@@ -58,7 +59,7 @@ export async function resetConfigSection(
     }
 
     try {
-        const freshDefaultConfig = await asyncLoadConfig('../config.js');
+        const freshDefaultConfig = await asyncLoadConfig('./config.js');
         const configRecord = freshDefaultConfig as Record<string, unknown>;
         if (Object.prototype.hasOwnProperty.call(configRecord, sectionKey)) {
             updateConfig(sectionKey, deepClone(configRecord[sectionKey]));
