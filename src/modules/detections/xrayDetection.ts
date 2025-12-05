@@ -37,8 +37,7 @@ export function refreshXrayCache(): void {
 
     // Iterate over all configured ore types
     for (const oreTypeKey in xrayConfig.monitoredOreTypes) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const oreType = (xrayConfig.monitoredOreTypes as any)[oreTypeKey] as MonitoredOreType;
+        const oreType = xrayConfig.monitoredOreTypes[oreTypeKey];
         if (!oreType.enabled) continue;
 
         // Iterate over blocks defined for this ore type
@@ -73,8 +72,7 @@ function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Ve
     const message = formatString('§7{playerName}§r mined §e{count} {oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r', context);
 
     if (xrayConfig.notifications.logToConsole) {
-        // eslint-disable-next-line no-console
-        console.warn(`[X-Ray] ${message.replace(/§./g, '')}`);
+        warnLog(`[X-Ray] ${message.replace(/§./g, '')}`);
     }
 
     const onlinePlayers = getAllPlayersFromCache();
@@ -154,8 +152,7 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
     if (!cachedInfos) return;
 
     const xrayConfig = getXrayConfig();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const settings = (xrayConfig as any).settings || {};
+    const settings = xrayConfig.settings;
 
     // 2. Gamemode Checks
     const gamemode = player.getGameMode();

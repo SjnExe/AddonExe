@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
@@ -81,8 +81,7 @@ const homeCommand: CustomCommand = {
         try {
             const response = await uiWait(executor, form);
             if (!response || response.canceled) return;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const selection = (response as any).selection;
+            const selection = (response as ActionFormResponse).selection;
             if (selection !== undefined) {
                 const selectedHome = homeList[selection];
                 teleportToHome(selectedHome);
@@ -171,8 +170,7 @@ const delHomeCommand: CustomCommand = {
         try {
             const response = await uiWait(executor, form);
             if (!response || response.canceled) return;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const selection = (response as any).selection;
+            const selection = (response as ActionFormResponse).selection;
             if (selection !== undefined) {
                 const selectedHome = homeList[selection];
                 deleteHomeByName(selectedHome);

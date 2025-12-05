@@ -1,5 +1,7 @@
 import * as mc from '@minecraft/server';
 
+import { errorLog } from '../../core/logger.js';
+
 import { getAnticheatConfig } from './anticheatConfigLoader.js';
 import { flag } from './flagManager.js';
 
@@ -15,7 +17,7 @@ export function startItemCheckLoop() {
                 }
             }
         } catch (e) {
-            console.error('Anticheat Item Loop Error:', e);
+            errorLog('Anticheat Item Loop Error', e);
         }
     }, 100); // Check every 5 seconds
 }

@@ -170,9 +170,11 @@ function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
 }
 
 function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
-    const { categoryName, page = 1, view = 'shop' } = context;
+    const categoryName = context.categoryName as string;
+    const page = (context.page as number) || 1;
+    const view = (context.view as string) || 'shop';
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[(categoryName as string) ?? ''];
+    const category = shopConfig.categories[(categoryName) ?? ''];
 
     if (!category) {
         form.body('§4Category not found.');
@@ -211,14 +213,17 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
-    const { categoryName, subCategoryName, page = 1, view = 'shop' } = context;
+    const categoryName = context.categoryName as string;
+    const subCategoryName = context.subCategoryName as string;
+    const page = (context.page as number) || 1;
+    const view = (context.view as string) || 'shop';
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[(categoryName as string) ?? ''];
+    const category = shopConfig.categories[(categoryName) ?? ''];
     if (!category) {
         form.body('§4Category not found.');
         return;
     }
-    const subCategory = category.subCategories[(subCategoryName as string) ?? ''];
+    const subCategory = category.subCategories[(subCategoryName) ?? ''];
     if (!subCategory) {
         form.body('§4Subcategory not found.');
         return;
@@ -247,7 +252,7 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
-    const { page = 1 } = context;
+    const page = (context.page as number) || 1;
     const mainConfig = getConfig();
 
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
@@ -271,14 +276,15 @@ function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
-    const { categoryName, page = 1 } = context;
+    const categoryName = context.categoryName as string;
+    const page = (context.page as number) || 1;
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
     form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
     form.button('§l§9* Edit Category', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[(categoryName as string) ?? ''];
+    const category = shopConfig.categories[(categoryName) ?? ''];
 
     if (!category) {
         form.body('§4Category not found.');
@@ -309,18 +315,20 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UIContext) {
-    const { categoryName, subCategoryName, page = 1 } = context;
+    const categoryName = context.categoryName as string;
+    const subCategoryName = context.subCategoryName as string;
+    const page = (context.page as number) || 1;
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
     form.button('§l§9* Edit Subcategory', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[(categoryName as string) ?? ''];
+    const category = shopConfig.categories[(categoryName) ?? ''];
     if (!category) {
         form.body('§4Category not found.');
         return;
     }
-    const subCategory = category.subCategories[(subCategoryName as string) ?? ''];
+    const subCategory = category.subCategories[(subCategoryName) ?? ''];
     if (!subCategory) {
         form.body('§4Subcategory not found.');
         return;
@@ -340,7 +348,7 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
 }
 
 function buildShopAddItemPanel(form: ActionFormData, context: UIContext) {
-    const { page = 1 } = context;
+    const page = (context.page as number) || 1;
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
     form.button('§l§2+ Add Custom Item', 'textures/ui/color_plus');
 
@@ -510,7 +518,7 @@ function buildReportListForm(title: string, context: UIContext) {
 }
 
 function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
-    const { page = 1 } = context;
+    const page = (context.page as number) || 1;
     const pData = getPlayer((context.player as mc.Player).id);
     if (!pData) {
         return;
@@ -544,7 +552,7 @@ function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
-    const { page = 1 } = context;
+    const page = (context.page as number) || 1;
     const mainConfig = getConfig();
 
     // Add Back button
@@ -579,7 +587,7 @@ function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
-    const { page = 1 } = context;
+    const page = (context.page as number) || 1;
     const config = getConfig();
     const commandSettings = config.commandSettings || {};
 
@@ -684,7 +692,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'floatingTextActionPanel') {
-            const { id } = context;
+            const id = context.id as string;
             const form = new ActionFormData()
                 .title(`Actions for: ${id}`)
                 .button('Edit', 'textures/ui/icon_setting')
@@ -816,7 +824,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'teamBrowserPanel') {
             const { getAllTeams } = await import('../../features/teams/teamManager.js');
-            const { page = 1 } = context;
+            const page = (context.page as number) || 1;
             const form = new ActionFormData().title(`Browse Teams (Page ${page})`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
@@ -1126,7 +1134,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'floatingTextEditPanel') {
             const { floatingTextManager } = await import('../floatingTextManager.js');
-            const { id } = context;
+            const id = context.id as string;
             const text = floatingTextManager.getTextById(id);
             if (!text) {
                 errorLog(`[UIManager] floatingTextEditPanel: Text with ID ${id} not found.`);
@@ -1404,7 +1412,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'mobDropsSystemPanel') {
-            const { page = 1 } = context;
+            const page = (context.page as number) || 1;
             const form = new ActionFormData().title('§l§2Mob Drops System');
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
             form.button('§l§2+ Add New Mob§r', 'textures/ui/realms_green_check.png');

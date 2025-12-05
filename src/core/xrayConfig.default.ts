@@ -11,7 +11,22 @@ export interface MonitoredOreType {
     blocks: MonitoredBlock[];
 }
 
-export const xrayConfig = {
+export interface XrayConfig {
+    settings: {
+        ignoreCreative: boolean;
+        ignoreSpectator: boolean;
+        adminBypass: boolean;
+        bypassPermissionLevel: number;
+    };
+    notifications: {
+        logToConsole: boolean;
+        alertBufferingSeconds: number;
+        alertPermissionLevel: number;
+    };
+    monitoredOreTypes: Record<string, MonitoredOreType>;
+}
+
+export const xrayConfig: XrayConfig = {
     settings: {
         ignoreCreative: true,
         ignoreSpectator: true,

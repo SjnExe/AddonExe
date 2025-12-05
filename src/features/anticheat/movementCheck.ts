@@ -1,5 +1,7 @@
 import * as mc from '@minecraft/server';
 
+import { errorLog } from '../../core/logger.js';
+
 import { getAnticheatConfig } from './anticheatConfigLoader.js';
 import { flag } from './flagManager.js';
 
@@ -46,7 +48,7 @@ export function startMovementCheckLoop() {
                 }
             }
         } catch (e) {
-            console.error('Anticheat Movement Loop Error:', e);
+            errorLog('Anticheat Movement Loop Error', e);
         }
     }, 5);
 }
@@ -114,7 +116,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
             ) {
                 limit = config.maxSpeedIce;
             }
-        } catch (e) {
+        } catch (_e) {
             // Ignore block read errors (unloaded chunks etc)
         }
     }
@@ -212,7 +214,7 @@ function checkWorldBorder(
                 { dimension: player.dimension }
             );
             player.sendMessage(`§cYou have reached the world border!`);
-        } catch (e) {
+        } catch (_e) {
             // Teleport might fail if stuck
         }
     }
@@ -234,14 +236,14 @@ function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
             // User said: "minecraft automatically puts them under the nether roof" when they rejoin.
             // So kicking is the goal.
             player.runCommand('kick "Nether Roof Detected"');
-        } catch (e) {
+        } catch (_e) {
             // If kick fails (permissions), TP down
             try {
                 player.teleport(
                     { x: player.location.x, y: 120, z: player.location.z },
                     { dimension: player.dimension }
                 );
-            } catch (e2) {
+            } catch (_e2) {
                 // Ignore
             }
         }
