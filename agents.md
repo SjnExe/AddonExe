@@ -68,6 +68,9 @@ This project uses a simple task management system in the `Docs/Development/tasks
   - Run `npm run lint` to check for linting issues (ESLint).
   - Run `npm run format` to format code (Prettier).
   - Please ensure your changes pass linting and build (`npm run build`) before submitting.
+  - **No Log Files:** Do not create `.txt` or other log files to store lint or build output (e.g., `lint_errors.txt`, `build.log`).
+  - **Check Console:** Always read errors and warnings directly from the terminal/console output.
+  - **Fixing Workflow:** When fixing issues, run the command (e.g., `npm run lint`), check the console for remaining errors, fix them, and repeat.
 
 ## 6. Planning and Communication
 
