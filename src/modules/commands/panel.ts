@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { showPanel } from '@core/uiManager.js';
 
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 const panelCommand: CustomCommand = {
     name: 'panel',

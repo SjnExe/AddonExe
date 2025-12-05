@@ -8,7 +8,7 @@ import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';
 import { UIContext } from '../panelRegistry.js';
-import { itemsPerPage, getPaginatedItems } from '../uiUtils.js';
+import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 export async function handleMiscPanel(
     player: mc.Player,

@@ -14,8 +14,8 @@ import * as playerCache from '../playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '../playerDataManager.js';
 import * as rulesManager from '../rulesManager.js';
 import { showPanel } from '../uiManager.js';
-import { formatCurrency } from '../utils.js';
 import * as utils from '../utils.js';
+import { formatCurrency } from '../utils.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type UIContext = Record<string, any>;

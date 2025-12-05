@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { errorLog, debugLog } from './logger.js';
-import { deepMerge, deepClone, setValueByPath, mergeRanks, mergeObjectMaps, reconcileConfig } from './objectUtils.js';
+import { debugLog, errorLog } from './logger.js';
+import { deepClone, deepMerge, mergeObjectMaps, mergeRanks, reconcileConfig, setValueByPath } from './objectUtils.js';
 
 /**
  * Creates a configuration manager for a specific configuration type.

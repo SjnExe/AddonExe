@@ -13,7 +13,7 @@ import { errorLog } from './logger.js';
 export async function loadConfig<T>(modulePath: string, suppressError?: boolean): Promise<T> {
     const shouldSuppress = suppressError ?? false;
     try {
-        const module = await import(modulePath);
+        const module = (await import(modulePath)) as Record<string, unknown>;
         if (module.default) {
             return module.default as T;
         }
@@ -23,7 +23,7 @@ export async function loadConfig<T>(modulePath: string, suppressError?: boolean)
         const fileName = modulePath.split('/').pop();
         if (fileName) {
             const name = fileName.replace('.js', '');
-            if (module[name]) {
+            if (Object.prototype.hasOwnProperty.call(module, name)) {
                 return module[name] as T;
             }
         }

@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ActionFormResponse, ActionFormData, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getConfig, updateMultipleConfig } from '../../configManager.js';
 import * as kitAdminManager from '../../kitAdminManager.js';
@@ -7,7 +7,7 @@ import * as kitItemsManager from '../../kitItemsManager.js';
 import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { UIContext } from '../panelRegistry.js';
-import { itemsPerPage, getPaginatedItems } from '../uiUtils.js';
+import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 /**
  * Handles Kit System UI interactions.

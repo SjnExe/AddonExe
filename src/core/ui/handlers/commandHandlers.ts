@@ -6,7 +6,7 @@ import { commandManager } from '@modules/commands/commandManager.js';
 import { updateConfig } from '../../configManager.js';
 import { showPanel } from '../../uiManager.js';
 import { UIContext } from '../panelRegistry.js';
-import { itemsPerPage, getPaginatedItems } from '../uiUtils.js';
+import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 /**
  * Handles Command System UI interactions.

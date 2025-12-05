@@ -5,11 +5,11 @@ import { getTeamByPlayer } from '../features/teams/teamManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { infoLog } from './logger.js';
 import {
-    incrementPlayerBalance,
     getPlayer,
-    incrementKillCount,
     incrementDeathCount,
+    incrementKillCount,
     incrementKillStreak,
+    incrementPlayerBalance,
     resetKillStreak
 } from './playerDataManager.js';
 import { handlePvPDeath } from './pvpManager.js';

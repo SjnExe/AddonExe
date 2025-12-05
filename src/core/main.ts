@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 
 import {
-    loadPunishments,
+    checkAndKickBannedPlayer,
     clearExpiredPunishments,
     initializePunishmentManager,
-    checkAndKickBannedPlayer
+    loadPunishments
 } from '../features/moderation/punishmentManager.js';
-import { loadReports, clearOldResolvedReports } from '../features/moderation/reportManager.js';
+import { clearOldResolvedReports, loadReports } from '../features/moderation/reportManager.js';
 import * as teamManager from '../features/teams/teamManager.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { loadCommands } from '../modules/commands/index.js';
@@ -27,19 +27,19 @@ import {
     loadTeamConfig,
     loadXrayConfig
 } from './configurations.js';
-import { loadCooldowns, clearExpiredCooldowns } from './cooldownManager.js';
+import { clearExpiredCooldowns, loadCooldowns } from './cooldownManager.js';
 import * as dataManager from './dataManager.js';
-import { initializeEventManager, cleanupEventManager } from './events/eventManager.js';
+import { cleanupEventManager, initializeEventManager } from './events/eventManager.js';
 import { floatingTextManager } from './floatingTextManager.js';
-import { initializeLeaderboard, cleanupLeaderboardManager } from './leaderboardManager.js';
-import { errorLog, setLogLevel, infoLog } from './logger.js';
+import { cleanupLeaderboardManager, initializeLeaderboard } from './leaderboardManager.js';
+import { errorLog, infoLog, setLogLevel } from './logger.js';
 import { initializeMigration } from './migrationManager.js';
 import {
-    getOrCreatePlayer,
-    setPlayerRank,
     cleanupPlayerDataManager,
     clearExpiredPayments,
-    loadNameIdMap
+    getOrCreatePlayer,
+    loadNameIdMap,
+    setPlayerRank
 } from './playerDataManager.js';
 import * as rankManager from './rankManager.js';
 import * as sidebarManager from './sidebarManager.js';

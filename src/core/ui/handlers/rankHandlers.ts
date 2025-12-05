@@ -8,7 +8,7 @@ import * as rankDb from '../../rankDb.js';
 import * as rankManager from '../../rankManager.js';
 import { showPanel } from '../../uiManager.js';
 import { UIContext } from '../panelRegistry.js';
-import { itemsPerPage, getPaginatedItems } from '../uiUtils.js';
+import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 /**
  * Handles Rank System UI interactions.
