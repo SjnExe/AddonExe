@@ -13,13 +13,13 @@ import {
 const teamPropertyPrefix = 'exe:team.';
 const nextTeamIdKey = 'exe:nextTeamId';
 
-interface TeamApplication {
+export interface TeamApplication {
     playerId: string;
     playerName: string;
     timestamp: number;
 }
 
-interface TeamData {
+export interface TeamData {
     id: number;
     name: string;
     ownerId: string;
