@@ -663,6 +663,12 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Kick Message',
                 type: 'textField',
                 description: 'Message shown to players when kicked for restart.'
+            },
+            {
+                key: 'restart.subtitle',
+                label: 'Countdown Subtitle',
+                type: 'textField',
+                description: 'Subtitle shown during the countdown.'
             }
         ]
     },
