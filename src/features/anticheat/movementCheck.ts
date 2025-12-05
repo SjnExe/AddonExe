@@ -51,11 +51,13 @@ export function startMovementCheckLoop() {
     }, 5);
 }
 
+interface MovementCheckConfig {
+    maxSpeed: number;
+    maxSpeedIce: number;
+    maxSpeedElytra: number;
+}
 
-function checkMovement(
-    player: mc.Player,
-    config: { maxSpeed: number; maxSpeedIce: number; maxSpeedElytra: number; [key: string]: any }
-) {
+function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
         movementStates.delete(player.id);
         return;
@@ -148,7 +150,6 @@ function checkMovement(
     state.lastPos = currentPos;
     state.lastTime = now;
 }
-
 
 function checkWorldBorder(
     player: mc.Player,

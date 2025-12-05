@@ -13,7 +13,7 @@ let mainConfigManager: ConfigManager<typeof Config>;
 export async function initializeConfigManager(isMigration: boolean) {
     const defaultConfig = await asyncLoadConfig<typeof Config>('../config.js');
     mainConfigManager = createConfigManager('exe:config:current', defaultConfig, 'Main');
-    await mainConfigManager.load(isMigration);
+    mainConfigManager.load(isMigration);
 }
 
 export const getConfig = () => mainConfigManager.get();

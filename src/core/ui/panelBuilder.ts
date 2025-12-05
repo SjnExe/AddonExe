@@ -651,11 +651,14 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                     case 'toggle':
                         form.toggle(setting.label, { defaultValue: !!currentValue });
                         break;
-                    case 'textField':
+                    case 'textField': {
+                        const val = currentValue ?? '';
+                        const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
                         form.textField(setting.label, setting.description || '', {
-                            defaultValue: String(currentValue ?? '')
+                            defaultValue: strVal
                         });
                         break;
+                    }
                     case 'dropdown': {
                         let index = -1;
                         const options = setting.options || [];

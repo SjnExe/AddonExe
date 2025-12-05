@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+
 import { CustomCommand, CommandExecutor } from './commandManager.js';
 
 const invseeCommand: CustomCommand = {
@@ -6,9 +7,7 @@ const invseeCommand: CustomCommand = {
     description: 'View the inventory of another player.',
     category: 'Moderation',
     permissionLevel: 2,
-    parameters: [
-        { name: 'player', type: 'player', optional: false }
-    ],
+    parameters: [{ name: 'player', type: 'player', optional: false }],
     execute: (executor: CommandExecutor, params: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             executor.sendMessage('§cThis command can only be used by players.');
@@ -49,11 +48,9 @@ const ecseeCommand: CustomCommand = {
     description: 'View the ender chest of another player.',
     category: 'Moderation',
     permissionLevel: 2,
-    parameters: [
-        { name: 'player', type: 'player', optional: false }
-    ],
+    parameters: [{ name: 'player', type: 'player', optional: false }],
     execute: (executor: CommandExecutor, _params: Record<string, unknown>) => {
-         executor.sendMessage('§cEnder Chest inspection is not yet fully supported in this API version.');
+        executor.sendMessage('§cEnder Chest inspection is not yet fully supported in this API version.');
     }
 };
 
