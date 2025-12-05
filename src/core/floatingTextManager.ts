@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { errorLog, debugLog } from './logger.js';
 import { isDeepEqual } from './objectUtils.js';
 
-interface FloatingTextConfig {
+export interface FloatingTextConfig {
     id: string;
     text: string;
     location: mc.Vector3;
