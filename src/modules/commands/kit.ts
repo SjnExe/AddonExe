@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { getConfig } from '@core/configManager.js';
 import { createKit, getAllKits } from '@core/kitAdminManager.js';
@@ -54,8 +54,7 @@ async function showKitList(player: mc.Player, page: number) {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const selection = (response as any).selection;
+        const selection = (response as ActionFormResponse).selection;
         if (selection === undefined) return;
 
         if (selection >= kitsToShow.length) {
@@ -84,7 +83,7 @@ async function showKitList(player: mc.Player, page: number) {
             player.sendMessage(`§c${result.message}`);
         }
     } catch (error) {
-        errorLog(`[Kit UI] Error showing form: ${error}`);
+        errorLog(`[Kit UI] Error showing form: ${String(error)}`);
     }
 }
 
