@@ -10,7 +10,7 @@ import { playSound, startTeleportWarmup } from '@core/utils.js';
 
 import { initializeSpawnProtection } from '../detections/spawnProtection.js';
 
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 interface SpawnLocation {
     x: number | undefined;

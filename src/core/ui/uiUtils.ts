@@ -1,25 +1,25 @@
 import { ActionFormData } from '@minecraft/server-ui';
 
 import {
+    AnticheatConfig,
     getAnticheatConfig,
-    saveAnticheatConfig,
-    AnticheatConfig
+    saveAnticheatConfig
 } from '../../features/anticheat/anticheatConfigLoader.js';
 import { economyConfig } from '../../features/economy/economyConfig.js';
 import { shopConfig } from '../../features/shop/shopConfig.js';
 import { teamConfig } from '../../features/teams/teamConfig.js';
-import { getConfig, updateMultipleConfig, Config } from '../configManager.js';
+import { Config, getConfig, updateMultipleConfig } from '../configManager.js';
 import {
-    getSpawnConfig,
-    saveSpawnConfig,
     getEconomyConfig,
-    saveEconomyConfig,
-    getXrayConfig,
-    saveXrayConfig,
-    getTeamConfig,
-    saveTeamConfig,
     getSidebarConfig,
+    getSpawnConfig,
+    getTeamConfig,
+    getXrayConfig,
+    saveEconomyConfig,
     saveSidebarConfig,
+    saveSpawnConfig,
+    saveTeamConfig,
+    saveXrayConfig,
     SidebarConfig
 } from '../configurations.js';
 import { kitsConfig } from '../kitsConfig.default.js';
@@ -36,7 +36,7 @@ type RanksConfig = typeof ranksConfig;
 type KitsConfig = typeof kitsConfig;
 type ShopConfig = typeof shopConfig;
 
-import { systemRegistry, SystemDefinition } from './systemRegistry.js';
+import { SystemDefinition, systemRegistry } from './systemRegistry.js';
 
 export const itemsPerPage = 8;
 

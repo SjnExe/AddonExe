@@ -3,11 +3,11 @@ import * as mc from '@minecraft/server';
 import { getTeamConfig } from '../../core/configurations.js';
 import { debugLog, errorLog } from '../../core/logger.js';
 import {
-    getPlayer,
     getOrCreatePlayer,
-    updatePlayerData,
+    getPlayer,
     HomeLocation,
-    incrementPlayerBalance
+    incrementPlayerBalance,
+    updatePlayerData
 } from '../../core/playerDataManager.js';
 
 const teamPropertyPrefix = 'exe:team.';

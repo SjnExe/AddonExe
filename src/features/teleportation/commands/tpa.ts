@@ -6,15 +6,15 @@ import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '@core/playerDataManager.js';
 import { playSound } from '@core/utils.js';
-import { CustomCommand, CommandExecutor } from '@modules/commands/commandManager.js';
+import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
 import {
-    createRequest,
     acceptRequest,
-    denyRequest,
     cancelRequest,
-    getOutgoingRequest,
-    getIncomingRequest
+    createRequest,
+    denyRequest,
+    getIncomingRequest,
+    getOutgoingRequest
 } from '../tpaManager.js';
 
 interface TpaCommandArgs {

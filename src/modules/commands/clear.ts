@@ -5,7 +5,7 @@ import { sendMessage } from '@core/messaging.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { playSound } from '@core/utils.js';
 
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 interface ClearCommandArgs {
     target?: mc.Player[];

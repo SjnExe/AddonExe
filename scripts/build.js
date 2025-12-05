@@ -1,7 +1,7 @@
 import esbuild from 'esbuild';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,7 +67,7 @@ async function build() {
             sourcemap: true,
             minify: true,
             treeShaking: true,
-            logLevel: 'info',
+            logLevel: 'info'
         });
 
         if (isWatch) {
@@ -75,7 +75,7 @@ async function build() {
             console.log('Watching for changes...');
 
             // Watch configs folder
-            const watcher = fs.watch(configsSrcDir, (eventType, filename) => {
+            fs.watch(configsSrcDir, (eventType, filename) => {
                 if (filename) {
                     console.log(`Config changed: ${filename}, copying...`);
                     copyDir(configsSrcDir, configsDestDir);

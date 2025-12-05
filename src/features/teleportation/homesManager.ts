@@ -2,10 +2,10 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '../../core/configManager.js';
 import {
-    getOrCreatePlayer,
-    setPlayerHome as setPlayerDataHome,
     deletePlayerHome as deletePlayerDataHome,
-    HomeLocation
+    getOrCreatePlayer,
+    HomeLocation,
+    setPlayerHome as setPlayerDataHome
 } from '../../core/playerDataManager.js';
 
 interface ActionResult {
