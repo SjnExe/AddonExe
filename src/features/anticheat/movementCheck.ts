@@ -116,7 +116,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
             ) {
                 limit = config.maxSpeedIce;
             }
-        } catch (_e) {
+        } catch {
             // Ignore block read errors (unloaded chunks etc)
         }
     }
@@ -214,7 +214,7 @@ function checkWorldBorder(
                 { dimension: player.dimension }
             );
             player.sendMessage(`§cYou have reached the world border!`);
-        } catch (_e) {
+        } catch {
             // Teleport might fail if stuck
         }
     }
@@ -236,14 +236,14 @@ function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
             // User said: "minecraft automatically puts them under the nether roof" when they rejoin.
             // So kicking is the goal.
             player.runCommand('kick "Nether Roof Detected"');
-        } catch (_e) {
+        } catch {
             // If kick fails (permissions), TP down
             try {
                 player.teleport(
                     { x: player.location.x, y: 120, z: player.location.z },
                     { dimension: player.dimension }
                 );
-            } catch (_e2) {
+            } catch {
                 // Ignore
             }
         }
