@@ -17,7 +17,8 @@ export const config = {
     // --- Restart Settings ---
     restart: {
         countdownSeconds: 30,
-        kickMessage: 'Server is restarting. Please rejoin in a moment.'
+        kickMessage: 'Server is restarting. Please rejoin in a moment.',
+        subtitle: '§eServer Restarting...'
     },
 
     // --- Feature Toggles & Settings ---

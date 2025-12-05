@@ -29,6 +29,7 @@ export function startRestart(initiator: CommandExecutor): void {
         return;
     }
     const countdownSeconds = config.restart?.countdownSeconds ?? 30;
+    const subtitle = config.restart?.subtitle ?? '§eServer Restarting...';
     const announcer = initiator instanceof mc.Player ? initiator.name : 'Console';
 
     restartInProgress = true;
@@ -52,7 +53,7 @@ export function startRestart(initiator: CommandExecutor): void {
 
                 if (countdownTimer <= 5) {
                     player.onScreenDisplay.setTitle(`§c${countdownTimer}`);
-                    player.onScreenDisplay.updateSubtitle('§eServer Restarting...');
+                    player.onScreenDisplay.updateSubtitle(subtitle);
                 }
             }
 

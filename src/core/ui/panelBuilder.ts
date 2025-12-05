@@ -653,7 +653,12 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                         break;
                     case 'textField': {
                         const val = currentValue ?? '';
-                        const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                        let strVal: string;
+                        if (typeof val === 'object' && val !== null) {
+                            strVal = JSON.stringify(val);
+                        } else {
+                            strVal = String(val as string | number | boolean);
+                        }
                         form.textField(setting.label, setting.description || '', {
                             defaultValue: strVal
                         });
