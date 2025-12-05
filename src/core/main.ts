@@ -156,7 +156,7 @@ function startSystemTimers() {
 async function initializeAddon() {
     infoLog('[AddonExe] Initializing addon...');
 
-    const tempConfig = await loadConfig<typeof Config>('../config.js');
+    const tempConfig = await loadConfig<typeof Config>('./config.js');
     const newVersion = tempConfig.version;
     const newVersionStr = String(newVersion);
     const lastVersionStr = mc.world.getDynamicProperty('exe:lastVersion') as string | undefined;
