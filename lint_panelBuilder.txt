@@ -1,0 +1,90 @@
+
+/app/src/core/ui/panelBuilder.ts
+    87:15  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+    87:60  warning  Unsafe argument of type `any` assigned to a parameter of type `string`                  @typescript-eslint/no-unsafe-argument
+    92:46  warning  Unsafe argument of type `any` assigned to a parameter of type `string`                  @typescript-eslint/no-unsafe-argument
+    92:52  warning  Unsafe member access .rankId on an `any` value                                          @typescript-eslint/no-unsafe-member-access
+    93:48  warning  Unsafe argument of type `any` assigned to a parameter of type `string`                  @typescript-eslint/no-unsafe-argument
+    97:48  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+    97:54  warning  Unsafe member access .balance on an `any` value                                         @typescript-eslint/no-unsafe-member-access
+   105:48  warning  Unsafe member access .id on an `any` value                                              @typescript-eslint/no-unsafe-member-access
+   106:54  warning  Unsafe member access .reportedPlayerName on an `any` value                              @typescript-eslint/no-unsafe-member-access
+   107:47  warning  Unsafe member access .reporterName on an `any` value                                    @typescript-eslint/no-unsafe-member-access
+   108:45  warning  Unsafe member access .reason on an `any` value                                          @typescript-eslint/no-unsafe-member-access
+   109:45  warning  Unsafe member access .status on an `any` value                                          @typescript-eslint/no-unsafe-member-access
+   110:39  warning  Unsafe argument of type `any` assigned to a parameter of type `string | number | Date`  @typescript-eslint/no-unsafe-argument
+   110:52  warning  Unsafe member access .timestamp on an `any` value                                       @typescript-eslint/no-unsafe-member-access
+   175:44  warning  Computed name [categoryName ?? ''] resolves to an `any` value                           @typescript-eslint/no-unsafe-member-access
+   188:60  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   210:32  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   216:44  warning  Computed name [categoryName ?? ''] resolves to an `any` value                           @typescript-eslint/no-unsafe-member-access
+   221:48  warning  Computed name [subCategoryName ?? ''] resolves to an `any` value                        @typescript-eslint/no-unsafe-member-access
+   228:53  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   246:32  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   263:63  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   270:32  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   281:44  warning  Computed name [categoryName ?? ''] resolves to an `any` value                           @typescript-eslint/no-unsafe-member-access
+   294:60  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   308:32  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   318:44  warning  Computed name [categoryName ?? ''] resolves to an `any` value                           @typescript-eslint/no-unsafe-member-access
+   323:48  warning  Computed name [subCategoryName ?? ''] resolves to an `any` value                        @typescript-eslint/no-unsafe-member-access
+   330:53  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   339:32  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   348:64  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   355:32  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   359:11  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   380:67  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   402:11  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   422:67  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   442:1   warning  Async function 'buildBountyListForm' has no 'await' expression                          @typescript-eslint/require-await
+   443:11  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   460:66  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   475:11  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   495:61  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   535:56  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   543:32  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   570:55  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   578:32  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   597:62  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   608:32  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   832:61  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   840:40  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   872:32  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+   962:80  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   975:17  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   983:75  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   989:55  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  1006:68  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  1024:19  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  1035:65  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1046:40  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1089:19  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  1095:61  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1103:44  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1130:58  warning  Unsafe argument of type `any` assigned to a parameter of type `string`                  @typescript-eslint/no-unsafe-argument
+  1184:32  warning  Computed name [linkIndex ?? 0] resolves to an `any` value                               @typescript-eslint/no-unsafe-member-access
+  1250:60  warning  Unsafe argument of type `any` assigned to a parameter of type `string`                  @typescript-eslint/no-unsafe-argument
+  1253:13  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  1273:19  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  1284:61  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1291:44  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1305:36  warning  Computed name [ruleIndex ?? 0] resolves to an `any` value                               @typescript-eslint/no-unsafe-member-access
+  1351:49  warning  Computed name [commandName ?? ''] resolves to an `any` value                            @typescript-eslint/no-unsafe-member-access
+  1352:57  warning  Unsafe argument of type `any` assigned to a parameter of type `string`                  @typescript-eslint/no-unsafe-argument
+  1383:58  warning  Computed name [mobId ?? ''] resolves to an `any` value                                  @typescript-eslint/no-unsafe-member-access
+  1421:63  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1432:40  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1457:19  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  1458:32  warning  Computed name [index] resolves to an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  1487:50  warning  Unsafe argument of type `any` assigned to a parameter of type `string`                  @typescript-eslint/no-unsafe-argument
+  1543:30  warning  Computed name [context.oreIndex ?? 0] resolves to an `any` value                        @typescript-eslint/no-unsafe-member-access
+  1559:19  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  1564:71  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1570:40  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1575:19  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  1591:71  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1601:40  warning  Unsafe argument of type `any` assigned to a parameter of type `number`                  @typescript-eslint/no-unsafe-argument
+  1606:13  warning  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  1629:95  warning  Unsafe argument of type `any` assigned to a parameter of type `string`                  @typescript-eslint/no-unsafe-argument
+
+✖ 86 problems (0 errors, 86 warnings)

@@ -12,7 +12,7 @@ import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
-import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap } from '../playerDataManager.js';
+import { getPlayer, getOrCreatePlayer, loadPlayerData, getAllPlayerNameIdMap, PlayerData } from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
 import * as rulesManager from '../rulesManager.js';
 import { formatCurrency, resolveIcon } from '../utils.js';
@@ -84,13 +84,13 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
             ].join('\n')
         );
     } else if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
-        const pData = context.targetData || loadPlayerData(context.targetPlayerId);
+        const pData = (context.targetData as PlayerData | undefined) || loadPlayerData(context.targetPlayerId as string);
         if (!pData) {
             form.body('§4Could not load player data.');
             return;
         }
         const rank = rankManager.getRankById(pData.rankId);
-        const bounty = bountyManager.getBounty(context.targetPlayerId)?.amount ?? 0;
+        const bounty = bountyManager.getBounty(context.targetPlayerId as string)?.amount ?? 0;
         form.body(
             [
                 `§8Rank: §r${rank?.chatFormatting?.nameColor ?? '§8'}${rank?.name ?? 'Unknown'}`,
@@ -99,7 +99,7 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
             ].join('\n')
         );
     } else if (panelId === 'reportActionsPanel' && context.targetReport) {
-        const { targetReport } = context;
+        const targetReport = context.targetReport as reportManager.Report;
         form.body(
             [
                 `§8Report ID: §6${targetReport.id}`,
@@ -170,9 +170,11 @@ function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
 }
 
 function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
-    const { categoryName, page = 1, view = 'shop' } = context;
+    const categoryName = context.categoryName as string;
+    const page = (context.page as number) || 1;
+    const view = (context.view as string) || 'shop';
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[categoryName ?? ''];
+    const category = shopConfig.categories[(categoryName) ?? ''];
 
     if (!category) {
         form.body('§4Category not found.');
@@ -211,14 +213,17 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
-    const { categoryName, subCategoryName, page = 1, view = 'shop' } = context;
+    const categoryName = context.categoryName as string;
+    const subCategoryName = context.subCategoryName as string;
+    const page = (context.page as number) || 1;
+    const view = (context.view as string) || 'shop';
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[categoryName ?? ''];
+    const category = shopConfig.categories[(categoryName) ?? ''];
     if (!category) {
         form.body('§4Category not found.');
         return;
     }
-    const subCategory = category.subCategories[subCategoryName ?? ''];
+    const subCategory = category.subCategories[(subCategoryName) ?? ''];
     if (!subCategory) {
         form.body('§4Subcategory not found.');
         return;
@@ -247,7 +252,7 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
-    const { page = 1 } = context;
+    const page = (context.page as number) || 1;
     const mainConfig = getConfig();
 
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
@@ -271,14 +276,15 @@ function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
-    const { categoryName, page = 1 } = context;
+    const categoryName = context.categoryName as string;
+    const page = (context.page as number) || 1;
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
     form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
     form.button('§l§9* Edit Category', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[categoryName ?? ''];
+    const category = shopConfig.categories[(categoryName) ?? ''];
 
     if (!category) {
         form.body('§4Category not found.');
@@ -309,18 +315,20 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UIContext) {
-    const { categoryName, subCategoryName, page = 1 } = context;
+    const categoryName = context.categoryName as string;
+    const subCategoryName = context.subCategoryName as string;
+    const page = (context.page as number) || 1;
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
     form.button('§l§9* Edit Subcategory', 'textures/ui/icon_setting');
 
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[categoryName ?? ''];
+    const category = shopConfig.categories[(categoryName) ?? ''];
     if (!category) {
         form.body('§4Category not found.');
         return;
     }
-    const subCategory = category.subCategories[subCategoryName ?? ''];
+    const subCategory = category.subCategories[(subCategoryName) ?? ''];
     if (!subCategory) {
         form.body('§4Subcategory not found.');
         return;
@@ -340,7 +348,7 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
 }
 
 function buildShopAddItemPanel(form: ActionFormData, context: UIContext) {
-    const { page = 1 } = context;
+    const page = (context.page as number) || 1;
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
     form.button('§l§2+ Add Custom Item', 'textures/ui/color_plus');
 
@@ -439,8 +447,8 @@ async function buildPlayerListForm(title: string, context: UIContext) {
     return form;
 }
 
-async function buildBountyListForm(title: string, context: UIContext) {
-    const page = context.page || 1;
+function buildBountyListForm(title: string, context: UIContext) {
+    const page = (context.page as number) || 1;
     const form = new ActionFormData().title(`${title} (Page ${page})`);
 
     // Add Back button
@@ -510,7 +518,7 @@ function buildReportListForm(title: string, context: UIContext) {
 }
 
 function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
-    const { page = 1 } = context;
+    const page = (context.page as number) || 1;
     const pData = getPlayer((context.player as mc.Player).id);
     if (!pData) {
         return;
@@ -544,7 +552,7 @@ function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
-    const { page = 1 } = context;
+    const page = (context.page as number) || 1;
     const mainConfig = getConfig();
 
     // Add Back button
@@ -579,7 +587,7 @@ function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
 }
 
 function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
-    const { page = 1 } = context;
+    const page = (context.page as number) || 1;
     const config = getConfig();
     const commandSettings = config.commandSettings || {};
 
@@ -653,7 +661,12 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                         break;
                     case 'textField': {
                         const val = currentValue ?? '';
-                        const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                        let strVal: string;
+                        if (typeof val === 'object' && val !== null) {
+                            strVal = JSON.stringify(val);
+                        } else {
+                            strVal = String(val as string | number | boolean);
+                        }
                         form.textField(setting.label, setting.description || '', {
                             defaultValue: strVal
                         });
@@ -679,7 +692,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'floatingTextActionPanel') {
-            const { id } = context;
+            const id = context.id as string;
             const form = new ActionFormData()
                 .title(`Actions for: ${id}`)
                 .button('Edit', 'textures/ui/icon_setting')
@@ -811,7 +824,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'teamBrowserPanel') {
             const { getAllTeams } = await import('../../features/teams/teamManager.js');
-            const { page = 1 } = context;
+            const page = (context.page as number) || 1;
             const form = new ActionFormData().title(`Browse Teams (Page ${page})`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
@@ -1121,7 +1134,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'floatingTextEditPanel') {
             const { floatingTextManager } = await import('../floatingTextManager.js');
-            const { id } = context;
+            const id = context.id as string;
             const text = floatingTextManager.getTextById(id);
             if (!text) {
                 errorLog(`[UIManager] floatingTextEditPanel: Text with ID ${id} not found.`);
@@ -1174,12 +1187,12 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'helpfulLinkActionPanel') {
             const panelDef = panelDefinitions[panelId];
-            const { linkIndex } = context;
+            const linkIndex = context.linkIndex as number | undefined;
             const links = helpfulLinksManager.getHelpfulLinks();
             const link = links[linkIndex ?? 0];
 
             if (!link) {
-                errorLog(`[UIManager] Invalid link index for helpfulLinkActionPanel: ${linkIndex}`);
+                errorLog(`[UIManager] Invalid link index for helpfulLinkActionPanel: ${String(linkIndex)}`);
                 await import('../uiManager.js').then(({ showPanel }) =>
                     showPanel(player, 'helpfulLinksManagementPanel', context)
                 );
@@ -1295,7 +1308,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'ruleActionPanel') {
-            const { ruleIndex } = context;
+            const ruleIndex = context.ruleIndex as number | undefined;
             const rules = rulesManager.getRules();
             const ruleText = rules[ruleIndex ?? 0] || 'Invalid Rule';
 
@@ -1337,7 +1350,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'commandSettingsPanel') {
-            const { commandName } = context;
+            const commandName = context.commandName as string | undefined;
             const config = getConfig();
             const allSettings = config.commandSettings as Record<
                 string,
@@ -1373,7 +1386,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'editMobDropPanel') {
-            const { mobId } = context;
+            const mobId = context.mobId as string | undefined;
             const economyConfig = getEconomyConfig();
             const currentAmount = economyConfig.mobMoney[mobId ?? ''] ?? 0;
             const form = new ActionFormData()
@@ -1399,7 +1412,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'mobDropsSystemPanel') {
-            const { page = 1 } = context;
+            const page = (context.page as number) || 1;
             const form = new ActionFormData().title('§l§2Mob Drops System');
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
             form.button('§l§2+ Add New Mob§r', 'textures/ui/realms_green_check.png');
@@ -1479,9 +1492,10 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'editRankPanel') {
-            const rank = rankManager.getRankById(context.rankId ?? '');
+            const rankId = context.rankId as string | undefined;
+            const rank = rankManager.getRankById(rankId ?? '');
             if (!rank) {
-                errorLog(`[UIManager] Edit rank panel: rank with ID ${context.rankId} not found.`);
+                errorLog(`[UIManager] Edit rank panel: rank with ID ${String(rankId)} not found.`);
                 return null;
             }
 
@@ -1535,7 +1549,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a, b) =>
                 a.oreName.localeCompare(b.oreName)
             );
-            const ore = ores[context.oreIndex ?? 0];
+            const ore = ores[(context.oreIndex as number) ?? 0];
             const form = new ModalFormData().title('§l§4Edit Monitored Ore');
             const blockId = ore.blocks?.[0]?.blockId ?? '';
             const dimensionId = ore.blocks?.[0]?.dimensionId ?? '';

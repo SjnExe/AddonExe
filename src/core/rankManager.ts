@@ -123,21 +123,26 @@ export function updatePlayerNameTag(player: mc.Player, config: typeof Config) {
     // Hardcoded brackets: §e[§r PREFIX §e]§r
     const finalPrefix = rankPrefix ? `§e[§r${rankPrefix}§e]§r` : '';
 
-    let newNameTag;
-    switch (nameTagStyle) {
-        case 'before':
-            newNameTag = finalPrefix ? `${finalPrefix} ${player.name}` : player.name;
-            break;
-        case 'after':
-            newNameTag = finalPrefix ? `${player.name} ${finalPrefix}` : player.name;
-            break;
-        case 'under':
-            newNameTag = `${player.name}\n${finalPrefix}`;
-            break;
-        case 'above':
-        default:
-            newNameTag = `${finalPrefix}\n${player.name}`;
-            break;
+    let newNameTag: string;
+
+    if (finalPrefix) {
+        switch (nameTagStyle) {
+            case 'before':
+                newNameTag = `${finalPrefix} ${player.name}`;
+                break;
+            case 'after':
+                newNameTag = `${player.name} ${finalPrefix}`;
+                break;
+            case 'under':
+                newNameTag = `${player.name}\n${finalPrefix}`;
+                break;
+            case 'above':
+            default:
+                newNameTag = `${finalPrefix}\n${player.name}`;
+                break;
+        }
+    } else {
+        newNameTag = player.name;
     }
 
     // To prevent unnecessary updates and potential Watchdog spikes, only update if the nametag has changed.
