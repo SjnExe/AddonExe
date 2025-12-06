@@ -1276,6 +1276,82 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             return form;
         }
 
+        if (panelId === 'configCategoryPanel') {
+            const page = context.page || 1;
+            const form = new ActionFormData().title(`Configuration (Page ${page})`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            const categories = getVisibleCategories(pData);
+            const paginatedCategories = getPaginatedItems(categories, page);
+
+            for (const cat of paginatedCategories) {
+                form.button(cat.title, cat.icon);
+            }
+
+            if (pData.permissionLevel === 0) {
+                form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
+            }
+
+            addPaginationButtons(form, page, categories.length);
+            return form;
+        }
+
+        if (panelId.startsWith('configSubCategoryPanel_')) {
+            const category = panelId.replace('configSubCategoryPanel_', '');
+            const page = context.page || 1;
+            const form = new ActionFormData().title(`§l§3${category} Settings§r (Page ${page})`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            const systems = getSystemsByCategory(pData, category);
+            const paginatedSystems = getPaginatedItems(systems, page);
+
+            for (const system of paginatedSystems) {
+                form.button(system.title, system.icon);
+            }
+
+            addPaginationButtons(form, page, systems.length);
+            return form;
+        }
+
+        if (panelId === 'configResetPanel') {
+            const page = context.page || 1;
+            const form = new ActionFormData().title(`Reset Configuration (Page ${page})`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            const categories = getVisibleCategories(pData);
+            const paginatedCategories = getPaginatedItems(categories, page);
+
+            for (const cat of paginatedCategories) {
+                form.button(`Reset ${cat.title}`, cat.icon);
+            }
+
+            if (page >= Math.ceil(categories.length / itemsPerPage)) {
+                form.button('§l§4Reset All Systems', 'textures/ui/trash');
+            }
+
+            addPaginationButtons(form, page, categories.length);
+            return form;
+        }
+
+        if (panelId.startsWith('configResetCategoryPanel_')) {
+            const category = panelId.replace('configResetCategoryPanel_', '');
+            const page = context.page || 1;
+            const form = new ActionFormData().title(`Reset: ${category} (Page ${page})`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            const systems = getSystemsByCategory(pData, category);
+            const paginatedSystems = getPaginatedItems(systems, page);
+
+            form.button(`§l§4Reset All ${category}§r`, 'textures/ui/trash');
+
+            for (const system of paginatedSystems) {
+                form.button(`§4Reset ${system.title}`, system.icon);
+            }
+
+            addPaginationButtons(form, page, systems.length);
+            return form;
+        }
+
         const panelDef = panelDefinitions[panelId];
         if (!panelDef) {
             debugLog(`[UIManager] Panel definition not found for '${panelId}'.`);
@@ -1605,81 +1681,6 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             return form;
         }
 
-        if (panelId === 'configCategoryPanel') {
-            const page = context.page || 1;
-            const form = new ActionFormData().title(`${title} (Page ${page})`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            const categories = getVisibleCategories(pData);
-            const paginatedCategories = getPaginatedItems(categories, page);
-
-            for (const cat of paginatedCategories) {
-                form.button(cat.title, cat.icon);
-            }
-
-            if (pData.permissionLevel === 0) {
-                form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
-            }
-
-            addPaginationButtons(form, page, categories.length);
-            return form;
-        }
-
-        if (panelId.startsWith('configSubCategoryPanel_')) {
-            const category = panelId.replace('configSubCategoryPanel_', '');
-            const page = context.page || 1;
-            const form = new ActionFormData().title(`§l§3${category} Settings§r (Page ${page})`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            const systems = getSystemsByCategory(pData, category);
-            const paginatedSystems = getPaginatedItems(systems, page);
-
-            for (const system of paginatedSystems) {
-                form.button(system.title, system.icon);
-            }
-
-            addPaginationButtons(form, page, systems.length);
-            return form;
-        }
-
-        if (panelId === 'configResetPanel') {
-            const page = context.page || 1;
-            const form = new ActionFormData().title(`${title} (Page ${page})`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            const categories = getVisibleCategories(pData);
-            const paginatedCategories = getPaginatedItems(categories, page);
-
-            for (const cat of paginatedCategories) {
-                form.button(`Reset ${cat.title}`, cat.icon);
-            }
-
-            if (page >= Math.ceil(categories.length / itemsPerPage)) {
-                form.button('§l§4Reset All Systems', 'textures/ui/trash');
-            }
-
-            addPaginationButtons(form, page, categories.length);
-            return form;
-        }
-
-        if (panelId.startsWith('configResetCategoryPanel_')) {
-            const category = panelId.replace('configResetCategoryPanel_', '');
-            const page = context.page || 1;
-            const form = new ActionFormData().title(`Reset: ${category} (Page ${page})`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            const systems = getSystemsByCategory(pData, category);
-            const paginatedSystems = getPaginatedItems(systems, page);
-
-            form.button(`§l§4Reset All ${category}§r`, 'textures/ui/trash');
-
-            for (const system of paginatedSystems) {
-                form.button(`§4Reset ${system.title}`, system.icon);
-            }
-
-            addPaginationButtons(form, page, systems.length);
-            return form;
-        }
 
         if (panelId === 'playerActionsPanel') {
             panelDef.parentPanelId = context.fromPanel || 'mainPanel';
