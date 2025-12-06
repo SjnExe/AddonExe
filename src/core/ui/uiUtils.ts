@@ -1,5 +1,7 @@
 import { ActionFormData } from '@minecraft/server-ui';
 
+import { configPanelSchema } from './panelRegistry.js';
+
 import {
     AnticheatConfig,
     getAnticheatConfig,
