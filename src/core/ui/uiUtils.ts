@@ -1,5 +1,7 @@
 import { ActionFormData } from '@minecraft/server-ui';
 
+import { configPanelSchema } from './panelRegistry.js';
+
 import {
     AnticheatConfig,
     getAnticheatConfig,
@@ -119,6 +121,22 @@ export interface SystemItem {
  */
 export function getAllSystems(): SystemDefinition[] {
     return systemRegistry;
+}
+
+/**
+ * Returns a sorted list of systems that can be reset via the Config Reset Panel.
+ * This list is used by both the panel builder (to generate buttons) and the handler (to process clicks).
+ */
+export function getResettableSystems() {
+    const systems = [
+        ...configPanelSchema
+            .filter((c) => !c.id.startsWith('general_'))
+            .map((c) => ({ id: c.id, title: c.title, icon: c.icon })),
+        { id: 'kits', title: '§l§5Kit System§r', icon: 'textures/ui/inventory_icon' },
+        { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
+        { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
+    ];
+    return systems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
 }
 
 /**

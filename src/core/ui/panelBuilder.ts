@@ -31,6 +31,7 @@ import {
     addPaginationButtons,
     configHandlers,
     getPaginatedItems,
+    getResettableSystems,
     getVisibleConfigSystems,
     itemsPerPage
 } from './uiUtils.js';
@@ -1612,17 +1613,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData().title(`${title} (Page ${page})`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-            const resettableSystems = [
-                ...configPanelSchema
-                    .filter((c) => !c.id.startsWith('general_'))
-                    .map((c) => ({ id: c.id, title: c.title, icon: c.icon })),
-                { id: 'kits', title: '§l§5Kit System§r', icon: 'textures/ui/inventory_icon' },
-                { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
-                { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
-            ];
-            resettableSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
-
-            const sortedSystems = resettableSystems;
+            const sortedSystems = getResettableSystems();
 
             const paginatedSystems = getPaginatedItems(sortedSystems, page);
 
@@ -1630,11 +1621,11 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 form.button(`§4Reset ${system.title}`, system.icon);
             }
 
-            if (page >= Math.ceil(resettableSystems.length / itemsPerPage)) {
+            if (page >= Math.ceil(sortedSystems.length / itemsPerPage)) {
                 form.button('§l§4Reset All Systems', 'textures/ui/trash');
             }
 
-            addPaginationButtons(form, page, resettableSystems.length);
+            addPaginationButtons(form, page, sortedSystems.length);
             return form;
         }
 
