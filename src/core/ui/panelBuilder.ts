@@ -681,7 +681,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 errorLog(`[UIManager] No config handler found for source: ${configSource}`);
                 return null;
             }
-            const config = (handler.get() as unknown) as Record<string, unknown>;
+            const config = handler.get() as unknown as Record<string, unknown>;
 
             for (const setting of category.settings) {
                 const currentValue = getValueFromPath(config, setting.key);
