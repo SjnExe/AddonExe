@@ -97,14 +97,6 @@ export default tseslint.config(
             'import/namespace': 'error',
             'import/default': 'error',
             'import/export': 'error',
-            'import/order': [
-                'error',
-                {
-                    groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
-                    'newlines-between': 'always',
-                    alphabetize: { order: 'asc', caseInsensitive: true }
-                }
-            ],
             camelcase: ['error', { properties: 'always', ignoreDestructuring: true, allow: ['^UNSAFE_'] }],
             'no-console': 'warn',
             eqeqeq: ['error', 'always'],

@@ -13,8 +13,8 @@ import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';
 import { configPanelSchema, UIContext } from '../panelRegistry.js';
 import {
-    getAllSystems,
     getPaginatedItems,
+    getResettableSystems,
     getVisibleConfigSystems,
     itemsPerPage,
     configHandlers as uiConfigHandlers
@@ -46,7 +46,8 @@ export async function handleConfigPanel(
 
         if (buttonIndex >= 0 && buttonIndex < paginatedSystems.length) {
             const system = paginatedSystems[buttonIndex];
-            return showPanel(player, system.id, context);
+            // Explicitly reset page to 1 when entering a sub-panel to avoid page number leakage
+            return showPanel(player, system.id, { ...context, page: 1 });
         }
         buttonIndex -= paginatedSystems.length;
 
@@ -127,13 +128,7 @@ export async function handleConfigPanel(
     // --- Reset Config Panel ---
     if (panelId === 'configResetPanel') {
         const page = context.page || 1;
-        // Dynamically fetch all systems from the registry
-        const allSystems = getAllSystems();
-
-        // Sort systems for the list
-        const sortedSystems = [...allSystems].sort((a, b) =>
-            a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, ''))
-        );
+        const sortedSystems = getResettableSystems();
 
         if (selection === 0) {
             // Back button

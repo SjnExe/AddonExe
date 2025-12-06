@@ -28,6 +28,10 @@ export function initialize() {
     debugLog('[SidebarManager] Initialized.');
 }
 
+export function getCurrentTPS() {
+    return currentTPS;
+}
+
 export function cleanup() {
     stopLoops();
     stopTPSCounter();
@@ -127,7 +131,7 @@ function getOrCreateSidebarObjective(): mc.ScoreboardObjective | undefined {
     return objective;
 }
 
-function resolveGlobalPlaceholders(text: string): string {
+export function resolveGlobalPlaceholders(text: string): string {
     const config = getSidebarConfig();
     const mainConfig = getConfig();
     const online = mc.world.getAllPlayers().length;
