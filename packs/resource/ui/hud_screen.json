@@ -2034,7 +2034,9 @@
                                 "size": ["100%sm + 6px", "100%sm + 4px"],
                                 "layer": 0,
                                 "visible": "(not (($actionbar_text - '§~§s§b§1') = $actionbar_text))"
-                            },
+                            }
+                        },
+                        {
                             "bg_med": {
                                 "type": "image",
                                 "texture": "textures/ui/hud_tip_text_background",
@@ -2042,7 +2044,9 @@
                                 "size": ["100%sm + 6px", "100%sm + 4px"],
                                 "layer": 0,
                                 "visible": "(not (($actionbar_text - '§~§s§b§2') = $actionbar_text))"
-                            },
+                            }
+                        },
+                        {
                             "bg_low": {
                                 "type": "image",
                                 "texture": "textures/ui/hud_tip_text_background",

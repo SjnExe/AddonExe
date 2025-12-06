@@ -15,12 +15,7 @@ export const config = {
     actionBarEnabled: true,
     actionBarInterval: 20,
     actionBarLines: [
-        '§l§6{server_name}',
-        '§r§fRank: §e{rank}',
-        '§fMoney: §2{money}',
-        '§fKills: §c{kills} §f| Deaths: §4{deaths}',
-        '§fStreak: §6{streak} §f| KDR: §b{kdr}',
-        '§fPos: §7{x}, {y}, {z}',
-        '§fDim: §d{dimension}'
+        '§6{name} §7| §e{rank}',
+        '§2{money} §7| §f{x}, {y}, {z}'
     ]
 };
