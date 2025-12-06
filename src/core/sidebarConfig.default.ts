@@ -7,10 +7,10 @@ export const config = {
     sidebarLines: [
         '§7----------------',
         '§fOnline: §a{online}',
+        '§fTPS: §a{tps}',
         '§fTime: §b{time}',
         '§fDate: §7{date}',
-        '§7----------------',
-        '§ewww.example.com'
+        '§7----------------'
     ],
     actionBarEnabled: true,
     actionBarInterval: 20,
