@@ -4,7 +4,7 @@ import { getConfig, updateConfig } from '@core/configManager.js';
 import { LogLevels, setLogLevel } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 const logLevelNames: { [key: number]: string } = {
     [LogLevels.ERROR]: 'ERROR',

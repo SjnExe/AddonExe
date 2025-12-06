@@ -6,7 +6,7 @@ import { getConfig } from '../configManager.js';
 import * as lastHitManager from '../lastHitManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import * as playerCache from '../playerCache.js';
-import { getOrCreatePlayer, setPlayerLastDeathLocation, incrementPlayerBalance } from '../playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance, setPlayerLastDeathLocation } from '../playerDataManager.js';
 
 export const eventName = 'entityDie';
 

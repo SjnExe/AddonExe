@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 const invseeCommand: CustomCommand = {
     name: 'invsee',

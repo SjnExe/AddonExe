@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { errorLog, debugLog } from './logger.js';
+import { debugLog, errorLog } from './logger.js';
 import { isDeepEqual } from './objectUtils.js';
 
 export interface FloatingTextConfig {

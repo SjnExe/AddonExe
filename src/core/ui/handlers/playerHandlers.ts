@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
-import { loadPlayerData, getAllPlayerNameIdMap, getPlayerIdByName } from '../../playerDataManager.js';
+import { getAllPlayerNameIdMap, getPlayerIdByName, loadPlayerData } from '../../playerDataManager.js';
 import { handleUIAction } from '../../ui/actions.js';
 import { showPanel } from '../../uiManager.js';
 import { UIContext } from '../panelRegistry.js';
-import { itemsPerPage, getPaginatedItems } from '../uiUtils.js';
+import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 export async function handlePlayerPanel(
     player: mc.Player,

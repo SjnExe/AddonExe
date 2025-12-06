@@ -4,14 +4,14 @@ import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import {
-    getPlayer,
+    clearPendingPayment,
     createPendingPayment,
     getPendingPayment,
-    clearPendingPayment,
+    getPlayer,
     transfer
 } from '@core/playerDataManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
-import { CustomCommand, CommandExecutor } from '@modules/commands/commandManager.js';
+import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
 interface PayCommandArgs {
     target?: mc.Player[];

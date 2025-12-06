@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 import {
     ActionFormData,
-    ModalFormData,
-    MessageFormData,
     ActionFormResponse,
-    ModalFormResponse,
+    FormCancelationReason,
+    MessageFormData,
     MessageFormResponse,
-    FormCancelationReason
+    ModalFormData,
+    ModalFormResponse
 } from '@minecraft/server-ui';
 
 import { getConfig } from './configManager.js';

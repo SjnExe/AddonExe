@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { constants } from '@core/constants.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { CustomCommand, CommandExecutor } from '@modules/commands/commandManager.js';
+import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
 export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
     if (targetPlayer.hasTag(constants.frozenTag)) {

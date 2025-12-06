@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
-import { CustomCommand, CommandExecutor } from '@modules/commands/commandManager.js';
+import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
 import { uiWait } from '../../../core/utils.js';
 import { getFlagLogs, getPunishmentLogs } from '../logManager.js';

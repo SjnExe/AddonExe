@@ -1,16 +1,16 @@
 // @ts-check
 
 import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import globals from 'globals';
-import jsonc from 'eslint-plugin-jsonc';
-import importPlugin from 'eslint-plugin-import';
-import unusedImports from 'eslint-plugin-unused-imports';
-import promisePlugin from 'eslint-plugin-promise';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import prettierConfig from 'eslint-config-prettier';
+import importPlugin from 'eslint-plugin-import';
+import jsonc from 'eslint-plugin-jsonc';
 import minecraftLinting from 'eslint-plugin-minecraft-linting';
+import promisePlugin from 'eslint-plugin-promise';
+import unusedImports from 'eslint-plugin-unused-imports';
+import globals from 'globals';
+import path from 'path';
+import tseslint from 'typescript-eslint';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

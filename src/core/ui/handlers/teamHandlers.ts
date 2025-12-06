@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
-import { ActionFormResponse, ActionFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
 import { PlayerData, getPlayer } from '../../playerDataManager.js';
 import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';
 import { UIContext } from '../panelRegistry.js';
-import { itemsPerPage, getPaginatedItems } from '../uiUtils.js';
+import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 export async function handleTeamPanel(
     player: mc.Player,

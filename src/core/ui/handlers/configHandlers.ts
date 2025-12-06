@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ActionFormResponse, ModalFormResponse, ModalFormData } from '@minecraft/server-ui';
+import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { refreshXrayCache } from '@modules/detections/xrayDetection.js';
 
@@ -12,11 +12,11 @@ import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';
 import { configPanelSchema, UIContext } from '../panelRegistry.js';
 import {
-    itemsPerPage,
+    getAllSystems,
     getPaginatedItems,
-    configHandlers as uiConfigHandlers,
     getVisibleConfigSystems,
-    getAllSystems
+    itemsPerPage,
+    configHandlers as uiConfigHandlers
 } from '../uiUtils.js';
 
 export async function handleConfigPanel(

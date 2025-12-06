@@ -5,7 +5,7 @@ import { getTeamByPlayer } from '../features/teams/teamManager.js';
 import { getConfig } from './configManager.js';
 import { getSidebarConfig } from './configurations.js';
 import { debugLog, errorLog } from './logger.js';
-import { getPlayTime, getSidebarVisible, getOrCreatePlayer } from './playerDataManager.js';
+import { getOrCreatePlayer, getPlayTime, getSidebarVisible } from './playerDataManager.js';
 import { getRankById } from './rankManager.js';
 import { formatCurrency, formatDuration } from './utils.js';
 
