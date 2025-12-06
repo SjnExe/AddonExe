@@ -31,7 +31,8 @@ import {
     addPaginationButtons,
     configHandlers,
     getPaginatedItems,
-    getVisibleConfigSystems,
+    getSystemsByCategory,
+    getVisibleCategories,
     itemsPerPage
 } from './uiUtils.js';
 
@@ -681,7 +682,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 errorLog(`[UIManager] No config handler found for source: ${configSource}`);
                 return null;
             }
-            const config = (handler.get() as unknown) as Record<string, unknown>;
+            const config = handler.get() as unknown as Record<string, unknown>;
 
             for (const setting of category.settings) {
                 const currentValue = getValueFromPath(config, setting.key);
@@ -729,6 +730,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 .button('Respawn', 'textures/ui/refresh_light')
                 .button('Despawn', 'textures/ui/cancel')
                 .button('§4Delete', 'textures/ui/trash')
+                .button('Placeholder List', 'textures/ui/infobulb')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
             return form;
         }
@@ -1379,6 +1381,18 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             return form;
         }
 
+        if (panelId === 'placeholderListPanel') {
+            const form = new ActionFormData().title('Placeholder List');
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+            form.body(
+                `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
+                    `{server_name}, {tps}, {online}, {max_players}, {time}, {date}\n\n` +
+                    `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
+                    `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
+            );
+            return form;
+        }
+
         if (panelId === 'commandSettingsPanel') {
             const commandName = context.commandName as string | undefined;
             const config = getConfig() as unknown as MainConfig;
@@ -1596,14 +1610,35 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData().title(`${title} (Page ${page})`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-            const sortedSystems = getVisibleConfigSystems(pData);
-            const paginatedSystems = getPaginatedItems(sortedSystems, page);
+            const categories = getVisibleCategories(pData);
+            const paginatedCategories = getPaginatedItems(categories, page);
+
+            for (const cat of paginatedCategories) {
+                form.button(cat.title, cat.icon);
+            }
+
+            if (pData.permissionLevel === 0) {
+                form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
+            }
+
+            addPaginationButtons(form, page, categories.length);
+            return form;
+        }
+
+        if (panelId.startsWith('configSubCategoryPanel_')) {
+            const category = panelId.replace('configSubCategoryPanel_', '');
+            const page = context.page || 1;
+            const form = new ActionFormData().title(`§l§3${category} Settings§r (Page ${page})`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            const systems = getSystemsByCategory(pData, category);
+            const paginatedSystems = getPaginatedItems(systems, page);
 
             for (const system of paginatedSystems) {
                 form.button(system.title, system.icon);
             }
 
-            addPaginationButtons(form, page, sortedSystems.length);
+            addPaginationButtons(form, page, systems.length);
             return form;
         }
 
@@ -1612,29 +1647,37 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData().title(`${title} (Page ${page})`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-            const resettableSystems = [
-                ...configPanelSchema
-                    .filter((c) => !c.id.startsWith('general_'))
-                    .map((c) => ({ id: c.id, title: c.title, icon: c.icon })),
-                { id: 'kits', title: '§l§5Kit System§r', icon: 'textures/ui/inventory_icon' },
-                { id: 'shop', title: '§l§2Shop System§r', icon: 'textures/items/emerald' },
-                { id: 'ranks', title: '§l§4Rank System§r', icon: 'textures/ui/permissions_member_star.png' }
-            ];
-            resettableSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
+            const categories = getVisibleCategories(pData);
+            const paginatedCategories = getPaginatedItems(categories, page);
 
-            const sortedSystems = resettableSystems;
+            for (const cat of paginatedCategories) {
+                form.button(`Reset ${cat.title}`, cat.icon);
+            }
 
-            const paginatedSystems = getPaginatedItems(sortedSystems, page);
+            if (page >= Math.ceil(categories.length / itemsPerPage)) {
+                form.button('§l§4Reset All Systems', 'textures/ui/trash');
+            }
+
+            addPaginationButtons(form, page, categories.length);
+            return form;
+        }
+
+        if (panelId.startsWith('configResetCategoryPanel_')) {
+            const category = panelId.replace('configResetCategoryPanel_', '');
+            const page = context.page || 1;
+            const form = new ActionFormData().title(`Reset: ${category} (Page ${page})`);
+            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            const systems = getSystemsByCategory(pData, category);
+            const paginatedSystems = getPaginatedItems(systems, page);
+
+            form.button(`§l§4Reset All ${category}§r`, 'textures/ui/trash');
 
             for (const system of paginatedSystems) {
                 form.button(`§4Reset ${system.title}`, system.icon);
             }
 
-            if (page >= Math.ceil(resettableSystems.length / itemsPerPage)) {
-                form.button('§l§4Reset All Systems', 'textures/ui/trash');
-            }
-
-            addPaginationButtons(form, page, resettableSystems.length);
+            addPaginationButtons(form, page, systems.length);
             return form;
         }
 
