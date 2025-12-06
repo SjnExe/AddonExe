@@ -631,7 +631,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         // Load items config if not loaded
         if (Object.keys(allItems).length === 0) {
             try {
-                allItems = (await loadConfig<Record<string, Item>>('./configs/items.js'));
+                allItems = (await loadConfig<Record<string, Item>>('./core/itemsConfig.js'));
             } catch (error) {
                 errorLog('[UIManager] Failed to load items config.', error);
             }
