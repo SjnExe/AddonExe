@@ -38,7 +38,7 @@ type RanksConfig = typeof ranksConfig;
 type KitsConfig = typeof kitsConfig;
 type ShopConfig = typeof shopConfig;
 
-import { SystemDefinition, systemRegistry } from './systemRegistry.js';
+import { SystemDefinition, getSystemRegistry } from './systemRegistry.js';
 
 export const itemsPerPage = 8;
 
@@ -133,14 +133,14 @@ export const categoryIcons: Record<string, string> = {
  * Returns all registered systems.
  */
 export function getAllSystems(): SystemDefinition[] {
-    return systemRegistry;
+    return getSystemRegistry();
 }
 
 /**
  * Returns all visible systems for a player (permission filtered).
  */
 export function getVisibleSystems(pData: PlayerData): SystemDefinition[] {
-    return systemRegistry.filter((sys) => {
+    return getSystemRegistry().filter((sys) => {
         if (sys.id === 'economyGeneralSettings') return false; // Handled by Economy Panel
         if (sys.id === 'xray_ores') return false; // Handled by X-Ray Panel button, not main config
         return pData.permissionLevel <= 1;
