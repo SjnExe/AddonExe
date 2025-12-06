@@ -25,6 +25,7 @@ import { formatCurrency, resolveIcon } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
 import { PanelDefinition, panelDefinitions, PanelItem, UIContext } from './panelRegistry.js';
+import { MainConfig } from './types.js';
 import {
     addPaginationButtons,
     configHandlers,
@@ -45,7 +46,7 @@ interface Item {
 let allItems: Record<string, Item> = {};
 
 export function getMenuItems(panelDef: PanelDefinition, permissionLevel: number) {
-    const config = getConfig();
+    const config = getConfig() as unknown as MainConfig;
 
     const items = (panelDef.items || [])
         .filter((item: PanelItem) => {
@@ -123,7 +124,7 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
 
 export function getVisiblePlayerActionItems(context: UIContext, permissionLevel: number, viewerId?: string) {
     const panelDef = panelDefinitions.playerActionsPanel;
-    const config = getConfig();
+    const config = getConfig() as unknown as MainConfig;
     const menuItems = getMenuItems(panelDef, permissionLevel);
     const visibleItems: PanelItem[] = [];
 
@@ -141,7 +142,7 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
         }
 
         const commandName = item.id;
-        const settings = config.commandSettings as Record<string, { enabled?: boolean }>;
+        const settings = (config.commandSettings || {});
         if (settings[commandName]?.enabled === false) {
             continue;
         }
@@ -261,7 +262,7 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
 
 function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
     const page = (context.page as number) || 1;
-    const mainConfig = getConfig();
+    const mainConfig = getConfig() as unknown as MainConfig;
 
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
@@ -561,7 +562,7 @@ function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
 
 function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
     const page = (context.page as number) || 1;
-    const mainConfig = getConfig();
+    const mainConfig = getConfig() as unknown as MainConfig;
 
     // Add Back button
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
@@ -596,8 +597,8 @@ function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
 
 function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
     const page = (context.page as number) || 1;
-    const config = getConfig();
-    const commandSettings = config.commandSettings || {};
+    const config = getConfig() as unknown as MainConfig;
+    const commandSettings = (config.commandSettings || {});
 
     // Get all command names, filter out hidden ones, and sort alphabetically
 
@@ -615,8 +616,8 @@ function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
     form.body('Toggle commands on or off.\n§2[Enabled]§r / §4[Disabled]§r');
 
     for (const commandName of paginatedCommands) {
-        const settings = commandSettings as Record<string, { enabled?: boolean }>;
-        const isEnabled = settings[commandName]?.enabled ?? false;
+        const settings = commandSettings[commandName] || {};
+        const isEnabled = settings.enabled ?? false;
         const statusText = isEnabled ? '§2[Enabled]' : '§4[Disabled]';
         form.button(`${commandName}\n${statusText}`);
     }
@@ -1353,11 +1354,8 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'commandSettingsPanel') {
             const commandName = context.commandName as string | undefined;
-            const config = getConfig();
-            const allSettings = config.commandSettings as Record<
-                string,
-                { enabled?: boolean; permissionLevel?: number }
-            >;
+            const config = getConfig() as unknown as MainConfig;
+            const allSettings = (config.commandSettings || {});
             const commandSettings = allSettings[commandName ?? ''] || {};
             const command = commandManager.commands.get(commandName ?? '');
 
@@ -1480,7 +1478,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'rankSettingsPanel') {
-            const config = getConfig();
+            const config = getConfig() as unknown as MainConfig;
             const form = new ModalFormData().title('§l§2Rank Settings');
             const nameTagStyles = ['Above Name', 'Before Name', 'After Name', 'Under Name'];
             const internalStyles = ['above', 'before', 'after', 'under'];

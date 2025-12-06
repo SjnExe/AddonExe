@@ -10,6 +10,7 @@ import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';
 import { UIContext } from '../panelRegistry.js';
+import { MainConfig, ShopConfig } from '../types.js';
 import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 export async function handleShopPanel(
@@ -27,7 +28,7 @@ export async function handleShopPanel(
         }
         if (typeof selection !== 'number') return;
 
-        const shopConfig = getShopConfig();
+        const shopConfig = getShopConfig() as unknown as ShopConfig;
 
         const validCategories = Object.keys(shopConfig.categories)
             .filter((categoryName: string) => {
@@ -64,9 +65,10 @@ export async function handleShopPanel(
         }
 
         // Reconstruct the list of entries that was shown to the player
-        const shopConfig = getShopConfig();
+        const shopConfig = getShopConfig() as unknown as ShopConfig;
         const category = shopConfig.categories[categoryName];
-        let allEntries: { type: string }[] = [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let allEntries: any[] = [];
         if (isItemList && subCategoryName) {
             const subCategory = category.subCategories[subCategoryName];
             allEntries = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
@@ -323,9 +325,8 @@ export async function handleShopPanel(
         }
 
         if (selection === 1) {
-            const mainConfig = getConfig();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const newStatus = !(mainConfig as any).shop.enabled;
+            const mainConfig = getConfig() as unknown as MainConfig;
+            const newStatus = !mainConfig.shop.enabled;
             // TODO: import updateMultipleConfig if needed
             const { updateMultipleConfig } = await import('../../configManager.js');
             updateMultipleConfig({ 'shop.enabled': newStatus });
@@ -355,7 +356,7 @@ export async function handleShopPanel(
             return showPanel(player, panelId, { ...context, page: 1 });
         }
 
-        const shopConfig = getShopConfig();
+        const shopConfig = getShopConfig() as unknown as ShopConfig;
         const categories = Object.keys(shopConfig.categories).sort();
         const paginatedCategories = getPaginatedItems(categories, page);
         const selectedCategoryName = selection && selection > 2 ? paginatedCategories[selection - 3] : undefined;
@@ -415,7 +416,7 @@ export async function handleShopPanel(
             return showPanel(player, `shopAdminCategoryActionPanel_${categoryName}`, context);
         }
 
-        const shopConfig = getShopConfig();
+        const shopConfig = getShopConfig() as unknown as ShopConfig;
         const category = shopConfig.categories[categoryName as string];
         const subCategories = Object.keys(category.subCategories)
             .sort()
@@ -534,7 +535,7 @@ export async function handleShopPanel(
 
         if (selection === 0) {
             // Edit
-            const shopConfig = getShopConfig();
+            const shopConfig = getShopConfig() as unknown as ShopConfig;
             const category = shopConfig.categories[categoryName];
             const form = new ModalFormData()
                 .title('Edit Category')
@@ -593,7 +594,7 @@ export async function handleShopPanel(
             return showPanel(player, `shopAdminSubCategoryActionPanel_${subCategoryName}`, context);
         }
 
-        const shopConfig = getShopConfig();
+        const shopConfig = getShopConfig() as unknown as ShopConfig;
         const subCategory = shopConfig.categories[categoryName as string].subCategories[subCategoryName as string];
         const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
         const paginatedItems = getPaginatedItems(items, page);
@@ -708,7 +709,7 @@ export async function handleShopPanel(
         const { categoryName } = context;
         if (selection === 0) {
             // Edit
-            const shopConfig = getShopConfig();
+            const shopConfig = getShopConfig() as unknown as ShopConfig;
             const subCategory =
                 shopConfig.categories[categoryName as string].subCategories[subCategoryName];
             const form = new ModalFormData()
