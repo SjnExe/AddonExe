@@ -36,7 +36,7 @@ type RanksConfig = typeof ranksConfig;
 type KitsConfig = typeof kitsConfig;
 type ShopConfig = typeof shopConfig;
 
-import { SystemDefinition, systemRegistry } from './systemRegistry.js';
+import { SystemDefinition, getSystemRegistry } from './systemRegistry.js';
 
 export const itemsPerPage = 8;
 
@@ -112,79 +112,74 @@ export interface SystemItem {
     id: string;
     title: string;
     icon: string;
+    category?: string;
 }
+
+export const categoryIcons: Record<string, string> = {
+    Server: 'textures/ui/icon_book_writable',
+    Gameplay: 'textures/items/iron_sword',
+    System: 'textures/ui/settings_glyph_color_2x',
+    Economy: 'textures/items/emerald',
+    Moderation: 'textures/ui/WarningGlyph',
+    World: 'textures/blocks/beacon',
+    Visuals: 'textures/items/book_writable',
+    Social: 'textures/ui/icon_multiplayer',
+    Chat: 'textures/ui/chat_send'
+};
 
 /**
  * Returns all registered systems.
  */
 export function getAllSystems(): SystemDefinition[] {
-    return systemRegistry;
+    return getSystemRegistry();
 }
 
 /**
- * Generates a synchronized list of visible configuration systems for a player.
- * This serves as the single source of truth for both building the panel and handling its responses.
- * @param pData The player data object containing permissionLevel.
- * @returns A sorted array of system objects ({ id, title, icon }).
+ * Returns all visible systems for a player (permission filtered).
  */
-export function getVisibleConfigSystems(pData: PlayerData): SystemItem[] {
-    const allSystems: SystemItem[] = [];
+export function getVisibleSystems(pData: PlayerData): SystemDefinition[] {
+    return getSystemRegistry().filter((sys) => {
+        if (sys.id === 'economyGeneralSettings') return false; // Handled by Economy Panel
+        if (sys.id === 'xray_ores') return false; // Handled by X-Ray Panel button, not main config
+        return pData.permissionLevel <= 1;
+    });
+}
 
-    // Filter systems based on permissions and other logic
-    systemRegistry.forEach((sys) => {
-        // Skip specific systems if needed (e.g. sub-parts handled elsewhere)
-        if (sys.id === 'economyGeneralSettings') {
-            return;
-        }
-
-        // Determine panel ID to use
-        const panelId = sys.configPanelId;
-
-        // Permission Check (Default simple configs are visible to admins, specific ones handled below)
-        // Actually, let's assume all these are permissionLevel <= 1 (Admin) unless specified
-        // The original code pushed explicit items for permissionLevel <= 1
-        if (pData.permissionLevel <= 1) {
-            allSystems.push({
-                id: panelId,
-                title: sys.title,
-                icon: sys.icon
-            });
-        }
+/**
+ * Returns unique categories available to the player.
+ */
+export function getVisibleCategories(pData: PlayerData): SystemItem[] {
+    const systems = getVisibleSystems(pData);
+    const categories = new Set<string>();
+    systems.forEach((sys) => {
+        if (sys.category) categories.add(sys.category);
     });
 
+    const sortedCategories = Array.from(categories).sort();
+
+    // Add "Reset" category if Owner
     if (pData.permissionLevel === 0) {
-        allSystems.push({ id: 'configResetPanel', title: '§l§cReset Settings§r', icon: 'textures/ui/wysiwyg_reset' });
+        // Reset isn't a category in systemRegistry, it's a panel.
+        // We handle Reset separately in panelBuilder.
     }
 
-    // Custom sorting: Server Info first, Gameplay, System, Reset last, rest alphabetical
-    const serverInfo = allSystems.find((s) => s.id === 'config_general_server');
-    const gameplay = allSystems.find((s) => s.id === 'config_general_gameplay');
-    const system = allSystems.find((s) => s.id === 'config_general_system');
-    const resetSystem = allSystems.find((s) => s.id === 'configResetPanel');
+    return sortedCategories.map((cat) => ({
+        id: cat,
+        title: `§l§3${cat} Settings§r`,
+        icon: categoryIcons[cat] || 'textures/ui/settings_glyph_color_2x'
+    }));
+}
 
-    const otherSystems = allSystems.filter(
-        (s) =>
-            s.id !== 'config_general_server' &&
-            s.id !== 'config_general_gameplay' &&
-            s.id !== 'config_general_system' &&
-            s.id !== 'configResetPanel'
-    );
-    otherSystems.sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
-
-    const sortedSystems: SystemItem[] = [];
-    if (serverInfo) {
-        sortedSystems.push(serverInfo);
-    }
-    if (gameplay) {
-        sortedSystems.push(gameplay);
-    }
-    if (system) {
-        sortedSystems.push(system);
-    }
-    sortedSystems.push(...otherSystems);
-    if (resetSystem) {
-        sortedSystems.push(resetSystem);
-    }
-
-    return sortedSystems;
+/**
+ * Returns systems belonging to a specific category.
+ */
+export function getSystemsByCategory(pData: PlayerData, category: string): SystemItem[] {
+    const systems = getVisibleSystems(pData).filter((sys) => sys.category === category);
+    return systems
+        .map((sys) => ({
+            id: sys.configPanelId,
+            title: sys.title,
+            icon: sys.icon
+        }))
+        .sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
 }

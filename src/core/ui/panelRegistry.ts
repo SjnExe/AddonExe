@@ -729,7 +729,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [] // Modal form, no items needed
     },
     sidebarMainPanel: {
-        title: 'Sidebar/HUD System',
+        title: 'Sidebar System',
         parentPanelId: 'configCategoryPanel',
         items: [
             {
@@ -742,7 +742,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'sidebarLines',
-                text: 'Edit Sidebar Lines',
+                text: 'Scoreboard (Global)',
                 icon: 'textures/ui/text_color_paintbrush',
                 permissionLevel: 1,
                 actionType: 'openPanel',
@@ -750,16 +750,24 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'actionBarLines',
-                text: 'Edit Action Bar Lines',
+                text: 'Action Bar (Personal)',
                 icon: 'textures/ui/text_color_paintbrush',
                 permissionLevel: 1,
                 actionType: 'openPanel',
                 actionValue: 'actionBarLinesPanel'
+            },
+            {
+                id: 'placeholders',
+                text: 'Placeholder List',
+                icon: 'textures/ui/infobulb',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'placeholderListPanel'
             }
         ]
     },
     sidebarLinesPanel: {
-        title: 'Sidebar Lines',
+        title: 'Scoreboard Lines',
         parentPanelId: 'sidebarMainPanel',
         items: [] // Dynamic
     },
@@ -778,6 +786,11 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         parentPanelId: 'sidebarLinesPanel',
         items: [] // Modal
     },
+    sidebarLineActionPanel: {
+        title: 'Manage Line',
+        parentPanelId: 'sidebarLinesPanel',
+        items: [] // Dynamic
+    },
     actionBarLineEditPanel: {
         title: 'Edit Line',
         parentPanelId: 'actionBarLinesPanel',
@@ -787,6 +800,16 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         title: 'Add Line',
         parentPanelId: 'actionBarLinesPanel',
         items: [] // Modal
+    },
+    actionBarLineActionPanel: {
+        title: 'Manage Line',
+        parentPanelId: 'actionBarLinesPanel',
+        items: [] // Dynamic
+    },
+    placeholderListPanel: {
+        title: 'Placeholder List',
+        parentPanelId: null, // Dynamic
+        items: [] // Body text
     }
 };
 

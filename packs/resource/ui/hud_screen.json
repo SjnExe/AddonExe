@@ -1997,15 +1997,7 @@
                     "size": ["100%c + 12px", "100%c + 5px"],
                     "texture": "textures/ui/hud_tip_text_background",
                     "alpha": "@hud.anim_actionbar_text_background_alpha_out",
-                    "bindings": [
-                        {
-                            "binding_type": "view",
-                            "source_control_name": "standard_actionbar_frame",
-                            "resolve_sibling_scope": true,
-                            "source_property_name": "(($actionbar_text - '§~§s§b') = $actionbar_text)",
-                            "target_property_name": "#visible"
-                        }
-                    ],
+                    "visible": "(($actionbar_text - '§~§s§b') = $actionbar_text)",
                     "controls": [
                         {
                             "actionbar_message": {
@@ -2032,15 +2024,7 @@
                     "anchor_from": "right_middle",
                     "anchor_to": "right_middle",
                     "offset": [-2, 0],
-                    "bindings": [
-                        {
-                            "binding_type": "view",
-                            "source_control_name": "sidebar_panel",
-                            "resolve_sibling_scope": true,
-                            "source_property_name": "(not (($actionbar_text - '§~§s§b') = $actionbar_text))",
-                            "target_property_name": "#visible"
-                        }
-                    ],
+                    "visible": "(not (($actionbar_text - '§~§s§b') = $actionbar_text))",
                     "controls": [
                         {
                             "bg_high": {
@@ -2049,15 +2033,7 @@
                                 "alpha": 0.2,
                                 "size": ["100%sm + 6px", "100%sm + 4px"],
                                 "layer": 0,
-                                "bindings": [
-                                    {
-                                        "binding_type": "view",
-                                        "source_control_name": "bg_high",
-                                        "resolve_sibling_scope": true,
-                                        "source_property_name": "(not (($actionbar_text - '§~§s§b§1') = $actionbar_text))",
-                                        "target_property_name": "#visible"
-                                    }
-                                ]
+                                "visible": "(not (($actionbar_text - '§~§s§b§1') = $actionbar_text))"
                             }
                         },
                         {
@@ -2067,15 +2043,7 @@
                                 "alpha": 0.5,
                                 "size": ["100%sm + 6px", "100%sm + 4px"],
                                 "layer": 0,
-                                "bindings": [
-                                    {
-                                        "binding_type": "view",
-                                        "source_control_name": "bg_med",
-                                        "resolve_sibling_scope": true,
-                                        "source_property_name": "(not (($actionbar_text - '§~§s§b§2') = $actionbar_text))",
-                                        "target_property_name": "#visible"
-                                    }
-                                ]
+                                "visible": "(not (($actionbar_text - '§~§s§b§2') = $actionbar_text))"
                             }
                         },
                         {
@@ -2085,15 +2053,7 @@
                                 "alpha": 0.8,
                                 "size": ["100%sm + 6px", "100%sm + 4px"],
                                 "layer": 0,
-                                "bindings": [
-                                    {
-                                        "binding_type": "view",
-                                        "source_control_name": "bg_low",
-                                        "resolve_sibling_scope": true,
-                                        "source_property_name": "(not (($actionbar_text - '§~§s§b§3') = $actionbar_text))",
-                                        "target_property_name": "#visible"
-                                    }
-                                ]
+                                "visible": "(not (($actionbar_text - '§~§s§b§3') = $actionbar_text))"
                             }
                         },
                         {

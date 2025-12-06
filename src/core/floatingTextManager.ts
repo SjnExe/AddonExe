@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog } from './logger.js';
 import { isDeepEqual } from './objectUtils.js';
+import { resolveGlobalPlaceholders } from './sidebarManager.js';
 
 export interface FloatingTextConfig {
     id: string;
@@ -19,6 +20,9 @@ const unloadedChunkQueue = new Set<string>();
 
 let expirationIntervalId: number | undefined;
 let retrySpawnIntervalId: number | undefined;
+let updateLoopId: number | undefined;
+
+const lastResolvedText = new Map<string, string>();
 
 function loadTexts() {
     try {
@@ -58,6 +62,46 @@ async function initialize() {
     await spawnAllTexts();
     runExpirationLoop();
     runRetrySpawnLoop();
+    runUpdateLoop();
+}
+
+function runUpdateLoop() {
+    const textsByDimension = new Map<string, FloatingTextConfig[]>();
+    for (const textConfig of floatingTexts.values()) {
+        const dim = textConfig.dimension;
+        if (!textsByDimension.has(dim)) {
+            textsByDimension.set(dim, []);
+        }
+        textsByDimension.get(dim)!.push(textConfig);
+    }
+
+    for (const [dimId, texts] of textsByDimension) {
+        try {
+            const dimension = mc.world.getDimension(dimId);
+            for (const textConfig of texts) {
+                const resolved = resolveGlobalPlaceholders(textConfig.text);
+                const last = lastResolvedText.get(textConfig.id);
+
+                if (resolved !== last) {
+                    lastResolvedText.set(textConfig.id, resolved);
+                    // Update entity
+                    const entities = dimension.getEntities({
+                        type: 'exe:floating_text',
+                        tags: [`ft_${textConfig.id}`]
+                    });
+                    for (const entity of entities) {
+                        if (entity.isValid()) {
+                            entity.nameTag = resolved.replace(/\\n/g, '\n');
+                        }
+                    }
+                }
+            }
+        } catch {
+            // Ignore dimension load errors
+        }
+    }
+
+    updateLoopId = mc.system.runTimeout(runUpdateLoop, 20); // Update every second
 }
 
 function runExpirationLoop() {
@@ -172,7 +216,9 @@ function spawnText(textConfig: FloatingTextConfig) {
             'exe:floating_text' as unknown as Parameters<typeof dimension.spawnEntity>[0],
             textConfig.location
         );
-        entity.nameTag = textConfig.text.replace(/\\n/g, '\n');
+        const resolvedText = resolveGlobalPlaceholders(textConfig.text);
+        lastResolvedText.set(textConfig.id, resolvedText);
+        entity.nameTag = resolvedText.replace(/\\n/g, '\n');
         entity.addTag(`ft_${textConfig.id}`);
 
         unloadedChunkQueue.delete(textConfig.id);
@@ -279,7 +325,9 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                     spawnText(newConfig);
                 } else if (textChanged) {
                     debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
-                    entity.nameTag = newConfig.text.replace(/\\n/g, '\n');
+                    const resolved = resolveGlobalPlaceholders(newConfig.text);
+                    lastResolvedText.set(id, resolved);
+                    entity.nameTag = resolved.replace(/\\n/g, '\n');
                     debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
                 }
             } catch (e: unknown) {
@@ -464,6 +512,10 @@ function cleanup() {
     if (retrySpawnIntervalId) {
         mc.system.clearRun(retrySpawnIntervalId);
         retrySpawnIntervalId = undefined;
+    }
+    if (updateLoopId) {
+        mc.system.clearRun(updateLoopId);
+        updateLoopId = undefined;
     }
 
     for (const timeoutId of pendingDespawns.values()) {
