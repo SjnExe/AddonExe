@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { constants } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 const vanishCommand: CustomCommand = {
     name: 'vanish',

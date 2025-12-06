@@ -3,21 +3,20 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
 import { commandManager } from '@modules/commands/commandManager.js';
 
-import type { TeamData } from '../../features/teams/teamManager.js';
 import * as reportManager from '../../features/moderation/reportManager.js';
 import * as bountyManager from '../bountyManager.js';
 import { loadConfig } from '../configLoader.js';
 import { getConfig } from '../configManager.js';
-import { getKitsConfig, getShopConfig, getEconomyConfig, getXrayConfig, getTeamConfig } from '../configurations.js';
+import { getEconomyConfig, getKitsConfig, getShopConfig, getTeamConfig, getXrayConfig } from '../configurations.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { debugLog, errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
 import {
-    getPlayer,
-    getOrCreatePlayer,
-    loadPlayerData,
     getAllPlayerNameIdMap,
+    getOrCreatePlayer,
+    getPlayer,
+    loadPlayerData,
     PlayerData
 } from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
@@ -25,14 +24,17 @@ import * as rulesManager from '../rulesManager.js';
 import { formatCurrency, resolveIcon } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
-import { panelDefinitions, UIContext, PanelDefinition, PanelItem } from './panelRegistry.js';
+import { PanelDefinition, panelDefinitions, PanelItem, UIContext } from './panelRegistry.js';
+import { MainConfig } from './types.js';
 import {
-    getVisibleConfigSystems,
-    itemsPerPage,
+    addPaginationButtons,
     configHandlers,
     getPaginatedItems,
-    addPaginationButtons
+    getVisibleConfigSystems,
+    itemsPerPage
 } from './uiUtils.js';
+
+import type { TeamData } from '../../features/teams/teamManager.js';
 
 interface Item {
     displayName?: string;
@@ -44,7 +46,7 @@ interface Item {
 let allItems: Record<string, Item> = {};
 
 export function getMenuItems(panelDef: PanelDefinition, permissionLevel: number) {
-    const config = getConfig();
+    const config = getConfig() as unknown as MainConfig;
 
     const items = (panelDef.items || [])
         .filter((item: PanelItem) => {
@@ -91,8 +93,7 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
             ].join('\n')
         );
     } else if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
-        const pData =
-            (context.targetData as PlayerData | undefined) || loadPlayerData(String(context.targetPlayerId));
+        const pData = (context.targetData as PlayerData | undefined) || loadPlayerData(String(context.targetPlayerId));
         if (!pData) {
             form.body('§4Could not load player data.');
             return;
@@ -123,7 +124,7 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
 
 export function getVisiblePlayerActionItems(context: UIContext, permissionLevel: number, viewerId?: string) {
     const panelDef = panelDefinitions.playerActionsPanel;
-    const config = getConfig();
+    const config = getConfig() as unknown as MainConfig;
     const menuItems = getMenuItems(panelDef, permissionLevel);
     const visibleItems: PanelItem[] = [];
 
@@ -141,7 +142,7 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
         }
 
         const commandName = item.id;
-        const settings = config.commandSettings as Record<string, { enabled?: boolean }>;
+        const settings = (config.commandSettings || {});
         if (settings[commandName]?.enabled === false) {
             continue;
         }
@@ -191,8 +192,8 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
 
     const subCategories = Object.keys(category.subCategories)
         .sort()
-        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' } as const));
-    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' } as const));
+        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }) as const);
+    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }) as const);
 
     const allEntries = [...subCategories, ...items];
     const paginatedEntries = getPaginatedItems(allEntries, page);
@@ -261,7 +262,7 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
 
 function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
     const page = (context.page as number) || 1;
-    const mainConfig = getConfig();
+    const mainConfig = getConfig() as unknown as MainConfig;
 
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
@@ -299,10 +300,10 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
         return;
     }
 
-    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' } as const));
+    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }) as const);
     const subCategories = Object.keys(category.subCategories)
         .sort()
-        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' } as const));
+        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }) as const);
 
     const allEntries = [...subCategories, ...items];
     const paginatedEntries = getPaginatedItems(allEntries, page);
@@ -561,7 +562,7 @@ function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
 
 function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
     const page = (context.page as number) || 1;
-    const mainConfig = getConfig();
+    const mainConfig = getConfig() as unknown as MainConfig;
 
     // Add Back button
     form.button('§l§8< Back', 'textures/gui/controls/left.png');
@@ -596,8 +597,8 @@ function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
 
 function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
     const page = (context.page as number) || 1;
-    const config = getConfig();
-    const commandSettings = config.commandSettings || {};
+    const config = getConfig() as unknown as MainConfig;
+    const commandSettings = (config.commandSettings || {});
 
     // Get all command names, filter out hidden ones, and sort alphabetically
 
@@ -615,8 +616,8 @@ function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
     form.body('Toggle commands on or off.\n§2[Enabled]§r / §4[Disabled]§r');
 
     for (const commandName of paginatedCommands) {
-        const settings = commandSettings as Record<string, { enabled?: boolean }>;
-        const isEnabled = settings[commandName]?.enabled ?? false;
+        const settings = commandSettings[commandName] || {};
+        const isEnabled = settings.enabled ?? false;
         const statusText = isEnabled ? '§2[Enabled]' : '§4[Disabled]';
         form.button(`${commandName}\n${statusText}`);
     }
@@ -631,7 +632,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         // Load items config if not loaded
         if (Object.keys(allItems).length === 0) {
             try {
-                allItems = (await loadConfig('./configs/items.js')) as Record<string, Item>;
+                allItems = (await loadConfig<Record<string, Item>>('./core/itemsConfig.js'));
             } catch (error) {
                 errorLog('[UIManager] Failed to load items config.', error);
             }
@@ -710,7 +711,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const teamConfig = getTeamConfig();
             const panelDef = panelDefinitions[panelId];
 
-            const team = getTeamByPlayer(player.id) as TeamData | null;
+            const team = getTeamByPlayer(player.id);
             const form = new ActionFormData().title(panelDef.title);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
@@ -770,7 +771,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'teamSettingsPanel') {
             const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
             const pData = getOrCreatePlayer(player);
-            const team = getTeamByPlayer(player.id) as TeamData | null;
+            const team = getTeamByPlayer(player.id);
 
             if (!team) {
                 return null;
@@ -791,7 +792,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'teamMembersPanel') {
             const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-            const team = getTeamByPlayer(player.id) as TeamData | null;
+            const team = getTeamByPlayer(player.id);
             if (!team) {
                 player.sendMessage('§4You are not in a team.');
                 return null;
@@ -830,7 +831,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData().title(`Browse Teams (Page ${page})`);
             form.button('§l§8< Back', 'textures/gui/controls/left.png');
 
-            let teams = getAllTeams() as TeamData[];
+            let teams = getAllTeams();
 
             // Filter out closed teams for non-admins
             const pData = getOrCreatePlayer(player);
@@ -879,9 +880,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const pData = getOrCreatePlayer(player);
 
             if (teamId && pData.permissionLevel < 1024) {
-                team = getTeam(Number(teamId)) as TeamData | undefined | null || null;
+                team = (getTeam(Number(teamId)) as TeamData | undefined | null) || null;
             } else {
-                team = getTeamByPlayer(player.id) as TeamData | null;
+                team = getTeamByPlayer(player.id);
             }
 
             if (!team) {
@@ -913,7 +914,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'teamHomePanel') {
             const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-            const team = getTeamByPlayer(player.id) as TeamData | null;
+            const team = getTeamByPlayer(player.id);
             if (!team) {
                 return null;
             }
@@ -946,7 +947,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'teamRequestsPanel') {
             const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-            const team = getTeamByPlayer(player.id) as TeamData | null;
+            const team = getTeamByPlayer(player.id);
             if (!team) {
                 return null;
             }
@@ -1353,11 +1354,8 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         if (panelId === 'commandSettingsPanel') {
             const commandName = context.commandName as string | undefined;
-            const config = getConfig();
-            const allSettings = config.commandSettings as Record<
-                string,
-                { enabled?: boolean; permissionLevel?: number }
-            >;
+            const config = getConfig() as unknown as MainConfig;
+            const allSettings = (config.commandSettings || {});
             const commandSettings = allSettings[commandName ?? ''] || {};
             const command = commandManager.commands.get(commandName ?? '');
 
@@ -1480,7 +1478,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         if (panelId === 'rankSettingsPanel') {
-            const config = getConfig();
+            const config = getConfig() as unknown as MainConfig;
             const form = new ModalFormData().title('§l§2Rank Settings');
             const nameTagStyles = ['Above Name', 'Before Name', 'After Name', 'Under Name'];
             const internalStyles = ['above', 'before', 'after', 'under'];

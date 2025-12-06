@@ -1,4 +1,4 @@
-import { jest, describe, test, expect, beforeEach, beforeAll } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, jest, test } from '@jest/globals';
 import * as mc from '@minecraft/server';
 
 jest.unstable_mockModule('../configManager.js', () => ({

@@ -2,8 +2,8 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from './configManager.js';
 import { debugLog } from './logger.js';
-import { getAllPlayerData, savePlayerData, isNameIdMapDirty, saveNameIdMap } from './playerDataManager.js';
-import { setTrackedInterval, clearTrackedInterval } from './timerManager.js';
+import { getAllPlayerData, isNameIdMapDirty, saveNameIdMap, savePlayerData } from './playerDataManager.js';
+import { clearTrackedInterval, setTrackedInterval } from './timerManager.js';
 
 let autoSaveIntervalId: number | undefined;
 

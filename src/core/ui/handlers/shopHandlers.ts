@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ActionFormResponse, ActionFormData, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import * as shopAdminManager from '../../../features/shop/shopAdminManager.js';
 import * as shopManager from '../../../features/shop/shopManager.js';
@@ -10,7 +10,8 @@ import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';
 import { UIContext } from '../panelRegistry.js';
-import { itemsPerPage, getPaginatedItems } from '../uiUtils.js';
+import { MainConfig, ShopConfig } from '../types.js';
+import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 export async function handleShopPanel(
     player: mc.Player,
@@ -27,7 +28,7 @@ export async function handleShopPanel(
         }
         if (typeof selection !== 'number') return;
 
-        const shopConfig = getShopConfig();
+        const shopConfig = getShopConfig() as unknown as ShopConfig;
 
         const validCategories = Object.keys(shopConfig.categories)
             .filter((categoryName: string) => {
@@ -64,9 +65,10 @@ export async function handleShopPanel(
         }
 
         // Reconstruct the list of entries that was shown to the player
-        const shopConfig = getShopConfig();
+        const shopConfig = getShopConfig() as unknown as ShopConfig;
         const category = shopConfig.categories[categoryName];
-        let allEntries: { type: string }[] = [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let allEntries: any[] = [];
         if (isItemList && subCategoryName) {
             const subCategory = category.subCategories[subCategoryName];
             allEntries = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
@@ -246,7 +248,7 @@ export async function handleShopPanel(
                     sellPrice,
                     displayName
                 });
-                shopAdminManager.setItem(categoryName, null, customId, {
+                shopAdminManager.setItem(categoryName as string, null, customId, {
                     buyPrice,
                     sellPrice,
                     permissionLevel,
@@ -289,7 +291,7 @@ export async function handleShopPanel(
             const sellPrice = parseInt(sellPriceStr, 10);
             const permissionLevel = parseInt(permLevelStr, 10);
             if (!isNaN(buyPrice) && !isNaN(sellPrice) && !isNaN(permissionLevel)) {
-                const result = shopAdminManager.setItem(categoryName, null, selectedItemId, {
+                const result = shopAdminManager.setItem(categoryName as string, null, selectedItemId, {
                     buyPrice,
                     sellPrice,
                     permissionLevel,
@@ -323,9 +325,8 @@ export async function handleShopPanel(
         }
 
         if (selection === 1) {
-            const mainConfig = getConfig();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const newStatus = !(mainConfig as any).shop.enabled;
+            const mainConfig = getConfig() as unknown as MainConfig;
+            const newStatus = !mainConfig.shop.enabled;
             // TODO: import updateMultipleConfig if needed
             const { updateMultipleConfig } = await import('../../configManager.js');
             updateMultipleConfig({ 'shop.enabled': newStatus });
@@ -355,7 +356,7 @@ export async function handleShopPanel(
             return showPanel(player, panelId, { ...context, page: 1 });
         }
 
-        const shopConfig = getShopConfig();
+        const shopConfig = getShopConfig() as unknown as ShopConfig;
         const categories = Object.keys(shopConfig.categories).sort();
         const paginatedCategories = getPaginatedItems(categories, page);
         const selectedCategoryName = selection && selection > 2 ? paginatedCategories[selection - 3] : undefined;
@@ -405,7 +406,7 @@ export async function handleShopPanel(
             const iconStr = values[1] as string;
 
             if (name) {
-                const result = shopAdminManager.addSubCategory(categoryName, name, iconStr || '');
+                const result = shopAdminManager.addSubCategory(categoryName as string, name, iconStr || '');
                 player.sendMessage(result.message);
             }
             return showPanel(player, panelId, { ...context, page: 1 });
@@ -415,8 +416,8 @@ export async function handleShopPanel(
             return showPanel(player, `shopAdminCategoryActionPanel_${categoryName}`, context);
         }
 
-        const shopConfig = getShopConfig();
-        const category = shopConfig.categories[categoryName];
+        const shopConfig = getShopConfig() as unknown as ShopConfig;
+        const category = shopConfig.categories[categoryName as string];
         const subCategories = Object.keys(category.subCategories)
             .sort()
             .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }));
@@ -488,7 +489,7 @@ export async function handleShopPanel(
                         !isNaN(sellPrice) &&
                         !isNaN(permissionLevel)
                     ) {
-                        const result = shopAdminManager.updateShopItem(categoryName, null, selectedEntry.id, {
+                        const result = shopAdminManager.updateShopItem(categoryName as string, null, selectedEntry.id, {
                             buyPrice,
                             sellPrice,
                             permissionLevel,
@@ -502,7 +503,7 @@ export async function handleShopPanel(
                     }
                 } else {
                     // Delete
-                    const result = shopAdminManager.removeItem(categoryName, null, selectedEntry.id);
+                    const result = shopAdminManager.removeItem(categoryName as string, null, selectedEntry.id);
                     player.sendMessage(result.message);
                 }
             } else {
@@ -534,7 +535,7 @@ export async function handleShopPanel(
 
         if (selection === 0) {
             // Edit
-            const shopConfig = getShopConfig();
+            const shopConfig = getShopConfig() as unknown as ShopConfig;
             const category = shopConfig.categories[categoryName];
             const form = new ModalFormData()
                 .title('Edit Category')
@@ -593,8 +594,8 @@ export async function handleShopPanel(
             return showPanel(player, `shopAdminSubCategoryActionPanel_${subCategoryName}`, context);
         }
 
-        const shopConfig = getShopConfig();
-        const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
+        const shopConfig = getShopConfig() as unknown as ShopConfig;
+        const subCategory = shopConfig.categories[categoryName as string].subCategories[subCategoryName as string];
         const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
         const paginatedItems = getPaginatedItems(items, page);
         const selectedItem =
@@ -659,21 +660,30 @@ export async function handleShopPanel(
                     !isNaN(sellPrice) &&
                     !isNaN(permissionLevel)
                 ) {
-                    const result = shopAdminManager.updateShopItem(categoryName, subCategoryName, selectedItem.id, {
-                        buyPrice,
-                        sellPrice,
-                        permissionLevel,
-                        icon,
-                        minecraftId,
-                        displayName
-                    });
+                    const result = shopAdminManager.updateShopItem(
+                        categoryName as string,
+                        subCategoryName as string,
+                        selectedItem.id,
+                        {
+                            buyPrice,
+                            sellPrice,
+                            permissionLevel,
+                            icon,
+                            minecraftId,
+                            displayName
+                        }
+                    );
                     player.sendMessage(result.message);
                 } else {
                     player.sendMessage('§4Invalid data. Please check all fields.');
                 }
             } else {
                 // Delete
-                const result = shopAdminManager.removeItem(categoryName, subCategoryName, selectedItem.id);
+                const result = shopAdminManager.removeItem(
+                    categoryName as string,
+                    subCategoryName as string,
+                    selectedItem.id
+                );
                 player.sendMessage(result.message);
             }
             return showPanel(player, panelId, { ...context, page: 1 });
@@ -699,8 +709,9 @@ export async function handleShopPanel(
         const { categoryName } = context;
         if (selection === 0) {
             // Edit
-            const shopConfig = getShopConfig();
-            const subCategory = shopConfig.categories[categoryName].subCategories[subCategoryName];
+            const shopConfig = getShopConfig() as unknown as ShopConfig;
+            const subCategory =
+                shopConfig.categories[categoryName as string].subCategories[subCategoryName];
             const form = new ModalFormData()
                 .title('Edit Subcategory')
                 .textField('Subcategory Name', 'Enter new name', { defaultValue: subCategoryName })
@@ -715,7 +726,12 @@ export async function handleShopPanel(
             const newIcon = values[1] as string;
 
             if (newName) {
-                const result = shopAdminManager.editSubCategory(categoryName, subCategoryName, newName, newIcon || '');
+                const result = shopAdminManager.editSubCategory(
+                    categoryName as string,
+                    subCategoryName,
+                    newName,
+                    newIcon || ''
+                );
                 player.sendMessage(result.message);
             }
             return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
@@ -728,7 +744,7 @@ export async function handleShopPanel(
                 confirmButtonText: '§4Yes, Delete',
                 cancelButtonText: '§2No, Cancel',
                 onConfirm: () => {
-                    const result = shopAdminManager.deleteSubCategory(categoryName, subCategoryName);
+                    const result = shopAdminManager.deleteSubCategory(categoryName as string, subCategoryName);
                     player.sendMessage(result.message);
                     return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
                 },

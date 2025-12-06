@@ -6,7 +6,7 @@ import { infoLog } from '@core/logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { parseCurrency } from '@core/utils.js';
 
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 function placeBounty(player: mc.Player, targetPlayer: mc.Player, amount: number) {
     const config = getConfig();

@@ -7,6 +7,7 @@ import cmdLegacyBounty from './bounty.js';
 import cmdLegacyChattoconsole from './chattoconsole.js';
 import cmdLegacyClear from './clear.js';
 import cmdLegacyClearchat from './clearchat.js';
+import cmdLegacyDebug from './debug.js';
 import cmdLegacyDimensionLock from './dimensionLock.js';
 import cmdLegacyFloatingtext from './floatingtext.js';
 import cmdLegacyGamemode from './gamemode.js';
@@ -25,8 +26,6 @@ import cmdLegacySave from './save.js';
 import cmdLegacySidebar from './sidebar.js';
 import cmdLegacySpawn from './spawn.js';
 import cmdLegacyStatus from './status.js';
-import cmdLegacyTest from './test.js';
-import cmdLegacyTestCommand from './testCommand.js';
 import cmdLegacyVanish from './vanish.js';
 import cmdLegacyVersion from './version.js';
 import cmdLegacyXraynotify from './xraynotify.js';
@@ -56,6 +55,7 @@ export function loadCommands() {
         cmdLegacyChattoconsole,
         cmdLegacyClear,
         cmdLegacyClearchat,
+        cmdLegacyDebug,
         cmdLegacyDimensionLock,
         cmdLegacyFloatingtext,
         cmdLegacyGamemode,
@@ -74,8 +74,6 @@ export function loadCommands() {
         cmdLegacySidebar,
         cmdLegacySpawn,
         cmdLegacyStatus,
-        cmdLegacyTest,
-        cmdLegacyTestCommand,
         cmdLegacyVanish,
         cmdLegacyVersion,
         cmdLegacyXraynotify,

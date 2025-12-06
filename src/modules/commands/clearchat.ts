@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 
-import { CustomCommand, CommandExecutor } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 const clearchatCommand: CustomCommand = {
     name: 'clearchat',

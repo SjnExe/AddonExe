@@ -4,7 +4,7 @@ import { getConfig } from './configManager.js';
 import { getKitsConfig } from './configurations.js';
 import { Kit } from './kitAdminManager.js';
 import { errorLog } from './logger.js';
-import { getOrCreatePlayer, setKitCooldown, incrementPlayerBalance } from './playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance, setKitCooldown } from './playerDataManager.js';
 import { formatCooldown } from './utils.js';
 
 interface KitInfo {

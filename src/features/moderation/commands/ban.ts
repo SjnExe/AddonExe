@@ -4,7 +4,7 @@ import { errorLog, warnLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { parseDuration, playSoundFromConfig } from '@core/utils.js';
-import { CustomCommand, CommandExecutor } from '@modules/commands/commandManager.js';
+import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
 import { addPunishment, removePunishment } from '../punishmentManager.js';
 

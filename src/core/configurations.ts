@@ -37,7 +37,7 @@ let kitsConfigManager: ConfigManager<KitsConfig>,
     sidebarConfigManager: ConfigManager<SidebarConfig>;
 
 export const loadKitsConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<KitsConfig>('./configs/kits.js');
+    const defaultConfig = await asyncLoadConfig<KitsConfig>('./core/kitsConfig.js');
     kitsConfigManager = createConfigManager('exe:kitsConfig:current', defaultConfig, 'Kits');
     kitsConfigManager.load(isMigration);
 };
@@ -46,7 +46,7 @@ export const saveKitsConfig = (config: KitsConfig) => kitsConfigManager.set(conf
 export const resetKitsConfig = () => kitsConfigManager.reset();
 
 export const loadShopConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<ShopConfig>('./configs/shop.js');
+    const defaultConfig = await asyncLoadConfig<ShopConfig>('./features/shop/shopConfig.js');
     shopConfigManager = createConfigManager('exe:shopConfig:current', defaultConfig, 'Shop');
     shopConfigManager.load(isMigration);
 };
@@ -55,7 +55,7 @@ export const saveShopConfig = (config: ShopConfig) => shopConfigManager.set(conf
 export const resetShopConfig = () => shopConfigManager.reset();
 
 export const loadSpawnConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<SpawnConfig>('./configs/spawn.js');
+    const defaultConfig = await asyncLoadConfig<SpawnConfig>('./core/spawnConfig.js');
     spawnConfigManager = createConfigManager('exe:spawnConfig:current', defaultConfig, 'Spawn');
     spawnConfigManager.load(isMigration);
 };
@@ -64,7 +64,7 @@ export const saveSpawnConfig = (config: SpawnConfig) => spawnConfigManager.set(c
 export const resetSpawnConfig = () => spawnConfigManager.reset();
 
 export const loadRanksConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<RanksConfig>('./configs/ranks.js');
+    const defaultConfig = await asyncLoadConfig<RanksConfig>('./core/ranksConfig.js');
     ranksConfigManager = createConfigManager('exe:ranksConfig', defaultConfig, 'Ranks');
     ranksConfigManager.load(isMigration);
 };
@@ -73,7 +73,7 @@ export const saveRanksConfig = (config: RanksConfig) => ranksConfigManager.set(c
 export const resetRanksConfig = () => ranksConfigManager.reset();
 
 export const loadEconomyConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<EconomyConfig>('./configs/economy.js');
+    const defaultConfig = await asyncLoadConfig<EconomyConfig>('./features/economy/economyConfig.js');
     economyConfigManager = createConfigManager('exe:economyConfig:current', defaultConfig, 'Economy');
     economyConfigManager.load(isMigration);
 };
@@ -82,7 +82,7 @@ export const saveEconomyConfig = (config: EconomyConfig) => economyConfigManager
 export const resetEconomyConfig = () => economyConfigManager.reset();
 
 export const loadXrayConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<XrayConfig>('./configs/xray.js');
+    const defaultConfig = await asyncLoadConfig<XrayConfig>('./core/xrayConfig.js');
     xrayConfigManager = createConfigManager('exe:xrayConfig:current', defaultConfig, 'X-Ray');
     xrayConfigManager.load(isMigration);
 };
@@ -91,7 +91,7 @@ export const saveXrayConfig = (config: XrayConfig) => xrayConfigManager.set(conf
 export const resetXrayConfig = () => xrayConfigManager.reset();
 
 export const loadTeamConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<TeamConfig>('./configs/team.js');
+    const defaultConfig = await asyncLoadConfig<TeamConfig>('./features/teams/teamConfig.js');
     teamConfigManager = createConfigManager('exe:teamConfig:current', defaultConfig, 'Teams');
     teamConfigManager.load(isMigration);
 };
@@ -100,7 +100,7 @@ export const saveTeamConfig = (config: TeamConfig) => teamConfigManager.set(conf
 export const resetTeamConfig = () => teamConfigManager.reset();
 
 export const loadSidebarConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<SidebarConfig>('./configs/sidebar.js');
+    const defaultConfig = await asyncLoadConfig<SidebarConfig>('./core/sidebarConfig.js');
     sidebarConfigManager = createConfigManager('exe:sidebarConfig:current', defaultConfig, 'Sidebar');
     sidebarConfigManager.load(isMigration);
 };
