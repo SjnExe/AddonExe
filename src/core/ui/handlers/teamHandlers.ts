@@ -44,7 +44,7 @@ export async function handleTeamPanel(
                         cancelButtonText: 'Cancel',
                         onConfirm: () => {
                             const result = teamManager.leaveTeam(player);
-                            player.sendMessage(result.message ?? "");
+                            player.sendMessage(result.message ?? '');
                             return showPanel(player, 'teamMainPanel');
                         },
                         onCancel: () => showPanel(player, 'teamMainPanel')
@@ -70,7 +70,7 @@ export async function handleTeamPanel(
         const [teamName] = (response as ModalFormResponse).formValues || [];
         if (typeof teamName === 'string' && teamName.trim().length > 0) {
             const result = teamManager.createTeam(player, teamName.trim());
-            player.sendMessage(result.message ?? "");
+            player.sendMessage(result.message ?? '');
         } else {
             player.sendMessage('§4Invalid team name.');
         }
@@ -112,7 +112,7 @@ export async function handleTeamPanel(
         if (selectedTeam) {
             // Join Request
             const result = teamManager.applyToTeam(player, selectedTeam.id);
-            player.sendMessage(result.message ?? "");
+            player.sendMessage(result.message ?? '');
             return showPanel(player, panelId, context);
         }
         return;
@@ -246,14 +246,14 @@ export async function handleTeamPanel(
             if (selection === index) {
                 // Update
                 const result = teamManager.setTeamHome(team.id, player.location, player.dimension.id);
-                player.sendMessage(result.message ?? "");
+                player.sendMessage(result.message ?? '');
                 return showPanel(player, 'teamHomePanel');
             }
             index++;
             if (hasHome && selection === index) {
                 // Delete
                 const result = teamManager.deleteTeamHome(team.id);
-                player.sendMessage(result.message ?? "");
+                player.sendMessage(result.message ?? '');
                 return showPanel(player, 'teamHomePanel');
             }
         }
@@ -276,12 +276,12 @@ export async function handleTeamPanel(
                 cancelButtonText: '§4Deny',
                 onConfirm: () => {
                     const res = teamManager.acceptApplication(team.id, request.playerId);
-                    if (res.message) player.sendMessage(res.message ?? "");
+                    if (res.message) player.sendMessage(res.message ?? '');
                     return showPanel(player, 'teamRequestsPanel');
                 },
                 onCancel: () => {
                     const res = teamManager.denyApplication(team.id, request.playerId);
-                    if (res.message) player.sendMessage(res.message ?? "");
+                    if (res.message) player.sendMessage(res.message ?? '');
                     return showPanel(player, 'teamRequestsPanel');
                 }
             });
@@ -316,12 +316,12 @@ export async function handleTeamPanel(
                 cancelButtonText: '§4Decline',
                 onConfirm: () => {
                     const res = teamManager.acceptInvite(player, invite.teamId);
-                    player.sendMessage(res.message ?? "");
+                    player.sendMessage(res.message ?? '');
                     return showPanel(player, 'teamMainPanel');
                 },
                 onCancel: () => {
                     const res = teamManager.denyInvite(player.id, invite.teamId);
-                    player.sendMessage(res.message ?? "");
+                    player.sendMessage(res.message ?? '');
                     return showPanel(player, 'teamInvitesPanel');
                 }
             });

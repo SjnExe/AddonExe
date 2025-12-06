@@ -9,14 +9,14 @@ import createConfigManager, { ConfigManager } from './configManagerFactory.js';
 import { setLockState } from './playerDataManager.js';
 import { reloadRanks } from './rankManager.js';
 
+import type { economyConfig } from '../features/economy/economyConfig.js';
+import type { shopConfig } from '../features/shop/shopConfig.js';
+import type { teamConfig } from '../features/teams/teamConfig.js';
 import type { kitsConfig } from './kitsConfig.default.js';
 import type ranksConfig from './ranksConfig.default.js';
 import type { config as sidebarConfig } from './sidebarConfig.default.js';
 import type { spawnConfig } from './spawnConfig.default.js';
 import type { xrayConfig } from './xrayConfig.default.js';
-import type { economyConfig } from '../features/economy/economyConfig.js';
-import type { shopConfig } from '../features/shop/shopConfig.js';
-import type { teamConfig } from '../features/teams/teamConfig.js';
 
 export type KitsConfig = typeof kitsConfig;
 export type ShopConfig = typeof shopConfig;
