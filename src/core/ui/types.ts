@@ -34,6 +34,22 @@ export interface ShopConfig {
     categories: Record<string, ShopCategory>;
 }
 
+export interface BaseShopEntry {
+    type: 'subCategory' | 'item';
+}
+
+export interface ShopSubCategoryEntry extends BaseShopEntry, ShopSubCategory {
+    type: 'subCategory';
+    name: string;
+}
+
+export interface ShopItemEntry extends BaseShopEntry, ShopItem {
+    type: 'item';
+    id: string;
+}
+
+export type ShopListEntry = ShopSubCategoryEntry | ShopItemEntry;
+
 // --- Team Configuration ---
 export interface TeamConfig {
     enabled: boolean;

@@ -524,3 +524,64 @@ export function setTeamOpenStatus(teamId: number, isOpen: boolean): ActionResult
     saveTeam(teamId);
     return { success: true, message: `§aTeam is now ${isOpen ? 'open' : 'closed'} to requests.` };
 }
+
+export function leaveTeam(player: mc.Player): ActionResult {
+    const team = getTeamByPlayer(player.id);
+    if (!team) return { success: false, message: 'You are not in a team.' };
+    if (team.ownerId === player.id) {
+        return { success: false, message: 'Owner cannot leave. Delete team or transfer ownership.' };
+    }
+    return kickMember(team.id, player.id);
+}
+
+export function updateTeamSetting(teamId: number, setting: string, value: boolean): ActionResult {
+    if (setting === 'open') {
+        return setTeamOpenStatus(teamId, !!value);
+    }
+    return { success: false, message: 'Unknown setting.' };
+}
+
+export function teleportToTeamHome(player: mc.Player): void {
+    const team = getTeamByPlayer(player.id);
+    if (!team || !team.home) {
+        player.sendMessage('§cNo team home set.');
+        return;
+    }
+
+    const { x, y, z, dimensionId } = team.home;
+    const teamConfig = getTeamConfig();
+    const warmup = teamConfig.teleportWarmupSeconds;
+
+    if (warmup > 0) {
+        player.sendMessage(`§aTeleporting to team home in ${warmup} seconds. Do not move.`);
+        const initialPos = { x: player.location.x, y: player.location.y, z: player.location.z };
+
+        mc.system.runTimeout(() => {
+            if (!player.isValid) return;
+            const currentPos = player.location;
+            if (
+                Math.abs(currentPos.x - initialPos.x) > 0.5 ||
+                Math.abs(currentPos.y - initialPos.y) > 0.5 ||
+                Math.abs(currentPos.z - initialPos.z) > 0.5
+            ) {
+                player.sendMessage('§cTeleport cancelled. You moved.');
+                return;
+            }
+            try {
+                const dim = mc.world.getDimension(dimensionId);
+                player.teleport({ x, y, z }, { dimension: dim });
+                player.sendMessage('§aTeleported to team home!');
+            } catch {
+                player.sendMessage('§cTeleport failed: Dimension not loaded or invalid.');
+            }
+        }, warmup * 20);
+    } else {
+        try {
+            const dim = mc.world.getDimension(dimensionId);
+            player.teleport({ x, y, z }, { dimension: dim });
+            player.sendMessage('§aTeleported to team home!');
+        } catch {
+            player.sendMessage('§cTeleport failed: Dimension not loaded or invalid.');
+        }
+    }
+}

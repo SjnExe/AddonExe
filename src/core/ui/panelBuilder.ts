@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
 import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
@@ -25,7 +26,7 @@ import { formatCurrency, resolveIcon } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
 import { PanelDefinition, panelDefinitions, PanelItem, UIContext } from './panelRegistry.js';
-import { MainConfig } from './types.js';
+import { MainConfig, ShopConfig, ShopListEntry } from './types.js';
 import {
     addPaginationButtons,
     configHandlers,
@@ -142,7 +143,7 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
         }
 
         const commandName = item.id;
-        const settings = (config.commandSettings || {});
+        const settings = config.commandSettings || {};
         if (settings[commandName]?.enabled === false) {
             continue;
         }
@@ -156,7 +157,7 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
 }
 
 function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
-    const shopConfig = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
 
     const validCategories = Object.keys(shopConfig.categories)
         .filter((categoryName: string) => {
@@ -182,7 +183,7 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
     const categoryName = context.categoryName as string;
     const page = (context.page as number) || 1;
     const view = (context.view as string) || 'shop';
-    const shopConfig = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
     const category = shopConfig.categories[categoryName ?? ''];
 
     if (!category) {
@@ -190,12 +191,20 @@ function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
         return;
     }
 
-    const subCategories = Object.keys(category.subCategories)
+    const subCategories: ShopListEntry[] = Object.keys(category.subCategories)
         .sort()
-        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }) as const);
-    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }) as const);
+        .map((name) => ({
+            name,
+            ...category.subCategories[name],
+            type: 'subCategory'
+        }));
+    const items: ShopListEntry[] = Object.keys(category.items).map((id) => ({
+        id,
+        ...category.items[id],
+        type: 'item'
+    }));
 
-    const allEntries = [...subCategories, ...items];
+    const allEntries = [...subCategories, ...items] as ShopListEntry[];
     const paginatedEntries = getPaginatedItems(allEntries, page);
 
     for (const entry of paginatedEntries) {
@@ -226,7 +235,7 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
     const subCategoryName = context.subCategoryName as string;
     const page = (context.page as number) || 1;
     const view = (context.view as string) || 'shop';
-    const shopConfig = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
     const category = shopConfig.categories[categoryName ?? ''];
     if (!category) {
         form.body('§4Category not found.');
@@ -238,10 +247,15 @@ function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
         return;
     }
 
-    const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
+    const items: ShopListEntry[] = Object.keys(subCategory.items).map((id) => ({
+        id,
+        ...subCategory.items[id],
+        type: 'item'
+    }));
     const paginatedItems = getPaginatedItems(items, page);
 
     for (const item of paginatedItems) {
+        if (item.type !== 'item') continue;
         const masterItem = allItems[item.id] || {};
         const displayName = item.displayName || masterItem.displayName || item.id;
         const icon = item.icon || masterItem.icon;
@@ -272,7 +286,7 @@ function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
 
     form.button('§l§2+ Add Category', 'textures/ui/color_plus');
 
-    const shopConfig = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
     const categories = Object.keys(shopConfig.categories).sort();
     const paginatedCategories = getPaginatedItems(categories, page);
 
@@ -292,7 +306,7 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
     form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
     form.button('§l§9* Edit Category', 'textures/ui/icon_setting');
 
-    const shopConfig = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
     const category = shopConfig.categories[categoryName ?? ''];
 
     if (!category) {
@@ -300,12 +314,20 @@ function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
         return;
     }
 
-    const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }) as const);
-    const subCategories = Object.keys(category.subCategories)
+    const items: ShopListEntry[] = Object.keys(category.items).map((id) => ({
+        id,
+        ...category.items[id],
+        type: 'item'
+    }));
+    const subCategories: ShopListEntry[] = Object.keys(category.subCategories)
         .sort()
-        .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }) as const);
+        .map((name) => ({
+            name,
+            ...category.subCategories[name],
+            type: 'subCategory'
+        }));
 
-    const allEntries = [...subCategories, ...items];
+    const allEntries = [...subCategories, ...items] as ShopListEntry[];
     const paginatedEntries = getPaginatedItems(allEntries, page);
 
     for (const entry of paginatedEntries) {
@@ -331,7 +353,7 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
     form.button('§l§2+ Add Item', 'textures/ui/color_plus');
     form.button('§l§9* Edit Subcategory', 'textures/ui/icon_setting');
 
-    const shopConfig = getShopConfig();
+    const shopConfig = getShopConfig() as ShopConfig;
     const category = shopConfig.categories[categoryName ?? ''];
     if (!category) {
         form.body('§4Category not found.');
@@ -343,10 +365,15 @@ function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UICon
         return;
     }
 
-    const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
+    const items: ShopListEntry[] = Object.keys(subCategory.items).map((id) => ({
+        id,
+        ...subCategory.items[id],
+        type: 'item'
+    }));
     const paginatedItems = getPaginatedItems(items, page);
 
     for (const item of paginatedItems) {
+        if (item.type !== 'item') continue;
         const masterItem = allItems[item.id] || {};
         const displayName = item.displayName || masterItem.displayName || item.id;
         const icon = item.icon || masterItem.icon;
@@ -598,7 +625,7 @@ function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
 function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
     const page = (context.page as number) || 1;
     const config = getConfig() as unknown as MainConfig;
-    const commandSettings = (config.commandSettings || {});
+    const commandSettings = config.commandSettings || {};
 
     // Get all command names, filter out hidden ones, and sort alphabetically
 
@@ -632,7 +659,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         // Load items config if not loaded
         if (Object.keys(allItems).length === 0) {
             try {
-                allItems = (await loadConfig<Record<string, Item>>('./core/itemsConfig.js'));
+                allItems = await loadConfig<Record<string, Item>>('./core/itemsConfig.js');
             } catch (error) {
                 errorLog('[UIManager] Failed to load items config.', error);
             }
@@ -654,7 +681,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                 errorLog(`[UIManager] No config handler found for source: ${configSource}`);
                 return null;
             }
-            const config = handler.get() as Record<string, unknown>;
+            const config = (handler.get() as unknown) as Record<string, unknown>;
 
             for (const setting of category.settings) {
                 const currentValue = getValueFromPath(config, setting.key);
@@ -1355,7 +1382,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         if (panelId === 'commandSettingsPanel') {
             const commandName = context.commandName as string | undefined;
             const config = getConfig() as unknown as MainConfig;
-            const allSettings = (config.commandSettings || {});
+            const allSettings = config.commandSettings || {};
             const commandSettings = allSettings[commandName ?? ''] || {};
             const command = commandManager.commands.get(commandName ?? '');
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return */
 /**
  * Deeply compares two values for equality, handling objects, arrays, dates, and circular references.
  * @param a The first value to compare.

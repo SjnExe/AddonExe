@@ -41,7 +41,7 @@ export const loadKitsConfig = async (isMigration: boolean) => {
     kitsConfigManager = createConfigManager('exe:kitsConfig:current', defaultConfig, 'Kits');
     kitsConfigManager.load(isMigration);
 };
-export const getKitsConfig = () => kitsConfigManager.get();
+export const getKitsConfig = (): KitsConfig => kitsConfigManager.get();
 export const saveKitsConfig = (config: KitsConfig) => kitsConfigManager.set(config);
 export const resetKitsConfig = () => kitsConfigManager.reset();
 
@@ -50,7 +50,7 @@ export const loadShopConfig = async (isMigration: boolean) => {
     shopConfigManager = createConfigManager('exe:shopConfig:current', defaultConfig, 'Shop');
     shopConfigManager.load(isMigration);
 };
-export const getShopConfig = () => shopConfigManager.get();
+export const getShopConfig = (): ShopConfig => shopConfigManager.get();
 export const saveShopConfig = (config: ShopConfig) => shopConfigManager.set(config);
 export const resetShopConfig = () => shopConfigManager.reset();
 
@@ -59,7 +59,7 @@ export const loadSpawnConfig = async (isMigration: boolean) => {
     spawnConfigManager = createConfigManager('exe:spawnConfig:current', defaultConfig, 'Spawn');
     spawnConfigManager.load(isMigration);
 };
-export const getSpawnConfig = () => spawnConfigManager.get();
+export const getSpawnConfig = (): SpawnConfig => spawnConfigManager.get();
 export const saveSpawnConfig = (config: SpawnConfig) => spawnConfigManager.set(config);
 export const resetSpawnConfig = () => spawnConfigManager.reset();
 
@@ -68,7 +68,7 @@ export const loadRanksConfig = async (isMigration: boolean) => {
     ranksConfigManager = createConfigManager('exe:ranksConfig', defaultConfig, 'Ranks');
     ranksConfigManager.load(isMigration);
 };
-export const getRanksConfig = () => ranksConfigManager.get();
+export const getRanksConfig = (): RanksConfig => ranksConfigManager.get();
 export const saveRanksConfig = (config: RanksConfig) => ranksConfigManager.set(config);
 export const resetRanksConfig = () => ranksConfigManager.reset();
 
@@ -77,7 +77,7 @@ export const loadEconomyConfig = async (isMigration: boolean) => {
     economyConfigManager = createConfigManager('exe:economyConfig:current', defaultConfig, 'Economy');
     economyConfigManager.load(isMigration);
 };
-export const getEconomyConfig = () => economyConfigManager.get();
+export const getEconomyConfig = (): EconomyConfig => economyConfigManager.get();
 export const saveEconomyConfig = (config: EconomyConfig) => economyConfigManager.set(config);
 export const resetEconomyConfig = () => economyConfigManager.reset();
 
@@ -86,7 +86,7 @@ export const loadXrayConfig = async (isMigration: boolean) => {
     xrayConfigManager = createConfigManager('exe:xrayConfig:current', defaultConfig, 'X-Ray');
     xrayConfigManager.load(isMigration);
 };
-export const getXrayConfig = () => xrayConfigManager.get();
+export const getXrayConfig = (): XrayConfig => xrayConfigManager.get();
 export const saveXrayConfig = (config: XrayConfig) => xrayConfigManager.set(config);
 export const resetXrayConfig = () => xrayConfigManager.reset();
 
@@ -95,7 +95,7 @@ export const loadTeamConfig = async (isMigration: boolean) => {
     teamConfigManager = createConfigManager('exe:teamConfig:current', defaultConfig, 'Teams');
     teamConfigManager.load(isMigration);
 };
-export const getTeamConfig = () => teamConfigManager.get();
+export const getTeamConfig = (): TeamConfig => teamConfigManager.get();
 export const saveTeamConfig = (config: TeamConfig) => teamConfigManager.set(config);
 export const resetTeamConfig = () => teamConfigManager.reset();
 
@@ -104,7 +104,7 @@ export const loadSidebarConfig = async (isMigration: boolean) => {
     sidebarConfigManager = createConfigManager('exe:sidebarConfig:current', defaultConfig, 'Sidebar');
     sidebarConfigManager.load(isMigration);
 };
-export const getSidebarConfig = () => sidebarConfigManager.get();
+export const getSidebarConfig = (): SidebarConfig => sidebarConfigManager.get();
 export const saveSidebarConfig = (config: SidebarConfig) => sidebarConfigManager.set(config);
 export const resetSidebarConfig = () => sidebarConfigManager.reset();
 

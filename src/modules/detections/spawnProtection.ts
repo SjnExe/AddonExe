@@ -19,7 +19,7 @@ function cleanup(): void {
         try {
             event.unsubscribe(handler);
         } catch (e: unknown) {
-            errorLog(`[SpawnProtection] Failed to unsubscribe from an event: ${e}`);
+            errorLog(`[SpawnProtection] Failed to unsubscribe from an event: ${String(e)}`);
         }
     }
     eventHandlers = [];

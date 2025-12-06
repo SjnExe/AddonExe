@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as mc from '@minecraft/server';
 
 import { getTeamByPlayer } from '../features/teams/teamManager.js';

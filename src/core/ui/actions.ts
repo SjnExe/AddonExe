@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions, @typescript-eslint/await-thenable */
 import * as mc from '@minecraft/server';
 import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 

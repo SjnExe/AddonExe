@@ -84,7 +84,7 @@ const announcementCommand: CustomCommand = {
             const uiManager = await import('@core/uiManager.js');
             await uiManager.showPanel(executor, announcementPanelId);
         } catch (e) {
-            errorLog(`Failed to load uiManager for announcements panel: ${e}`);
+            errorLog(`Failed to load uiManager for announcements panel: ${String(e)}`);
         }
     }
 };

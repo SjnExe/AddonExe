@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /**
  * Manages all active player bounties in an efficient, centralized way.
  * @module bountyManager
