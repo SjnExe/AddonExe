@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/require-await */
 import * as mc from '@minecraft/server';
 
 import {

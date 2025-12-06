@@ -28,7 +28,7 @@ export function loadReports() {
     const dataStr = mc.world.getDynamicProperty(reportsDbKey);
     if (typeof dataStr === 'string') {
         try {
-            reports = JSON.parse(dataStr);
+            reports = JSON.parse(dataStr) as Report[];
             debugLog(`[ReportManager] Loaded ${reports.length} reports.`);
         } catch (e) {
             errorLog('[ReportManager] Failed to parse report data from world property.', e);

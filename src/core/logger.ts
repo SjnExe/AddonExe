@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 // Log level constants, ordered by verbosity
 // (Refreshed for deployment)
 export const LogLevels = {

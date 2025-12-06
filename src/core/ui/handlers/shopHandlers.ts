@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -10,7 +11,7 @@ import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';
 import { UIContext } from '../panelRegistry.js';
-import { MainConfig, ShopConfig } from '../types.js';
+import { MainConfig, ShopConfig, ShopListEntry } from '../types.js';
 import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 export async function handleShopPanel(
@@ -67,17 +68,28 @@ export async function handleShopPanel(
         // Reconstruct the list of entries that was shown to the player
         const shopConfig = getShopConfig() as unknown as ShopConfig;
         const category = shopConfig.categories[categoryName];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let allEntries: any[] = [];
+        let allEntries: ShopListEntry[] = [];
         if (isItemList && subCategoryName) {
             const subCategory = category.subCategories[subCategoryName];
-            allEntries = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
+            allEntries = Object.keys(subCategory.items).map((id) => ({
+                id,
+                ...subCategory.items[id],
+                type: 'item' as const
+            }));
         } else {
             // shopCategoryPanel
             const subCategories = Object.keys(category.subCategories)
                 .sort()
-                .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }));
-            const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
+                .map((name) => ({
+                    name,
+                    ...category.subCategories[name],
+                    type: 'subCategory' as const
+                }));
+            const items = Object.keys(category.items).map((id) => ({
+                id,
+                ...category.items[id],
+                type: 'item' as const
+            }));
             allEntries = [...subCategories, ...items];
         }
 
@@ -100,16 +112,7 @@ export async function handleShopPanel(
             return showPanel(player, panelId, { ...context, page: newPage });
         }
 
-        const selectedEntry =
-            selectionIndex >= 0
-                ? (paginatedEntries[selectionIndex] as {
-                      type: string;
-                      name: string;
-                      id: string;
-                      buyPrice: number;
-                      sellPrice: number;
-                  })
-                : undefined;
+        const selectedEntry = selectionIndex >= 0 ? paginatedEntries[selectionIndex] : undefined;
 
         if (selectedEntry && selectedEntry.type === 'subCategory') {
             return showPanel(player, `shopItemListPanel_${categoryName}_${selectedEntry.name}`, {
@@ -710,8 +713,7 @@ export async function handleShopPanel(
         if (selection === 0) {
             // Edit
             const shopConfig = getShopConfig() as unknown as ShopConfig;
-            const subCategory =
-                shopConfig.categories[categoryName as string].subCategories[subCategoryName];
+            const subCategory = shopConfig.categories[categoryName as string].subCategories[subCategoryName];
             const form = new ModalFormData()
                 .title('Edit Subcategory')
                 .textField('Subcategory Name', 'Enter new name', { defaultValue: subCategoryName })

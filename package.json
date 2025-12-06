@@ -50,6 +50,7 @@
         "babel-jest": "latest",
         "chokidar": "latest",
         "concurrently": "latest",
+        "esbuild": "^0.27.1",
         "eslint": "latest",
         "eslint-config-prettier": "latest",
         "eslint-import-resolver-typescript": "latest",

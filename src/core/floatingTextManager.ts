@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions, @typescript-eslint/require-await */
 import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog } from './logger.js';

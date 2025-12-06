@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 import * as mc from '@minecraft/server';
 
 import * as lastHitManager from '../lastHitManager.js';

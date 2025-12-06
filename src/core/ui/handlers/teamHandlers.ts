@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -7,7 +8,6 @@ import { loadPlayerData } from '../../playerDataManager.js';
 import { showPanel } from '../../uiManager.js';
 import { showConfirmationDialog } from '../components.js';
 import { UIContext } from '../panelRegistry.js';
-import { TeamConfig } from '../types.js';
 import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 export async function handleTeamPanel(
@@ -44,7 +44,7 @@ export async function handleTeamPanel(
                         cancelButtonText: 'Cancel',
                         onConfirm: () => {
                             const result = teamManager.leaveTeam(player);
-                            player.sendMessage(result.message);
+                            player.sendMessage(result.message ?? "");
                             return showPanel(player, 'teamMainPanel');
                         },
                         onCancel: () => showPanel(player, 'teamMainPanel')
@@ -70,7 +70,7 @@ export async function handleTeamPanel(
         const [teamName] = (response as ModalFormResponse).formValues || [];
         if (typeof teamName === 'string' && teamName.trim().length > 0) {
             const result = teamManager.createTeam(player, teamName.trim());
-            player.sendMessage(result.message);
+            player.sendMessage(result.message ?? "");
         } else {
             player.sendMessage('§4Invalid team name.');
         }
@@ -111,8 +111,8 @@ export async function handleTeamPanel(
         const selectedTeam = selectionIndex >= 0 ? paginatedTeams[selectionIndex] : undefined;
         if (selectedTeam) {
             // Join Request
-            const result = teamManager.requestJoinTeam(player, selectedTeam.id);
-            player.sendMessage(result.message);
+            const result = teamManager.applyToTeam(player, selectedTeam.id);
+            player.sendMessage(result.message ?? "");
             return showPanel(player, panelId, context);
         }
         return;
@@ -132,7 +132,7 @@ export async function handleTeamPanel(
         let team = getTeamByPlayer(player.id);
         if (teamId) {
             // Admin managing other team
-            team = getTeam(Number(teamId)) || undefined;
+            team = getTeam(Number(teamId)) ?? null;
         }
 
         if (!team) return showPanel(player, 'teamMainPanel');
@@ -177,8 +177,12 @@ export async function handleTeamPanel(
                     confirmButtonText: '§4Delete',
                     cancelButtonText: 'Cancel',
                     onConfirm: () => {
-                        const result = teamManager.deleteTeam(team.id, player); // Force unwrap as we checked
-                        player.sendMessage(result.message);
+                        const success = teamManager.deleteTeam(team.id); // Force unwrap as we checked
+                        if (success) {
+                            player.sendMessage('§aTeam deleted.');
+                        } else {
+                            player.sendMessage('§cFailed to delete team.');
+                        }
                         return showPanel(player, 'teamMainPanel');
                     },
                     onCancel: () => showPanel(player, 'teamManagePanel', context)
@@ -199,8 +203,13 @@ export async function handleTeamPanel(
 
         const autoTp = values[0] as boolean;
         // Update player settings
-        import('../../playerDataManager.js').then(({ updatePlayerSettings }) => {
-            updatePlayerSettings(player.id, { teamSettings: { autoTpAccept: autoTp } });
+        const { updatePlayerData } = await import('../../playerDataManager.js');
+        updatePlayerData(player.id, (data) => {
+            if (data.teamSettings) {
+                data.teamSettings.autoTpAccept = autoTp;
+            } else {
+                data.teamSettings = { autoTpAccept: autoTp };
+            }
         });
 
         if (team && (team.ownerId === player.id || team.admins.includes(player.id)) && values.length > 1) {
@@ -236,15 +245,15 @@ export async function handleTeamPanel(
         if (canManage) {
             if (selection === index) {
                 // Update
-                const result = teamManager.setTeamHome(player);
-                player.sendMessage(result.message);
+                const result = teamManager.setTeamHome(team.id, player.location, player.dimension.id);
+                player.sendMessage(result.message ?? "");
                 return showPanel(player, 'teamHomePanel');
             }
             index++;
             if (hasHome && selection === index) {
                 // Delete
-                const result = teamManager.deleteTeamHome(player);
-                player.sendMessage(result.message);
+                const result = teamManager.deleteTeamHome(team.id);
+                player.sendMessage(result.message ?? "");
                 return showPanel(player, 'teamHomePanel');
             }
         }
@@ -266,13 +275,13 @@ export async function handleTeamPanel(
                 confirmButtonText: '§2Accept',
                 cancelButtonText: '§4Deny',
                 onConfirm: () => {
-                    const res = teamManager.acceptJoinRequest(team.id, request.playerId, player);
-                    player.sendMessage(res.message);
+                    const res = teamManager.acceptApplication(team.id, request.playerId);
+                    if (res.message) player.sendMessage(res.message ?? "");
                     return showPanel(player, 'teamRequestsPanel');
                 },
                 onCancel: () => {
-                    const res = teamManager.denyJoinRequest(team.id, request.playerId, player);
-                    player.sendMessage(res.message);
+                    const res = teamManager.denyApplication(team.id, request.playerId);
+                    if (res.message) player.sendMessage(res.message ?? "");
                     return showPanel(player, 'teamRequestsPanel');
                 }
             });
@@ -286,6 +295,8 @@ export async function handleTeamPanel(
 
         const invites = pData.pendingInvites;
         if (invites.length === 0) return;
+
+        if (selection === undefined) return;
 
         // If "Deny All" button is present (it is if invites > 0)
         // It's the last button.
@@ -304,13 +315,13 @@ export async function handleTeamPanel(
                 confirmButtonText: '§2Accept',
                 cancelButtonText: '§4Decline',
                 onConfirm: () => {
-                    const res = teamManager.acceptTeamInvite(player, invite.teamId);
-                    player.sendMessage(res.message);
+                    const res = teamManager.acceptInvite(player, invite.teamId);
+                    player.sendMessage(res.message ?? "");
                     return showPanel(player, 'teamMainPanel');
                 },
                 onCancel: () => {
-                    const res = teamManager.declineTeamInvite(player, invite.teamId);
-                    player.sendMessage(res.message);
+                    const res = teamManager.denyInvite(player.id, invite.teamId);
+                    player.sendMessage(res.message ?? "");
                     return showPanel(player, 'teamInvitesPanel');
                 }
             });
@@ -323,7 +334,7 @@ export async function handleTeamPanel(
         const values = (response as ModalFormResponse).formValues;
         if (!values) return;
 
-        const config = getTeamConfig() as unknown as TeamConfig;
+        const config = getTeamConfig();
         const newConfig = { ...config };
 
         // Order must match panelBuilder config_team settings
