@@ -28,6 +28,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # User-specific configuration files
+src/config.js
 src/config.ts
 src/core/economyConfig.ts
 src/core/itemsConfig.ts

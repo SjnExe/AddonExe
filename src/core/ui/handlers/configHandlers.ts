@@ -11,7 +11,8 @@ import { getPlayer } from '../../playerDataManager.js';
 import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';
-import { configPanelSchema, UIContext } from '../panelRegistry.js';
+import { configPanelSchema } from '../configPanelRegistry.js';
+import { UIContext } from '../types.js';
 import {
     getPaginatedItems,
     getSystemsByCategory,

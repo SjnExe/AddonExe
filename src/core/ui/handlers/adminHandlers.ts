@@ -6,7 +6,7 @@ import * as reportManager from '../../../features/moderation/reportManager.js';
 import { floatingTextManager } from '../../floatingTextManager.js';
 import { errorLog } from '../../logger.js';
 import { showPanel } from '../../uiManager.js';
-import { UIContext } from '../panelRegistry.js';
+import { UIContext } from '../types.js';
 import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 export async function handleAdminPanel(
@@ -25,12 +25,16 @@ export async function handleAdminPanel(
             return showPanel(player, 'mainPanel', context);
         }
         if (selection === 1) {
+             // Placeholder List
+            return showPanel(player, 'placeholderListPanel', context);
+        }
+        if (selection === 2) {
             // Create New
             return showPanel(player, 'floatingTextCreatePanel', context);
         }
         const texts = floatingTextManager.getAllTexts();
         if (typeof selection === 'number') {
-            const selectedText = texts[selection - 2];
+            const selectedText = texts[selection - 3];
             if (selectedText) {
                 return showPanel(player, 'floatingTextActionPanel', { ...context, id: selectedText.id });
             }
@@ -43,7 +47,7 @@ export async function handleAdminPanel(
             const { id } = context;
             try {
                 switch (selection) {
-                    case 0: // Edit
+                    case 0: // Edit Settings
                         return showPanel(player, 'floatingTextEditPanel', context);
                     case 1: // Respawn
                         await floatingTextManager.respawnText(id);
@@ -77,12 +81,14 @@ export async function handleAdminPanel(
         if (!values) return;
 
         const { id } = context;
-        const [textContent, x, y, z, dimensionIndex, useExpiration, expirationMinutes] = values as [
+        // Fields match panelBuilder order: Text, X, Y, Z, Dim, Interval, EnableExp, ExpMins
+        const [textContent, x, y, z, dimensionIndex, updateIntervalStr, useExpiration, expirationMinutes] = values as [
             string,
             string,
             string,
             string,
             number,
+            string,
             boolean,
             string
         ];
@@ -94,6 +100,7 @@ export async function handleAdminPanel(
             text: textContent,
             location: { x: parseFloat(x), y: parseFloat(y), z: parseFloat(z) },
             dimension: selectedDimension,
+            updateInterval: parseInt(updateIntervalStr) || 0,
             expiresAt:
                 useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
         };
