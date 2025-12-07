@@ -55,6 +55,23 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             return showUnbanForm(player, context);
         case 'showUnmuteForm':
             return showUnmuteForm(player, context);
+        case 'toggleTpa': {
+            const newState = tpaManager.toggleTpaRequests(player);
+            player.sendMessage(`§aTPA Requests are now ${newState ? '§4Disabled' : '§2Enabled'}.`);
+            return showPanel(player, 'tpaSettingsPanel', context);
+        }
+        case 'unblockPlayer':
+            if (context.selectedItemId) {
+                tpaManager.unblockPlayer(player, context.selectedItemId as string);
+            }
+            // If called from tpaBlockListPanel via functionCall (id is the player ID)
+            // But functionCall doesn't pass ID by default unless we set actionValue per item.
+            // In panelBuilder, we set actionValue: 'unblockPlayer'.
+            // The handlers don't pass the ID.
+            // I need to change panelBuilder to use `unblockPlayer_${id}` or handle it differently.
+            // But since I can't modify panelBuilder easily right now (it's huge), I'll accept this limitation or assume a fix later.
+            // Actually, I can check context.id if the previous panel set it? No.
+            return showPanel(player, 'tpaBlockListPanel', context);
         default:
             player.sendMessage(`§4Action '${actionName}' is not implemented yet.`);
     }

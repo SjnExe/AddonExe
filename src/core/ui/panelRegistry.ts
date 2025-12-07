@@ -146,8 +146,27 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 actionType: 'openPanel',
                 actionValue: 'playerListPanel',
                 sortId: 50
+            },
+            {
+                id: 'tpaSettings',
+                text: '§5TPA Settings',
+                icon: 'textures/items/ender_pearl',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'tpaSettingsPanel',
+                sortId: 60
             }
         ]
+    },
+    tpaSettingsPanel: {
+        title: 'TPA Settings',
+        parentPanelId: 'gameplayPanel',
+        items: [] // Dynamic
+    },
+    tpaBlockListPanel: {
+        title: 'Blocked Players',
+        parentPanelId: 'tpaSettingsPanel',
+        items: [] // Dynamic
     },
     infoPanel: {
         title: 'Server Information',
