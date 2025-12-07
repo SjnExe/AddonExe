@@ -35,7 +35,8 @@ mc.system.runInterval(() => {
             const sourcePlayer = getPlayerFromCache(sourceId);
             const targetPlayer = getPlayerFromCache(request.targetPlayerId);
             if (sourcePlayer) sourcePlayer.sendMessage('§cYour TPA request has expired.');
-            if (targetPlayer) targetPlayer.sendMessage(`§cThe TPA request from ${request.sourcePlayerName} has expired.`);
+            if (targetPlayer)
+                targetPlayer.sendMessage(`§cThe TPA request from ${request.sourcePlayerName} has expired.`);
         }
     }
 }, 20); // Check every second (20 ticks)
@@ -88,7 +89,11 @@ function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3): mc.Vec
 
                 if (ground && feet && head) {
                     const isGroundSafe = !ground.isAir && !ground.isLiquid;
-                    if (isGroundSafe && feet.isAir && head.isAir) {
+                    // Ensure feet and head are breathable (air or non-blocking) and NOT liquid (lava/water)
+                    const isFeetSafe = !feet.isLiquid && feet.isAir;
+                    const isHeadSafe = !head.isLiquid && head.isAir;
+
+                    if (isGroundSafe && isFeetSafe && isHeadSafe) {
                         return {
                             x: checkPos.x + 0.5,
                             y: checkPos.y,
@@ -103,10 +108,15 @@ function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3): mc.Vec
 }
 
 // ... (findIncomingRequest logic remains same)
-function _findIncomingRequest(targetPlayerId: string, sourcePlayerName?: string, onlineOnly: boolean = false): TpaRequest | undefined {
+function _findIncomingRequest(
+    targetPlayerId: string,
+    sourcePlayerName?: string,
+    onlineOnly: boolean = false
+): TpaRequest | undefined {
     const requests = incomingRequests.get(targetPlayerId);
     if (!requests || requests.length === 0) return undefined;
-    if (sourcePlayerName) return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
+    if (sourcePlayerName)
+        return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
     if (onlineOnly) {
         for (let i = requests.length - 1; i >= 0; i--) {
             if (getPlayerFromCache(requests[i].sourcePlayerId)) return requests[i];
@@ -117,10 +127,13 @@ function _findIncomingRequest(targetPlayerId: string, sourcePlayerName?: string,
 }
 
 export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, type: TpaRequestType): ActionResult {
-    if (outgoingRequests.has(sourcePlayer.id)) return { success: false, message: 'You already have an outgoing TPA request. Use !tpacancel to cancel it.' };
+    if (outgoingRequests.has(sourcePlayer.id))
+        return { success: false, message: 'You already have an outgoing TPA request. Use !tpacancel to cancel it.' };
     const targetPlayerData = getOrCreatePlayer(targetPlayer);
-    if (targetPlayerData.tpaRequestsDisabled) return { success: false, message: `§c${targetPlayer.name} is not accepting TPA requests.` };
-    if (targetPlayerData.tpaBlockedPlayerIds?.includes(sourcePlayer.id)) return { success: false, message: `§cYou are blocked from sending TPA requests to ${targetPlayer.name}.` };
+    if (targetPlayerData.tpaRequestsDisabled)
+        return { success: false, message: `§c${targetPlayer.name} is not accepting TPA requests.` };
+    if (targetPlayerData.tpaBlockedPlayerIds?.includes(sourcePlayer.id))
+        return { success: false, message: `§cYou are blocked from sending TPA requests to ${targetPlayer.name}.` };
 
     const config = getConfig();
     const timeoutSeconds = config.tpa.requestTimeoutSeconds;
@@ -145,7 +158,8 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
 export function getIncomingRequest(player: mc.Player, sourcePlayerName?: string): TpaRequest | undefined {
     const requests = incomingRequests.get(player.id);
     if (!requests || requests.length === 0) return undefined;
-    if (sourcePlayerName) return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
+    if (sourcePlayerName)
+        return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
     return requests[requests.length - 1];
 }
 
@@ -258,7 +272,7 @@ export function blockPlayer(player: mc.Player, targetId: string) {
 export function unblockPlayer(player: mc.Player, targetId: string) {
     updatePlayerData(player.id, (data) => {
         if (data.tpaBlockedPlayerIds) {
-            data.tpaBlockedPlayerIds = data.tpaBlockedPlayerIds.filter(id => id !== targetId);
+            data.tpaBlockedPlayerIds = data.tpaBlockedPlayerIds.filter((id) => id !== targetId);
         }
     });
 }

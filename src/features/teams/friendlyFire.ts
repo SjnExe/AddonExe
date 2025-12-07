@@ -1,23 +1,36 @@
 import * as mc from '@minecraft/server';
+
+import { teamConfig } from './teamConfig.js';
 import { getTeamByPlayer } from './teamManager.js';
 
-export function initializeFriendlyFire() {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    mc.world.afterEvents.entityDamage.subscribe((event: mc.EntityDamageAfterEvent) => {
-        const target = event.entity;
-        const source = event.damageSource.damagingEntity;
+function onEntityHurt(event: mc.EntityHurtAfterEvent) {
+    if (!event.damageSource.damagingEntity || event.damageSource.damagingEntity.typeId !== 'minecraft:player') {
+        return;
+    }
+    if (event.hurtEntity.typeId !== 'minecraft:player') {
+        return;
+    }
 
-        if (!(target instanceof mc.Player) || !(source instanceof mc.Player)) {
-            return;
+    const attacker = event.damageSource.damagingEntity as mc.Player;
+    const victim = event.hurtEntity as mc.Player;
+
+    if (attacker.id === victim.id) {
+        return;
+    } // Self damage
+
+    const attackerTeam = getTeamByPlayer(attacker.id);
+    const victimTeam = getTeamByPlayer(victim.id);
+
+    if (attackerTeam && victimTeam && attackerTeam.id === victimTeam.id) {
+        // If friendly fire is disabled (false), we should warn
+        // Note: We cannot CANCEL in after event. We can only warn.
+        if (teamConfig.friendlyFire === false) {
+            attacker.onScreenDisplay.setActionBar('§cDo not hurt your teammates!');
+            attacker.playSound('note.bass');
         }
+    }
+}
 
-        const targetTeam = getTeamByPlayer(target.id);
-        const sourceTeam = getTeamByPlayer(source.id);
-
-        if (targetTeam && sourceTeam && targetTeam.id === sourceTeam.id) {
-            // Friendly Fire detected
-            // Warn attacker
-            source.sendMessage('§c[Friendly Fire] You are attacking a teammate!');
-        }
-    });
+export function registerFriendlyFire() {
+    mc.world.afterEvents.entityHurt.subscribe(onEntityHurt);
 }

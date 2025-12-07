@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -11,8 +11,8 @@ import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';
 import { getPanelItems } from '../panelBuilder.js';
-import { MainConfig, ShopConfig } from '../types.js';
 import { UIContext } from '../panelRegistry.js';
+import { MainConfig, ShopConfig } from '../types.js';
 
 export async function handleShopPanel(
     player: mc.Player,
@@ -159,7 +159,12 @@ export async function handleShopPanel(
                 const newIcon = values[1] as string;
 
                 if (newName) {
-                    const result = shopAdminManager.editSubCategory(categoryName as string, targetName, newName, newIcon || '');
+                    const result = shopAdminManager.editSubCategory(
+                        categoryName as string,
+                        targetName,
+                        newName,
+                        newIcon || ''
+                    );
                     player.sendMessage(result.message);
                 }
                 return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
@@ -205,13 +210,31 @@ export async function handleShopPanel(
                 const permissionLevel = parseInt(permLevelStr, 10);
 
                 if (customId && displayName && mcId && !isNaN(buyPrice)) {
-                    shopAdminManager.addCustomItemToConfig(customId, { itemId: mcId, icon, buyPrice, sellPrice, displayName });
-                    shopAdminManager.setItem(context.categoryName as string, context.subCategoryName as string || null, customId, {
-                        buyPrice, sellPrice, permissionLevel, icon, displayName, itemId: customId
+                    shopAdminManager.addCustomItemToConfig(customId, {
+                        itemId: mcId,
+                        icon,
+                        buyPrice,
+                        sellPrice,
+                        displayName
                     });
+                    shopAdminManager.setItem(
+                        context.categoryName as string,
+                        (context.subCategoryName as string) || null,
+                        customId,
+                        {
+                            buyPrice,
+                            sellPrice,
+                            permissionLevel,
+                            icon,
+                            displayName,
+                            itemId: customId
+                        }
+                    );
                     player.sendMessage(`§2Added ${displayName}.`);
                 }
-                const parent = context.subCategoryName ? `shopAdminSubCategoryItemPanel_${context.subCategoryName}` : `shopAdminCategoryPanel_${context.categoryName}`;
+                const parent = context.subCategoryName
+                    ? `shopAdminSubCategoryItemPanel_${context.subCategoryName}`
+                    : `shopAdminCategoryPanel_${context.categoryName}`;
                 return showPanel(player, parent, { ...context, page: 1 });
             }
 
@@ -236,12 +259,24 @@ export async function handleShopPanel(
                 const permissionLevel = parseInt(permLevelStr, 10);
 
                 if (!isNaN(buyPrice)) {
-                    shopAdminManager.setItem(context.categoryName as string, context.subCategoryName as string || null, itemId, {
-                        buyPrice, sellPrice, permissionLevel, icon, displayName: masterItem.displayName || '', itemId: itemId
-                    });
+                    shopAdminManager.setItem(
+                        context.categoryName as string,
+                        (context.subCategoryName as string) || null,
+                        itemId,
+                        {
+                            buyPrice,
+                            sellPrice,
+                            permissionLevel,
+                            icon,
+                            displayName: masterItem.displayName || '',
+                            itemId: itemId
+                        }
+                    );
                     player.sendMessage(`§2Added ${masterItem.displayName}.`);
                 }
-                const parent = context.subCategoryName ? `shopAdminSubCategoryItemPanel_${context.subCategoryName}` : `shopAdminCategoryPanel_${context.categoryName}`;
+                const parent = context.subCategoryName
+                    ? `shopAdminSubCategoryItemPanel_${context.subCategoryName}`
+                    : `shopAdminCategoryPanel_${context.categoryName}`;
                 return showPanel(player, parent, { ...context, page: 1 });
             }
 
@@ -259,7 +294,9 @@ export async function handleShopPanel(
                     const { categoryName, subCategoryName } = context;
                     const shopConfig = getShopConfig() as ShopConfig;
                     let item;
-                    if (subCategoryName) item = shopConfig.categories[categoryName as string].subCategories[subCategoryName].items[itemId];
+                    if (subCategoryName)
+                        item =
+                            shopConfig.categories[categoryName as string].subCategories[subCategoryName].items[itemId];
                     else item = shopConfig.categories[categoryName as string].items[itemId];
 
                     const masterItem = allItems[itemId] || {};
@@ -278,12 +315,26 @@ export async function handleShopPanel(
 
                     const vals = editRes.formValues as string[];
                     const [dName, mId, icon, bPrice, sPrice, pLevel] = vals;
-                    shopAdminManager.updateShopItem(categoryName as string, subCategoryName as string || null, itemId, {
-                        buyPrice: Number(bPrice), sellPrice: Number(sPrice), permissionLevel: Number(pLevel), icon, minecraftId: mId, displayName: dName
-                    });
+                    shopAdminManager.updateShopItem(
+                        categoryName as string,
+                        (subCategoryName as string) || null,
+                        itemId,
+                        {
+                            buyPrice: Number(bPrice),
+                            sellPrice: Number(sPrice),
+                            permissionLevel: Number(pLevel),
+                            icon,
+                            minecraftId: mId,
+                            displayName: dName
+                        }
+                    );
                     player.sendMessage('§2Item updated.');
                 } else if (actionRes.selection === 1) {
-                    shopAdminManager.removeItem(context.categoryName as string, context.subCategoryName as string || null, selectedItem.id);
+                    shopAdminManager.removeItem(
+                        context.categoryName as string,
+                        (context.subCategoryName as string) || null,
+                        selectedItem.id
+                    );
                     player.sendMessage('§2Item removed.');
                 }
                 return showPanel(player, panelId, context);
@@ -305,8 +356,8 @@ export async function handleShopPanel(
 
                 if (!shopItem) return;
 
-                const canBuy = (context.view !== 'sell') && shopItem.buyPrice > 0;
-                const canSell = (context.view !== 'buy') && shopItem.sellPrice > 0;
+                const canBuy = context.view !== 'sell' && shopItem.buyPrice > 0;
+                const canSell = context.view !== 'buy' && shopItem.sellPrice > 0;
 
                 if (!canBuy && !canSell) {
                     player.sendMessage('§4This item cannot be bought or sold currently.');
@@ -323,10 +374,14 @@ export async function handleShopPanel(
                     modal.dropdown('Action', options, { defaultValueIndex: 0 });
                     hasDropdown = true;
                 } else if (canBuy) {
-                    modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', { defaultValue: '1' });
+                    modal.textField(`Amount to Buy (Price: $${shopItem.buyPrice})`, 'Enter a numeric value', {
+                        defaultValue: '1'
+                    });
                     action = 'buy';
                 } else {
-                    modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', { defaultValue: '1' });
+                    modal.textField(`Amount to Sell (Price: $${shopItem.sellPrice})`, 'Enter a numeric value', {
+                        defaultValue: '1'
+                    });
                     action = 'sell';
                 }
 
@@ -339,7 +394,7 @@ export async function handleShopPanel(
                     if (!values) return showPanel(player, panelId, context);
                     const amountStr = values[0];
                     const actionIndex = values[1];
-                    amount = parseInt(amountStr, 10);
+                    amount = utils.parseCurrency(amountStr);
                     const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
                     const selectedActionString = options[actionIndex];
                     action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
@@ -347,11 +402,11 @@ export async function handleShopPanel(
                     const values = (modalResponse as ModalFormResponse).formValues as [string];
                     if (!values) return showPanel(player, panelId, context);
                     const amountStr = values[0];
-                    amount = parseInt(amountStr, 10);
+                    amount = utils.parseCurrency(amountStr);
                 }
 
                 if (isNaN(amount) || amount <= 0) {
-                    player.sendMessage('§4Invalid amount.');
+                    player.sendMessage('§4Invalid amount. Please enter a positive number (e.g. 1, 64, 1k).');
                     return showPanel(player, panelId, context);
                 }
 

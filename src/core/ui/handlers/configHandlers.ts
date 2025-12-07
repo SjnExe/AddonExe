@@ -11,9 +11,9 @@ import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { showConfirmationDialog } from '../components.js';
 import { configPanelSchema } from '../configPanelRegistry.js';
+import { getPanelItems } from '../panelBuilder.js';
 import { UIContext } from '../types.js';
 import { configHandlers as uiConfigHandlers } from '../uiUtils.js';
-import { getPanelItems } from '../panelBuilder.js';
 
 export async function handleConfigPanel(
     player: mc.Player,
@@ -29,7 +29,8 @@ export async function handleConfigPanel(
     if (!pData) return;
 
     // --- Action Forms (Category, SubCategory, Reset Lists) ---
-    if (panelId === 'configCategoryPanel' ||
+    if (
+        panelId === 'configCategoryPanel' ||
         panelId.startsWith('configSubCategoryPanel_') ||
         panelId === 'configResetPanel' ||
         panelId.startsWith('configResetCategoryPanel_')
@@ -66,12 +67,16 @@ export async function handleConfigPanel(
                         onConfirm: async () => {
                             const finalConfirmForm = new ModalFormData()
                                 .title('Final Confirmation')
-                                .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', { defaultValue: '' });
+                                .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', {
+                                    defaultValue: ''
+                                });
                             const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
                             if (finalConfirmResponse.canceled) return showPanel(player, panelId, context);
                             const confirmModal = finalConfirmResponse as ModalFormResponse;
                             const confirmationValue =
-                                confirmModal.formValues && confirmModal.formValues[0] ? String(confirmModal.formValues[0]) : '';
+                                confirmModal.formValues && confirmModal.formValues[0]
+                                    ? String(confirmModal.formValues[0])
+                                    : '';
                             if (confirmationValue.trim().toLowerCase() !== 'confirm') {
                                 player.sendMessage('§4Final confirmation failed. Reset canceled.');
                                 return showPanel(player, panelId, context);

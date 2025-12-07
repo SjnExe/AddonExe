@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -141,7 +141,7 @@ export async function handleTeamPanel(
                 else team = getTeamByPlayer(player.id);
 
                 if (team) {
-                    const request = team.applications.find(a => a.playerId === playerId);
+                    const request = team.applications.find((a) => a.playerId === playerId);
                     if (request) {
                         await showConfirmationDialog(player, {
                             title: 'Join Request',
@@ -170,7 +170,7 @@ export async function handleTeamPanel(
                 // selectedItem.id is teamId
                 const teamId = Number(selectedItem.id);
                 const pData = loadPlayerData(player.id);
-                const invite = pData?.pendingInvites?.find(i => i.teamId === teamId);
+                const invite = pData?.pendingInvites?.find((i) => i.teamId === teamId);
 
                 if (invite) {
                     await showConfirmationDialog(player, {

@@ -36,82 +36,80 @@ export async function handleFormResponse(
     // Implicit default page to 1 to prevent leakage
     if (context.page === undefined) context.page = 1;
 
-    // Helper properties with type guards implicitly handled by usage context
+    // Helper properties
     const selection = (response as ActionFormResponse).selection;
 
-    // Generic handler for registry-defined panels
-    const panelDef = panelDefinitions[panelId];
+    // --- Specialized Handlers (Complex Systems / Modals) ---
+    // These handlers often handle both Action and Modal forms, or have complex logic not yet ported to actions.ts
+    // We check them FIRST if they need to override generic logic, OR we check them LAST if we want generic logic to take precedence for buttons.
+    // Given the refactor, we want Generic Logic to handle Buttons (ActionForms) whenever possible to ensure ID matching.
 
-    // Check if we should use the Generic Handler
-    if (
-        panelDef &&
-        !panelId.startsWith('shop') &&
-        !panelId.startsWith('team') &&
-        !panelId.startsWith('floating') &&
-        !panelId.startsWith('rules') &&
-        !panelId.startsWith('helpfulLinks') &&
-        !panelId.startsWith('config') &&
-        !panelId.startsWith('xray')
-    ) {
+    const isShop = panelId.startsWith('shop');
+    const isTeam = panelId.startsWith('team');
+    const isSidebar = panelId.startsWith('sidebar') || panelId.startsWith('actionBar');
+    const isKit = panelId.startsWith('kit');
+    const isRank = panelId.startsWith('rank');
+    const isCmd = panelId.startsWith('command');
+    const isXray = panelId.startsWith('xray');
+    const isEco = panelId === 'mobDropsSystemPanel' || panelId.startsWith('addMob') || panelId.startsWith('editMob') || panelId === 'economyPanel';
+    const isConfig = panelId.startsWith('config'); // Handles configCategoryPanel and Modals
+
+    // --- Generic Headless Handler (Button Matching) ---
+    // If it's a button click (selection is number), we try to resolve it via getPanelItems.
+    if (typeof selection === 'number') {
         let items: PanelItem[] = [];
-        // Use the HEADLESS BUILDER to get the exact items
+
         if (panelId === 'playerActionsPanel') {
             items = getVisiblePlayerActionItems(context, pData.permissionLevel, player.id);
         } else {
+            // Attempt to get items from builder
             items = await getPanelItems(player, panelId, context);
         }
 
-        if (typeof selection === 'number') {
+        if (items.length > 0) {
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
 
+                if (item.actionValue === 'prevPage') {
+                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page || 1) - 1) });
+                }
+                if (item.actionValue === 'nextPage') {
+                    return showPanel(player, panelId, { ...context, page: (context.page || 1) + 1 });
+                }
+
                 if (item.actionType === 'openPanel') {
-                    // Pass current context (including targetPlayerId etc) forward
-                    // IMPORTANT: Reset page to 1 for new panel unless specified
-                    return showPanel(player, item.actionValue, { ...context, page: 1 });
+                    // Inject item ID as selectedItemId AND id (legacy support)
+                    return showPanel(player, item.actionValue, {
+                        ...context,
+                        page: 1,
+                        selectedItemId: item.id,
+                        id: item.id
+                    });
                 } else if (item.actionType === 'functionCall') {
-                    // Inject item ID into context for actions like unblockPlayer
-                    await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id });
+                    // Inject item ID into context
+                    await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id, id: item.id });
                     return;
                 }
             }
+            // If selection was valid number but no action matched? (Shouldn't happen if items match)
+            // But if we found items and handled the button, we return.
+            // If items.length > 0 but we didn't return above (e.g. logic error?), fall through.
         }
     }
 
-    // Delegate to specialized handlers
+    // --- Fallback / Modal Delegation ---
 
-    // --- Complex Systems ---
-    if (panelId.startsWith('shop')) {
-        return handleShopPanel(player, panelId, response, context);
-    }
-    if (panelId.startsWith('sidebar') || panelId.startsWith('actionBar')) {
-        return handleSidebarPanel(player, panelId, response, context);
-    }
-    if (panelId.startsWith('team')) {
-        return handleTeamPanel(player, panelId, response, context);
-    }
-    if (panelId.startsWith('kit')) {
-        return handleKitPanel(player, panelId, response, context);
-    }
-    if (panelId.startsWith('rank')) {
-        return handleRankPanel(player, panelId, response, context);
-    }
-    if (panelId.startsWith('command')) {
-        return handleCommandPanel(player, panelId, response, context);
-    }
-    if (panelId.startsWith('xray')) {
-        return handleXrayPanel(player, panelId, response, context);
-    }
-    if (
-        panelId === 'mobDropsSystemPanel' ||
-        panelId.startsWith('addMob') ||
-        panelId.startsWith('editMob') ||
-        panelId === 'economyPanel'
-    ) {
-        return handleEconomyPanel(player, panelId, response, context);
-    }
+    if (isShop) return handleShopPanel(player, panelId, response, context);
+    if (isSidebar) return handleSidebarPanel(player, panelId, response, context);
+    if (isTeam) return handleTeamPanel(player, panelId, response, context);
+    if (isKit) return handleKitPanel(player, panelId, response, context);
+    if (isRank) return handleRankPanel(player, panelId, response, context);
+    if (isCmd) return handleCommandPanel(player, panelId, response, context);
+    if (isXray) return handleXrayPanel(player, panelId, response, context);
+    if (isEco) return handleEconomyPanel(player, panelId, response, context);
+    if (isConfig) return handleConfigPanel(player, panelId, response, context);
 
-    // --- Core Systems ---
+    // --- Core Systems Fallback ---
     if (panelId.startsWith('player')) {
         return handlePlayerPanel(player, panelId, response, context);
     }
@@ -129,11 +127,5 @@ export async function handleFormResponse(
     }
     if (panelId === 'bountyListPanel') {
         return handleGameplayPanel(player, panelId, response, context);
-    }
-
-    // --- Config Catch-All ---
-    // (Handles configCategoryPanel, configResetPanel, and any panelId starting with 'config_')
-    if (panelId.startsWith('config')) {
-        return handleConfigPanel(player, panelId, response, context);
     }
 }

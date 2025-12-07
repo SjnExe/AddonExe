@@ -6,17 +6,12 @@ import * as reportManager from '../../features/moderation/reportManager.js';
 import * as bountyManager from '../bountyManager.js';
 import { loadConfig } from '../configLoader.js';
 import { getConfig } from '../configManager.js';
-import {
-    getEconomyConfig,
-    getKitsConfig,
-    getShopConfig,
-    getTeamConfig,
-    getXrayConfig
-} from '../configurations.js';
+import { getEconomyConfig, getKitsConfig, getShopConfig, getTeamConfig, getXrayConfig } from '../configurations.js';
 import { getAllKits } from '../kitAdminManager.js';
 import { errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
 import {
+    getAllKnownPlayers,
     getAllPlayerNameIdMap,
     getOrCreatePlayer,
     getPlayer,
@@ -25,7 +20,7 @@ import {
 } from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
 import * as rulesManager from '../rulesManager.js';
-import { formatCurrency, resolveIcon } from '../utils.js';
+import { formatCurrency, resolveIcon, formatLocation } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
 import { panelDefinitions } from './panelRegistry.js';
@@ -114,17 +109,35 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
                 `§8Bounty: §6${formatCurrency(bounty)}`
             ].join('\n')
         );
-    } else if (panelId === 'reportActionsPanel' && context.targetReport) {
-        const targetReport = context.targetReport as reportManager.Report;
+    } else if (panelId === 'reportActionsPanel') {
+        let targetReport = context.targetReport as reportManager.Report | undefined;
+        if (!targetReport && context.selectedItemId) {
+            const reports = reportManager.getAllReports();
+            targetReport = reports.find((r) => r.id === context.selectedItemId);
+        }
+
+        if (targetReport) {
+            // Update context so handlers have it
+            context.targetReport = targetReport;
+            form.body(
+                [
+                    `§8Report ID: §6${String(targetReport.id)}`,
+                    `§8Reported Player: §6${targetReport.reportedPlayerName}`,
+                    `§8Reporter: §6${targetReport.reporterName}`,
+                    `§8Reason: §6${targetReport.reason}`,
+                    `§8Status: §6${targetReport.status}`,
+                    `§8Date: §6${new Date(targetReport.timestamp).toLocaleString()}`
+                ].join('\n')
+            );
+        } else {
+            form.body('§4Report not found.');
+        }
+    } else if (panelId === 'placeholderListPanel') {
         form.body(
-            [
-                `§8Report ID: §6${String(targetReport.id)}`,
-                `§8Reported Player: §6${targetReport.reportedPlayerName}`,
-                `§8Reporter: §6${targetReport.reporterName}`,
-                `§8Reason: §6${targetReport.reason}`,
-                `§8Status: §6${targetReport.status}`,
-                `§8Date: §6${new Date(targetReport.timestamp).toLocaleString()}`
-            ].join('\n')
+            `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
+                `{server_name}, {tps}, {online}, {max_players}, {time}, {date}\n\n` +
+                `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
+                `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
         );
     } else if (panelId === 'placeholderListPanel') {
         form.body(
@@ -136,7 +149,11 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
     }
 }
 
-export function getVisiblePlayerActionItems(context: UIContext, permissionLevel: number, viewerId?: string): PanelItem[] {
+export function getVisiblePlayerActionItems(
+    context: UIContext,
+    permissionLevel: number,
+    viewerId?: string
+): PanelItem[] {
     const panelDef = panelDefinitions.playerActionsPanel;
     const config = getConfig() as unknown as MainConfig;
     const menuItems = getStaticMenuItems(panelDef, permissionLevel);
@@ -169,11 +186,7 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
 
 // --- Main Item Generator ---
 
-export async function getPanelItems(
-    player: mc.Player,
-    panelId: string,
-    context: UIContext
-): Promise<PanelItem[]> {
+export async function getPanelItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
     const pData = getPlayer(player.id);
     if (!pData) return [];
 
@@ -201,17 +214,75 @@ export async function getPanelItems(
     };
 
     if (panelId === 'placeholderListPanel') {
-        addBack('sidebarMainPanel');
+        addBack('adminPanel'); // Fixed back target to Admin Panel, not Sidebar
         return items;
     }
 
     if (panelId === 'sidebarLineActionPanel' || panelId === 'actionBarLineActionPanel') {
         const isSidebar = panelId === 'sidebarLineActionPanel';
         addBack(isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel');
-        items.push({ id: 'edit', text: 'Edit', icon: 'textures/ui/icon_setting', permissionLevel: 1, actionType: 'functionCall', actionValue: 'editLine' });
-        items.push({ id: 'moveUp', text: 'Move Up', icon: 'textures/gui/controls/up', permissionLevel: 1, actionType: 'functionCall', actionValue: 'moveUp' });
-        items.push({ id: 'moveDown', text: 'Move Down', icon: 'textures/gui/controls/down', permissionLevel: 1, actionType: 'functionCall', actionValue: 'moveDown' });
-        items.push({ id: 'delete', text: 'Delete', icon: 'textures/ui/trash', permissionLevel: 1, actionType: 'functionCall', actionValue: 'deleteLine' });
+        items.push({
+            id: 'edit',
+            text: 'Edit',
+            icon: 'textures/ui/icon_setting',
+            permissionLevel: 1,
+            actionType: 'functionCall',
+            actionValue: 'editLine'
+        });
+        items.push({
+            id: 'moveUp',
+            text: 'Move Up',
+            icon: 'textures/gui/controls/up',
+            permissionLevel: 1,
+            actionType: 'functionCall',
+            actionValue: 'moveUp'
+        });
+        items.push({
+            id: 'moveDown',
+            text: 'Move Down',
+            icon: 'textures/gui/controls/down',
+            permissionLevel: 1,
+            actionType: 'functionCall',
+            actionValue: 'moveDown'
+        });
+        items.push({
+            id: 'delete',
+            text: 'Delete',
+            icon: 'textures/ui/trash',
+            permissionLevel: 1,
+            actionType: 'functionCall',
+            actionValue: 'deleteLine'
+        });
+        return items;
+    }
+
+    // --- Admin: Floating Text ---
+    if (panelId === 'floatingTextListPanel') {
+        addBack('adminPanel');
+        items.push({ id: 'placeholderList', text: '§l§6View Placeholders', icon: 'textures/ui/icon_sign', permissionLevel: 1, actionType: 'openPanel', actionValue: 'placeholderListPanel' });
+        items.push({ id: 'create', text: '§l§2+ Create New', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: 'floatingTextCreatePanel' });
+
+        const { floatingTextManager } = await import('../floatingTextManager.js');
+        const texts = floatingTextManager.getAllTexts();
+
+        texts.forEach(text => {
+             items.push({
+                 id: text.id,
+                 text: `§6${text.id}§r\n${formatLocation(text.location)}`,
+                 permissionLevel: 1,
+                 actionType: 'openPanel',
+                 actionValue: 'floatingTextActionPanel' // Needs context.id
+             });
+        });
+        return items;
+    }
+
+    if (panelId === 'floatingTextActionPanel') {
+        addBack('floatingTextListPanel');
+        items.push({ id: 'edit', text: 'Edit Settings', icon: 'textures/ui/icon_setting', permissionLevel: 1, actionType: 'openPanel', actionValue: 'floatingTextEditPanel' });
+        items.push({ id: 'respawn', text: 'Respawn Entity', icon: 'textures/ui/refresh_light', permissionLevel: 1, actionType: 'functionCall', actionValue: 'respawnText' });
+        items.push({ id: 'despawn', text: 'Despawn Entity', icon: 'textures/ui/cancel', permissionLevel: 1, actionType: 'functionCall', actionValue: 'despawnText' });
+        items.push({ id: 'delete', text: '§4Delete Text', icon: 'textures/ui/trash', permissionLevel: 1, actionType: 'functionCall', actionValue: 'deleteText' });
         return items;
     }
 
@@ -231,7 +302,14 @@ export async function getPanelItems(
             });
         });
         if (permissionLevel === 0) {
-            items.push({ id: 'resetSettings', text: '§l§cReset Settings§r', icon: 'textures/ui/wysiwyg_reset', permissionLevel: 0, actionType: 'openPanel', actionValue: 'configResetPanel' });
+            items.push({
+                id: 'resetSettings',
+                text: '§l§cReset Settings§r',
+                icon: 'textures/ui/wysiwyg_reset',
+                permissionLevel: 0,
+                actionType: 'openPanel',
+                actionValue: 'configResetPanel'
+            });
         }
         addPaginationButtonsToItems(items, context.page || 1, categories.length);
         return items;
@@ -271,7 +349,14 @@ export async function getPanelItems(
             });
         });
         if (context.page! >= Math.ceil(categories.length / itemsPerPage)) {
-            items.push({ id: 'resetAll', text: '§l§4Reset All Systems', icon: 'textures/ui/trash', permissionLevel: 0, actionType: 'functionCall', actionValue: 'resetAllConfig' });
+            items.push({
+                id: 'resetAll',
+                text: '§l§4Reset All Systems',
+                icon: 'textures/ui/trash',
+                permissionLevel: 0,
+                actionType: 'functionCall',
+                actionValue: 'resetAllConfig'
+            });
         }
         addPaginationButtonsToItems(items, context.page || 1, categories.length);
         return items;
@@ -283,7 +368,14 @@ export async function getPanelItems(
         const systems = getSystemsByCategory(pData, category);
         const paginated = getPaginatedItems(systems, context.page || 1);
 
-        items.push({ id: 'resetCategory', text: `§l§4Reset All ${category}§r`, icon: 'textures/ui/trash', permissionLevel: 0, actionType: 'functionCall', actionValue: `resetCategory_${category}` });
+        items.push({
+            id: 'resetCategory',
+            text: `§l§4Reset All ${category}§r`,
+            icon: 'textures/ui/trash',
+            permissionLevel: 0,
+            actionType: 'functionCall',
+            actionValue: `resetCategory_${category}`
+        });
 
         paginated.forEach((sys) => {
             items.push({
@@ -325,14 +417,14 @@ export async function getPanelItems(
         addBack('tpaSettingsPanel');
         const blocked = pData.tpaBlockedPlayerIds || [];
         for (const id of blocked) {
-             const name = loadPlayerData(id)?.name || id;
-             items.push({
-                 id: id,
-                 text: name,
-                 permissionLevel: 1024,
-                 actionType: 'functionCall',
-                 actionValue: 'unblockPlayer'
-             });
+            const name = loadPlayerData(id)?.name || id;
+            items.push({
+                id: id,
+                text: name,
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'unblockPlayer'
+            });
         }
         return items;
     }
@@ -346,10 +438,7 @@ export async function getPanelItems(
             .filter((categoryName: string) => {
                 const category = shopConfig.categories[categoryName];
                 if (!category) return false;
-                return (
-                    Object.keys(category.items).length > 0 ||
-                    Object.keys(category.subCategories).length > 0
-                );
+                return Object.keys(category.items).length > 0 || Object.keys(category.subCategories).length > 0;
             })
             .sort();
 
@@ -456,8 +545,22 @@ export async function getPanelItems(
         const mainConfig = getConfig() as unknown as MainConfig;
         const isEnabled = mainConfig.shop.enabled;
         const toggleText = isEnabled ? '§2Shop System: ENABLED' : '§4Shop System: DISABLED';
-        items.push({ id: 'toggleShop', text: toggleText, icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', permissionLevel: 0, actionType: 'functionCall', actionValue: 'toggleShop' });
-        items.push({ id: 'addCategory', text: '§l§2+ Add Category', icon: 'textures/ui/color_plus', permissionLevel: 0, actionType: 'functionCall', actionValue: 'addCategory' });
+        items.push({
+            id: 'toggleShop',
+            text: toggleText,
+            icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
+            permissionLevel: 0,
+            actionType: 'functionCall',
+            actionValue: 'toggleShop'
+        });
+        items.push({
+            id: 'addCategory',
+            text: '§l§2+ Add Category',
+            icon: 'textures/ui/color_plus',
+            permissionLevel: 0,
+            actionType: 'functionCall',
+            actionValue: 'addCategory'
+        });
 
         const shopConfig = getShopConfig() as any;
         const categories = Object.keys(shopConfig.categories).sort();
@@ -481,16 +584,40 @@ export async function getPanelItems(
     if (panelId.startsWith('shopAdminCategoryPanel_')) {
         const categoryName = context.categoryName as string;
         addBack('shopManagementPanel');
-        items.push({ id: 'addItem', text: '§l§2+ Add Item', icon: 'textures/ui/color_plus', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAddItemPanel_${categoryName}` });
-        items.push({ id: 'addSubCategory', text: '§l§2+ Add Subcategory', icon: 'textures/ui/color_plus', permissionLevel: 0, actionType: 'functionCall', actionValue: 'addSubCategory' });
-        items.push({ id: 'editCategory', text: '§l§9* Edit Category', icon: 'textures/ui/icon_setting', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAdminCategoryActionPanel_${categoryName}` });
+        items.push({
+            id: 'addItem',
+            text: '§l§2+ Add Item',
+            icon: 'textures/ui/color_plus',
+            permissionLevel: 0,
+            actionType: 'openPanel',
+            actionValue: `shopAddItemPanel_${categoryName}`
+        });
+        items.push({
+            id: 'addSubCategory',
+            text: '§l§2+ Add Subcategory',
+            icon: 'textures/ui/color_plus',
+            permissionLevel: 0,
+            actionType: 'functionCall',
+            actionValue: 'addSubCategory'
+        });
+        items.push({
+            id: 'editCategory',
+            text: '§l§9* Edit Category',
+            icon: 'textures/ui/icon_setting',
+            permissionLevel: 0,
+            actionType: 'openPanel',
+            actionValue: `shopAdminCategoryActionPanel_${categoryName}`
+        });
 
         const shopConfig = getShopConfig() as any;
         const category = shopConfig.categories[categoryName];
         if (category) {
             const subCategories = Object.keys(category.subCategories).sort();
             const shopItems = Object.keys(category.items);
-            const allEntries = [...subCategories.map(n => ({ id: n, type: 'subCategory' })), ...shopItems.map(n => ({ id: n, type: 'item' }))];
+            const allEntries = [
+                ...subCategories.map((n) => ({ id: n, type: 'subCategory' })),
+                ...shopItems.map((n) => ({ id: n, type: 'item' }))
+            ];
             const paginated = getPaginatedItems(allEntries, context.page || 1);
 
             paginated.forEach((entry: any) => {
@@ -525,8 +652,22 @@ export async function getPanelItems(
     if (panelId.startsWith('shopAdminSubCategoryItemPanel_')) {
         const { categoryName, subCategoryName } = context;
         addBack(`shopAdminCategoryPanel_${categoryName}`);
-        items.push({ id: 'addItem', text: '§l§2+ Add Item', icon: 'textures/ui/color_plus', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAddItemPanel_${categoryName}` }); // Pass subCat in context
-        items.push({ id: 'editSubCategory', text: '§l§9* Edit Subcategory', icon: 'textures/ui/icon_setting', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAdminSubCategoryActionPanel_${subCategoryName}` });
+        items.push({
+            id: 'addItem',
+            text: '§l§2+ Add Item',
+            icon: 'textures/ui/color_plus',
+            permissionLevel: 0,
+            actionType: 'openPanel',
+            actionValue: `shopAddItemPanel_${categoryName}`
+        }); // Pass subCat in context
+        items.push({
+            id: 'editSubCategory',
+            text: '§l§9* Edit Subcategory',
+            icon: 'textures/ui/icon_setting',
+            permissionLevel: 0,
+            actionType: 'openPanel',
+            actionValue: `shopAdminSubCategoryActionPanel_${subCategoryName}`
+        });
 
         const shopConfig = getShopConfig() as any;
         const subCategory = shopConfig.categories[categoryName as string]?.subCategories[subCategoryName as string];
@@ -554,7 +695,14 @@ export async function getPanelItems(
         const { categoryName } = context;
         // This panel has back button + "Add Custom Item" + List of all items
         addBack(`shopAdminCategoryPanel_${categoryName}`); // Or subCat parent
-        items.push({ id: 'addCustomItem', text: '§l§2+ Add Custom Item', icon: 'textures/ui/color_plus', permissionLevel: 0, actionType: 'functionCall', actionValue: 'addCustomItem' });
+        items.push({
+            id: 'addCustomItem',
+            text: '§l§2+ Add Custom Item',
+            icon: 'textures/ui/color_plus',
+            permissionLevel: 0,
+            actionType: 'functionCall',
+            actionValue: 'addCustomItem'
+        });
 
         const allPossibleItems = Object.keys(allItems);
         const paginated = getPaginatedItems(allPossibleItems, context.page || 1);
@@ -575,17 +723,59 @@ export async function getPanelItems(
 
     if (panelId.startsWith('shopAdminCategoryActionPanel_')) {
         const categoryName = panelId.replace('shopAdminCategoryActionPanel_', '');
-        items.push({ id: 'edit', text: 'Edit', icon: 'textures/ui/icon_setting', permissionLevel: 0, actionType: 'functionCall', actionValue: 'editCategory' });
-        items.push({ id: 'delete', text: '§4Delete', icon: 'textures/ui/trash', permissionLevel: 0, actionType: 'functionCall', actionValue: 'deleteCategory' });
-        items.push({ id: 'back', text: '§l§8< Back', icon: 'textures/gui/controls/left.png', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAdminCategoryPanel_${categoryName}` });
+        items.push({
+            id: 'edit',
+            text: 'Edit',
+            icon: 'textures/ui/icon_setting',
+            permissionLevel: 0,
+            actionType: 'functionCall',
+            actionValue: 'editCategory'
+        });
+        items.push({
+            id: 'delete',
+            text: '§4Delete',
+            icon: 'textures/ui/trash',
+            permissionLevel: 0,
+            actionType: 'functionCall',
+            actionValue: 'deleteCategory'
+        });
+        items.push({
+            id: 'back',
+            text: '§l§8< Back',
+            icon: 'textures/gui/controls/left.png',
+            permissionLevel: 0,
+            actionType: 'openPanel',
+            actionValue: `shopAdminCategoryPanel_${categoryName}`
+        });
         return items;
     }
 
     if (panelId.startsWith('shopAdminSubCategoryActionPanel_')) {
         const subCategoryName = panelId.replace('shopAdminSubCategoryActionPanel_', '');
-        items.push({ id: 'edit', text: 'Edit', icon: 'textures/ui/icon_setting', permissionLevel: 0, actionType: 'functionCall', actionValue: 'editSubCategory' });
-        items.push({ id: 'delete', text: '§4Delete', icon: 'textures/ui/trash', permissionLevel: 0, actionType: 'functionCall', actionValue: 'deleteSubCategory' });
-        items.push({ id: 'back', text: '§l§8< Back', icon: 'textures/gui/controls/left.png', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAdminSubCategoryItemPanel_${subCategoryName}` });
+        items.push({
+            id: 'edit',
+            text: 'Edit',
+            icon: 'textures/ui/icon_setting',
+            permissionLevel: 0,
+            actionType: 'functionCall',
+            actionValue: 'editSubCategory'
+        });
+        items.push({
+            id: 'delete',
+            text: '§4Delete',
+            icon: 'textures/ui/trash',
+            permissionLevel: 0,
+            actionType: 'functionCall',
+            actionValue: 'deleteSubCategory'
+        });
+        items.push({
+            id: 'back',
+            text: '§l§8< Back',
+            icon: 'textures/gui/controls/left.png',
+            permissionLevel: 0,
+            actionType: 'openPanel',
+            actionValue: `shopAdminSubCategoryItemPanel_${subCategoryName}`
+        });
         return items;
     }
 
@@ -599,12 +789,40 @@ export async function getPanelItems(
 
         if (team) {
             const isOwnerOrAdmin = team.ownerId === player.id || team.admins.includes(player.id);
-            items.push({ id: 'teamMembersPanel', text: '§l§3Team Members', icon: 'textures/ui/icon_multiplayer', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamMembersPanel' });
+            items.push({
+                id: 'teamMembersPanel',
+                text: '§l§3Team Members',
+                icon: 'textures/ui/icon_multiplayer',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamMembersPanel'
+            });
             if (isOwnerOrAdmin) {
-                items.push({ id: 'teamManagePanel', text: '§l§4Manage Team', icon: 'textures/ui/op', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamManagePanel' });
+                items.push({
+                    id: 'teamManagePanel',
+                    text: '§l§4Manage Team',
+                    icon: 'textures/ui/op',
+                    permissionLevel: 1024,
+                    actionType: 'openPanel',
+                    actionValue: 'teamManagePanel'
+                });
             }
-            items.push({ id: 'teamSettingsPanel', text: '§l§6Team Settings', icon: 'textures/ui/icon_setting', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamSettingsPanel' });
-            items.push({ id: 'leaveTeam', text: '§4Leave Team', icon: 'textures/ui/cancel', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'leaveTeam' });
+            items.push({
+                id: 'teamSettingsPanel',
+                text: '§l§6Team Settings',
+                icon: 'textures/ui/icon_setting',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamSettingsPanel'
+            });
+            items.push({
+                id: 'leaveTeam',
+                text: '§4Leave Team',
+                icon: 'textures/ui/cancel',
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'leaveTeam'
+            });
         } else {
             items.push({
                 id: 'createTeam',
@@ -614,7 +832,14 @@ export async function getPanelItems(
                 actionType: 'openPanel',
                 actionValue: 'teamCreatePanel'
             });
-            items.push({ id: 'joinTeam', text: '§l§9Join Team', icon: 'textures/ui/world_glyph_color', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamBrowserPanel' });
+            items.push({
+                id: 'joinTeam',
+                text: '§l§9Join Team',
+                icon: 'textures/ui/world_glyph_color',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamBrowserPanel'
+            });
         }
         return items;
     }
@@ -661,9 +886,39 @@ export async function getPanelItems(
                     text: `${role} §r${memData?.name ?? 'Unknown'}\n${status}`,
                     icon: 'textures/ui/icon_steve',
                     permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'viewMember' // Placeholder
+                    actionType: 'openPanel',
+                    actionValue: 'memberActionPanel'
                 });
+            }
+        }
+        return items;
+    }
+
+    if (panelId === 'memberActionPanel') {
+        addBack('teamMembersPanel');
+        const memberId = context.selectedItemId;
+        if (!memberId) return items;
+
+        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        const targetTeam = getTeamByPlayer(memberId);
+
+        if (team && targetTeam && team.id === targetTeam.id) {
+            const isOwner = team.ownerId === player.id;
+            const isAdmin = team.admins.includes(player.id);
+            const targetIsOwner = team.ownerId === memberId;
+            const targetIsAdmin = team.admins.includes(memberId);
+
+            if ((isOwner || isAdmin) && !targetIsOwner) {
+                items.push({ id: 'kick', text: '§4Kick Member', icon: 'textures/ui/cancel', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'kickTeamMember' });
+            }
+            if (isOwner) {
+                if (targetIsAdmin) {
+                    items.push({ id: 'demote', text: 'Demote to Member', icon: 'textures/ui/arrow_down_icon', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'demoteTeamMember' });
+                } else {
+                    items.push({ id: 'promote', text: 'Promote to Admin', icon: 'textures/ui/arrow_up_icon', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'promoteTeamMember' });
+                }
+                items.push({ id: 'transfer', text: 'Transfer Ownership', icon: 'textures/ui/op', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'transferTeamOwnership' });
             }
         }
         return items;
@@ -686,16 +941,51 @@ export async function getPanelItems(
             const isServerAdmin = permissionLevel < 1024;
 
             if (isOwner || isAdmin || isServerAdmin) {
-                items.push({ id: 'invitePlayer', text: '§l§2Invite Player', icon: 'textures/ui/color_plus', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'playerSearchPanel' });
-                items.push({ id: 'joinRequests', text: `§l§6Join Requests §r(${team.applications.length})`, icon: 'textures/ui/mail_icon', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamRequestsPanel' });
+                items.push({
+                    id: 'invitePlayer',
+                    text: '§l§2Invite Player',
+                    icon: 'textures/ui/color_plus',
+                    permissionLevel: 1024,
+                    actionType: 'openPanel',
+                    actionValue: 'playerSearchPanel'
+                });
+                items.push({
+                    id: 'joinRequests',
+                    text: `§l§6Join Requests §r(${team.applications.length})`,
+                    icon: 'textures/ui/mail_icon',
+                    permissionLevel: 1024,
+                    actionType: 'openPanel',
+                    actionValue: 'teamRequestsPanel'
+                });
                 // Manage members not implemented as separate panel yet, reusing list
-                items.push({ id: 'manageMembers', text: '§l§3Manage Members', icon: 'textures/ui/icon_multiplayer', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamMembersPanel' });
+                items.push({
+                    id: 'manageMembers',
+                    text: '§l§3Manage Members',
+                    icon: 'textures/ui/icon_multiplayer',
+                    permissionLevel: 1024,
+                    actionType: 'openPanel',
+                    actionValue: 'teamMembersPanel'
+                });
             }
             if (isOwner || isAdmin) {
-                items.push({ id: 'teamHome', text: '§l§5Team Home', icon: 'textures/ui/icon_recipe_nature', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamHomePanel' });
+                items.push({
+                    id: 'teamHome',
+                    text: '§l§5Team Home',
+                    icon: 'textures/ui/icon_recipe_nature',
+                    permissionLevel: 1024,
+                    actionType: 'openPanel',
+                    actionValue: 'teamHomePanel'
+                });
             }
             if (isOwner || isServerAdmin) {
-                items.push({ id: 'deleteTeam', text: '§l§4Delete Team', icon: 'textures/ui/trash', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'deleteTeam' });
+                items.push({
+                    id: 'deleteTeam',
+                    text: '§l§4Delete Team',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'deleteTeam'
+                });
             }
         }
         return items;
@@ -707,13 +997,34 @@ export async function getPanelItems(
         const team = getTeamByPlayer(player.id);
         if (team) {
             if (team.home) {
-                items.push({ id: 'teleportHome', text: '§l§2Teleport', icon: 'textures/items/ender_pearl', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'teleportHome' });
+                items.push({
+                    id: 'teleportHome',
+                    text: '§l§2Teleport',
+                    icon: 'textures/items/ender_pearl',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'teleportHome'
+                });
             }
             const canManage = team.ownerId === player.id || team.admins.includes(player.id);
             if (canManage) {
-                items.push({ id: 'setHome', text: '§l§6Update Location', icon: 'textures/ui/icon_recipe_nature', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'setHome' });
+                items.push({
+                    id: 'setHome',
+                    text: '§l§6Update Location',
+                    icon: 'textures/ui/icon_recipe_nature',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'setHome'
+                });
                 if (team.home) {
-                    items.push({ id: 'deleteHome', text: '§l§4Delete Home', icon: 'textures/ui/trash', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'deleteHome' });
+                    items.push({
+                        id: 'deleteHome',
+                        text: '§l§4Delete Home',
+                        icon: 'textures/ui/trash',
+                        permissionLevel: 1024,
+                        actionType: 'functionCall',
+                        actionValue: 'deleteHome'
+                    });
                 }
             }
         }
@@ -752,7 +1063,14 @@ export async function getPanelItems(
                     actionValue: 'manageInvite'
                 });
             });
-            items.push({ id: 'denyAll', text: '§4Deny All Invites', icon: 'textures/ui/cancel', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'denyAllInvites' });
+            items.push({
+                id: 'denyAll',
+                text: '§4Deny All Invites',
+                icon: 'textures/ui/cancel',
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'denyAllInvites'
+            });
         }
         return items;
     }
@@ -760,7 +1078,14 @@ export async function getPanelItems(
     // --- Player Lists ---
     if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
         addBack('mainPanel');
-        items.push({ id: 'searchPlayer', text: '§l§2Search', icon: 'textures/ui/magnifyingGlass', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'playerSearchPanel' });
+        items.push({
+            id: 'searchPlayer',
+            text: '§l§2Search',
+            icon: 'textures/ui/magnifyingGlass',
+            permissionLevel: 1024,
+            actionType: 'openPanel',
+            actionValue: 'playerSearchPanel'
+        });
 
         const isOnlineList = panelId === 'playerListPanel';
         let playerEntries: { name: string; id: string }[] = [];
@@ -768,8 +1093,7 @@ export async function getPanelItems(
         if (isOnlineList) {
             playerEntries = Array.from(mc.world.getAllPlayers()).map((p) => ({ name: p.name, id: p.id }));
         } else {
-            const map = getAllPlayerNameIdMap();
-            playerEntries = Array.from(map.entries()).map(([name, id]) => ({ name, id }));
+            playerEntries = getAllKnownPlayers();
         }
         playerEntries.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -779,7 +1103,9 @@ export async function getPanelItems(
 
         for (const entry of paginated) {
             const targetP = isOnlineList ? mc.world.getAllPlayers().find((p) => p.id === entry.id) : null;
-            const rank = targetP ? rankManager.getPlayerRank(targetP, config) : rankManager.getRankById(loadPlayerData(entry.id)?.rankId || '');
+            const rank = targetP
+                ? rankManager.getPlayerRank(targetP, config)
+                : rankManager.getRankById(loadPlayerData(entry.id)?.rankId || '');
             const team = getTeamByPlayer(entry.id);
             const prefix = rank?.chatFormatting?.prefixText ? `§6[§r${rank.chatFormatting.prefixText}§6]§r ` : '';
             const teamSuffix = team ? `\n§6[§r${team.name}§6]` : '';
@@ -805,7 +1131,14 @@ export async function getPanelItems(
     if (panelId === 'rulesManagementPanel') {
         addBack('mainPanel');
         if (permissionLevel <= 1) {
-            items.push({ id: 'addRule', text: '§l§2+ Add Rule', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: 'addRulePanel' });
+            items.push({
+                id: 'addRule',
+                text: '§l§2+ Add Rule',
+                icon: 'textures/ui/color_plus',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'addRulePanel'
+            });
         }
         const rules = rulesManager.getRules();
         const paginated = getPaginatedItems(rules, context.page || 1);
@@ -826,7 +1159,14 @@ export async function getPanelItems(
     // --- Economy & Mob Drops ---
     if (panelId === 'mobDropsSystemPanel') {
         addBack('economyPanel');
-        items.push({ id: 'addMob', text: '§l§2+ Add New Mob§r', icon: 'textures/ui/realms_green_check.png', permissionLevel: 1, actionType: 'openPanel', actionValue: 'addMobDropPanel' });
+        items.push({
+            id: 'addMob',
+            text: '§l§2+ Add New Mob§r',
+            icon: 'textures/ui/realms_green_check.png',
+            permissionLevel: 1,
+            actionType: 'openPanel',
+            actionValue: 'addMobDropPanel'
+        });
 
         const economyConfig = getEconomyConfig();
         const mobIds = Object.keys(economyConfig.mobMoney || {}).sort();
@@ -853,8 +1193,22 @@ export async function getPanelItems(
         addBack('configCategoryPanel');
         const mainConfig = getConfig() as unknown as MainConfig;
         const isEnabled = mainConfig.kits.enabled;
-        items.push({ id: 'toggleKits', text: isEnabled ? '§2Kit System: ENABLED' : '§4Kit System: DISABLED', icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', permissionLevel: 1, actionType: 'functionCall', actionValue: 'toggleKits' });
-        items.push({ id: 'createKit', text: '§l§2+ Create New Kit', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'functionCall', actionValue: 'createKit' });
+        items.push({
+            id: 'toggleKits',
+            text: isEnabled ? '§2Kit System: ENABLED' : '§4Kit System: DISABLED',
+            icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
+            permissionLevel: 1,
+            actionType: 'functionCall',
+            actionValue: 'toggleKits'
+        });
+        items.push({
+            id: 'createKit',
+            text: '§l§2+ Create New Kit',
+            icon: 'textures/ui/color_plus',
+            permissionLevel: 1,
+            actionType: 'functionCall',
+            actionValue: 'createKit'
+        });
 
         const allKits = getAllKits();
         const kitNames = Object.keys(allKits);
@@ -877,16 +1231,44 @@ export async function getPanelItems(
     if (panelId.startsWith('kitActionMenu_')) {
         const kitName = panelId.replace('kitActionMenu_', '');
         addBack('kitManagementPanel');
-        items.push({ id: 'editSettings', text: 'Edit Settings', icon: 'textures/ui/icon_setting', permissionLevel: 1, actionType: 'openPanel', actionValue: `kitSettingsPanel_${kitName}` });
-        items.push({ id: 'editItems', text: 'Edit Items', icon: 'textures/ui/inventory_icon', permissionLevel: 1, actionType: 'openPanel', actionValue: `kitItemsPanel_${kitName}` });
-        items.push({ id: 'deleteKit', text: '§4Delete Kit', icon: 'textures/ui/cancel', permissionLevel: 1, actionType: 'functionCall', actionValue: 'deleteKit' });
+        items.push({
+            id: 'editSettings',
+            text: 'Edit Settings',
+            icon: 'textures/ui/icon_setting',
+            permissionLevel: 1,
+            actionType: 'openPanel',
+            actionValue: `kitSettingsPanel_${kitName}`
+        });
+        items.push({
+            id: 'editItems',
+            text: 'Edit Items',
+            icon: 'textures/ui/inventory_icon',
+            permissionLevel: 1,
+            actionType: 'openPanel',
+            actionValue: `kitItemsPanel_${kitName}`
+        });
+        items.push({
+            id: 'deleteKit',
+            text: '§4Delete Kit',
+            icon: 'textures/ui/cancel',
+            permissionLevel: 1,
+            actionType: 'functionCall',
+            actionValue: 'deleteKit'
+        });
         return items;
     }
 
     if (panelId.startsWith('kitItemsPanel_')) {
         const kitName = panelId.replace('kitItemsPanel_', '');
         addBack(`kitActionMenu_${kitName}`);
-        items.push({ id: 'addItem', text: '§l§2+ Add New Item', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'functionCall', actionValue: 'addKitItem' });
+        items.push({
+            id: 'addItem',
+            text: '§l§2+ Add New Item',
+            icon: 'textures/ui/color_plus',
+            permissionLevel: 1,
+            actionType: 'functionCall',
+            actionValue: 'addKitItem'
+        });
 
         const allKits = getAllKits();
         const kit = allKits[kitName];
@@ -928,7 +1310,10 @@ export async function getPanelItems(
 
     if (panelId === 'reportListPanel') {
         addBack('adminPanel');
-        const reports = reportManager.getAllReports().filter(r => r.status === 'open' || r.status === 'assigned').sort((a, b) => a.timestamp - b.timestamp);
+        const reports = reportManager
+            .getAllReports()
+            .filter((r) => r.status === 'open' || r.status === 'assigned')
+            .sort((a, b) => a.timestamp - b.timestamp);
         const paginated = getPaginatedItems(reports, context.page || 1);
         paginated.forEach((report) => {
             const statusColor = report.status === 'assigned' ? '§6' : '§4';
@@ -947,9 +1332,18 @@ export async function getPanelItems(
     // --- Config Lists (Xray, Sidebar, Commands) ---
     if (panelId === 'xrayOresPanel') {
         addBack('configCategoryPanel');
-        items.push({ id: 'addOre', text: '§l§2+ Add New Ore§r', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: 'addXrayOrePanel' });
+        items.push({
+            id: 'addOre',
+            text: '§l§2+ Add New Ore§r',
+            icon: 'textures/ui/color_plus',
+            permissionLevel: 1,
+            actionType: 'openPanel',
+            actionValue: 'addXrayOrePanel'
+        });
         const xrayConfig = getXrayConfig();
-        const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a, b) => a.oreName.localeCompare(b.oreName));
+        const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a, b) =>
+            a.oreName.localeCompare(b.oreName)
+        );
         ores.forEach((ore, idx) => {
             items.push({
                 id: String(idx),
@@ -965,7 +1359,9 @@ export async function getPanelItems(
     if (panelId === 'commandSystemPanel') {
         addBack('configCategoryPanel');
         const config = getConfig() as unknown as MainConfig;
-        const allCommands = Object.keys(config.commandSettings || {}).filter(c => !c.startsWith('_')).sort();
+        const allCommands = Object.keys(config.commandSettings || {})
+            .filter((c) => !c.startsWith('_'))
+            .sort();
         const paginated = getPaginatedItems(allCommands, context.page || 1);
         paginated.forEach((cmd) => {
             const enabled = config.commandSettings[cmd]?.enabled ?? false;
@@ -984,7 +1380,14 @@ export async function getPanelItems(
     if (panelId === 'sidebarLinesPanel' || panelId === 'actionBarLinesPanel') {
         addBack('sidebarMainPanel');
         const isSidebar = panelId === 'sidebarLinesPanel';
-        items.push({ id: 'addLine', text: '§l§2+ Add Line', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: isSidebar ? 'sidebarLineAddPanel' : 'actionBarLineAddPanel' });
+        items.push({
+            id: 'addLine',
+            text: '§l§2+ Add Line',
+            icon: 'textures/ui/color_plus',
+            permissionLevel: 1,
+            actionType: 'openPanel',
+            actionValue: isSidebar ? 'sidebarLineAddPanel' : 'actionBarLineAddPanel'
+        });
 
         const { getSidebarConfig } = await import('../configurations.js');
         const sbConfig = getSidebarConfig();
@@ -1019,19 +1422,38 @@ export async function getPanelItems(
 function addPaginationButtonsToItems(items: PanelItem[], page: number, totalItems: number) {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
-        items.push({ id: '__prev__', text: '§6< Previous Page', icon: 'textures/ui/arrow_left.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'prevPage' });
+        items.push({
+            id: '__prev__',
+            text: '§6< Previous Page',
+            icon: 'textures/ui/arrow_left.png',
+            permissionLevel: 1024,
+            actionType: 'functionCall',
+            actionValue: 'prevPage'
+        });
     }
     if (page < totalPages) {
-        items.push({ id: '__next__', text: '§6Next Page >', icon: 'textures/ui/arrow_right.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'nextPage' });
+        items.push({
+            id: '__next__',
+            text: '§6Next Page >',
+            icon: 'textures/ui/arrow_right.png',
+            permissionLevel: 1024,
+            actionType: 'functionCall',
+            actionValue: 'nextPage'
+        });
     }
 }
 
 // --- Form Builder ---
 
-export async function buildPanelForm(player: mc.Player, panelId: string, context: UIContext): Promise<ActionFormData | ModalFormData | null> {
+export async function buildPanelForm(
+    player: mc.Player,
+    panelId: string,
+    context: UIContext
+): Promise<ActionFormData | ModalFormData | null> {
     try {
         // Modal Forms (Handled directly)
-        if (panelId.startsWith('config_') ||
+        if (
+            panelId.startsWith('config_') ||
             panelId === 'teamCreatePanel' ||
             panelId === 'teamSearchPanel' ||
             panelId === 'playerSearchPanel' ||
@@ -1053,9 +1475,11 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             panelId === 'addXrayOrePanel' ||
             panelId === 'editXrayOrePanel' ||
             panelId.startsWith('kitSettingsPanel_') ||
-            panelId.startsWith('kitDetailPanel_')
+            panelId.startsWith('kitDetailPanel_') ||
+            panelId === 'tpaSettingsPanel' ||
+            panelId === 'tpaBlockListPanel'
         ) {
-             return buildModalForm(player, panelId, context);
+            return buildModalForm(player, panelId, context);
         }
 
         // Action Forms (Use getPanelItems)
@@ -1078,7 +1502,6 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
         }
 
         return form;
-
     } catch (e) {
         errorLog(`[UIManager] Error building panel ${panelId}`, e);
         return null;
@@ -1118,10 +1541,13 @@ async function buildModalForm(player: mc.Player, panelId: string, context: UICon
 
     if (panelId === 'teamCreatePanel') {
         const teamConfig = getTeamConfig();
-        return new ModalFormData().title('Create Team').textField('Team Name', `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`);
+        return new ModalFormData()
+            .title('Create Team')
+            .textField('Team Name', `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`);
     }
     if (panelId === 'teamSearchPanel') return new ModalFormData().title('Search Team').textField('Team ID', 'Enter ID');
-    if (panelId === 'playerSearchPanel') return new ModalFormData().title('Search Player').textField('Name', 'Enter name');
+    if (panelId === 'playerSearchPanel')
+        return new ModalFormData().title('Search Player').textField('Name', 'Enter name');
 
     if (panelId === 'teamSettingsPanel') {
         const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
@@ -1136,10 +1562,14 @@ async function buildModalForm(player: mc.Player, panelId: string, context: UICon
     }
 
     if (panelId === 'addRulePanel') return new ModalFormData().title('Add Rule').textField('Rule', 'Enter rule');
-    if (panelId === 'addHelpfulLinkPanel') return new ModalFormData().title('Add Link').textField('Title', 'Title').textField('URL', 'URL');
+    if (panelId === 'addHelpfulLinkPanel')
+        return new ModalFormData().title('Add Link').textField('Title', 'Title').textField('URL', 'URL');
 
     if (panelId === 'floatingTextCreatePanel') {
-        return new ModalFormData().title('Create New Floating Text').textField('Unique ID (no spaces)', 'e.g., "welcome_message"').textField('Text Content', 'Enter text to display');
+        return new ModalFormData()
+            .title('Create New Floating Text')
+            .textField('Unique ID (no spaces)', 'e.g., "welcome_message"')
+            .textField('Text Content', 'Enter text to display');
     }
 
     if (panelId === 'floatingTextEditPanel') {
@@ -1161,10 +1591,16 @@ async function buildModalForm(player: mc.Player, panelId: string, context: UICon
             .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
             .textField('Update Interval', '0 to disable', { defaultValue: String(updateInterval) })
             .toggle('Expiration', { defaultValue: !!expiresAt })
-            .textField('Expiration (mins)', 'mins', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' });
+            .textField('Expiration (mins)', 'mins', {
+                defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0'
+            });
     }
 
-    if (panelId === 'addMobDropPanel') return new ModalFormData().title('Add Mob Drop').textField('Mob ID', 'minecraft:creeper').textField('Amount', '10');
+    if (panelId === 'addMobDropPanel')
+        return new ModalFormData()
+            .title('Add Mob Drop')
+            .textField('Mob ID', 'minecraft:creeper')
+            .textField('Amount', '10');
 
     if (panelId === 'editMobDropPanel') {
         const mobId = context.mobId as string | undefined;
@@ -1178,7 +1614,15 @@ async function buildModalForm(player: mc.Player, panelId: string, context: UICon
             .button('Back', 'textures/gui/controls/left.png') as any;
     }
 
-    if (panelId === 'addRankPanel') return new ModalFormData().title('Add Rank').textField('Name', 'Name').textField('ID', 'tag').textField('Level', '0-1024').textField('Name Color', '§6').textField('Chat Color', '§f').textField('Prefix', 'Prefix');
+    if (panelId === 'addRankPanel')
+        return new ModalFormData()
+            .title('Add Rank')
+            .textField('Name', 'Name')
+            .textField('ID', 'tag')
+            .textField('Level', '0-1024')
+            .textField('Name Color', '§6')
+            .textField('Chat Color', '§f')
+            .textField('Prefix', 'Prefix');
 
     if (panelId === 'editRankPanel') {
         const rankId = context.rankId as string | undefined;
@@ -1201,7 +1645,9 @@ async function buildModalForm(player: mc.Player, panelId: string, context: UICon
         const internal = ['above', 'before', 'after', 'under'];
         const current = config.ranks?.nameTagStyle || 'above';
         const idx = internal.indexOf(current);
-        return new ModalFormData().title('Rank Settings').dropdown('Nametag Style', styles, { defaultValueIndex: Math.max(0, idx) });
+        return new ModalFormData()
+            .title('Rank Settings')
+            .dropdown('Nametag Style', styles, { defaultValueIndex: Math.max(0, idx) });
     }
 
     if (panelId === 'sidebarLineEditPanel') {
@@ -1210,7 +1656,9 @@ async function buildModalForm(player: mc.Player, panelId: string, context: UICon
         const lines = config.sidebarLines;
         const index = context.lineIndex ?? 0;
         const line = lines[index] ?? '';
-        return new ModalFormData().title(`Edit Line ${index + 1}`).textField('Content', 'Content', { defaultValue: line });
+        return new ModalFormData()
+            .title(`Edit Line ${index + 1}`)
+            .textField('Content', 'Content', { defaultValue: line });
     }
 
     if (panelId === 'sidebarLineAddPanel' || panelId === 'actionBarLineAddPanel') {
@@ -1223,23 +1671,41 @@ async function buildModalForm(player: mc.Player, panelId: string, context: UICon
         const lines = config.actionBarLines;
         const index = context.lineIndex ?? 0;
         const line = lines[index] ?? '';
-        return new ModalFormData().title(`Edit Line ${index + 1}`).textField('Content', 'Content', { defaultValue: line });
+        return new ModalFormData()
+            .title(`Edit Line ${index + 1}`)
+            .textField('Content', 'Content', { defaultValue: line });
     }
 
     if (panelId === 'commandSettingsPanel') {
         const commandName = context.commandName as string;
         const config = getConfig() as unknown as MainConfig;
         const settings = config.commandSettings?.[commandName] || {};
-        return new ModalFormData().title(`${commandName} Settings`).toggle('Enable', { defaultValue: settings.enabled ?? false }).textField('Permission', 'Level', { defaultValue: String(settings.permissionLevel ?? 1024) });
+        return new ModalFormData()
+            .title(`${commandName} Settings`)
+            .toggle('Enable', { defaultValue: settings.enabled ?? false })
+            .textField('Permission', 'Level', { defaultValue: String(settings.permissionLevel ?? 1024) });
     }
 
-    if (panelId === 'addXrayOrePanel') return new ModalFormData().title('Add Ore').textField('Block', 'id').textField('Dim', 'id').textField('MinY', '-64').textField('MaxY', '320').textField('Name', 'Name');
+    if (panelId === 'addXrayOrePanel')
+        return new ModalFormData()
+            .title('Add Ore')
+            .textField('Block', 'id')
+            .textField('Dim', 'id')
+            .textField('MinY', '-64')
+            .textField('MaxY', '320')
+            .textField('Name', 'Name');
 
     if (panelId === 'editXrayOrePanel') {
         const xrayConfig = getXrayConfig();
         const ores = Object.values(xrayConfig.monitoredOreTypes || {});
         const ore = ores[context.oreIndex as number];
-        return new ModalFormData().title('Edit Ore').textField('Block', 'id', { defaultValue: ore.blocks?.[0]?.blockId }).textField('Dim', 'id', { defaultValue: ore.blocks?.[0]?.dimensionId }).textField('MinY', 'min', { defaultValue: String(ore.blocks?.[0]?.minY) }).textField('MaxY', 'max', { defaultValue: String(ore.blocks?.[0]?.maxY) }).textField('Name', 'Name', { defaultValue: ore.oreName });
+        return new ModalFormData()
+            .title('Edit Ore')
+            .textField('Block', 'id', { defaultValue: ore.blocks?.[0]?.blockId })
+            .textField('Dim', 'id', { defaultValue: ore.blocks?.[0]?.dimensionId })
+            .textField('MinY', 'min', { defaultValue: String(ore.blocks?.[0]?.minY) })
+            .textField('MaxY', 'max', { defaultValue: String(ore.blocks?.[0]?.maxY) })
+            .textField('Name', 'Name', { defaultValue: ore.oreName });
     }
 
     if (panelId.startsWith('kitSettingsPanel_')) {

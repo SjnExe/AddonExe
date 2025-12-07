@@ -2,12 +2,9 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as reportManager from '../../../features/moderation/reportManager.js';
 import { floatingTextManager } from '../../floatingTextManager.js';
-import { errorLog } from '../../logger.js';
 import { showPanel } from '../../uiManager.js';
 import { UIContext } from '../types.js';
-import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 export async function handleAdminPanel(
     player: mc.Player,
@@ -15,63 +12,8 @@ export async function handleAdminPanel(
     response: ActionFormResponse | ModalFormResponse,
     context: UIContext
 ) {
-    const selection = (response as ActionFormResponse).selection;
     const canceled = response.canceled;
     const formValues = (response as ModalFormResponse).formValues;
-
-    if (panelId === 'floatingTextListPanel') {
-        if (selection === 0) {
-            // Back
-            return showPanel(player, 'mainPanel', context);
-        }
-        if (selection === 1) {
-            // Placeholder List
-            return showPanel(player, 'placeholderListPanel', context);
-        }
-        if (selection === 2) {
-            // Create New
-            return showPanel(player, 'floatingTextCreatePanel', context);
-        }
-        const texts = floatingTextManager.getAllTexts();
-        if (typeof selection === 'number') {
-            const selectedText = texts[selection - 3];
-            if (selectedText) {
-                return showPanel(player, 'floatingTextActionPanel', { ...context, id: selectedText.id });
-            }
-        }
-        return;
-    }
-
-    if (panelId === 'floatingTextActionPanel') {
-        if (typeof selection === 'number') {
-            const { id } = context;
-            try {
-                switch (selection) {
-                    case 0: // Edit Settings
-                        return showPanel(player, 'floatingTextEditPanel', context);
-                    case 1: // Respawn
-                        await floatingTextManager.respawnText(id);
-                        player.sendMessage(`§2Respawned floating text: ${id}`);
-                        break;
-                    case 2: // Despawn
-                        await floatingTextManager.despawnText(id);
-                        player.sendMessage(`§2Despawned floating text: ${id}`);
-                        break;
-                    case 3: // Delete
-                        await floatingTextManager.deleteText(player, id);
-                        break; // The deleteText function sends its own success message.
-                    case 4: // Back
-                        break;
-                }
-            } catch (error) {
-                errorLog(`[UIManager] Error in floatingTextActionPanel for ID '${id}':`, error);
-                player.sendMessage('§4An error occurred. Please check the logs.');
-            }
-            // Always refresh the list panel, even on error or 'Back'
-            return showPanel(player, 'floatingTextListPanel', context);
-        }
-        return;
-    }
 
     if (panelId === 'floatingTextEditPanel') {
         if (canceled) {
@@ -129,37 +71,5 @@ export async function handleAdminPanel(
             // Success message is sent by createText
         }
         return showPanel(player, 'floatingTextListPanel', context);
-    }
-
-    if (panelId === 'reportListPanel') {
-        const page = context.page || 1;
-        if (typeof selection !== 'number') return;
-        if (selection === 0) return showPanel(player, 'mainPanel', context);
-
-        const reports = reportManager
-            .getAllReports()
-            .filter((r) => r.status === 'open' || r.status === 'assigned')
-            .sort((a, b) => a.timestamp - b.timestamp);
-
-        const hasPrev = page > 1;
-        let buttonIndex = selection - 1;
-
-        if (hasPrev) {
-            if (buttonIndex === 0) return showPanel(player, panelId, { ...context, page: page - 1 });
-            buttonIndex--;
-        }
-
-        const paginatedReports = getPaginatedItems(reports, page);
-        if (buttonIndex >= 0 && buttonIndex < paginatedReports.length) {
-            const report = paginatedReports[buttonIndex];
-            return showPanel(player, 'reportActionsPanel', { ...context, targetReport: report });
-        }
-        buttonIndex -= paginatedReports.length;
-
-        const totalPages = Math.ceil(reports.length / itemsPerPage);
-        if (page < totalPages && buttonIndex === 0) {
-            return showPanel(player, panelId, { ...context, page: page + 1 });
-        }
-        return;
     }
 }
