@@ -139,6 +139,13 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
                 `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
                 `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
         );
+    } else if (panelId === 'placeholderListPanel') {
+        form.body(
+            `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
+                `{server_name}, {tps}, {online}, {max_players}, {time}, {date}\n\n` +
+                `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
+                `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
+        );
     }
 }
 
