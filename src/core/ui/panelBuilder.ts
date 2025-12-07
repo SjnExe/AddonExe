@@ -25,8 +25,8 @@ import * as rulesManager from '../rulesManager.js';
 import { formatCurrency, resolveIcon } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
-import { PanelDefinition, panelDefinitions, PanelItem, UIContext } from './panelRegistry.js';
-import { MainConfig, ShopConfig, ShopListEntry } from './types.js';
+import { panelDefinitions } from './panelRegistry.js';
+import { MainConfig, ShopConfig, ShopListEntry , PanelDefinition, PanelItem, UIContext } from './types.js';
 import {
     addPaginationButtons,
     configHandlers,
@@ -726,11 +726,10 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const id = context.id as string;
             const form = new ActionFormData()
                 .title(`Actions for: ${id}`)
-                .button('Edit', 'textures/ui/icon_setting')
+                .button('Edit Settings', 'textures/ui/icon_setting')
                 .button('Respawn', 'textures/ui/refresh_light')
                 .button('Despawn', 'textures/ui/cancel')
                 .button('§4Delete', 'textures/ui/trash')
-                .button('Placeholder List', 'textures/ui/infobulb')
                 .button('§l§8< Back', 'textures/gui/controls/left.png');
             return form;
         }
@@ -1151,6 +1150,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             const form = new ActionFormData()
                 .title(panelDefinitions[panelId].title)
                 .button('§l§8< Back', 'textures/gui/controls/left.png')
+                .button('Placeholder List', 'textures/ui/infobulb')
                 .button('§l§2+ Create New', 'textures/ui/color_plus');
 
             const texts = floatingTextManager.getAllTexts();
@@ -1175,6 +1175,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
             // Robust handling for update interval to prevent crashes with legacy data
             const expiresAt = text.expiresAt ?? null;
+            const updateInterval = text.updateInterval ?? 0;
 
             const dimensionOptions = ['Overworld', 'Nether', 'The End'];
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
@@ -1193,6 +1194,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
                     defaultValue: String(+(text.location?.z ?? 0).toFixed(2))
                 })
                 .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
+                .textField('Update Interval (ticks)', '0 to disable auto-update', { defaultValue: String(updateInterval) })
                 .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
                 .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', {
                     defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0'

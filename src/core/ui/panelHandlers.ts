@@ -19,7 +19,8 @@ import { handleSidebarPanel } from './handlers/sidebarHandlers.js';
 import { handleTeamPanel } from './handlers/teamHandlers.js';
 import { handleXrayPanel } from './handlers/xrayHandlers.js';
 import { getMenuItems, getVisiblePlayerActionItems } from './panelBuilder.js';
-import { panelDefinitions, PanelItem, UIContext } from './panelRegistry.js';
+import { panelDefinitions } from './panelRegistry.js';
+import { PanelItem, UIContext } from './types.js';
 
 export async function handleFormResponse(
     player: mc.Player,

@@ -29,11 +29,12 @@ export async function handleShopPanel(
         }
         if (typeof selection !== 'number') return;
 
-        const shopConfig = getShopConfig() as unknown as ShopConfig;
+        const shopConfig = getShopConfig() as ShopConfig;
 
         const validCategories = Object.keys(shopConfig.categories)
             .filter((categoryName: string) => {
                 const category = shopConfig.categories[categoryName];
+                if (!category) return false;
                 const hasItems = Object.keys(category.items).length > 0;
                 const hasSubCategories = Object.keys(category.subCategories).length > 0;
                 return hasItems || hasSubCategories;
@@ -66,30 +67,48 @@ export async function handleShopPanel(
         }
 
         // Reconstruct the list of entries that was shown to the player
-        const shopConfig = getShopConfig() as unknown as ShopConfig;
+        const shopConfig = getShopConfig() as ShopConfig;
         const category = shopConfig.categories[categoryName];
+        if (!category) {
+            player.sendMessage('§4Category not found.');
+            return showPanel(player, 'shopMainPanel');
+        }
+
         let allEntries: ShopListEntry[] = [];
         if (isItemList && subCategoryName) {
             const subCategory = category.subCategories[subCategoryName];
-            allEntries = Object.keys(subCategory.items).map((id) => ({
-                id,
-                ...subCategory.items[id],
-                type: 'item' as const
-            }));
+            if (!subCategory) {
+                player.sendMessage('§4Subcategory not found.');
+                return showPanel(player, `shopCategoryPanel_${categoryName}`);
+            }
+            allEntries = Object.keys(subCategory.items).map((id) => {
+                const item = subCategory.items[id];
+                return {
+                    id,
+                    ...item,
+                    type: 'item' as const
+                } as ShopListEntry;
+            });
         } else {
             // shopCategoryPanel
             const subCategories = Object.keys(category.subCategories)
                 .sort()
-                .map((name) => ({
-                    name,
-                    ...category.subCategories[name],
-                    type: 'subCategory' as const
-                }));
-            const items = Object.keys(category.items).map((id) => ({
-                id,
-                ...category.items[id],
-                type: 'item' as const
-            }));
+                .map((name) => {
+                    const sub = category.subCategories[name];
+                    return {
+                        name,
+                        ...sub,
+                        type: 'subCategory' as const
+                    } as ShopListEntry;
+                });
+            const items = Object.keys(category.items).map((id) => {
+                const item = category.items[id];
+                return {
+                    id,
+                    ...item,
+                    type: 'item' as const
+                } as ShopListEntry;
+            });
             allEntries = [...subCategories, ...items];
         }
 
@@ -124,7 +143,7 @@ export async function handleShopPanel(
         }
 
         // It's an item
-        if (selectedEntry) {
+        if (selectedEntry && selectedEntry.type === 'item') {
             const itemId = selectedEntry.id;
             const masterItem = allItems[itemId];
             const shopItem = selectedEntry;
@@ -137,8 +156,8 @@ export async function handleShopPanel(
                 return showPanel(player, panelId, context);
             }
 
-            const modal = new ModalFormData().title(masterItem.displayName ?? itemId);
-            let action;
+            const modal = new ModalFormData().title(masterItem?.displayName ?? itemId);
+            let action: 'buy' | 'sell' | undefined;
             let hasDropdown = false;
 
             if (canBuy && canSell) {
@@ -168,6 +187,7 @@ export async function handleShopPanel(
             let amount;
             if (hasDropdown) {
                 const values = (modalResponse as ModalFormResponse).formValues as [string, number];
+                if (!values) return showPanel(player, panelId, context);
                 const amountStr = values[0];
                 const actionIndex = values[1];
                 amount = parseInt(amountStr, 10);
@@ -176,6 +196,7 @@ export async function handleShopPanel(
                 action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
             } else {
                 const values = (modalResponse as ModalFormResponse).formValues as [string];
+                if (!values) return showPanel(player, panelId, context);
                 const amountStr = values[0];
                 amount = parseInt(amountStr, 10);
             }
@@ -359,7 +380,7 @@ export async function handleShopPanel(
             return showPanel(player, panelId, { ...context, page: 1 });
         }
 
-        const shopConfig = getShopConfig() as unknown as ShopConfig;
+        const shopConfig = getShopConfig() as ShopConfig;
         const categories = Object.keys(shopConfig.categories).sort();
         const paginatedCategories = getPaginatedItems(categories, page);
         const selectedCategoryName = selection && selection > 2 ? paginatedCategories[selection - 3] : undefined;
@@ -419,27 +440,32 @@ export async function handleShopPanel(
             return showPanel(player, `shopAdminCategoryActionPanel_${categoryName}`, context);
         }
 
-        const shopConfig = getShopConfig() as unknown as ShopConfig;
+        const shopConfig = getShopConfig() as ShopConfig;
         const category = shopConfig.categories[categoryName as string];
+        if (!category) return;
+
         const subCategories = Object.keys(category.subCategories)
             .sort()
-            .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' }));
-        const items = Object.keys(category.items).map((id) => ({ id, ...category.items[id], type: 'item' }));
+            .map((name) => {
+                const sub = category.subCategories[name];
+                return {
+                    name,
+                    ...sub,
+                    type: 'subCategory'
+                };
+            });
+        const items = Object.keys(category.items).map((id) => {
+            const item = category.items[id];
+            return {
+                id,
+                ...item,
+                type: 'item'
+            };
+        });
         const allEntries = [...subCategories, ...items];
         const paginatedEntries = getPaginatedItems(allEntries, page);
-        const selectedEntry =
-            selection && selection > 3
-                ? (paginatedEntries[selection - 4] as {
-                      type: string;
-                      id: string;
-                      displayName: string;
-                      icon: string;
-                      buyPrice: number;
-                      sellPrice: number;
-                      permissionLevel: number;
-                      name: string;
-                  })
-                : undefined;
+
+        const selectedEntry = selection && selection > 3 ? (paginatedEntries[selection - 4]) : undefined;
 
         if (selectedEntry) {
             if (selectedEntry.type === 'item') {
@@ -538,7 +564,7 @@ export async function handleShopPanel(
 
         if (selection === 0) {
             // Edit
-            const shopConfig = getShopConfig() as unknown as ShopConfig;
+            const shopConfig = getShopConfig() as ShopConfig;
             const category = shopConfig.categories[categoryName];
             const form = new ModalFormData()
                 .title('Edit Category')
@@ -597,8 +623,11 @@ export async function handleShopPanel(
             return showPanel(player, `shopAdminSubCategoryActionPanel_${subCategoryName}`, context);
         }
 
-        const shopConfig = getShopConfig() as unknown as ShopConfig;
-        const subCategory = shopConfig.categories[categoryName as string].subCategories[subCategoryName as string];
+        const shopConfig = getShopConfig() as ShopConfig;
+        const category = shopConfig.categories[categoryName as string];
+        const subCategory = category?.subCategories[subCategoryName as string];
+        if (!subCategory) return;
+
         const items = Object.keys(subCategory.items).map((id) => ({ id, ...subCategory.items[id], type: 'item' }));
         const paginatedItems = getPaginatedItems(items, page);
         const selectedItem =
@@ -712,7 +741,7 @@ export async function handleShopPanel(
         const { categoryName } = context;
         if (selection === 0) {
             // Edit
-            const shopConfig = getShopConfig() as unknown as ShopConfig;
+            const shopConfig = getShopConfig() as ShopConfig;
             const subCategory = shopConfig.categories[categoryName as string].subCategories[subCategoryName];
             const form = new ModalFormData()
                 .title('Edit Subcategory')

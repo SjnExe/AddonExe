@@ -11,12 +11,15 @@ export interface FloatingTextConfig {
     location: mc.Vector3;
     dimension: string;
     expiresAt: number | null;
+    updateInterval?: number; // Ticks
+    lastUpdated?: number; // Timestamp
 }
 
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map<string, FloatingTextConfig>();
 const pendingDespawns = new Map<string, number>();
 const unloadedChunkQueue = new Set<string>();
+const lastUpdateTick = new Map<string, number>();
 
 let expirationIntervalId: number | undefined;
 let retrySpawnIntervalId: number | undefined;
@@ -66,8 +69,16 @@ async function initialize() {
 }
 
 function runUpdateLoop() {
+    const now = mc.system.currentTick;
     const textsByDimension = new Map<string, FloatingTextConfig[]>();
     for (const textConfig of floatingTexts.values()) {
+        if (!textConfig.updateInterval || textConfig.updateInterval <= 0) continue;
+
+        const lastTick = lastUpdateTick.get(textConfig.id) || 0;
+        if (now - lastTick < textConfig.updateInterval) continue;
+
+        lastUpdateTick.set(textConfig.id, now);
+
         const dim = textConfig.dimension;
         if (!textsByDimension.has(dim)) {
             textsByDimension.set(dim, []);
@@ -80,6 +91,10 @@ function runUpdateLoop() {
             const dimension = mc.world.getDimension(dimId);
             for (const textConfig of texts) {
                 const resolved = resolveGlobalPlaceholders(textConfig.text);
+                // Even if resolved text hasn't changed, we force update if interval is set
+                // to catch any side-effect based placeholders, though usually placeholders change string.
+                // Optimally, check string change.
+
                 const last = lastResolvedText.get(textConfig.id);
 
                 if (resolved !== last) {
@@ -101,7 +116,8 @@ function runUpdateLoop() {
         }
     }
 
-    updateLoopId = mc.system.runTimeout(runUpdateLoop, 20); // Update every second
+    // Run every tick to catch different intervals, but individual checks handle the rate
+    updateLoopId = mc.system.runTimeout(runUpdateLoop, 1);
 }
 
 function runExpirationLoop() {
@@ -277,7 +293,6 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
         return;
     }
 
-    // Remove updateInterval from here, it's deprecated
     const newConfig = { ...oldConfig, ...updates };
     if (updates.expiresAt === undefined && oldConfig.expiresAt === undefined) {
         newConfig.expiresAt = null;
@@ -285,16 +300,17 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
         newConfig.expiresAt = updates.expiresAt;
     }
 
-    delete (newConfig as unknown as { updateInterval?: number }).updateInterval;
+    const dimensionChanged = oldConfig.dimension !== newConfig.dimension;
+    // Check for actual position change with epsilon
+    const positionChanged =
+        Math.abs(oldConfig.location.x - newConfig.location.x) > 0.001 ||
+        Math.abs(oldConfig.location.y - newConfig.location.y) > 0.001 ||
+        Math.abs(oldConfig.location.z - newConfig.location.z) > 0.001;
 
-    const locationChanged =
-        oldConfig.dimension !== newConfig.dimension ||
-        Math.abs(oldConfig.location.x - newConfig.location.x) > 0.01 ||
-        Math.abs(oldConfig.location.y - newConfig.location.y) > 0.01 ||
-        Math.abs(oldConfig.location.z - newConfig.location.z) > 0.01;
     const textChanged = oldConfig.text !== newConfig.text;
+    const intervalChanged = oldConfig.updateInterval !== newConfig.updateInterval;
 
-    if (!locationChanged && !textChanged && isDeepEqual(oldConfig, newConfig)) {
+    if (!dimensionChanged && !positionChanged && !textChanged && !intervalChanged && isDeepEqual(oldConfig, newConfig)) {
         debugLog(
             `[FloatingText] updateText called for ID: ${id}, but no functional changes were detected. Only saving.`
         );
@@ -310,26 +326,50 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
     mc.system.run(() => {
         void (async () => {
             try {
-                const dimension = mc.world.getDimension(newConfig.dimension);
+                const dimension = mc.world.getDimension(oldConfig.dimension);
                 const query: mc.EntityQueryOptions = {
                     type: 'exe:floating_text',
                     tags: [`ft_${id}`]
                 };
                 const entity = await findEntityWithRetries(dimension, query);
 
-                if (locationChanged || !entity) {
-                    debugLog(
-                        `[FloatingText] Location changed or entity not found for ID: ${id}. Performing full respawn.`
-                    );
+                if (!entity) {
+                    // Entity missing, respawn at new location
+                    debugLog(`[FloatingText] Entity not found for ID: ${id}. Respawning.`);
                     await despawnText(id);
                     spawnText(newConfig);
-                } else if (textChanged) {
-                    debugLog(`[FloatingText] Text changed for ID: ${id}. Performing live nametag update.`);
+                    return;
+                }
+
+                if (dimensionChanged) {
+                     // Cross-dimension move requires respawn
+                    debugLog(`[FloatingText] Dimension changed for ID: ${id}. Respawning.`);
+                    await despawnText(id);
+                    spawnText(newConfig);
+                    return;
+                }
+
+                if (positionChanged) {
+                    // Try teleporting
+                    try {
+                        // Check if new location is in loaded chunk? entity.teleport usually handles loaded chunks fine
+                        // but might fail if target is unloaded.
+                        entity.teleport(newConfig.location);
+                        debugLog(`[FloatingText] Teleported entity for ID: ${id}.`);
+                    } catch (e) {
+                         debugLog(`[FloatingText] Teleport failed for ID: ${id}, respawning. ${e}`);
+                         await despawnText(id);
+                         spawnText(newConfig);
+                         return;
+                    }
+                }
+
+                if (textChanged || intervalChanged) {
                     const resolved = resolveGlobalPlaceholders(newConfig.text);
                     lastResolvedText.set(id, resolved);
                     entity.nameTag = resolved.replace(/\\n/g, '\n');
-                    debugLog(`[FloatingText] Successfully updated nametag for ID: ${id}`);
                 }
+
             } catch (e: unknown) {
                 if (e instanceof Error) {
                     errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, e.stack);
@@ -524,6 +564,7 @@ function cleanup() {
     pendingDespawns.clear();
     unloadedChunkQueue.clear();
     floatingTexts.clear();
+    lastUpdateTick.clear();
 
     debugLog('[FloatingText] Cleanup complete.');
 }
