@@ -29,7 +29,7 @@ import { formatCurrency, resolveIcon } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
 import { panelDefinitions } from './panelRegistry.js';
-import { MainConfig, PanelDefinition, PanelItem, ShopConfig, ShopListEntry, UIContext } from './types.js';
+import { MainConfig, PanelDefinition, PanelItem, ShopListEntry, UIContext } from './types.js';
 import {
     configHandlers,
     getPaginatedItems,
@@ -199,6 +199,21 @@ export async function getPanelItems(
             actionValue: target
         });
     };
+
+    if (panelId === 'placeholderListPanel') {
+        addBack('sidebarMainPanel');
+        return items;
+    }
+
+    if (panelId === 'sidebarLineActionPanel' || panelId === 'actionBarLineActionPanel') {
+        const isSidebar = panelId === 'sidebarLineActionPanel';
+        addBack(isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel');
+        items.push({ id: 'edit', text: 'Edit', icon: 'textures/ui/icon_setting', permissionLevel: 1, actionType: 'functionCall', actionValue: 'editLine' });
+        items.push({ id: 'moveUp', text: 'Move Up', icon: 'textures/gui/controls/up', permissionLevel: 1, actionType: 'functionCall', actionValue: 'moveUp' });
+        items.push({ id: 'moveDown', text: 'Move Down', icon: 'textures/gui/controls/down', permissionLevel: 1, actionType: 'functionCall', actionValue: 'moveDown' });
+        items.push({ id: 'delete', text: 'Delete', icon: 'textures/ui/trash', permissionLevel: 1, actionType: 'functionCall', actionValue: 'deleteLine' });
+        return items;
+    }
 
     // --- Config & Categories ---
     if (panelId === 'configCategoryPanel') {
@@ -537,7 +552,8 @@ export async function getPanelItems(
 
     if (panelId.startsWith('shopAddItemPanel_')) {
         const { categoryName } = context;
-        addBack(`shopAdminCategoryPanel_${categoryName}`);
+        // This panel has back button + "Add Custom Item" + List of all items
+        addBack(`shopAdminCategoryPanel_${categoryName}`); // Or subCat parent
         items.push({ id: 'addCustomItem', text: '§l§2+ Add Custom Item', icon: 'textures/ui/color_plus', permissionLevel: 0, actionType: 'functionCall', actionValue: 'addCustomItem' });
 
         const allPossibleItems = Object.keys(allItems);
@@ -980,77 +996,14 @@ export async function getPanelItems(
                 text: `${idx + 1}. ${line}`,
                 permissionLevel: 1,
                 actionType: 'openPanel',
-                actionValue: isSidebar ? 'sidebarLineEditPanel' : 'actionBarLineEditPanel' // Context: lineIndex
+                actionValue: isSidebar ? 'sidebarLineActionPanel' : 'actionBarLineActionPanel' // Context: lineIndex
             });
         });
         return items;
     }
 
-    if (panelId === 'rankManagementPanel') {
-        addBack('configCategoryPanel');
-        items.push({ id: 'addRank', text: 'Create New Rank', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: 'addRankPanel' });
-        items.push({ id: 'rankSettings', text: 'Settings', icon: 'textures/ui/settings_glyph_color_2x', permissionLevel: 1, actionType: 'openPanel', actionValue: 'rankSettingsPanel' });
-
-        const allRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);
-        const paginated = getPaginatedItems(allRanks, context.page || 1);
-        paginated.forEach((rank) => {
-            items.push({
-                id: rank.id,
-                text: `${rank.name}\n§8(ID: ${rank.id}, Level: ${rank.permissionLevel})`,
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'editRankPanel' // Context: rankId
-            });
-        });
-        addPaginationButtonsToItems(items, context.page || 1, allRanks.length);
-        return items;
-    }
-
-    if (panelId === 'helpfulLinksManagementPanel') {
-        addBack('infoPanel');
-        items.push({ id: 'addLink', text: '§l§2+ Add Link', icon: 'textures/ui/color_plus', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'addHelpfulLinkPanel' });
-        const links = helpfulLinksManager.getHelpfulLinks();
-        const paginated = getPaginatedItems(links, context.page || 1);
-        paginated.forEach((link, idx) => {
-            const realIdx = (context.page! - 1) * itemsPerPage + idx;
-            items.push({
-                id: String(realIdx),
-                text: `${realIdx + 1}. ${link.title}`,
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'helpfulLinkActionPanel' // Context: linkIndex
-            });
-        });
-        addPaginationButtonsToItems(items, context.page || 1, links.length);
-        return items;
-    }
-
-    if (panelId === 'floatingTextListPanel') {
-        addBack('adminPanel');
-        items.push({ id: 'placeholders', text: 'Placeholder List', icon: 'textures/ui/infobulb', permissionLevel: 1, actionType: 'openPanel', actionValue: 'placeholderListPanel' });
-        items.push({ id: 'create', text: '§l§2+ Create New', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: 'floatingTextCreatePanel' });
-
-        const { floatingTextManager } = await import('../floatingTextManager.js');
-        const texts = floatingTextManager.getAllTexts();
-        texts.forEach((text) => {
-            items.push({
-                id: text.id,
-                text: text.id,
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'floatingTextActionPanel' // Context: id
-            });
-        });
-        return items;
-    }
-
-    if (panelId === 'floatingTextActionPanel') {
-        addBack('floatingTextListPanel');
-        items.push({ id: 'edit', text: 'Edit Settings', icon: 'textures/ui/icon_setting', permissionLevel: 1, actionType: 'openPanel', actionValue: 'floatingTextEditPanel' });
-        items.push({ id: 'respawn', text: 'Respawn', icon: 'textures/ui/refresh_light', permissionLevel: 1, actionType: 'functionCall', actionValue: 'respawnFloatingText' });
-        items.push({ id: 'despawn', text: 'Despawn', icon: 'textures/ui/cancel', permissionLevel: 1, actionType: 'functionCall', actionValue: 'despawnFloatingText' });
-        items.push({ id: 'delete', text: '§4Delete', icon: 'textures/ui/trash', permissionLevel: 1, actionType: 'functionCall', actionValue: 'deleteFloatingText' });
-        return items;
+    if (panelId === 'sidebarMainPanel') {
+        // Fallthrough to getStaticMenuItems which handles the registry items
     }
 
     // --- Default Registry Fallback ---
@@ -1093,7 +1046,9 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
             panelId === 'editRankPanel' ||
             panelId === 'rankSettingsPanel' ||
             panelId === 'sidebarLineEditPanel' ||
-            panelId === 'sidebarLineAddPanel' ||
+            panelId === 'sidebarLineAddPanel' || // ADDED
+            panelId === 'actionBarLineEditPanel' || // ADDED
+            panelId === 'actionBarLineAddPanel' || // ADDED
             panelId === 'commandSettingsPanel' ||
             panelId === 'addXrayOrePanel' ||
             panelId === 'editXrayOrePanel' ||
@@ -1253,6 +1208,19 @@ async function buildModalForm(player: mc.Player, panelId: string, context: UICon
         const { getSidebarConfig } = await import('../configurations.js');
         const config = getSidebarConfig();
         const lines = config.sidebarLines;
+        const index = context.lineIndex ?? 0;
+        const line = lines[index] ?? '';
+        return new ModalFormData().title(`Edit Line ${index + 1}`).textField('Content', 'Content', { defaultValue: line });
+    }
+
+    if (panelId === 'sidebarLineAddPanel' || panelId === 'actionBarLineAddPanel') {
+        return new ModalFormData().title('Add Line').textField('Content', 'Supports {money}, {name}, etc.');
+    }
+
+    if (panelId === 'actionBarLineEditPanel') {
+        const { getSidebarConfig } = await import('../configurations.js');
+        const config = getSidebarConfig();
+        const lines = config.actionBarLines;
         const index = context.lineIndex ?? 0;
         const line = lines[index] ?? '';
         return new ModalFormData().title(`Edit Line ${index + 1}`).textField('Content', 'Content', { defaultValue: line });

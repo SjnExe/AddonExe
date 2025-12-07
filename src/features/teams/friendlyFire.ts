@@ -2,7 +2,8 @@ import * as mc from '@minecraft/server';
 import { getTeamByPlayer } from './teamManager.js';
 
 export function initializeFriendlyFire() {
-    mc.world.afterEvents.entityDamage.subscribe((event) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    mc.world.afterEvents.entityDamage.subscribe((event: mc.EntityDamageAfterEvent) => {
         const target = event.entity;
         const source = event.damageSource.damagingEntity;
 
