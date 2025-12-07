@@ -9,7 +9,8 @@ export const teamConfig = {
     nameBlacklist: ['owner', 'admin', 'mod', 'moderator', 'staff', 'server', 'operator', 'null', 'undefined'],
     nameMinLength: 3,
     nameMaxLength: 16,
-    teleportWarmupSeconds: 10
+    teleportWarmupSeconds: 10,
+    friendlyFire: false // Whether teammates can hurt each other
 };
 
 export default teamConfig;

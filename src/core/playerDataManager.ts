@@ -334,6 +334,17 @@ export function getAllPlayerNameIdMap(): Map<string, string> {
     return playerNameIdMap;
 }
 
+/**
+ * Gets a list of all known players with their correct display names.
+ */
+export function getAllKnownPlayers(): { id: string; name: string }[] {
+    const players: { id: string; name: string }[] = [];
+    for (const [id, name] of playerIdNameMap.entries()) {
+        players.push({ id, name });
+    }
+    return players;
+}
+
 // --- Pending Payment Management ---
 
 export interface PendingPayment {

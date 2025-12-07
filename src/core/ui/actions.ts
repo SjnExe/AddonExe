@@ -4,9 +4,11 @@ import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import * as punishmentManager from '../../features/moderation/punishmentManager.js';
 import * as reportManager from '../../features/moderation/reportManager.js';
+import * as teamManager from '../../features/teams/teamManager.js';
 import * as tpaManager from '../../features/teleportation/tpaManager.js';
 import * as bountyManager from '../bountyManager.js';
 import * as configManager from '../configManager.js';
+import { floatingTextManager } from '../floatingTextManager.js';
 import { getPlayerFromCache } from '../playerCache.js';
 import { getPlayer, incrementPlayerBalance } from '../playerDataManager.js';
 import { showPanel } from '../uiManager.js';
@@ -55,6 +57,78 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             return showUnbanForm(player, context);
         case 'showUnmuteForm':
             return showUnmuteForm(player, context);
+        case 'toggleTpa': {
+            const newState = tpaManager.toggleTpaRequests(player);
+            player.sendMessage(`§aTPA Requests are now ${newState ? '§4Disabled' : '§2Enabled'}.`);
+            return showPanel(player, 'tpaSettingsPanel', context);
+        }
+        case 'unblockPlayer':
+            if (context.selectedItemId) {
+                tpaManager.unblockPlayer(player, context.selectedItemId as string);
+            }
+            return showPanel(player, 'tpaBlockListPanel', context);
+        case 'respawnText':
+            try {
+                if (context.id) {
+                    await floatingTextManager.respawnText(context.id as string);
+                    player.sendMessage(`§2Respawned text: ${context.id}`);
+                }
+            } catch (error) {
+                player.sendMessage(`§4Error respawning text: ${error}`);
+            }
+            return showPanel(player, 'floatingTextActionPanel', context);
+        case 'despawnText':
+            try {
+                if (context.id) {
+                    await floatingTextManager.despawnText(context.id as string);
+                    player.sendMessage(`§2Despawned text: ${context.id}`);
+                }
+            } catch (error) {
+                player.sendMessage(`§4Error despawning text: ${error}`);
+            }
+            return showPanel(player, 'floatingTextActionPanel', context);
+        case 'deleteText':
+            try {
+                if (context.id) {
+                    await floatingTextManager.deleteText(player, context.id as string);
+                }
+            } catch (error) {
+                player.sendMessage(`§4Error deleting text: ${error}`);
+            }
+            // Go back to list after delete
+            return showPanel(player, 'floatingTextListPanel', context);
+        case 'kickTeamMember': {
+            const team = teamManager.getTeamByPlayer(player.id);
+            if (team && context.selectedItemId) {
+                const res = teamManager.kickMember(team.id, context.selectedItemId as string);
+                player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
+            }
+            return showPanel(player, 'teamMembersPanel', context);
+        }
+        case 'promoteTeamMember': {
+            const team = teamManager.getTeamByPlayer(player.id);
+            if (team && context.selectedItemId) {
+                const res = teamManager.promoteMember(team.id, context.selectedItemId as string);
+                player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
+            }
+            return showPanel(player, 'teamMembersPanel', context);
+        }
+        case 'demoteTeamMember': {
+            const team = teamManager.getTeamByPlayer(player.id);
+            if (team && context.selectedItemId) {
+                const res = teamManager.demoteMember(team.id, context.selectedItemId as string);
+                player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
+            }
+            return showPanel(player, 'teamMembersPanel', context);
+        }
+        case 'transferTeamOwnership': {
+            const team = teamManager.getTeamByPlayer(player.id);
+            if (team && context.selectedItemId) {
+                const res = teamManager.transferOwnership(team.id, context.selectedItemId as string);
+                player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
+            }
+            return showPanel(player, 'teamMembersPanel', context);
+        }
         default:
             player.sendMessage(`§4Action '${actionName}' is not implemented yet.`);
     }

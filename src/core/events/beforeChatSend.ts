@@ -35,13 +35,13 @@ function handleChatSend(eventData: mc.ChatSendBeforeEvent) {
             eventData.cancel = true;
             const teamMsg = `§a[Team] ${player.name}: §f${eventData.message}`;
             // Broadcast to members
+            const onlinePlayers = mc.world.getAllPlayers();
             for (const memberId of team.members) {
-                const member = mc.world.getAllPlayers().find((p) => p.id === memberId);
+                const member = onlinePlayers.find((p) => p.id === memberId);
                 if (member) {
                     member.sendMessage(teamMsg);
                 }
             }
-            // Also log if needed?
             return;
         } else {
             // Player left team but has chat on? Disable it.
