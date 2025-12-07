@@ -8,6 +8,7 @@ import {
     loadPunishments
 } from '../features/moderation/punishmentManager.js';
 import { clearOldResolvedReports, loadReports } from '../features/moderation/reportManager.js';
+import { registerFriendlyFire } from '../features/teams/friendlyFire.js';
 import * as teamManager from '../features/teams/teamManager.js';
 import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { loadCommands } from '../modules/commands/index.js';
@@ -112,6 +113,7 @@ async function initializeManagers() {
     initializePunishmentManager();
     await floatingTextManager.initialize();
     teamManager.initialize();
+    registerFriendlyFire();
     sidebarManager.initialize();
     initializeLeaderboard();
     clearExpiredPunishments();

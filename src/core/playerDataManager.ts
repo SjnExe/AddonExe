@@ -9,6 +9,7 @@ import { getPlayerFromCache } from './playerCache.js';
 
 const playerPropertyPrefix = 'exe:player.';
 const playerNameIdMapKey = 'exe:playerNameIdMap';
+const playerIdNameMapKey = 'exe:playerIdNameMap';
 
 export interface HomeLocation {
     x: number;
@@ -51,8 +52,7 @@ const activePlayerData = new Map<string, PlayerData>();
 const sessionStartTimes = new Map<string, number>();
 
 let playerNameIdMap = new Map<string, string>();
-
-const playerIdNameMap = new Map<string, string>();
+let playerIdNameMap = new Map<string, string>();
 
 /** A flag indicating that the name-to-ID map has changed and needs to be saved. */
 export let isNameIdMapDirty = false;
@@ -114,8 +114,12 @@ export function saveNameIdMap() {
     try {
         const dataToSave = Array.from(playerNameIdMap.entries());
         mc.world.setDynamicProperty(playerNameIdMapKey, JSON.stringify(dataToSave));
+
+        const idNameData = Array.from(playerIdNameMap.entries());
+        mc.world.setDynamicProperty(playerIdNameMapKey, JSON.stringify(idNameData));
+
         isNameIdMapDirty = false;
-        debugLog('[PlayerDataManager] Saved name-to-ID map.');
+        debugLog('[PlayerDataManager] Saved name-to-ID maps.');
     } catch (e: unknown) {
         const stack = e instanceof Error ? e.stack : String(e);
         errorLog(`[PlayerDataManager] Failed to save name-to-ID map: ${stack}`);
@@ -128,8 +132,17 @@ export function loadNameIdMap() {
         if (dataString && typeof dataString === 'string') {
             const parsedData: [string, string][] = JSON.parse(dataString);
             playerNameIdMap = new Map(parsedData);
-            debugLog(`[PlayerDataManager] Loaded ${playerNameIdMap.size} entries into name-to-ID map.`);
         }
+
+        const idNameString = mc.world.getDynamicProperty(playerIdNameMapKey) as string | undefined;
+        if (idNameString && typeof idNameString === 'string') {
+            const parsedData: [string, string][] = JSON.parse(idNameString);
+            playerIdNameMap = new Map(parsedData);
+        }
+
+        debugLog(
+            `[PlayerDataManager] Loaded maps. Name->ID: ${playerNameIdMap.size}, ID->Name: ${playerIdNameMap.size}`
+        );
     } catch (e: unknown) {
         const stack = e instanceof Error ? e.stack : String(e);
         errorLog(`[PlayerDataManager] Failed to load name-to-ID map: ${stack}`);
@@ -332,6 +345,24 @@ export function getAllPlayerData(): Map<string, PlayerData> {
  */
 export function getAllPlayerNameIdMap(): Map<string, string> {
     return playerNameIdMap;
+}
+
+/**
+ * Gets a list of all known players with their correct display names.
+ */
+export function getAllKnownPlayers(): { id: string; name: string }[] {
+    const players: { id: string; name: string }[] = [];
+    if (playerIdNameMap.size > 0) {
+        for (const [id, name] of playerIdNameMap.entries()) {
+            players.push({ id, name });
+        }
+    } else {
+        // Fallback to name map if ID map is empty/not loaded yet
+        for (const [name, id] of playerNameIdMap.entries()) {
+            players.push({ id, name }); // name is lowercase
+        }
+    }
+    return players;
 }
 
 // --- Pending Payment Management ---

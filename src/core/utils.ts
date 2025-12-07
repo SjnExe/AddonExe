@@ -472,11 +472,15 @@ export function formatCurrency(amount: number): string {
 /**
  * Parses a currency string (e.g., "1.5k", "2M", "500") into a number.
  * Supports k, m, b, t suffixes (case insensitive).
+ * Also accepts numbers directly.
  * Returns NaN if the format is invalid.
- * @param input The input string to parse.
+ * @param input The input string or number to parse.
  * @returns The parsed number or NaN.
  */
-export function parseCurrency(input: string): number {
+export function parseCurrency(input: string | number): number {
+    if (typeof input === 'number') {
+        return input;
+    }
     if (!input) return NaN;
 
     const normalized = input.trim().toLowerCase();

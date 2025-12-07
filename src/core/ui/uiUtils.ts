@@ -1,6 +1,5 @@
 import { ActionFormData } from '@minecraft/server-ui';
 
-
 import {
     AnticheatConfig,
     getAnticheatConfig,
@@ -37,7 +36,7 @@ type RanksConfig = typeof ranksConfig;
 type KitsConfig = typeof kitsConfig;
 type ShopConfig = typeof shopConfig;
 
-import { SystemDefinition, getSystemRegistry } from './systemRegistry.js';
+import { getSystemRegistry, SystemDefinition } from './systemRegistry.js';
 
 export const itemsPerPage = 8;
 
