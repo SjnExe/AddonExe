@@ -1,3 +1,6 @@
+import * as mc from '@minecraft/server';
+import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+
 // --- TYPE DEFINITIONS ---
 
 export type UIControlType = 'toggle' | 'textField' | 'dropdown';
@@ -58,3 +61,65 @@ export interface PanelDefinition {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type UIContext = Record<string, any>;
+
+export interface IPanelHandler {
+    /** Returns true if this handler manages the given panelId */
+    canHandle(panelId: string): boolean;
+    /** Returns the items for a HEADLESS panel (buttons list). Returns null/empty if not applicable. */
+    getItems?(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]>;
+    /** Handles the result (button click or modal submit) */
+    handleResponse?(
+        player: mc.Player,
+        panelId: string,
+        response: ActionFormResponse | ModalFormResponse,
+        context: UIContext
+    ): Promise<void>;
+    /** Optional: Builds a custom Modal form (if not using headless items) */
+    buildModal?(
+        player: mc.Player,
+        panelId: string,
+        context: UIContext
+    ): Promise<ModalFormData | ActionFormData | null>;
+}
+
+export interface ShopListEntry {
+    type: 'item' | 'subCategory';
+    id: string; // The ID of the item or subcategory
+    name: string; // Display name or subcat name
+    icon?: string;
+    buyPrice?: number;
+    sellPrice?: number;
+    permissionLevel?: number;
+    items?: Record<string, ShopItem>;
+}
+
+export interface ShopItem {
+    buyPrice: number;
+    sellPrice: number;
+    permissionLevel: number;
+    icon?: string;
+    displayName?: string;
+    itemId?: string; // Minecraft ID
+}
+
+export interface MainConfig {
+    [key: string]: any;
+}
+
+export interface ShopConfig {
+    enabled: boolean;
+    categories: Record<
+        string,
+        {
+            icon: string;
+            items: Record<string, ShopItem>;
+            subCategories: Record<
+                string,
+                {
+                    icon: string;
+                    items: Record<string, ShopItem>;
+                }
+            >;
+        }
+    >;
+}

@@ -100,10 +100,14 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
                         };
 
                         sendMessage(
-                            `§aSafe location found! Teleportation will begin in ${warmupSeconds} seconds. Please do not move.`,
+                            `§aSafe location found! Please do not move. Teleportation sequence will begin in 5 seconds.`,
                             player
                         );
-                        startTeleportWarmup(player, warmupSeconds, teleportLogic, 'a random location');
+
+                        mc.system.runTimeout(() => {
+                            if (!player.isValid) return;
+                            startTeleportWarmup(player, warmupSeconds, teleportLogic, 'a random location');
+                        }, 100);
 
                         safeRemoveTickingArea(player.dimension, tickingAreaName);
                         return;
