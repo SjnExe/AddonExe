@@ -1,17 +1,20 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
-
-import { commandManager } from '@modules/commands/commandManager.js';
 
 import * as reportManager from '../../features/moderation/reportManager.js';
 import * as bountyManager from '../bountyManager.js';
 import { loadConfig } from '../configLoader.js';
 import { getConfig } from '../configManager.js';
-import { getEconomyConfig, getKitsConfig, getShopConfig, getTeamConfig, getXrayConfig } from '../configurations.js';
-import * as helpfulLinksManager from '../helpfulLinksManager.js';
+import {
+    getEconomyConfig,
+    getKitsConfig,
+    getShopConfig,
+    getTeamConfig,
+    getXrayConfig
+} from '../configurations.js';
 import { getAllKits } from '../kitAdminManager.js';
-import { debugLog, errorLog } from '../logger.js';
+import { errorLog } from '../logger.js';
 import { getValueFromPath } from '../objectUtils.js';
 import {
     getAllPlayerNameIdMap,
@@ -26,9 +29,8 @@ import { formatCurrency, resolveIcon } from '../utils.js';
 
 import { configPanelSchema } from './configPanelRegistry.js';
 import { panelDefinitions } from './panelRegistry.js';
-import { MainConfig, ShopConfig, ShopListEntry , PanelDefinition, PanelItem, UIContext } from './types.js';
+import { MainConfig, PanelDefinition, PanelItem, ShopConfig, ShopListEntry, UIContext } from './types.js';
 import {
-    addPaginationButtons,
     configHandlers,
     getPaginatedItems,
     getSystemsByCategory,
@@ -47,9 +49,10 @@ interface Item {
 
 let allItems: Record<string, Item> = {};
 
-export function getMenuItems(panelDef: PanelDefinition, permissionLevel: number) {
-    const config = getConfig() as unknown as MainConfig;
+// --- Helper Functions ---
 
+function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: number): PanelItem[] {
+    const config = getConfig() as unknown as MainConfig;
     const items = (panelDef.items || [])
         .filter((item: PanelItem) => {
             if (item.actionValue === 'shopMainPanel' && !config.shop.enabled) {
@@ -59,8 +62,11 @@ export function getMenuItems(panelDef: PanelDefinition, permissionLevel: number)
         })
         .sort((a: PanelItem, b: PanelItem) => (a.sortId || 0) - (b.sortId || 0));
 
+    // Create a copy to avoid mutating the registry
+    const resultItems: PanelItem[] = items.map((i) => ({ ...i }));
+
     if (panelDef.parentPanelId) {
-        items.unshift({
+        resultItems.unshift({
             id: '__back__',
             text: '§l§8< Back',
             icon: 'textures/gui/controls/left.png',
@@ -69,14 +75,13 @@ export function getMenuItems(panelDef: PanelDefinition, permissionLevel: number)
             actionValue: panelDef.parentPanelId
         });
     }
-    return items;
+    return resultItems;
 }
 
 async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: string, context: UIContext) {
-    const config = getConfig();
     if (panelId === 'myStatsPanel') {
         const pData = getOrCreatePlayer(player);
-        const rank = rankManager.getPlayerRank(player, config);
+        const rank = rankManager.getPlayerRank(player, getConfig());
         if (!pData || !rank) {
             form.body('§4Could not retrieve your stats.');
             return;
@@ -121,13 +126,20 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
                 `§8Date: §6${new Date(targetReport.timestamp).toLocaleString()}`
             ].join('\n')
         );
+    } else if (panelId === 'placeholderListPanel') {
+        form.body(
+            `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
+                `{server_name}, {tps}, {online}, {max_players}, {time}, {date}\n\n` +
+                `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
+                `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
+        );
     }
 }
 
-export function getVisiblePlayerActionItems(context: UIContext, permissionLevel: number, viewerId?: string) {
+export function getVisiblePlayerActionItems(context: UIContext, permissionLevel: number, viewerId?: string): PanelItem[] {
     const panelDef = panelDefinitions.playerActionsPanel;
     const config = getConfig() as unknown as MainConfig;
-    const menuItems = getMenuItems(panelDef, permissionLevel);
+    const menuItems = getStaticMenuItems(panelDef, permissionLevel);
     const visibleItems: PanelItem[] = [];
 
     const isSelf = viewerId && context.targetPlayerId === viewerId;
@@ -138,11 +150,9 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
             visibleItems.push(item);
             continue;
         }
-
         if (isSelf && selfDisabledActions.includes(item.id)) {
             continue;
         }
-
         const commandName = item.id;
         const settings = config.commandSettings || {};
         if (settings[commandName]?.enabled === false) {
@@ -157,1564 +167,1140 @@ export function getVisiblePlayerActionItems(context: UIContext, permissionLevel:
     return visibleItems;
 }
 
-function buildShopMainPanel(form: ActionFormData, _context: UIContext) {
-    const shopConfig = getShopConfig() as ShopConfig;
+// --- Main Item Generator ---
 
-    const validCategories = Object.keys(shopConfig.categories)
-        .filter((categoryName: string) => {
-            const category = shopConfig.categories[categoryName];
-            const hasItems = Object.keys(category.items).length > 0;
-            const hasSubCategories = Object.keys(category.subCategories).length > 0;
-            return hasItems || hasSubCategories;
-        })
-        .sort();
+export async function getPanelItems(
+    player: mc.Player,
+    panelId: string,
+    context: UIContext
+): Promise<PanelItem[]> {
+    const pData = getPlayer(player.id);
+    if (!pData) return [];
 
-    if (validCategories.length === 0) {
-        form.body('§4The shop is currently empty.');
-        return;
-    }
-
-    for (const categoryName of validCategories) {
-        const category = shopConfig.categories[categoryName];
-        form.button(categoryName, category.icon);
-    }
-}
-
-function buildShopCategoryPanel(form: ActionFormData, context: UIContext) {
-    const categoryName = context.categoryName as string;
-    const page = (context.page as number) || 1;
-    const view = (context.view as string) || 'shop';
-    const shopConfig = getShopConfig() as ShopConfig;
-    const category = shopConfig.categories[categoryName ?? ''];
-
-    if (!category) {
-        form.body('§4Category not found.');
-        return;
-    }
-
-    const subCategories: ShopListEntry[] = Object.keys(category.subCategories)
-        .sort()
-        .map((name) => ({
-            name,
-            ...category.subCategories[name],
-            type: 'subCategory'
-        }));
-    const items: ShopListEntry[] = Object.keys(category.items).map((id) => ({
-        id,
-        ...category.items[id],
-        type: 'item'
-    }));
-
-    const allEntries = [...subCategories, ...items] as ShopListEntry[];
-    const paginatedEntries = getPaginatedItems(allEntries, page);
-
-    for (const entry of paginatedEntries) {
-        if (entry.type === 'subCategory') {
-            form.button(`§6${entry.name}`, entry.icon);
-        } else {
-            const masterItem = allItems[entry.id] || {};
-            const displayName = entry.displayName || masterItem.displayName || entry.id;
-            const icon = entry.icon || masterItem.icon;
-            let priceString = '';
-            if (view === 'buy' && (entry.buyPrice || 0) > 0) {
-                priceString = `§2Buy: ${formatCurrency(entry.buyPrice)}`;
-            } else if (view === 'sell' && (entry.sellPrice || 0) > 0) {
-                priceString = `§4Sell: ${formatCurrency(entry.sellPrice)}`;
-            } else {
-                const buy = (entry.buyPrice || 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
-                const sell = (entry.sellPrice || 0) > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
-                priceString = [buy, sell].filter(Boolean).join(' ');
-            }
-            form.button(`${displayName}\n${priceString}`, icon);
-        }
-    }
-    addPaginationButtons(form, page, allEntries.length);
-}
-
-function buildShopItemListPanel(form: ActionFormData, context: UIContext) {
-    const categoryName = context.categoryName as string;
-    const subCategoryName = context.subCategoryName as string;
-    const page = (context.page as number) || 1;
-    const view = (context.view as string) || 'shop';
-    const shopConfig = getShopConfig() as ShopConfig;
-    const category = shopConfig.categories[categoryName ?? ''];
-    if (!category) {
-        form.body('§4Category not found.');
-        return;
-    }
-    const subCategory = category.subCategories[subCategoryName ?? ''];
-    if (!subCategory) {
-        form.body('§4Subcategory not found.');
-        return;
-    }
-
-    const items: ShopListEntry[] = Object.keys(subCategory.items).map((id) => ({
-        id,
-        ...subCategory.items[id],
-        type: 'item'
-    }));
-    const paginatedItems = getPaginatedItems(items, page);
-
-    for (const item of paginatedItems) {
-        if (item.type !== 'item') continue;
-        const masterItem = allItems[item.id] || {};
-        const displayName = item.displayName || masterItem.displayName || item.id;
-        const icon = item.icon || masterItem.icon;
-        let priceString = '';
-        if (view === 'buy' && item.buyPrice > 0) {
-            priceString = `§2Buy: ${formatCurrency(item.buyPrice)}`;
-        } else if (view === 'sell' && item.sellPrice > 0) {
-            priceString = `§4Sell: ${formatCurrency(item.sellPrice)}`;
-        } else {
-            const buy = item.buyPrice > 0 ? `§2B: ${formatCurrency(item.buyPrice)}` : '';
-            const sell = item.sellPrice > 0 ? `§4S: ${formatCurrency(item.sellPrice)}` : '';
-            priceString = [buy, sell].filter(Boolean).join(' ');
-        }
-        form.button(`${displayName}\n${priceString}`, icon);
-    }
-    addPaginationButtons(form, page, items.length);
-}
-
-function buildShopAdminMainPanel(form: ActionFormData, context: UIContext) {
-    const page = (context.page as number) || 1;
-    const mainConfig = getConfig() as unknown as MainConfig;
-
-    form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-    const isEnabled = mainConfig.shop.enabled;
-    const toggleText = isEnabled ? '§2Shop System: ENABLED' : '§4Shop System: DISABLED';
-    form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
-
-    form.button('§l§2+ Add Category', 'textures/ui/color_plus');
-
-    const shopConfig = getShopConfig() as ShopConfig;
-    const categories = Object.keys(shopConfig.categories).sort();
-    const paginatedCategories = getPaginatedItems(categories, page);
-
-    for (const categoryName of paginatedCategories) {
-        const category = shopConfig.categories[categoryName];
-        form.button(categoryName, category.icon);
-    }
-
-    addPaginationButtons(form, page, categories.length);
-}
-
-function buildShopAdminCategoryPanel(form: ActionFormData, context: UIContext) {
-    const categoryName = context.categoryName as string;
-    const page = (context.page as number) || 1;
-    form.button('§l§8< Back', 'textures/gui/controls/left.png');
-    form.button('§l§2+ Add Item', 'textures/ui/color_plus');
-    form.button('§l§2+ Add Subcategory', 'textures/ui/color_plus');
-    form.button('§l§9* Edit Category', 'textures/ui/icon_setting');
-
-    const shopConfig = getShopConfig() as ShopConfig;
-    const category = shopConfig.categories[categoryName ?? ''];
-
-    if (!category) {
-        form.body('§4Category not found.');
-        return;
-    }
-
-    const items: ShopListEntry[] = Object.keys(category.items).map((id) => ({
-        id,
-        ...category.items[id],
-        type: 'item'
-    }));
-    const subCategories: ShopListEntry[] = Object.keys(category.subCategories)
-        .sort()
-        .map((name) => ({
-            name,
-            ...category.subCategories[name],
-            type: 'subCategory'
-        }));
-
-    const allEntries = [...subCategories, ...items] as ShopListEntry[];
-    const paginatedEntries = getPaginatedItems(allEntries, page);
-
-    for (const entry of paginatedEntries) {
-        if (entry.type === 'subCategory') {
-            // subCategory
-            form.button(`§6${entry.name}`, entry.icon);
-        } else {
-            const masterItem = allItems[entry.id] || {};
-            const displayName = entry.displayName || masterItem.displayName || entry.id;
-            const icon = entry.icon || masterItem.icon;
-            form.button(displayName, icon);
+    // Initialize items config if needed
+    if (Object.keys(allItems).length === 0) {
+        try {
+            allItems = await loadConfig('./core/itemsConfig.js');
+        } catch {
+            // Ignore error
         }
     }
 
-    addPaginationButtons(form, page, allEntries.length);
-}
+    const permissionLevel = pData.permissionLevel;
+    const items: PanelItem[] = [];
 
-function buildShopAdminSubCategoryItemPanel(form: ActionFormData, context: UIContext) {
-    const categoryName = context.categoryName as string;
-    const subCategoryName = context.subCategoryName as string;
-    const page = (context.page as number) || 1;
-    form.button('§l§8< Back', 'textures/gui/controls/left.png');
-    form.button('§l§2+ Add Item', 'textures/ui/color_plus');
-    form.button('§l§9* Edit Subcategory', 'textures/ui/icon_setting');
+    const addBack = (target: string) => {
+        items.push({
+            id: '__back__',
+            text: '§l§8< Back',
+            icon: 'textures/gui/controls/left.png',
+            permissionLevel: 1024,
+            actionType: 'openPanel',
+            actionValue: target
+        });
+    };
 
-    const shopConfig = getShopConfig() as ShopConfig;
-    const category = shopConfig.categories[categoryName ?? ''];
-    if (!category) {
-        form.body('§4Category not found.');
-        return;
-    }
-    const subCategory = category.subCategories[subCategoryName ?? ''];
-    if (!subCategory) {
-        form.body('§4Subcategory not found.');
-        return;
-    }
-
-    const items: ShopListEntry[] = Object.keys(subCategory.items).map((id) => ({
-        id,
-        ...subCategory.items[id],
-        type: 'item'
-    }));
-    const paginatedItems = getPaginatedItems(items, page);
-
-    for (const item of paginatedItems) {
-        if (item.type !== 'item') continue;
-        const masterItem = allItems[item.id] || {};
-        const displayName = item.displayName || masterItem.displayName || item.id;
-        const icon = item.icon || masterItem.icon;
-        form.button(displayName, icon);
-    }
-
-    addPaginationButtons(form, page, items.length);
-}
-
-function buildShopAddItemPanel(form: ActionFormData, context: UIContext) {
-    const page = (context.page as number) || 1;
-    form.button('§l§8< Back', 'textures/gui/controls/left.png');
-    form.button('§l§2+ Add Custom Item', 'textures/ui/color_plus');
-
-    const allPossibleItems = Object.keys(allItems);
-    const paginatedItems = getPaginatedItems(allPossibleItems, page);
-
-    for (const itemId of paginatedItems) {
-        const masterItem = allItems[itemId];
-        form.button(masterItem.displayName ?? itemId, masterItem.icon);
-    }
-
-    addPaginationButtons(form, page, allPossibleItems.length);
-}
-
-async function buildPlayerManagementForm(title: string, context: UIContext) {
-    const page = context.page || 1;
-    const form = new ActionFormData().title(`${title} (Page ${page})`);
-
-    // Add Back button
-    form.button('§l§8< Back', 'textures/gui/controls/left.png');
-    // Add Search button
-    form.button('§l§2Search Player', 'textures/ui/magnifyingGlass');
-
-    const allPlayersMap = getAllPlayerNameIdMap();
-    const playerEntries = Array.from(allPlayersMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-    const totalPages = Math.ceil(playerEntries.length / itemsPerPage);
-
-    // Add Previous button if not on the first page
-    if (page > 1) {
-        form.button('§6< Previous Page', 'textures/ui/arrow_left.png');
-    }
-
-    if (playerEntries.length === 0) {
-        form.body('§4No player data found.');
-    } else {
-        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-        const paginatedEntries = getPaginatedItems(playerEntries, page);
-        for (const [lowerCaseName, id] of paginatedEntries) {
-            const pData = loadPlayerData(id); // Load data for the player on the current page
-            const rank = pData ? rankManager.getRankById(pData.rankId) : null;
-            const prefix = rank?.chatFormatting?.prefixText ?? '';
-            const rankPrefix = prefix ? `§6[§r${prefix}§6]§r ` : '';
-            const properName = pData ? pData.name : lowerCaseName; // Fallback to lowercase name if data fails to load
-            const team = getTeamByPlayer(id);
-            const teamSuffix = team ? `\n§6[§r${team.name}§6]` : '';
-            form.button(`${rankPrefix}${properName}${teamSuffix}`);
+    // --- Config & Categories ---
+    if (panelId === 'configCategoryPanel') {
+        addBack('adminPanel');
+        const categories = getVisibleCategories(pData);
+        const paginated = getPaginatedItems(categories, context.page || 1);
+        paginated.forEach((cat) => {
+            items.push({
+                id: cat.id,
+                text: cat.title,
+                icon: cat.icon,
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: `configSubCategoryPanel_${cat.id}`
+            });
+        });
+        if (permissionLevel === 0) {
+            items.push({ id: 'resetSettings', text: '§l§cReset Settings§r', icon: 'textures/ui/wysiwyg_reset', permissionLevel: 0, actionType: 'openPanel', actionValue: 'configResetPanel' });
         }
+        addPaginationButtonsToItems(items, context.page || 1, categories.length);
+        return items;
     }
 
-    // Add Next button if not on the last page
-    if (page < totalPages) {
-        form.button('§6Next Page >', 'textures/ui/arrow_right.png');
+    if (panelId.startsWith('configSubCategoryPanel_')) {
+        const category = panelId.replace('configSubCategoryPanel_', '');
+        addBack('configCategoryPanel');
+        const systems = getSystemsByCategory(pData, category);
+        const paginated = getPaginatedItems(systems, context.page || 1);
+        paginated.forEach((sys) => {
+            items.push({
+                id: sys.id,
+                text: sys.title,
+                icon: sys.icon,
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: sys.id.startsWith('config_') ? sys.id : sys.id
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, systems.length);
+        return items;
     }
 
-    return form;
-}
-
-async function buildPlayerListForm(title: string, context: UIContext) {
-    const page = context.page || 1;
-    const form = new ActionFormData().title(`${title} (Page ${page})`);
-
-    // Add Back button
-    form.button('§l§8< Back', 'textures/gui/controls/left.png');
-    // Add Search button
-    form.button('§l§2Search Online Player', 'textures/ui/magnifyingGlass');
-
-    const onlinePlayers = Array.from(mc.world.getAllPlayers()).sort((a, b) => a.name.localeCompare(b.name));
-    const totalPages = Math.ceil(onlinePlayers.length / itemsPerPage);
-
-    // Add Previous button if not on the first page
-    if (page > 1) {
-        form.button('§6< Previous Page', 'textures/ui/arrow_left.png');
-    }
-
-    if (onlinePlayers.length === 0) {
-        form.body('§4No players are currently online.');
-    } else {
-        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-        const paginatedPlayers = getPaginatedItems(onlinePlayers, page);
-        const config = getConfig();
-        for (const player of paginatedPlayers) {
-            const rank = rankManager.getPlayerRank(player, config);
-            const prefix = rank?.chatFormatting?.prefixText ?? '';
-            const rankPrefix = prefix ? `§6[§r${prefix}§6]§r ` : '';
-            const team = getTeamByPlayer(player.id);
-            const teamSuffix = team ? `\n§6[§r${team.name}§6]` : '';
-            form.button(`${rankPrefix}${player.name}${teamSuffix}`);
+    if (panelId === 'configResetPanel') {
+        addBack('configCategoryPanel');
+        const categories = getVisibleCategories(pData);
+        const paginated = getPaginatedItems(categories, context.page || 1);
+        paginated.forEach((cat) => {
+            items.push({
+                id: cat.id,
+                text: `Reset ${cat.title}`,
+                icon: cat.icon,
+                permissionLevel: 0,
+                actionType: 'openPanel',
+                actionValue: `configResetCategoryPanel_${cat.id}`
+            });
+        });
+        if (context.page! >= Math.ceil(categories.length / itemsPerPage)) {
+            items.push({ id: 'resetAll', text: '§l§4Reset All Systems', icon: 'textures/ui/trash', permissionLevel: 0, actionType: 'functionCall', actionValue: 'resetAllConfig' });
         }
+        addPaginationButtonsToItems(items, context.page || 1, categories.length);
+        return items;
     }
 
-    // Add Next button if not on the last page
-    if (page < totalPages) {
-        form.button('§6Next Page >', 'textures/ui/arrow_right.png');
+    if (panelId.startsWith('configResetCategoryPanel_')) {
+        const category = panelId.replace('configResetCategoryPanel_', '');
+        addBack('configResetPanel');
+        const systems = getSystemsByCategory(pData, category);
+        const paginated = getPaginatedItems(systems, context.page || 1);
+
+        items.push({ id: 'resetCategory', text: `§l§4Reset All ${category}§r`, icon: 'textures/ui/trash', permissionLevel: 0, actionType: 'functionCall', actionValue: `resetCategory_${category}` });
+
+        paginated.forEach((sys) => {
+            items.push({
+                id: sys.id,
+                text: `§4Reset ${sys.title}`,
+                icon: sys.icon,
+                permissionLevel: 0,
+                actionType: 'functionCall',
+                actionValue: `resetSystem_${sys.id}`
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, systems.length);
+        return items;
     }
 
-    return form;
-}
-
-function buildBountyListForm(title: string, context: UIContext) {
-    const page = (context.page as number) || 1;
-    const form = new ActionFormData().title(`${title} (Page ${page})`);
-
-    // Add Back button
-    form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-    const allBounties = Array.from(bountyManager.getAllBounties().values()).sort((a, b) => b.amount - a.amount);
-    const totalPages = Math.ceil(allBounties.length / itemsPerPage);
-
-    // Add Previous button if not on the first page
-    if (page > 1) {
-        form.button('§6< Previous Page', 'textures/ui/arrow_left.png');
+    // --- TPA Panels ---
+    if (panelId === 'tpaSettingsPanel') {
+        const isEnabled = !pData.tpaRequestsDisabled;
+        items.push({
+            id: 'toggleTpa',
+            text: isEnabled ? '§2Requests: Allowed' : '§4Requests: Blocked',
+            icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
+            permissionLevel: 1024,
+            actionType: 'functionCall',
+            actionValue: 'toggleTpa'
+        });
+        items.push({
+            id: 'blockList',
+            text: 'Blocked Players',
+            icon: 'textures/ui/icon_multiplayer',
+            permissionLevel: 1024,
+            actionType: 'openPanel',
+            actionValue: 'tpaBlockListPanel'
+        });
+        return items;
     }
 
-    if (allBounties.length === 0) {
-        form.body('§2There are currently no active bounties.');
-    } else {
-        const paginatedBounties = getPaginatedItems(allBounties, page);
-        for (const bounty of paginatedBounties) {
-            form.button(`${bounty.name}\n§6${formatCurrency(bounty.amount)}`);
+    if (panelId === 'tpaBlockListPanel') {
+        addBack('tpaSettingsPanel');
+        const blocked = pData.tpaBlockedPlayerIds || [];
+        for (const id of blocked) {
+             const name = loadPlayerData(id)?.name || id;
+             items.push({
+                 id: id,
+                 text: name,
+                 permissionLevel: 1024,
+                 actionType: 'functionCall',
+                 actionValue: 'unblockPlayer'
+             });
         }
+        return items;
     }
 
-    // Add Next button if not on the last page
-    if (page < totalPages) {
-        form.button('§6Next Page >', 'textures/ui/arrow_right.png');
-    }
+    // --- Shop Panels ---
 
-    return form;
-}
-
-function buildReportListForm(title: string, context: UIContext) {
-    const page = context.page || 1;
-    const form = new ActionFormData().title(`${title} (Page ${page})`);
-
-    // Add Back button
-    form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-    const reports = reportManager
-        .getAllReports()
-        .filter((r) => r.status === 'open' || r.status === 'assigned')
-        .sort((a, b) => a.timestamp - b.timestamp);
-    const totalPages = Math.ceil(reports.length / itemsPerPage);
-
-    // Add Previous button if not on the first page
-    if (page > 1) {
-        form.button('§6< Previous Page', 'textures/ui/arrow_left.png');
-    }
-
-    if (reports.length === 0) {
-        form.body('§2There are no active reports.');
-    } else {
-        const paginatedReports = getPaginatedItems(reports, page);
-        for (const report of paginatedReports) {
-            const statusColor = report.status === 'assigned' ? '§6' : '§4';
-            form.button(
-                `[${statusColor}${report.status.toUpperCase()}§r] ${report.reportedPlayerName}\n§8Reported by: ${report.reporterName}`
-            );
-        }
-    }
-
-    // Add Next button if not on the last page
-    if (page < totalPages) {
-        form.button('§6Next Page >', 'textures/ui/arrow_right.png');
-    }
-
-    return form;
-}
-
-function buildRankManagementPanel(form: ActionFormData, context: UIContext) {
-    const page = (context.page as number) || 1;
-    const pData = getPlayer((context.player as mc.Player).id);
-    if (!pData) {
-        return;
-    }
-
-    const panelDef = panelDefinitions.rankManagementPanel;
-    const settingsItem = panelDef.items.find((item) => item.id === 'rankSettings');
-
-    form.button('§l§8< Back', 'textures/gui/controls/left.png');
-    if (settingsItem && pData.permissionLevel <= settingsItem.permissionLevel) {
-        form.button(settingsItem.text, settingsItem.icon);
-    }
-    form.button('§l§2+ Add New Rank', 'textures/ui/color_plus');
-
-    const allRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);
-
-    if (allRanks.length === 0) {
-        form.body('§4No ranks have been defined.');
-        return;
-    }
-
-    const paginatedRanks = getPaginatedItems(allRanks, page);
-
-    for (const rank of paginatedRanks) {
-        const name = rank.name;
-        const permLevel = rank.permissionLevel;
-        form.button(`${name}\n§8(ID: ${rank.id}, Level: ${permLevel})`);
-    }
-
-    addPaginationButtons(form, page, allRanks.length);
-}
-
-function buildKitManagementPanel(form: ActionFormData, context: UIContext) {
-    const page = (context.page as number) || 1;
-    const mainConfig = getConfig() as unknown as MainConfig;
-
-    // Add Back button
-    form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-    // Add the global toggle button
-    const isEnabled = mainConfig.kits.enabled;
-    const toggleText = isEnabled ? '§2Kit System: ENABLED' : '§4Kit System: DISABLED';
-    form.button(toggleText, isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel');
-
-    // Add Create New Kit button
-    form.button('§l§2+ Create New Kit', 'textures/ui/color_plus');
-
-    // Get all kit names and paginate them
-    const allKits = getAllKits();
-    const kitNames = Object.keys(allKits);
-
-    if (kitNames.length === 0) {
-        form.body('§4No kits have been defined.');
-        return;
-    }
-
-    const paginatedKits = getPaginatedItems(kitNames, page);
-
-    for (const kitName of paginatedKits) {
-        const kit = allKits[kitName];
-        const status = kit.enabled ? '§2[Enabled]' : '§4[Disabled]';
-        form.button(`${kitName}\n${status}`, 'textures/ui/inventory_icon');
-    }
-
-    addPaginationButtons(form, page, kitNames.length);
-}
-
-function buildCommandSystemPanel(form: ActionFormData, context: UIContext) {
-    const page = (context.page as number) || 1;
-    const config = getConfig() as unknown as MainConfig;
-    const commandSettings = config.commandSettings || {};
-
-    // Get all command names, filter out hidden ones, and sort alphabetically
-
-    const allCommands = Object.keys(commandSettings)
-        .filter((cmd: string) => !cmd.startsWith('_')) // Assuming internal/hidden commands start with an underscore
-        .sort();
-
-    if (allCommands.length === 0) {
-        form.body('§4No commands are available for configuration.');
-        return;
-    }
-
-    const paginatedCommands = getPaginatedItems(allCommands, page);
-
-    form.body('Toggle commands on or off.\n§2[Enabled]§r / §4[Disabled]§r');
-
-    for (const commandName of paginatedCommands) {
-        const settings = commandSettings[commandName] || {};
-        const isEnabled = settings.enabled ?? false;
-        const statusText = isEnabled ? '§2[Enabled]' : '§4[Disabled]';
-        form.button(`${commandName}\n${statusText}`);
-    }
-
-    addPaginationButtons(form, page, allCommands.length);
-}
-
-export async function buildPanelForm(player: mc.Player, panelId: string, context: UIContext) {
-    try {
-        // debugLog(`[UIManager] Building form for panel '${panelId}' for player ${player.name}.`);
-
-        // Load items config if not loaded
-        if (Object.keys(allItems).length === 0) {
-            try {
-                allItems = await loadConfig<Record<string, Item>>('./core/itemsConfig.js');
-            } catch (error) {
-                errorLog('[UIManager] Failed to load items config.', error);
-            }
-        }
-
-        if (panelId.startsWith('config_')) {
-            const categoryId = panelId.replace('config_', '');
-            const category = configPanelSchema.find((c) => c.id === categoryId);
-            if (!category) {
-                errorLog(`[UIManager] Could not find config category for ID: ${categoryId}`);
-                return null;
-            }
-            // debugLog(`[UIManager] Building config settings form for category: ${categoryId}`);
-            const form = new ModalFormData().title(category.title);
-
-            const configSource = category.configSource || 'main';
-            const handler = configHandlers[configSource];
-            if (!handler) {
-                errorLog(`[UIManager] No config handler found for source: ${configSource}`);
-                return null;
-            }
-            const config = handler.get() as unknown as Record<string, unknown>;
-
-            for (const setting of category.settings) {
-                const currentValue = getValueFromPath(config, setting.key);
-                switch (setting.type) {
-                    case 'toggle':
-                        form.toggle(setting.label, { defaultValue: !!currentValue });
-                        break;
-                    case 'textField': {
-                        const val = currentValue ?? '';
-                        let strVal: string;
-                        if (typeof val === 'object' && val !== null) {
-                            strVal = JSON.stringify(val);
-                        } else {
-                            strVal = String(val as string | number | boolean);
-                        }
-                        form.textField(setting.label, setting.description || '', {
-                            defaultValue: strVal
-                        });
-                        break;
-                    }
-                    case 'dropdown': {
-                        let index = -1;
-                        const options = setting.options || [];
-                        // Special handling for logLevel, where the value is the index.
-                        if (setting.key === 'logLevel' && typeof currentValue === 'number') {
-                            index = currentValue;
-                        } else {
-                            index = options.indexOf(currentValue as string);
-                        }
-                        form.dropdown(setting.label, options, {
-                            defaultValueIndex: index >= 0 && index < options.length ? index : 0
-                        });
-                        break;
-                    }
-                }
-            }
-            return form;
-        }
-
-        if (panelId === 'floatingTextActionPanel') {
-            const id = context.id as string;
-            const form = new ActionFormData()
-                .title(`Actions for: ${id}`)
-                .button('Edit Settings', 'textures/ui/icon_setting')
-                .button('Respawn', 'textures/ui/refresh_light')
-                .button('Despawn', 'textures/ui/cancel')
-                .button('§4Delete', 'textures/ui/trash')
-                .button('§l§8< Back', 'textures/gui/controls/left.png');
-            return form;
-        }
-
-        if (panelId === 'teamMainPanel') {
-            const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-            const teamConfig = getTeamConfig();
-            const panelDef = panelDefinitions[panelId];
-
-            const team = getTeamByPlayer(player.id);
-            const form = new ActionFormData().title(panelDef.title);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            if (team) {
-                const isOwner = team.ownerId === player.id;
-                const isAdmin = team.admins.includes(player.id);
-                const isOwnerOrAdmin = isOwner || isAdmin;
-
-                const ownerData = loadPlayerData(team.ownerId);
-                const ownerName = ownerData ? ownerData.name : 'Unknown';
-
-                form.body(
-                    [
-                        `§l§2Team: ${team.name}`,
-                        `§rID: ${team.id}`,
-                        `Owner: ${ownerName}`,
-                        `Members: ${team.members.length}/${teamConfig.maxMembers}`
-                    ].join('\n')
+    if (panelId === 'shopMainPanel') {
+        addBack('mainPanel');
+        const shopConfig = getShopConfig() as any;
+        const validCategories = Object.keys(shopConfig.categories)
+            .filter((categoryName: string) => {
+                const category = shopConfig.categories[categoryName];
+                if (!category) return false;
+                return (
+                    Object.keys(category.items).length > 0 ||
+                    Object.keys(category.subCategories).length > 0
                 );
+            })
+            .sort();
 
-                form.button('§l§3Team Members', 'textures/ui/icon_multiplayer');
-                if (isOwnerOrAdmin) {
-                    form.button('§l§4Manage Team', 'textures/ui/op');
+        validCategories.forEach((catName: string) => {
+            const cat = shopConfig.categories[catName];
+            items.push({
+                id: catName,
+                text: catName,
+                icon: cat.icon,
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: `shopCategoryPanel_${catName}`
+            });
+        });
+        return items;
+    }
+
+    if (panelId.startsWith('shopCategoryPanel_')) {
+        const categoryName = context.categoryName as string;
+        addBack('shopMainPanel');
+        const shopConfig = getShopConfig() as any;
+        const category = shopConfig.categories[categoryName];
+        if (category) {
+            const subCategories: ShopListEntry[] = Object.keys(category.subCategories)
+                .sort()
+                .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' as const }));
+            const shopItems: ShopListEntry[] = Object.keys(category.items).map((id) => ({
+                id,
+                ...category.items[id],
+                type: 'item' as const
+            }));
+            const allEntries = [...subCategories, ...shopItems];
+            const paginated = getPaginatedItems(allEntries, context.page || 1);
+
+            paginated.forEach((entry) => {
+                if (entry.type === 'subCategory') {
+                    items.push({
+                        id: entry.name,
+                        text: `§6${entry.name}`,
+                        icon: entry.icon,
+                        permissionLevel: 1024,
+                        actionType: 'openPanel',
+                        actionValue: `shopItemListPanel_${categoryName}_${entry.name}`
+                    });
+                } else {
+                    const masterItem = allItems[entry.id] || {};
+                    const displayName = entry.displayName || masterItem.displayName || entry.id;
+                    const buy = entry.buyPrice > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
+                    const sell = entry.sellPrice > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
+                    const priceString = [buy, sell].filter(Boolean).join(' ');
+                    items.push({
+                        id: entry.id,
+                        text: `${displayName}\n${priceString}`,
+                        icon: entry.icon || masterItem.icon,
+                        permissionLevel: 1024,
+                        actionType: 'functionCall',
+                        actionValue: 'buyOrSell'
+                    });
                 }
-                form.button('§l§6Team Settings', 'textures/ui/icon_setting');
-                form.button('§4Leave Team', 'textures/ui/cancel');
-            } else {
-                // No Team
-                form.button(
-                    `§l§2Create Team\n§r§6Cost: ${formatCurrency(teamConfig.creationCost)}`,
-                    'textures/ui/color_plus'
-                );
-                form.button('§l§9Join Team', 'textures/ui/world_glyph_color');
+            });
+            addPaginationButtonsToItems(items, context.page || 1, allEntries.length);
+        }
+        return items;
+    }
+
+    if (panelId.startsWith('shopItemListPanel_')) {
+        const { categoryName, subCategoryName } = context;
+        addBack(`shopCategoryPanel_${categoryName}`);
+        const shopConfig = getShopConfig() as any;
+        const category = shopConfig.categories[categoryName as string];
+        const subCategory = category?.subCategories[subCategoryName as string];
+
+        if (subCategory) {
+            const shopItems = Object.keys(subCategory.items).map((id) => ({
+                id,
+                ...subCategory.items[id],
+                type: 'item' as const
+            }));
+            const paginated = getPaginatedItems(shopItems, context.page || 1);
+            paginated.forEach((entry) => {
+                const masterItem = allItems[entry.id] || {};
+                const displayName = entry.displayName || masterItem.displayName || entry.id;
+                const buy = entry.buyPrice > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
+                const sell = entry.sellPrice > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
+                const priceString = [buy, sell].filter(Boolean).join(' ');
+                items.push({
+                    id: entry.id,
+                    text: `${displayName}\n${priceString}`,
+                    icon: entry.icon || masterItem.icon,
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'buyOrSell'
+                });
+            });
+            addPaginationButtonsToItems(items, context.page || 1, shopItems.length);
+        }
+        return items;
+    }
+
+    // --- Admin Shop Panels ---
+
+    if (panelId === 'shopManagementPanel') {
+        addBack('configCategoryPanel');
+        const mainConfig = getConfig() as unknown as MainConfig;
+        const isEnabled = mainConfig.shop.enabled;
+        const toggleText = isEnabled ? '§2Shop System: ENABLED' : '§4Shop System: DISABLED';
+        items.push({ id: 'toggleShop', text: toggleText, icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', permissionLevel: 0, actionType: 'functionCall', actionValue: 'toggleShop' });
+        items.push({ id: 'addCategory', text: '§l§2+ Add Category', icon: 'textures/ui/color_plus', permissionLevel: 0, actionType: 'functionCall', actionValue: 'addCategory' });
+
+        const shopConfig = getShopConfig() as any;
+        const categories = Object.keys(shopConfig.categories).sort();
+        const paginated = getPaginatedItems(categories, context.page || 1);
+
+        paginated.forEach((catName: string) => {
+            const cat = shopConfig.categories[catName];
+            items.push({
+                id: catName,
+                text: catName,
+                icon: cat.icon,
+                permissionLevel: 0,
+                actionType: 'openPanel',
+                actionValue: `shopAdminCategoryPanel_${catName}`
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, categories.length);
+        return items;
+    }
+
+    if (panelId.startsWith('shopAdminCategoryPanel_')) {
+        const categoryName = context.categoryName as string;
+        addBack('shopManagementPanel');
+        items.push({ id: 'addItem', text: '§l§2+ Add Item', icon: 'textures/ui/color_plus', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAddItemPanel_${categoryName}` });
+        items.push({ id: 'addSubCategory', text: '§l§2+ Add Subcategory', icon: 'textures/ui/color_plus', permissionLevel: 0, actionType: 'functionCall', actionValue: 'addSubCategory' });
+        items.push({ id: 'editCategory', text: '§l§9* Edit Category', icon: 'textures/ui/icon_setting', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAdminCategoryActionPanel_${categoryName}` });
+
+        const shopConfig = getShopConfig() as any;
+        const category = shopConfig.categories[categoryName];
+        if (category) {
+            const subCategories = Object.keys(category.subCategories).sort();
+            const shopItems = Object.keys(category.items);
+            const allEntries = [...subCategories.map(n => ({ id: n, type: 'subCategory' })), ...shopItems.map(n => ({ id: n, type: 'item' }))];
+            const paginated = getPaginatedItems(allEntries, context.page || 1);
+
+            paginated.forEach((entry: any) => {
+                if (entry.type === 'subCategory') {
+                    const sub = category.subCategories[entry.id];
+                    items.push({
+                        id: entry.id,
+                        text: `§6${entry.id}`,
+                        icon: sub.icon,
+                        permissionLevel: 0,
+                        actionType: 'openPanel',
+                        actionValue: `shopAdminSubCategoryItemPanel_${categoryName}_${entry.id}`
+                    });
+                } else {
+                    const item = category.items[entry.id];
+                    const masterItem = allItems[entry.id] || {};
+                    items.push({
+                        id: entry.id,
+                        text: item.displayName || masterItem.displayName || entry.id,
+                        icon: item.icon || masterItem.icon,
+                        permissionLevel: 0,
+                        actionType: 'functionCall',
+                        actionValue: 'editItem'
+                    });
+                }
+            });
+            addPaginationButtonsToItems(items, context.page || 1, allEntries.length);
+        }
+        return items;
+    }
+
+    if (panelId.startsWith('shopAdminSubCategoryItemPanel_')) {
+        const { categoryName, subCategoryName } = context;
+        addBack(`shopAdminCategoryPanel_${categoryName}`);
+        items.push({ id: 'addItem', text: '§l§2+ Add Item', icon: 'textures/ui/color_plus', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAddItemPanel_${categoryName}` }); // Pass subCat in context
+        items.push({ id: 'editSubCategory', text: '§l§9* Edit Subcategory', icon: 'textures/ui/icon_setting', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAdminSubCategoryActionPanel_${subCategoryName}` });
+
+        const shopConfig = getShopConfig() as any;
+        const subCategory = shopConfig.categories[categoryName as string]?.subCategories[subCategoryName as string];
+        if (subCategory) {
+            const shopItems = Object.keys(subCategory.items);
+            const paginated = getPaginatedItems(shopItems, context.page || 1);
+            paginated.forEach((id: string) => {
+                const item = subCategory.items[id];
+                const masterItem = allItems[id] || {};
+                items.push({
+                    id: id,
+                    text: item.displayName || masterItem.displayName || id,
+                    icon: item.icon || masterItem.icon,
+                    permissionLevel: 0,
+                    actionType: 'functionCall',
+                    actionValue: 'editItem'
+                });
+            });
+            addPaginationButtonsToItems(items, context.page || 1, shopItems.length);
+        }
+        return items;
+    }
+
+    if (panelId.startsWith('shopAddItemPanel_')) {
+        const { categoryName } = context;
+        addBack(`shopAdminCategoryPanel_${categoryName}`);
+        items.push({ id: 'addCustomItem', text: '§l§2+ Add Custom Item', icon: 'textures/ui/color_plus', permissionLevel: 0, actionType: 'functionCall', actionValue: 'addCustomItem' });
+
+        const allPossibleItems = Object.keys(allItems);
+        const paginated = getPaginatedItems(allPossibleItems, context.page || 1);
+        paginated.forEach((itemId) => {
+            const masterItem = allItems[itemId];
+            items.push({
+                id: itemId,
+                text: masterItem.displayName ?? itemId,
+                icon: masterItem.icon,
+                permissionLevel: 0,
+                actionType: 'functionCall',
+                actionValue: 'addItemFromList'
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, allPossibleItems.length);
+        return items;
+    }
+
+    if (panelId.startsWith('shopAdminCategoryActionPanel_')) {
+        const categoryName = panelId.replace('shopAdminCategoryActionPanel_', '');
+        items.push({ id: 'edit', text: 'Edit', icon: 'textures/ui/icon_setting', permissionLevel: 0, actionType: 'functionCall', actionValue: 'editCategory' });
+        items.push({ id: 'delete', text: '§4Delete', icon: 'textures/ui/trash', permissionLevel: 0, actionType: 'functionCall', actionValue: 'deleteCategory' });
+        items.push({ id: 'back', text: '§l§8< Back', icon: 'textures/gui/controls/left.png', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAdminCategoryPanel_${categoryName}` });
+        return items;
+    }
+
+    if (panelId.startsWith('shopAdminSubCategoryActionPanel_')) {
+        const subCategoryName = panelId.replace('shopAdminSubCategoryActionPanel_', '');
+        items.push({ id: 'edit', text: 'Edit', icon: 'textures/ui/icon_setting', permissionLevel: 0, actionType: 'functionCall', actionValue: 'editSubCategory' });
+        items.push({ id: 'delete', text: '§4Delete', icon: 'textures/ui/trash', permissionLevel: 0, actionType: 'functionCall', actionValue: 'deleteSubCategory' });
+        items.push({ id: 'back', text: '§l§8< Back', icon: 'textures/gui/controls/left.png', permissionLevel: 0, actionType: 'openPanel', actionValue: `shopAdminSubCategoryItemPanel_${subCategoryName}` });
+        return items;
+    }
+
+    // --- Team Panels ---
+
+    if (panelId === 'teamMainPanel') {
+        addBack('mainPanel');
+        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        const teamConfig = getTeamConfig();
+
+        if (team) {
+            const isOwnerOrAdmin = team.ownerId === player.id || team.admins.includes(player.id);
+            items.push({ id: 'teamMembersPanel', text: '§l§3Team Members', icon: 'textures/ui/icon_multiplayer', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamMembersPanel' });
+            if (isOwnerOrAdmin) {
+                items.push({ id: 'teamManagePanel', text: '§l§4Manage Team', icon: 'textures/ui/op', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamManagePanel' });
             }
-            return form;
+            items.push({ id: 'teamSettingsPanel', text: '§l§6Team Settings', icon: 'textures/ui/icon_setting', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamSettingsPanel' });
+            items.push({ id: 'leaveTeam', text: '§4Leave Team', icon: 'textures/ui/cancel', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'leaveTeam' });
+        } else {
+            items.push({
+                id: 'createTeam',
+                text: `§l§2Create Team\n§r§6Cost: ${formatCurrency(teamConfig.creationCost)}`,
+                icon: 'textures/ui/color_plus',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'teamCreatePanel'
+            });
+            items.push({ id: 'joinTeam', text: '§l§9Join Team', icon: 'textures/ui/world_glyph_color', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamBrowserPanel' });
         }
+        return items;
+    }
 
-        if (panelId === 'teamCreatePanel') {
-            const teamConfig = getTeamConfig();
-            const form = new ModalFormData().title('Create Team');
-            form.textField('Team Name', `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`);
-            return form;
+    if (panelId === 'teamBrowserPanel') {
+        addBack('teamMainPanel');
+        const { getAllTeams } = await import('../../features/teams/teamManager.js');
+        let teams = getAllTeams();
+        if (permissionLevel >= 1024) {
+            teams = teams.filter((t) => t.open !== false);
         }
+        teams = teams.sort((a, b) => b.members.length - a.members.length);
+        const paginated = getPaginatedItems(teams, context.page || 1);
 
-        if (panelId === 'teamSearchPanel') {
-            const form = new ModalFormData().title('Search Team');
-            form.textField('Team ID', 'Enter the numeric Team ID');
-            return form;
-        }
+        paginated.forEach((team) => {
+            const ownerData = loadPlayerData(team.ownerId);
+            items.push({
+                id: String(team.id),
+                text: `${team.name} §8(ID: ${team.id})\n§rOwner: ${ownerData?.name ?? 'Unknown'} | Members: ${team.members.length}`,
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'applyToTeam'
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, teams.length);
+        return items;
+    }
 
-        if (panelId === 'playerSearchPanel') {
-            const form = new ModalFormData().title('Search Player');
-            form.textField('Player Name', 'Enter partial or full name');
-            return form;
-        }
-
-        if (panelId === 'teamSettingsPanel') {
-            const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-            const pData = getOrCreatePlayer(player);
-            const team = getTeamByPlayer(player.id);
-
-            if (!team) {
-                return null;
-            }
-
-            const isOwner = team.ownerId === player.id;
-            const isAdmin = team.admins.includes(player.id);
-            const canManage = isOwner || isAdmin;
-
-            const form = new ModalFormData().title('Team Settings');
-            // Personal Settings
-            form.toggle('Auto-Accept Team Teleport', { defaultValue: pData.teamSettings?.autoTpAccept ?? false });
-            if (canManage) {
-                form.toggle('Allow Join Requests', { defaultValue: team.open ?? true });
-            }
-            return form;
-        }
-
-        if (panelId === 'teamMembersPanel') {
-            const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-            const team = getTeamByPlayer(player.id);
-            if (!team) {
-                player.sendMessage('§4You are not in a team.');
-                return null;
-            }
-
-            const form = new ActionFormData().title(`Members: ${team.name}`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            // List members.
+    if (panelId === 'teamMembersPanel') {
+        addBack('teamMainPanel');
+        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        if (team) {
             for (const memberId of team.members) {
                 const memData = loadPlayerData(memberId);
-                const name = memData ? memData.name : 'Unknown';
-                let role = 'Member';
-                if (team.ownerId === memberId) {
-                    role = '§4Owner';
-                } else if (team.admins.includes(memberId)) {
-                    role = '§2Admin';
-                }
-
-                let status = '§8(Offline)';
-                // Note: This is O(n) per member, assuming team size is small (<10) it's fine.
-                // For larger lists, a cache lookup is better.
                 const onlineP = mc.world.getAllPlayers().find((p) => p.id === memberId);
-                if (onlineP) {
-                    status = '§2(Online)';
-                }
+                const status = onlineP ? '§2(Online)' : '§8(Offline)';
+                let role = 'Member';
+                if (team.ownerId === memberId) role = '§4Owner';
+                else if (team.admins.includes(memberId)) role = '§2Admin';
 
-                form.button(`${role} §r${name}\n${status}`, 'textures/ui/icon_steve');
+                items.push({
+                    id: memberId,
+                    text: `${role} §r${memData?.name ?? 'Unknown'}\n${status}`,
+                    icon: 'textures/ui/icon_steve',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'viewMember' // Placeholder
+                });
             }
-            return form;
+        }
+        return items;
+    }
+
+    if (panelId === 'teamManagePanel') {
+        addBack('teamMainPanel');
+        const { getTeamByPlayer, getTeam } = await import('../../features/teams/teamManager.js');
+        const { teamId } = context;
+        let team: TeamData | null = null;
+        if (teamId && permissionLevel < 1024) {
+            team = getTeam(Number(teamId)) ?? null;
+        } else {
+            team = getTeamByPlayer(player.id);
         }
 
-        if (panelId === 'teamBrowserPanel') {
-            const { getAllTeams } = await import('../../features/teams/teamManager.js');
-            const page = (context.page as number) || 1;
-            const form = new ActionFormData().title(`Browse Teams (Page ${page})`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            let teams = getAllTeams();
-
-            // Filter out closed teams for non-admins
-            const pData = getOrCreatePlayer(player);
-            if (pData.permissionLevel >= 1024) {
-                teams = teams.filter((t) => t.open !== false);
-            }
-
-            teams = teams.sort((a, b) => b.members.length - a.members.length);
-            const paginatedTeams = getPaginatedItems(teams, page);
-
-            for (const team of paginatedTeams) {
-                const ownerData = loadPlayerData(team.ownerId);
-                const ownerName = ownerData ? ownerData.name : 'Unknown';
-                form.button(`${team.name} §8(ID: ${team.id})\n§rOwner: ${ownerName} | Members: ${team.members.length}`);
-            }
-
-            addPaginationButtons(form, page, teams.length);
-            return form;
-        }
-
-        if (panelId === 'teamInvitesPanel') {
-            const pData = getOrCreatePlayer(player);
-            const invites = pData.pendingInvites || [];
-            const form = new ActionFormData().title('Pending Invites');
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            if (invites.length === 0) {
-                form.body('You have no pending invites.');
-            } else {
-                for (const invite of invites) {
-                    const date = new Date(invite.timestamp).toLocaleDateString();
-                    form.button(`${invite.teamName}\n§8Received: ${date}`);
-                }
-                form.button('§4Deny All Invites', 'textures/ui/cancel');
-            }
-            return form;
-        }
-
-        if (panelId === 'teamManagePanel') {
-            const { getTeamByPlayer, getTeam } = await import('../../features/teams/teamManager.js');
-            const { teamId } = context;
-            // If context has teamId, it might be an admin managing another team.
-            // Otherwise, manage own team.
-
-            let team: TeamData | null = null;
-            const pData = getOrCreatePlayer(player);
-
-            if (teamId && pData.permissionLevel < 1024) {
-                team = (getTeam(Number(teamId)) as TeamData | undefined | null) || null;
-            } else {
-                team = getTeamByPlayer(player.id);
-            }
-
-            if (!team) {
-                return null;
-            }
-
-            const form = new ActionFormData().title(`Manage: ${team.name}`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
+        if (team) {
             const isOwner = team.ownerId === player.id;
             const isAdmin = team.admins.includes(player.id);
-            const isServerAdmin = pData.permissionLevel < 1024;
+            const isServerAdmin = permissionLevel < 1024;
 
             if (isOwner || isAdmin || isServerAdmin) {
-                form.button('§l§2Invite Player', 'textures/ui/color_plus');
-                form.button(`§l§6Join Requests §r(${team.applications.length})`, 'textures/ui/mail_icon');
-                form.button('§l§3Manage Members', 'textures/ui/icon_multiplayer');
+                items.push({ id: 'invitePlayer', text: '§l§2Invite Player', icon: 'textures/ui/color_plus', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'playerSearchPanel' });
+                items.push({ id: 'joinRequests', text: `§l§6Join Requests §r(${team.applications.length})`, icon: 'textures/ui/mail_icon', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamRequestsPanel' });
+                // Manage members not implemented as separate panel yet, reusing list
+                items.push({ id: 'manageMembers', text: '§l§3Manage Members', icon: 'textures/ui/icon_multiplayer', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamMembersPanel' });
             }
-
             if (isOwner || isAdmin) {
-                form.button('§l§5Team Home', 'textures/ui/icon_recipe_nature');
+                items.push({ id: 'teamHome', text: '§l§5Team Home', icon: 'textures/ui/icon_recipe_nature', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'teamHomePanel' });
             }
-
             if (isOwner || isServerAdmin) {
-                form.button('§l§4Delete Team', 'textures/ui/trash');
+                items.push({ id: 'deleteTeam', text: '§l§4Delete Team', icon: 'textures/ui/trash', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'deleteTeam' });
             }
-            return form;
         }
+        return items;
+    }
 
-        if (panelId === 'teamHomePanel') {
-            const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-            const team = getTeamByPlayer(player.id);
-            if (!team) {
-                return null;
+    if (panelId === 'teamHomePanel') {
+        addBack('teamManagePanel');
+        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        if (team) {
+            if (team.home) {
+                items.push({ id: 'teleportHome', text: '§l§2Teleport', icon: 'textures/items/ender_pearl', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'teleportHome' });
             }
-
-            const isOwner = team.ownerId === player.id;
-            const isAdmin = team.admins.includes(player.id);
-            const canManage = isOwner || isAdmin;
-
-            const form = new ActionFormData().title(`Team Home: ${team.name}`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            if (team.home && team.home.dimensionId) {
-                const { x, y, z, dimensionId } = team.home;
-                const dim = dimensionId.replace('minecraft:', '');
-                const coords = `${x.toFixed(0)}, ${y.toFixed(0)}, ${z.toFixed(0)} (${dim})`;
-                form.body(`Home Location:\n§2${coords}`);
-                form.button('§l§2Teleport', 'textures/items/ender_pearl');
-            } else {
-                form.body('§4No team home set.');
-            }
-
+            const canManage = team.ownerId === player.id || team.admins.includes(player.id);
             if (canManage) {
-                form.button('§l§6Update Location', 'textures/ui/icon_recipe_nature');
+                items.push({ id: 'setHome', text: '§l§6Update Location', icon: 'textures/ui/icon_recipe_nature', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'setHome' });
                 if (team.home) {
-                    form.button('§l§4Delete Home', 'textures/ui/trash');
+                    items.push({ id: 'deleteHome', text: '§l§4Delete Home', icon: 'textures/ui/trash', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'deleteHome' });
                 }
             }
-            return form;
         }
+        return items;
+    }
 
-        if (panelId === 'teamRequestsPanel') {
-            const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-            const team = getTeamByPlayer(player.id);
-            if (!team) {
-                return null;
-            }
-
-            const form = new ActionFormData().title('Join Requests');
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            if (team.applications.length === 0) {
-                form.body('No pending join requests.');
-            } else {
-                for (const app of team.applications) {
-                    form.button(`${app.playerName}`);
-                }
-            }
-            return form;
-        }
-
-        // Handle dynamic shop panels before falling back to static definitions
-        if (panelId.startsWith('shopCategoryPanel_')) {
-            const category = panelId.replace('shopCategoryPanel_', '');
-            const form = new ActionFormData().title(`§l§2Shop - ${category}`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            buildShopCategoryPanel(form, { ...context, categoryName: category, page: context.page || 1 });
-            return form;
-        }
-        if (panelId.startsWith('shopItemListPanel_')) {
-            const parts = panelId.replace('shopItemListPanel_', '').split('_');
-            const category = parts[0];
-            const subCategory = parts.slice(1).join('_');
-            const form = new ActionFormData().title(`§l§2Shop - ${subCategory}`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            buildShopItemListPanel(form, {
-                ...context,
-                categoryName: category,
-                subCategoryName: subCategory,
-                page: context.page || 1
-            });
-            return form;
-        }
-
-        if (panelId.startsWith('shopAdminCategoryPanel_')) {
-            const categoryName = panelId.replace('shopAdminCategoryPanel_', '');
-            const form = new ActionFormData().title(`Edit: ${categoryName}`);
-            buildShopAdminCategoryPanel(form, { ...context, categoryName, page: context.page || 1 });
-            return form;
-        }
-
-        if (panelId.startsWith('shopAddItemPanel_')) {
-            const form = new ActionFormData().title('Add Item');
-            buildShopAddItemPanel(form, { ...context, page: context.page || 1 });
-            return form;
-        }
-
-        if (panelId.startsWith('shopAdminCategoryActionPanel_')) {
-            const categoryName = panelId.replace('shopAdminCategoryActionPanel_', '');
-            const form = new ActionFormData()
-                .title(`Manage Category: ${categoryName}`)
-                .button('Edit', 'textures/ui/icon_setting')
-                .button('§4Delete', 'textures/ui/trash')
-                .button('§l§8< Back', 'textures/gui/controls/left.png');
-            return form;
-        }
-
-        if (panelId.startsWith('shopAdminSubCategoryItemPanel_')) {
-            const { categoryName, subCategoryName } = context;
-            const form = new ActionFormData().title(`Edit: ${categoryName} > ${subCategoryName}`);
-            buildShopAdminSubCategoryItemPanel(form, { ...context, page: context.page || 1 });
-            return form;
-        }
-
-        if (panelId.startsWith('shopAdminSubCategoryActionPanel_')) {
-            const { subCategoryName } = context;
-            const form = new ActionFormData()
-                .title(`Manage Subcategory: ${subCategoryName}`)
-                .button('Edit', 'textures/ui/icon_setting')
-                .button('§4Delete', 'textures/ui/trash')
-                .button('§l§8< Back', 'textures/gui/controls/left.png');
-            return form;
-        }
-
-        if (panelId.startsWith('kitItemsPanel_')) {
-            const kitName = panelId.replace('kitItemsPanel_', '');
-            const allKits = getAllKits();
-            const kit = allKits[kitName];
-            const page = context.page || 1;
-
-            if (!kit) {
-                errorLog(`[UIManager] Could not find kit for items panel: ${kitName}`);
-                return null;
-            }
-
-            const form = new ActionFormData()
-                .title(`Edit Items: ${kitName}`)
-                .button('§l§2+ Add New Item', 'textures/ui/color_plus');
-
-            const paginatedItems = getPaginatedItems(kit.items, page);
-
-            for (let i = 0; i < paginatedItems.length; i++) {
-                const item = paginatedItems[i];
-                const itemIndex = (page - 1) * itemsPerPage + i;
-                form.button(
-                    `${itemIndex + 1}. ${item.typeId.replace('minecraft:', '')} x${item.amount}`,
-                    'textures/items/item_frame'
-                );
-            }
-
-            addPaginationButtons(form, page, kit.items.length);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            return form;
-        }
-
-        if (panelId.startsWith('kitSettingsPanel_')) {
-            const kitName = panelId.replace('kitSettingsPanel_', '');
-            const allKits = getAllKits();
-            const kit = allKits[kitName];
-
-            if (!kit) {
-                errorLog(`[UIManager] Could not find kit for settings panel: ${kitName}`);
-                return null;
-            }
-
-            const form = new ModalFormData()
-                .title(`Edit Settings: ${kitName}`)
-                .toggle('Enabled', { defaultValue: kit.enabled })
-                .textField('Name', 'The name of the kit.', { defaultValue: kitName })
-                .textField('Description', 'A short description of the kit.', { defaultValue: kit.description || '' })
-                .textField('Icon', 'Texture path for the icon (e.g., textures/items/diamond_sword).', {
-                    defaultValue: kit.icon || ''
-                })
-                .textField('Cooldown (seconds)', 'Time between uses.', { defaultValue: String(kit.cooldownSeconds) })
-                .textField('Permission Level', '0=Admin, 1024=Member.', { defaultValue: String(kit.permissionLevel) })
-                .textField('Price', 'Cost to claim the kit.', { defaultValue: String(kit.price || 0) });
-
-            return form;
-        }
-
-        if (panelId.startsWith('rankActionMenu_')) {
-            const rankId = panelId.replace('rankActionMenu_', '');
-            const rank = rankManager.getRankById(rankId);
-            const form = new ActionFormData()
-                .title(`Manage Rank: ${rank?.name}`)
-                .button('Edit Rank', 'textures/ui/icon_setting')
-                .button('§4Delete Rank', 'textures/ui/trash')
-                .button('§l§8< Back', 'textures/gui/controls/left.png');
-            return form;
-        }
-
-        if (panelId === 'helpfulLinksManagementPanel') {
-            const panelDef = panelDefinitions[panelId];
-            const page = context.page || 1;
-            const form = new ActionFormData().title(`${panelDef.title} (Page ${page})`);
-            const links = helpfulLinksManager.getHelpfulLinks();
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            form.button('§l§2+ Add Link', 'textures/ui/color_plus');
-
-            const paginatedLinks = getPaginatedItems(links, page);
-
-            paginatedLinks.forEach((link, index) => {
-                const itemIndex = (page - 1) * itemsPerPage + index;
-                form.button(`${itemIndex + 1}. ${link.title}`);
-            });
-
-            if (links.length > itemsPerPage) {
-                addPaginationButtons(form, page, links.length);
-            }
-
-            return form;
-        }
-
-        if (panelId === 'floatingTextListPanel') {
-            const { floatingTextManager } = await import('../floatingTextManager.js');
-            const form = new ActionFormData()
-                .title(panelDefinitions[panelId].title)
-                .button('§l§8< Back', 'textures/gui/controls/left.png')
-                .button('Placeholder List', 'textures/ui/infobulb')
-                .button('§l§2+ Create New', 'textures/ui/color_plus');
-
-            const texts = floatingTextManager.getAllTexts();
-            if (texts.length === 0) {
-                form.body('No floating texts have been created yet.');
-            } else {
-                for (const text of texts) {
-                    form.button(text.id);
-                }
-            }
-            return form;
-        }
-
-        if (panelId === 'floatingTextEditPanel') {
-            const { floatingTextManager } = await import('../floatingTextManager.js');
-            const id = context.id as string;
-            const text = floatingTextManager.getTextById(id);
-            if (!text) {
-                errorLog(`[UIManager] floatingTextEditPanel: Text with ID ${id} not found.`);
-                return null;
-            }
-
-            // Robust handling for update interval to prevent crashes with legacy data
-            const expiresAt = text.expiresAt ?? null;
-            const updateInterval = text.updateInterval ?? 0;
-
-            const dimensionOptions = ['Overworld', 'Nether', 'The End'];
-            const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
-            const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension));
-
-            const form = new ModalFormData()
-                .title(`Edit: ${id}`)
-                .textField('Text Content', 'Enter the text to display', { defaultValue: text.text ?? '' })
-                .textField('X Coordinate', 'Enter the X coordinate', {
-                    defaultValue: String(+(text.location?.x ?? 0).toFixed(2))
-                })
-                .textField('Y Coordinate', 'Enter the Y coordinate', {
-                    defaultValue: String(+(text.location?.y ?? 0).toFixed(2))
-                })
-                .textField('Z Coordinate', 'Enter the Z coordinate', {
-                    defaultValue: String(+(text.location?.z ?? 0).toFixed(2))
-                })
-                .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
-                .textField('Update Interval (ticks)', '0 to disable auto-update', { defaultValue: String(updateInterval) })
-                .toggle('Enable Expiration Timer', { defaultValue: !!expiresAt })
-                .textField('Expiration (minutes from now)', 'e.g., 60 for 1 hour', {
-                    defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0'
+    if (panelId === 'teamRequestsPanel') {
+        addBack('teamManagePanel');
+        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
+        const team = getTeamByPlayer(player.id);
+        if (team && team.applications.length > 0) {
+            team.applications.forEach((app) => {
+                items.push({
+                    id: app.playerId,
+                    text: app.playerName,
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'manageRequest'
                 });
-            return form;
+            });
         }
+        return items;
+    }
 
-        if (panelId === 'floatingTextCreatePanel') {
-            const form = new ModalFormData()
-                .title('Create New Floating Text')
-                .textField('Unique ID (no spaces)', 'e.g., "welcome_message"')
-                .textField('Text Content', 'Enter text to display');
-            return form;
-        }
-
-        if (panelId === 'addHelpfulLinkPanel') {
-            const panelDef = panelDefinitions[panelId];
-            const form = new ModalFormData()
-                .title(panelDef.title)
-                .textField('Link Title', 'Enter the link title (e.g., Discord)')
-                .textField('Link URL', 'Enter the full URL (e.g., https://discord.gg/example)');
-            return form;
-        }
-
-        if (panelId === 'helpfulLinkActionPanel') {
-            const panelDef = panelDefinitions[panelId];
-            const linkIndex = context.linkIndex as number | undefined;
-            const links = helpfulLinksManager.getHelpfulLinks();
-            const link = links[linkIndex ?? 0];
-
-            if (!link) {
-                errorLog(`[UIManager] Invalid link index for helpfulLinkActionPanel: ${String(linkIndex)}`);
-                await import('../uiManager.js').then(({ showPanel }) =>
-                    showPanel(player, 'helpfulLinksManagementPanel', context)
-                );
-                return null;
-            }
-
-            const form = new ActionFormData()
-                .title(panelDef.title)
-                .body(`Selected Link:\nTitle: ${link.title}\nURL: ${link.url}`)
-                .button('Edit', 'textures/ui/editIcon')
-                .button('Move Up', 'textures/gui/controls/up')
-                .button('Move Down', 'textures/gui/controls/down')
-                .button('§4Delete Link', 'textures/ui/trash')
-                .button('§l§8< Back', 'textures/gui/controls/left.png');
-            return form;
-        }
-
-        if (panelId.startsWith('kitActionMenu_')) {
-            const kitName = panelId.replace('kitActionMenu_', '');
-            const form = new ActionFormData()
-                .title(`Manage Kit: ${kitName}`)
-                .button('Edit Settings', 'textures/ui/icon_setting')
-                .button('Edit Items', 'textures/ui/inventory_icon')
-                .button('§4Delete Kit', 'textures/ui/cancel')
-                .button('§l§8< Back', 'textures/gui/controls/left.png');
-            return form;
-        }
-
-        if (panelId.startsWith('kitDetailPanel_')) {
-            const kitName = panelId.replace('kitDetailPanel_', '');
-            const kitsConfig = getKitsConfig();
-            const kit = kitsConfig.kitDefinitions[kitName];
-
-            if (!kit) {
-                errorLog(`[UIManager] Could not find kit for detail panel: ${kitName}`);
-                return null;
-            }
-
-            const form = new ModalFormData()
-                .title(`Edit Kit: ${kitName}`)
-                .toggle('Enable this kit', { defaultValue: kit.enabled })
-                .textField('Cooldown (seconds)', 'The time a player must wait between claiming this kit.', {
-                    defaultValue: String(kit.cooldownSeconds)
-                })
-                .textField('Permission Level', '0=Owner, 1=Admin, 2=Mod, 1024=Member. Lower is higher rank.', {
-                    defaultValue: String(kit.permissionLevel ?? 1024)
+    if (panelId === 'teamInvitesPanel') {
+        addBack('teamMainPanel');
+        const invites = pData.pendingInvites || [];
+        if (invites.length > 0) {
+            invites.forEach((invite) => {
+                const date = new Date(invite.timestamp).toLocaleDateString();
+                items.push({
+                    id: String(invite.teamId),
+                    text: `${invite.teamName}\n§8Received: ${date}`,
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'manageInvite'
                 });
+            });
+            items.push({ id: 'denyAll', text: '§4Deny All Invites', icon: 'textures/ui/cancel', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'denyAllInvites' });
+        }
+        return items;
+    }
 
-            return form;
+    // --- Player Lists ---
+    if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
+        addBack('mainPanel');
+        items.push({ id: 'searchPlayer', text: '§l§2Search', icon: 'textures/ui/magnifyingGlass', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'playerSearchPanel' });
+
+        const isOnlineList = panelId === 'playerListPanel';
+        let playerEntries: { name: string; id: string }[] = [];
+
+        if (isOnlineList) {
+            playerEntries = Array.from(mc.world.getAllPlayers()).map((p) => ({ name: p.name, id: p.id }));
+        } else {
+            const map = getAllPlayerNameIdMap();
+            playerEntries = Array.from(map.entries()).map(([name, id]) => ({ name, id }));
+        }
+        playerEntries.sort((a, b) => a.name.localeCompare(b.name));
+
+        const paginated = getPaginatedItems(playerEntries, context.page || 1);
+        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
+        const config = getConfig();
+
+        for (const entry of paginated) {
+            const targetP = isOnlineList ? mc.world.getAllPlayers().find((p) => p.id === entry.id) : null;
+            const rank = targetP ? rankManager.getPlayerRank(targetP, config) : rankManager.getRankById(loadPlayerData(entry.id)?.rankId || '');
+            const team = getTeamByPlayer(entry.id);
+            const prefix = rank?.chatFormatting?.prefixText ? `§6[§r${rank.chatFormatting.prefixText}§6]§r ` : '';
+            const teamSuffix = team ? `\n§6[§r${team.name}§6]` : '';
+
+            items.push({
+                id: entry.id,
+                text: `${prefix}${entry.name}${teamSuffix}`,
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'playerActionsPanel'
+            });
+        }
+        addPaginationButtonsToItems(items, context.page || 1, playerEntries.length);
+        return items;
+    }
+
+    if (panelId === 'playerActionsPanel') {
+        const visible = getVisiblePlayerActionItems(context, permissionLevel, player.id);
+        return visible;
+    }
+
+    // --- Misc Panels ---
+    if (panelId === 'rulesManagementPanel') {
+        addBack('mainPanel');
+        if (permissionLevel <= 1) {
+            items.push({ id: 'addRule', text: '§l§2+ Add Rule', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: 'addRulePanel' });
+        }
+        const rules = rulesManager.getRules();
+        const paginated = getPaginatedItems(rules, context.page || 1);
+        paginated.forEach((rule, idx) => {
+            const realIndex = (context.page! - 1) * itemsPerPage + idx;
+            items.push({
+                id: String(realIndex),
+                text: rule,
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'ruleActionPanel'
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, rules.length);
+        return items;
+    }
+
+    // --- Economy & Mob Drops ---
+    if (panelId === 'mobDropsSystemPanel') {
+        addBack('economyPanel');
+        items.push({ id: 'addMob', text: '§l§2+ Add New Mob§r', icon: 'textures/ui/realms_green_check.png', permissionLevel: 1, actionType: 'openPanel', actionValue: 'addMobDropPanel' });
+
+        const economyConfig = getEconomyConfig();
+        const mobIds = Object.keys(economyConfig.mobMoney || {}).sort();
+        const paginated = getPaginatedItems(mobIds, context.page || 1);
+
+        paginated.forEach((mobId) => {
+            const amount = economyConfig.mobMoney[mobId];
+            const icon = resolveIcon(`${mobId}_spawn_egg`);
+            items.push({
+                id: mobId,
+                text: `${mobId}\n§2${formatCurrency(amount)}`,
+                icon: icon,
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'editMobDropPanel'
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, mobIds.length);
+        return items;
+    }
+
+    // --- Kits ---
+    if (panelId === 'kitManagementPanel') {
+        addBack('configCategoryPanel');
+        const mainConfig = getConfig() as unknown as MainConfig;
+        const isEnabled = mainConfig.kits.enabled;
+        items.push({ id: 'toggleKits', text: isEnabled ? '§2Kit System: ENABLED' : '§4Kit System: DISABLED', icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', permissionLevel: 1, actionType: 'functionCall', actionValue: 'toggleKits' });
+        items.push({ id: 'createKit', text: '§l§2+ Create New Kit', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'functionCall', actionValue: 'createKit' });
+
+        const allKits = getAllKits();
+        const kitNames = Object.keys(allKits);
+        const paginated = getPaginatedItems(kitNames, context.page || 1);
+        paginated.forEach((name) => {
+            const kit = allKits[name];
+            items.push({
+                id: name,
+                text: `${name}\n${kit.enabled ? '§2[Enabled]' : '§4[Disabled]'}`,
+                icon: 'textures/ui/inventory_icon',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: `kitActionMenu_${name}`
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, kitNames.length);
+        return items;
+    }
+
+    if (panelId.startsWith('kitActionMenu_')) {
+        const kitName = panelId.replace('kitActionMenu_', '');
+        addBack('kitManagementPanel');
+        items.push({ id: 'editSettings', text: 'Edit Settings', icon: 'textures/ui/icon_setting', permissionLevel: 1, actionType: 'openPanel', actionValue: `kitSettingsPanel_${kitName}` });
+        items.push({ id: 'editItems', text: 'Edit Items', icon: 'textures/ui/inventory_icon', permissionLevel: 1, actionType: 'openPanel', actionValue: `kitItemsPanel_${kitName}` });
+        items.push({ id: 'deleteKit', text: '§4Delete Kit', icon: 'textures/ui/cancel', permissionLevel: 1, actionType: 'functionCall', actionValue: 'deleteKit' });
+        return items;
+    }
+
+    if (panelId.startsWith('kitItemsPanel_')) {
+        const kitName = panelId.replace('kitItemsPanel_', '');
+        addBack(`kitActionMenu_${kitName}`);
+        items.push({ id: 'addItem', text: '§l§2+ Add New Item', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'functionCall', actionValue: 'addKitItem' });
+
+        const allKits = getAllKits();
+        const kit = allKits[kitName];
+        if (kit) {
+            const paginated = getPaginatedItems(kit.items, context.page || 1);
+            paginated.forEach((item, idx) => {
+                const realIdx = (context.page! - 1) * itemsPerPage + idx;
+                items.push({
+                    id: String(realIdx),
+                    text: `${realIdx + 1}. ${item.typeId.replace('minecraft:', '')} x${item.amount}`,
+                    icon: 'textures/items/item_frame',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'removeKitItem'
+                });
+            });
+            addPaginationButtonsToItems(items, context.page || 1, kit.items.length);
+        }
+        return items;
+    }
+
+    // --- Bounties & Reports ---
+    if (panelId === 'bountyListPanel') {
+        addBack('gameplayPanel');
+        const allBounties = Array.from(bountyManager.getAllBounties().values()).sort((a, b) => b.amount - a.amount);
+        const paginated = getPaginatedItems(allBounties, context.page || 1);
+        paginated.forEach((bounty) => {
+            items.push({
+                id: bounty.targetId,
+                text: `${bounty.name}\n§6${formatCurrency(bounty.amount)}`,
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'viewBounty' // Placeholder
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, allBounties.length);
+        return items;
+    }
+
+    if (panelId === 'reportListPanel') {
+        addBack('adminPanel');
+        const reports = reportManager.getAllReports().filter(r => r.status === 'open' || r.status === 'assigned').sort((a, b) => a.timestamp - b.timestamp);
+        const paginated = getPaginatedItems(reports, context.page || 1);
+        paginated.forEach((report) => {
+            const statusColor = report.status === 'assigned' ? '§6' : '§4';
+            items.push({
+                id: report.id,
+                text: `[${statusColor}${report.status.toUpperCase()}§r] ${report.reportedPlayerName}\n§8Reported by: ${report.reporterName}`,
+                permissionLevel: 2,
+                actionType: 'openPanel',
+                actionValue: 'reportActionsPanel' // Needs context injection (selectedItemId)
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, reports.length);
+        return items;
+    }
+
+    // --- Config Lists (Xray, Sidebar, Commands) ---
+    if (panelId === 'xrayOresPanel') {
+        addBack('configCategoryPanel');
+        items.push({ id: 'addOre', text: '§l§2+ Add New Ore§r', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: 'addXrayOrePanel' });
+        const xrayConfig = getXrayConfig();
+        const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a, b) => a.oreName.localeCompare(b.oreName));
+        ores.forEach((ore, idx) => {
+            items.push({
+                id: String(idx),
+                text: `§6${ore.oreName}§r\n§8${ore.blocks?.[0]?.blockId ?? 'Unknown'}`,
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'editXrayOrePanel' // Context: oreIndex (selectedItemId)
+            });
+        });
+        return items;
+    }
+
+    if (panelId === 'commandSystemPanel') {
+        addBack('configCategoryPanel');
+        const config = getConfig() as unknown as MainConfig;
+        const allCommands = Object.keys(config.commandSettings || {}).filter(c => !c.startsWith('_')).sort();
+        const paginated = getPaginatedItems(allCommands, context.page || 1);
+        paginated.forEach((cmd) => {
+            const enabled = config.commandSettings[cmd]?.enabled ?? false;
+            items.push({
+                id: cmd,
+                text: `${cmd}\n${enabled ? '§2[Enabled]' : '§4[Disabled]'}`,
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'commandSettingsPanel' // Context: commandName (selectedItemId)
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, allCommands.length);
+        return items;
+    }
+
+    if (panelId === 'sidebarLinesPanel' || panelId === 'actionBarLinesPanel') {
+        addBack('sidebarMainPanel');
+        const isSidebar = panelId === 'sidebarLinesPanel';
+        items.push({ id: 'addLine', text: '§l§2+ Add Line', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: isSidebar ? 'sidebarLineAddPanel' : 'actionBarLineAddPanel' });
+
+        const { getSidebarConfig } = await import('../configurations.js');
+        const sbConfig = getSidebarConfig();
+        const lines = isSidebar ? sbConfig.sidebarLines : sbConfig.actionBarLines;
+
+        lines.forEach((line, idx) => {
+            items.push({
+                id: String(idx),
+                text: `${idx + 1}. ${line}`,
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: isSidebar ? 'sidebarLineEditPanel' : 'actionBarLineEditPanel' // Context: lineIndex
+            });
+        });
+        return items;
+    }
+
+    if (panelId === 'rankManagementPanel') {
+        addBack('configCategoryPanel');
+        items.push({ id: 'addRank', text: 'Create New Rank', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: 'addRankPanel' });
+        items.push({ id: 'rankSettings', text: 'Settings', icon: 'textures/ui/settings_glyph_color_2x', permissionLevel: 1, actionType: 'openPanel', actionValue: 'rankSettingsPanel' });
+
+        const allRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);
+        const paginated = getPaginatedItems(allRanks, context.page || 1);
+        paginated.forEach((rank) => {
+            items.push({
+                id: rank.id,
+                text: `${rank.name}\n§8(ID: ${rank.id}, Level: ${rank.permissionLevel})`,
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'editRankPanel' // Context: rankId
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, allRanks.length);
+        return items;
+    }
+
+    if (panelId === 'helpfulLinksManagementPanel') {
+        addBack('infoPanel');
+        items.push({ id: 'addLink', text: '§l§2+ Add Link', icon: 'textures/ui/color_plus', permissionLevel: 1024, actionType: 'openPanel', actionValue: 'addHelpfulLinkPanel' });
+        const links = helpfulLinksManager.getHelpfulLinks();
+        const paginated = getPaginatedItems(links, context.page || 1);
+        paginated.forEach((link, idx) => {
+            const realIdx = (context.page! - 1) * itemsPerPage + idx;
+            items.push({
+                id: String(realIdx),
+                text: `${realIdx + 1}. ${link.title}`,
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'helpfulLinkActionPanel' // Context: linkIndex
+            });
+        });
+        addPaginationButtonsToItems(items, context.page || 1, links.length);
+        return items;
+    }
+
+    if (panelId === 'floatingTextListPanel') {
+        addBack('adminPanel');
+        items.push({ id: 'placeholders', text: 'Placeholder List', icon: 'textures/ui/infobulb', permissionLevel: 1, actionType: 'openPanel', actionValue: 'placeholderListPanel' });
+        items.push({ id: 'create', text: '§l§2+ Create New', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: 'floatingTextCreatePanel' });
+
+        const { floatingTextManager } = await import('../floatingTextManager.js');
+        const texts = floatingTextManager.getAllTexts();
+        texts.forEach((text) => {
+            items.push({
+                id: text.id,
+                text: text.id,
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'floatingTextActionPanel' // Context: id
+            });
+        });
+        return items;
+    }
+
+    if (panelId === 'floatingTextActionPanel') {
+        addBack('floatingTextListPanel');
+        items.push({ id: 'edit', text: 'Edit Settings', icon: 'textures/ui/icon_setting', permissionLevel: 1, actionType: 'openPanel', actionValue: 'floatingTextEditPanel' });
+        items.push({ id: 'respawn', text: 'Respawn', icon: 'textures/ui/refresh_light', permissionLevel: 1, actionType: 'functionCall', actionValue: 'respawnFloatingText' });
+        items.push({ id: 'despawn', text: 'Despawn', icon: 'textures/ui/cancel', permissionLevel: 1, actionType: 'functionCall', actionValue: 'despawnFloatingText' });
+        items.push({ id: 'delete', text: '§4Delete', icon: 'textures/ui/trash', permissionLevel: 1, actionType: 'functionCall', actionValue: 'deleteFloatingText' });
+        return items;
+    }
+
+    // --- Default Registry Fallback ---
+    const def = panelDefinitions[panelId];
+    if (def) {
+        return getStaticMenuItems(def, permissionLevel);
+    }
+
+    return items;
+}
+
+// --- Helper for Pagination Buttons ---
+function addPaginationButtonsToItems(items: PanelItem[], page: number, totalItems: number) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (page > 1) {
+        items.push({ id: '__prev__', text: '§6< Previous Page', icon: 'textures/ui/arrow_left.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'prevPage' });
+    }
+    if (page < totalPages) {
+        items.push({ id: '__next__', text: '§6Next Page >', icon: 'textures/ui/arrow_right.png', permissionLevel: 1024, actionType: 'functionCall', actionValue: 'nextPage' });
+    }
+}
+
+// --- Form Builder ---
+
+export async function buildPanelForm(player: mc.Player, panelId: string, context: UIContext): Promise<ActionFormData | ModalFormData | null> {
+    try {
+        // Modal Forms (Handled directly)
+        if (panelId.startsWith('config_') ||
+            panelId === 'teamCreatePanel' ||
+            panelId === 'teamSearchPanel' ||
+            panelId === 'playerSearchPanel' ||
+            panelId === 'teamSettingsPanel' ||
+            panelId === 'addRulePanel' ||
+            panelId === 'addHelpfulLinkPanel' ||
+            panelId === 'floatingTextCreatePanel' ||
+            panelId === 'floatingTextEditPanel' ||
+            panelId === 'addMobDropPanel' ||
+            panelId === 'editMobDropPanel' ||
+            panelId === 'addRankPanel' ||
+            panelId === 'editRankPanel' ||
+            panelId === 'rankSettingsPanel' ||
+            panelId === 'sidebarLineEditPanel' ||
+            panelId === 'sidebarLineAddPanel' ||
+            panelId === 'commandSettingsPanel' ||
+            panelId === 'addXrayOrePanel' ||
+            panelId === 'editXrayOrePanel' ||
+            panelId.startsWith('kitSettingsPanel_') ||
+            panelId.startsWith('kitDetailPanel_')
+        ) {
+             return buildModalForm(player, panelId, context);
         }
 
-        if (panelId === 'configCategoryPanel') {
-            const page = context.page || 1;
-            const form = new ActionFormData().title(`Configuration (Page ${page})`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
+        // Action Forms (Use getPanelItems)
+        const items = await getPanelItems(player, panelId, context);
+        const form = new ActionFormData();
 
-            const categories = getVisibleCategories(pData);
-            const paginatedCategories = getPaginatedItems(categories, page);
-
-            for (const cat of paginatedCategories) {
-                form.button(cat.title, cat.icon);
-            }
-
-            if (pData.permissionLevel === 0) {
-                form.button('§l§cReset Settings§r', 'textures/ui/wysiwyg_reset');
-            }
-
-            addPaginationButtons(form, page, categories.length);
-            return form;
-        }
-
-        if (panelId.startsWith('configSubCategoryPanel_')) {
-            const category = panelId.replace('configSubCategoryPanel_', '');
-            const page = context.page || 1;
-            const form = new ActionFormData().title(`§l§3${category} Settings§r (Page ${page})`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            const systems = getSystemsByCategory(pData, category);
-            const paginatedSystems = getPaginatedItems(systems, page);
-
-            for (const system of paginatedSystems) {
-                form.button(system.title, system.icon);
-            }
-
-            addPaginationButtons(form, page, systems.length);
-            return form;
-        }
-
-        if (panelId === 'configResetPanel') {
-            const page = context.page || 1;
-            const form = new ActionFormData().title(`Reset Configuration (Page ${page})`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            const categories = getVisibleCategories(pData);
-            const paginatedCategories = getPaginatedItems(categories, page);
-
-            for (const cat of paginatedCategories) {
-                form.button(`Reset ${cat.title}`, cat.icon);
-            }
-
-            if (page >= Math.ceil(categories.length / itemsPerPage)) {
-                form.button('§l§4Reset All Systems', 'textures/ui/trash');
-            }
-
-            addPaginationButtons(form, page, categories.length);
-            return form;
-        }
-
-        if (panelId.startsWith('configResetCategoryPanel_')) {
-            const category = panelId.replace('configResetCategoryPanel_', '');
-            const page = context.page || 1;
-            const form = new ActionFormData().title(`Reset: ${category} (Page ${page})`);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-
-            const systems = getSystemsByCategory(pData, category);
-            const paginatedSystems = getPaginatedItems(systems, page);
-
-            form.button(`§l§4Reset All ${category}§r`, 'textures/ui/trash');
-
-            for (const system of paginatedSystems) {
-                form.button(`§4Reset ${system.title}`, system.icon);
-            }
-
-            addPaginationButtons(form, page, systems.length);
-            return form;
-        }
-
+        // Set Title & Body
         const panelDef = panelDefinitions[panelId];
-        if (!panelDef) {
-            debugLog(`[UIManager] Panel definition not found for '${panelId}'.`);
-            return null;
-        }
-        const pData = getPlayer(player.id);
-        if (!pData) {
-            debugLog(`[UIManager] Player data not found for ${player.name} (viewer). Cannot build panel.`);
-            player.sendMessage('§4Could not find your player data. Please rejoin and try again.');
-            return null;
-        }
-        let title = panelDef.title.replace('{playerName}', context.targetPlayerName ?? '');
+        let title = panelDef ? panelDef.title : panelId;
+        // Generic title fallback
+        if (context.customTitle) title = context.customTitle;
+        if (panelId.startsWith('shopCategoryPanel_')) title = `§l§2Shop - ${context.categoryName}`;
+        if (panelId.startsWith('shopItemListPanel_')) title = `§l§2Shop - ${context.subCategoryName}`;
+        form.title(title);
 
-        if (context.customTitle) {
-            title = context.customTitle;
-        } else if (panelId === 'mainPanel') {
-            const config = getConfig();
-            title = config.serverName || panelDef.title;
-        }
-
-        if (panelId === 'bountyListPanel') {
-            return buildBountyListForm(title, context);
-        }
-        if (panelId === 'reportListPanel') {
-            return buildReportListForm(title, context);
-        }
-        if (panelId === 'playerManagementPanel') {
-            return buildPlayerManagementForm(title, context);
-        }
-        if (panelId === 'playerListPanel') {
-            return buildPlayerListForm(title, context);
-        }
-
-        if (panelId === 'rulesManagementPanel') {
-            const page = context.page || 1;
-            const form = new ActionFormData().title(`${title} (Page ${page})`);
-            const rules = rulesManager.getRules();
-
-            const isAdmin = pData.permissionLevel <= 1;
-
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            if (isAdmin) {
-                form.button('§l§2+ Add Rule', 'textures/ui/color_plus');
-            }
-
-            const paginatedRules = getPaginatedItems(rules, page);
-
-            paginatedRules.forEach((rule) => {
-                form.button(rule);
-            });
-
-            if (rules.length > itemsPerPage) {
-                addPaginationButtons(form, page, rules.length);
-            }
-
-            return form;
-        }
-
-        if (panelId === 'addRulePanel') {
-            const form = new ModalFormData().title(panelDef.title).textField('New rule text', 'Enter the new rule');
-            return form;
-        }
-
-        if (panelId === 'ruleActionPanel') {
-            const ruleIndex = context.ruleIndex as number | undefined;
-            const rules = rulesManager.getRules();
-            const ruleText = rules[ruleIndex ?? 0] || 'Invalid Rule';
-
-            const form = new ActionFormData()
-                .title(panelDef.title)
-                .body(`Selected Rule: ${ruleText}`)
-                .button('Edit Text', 'textures/ui/editIcon')
-                .button('Move Up', 'textures/gui/controls/up')
-                .button('Move Down', 'textures/gui/controls/down')
-                .button('§4Delete Rule', 'textures/ui/trash')
-                .button('§l§8< Back', 'textures/gui/controls/left.png');
-            return form;
-        }
-
-        if (panelId === 'shopMainPanel') {
-            const form = new ActionFormData().title(title);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            buildShopMainPanel(form, context);
-            return form;
-        }
-        // --- Admin Edit Shop Panels ---
-        if (panelId === 'shopManagementPanel') {
-            const form = new ActionFormData().title(title);
-            buildShopAdminMainPanel(form, context);
-            return form;
-        }
-
-        if (panelId === 'kitManagementPanel') {
-            const form = new ActionFormData().title(title);
-            buildKitManagementPanel(form, context);
-            return form;
-        }
-
-        if (panelId === 'commandSystemPanel') {
-            const form = new ActionFormData().title(title);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            buildCommandSystemPanel(form, context);
-            return form;
-        }
-
-        if (panelId === 'placeholderListPanel') {
-            const form = new ActionFormData().title('Placeholder List');
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            form.body(
-                `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
-                    `{server_name}, {tps}, {online}, {max_players}, {time}, {date}\n\n` +
-                    `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
-                    `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
-            );
-            return form;
-        }
-
-        if (panelId === 'commandSettingsPanel') {
-            const commandName = context.commandName as string | undefined;
-            const config = getConfig() as unknown as MainConfig;
-            const allSettings = config.commandSettings || {};
-            const commandSettings = allSettings[commandName ?? ''] || {};
-            const command = commandManager.commands.get(commandName ?? '');
-
-            const isEnabled = commandSettings.enabled ?? false;
-            const permissionLevel = commandSettings.permissionLevel ?? command?.permissionLevel ?? 1024;
-
-            const form = new ModalFormData()
-                .title(`${commandName} Settings`)
-                .toggle('Enable Command', { defaultValue: isEnabled })
-                .textField('Permission Level', 'Enter a number (e.g., 0 for admin, 1024 for member)', {
-                    defaultValue: String(permissionLevel)
-                });
-
-            return form;
-        }
-
-        if (panelId === 'rankManagementPanel') {
-            const form = new ActionFormData().title(title);
-            buildRankManagementPanel(form, { ...context, player });
-            return form;
-        }
-
-        if (panelId === 'addMobDropPanel') {
-            const form = new ModalFormData().title('§l§2Add Mob Drop');
-            form.textField('Mob ID', 'e.g., minecraft:creeper');
-            form.textField('Amount', 'e.g., 10');
-            return form;
-        }
-
-        if (panelId === 'editMobDropPanel') {
-            const mobId = context.mobId as string | undefined;
-            const economyConfig = getEconomyConfig();
-            const currentAmount = economyConfig.mobMoney[mobId ?? ''] ?? 0;
-            const form = new ActionFormData()
-                .title(`Edit: ${mobId}`)
-                .body(`Current amount: §2${formatCurrency(currentAmount)}`)
-                .button('§l§6Edit Amount§r', 'textures/ui/icon_setting')
-                .button('§l§4Delete Mob Drop§r', 'textures/ui/trash')
-                .button('§l§8< Back', 'textures/gui/controls/left.png');
-            return form;
-        }
-
-        // Removed duplicate addMobDropPanel block
-
-        if (panelId === 'addRankPanel') {
-            const form = new ModalFormData().title('§l§2Add New Rank');
-            form.textField('Rank Name', 'e.g., VIP');
-            form.textField('Rank ID (tag)', 'e.g., vip (lowercase, no spaces)');
-            form.textField('Permission Level', '0-1024 (lower is more powerful)');
-            form.textField('Name Color', 'e.g., §6');
-            form.textField('Chat Color', 'e.g., §6');
-            form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]');
-            return form;
-        }
-
-        if (panelId === 'mobDropsSystemPanel') {
-            const page = (context.page as number) || 1;
-            const form = new ActionFormData().title('§l§2Mob Drops System');
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            form.button('§l§2+ Add New Mob§r', 'textures/ui/realms_green_check.png');
-
-            const economyConfig = getEconomyConfig();
-            const mobDrops = economyConfig.mobMoney || {};
-            const mobIds = Object.keys(mobDrops).sort();
-
-            if (mobIds.length === 0) {
-                form.body('§4No mob drops have been configured.');
-                return form;
-            }
-
-            const paginatedMobIds = getPaginatedItems(mobIds, page);
-
-            for (const mobId of paginatedMobIds) {
-                const amount = mobDrops[mobId];
-                // Check if we have a specific spawn egg icon for this mob
-                const spawnEggId = `${mobId}_spawn_egg`;
-                const icon = resolveIcon(spawnEggId);
-
-                form.button(`${mobId}\n§2${formatCurrency(amount)}`, icon);
-            }
-
-            addPaginationButtons(form, page, mobIds.length);
-            return form;
-        }
-
-        if (panelId === 'sidebarLinesPanel' || panelId === 'actionBarLinesPanel') {
-            const isSidebar = panelId === 'sidebarLinesPanel';
-            const { getSidebarConfig } = await import('../configurations.js');
-            const config = getSidebarConfig();
-            const lines = isSidebar ? config.sidebarLines : config.actionBarLines;
-
-            const form = new ActionFormData().title(isSidebar ? 'Sidebar Lines' : 'HUD Lines');
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            form.button('§l§2+ Add Line', 'textures/ui/color_plus');
-
-            for (let i = 0; i < lines.length; i++) {
-                form.button(`${i + 1}. ${lines[i]}`);
-            }
-            return form;
-        }
-
-        if (panelId === 'sidebarLineEditPanel' || panelId === 'actionBarLineEditPanel') {
-            const isSidebar = panelId === 'sidebarLineEditPanel';
-            const { getSidebarConfig } = await import('../configurations.js');
-            const config = getSidebarConfig();
-            const lines = isSidebar ? config.sidebarLines : config.actionBarLines;
-            const index = context.lineIndex ?? 0;
-            const line = lines[index] ?? '';
-
-            const form = new ModalFormData()
-                .title(`Edit Line ${index + 1}`)
-                .textField('Content', 'Supports {money}, {name}, etc.', { defaultValue: line });
-
-            return form;
-        }
-
-        if (panelId === 'sidebarLineAddPanel' || panelId === 'actionBarLineAddPanel') {
-            const form = new ModalFormData().title('Add Line').textField('Content', 'Supports {money}, {name}, etc.');
-            return form;
-        }
-
-        if (panelId === 'rankSettingsPanel') {
-            const config = getConfig() as unknown as MainConfig;
-            const form = new ModalFormData().title('§l§2Rank Settings');
-            const nameTagStyles = ['Above Name', 'Before Name', 'After Name', 'Under Name'];
-            const internalStyles = ['above', 'before', 'after', 'under'];
-            const currentStyle = config.ranks?.nameTagStyle || 'above';
-            const defaultIndex = internalStyles.indexOf(currentStyle);
-
-            form.dropdown('Nametag Style', nameTagStyles, {
-                defaultValueIndex: defaultIndex > -1 ? defaultIndex : 0
-            });
-            return form;
-        }
-
-        if (panelId === 'editRankPanel') {
-            const rankId = context.rankId as string | undefined;
-            const rank = rankManager.getRankById(rankId ?? '');
-            if (!rank) {
-                errorLog(`[UIManager] Edit rank panel: rank with ID ${String(rankId)} not found.`);
-                return null;
-            }
-
-            const form = new ModalFormData().title(`§l§3Edit Rank: ${rank?.name}`);
-            form.textField('Rank Name', 'e.g., VIP', { defaultValue: rank.name });
-            // Note: 'disabled' is removed as it's not supported in the types
-            form.textField('Rank ID (tag)', 'e.g., vip', { defaultValue: rank.id });
-            form.textField('Permission Level', '0-1024', { defaultValue: String(rank.permissionLevel) });
-            form.textField('Name Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.nameColor ?? '' });
-            form.textField('Chat Color', 'e.g., §6', { defaultValue: rank.chatFormatting?.messageColor ?? '' });
-            form.textField('Chat Prefix', 'e.g., §8[§6VIP§8]', {
-                defaultValue: rank.chatFormatting?.prefixText ?? ''
-            });
-            form.textField('Nametag Prefix', 'e.g., §6VIP', { defaultValue: rank.nametagPrefix ?? '' });
-            return form;
-        }
-
-        if (panelId === 'xrayOresPanel') {
-            const xrayConfig = getXrayConfig();
-            const form = new ActionFormData().title(panelDefinitions[panelId].title);
-            form.button('§l§8< Back', 'textures/gui/controls/left.png');
-            form.button('§l§2+ Add New Ore§r', 'textures/ui/color_plus');
-            // Use monitoredOreTypes if monitoredOres doesn't exist or as needed.
-            // Assuming config migration logic or legacy support:
-            const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a, b) =>
-                a.oreName.localeCompare(b.oreName)
-            );
-            if (ores.length === 0) {
-                form.body('No ores are being monitored.');
-            } else {
-                for (const ore of ores) {
-                    const blockId = ore.blocks?.[0]?.blockId ?? 'Unknown';
-                    form.button(`§6${ore.oreName}§r\n§8${blockId}`);
-                }
-            }
-            return form;
-        }
-
-        if (panelId === 'addXrayOrePanel') {
-            const form = new ModalFormData().title('§l§4Add Monitored Ore');
-            form.textField('Block ID', 'e.g., minecraft:diamond_ore');
-            form.textField('Dimension ID', 'e.g., minecraft:overworld');
-            form.textField('Min Y', 'e.g., -64');
-            form.textField('Max Y', 'e.g., 16');
-            form.textField('Ore Name', 'e.g., Diamond Ore');
-            return form;
-        }
-
-        if (panelId === 'editXrayOrePanel') {
-            const xrayConfig = getXrayConfig();
-            const ores = Object.values(xrayConfig.monitoredOreTypes || {}).sort((a, b) =>
-                a.oreName.localeCompare(b.oreName)
-            );
-            const ore = ores[(context.oreIndex as number) ?? 0];
-            const form = new ModalFormData().title('§l§4Edit Monitored Ore');
-            const blockId = ore.blocks?.[0]?.blockId ?? '';
-            const dimensionId = ore.blocks?.[0]?.dimensionId ?? '';
-            const minY = ore.blocks?.[0]?.minY ?? -64;
-            const maxY = ore.blocks?.[0]?.maxY ?? 16;
-
-            form.textField('Block ID', 'e.g., minecraft:diamond_ore', { defaultValue: blockId });
-            form.textField('Dimension ID', 'e.g., minecraft:overworld', { defaultValue: dimensionId });
-            form.textField('Min Y', 'e.g., -64', { defaultValue: String(minY) });
-            form.textField('Max Y', 'e.g., 16', { defaultValue: String(maxY) });
-            form.textField('Ore Name', 'e.g., Diamond Ore', { defaultValue: ore.oreName });
-            return form;
-        }
-
-
-        if (panelId === 'playerActionsPanel') {
-            panelDef.parentPanelId = context.fromPanel || 'mainPanel';
-            const form = new ActionFormData().title(title);
-            await addPanelBody(form, player, panelId, context);
-
-            const visibleItems = getVisiblePlayerActionItems(context, pData.permissionLevel, player.id);
-
-            for (const item of visibleItems) {
-                form.button(item.text, item.icon);
-            }
-            return form;
-        }
-
-        const form = new ActionFormData().title(title);
         await addPanelBody(form, player, panelId, context);
-        const menuItems = getMenuItems(panelDef, pData.permissionLevel);
-        for (const item of menuItems) {
+
+        for (const item of items) {
             form.button(item.text, item.icon);
         }
-        // debugLog(`[UIManager] Successfully built form for panel '${panelId}' with ${menuItems.length} items.`);
+
         return form;
+
     } catch (e) {
-        const textConfig =
-            panelId === 'floatingTextEditPanel' && context.id
-                ? (await import('../floatingTextManager.js')).floatingTextManager.getTextById(context.id as string)
-                : null;
-        errorLog(`[UIManager] Critical error while building form '${panelId}'.`, {
-            error: e,
-            context: context,
-            textConfig: textConfig
-        });
+        errorLog(`[UIManager] Error building panel ${panelId}`, e);
         return null;
     }
+}
+
+// --- Internal Modal Builder (Legacy Logic) ---
+async function buildModalForm(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    if (panelId.startsWith('config_')) {
+        const categoryId = panelId.replace('config_', '');
+        const category = configPanelSchema.find((c) => c.id === categoryId);
+        if (!category) return null;
+        const form = new ModalFormData().title(category.title);
+        const configSource = category.configSource || 'main';
+        const handler = configHandlers[configSource];
+        if (!handler) return null;
+        const config = handler.get() as unknown as Record<string, unknown>;
+
+        for (const setting of category.settings) {
+            const currentValue = getValueFromPath(config, setting.key);
+            if (setting.type === 'toggle') {
+                form.toggle(setting.label, { defaultValue: !!currentValue });
+            } else if (setting.type === 'textField') {
+                const val = currentValue ?? '';
+                const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
+                form.textField(setting.label, setting.description || '', { defaultValue: strVal });
+            } else if (setting.type === 'dropdown') {
+                let index = -1;
+                const options = setting.options || [];
+                if (setting.key === 'logLevel' && typeof currentValue === 'number') index = currentValue;
+                else index = options.indexOf(currentValue as string);
+                form.dropdown(setting.label, options, { defaultValueIndex: Math.max(0, index) });
+            }
+        }
+        return form;
+    }
+
+    if (panelId === 'teamCreatePanel') {
+        const teamConfig = getTeamConfig();
+        return new ModalFormData().title('Create Team').textField('Team Name', `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`);
+    }
+    if (panelId === 'teamSearchPanel') return new ModalFormData().title('Search Team').textField('Team ID', 'Enter ID');
+    if (panelId === 'playerSearchPanel') return new ModalFormData().title('Search Player').textField('Name', 'Enter name');
+
+    if (panelId === 'teamSettingsPanel') {
+        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
+        const pData = getOrCreatePlayer(player);
+        const team = getTeamByPlayer(player.id);
+        if (!team) return null;
+        const canManage = team.ownerId === player.id || team.admins.includes(player.id);
+        const form = new ModalFormData().title('Team Settings');
+        form.toggle('Auto-Accept Team Teleport', { defaultValue: pData.teamSettings?.autoTpAccept ?? false });
+        if (canManage) form.toggle('Allow Join Requests', { defaultValue: team.open ?? true });
+        return form;
+    }
+
+    if (panelId === 'addRulePanel') return new ModalFormData().title('Add Rule').textField('Rule', 'Enter rule');
+    if (panelId === 'addHelpfulLinkPanel') return new ModalFormData().title('Add Link').textField('Title', 'Title').textField('URL', 'URL');
+
+    if (panelId === 'floatingTextCreatePanel') {
+        return new ModalFormData().title('Create New Floating Text').textField('Unique ID (no spaces)', 'e.g., "welcome_message"').textField('Text Content', 'Enter text to display');
+    }
+
+    if (panelId === 'floatingTextEditPanel') {
+        const { floatingTextManager } = await import('../floatingTextManager.js');
+        const id = context.id as string;
+        const text = floatingTextManager.getTextById(id);
+        if (!text) return null;
+        const expiresAt = text.expiresAt ?? null;
+        const updateInterval = text.updateInterval ?? 0;
+        const dimensionOptions = ['Overworld', 'Nether', 'The End'];
+        const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
+        const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension));
+        return new ModalFormData()
+            .title(`Edit: ${id}`)
+            .textField('Text Content', 'Enter the text to display', { defaultValue: text.text ?? '' })
+            .textField('X', 'X', { defaultValue: String(+(text.location?.x ?? 0).toFixed(2)) })
+            .textField('Y', 'Y', { defaultValue: String(+(text.location?.y ?? 0).toFixed(2)) })
+            .textField('Z', 'Z', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
+            .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
+            .textField('Update Interval', '0 to disable', { defaultValue: String(updateInterval) })
+            .toggle('Expiration', { defaultValue: !!expiresAt })
+            .textField('Expiration (mins)', 'mins', { defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0' });
+    }
+
+    if (panelId === 'addMobDropPanel') return new ModalFormData().title('Add Mob Drop').textField('Mob ID', 'minecraft:creeper').textField('Amount', '10');
+
+    if (panelId === 'editMobDropPanel') {
+        const mobId = context.mobId as string | undefined;
+        const economyConfig = getEconomyConfig();
+        const currentAmount = economyConfig.mobMoney[mobId ?? ''] ?? 0;
+        return new ActionFormData()
+            .title(`Edit: ${mobId}`)
+            .body(`Current amount: §2${formatCurrency(currentAmount)}`)
+            .button('Edit Amount', 'textures/ui/icon_setting')
+            .button('Delete', 'textures/ui/trash')
+            .button('Back', 'textures/gui/controls/left.png') as any;
+    }
+
+    if (panelId === 'addRankPanel') return new ModalFormData().title('Add Rank').textField('Name', 'Name').textField('ID', 'tag').textField('Level', '0-1024').textField('Name Color', '§6').textField('Chat Color', '§f').textField('Prefix', 'Prefix');
+
+    if (panelId === 'editRankPanel') {
+        const rankId = context.rankId as string | undefined;
+        const rank = rankManager.getRankById(rankId ?? '');
+        if (!rank) return null;
+        return new ModalFormData()
+            .title(`Edit Rank: ${rank.name}`)
+            .textField('Name', 'Name', { defaultValue: rank.name })
+            .textField('ID', 'ID', { defaultValue: rank.id })
+            .textField('Level', 'Level', { defaultValue: String(rank.permissionLevel) })
+            .textField('Name Color', 'Color', { defaultValue: rank.chatFormatting?.nameColor })
+            .textField('Chat Color', 'Color', { defaultValue: rank.chatFormatting?.messageColor })
+            .textField('Prefix', 'Prefix', { defaultValue: rank.chatFormatting?.prefixText })
+            .textField('Nametag', 'Nametag', { defaultValue: rank.nametagPrefix });
+    }
+
+    if (panelId === 'rankSettingsPanel') {
+        const config = getConfig() as unknown as MainConfig;
+        const styles = ['Above Name', 'Before Name', 'After Name', 'Under Name'];
+        const internal = ['above', 'before', 'after', 'under'];
+        const current = config.ranks?.nameTagStyle || 'above';
+        const idx = internal.indexOf(current);
+        return new ModalFormData().title('Rank Settings').dropdown('Nametag Style', styles, { defaultValueIndex: Math.max(0, idx) });
+    }
+
+    if (panelId === 'sidebarLineEditPanel') {
+        const { getSidebarConfig } = await import('../configurations.js');
+        const config = getSidebarConfig();
+        const lines = config.sidebarLines;
+        const index = context.lineIndex ?? 0;
+        const line = lines[index] ?? '';
+        return new ModalFormData().title(`Edit Line ${index + 1}`).textField('Content', 'Content', { defaultValue: line });
+    }
+
+    if (panelId === 'commandSettingsPanel') {
+        const commandName = context.commandName as string;
+        const config = getConfig() as unknown as MainConfig;
+        const settings = config.commandSettings?.[commandName] || {};
+        return new ModalFormData().title(`${commandName} Settings`).toggle('Enable', { defaultValue: settings.enabled ?? false }).textField('Permission', 'Level', { defaultValue: String(settings.permissionLevel ?? 1024) });
+    }
+
+    if (panelId === 'addXrayOrePanel') return new ModalFormData().title('Add Ore').textField('Block', 'id').textField('Dim', 'id').textField('MinY', '-64').textField('MaxY', '320').textField('Name', 'Name');
+
+    if (panelId === 'editXrayOrePanel') {
+        const xrayConfig = getXrayConfig();
+        const ores = Object.values(xrayConfig.monitoredOreTypes || {});
+        const ore = ores[context.oreIndex as number];
+        return new ModalFormData().title('Edit Ore').textField('Block', 'id', { defaultValue: ore.blocks?.[0]?.blockId }).textField('Dim', 'id', { defaultValue: ore.blocks?.[0]?.dimensionId }).textField('MinY', 'min', { defaultValue: String(ore.blocks?.[0]?.minY) }).textField('MaxY', 'max', { defaultValue: String(ore.blocks?.[0]?.maxY) }).textField('Name', 'Name', { defaultValue: ore.oreName });
+    }
+
+    if (panelId.startsWith('kitSettingsPanel_')) {
+        const kitName = panelId.replace('kitSettingsPanel_', '');
+        const kitsConfig = getKitsConfig();
+        const kit = kitsConfig.kitDefinitions[kitName];
+        if (!kit) return null;
+        return new ModalFormData()
+            .title(`Edit Kit: ${kitName}`)
+            .toggle('Enabled', { defaultValue: kit.enabled })
+            .textField('Name', 'Name', { defaultValue: kitName })
+            .textField('Description', 'Description', { defaultValue: kit.description || '' })
+            .textField('Icon', 'Icon', { defaultValue: kit.icon || '' })
+            .textField('Cooldown', 'Cooldown', { defaultValue: String(kit.cooldownSeconds) })
+            .textField('Permission', 'Level', { defaultValue: String(kit.permissionLevel) })
+            .textField('Price', 'Price', { defaultValue: String(kit.price || 0) });
+    }
+
+    if (panelId.startsWith('kitDetailPanel_')) {
+        const kitName = panelId.replace('kitDetailPanel_', '');
+        const kitsConfig = getKitsConfig();
+        const kit = kitsConfig.kitDefinitions[kitName];
+        if (!kit) return null;
+        return new ModalFormData()
+            .title(`Edit Kit: ${kitName}`)
+            .toggle('Enabled', { defaultValue: kit.enabled })
+            .textField('Cooldown', 'Cooldown', { defaultValue: String(kit.cooldownSeconds) })
+            .textField('Permission', 'Level', { defaultValue: String(kit.permissionLevel ?? 1024) });
+    }
+
+    return null;
 }

@@ -175,7 +175,7 @@ export async function handleConfigPanel(
         }
 
         const paginatedCategories = getPaginatedItems(categories, page);
-        let buttonIndex = (selection && selection > 0 ? selection - 1 : -1);
+        let buttonIndex = selection && selection > 0 ? selection - 1 : -1;
 
         if (buttonIndex >= 0 && buttonIndex < paginatedCategories.length) {
             const category = paginatedCategories[buttonIndex];
@@ -199,7 +199,8 @@ export async function handleConfigPanel(
                     const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
                     if (finalConfirmResponse.canceled) return showPanel(player, panelId, context);
                     const confirmModal = finalConfirmResponse as ModalFormResponse;
-                    const confirmationValue = confirmModal.formValues && confirmModal.formValues[0] ? String(confirmModal.formValues[0]) : '';
+                    const confirmationValue =
+                        confirmModal.formValues && confirmModal.formValues[0] ? String(confirmModal.formValues[0]) : '';
                     if (confirmationValue.trim().toLowerCase() !== 'confirm') {
                         player.sendMessage('§4Final confirmation failed. Reset canceled.');
                         return showPanel(player, panelId, context);
@@ -241,7 +242,7 @@ export async function handleConfigPanel(
 
         const systems = getSystemsByCategory(pData, category);
         const paginatedSystems = getPaginatedItems(systems, page);
-        let buttonIndex = (selection && selection > 0 ? selection - 1 : -1);
+        let buttonIndex = selection && selection > 0 ? selection - 1 : -1;
 
         // Reset All In Category
         if (buttonIndex === 0) {

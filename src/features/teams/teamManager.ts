@@ -152,8 +152,9 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         return { success: false, message: `§cInsufficient funds. Cost: ${teamConfig.creationCost}` };
     }
 
-    // Deduct money
-    incrementPlayerBalance(player.id, -teamConfig.creationCost);
+    const cost = teamConfig.creationCost;
+    // Deduct money first
+    incrementPlayerBalance(player.id, -cost);
 
     const newTeamId = nextTeamId++;
     const newTeam: TeamData = {
@@ -169,13 +170,21 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         open: true
     };
 
-    activeTeams.set(newTeamId, newTeam);
-    saveTeam(newTeamId);
-    saveAllTeamIds();
-    saveNextTeamId();
-
-    // Update player data
-    setPlayerTeam(player.id, newTeamId);
+    // Transaction safety
+    try {
+        activeTeams.set(newTeamId, newTeam);
+        saveTeam(newTeamId);
+        saveAllTeamIds();
+        saveNextTeamId();
+        // Update player data last
+        setPlayerTeam(player.id, newTeamId);
+    } catch (e) {
+        // Rollback
+        incrementPlayerBalance(player.id, cost);
+        activeTeams.delete(newTeamId);
+        errorLog(`[TeamManager] Failed to create team, rolled back. Error: ${String(e)}`);
+        return { success: false, message: '§cFailed to create team due to storage error. Funds refunded.' };
+    }
 
     return { success: true, message: `§aTeam '${name}§a' created successfully!` };
 }

@@ -14,9 +14,5 @@ export const config = {
     ],
     actionBarEnabled: true,
     actionBarInterval: 20,
-    actionBarLines: [
-        '§2Money: {money}',
-        '§cK: {kills} §7| §4D: {deaths}',
-        '§6Streak: {streak} §7| §bKDR: {kdr}'
-    ]
+    actionBarLines: ['§2Money: {money}', '§cK: {kills} §7| §4D: {deaths}', '§6Streak: {streak} §7| §bKDR: {kdr}']
 };

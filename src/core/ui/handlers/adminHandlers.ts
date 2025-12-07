@@ -25,7 +25,7 @@ export async function handleAdminPanel(
             return showPanel(player, 'mainPanel', context);
         }
         if (selection === 1) {
-             // Placeholder List
+            // Placeholder List
             return showPanel(player, 'placeholderListPanel', context);
         }
         if (selection === 2) {

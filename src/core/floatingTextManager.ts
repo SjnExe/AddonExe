@@ -310,7 +310,13 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
     const textChanged = oldConfig.text !== newConfig.text;
     const intervalChanged = oldConfig.updateInterval !== newConfig.updateInterval;
 
-    if (!dimensionChanged && !positionChanged && !textChanged && !intervalChanged && isDeepEqual(oldConfig, newConfig)) {
+    if (
+        !dimensionChanged &&
+        !positionChanged &&
+        !textChanged &&
+        !intervalChanged &&
+        isDeepEqual(oldConfig, newConfig)
+    ) {
         debugLog(
             `[FloatingText] updateText called for ID: ${id}, but no functional changes were detected. Only saving.`
         );
@@ -342,7 +348,7 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                 }
 
                 if (dimensionChanged) {
-                     // Cross-dimension move requires respawn
+                    // Cross-dimension move requires respawn
                     debugLog(`[FloatingText] Dimension changed for ID: ${id}. Respawning.`);
                     await despawnText(id);
                     spawnText(newConfig);
@@ -357,10 +363,10 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                         entity.teleport(newConfig.location);
                         debugLog(`[FloatingText] Teleported entity for ID: ${id}.`);
                     } catch (e) {
-                         debugLog(`[FloatingText] Teleport failed for ID: ${id}, respawning. ${e}`);
-                         await despawnText(id);
-                         spawnText(newConfig);
-                         return;
+                        debugLog(`[FloatingText] Teleport failed for ID: ${id}, respawning. ${e}`);
+                        await despawnText(id);
+                        spawnText(newConfig);
+                        return;
                     }
                 }
 
@@ -369,7 +375,6 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                     lastResolvedText.set(id, resolved);
                     entity.nameTag = resolved.replace(/\\n/g, '\n');
                 }
-
             } catch (e: unknown) {
                 if (e instanceof Error) {
                     errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, e.stack);

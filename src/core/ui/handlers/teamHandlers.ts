@@ -7,8 +7,8 @@ import { getTeamConfig } from '../../configurations.js';
 import { loadPlayerData } from '../../playerDataManager.js';
 import { showPanel } from '../../uiManager.js';
 import { showConfirmationDialog } from '../components.js';
+import { getPanelItems } from '../panelBuilder.js';
 import { UIContext } from '../panelRegistry.js';
-import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 
 export async function handleTeamPanel(
     player: mc.Player,
@@ -18,51 +18,195 @@ export async function handleTeamPanel(
 ) {
     const selection = (response as ActionFormResponse).selection;
 
-    if (panelId === 'teamMainPanel') {
-        const { getTeamByPlayer } = await import('../../../features/teams/teamManager.js');
-        const team = getTeamByPlayer(player.id);
+    // Use HEADLESS BUILDER pattern for Action Forms
+    if (typeof selection === 'number') {
+        const items = await getPanelItems(player, panelId, context);
+        if (selection >= 0 && selection < items.length) {
+            const selectedItem = items[selection];
 
-        if (selection === 0) {
-            return showPanel(player, 'mainPanel');
-        }
+            // Basic Navigation
+            if (selectedItem.actionType === 'openPanel') {
+                return showPanel(player, selectedItem.actionValue, { ...context, page: 1 });
+            }
 
-        if (team) {
-            // Member/Owner view
-            switch (selection) {
-                case 1:
-                    return showPanel(player, 'teamMembersPanel');
-                case 2:
-                    return showPanel(player, 'teamManagePanel');
-                case 3:
-                    return showPanel(player, 'teamSettingsPanel');
-                case 4:
-                    // Leave Team
+            // Standard Back Button
+            if (selectedItem.id === '__back__') {
+                return showPanel(player, selectedItem.actionValue, { ...context, page: 1 });
+            }
+
+            // Pagination
+            if (selectedItem.id === '__prev__') {
+                const newPage = (context.page || 1) - 1;
+                return showPanel(player, panelId, { ...context, page: newPage });
+            }
+            if (selectedItem.id === '__next__') {
+                const newPage = (context.page || 1) + 1;
+                return showPanel(player, panelId, { ...context, page: newPage });
+            }
+
+            // --- Team Function Calls ---
+
+            if (selectedItem.actionValue === 'leaveTeam') {
+                await showConfirmationDialog(player, {
+                    title: 'Leave Team',
+                    body: 'Are you sure you want to leave your team?',
+                    confirmButtonText: '§4Leave',
+                    cancelButtonText: 'Cancel',
+                    onConfirm: () => {
+                        const result = teamManager.leaveTeam(player);
+                        player.sendMessage(result.message ?? '');
+                        return showPanel(player, 'teamMainPanel');
+                    },
+                    onCancel: () => showPanel(player, 'teamMainPanel')
+                });
+                return;
+            }
+
+            if (selectedItem.actionValue === 'applyToTeam') {
+                const teamId = Number(selectedItem.id);
+                const result = teamManager.applyToTeam(player, teamId);
+                player.sendMessage(result.message ?? '');
+                return showPanel(player, panelId, context);
+            }
+
+            if (selectedItem.actionValue === 'deleteTeam') {
+                const { getTeamByPlayer, getTeam } = await import('../../../features/teams/teamManager.js');
+                const { teamId } = context;
+                let team;
+                if (teamId) team = getTeam(Number(teamId));
+                else team = getTeamByPlayer(player.id);
+
+                if (team) {
                     await showConfirmationDialog(player, {
-                        title: 'Leave Team',
-                        body: 'Are you sure you want to leave your team?',
-                        confirmButtonText: '§4Leave',
+                        title: 'Delete Team',
+                        body: `Are you sure you want to delete ${team.name}?`,
+                        confirmButtonText: '§4Delete',
                         cancelButtonText: 'Cancel',
                         onConfirm: () => {
-                            const result = teamManager.leaveTeam(player);
-                            player.sendMessage(result.message ?? '');
+                            const success = teamManager.deleteTeam(team.id);
+                            if (success) {
+                                player.sendMessage('§aTeam deleted.');
+                            } else {
+                                player.sendMessage('§cFailed to delete team.');
+                            }
                             return showPanel(player, 'teamMainPanel');
                         },
-                        onCancel: () => showPanel(player, 'teamMainPanel')
+                        onCancel: () => showPanel(player, 'teamManagePanel', context)
                     });
-                    return;
+                }
+                return;
             }
-        } else {
-            // Non-member view
-            if (selection === 1) {
-                return showPanel(player, 'teamCreatePanel');
+
+            if (selectedItem.actionValue === 'teleportHome') {
+                teamManager.teleportToTeamHome(player);
+                return;
             }
-            if (selection === 2) {
-                return showPanel(player, 'teamBrowserPanel');
+
+            if (selectedItem.actionValue === 'setHome') {
+                const { getTeamByPlayer, getTeam } = await import('../../../features/teams/teamManager.js');
+                const { teamId } = context;
+                let team;
+                if (teamId) team = getTeam(Number(teamId));
+                else team = getTeamByPlayer(player.id);
+
+                if (team) {
+                    const result = teamManager.setTeamHome(team.id, player.location, player.dimension.id);
+                    player.sendMessage(result.message ?? '');
+                    return showPanel(player, 'teamHomePanel', context);
+                }
+                return;
+            }
+
+            if (selectedItem.actionValue === 'deleteHome') {
+                const { getTeamByPlayer, getTeam } = await import('../../../features/teams/teamManager.js');
+                const { teamId } = context;
+                let team;
+                if (teamId) team = getTeam(Number(teamId));
+                else team = getTeamByPlayer(player.id);
+
+                if (team) {
+                    const result = teamManager.deleteTeamHome(team.id);
+                    player.sendMessage(result.message ?? '');
+                    return showPanel(player, 'teamHomePanel', context);
+                }
+                return;
+            }
+
+            if (selectedItem.actionValue === 'manageRequest') {
+                const playerId = selectedItem.id;
+                const { getTeamByPlayer, getTeam } = await import('../../../features/teams/teamManager.js');
+                const { teamId } = context;
+                let team;
+                if (teamId) team = getTeam(Number(teamId));
+                else team = getTeamByPlayer(player.id);
+
+                if (team) {
+                    const request = team.applications.find(a => a.playerId === playerId);
+                    if (request) {
+                        await showConfirmationDialog(player, {
+                            title: 'Join Request',
+                            body: `Accept ${request.playerName} into the team?`,
+                            confirmButtonText: '§2Accept',
+                            cancelButtonText: '§4Deny',
+                            onConfirm: () => {
+                                // @ts-expect-error - team.id guaranteed
+                                const res = teamManager.acceptApplication(team.id, request.playerId);
+                                if (res.message) player.sendMessage(res.message ?? '');
+                                return showPanel(player, 'teamRequestsPanel', context);
+                            },
+                            onCancel: () => {
+                                // @ts-expect-error - team.id guaranteed
+                                const res = teamManager.denyApplication(team.id, request.playerId);
+                                if (res.message) player.sendMessage(res.message ?? '');
+                                return showPanel(player, 'teamRequestsPanel', context);
+                            }
+                        });
+                    }
+                }
+                return;
+            }
+
+            if (selectedItem.actionValue === 'manageInvite') {
+                // selectedItem.id is teamId
+                const teamId = Number(selectedItem.id);
+                const pData = loadPlayerData(player.id);
+                const invite = pData?.pendingInvites?.find(i => i.teamId === teamId);
+
+                if (invite) {
+                    await showConfirmationDialog(player, {
+                        title: 'Team Invite',
+                        body: `Join team ${invite.teamName}?`,
+                        confirmButtonText: '§2Accept',
+                        cancelButtonText: '§4Decline',
+                        onConfirm: () => {
+                            const res = teamManager.acceptInvite(player, invite.teamId);
+                            player.sendMessage(res.message ?? '');
+                            return showPanel(player, 'teamMainPanel');
+                        },
+                        onCancel: () => {
+                            const res = teamManager.denyInvite(player.id, invite.teamId);
+                            player.sendMessage(res.message ?? '');
+                            return showPanel(player, 'teamInvitesPanel');
+                        }
+                    });
+                }
+                return;
+            }
+
+            if (selectedItem.actionValue === 'denyAllInvites') {
+                const pData = loadPlayerData(player.id);
+                if (pData && pData.pendingInvites) {
+                    for (const inv of [...pData.pendingInvites]) {
+                        teamManager.denyInvite(player.id, inv.teamId);
+                    }
+                    player.sendMessage('§aAll invites denied.');
+                }
+                return showPanel(player, 'teamInvitesPanel');
             }
         }
-        return;
     }
 
+    // Modal Forms
     if (panelId === 'teamCreatePanel') {
         if ((response as ModalFormResponse).canceled) {
             return showPanel(player, 'teamMainPanel');
@@ -77,122 +221,6 @@ export async function handleTeamPanel(
         return showPanel(player, 'teamMainPanel');
     }
 
-    if (panelId === 'teamBrowserPanel') {
-        const page = context.page || 1;
-        const { getAllTeams } = await import('../../../features/teams/teamManager.js');
-        // Re-filter teams logic here ideally, or assume list hasn't changed drastically
-        let teams = getAllTeams();
-        // Assuming simplistic check for now
-        teams = teams.sort((a, b) => b.members.length - a.members.length);
-
-        if (selection === 0) {
-            return showPanel(player, 'teamMainPanel');
-        }
-
-        const paginatedTeams = getPaginatedItems(teams, page);
-        const selectionIndex = typeof selection === 'number' ? selection - 1 : -1;
-
-        // Handle pagination
-        if (selectionIndex >= paginatedTeams.length) {
-            let newPage = page;
-            const totalPages = Math.ceil(teams.length / itemsPerPage);
-            const hasPrev = page > 1;
-            const hasNext = page < totalPages;
-            const buttonIndex = selectionIndex - paginatedTeams.length;
-
-            if (hasPrev && buttonIndex === 0) {
-                newPage--;
-            } else if (hasNext) {
-                newPage++;
-            }
-            return showPanel(player, panelId, { ...context, page: newPage });
-        }
-
-        const selectedTeam = selectionIndex >= 0 ? paginatedTeams[selectionIndex] : undefined;
-        if (selectedTeam) {
-            // Join Request
-            const result = teamManager.applyToTeam(player, selectedTeam.id);
-            player.sendMessage(result.message ?? '');
-            return showPanel(player, panelId, context);
-        }
-        return;
-    }
-
-    if (panelId === 'teamMembersPanel') {
-        if (selection === 0) return showPanel(player, 'teamMainPanel');
-        // Currently no action on member list click
-        return showPanel(player, 'teamMainPanel');
-    }
-
-    if (panelId === 'teamManagePanel') {
-        const { getTeamByPlayer, getTeam } = await import('../../../features/teams/teamManager.js');
-        const { teamId } = context;
-        // Logic to determine if managing own team or as admin
-        // Simplified for brevity, assume own team if teamId not present or logic handled in builder
-        let team = getTeamByPlayer(player.id);
-        if (teamId) {
-            // Admin managing other team
-            team = getTeam(Number(teamId)) ?? null;
-        }
-
-        if (!team) return showPanel(player, 'teamMainPanel');
-
-        const isOwner = team.ownerId === player.id;
-        const isAdmin = team.admins.includes(player.id);
-        // Assuming admin permissions checked in builder to render buttons
-
-        if (selection === 0) {
-            return showPanel(player, 'teamMainPanel');
-        }
-
-        // Actions depend on buttons rendered.
-        // Standard order: Invite, Join Requests, Manage Members, Team Home, Delete
-        // This is fragile if button order changes.
-        // A better approach is to use ID-based actions if ActionFormData allowed it easily,
-        // or strictly sync this with builder.
-
-        // Re-deriving visible buttons logic:
-        const canInvite = isOwner || isAdmin;
-        const canHome = isOwner || isAdmin;
-        const canDelete = isOwner; // Or server admin
-
-        let actionIndex = 1;
-        if (canInvite) {
-            if (selection === actionIndex) return showPanel(player, 'playerSearchPanel', { context: 'teamInvite' });
-            actionIndex++;
-            if (selection === actionIndex) return showPanel(player, 'teamRequestsPanel', { teamId: team.id });
-            actionIndex++;
-            if (selection === actionIndex) return showPanel(player, 'teamMembersPanel'); // TODO: Add manage members subpanel
-            actionIndex++;
-        }
-        if (canHome) {
-            if (selection === actionIndex) return showPanel(player, 'teamHomePanel', { teamId: team.id });
-            actionIndex++;
-        }
-        if (canDelete) {
-            if (selection === actionIndex) {
-                await showConfirmationDialog(player, {
-                    title: 'Delete Team',
-                    body: `Are you sure you want to delete ${team.name}?`,
-                    confirmButtonText: '§4Delete',
-                    cancelButtonText: 'Cancel',
-                    onConfirm: () => {
-                        const success = teamManager.deleteTeam(team.id); // Force unwrap as we checked
-                        if (success) {
-                            player.sendMessage('§aTeam deleted.');
-                        } else {
-                            player.sendMessage('§cFailed to delete team.');
-                        }
-                        return showPanel(player, 'teamMainPanel');
-                    },
-                    onCancel: () => showPanel(player, 'teamManagePanel', context)
-                });
-                return;
-            }
-        }
-        return;
-    }
-
     if (panelId === 'teamSettingsPanel') {
         if ((response as ModalFormResponse).canceled) return showPanel(player, 'teamMainPanel');
         const values = (response as ModalFormResponse).formValues;
@@ -202,7 +230,6 @@ export async function handleTeamPanel(
         const team = getTeamByPlayer(player.id);
 
         const autoTp = values[0] as boolean;
-        // Update player settings
         const { updatePlayerData } = await import('../../playerDataManager.js');
         updatePlayerData(player.id, (data) => {
             if (data.teamSettings) {
@@ -220,114 +247,6 @@ export async function handleTeamPanel(
         return showPanel(player, 'teamMainPanel');
     }
 
-    if (panelId === 'teamHomePanel') {
-        const { getTeamByPlayer } = await import('../../../features/teams/teamManager.js');
-        const team = getTeamByPlayer(player.id);
-        if (!team) return showPanel(player, 'teamMainPanel');
-
-        if (selection === 0) return showPanel(player, 'teamManagePanel');
-
-        // Buttons: Teleport, Update, Delete (if exists)
-        const hasHome = !!team.home;
-        let index = 1;
-
-        if (hasHome) {
-            if (selection === index) {
-                // Teleport
-                teamManager.teleportToTeamHome(player);
-                return;
-            }
-            index++;
-        }
-
-        // Manage perms
-        const canManage = team.ownerId === player.id || team.admins.includes(player.id);
-        if (canManage) {
-            if (selection === index) {
-                // Update
-                const result = teamManager.setTeamHome(team.id, player.location, player.dimension.id);
-                player.sendMessage(result.message ?? '');
-                return showPanel(player, 'teamHomePanel');
-            }
-            index++;
-            if (hasHome && selection === index) {
-                // Delete
-                const result = teamManager.deleteTeamHome(team.id);
-                player.sendMessage(result.message ?? '');
-                return showPanel(player, 'teamHomePanel');
-            }
-        }
-    }
-
-    if (panelId === 'teamRequestsPanel') {
-        if (selection === 0) return showPanel(player, 'teamManagePanel');
-        const { getTeamByPlayer } = await import('../../../features/teams/teamManager.js');
-        const team = getTeamByPlayer(player.id);
-        if (!team) return;
-
-        // selection-1 is index in requests array
-        if (typeof selection !== 'number') return;
-        const request = team.applications[selection - 1];
-        if (request) {
-            await showConfirmationDialog(player, {
-                title: 'Join Request',
-                body: `Accept ${request.playerName} into the team?`,
-                confirmButtonText: '§2Accept',
-                cancelButtonText: '§4Deny',
-                onConfirm: () => {
-                    const res = teamManager.acceptApplication(team.id, request.playerId);
-                    if (res.message) player.sendMessage(res.message ?? '');
-                    return showPanel(player, 'teamRequestsPanel');
-                },
-                onCancel: () => {
-                    const res = teamManager.denyApplication(team.id, request.playerId);
-                    if (res.message) player.sendMessage(res.message ?? '');
-                    return showPanel(player, 'teamRequestsPanel');
-                }
-            });
-        }
-    }
-
-    if (panelId === 'teamInvitesPanel') {
-        if (selection === 0) return showPanel(player, 'teamMainPanel');
-        const pData = loadPlayerData(player.id);
-        if (!pData || !pData.pendingInvites) return;
-
-        const invites = pData.pendingInvites;
-        if (invites.length === 0) return;
-
-        if (selection === undefined) return;
-
-        // If "Deny All" button is present (it is if invites > 0)
-        // It's the last button.
-        if (selection === invites.length + 1) {
-            // Deny all logic? or just clear
-            // Implement rejectAllInvites in teamManager or loop
-            // For now, let's handle individual
-            return;
-        }
-
-        const invite = invites[selection - 1];
-        if (invite) {
-            await showConfirmationDialog(player, {
-                title: 'Team Invite',
-                body: `Join team ${invite.teamName}?`,
-                confirmButtonText: '§2Accept',
-                cancelButtonText: '§4Decline',
-                onConfirm: () => {
-                    const res = teamManager.acceptInvite(player, invite.teamId);
-                    player.sendMessage(res.message ?? '');
-                    return showPanel(player, 'teamMainPanel');
-                },
-                onCancel: () => {
-                    const res = teamManager.denyInvite(player.id, invite.teamId);
-                    player.sendMessage(res.message ?? '');
-                    return showPanel(player, 'teamInvitesPanel');
-                }
-            });
-        }
-    }
-
     // Config Panel for Teams (Admin)
     if (panelId === 'config_team') {
         if ((response as ModalFormResponse).canceled) return showPanel(player, 'configCategoryPanel', context);
@@ -337,7 +256,6 @@ export async function handleTeamPanel(
         const config = getTeamConfig();
         const newConfig = { ...config };
 
-        // Order must match panelBuilder config_team settings
         newConfig.enabled = values[0] as boolean;
         newConfig.maxMembers = Number(values[1]);
         newConfig.creationCost = Number(values[2]);

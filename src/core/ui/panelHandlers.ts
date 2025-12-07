@@ -18,7 +18,7 @@ import { handleShopPanel } from './handlers/shopHandlers.js';
 import { handleSidebarPanel } from './handlers/sidebarHandlers.js';
 import { handleTeamPanel } from './handlers/teamHandlers.js';
 import { handleXrayPanel } from './handlers/xrayHandlers.js';
-import { getMenuItems, getVisiblePlayerActionItems } from './panelBuilder.js';
+import { getPanelItems, getVisiblePlayerActionItems } from './panelBuilder.js';
 import { panelDefinitions } from './panelRegistry.js';
 import { PanelItem, UIContext } from './types.js';
 
@@ -33,11 +33,16 @@ export async function handleFormResponse(
         return;
     }
 
+    // Implicit default page to 1 to prevent leakage
+    if (context.page === undefined) context.page = 1;
+
     // Helper properties with type guards implicitly handled by usage context
     const selection = (response as ActionFormResponse).selection;
 
     // Generic handler for registry-defined panels
     const panelDef = panelDefinitions[panelId];
+
+    // Check if we should use the Generic Handler
     if (
         panelDef &&
         !panelId.startsWith('shop') &&
@@ -48,12 +53,12 @@ export async function handleFormResponse(
         !panelId.startsWith('config') &&
         !panelId.startsWith('xray')
     ) {
-        // Specific case for playerActionsPanel which has dynamic visibility logic
         let items: PanelItem[] = [];
+        // Use the HEADLESS BUILDER to get the exact items
         if (panelId === 'playerActionsPanel') {
             items = getVisiblePlayerActionItems(context, pData.permissionLevel, player.id);
         } else {
-            items = getMenuItems(panelDef, pData.permissionLevel);
+            items = await getPanelItems(player, panelId, context);
         }
 
         if (typeof selection === 'number') {
@@ -62,14 +67,11 @@ export async function handleFormResponse(
 
                 if (item.actionType === 'openPanel') {
                     // Pass current context (including targetPlayerId etc) forward
-                    return showPanel(player, item.actionValue, context);
+                    // IMPORTANT: Reset page to 1 for new panel unless specified
+                    return showPanel(player, item.actionValue, { ...context, page: 1 });
                 } else if (item.actionType === 'functionCall') {
-                    await handleUIAction(player, item.actionValue, context);
-
-                    // After action, refresh current panel unless it was a navigation action
-                    // Most actions (kick, ban) might close UI or show a new form.
-                    // If action returns void, we might want to refresh.
-                    // But handleUIAction is async and handles its own UI flow mostly.
+                    // Inject item ID into context for actions like unblockPlayer
+                    await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id });
                     return;
                 }
             }
