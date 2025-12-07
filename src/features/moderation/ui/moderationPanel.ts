@@ -1,27 +1,22 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as punishmentManager from '../punishmentManager.js';
-import * as reportManager from '../reportManager.js';
 import { getPlayerIdByName } from '../../../core/playerDataManager.js';
-import { showPanel } from '../../../core/uiManager.js';
-import { IPanelHandler, PanelItem, UIContext } from '../../../core/ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
-import { showConfirmationDialog } from '../../../core/ui/components.js';
 import { getStaticMenuItems } from '../../../core/ui/panelBuilder.js';
 import { panelDefinitions } from '../../../core/ui/panelRegistry.js';
-import { utils } from '../../../core/utils.js'; // Wait, utils is named export
+import { IPanelHandler, PanelItem, UIContext } from '../../../core/ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
+import { showPanel } from '../../../core/uiManager.js';
+import * as punishmentManager from '../punishmentManager.js';
+import * as reportManager from '../reportManager.js';
 
 export class ModerationPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'moderationPanel' ||
-            panelId === 'reportListPanel' ||
-            panelId === 'reportActionsPanel'
-        );
+        return panelId === 'moderationPanel' || panelId === 'reportListPanel' || panelId === 'reportActionsPanel';
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+        await Promise.resolve();
         const items: PanelItem[] = [];
 
         const addBack = (target: string) => {
@@ -72,7 +67,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                 .getAllReports()
                 .filter((r) => r.status === 'open' || r.status === 'assigned')
                 .sort((a, b) => a.timestamp - b.timestamp);
-            const paginated = getPaginatedItems(reports, context.page || 1);
+            const paginated = getPaginatedItems(reports, (context.page as number) || 1);
             paginated.forEach((report) => {
                 const statusColor = report.status === 'assigned' ? '§6' : '§4';
                 items.push({
@@ -121,10 +116,10 @@ export class ModerationPanelHandler implements IPanelHandler {
                 }
 
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page || 1) - 1) });
+                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page as number) || 1) - 1 });
                 }
                 if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: (context.page || 1) + 1 });
+                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
                 }
 
                 // Moderation Actions

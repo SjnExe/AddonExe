@@ -3,21 +3,19 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 
 import { floatingTextManager } from '../../floatingTextManager.js';
 import { showPanel } from '../../uiManager.js';
+import { formatLocation } from '../../utils.js';
 import { handleUIAction } from '../actions.js';
 import { getStaticMenuItems } from '../panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '../panelRegistry.js';
 import { IPanelHandler } from '../types.js';
-import { formatLocation } from '../../utils.js';
 
 export class AdminPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'adminPanel' ||
-            panelId.startsWith('floatingText')
-        );
+        return panelId === 'adminPanel' || panelId.startsWith('floatingText');
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+        await Promise.resolve();
         const items: PanelItem[] = [];
         // Admin Panel uses static items (delegates to sub-panels)
         if (panelId === 'adminPanel') {
@@ -39,28 +37,70 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextListPanel') {
             addBack('adminPanel');
-            items.push({ id: 'placeholderList', text: '§l§6View Placeholders', icon: 'textures/ui/icon_sign', permissionLevel: 1, actionType: 'openPanel', actionValue: 'placeholderListPanel' });
-            items.push({ id: 'create', text: '§l§2+ Create New', icon: 'textures/ui/color_plus', permissionLevel: 1, actionType: 'openPanel', actionValue: 'floatingTextCreatePanel' });
+            items.push({
+                id: 'placeholderList',
+                text: '§l§6View Placeholders',
+                icon: 'textures/ui/icon_sign',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'placeholderListPanel'
+            });
+            items.push({
+                id: 'create',
+                text: '§l§2+ Create New',
+                icon: 'textures/ui/color_plus',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'floatingTextCreatePanel'
+            });
 
             const texts = floatingTextManager.getAllTexts();
-            texts.forEach(text => {
-                 items.push({
-                     id: text.id,
-                     text: `§6${text.id}§r\n${formatLocation(text.location)}`,
-                     permissionLevel: 1,
-                     actionType: 'openPanel',
-                     actionValue: 'floatingTextActionPanel'
-                 });
+            texts.forEach((text) => {
+                items.push({
+                    id: text.id,
+                    text: `§6${text.id}§r\n${formatLocation(text.location)}`,
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'floatingTextActionPanel'
+                });
             });
             return items;
         }
 
         if (panelId === 'floatingTextActionPanel') {
             addBack('floatingTextListPanel');
-            items.push({ id: 'edit', text: 'Edit Settings', icon: 'textures/ui/icon_setting', permissionLevel: 1, actionType: 'openPanel', actionValue: 'floatingTextEditPanel' });
-            items.push({ id: 'respawn', text: 'Respawn Entity', icon: 'textures/ui/refresh_light', permissionLevel: 1, actionType: 'functionCall', actionValue: 'respawnText' });
-            items.push({ id: 'despawn', text: 'Despawn Entity', icon: 'textures/ui/cancel', permissionLevel: 1, actionType: 'functionCall', actionValue: 'despawnText' });
-            items.push({ id: 'delete', text: '§4Delete Text', icon: 'textures/ui/trash', permissionLevel: 1, actionType: 'functionCall', actionValue: 'deleteText' });
+            items.push({
+                id: 'edit',
+                text: 'Edit Settings',
+                icon: 'textures/ui/icon_setting',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'floatingTextEditPanel'
+            });
+            items.push({
+                id: 'respawn',
+                text: 'Respawn Entity',
+                icon: 'textures/ui/refresh_light',
+                permissionLevel: 1,
+                actionType: 'functionCall',
+                actionValue: 'respawnText'
+            });
+            items.push({
+                id: 'despawn',
+                text: 'Despawn Entity',
+                icon: 'textures/ui/cancel',
+                permissionLevel: 1,
+                actionType: 'functionCall',
+                actionValue: 'despawnText'
+            });
+            items.push({
+                id: 'delete',
+                text: '§4Delete Text',
+                icon: 'textures/ui/trash',
+                permissionLevel: 1,
+                actionType: 'functionCall',
+                actionValue: 'deleteText'
+            });
             return items;
         }
 
@@ -68,6 +108,7 @@ export class AdminPanelHandler implements IPanelHandler {
     }
 
     async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+        await Promise.resolve();
         if (panelId === 'floatingTextCreatePanel') {
             return new ModalFormData()
                 .title('Create New Floating Text')
@@ -125,16 +166,8 @@ export class AdminPanelHandler implements IPanelHandler {
         if (panelId === 'floatingTextEditPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'floatingTextActionPanel', context);
             const { id } = context;
-            const [textContent, x, y, z, dimensionIndex, updateIntervalStr, useExpiration, expirationMinutes] = values as [
-                string,
-                string,
-                string,
-                string,
-                number,
-                string,
-                boolean,
-                string
-            ];
+            const [textContent, x, y, z, dimensionIndex, updateIntervalStr, useExpiration, expirationMinutes] =
+                values as [string, string, string, string, number, string, boolean, string];
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
             const selectedDimension = dimensionIds[dimensionIndex] ?? 'minecraft:overworld';
 
@@ -144,7 +177,9 @@ export class AdminPanelHandler implements IPanelHandler {
                 dimension: selectedDimension,
                 updateInterval: parseInt(updateIntervalStr) || 0,
                 expiresAt:
-                    useExpiration && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60000 : null
+                    useExpiration && Number(expirationMinutes) > 0
+                        ? Date.now() + Number(expirationMinutes) * 60000
+                        : null
             };
             // @ts-expect-error - id guaranteed string
             await floatingTextManager.updateText(id, updatedConfig);
@@ -157,10 +192,19 @@ export class AdminPanelHandler implements IPanelHandler {
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
                 if (item.actionType === 'openPanel') {
-                    return showPanel(player, item.actionValue, { ...context, page: 1, selectedItemId: item.id, id: item.id });
+                    return showPanel(player, item.actionValue, {
+                        ...context,
+                        page: 1,
+                        selectedItemId: item.id,
+                        id: item.id
+                    });
                 }
                 if (item.actionType === 'functionCall') {
-                    await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id, id: item.id });
+                    await handleUIAction(player, item.actionValue, {
+                        ...context,
+                        selectedItemId: item.id,
+                        id: item.id
+                    });
                     return;
                 }
             }

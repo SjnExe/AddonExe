@@ -1,25 +1,15 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import {
-    getAllKnownPlayers,
-    getAllPlayerNameIdMap,
-    getOrCreatePlayer,
-    getPlayer,
-    getPlayerIdByName,
-    loadPlayerData,
-    PlayerData
-} from '../../playerDataManager.js';
-import * as rankManager from '../../rankManager.js';
 import { getConfig } from '../../configManager.js';
+import { getAllKnownPlayers, getOrCreatePlayer, getPlayerIdByName, loadPlayerData } from '../../playerDataManager.js';
+import * as rankManager from '../../rankManager.js';
 import { showPanel } from '../../uiManager.js';
 import { handleUIAction } from '../actions.js';
 import { getStaticMenuItems } from '../panelBuilder.js';
-import { panelDefinitions, PanelItem, UIContext, MainConfig } from '../panelRegistry.js';
+import { panelDefinitions, PanelItem, UIContext } from '../panelRegistry.js';
 import { IPanelHandler } from '../types.js';
 import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
-import { formatCurrency } from '../../utils.js';
-import * as bountyManager from '../../bountyManager.js';
 
 export class PlayerPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -33,9 +23,11 @@ export class PlayerPanelHandler implements IPanelHandler {
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+        await Promise.resolve();
         const items: PanelItem[] = [];
         const pData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
+        const page = (context.page as number) || 1;
 
         const addBack = (target: string) => {
             items.push({
@@ -49,7 +41,6 @@ export class PlayerPanelHandler implements IPanelHandler {
         };
 
         const addPagination = (totalItems: number) => {
-            const page = context.page || 1;
             const totalPages = Math.ceil(totalItems / itemsPerPage);
             if (page > 1) {
                 items.push({
@@ -86,9 +77,6 @@ export class PlayerPanelHandler implements IPanelHandler {
                 actionValue: 'playerSearchPanel'
             });
 
-            // Use all known players (offline + online) for management, maybe only online for list?
-            // "playerListPanel" implies online usually. "playerManagement" implies all.
-            // But legacy code used "isOnlineList" check.
             const isOnlineList = panelId === 'playerListPanel';
             let playerEntries: { name: string; id: string }[] = [];
 
@@ -99,19 +87,18 @@ export class PlayerPanelHandler implements IPanelHandler {
             }
             playerEntries.sort((a, b) => a.name.localeCompare(b.name));
 
-            const paginated = getPaginatedItems(playerEntries, context.page || 1);
+            const paginated = getPaginatedItems(playerEntries, page);
             const { getTeamByPlayer } = await import('../../../features/teams/teamManager.js');
             const config = getConfig();
 
             for (const entry of paginated) {
                 const targetP = mc.world.getAllPlayers().find((p) => p.id === entry.id);
+                // @ts-expect-error - rankManager types might be loose or missing properties check
                 const rank = targetP
                     ? rankManager.getPlayerRank(targetP, config)
                     : rankManager.getRankById(loadPlayerData(entry.id)?.rankId || '');
                 const team = getTeamByPlayer(entry.id);
-                const prefix = rank?.chatFormatting?.prefixText
-                    ? `§6[§r${rank.chatFormatting.prefixText}§6]§r `
-                    : '';
+                const prefix = rank?.chatFormatting?.prefixText ? `§6[§r${rank.chatFormatting.prefixText}§6]§r ` : '';
                 const teamSuffix = team ? `\n§6[§r${team.name}§6]` : '';
 
                 items.push({
@@ -127,15 +114,9 @@ export class PlayerPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'playerActionsPanel') {
-            // Context.fromPanel determines where back goes? Or static?
-            // If from Player Management, back to Player Management.
-            // If from Player List, back to Player List.
-            // Context should carry 'fromPanel' ideally?
-            // If not, use generic default?
-            // PanelRegistry uses generic 'mainPanel' parent.
-            // We should override based on context.
-            if (context.fromPanel) addBack(context.fromPanel);
-            else addBack('mainPanel'); // Fallback
+            const fromPanel = context.fromPanel as string;
+            if (fromPanel) addBack(fromPanel);
+            else addBack('mainPanel');
 
             const visible = this.getVisiblePlayerActionItems(context, permissionLevel, player.id);
             items.push(...visible);
@@ -150,45 +131,37 @@ export class PlayerPanelHandler implements IPanelHandler {
         return items;
     }
 
-    private getVisiblePlayerActionItems(
-        context: UIContext,
-        permissionLevel: number,
-        viewerId?: string
-    ): PanelItem[] {
+    private getVisiblePlayerActionItems(context: UIContext, permissionLevel: number, viewerId?: string): PanelItem[] {
         const panelDef = panelDefinitions.playerActionsPanel;
-        const config = getConfig() as unknown as MainConfig;
+        const config = getConfig();
         const menuItems = getStaticMenuItems(panelDef, permissionLevel);
         const visibleItems: PanelItem[] = [];
 
-        const isSelf = viewerId && context.targetPlayerId === viewerId;
-        // Actions disabled on self
+        const targetId = context.targetPlayerId as string;
+        const isSelf = viewerId && targetId === viewerId;
         const selfDisabledActions = ['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze', 'tpa', 'tpahere', 'report'];
 
         for (const item of menuItems) {
-            if (item.id === '__back__') continue; // Handled separately
+            if (item.id === '__back__') continue;
 
             if (isSelf && selfDisabledActions.includes(item.id)) {
                 continue;
             }
             const commandName = item.id;
+            // @ts-expect-error - indexing config.commandSettings with string
             const settings = config.commandSettings || {};
+             // @ts-expect-error - indexing settings with string
             if (settings[commandName]?.enabled === false) {
                 continue;
             }
 
-            // Permission filtering is done by getStaticMenuItems but context-specific logic:
-            // "playerManagementPanel" -> Show admin actions (level < 1024)
-            // "playerListPanel" -> Show user actions (level >= 1024)
-            // But permissionLevel of item dictates visibility.
-            // If I am admin, I see everything.
-            // If I am member, I only see items with perm 1024.
-            // Logic is fine as is.
             visibleItems.push(item);
         }
         return visibleItems;
     }
 
     async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+        await Promise.resolve();
         if (panelId === 'playerSearchPanel') {
             return new ModalFormData().title('Search Player').textField('Name', 'Enter exact name');
         }
@@ -222,27 +195,26 @@ export class PlayerPanelHandler implements IPanelHandler {
                 const item = items[selection];
 
                 if (item.actionType === 'openPanel') {
-                    // Inject fromPanel for back navigation if opening actions
                     const nextContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
                     if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
                         nextContext.fromPanel = panelId;
-                        nextContext.targetPlayerId = item.id; // Legacy support
+                        nextContext.targetPlayerId = item.id;
                     }
                     return showPanel(player, item.actionValue, nextContext);
                 }
 
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page || 1) - 1) });
+                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page as number || 1) - 1) });
                 }
                 if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: (context.page || 1) + 1 });
+                    return showPanel(player, panelId, { ...context, page: (context.page as number || 1) + 1 });
                 }
 
                 if (item.actionType === 'functionCall') {
                     await handleUIAction(player, item.actionValue, {
                         ...context,
                         selectedItemId: item.id,
-                        targetPlayerId: context.targetPlayerId || item.id // Ensure target is set
+                        targetPlayerId: context.targetPlayerId || item.id
                     });
                     return;
                 }

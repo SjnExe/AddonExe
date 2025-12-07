@@ -1,28 +1,26 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as teamManager from '../teamManager.js';
 import { getTeamConfig } from '../../../core/configurations.js';
 import { getOrCreatePlayer, loadPlayerData } from '../../../core/playerDataManager.js';
-import { showPanel } from '../../../core/uiManager.js';
 import { handleUIAction } from '../../../core/ui/actions.js';
 import { showConfirmationDialog } from '../../../core/ui/components.js';
-import { getStaticMenuItems } from '../../../core/ui/panelBuilder.js';
-import { panelDefinitions, UIContext, PanelItem } from '../../../core/ui/panelRegistry.js';
+import { PanelItem, UIContext } from '../../../core/ui/panelRegistry.js';
 import { IPanelHandler } from '../../../core/ui/types.js';
 import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
+import { showPanel } from '../../../core/uiManager.js';
 import { formatCurrency } from '../../../core/utils.js';
+import * as teamManager from '../teamManager.js';
 
 export class TeamPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId.startsWith('team') ||
-            panelId === 'memberActionPanel' ||
-            panelId === 'config_team'
-        );
+        return panelId.startsWith('team') || panelId === 'memberActionPanel' || panelId === 'config_team';
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+        // Satisfy async requirement if no other await exists
+        await Promise.resolve();
+
         const pData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
         const items: PanelItem[] = [];
@@ -380,18 +378,18 @@ export class TeamPanelHandler implements IPanelHandler {
             return items;
         }
 
-        return [];
+        return items;
     }
 
     async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+        // Satisfy async requirement
+        await Promise.resolve();
+
         if (panelId === 'teamCreatePanel') {
             const teamConfig = getTeamConfig();
             return new ModalFormData()
                 .title('Create Team')
-                .textField(
-                    'Team Name',
-                    `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`
-                );
+                .textField('Team Name', `Enter name (${teamConfig.nameMinLength}-${teamConfig.nameMaxLength} chars)`);
         }
 
         if (panelId === 'teamSearchPanel') {
@@ -449,8 +447,6 @@ export class TeamPanelHandler implements IPanelHandler {
 
         if (panelId === 'teamSearchPanel') {
             // ... implementation of search ...
-            // Not strictly implemented in original handlers but useful to have.
-            // Placeholder.
             return showPanel(player, 'teamJoinPanel');
         }
 

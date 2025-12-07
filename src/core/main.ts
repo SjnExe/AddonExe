@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/require-await */
 import * as mc from '@minecraft/server';
 
+import * as kitsFeature from '../features/kits/index.js';
+import * as moderationFeature from '../features/moderation/index.js';
 import {
     checkAndKickBannedPlayer,
     clearExpiredPunishments,
     initializePunishmentManager,
     loadPunishments
 } from '../features/moderation/punishmentManager.js';
-import * as moderationFeature from '../features/moderation/index.js';
 import { clearOldResolvedReports, loadReports } from '../features/moderation/reportManager.js';
-import * as corePanels from './ui/panels/index.js';
 import * as shopFeature from '../features/shop/index.js';
 import { registerFriendlyFire } from '../features/teams/friendlyFire.js';
 import * as teamManager from '../features/teams/teamManager.js';
@@ -18,7 +18,9 @@ import { restartAnnouncer } from '../modules/commands/announcement.js';
 import { loadCommands } from '../modules/commands/index.js';
 import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
 import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
+import * as corePanels from './ui/panels/index.js';
 
+import * as economyFeature from '../features/economy/index.js';
 import * as bountyManager from './bountyManager.js';
 import { loadConfig } from './configLoader.js';
 import { getConfig, initializeConfigManager } from './configManager.js';
@@ -118,9 +120,11 @@ async function initializeManagers() {
     await floatingTextManager.initialize();
     teamManager.initialize();
     corePanels.initialize();
+    kitsFeature.initialize();
     shopFeature.initialize();
     teleportFeature.initialize();
     moderationFeature.initialize();
+    economyFeature.initialize();
     registerFriendlyFire();
     sidebarManager.initialize();
     initializeLeaderboard();

@@ -59,8 +59,7 @@ export interface PanelDefinition {
     items: PanelItem[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type UIContext = Record<string, any>;
+export type UIContext = Record<string, unknown>;
 
 export interface IPanelHandler {
     /** Returns true if this handler manages the given panelId */
@@ -75,11 +74,7 @@ export interface IPanelHandler {
         context: UIContext
     ): Promise<void>;
     /** Optional: Builds a custom Modal form (if not using headless items) */
-    buildModal?(
-        player: mc.Player,
-        panelId: string,
-        context: UIContext
-    ): Promise<ModalFormData | ActionFormData | null>;
+    buildModal?(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | ActionFormData | null>;
 }
 
 export interface ShopListEntry {
@@ -103,7 +98,7 @@ export interface ShopItem {
 }
 
 export interface MainConfig {
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface ShopConfig {

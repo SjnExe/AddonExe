@@ -1,6 +1,5 @@
 import * as mc from '@minecraft/server';
 
-import { panelRouter } from '../../core/ui/PanelRouter.js';
 import { getTeamConfig } from '../../core/configurations.js';
 import { debugLog, errorLog } from '../../core/logger.js';
 import {
@@ -10,6 +9,8 @@ import {
     incrementPlayerBalance,
     updatePlayerData
 } from '../../core/playerDataManager.js';
+import { panelRouter } from '../../core/ui/PanelRouter.js';
+import { TeamPanelHandler } from './ui/teamPanel.js';
 
 const teamPropertyPrefix = 'exe:team.';
 const nextTeamIdKey = 'exe:nextTeamId';

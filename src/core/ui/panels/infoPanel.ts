@@ -2,17 +2,9 @@ import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import * as helpfulLinksManager from '../../helpfulLinksManager.js';
-import {
-    getAllKnownPlayers,
-    getAllPlayerNameIdMap,
-    getOrCreatePlayer,
-    loadPlayerData
-} from '../../playerDataManager.js';
-import * as rankManager from '../../rankManager.js';
+import { getOrCreatePlayer } from '../../playerDataManager.js';
 import * as rulesManager from '../../rulesManager.js';
-import { getConfig } from '../../configManager.js';
 import { showPanel } from '../../uiManager.js';
-import { showConfirmationDialog } from '../components.js';
 import { getStaticMenuItems } from '../panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '../panelRegistry.js';
 import { IPanelHandler } from '../types.js';
@@ -27,15 +19,16 @@ export class InfoPanelHandler implements IPanelHandler {
             panelId.startsWith('ruleAction') ||
             panelId.startsWith('helpfulLinks') ||
             panelId.startsWith('addHelpfulLink') ||
-            panelId.startsWith('helpfulLinkAction') ||
-            panelId === 'playerListPanel'
+            panelId.startsWith('helpfulLinkAction')
         );
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+        await Promise.resolve();
         const items: PanelItem[] = [];
         const pData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
+        const page = (context.page as number) || 1;
 
         const addBack = (target: string) => {
             items.push({
@@ -49,7 +42,6 @@ export class InfoPanelHandler implements IPanelHandler {
         };
 
         const addPagination = (totalItems: number) => {
-            const page = context.page || 1;
             const totalPages = Math.ceil(totalItems / itemsPerPage);
             if (page > 1) {
                 items.push({
@@ -92,9 +84,9 @@ export class InfoPanelHandler implements IPanelHandler {
                 });
             }
             const rules = rulesManager.getRules();
-            const paginated = getPaginatedItems(rules, context.page || 1);
+            const paginated = getPaginatedItems(rules, page);
             paginated.forEach((rule, idx) => {
-                const realIndex = (context.page! - 1) * itemsPerPage + idx;
+                const realIndex = (page - 1) * itemsPerPage + idx;
                 items.push({
                     id: String(realIndex),
                     text: rule,
@@ -136,9 +128,9 @@ export class InfoPanelHandler implements IPanelHandler {
                 });
             }
             const links = helpfulLinksManager.getHelpfulLinks();
-            const paginated = getPaginatedItems(links, context.page || 1);
+            const paginated = getPaginatedItems(links, page);
             paginated.forEach((link, idx) => {
-                const realIndex = (context.page! - 1) * itemsPerPage + idx;
+                const realIndex = (page - 1) * itemsPerPage + idx;
                 items.push({
                     id: String(realIndex),
                     text: `§l§6${link.title}§r\n§9${link.url}`,
@@ -156,6 +148,7 @@ export class InfoPanelHandler implements IPanelHandler {
     }
 
     async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+        await Promise.resolve();
         if (panelId === 'addRulePanel') {
             return new ModalFormData().title('Add Rule').textField('Rule Content', 'Enter rule text');
         }
@@ -211,10 +204,10 @@ export class InfoPanelHandler implements IPanelHandler {
                     });
                 }
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page || 1) - 1) });
+                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page as number) || 1) - 1 });
                 }
                 if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: (context.page || 1) + 1 });
+                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
                 }
 
                 if (item.actionValue === 'deleteRule') {

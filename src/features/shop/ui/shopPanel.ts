@@ -1,20 +1,30 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as shopAdminManager from '../shopAdminManager.js';
-import * as shopManager from '../shopManager.js';
 import { loadConfig } from '../../../core/configLoader.js';
 import { getConfig, updateMultipleConfig } from '../../../core/configManager.js';
 import { getShopConfig } from '../../../core/configurations.js';
 import { showConfirmationDialog } from '../../../core/ui/components.js';
-import { IPanelHandler, MainConfig, PanelItem, ShopConfig, UIContext } from '../../../core/ui/types.js';
+import { IPanelHandler, MainConfig, PanelItem, UIContext } from '../../../core/ui/types.js';
 import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
 import { showPanel } from '../../../core/uiManager.js';
 import { formatCurrency, parseCurrency } from '../../../core/utils.js';
+import * as shopAdminManager from '../shopAdminManager.js';
+import * as shopManager from '../shopManager.js';
 
 interface Item {
     displayName?: string;
     icon?: string;
+    buyPrice?: number;
+    sellPrice?: number;
+}
+
+interface ShopEntry {
+    type: 'item' | 'subCategory';
+    id: string;
+    name?: string; // subCategory name
+    icon?: string;
+    displayName?: string; // item displayName
     buyPrice?: number;
     sellPrice?: number;
 }
@@ -35,6 +45,7 @@ export class ShopPanelHandler implements IPanelHandler {
         // Initialize items config if needed
         if (Object.keys(allItems).length === 0) {
             try {
+                // We use await here, satisfying the async requirement
                 allItems = await loadConfig('./core/itemsConfig.js');
             } catch {
                 // Ignore error
@@ -83,7 +94,7 @@ export class ShopPanelHandler implements IPanelHandler {
 
         if (panelId === 'shopMainPanel') {
             addBack('mainPanel');
-            const shopConfig = getShopConfig() as any;
+            const shopConfig = getShopConfig();
             const validCategories = Object.keys(shopConfig.categories)
                 .filter((categoryName: string) => {
                     const category = shopConfig.categories[categoryName];
@@ -109,16 +120,21 @@ export class ShopPanelHandler implements IPanelHandler {
         if (panelId.startsWith('shopCategoryPanel_')) {
             const categoryName = context.categoryName as string;
             addBack('shopMainPanel');
-            const shopConfig = getShopConfig() as any;
+            const shopConfig = getShopConfig();
             const category = shopConfig.categories[categoryName];
             if (category) {
-                const subCategories = Object.keys(category.subCategories)
+                const subCategories: ShopEntry[] = Object.keys(category.subCategories)
                     .sort()
-                    .map((name) => ({ name, ...category.subCategories[name], type: 'subCategory' as const }));
-                const shopItems = Object.keys(category.items).map((id) => ({
+                    .map((name) => ({
+                        id: name,
+                        name,
+                        ...category.subCategories[name],
+                        type: 'subCategory'
+                    }));
+                const shopItems: ShopEntry[] = Object.keys(category.items).map((id) => ({
                     id,
                     ...category.items[id],
-                    type: 'item' as const
+                    type: 'item'
                 }));
                 const allEntries = [...subCategories, ...shopItems];
                 const paginated = getPaginatedItems(allEntries, context.page || 1);
@@ -126,7 +142,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 paginated.forEach((entry) => {
                     if (entry.type === 'subCategory') {
                         items.push({
-                            id: entry.name,
+                            id: entry.name!,
                             text: `§6${entry.name}`,
                             icon: entry.icon,
                             permissionLevel: 1024,
@@ -136,8 +152,8 @@ export class ShopPanelHandler implements IPanelHandler {
                     } else {
                         const masterItem = allItems[entry.id] || {};
                         const displayName = entry.displayName || masterItem.displayName || entry.id;
-                        const buy = entry.buyPrice > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
-                        const sell = entry.sellPrice > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
+                        const buy = (entry.buyPrice ?? 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice!)}` : '';
+                        const sell = (entry.sellPrice ?? 0) > 0 ? `§4S: ${formatCurrency(entry.sellPrice!)}` : '';
                         const priceString = [buy, sell].filter(Boolean).join(' ');
                         items.push({
                             id: entry.id,
@@ -157,7 +173,7 @@ export class ShopPanelHandler implements IPanelHandler {
         if (panelId.startsWith('shopItemListPanel_')) {
             const { categoryName, subCategoryName } = context;
             addBack(`shopCategoryPanel_${categoryName}`);
-            const shopConfig = getShopConfig() as any;
+            const shopConfig = getShopConfig();
             const category = shopConfig.categories[categoryName as string];
             const subCategory = category?.subCategories[subCategoryName as string];
 
@@ -165,14 +181,14 @@ export class ShopPanelHandler implements IPanelHandler {
                 const shopItems = Object.keys(subCategory.items).map((id) => ({
                     id,
                     ...subCategory.items[id],
-                    type: 'item' as const
+                    type: 'item'
                 }));
                 const paginated = getPaginatedItems(shopItems, context.page || 1);
                 paginated.forEach((entry) => {
                     const masterItem = allItems[entry.id] || {};
                     const displayName = entry.displayName || masterItem.displayName || entry.id;
-                    const buy = entry.buyPrice > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
-                    const sell = entry.sellPrice > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
+                    const buy = (entry.buyPrice ?? 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice!)}` : '';
+                    const sell = (entry.sellPrice ?? 0) > 0 ? `§4S: ${formatCurrency(entry.sellPrice!)}` : '';
                     const priceString = [buy, sell].filter(Boolean).join(' ');
                     items.push({
                         id: entry.id,
@@ -193,7 +209,7 @@ export class ShopPanelHandler implements IPanelHandler {
         if (panelId === 'shopManagementPanel') {
             addBack('configCategoryPanel');
             const mainConfig = getConfig() as unknown as MainConfig;
-            const isEnabled = mainConfig.shop.enabled;
+            const isEnabled = mainConfig.shop.enabled as boolean;
             const toggleText = isEnabled ? '§2Shop System: ENABLED' : '§4Shop System: DISABLED';
             items.push({
                 id: 'toggleShop',
@@ -212,7 +228,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 actionValue: 'addCategory'
             });
 
-            const shopConfig = getShopConfig() as any;
+            const shopConfig = getShopConfig();
             const categories = Object.keys(shopConfig.categories).sort();
             const paginated = getPaginatedItems(categories, context.page || 1);
 
@@ -259,18 +275,18 @@ export class ShopPanelHandler implements IPanelHandler {
                 actionValue: `shopAdminCategoryActionPanel_${categoryName}`
             });
 
-            const shopConfig = getShopConfig() as any;
+            const shopConfig = getShopConfig();
             const category = shopConfig.categories[categoryName];
             if (category) {
                 const subCategories = Object.keys(category.subCategories).sort();
                 const shopItems = Object.keys(category.items);
-                const allEntries = [
-                    ...subCategories.map((n) => ({ id: n, type: 'subCategory' })),
-                    ...shopItems.map((n) => ({ id: n, type: 'item' }))
+                const allEntries: ShopEntry[] = [
+                    ...subCategories.map((n) => ({ id: n, type: 'subCategory' as const })),
+                    ...shopItems.map((n) => ({ id: n, type: 'item' as const }))
                 ];
                 const paginated = getPaginatedItems(allEntries, context.page || 1);
 
-                paginated.forEach((entry: any) => {
+                paginated.forEach((entry) => {
                     if (entry.type === 'subCategory') {
                         const sub = category.subCategories[entry.id];
                         items.push({
@@ -319,9 +335,8 @@ export class ShopPanelHandler implements IPanelHandler {
                 actionValue: `shopAdminSubCategoryActionPanel_${subCategoryName}`
             });
 
-            const shopConfig = getShopConfig() as any;
-            const subCategory =
-                shopConfig.categories[categoryName as string]?.subCategories[subCategoryName as string];
+            const shopConfig = getShopConfig();
+            const subCategory = shopConfig.categories[categoryName as string]?.subCategories[subCategoryName as string];
             if (subCategory) {
                 const shopItems = Object.keys(subCategory.items);
                 const paginated = getPaginatedItems(shopItems, context.page || 1);
@@ -519,7 +534,7 @@ export class ShopPanelHandler implements IPanelHandler {
                         targetName = panelId.replace('shopAdminCategoryActionPanel_', '');
                     }
 
-                    const shopConfig = getShopConfig() as ShopConfig;
+                    const shopConfig = getShopConfig();
                     const category = shopConfig.categories[targetName];
                     const form = new ModalFormData()
                         .title('Edit Category')
@@ -560,9 +575,8 @@ export class ShopPanelHandler implements IPanelHandler {
                 if (item.actionValue === 'editSubCategory') {
                     const targetName = panelId.replace('shopAdminSubCategoryActionPanel_', '');
                     const { categoryName } = context;
-                    const shopConfig = getShopConfig() as ShopConfig;
-                    const subCategory =
-                        shopConfig.categories[categoryName as string].subCategories[targetName];
+                    const shopConfig = getShopConfig();
+                    const subCategory = shopConfig.categories[categoryName as string].subCategories[targetName];
 
                     const form = new ModalFormData()
                         .title('Edit Subcategory')
@@ -715,12 +729,13 @@ export class ShopPanelHandler implements IPanelHandler {
                     if (actionRes.selection === 0) {
                         const itemId = item.id;
                         const { categoryName, subCategoryName } = context;
-                        const shopConfig = getShopConfig() as ShopConfig;
+                        const shopConfig = getShopConfig();
                         let shopItem;
                         if (subCategoryName)
                             shopItem =
-                                shopConfig.categories[categoryName as string].subCategories[subCategoryName]
-                                    .items[itemId];
+                                shopConfig.categories[categoryName as string].subCategories[subCategoryName].items[
+                                    itemId
+                                ];
                         else shopItem = shopConfig.categories[categoryName as string].items[itemId];
 
                         const masterItem = allItems[itemId] || {};
@@ -773,20 +788,19 @@ export class ShopPanelHandler implements IPanelHandler {
                     const masterItem = allItems[itemId];
                     const categoryName = context.categoryName as string;
                     const subCategoryName = context.subCategoryName as string;
-                    const shopConfig = getShopConfig() as ShopConfig;
+                    const shopConfig = getShopConfig();
 
                     let shopItem;
                     if (subCategoryName) {
-                        shopItem =
-                            shopConfig.categories[categoryName].subCategories[subCategoryName].items[itemId];
+                        shopItem = shopConfig.categories[categoryName].subCategories[subCategoryName].items[itemId];
                     } else {
                         shopItem = shopConfig.categories[categoryName].items[itemId];
                     }
 
                     if (!shopItem) return;
 
-                    const canBuy = context.view !== 'sell' && shopItem.buyPrice > 0;
-                    const canSell = context.view !== 'buy' && shopItem.sellPrice > 0;
+                    const canBuy = context.view !== 'sell' && (shopItem.buyPrice ?? 0) > 0;
+                    const canSell = context.view !== 'buy' && (shopItem.sellPrice ?? 0) > 0;
 
                     if (!canBuy && !canSell) {
                         player.sendMessage('§4This item cannot be bought or sold currently.');
@@ -819,7 +833,7 @@ export class ShopPanelHandler implements IPanelHandler {
 
                     let amount;
                     if (hasDropdown) {
-                        const values = (modalResponse as ModalFormResponse).formValues as [string, number];
+                        const values = (modalResponse).formValues as [string, number];
                         if (!values) return showPanel(player, panelId, context);
                         const amountStr = values[0];
                         const actionIndex = values[1];
@@ -828,7 +842,7 @@ export class ShopPanelHandler implements IPanelHandler {
                         const selectedActionString = options[actionIndex];
                         action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
                     } else {
-                        const values = (modalResponse as ModalFormResponse).formValues as [string];
+                        const values = (modalResponse).formValues as [string];
                         if (!values) return showPanel(player, panelId, context);
                         const amountStr = values[0];
                         amount = parseCurrency(amountStr);

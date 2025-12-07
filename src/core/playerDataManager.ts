@@ -229,7 +229,8 @@ export function loadPlayerData(playerId: string): PlayerData | null {
  */
 function _updateNameMap(player: mc.Player) {
     const playerNameLower = player.name.toLowerCase();
-    if (playerNameIdMap.get(playerNameLower) !== player.id) {
+    // Update if ID mismatch (name change) OR if ID not in reverse map (init)
+    if (playerNameIdMap.get(playerNameLower) !== player.id || !playerIdNameMap.has(player.id)) {
         const oldName = playerIdNameMap.get(player.id);
         if (oldName) {
             playerNameIdMap.delete(oldName.toLowerCase());
