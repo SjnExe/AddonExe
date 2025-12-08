@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions, @typescript-eslint/require-await, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog } from './logger.js';
@@ -34,6 +33,7 @@ function loadTexts() {
     try {
         const dataString = mc.world.getDynamicProperty(floatingTextDataKey);
         if (dataString && typeof dataString === 'string') {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const parsedData: [string, FloatingTextConfig][] = JSON.parse(dataString);
             floatingTexts = new Map(parsedData);
             debugLog(`[FloatingText] Loaded ${floatingTexts.size} floating texts.`);
@@ -63,9 +63,9 @@ function saveTexts() {
     }
 }
 
-async function initialize() {
+function initialize() {
     loadTexts();
-    await spawnAllTexts();
+    spawnAllTexts();
     runExpirationLoop();
     runRetrySpawnLoop();
     runUpdateLoop();
@@ -147,7 +147,7 @@ function runRetrySpawnLoop() {
     retrySpawnIntervalId = mc.system.runTimeout(runRetrySpawnLoop, 200);
 }
 
-async function spawnAllTexts() {
+function spawnAllTexts() {
     const textsByDimension = new Map<string, FloatingTextConfig[]>();
     for (const textConfig of floatingTexts.values()) {
         const dim = textConfig.dimension;
@@ -178,7 +178,7 @@ async function spawnAllTexts() {
                 }
             }
         } catch (e) {
-            debugLog(`[FloatingText] Failed to batch query dimension ${dimId}: ${e}`);
+            debugLog(`[FloatingText] Failed to batch query dimension ${dimId}: ${String(e)}`);
         }
 
         for (const textConfig of texts) {
@@ -289,7 +289,7 @@ function getTextById(id: string): FloatingTextConfig | undefined {
     return floatingTexts.get(id);
 }
 
-async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
+function updateText(id: string, updates: Partial<FloatingTextConfig>) {
     const oldConfig = getTextById(id);
     if (!oldConfig) {
         errorLog(`[FloatingText] updateText failed: Could not find config for ID: ${id}`);
@@ -345,7 +345,7 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                 if (!entity) {
                     // Entity missing, respawn at new location
                     debugLog(`[FloatingText] Entity not found for ID: ${id}. Respawning.`);
-                    await despawnText(id);
+                    despawnText(id);
                     spawnText(newConfig);
                     return;
                 }
@@ -353,7 +353,7 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                 if (dimensionChanged) {
                     // Cross-dimension move requires respawn
                     debugLog(`[FloatingText] Dimension changed for ID: ${id}. Respawning.`);
-                    await despawnText(id);
+                    despawnText(id);
                     spawnText(newConfig);
                     return;
                 }
@@ -366,8 +366,8 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                         entity.teleport(newConfig.location);
                         debugLog(`[FloatingText] Teleported entity for ID: ${id}.`);
                     } catch (e) {
-                        debugLog(`[FloatingText] Teleport failed for ID: ${id}, respawning. ${e}`);
-                        await despawnText(id);
+                        debugLog(`[FloatingText] Teleport failed for ID: ${id}, respawning. ${String(e)}`);
+                        despawnText(id);
                         spawnText(newConfig);
                         return;
                     }
@@ -384,7 +384,7 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                 } else {
                     errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, String(e));
                 }
-                await despawnText(id);
+                despawnText(id);
                 spawnText(newConfig);
             }
         })();
@@ -416,7 +416,7 @@ function createText(player: mc.Player, id: string, text: string): boolean {
     return true;
 }
 
-async function despawnText(id: string) {
+function despawnText(id: string) {
     if (pendingDespawns.has(id)) {
         const runId = pendingDespawns.get(id);
         if (runId !== undefined) {
@@ -488,7 +488,7 @@ async function despawnText(id: string) {
     }
 }
 
-async function respawnText(id: string) {
+function respawnText(id: string) {
     if (pendingDespawns.has(id)) {
         const runId = pendingDespawns.get(id);
         if (runId !== undefined) {
@@ -503,14 +503,14 @@ async function respawnText(id: string) {
             textConfig.expiresAt = null;
             saveTexts();
         }
-        await despawnText(id);
+        despawnText(id);
         mc.system.runTimeout(() => {
             spawnText(textConfig);
         }, 20);
     }
 }
 
-async function deleteText(player: mc.Player | null, id: string) {
+function deleteText(player: mc.Player | null, id: string) {
     if (!floatingTexts.has(id)) {
         if (player) {
             player.sendMessage(`§cFloating text with ID "${id}" not found.`);
@@ -518,7 +518,7 @@ async function deleteText(player: mc.Player | null, id: string) {
         return;
     }
 
-    await despawnText(id);
+    despawnText(id);
     floatingTexts.delete(id);
     saveTexts();
 

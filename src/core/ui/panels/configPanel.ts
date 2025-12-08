@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -52,7 +51,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         };
 
         const addPagination = (totalItems: number) => {
-            const page = context.page || 1;
+            const page = (context.page as number) || 1;
             const totalPages = Math.ceil(totalItems / itemsPerPage);
             if (page > 1) {
                 items.push({
@@ -79,7 +78,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         if (panelId === 'configCategoryPanel') {
             addBack('adminPanel');
             const categories = getVisibleCategories(pData);
-            const paginated = getPaginatedItems(categories, context.page || 1);
+            const paginated = getPaginatedItems(categories, (context.page as number) || 1);
             paginated.forEach((cat) => {
                 items.push({
                     id: cat.id,
@@ -108,7 +107,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const category = panelId.replace('configSubCategoryPanel_', '');
             addBack('configCategoryPanel');
             const systems = getSystemsByCategory(pData, category);
-            const paginated = getPaginatedItems(systems, context.page || 1);
+            const paginated = getPaginatedItems(systems, (context.page as number) || 1);
             paginated.forEach((sys) => {
                 items.push({
                     id: sys.id,
@@ -126,7 +125,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         if (panelId === 'configResetPanel') {
             addBack('configCategoryPanel');
             const categories = getVisibleCategories(pData);
-            const paginated = getPaginatedItems(categories, context.page || 1);
+            const paginated = getPaginatedItems(categories, (context.page as number) || 1);
             paginated.forEach((cat) => {
                 items.push({
                     id: cat.id,
@@ -137,7 +136,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     actionValue: `configResetCategoryPanel_${cat.id}`
                 });
             });
-            if (context.page! >= Math.ceil(categories.length / itemsPerPage)) {
+            if (((context.page as number) || 1) >= Math.ceil(categories.length / itemsPerPage)) {
                 items.push({
                     id: 'resetAll',
                     text: '§l§4Reset All Systems',
@@ -155,7 +154,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const category = panelId.replace('configResetCategoryPanel_', '');
             addBack('configResetPanel');
             const systems = getSystemsByCategory(pData, category);
-            const paginated = getPaginatedItems(systems, context.page || 1);
+            const paginated = getPaginatedItems(systems, (context.page as number) || 1);
 
             items.push({
                 id: 'resetCategory',
@@ -241,10 +240,10 @@ export class ConfigPanelHandler implements IPanelHandler {
                     return showPanel(player, item.actionValue, { ...context, page: 1 });
                 }
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page || 1) - 1) });
+                    return showPanel(player, panelId, { ...context, page: Math.max(1, ((context.page as number) || 1) - 1) });
                 }
                 if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: (context.page || 1) + 1 });
+                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
                 }
 
                 // --- Reset Actions ---

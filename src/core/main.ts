@@ -117,7 +117,7 @@ async function initializeManagers() {
     infoLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
-    await floatingTextManager.initialize();
+    floatingTextManager.initialize();
     teamManager.initialize();
     corePanels.initialize();
     kitsFeature.initialize();

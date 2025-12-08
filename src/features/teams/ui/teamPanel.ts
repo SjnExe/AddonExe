@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -40,7 +39,7 @@ export class TeamPanelHandler implements IPanelHandler {
 
         // Helper for pagination
         const addPagination = (totalItems: number) => {
-            const page = context.page || 1;
+            const page = (context.page as number) || 1;
             const totalPages = Math.ceil(totalItems / itemsPerPage);
             if (page > 1) {
                 items.push({
@@ -134,7 +133,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 teams = teams.filter((t) => t.open !== false);
             }
             teams.sort((a, b) => b.members.length - a.members.length);
-            const paginated = getPaginatedItems(teams, context.page || 1);
+            const paginated = getPaginatedItems(teams, (context.page as number) || 1);
 
             paginated.forEach((team) => {
                 const ownerData = loadPlayerData(team.ownerId);
@@ -509,10 +508,10 @@ export class TeamPanelHandler implements IPanelHandler {
                 }
 
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page || 1) - 1) });
+                    return showPanel(player, panelId, { ...context, page: Math.max(1, ((context.page as number) || 1) - 1) });
                 }
                 if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: (context.page || 1) + 1 });
+                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
                 }
 
                 // --- Custom Handlers ---

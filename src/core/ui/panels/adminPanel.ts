@@ -181,7 +181,7 @@ export class AdminPanelHandler implements IPanelHandler {
                         ? Date.now() + Number(expirationMinutes) * 60000
                         : null
             };
-            await floatingTextManager.updateText(id, updatedConfig);
+            floatingTextManager.updateText(id, updatedConfig);
             player.sendMessage(`§2Successfully updated floating text: ${id}`);
             return showPanel(player, 'floatingTextActionPanel', context);
         }
