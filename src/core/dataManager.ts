@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from './configManager.js';
-import { debugLog } from './logger.js';
+import { debugLog, infoLog } from './logger.js';
 import { getAllPlayerData, isNameIdMapDirty, saveNameIdMap, savePlayerData } from './playerDataManager.js';
 import { clearTrackedInterval, setTrackedInterval } from './timerManager.js';
 
@@ -87,10 +87,8 @@ export function initializeDataManager() {
 
     // Add a handler to save all data before the script shuts down
     mc.system.beforeEvents.shutdown.subscribe(() => {
-        // eslint-disable-next-line no-console
-        console.log('[DataManager] Shutdown detected. Attempting to save all data...');
+        infoLog('[DataManager] Shutdown detected. Attempting to save all data...');
         saveAllData({ log: true });
-        // eslint-disable-next-line no-console
-        console.log('[DataManager] Final save attempt complete.');
+        infoLog('[DataManager] Final save attempt complete.');
     });
 }

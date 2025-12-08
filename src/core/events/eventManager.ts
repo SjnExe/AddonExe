@@ -20,8 +20,14 @@ type EventSignal =
     | mc.PlayerLeaveAfterEventSignal
     | mc.ScriptEventCommandMessageAfterEventSignal;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type EventHandler = (event: any) => void;
+type EventHandler =
+    | ((event: mc.ChatSendBeforeEvent) => void)
+    | ((event: mc.EntityDieAfterEvent) => void)
+    | ((event: mc.EntityHurtAfterEvent) => void)
+    | ((event: mc.ItemUseAfterEvent) => void)
+    | ((event: mc.PlayerDimensionChangeAfterEvent) => void)
+    | ((event: mc.PlayerLeaveAfterEvent) => void)
+    | ((event: mc.ScriptEventCommandMessageAfterEvent) => void);
 
 interface EventSubscription {
     event: EventSignal | null;
@@ -48,7 +54,8 @@ export function initializeEventManager() {
     for (const { event, handler, name } of events) {
         if (event) {
             try {
-                event.subscribe(handler as EventHandler);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                (event as any).subscribe(handler);
             } catch (e: unknown) {
                 errorLog(`[EventManager] Failed to subscribe to event '${name}'. Error: ${String(e)}`);
             }
@@ -70,7 +77,8 @@ export function cleanupEventManager() {
     for (const { event, handler, name } of events) {
         if (event) {
             try {
-                event.unsubscribe(handler as EventHandler);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                (event as any).unsubscribe(handler);
             } catch (e: unknown) {
                 const errorMessage = e instanceof Error ? e.message : String(e);
                 // Suppress "does not have required privileges" errors during shutdown

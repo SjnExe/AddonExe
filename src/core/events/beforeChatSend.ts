@@ -72,6 +72,8 @@ function handleChatSend(eventData: mc.ChatSendBeforeEvent) {
     // Log to console if enabled
     if (getConfig().chat?.logToConsole) {
         // Using a plain-text version for the console log to avoid clutter from formatting codes
+        // We use console.log/infoLog to preserve the server log.
+        // infoLog adds [INFO] prefix which is standard.
         // eslint-disable-next-line no-console
         console.log(`<${player.name}> ${eventData.message}`);
     }

@@ -474,7 +474,10 @@ export class ShopPanelHandler implements IPanelHandler {
                 }
 
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, ((context.page as number) || 1) - 1) });
+                    return showPanel(player, panelId, {
+                        ...context,
+                        page: Math.max(1, ((context.page as number) || 1) - 1)
+                    });
                 }
                 if (item.actionValue === 'nextPage') {
                     return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
@@ -602,7 +605,10 @@ export class ShopPanelHandler implements IPanelHandler {
                         );
                         player.sendMessage(result.message);
                     }
-                    return showPanel(player, `shopAdminCategoryPanel_${categoryName as string}`, { ...context, page: 1 });
+                    return showPanel(player, `shopAdminCategoryPanel_${categoryName as string}`, {
+                        ...context,
+                        page: 1
+                    });
                 }
 
                 if (item.actionValue === 'deleteSubCategory') {
@@ -738,8 +744,7 @@ export class ShopPanelHandler implements IPanelHandler {
                         const shopConfig = getShopConfig();
                         let shopItem;
                         if (subCategoryName)
-                            shopItem =
-                                shopConfig.categories[categoryName].subCategories[subCategoryName].items[itemId];
+                            shopItem = shopConfig.categories[categoryName].subCategories[subCategoryName].items[itemId];
                         else shopItem = shopConfig.categories[categoryName].items[itemId];
 
                         const masterItem = allItems[itemId] || {};
@@ -762,19 +767,14 @@ export class ShopPanelHandler implements IPanelHandler {
 
                         const vals = editRes.formValues as string[];
                         const [dName, mId, icon, bPrice, sPrice, pLevel] = vals;
-                        shopAdminManager.updateShopItem(
-                            categoryName,
-                            subCategoryName || null,
-                            itemId,
-                            {
-                                buyPrice: Number(bPrice),
-                                sellPrice: Number(sPrice),
-                                permissionLevel: Number(pLevel),
-                                icon,
-                                minecraftId: mId,
-                                displayName: dName
-                            }
-                        );
+                        shopAdminManager.updateShopItem(categoryName, subCategoryName || null, itemId, {
+                            buyPrice: Number(bPrice),
+                            sellPrice: Number(sPrice),
+                            permissionLevel: Number(pLevel),
+                            icon,
+                            minecraftId: mId,
+                            displayName: dName
+                        });
                         player.sendMessage('§2Item updated.');
                     } else if (actionRes.selection === 1) {
                         shopAdminManager.removeItem(

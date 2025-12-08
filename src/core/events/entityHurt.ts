@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 import * as mc from '@minecraft/server';
 
 import * as lastHitManager from '../lastHitManager.js';
@@ -19,8 +18,12 @@ function handleEntityHurt(event: mc.EntityHurtAfterEvent) {
     }
 
     // Check for owner (e.g. projectile or tameable)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const attacker = (damagingEntity as any).owner ?? damagingEntity;
+    // Define an interface for entities that might have an owner property (like projectiles)
+    interface EntityWithOwner extends mc.Entity {
+        owner?: mc.Entity;
+    }
+
+    const attacker = (damagingEntity as EntityWithOwner).owner ?? damagingEntity;
 
     if (attacker?.typeId === 'minecraft:player' && attacker.id !== victim.id) {
         lastHitManager.setLastHit(victim.id, (attacker as mc.Player).id);

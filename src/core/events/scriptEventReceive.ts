@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor } from '@modules/commands/commandManager.js';

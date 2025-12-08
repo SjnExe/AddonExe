@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { debugLog, errorLog } from '../../core/logger.js';
+import { debugLog, errorLog, warnLog } from '../../core/logger.js';
 import { getPlayer } from '../../core/playerDataManager.js';
 import { StorageManager } from '../../core/storage/StorageManager.js';
 import { formatString } from '../../core/utils.js';
@@ -75,8 +75,7 @@ export function flag(player: mc.Player, checkName: string, message: string) {
         notifyAdmins(player, checkName, data.vl, message, checkConfig.notifyPermissionLevel ?? 2);
 
         if (config.consoleNotifications) {
-            // eslint-disable-next-line no-console
-            console.warn(`§c[AC] §e${player.name} §7failed §b${checkName} §7(VL: ${data.vl}): §f${message}`);
+            warnLog(`§c[AC] §e${player.name} §7failed §b${checkName} §7(VL: ${data.vl}): §f${message}`);
         }
     }
 

@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
+import { Report } from '../../features/moderation/reportManager.js';
 import { getConfig } from '../configManager.js';
 import { errorLog } from '../logger.js';
 import { getOrCreatePlayer, loadPlayerData, PlayerData } from '../playerDataManager.js';
-import { Report } from '../../features/moderation/reportManager.js';
 import { panelRouter } from './PanelRouter.js';
 import { panelDefinitions } from './panelRegistry.js';
 import { MainConfig, PanelDefinition, PanelItem, UIContext } from './types.js';
