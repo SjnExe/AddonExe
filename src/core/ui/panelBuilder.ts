@@ -3,7 +3,8 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
 import { getConfig } from '../configManager.js';
 import { errorLog } from '../logger.js';
-import { getOrCreatePlayer, loadPlayerData } from '../playerDataManager.js';
+import { getOrCreatePlayer, loadPlayerData, PlayerData } from '../playerDataManager.js';
+import { Report } from '../../features/moderation/reportManager.js';
 import { panelRouter } from './PanelRouter.js';
 import { panelDefinitions } from './panelRegistry.js';
 import { MainConfig, PanelDefinition, PanelItem, UIContext } from './types.js';
@@ -116,7 +117,8 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
     // Player details body
     else if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
         // Use top-level loadPlayerData
-        const pData = (context.targetData as any) || loadPlayerData(String(context.targetPlayerId));
+        const targetId = String(context.targetPlayerId as string | number);
+        const pData = (context.targetData as PlayerData | undefined) || loadPlayerData(targetId);
         if (pData) {
             const { getRankById } = await import('../rankManager.js');
             const { getBounty } = await import('../bountyManager.js');
@@ -134,8 +136,7 @@ async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: st
     }
     // Report details body
     else if (panelId === 'reportActionsPanel' && context.targetReport) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const targetReport = context.targetReport as any;
+        const targetReport = context.targetReport as Report;
         form.body(
             [
                 `§8Report ID: §6${String(targetReport.id)}`,

@@ -161,15 +161,13 @@ export default function createConfigManager<T>(
     }
 
     function updateConfig(path: string, value: unknown) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setValueByPath(currentConfig as any, path, value);
+        setValueByPath(currentConfig as unknown as Record<string, unknown>, path, value);
         saveConfig();
     }
 
     function updateMultipleConfig(updates: Record<string, unknown>) {
         for (const path in updates) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setValueByPath(currentConfig as any, path, updates[path]);
+            setValueByPath(currentConfig as unknown as Record<string, unknown>, path, updates[path]);
         }
         saveConfig();
     }

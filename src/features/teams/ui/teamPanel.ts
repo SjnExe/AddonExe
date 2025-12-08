@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getTeamConfig } from '../../../core/configurations.js';
-import { getOrCreatePlayer, loadPlayerData } from '../../../core/playerDataManager.js';
+import { getOrCreatePlayer, loadPlayerData, PlayerData } from '../../../core/playerDataManager.js';
 import { handleUIAction } from '../../../core/ui/actions.js';
 import { showConfirmationDialog } from '../../../core/ui/components.js';
 import { PanelItem, UIContext } from '../../../core/ui/panelRegistry.js';
@@ -21,7 +21,7 @@ export class TeamPanelHandler implements IPanelHandler {
         // Satisfy async requirement if no other await exists
         await Promise.resolve();
 
-        const pData = getOrCreatePlayer(player);
+        const pData: PlayerData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
         const items: PanelItem[] = [];
 
@@ -39,7 +39,7 @@ export class TeamPanelHandler implements IPanelHandler {
 
         // Helper for pagination
         const addPagination = (totalItems: number) => {
-            const page = context.page || 1;
+            const page = (context.page as number) || 1;
             const totalPages = Math.ceil(totalItems / itemsPerPage);
             if (page > 1) {
                 items.push({
@@ -133,7 +133,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 teams = teams.filter((t) => t.open !== false);
             }
             teams.sort((a, b) => b.members.length - a.members.length);
-            const paginated = getPaginatedItems(teams, context.page || 1);
+            const paginated = getPaginatedItems(teams, (context.page as number) || 1);
 
             paginated.forEach((team) => {
                 const ownerData = loadPlayerData(team.ownerId);
@@ -381,7 +381,7 @@ export class TeamPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         // Satisfy async requirement
         await Promise.resolve();
 
@@ -508,10 +508,10 @@ export class TeamPanelHandler implements IPanelHandler {
                 }
 
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page || 1) - 1) });
+                    return showPanel(player, panelId, { ...context, page: Math.max(1, ((context.page as number) || 1) - 1) });
                 }
                 if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: (context.page || 1) + 1 });
+                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
                 }
 
                 // --- Custom Handlers ---

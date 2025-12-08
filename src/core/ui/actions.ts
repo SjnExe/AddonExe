@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions, @typescript-eslint/await-thenable */
 import * as mc from '@minecraft/server';
 import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -15,6 +14,7 @@ import { showPanel } from '../uiManager.js';
 import * as utils from '../utils.js';
 
 import { UIContext } from './panelRegistry.js';
+import { MainConfig } from './types.js';
 
 /**
  * Handles the logic for various UI actions triggered by buttons.
@@ -70,30 +70,30 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
         case 'respawnText':
             try {
                 if (context.id) {
-                    await floatingTextManager.respawnText(context.id as string);
-                    player.sendMessage(`§2Respawned text: ${context.id}`);
+                    floatingTextManager.respawnText(context.id as string);
+                    player.sendMessage(`§2Respawned text: ${context.id as string}`);
                 }
             } catch (error) {
-                player.sendMessage(`§4Error respawning text: ${error}`);
+                player.sendMessage(`§4Error respawning text: ${String(error)}`);
             }
             return showPanel(player, 'floatingTextActionPanel', context);
         case 'despawnText':
             try {
                 if (context.id) {
-                    await floatingTextManager.despawnText(context.id as string);
-                    player.sendMessage(`§2Despawned text: ${context.id}`);
+                    floatingTextManager.despawnText(context.id as string);
+                    player.sendMessage(`§2Despawned text: ${context.id as string}`);
                 }
             } catch (error) {
-                player.sendMessage(`§4Error despawning text: ${error}`);
+                player.sendMessage(`§4Error despawning text: ${String(error)}`);
             }
             return showPanel(player, 'floatingTextActionPanel', context);
         case 'deleteText':
             try {
                 if (context.id) {
-                    await floatingTextManager.deleteText(player, context.id as string);
+                    floatingTextManager.deleteText(player, context.id as string);
                 }
             } catch (error) {
-                player.sendMessage(`§4Error deleting text: ${error}`);
+                player.sendMessage(`§4Error deleting text: ${String(error)}`);
             }
             // Go back to list after delete
             return showPanel(player, 'floatingTextListPanel', context);
@@ -135,7 +135,7 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
 }
 
 async function kickPlayer(player: mc.Player, context: UIContext) {
-    const targetId = context.targetPlayerId;
+    const targetId = context.targetPlayerId as string;
     if (!targetId) return;
     const target = getPlayerFromCache(targetId);
 
@@ -152,30 +152,30 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
         .textField('Reason', 'Enter reason for kick', { defaultValue: 'Kicked by admin' });
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
+    if (res.canceled) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
+    if (!values) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
     const [reason] = values as [string];
 
     // Use dimension.runCommand to bypass permissions
     try {
         // Enclose name in quotes to handle spaces
-        await player.dimension.runCommand(`kick "${target.name}" ${reason}`);
+        player.dimension.runCommand(`kick "${target.name}" ${reason}`);
         player.sendMessage(`§2Kicked ${target.name}.`);
     } catch (e) {
-        player.sendMessage(`§4Failed to kick player: ${e}`);
+        player.sendMessage(`§4Failed to kick player: ${String(e)}`);
     }
     return showPanel(player, 'playerActionsPanel', context);
 }
 
 async function mutePlayer(player: mc.Player, context: UIContext) {
-    const targetId = context.targetPlayerId;
+    const targetId = context.targetPlayerId as string;
     if (!targetId) return;
     const targetData = getPlayer(targetId);
     if (!targetData) {
         player.sendMessage('§4Player data not found.');
-        return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
+        return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
     }
 
     const form = new ModalFormData()
@@ -217,7 +217,7 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
 }
 
 async function unmutePlayer(player: mc.Player, context: UIContext) {
-    const targetId = context.targetPlayerId;
+    const targetId = context.targetPlayerId as string;
     if (!targetId) return;
 
     const punishment = punishmentManager.getPunishment(targetId);
@@ -237,7 +237,7 @@ async function unmutePlayer(player: mc.Player, context: UIContext) {
 }
 
 async function banPlayer(player: mc.Player, context: UIContext) {
-    const targetId = context.targetPlayerId;
+    const targetId = context.targetPlayerId as string;
     if (!targetId) return;
     const targetData = getPlayer(targetId);
     if (!targetData) {
@@ -284,7 +284,7 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     if (target) {
         // Kick immediately
         try {
-            await player.dimension.runCommand(
+            player.dimension.runCommand(
                 `kick "${target.name}" §4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`
             );
         } catch {
@@ -296,7 +296,7 @@ async function banPlayer(player: mc.Player, context: UIContext) {
 }
 
 async function freezePlayer(player: mc.Player, context: UIContext) {
-    const targetId = context.targetPlayerId;
+    const targetId = context.targetPlayerId as string;
     if (!targetId) return;
     const target = getPlayerFromCache(targetId);
 
@@ -313,7 +313,7 @@ async function freezePlayer(player: mc.Player, context: UIContext) {
 }
 
 async function unfreezePlayer(player: mc.Player, context: UIContext) {
-    const targetId = context.targetPlayerId;
+    const targetId = context.targetPlayerId as string;
     if (!targetId) return;
     const target = getPlayerFromCache(targetId);
 
@@ -329,7 +329,7 @@ async function unfreezePlayer(player: mc.Player, context: UIContext) {
 }
 
 async function tpaPlayer(player: mc.Player, context: UIContext) {
-    const targetId = context.targetPlayerId;
+    const targetId = context.targetPlayerId as string;
     if (!targetId) return;
     const target = getPlayerFromCache(targetId);
     if (!target) {
@@ -343,7 +343,7 @@ async function tpaPlayer(player: mc.Player, context: UIContext) {
 }
 
 async function tpaherePlayer(player: mc.Player, context: UIContext) {
-    const targetId = context.targetPlayerId;
+    const targetId = context.targetPlayerId as string;
     if (!targetId) return;
     const target = getPlayerFromCache(targetId);
     if (!target) {
@@ -357,7 +357,7 @@ async function tpaherePlayer(player: mc.Player, context: UIContext) {
 }
 
 async function reportPlayer(player: mc.Player, context: UIContext) {
-    const targetId = context.targetPlayerId;
+    const targetId = context.targetPlayerId as string;
     if (!targetId) return;
     const targetData = getPlayer(targetId);
     if (!targetData) {
@@ -370,24 +370,24 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
         .textField('Reason', 'Why are you reporting this player?');
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
+    if (res.canceled) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
+    if (!values) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
     const [reason] = values as [string];
     if (!reason) {
         player.sendMessage('§4Reason is required.');
-        return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
+        return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
     }
 
     reportManager.createReport(player, targetId, targetData.name, reason);
     player.sendMessage('§2Report sent successfully. Admins have been notified.');
-    return showPanel(player, context.returnPanel || 'playerActionsPanel', context);
+    return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 }
 
 async function bountyPlayer(player: mc.Player, context: UIContext) {
-    const targetId = context.targetPlayerId;
+    const targetId = context.targetPlayerId as string;
     if (!targetId) return;
     const targetData = getPlayer(targetId);
 
@@ -433,8 +433,7 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
 
     // Announce?
     // Using simple boolean check directly as modules type is dynamic
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const config = configManager.getConfig() as any;
+    const config = configManager.getConfig() as unknown as MainConfig;
     if (config.modules?.bounties?.announce ?? true) {
         mc.world.sendMessage(
             `§6[Bounty] §r${player.name} has placed a ${utils.formatCurrency(amount)} bounty on ${targetData?.name}!`
@@ -444,7 +443,7 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
 }
 
 async function removePlayerBounty(player: mc.Player, context: UIContext) {
-    const targetId = context.targetPlayerId;
+    const targetId = context.targetPlayerId as string;
     if (!targetId) return;
     const targetBounty = bountyManager.getBounty(targetId);
 

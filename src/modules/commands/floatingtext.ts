@@ -52,7 +52,7 @@ const command: CustomCommand = {
                     executor.sendMessage('§cUsage: /floatingtext delete <id>');
                     return;
                 }
-                await floatingTextManager.deleteText(executor, id);
+                floatingTextManager.deleteText(executor, id);
                 break;
             case 'list':
                 floatingTextManager.listTexts(executor);
