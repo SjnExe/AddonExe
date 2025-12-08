@@ -265,15 +265,6 @@ mc.system.runTimeout(() => {
     })();
 }, 0);
 
-mc.system.afterEvents.scriptEventReceive.subscribe((event: unknown) => {
-    const { id } = event as { id: string };
-
-    if (id === 'minecraft:script_unload') {
-        cleanupAddon();
-        return;
-    }
-});
-
 mc.system.beforeEvents.shutdown.subscribe(() => {
     cleanupAddon();
 });

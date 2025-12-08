@@ -163,6 +163,45 @@ export class PlayerPanelHandler implements IPanelHandler {
         return visibleItems;
     }
 
+    async getBody(player: mc.Player, panelId: string, context: UIContext): Promise<string | null> {
+        if (panelId === 'myStatsPanel') {
+            const pData = getOrCreatePlayer(player);
+            const { getTeamByPlayer } = await import('../../../features/teams/teamManager.js');
+            const team = getTeamByPlayer(player.id);
+            const teamName = team ? `§3${team.name}` : '§8None';
+            const { getPlayerRank } = await import('../../rankManager.js');
+            const rank = getPlayerRank(player, getConfig());
+            const { getBounty } = await import('../../bountyManager.js');
+            const bounty = getBounty(player.id)?.amount ?? 0;
+            const { formatCurrency } = await import('../../utils.js');
+
+            return [
+                `§8Rank: §r${rank.chatFormatting?.nameColor ?? '§8'}${rank.name}`,
+                `§8Team: ${teamName}`,
+                `§8Balance: §2${formatCurrency(pData.balance)}`,
+                `§8Bounty on you: §6${formatCurrency(bounty)}`
+            ].join('\n');
+        }
+
+        if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
+            const targetId = String(context.targetPlayerId as string | number);
+            const pData = (context.targetData as PlayerData | undefined) || loadPlayerData(targetId);
+            if (pData) {
+                const { getRankById } = await import('../../rankManager.js');
+                const { getBounty } = await import('../../bountyManager.js');
+                const { formatCurrency } = await import('../../utils.js');
+                const rank = getRankById(pData.rankId);
+                const bounty = getBounty(targetId)?.amount ?? 0;
+                return [
+                    `§8Rank: §r${rank?.chatFormatting?.nameColor ?? '§8'}${rank?.name ?? 'Unknown'}`,
+                    `§8Balance: §2${formatCurrency(pData.balance)}`,
+                    `§8Bounty: §6${formatCurrency(bounty)}`
+                ].join('\n');
+            }
+        }
+        return null;
+    }
+
     async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         await Promise.resolve();
         if (panelId === 'playerSearchPanel') {

@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from './configManager.js';
 import { debugLog, errorLog } from './logger.js';
-import { setTrackedTimeout } from './timerManager.js';
+import { clearTrackedInterval, setTrackedInterval } from './timerManager.js';
 
 const leaderboardKey = 'exe:economyLeaderboard';
 
@@ -14,10 +14,21 @@ export interface LeaderboardEntry {
 
 let leaderboardCache: LeaderboardEntry[] = [];
 let isLeaderboardDirty = false;
-let isSaveOnCooldown = false;
+let saveIntervalId: number | null = null;
 
 export function getLeaderboard(): LeaderboardEntry[] {
     return leaderboardCache;
+}
+
+function saveLeaderboardIfDirty() {
+    if (!isLeaderboardDirty) return;
+    try {
+        mc.world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
+        isLeaderboardDirty = false;
+    } catch (e: unknown) {
+        const stack = e instanceof Error ? e.stack : String(e);
+        errorLog(`[LeaderboardManager] Failed to save leaderboard: ${stack}`);
+    }
 }
 
 export function initializeLeaderboard() {
@@ -26,33 +37,16 @@ export function initializeLeaderboard() {
         if (dataString && typeof dataString === 'string') {
             leaderboardCache = JSON.parse(dataString) as LeaderboardEntry[];
             debugLog(`[LeaderboardManager] Loaded ${leaderboardCache.length} players into leaderboard cache.`);
-            return;
+        } else {
+            leaderboardCache = [];
         }
+
+        // Start periodic save loop (every 30 seconds)
+        saveIntervalId = setTrackedInterval(saveLeaderboardIfDirty, 30 * 20);
     } catch (e: unknown) {
         const stack = e instanceof Error ? e.stack : String(e);
         errorLog(`[LeaderboardManager] Failed to load leaderboard from storage: ${stack}`);
-    }
-    leaderboardCache = [];
-}
-
-function triggerLeaderboardSave() {
-    if (isSaveOnCooldown) {
-        isLeaderboardDirty = true;
-        return;
-    }
-    try {
-        mc.world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
-        isLeaderboardDirty = false;
-        isSaveOnCooldown = true;
-        setTrackedTimeout(() => {
-            isSaveOnCooldown = false;
-            if (isLeaderboardDirty) {
-                triggerLeaderboardSave();
-            }
-        }, 30 * 20);
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
-        errorLog(`[LeaderboardManager] Failed to save leaderboard: ${stack}`);
+        leaderboardCache = [];
     }
 }
 
@@ -82,12 +76,19 @@ export function updateAndSaveLeaderboard(playerId: string, name: string, balance
     if (leaderboardCache.length > cacheSize) {
         leaderboardCache.length = cacheSize;
     }
-    triggerLeaderboardSave();
+
+    // Mark as dirty; the periodic loop will handle the save
+    isLeaderboardDirty = true;
 }
 
 export function cleanupLeaderboardManager() {
+    if (saveIntervalId !== null) {
+        clearTrackedInterval(saveIntervalId);
+        saveIntervalId = null;
+    }
+    // Attempt one final save before shutdown
+    saveLeaderboardIfDirty();
     leaderboardCache = [];
     isLeaderboardDirty = false;
-    isSaveOnCooldown = false;
     debugLog('[LeaderboardManager] Cache cleared.');
 }
