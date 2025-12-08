@@ -7,8 +7,14 @@ import { debugLog, errorLog, infoLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
 
 const playerPropertyPrefix = 'exe:player.';
+// Legacy keys (kept for migration)
 const playerNameIdMapKey = 'exe:playerNameIdMap';
 const playerIdNameMapKey = 'exe:playerIdNameMap';
+
+// Sharded keys
+const playerNameIdMapShardPrefix = 'exe:nameIdMap_';
+const playerIdNameMapShardPrefix = 'exe:idNameMap_';
+const MAP_SHARD_SIZE = 300; // Entries per shard
 
 export interface HomeLocation {
     x: number;
@@ -50,8 +56,8 @@ export interface PlayerData {
 const activePlayerData = new Map<string, PlayerData>();
 const sessionStartTimes = new Map<string, number>();
 
-let playerNameIdMap = new Map<string, string>();
-let playerIdNameMap = new Map<string, string>();
+const playerNameIdMap = new Map<string, string>();
+const playerIdNameMap = new Map<string, string>();
 
 /** A flag indicating that the name-to-ID map has changed and needs to be saved. */
 export let isNameIdMapDirty = false;
@@ -107,18 +113,78 @@ export function cleanupPlayerDataManager() {
 }
 
 /**
+ * Helper to save a map across multiple dynamic properties (shards).
+ */
+function saveShardedMap(map: Map<string, string>, prefix: string) {
+    const entries = Array.from(map.entries());
+    const totalShards = Math.ceil(entries.length / MAP_SHARD_SIZE);
+
+    for (let i = 0; i < totalShards; i++) {
+        const start = i * MAP_SHARD_SIZE;
+        const chunk = entries.slice(start, start + MAP_SHARD_SIZE);
+        mc.world.setDynamicProperty(`${prefix}${i}`, JSON.stringify(chunk));
+    }
+
+    // Cleanup stale shards if the map shrank
+    let nextIndex = totalShards;
+    while (mc.world.getDynamicProperty(`${prefix}${nextIndex}`) !== undefined) {
+        mc.world.setDynamicProperty(`${prefix}${nextIndex}`, undefined);
+        nextIndex++;
+    }
+}
+
+/**
+ * Helper to load a map from either a legacy single property or multiple shards.
+ * Returns true if migration from legacy occurred.
+ */
+function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix: string): boolean {
+    let migrated = false;
+
+    // 1. Try Legacy
+    const legacyData = mc.world.getDynamicProperty(legacyKey) as string | undefined;
+    if (legacyData) {
+        try {
+            const entries = JSON.parse(legacyData) as [string, string][];
+            entries.forEach(([k, v]) => map.set(k, v));
+            // Delete legacy key immediately to mark migration complete
+            mc.world.setDynamicProperty(legacyKey, undefined);
+            migrated = true;
+        } catch (e) {
+            errorLog(`[PlayerDataManager] Failed to migrate legacy map ${legacyKey}: ${String(e)}`);
+        }
+    }
+
+    // 2. Load Shards (If legacy didn't exist or we want to merge? Usually exclusive, but safe to check both)
+    // If we migrated, we don't need to load shards (they shouldn't exist yet, or are stale).
+    // But to be robust, we only load shards if legacy was NOT found.
+    if (!migrated) {
+        let i = 0;
+        while (true) {
+            const data = mc.world.getDynamicProperty(`${shardPrefix}${i}`) as string | undefined;
+            if (!data) break;
+            try {
+                const entries = JSON.parse(data) as [string, string][];
+                entries.forEach(([k, v]) => map.set(k, v));
+            } catch (e) {
+                errorLog(`[PlayerDataManager] Failed to load shard ${shardPrefix}${i}: ${String(e)}`);
+            }
+            i++;
+        }
+    }
+
+    return migrated;
+}
+
+/**
  * Saves the player name-to-ID map to a dynamic property.
  */
 export function saveNameIdMap() {
     try {
-        const dataToSave = Array.from(playerNameIdMap.entries());
-        mc.world.setDynamicProperty(playerNameIdMapKey, JSON.stringify(dataToSave));
-
-        const idNameData = Array.from(playerIdNameMap.entries());
-        mc.world.setDynamicProperty(playerIdNameMapKey, JSON.stringify(idNameData));
+        saveShardedMap(playerNameIdMap, playerNameIdMapShardPrefix);
+        saveShardedMap(playerIdNameMap, playerIdNameMapShardPrefix);
 
         isNameIdMapDirty = false;
-        debugLog('[PlayerDataManager] Saved name-to-ID maps.');
+        debugLog('[PlayerDataManager] Saved name-to-ID maps (Sharded).');
     } catch (e: unknown) {
         const stack = e instanceof Error ? e.stack : String(e);
         errorLog(`[PlayerDataManager] Failed to save name-to-ID map: ${stack}`);
@@ -127,16 +193,13 @@ export function saveNameIdMap() {
 
 export function loadNameIdMap() {
     try {
-        const dataString = mc.world.getDynamicProperty(playerNameIdMapKey) as string | undefined;
-        if (dataString && typeof dataString === 'string') {
-            const parsedData = JSON.parse(dataString) as [string, string][];
-            playerNameIdMap = new Map(parsedData);
-        }
+        const migratedName = loadShardedMap(playerNameIdMap, playerNameIdMapKey, playerNameIdMapShardPrefix);
+        const migratedId = loadShardedMap(playerIdNameMap, playerIdNameMapKey, playerIdNameMapShardPrefix);
 
-        const idNameString = mc.world.getDynamicProperty(playerIdNameMapKey) as string | undefined;
-        if (idNameString && typeof idNameString === 'string') {
-            const parsedData = JSON.parse(idNameString) as [string, string][];
-            playerIdNameMap = new Map(parsedData);
+        if (migratedName || migratedId) {
+            infoLog('[PlayerDataManager] Migrated Name/ID maps to sharded storage.');
+            // Save immediately to persist the shards
+            saveNameIdMap();
         }
 
         debugLog(
