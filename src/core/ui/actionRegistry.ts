@@ -19,7 +19,7 @@ import { formatCurrency } from '../utils.js';
 import { UIContext } from './panelRegistry.js';
 
 interface ReportContext {
-    targetReport: { id: number };
+    targetReport: { id: string };
 }
 
 interface PlayerContext {

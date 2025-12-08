@@ -94,7 +94,7 @@ export function playSound(player: mc.Player, soundId: string, options: mc.Player
  */
 async function forceCloseChat(player: mc.Player): Promise<void> {
     try {
-        if (!player.isValid()) return;
+        if (!player.isValid) return;
 
         // Toggle permissions to force close UI/Chat
         player.dimension.runCommand(`inputpermission set "${player.name}" camera disabled`);
@@ -103,7 +103,7 @@ async function forceCloseChat(player: mc.Player): Promise<void> {
         // Small delay to let client process the state change
         await new Promise((resolve) => mc.system.runTimeout(() => resolve(undefined), 2));
 
-        if (player.isValid()) {
+        if (player.isValid) {
             player.dimension.runCommand(`inputpermission set "${player.name}" camera enabled`);
             player.dimension.runCommand(`inputpermission set "${player.name}" movement enabled`);
         }

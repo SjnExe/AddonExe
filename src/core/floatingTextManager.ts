@@ -107,7 +107,7 @@ function runUpdateLoop() {
                         tags: [`ft_${textConfig.id}`]
                     });
                     for (const entity of entities) {
-                        if (entity.isValid()) {
+                        if (entity.isValid) {
                             entity.nameTag = resolved.replace(/\\n/g, '\n');
                         }
                     }
@@ -166,7 +166,7 @@ function spawnAllTexts() {
             // Batch query all floating texts in this dimension
             const entities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of entities) {
-                if (!entity.isValid()) continue;
+                if (!entity.isValid) continue;
                 for (const tag of entity.getTags()) {
                     if (tag.startsWith('ft_')) {
                         const id = tag.substring(3);
@@ -212,7 +212,7 @@ function spawnText(textConfig: FloatingTextConfig) {
             });
 
             for (const entity of entities) {
-                if (!entity.isValid()) continue;
+                if (!entity.isValid) continue;
                 entity.remove();
                 removedViaApi = true;
             }
@@ -265,7 +265,7 @@ async function findEntityWithRetries(
     for (let i = 0; i < maxRetries; i++) {
         const entities = dimension.getEntities(query);
         const entity = entities.length > 0 ? entities[0] : undefined;
-        if (entity && entity.isValid()) {
+        if (entity && entity.isValid) {
             return entity;
         }
         await new Promise<void>((resolve) => mc.system.runTimeout(resolve, delayBetweenRetries));
@@ -435,7 +435,7 @@ function despawnText(id: string) {
         // Iterate and remove all matches, just in case duplication occurred
         let found = false;
         for (const entity of entities) {
-            if (entity && entity.isValid()) {
+            if (entity && entity.isValid) {
                 entity.remove();
                 found = true;
             }

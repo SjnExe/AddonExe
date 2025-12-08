@@ -68,7 +68,6 @@ type ConsoleMethod = 'log' | 'info' | 'warn' | 'error';
  * @param message The message to log.
  */
 function internalLog(method: ConsoleMethod, message: string): void {
-    // eslint-disable-next-line no-console
     console[method](message);
 }
 
