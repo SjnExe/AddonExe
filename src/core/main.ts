@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import * as mc from '@minecraft/server';
 
 import * as kitsFeature from '../features/kits/index.js';
@@ -113,7 +112,7 @@ function loadPersistentData() {
     bountyManager.loadBounties();
 }
 
-async function initializeManagers() {
+function initializeManagers() {
     infoLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
@@ -134,7 +133,7 @@ async function initializeManagers() {
     clearExpiredPayments();
 }
 
-async function checkConfiguration() {
+function checkConfiguration() {
     const config = getConfig();
     const spawnConfig = getSpawnConfig();
 
@@ -219,8 +218,8 @@ async function initializeAddon() {
     const { initializePlayerCache } = await import('./playerCache.js');
     initializePlayerCache();
 
-    await initializeManagers();
-    await checkConfiguration();
+    initializeManagers();
+    checkConfiguration();
     initializeEventManager();
     initializeSpawnProtection();
     initializeXrayDetection();

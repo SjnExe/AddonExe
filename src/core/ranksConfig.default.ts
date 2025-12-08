@@ -6,8 +6,7 @@ export interface ChatFormatting {
 
 export interface RankCondition {
     type: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    value?: any;
+    value?: unknown;
 }
 
 export interface RankDefinition {

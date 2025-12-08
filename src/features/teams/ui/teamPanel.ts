@@ -508,7 +508,10 @@ export class TeamPanelHandler implements IPanelHandler {
                 }
 
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, ((context.page as number) || 1) - 1) });
+                    return showPanel(player, panelId, {
+                        ...context,
+                        page: Math.max(1, ((context.page as number) || 1) - 1)
+                    });
                 }
                 if (item.actionValue === 'nextPage') {
                     return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });

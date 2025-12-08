@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as mc from '@minecraft/server';
 
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { updateAndSaveLeaderboard } from './leaderboardManager.js';
-import { debugLog, errorLog } from './logger.js';
+import { debugLog, errorLog, infoLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
 
 const playerPropertyPrefix = 'exe:player.';
@@ -130,13 +129,13 @@ export function loadNameIdMap() {
     try {
         const dataString = mc.world.getDynamicProperty(playerNameIdMapKey) as string | undefined;
         if (dataString && typeof dataString === 'string') {
-            const parsedData: [string, string][] = JSON.parse(dataString);
+            const parsedData = JSON.parse(dataString) as [string, string][];
             playerNameIdMap = new Map(parsedData);
         }
 
         const idNameString = mc.world.getDynamicProperty(playerIdNameMapKey) as string | undefined;
         if (idNameString && typeof idNameString === 'string') {
-            const parsedData: [string, string][] = JSON.parse(idNameString);
+            const parsedData = JSON.parse(idNameString) as [string, string][];
             playerIdNameMap = new Map(parsedData);
         }
 
@@ -197,20 +196,15 @@ export function loadPlayerData(playerId: string): PlayerData | null {
     try {
         const dataString = mc.world.getDynamicProperty(`${playerPropertyPrefix}${playerId}`) as string | undefined;
         if (dataString && typeof dataString === 'string') {
-            const loadedData = JSON.parse(dataString);
+            const loadedData = JSON.parse(dataString) as Partial<PlayerData>;
 
             // Merge with defaults to ensure all properties exist
             const playerData: PlayerData = {
-                ...defaultPlayerData,
                 name: 'Unknown', // Placeholder, will be updated by getOrCreate
                 homes: {},
                 kitCooldowns: {},
                 tpaBlockedPlayerIds: [],
-                kills: 0,
-                deaths: 0,
-                killStreak: 0,
-                totalPlayTime: 0,
-                sidebarVisible: true,
+                ...defaultPlayerData,
                 ...loadedData
             };
 
@@ -507,8 +501,7 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
         // Strict 2-decimal precision
         pData.balance = parseFloat(clampedBalance.toFixed(2));
         // Log transaction regardless of debug level
-        // eslint-disable-next-line no-console
-        console.info(
+        infoLog(
             `[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`
         );
         updateAndSaveLeaderboard(playerId, pData.name, pData.balance);

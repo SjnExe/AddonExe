@@ -43,12 +43,10 @@ export function handlePlayerJoin(player: mc.Player) {
     }, 1);
 }
 
-export function initializePlayerSpawnEvent() {
-    mc.world.afterEvents.playerSpawn.subscribe((event: mc.PlayerSpawnAfterEvent) => {
-        const { player, initialSpawn } = event;
+export function handlePlayerSpawn(event: mc.PlayerSpawnAfterEvent) {
+    const { player, initialSpawn } = event;
 
-        if (initialSpawn) {
-            handlePlayerJoin(player);
-        }
-    });
+    if (initialSpawn) {
+        handlePlayerJoin(player);
+    }
 }

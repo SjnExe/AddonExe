@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog, infoLog } from './logger.js';
@@ -91,7 +90,7 @@ function migrateToV1(): void {
 
         let ranksData: RanksConfig;
         try {
-            ranksData = JSON.parse(ranksDataStr);
+            ranksData = JSON.parse(ranksDataStr) as RanksConfig;
         } catch (e) {
             errorLog('[MigrationManager] Failed to parse stored rank config for migration.', e);
             return;

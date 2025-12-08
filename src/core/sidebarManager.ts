@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as mc from '@minecraft/server';
 
 import { getTeamByPlayer } from '../features/teams/teamManager.js';
@@ -124,7 +123,7 @@ function getOrCreateSidebarObjective(): mc.ScoreboardObjective | undefined {
             const title = resolveGlobalPlaceholders(config.title);
             objective = mc.world.scoreboard.addObjective(SIDEBAR_OBJECTIVE, title);
         } catch (e) {
-            errorLog(`[SidebarManager] Failed to create objective: ${e}`);
+            errorLog(`[SidebarManager] Failed to create objective: ${String(e)}`);
             return undefined;
         }
     }
@@ -247,7 +246,7 @@ function updateSidebar() {
             score--;
         }
     } catch (e) {
-        errorLog(`[SidebarManager] Error updating sidebar: ${e}`);
+        errorLog(`[SidebarManager] Error updating sidebar: ${String(e)}`);
     }
 }
 

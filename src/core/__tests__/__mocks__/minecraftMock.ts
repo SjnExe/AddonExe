@@ -39,6 +39,9 @@ export class Player {
     id: string = 'test-player-id';
     name: string = 'TestPlayer';
     sendMessage() {}
+    isValid() {
+        return true;
+    }
 }
 export class ActionFormData {}
 export class ModalFormData {}

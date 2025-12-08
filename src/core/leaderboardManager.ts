@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as mc from '@minecraft/server';
 
 import { getConfig } from './configManager.js';
@@ -25,7 +24,7 @@ export function initializeLeaderboard() {
     try {
         const dataString = mc.world.getDynamicProperty(leaderboardKey) as string | undefined;
         if (dataString && typeof dataString === 'string') {
-            leaderboardCache = JSON.parse(dataString);
+            leaderboardCache = JSON.parse(dataString) as LeaderboardEntry[];
             debugLog(`[LeaderboardManager] Loaded ${leaderboardCache.length} players into leaderboard cache.`);
             return;
         }

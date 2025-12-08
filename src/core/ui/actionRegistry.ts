@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/require-await */
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -17,9 +16,16 @@ import * as rulesManager from '../rulesManager.js';
 import { showPanel } from '../uiManager.js';
 import * as utils from '../utils.js';
 import { formatCurrency } from '../utils.js';
+import { UIContext } from './panelRegistry.js';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UIContext = Record<string, any>;
+interface ReportContext {
+    targetReport: { id: number };
+}
+
+interface PlayerContext {
+    targetPlayerId: string;
+    targetPlayerName: string;
+}
 
 export const uiActionFunctions: Record<
     string,
@@ -79,20 +85,23 @@ export const uiActionFunctions: Record<
     },
 
     assignReport: async (player: mc.Player, context: UIContext, panelId: string) => {
-        reportManager.assignReport(context.targetReport.id, player.id);
-        player.sendMessage(`§2Report ${context.targetReport.id} has been assigned to you.`);
+        const { targetReport } = context as unknown as ReportContext;
+        reportManager.assignReport(targetReport.id, player.id);
+        player.sendMessage(`§2Report ${targetReport.id} has been assigned to you.`);
         await showPanel(player, panelId, context);
     },
 
     resolveReport: async (player: mc.Player, context: UIContext) => {
-        reportManager.resolveReport(context.targetReport.id);
-        player.sendMessage(`§2Report ${context.targetReport.id} has been marked as resolved.`);
+        const { targetReport } = context as unknown as ReportContext;
+        reportManager.resolveReport(targetReport.id);
+        player.sendMessage(`§2Report ${targetReport.id} has been marked as resolved.`);
         await showPanel(player, 'reportListPanel');
     },
 
     clearReport: async (player: mc.Player, context: UIContext) => {
-        reportManager.clearReport(context.targetReport.id);
-        player.sendMessage(`§2Report ${context.targetReport.id} has been cleared.`);
+        const { targetReport } = context as unknown as ReportContext;
+        reportManager.clearReport(targetReport.id);
+        player.sendMessage(`§2Report ${targetReport.id} has been cleared.`);
         await showPanel(player, 'reportListPanel');
     },
 
@@ -102,7 +111,8 @@ export const uiActionFunctions: Record<
         if (!response || response.canceled) {
             return true;
         }
-        const [targetName] = (response as ModalFormResponse).formValues as [string];
+        const values = (response as ModalFormResponse).formValues;
+        const targetName = values ? (values[0] as string) : undefined;
         if (!targetName) {
             player.sendMessage('§cYou must enter a player name.');
             return true;
@@ -117,7 +127,8 @@ export const uiActionFunctions: Record<
         if (!response || response.canceled) {
             return true;
         }
-        const [targetName] = (response as ModalFormResponse).formValues as [string];
+        const values = (response as ModalFormResponse).formValues;
+        const targetName = values ? (values[0] as string) : undefined;
         if (!targetName) {
             player.sendMessage('§cYou must enter a player name.');
             return true;
@@ -126,24 +137,24 @@ export const uiActionFunctions: Record<
         return true;
     },
 
-    removeBounty: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context;
+    removeBounty: (player: mc.Player, context: UIContext) => {
+        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         const existingBounty = bountyManager.getBounty(targetPlayerId);
 
         if (!existingBounty) {
             player.sendMessage(`§c${targetPlayerName} does not have an active bounty.`);
-            return true;
+            return Promise.resolve(true);
         }
 
         bountyManager.removeBounty(targetPlayerId);
         player.sendMessage(`§2Successfully removed the bounty from ${targetPlayerName}.`);
         mc.world.sendMessage(`§2The bounty on ${targetPlayerName} has been removed!`);
 
-        return true;
+        return Promise.resolve(true);
     },
 
     kickPlayer: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context;
+        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         if (player.id === targetPlayerId) {
             player.sendMessage('§cYou cannot kick yourself.');
             return true;
@@ -158,54 +169,55 @@ export const uiActionFunctions: Record<
             .textField('Reason', 'Enter reason for kicking', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
-            const [reason] = (response as ModalFormResponse).formValues as [string];
+            const values = (response as ModalFormResponse).formValues;
+            const reason = values ? (values[0] as string) : 'No reason provided.';
             kickPlayer(player, targetPlayer, reason);
         }
         return true;
     },
 
-    freezePlayer: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context;
+    freezePlayer: (player: mc.Player, context: UIContext) => {
+        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         if (player.id === targetPlayerId) {
             player.sendMessage('§cYou cannot freeze yourself.');
-            return true;
+            return Promise.resolve(true);
         }
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
         if (!targetPlayer) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
-            return true;
+            return Promise.resolve(true);
         }
         freezePlayer(player, targetPlayer);
-        return true;
+        return Promise.resolve(true);
     },
 
-    unfreezePlayer: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context;
+    unfreezePlayer: (player: mc.Player, context: UIContext) => {
+        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         if (player.id === targetPlayerId) {
             player.sendMessage('§cYou cannot unfreeze yourself.');
-            return true;
+            return Promise.resolve(true);
         }
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
         if (!targetPlayer) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
-            return true;
+            return Promise.resolve(true);
         }
         unfreezePlayer(player, targetPlayer);
-        return true;
+        return Promise.resolve(true);
     },
 
-    unmutePlayer: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerName, targetPlayerId } = context;
+    unmutePlayer: (player: mc.Player, context: UIContext) => {
+        const { targetPlayerName, targetPlayerId } = context as unknown as PlayerContext;
         if (player.id === targetPlayerId) {
             player.sendMessage('§cYou cannot unmute yourself.');
-            return true;
+            return Promise.resolve(true);
         }
         unmutePlayer(player, targetPlayerName);
-        return true;
+        return Promise.resolve(true);
     },
 
     mutePlayer: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context;
+        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         if (player.id === targetPlayerId) {
             player.sendMessage('§cYou cannot mute yourself.');
             return true;
@@ -221,14 +233,17 @@ export const uiActionFunctions: Record<
             .textField('Reason', 'Enter reason for muting', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
-            const [duration, reason] = (response as ModalFormResponse).formValues as [string, string];
-            mutePlayer(player, targetPlayer, duration, reason);
+            const values = (response as ModalFormResponse).formValues;
+            if (values) {
+                const [duration, reason] = values as [string, string];
+                mutePlayer(player, targetPlayer, duration, reason);
+            }
         }
         return true;
     },
 
     banPlayer: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context;
+        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         if (player.id === targetPlayerId) {
             player.sendMessage('§cYou cannot ban yourself.');
             return true;
@@ -239,27 +254,30 @@ export const uiActionFunctions: Record<
             .textField('Reason', 'Enter reason for banning', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
-            const [duration, reason] = (response as ModalFormResponse).formValues as [string, string];
-            const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
-            if (targetPlayer) {
-                banPlayer(player, targetPlayer, duration, reason);
-            } else {
-                offlineBanPlayer(player, targetPlayerId, targetPlayerName, duration, reason);
+            const values = (response as ModalFormResponse).formValues;
+            if (values) {
+                const [duration, reason] = values as [string, string];
+                const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
+                if (targetPlayer) {
+                    banPlayer(player, targetPlayer, duration, reason);
+                } else {
+                    offlineBanPlayer(player, targetPlayerId, targetPlayerName, duration, reason);
+                }
             }
         }
         return true;
     },
 
-    tpaPlayer: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context;
+    tpaPlayer: (player: mc.Player, context: UIContext) => {
+        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
         if (!targetPlayer) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
-            return true;
+            return Promise.resolve(true);
         }
         if (player.id === targetPlayer.id) {
             player.sendMessage('§cYou cannot send a TPA request to yourself.');
-            return true;
+            return Promise.resolve(true);
         }
         const result = tpaManager.createRequest(player, targetPlayer, 'tpa');
         if (result.success) {
@@ -268,19 +286,19 @@ export const uiActionFunctions: Record<
         } else {
             player.sendMessage(`§cError: ${result.message}`);
         }
-        return true;
+        return Promise.resolve(true);
     },
 
-    tpaherePlayer: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context;
+    tpaherePlayer: (player: mc.Player, context: UIContext) => {
+        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
         if (!targetPlayer) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
-            return true;
+            return Promise.resolve(true);
         }
         if (player.id === targetPlayer.id) {
             player.sendMessage('§cYou cannot send a TPAHere request to yourself.');
-            return true;
+            return Promise.resolve(true);
         }
         const result = tpaManager.createRequest(player, targetPlayer, 'tpahere');
         if (result.success) {
@@ -291,15 +309,16 @@ export const uiActionFunctions: Record<
         } else {
             player.sendMessage(`§cError: ${result.message}`);
         }
-        return true;
+        return Promise.resolve(true);
     },
 
     bountyPlayer: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context;
+        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         const form = new ModalFormData().title(`Set Bounty on ${targetPlayerName}`).textField('Amount', 'Enter amount');
         const response = await utils.uiWait(player, form);
         if (response && !response.canceled) {
-            const [amountStr] = (response as ModalFormResponse).formValues as [string];
+            const values = (response as ModalFormResponse).formValues;
+            const amountStr = values ? (values[0] as string) : '0';
             const amount = Number(amountStr);
             const config = getConfig();
             if (isNaN(amount) || amount < config.bounties.minimumBounty) {
@@ -325,7 +344,7 @@ export const uiActionFunctions: Record<
     },
 
     reportPlayer: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context;
+        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         if (player.id === targetPlayerId) {
             player.sendMessage('§cYou cannot report yourself.');
             return true;
@@ -338,7 +357,8 @@ export const uiActionFunctions: Record<
             player.sendMessage('§cReport canceled.');
             return true;
         }
-        const [reason] = (response as ModalFormResponse).formValues as [string];
+        const values = (response as ModalFormResponse).formValues;
+        const reason = values ? (values[0] as string) : '';
         if (!reason || reason.trim().length === 0) {
             player.sendMessage('§cYou must provide a reason.');
             return true;
@@ -349,7 +369,7 @@ export const uiActionFunctions: Record<
     },
 
     removePlayerBounty: async (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context;
+        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         const targetBounty = bountyManager.getBounty(targetPlayerId);
 
         if (!targetBounty) {
@@ -367,7 +387,8 @@ export const uiActionFunctions: Record<
         const response = await utils.uiWait(player, form);
 
         if (response && !response.canceled) {
-            const [amountStr] = (response as ModalFormResponse).formValues as [string];
+            const values = (response as ModalFormResponse).formValues;
+            const amountStr = values ? (values[0] as string) : '0';
             const amount = Number(amountStr);
 
             if (isNaN(amount) || amount <= 0) {

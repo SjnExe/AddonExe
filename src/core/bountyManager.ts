@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /**
  * Manages all active player bounties in an efficient, centralized way.
  * @module bountyManager
@@ -30,7 +29,7 @@ export function loadBounties() {
     try {
         const dataString = mc.world.getDynamicProperty(bountyDataKey);
         if (dataString && typeof dataString === 'string') {
-            const parsedData: [string, BountyEntry][] = JSON.parse(dataString);
+            const parsedData = JSON.parse(dataString) as [string, BountyEntry][];
             activeBounties = new Map(parsedData);
             debugLog(`[BountyManager] Loaded ${activeBounties.size} active bounties.`);
         } else {
