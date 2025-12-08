@@ -59,14 +59,26 @@ function formatError(error: unknown): string {
     return String(error);
 }
 
+type ConsoleMethod = 'log' | 'info' | 'warn' | 'error';
+
+/**
+ * Internal helper to perform the actual console call.
+ * This centralizes the linter suppression.
+ * @param method The console method to use.
+ * @param message The message to log.
+ */
+function internalLog(method: ConsoleMethod, message: string): void {
+    // eslint-disable-next-line no-console
+    console[method](message);
+}
+
 /**
  * Logs a debug message to the console if the log level is DEBUG.
  * @param {string} message The message to log.
  */
 export function debugLog(message: string): void {
     if (currentLogLevel >= LogLevels.DEBUG) {
-        // eslint-disable-next-line no-console
-        console.log(`[DEBUG] ${message}`);
+        internalLog('log', `[DEBUG] ${message}`);
     }
 }
 
@@ -76,8 +88,7 @@ export function debugLog(message: string): void {
  */
 export function infoLog(message: string): void {
     if (currentLogLevel >= LogLevels.INFO) {
-        // eslint-disable-next-line no-console
-        console.info(`[INFO] ${message}`);
+        internalLog('info', `[INFO] ${message}`);
     }
 }
 
@@ -87,8 +98,7 @@ export function infoLog(message: string): void {
  */
 export function warnLog(message: string): void {
     if (currentLogLevel >= LogLevels.WARN) {
-        // eslint-disable-next-line no-console
-        console.warn(`[WARN] ${message}`);
+        internalLog('warn', `[WARN] ${message}`);
     }
 }
 
@@ -103,8 +113,7 @@ export function errorLog(message: string, error?: unknown): void {
         if (error !== undefined) {
             fullMessage += `\n  Details: ${formatError(error)}`;
         }
-        // eslint-disable-next-line no-console
-        console.error(fullMessage);
+        internalLog('error', fullMessage);
     }
 }
 
@@ -114,6 +123,5 @@ export function errorLog(message: string, error?: unknown): void {
  * @param {string} message The message to log.
  */
 export function rawLog(message: string): void {
-    // eslint-disable-next-line no-console
-    console.log(message);
+    internalLog('log', message);
 }
