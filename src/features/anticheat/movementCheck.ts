@@ -6,8 +6,6 @@ import { getAnticheatConfig } from './anticheatConfigLoader.js';
 import { flag } from './flagManager.js';
 
 interface PlayerMovementState {
-    lastPos: mc.Vector3;
-    lastTime: number;
     violationLevel: number; // Token bucket
 }
 
@@ -65,27 +63,18 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
         return;
     }
 
-    const currentPos = player.location;
-    const now = Date.now();
-
     let state = movementStates.get(player.id);
     if (!state) {
-        state = { lastPos: currentPos, lastTime: now, violationLevel: 0 };
+        state = { violationLevel: 0 };
         movementStates.set(player.id, state);
-        return; // Skip first tick to establish baseline
     }
 
-    const timeDiff = (now - state.lastTime) / 1000;
-    if (timeDiff <= 0) return; // Should not happen with interval
+    // Use native velocity API for robust speed check
+    const velocity = player.getVelocity();
+    if (!velocity) return;
 
-    // Calculate speed (horizontal only usually, but 3D is safer for fly)
-    // For pure speed, 2D distance is often enough, but let's use 3D to catch straight up flying.
-    const distSq =
-        Math.pow(currentPos.x - state.lastPos.x, 2) +
-        Math.pow(currentPos.y - state.lastPos.y, 2) +
-        Math.pow(currentPos.z - state.lastPos.z, 2);
-    const dist = Math.sqrt(distSq);
-    const speed = dist / timeDiff; // Blocks per second
+    // Convert blocks/tick to blocks/second (approximate)
+    const speed = Math.sqrt(velocity.x ** 2 + velocity.y ** 2 + velocity.z ** 2) * 20;
 
     // Determine context-based limit
     let limit = config.maxSpeed;
@@ -99,6 +88,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
         // We check the block directly below the player and slightly deeper
         try {
             const dimension = player.dimension;
+            const currentPos = player.location;
             const blockBelow = dimension.getBlock({
                 x: Math.floor(currentPos.x),
                 y: Math.floor(currentPos.y - 0.5),
@@ -130,12 +120,10 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
         state.violationLevel += excess;
     } else {
         // Decay
-        state.violationLevel = Math.max(0, state.violationLevel - 2.0); // Decay 2 points per check (approx 8 per second)
+        state.violationLevel = Math.max(0, state.violationLevel - 2.0); // Decay 2 points per check
     }
 
     // Threshold for flagging
-    // A sudden lag spike might add 10-20 points but decay quickly.
-    // Sustained speeding will keep points high.
     const FLAGGING_THRESHOLD = 20;
 
     if (state.violationLevel > FLAGGING_THRESHOLD) {
@@ -147,10 +135,6 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
         // Clamp VL to prevent infinite buildup
         state.violationLevel = Math.min(state.violationLevel, 50);
     }
-
-    // Update state
-    state.lastPos = currentPos;
-    state.lastTime = now;
 }
 
 function checkWorldBorder(
@@ -227,17 +211,14 @@ function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
     if (player.location.y > config.maxHeight) {
         // Teleport down or kick
         // Kick is safest to force reset
-        // Warn first?
         try {
             // Check if there is space below, else just run command to kick/kill
             // We'll teleport them down 5 blocks as a soft fix, if that fails, maybe more drastic
             // User requested: "gets kicked"
-            // We can't actually "kick" reliably without a command, but we can tp them to spawn or kill them.
-            // User said: "minecraft automatically puts them under the nether roof" when they rejoin.
-            // So kicking is the goal.
-            player.runCommand('kick "Nether Roof Detected"');
+            // We execute as the dimension (server context) to ensure it works even if the player is non-op.
+            player.dimension.runCommand(`kick "${player.name}" Nether Roof Detected`);
         } catch {
-            // If kick fails (permissions), TP down
+            // If kick fails, TP down
             try {
                 player.teleport(
                     { x: player.location.x, y: 120, z: player.location.z },

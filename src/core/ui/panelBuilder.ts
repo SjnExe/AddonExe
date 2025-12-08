@@ -1,10 +1,9 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
-import { Report } from '../../features/moderation/reportManager.js';
 import { getConfig } from '../configManager.js';
 import { errorLog } from '../logger.js';
-import { getOrCreatePlayer, loadPlayerData, PlayerData } from '../playerDataManager.js';
+import { getOrCreatePlayer, loadPlayerData } from '../playerDataManager.js';
 import { panelRouter } from './PanelRouter.js';
 import { panelDefinitions } from './panelRegistry.js';
 import { MainConfig, PanelDefinition, PanelItem, UIContext } from './types.js';
@@ -82,79 +81,22 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
 
     form.title(title);
 
-    await addPanelBody(form, player, panelId, context);
+    // Delegation: Get body from handler
+    const handler = panelRouter.getHandler(panelId);
+    if (handler && handler.getBody) {
+        try {
+            const bodyText = await handler.getBody(player, panelId, context);
+            if (bodyText) {
+                form.body(bodyText);
+            }
+        } catch (e) {
+            errorLog(`[UIManager] Error getting body for panel ${panelId}`, e);
+        }
+    }
 
     for (const item of items) {
         form.button(item.text, item.icon);
     }
 
     return form;
-}
-
-// Body logic (stripped down to what's needed)
-async function addPanelBody(form: ActionFormData, player: mc.Player, panelId: string, context: UIContext) {
-    if (panelId === 'myStatsPanel') {
-        const pData = getOrCreatePlayer(player);
-        const { getTeamByPlayer } = await import('../../features/teams/teamManager.js');
-        const team = getTeamByPlayer(player.id);
-        const teamName = team ? `§3${team.name}` : '§8None';
-        // Need rankManager
-        const { getPlayerRank } = await import('../rankManager.js');
-        const rank = getPlayerRank(player, getConfig());
-        const { getBounty } = await import('../bountyManager.js');
-        const bounty = getBounty(player.id)?.amount ?? 0;
-        const { formatCurrency } = await import('../utils.js');
-
-        form.body(
-            [
-                `§8Rank: §r${rank.chatFormatting?.nameColor ?? '§8'}${rank.name}`,
-                `§8Team: ${teamName}`,
-                `§8Balance: §2${formatCurrency(pData.balance)}`,
-                `§8Bounty on you: §6${formatCurrency(bounty)}`
-            ].join('\n')
-        );
-    }
-    // Player details body
-    else if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
-        // Use top-level loadPlayerData
-        const targetId = String(context.targetPlayerId as string | number);
-        const pData = (context.targetData as PlayerData | undefined) || loadPlayerData(targetId);
-        if (pData) {
-            const { getRankById } = await import('../rankManager.js');
-            const { getBounty } = await import('../bountyManager.js');
-            const { formatCurrency } = await import('../utils.js');
-            const rank = getRankById(pData.rankId);
-            const bounty = getBounty(context.targetPlayerId as string)?.amount ?? 0;
-            form.body(
-                [
-                    `§8Rank: §r${rank?.chatFormatting?.nameColor ?? '§8'}${rank?.name ?? 'Unknown'}`,
-                    `§8Balance: §2${formatCurrency(pData.balance)}`,
-                    `§8Bounty: §6${formatCurrency(bounty)}`
-                ].join('\n')
-            );
-        }
-    }
-    // Report details body
-    else if (panelId === 'reportActionsPanel' && context.targetReport) {
-        const targetReport = context.targetReport as Report;
-        form.body(
-            [
-                `§8Report ID: §6${String(targetReport.id)}`,
-                `§8Reported Player: §6${targetReport.reportedPlayerName}`,
-                `§8Reporter: §6${targetReport.reporterName}`,
-                `§8Reason: §6${targetReport.reason}`,
-                `§8Status: §6${targetReport.status}`,
-                `§8Date: §6${new Date(targetReport.timestamp).toLocaleString()}`
-            ].join('\n')
-        );
-    }
-    // Placeholders
-    else if (panelId === 'placeholderListPanel') {
-        form.body(
-            `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
-                `{server_name}, {tps}, {online}, {max_players}, {time}, {date}\n\n` +
-                `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
-                `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
-        );
-    }
 }
