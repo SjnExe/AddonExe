@@ -7,6 +7,12 @@ import { IPanelHandler, MainConfig, PanelItem, UIContext } from '../types.js';
 import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
 import { showPanel } from '../../uiManager.js';
 
+interface CmdSettings {
+    enabled?: boolean;
+    permissionLevel?: number;
+    cooldownSeconds?: number;
+}
+
 export class CommandPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
         return panelId === 'commandSystemPanel' || panelId.startsWith('commandSettingsPanel_');
@@ -57,12 +63,11 @@ export class CommandPanelHandler implements IPanelHandler {
 
             const config = getConfig() as unknown as MainConfig;
             // @ts-expect-error - config types might be loose
-            const settings = config.commandSettings || {};
+            const settings = (config.commandSettings || {}) as Record<string, CmdSettings>;
 
             const paginated = getPaginatedItems(commands, (context.page as number) || 1);
 
             paginated.forEach((cmd) => {
-                // @ts-expect-error - indexing
                 const cmdSettings = settings[cmd.name] || {};
                 const isEnabled = cmdSettings.enabled !== false;
                 const color = isEnabled ? '§2' : '§4';
@@ -89,8 +94,7 @@ export class CommandPanelHandler implements IPanelHandler {
             const cmdName = panelId.replace('commandSettingsPanel_', '');
             const config = getConfig() as unknown as MainConfig;
             // @ts-expect-error - indexing
-            const settings = config.commandSettings || {};
-            // @ts-expect-error - indexing
+            const settings = (config.commandSettings || {}) as Record<string, CmdSettings>;
             const cmdSettings = settings[cmdName] || {};
             const command = commandManager.commands.get(cmdName);
 
