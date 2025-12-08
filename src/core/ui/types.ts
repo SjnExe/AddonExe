@@ -100,6 +100,11 @@ export interface ShopItem {
 export interface MainConfig {
     shop: ShopConfig;
     kits: { enabled: boolean };
+    modules?: {
+        bounties?: {
+            announce?: boolean;
+        };
+    };
     commandSettings?: Record<string, { enabled?: boolean; permissionLevel?: number; cooldownSeconds?: number }>;
     [key: string]: unknown;
 }

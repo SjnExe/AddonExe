@@ -14,6 +14,7 @@ import { showPanel } from '../uiManager.js';
 import * as utils from '../utils.js';
 
 import { UIContext } from './panelRegistry.js';
+import { MainConfig } from './types.js';
 
 /**
  * Handles the logic for various UI actions triggered by buttons.
@@ -432,9 +433,7 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
 
     // Announce?
     // Using simple boolean check directly as modules type is dynamic
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-    const config = configManager.getConfig() as any;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const config = configManager.getConfig() as unknown as MainConfig;
     if (config.modules?.bounties?.announce ?? true) {
         mc.world.sendMessage(
             `§6[Bounty] §r${player.name} has placed a ${utils.formatCurrency(amount)} bounty on ${targetData?.name}!`

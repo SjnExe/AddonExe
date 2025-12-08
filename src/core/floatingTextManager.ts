@@ -33,8 +33,7 @@ function loadTexts() {
     try {
         const dataString = mc.world.getDynamicProperty(floatingTextDataKey);
         if (dataString && typeof dataString === 'string') {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const parsedData: [string, FloatingTextConfig][] = JSON.parse(dataString);
+            const parsedData = JSON.parse(dataString) as unknown as [string, FloatingTextConfig][];
             floatingTexts = new Map(parsedData);
             debugLog(`[FloatingText] Loaded ${floatingTexts.size} floating texts.`);
         } else {
