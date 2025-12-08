@@ -1,9 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions, @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions, @typescript-eslint/require-await, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog } from './logger.js';
 import { isDeepEqual } from './objectUtils.js';
-import { resolveGlobalPlaceholders } from './sidebarManager.js';
+import * as sidebarManager from './sidebarManager.js';
+
+// Workaround for strange TS Boolean type inference on resolveGlobalPlaceholders
+const sm = sidebarManager as { resolveGlobalPlaceholders: (t: string) => string };
 
 export interface FloatingTextConfig {
     id: string;
@@ -90,7 +93,7 @@ function runUpdateLoop() {
         try {
             const dimension = mc.world.getDimension(dimId);
             for (const textConfig of texts) {
-                const resolved = resolveGlobalPlaceholders(textConfig.text);
+                const resolved = sm.resolveGlobalPlaceholders(textConfig.text);
                 // Even if resolved text hasn't changed, we force update if interval is set
                 // to catch any side-effect based placeholders, though usually placeholders change string.
                 // Optimally, check string change.
@@ -105,7 +108,7 @@ function runUpdateLoop() {
                         tags: [`ft_${textConfig.id}`]
                     });
                     for (const entity of entities) {
-                        if (entity.isValid()) {
+                        if (entity.isValid) {
                             entity.nameTag = resolved.replace(/\\n/g, '\n');
                         }
                     }
@@ -232,7 +235,7 @@ function spawnText(textConfig: FloatingTextConfig) {
             'exe:floating_text' as unknown as Parameters<typeof dimension.spawnEntity>[0],
             textConfig.location
         );
-        const resolvedText = resolveGlobalPlaceholders(textConfig.text);
+        const resolvedText = sm.resolveGlobalPlaceholders(textConfig.text);
         lastResolvedText.set(textConfig.id, resolvedText);
         entity.nameTag = resolvedText.replace(/\\n/g, '\n');
         entity.addTag(`ft_${textConfig.id}`);
@@ -371,7 +374,7 @@ async function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                 }
 
                 if (textChanged || intervalChanged) {
-                    const resolved = resolveGlobalPlaceholders(newConfig.text);
+                    const resolved = sm.resolveGlobalPlaceholders(newConfig.text);
                     lastResolvedText.set(id, resolved);
                     entity.nameTag = resolved.replace(/\\n/g, '\n');
                 }

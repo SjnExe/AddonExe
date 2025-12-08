@@ -3,9 +3,9 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 
 import { commandManager } from '../../../modules/commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '../../configManager.js';
+import { showPanel } from '../../uiManager.js';
 import { IPanelHandler, MainConfig, PanelItem, UIContext } from '../types.js';
 import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
-import { showPanel } from '../../uiManager.js';
 
 interface CmdSettings {
     enabled?: boolean;
@@ -18,7 +18,7 @@ export class CommandPanelHandler implements IPanelHandler {
         return panelId === 'commandSystemPanel' || panelId.startsWith('commandSettingsPanel_');
     }
 
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
 
@@ -57,12 +57,9 @@ export class CommandPanelHandler implements IPanelHandler {
                 actionValue: 'configCategoryPanel'
             });
 
-            const commands = Array.from(commandManager.commands.values()).sort((a, b) =>
-                a.name.localeCompare(b.name)
-            );
+            const commands = Array.from(commandManager.commands.values()).sort((a, b) => a.name.localeCompare(b.name));
 
             const config = getConfig() as unknown as MainConfig;
-            // @ts-expect-error - config types might be loose
             const settings = (config.commandSettings || {}) as Record<string, CmdSettings>;
 
             const paginated = getPaginatedItems(commands, (context.page as number) || 1);
@@ -88,12 +85,11 @@ export class CommandPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         await Promise.resolve();
         if (panelId.startsWith('commandSettingsPanel_')) {
             const cmdName = panelId.replace('commandSettingsPanel_', '');
             const config = getConfig() as unknown as MainConfig;
-            // @ts-expect-error - indexing
             const settings = (config.commandSettings || {}) as Record<string, CmdSettings>;
             const cmdSettings = settings[cmdName] || {};
             const command = commandManager.commands.get(cmdName);
@@ -128,10 +124,13 @@ export class CommandPanelHandler implements IPanelHandler {
                     return showPanel(player, item.actionValue, { ...context, page: 1 });
                 }
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page as number || 1) - 1) });
+                    return showPanel(player, panelId, {
+                        ...context,
+                        page: Math.max(1, ((context.page as number) || 1) - 1)
+                    });
                 }
                 if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: (context.page as number || 1) + 1 });
+                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
                 }
             }
         }

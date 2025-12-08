@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getTeamConfig } from '../../../core/configurations.js';
-import { getOrCreatePlayer, loadPlayerData } from '../../../core/playerDataManager.js';
+import { getOrCreatePlayer, loadPlayerData, PlayerData } from '../../../core/playerDataManager.js';
 import { handleUIAction } from '../../../core/ui/actions.js';
 import { showConfirmationDialog } from '../../../core/ui/components.js';
 import { PanelItem, UIContext } from '../../../core/ui/panelRegistry.js';
@@ -21,7 +22,7 @@ export class TeamPanelHandler implements IPanelHandler {
         // Satisfy async requirement if no other await exists
         await Promise.resolve();
 
-        const pData = getOrCreatePlayer(player);
+        const pData: PlayerData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
         const items: PanelItem[] = [];
 
@@ -381,7 +382,7 @@ export class TeamPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         // Satisfy async requirement
         await Promise.resolve();
 

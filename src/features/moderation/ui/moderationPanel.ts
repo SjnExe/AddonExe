@@ -15,7 +15,7 @@ export class ModerationPanelHandler implements IPanelHandler {
         return panelId === 'moderationPanel' || panelId === 'reportListPanel' || panelId === 'reportActionsPanel';
     }
 
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
 
@@ -31,7 +31,7 @@ export class ModerationPanelHandler implements IPanelHandler {
         };
 
         const addPagination = (totalItems: number) => {
-            const page = context.page || 1;
+            const page = (context.page as number) || 1;
             const totalPages = Math.ceil(totalItems / itemsPerPage);
             if (page > 1) {
                 items.push({
@@ -116,7 +116,10 @@ export class ModerationPanelHandler implements IPanelHandler {
                 }
 
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page as number) || 1) - 1 });
+                    return showPanel(player, panelId, {
+                        ...context,
+                        page: Math.max(1, (context.page as number) || 1) - 1
+                    });
                 }
                 if (item.actionValue === 'nextPage') {
                     return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });

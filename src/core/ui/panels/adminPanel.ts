@@ -14,7 +14,7 @@ export class AdminPanelHandler implements IPanelHandler {
         return panelId === 'adminPanel' || panelId.startsWith('floatingText');
     }
 
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    async getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
         // Admin Panel uses static items (delegates to sub-panels)
@@ -107,7 +107,7 @@ export class AdminPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
         await Promise.resolve();
         if (panelId === 'floatingTextCreatePanel') {
             return new ModalFormData()
@@ -165,7 +165,7 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextEditPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'floatingTextActionPanel', context);
-            const { id } = context;
+            const id = context.id as string;
             const [textContent, x, y, z, dimensionIndex, updateIntervalStr, useExpiration, expirationMinutes] =
                 values as [string, string, string, string, number, string, boolean, string];
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
@@ -181,7 +181,6 @@ export class AdminPanelHandler implements IPanelHandler {
                         ? Date.now() + Number(expirationMinutes) * 60000
                         : null
             };
-            // @ts-expect-error - id guaranteed string
             await floatingTextManager.updateText(id, updatedConfig);
             player.sendMessage(`§2Successfully updated floating text: ${id}`);
             return showPanel(player, 'floatingTextActionPanel', context);

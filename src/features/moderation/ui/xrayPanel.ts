@@ -8,14 +8,10 @@ import { showPanel } from '../../../core/uiManager.js';
 
 export class XrayPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'xrayOresPanel' ||
-            panelId === 'addXrayOrePanel' ||
-            panelId.startsWith('editXrayOrePanel_')
-        );
+        return panelId === 'xrayOresPanel' || panelId === 'addXrayOrePanel' || panelId.startsWith('editXrayOrePanel_');
     }
 
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
 
@@ -88,7 +84,7 @@ export class XrayPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         await Promise.resolve();
         if (panelId === 'addXrayOrePanel') {
             return new ModalFormData()
@@ -139,10 +135,13 @@ export class XrayPanelHandler implements IPanelHandler {
                     return showPanel(player, item.actionValue, { ...context, page: 1 });
                 }
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page as number || 1) - 1) });
+                    return showPanel(player, panelId, {
+                        ...context,
+                        page: Math.max(1, ((context.page as number) || 1) - 1)
+                    });
                 }
                 if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: ((context.page as number || 1) + 1) });
+                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
                 }
             }
         }
@@ -155,12 +154,14 @@ export class XrayPanelHandler implements IPanelHandler {
                 config.monitoredOreTypes[id] = {
                     enabled: true,
                     oreName: name,
-                    blocks: [{
-                        blockId,
-                        dimensionId: dimId || 'minecraft:overworld',
-                        minY: parseInt(minY) || -64,
-                        maxY: parseInt(maxY) || 320
-                    }]
+                    blocks: [
+                        {
+                            blockId,
+                            dimensionId: dimId || 'minecraft:overworld',
+                            minY: parseInt(minY) || -64,
+                            maxY: parseInt(maxY) || 320
+                        }
+                    ]
                 };
                 saveXrayConfig(config);
                 player.sendMessage('§aOre added.');
@@ -172,7 +173,14 @@ export class XrayPanelHandler implements IPanelHandler {
             const key = panelId.replace('editXrayOrePanel_', '');
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'xrayOresPanel');
             if (values) {
-                const [enabled, name, blockId, dimId, minY, maxY] = values as [boolean, string, string, string, string, string];
+                const [enabled, name, blockId, dimId, minY, maxY] = values as [
+                    boolean,
+                    string,
+                    string,
+                    string,
+                    string,
+                    string
+                ];
                 const config = getXrayConfig();
                 if (config.monitoredOreTypes[key]) {
                     config.monitoredOreTypes[key].enabled = enabled;

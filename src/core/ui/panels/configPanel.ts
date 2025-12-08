@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -6,7 +7,7 @@ import { refreshXrayCache } from '@modules/detections/xrayDetection.js';
 import { getConfig, resetConfigSection } from '../../configManager.js';
 import { errorLog } from '../../logger.js';
 import { getValueFromPath, setValueByPath } from '../../objectUtils.js';
-import { getOrCreatePlayer, getPlayer } from '../../playerDataManager.js';
+import { getOrCreatePlayer, PlayerData } from '../../playerDataManager.js';
 import { showPanel } from '../../uiManager.js';
 import * as utils from '../../utils.js';
 import { handleUIAction } from '../actions.js';
@@ -15,11 +16,11 @@ import { configPanelSchema } from '../configPanelRegistry.js';
 import { PanelItem, UIContext } from '../panelRegistry.js';
 import { IPanelHandler } from '../types.js';
 import {
-    configHandlers as uiConfigHandlers,
     getPaginatedItems,
     getSystemsByCategory,
     getVisibleCategories,
-    itemsPerPage
+    itemsPerPage,
+    configHandlers as uiConfigHandlers
 } from '../uiUtils.js';
 
 export class ConfigPanelHandler implements IPanelHandler {
@@ -36,7 +37,7 @@ export class ConfigPanelHandler implements IPanelHandler {
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
-        const pData = getOrCreatePlayer(player);
+        const pData: PlayerData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
 
         const addBack = (target: string) => {
@@ -182,7 +183,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         await Promise.resolve();
         if (panelId.startsWith('config_')) {
             const categoryId = panelId.replace('config_', '');
@@ -224,7 +225,7 @@ export class ConfigPanelHandler implements IPanelHandler {
     ): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
         const values = (response as ModalFormResponse).formValues;
-        const pData = getPlayer(player.id);
+        const pData = getOrCreatePlayer(player);
 
         if (typeof selection === 'number') {
             const items = await this.getItems(player, panelId, context);
@@ -349,8 +350,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const category = configPanelSchema.find((c) => c.id === categoryId);
             if (category) {
                 if (values) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const updates: Record<string, any> = {};
+                    const updates: Record<string, unknown> = {};
                     category.settings.forEach((setting, index) => {
                         let value = values[index];
                         if (setting.type === 'dropdown') {
@@ -364,11 +364,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                         } else if (setting.type === 'textField') {
                             const strVal = value as string;
                             const current = getValueFromPath(getConfig(), setting.key);
-                            if (
-                                typeof current === 'number' &&
-                                !isNaN(Number(strVal)) &&
-                                strVal.trim() !== ''
-                            ) {
+                            if (typeof current === 'number' && !isNaN(Number(strVal)) && strVal.trim() !== '') {
                                 value = Number(strVal);
                             }
                         }
@@ -390,9 +386,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                         player.sendMessage('§2Configuration saved.');
 
                         if (categoryId === 'data') {
-                            await import('../../dataManager.js').then(({ restartAutoSave }) =>
-                                restartAutoSave()
-                            );
+                            await import('../../dataManager.js').then(({ restartAutoSave }) => restartAutoSave());
                         }
 
                         if (configSource === 'xray') {

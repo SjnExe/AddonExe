@@ -147,7 +147,7 @@ export class InfoPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         await Promise.resolve();
         if (panelId === 'addRulePanel') {
             return new ModalFormData().title('Add Rule').textField('Rule Content', 'Enter rule text');
@@ -204,7 +204,10 @@ export class InfoPanelHandler implements IPanelHandler {
                     });
                 }
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page as number) || 1) - 1 });
+                    return showPanel(player, panelId, {
+                        ...context,
+                        page: Math.max(1, (context.page as number) || 1) - 1
+                    });
                 }
                 if (item.actionValue === 'nextPage') {
                     return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });

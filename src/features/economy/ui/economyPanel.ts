@@ -12,7 +12,7 @@ export class EconomyPanelHandler implements IPanelHandler {
         return panelId === 'economyPanel';
     }
 
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    async getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const pData = getOrCreatePlayer(player);
         const items = getStaticMenuItems(panelDefinitions[panelId], pData.permissionLevel);

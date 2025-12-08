@@ -1,8 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getConfig } from '../../configManager.js';
-import { getAllKnownPlayers, getOrCreatePlayer, getPlayerIdByName, loadPlayerData } from '../../playerDataManager.js';
+import {
+    getAllKnownPlayers,
+    getOrCreatePlayer,
+    getPlayerIdByName,
+    loadPlayerData,
+    PlayerData
+} from '../../playerDataManager.js';
 import * as rankManager from '../../rankManager.js';
 import { showPanel } from '../../uiManager.js';
 import { handleUIAction } from '../actions.js';
@@ -25,7 +32,7 @@ export class PlayerPanelHandler implements IPanelHandler {
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
-        const pData = getOrCreatePlayer(player);
+        const pData: PlayerData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
         const page = (context.page as number) || 1;
 
@@ -93,7 +100,6 @@ export class PlayerPanelHandler implements IPanelHandler {
 
             for (const entry of paginated) {
                 const targetP = mc.world.getAllPlayers().find((p) => p.id === entry.id);
-                // @ts-expect-error - rankManager types might be loose or missing properties check
                 const rank = targetP
                     ? rankManager.getPlayerRank(targetP, config)
                     : rankManager.getRankById(loadPlayerData(entry.id)?.rankId || '');
@@ -148,9 +154,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                 continue;
             }
             const commandName = item.id;
-            // @ts-expect-error - indexing config.commandSettings with string
-            const settings = config.commandSettings || {};
-             // @ts-expect-error - indexing settings with string
+            const settings = (config.commandSettings || {}) as Record<string, { enabled?: boolean }>;
             if (settings[commandName]?.enabled === false) {
                 continue;
             }
@@ -160,7 +164,7 @@ export class PlayerPanelHandler implements IPanelHandler {
         return visibleItems;
     }
 
-    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         await Promise.resolve();
         if (panelId === 'playerSearchPanel') {
             return new ModalFormData().title('Search Player').textField('Name', 'Enter exact name');
@@ -195,7 +199,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                 const item = items[selection];
 
                 if (item.actionType === 'openPanel') {
-                    const nextContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
+                    const nextContext: UIContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
                     if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
                         nextContext.fromPanel = panelId;
                         nextContext.targetPlayerId = item.id;
@@ -204,10 +208,13 @@ export class PlayerPanelHandler implements IPanelHandler {
                 }
 
                 if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, { ...context, page: Math.max(1, (context.page as number || 1) - 1) });
+                    return showPanel(player, panelId, {
+                        ...context,
+                        page: Math.max(1, ((context.page as number) || 1) - 1)
+                    });
                 }
                 if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: (context.page as number || 1) + 1 });
+                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
                 }
 
                 if (item.actionType === 'functionCall') {

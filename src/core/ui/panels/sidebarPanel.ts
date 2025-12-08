@@ -18,7 +18,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         );
     }
 
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    async getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
 
@@ -107,7 +107,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
         await Promise.resolve();
         if (panelId === 'sidebarLineEditPanel') {
             const config = getSidebarConfig();
@@ -187,7 +187,7 @@ export class SidebarPanelHandler implements IPanelHandler {
 
                 if (item.actionType === 'openPanel') {
                     // Inject lineIndex if needed
-                    let nextContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
+                    let nextContext: UIContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
                     if (
                         item.actionValue === 'sidebarLineActionPanel' ||
                         item.actionValue === 'actionBarLineActionPanel'

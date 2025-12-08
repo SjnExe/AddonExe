@@ -11,7 +11,7 @@ export class TeleportPanelHandler implements IPanelHandler {
         return panelId === 'tpaSettingsPanel' || panelId === 'tpaBlockListPanel';
     }
 
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    async getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
         const pData = loadPlayerData(player.id);

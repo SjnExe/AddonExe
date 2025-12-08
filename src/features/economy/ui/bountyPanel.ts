@@ -12,7 +12,7 @@ export class BountyPanelHandler implements IPanelHandler {
         return panelId === 'bountyListPanel';
     }
 
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    async getItems(_player: mc.Player, _panelId: string, context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
 
