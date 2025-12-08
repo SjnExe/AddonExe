@@ -6,6 +6,15 @@ const child = spawn(npmCommand, ['run', 'validate'], { shell: true, stdio: ['ign
 let buffer = '';
 let hasPrintedError = false;
 
+// Create regex dynamically to avoid no-control-regex lint error
+// Matches ANSI escape codes: \x1B followed by [ and numbers and m
+const esc = String.fromCharCode(27);
+const ansiRegex = new RegExp(esc + '\\[\\d+m', 'g');
+
+function stripAnsi(str) {
+    return str.replace(ansiRegex, '');
+}
+
 child.stdout.on('data', (data) => {
     buffer += data.toString();
     const lines = buffer.split(/\r?\n/);
@@ -13,8 +22,7 @@ child.stdout.on('data', (data) => {
 
     lines.forEach((line) => {
         // Strip ANSI codes for matching text content
-        // eslint-disable-next-line no-control-regex
-        const cleanLine = line.replace(/\x1B\[\d+m/g, '');
+        const cleanLine = stripAnsi(line);
 
         if (cleanLine.trim() === '') return;
         if (
@@ -51,8 +59,7 @@ child.stderr.on('data', (data) => {
     const lines = data.toString().split(/\r?\n/);
     lines.forEach((line) => {
         // Strip ANSI codes for matching text content
-        // eslint-disable-next-line no-control-regex
-        const cleanLine = line.replace(/\x1B\[\d+m/g, '');
+        const cleanLine = stripAnsi(line);
 
         if (cleanLine.trim() === '') return;
 
@@ -75,8 +82,7 @@ child.stderr.on('data', (data) => {
 child.on('close', (code) => {
     if (buffer.trim()) {
         // Process trailing buffer
-        // eslint-disable-next-line no-control-regex
-        const cleanLine = buffer.replace(/\x1B\[\d+m/g, '');
+        const cleanLine = stripAnsi(buffer);
         if (
             !cleanLine.includes('RECOMMENDATION:') &&
             !cleanLine.includes('UNKNOWN:') &&

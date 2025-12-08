@@ -304,9 +304,9 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
         return new RegExp(obj.source, obj.flags) as unknown as T;
     }
 
-    const result = (obj instanceof Array
-        ? []
-        : Object.create(Object.getPrototypeOf(obj as object) as object | null)) as T;
+    const result = (
+        obj instanceof Array ? [] : Object.create(Object.getPrototypeOf(obj as object) as object | null)
+    ) as T;
 
     hash.set(obj as object, result);
 
