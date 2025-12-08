@@ -6,6 +6,7 @@ import { getPunishment } from '../../features/moderation/punishmentManager.js';
 import { isTeamChatEnabled, toggleTeamChat } from '../../features/teams/commands/team.js';
 import { getTeamByPlayer } from '../../features/teams/teamManager.js';
 import { getConfig } from '../configManager.js';
+import { rawLog } from '../logger.js';
 import * as playerDataManager from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
 
@@ -72,10 +73,7 @@ function handleChatSend(eventData: mc.ChatSendBeforeEvent) {
     // Log to console if enabled
     if (getConfig().chat?.logToConsole) {
         // Using a plain-text version for the console log to avoid clutter from formatting codes
-        // We use console.log/infoLog to preserve the server log.
-        // infoLog adds [INFO] prefix which is standard.
-        // eslint-disable-next-line no-console
-        console.log(`<${player.name}> ${eventData.message}`);
+        rawLog(`<${player.name}> ${eventData.message}`);
     }
 
     mc.world.sendMessage(formattedMessage);

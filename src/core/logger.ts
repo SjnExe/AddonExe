@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 // Log level constants, ordered by verbosity
 // (Refreshed for deployment)
 export const LogLevels = {
@@ -45,7 +44,7 @@ function formatError(error: unknown): string {
             // For other objects, attempt to stringify them.
             return JSON.stringify(
                 error,
-                (_key, value) => {
+                (_key: string, value: unknown) => {
                     if (value instanceof Error) {
                         return { message: value.message, stack: value.stack };
                     }
@@ -96,10 +95,9 @@ export function warnLog(message: string): void {
 /**
  * Logs an error message to the console. Errors are always logged unless the level is > ERROR.
  * @param {string} message The primary error message.
- * @param {any} [error] Optional error object or additional info to serialize.
+ * @param {unknown} [error] Optional error object or additional info to serialize.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function errorLog(message: string, error?: any): void {
+export function errorLog(message: string, error?: unknown): void {
     if (currentLogLevel >= LogLevels.ERROR) {
         let fullMessage = `[ERROR] ${message}`;
         if (error !== undefined) {
@@ -108,4 +106,14 @@ export function errorLog(message: string, error?: any): void {
         // eslint-disable-next-line no-console
         console.error(fullMessage);
     }
+}
+
+/**
+ * Logs a raw message to the console without any prefix.
+ * Useful for chat logging where the prefix is undesired.
+ * @param {string} message The message to log.
+ */
+export function rawLog(message: string): void {
+    // eslint-disable-next-line no-console
+    console.log(message);
 }
