@@ -1,15 +1,15 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getEconomyConfig, saveEconomyConfig } from '../../../core/configurations.js';
-import { getOrCreatePlayer } from '../../../core/playerDataManager.js';
-import { showConfirmationDialog } from '../../../core/ui/components.js';
-import { getStaticMenuItems } from '../../../core/ui/panelBuilder.js';
-import { panelDefinitions, PanelItem, UIContext } from '../../../core/ui/panelRegistry.js';
-import { IPanelHandler } from '../../../core/ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
-import { showPanel } from '../../../core/uiManager.js';
-import { formatCurrency } from '../../../core/utils.js';
+import { getEconomyConfig, saveEconomyConfig } from '@core/configurations.js';
+import { getOrCreatePlayer } from '@core/playerDataManager.js';
+import { showConfirmationDialog } from '@core/ui/components.js';
+import { getStaticMenuItems } from '@core/ui/panelBuilder.js';
+import { panelDefinitions, PanelItem, UIContext } from '@core/ui/panelRegistry.js';
+import { IPanelHandler } from '@core/ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@core/ui/uiUtils.js';
+import { showPanel } from '@core/uiManager.js';
+import { formatCurrency } from '@core/utils.js';
 
 export class EconomyPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

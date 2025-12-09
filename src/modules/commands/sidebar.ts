@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { getSidebarVisible, setSidebarVisible } from '../../core/playerDataManager.js';
+import { getSidebarVisible, setSidebarVisible } from '@core/playerDataManager.js';
 
 import { CustomCommand } from './commandManager.js';
 

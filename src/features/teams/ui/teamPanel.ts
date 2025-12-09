@@ -1,15 +1,15 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getTeamConfig } from '../../../core/configurations.js';
-import { getOrCreatePlayer, loadPlayerData, PlayerData } from '../../../core/playerDataManager.js';
-import { handleUIAction } from '../../../core/ui/actions.js';
-import { showConfirmationDialog } from '../../../core/ui/components.js';
-import { PanelItem, UIContext } from '../../../core/ui/panelRegistry.js';
-import { IPanelHandler } from '../../../core/ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
-import { showPanel } from '../../../core/uiManager.js';
-import { formatCurrency } from '../../../core/utils.js';
+import { getTeamConfig } from '@core/configurations.js';
+import { getOrCreatePlayer, loadPlayerData, PlayerData } from '@core/playerDataManager.js';
+import { handleUIAction } from '@core/ui/actions.js';
+import { showConfirmationDialog } from '@core/ui/components.js';
+import { PanelItem, UIContext } from '@core/ui/panelRegistry.js';
+import { IPanelHandler } from '@core/ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@core/ui/uiUtils.js';
+import { showPanel } from '@core/uiManager.js';
+import { formatCurrency } from '@core/utils.js';
 import * as teamManager from '../teamManager.js';
 
 export class TeamPanelHandler implements IPanelHandler {
@@ -469,7 +469,7 @@ export class TeamPanelHandler implements IPanelHandler {
 
             const team = teamManager.getTeamByPlayer(player.id);
             const autoTp = values[0] as boolean;
-            const { updatePlayerData } = await import('../../../core/playerDataManager.js');
+            const { updatePlayerData } = await import('@core/playerDataManager.js');
             updatePlayerData(player.id, (data) => {
                 if (data.teamSettings) {
                     data.teamSettings.autoTpAccept = autoTp;
@@ -499,7 +499,7 @@ export class TeamPanelHandler implements IPanelHandler {
             newConfig.nameMinLength = Number(values[3]);
             newConfig.nameMaxLength = Number(values[4]);
 
-            const { saveTeamConfig } = await import('../../../core/configurations.js');
+            const { saveTeamConfig } = await import('@core/configurations.js');
             saveTeamConfig(newConfig);
             player.sendMessage('§aTeam configuration saved.');
             return showPanel(player, 'configCategoryPanel', context);

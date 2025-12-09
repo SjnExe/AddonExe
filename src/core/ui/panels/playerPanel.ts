@@ -94,7 +94,7 @@ export class PlayerPanelHandler implements IPanelHandler {
             playerEntries.sort((a, b) => a.name.localeCompare(b.name));
 
             const paginated = getPaginatedItems(playerEntries, page);
-            const { getTeamByPlayer } = await import('../../../features/teams/teamManager.js');
+            const { getTeamByPlayer } = await import('@features/teams/teamManager.js');
             const config = getConfig();
 
             for (const entry of paginated) {
@@ -166,7 +166,7 @@ export class PlayerPanelHandler implements IPanelHandler {
     async getBody(player: mc.Player, panelId: string, context: UIContext): Promise<string | null> {
         if (panelId === 'myStatsPanel') {
             const pData = getOrCreatePlayer(player);
-            const { getTeamByPlayer } = await import('../../../features/teams/teamManager.js');
+            const { getTeamByPlayer } = await import('@features/teams/teamManager.js');
             const team = getTeamByPlayer(player.id);
             const teamName = team ? `§3${team.name}` : '§8None';
             const { getPlayerRank } = await import('../../rankManager.js');

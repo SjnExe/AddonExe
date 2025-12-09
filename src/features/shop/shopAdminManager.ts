@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { getShopConfig, saveShopConfig } from '../../core/configurations.js';
-import { items } from '../../core/itemsConfig.default.js';
-import { debugLog } from '../../core/logger.js';
-import { generateDisplayName, resolveIcon } from '../../core/utils.js';
+import { getShopConfig, saveShopConfig } from '@core/configurations.js';
+import { items } from '@core/itemsConfig.default.js';
+import { debugLog } from '@core/logger.js';
+import { generateDisplayName, resolveIcon } from '@core/utils.js';
 
 import { ShopCategory, ShopSubCategory } from './shopConfig.js';
 

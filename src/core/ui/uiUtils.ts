@@ -1,13 +1,9 @@
 import { ActionFormData } from '@minecraft/server-ui';
 
-import {
-    AnticheatConfig,
-    getAnticheatConfig,
-    saveAnticheatConfig
-} from '../../features/anticheat/anticheatConfigLoader.js';
-import { economyConfig } from '../../features/economy/economyConfig.js';
-import { shopConfig } from '../../features/shop/shopConfig.js';
-import { teamConfig } from '../../features/teams/teamConfig.js';
+import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
+import { economyConfig } from '@features/economy/economyConfig.js';
+import { shopConfig } from '@features/shop/shopConfig.js';
+import { teamConfig } from '@features/teams/teamConfig.js';
 import { Config, getConfig, updateMultipleConfig } from '../configManager.js';
 import {
     getEconomyConfig,

@@ -1,14 +1,14 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { loadConfig } from '../../../core/configLoader.js';
-import { getConfig, updateMultipleConfig } from '../../../core/configManager.js';
-import { getShopConfig } from '../../../core/configurations.js';
-import { showConfirmationDialog } from '../../../core/ui/components.js';
-import { IPanelHandler, MainConfig, PanelItem, ShopItem, UIContext } from '../../../core/ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
-import { showPanel } from '../../../core/uiManager.js';
-import { formatCurrency, parseCurrency } from '../../../core/utils.js';
+import { loadConfig } from '@core/configLoader.js';
+import { getConfig, updateMultipleConfig } from '@core/configManager.js';
+import { getShopConfig } from '@core/configurations.js';
+import { showConfirmationDialog } from '@core/ui/components.js';
+import { IPanelHandler, MainConfig, PanelItem, ShopItem, UIContext } from '@core/ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@core/ui/uiUtils.js';
+import { showPanel } from '@core/uiManager.js';
+import { formatCurrency, parseCurrency } from '@core/utils.js';
 import * as shopAdminManager from '../shopAdminManager.js';
 import * as shopManager from '../shopManager.js';
 

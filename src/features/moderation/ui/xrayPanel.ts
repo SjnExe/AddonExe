@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getXrayConfig, saveXrayConfig } from '../../../core/configurations.js';
-import { IPanelHandler, PanelItem, UIContext } from '../../../core/ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
-import { showPanel } from '../../../core/uiManager.js';
+import { getXrayConfig, saveXrayConfig } from '@core/configurations.js';
+import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@core/ui/uiUtils.js';
+import { showPanel } from '@core/uiManager.js';
 
 export class XrayPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

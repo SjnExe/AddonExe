@@ -1,4 +1,4 @@
-import { getEconomyConfig } from '../../core/configurations.js';
+import { getEconomyConfig } from '@core/configurations.js';
 
 /**
  * Formats a number representing cents into a human-readable currency string.

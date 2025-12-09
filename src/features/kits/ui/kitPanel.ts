@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getConfig, updateMultipleConfig } from '../../../core/configManager.js';
-import * as kitAdminManager from '../../../core/kitAdminManager.js';
-import * as kitItemsManager from '../../../core/kitItemsManager.js';
-import { IPanelHandler, PanelItem, UIContext } from '../../../core/ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
-import { showPanel } from '../../../core/uiManager.js';
+import { getConfig, updateMultipleConfig } from '@core/configManager.js';
+import * as kitAdminManager from '@core/kitAdminManager.js';
+import * as kitItemsManager from '@core/kitItemsManager.js';
+import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@core/ui/uiUtils.js';
+import { showPanel } from '@core/uiManager.js';
 
 export class KitPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

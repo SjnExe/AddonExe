@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as punishmentManager from '../../features/moderation/punishmentManager.js';
-import * as reportManager from '../../features/moderation/reportManager.js';
-import * as teamManager from '../../features/teams/teamManager.js';
-import * as tpaManager from '../../features/teleportation/tpaManager.js';
+import * as punishmentManager from '@features/moderation/punishmentManager.js';
+import * as reportManager from '@features/moderation/reportManager.js';
+import * as teamManager from '@features/teams/teamManager.js';
+import * as tpaManager from '@features/teleportation/tpaManager.js';
 import * as bountyManager from '../bountyManager.js';
 import * as configManager from '../configManager.js';
 import { floatingTextManager } from '../floatingTextManager.js';

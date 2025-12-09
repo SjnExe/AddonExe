@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as bountyManager from '../../../core/bountyManager.js';
-import { IPanelHandler, PanelItem, UIContext } from '../../../core/ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
-import { showPanel } from '../../../core/uiManager.js';
-import { formatCurrency } from '../../../core/utils.js';
+import * as bountyManager from '@core/bountyManager.js';
+import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@core/ui/uiUtils.js';
+import { showPanel } from '@core/uiManager.js';
+import { formatCurrency } from '@core/utils.js';
 
 export class BountyPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

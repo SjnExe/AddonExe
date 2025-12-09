@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { banPlayer, offlineBanPlayer, unbanPlayer } from '../../features/moderation/commands/ban.js';
-import { freezePlayer, unfreezePlayer } from '../../features/moderation/commands/freeze.js';
-import { kickPlayer } from '../../features/moderation/commands/kick.js';
-import { mutePlayer, unmutePlayer } from '../../features/moderation/commands/mute.js';
-import * as reportManager from '../../features/moderation/reportManager.js';
-import * as tpaManager from '../../features/teleportation/tpaManager.js';
+import { banPlayer, offlineBanPlayer, unbanPlayer } from '@features/moderation/commands/ban.js';
+import { freezePlayer, unfreezePlayer } from '@features/moderation/commands/freeze.js';
+import { kickPlayer } from '@features/moderation/commands/kick.js';
+import { mutePlayer, unmutePlayer } from '@features/moderation/commands/mute.js';
+import * as reportManager from '@features/moderation/reportManager.js';
+import * as tpaManager from '@features/teleportation/tpaManager.js';
 import * as bountyManager from '../bountyManager.js';
 import { getConfig } from '../configManager.js';
 import * as helpfulLinksManager from '../helpfulLinksManager.js';

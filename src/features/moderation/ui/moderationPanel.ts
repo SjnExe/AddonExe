@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getPlayerIdByName } from '../../../core/playerDataManager.js';
-import { getStaticMenuItems } from '../../../core/ui/panelBuilder.js';
-import { panelDefinitions } from '../../../core/ui/panelRegistry.js';
-import { IPanelHandler, PanelItem, UIContext } from '../../../core/ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
-import { showPanel } from '../../../core/uiManager.js';
+import { getPlayerIdByName } from '@core/playerDataManager.js';
+import { getStaticMenuItems } from '@core/ui/panelBuilder.js';
+import { panelDefinitions } from '@core/ui/panelRegistry.js';
+import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@core/ui/uiUtils.js';
+import { showPanel } from '@core/uiManager.js';
 import * as punishmentManager from '../punishmentManager.js';
 import * as reportManager from '../reportManager.js';
 

@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { setCooldown } from '../../core/cooldownManager.js';
-import { getPlayerFromCache } from '../../core/playerCache.js';
-import { getOrCreatePlayer, updatePlayerData } from '../../core/playerDataManager.js';
-import { startTeleportWarmup } from '../../core/utils.js';
+import { getConfig } from '@core/configManager.js';
+import { setCooldown } from '@core/cooldownManager.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
+import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
+import { startTeleportWarmup } from '@core/utils.js';
 
 type TpaRequestType = 'tpa' | 'tpahere';
 

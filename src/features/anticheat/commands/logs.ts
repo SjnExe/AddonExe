@@ -3,7 +3,7 @@ import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
-import { uiWait } from '../../../core/utils.js';
+import { uiWait } from '@core/utils.js';
 import { getFlagLogs, getPunishmentLogs } from '../logManager.js';
 
 const logsCommand: CustomCommand = {

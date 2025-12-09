@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { debugLog, errorLog } from '../../core/logger.js';
-import { StorageManager } from '../../core/storage/StorageManager.js';
+import { getConfig } from '@core/configManager.js';
+import { debugLog, errorLog } from '@core/logger.js';
+import { StorageManager } from '@core/storage/StorageManager.js';
 import { addPunishmentLog } from '../anticheat/logManager.js';
 
 const storage = new StorageManager('exe:punishments');
