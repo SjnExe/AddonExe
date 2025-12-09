@@ -5,10 +5,11 @@
     "main": "index.js",
     "scripts": {
         "preinstall": "node scripts/update-mc-deps.js",
+        "check-types": "tsc --noEmit",
         "build": "node scripts/generate-command-index.js && rimraf packs/behavior/scripts && node scripts/build.js",
         "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"node scripts/build.js --watch\"",
         "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests",
-        "lint": "eslint . && node scripts/validate-filtered.js",
+        "lint": "eslint . && npm run check-types && node scripts/validate-filtered.js",
         "lint:fix": "eslint . --fix",
         "lint:report": "eslint . --output-file eslint_report.txt",
         "format": "prettier --write .",

@@ -32,8 +32,9 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
                 // If no source entity, assume console/server
                 startRestart({
                     sendMessage: (msg: string) => warnLog(msg),
-                    name: 'Console'
-                } as unknown as CommandExecutor);
+                    name: 'Console',
+                    isConsole: true
+                } as CommandExecutor);
             }
             break;
 
@@ -63,7 +64,7 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
                 }
 
                 const adminTagCondition = adminRank.conditions.find((c) => c.type === 'hasTag');
-                if (!adminTagCondition || !adminTagCondition.value) {
+                if (!adminTagCondition || !adminTagCondition.value || typeof adminTagCondition.value !== 'string') {
                     errorLog('[AddonExe] Could not grant admin rank because it lacks a valid "hasTag" condition.');
                     sourceEntity.sendMessage('§cError: The admin rank is not configured with a valid tag.');
                     return;

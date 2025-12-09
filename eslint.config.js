@@ -127,6 +127,14 @@ export default tseslint.config(
         }
     },
 
+    // Override for Logger
+    {
+        files: ['src/core/logger.ts'],
+        rules: {
+            'no-console': 'off'
+        }
+    },
+
     // JS Configuration (Scripts)
     {
         files: ['scripts/**/*.js'],

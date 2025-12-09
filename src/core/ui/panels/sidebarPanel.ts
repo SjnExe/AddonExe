@@ -22,10 +22,12 @@ export class SidebarPanelHandler implements IPanelHandler {
     async getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | null> {
         await Promise.resolve();
         if (panelId === 'placeholderListPanel') {
-            return `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
+            return (
+                `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
                 `{server_name}, {tps}, {online}, {max_players}, {time}, {date}\n\n` +
                 `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
-                `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`;
+                `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
+            );
         }
         return null;
     }
