@@ -19,7 +19,6 @@ const external = [
     '@minecraft/debug-utilities',
     '@minecraft/diagnostics',
     '@minecraft/common',
-    '@minecraft/vanilla-data',
     './config.js',
     './core/kitsConfig.js',
     './core/spawnConfig.js',
@@ -91,7 +90,7 @@ async function build() {
             target: 'es2020',
             external: external,
             sourcemap: true,
-            minify: true,
+            minify: false,
             treeShaking: true,
             logLevel: 'info'
         });
