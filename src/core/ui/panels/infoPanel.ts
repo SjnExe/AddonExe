@@ -24,7 +24,6 @@ export class InfoPanelHandler implements IPanelHandler {
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
-        await Promise.resolve();
         const items: PanelItem[] = [];
         const pData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
@@ -148,7 +147,6 @@ export class InfoPanelHandler implements IPanelHandler {
     }
 
     async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
-        await Promise.resolve();
         if (panelId === 'addRulePanel') {
             return new ModalFormData().title('Add Rule').textField('Rule Content', 'Enter rule text');
         }

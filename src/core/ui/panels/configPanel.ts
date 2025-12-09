@@ -15,6 +15,7 @@ import { configPanelSchema } from '@ui/configPanelRegistry.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
 import {
+    addPaginationItems,
     getPaginatedItems,
     getSystemsByCategory,
     getVisibleCategories,
@@ -34,7 +35,6 @@ export class ConfigPanelHandler implements IPanelHandler {
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
-        await Promise.resolve();
         const items: PanelItem[] = [];
         const pData: PlayerData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
@@ -48,31 +48,6 @@ export class ConfigPanelHandler implements IPanelHandler {
                 actionType: 'openPanel',
                 actionValue: target
             });
-        };
-
-        const addPagination = (totalItems: number) => {
-            const page = (context.page as number) || 1;
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            if (page > 1) {
-                items.push({
-                    id: '__prev__',
-                    text: '§6< Previous Page',
-                    icon: 'textures/ui/arrow_left.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'prevPage'
-                });
-            }
-            if (page < totalPages) {
-                items.push({
-                    id: '__next__',
-                    text: '§6Next Page >',
-                    icon: 'textures/ui/arrow_right.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'nextPage'
-                });
-            }
         };
 
         if (panelId === 'configCategoryPanel') {
@@ -99,7 +74,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     actionValue: 'configResetPanel'
                 });
             }
-            addPagination(categories.length);
+            addPaginationItems(items, (context.page as number) || 1, categories.length);
             return items;
         }
 
@@ -118,7 +93,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     actionValue: sys.id.startsWith('config_') ? sys.id : sys.id
                 });
             });
-            addPagination(systems.length);
+            addPaginationItems(items, (context.page as number) || 1, systems.length);
             return items;
         }
 
@@ -146,7 +121,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     actionValue: 'resetAllConfig'
                 });
             }
-            addPagination(categories.length);
+            addPaginationItems(items, (context.page as number) || 1, categories.length);
             return items;
         }
 
@@ -175,7 +150,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     actionValue: `resetSystem_${sys.id}`
                 });
             });
-            addPagination(systems.length);
+            addPaginationItems(items, (context.page as number) || 1, systems.length);
             return items;
         }
 
@@ -183,7 +158,6 @@ export class ConfigPanelHandler implements IPanelHandler {
     }
 
     async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
-        await Promise.resolve();
         if (panelId.startsWith('config_')) {
             const categoryId = panelId.replace('config_', '');
             const category = configPanelSchema.find((c) => c.id === categoryId);
@@ -344,12 +318,16 @@ export class ConfigPanelHandler implements IPanelHandler {
 
         // Modal Handling
         if (panelId.startsWith('config_')) {
+            const categoryId = panelId.replace('config_', '');
+            const category = configPanelSchema.find((c) => c.id === categoryId);
+
             if ((response as ModalFormResponse).canceled) {
+                if (category && category.category) {
+                    return showPanel(player, `configSubCategoryPanel_${category.category}`, { ...context, page: 1 });
+                }
                 return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
             }
 
-            const categoryId = panelId.replace('config_', '');
-            const category = configPanelSchema.find((c) => c.id === categoryId);
             if (category) {
                 if (values) {
                     const updates: Record<string, unknown> = {};
@@ -396,6 +374,9 @@ export class ConfigPanelHandler implements IPanelHandler {
                         }
                     }
                 }
+            }
+            if (category && category.category) {
+                return showPanel(player, `configSubCategoryPanel_${category.category}`, { ...context, page: 1 });
             }
             return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
         }

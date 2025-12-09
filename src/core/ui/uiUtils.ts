@@ -23,6 +23,7 @@ import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@featu
 import { economyConfig } from '@features/economy/economyConfig.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/teams/teamConfig.js';
+import { PanelItem } from './types.js';
 
 type SpawnConfig = typeof spawnConfig;
 type EconomyConfig = typeof economyConfig;
@@ -101,6 +102,33 @@ export function addPaginationButtons(form: ActionFormData, page: number, totalIt
     }
     if (page < totalPages) {
         form.button('§l§1Next §4>');
+    }
+}
+
+/**
+ * Helper to add pagination items to a PanelItem array.
+ */
+export function addPaginationItems(items: PanelItem[], page: number, totalItems: number): void {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    if (page > 1) {
+        items.push({
+            id: '__prev__',
+            text: '§6< Previous Page',
+            icon: 'textures/ui/arrow_left.png',
+            permissionLevel: 1024,
+            actionType: 'functionCall',
+            actionValue: 'prevPage'
+        });
+    }
+    if (page < totalPages) {
+        items.push({
+            id: '__next__',
+            text: '§6Next Page >',
+            icon: 'textures/ui/arrow_right.png',
+            permissionLevel: 1024,
+            actionType: 'functionCall',
+            actionValue: 'nextPage'
+        });
     }
 }
 
