@@ -38,10 +38,14 @@
         "@babel/preset-env": "latest",
         "@eslint/eslintrc": "latest",
         "@eslint/js": "latest",
+        "@minecraft/common": "latest",
         "@minecraft/core-build-tasks": "latest",
         "@minecraft/creator-tools": "latest",
+        "@minecraft/debug-utilities": "beta",
+        "@minecraft/diagnostics": "beta",
         "@minecraft/math": "latest",
         "@minecraft/server": "beta",
+        "@minecraft/server-gametest": "beta",
         "@minecraft/server-ui": "beta",
         "@minecraft/vanilla-data": "latest",
         "@types/jest": "latest",
@@ -107,7 +111,11 @@
         "*.{js,ts,json,md}": "prettier --write"
     },
     "overrides": {
+        "@minecraft/common": "latest",
+        "@minecraft/debug-utilities": "beta",
+        "@minecraft/diagnostics": "beta",
         "@minecraft/server": "beta",
+        "@minecraft/server-gametest": "beta",
         "@minecraft/server-ui": "beta",
         "@minecraft/vanilla-data": "latest"
     }

@@ -12,6 +12,16 @@ type LogLevelKey = keyof typeof LogLevels;
 // Default log level
 let currentLogLevel: number = LogLevels.INFO;
 
+// External error handler (e.g., Sentry)
+let externalErrorHandler: ((error: unknown, context?: string) => void) | undefined;
+
+/**
+ * Register an external error handler to capture critical errors.
+ */
+export function setExternalErrorHandler(handler: (error: unknown, context?: string) => void): void {
+    externalErrorHandler = handler;
+}
+
 /**
  * Sets the current log level for the entire application.
  * Messages below this level will not be logged.
@@ -113,6 +123,11 @@ export function errorLog(message: string, error?: unknown): void {
             fullMessage += `\n  Details: ${formatError(error)}`;
         }
         internalLog('error', fullMessage);
+
+        if (externalErrorHandler) {
+            // If an explicit error object is provided, use it. Otherwise, use the message as the error.
+            externalErrorHandler(error ?? new Error(message), message);
+        }
     }
 }
 
