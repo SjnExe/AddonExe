@@ -16,6 +16,8 @@
         "check-deps": "node scripts/check-dependencies.js",
         "validate": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE --display-only",
         "validate:report": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE -o validation_report",
+        "project-info": "npx mct info",
+        "fix-project": "npx mct fix",
         "prepare": "husky"
     },
     "repository": {
@@ -38,6 +40,7 @@
         "@minecraft/creator-tools": "latest",
         "@minecraft/debug-utilities": "1.0.0-beta.1.21.124-stable",
         "@minecraft/diagnostics": "1.0.0-beta.1.21.124-stable",
+        "@minecraft/math": "^2.2.11",
         "@minecraft/server": "2.4.0-beta.1.21.124-stable",
         "@minecraft/server-gametest": "1.0.0-beta.1.21.124-stable",
         "@minecraft/server-ui": "2.1.0-beta.1.21.124-stable",

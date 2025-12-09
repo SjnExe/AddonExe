@@ -1,3 +1,4 @@
+import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
 import {
     ActionFormData,
@@ -267,11 +268,7 @@ export function startTeleportWarmup(
             const currentLocation = player.location;
 
             // Check the 3D distance the player has moved.
-            const distanceMoved = Math.sqrt(
-                Math.pow(currentLocation.x - initialLocation.x, 2) +
-                    Math.pow(currentLocation.y - initialLocation.y, 2) +
-                    Math.pow(currentLocation.z - initialLocation.z, 2)
-            );
+            const distanceMoved = Vector3Utils.distance(currentLocation, initialLocation);
 
             if (distanceMoved > 2 || player.dimension.id !== dimensionId) {
                 player.onScreenDisplay.setActionBar('§cTeleport canceled because you moved.');
