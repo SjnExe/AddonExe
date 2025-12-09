@@ -34,12 +34,7 @@ let allItems: Record<string, Item> = {};
 
 export class ShopPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId.startsWith('shop') ||
-            panelId === 'addMobDropPanel' ||
-            panelId === 'editMobDropPanel' ||
-            panelId === 'mobDropsSystemPanel'
-        );
+        return panelId.startsWith('shop');
     }
 
     async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {

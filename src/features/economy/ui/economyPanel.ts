@@ -1,28 +1,149 @@
 import * as mc from '@minecraft/server';
-import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
+import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
+import { getEconomyConfig, saveEconomyConfig } from '../../../core/configurations.js';
 import { getOrCreatePlayer } from '../../../core/playerDataManager.js';
+import { showConfirmationDialog } from '../../../core/ui/components.js';
 import { getStaticMenuItems } from '../../../core/ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '../../../core/ui/panelRegistry.js';
 import { IPanelHandler } from '../../../core/ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '../../../core/ui/uiUtils.js';
 import { showPanel } from '../../../core/uiManager.js';
+import { formatCurrency } from '../../../core/utils.js';
 
 export class EconomyPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return panelId === 'economyPanel';
+        return (
+            panelId === 'economyPanel' ||
+            panelId === 'mobDropsSystemPanel' ||
+            panelId === 'addMobDropPanel' ||
+            panelId === 'editMobDropPanel'
+        );
     }
 
-    async getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
+    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
+        const items: PanelItem[] = [];
         const pData = getOrCreatePlayer(player);
-        const items = getStaticMenuItems(panelDefinitions[panelId], pData.permissionLevel);
 
-        // Add Back button manually if getStaticMenuItems didn't?
-        // getStaticMenuItems adds it if parentPanelId is set.
-        // economyPanel parent is configCategoryPanel.
-        // So it's handled.
+        const addBack = (target: string) => {
+            items.push({
+                id: '__back__',
+                text: '§l§8< Back',
+                icon: 'textures/gui/controls/left.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: target
+            });
+        };
+
+        const addPagination = (totalItems: number) => {
+            const page = (context.page as number) || 1;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            if (page > 1) {
+                items.push({
+                    id: '__prev__',
+                    text: '§6< Previous Page',
+                    icon: 'textures/ui/arrow_left.png',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'prevPage'
+                });
+            }
+            if (page < totalPages) {
+                items.push({
+                    id: '__next__',
+                    text: '§6Next Page >',
+                    icon: 'textures/ui/arrow_right.png',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'nextPage'
+                });
+            }
+        };
+
+        if (panelId === 'economyPanel') {
+            // economyPanel has a parent in registry, so getStaticMenuItems handles back button?
+            // Actually configCategoryPanel is dynamic.
+            // Let's rely on getStaticMenuItems or add it if missing.
+            const staticItems = getStaticMenuItems(panelDefinitions[panelId], pData.permissionLevel);
+            items.push(...staticItems);
+            return items;
+        }
+
+        if (panelId === 'mobDropsSystemPanel') {
+            addBack('economyPanel');
+            // Static items first (Add Button)
+            const staticItems = getStaticMenuItems(panelDefinitions[panelId], pData.permissionLevel);
+            items.push(...staticItems);
+
+            const config = getEconomyConfig();
+            const mobMoney = config.mobMoney || {};
+            const mobs = Object.keys(mobMoney).sort();
+
+            const paginated = getPaginatedItems(mobs, (context.page as number) || 1);
+
+            paginated.forEach((mobId) => {
+                const amount = mobMoney[mobId];
+                const color = amount >= 0 ? '§2' : '§c';
+                items.push({
+                    id: mobId,
+                    text: `${mobId}\n${color}${formatCurrency(amount)}`,
+                    icon: 'textures/ui/egg_icon', // Placeholder icon
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'editMobDropPanel'
+                });
+            });
+            addPagination(mobs.length);
+            return items;
+        }
+
+        if (panelId === 'editMobDropPanel') {
+            addBack('mobDropsSystemPanel');
+            const mobId = context.selectedItemId as string;
+            if (!mobId) return items;
+
+            items.push({
+                id: 'edit',
+                text: 'Edit Value',
+                icon: 'textures/ui/icon_setting',
+                permissionLevel: 1,
+                actionType: 'functionCall',
+                actionValue: 'editMobValue'
+            });
+            items.push({
+                id: 'delete',
+                text: '§4Delete',
+                icon: 'textures/ui/trash',
+                permissionLevel: 1,
+                actionType: 'functionCall',
+                actionValue: 'deleteMobDrop'
+            });
+            return items;
+        }
 
         return items;
+    }
+
+    async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+        await Promise.resolve();
+        if (panelId === 'addMobDropPanel') {
+            return new ModalFormData()
+                .title('Add Mob Drop')
+                .textField('Mob Identifier', 'e.g., minecraft:zombie')
+                .textField('Reward Amount', 'Negative for penalty', { defaultValue: '0' });
+        }
+        if (panelId === 'editMobValue') {
+            // Helper modal for editing, technically handled by handleResponse functionCall usually, but can use here
+            const config = getEconomyConfig();
+            const mobId = context.selectedItemId as string;
+            const currentVal = config.mobMoney[mobId] ?? 0;
+            return new ModalFormData()
+                .title(`Edit ${mobId}`)
+                .textField('Reward Amount', 'Negative for penalty', { defaultValue: String(currentVal) });
+        }
+        return null;
     }
 
     async handleResponse(
@@ -32,12 +153,89 @@ export class EconomyPanelHandler implements IPanelHandler {
         context: UIContext
     ): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
+        const values = (response as ModalFormResponse).formValues;
+
+        if (panelId === 'addMobDropPanel') {
+            if ((response as ModalFormResponse).canceled) return showPanel(player, 'mobDropsSystemPanel', context);
+            const [mobId, amountStr] = values as [string, string];
+            const amount = parseInt(amountStr);
+
+            if (mobId && !isNaN(amount)) {
+                const config = getEconomyConfig();
+                config.mobMoney[mobId] = amount;
+                saveEconomyConfig(config);
+                player.sendMessage(`§2Added ${mobId} with reward ${formatCurrency(amount)}`);
+            } else {
+                player.sendMessage('§cInvalid input.');
+            }
+            return showPanel(player, 'mobDropsSystemPanel', { ...context, page: 1 });
+        }
+
+        if (panelId === 'editMobValue') {
+            if ((response as ModalFormResponse).canceled)
+                return showPanel(player, 'editMobDropPanel', { ...context, id: context.selectedItemId });
+            const [amountStr] = values as [string];
+            const amount = parseInt(amountStr);
+            const mobId = context.selectedItemId as string;
+
+            if (!isNaN(amount) && mobId) {
+                const config = getEconomyConfig();
+                config.mobMoney[mobId] = amount;
+                saveEconomyConfig(config);
+                player.sendMessage(`§2Updated ${mobId} to ${formatCurrency(amount)}`);
+            }
+            return showPanel(player, 'editMobDropPanel', { ...context, id: mobId });
+        }
+
         if (typeof selection === 'number') {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+
                 if (item.actionType === 'openPanel') {
-                    return showPanel(player, item.actionValue, { ...context, page: 1 });
+                    return showPanel(player, item.actionValue, {
+                        ...context,
+                        page: 1,
+                        selectedItemId: item.id,
+                        id: item.id
+                    });
+                }
+                if (item.actionValue === 'prevPage') {
+                    return showPanel(player, panelId, {
+                        ...context,
+                        page: Math.max(1, ((context.page as number) || 1) - 1)
+                    });
+                }
+                if (item.actionValue === 'nextPage') {
+                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
+                }
+
+                if (item.actionValue === 'editMobValue') {
+                    // Open a modal
+                    const modal = await this.buildModal(player, 'editMobValue', context);
+                    if (modal) {
+                        const res = await modal.show(player);
+                        return this.handleResponse(player, 'editMobValue', res, context);
+                    }
+                }
+
+                if (item.actionValue === 'deleteMobDrop') {
+                    const mobId = context.selectedItemId as string;
+                    await showConfirmationDialog(player, {
+                        title: 'Delete Drop?',
+                        body: `Remove reward for ${mobId}?`,
+                        confirmButtonText: '§cDelete',
+                        cancelButtonText: 'Cancel',
+                        onConfirm: () => {
+                            const config = getEconomyConfig();
+                            delete config.mobMoney[mobId];
+                            saveEconomyConfig(config);
+                            player.sendMessage(`§2Removed ${mobId}`);
+                            return showPanel(player, 'mobDropsSystemPanel', context);
+                        },
+                        onCancel: () => showPanel(player, 'editMobDropPanel', context)
+                    });
+                    return;
                 }
             }
         }

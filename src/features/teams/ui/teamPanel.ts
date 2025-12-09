@@ -446,7 +446,20 @@ export class TeamPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'teamSearchPanel') {
-            // ... implementation of search ...
+            if ((response as ModalFormResponse).canceled) return showPanel(player, 'teamJoinPanel');
+            const [searchId] = values || [];
+            if (searchId) {
+                const team = teamManager.getTeam(Number(searchId));
+                if (team) {
+                    player.sendMessage(`§aFound team: ${team.name}`);
+                    // Trigger apply directly or show info?
+                    // Showing apply dialog via function call
+                    const result = teamManager.applyToTeam(player, team.id);
+                    player.sendMessage(result.message ?? '');
+                } else {
+                    player.sendMessage('§cTeam not found.');
+                }
+            }
             return showPanel(player, 'teamJoinPanel');
         }
 
