@@ -1,6 +1,6 @@
 import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
-import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
+import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { errorLog } from '@core/logger.js';
 
@@ -162,9 +162,9 @@ function checkWorldBorder(
         center = { x: spawn.x, z: spawn.z };
     }
 
-    if (dimensionId === 'minecraft:nether') {
+    if (dimensionId === MinecraftDimensionTypes.Nether) {
         radius = Math.floor(config.overworldRadius / config.netherRadiusRatio);
-    } else if (dimensionId === 'minecraft:the_end') {
+    } else if (dimensionId === MinecraftDimensionTypes.TheEnd) {
         radius = config.endRadius;
         // End usually centers on 0,0 regardless of overworld spawn
         center = { x: 0, z: 0 };
@@ -207,7 +207,7 @@ function checkWorldBorder(
 }
 
 function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
-    if (player.dimension.id !== 'minecraft:nether') return;
+    if (player.dimension.id !== MinecraftDimensionTypes.Nether) return;
     if (player.getGameMode() === mc.GameMode.Spectator || player.getGameMode() === mc.GameMode.Creative) return; // Allow admins/spectators
 
     if (player.location.y > config.maxHeight) {

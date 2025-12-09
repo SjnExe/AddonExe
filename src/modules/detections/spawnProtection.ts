@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
 
 import { getConfig } from '@core/configManager.js';
 import { getSpawnConfig } from '@core/configurations.js';
@@ -130,7 +131,7 @@ function initialize(): void {
     if (spawnProtection.preventBlockPlacing) {
         subscribe(mc.world.afterEvents.playerPlaceBlock, (event: mc.PlayerPlaceBlockAfterEvent) => {
             if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
-                event.block.setType('minecraft:air');
+                event.block.setType(MinecraftBlockTypes.Air);
             }
         });
     }
