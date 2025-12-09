@@ -23,7 +23,6 @@ import * as economyFeature from '@features/economy/index.js';
 import * as bountyManager from './bountyManager.js';
 import { loadConfig } from './configLoader.js';
 import { getConfig, initializeConfigManager } from './configManager.js';
-import { initializeDiagnostics } from './diagnostics.js';
 import {
     getSpawnConfig,
     loadEconomyConfig,
@@ -37,6 +36,7 @@ import {
 } from './configurations.js';
 import { clearExpiredCooldowns, loadCooldowns } from './cooldownManager.js';
 import * as dataManager from './dataManager.js';
+import { initializeDiagnostics } from './diagnostics.js';
 import { cleanupEventManager, initializeEventManager } from './events/eventManager.js';
 import { floatingTextManager } from './floatingTextManager.js';
 import { cleanupLeaderboardManager, initializeLeaderboard } from './leaderboardManager.js';
