@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '@core/playerDataManager.js';
 import { playSound } from '@core/utils.js';
-import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
 import {
     acceptRequest,

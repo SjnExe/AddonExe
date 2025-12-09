@@ -21,7 +21,9 @@
         "paths": {
             "@core/*": ["./core/*"],
             "@modules/*": ["./modules/*"],
-            "@features/*": ["./features/*"]
+            "@features/*": ["./features/*"],
+            "@ui/*": ["./core/ui/*"],
+            "@commands/*": ["./modules/commands/*"]
         },
         "types": [
             "node",

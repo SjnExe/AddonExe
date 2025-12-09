@@ -1,14 +1,14 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as helpfulLinksManager from '../../helpfulLinksManager.js';
-import { getOrCreatePlayer } from '../../playerDataManager.js';
-import * as rulesManager from '../../rulesManager.js';
-import { showPanel } from '../../uiManager.js';
-import { getStaticMenuItems } from '../panelBuilder.js';
-import { panelDefinitions, PanelItem, UIContext } from '../panelRegistry.js';
-import { IPanelHandler } from '../types.js';
-import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
+import * as helpfulLinksManager from '@core/helpfulLinksManager.js';
+import { getOrCreatePlayer } from '@core/playerDataManager.js';
+import * as rulesManager from '@core/rulesManager.js';
+import { showPanel } from '@core/uiManager.js';
+import { getStaticMenuItems } from '@ui/panelBuilder.js';
+import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
+import { IPanelHandler } from '@ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 export class InfoPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

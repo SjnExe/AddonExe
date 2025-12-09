@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { constants } from '@core/constants.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { playSound } from '@core/utils.js';
-import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
 export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, reason: string) {
     if (!targetPlayer) {

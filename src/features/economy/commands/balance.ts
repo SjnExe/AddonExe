@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { getLeaderboard } from '@core/leaderboardManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { formatCurrency } from '@core/utils.js';
-import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
 const balanceCommand: CustomCommand = {
     name: 'balance',

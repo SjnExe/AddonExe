@@ -3,13 +3,13 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 
 import { getTeamConfig } from '@core/configurations.js';
 import { getOrCreatePlayer, loadPlayerData, PlayerData } from '@core/playerDataManager.js';
-import { handleUIAction } from '@core/ui/actions.js';
-import { showConfirmationDialog } from '@core/ui/components.js';
-import { PanelItem, UIContext } from '@core/ui/panelRegistry.js';
-import { IPanelHandler } from '@core/ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '@core/ui/uiUtils.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils.js';
+import { handleUIAction } from '@ui/actions.js';
+import { showConfirmationDialog } from '@ui/components.js';
+import { PanelItem, UIContext } from '@ui/panelRegistry.js';
+import { IPanelHandler } from '@ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 import * as teamManager from '../teamManager.js';
 
 export class TeamPanelHandler implements IPanelHandler {

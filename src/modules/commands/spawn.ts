@@ -8,7 +8,7 @@ import { sendMessage } from '@core/messaging.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { playSound, startTeleportWarmup } from '@core/utils.js';
 
-import { initializeSpawnProtection } from '../detections/spawnProtection.js';
+import { initializeSpawnProtection } from '@modules/detections/spawnProtection.js';
 
 import { CommandExecutor, CustomCommand } from './commandManager.js';
 

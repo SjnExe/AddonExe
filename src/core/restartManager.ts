@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { CommandExecutor } from '@modules/commands/commandManager.js';
+import { CommandExecutor } from '@commands/commandManager.js';
 
 import { getConfig } from './configManager.js';
 import { saveAllData } from './dataManager.js';

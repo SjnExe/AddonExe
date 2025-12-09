@@ -1,17 +1,17 @@
 import * as mc from '@minecraft/server';
 import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
+import * as bountyManager from '@core/bountyManager.js';
+import * as configManager from '@core/configManager.js';
+import { floatingTextManager } from '@core/floatingTextManager.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
+import { getPlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
+import { showPanel } from '@core/uiManager.js';
+import * as utils from '@core/utils.js';
 import * as punishmentManager from '@features/moderation/punishmentManager.js';
 import * as reportManager from '@features/moderation/reportManager.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import * as tpaManager from '@features/teleportation/tpaManager.js';
-import * as bountyManager from '../bountyManager.js';
-import * as configManager from '../configManager.js';
-import { floatingTextManager } from '../floatingTextManager.js';
-import { getPlayerFromCache } from '../playerCache.js';
-import { getPlayer, incrementPlayerBalance } from '../playerDataManager.js';
-import { showPanel } from '../uiManager.js';
-import * as utils from '../utils.js';
 
 import { UIContext } from './panelRegistry.js';
 import { MainConfig } from './types.js';
@@ -538,7 +538,7 @@ async function showUnbanForm(player: mc.Player, context: UIContext) {
     const [name] = values as [string];
     // We need to find ID by name. punishmentManager uses IDs.
     // If we have a name-to-ID map, use it.
-    const { getPlayerIdByName } = await import('../playerDataManager.js');
+    const { getPlayerIdByName } = await import('@core/playerDataManager.js');
     const targetId = getPlayerIdByName(name);
 
     if (!targetId) {
@@ -563,7 +563,7 @@ async function showUnmuteForm(player: mc.Player, context: UIContext) {
     if (!values) return showPanel(player, 'moderationPanel', context);
 
     const [name] = values as [string];
-    const { getPlayerIdByName } = await import('../playerDataManager.js');
+    const { getPlayerIdByName } = await import('@core/playerDataManager.js');
     const targetId = getPlayerIdByName(name);
 
     if (!targetId) {

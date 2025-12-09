@@ -39,13 +39,11 @@ function generate() {
         features.forEach((feature) => {
             const cmdDir = path.join(FEATURES_DIR, feature, 'commands');
             const cmds = getCommandFiles(cmdDir);
-            // Calculate relative path from src/modules/commands to src/features/feature/commands
-            // src/modules/commands -> src/features/feature/commands
-            // ../../features/feature/commands
+            // Use path alias for cleaner imports
             cmds.forEach((c) => {
                 featureCommands.push({
                     ...c,
-                    relativePath: `../../features/${feature}/commands/${path.basename(c.name, '.ts')}.js`
+                    relativePath: `@features/${feature}/commands/${path.basename(c.name, '.ts')}.js`
                 });
             });
         });

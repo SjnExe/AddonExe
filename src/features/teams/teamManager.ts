@@ -9,7 +9,7 @@ import {
     incrementPlayerBalance,
     updatePlayerData
 } from '@core/playerDataManager.js';
-import { panelRouter } from '@core/ui/PanelRouter.js';
+import { panelRouter } from '@ui/PanelRouter.js';
 import { TeamPanelHandler } from './ui/teamPanel.js';
 
 const teamPropertyPrefix = 'exe:team.';

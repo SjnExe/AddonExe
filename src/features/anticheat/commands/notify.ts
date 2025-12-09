@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 import { getPlayer } from '@core/playerDataManager.js';
 import { getAnticheatConfig, saveAnticheatConfig } from '../anticheatConfigLoader.js';

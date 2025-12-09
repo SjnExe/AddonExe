@@ -1,13 +1,13 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { floatingTextManager } from '../../floatingTextManager.js';
-import { showPanel } from '../../uiManager.js';
-import { formatLocation } from '../../utils.js';
-import { handleUIAction } from '../actions.js';
-import { getStaticMenuItems } from '../panelBuilder.js';
-import { panelDefinitions, PanelItem, UIContext } from '../panelRegistry.js';
-import { IPanelHandler } from '../types.js';
+import { floatingTextManager } from '@core/floatingTextManager.js';
+import { showPanel } from '@core/uiManager.js';
+import { formatLocation } from '@core/utils.js';
+import { handleUIAction } from '@ui/actions.js';
+import { getStaticMenuItems } from '@ui/panelBuilder.js';
+import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
+import { IPanelHandler } from '@ui/types.js';
 
 export class AdminPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

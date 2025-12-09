@@ -1,5 +1,7 @@
 import * as mc from '@minecraft/server';
 
+import { restartAnnouncer } from '@commands/announcement.js';
+import { loadCommands } from '@commands/index.js';
 import * as kitsFeature from '@features/kits/index.js';
 import * as moderationFeature from '@features/moderation/index.js';
 import {
@@ -13,8 +15,6 @@ import * as shopFeature from '@features/shop/index.js';
 import { registerFriendlyFire } from '@features/teams/friendlyFire.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import * as teleportFeature from '@features/teleportation/index.js';
-import { restartAnnouncer } from '@modules/commands/announcement.js';
-import { loadCommands } from '@modules/commands/index.js';
 import { initializeSpawnProtection } from '@modules/detections/spawnProtection.js';
 import { initializeXrayDetection } from '@modules/detections/xrayDetection.js';
 import * as corePanels from './ui/panels/index.js';

@@ -1,4 +1,4 @@
-import { panelRouter } from '../PanelRouter.js';
+import { panelRouter } from '@ui/PanelRouter.js';
 import { AdminPanelHandler } from './adminPanel.js';
 import { CommandPanelHandler } from './commandPanel.js';
 import { ConfigPanelHandler } from './configPanel.js';

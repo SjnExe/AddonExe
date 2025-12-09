@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
@@ -11,7 +12,6 @@ import {
     transfer
 } from '@core/playerDataManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
-import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
 interface PayCommandArgs {
     target?: mc.Player[];

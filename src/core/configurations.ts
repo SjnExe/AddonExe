@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { restartAnnouncer } from '@modules/commands/announcement.js';
+import { restartAnnouncer } from '@commands/announcement.js';
 import { initializeSpawnProtection } from '@modules/detections/spawnProtection.js';
 
 import { loadConfig as asyncLoadConfig } from './configLoader.js';

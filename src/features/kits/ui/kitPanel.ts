@@ -4,9 +4,9 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import * as kitAdminManager from '@core/kitAdminManager.js';
 import * as kitItemsManager from '@core/kitItemsManager.js';
-import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '@core/ui/uiUtils.js';
 import { showPanel } from '@core/uiManager.js';
+import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 export class KitPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
