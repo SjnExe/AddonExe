@@ -9,7 +9,7 @@ import { handleUIAction } from '@ui/actions.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 import * as teamManager from '../teamManager.js';
 
 export class TeamPanelHandler implements IPanelHandler {
@@ -24,47 +24,10 @@ export class TeamPanelHandler implements IPanelHandler {
         const pData: PlayerData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
         const items: PanelItem[] = [];
-
-        // Helper to add back button if not using getStaticMenuItems
-        const addBack = (target: string) => {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: target
-            });
-        };
-
-        // Helper for pagination
-        const addPagination = (totalItems: number) => {
-            const page = (context.page as number) || 1;
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            if (page > 1) {
-                items.push({
-                    id: '__prev__',
-                    text: '§6< Previous Page',
-                    icon: 'textures/ui/arrow_left.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'prevPage'
-                });
-            }
-            if (page < totalPages) {
-                items.push({
-                    id: '__next__',
-                    text: '§6Next Page >',
-                    icon: 'textures/ui/arrow_right.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'nextPage'
-                });
-            }
-        };
+        const page = (context.page as number) || 1;
 
         if (panelId === 'teamMainPanel') {
-            addBack('mainPanel');
+            addBackButton(items, 'mainPanel');
             const team = teamManager.getTeamByPlayer(player.id);
             const teamConfig = getTeamConfig();
 
@@ -126,7 +89,7 @@ export class TeamPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'teamBrowserPanel') {
-            addBack('teamMainPanel');
+            addBackButton(items, 'teamMainPanel');
             let teams = teamManager.getAllTeams();
             // Filter if needed (e.g. only open teams)
             if (permissionLevel >= 1024) {
@@ -145,12 +108,12 @@ export class TeamPanelHandler implements IPanelHandler {
                     actionValue: 'applyToTeam'
                 });
             });
-            addPagination(teams.length);
+            addPaginationItems(items, page, teams.length);
             return items;
         }
 
         if (panelId === 'teamMembersPanel') {
-            addBack('teamMainPanel');
+            addBackButton(items, 'teamMainPanel');
             const team = teamManager.getTeamByPlayer(player.id);
             if (team) {
                 for (const memberId of team.members) {
@@ -175,7 +138,7 @@ export class TeamPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'memberActionPanel') {
-            addBack('teamMembersPanel');
+            addBackButton(items, 'teamMembersPanel');
             const memberId = context.selectedItemId;
             if (!memberId) return items;
 
@@ -232,7 +195,7 @@ export class TeamPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'teamManagePanel') {
-            addBack('teamMainPanel');
+            addBackButton(items, 'teamMainPanel');
             const { teamId } = context;
             let team;
             if (teamId && permissionLevel < 1024) {
@@ -297,7 +260,7 @@ export class TeamPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'teamHomePanel') {
-            addBack('teamManagePanel');
+            addBackButton(items, 'teamManagePanel');
             const team = teamManager.getTeamByPlayer(player.id);
             if (team) {
                 if (team.home) {
@@ -336,7 +299,7 @@ export class TeamPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'teamRequestsPanel') {
-            addBack('teamManagePanel');
+            addBackButton(items, 'teamManagePanel');
             const team = teamManager.getTeamByPlayer(player.id);
             if (team && team.applications.length > 0) {
                 team.applications.forEach((app) => {
@@ -353,7 +316,7 @@ export class TeamPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'teamInvitesPanel') {
-            addBack('teamMainPanel');
+            addBackButton(items, 'teamMainPanel');
             const invites = pData.pendingInvites || [];
             if (invites.length > 0) {
                 invites.forEach((invite) => {
@@ -393,7 +356,7 @@ export class TeamPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'teamSearchPanel') {
-            return new ModalFormData().title('Search Team').textField('Team ID', 'Enter ID');
+            return new ModalFormData().title('Search Team').textField('Team Name or ID', 'Enter Name or ID');
         }
 
         if (panelId === 'teamSettingsPanel') {
@@ -447,9 +410,15 @@ export class TeamPanelHandler implements IPanelHandler {
 
         if (panelId === 'teamSearchPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'teamJoinPanel');
-            const [searchId] = values || [];
-            if (searchId) {
-                const team = teamManager.getTeam(Number(searchId));
+            const [query] = values || [];
+            if (query) {
+                let team = teamManager.getTeam(Number(query));
+                if (!team) {
+                    // Search by name
+                    const allTeams = teamManager.getAllTeams();
+                    team = allTeams.find((t) => t.name.toLowerCase() === (query as string).toLowerCase());
+                }
+
                 if (team) {
                     player.sendMessage(`§aFound team: ${team.name}`);
                     // Trigger apply directly or show info?

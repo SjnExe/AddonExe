@@ -15,7 +15,7 @@ import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 
 export class PlayerPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -34,44 +34,9 @@ export class PlayerPanelHandler implements IPanelHandler {
         const permissionLevel = pData.permissionLevel;
         const page = (context.page as number) || 1;
 
-        const addBack = (target: string) => {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: target
-            });
-        };
-
-        const addPagination = (totalItems: number) => {
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            if (page > 1) {
-                items.push({
-                    id: '__prev__',
-                    text: '§6< Previous Page',
-                    icon: 'textures/ui/arrow_left.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'prevPage'
-                });
-            }
-            if (page < totalPages) {
-                items.push({
-                    id: '__next__',
-                    text: '§6Next Page >',
-                    icon: 'textures/ui/arrow_right.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'nextPage'
-                });
-            }
-        };
-
         if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
-            if (panelId === 'playerListPanel') addBack('gameplayPanel');
-            else addBack('adminPanel');
+            if (panelId === 'playerListPanel') addBackButton(items, 'gameplayPanel');
+            else addBackButton(items, 'adminPanel');
 
             items.push({
                 id: 'searchPlayer',
@@ -113,14 +78,14 @@ export class PlayerPanelHandler implements IPanelHandler {
                     actionValue: 'playerActionsPanel'
                 });
             }
-            addPagination(playerEntries.length);
+            addPaginationItems(items, page, playerEntries.length);
             return items;
         }
 
         if (panelId === 'playerActionsPanel') {
             const fromPanel = context.fromPanel as string;
-            if (fromPanel) addBack(fromPanel);
-            else addBack('mainPanel');
+            if (fromPanel) addBackButton(items, fromPanel);
+            else addBackButton(items, 'mainPanel');
 
             const visible = this.getVisiblePlayerActionItems(context, permissionLevel, player.id);
             items.push(...visible);
@@ -128,7 +93,7 @@ export class PlayerPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'myStatsPanel') {
-            addBack('gameplayPanel');
+            addBackButton(items, 'gameplayPanel');
             return items; // Body only
         }
 

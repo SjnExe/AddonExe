@@ -132,6 +132,20 @@ export function addPaginationItems(items: PanelItem[], page: number, totalItems:
     }
 }
 
+/**
+ * Helper to add a standardized back button to a PanelItem array.
+ */
+export function addBackButton(items: PanelItem[], targetPanelId: string): void {
+    items.push({
+        id: '__back__',
+        text: '§l§8< Back',
+        icon: 'textures/gui/controls/left.png',
+        permissionLevel: 1024,
+        actionType: 'openPanel',
+        actionValue: targetPanelId
+    });
+}
+
 export interface SystemItem {
     id: string;
     title: string;

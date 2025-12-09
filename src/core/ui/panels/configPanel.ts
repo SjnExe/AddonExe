@@ -15,6 +15,7 @@ import { configPanelSchema } from '@ui/configPanelRegistry.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
 import {
+    addBackButton,
     addPaginationItems,
     getPaginatedItems,
     getSystemsByCategory,
@@ -39,19 +40,8 @@ export class ConfigPanelHandler implements IPanelHandler {
         const pData: PlayerData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
 
-        const addBack = (target: string) => {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: target
-            });
-        };
-
         if (panelId === 'configCategoryPanel') {
-            addBack('adminPanel');
+            addBackButton(items, 'adminPanel');
             const categories = getVisibleCategories(pData);
             const paginated = getPaginatedItems(categories, (context.page as number) || 1);
             paginated.forEach((cat) => {
@@ -80,7 +70,7 @@ export class ConfigPanelHandler implements IPanelHandler {
 
         if (panelId.startsWith('configSubCategoryPanel_')) {
             const category = panelId.replace('configSubCategoryPanel_', '');
-            addBack('configCategoryPanel');
+            addBackButton(items, 'configCategoryPanel');
             const systems = getSystemsByCategory(pData, category);
             const paginated = getPaginatedItems(systems, (context.page as number) || 1);
             paginated.forEach((sys) => {
@@ -98,7 +88,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'configResetPanel') {
-            addBack('configCategoryPanel');
+            addBackButton(items, 'configCategoryPanel');
             const categories = getVisibleCategories(pData);
             const paginated = getPaginatedItems(categories, (context.page as number) || 1);
             paginated.forEach((cat) => {
@@ -127,7 +117,7 @@ export class ConfigPanelHandler implements IPanelHandler {
 
         if (panelId.startsWith('configResetCategoryPanel_')) {
             const category = panelId.replace('configResetCategoryPanel_', '');
-            addBack('configResetPanel');
+            addBackButton(items, 'configResetPanel');
             const systems = getSystemsByCategory(pData, category);
             const paginated = getPaginatedItems(systems, (context.page as number) || 1);
 

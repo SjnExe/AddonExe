@@ -5,7 +5,7 @@ import { commandManager } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { IPanelHandler, MainConfig, PanelItem, UIContext } from '@ui/types.js';
-import { addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 
 interface CmdSettings {
     enabled?: boolean;
@@ -22,14 +22,7 @@ export class CommandPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [];
 
         if (panelId === 'commandSystemPanel') {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'configCategoryPanel'
-            });
+            addBackButton(items, 'configCategoryPanel');
 
             const commands = Array.from(commandManager.commands.values()).sort((a, b) => a.name.localeCompare(b.name));
 

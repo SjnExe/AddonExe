@@ -8,6 +8,7 @@ import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
+import { addBackButton } from '@ui/uiUtils.js';
 
 export class AdminPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -23,19 +24,8 @@ export class AdminPanelHandler implements IPanelHandler {
             return Promise.resolve(items);
         }
 
-        const addBack = (target: string) => {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: target
-            });
-        };
-
         if (panelId === 'floatingTextListPanel') {
-            addBack('adminPanel');
+            addBackButton(items, 'adminPanel');
             items.push({
                 id: 'placeholderList',
                 text: '§l§6View Placeholders',
@@ -67,7 +57,7 @@ export class AdminPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'floatingTextActionPanel') {
-            addBack('floatingTextListPanel');
+            addBackButton(items, 'floatingTextListPanel');
             items.push({
                 id: 'edit',
                 text: 'Edit Settings',

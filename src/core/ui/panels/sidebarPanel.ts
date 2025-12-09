@@ -7,6 +7,7 @@ import { showPanel } from '@core/uiManager.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
+import { addBackButton } from '@ui/uiUtils.js';
 
 export class SidebarPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -40,19 +41,8 @@ export class SidebarPanelHandler implements IPanelHandler {
             return Promise.resolve(items);
         }
 
-        const addBack = (target: string) => {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: target
-            });
-        };
-
         if (panelId === 'sidebarLinesPanel' || panelId === 'actionBarLinesPanel') {
-            addBack('sidebarMainPanel');
+            addBackButton(items, 'sidebarMainPanel');
             const isSidebar = panelId === 'sidebarLinesPanel';
             items.push({
                 id: 'addLine',
@@ -80,7 +70,7 @@ export class SidebarPanelHandler implements IPanelHandler {
 
         if (panelId === 'sidebarLineActionPanel' || panelId === 'actionBarLineActionPanel') {
             const isSidebar = panelId === 'sidebarLineActionPanel';
-            addBack(isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel');
+            addBackButton(items, isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel');
             items.push({
                 id: 'edit',
                 text: 'Edit',

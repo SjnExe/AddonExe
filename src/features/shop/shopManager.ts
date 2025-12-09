@@ -96,7 +96,7 @@ function findShopItem(itemId: string): ItemInfo | null {
  * @returns The result of the transaction.
  */
 export function buyItem(player: mc.Player, itemId: string, quantity: number): ShopTransactionResult {
-    if (quantity <= 0) {
+    if (quantity <= 0 && quantity !== -1) {
         return { success: false, message: '§cQuantity must be a positive number.' };
     }
 
@@ -112,11 +112,22 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     }
 
     const pData = getOrCreatePlayer(player);
-    const initialCost = buyPrice * quantity;
-
     if (pData.balance < 0) {
         return { success: false, message: '§cYou cannot purchase items while your balance is negative.' };
     }
+
+    let targetQuantity = quantity;
+
+    // Handle Buy Max (-1)
+    if (targetQuantity === -1) {
+        const maxAffordable = Math.floor(pData.balance / buyPrice);
+        if (maxAffordable <= 0) {
+             return { success: false, message: '§cInsufficient funds to buy any items.' };
+        }
+        targetQuantity = maxAffordable;
+    }
+
+    const initialCost = buyPrice * targetQuantity;
 
     if (pData.balance < initialCost) {
         return {
@@ -160,7 +171,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
         return { success: false, message: '§cYou have no space for this item.' };
     }
 
-    let finalQuantity = quantity;
+    let finalQuantity = targetQuantity;
     if (finalQuantity > spaceFound) {
         player.sendMessage(`§eNotice: You only have space for ${spaceFound}. Buying that amount instead.`);
         finalQuantity = spaceFound;
@@ -203,7 +214,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
  * @returns The result of the transaction.
  */
 export function sellItem(player: mc.Player, itemId: string, quantity: number): ShopTransactionResult {
-    if (quantity <= 0) {
+    if (quantity <= 0 && quantity !== -1) {
         return { success: false, message: '§cQuantity must be a positive number.' };
     }
 
@@ -238,12 +249,21 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
         }
     }
 
-    if (count < quantity) {
+    let targetQuantity = quantity;
+    if (targetQuantity === -1) {
+        targetQuantity = count;
+    }
+
+    if (targetQuantity === 0) {
+        return { success: false, message: '§cYou have none of this item to sell.' };
+    }
+
+    if (count < targetQuantity) {
         return { success: false, message: `§cYou do not have enough of this item. You only have ${count}.` };
     }
 
     // Remove items
-    let remaining = quantity;
+    let remaining = targetQuantity;
     for (let i = 0; i < inventory.size; i++) {
         if (remaining <= 0) break;
         const item = inventory.getItem(i);
@@ -260,11 +280,11 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
     }
 
     // Success
-    const totalGain = sellPrice * quantity;
+    const totalGain = sellPrice * targetQuantity;
     incrementPlayerBalance(player.id, totalGain);
 
     return {
         success: true,
-        message: `§2Successfully sold ${quantity}x ${shopItem.displayName ?? itemId} for §e${formatCurrency(totalGain)}§2.`
+        message: `§2Successfully sold ${targetQuantity}x ${shopItem.displayName ?? itemId} for §e${formatCurrency(totalGain)}§2.`
     };
 }

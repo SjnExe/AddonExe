@@ -8,7 +8,7 @@ import { showPanel } from '@core/uiManager.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 export class InfoPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -29,41 +29,6 @@ export class InfoPanelHandler implements IPanelHandler {
         const permissionLevel = pData.permissionLevel;
         const page = (context.page as number) || 1;
 
-        const addBack = (target: string) => {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: target
-            });
-        };
-
-        const addPagination = (totalItems: number) => {
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            if (page > 1) {
-                items.push({
-                    id: '__prev__',
-                    text: '§6< Previous Page',
-                    icon: 'textures/ui/arrow_left.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'prevPage'
-                });
-            }
-            if (page < totalPages) {
-                items.push({
-                    id: '__next__',
-                    text: '§6Next Page >',
-                    icon: 'textures/ui/arrow_right.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'nextPage'
-                });
-            }
-        };
-
         if (panelId === 'infoPanel') {
             const staticItems = getStaticMenuItems(panelDefinitions[panelId], permissionLevel);
             items.push(...staticItems);
@@ -71,7 +36,7 @@ export class InfoPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'rulesManagementPanel') {
-            addBack('infoPanel');
+            addBackButton(items, 'infoPanel');
             if (permissionLevel <= 1) {
                 items.push({
                     id: 'addRule',
@@ -94,12 +59,12 @@ export class InfoPanelHandler implements IPanelHandler {
                     actionValue: 'ruleActionPanel'
                 });
             });
-            addPagination(rules.length);
+            addPaginationItems(items, page, rules.length);
             return Promise.resolve(items);
         }
 
         if (panelId === 'ruleActionPanel') {
-            addBack('rulesManagementPanel');
+            addBackButton(items, 'rulesManagementPanel');
             if (permissionLevel <= 1) {
                 items.push({
                     id: 'delete',
@@ -115,7 +80,7 @@ export class InfoPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'helpfulLinksManagementPanel') {
-            addBack('infoPanel');
+            addBackButton(items, 'infoPanel');
             if (permissionLevel <= 1) {
                 items.push({
                     id: 'addLink',
@@ -139,7 +104,7 @@ export class InfoPanelHandler implements IPanelHandler {
                     actionValue: 'helpfulLinkActionPanel'
                 });
             });
-            addPagination(links.length);
+            addPaginationItems(items, page, links.length);
             return Promise.resolve(items);
         }
 
