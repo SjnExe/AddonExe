@@ -4,6 +4,7 @@ import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 import { loadPlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
+import { addBackButton } from '@ui/uiUtils.js';
 import * as tpaManager from '../tpaManager.js';
 
 export class TeleportPanelHandler implements IPanelHandler {
@@ -16,19 +17,8 @@ export class TeleportPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [];
         const pData = loadPlayerData(player.id);
 
-        const addBack = (target: string) => {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: target
-            });
-        };
-
         if (panelId === 'tpaSettingsPanel') {
-            addBack('gameplayPanel');
+            addBackButton(items, 'gameplayPanel');
             const isEnabled = !pData?.tpaRequestsDisabled;
             items.push({
                 id: 'toggleTpa',
@@ -50,7 +40,7 @@ export class TeleportPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'tpaBlockListPanel') {
-            addBack('tpaSettingsPanel');
+            addBackButton(items, 'tpaSettingsPanel');
             const blocked = pData?.tpaBlockedPlayerIds || [];
             for (const id of blocked) {
                 const name = loadPlayerData(id)?.name || id;

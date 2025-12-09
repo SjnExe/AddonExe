@@ -43,6 +43,25 @@ interface ActionResult {
 const activeTeams = new Map<number, TeamData>();
 let nextTeamId = 1;
 
+function* loadTeamsJob(allIds: number[]) {
+    let loadedCount = 0;
+    for (let i = 0; i < allIds.length; i++) {
+        const id = allIds[i];
+        try {
+            const teamDataStr = mc.world.getDynamicProperty(`${teamPropertyPrefix}${id}`);
+            if (teamDataStr && typeof teamDataStr === 'string') {
+                activeTeams.set(id, JSON.parse(teamDataStr) as TeamData);
+                loadedCount++;
+            }
+        } catch (e) {
+            errorLog(`[TeamManager] Error loading team ${id}: ${String(e)}`);
+        }
+        // Yield every 20 teams to prevent lag
+        if (i % 20 === 0) yield;
+    }
+    debugLog(`[TeamManager] Loaded ${loadedCount} teams.`);
+}
+
 /**
  * Initializes the team manager, loading all teams into cache.
  */
@@ -61,15 +80,8 @@ export function initialize() {
             allIds = JSON.parse(allIdsStr) as number[];
         }
 
-        let loadedCount = 0;
-        for (const id of allIds) {
-            const teamDataStr = mc.world.getDynamicProperty(`${teamPropertyPrefix}${id}`);
-            if (teamDataStr && typeof teamDataStr === 'string') {
-                activeTeams.set(id, JSON.parse(teamDataStr) as TeamData);
-                loadedCount++;
-            }
-        }
-        debugLog(`[TeamManager] Loaded ${loadedCount} teams.`);
+        // Run loading job
+        mc.system.runJob(loadTeamsJob(allIds));
 
         panelRouter.register(new TeamPanelHandler());
     } catch (e: unknown) {
