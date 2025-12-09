@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { errorLog, warnLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { parseDuration, playSoundFromConfig } from '@core/utils.js';
-import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
 import { addPunishment, removePunishment } from '../punishmentManager.js';
 

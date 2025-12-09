@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { checkAndKickBannedPlayer } from '../../features/moderation/punishmentManager.js';
+import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
 import { getConfig } from '../configManager.js';
 import { debugLog } from '../logger.js';
 import { updatePlayerRank } from '../main.js';

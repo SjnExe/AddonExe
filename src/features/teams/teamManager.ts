@@ -1,15 +1,15 @@
 import * as mc from '@minecraft/server';
 
-import { getTeamConfig } from '../../core/configurations.js';
-import { debugLog, errorLog } from '../../core/logger.js';
+import { getTeamConfig } from '@core/configurations.js';
+import { debugLog, errorLog } from '@core/logger.js';
 import {
     getOrCreatePlayer,
     getPlayer,
     HomeLocation,
     incrementPlayerBalance,
     updatePlayerData
-} from '../../core/playerDataManager.js';
-import { panelRouter } from '../../core/ui/PanelRouter.js';
+} from '@core/playerDataManager.js';
+import { panelRouter } from '@ui/PanelRouter.js';
 import { TeamPanelHandler } from './ui/teamPanel.js';
 
 const teamPropertyPrefix = 'exe:team.';

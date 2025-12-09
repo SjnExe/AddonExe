@@ -20,7 +20,10 @@
         "baseUrl": "./src",
         "paths": {
             "@core/*": ["./core/*"],
-            "@modules/*": ["./modules/*"]
+            "@modules/*": ["./modules/*"],
+            "@features/*": ["./features/*"],
+            "@ui/*": ["./core/ui/*"],
+            "@commands/*": ["./modules/commands/*"]
         },
         "types": [
             "node",

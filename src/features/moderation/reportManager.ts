@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../../core/configManager.js';
-import { debugLog, errorLog } from '../../core/logger.js';
+import { getConfig } from '@core/configManager.js';
+import { debugLog, errorLog } from '@core/logger.js';
 
 const reportsDbKey = 'exe:reports';
 

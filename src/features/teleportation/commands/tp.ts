@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
+import { CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
-import { CustomCommand } from '@modules/commands/commandManager.js';
 
 const command: CustomCommand = {
     name: 'tp',

@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { getShopConfig } from '../../core/configurations.js';
-import { items as allItems } from '../../core/itemsConfig.default.js';
-import { errorLog } from '../../core/logger.js';
-import { getOrCreatePlayer, incrementPlayerBalance } from '../../core/playerDataManager.js';
-import { formatCurrency } from '../../core/utils.js';
+import { getShopConfig } from '@core/configurations.js';
+import { items as allItems } from '@core/itemsConfig.default.js';
+import { errorLog } from '@core/logger.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
+import { formatCurrency } from '@core/utils.js';
 
 interface ItemInfo {
     itemId: string;

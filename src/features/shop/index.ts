@@ -1,4 +1,4 @@
-import { panelRouter } from '../../core/ui/PanelRouter.js';
+import { panelRouter } from '@ui/PanelRouter.js';
 import { ShopPanelHandler } from './ui/shopPanel.js';
 
 export function initialize() {

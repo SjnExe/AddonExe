@@ -1,4 +1,4 @@
-import { panelRouter } from '../../core/ui/PanelRouter.js';
+import { panelRouter } from '@ui/PanelRouter.js';
 import { BountyPanelHandler } from './ui/bountyPanel.js';
 import { EconomyPanelHandler } from './ui/economyPanel.js';
 

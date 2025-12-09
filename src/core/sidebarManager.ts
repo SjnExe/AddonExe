@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { getTeamByPlayer } from '../features/teams/teamManager.js';
+import { getTeamByPlayer } from '@features/teams/teamManager.js';
 
 import { getConfig } from './configManager.js';
 import { getSidebarConfig } from './configurations.js';

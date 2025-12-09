@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { commandManager } from '../../../modules/commands/commandManager.js';
-import { getConfig, updateMultipleConfig } from '../../configManager.js';
-import { showPanel } from '../../uiManager.js';
-import { IPanelHandler, MainConfig, PanelItem, UIContext } from '../types.js';
-import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
+import { commandManager } from '@commands/commandManager.js';
+import { getConfig, updateMultipleConfig } from '@core/configManager.js';
+import { showPanel } from '@core/uiManager.js';
+import { IPanelHandler, MainConfig, PanelItem, UIContext } from '@ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 interface CmdSettings {
     enabled?: boolean;

@@ -1,4 +1,4 @@
-import { panelRouter } from '../../core/ui/PanelRouter.js';
+import { panelRouter } from '@ui/PanelRouter.js';
 import { TeleportPanelHandler } from './ui/teleportPanel.js';
 
 export function initialize() {

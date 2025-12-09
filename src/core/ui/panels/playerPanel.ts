@@ -1,21 +1,21 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getConfig } from '../../configManager.js';
+import { getConfig } from '@core/configManager.js';
 import {
     getAllKnownPlayers,
     getOrCreatePlayer,
     getPlayerIdByName,
     loadPlayerData,
     PlayerData
-} from '../../playerDataManager.js';
-import * as rankManager from '../../rankManager.js';
-import { showPanel } from '../../uiManager.js';
-import { handleUIAction } from '../actions.js';
-import { getStaticMenuItems } from '../panelBuilder.js';
-import { panelDefinitions, PanelItem, UIContext } from '../panelRegistry.js';
-import { IPanelHandler } from '../types.js';
-import { getPaginatedItems, itemsPerPage } from '../uiUtils.js';
+} from '@core/playerDataManager.js';
+import * as rankManager from '@core/rankManager.js';
+import { showPanel } from '@core/uiManager.js';
+import { handleUIAction } from '@ui/actions.js';
+import { getStaticMenuItems } from '@ui/panelBuilder.js';
+import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
+import { IPanelHandler } from '@ui/types.js';
+import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 export class PlayerPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -94,7 +94,7 @@ export class PlayerPanelHandler implements IPanelHandler {
             playerEntries.sort((a, b) => a.name.localeCompare(b.name));
 
             const paginated = getPaginatedItems(playerEntries, page);
-            const { getTeamByPlayer } = await import('../../../features/teams/teamManager.js');
+            const { getTeamByPlayer } = await import('@features/teams/teamManager.js');
             const config = getConfig();
 
             for (const entry of paginated) {
@@ -166,14 +166,14 @@ export class PlayerPanelHandler implements IPanelHandler {
     async getBody(player: mc.Player, panelId: string, context: UIContext): Promise<string | null> {
         if (panelId === 'myStatsPanel') {
             const pData = getOrCreatePlayer(player);
-            const { getTeamByPlayer } = await import('../../../features/teams/teamManager.js');
+            const { getTeamByPlayer } = await import('@features/teams/teamManager.js');
             const team = getTeamByPlayer(player.id);
             const teamName = team ? `§3${team.name}` : '§8None';
-            const { getPlayerRank } = await import('../../rankManager.js');
+            const { getPlayerRank } = await import('@core/rankManager.js');
             const rank = getPlayerRank(player, getConfig());
-            const { getBounty } = await import('../../bountyManager.js');
+            const { getBounty } = await import('@core/bountyManager.js');
             const bounty = getBounty(player.id)?.amount ?? 0;
-            const { formatCurrency } = await import('../../utils.js');
+            const { formatCurrency } = await import('@core/utils.js');
 
             return [
                 `§8Rank: §r${rank.chatFormatting?.nameColor ?? '§8'}${rank.name}`,
@@ -187,9 +187,9 @@ export class PlayerPanelHandler implements IPanelHandler {
             const targetId = String(context.targetPlayerId as string | number);
             const pData = (context.targetData as PlayerData | undefined) || loadPlayerData(targetId);
             if (pData) {
-                const { getRankById } = await import('../../rankManager.js');
-                const { getBounty } = await import('../../bountyManager.js');
-                const { formatCurrency } = await import('../../utils.js');
+                const { getRankById } = await import('@core/rankManager.js');
+                const { getBounty } = await import('@core/bountyManager.js');
+                const { formatCurrency } = await import('@core/utils.js');
                 const rank = getRankById(pData.rankId);
                 const bounty = getBounty(targetId)?.amount ?? 0;
                 return [

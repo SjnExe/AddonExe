@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
-import { loadPlayerData } from '../../../core/playerDataManager.js';
-import { IPanelHandler, PanelItem, UIContext } from '../../../core/ui/types.js';
-import { showPanel } from '../../../core/uiManager.js';
+import { loadPlayerData } from '@core/playerDataManager.js';
+import { showPanel } from '@core/uiManager.js';
+import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import * as tpaManager from '../tpaManager.js';
 
 export class TeleportPanelHandler implements IPanelHandler {

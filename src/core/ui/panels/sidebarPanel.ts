@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getSidebarConfig, saveSidebarConfig } from '../../configurations.js';
-import { forceUpdate } from '../../sidebarManager.js';
-import { showPanel } from '../../uiManager.js';
-import { getStaticMenuItems } from '../panelBuilder.js';
-import { panelDefinitions, PanelItem, UIContext } from '../panelRegistry.js';
-import { IPanelHandler } from '../types.js';
+import { getSidebarConfig, saveSidebarConfig } from '@core/configurations.js';
+import { forceUpdate } from '@core/sidebarManager.js';
+import { showPanel } from '@core/uiManager.js';
+import { getStaticMenuItems } from '@ui/panelBuilder.js';
+import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
+import { IPanelHandler } from '@ui/types.js';
 
 export class SidebarPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

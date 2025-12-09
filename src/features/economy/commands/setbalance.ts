@@ -1,8 +1,8 @@
+import { CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance, setPlayerBalance } from '@core/playerDataManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
-import { CustomCommand } from '@modules/commands/commandManager.js';
 
 const setBalanceCommand: CustomCommand = {
     name: 'setbalance',

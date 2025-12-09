@@ -1,4 +1,4 @@
-import createConfigManager from '../../core/configManagerFactory.js';
+import createConfigManager from '@core/configManagerFactory.js';
 
 import { anticheatConfig } from './anticheatConfig.js';
 

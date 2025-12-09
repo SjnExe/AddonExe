@@ -1,14 +1,6 @@
 import { ActionFormData } from '@minecraft/server-ui';
 
-import {
-    AnticheatConfig,
-    getAnticheatConfig,
-    saveAnticheatConfig
-} from '../../features/anticheat/anticheatConfigLoader.js';
-import { economyConfig } from '../../features/economy/economyConfig.js';
-import { shopConfig } from '../../features/shop/shopConfig.js';
-import { teamConfig } from '../../features/teams/teamConfig.js';
-import { Config, getConfig, updateMultipleConfig } from '../configManager.js';
+import { Config, getConfig, updateMultipleConfig } from '@core/configManager.js';
 import {
     getEconomyConfig,
     getSidebarConfig,
@@ -21,12 +13,16 @@ import {
     saveTeamConfig,
     saveXrayConfig,
     SidebarConfig
-} from '../configurations.js';
-import { kitsConfig } from '../kitsConfig.default.js';
-import { PlayerData } from '../playerDataManager.js';
-import ranksConfig from '../ranksConfig.default.js';
-import { spawnConfig } from '../spawnConfig.default.js';
-import { xrayConfig } from '../xrayConfig.default.js';
+} from '@core/configurations.js';
+import { kitsConfig } from '@core/kitsConfig.default.js';
+import { PlayerData } from '@core/playerDataManager.js';
+import ranksConfig from '@core/ranksConfig.default.js';
+import { spawnConfig } from '@core/spawnConfig.default.js';
+import { xrayConfig } from '@core/xrayConfig.default.js';
+import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
+import { economyConfig } from '@features/economy/economyConfig.js';
+import { shopConfig } from '@features/shop/shopConfig.js';
+import { teamConfig } from '@features/teams/teamConfig.js';
 
 type SpawnConfig = typeof spawnConfig;
 type EconomyConfig = typeof economyConfig;

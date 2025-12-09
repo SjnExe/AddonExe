@@ -1,25 +1,25 @@
 import * as mc from '@minecraft/server';
 
-import * as kitsFeature from '../features/kits/index.js';
-import * as moderationFeature from '../features/moderation/index.js';
+import { restartAnnouncer } from '@commands/announcement.js';
+import { loadCommands } from '@commands/index.js';
+import * as kitsFeature from '@features/kits/index.js';
+import * as moderationFeature from '@features/moderation/index.js';
 import {
     checkAndKickBannedPlayer,
     clearExpiredPunishments,
     initializePunishmentManager,
     loadPunishments
-} from '../features/moderation/punishmentManager.js';
-import { clearOldResolvedReports, loadReports } from '../features/moderation/reportManager.js';
-import * as shopFeature from '../features/shop/index.js';
-import { registerFriendlyFire } from '../features/teams/friendlyFire.js';
-import * as teamManager from '../features/teams/teamManager.js';
-import * as teleportFeature from '../features/teleportation/index.js';
-import { restartAnnouncer } from '../modules/commands/announcement.js';
-import { loadCommands } from '../modules/commands/index.js';
-import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
-import { initializeXrayDetection } from '../modules/detections/xrayDetection.js';
+} from '@features/moderation/punishmentManager.js';
+import { clearOldResolvedReports, loadReports } from '@features/moderation/reportManager.js';
+import * as shopFeature from '@features/shop/index.js';
+import { registerFriendlyFire } from '@features/teams/friendlyFire.js';
+import * as teamManager from '@features/teams/teamManager.js';
+import * as teleportFeature from '@features/teleportation/index.js';
+import { initializeSpawnProtection } from '@modules/detections/spawnProtection.js';
+import { initializeXrayDetection } from '@modules/detections/xrayDetection.js';
 import * as corePanels from './ui/panels/index.js';
 
-import * as economyFeature from '../features/economy/index.js';
+import * as economyFeature from '@features/economy/index.js';
 import * as bountyManager from './bountyManager.js';
 import { loadConfig } from './configLoader.js';
 import { getConfig, initializeConfigManager } from './configManager.js';
@@ -202,7 +202,7 @@ async function initializeAddon() {
         loadTeamConfig(isMigration),
         loadSidebarConfig(isMigration),
         loadXrayConfig(isMigration),
-        import('../features/anticheat/index.js').then((m) => m.initialize(isMigration))
+        import('@features/anticheat/index.js').then((m) => m.initialize(isMigration))
     ]);
 
     const config = getConfig();

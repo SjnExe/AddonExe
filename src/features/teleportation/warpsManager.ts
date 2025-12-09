@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { HomeLocation } from '../../core/playerDataManager.js';
+import { HomeLocation } from '@core/playerDataManager.js';
 
 const WARPS_PROPERTY_ID = 'exe:warps';
 

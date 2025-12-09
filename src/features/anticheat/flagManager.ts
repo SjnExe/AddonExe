@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { debugLog, errorLog, warnLog } from '../../core/logger.js';
-import { getPlayer } from '../../core/playerDataManager.js';
-import { StorageManager } from '../../core/storage/StorageManager.js';
-import { formatString } from '../../core/utils.js';
+import { debugLog, errorLog, warnLog } from '@core/logger.js';
+import { getPlayer } from '@core/playerDataManager.js';
+import { StorageManager } from '@core/storage/StorageManager.js';
+import { formatString } from '@core/utils.js';
 
 import { BaseCheckConfig } from './anticheatConfig.js';
 import { getAnticheatConfig } from './anticheatConfigLoader.js';

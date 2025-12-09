@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { startTeleportWarmup } from '@core/utils.js';
-import { CommandExecutor, CustomCommand } from '@modules/commands/commandManager.js';
 
 const rtpCommand: CustomCommand = {
     name: 'rtp',

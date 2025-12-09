@@ -3,24 +3,24 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 
 import { refreshXrayCache } from '@modules/detections/xrayDetection.js';
 
-import { getConfig, resetConfigSection } from '../../configManager.js';
-import { errorLog } from '../../logger.js';
-import { getValueFromPath, setValueByPath } from '../../objectUtils.js';
-import { getOrCreatePlayer, PlayerData } from '../../playerDataManager.js';
-import { showPanel } from '../../uiManager.js';
-import * as utils from '../../utils.js';
-import { handleUIAction } from '../actions.js';
-import { showConfirmationDialog } from '../components.js';
-import { configPanelSchema } from '../configPanelRegistry.js';
-import { PanelItem, UIContext } from '../panelRegistry.js';
-import { IPanelHandler } from '../types.js';
+import { getConfig, resetConfigSection } from '@core/configManager.js';
+import { errorLog } from '@core/logger.js';
+import { getValueFromPath, setValueByPath } from '@core/objectUtils.js';
+import { getOrCreatePlayer, PlayerData } from '@core/playerDataManager.js';
+import { showPanel } from '@core/uiManager.js';
+import * as utils from '@core/utils.js';
+import { handleUIAction } from '@ui/actions.js';
+import { showConfirmationDialog } from '@ui/components.js';
+import { configPanelSchema } from '@ui/configPanelRegistry.js';
+import { PanelItem, UIContext } from '@ui/panelRegistry.js';
+import { IPanelHandler } from '@ui/types.js';
 import {
     getPaginatedItems,
     getSystemsByCategory,
     getVisibleCategories,
     itemsPerPage,
     configHandlers as uiConfigHandlers
-} from '../uiUtils.js';
+} from '@ui/uiUtils.js';
 
 export class ConfigPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -388,7 +388,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                         player.sendMessage('§2Configuration saved.');
 
                         if (categoryId === 'data') {
-                            await import('../../dataManager.js').then(({ restartAutoSave }) => restartAutoSave());
+                            await import('@core/dataManager.js').then(({ restartAutoSave }) => restartAutoSave());
                         }
 
                         if (configSource === 'xray') {

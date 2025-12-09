@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { restartAnnouncer } from '../modules/commands/announcement.js';
-import { initializeSpawnProtection } from '../modules/detections/spawnProtection.js';
+import { restartAnnouncer } from '@commands/announcement.js';
+import { initializeSpawnProtection } from '@modules/detections/spawnProtection.js';
 
 import { loadConfig as asyncLoadConfig } from './configLoader.js';
 import { getConfig } from './configManager.js';
@@ -9,9 +9,9 @@ import createConfigManager, { ConfigManager } from './configManagerFactory.js';
 import { setLockState } from './playerDataManager.js';
 import { reloadRanks } from './rankManager.js';
 
-import type { economyConfig } from '../features/economy/economyConfig.js';
-import type { shopConfig } from '../features/shop/shopConfig.js';
-import type { teamConfig } from '../features/teams/teamConfig.js';
+import type { economyConfig } from '@features/economy/economyConfig.js';
+import type { shopConfig } from '@features/shop/shopConfig.js';
+import type { teamConfig } from '@features/teams/teamConfig.js';
 import type { kitsConfig } from './kitsConfig.default.js';
 import type ranksConfig from './ranksConfig.default.js';
 import type { config as sidebarConfig } from './sidebarConfig.default.js';
