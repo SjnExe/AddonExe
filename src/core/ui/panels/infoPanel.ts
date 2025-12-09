@@ -23,7 +23,7 @@ export class InfoPanelHandler implements IPanelHandler {
         );
     }
 
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         const items: PanelItem[] = [];
         const pData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
@@ -67,7 +67,7 @@ export class InfoPanelHandler implements IPanelHandler {
         if (panelId === 'infoPanel') {
             const staticItems = getStaticMenuItems(panelDefinitions[panelId], permissionLevel);
             items.push(...staticItems);
-            return items;
+            return Promise.resolve(items);
         }
 
         if (panelId === 'rulesManagementPanel') {
@@ -95,7 +95,7 @@ export class InfoPanelHandler implements IPanelHandler {
                 });
             });
             addPagination(rules.length);
-            return items;
+            return Promise.resolve(items);
         }
 
         if (panelId === 'ruleActionPanel') {
@@ -111,7 +111,7 @@ export class InfoPanelHandler implements IPanelHandler {
                 });
                 // Add Move Up/Down if needed
             }
-            return items;
+            return Promise.resolve(items);
         }
 
         if (panelId === 'helpfulLinksManagementPanel') {
@@ -140,23 +140,22 @@ export class InfoPanelHandler implements IPanelHandler {
                 });
             });
             addPagination(links.length);
-            return items;
+            return Promise.resolve(items);
         }
 
-        return items;
+        return Promise.resolve(items);
     }
 
-    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         if (panelId === 'addRulePanel') {
-            return new ModalFormData().title('Add Rule').textField('Rule Content', 'Enter rule text');
+            return Promise.resolve(new ModalFormData().title('Add Rule').textField('Rule Content', 'Enter rule text'));
         }
         if (panelId === 'addHelpfulLinkPanel') {
-            return new ModalFormData()
-                .title('Add Link')
-                .textField('Title', 'Link Title')
-                .textField('URL', 'https://...');
+            return Promise.resolve(
+                new ModalFormData().title('Add Link').textField('Title', 'Link Title').textField('URL', 'https://...')
+            );
         }
-        return null;
+        return Promise.resolve(null);
     }
 
     async handleResponse(

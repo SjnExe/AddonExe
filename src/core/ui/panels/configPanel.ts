@@ -34,7 +34,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         );
     }
 
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         const items: PanelItem[] = [];
         const pData: PlayerData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
@@ -75,7 +75,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 });
             }
             addPaginationItems(items, (context.page as number) || 1, categories.length);
-            return items;
+            return Promise.resolve(items);
         }
 
         if (panelId.startsWith('configSubCategoryPanel_')) {
@@ -94,7 +94,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 });
             });
             addPaginationItems(items, (context.page as number) || 1, systems.length);
-            return items;
+            return Promise.resolve(items);
         }
 
         if (panelId === 'configResetPanel') {
@@ -122,7 +122,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 });
             }
             addPaginationItems(items, (context.page as number) || 1, categories.length);
-            return items;
+            return Promise.resolve(items);
         }
 
         if (panelId.startsWith('configResetCategoryPanel_')) {
@@ -151,21 +151,21 @@ export class ConfigPanelHandler implements IPanelHandler {
                 });
             });
             addPaginationItems(items, (context.page as number) || 1, systems.length);
-            return items;
+            return Promise.resolve(items);
         }
 
-        return items;
+        return Promise.resolve(items);
     }
 
-    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         if (panelId.startsWith('config_')) {
             const categoryId = panelId.replace('config_', '');
             const category = configPanelSchema.find((c) => c.id === categoryId);
-            if (!category) return null;
+            if (!category) return Promise.resolve(null);
             const form = new ModalFormData().title(category.title);
             const configSource = category.configSource || 'main';
             const handler = uiConfigHandlers[configSource];
-            if (!handler) return null;
+            if (!handler) return Promise.resolve(null);
             const config = handler.get() as unknown as Record<string, unknown>;
 
             for (const setting of category.settings) {
@@ -185,9 +185,9 @@ export class ConfigPanelHandler implements IPanelHandler {
                     form.dropdown(setting.label, options, { defaultValueIndex: Math.max(0, index) });
                 }
             }
-            return form;
+            return Promise.resolve(form);
         }
-        return null;
+        return Promise.resolve(null);
     }
 
     async handleResponse(

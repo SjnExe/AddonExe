@@ -18,7 +18,7 @@ export class CommandPanelHandler implements IPanelHandler {
         return panelId === 'commandSystemPanel' || panelId.startsWith('commandSettingsPanel_');
     }
 
-    async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         const items: PanelItem[] = [];
 
         if (panelId === 'commandSystemPanel') {
@@ -54,12 +54,12 @@ export class CommandPanelHandler implements IPanelHandler {
                 });
             });
             addPaginationItems(items, (context.page as number) || 1, commands.length);
-            return items;
+            return Promise.resolve(items);
         }
-        return items;
+        return Promise.resolve(items);
     }
 
-    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         if (panelId.startsWith('commandSettingsPanel_')) {
             const cmdName = panelId.replace('commandSettingsPanel_', '');
             const config = getConfig() as unknown as MainConfig;
@@ -71,13 +71,15 @@ export class CommandPanelHandler implements IPanelHandler {
             const perm = cmdSettings.permissionLevel ?? command?.permissionLevel ?? 0;
             const cooldown = cmdSettings.cooldownSeconds ?? command?.defaultCooldown ?? 0;
 
-            return new ModalFormData()
-                .title(`Edit /${cmdName}`)
-                .toggle('Enabled', { defaultValue: isEnabled })
-                .textField('Permission Level', '0=Owner, 1=Admin...', { defaultValue: String(perm) })
-                .textField('Cooldown (seconds)', '0 to disable', { defaultValue: String(cooldown) });
+            return Promise.resolve(
+                new ModalFormData()
+                    .title(`Edit /${cmdName}`)
+                    .toggle('Enabled', { defaultValue: isEnabled })
+                    .textField('Permission Level', '0=Owner, 1=Admin...', { defaultValue: String(perm) })
+                    .textField('Cooldown (seconds)', '0 to disable', { defaultValue: String(cooldown) })
+            );
         }
-        return null;
+        return Promise.resolve(null);
     }
 
     async handleResponse(
