@@ -29,7 +29,6 @@ export class PlayerPanelHandler implements IPanelHandler {
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
-        await Promise.resolve();
         const items: PanelItem[] = [];
         const pData: PlayerData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
@@ -203,7 +202,6 @@ export class PlayerPanelHandler implements IPanelHandler {
     }
 
     async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
-        await Promise.resolve();
         if (panelId === 'playerSearchPanel') {
             return new ModalFormData().title('Search Player').textField('Name', 'Enter exact name');
         }

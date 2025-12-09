@@ -5,7 +5,7 @@ import { commandManager } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { IPanelHandler, MainConfig, PanelItem, UIContext } from '@ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 
 interface CmdSettings {
     enabled?: boolean;
@@ -19,33 +19,7 @@ export class CommandPanelHandler implements IPanelHandler {
     }
 
     async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
-        await Promise.resolve();
         const items: PanelItem[] = [];
-
-        const addPagination = (totalItems: number) => {
-            const page = (context.page as number) || 1;
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            if (page > 1) {
-                items.push({
-                    id: '__prev__',
-                    text: '§6< Previous Page',
-                    icon: 'textures/ui/arrow_left.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'prevPage'
-                });
-            }
-            if (page < totalPages) {
-                items.push({
-                    id: '__next__',
-                    text: '§6Next Page >',
-                    icon: 'textures/ui/arrow_right.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'nextPage'
-                });
-            }
-        };
 
         if (panelId === 'commandSystemPanel') {
             items.push({
@@ -79,14 +53,13 @@ export class CommandPanelHandler implements IPanelHandler {
                     actionValue: `commandSettingsPanel_${cmd.name}`
                 });
             });
-            addPagination(commands.length);
+            addPaginationItems(items, (context.page as number) || 1, commands.length);
             return items;
         }
         return items;
     }
 
     async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
-        await Promise.resolve();
         if (panelId.startsWith('commandSettingsPanel_')) {
             const cmdName = panelId.replace('commandSettingsPanel_', '');
             const config = getConfig() as unknown as MainConfig;

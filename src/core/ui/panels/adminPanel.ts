@@ -15,7 +15,6 @@ export class AdminPanelHandler implements IPanelHandler {
     }
 
     async getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
-        await Promise.resolve();
         const items: PanelItem[] = [];
         // Admin Panel uses static items (delegates to sub-panels)
         if (panelId === 'adminPanel') {
@@ -108,7 +107,6 @@ export class AdminPanelHandler implements IPanelHandler {
     }
 
     async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
-        await Promise.resolve();
         if (panelId === 'floatingTextCreatePanel') {
             return new ModalFormData()
                 .title('Create New Floating Text')

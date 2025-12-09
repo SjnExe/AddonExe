@@ -20,7 +20,6 @@ export class SidebarPanelHandler implements IPanelHandler {
     }
 
     async getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | null> {
-        await Promise.resolve();
         if (panelId === 'placeholderListPanel') {
             return (
                 `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
@@ -33,7 +32,6 @@ export class SidebarPanelHandler implements IPanelHandler {
     }
 
     async getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
-        await Promise.resolve();
         const items: PanelItem[] = [];
 
         if (panelId === 'sidebarMainPanel') {
@@ -122,7 +120,6 @@ export class SidebarPanelHandler implements IPanelHandler {
     }
 
     async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
-        await Promise.resolve();
         if (panelId === 'sidebarLineEditPanel') {
             const config = getSidebarConfig();
             const lines = config.sidebarLines;
