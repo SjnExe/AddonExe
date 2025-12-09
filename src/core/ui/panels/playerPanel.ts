@@ -204,6 +204,16 @@ export class PlayerPanelHandler implements IPanelHandler {
                     if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
                         nextContext.fromPanel = panelId;
                         nextContext.targetPlayerId = item.id;
+
+                        // Intercept Report Flow
+                        if (context.action === 'report') {
+                            await handleUIAction(player, 'reportPlayer', {
+                                ...context,
+                                targetPlayerId: item.id,
+                                returnPanel: 'playerListPanel'
+                            });
+                            return;
+                        }
                     }
                     return showPanel(player, item.actionValue, nextContext);
                 }
