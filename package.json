@@ -40,7 +40,7 @@
         "@minecraft/creator-tools": "latest",
         "@minecraft/debug-utilities": "1.0.0-beta.1.21.124-stable",
         "@minecraft/diagnostics": "1.0.0-beta.1.21.124-stable",
-        "@minecraft/math": "^2.2.11",
+        "@minecraft/math": "latest",
         "@minecraft/server": "2.4.0-beta.1.21.124-stable",
         "@minecraft/server-gametest": "1.0.0-beta.1.21.124-stable",
         "@minecraft/server-ui": "2.1.0-beta.1.21.124-stable",
