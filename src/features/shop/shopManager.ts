@@ -122,7 +122,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     if (targetQuantity === -1) {
         const maxAffordable = Math.floor(pData.balance / buyPrice);
         if (maxAffordable <= 0) {
-             return { success: false, message: '§cInsufficient funds to buy any items.' };
+            return { success: false, message: '§cInsufficient funds to buy any items.' };
         }
         targetQuantity = maxAffordable;
     }
