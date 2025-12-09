@@ -383,7 +383,7 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
 
     reportManager.createReport(player, targetId, targetData.name, reason);
     player.sendMessage('§2Report sent successfully. Admins have been notified.');
-    return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+    return Promise.resolve();
 }
 
 async function bountyPlayer(player: mc.Player, context: UIContext) {

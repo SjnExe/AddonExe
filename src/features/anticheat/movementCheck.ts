@@ -162,9 +162,9 @@ function checkWorldBorder(
         center = { x: spawn.x, z: spawn.z };
     }
 
-    if (dimensionId === MinecraftDimensionTypes.Nether) {
+    if (dimensionId === (MinecraftDimensionTypes.Nether as string)) {
         radius = Math.floor(config.overworldRadius / config.netherRadiusRatio);
-    } else if (dimensionId === MinecraftDimensionTypes.TheEnd) {
+    } else if (dimensionId === (MinecraftDimensionTypes.TheEnd as string)) {
         radius = config.endRadius;
         // End usually centers on 0,0 regardless of overworld spawn
         center = { x: 0, z: 0 };
@@ -207,7 +207,7 @@ function checkWorldBorder(
 }
 
 function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
-    if (player.dimension.id !== MinecraftDimensionTypes.Nether) return;
+    if (player.dimension.id !== (MinecraftDimensionTypes.Nether as string)) return;
     if (player.getGameMode() === mc.GameMode.Spectator || player.getGameMode() === mc.GameMode.Creative) return; // Allow admins/spectators
 
     if (player.location.y > config.maxHeight) {
