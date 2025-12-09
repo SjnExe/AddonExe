@@ -29,10 +29,6 @@
             "node",
             "@minecraft/server",
             "@minecraft/server-ui",
-            "@minecraft/server-gametest",
-            "@minecraft/common",
-            "@minecraft/diagnostics",
-            "@minecraft/debug-utilities",
             "@minecraft/vanilla-data",
             "@minecraft/math",
             "jest"
