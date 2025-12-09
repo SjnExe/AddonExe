@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { getConfig } from '@core/configManager.js';
 import { getSpawnConfig, saveSpawnConfig } from '@core/configurations.js';
@@ -102,7 +103,7 @@ const setSpawnCommand: CustomCommand = {
                 x: Math.round(x * 100) / 100,
                 y: Math.round(y * 100) / 100,
                 z: Math.round(z * 100) / 100,
-                dimensionId: executor instanceof mc.Player ? executor.dimension.id : 'minecraft:overworld'
+                dimensionId: executor instanceof mc.Player ? executor.dimension.id : MinecraftDimensionTypes.Overworld
             };
         } else {
             if (!(executor instanceof mc.Player)) {
@@ -142,7 +143,7 @@ const setSpawnCommand: CustomCommand = {
                 executor.sendMessage('§aSpawn protection system has been updated.');
             }
 
-            if (location.dimensionId === 'minecraft:overworld') {
+            if (location.dimensionId === MinecraftDimensionTypes.Overworld) {
                 try {
                     const spawnPos = { x: location.x!, y: location.y!, z: location.z! };
                     mc.world.setDefaultSpawnLocation(spawnPos);

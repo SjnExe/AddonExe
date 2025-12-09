@@ -1,4 +1,6 @@
+import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
+import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { errorLog } from '@core/logger.js';
 
@@ -12,12 +14,12 @@ interface PlayerMovementState {
 const movementStates = new Map<string, PlayerMovementState>();
 
 // Slippery blocks that allow faster movement
-const ICE_BLOCKS = new Set([
-    'minecraft:ice',
-    'minecraft:packed_ice',
-    'minecraft:blue_ice',
-    'minecraft:slime',
-    'minecraft:frosted_ice'
+const ICE_BLOCKS = new Set<string>([
+    MinecraftBlockTypes.Ice,
+    MinecraftBlockTypes.PackedIce,
+    MinecraftBlockTypes.BlueIce,
+    MinecraftBlockTypes.Slime,
+    MinecraftBlockTypes.FrostedIce
 ]);
 
 export function startMovementCheckLoop() {
@@ -74,7 +76,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     if (!velocity) return;
 
     // Convert blocks/tick to blocks/second (approximate)
-    const speed = Math.sqrt(velocity.x ** 2 + velocity.y ** 2 + velocity.z ** 2) * 20;
+    const speed = Vector3Utils.magnitude(velocity) * 20;
 
     // Determine context-based limit
     let limit = config.maxSpeed;
@@ -160,9 +162,9 @@ function checkWorldBorder(
         center = { x: spawn.x, z: spawn.z };
     }
 
-    if (dimensionId === 'minecraft:nether') {
+    if (dimensionId === MinecraftDimensionTypes.Nether) {
         radius = Math.floor(config.overworldRadius / config.netherRadiusRatio);
-    } else if (dimensionId === 'minecraft:the_end') {
+    } else if (dimensionId === MinecraftDimensionTypes.TheEnd) {
         radius = config.endRadius;
         // End usually centers on 0,0 regardless of overworld spawn
         center = { x: 0, z: 0 };
@@ -205,7 +207,7 @@ function checkWorldBorder(
 }
 
 function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
-    if (player.dimension.id !== 'minecraft:nether') return;
+    if (player.dimension.id !== MinecraftDimensionTypes.Nether) return;
     if (player.getGameMode() === mc.GameMode.Spectator || player.getGameMode() === mc.GameMode.Creative) return; // Allow admins/spectators
 
     if (player.location.y > config.maxHeight) {

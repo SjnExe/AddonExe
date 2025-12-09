@@ -40,7 +40,6 @@ const runtimeModules = [
     '@minecraft/debug-utilities',
     '@minecraft/diagnostics',
     '@minecraft/common',
-    '@minecraft/math',
     '@minecraft/gameplay-utilities'
 ];
 

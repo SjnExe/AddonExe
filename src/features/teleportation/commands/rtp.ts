@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
@@ -166,14 +167,14 @@ function isLocationSafe(dimension: mc.Dimension, location: mc.Vector3): boolean 
         return false;
     }
 
-    const unsafeGroundBlocks = [
-        'minecraft:lava',
-        'minecraft:flowing_lava',
-        'minecraft:fire',
-        'minecraft:magma_block',
-        'minecraft:cactus',
-        'minecraft:water',
-        'minecraft:flowing_water'
+    const unsafeGroundBlocks: string[] = [
+        MinecraftBlockTypes.Lava,
+        MinecraftBlockTypes.FlowingLava,
+        MinecraftBlockTypes.Fire,
+        MinecraftBlockTypes.Magma,
+        MinecraftBlockTypes.Cactus,
+        MinecraftBlockTypes.Water,
+        MinecraftBlockTypes.FlowingWater
     ];
     if (unsafeGroundBlocks.includes(groundBlock.typeId)) {
         return false;

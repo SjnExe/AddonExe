@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
 
@@ -164,13 +165,13 @@ function resolvePersonalPlaceholders(text: string, player: mc.Player): string {
     // Dimension
     let dimName = 'Unknown';
     switch (player.dimension.id) {
-        case 'minecraft:overworld':
+        case MinecraftDimensionTypes.Overworld:
             dimName = 'Overworld';
             break;
-        case 'minecraft:nether':
+        case MinecraftDimensionTypes.Nether:
             dimName = 'Nether';
             break;
-        case 'minecraft:the_end':
+        case MinecraftDimensionTypes.TheEnd:
             dimName = 'The End';
             break;
         default:
