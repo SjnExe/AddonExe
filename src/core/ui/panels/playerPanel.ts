@@ -201,11 +201,11 @@ export class PlayerPanelHandler implements IPanelHandler {
         return null;
     }
 
-    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         if (panelId === 'playerSearchPanel') {
-            return new ModalFormData().title('Search Player').textField('Name', 'Enter exact name');
+            return Promise.resolve(new ModalFormData().title('Search Player').textField('Name', 'Enter exact name'));
         }
-        return null;
+        return Promise.resolve(null);
     }
 
     async handleResponse(

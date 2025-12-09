@@ -19,25 +19,25 @@ export class SidebarPanelHandler implements IPanelHandler {
         );
     }
 
-    async getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | null> {
+    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | null> {
         if (panelId === 'placeholderListPanel') {
-            return (
+            return Promise.resolve(
                 `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
-                `{server_name}, {tps}, {online}, {max_players}, {time}, {date}\n\n` +
-                `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
-                `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
+                    `{server_name}, {tps}, {online}, {max_players}, {time}, {date}\n\n` +
+                    `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
+                    `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
             );
         }
-        return null;
+        return Promise.resolve(null);
     }
 
-    async getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
+    getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
         const items: PanelItem[] = [];
 
         if (panelId === 'sidebarMainPanel') {
             const staticItems = getStaticMenuItems(panelDefinitions[panelId], 1); // Admin
             items.push(...staticItems);
-            return items;
+            return Promise.resolve(items);
         }
 
         const addBack = (target: string) => {
@@ -75,7 +75,7 @@ export class SidebarPanelHandler implements IPanelHandler {
                     actionValue: isSidebar ? 'sidebarLineActionPanel' : 'actionBarLineActionPanel'
                 });
             });
-            return items;
+            return Promise.resolve(items);
         }
 
         if (panelId === 'sidebarLineActionPanel' || panelId === 'actionBarLineActionPanel') {
@@ -113,21 +113,23 @@ export class SidebarPanelHandler implements IPanelHandler {
                 actionType: 'functionCall',
                 actionValue: 'deleteLine'
             });
-            return items;
+            return Promise.resolve(items);
         }
 
-        return items;
+        return Promise.resolve(items);
     }
 
-    async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
         if (panelId === 'sidebarLineEditPanel') {
             const config = getSidebarConfig();
             const lines = config.sidebarLines;
             const index = (context.lineIndex as number) ?? 0;
             const line = lines[index] ?? '';
-            return new ModalFormData()
-                .title(`Edit Line ${index + 1}`)
-                .textField('Content', 'Content', { defaultValue: line });
+            return Promise.resolve(
+                new ModalFormData()
+                    .title(`Edit Line ${index + 1}`)
+                    .textField('Content', 'Content', { defaultValue: line })
+            );
         }
 
         if (panelId === 'actionBarLineEditPanel') {
@@ -135,15 +137,19 @@ export class SidebarPanelHandler implements IPanelHandler {
             const lines = config.actionBarLines;
             const index = (context.lineIndex as number) ?? 0;
             const line = lines[index] ?? '';
-            return new ModalFormData()
-                .title(`Edit Line ${index + 1}`)
-                .textField('Content', 'Content', { defaultValue: line });
+            return Promise.resolve(
+                new ModalFormData()
+                    .title(`Edit Line ${index + 1}`)
+                    .textField('Content', 'Content', { defaultValue: line })
+            );
         }
 
         if (panelId === 'sidebarLineAddPanel' || panelId === 'actionBarLineAddPanel') {
-            return new ModalFormData().title('Add Line').textField('Content', 'Supports {money}, {name}, etc.');
+            return Promise.resolve(
+                new ModalFormData().title('Add Line').textField('Content', 'Supports {money}, {name}, etc.')
+            );
         }
-        return null;
+        return Promise.resolve(null);
     }
 
     async handleResponse(

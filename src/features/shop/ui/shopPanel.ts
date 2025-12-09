@@ -37,7 +37,7 @@ let allItems: Record<string, Item> = {};
 async function ensureItemsConfig() {
     if (Object.keys(allItems).length === 0) {
         try {
-            allItems = await loadConfig('./core/itemsConfig.js');
+            allItems = await loadConfig<Record<string, Item>>('./core/itemsConfig.js');
         } catch {
             // Ignore error
         }
@@ -483,12 +483,12 @@ export class ShopPanelHandler implements IPanelHandler {
             const masterItem = allItems[itemId];
             if (!masterItem) return null;
             return new ModalFormData()
-                .title(`Add ${masterItem.displayName}`)
+                .title(`Add ${String(masterItem.displayName ?? itemId)}`)
                 .textField('Icon Path', 'e.g., textures/items/diamond_sword', {
-                    defaultValue: masterItem.icon
+                    defaultValue: String(masterItem.icon ?? '')
                 })
-                .textField('Buy Price', '-1 to disable', { defaultValue: `${masterItem.buyPrice}` })
-                .textField('Sell Price', '-1 to disable', { defaultValue: `${masterItem.sellPrice}` })
+                .textField('Buy Price', '-1 to disable', { defaultValue: String(masterItem.buyPrice ?? -1) })
+                .textField('Sell Price', '-1 to disable', { defaultValue: String(masterItem.sellPrice ?? -1) })
                 .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
         }
 
@@ -518,17 +518,17 @@ export class ShopPanelHandler implements IPanelHandler {
             const masterItem = allItems[itemId] || {};
 
             return new ModalFormData()
-                .title(`Edit Item: ${itemId}`)
+                .title(`Edit Item: ${String(itemId)}`)
                 .textField('Display Name', 'Name', {
-                    defaultValue: shopItem.displayName || masterItem.displayName
+                    defaultValue: String(shopItem.displayName || masterItem.displayName || '')
                 })
                 .textField('Minecraft ID', 'ID', {
-                    defaultValue: shopItem.itemId || masterItem.itemId
+                    defaultValue: String(shopItem.itemId || masterItem.itemId || '')
                 })
-                .textField('Icon', 'Icon', { defaultValue: shopItem.icon || masterItem.icon })
-                .textField('Buy Price', 'Price', { defaultValue: String(shopItem.buyPrice) })
-                .textField('Sell Price', 'Price', { defaultValue: String(shopItem.sellPrice) })
-                .textField('Permission', 'Level', { defaultValue: String(shopItem.permissionLevel) });
+                .textField('Icon', 'Icon', { defaultValue: String(shopItem.icon || masterItem.icon || '') })
+                .textField('Buy Price', 'Price', { defaultValue: String(shopItem.buyPrice ?? -1) })
+                .textField('Sell Price', 'Price', { defaultValue: String(shopItem.sellPrice ?? -1) })
+                .textField('Permission', 'Level', { defaultValue: String(shopItem.permissionLevel ?? 1024) });
         }
 
         if (panelId === 'buyOrSellPanel') {
@@ -593,13 +593,13 @@ export class ShopPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'addSubCategoryPanel') {
-            const { categoryName } = context;
+            const categoryName = context.categoryName as string;
             if ((response as ModalFormResponse).canceled)
                 return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
             const values = formValues as string[];
             const [name, iconStr] = values;
             if (name) {
-                const result = shopAdminManager.addSubCategory(categoryName as string, name, iconStr || '');
+                const result = shopAdminManager.addSubCategory(categoryName, name, iconStr || '');
                 player.sendMessage(result.message);
             }
             return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
@@ -625,19 +625,14 @@ export class ShopPanelHandler implements IPanelHandler {
 
         if (panelId === 'editSubCategoryPanel') {
             const targetName = (context.id as string).replace('shopAdminSubCategoryActionPanel_', '');
-            const { categoryName } = context;
+            const categoryName = context.categoryName as string;
             if ((response as ModalFormResponse).canceled)
                 return showPanel(player, `shopAdminSubCategoryActionPanel_${targetName}`, context);
 
             const values = formValues as string[];
             const [newName, newIcon] = values;
             if (newName) {
-                const result = shopAdminManager.editSubCategory(
-                    categoryName as string,
-                    targetName,
-                    newName,
-                    newIcon || ''
-                );
+                const result = shopAdminManager.editSubCategory(categoryName, targetName, newName, newIcon || '');
                 player.sendMessage(result.message);
             }
             return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });

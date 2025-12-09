@@ -14,13 +14,13 @@ export class AdminPanelHandler implements IPanelHandler {
         return panelId === 'adminPanel' || panelId.startsWith('floatingText');
     }
 
-    async getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
+    getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
         const items: PanelItem[] = [];
         // Admin Panel uses static items (delegates to sub-panels)
         if (panelId === 'adminPanel') {
             const staticItems = getStaticMenuItems(panelDefinitions[panelId], 1); // Admin
             items.push(...staticItems);
-            return items;
+            return Promise.resolve(items);
         }
 
         const addBack = (target: string) => {
@@ -63,7 +63,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     actionValue: 'floatingTextActionPanel'
                 });
             });
-            return items;
+            return Promise.resolve(items);
         }
 
         if (panelId === 'floatingTextActionPanel') {
@@ -100,43 +100,47 @@ export class AdminPanelHandler implements IPanelHandler {
                 actionType: 'functionCall',
                 actionValue: 'deleteText'
             });
-            return items;
+            return Promise.resolve(items);
         }
 
-        return items;
+        return Promise.resolve(items);
     }
 
-    async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
         if (panelId === 'floatingTextCreatePanel') {
-            return new ModalFormData()
-                .title('Create New Floating Text')
-                .textField('Unique ID (no spaces)', 'e.g., "welcome_message"')
-                .textField('Text Content', 'Enter text to display');
+            return Promise.resolve(
+                new ModalFormData()
+                    .title('Create New Floating Text')
+                    .textField('Unique ID (no spaces)', 'e.g., "welcome_message"')
+                    .textField('Text Content', 'Enter text to display')
+            );
         }
 
         if (panelId === 'floatingTextEditPanel') {
             const id = (context.id || context.selectedItemId) as string;
             const text = floatingTextManager.getTextById(id);
-            if (!text) return null;
+            if (!text) return Promise.resolve(null);
             const expiresAt = text.expiresAt ?? null;
             const updateInterval = text.updateInterval ?? 0;
             const dimensionOptions = ['Overworld', 'Nether', 'The End'];
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
             const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension));
-            return new ModalFormData()
-                .title(`Edit: ${id}`)
-                .textField('Text Content', 'Enter the text to display', { defaultValue: text.text ?? '' })
-                .textField('X', 'X', { defaultValue: String(+(text.location?.x ?? 0).toFixed(2)) })
-                .textField('Y', 'Y', { defaultValue: String(+(text.location?.y ?? 0).toFixed(2)) })
-                .textField('Z', 'Z', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
-                .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
-                .textField('Update Interval', '0 to disable', { defaultValue: String(updateInterval) })
-                .toggle('Expiration', { defaultValue: !!expiresAt })
-                .textField('Expiration (mins)', 'mins', {
-                    defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0'
-                });
+            return Promise.resolve(
+                new ModalFormData()
+                    .title(`Edit: ${id}`)
+                    .textField('Text Content', 'Enter the text to display', { defaultValue: text.text ?? '' })
+                    .textField('X', 'X', { defaultValue: String(+(text.location?.x ?? 0).toFixed(2)) })
+                    .textField('Y', 'Y', { defaultValue: String(+(text.location?.y ?? 0).toFixed(2)) })
+                    .textField('Z', 'Z', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
+                    .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
+                    .textField('Update Interval', '0 to disable', { defaultValue: String(updateInterval) })
+                    .toggle('Expiration', { defaultValue: !!expiresAt })
+                    .textField('Expiration (mins)', 'mins', {
+                        defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0'
+                    })
+            );
         }
-        return null;
+        return Promise.resolve(null);
     }
 
     async handleResponse(
