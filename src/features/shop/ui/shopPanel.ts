@@ -91,7 +91,7 @@ export class ShopPanelHandler implements IPanelHandler {
 
         if (panelId === 'shopSearchResultsPanel') {
             addBackButton(items, 'shopMainPanel');
-            const query = (context.searchQuery as string || '').toLowerCase();
+            const query = ((context.searchQuery as string) || '').toLowerCase();
             const shopConfig = getShopConfig();
             const results: ShopEntry[] = [];
 
@@ -459,9 +459,7 @@ export class ShopPanelHandler implements IPanelHandler {
 
     async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
         if (panelId === 'shopSearchPanel') {
-            return new ModalFormData()
-                .title('Search Shop')
-                .textField('Item Name/ID', 'e.g. diamond');
+            return new ModalFormData().title('Search Shop').textField('Item Name/ID', 'e.g. diamond');
         }
 
         if (panelId === 'addCategoryPanel') {

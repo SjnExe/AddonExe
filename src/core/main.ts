@@ -23,6 +23,7 @@ import * as economyFeature from '@features/economy/index.js';
 import * as bountyManager from './bountyManager.js';
 import { loadConfig } from './configLoader.js';
 import { getConfig, initializeConfigManager } from './configManager.js';
+import { initializeDiagnostics } from './diagnostics.js';
 import {
     getSpawnConfig,
     loadEconomyConfig,
@@ -169,6 +170,8 @@ function startSystemTimers() {
 
 async function initializeAddon() {
     infoLog('[AddonExe] Initializing addon...');
+
+    initializeDiagnostics();
 
     const tempConfig = await loadConfig<typeof Config>('./config.js');
     const newVersion = tempConfig.version;

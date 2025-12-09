@@ -165,13 +165,13 @@ function resolvePersonalPlaceholders(text: string, player: mc.Player): string {
     // Dimension
     let dimName = 'Unknown';
     switch (player.dimension.id) {
-        case MinecraftDimensionTypes.Overworld:
+        case MinecraftDimensionTypes.Overworld as string:
             dimName = 'Overworld';
             break;
-        case MinecraftDimensionTypes.Nether:
+        case MinecraftDimensionTypes.Nether as string:
             dimName = 'Nether';
             break;
-        case MinecraftDimensionTypes.TheEnd:
+        case MinecraftDimensionTypes.TheEnd as string:
             dimName = 'The End';
             break;
         default:
