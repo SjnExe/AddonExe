@@ -41,6 +41,7 @@ export function banPlayer(
 
     addPunishment(
         targetPlayer.id,
+        targetPlayer.name,
         {
             type: 'ban',
             expires,
@@ -198,6 +199,7 @@ export function offlineBanPlayer(
 
     addPunishment(
         targetId,
+        targetName,
         {
             type: 'ban',
             expires,

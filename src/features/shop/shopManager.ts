@@ -191,13 +191,32 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
 
     // 4. Give items in stacks
     let remaining = finalQuantity;
+    let failedCount = 0;
+
     while (remaining > 0) {
         const amount = Math.min(remaining, itemStackTemplate.maxAmount);
         const stack = createShopItemStack(shopItem, amount);
         if (stack) {
-            inventory.addItem(stack);
+            const leftovers = inventory.addItem(stack);
+            if (leftovers) {
+                failedCount += leftovers.amount;
+                // If we couldn't fit this stack, we likely can't fit the rest
+                failedCount += remaining - amount;
+                break;
+            }
+        } else {
+            failedCount += amount; // Failed to create item
         }
         remaining -= amount;
+    }
+
+    if (failedCount > 0) {
+        const refund = failedCount * buyPrice;
+        incrementPlayerBalance(player.id, refund);
+        return {
+            success: true,
+            message: `§2Purchased ${finalQuantity - failedCount}x ${shopItem.displayName ?? itemId}. Refunded §e${formatCurrency(refund)}§2 for ${failedCount} items that didn't fit.`
+        };
     }
 
     return {

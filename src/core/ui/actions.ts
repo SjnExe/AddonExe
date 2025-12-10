@@ -200,6 +200,7 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
     const expires = Date.now() + durationMins * 60 * 1000;
     punishmentManager.addPunishment(
         targetId,
+        targetData.name,
         {
             type: 'mute',
             expires,
@@ -272,6 +273,7 @@ async function banPlayer(player: mc.Player, context: UIContext) {
 
     punishmentManager.addPunishment(
         targetId,
+        targetData.name,
         {
             type: 'ban',
             expires,

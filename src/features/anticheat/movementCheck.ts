@@ -1,6 +1,5 @@
-import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
-import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 import { errorLog } from '@core/logger.js';
 
@@ -76,16 +75,28 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     if (!velocity) return;
 
     // Convert blocks/tick to blocks/second (approximate)
-    const speed = Vector3Utils.magnitude(velocity) * 20;
+    // We strictly check HORIZONTAL speed to avoid flagging falling players
+    const hSpeed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z) * 20;
 
     // Determine context-based limit
     let limit = config.maxSpeed;
 
     // Check for Gliding (Elytra)
     const isGliding = player.isGliding;
+    // Check for Riptide (Trident) - hard to detect state directly, but usually involves high speed + wet/rain
+    // We can check for 'Use Item' event but that's complex here.
+    // For now, if they are using elytra, increase limit.
     if (isGliding) {
         limit = config.maxSpeedElytra;
     } else {
+        // Check for Speed Effect
+        const speedEffect = player.getEffect(MinecraftEffectTypes.Speed);
+        if (speedEffect) {
+            // Speed 1 = +20%, Speed 2 = +40%
+            const amplifier = speedEffect.amplifier + 1;
+            limit *= 1 + 0.2 * amplifier;
+        }
+
         // Check for Ice/Slime below
         // We check the block directly below the player and slightly deeper
         try {
@@ -116,9 +127,9 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     // Token Bucket / Violation Accumulator
     // If speed > limit, accumulate violation
     // If speed < limit, decay violation
-    if (speed > limit) {
+    if (hSpeed > limit) {
         // Add points proportional to excess speed
-        const excess = speed - limit;
+        const excess = hSpeed - limit;
         state.violationLevel += excess;
     } else {
         // Decay
@@ -132,7 +143,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
         flag(
             player,
             'movementCheck',
-            `Speed: ${speed.toFixed(1)} bps (Limit: ${limit}, VL: ${state.violationLevel.toFixed(1)})`
+            `Speed: ${hSpeed.toFixed(1)} bps (Limit: ${limit.toFixed(1)}, VL: ${state.violationLevel.toFixed(1)})`
         );
         // Clamp VL to prevent infinite buildup
         state.violationLevel = Math.min(state.violationLevel, 50);

@@ -70,26 +70,19 @@ function savePunishments() {
 /**
  * Adds or updates a punishment for a player.
  * @param playerId The ID of the player.
+ * @param playerName The name of the player (for logging).
  * @param punishment The punishment details.
  * @param adminName The name of the admin who issued the punishment.
  */
-export function addPunishment(playerId: string, punishment: Punishment, adminName: string) {
+export function addPunishment(playerId: string, playerName: string, punishment: Punishment, adminName: string) {
     punishments.set(playerId, punishment);
     needsSave = true;
     savePunishments(); // Save immediately for critical actions
     debugLog(
-        `[PunishmentManager] Added ${punishment.type} for player ${playerId}. Expires: ${new Date(punishment.expires).toLocaleString()}`
+        `[PunishmentManager] Added ${punishment.type} for player ${playerName} (${playerId}). Expires: ${new Date(punishment.expires).toLocaleString()}`
     );
     const durationStr = punishment.expires === Infinity ? 'Permanent' : new Date(punishment.expires).toLocaleString();
-    // We store ID as name? No, logManager expects name. Ideally we resolve name.
-    // For now pass ID if name unknown, but callers usually know name.
-    // Wait, logManager takes `playerName`. Here we have `playerId`.
-    // I should resolve name if possible or accept name.
-    // `ban` command has target player object or name.
-    // `addPunishment` only gets ID.
-    // I should add `playerName` param to `addPunishment`?
-    // Yes.
-    addPunishmentLog(playerId, punishment.type, punishment.reason, adminName, durationStr);
+    addPunishmentLog(playerName, punishment.type, punishment.reason, adminName, durationStr);
 }
 
 /**

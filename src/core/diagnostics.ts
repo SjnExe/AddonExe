@@ -1,6 +1,7 @@
+import { sentry, SentryEventLevel } from '@minecraft/diagnostics';
 import * as mc from '@minecraft/server';
-import { sentry } from '@minecraft/diagnostics';
 
+import { config } from '../config.default.js';
 import {
     debugLog,
     errorLog,
@@ -17,6 +18,33 @@ const ORIGINAL_LOG_LEVEL_PROP = 'exe:sentryOriginalLogLevel';
 
 let isSentryDebugMode = false;
 let debugTimeout: number | null = null;
+
+export function addSentryBreadcrumb(
+    message: string,
+    category: string = 'default',
+    level: 'info' | 'error' | 'debug' | 'warning' | 'fatal' = 'info'
+) {
+    try {
+        let sentryLevel = SentryEventLevel.info;
+        switch (level) {
+            case 'error':
+                sentryLevel = SentryEventLevel.error;
+                break;
+            case 'debug':
+                sentryLevel = SentryEventLevel.debug;
+                break;
+            case 'warning':
+                sentryLevel = SentryEventLevel.warning;
+                break;
+            case 'fatal':
+                sentryLevel = SentryEventLevel.fatal;
+                break;
+        }
+        sentry.addBreadcrumb(sentryLevel, message, category);
+    } catch {
+        // Ignore errors when adding breadcrumbs (e.g. if Sentry not initialized)
+    }
+}
 
 export function setSentryDebug(enabled: boolean, minutes: number = 5) {
     if (enabled) {
@@ -37,9 +65,12 @@ export function setSentryDebug(enabled: boolean, minutes: number = 5) {
 
         // Schedule disable
         if (debugTimeout) mc.system.clearRun(debugTimeout);
-        debugTimeout = mc.system.runTimeout(() => {
-            setSentryDebug(false);
-        }, minutes * 60 * 20);
+        debugTimeout = mc.system.runTimeout(
+            () => {
+                setSentryDebug(false);
+            },
+            minutes * 60 * 20
+        );
 
         debugLog(`[Diagnostics] Sentry debug mode ENABLED for ${minutes} minutes.`);
     } else {
@@ -80,9 +111,7 @@ function restoreDebugState() {
             setSentryDebug(false);
         }, remainingTicks);
 
-        debugLog(
-            `[Diagnostics] Restored Sentry debug mode. Expires in ${(remainingMs / 60000).toFixed(1)} mins.`
-        );
+        debugLog(`[Diagnostics] Restored Sentry debug mode. Expires in ${(remainingMs / 60000).toFixed(1)} mins.`);
     } else if (expiry) {
         // Expired while offline
         setSentryDebug(false);
@@ -96,8 +125,14 @@ export function initializeDiagnostics() {
             dsn: SENTRY_DSN,
             debug: false,
             sampleRate: 1.0,
-            maxBreadcrumbs: 0 // Disable breadcrumbs to prevent 'click logs' from being sent
+            maxBreadcrumbs: 50
         });
+
+        // Set tags
+        if (config.version) {
+            sentry.addTag('release', config.version.join('.'));
+        }
+        sentry.addTag('environment', config.isNightly ? 'nightly' : 'production');
 
         // Hook logger to Sentry to capture critical errors
         setExternalErrorHandler((error) => {
