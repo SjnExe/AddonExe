@@ -143,10 +143,8 @@ Commands available to Admins and above.
 - **/xclear [target]**
   - Clears another player's inventory.
   - *Chat Alias: `!clear`*
-- **/ecwipe [target]**
-  - Clears a player's Ender Chest.
-- **/copyinv <target>**
-  - Copies the inventory of another player.
+- **/ecsee <target>**
+  - *Note: Currently unavailable due to API limitations.*
 - **/vanish**
   - Toggles your visibility to other players.
 
