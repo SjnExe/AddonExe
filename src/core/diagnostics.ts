@@ -9,6 +9,8 @@ import {
     LogLevels,
     setExternalDebugHandler,
     setExternalErrorHandler,
+    setExternalInfoHandler,
+    setExternalWarnHandler,
     setLogLevel
 } from './logger.js';
 
@@ -137,6 +139,16 @@ export function initializeDiagnostics() {
         // Hook logger to Sentry to capture critical errors
         setExternalErrorHandler((error) => {
             sentry.captureException(error);
+        });
+
+        // Hook logger to Sentry for info logs (as breadcrumbs)
+        setExternalInfoHandler((message) => {
+            addSentryBreadcrumb(message, 'logger', 'info');
+        });
+
+        // Hook logger to Sentry for warn logs (as breadcrumbs)
+        setExternalWarnHandler((message) => {
+            addSentryBreadcrumb(message, 'logger', 'warning');
         });
 
         // Hook logger to Sentry for debug logs (when enabled)
