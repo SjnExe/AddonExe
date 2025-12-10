@@ -12,6 +12,32 @@ type LogLevelKey = keyof typeof LogLevels;
 // Default log level
 let currentLogLevel: number = LogLevels.INFO;
 
+// External error handler (e.g., Sentry)
+let externalErrorHandler: ((error: unknown, context?: string) => void) | undefined;
+// External debug handler
+let externalDebugHandler: ((message: string) => void) | undefined;
+
+/**
+ * Register an external error handler to capture critical errors.
+ */
+export function setExternalErrorHandler(handler: (error: unknown, context?: string) => void): void {
+    externalErrorHandler = handler;
+}
+
+/**
+ * Register an external debug handler.
+ */
+export function setExternalDebugHandler(handler: (message: string) => void): void {
+    externalDebugHandler = handler;
+}
+
+/**
+ * Gets the current log level.
+ */
+export function getLogLevel(): number {
+    return currentLogLevel;
+}
+
 /**
  * Sets the current log level for the entire application.
  * Messages below this level will not be logged.
@@ -76,6 +102,9 @@ function internalLog(method: ConsoleMethod, message: string): void {
  * @param {string} message The message to log.
  */
 export function debugLog(message: string): void {
+    if (externalDebugHandler) {
+        externalDebugHandler(message);
+    }
     if (currentLogLevel >= LogLevels.DEBUG) {
         internalLog('log', `[DEBUG] ${message}`);
     }
@@ -87,7 +116,7 @@ export function debugLog(message: string): void {
  */
 export function infoLog(message: string): void {
     if (currentLogLevel >= LogLevels.INFO) {
-        internalLog('info', `[INFO] ${message}`);
+        internalLog('info', message);
     }
 }
 
@@ -97,7 +126,7 @@ export function infoLog(message: string): void {
  */
 export function warnLog(message: string): void {
     if (currentLogLevel >= LogLevels.WARN) {
-        internalLog('warn', `[WARN] ${message}`);
+        internalLog('warn', message);
     }
 }
 
@@ -108,11 +137,16 @@ export function warnLog(message: string): void {
  */
 export function errorLog(message: string, error?: unknown): void {
     if (currentLogLevel >= LogLevels.ERROR) {
-        let fullMessage = `[ERROR] ${message}`;
+        let fullMessage = message;
         if (error !== undefined) {
             fullMessage += `\n  Details: ${formatError(error)}`;
         }
         internalLog('error', fullMessage);
+
+        if (externalErrorHandler) {
+            // If an explicit error object is provided, use it. Otherwise, use the message as the error.
+            externalErrorHandler(error ?? new Error(message), message);
+        }
     }
 }
 

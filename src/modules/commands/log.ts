@@ -76,29 +76,4 @@ const logCommand: CustomCommand = {
     }
 };
 
-const debugCommand: CustomCommand = {
-    name: 'debug',
-    description: 'Toggles the script debug log level on or off.',
-    category: 'Administration',
-    permissionLevel: 1, // Admin and above
-    allowConsole: true,
-    execute: (executor: CommandExecutor) => {
-        const currentLogLevel = getConfig().logLevel;
-        const newLogLevel = currentLogLevel === LogLevels.DEBUG ? LogLevels.INFO : LogLevels.DEBUG;
-
-        updateConfig('logLevel', newLogLevel);
-        setLogLevel(newLogLevel); // Apply live
-
-        const newLevelName = logLevelNames[newLogLevel];
-        const replyMessage = `§aLog level set to §e${newLevelName}§a.`;
-
-        if (executor instanceof mc.Player) {
-            sendMessage(replyMessage, executor, { raw: true });
-        } else {
-            executor.sendMessage(replyMessage);
-        }
-    }
-};
-
-// Exporting both commands as an array
-export default [logCommand, debugCommand];
+export default [logCommand];

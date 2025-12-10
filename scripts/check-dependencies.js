@@ -43,8 +43,11 @@ const runtimeModules = [
     '@minecraft/gameplay-utilities'
 ];
 
+// Modules allowed to be in package.json (for types/dev) but NOT in manifest.json (runtime)
+const devOnlyModules = ['@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common'];
+
 minecraftPackageDeps.forEach((pkg) => {
-    if (runtimeModules.includes(pkg)) {
+    if (runtimeModules.includes(pkg) && !devOnlyModules.includes(pkg)) {
         if (!minecraftManifestDeps.includes(pkg)) {
             errors.push(`Package '${pkg}' is in package.json but missing from manifest.json dependencies.`);
         }

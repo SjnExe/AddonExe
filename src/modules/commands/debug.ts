@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 import { system } from '@minecraft/server';
 
 import { getAllBounties } from '@core/bountyManager.js';
+import { setSentryDebug } from '@core/diagnostics.js';
 import { debugLog } from '@core/logger.js';
 import { getAllPlayerData } from '@core/playerDataManager.js';
 
@@ -13,9 +14,21 @@ const debugCommand: CustomCommand = {
     category: 'General',
     permissionLevel: 1, // Admin only
     aliases: ['test'],
-    parameters: [{ name: 'action', type: 'string', optional: true }],
+    parameters: [
+        { name: 'action', type: 'string', optional: true },
+        { name: 'value', type: 'int', optional: true }
+    ],
     execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
         const action = args.action as string | undefined;
+
+        if (action === 'sentry') {
+            const minutes = (args.value as number) || 5;
+            const clampedMinutes = Math.min(Math.max(minutes, 1), 60);
+
+            setSentryDebug(true, clampedMinutes);
+            executor.sendMessage(`§aSentry Debug Mode ENABLED for ${clampedMinutes} minutes.`);
+            return;
+        }
 
         if (action === 'test' || action === 'dump') {
             executor.sendMessage('§eStarting Debug Dump...');
@@ -57,7 +70,7 @@ const debugCommand: CustomCommand = {
             return;
         }
 
-        executor.sendMessage('§eUsage: /debug <test|dump|profile>');
+        executor.sendMessage('§eUsage: /debug <sentry [mins]|test|dump|profile>');
     }
 };
 
