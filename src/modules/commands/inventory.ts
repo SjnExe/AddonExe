@@ -6,7 +6,7 @@ const invseeCommand: CustomCommand = {
     name: 'invsee',
     description: 'View the inventory of another player.',
     category: 'Moderation',
-    permissionLevel: 2,
+    permissionLevel: 3,
     parameters: [{ name: 'player', type: 'player', optional: false }],
     execute: (executor: CommandExecutor, params: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
@@ -47,7 +47,7 @@ const ecseeCommand: CustomCommand = {
     name: 'ecsee',
     description: 'View the ender chest of another player.',
     category: 'Moderation',
-    permissionLevel: 2,
+    permissionLevel: 3,
     parameters: [{ name: 'player', type: 'player', optional: false }],
     execute: (executor: CommandExecutor, _params: Record<string, unknown>) => {
         executor.sendMessage('§cEnder Chest inspection is not yet fully supported in this API version.');
