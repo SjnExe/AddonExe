@@ -92,7 +92,9 @@ function migrateToV2(): void {
 
         let ranksData: RanksConfig & { rankDefinitions: { id: string; permissionLevel: number }[] };
         try {
-            ranksData = JSON.parse(ranksDataStr);
+            ranksData = JSON.parse(ranksDataStr) as RanksConfig & {
+                rankDefinitions: { id: string; permissionLevel: number }[];
+            };
         } catch (e) {
             errorLog('[MigrationManager] Failed to parse stored rank config for migration.', e);
             return;
