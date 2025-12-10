@@ -16,6 +16,9 @@ let currentLogLevel: number = LogLevels.INFO;
 let externalErrorHandler: ((error: unknown, context?: string) => void) | undefined;
 // External debug handler
 let externalDebugHandler: ((message: string) => void) | undefined;
+// External info/warn handlers
+let externalInfoHandler: ((message: string) => void) | undefined;
+let externalWarnHandler: ((message: string) => void) | undefined;
 
 /**
  * Register an external error handler to capture critical errors.
@@ -29,6 +32,20 @@ export function setExternalErrorHandler(handler: (error: unknown, context?: stri
  */
 export function setExternalDebugHandler(handler: (message: string) => void): void {
     externalDebugHandler = handler;
+}
+
+/**
+ * Register an external info handler.
+ */
+export function setExternalInfoHandler(handler: (message: string) => void): void {
+    externalInfoHandler = handler;
+}
+
+/**
+ * Register an external warn handler.
+ */
+export function setExternalWarnHandler(handler: (message: string) => void): void {
+    externalWarnHandler = handler;
 }
 
 /**
@@ -115,6 +132,9 @@ export function debugLog(message: string): void {
  * @param {string} message The message to log.
  */
 export function infoLog(message: string): void {
+    if (externalInfoHandler) {
+        externalInfoHandler(message);
+    }
     if (currentLogLevel >= LogLevels.INFO) {
         internalLog('info', message);
     }
@@ -125,6 +145,9 @@ export function infoLog(message: string): void {
  * @param {string} message The message to log.
  */
 export function warnLog(message: string): void {
+    if (externalWarnHandler) {
+        externalWarnHandler(message);
+    }
     if (currentLogLevel >= LogLevels.WARN) {
         internalLog('warn', message);
     }

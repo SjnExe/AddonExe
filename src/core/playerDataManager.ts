@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { updateAndSaveLeaderboard } from './leaderboardManager.js';
-import { debugLog, errorLog, infoLog } from './logger.js';
+import { debugLog, errorLog, infoLog, warnLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
 
 const playerPropertyPrefix = 'exe:player.';
@@ -236,6 +236,11 @@ export function savePlayerData(playerId: string) {
             // Clean needsSave before saving to disk if we don't want to persist it (it's runtime flag).
             // But serialization includes it. It's harmless.
             const dataString = JSON.stringify(playerData);
+            if (dataString.length > 25000) {
+                warnLog(
+                    `[PlayerDataManager] Player ${playerData.name} (${playerId}) data size is large: ${dataString.length} bytes. Limit is ~32KB.`
+                );
+            }
             mc.world.setDynamicProperty(`${playerPropertyPrefix}${playerId}`, dataString);
             playerData.needsSave = false;
         }
