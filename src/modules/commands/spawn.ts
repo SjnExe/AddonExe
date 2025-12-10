@@ -143,7 +143,7 @@ const setSpawnCommand: CustomCommand = {
                 executor.sendMessage('§aSpawn protection system has been updated.');
             }
 
-            if (location.dimensionId === MinecraftDimensionTypes.Overworld) {
+            if (location.dimensionId === (MinecraftDimensionTypes.Overworld as string)) {
                 try {
                     const spawnPos = { x: location.x!, y: location.y!, z: location.z! };
                     mc.world.setDefaultSpawnLocation(spawnPos);

@@ -335,6 +335,9 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
  * @param player
  */
 export function getOrCreatePlayer(player: mc.Player): PlayerData {
+    if (!player) {
+        throw new Error('getOrCreatePlayer called with invalid/undefined player object');
+    }
     _updateNameMap(player);
 
     let pData = activePlayerData.get(player.id);
