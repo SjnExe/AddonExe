@@ -55,7 +55,7 @@ export const rankDefinitions: RankDefinition[] = [
     {
         id: 'moderator',
         name: 'Moderator',
-        permissionLevel: 2,
+        permissionLevel: 3,
         chatFormatting: {
             prefixText: '§2Mod',
             nameColor: '§a',

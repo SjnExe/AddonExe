@@ -65,7 +65,7 @@ export const rankDefinitions = [
     {
         id: 'moderator',
         name: 'Moderator',
-        permissionLevel: 100, // Less powerful than Admin (1) but more than Member (1024)
+        permissionLevel: 3, // Less powerful than Admin (1) but more than Member (1024)
         chatFormatting: {
             prefixText: '§8[§2Mod§8] ',
             nameColor: '§a',

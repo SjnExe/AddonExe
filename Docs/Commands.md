@@ -145,6 +145,8 @@ Commands available to Admins and above.
   - *Chat Alias: `!clear`*
 - **/ecwipe [target]**
   - Clears a player's Ender Chest.
+- **/ecsee <target>**
+  - *Note: Currently unavailable due to API limitations.*
 - **/copyinv <target>**
   - Copies the inventory of another player.
 - **/vanish**

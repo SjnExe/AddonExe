@@ -2,10 +2,6 @@
 
 This document provides a detailed breakdown of the features available in AddonExe. For in-depth configuration of these features, please refer to the [Configuration Guide](ConfigurationGuide.md) and for command usage, see the [Commands List](Commands.md).
 
-> [!NOTE]
-> **This addon is currently a powerful moderation and server utility tool.**
-> The comprehensive suite of cheat detections from the original addon is being rebuilt and will be added in a future update.
-
 ---
 
 ## I. Administrative & Server Management Systems
@@ -139,9 +135,19 @@ This document provides a detailed breakdown of the features available in AddonEx
 
 ## III. Security & Anti-Cheat
 
-### A. Hidden World Seed
+### A. Anti-Cheat System
+- **Movement Checks:** Detects abnormal movement speeds (Speed hacks) and Fly hacks.
+  - **Smart Detection:** Handles Elytra gliding, Speed effects, and vertical velocity (falling) to minimize false positives.
+  - **Violation System:** Uses a token-bucket violation system to prevent instant bans due to lag spikes.
+- **X-Ray Detection:** Monitors ore mining patterns to detect potential X-Ray users. Alerts admins when suspicious mining behavior is detected.
+- **World Border & Nether Roof:** Enforces boundaries to keep players within playable areas and prevents access to the Nether roof.
+
+### B. Hidden World Seed
 - **Description:** The addon's resource pack automatically hides the world seed from the in-game settings menu.
-- **Purpose:** This is a security measure to prevent players from using the world seed in third-party tools to find ore locations, biomes, or structures, which is a common form of cheating.
-- **Configuration:** This feature is enabled by default and cannot be configured due to limitations in Minecraft's addon APIs.
+- **Purpose:** Prevents players from using the world seed in third-party tools to find ore locations or structures.
+
+### C. System Diagnostics (Sentry)
+- **Error Reporting:** Built-in integration with Sentry to capture and report critical errors.
+- **Context:** Reports include breadcrumbs (command usage, UI interactions) and tags (addon version, environment) to help developers and admins debug issues effectively.
 
 This overview covers the primary features. For specific configuration options and command usage, please refer to the linked detailed documentation within the `Docs` folder.

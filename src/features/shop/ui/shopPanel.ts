@@ -772,11 +772,6 @@ export class ShopPanelHandler implements IPanelHandler {
             const categoryName = context.categoryName as string;
             const subCategoryName = context.subCategoryName as string | undefined;
 
-            // TODO: Figure out where to go back to.
-            // Probably 'shopAdminCategoryPanel_...' or 'shopAdminSubCategoryItemPanel_...'
-            // Ideally we'd go back to the list of items.
-            // But we might have come from 'editItemActionPanel' (not yet implemented fully in buildModal)
-            // Let's assume we go back to the list.
             const parent = subCategoryName
                 ? `shopAdminSubCategoryItemPanel_${subCategoryName}`
                 : `shopAdminCategoryPanel_${categoryName}`;

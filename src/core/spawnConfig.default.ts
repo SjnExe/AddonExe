@@ -19,8 +19,8 @@ export const spawnConfig = {
         allowAdminBypass: true,
         preventPvP: true,
         preventHostileDamage: true,
-        preventItemPickup: true,
-        preventItemDropping: true,
+        preventItemPickup: true, // Note: Limited support in current API version
+        preventItemDropping: true, // Note: Limited support in current API version
         preventHostileMobSpawning: true,
         preventBlockBreaking: true,
         preventBlockPlacing: true,

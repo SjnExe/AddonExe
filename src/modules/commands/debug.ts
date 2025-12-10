@@ -4,7 +4,7 @@ import { system } from '@minecraft/server';
 import { getAllBounties } from '@core/bountyManager.js';
 import { getConfig, updateConfig } from '@core/configManager.js';
 import { setSentryDebug } from '@core/diagnostics.js';
-import { LogLevels, setLogLevel, debugLog } from '@core/logger.js';
+import { debugLog, LogLevels, setLogLevel } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getAllPlayerData } from '@core/playerDataManager.js';
 

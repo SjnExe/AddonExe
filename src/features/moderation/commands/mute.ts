@@ -49,6 +49,7 @@ export function mutePlayer(
     const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
     addPunishment(
         targetPlayer.id,
+        targetPlayer.name,
         {
             type: 'mute',
             expires,

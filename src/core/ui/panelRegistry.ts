@@ -90,7 +90,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'admin',
                 text: '§l§4Admin Dashboard',
                 icon: 'textures/ui/op',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'openPanel',
                 actionValue: 'adminPanel',
                 sortId: 99
@@ -199,7 +199,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'reportManagement',
                 text: '§4Report Management',
                 icon: 'textures/ui/WarningGlyph',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'openPanel',
                 actionValue: 'reportListPanel',
                 sortId: 10
@@ -208,7 +208,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'playerManagement',
                 text: '§3Player Management',
                 icon: 'textures/ui/icon_multiplayer.png',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'openPanel',
                 actionValue: 'playerManagementPanel',
                 sortId: 20
@@ -217,7 +217,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'moderation',
                 text: '§4Moderation',
                 icon: 'textures/ui/hammer_l.png',
-                permissionLevel: 1,
+                permissionLevel: 3,
                 actionType: 'openPanel',
                 actionValue: 'moderationPanel',
                 sortId: 30
@@ -350,7 +350,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'assignReport',
                 text: 'Assign to Me',
                 icon: 'textures/ui/profile_glyph_color.png',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'functionCall',
                 actionValue: 'assignReport'
             },
@@ -358,7 +358,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'resolveReport',
                 text: 'Mark as Resolved',
                 icon: 'textures/ui/check.png',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'functionCall',
                 actionValue: 'resolveReport'
             },
@@ -366,7 +366,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'clearReport',
                 text: 'Clear Report',
                 icon: 'textures/ui/trash.png',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'functionCall',
                 actionValue: 'clearReport'
             }
@@ -395,7 +395,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'unbanPlayer',
                 text: 'Unban Player',
                 icon: 'textures/ui/check.png',
-                permissionLevel: 1,
+                permissionLevel: 3,
                 actionType: 'functionCall',
                 actionValue: 'showUnbanForm'
             },
@@ -403,7 +403,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'unmutePlayer',
                 text: 'Unmute Player',
                 icon: 'textures/ui/mute_off.png',
-                permissionLevel: 1,
+                permissionLevel: 3,
                 actionType: 'functionCall',
                 actionValue: 'showUnmuteForm'
             }
@@ -502,7 +502,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'kick',
                 text: 'Kick',
                 icon: 'textures/ui/cancel.png',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'functionCall',
                 actionValue: 'kickPlayer'
             },
@@ -510,7 +510,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'mute',
                 text: 'Mute',
                 icon: 'textures/ui/mute_on.png',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'functionCall',
                 actionValue: 'mutePlayer'
             },
@@ -518,7 +518,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'unmute',
                 text: 'Unmute',
                 icon: 'textures/ui/mute_off.png',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'functionCall',
                 actionValue: 'unmutePlayer'
             },
@@ -526,7 +526,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'ban',
                 text: 'Ban',
                 icon: 'textures/ui/hammer_l.png',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'functionCall',
                 actionValue: 'banPlayer'
             },
@@ -534,7 +534,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'freeze',
                 text: 'Freeze',
                 icon: 'textures/ui/icon_lock.png',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'functionCall',
                 actionValue: 'freezePlayer'
             },
@@ -542,7 +542,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'unfreeze',
                 text: 'Unfreeze',
                 icon: 'textures/ui/icon_unlocked.png',
-                permissionLevel: 2,
+                permissionLevel: 3,
                 actionType: 'functionCall',
                 actionValue: 'unfreezePlayer'
             },

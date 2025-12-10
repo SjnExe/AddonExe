@@ -168,7 +168,11 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
             if (itemInfo.lore) {
                 itemStack.setLore(itemInfo.lore);
             }
-            inventory.addItem(itemStack);
+            const leftovers = inventory.addItem(itemStack);
+            if (leftovers) {
+                player.dimension.spawnItem(leftovers, player.location);
+                player.sendMessage('§eYour inventory is full. Some items were dropped on the ground.');
+            }
         }
 
         // Set the new cooldown

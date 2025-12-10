@@ -6,7 +6,7 @@ import { debugLog, errorLog, infoLog } from './logger.js';
  * The current data version of the addon.
  * Increment this number when adding new migrations.
  */
-const CURRENT_DATA_VERSION = 1;
+const CURRENT_DATA_VERSION = 2;
 
 /**
  * The property key used to store the current data version in the world.
@@ -68,6 +68,53 @@ export function initializeMigration(): void {
 function runMigrations(startVersion: number): void {
     if (startVersion < 1) {
         migrateToV1();
+    }
+    if (startVersion < 2) {
+        migrateToV2();
+    }
+}
+
+/**
+ * Migration v2: Update Moderator permission level from 2 to 3.
+ * This aligns with the new permission hierarchy where Admin=1 and Mod=3.
+ */
+function migrateToV2(): void {
+    infoLog('[MigrationManager] Running v2 migration: Updating Moderator permission level...');
+
+    const ranksConfigKey = 'exe:ranksConfig';
+
+    try {
+        const ranksDataStr = mc.world.getDynamicProperty(ranksConfigKey) as string | undefined;
+        if (!ranksDataStr) {
+            infoLog('[MigrationManager] No saved rank data found to migrate.');
+            return;
+        }
+
+        let ranksData: RanksConfig & { rankDefinitions: { id: string; permissionLevel: number }[] };
+        try {
+            ranksData = JSON.parse(ranksDataStr);
+        } catch (e) {
+            errorLog('[MigrationManager] Failed to parse stored rank config for migration.', e);
+            return;
+        }
+
+        if (ranksData && Array.isArray(ranksData.rankDefinitions)) {
+            let modified = false;
+            for (const rank of ranksData.rankDefinitions) {
+                if (rank.id === 'moderator' && rank.permissionLevel === 2) {
+                    rank.permissionLevel = 3;
+                    modified = true;
+                    infoLog('[MigrationManager] Updated Moderator rank to permission level 3.');
+                }
+            }
+
+            if (modified) {
+                mc.world.setDynamicProperty(ranksConfigKey, JSON.stringify(ranksData));
+                infoLog('[MigrationManager] Successfully migrated rank permissions.');
+            }
+        }
+    } catch (e) {
+        errorLog('[MigrationManager] Error migrating rank permissions:', e);
     }
 }
 

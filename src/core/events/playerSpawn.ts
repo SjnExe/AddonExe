@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
 import { getConfig } from '../configManager.js';
+import { constants } from '../constants.js';
 import { debugLog } from '../logger.js';
 import { updatePlayerRank } from '../main.js';
 import { sendMessage } from '../messaging.js';
@@ -14,6 +15,13 @@ export function handlePlayerJoin(player: mc.Player) {
 
     if (checkAndKickBannedPlayer(player)) {
         return;
+    }
+
+    // Re-apply freeze if needed
+    if (player.hasTag(constants.frozenTag)) {
+        player.dimension.runCommand(`inputpermission set "${player.name}" camera disabled`);
+        player.dimension.runCommand(`inputpermission set "${player.name}" movement disabled`);
+        sendMessage('§cYou are currently frozen.', player);
     }
 
     const config = getConfig();
