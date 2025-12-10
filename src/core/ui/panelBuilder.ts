@@ -72,11 +72,19 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
     if (context.customTitle) title = context.customTitle as string;
 
     // Resolve placeholders in title
-    if (title.includes('{playerName}') && context.selectedItemId) {
-        const pData =
-            getOrCreatePlayer(mc.world.getAllPlayers().find((p) => p.id === context.selectedItemId) as mc.Player) ||
-            loadPlayerData(context.selectedItemId as string);
-        if (pData) title = title.replace('{playerName}', pData.name);
+    if (title.includes('{playerName}')) {
+        const targetId = (context.targetPlayerId || context.selectedItemId) as string;
+        if (targetId) {
+            const onlinePlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
+            let pData;
+            if (onlinePlayer) {
+                pData = getOrCreatePlayer(onlinePlayer);
+            } else {
+                pData = loadPlayerData(targetId);
+            }
+
+            if (pData) title = title.replace('{playerName}', pData.name);
+        }
     }
 
     form.title(title);

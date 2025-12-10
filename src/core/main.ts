@@ -36,6 +36,7 @@ import {
 } from './configurations.js';
 import { clearExpiredCooldowns, loadCooldowns } from './cooldownManager.js';
 import * as dataManager from './dataManager.js';
+import { initializeDiagnostics } from './diagnostics.js';
 import { cleanupEventManager, initializeEventManager } from './events/eventManager.js';
 import { floatingTextManager } from './floatingTextManager.js';
 import { cleanupLeaderboardManager, initializeLeaderboard } from './leaderboardManager.js';
@@ -169,6 +170,8 @@ function startSystemTimers() {
 
 async function initializeAddon() {
     infoLog('[AddonExe] Initializing addon...');
+
+    initializeDiagnostics();
 
     const tempConfig = await loadConfig<typeof Config>('./config.js');
     const newVersion = tempConfig.version;

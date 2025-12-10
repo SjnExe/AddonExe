@@ -14,7 +14,6 @@ import cmdLegacyHelp from './help.js';
 import cmdLegacyInventory from './inventory.js';
 import cmdLegacyKit from './kit.js';
 import cmdLegacyLinks from './links.js';
-import cmdLegacyLog from './log.js';
 import cmdLegacyPanel from './panel.js';
 import cmdLegacyPvp from './pvp.js';
 import cmdLegacyRank from './rank.js';
@@ -62,7 +61,6 @@ export function loadCommands() {
         cmdLegacyInventory,
         cmdLegacyKit,
         cmdLegacyLinks,
-        cmdLegacyLog,
         cmdLegacyPanel,
         cmdLegacyPvp,
         cmdLegacyRank,
