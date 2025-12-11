@@ -36,7 +36,7 @@ import {
 } from './configurations.js';
 import { clearExpiredCooldowns, loadCooldowns } from './cooldownManager.js';
 import * as dataManager from './dataManager.js';
-import { initializeDiagnostics } from './diagnostics.js';
+import { configureDiagnostics, initializeDiagnostics } from './diagnostics.js';
 import { cleanupEventManager, initializeEventManager } from './events/eventManager.js';
 import { floatingTextManager } from './floatingTextManager.js';
 import { cleanupLeaderboardManager, initializeLeaderboard } from './leaderboardManager.js';
@@ -174,6 +174,7 @@ async function initializeAddon() {
     initializeDiagnostics();
 
     const tempConfig = await loadConfig<typeof Config>('./config.js');
+    configureDiagnostics(tempConfig);
     const newVersion = tempConfig.version;
     const newVersionStr = String(newVersion);
     const lastVersionStr = mc.world.getDynamicProperty('exe:lastVersion') as string | undefined;
