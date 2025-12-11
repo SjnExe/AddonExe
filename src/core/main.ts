@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { restartAnnouncer } from '@commands/announcement.js';
 import { loadCommands } from '@commands/index.js';
+import * as auctionHouseFeature from '@features/auctionHouse/index.js';
 import * as kitsFeature from '@features/kits/index.js';
 import * as moderationFeature from '@features/moderation/index.js';
 import {
@@ -25,6 +26,7 @@ import { loadConfig } from './configLoader.js';
 import { getConfig, initializeConfigManager } from './configManager.js';
 import {
     getSpawnConfig,
+    loadAuctionHouseConfig,
     loadEconomyConfig,
     loadKitsConfig,
     loadRanksConfig,
@@ -122,6 +124,7 @@ function initializeManagers() {
     corePanels.initialize();
     kitsFeature.initialize();
     shopFeature.initialize();
+    auctionHouseFeature.initialize();
     teleportFeature.initialize();
     moderationFeature.initialize();
     economyFeature.initialize();
@@ -206,6 +209,7 @@ async function initializeAddon() {
         loadTeamConfig(isMigration),
         loadSidebarConfig(isMigration),
         loadXrayConfig(isMigration),
+        loadAuctionHouseConfig(isMigration),
         import('@features/anticheat/index.js').then((m) => m.initialize(isMigration))
     ]);
 

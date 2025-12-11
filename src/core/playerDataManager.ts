@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { SerializedItem } from './itemSerializer.js';
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { updateAndSaveLeaderboard } from './leaderboardManager.js';
@@ -50,6 +51,7 @@ export interface PlayerData {
     killStreak: number;
     totalPlayTime: number; // Stored in milliseconds
     sidebarVisible: boolean;
+    mailbox: SerializedItem[];
     needsSave?: boolean;
 }
 
@@ -81,7 +83,8 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     deaths: 0,
     killStreak: 0,
     totalPlayTime: 0,
-    sidebarVisible: true
+    sidebarVisible: true,
+    mailbox: []
 };
 
 // --- Generic Data Handling ---

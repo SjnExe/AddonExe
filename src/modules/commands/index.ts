@@ -30,6 +30,7 @@ import cmdLegacyVersion from './version.js';
 import cmdLegacyXraynotify from './xraynotify.js';
 import cmdAnticheatLogs from '@features/anticheat/commands/logs.js';
 import cmdAnticheatNotify from '@features/anticheat/commands/notify.js';
+import cmdAuctionHouseAh from '@features/auctionHouse/commands/ah.js';
 import cmdEconomyBalance from '@features/economy/commands/balance.js';
 import cmdEconomyPay from '@features/economy/commands/pay.js';
 import cmdEconomySetbalance from '@features/economy/commands/setbalance.js';
@@ -78,6 +79,7 @@ export function loadCommands() {
         cmdLegacyXraynotify,
         cmdAnticheatLogs,
         cmdAnticheatNotify,
+        cmdAuctionHouseAh,
         cmdEconomyBalance,
         cmdEconomyPay,
         cmdEconomySetbalance,
