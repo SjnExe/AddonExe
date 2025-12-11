@@ -18,7 +18,7 @@ const dailyCommand: CustomCommand = {
         sendMessage(result.message, executor);
 
         if (!result.success && result.message.includes('already claimed')) {
-             // Optional: Show status?
+            // Optional: Show status?
         }
     }
 };

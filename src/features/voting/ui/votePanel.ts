@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getPlayerRank } from '@core/rankManager.js';
 import { getConfig } from '@core/configManager.js';
+import { getPlayerRank } from '@core/rankManager.js';
 import { uiWait } from '@core/utils.js';
 import { castVote, createVote, endVote, getActiveVote, getLastVote } from '../voteManager.js';
 
@@ -33,7 +33,7 @@ export async function showVoteMenu(player: mc.Player) {
         if (hasVoted) {
             form.button('§cClose');
         } else {
-            activeVote.options.forEach(opt => {
+            activeVote.options.forEach((opt) => {
                 form.button(opt.text);
             });
         }
@@ -48,9 +48,10 @@ export async function showVoteMenu(player: mc.Player) {
         if (actionResponse.selection === undefined) return;
 
         if (hasVoted) {
-            if (isAdmin && actionResponse.selection === 1) { // 0 is Close, 1 is End (if added)
-                 endVote();
-                 player.sendMessage('§cVote ended manually.');
+            if (isAdmin && actionResponse.selection === 1) {
+                // 0 is Close, 1 is End (if added)
+                endVote();
+                player.sendMessage('§cVote ended manually.');
             }
             return;
         }
@@ -72,7 +73,6 @@ export async function showVoteMenu(player: mc.Player) {
             const res = castVote(player, activeVote.options[selection].id);
             player.sendMessage(res.message);
         }
-
     } else {
         // No active vote
         const lastVote = getLastVote();
@@ -82,9 +82,7 @@ export async function showVoteMenu(player: mc.Player) {
             body += `\n\n§7Last Vote: ${lastVote.question}\nStatus: Ended`;
         }
 
-        const form = new ActionFormData()
-            .title('Voting')
-            .body(body);
+        const form = new ActionFormData().title('Voting').body(body);
 
         if (isAdmin) {
             form.button('§aCreate New Vote');
@@ -122,7 +120,10 @@ async function showCreateVoteUI(player: mc.Player) {
         return;
     }
 
-    const options = optionsStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    const options = optionsStr
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
     if (options.length < 2) {
         player.sendMessage('§cYou need at least 2 options.');
         return;

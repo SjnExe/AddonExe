@@ -27,7 +27,9 @@ const vanishCommand: CustomCommand = {
         if (isVanished) {
             executor.removeTag(constants.vanishedTag);
             executor.removeEffect('invisibility');
-            updatePlayerData(executor.id, (d) => { d.isVanished = false; });
+            updatePlayerData(executor.id, (d) => {
+                d.isVanished = false;
+            });
             sendMessage('§aYou are no longer vanished. You are now visible to other players.', executor);
 
             if (joinLeaveConfig?.enabled) {
@@ -39,7 +41,9 @@ const vanishCommand: CustomCommand = {
         } else {
             executor.addTag(constants.vanishedTag);
             executor.addEffect('invisibility', 2000000, { amplifier: 1, showParticles: false });
-            updatePlayerData(executor.id, (d) => { d.isVanished = true; });
+            updatePlayerData(executor.id, (d) => {
+                d.isVanished = true;
+            });
             sendMessage('§aYou are now vanished. You are hidden from other players.', executor);
 
             if (joinLeaveConfig?.enabled) {

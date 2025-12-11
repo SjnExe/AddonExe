@@ -165,7 +165,7 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | null {
 
         // Lock Mode
         if (data.lockMode) {
-             try {
+            try {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
                 const lock = itemStack.getComponent('minecraft:item_lock') as any;
                 if (lock) {

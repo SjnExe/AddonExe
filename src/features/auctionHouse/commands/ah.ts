@@ -63,13 +63,7 @@ const mainCommand: CustomCommand = {
             const serialized = serializeItem(item);
 
             // Create Listing
-            const result = createListing(
-                executor,
-                serialized,
-                price,
-                isBid,
-                config.defaultDurationSeconds
-            );
+            const result = createListing(executor, serialized, price, isBid, config.defaultDurationSeconds);
 
             if (result.success) {
                 // Remove item
@@ -82,12 +76,16 @@ const mainCommand: CustomCommand = {
         }
 
         if (sub === 'help') {
-            sendMessage('§eAuction House Commands:\n§f/ah - Open Menu\n/ah sell <price> [bin/bid] - Sell held item', executor);
+            sendMessage(
+                '§eAuction House Commands:\n§f/ah - Open Menu\n/ah sell <price> [bin/bid] - Sell held item',
+                executor
+            );
             return;
         }
 
         if (sub === 'search') {
-            if (args.price) { // Arg 2 is mapped to 'price' in definition, but here acts as query
+            if (args.price) {
+                // Arg 2 is mapped to 'price' in definition, but here acts as query
                 await showAuctionHouse(executor, 1, args.price);
             } else {
                 await showAuctionHouse(executor); // Or ideally open search UI directly, but we need to export showSearchUI?

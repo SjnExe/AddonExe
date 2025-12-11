@@ -2,14 +2,7 @@ import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { formatCurrency, formatTime, uiWait } from '@core/utils.js';
-import {
-    AuctionListing,
-    buyItem,
-    claimMailbox,
-    getListings,
-    getListingsCount,
-    placeBid
-} from '../auctionManager.js';
+import { AuctionListing, buyItem, claimMailbox, getListings, getListingsCount, placeBid } from '../auctionManager.js';
 
 const LISTINGS_PER_PAGE = 45; // Grid size
 
@@ -20,7 +13,9 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
 
     const listings = getListings(page, LISTINGS_PER_PAGE, searchQuery);
 
-    const title = searchQuery ? `AH Search: "${searchQuery}" (${page}/${totalPages})` : `Auction House (${page}/${totalPages})`;
+    const title = searchQuery
+        ? `AH Search: "${searchQuery}" (${page}/${totalPages})`
+        : `Auction House (${page}/${totalPages})`;
 
     const form = new ActionFormData()
         .title(title)
@@ -62,16 +57,19 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
     let offset = 0;
 
     // Static buttons
-    if (selection === 0) { // Collection Bin
+    if (selection === 0) {
+        // Collection Bin
         await claimMailboxUI(player);
         return;
     }
-    if (selection === 1) { // Your Listings
+    if (selection === 1) {
+        // Your Listings
         // Placeholder for future expansion
         player.sendMessage('§eYour listings feature coming soon. Use search to find your name.');
         return;
     }
-    if (selection === 2) { // Search
+    if (selection === 2) {
+        // Search
         if (searchQuery) {
             await showAuctionHouse(player, 1); // Clear search
         } else {
@@ -116,7 +114,7 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing) {
 
     if (item.enchantments && item.enchantments.length > 0) {
         details += `\n§5Enchantments:\n`;
-        item.enchantments.forEach(e => {
+        item.enchantments.forEach((e) => {
             details += `§7- ${e.id} ${e.level}\n`;
         });
     }
@@ -125,9 +123,7 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing) {
         details += `\n§7Durability: ${item.durability.max - item.durability.damage}/${item.durability.max}\n`;
     }
 
-    const form = new ActionFormData()
-        .title('Listing Details')
-        .body(details);
+    const form = new ActionFormData().title('Listing Details').body(details);
 
     if (listing.isBid) {
         const currentBid = listing.bidPrice || listing.price;

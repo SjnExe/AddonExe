@@ -2,9 +2,9 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '../configManager.js';
 import { debugLog } from '../logger.js';
-import { formatString } from '../utils.js';
 import * as playerCache from '../playerCache.js';
 import * as playerDataManager from '../playerDataManager.js';
+import { formatString } from '../utils.js';
 
 export const eventName = 'playerLeave';
 

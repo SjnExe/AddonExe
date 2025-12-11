@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
-import { SerializedItem } from './itemSerializer.js';
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
+import { SerializedItem } from './itemSerializer.js';
 import { updateAndSaveLeaderboard } from './leaderboardManager.js';
 import { debugLog, errorLog, infoLog, warnLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';

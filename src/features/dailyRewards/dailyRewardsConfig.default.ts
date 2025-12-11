@@ -25,6 +25,11 @@ export const dailyRewardsConfig: DailyRewardsConfig = {
         { day: 4, money: 400, message: 'Day 4: $400' },
         { day: 5, money: 500, message: 'Day 5: $500' },
         { day: 6, money: 1000, message: 'Day 6: $1000' },
-        { day: 7, money: 2500, items: [{ typeId: 'minecraft:diamond', amount: 3 }], message: 'Day 7: $2500 + Diamonds!' }
+        {
+            day: 7,
+            money: 2500,
+            items: [{ typeId: 'minecraft:diamond', amount: 3 }],
+            message: 'Day 7: $2500 + Diamonds!'
+        }
     ]
 };

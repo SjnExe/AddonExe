@@ -3,7 +3,6 @@ import * as mc from '@minecraft/server';
 import { restartAnnouncer } from '@commands/announcement.js';
 import { loadCommands } from '@commands/index.js';
 import * as auctionHouseFeature from '@features/auctionHouse/index.js';
-import * as votingFeature from '@features/voting/index.js';
 import * as kitsFeature from '@features/kits/index.js';
 import * as moderationFeature from '@features/moderation/index.js';
 import {
@@ -16,6 +15,7 @@ import { clearOldResolvedReports, loadReports } from '@features/moderation/repor
 import * as shopFeature from '@features/shop/index.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import * as teleportFeature from '@features/teleportation/index.js';
+import * as votingFeature from '@features/voting/index.js';
 import { initializeSpawnProtection } from '@modules/detections/spawnProtection.js';
 import { initializeXrayDetection } from '@modules/detections/xrayDetection.js';
 import * as corePanels from './ui/panels/index.js';
@@ -56,8 +56,8 @@ import * as rankManager from './rankManager.js';
 import * as sidebarManager from './sidebarManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 
-import { initializeFeatureDependencies } from './featureDependencies.js';
 import type { config as Config } from '../config.default.js';
+import { initializeFeatureDependencies } from './featureDependencies.js';
 import './mobDeathEvents.js';
 
 // Load commands immediately to ensure they are registered before the startup event fires.
