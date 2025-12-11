@@ -66,7 +66,16 @@ export const loadSpawnConfig = async (isMigration: boolean) => {
     spawnConfigManager.load(isMigration);
 };
 export const getSpawnConfig = (): SpawnConfig => spawnConfigManager.get();
-export const saveSpawnConfig = (config: SpawnConfig) => spawnConfigManager.set(config);
+export const saveSpawnConfig = (config: SpawnConfig) => {
+    spawnConfigManager.set(config);
+    if (config.spawn.worldSpawnRadius >= 0) {
+        try {
+            mc.world.gameRules.spawnRadius = config.spawn.worldSpawnRadius;
+        } catch {
+            // Ignore error if gamerule cannot be set
+        }
+    }
+};
 export const resetSpawnConfig = () => spawnConfigManager.reset();
 
 export const loadRanksConfig = async (isMigration: boolean) => {
