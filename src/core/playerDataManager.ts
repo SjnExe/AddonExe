@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { SerializedItem } from './itemSerializer.js';
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { updateAndSaveLeaderboard } from './leaderboardManager.js';
@@ -14,7 +15,7 @@ const playerIdNameMapKey = 'exe:playerIdNameMap';
 // Sharded keys
 const playerNameIdMapShardPrefix = 'exe:nameIdMap_';
 const playerIdNameMapShardPrefix = 'exe:idNameMap_';
-const MAP_SHARD_SIZE = 300; // Entries per shard
+const MAP_SHARD_SIZE = 200; // Entries per shard - reduced to prevent 32KB overflow
 
 export interface HomeLocation {
     x: number;
@@ -38,6 +39,7 @@ export interface PlayerData {
     kitCooldowns: Record<string, number>;
     xrayNotificationsEnabled: boolean;
     lastDeathLocation: HomeLocation | null;
+    lastLocation: HomeLocation | null;
     deathNotificationSent: boolean;
     tpaRequestsDisabled: boolean;
     tpaBlockedPlayerIds: string[];
@@ -50,6 +52,11 @@ export interface PlayerData {
     killStreak: number;
     totalPlayTime: number; // Stored in milliseconds
     sidebarVisible: boolean;
+    mailbox: SerializedItem[];
+    lastDailyClaim: number;
+    dailyStreak: number;
+    starterKitClaimed: boolean;
+    isVanished: boolean;
     needsSave?: boolean;
 }
 
@@ -71,6 +78,7 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     balance: 0,
     xrayNotificationsEnabled: false,
     lastDeathLocation: null,
+    lastLocation: null,
     deathNotificationSent: true,
     tpaRequestsDisabled: false,
     announcementsMuted: false,
@@ -81,7 +89,12 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     deaths: 0,
     killStreak: 0,
     totalPlayTime: 0,
-    sidebarVisible: true
+    sidebarVisible: true,
+    mailbox: [],
+    lastDailyClaim: 0,
+    dailyStreak: 0,
+    starterKitClaimed: false,
+    isVanished: false
 };
 
 // --- Generic Data Handling ---
@@ -597,6 +610,12 @@ export function setPlayerLastDeathLocation(playerId: string, location: HomeLocat
         if (location) {
             pData.deathNotificationSent = false;
         }
+    });
+}
+
+export function setPlayerLastLocation(playerId: string, location: HomeLocation | null) {
+    updatePlayerData(playerId, (pData) => {
+        pData.lastLocation = location;
     });
 }
 

@@ -3,3 +3,9 @@
 
 ## Item Names
 item.exe:panel.name=Panel
+
+## Hide Vanilla Join/Leave Messages (Handled by AddonExe Script)
+multiplayer.player.joined=
+multiplayer.player.left=
+multiplayer.player.joined.renamed=
+multiplayer.player.left.renamed=

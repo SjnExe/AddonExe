@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import * as bountyManager from '../bountyManager.js';
 import { getConfig } from '../configManager.js';
@@ -18,6 +19,9 @@ function handleEntityDie(event: mc.EntityDieAfterEvent) {
 
     const deadPlayer = deadEntity as mc.Player;
     const config = getConfig();
+
+    // Save location for /back
+    saveLastLocation(deadPlayer);
 
     if (config.playerInfo.enableDeathCoords) {
         const pData = getOrCreatePlayer(deadPlayer);

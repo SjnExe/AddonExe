@@ -9,6 +9,7 @@ import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { startTeleportWarmup, uiWait } from '@core/utils.js';
 
+import { saveLastLocation } from '../teleportUtils.js';
 import * as homesManager from '../homesManager.js';
 
 interface HomeCommandArgs {
@@ -43,6 +44,7 @@ const homeCommand: CustomCommand = {
             const warmupSeconds = config.homes.teleportWarmupSeconds;
             const teleportLogic = () => {
                 try {
+                    saveLastLocation(executor);
                     executor.teleport(homeLocation, { dimension: mc.world.getDimension(homeLocation.dimensionId) });
                     sendMessage(`§aTeleported to home '${homeName}'.`, executor);
                     setCooldown(executor, 'homes');

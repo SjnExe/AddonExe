@@ -9,6 +9,7 @@ import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { startTeleportWarmup, uiWait } from '@core/utils.js';
 
+import { saveLastLocation } from '../teleportUtils.js';
 import * as warpsManager from '../warpsManager.js';
 
 interface WarpCommandArgs {
@@ -44,6 +45,7 @@ const warpCommand: CustomCommand = {
             const warmupSeconds = config.warps.teleportWarmupSeconds;
             const teleportLogic = () => {
                 try {
+                    saveLastLocation(executor);
                     executor.teleport(warpLocation, { dimension: mc.world.getDimension(warpLocation.dimensionId) });
                     sendMessage(`§aTeleported to warp '${warpName}'.`, executor);
                     setCooldown(executor, 'warp');

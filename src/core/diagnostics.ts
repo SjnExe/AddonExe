@@ -1,7 +1,7 @@
 import { sentry, SentryEventLevel } from '@minecraft/diagnostics';
 import * as mc from '@minecraft/server';
 
-import { config } from '../config.default.js';
+import type { config as Config } from '../config.default.js';
 import {
     debugLog,
     errorLog,
@@ -120,6 +120,17 @@ function restoreDebugState() {
     }
 }
 
+export function configureDiagnostics(config: typeof Config) {
+    try {
+        if (config.version) {
+            sentry.addTag('release', config.version.join('.'));
+        }
+        sentry.addTag('environment', config.isNightly ? 'nightly' : 'production');
+    } catch {
+        // Ignore errors during configuration
+    }
+}
+
 export function initializeDiagnostics() {
     try {
         restoreDebugState();
@@ -129,12 +140,6 @@ export function initializeDiagnostics() {
             sampleRate: 1.0,
             maxBreadcrumbs: 50
         });
-
-        // Set tags
-        if (config.version) {
-            sentry.addTag('release', config.version.join('.'));
-        }
-        sentry.addTag('environment', config.isNightly ? 'nightly' : 'production');
 
         // Hook logger to Sentry to capture critical errors
         setExternalErrorHandler((error) => {
