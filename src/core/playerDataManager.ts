@@ -14,7 +14,7 @@ const playerIdNameMapKey = 'exe:playerIdNameMap';
 // Sharded keys
 const playerNameIdMapShardPrefix = 'exe:nameIdMap_';
 const playerIdNameMapShardPrefix = 'exe:idNameMap_';
-const MAP_SHARD_SIZE = 300; // Entries per shard
+const MAP_SHARD_SIZE = 200; // Entries per shard - reduced to prevent 32KB overflow
 
 export interface HomeLocation {
     x: number;
