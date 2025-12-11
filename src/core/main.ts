@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 import { restartAnnouncer } from '@commands/announcement.js';
 import { loadCommands } from '@commands/index.js';
 import * as auctionHouseFeature from '@features/auctionHouse/index.js';
+import * as votingFeature from '@features/voting/index.js';
 import * as kitsFeature from '@features/kits/index.js';
 import * as moderationFeature from '@features/moderation/index.js';
 import {
@@ -126,6 +127,7 @@ function initializeManagers() {
     kitsFeature.initialize();
     shopFeature.initialize();
     auctionHouseFeature.initialize();
+    votingFeature.initialize();
     teleportFeature.initialize();
     moderationFeature.initialize();
     economyFeature.initialize();

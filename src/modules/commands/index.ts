@@ -49,6 +49,7 @@ import cmdTeleportationRtp from '@features/teleportation/commands/rtp.js';
 import cmdTeleportationTp from '@features/teleportation/commands/tp.js';
 import cmdTeleportationTpa from '@features/teleportation/commands/tpa.js';
 import cmdTeleportationWarp from '@features/teleportation/commands/warp.js';
+import cmdVotingVote from '@features/voting/commands/vote.js';
 
 export function loadCommands() {
     const commands = [
@@ -99,7 +100,8 @@ export function loadCommands() {
         cmdTeleportationRtp,
         cmdTeleportationTp,
         cmdTeleportationTpa,
-        cmdTeleportationWarp
+        cmdTeleportationWarp,
+        cmdVotingVote
     ];
 
     commands.forEach(cmdModule => {
