@@ -33,6 +33,7 @@ export interface TeamData {
     applications: TeamApplication[];
     balance: number;
     open: boolean;
+    friendlyFire: boolean;
 }
 
 interface ActionResult {
@@ -51,7 +52,12 @@ function* loadTeamsJob(allIds: number[]) {
         try {
             const teamDataStr = mc.world.getDynamicProperty(`${teamPropertyPrefix}${id}`);
             if (teamDataStr && typeof teamDataStr === 'string') {
-                activeTeams.set(id, JSON.parse(teamDataStr) as TeamData);
+                const team = JSON.parse(teamDataStr) as TeamData;
+                // Migration: Ensure friendlyFire exists
+                if (team.friendlyFire === undefined) {
+                    team.friendlyFire = false;
+                }
+                activeTeams.set(id, team);
                 loadedCount++;
             }
         } catch (e) {
@@ -182,7 +188,7 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
     // Deduct money first
     incrementPlayerBalance(player.id, -cost);
 
-    const newTeamId = nextTeamId++;
+    let newTeamId = nextTeamId++;
     const newTeam: TeamData = {
         id: newTeamId,
         name: name, // Display name with colors
@@ -193,8 +199,22 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         home: null,
         applications: [],
         balance: 0,
-        open: true
+        open: true,
+        friendlyFire: false
     };
+
+    // Ensure ID uniqueness (Race Condition Fix)
+    if (activeTeams.has(newTeamId)) {
+        // This should not happen due to initialize logic, but as a fallback:
+        // Find the actual max ID again
+        let maxId = 0;
+        for (const id of activeTeams.keys()) {
+            if (id > maxId) maxId = id;
+        }
+        newTeamId = maxId + 1;
+        newTeam.id = newTeamId;
+        nextTeamId = newTeamId + 1;
+    }
 
     // Transaction safety
     try {
@@ -569,9 +589,22 @@ export function leaveTeam(player: mc.Player): ActionResult {
     return kickMember(team.id, player.id);
 }
 
+export function setTeamFriendlyFire(teamId: number, enabled: boolean): ActionResult {
+    const team = activeTeams.get(teamId);
+    if (!team) {
+        return { success: false };
+    }
+    team.friendlyFire = !!enabled;
+    saveTeam(teamId);
+    return { success: true, message: `§aFriendly fire is now ${enabled ? 'enabled' : 'disabled'}.` };
+}
+
 export function updateTeamSetting(teamId: number, setting: string, value: boolean): ActionResult {
     if (setting === 'open') {
         return setTeamOpenStatus(teamId, !!value);
+    }
+    if (setting === 'friendlyFire') {
+        return setTeamFriendlyFire(teamId, !!value);
     }
     return { success: false, message: 'Unknown setting.' };
 }

@@ -366,7 +366,10 @@ export class TeamPanelHandler implements IPanelHandler {
             const canManage = team.ownerId === player.id || team.admins.includes(player.id);
             const form = new ModalFormData().title('Team Settings');
             form.toggle('Auto-Accept Team Teleport', { defaultValue: pData.teamSettings?.autoTpAccept ?? false });
-            if (canManage) form.toggle('Allow Join Requests', { defaultValue: team.open ?? true });
+            if (canManage) {
+                form.toggle('Allow Join Requests', { defaultValue: team.open ?? true });
+                form.toggle('Enable Friendly Fire (PvP)', { defaultValue: team.friendlyFire ?? false });
+            }
             return form;
         }
 
@@ -450,6 +453,12 @@ export class TeamPanelHandler implements IPanelHandler {
             if (team && (team.ownerId === player.id || team.admins.includes(player.id)) && values.length > 1) {
                 const isOpen = values[1] as boolean;
                 teamManager.updateTeamSetting(team.id, 'open', isOpen);
+
+                if (values.length > 2) {
+                    const isFriendlyFire = values[2] as boolean;
+                    teamManager.updateTeamSetting(team.id, 'friendlyFire', isFriendlyFire);
+                }
+
                 player.sendMessage(`§aTeam settings updated.`);
             }
             return showPanel(player, 'teamMainPanel');

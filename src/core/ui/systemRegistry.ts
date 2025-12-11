@@ -67,7 +67,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         {
             id: 'commands',
             title: '§l§dCommand System§r',
-            icon: 'textures/ui/command_block_icon',
+            icon: 'textures/blocks/command_block',
             configPanelId: 'commandSystemPanel',
             category: 'System',
             isSimpleConfig: false
