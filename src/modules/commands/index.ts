@@ -30,6 +30,8 @@ import cmdLegacyVersion from './version.js';
 import cmdLegacyXraynotify from './xraynotify.js';
 import cmdAnticheatLogs from '@features/anticheat/commands/logs.js';
 import cmdAnticheatNotify from '@features/anticheat/commands/notify.js';
+import cmdAuctionHouseAh from '@features/auctionHouse/commands/ah.js';
+import cmdDailyRewardsDaily from '@features/dailyRewards/commands/daily.js';
 import cmdEconomyBalance from '@features/economy/commands/balance.js';
 import cmdEconomyPay from '@features/economy/commands/pay.js';
 import cmdEconomySetbalance from '@features/economy/commands/setbalance.js';
@@ -40,12 +42,14 @@ import cmdModerationMute from '@features/moderation/commands/mute.js';
 import cmdModerationReport from '@features/moderation/commands/report.js';
 import cmdShopShop from '@features/shop/commands/shop.js';
 import cmdTeamsTeam from '@features/teams/commands/team.js';
+import cmdTeleportationBack from '@features/teleportation/commands/back.js';
 import cmdTeleportationDeathcoords from '@features/teleportation/commands/deathcoords.js';
 import cmdTeleportationHome from '@features/teleportation/commands/home.js';
 import cmdTeleportationRtp from '@features/teleportation/commands/rtp.js';
 import cmdTeleportationTp from '@features/teleportation/commands/tp.js';
 import cmdTeleportationTpa from '@features/teleportation/commands/tpa.js';
 import cmdTeleportationWarp from '@features/teleportation/commands/warp.js';
+import cmdVotingVote from '@features/voting/commands/vote.js';
 
 export function loadCommands() {
     const commands = [
@@ -78,6 +82,8 @@ export function loadCommands() {
         cmdLegacyXraynotify,
         cmdAnticheatLogs,
         cmdAnticheatNotify,
+        cmdAuctionHouseAh,
+        cmdDailyRewardsDaily,
         cmdEconomyBalance,
         cmdEconomyPay,
         cmdEconomySetbalance,
@@ -88,12 +94,14 @@ export function loadCommands() {
         cmdModerationReport,
         cmdShopShop,
         cmdTeamsTeam,
+        cmdTeleportationBack,
         cmdTeleportationDeathcoords,
         cmdTeleportationHome,
         cmdTeleportationRtp,
         cmdTeleportationTp,
         cmdTeleportationTpa,
-        cmdTeleportationWarp
+        cmdTeleportationWarp,
+        cmdVotingVote
     ];
 
     commands.forEach(cmdModule => {
