@@ -55,6 +55,7 @@ export interface PlayerData {
     mailbox: SerializedItem[];
     lastDailyClaim: number;
     dailyStreak: number;
+    starterKitClaimed: boolean;
     needsSave?: boolean;
 }
 
@@ -90,7 +91,8 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     sidebarVisible: true,
     mailbox: [],
     lastDailyClaim: 0,
-    dailyStreak: 0
+    dailyStreak: 0,
+    starterKitClaimed: false
 };
 
 // --- Generic Data Handling ---
