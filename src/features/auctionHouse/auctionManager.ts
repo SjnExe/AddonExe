@@ -1,6 +1,5 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
 import { getAuctionHouseConfig } from '@core/configurations.js';
 import { deserializeItem, SerializedItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog } from '@core/logger.js';
@@ -13,7 +12,7 @@ import {
     updatePlayerData
 } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
-import { formatCurrency, formatTime } from '@core/utils.js';
+import { formatCurrency } from '@core/utils.js';
 
 export interface AuctionListing {
     id: string; // Unique ID (UUID)
@@ -205,7 +204,6 @@ export function placeBid(bidder: mc.Player, listingId: string, amount: number): 
     if (listing.highestBidderId && listing.bidPrice) {
         sendMoneyToPlayer(listing.highestBidderId, listing.bidPrice);
         // Notify previous bidder if online?
-        const prev = getPlayer(listing.highestBidderId); // Online check
         // We can't easily notify offline.
     }
 

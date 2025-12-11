@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getPlayerRank } from '@core/rankManager.js';
 import { getConfig } from '@core/configManager.js';
@@ -15,19 +15,22 @@ export async function showVoteMenu(player: mc.Player) {
     if (activeVote) {
         // Show Vote UI
         const hasVoted = activeVote.votedPlayerIds.includes(player.id);
-        const form = new ActionFormData()
-            .title('Current Vote')
-            .body(`§e${activeVote.question}\n§7Created by ${activeVote.creatorName}`);
+        let body = `§e${activeVote.question}\n§7Created by ${activeVote.creatorName}`;
 
         if (hasVoted) {
-            form.body(form.body + `\n\n§aYou have already voted.`);
+            body += `\n\n§aYou have already voted.`;
             // Show results preview? Or just "Close"
             // Let's show current standings
             let results = '\n§lCurrent Standings:§r\n';
-            activeVote.options.forEach(opt => {
+            activeVote.options.forEach((opt) => {
                 results += `${opt.text}: ${opt.count}\n`;
             });
-            form.body(form.body + results);
+            body += results;
+        }
+
+        const form = new ActionFormData().title('Current Vote').body(body);
+
+        if (hasVoted) {
             form.button('§cClose');
         } else {
             activeVote.options.forEach(opt => {
@@ -40,10 +43,12 @@ export async function showVoteMenu(player: mc.Player) {
         }
 
         const response = await uiWait(player, form);
-        if (!response || response.canceled || response.selection === undefined) return;
+        if (!response || response.canceled) return;
+        const actionResponse = response as ActionFormResponse;
+        if (actionResponse.selection === undefined) return;
 
         if (hasVoted) {
-            if (isAdmin && response.selection === 1) { // 0 is Close, 1 is End (if added)
+            if (isAdmin && actionResponse.selection === 1) { // 0 is Close, 1 is End (if added)
                  endVote();
                  player.sendMessage('§cVote ended manually.');
             }
@@ -56,7 +61,7 @@ export async function showVoteMenu(player: mc.Player) {
         // indices 0 to length-1 are options.
         // index length is "End Vote".
 
-        const selection = response.selection;
+        const selection = actionResponse.selection;
         if (isAdmin && selection === activeVote.options.length) {
             endVote();
             player.sendMessage('§cVote ended manually.');
@@ -88,9 +93,11 @@ export async function showVoteMenu(player: mc.Player) {
         }
 
         const response = await uiWait(player, form);
-        if (!response || response.canceled || response.selection === undefined) return;
+        if (!response || response.canceled) return;
+        const actionResponse = response as ActionFormResponse;
+        if (actionResponse.selection === undefined) return;
 
-        if (isAdmin && response.selection === 0) {
+        if (isAdmin && actionResponse.selection === 0) {
             await showCreateVoteUI(player);
         }
     }
@@ -104,9 +111,11 @@ async function showCreateVoteUI(player: mc.Player) {
         .textField('Duration (minutes, 0 for infinite)', '10');
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled || !response.formValues) return;
+    if (!response || response.canceled) return;
+    const modalResponse = response as ModalFormResponse;
+    if (!modalResponse.formValues) return;
 
-    const [question, optionsStr, durationStr] = response.formValues as string[];
+    const [question, optionsStr, durationStr] = modalResponse.formValues as string[];
 
     if (!question || !optionsStr) {
         player.sendMessage('§cQuestion and options are required.');

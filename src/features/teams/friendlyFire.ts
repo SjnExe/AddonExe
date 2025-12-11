@@ -22,9 +22,9 @@ function onEntityHurt(event: mc.EntityHurtAfterEvent) {
     const victimTeam = getTeamByPlayer(victim.id);
 
     if (attackerTeam && victimTeam && attackerTeam.id === victimTeam.id) {
+        // Check per-team friendly fire setting
         // If friendly fire is disabled (false), we should warn
-        // Note: We cannot CANCEL in after event. We can only warn.
-        if (teamConfig.friendlyFire === false) {
+        if (attackerTeam.friendlyFire === false) {
             attacker.onScreenDisplay.setActionBar('§cDo not hurt your teammates!');
             attacker.playSound('note.bass');
         }

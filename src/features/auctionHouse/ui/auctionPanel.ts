@@ -1,7 +1,6 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { errorLog } from '@core/logger.js';
 import { formatCurrency, formatTime, uiWait } from '@core/utils.js';
 import {
     AuctionListing,
@@ -54,10 +53,12 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
     }
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled || response.selection === undefined) return;
+    if (!response || response.canceled) return;
+    const actionResponse = response as ActionFormResponse;
+    if (actionResponse.selection === undefined) return;
 
     // Handle Buttons
-    const selection = response.selection;
+    const selection = actionResponse.selection;
     let offset = 0;
 
     // Static buttons
@@ -160,9 +161,12 @@ async function showBidUI(player: mc.Player, listing: AuctionListing) {
         .textField(`Enter bid amount (Min: ${minBid})`, minBid.toString());
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled || !response.formValues) return;
+    if (!response || response.canceled) return;
 
-    const amountStr = response.formValues[0] as string;
+    const modalResponse = response as ModalFormResponse;
+    if (!modalResponse.formValues) return;
+
+    const amountStr = modalResponse.formValues[0] as string;
     const amount = parseFloat(amountStr);
 
     if (isNaN(amount)) {
@@ -180,9 +184,12 @@ async function showSearchUI(player: mc.Player) {
         .textField('Search Query (Item Name)', 'Diamond Sword');
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled || !response.formValues) return;
+    if (!response || response.canceled) return;
 
-    const query = response.formValues[0] as string;
+    const modalResponse = response as ModalFormResponse;
+    if (!modalResponse.formValues) return;
+
+    const query = modalResponse.formValues[0] as string;
     if (query && query.trim().length > 0) {
         await showAuctionHouse(player, 1, query.trim());
     } else {
@@ -191,6 +198,9 @@ async function showSearchUI(player: mc.Player) {
 }
 
 async function claimMailboxUI(player: mc.Player) {
-    const res = claimMailbox(player);
-    player.sendMessage(res.message);
+    return new Promise<void>((resolve) => {
+        const res = claimMailbox(player);
+        player.sendMessage(res.message);
+        resolve();
+    });
 }

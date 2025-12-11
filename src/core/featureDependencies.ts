@@ -5,20 +5,21 @@ function checkDependencies(config: Config) {
     // Define dependencies: Feature -> Dependency
     // Keys must match property names in Config
     const dependencies: Record<string, string[]> = {
-        'shop': ['economy'],
-        'auctionHouse': ['economy'],
-        'bounties': ['economy']
+        shop: ['economy'],
+        auctionHouse: ['economy'],
+        bounties: ['economy']
     };
 
+    // Cast to generic record to allow dynamic access
+    const typedConfig = config as unknown as Record<string, { enabled?: boolean }>;
+
     for (const feature in dependencies) {
-        // @ts-expect-error - dynamic access
-        const featureEnabled = config[feature]?.enabled;
+        const featureEnabled = typedConfig[feature]?.enabled;
 
         if (featureEnabled) {
             const deps = dependencies[feature];
             for (const dep of deps) {
-                // @ts-expect-error - dynamic access
-                const depEnabled = config[dep]?.enabled;
+                const depEnabled = typedConfig[dep]?.enabled;
 
                 if (!depEnabled) {
                     debugLog(`[FeatureDependencies] Enabling '${dep}' because '${feature}' is enabled.`);

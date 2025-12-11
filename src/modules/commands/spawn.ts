@@ -145,7 +145,10 @@ const setSpawnCommand: CustomCommand = {
                 executor.sendMessage('§aSpawn protection system has been updated.');
             }
 
-            if (location.dimensionId === (MinecraftDimensionTypes.Overworld as string)) {
+            if (
+                location.dimensionId === (MinecraftDimensionTypes.Overworld as string) &&
+                spawnConfig.spawn.syncWorldSpawn
+            ) {
                 try {
                     const spawnPos = { x: location.x!, y: location.y!, z: location.z! };
                     mc.world.setDefaultSpawnLocation(spawnPos);
@@ -170,11 +173,12 @@ const setSpawnCommand: CustomCommand = {
                     }
                 }
                 try {
-                    mc.world.gameRules.spawnRadius = 1;
+                    const radius = spawnConfig.spawn.worldSpawnRadius ?? 0;
+                    mc.world.gameRules.spawnRadius = radius;
                     if (executor instanceof mc.Player) {
-                        sendMessage('§aWorld spawn radius set to 1.', executor);
+                        sendMessage(`§aWorld spawn radius set to ${radius}.`, executor);
                     } else {
-                        executor.sendMessage('§aWorld spawn radius set to 1.');
+                        executor.sendMessage(`§aWorld spawn radius set to ${radius}.`);
                     }
                 } catch (e: unknown) {
                     if (e instanceof Error) {

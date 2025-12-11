@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getDailyRewardsConfig } from '@core/configurations.js';
-import { debugLog, errorLog } from '@core/logger.js';
+import { errorLog } from '@core/logger.js';
 import {
     getOrCreatePlayer,
     incrementPlayerBalance,

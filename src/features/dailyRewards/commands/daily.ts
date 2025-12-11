@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
 
-import { claimDailyReward, getNextRewardInfo } from '../dailyRewardsManager.js';
+import { claimDailyReward } from '../dailyRewardsManager.js';
 
 const dailyCommand: CustomCommand = {
     name: 'daily',

@@ -74,9 +74,11 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     // We check existence.
     // As of latest beta, ItemLockComponent has 'mode'.
     try {
-        // @ts-expect-error - Lock component might not be typed in current definitions if old
-        const lock = itemStack.getComponent('minecraft:item_lock');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const lock = itemStack.getComponent('minecraft:item_lock') as any;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (lock && lock.mode) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             serialized.lockMode = lock.mode;
         }
     } catch {
@@ -137,7 +139,7 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | null {
                     if (type) {
                         try {
                             enchantable.addEnchantment({ type, level: enc.level });
-                        } catch (e) {
+                        } catch {
                             // Ignore invalid enchants (level too high? Item type mismatch?)
                             // We try our best.
                         }
