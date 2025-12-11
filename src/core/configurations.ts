@@ -9,6 +9,7 @@ import createConfigManager, { ConfigManager } from './configManagerFactory.js';
 import { setLockState } from './playerDataManager.js';
 import { reloadRanks } from './rankManager.js';
 
+import type { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { teamConfig } from '@features/teams/teamConfig.js';
@@ -26,6 +27,7 @@ export type EconomyConfig = typeof economyConfig;
 export type XrayConfig = typeof xrayConfig;
 export type TeamConfig = typeof teamConfig;
 export type SidebarConfig = typeof sidebarConfig;
+export type AuctionHouseConfig = typeof auctionHouseConfig;
 
 let kitsConfigManager: ConfigManager<KitsConfig>,
     shopConfigManager: ConfigManager<ShopConfig>,
@@ -34,7 +36,8 @@ let kitsConfigManager: ConfigManager<KitsConfig>,
     economyConfigManager: ConfigManager<EconomyConfig>,
     xrayConfigManager: ConfigManager<XrayConfig>,
     teamConfigManager: ConfigManager<TeamConfig>,
-    sidebarConfigManager: ConfigManager<SidebarConfig>;
+    sidebarConfigManager: ConfigManager<SidebarConfig>,
+    auctionHouseConfigManager: ConfigManager<AuctionHouseConfig>;
 
 export const loadKitsConfig = async (isMigration: boolean) => {
     const defaultConfig = await asyncLoadConfig<KitsConfig>('./core/kitsConfig.js');
@@ -108,6 +111,15 @@ export const getSidebarConfig = (): SidebarConfig => sidebarConfigManager.get();
 export const saveSidebarConfig = (config: SidebarConfig) => sidebarConfigManager.set(config);
 export const resetSidebarConfig = () => sidebarConfigManager.reset();
 
+export const loadAuctionHouseConfig = async (isMigration: boolean) => {
+    const defaultConfig = await asyncLoadConfig<AuctionHouseConfig>('./features/auctionHouse/auctionHouseConfig.js');
+    auctionHouseConfigManager = createConfigManager('exe:auctionHouseConfig:current', defaultConfig, 'AuctionHouse');
+    auctionHouseConfigManager.load(isMigration);
+};
+export const getAuctionHouseConfig = (): AuctionHouseConfig => auctionHouseConfigManager.get();
+export const saveAuctionHouseConfig = (config: AuctionHouseConfig) => auctionHouseConfigManager.set(config);
+export const resetAuctionHouseConfig = () => auctionHouseConfigManager.reset();
+
 type ResetRegistryEntry = {
     reset: () => Promise<void>;
     message: string;
@@ -162,6 +174,10 @@ export const configResetRegistry: Record<string, ResetRegistryEntry> = {
     sidebar: {
         reset: resetSidebarConfig,
         message: "The 'sidebar' configuration section has been reset to default."
+    },
+    auctionHouse: {
+        reset: resetAuctionHouseConfig,
+        message: "The 'Auction House' configuration section has been reset to default."
     }
 };
 

@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { restartAnnouncer } from '@commands/announcement.js';
 import { loadCommands } from '@commands/index.js';
+import * as auctionHouseFeature from '@features/auctionHouse/index.js';
 import * as kitsFeature from '@features/kits/index.js';
 import * as moderationFeature from '@features/moderation/index.js';
 import {
@@ -25,6 +26,7 @@ import { loadConfig } from './configLoader.js';
 import { getConfig, initializeConfigManager } from './configManager.js';
 import {
     getSpawnConfig,
+    loadAuctionHouseConfig,
     loadEconomyConfig,
     loadKitsConfig,
     loadRanksConfig,
@@ -36,7 +38,7 @@ import {
 } from './configurations.js';
 import { clearExpiredCooldowns, loadCooldowns } from './cooldownManager.js';
 import * as dataManager from './dataManager.js';
-import { initializeDiagnostics } from './diagnostics.js';
+import { configureDiagnostics, initializeDiagnostics } from './diagnostics.js';
 import { cleanupEventManager, initializeEventManager } from './events/eventManager.js';
 import { floatingTextManager } from './floatingTextManager.js';
 import { cleanupLeaderboardManager, initializeLeaderboard } from './leaderboardManager.js';
@@ -122,6 +124,7 @@ function initializeManagers() {
     corePanels.initialize();
     kitsFeature.initialize();
     shopFeature.initialize();
+    auctionHouseFeature.initialize();
     teleportFeature.initialize();
     moderationFeature.initialize();
     economyFeature.initialize();
@@ -174,6 +177,7 @@ async function initializeAddon() {
     initializeDiagnostics();
 
     const tempConfig = await loadConfig<typeof Config>('./config.js');
+    configureDiagnostics(tempConfig);
     const newVersion = tempConfig.version;
     const newVersionStr = String(newVersion);
     const lastVersionStr = mc.world.getDynamicProperty('exe:lastVersion') as string | undefined;
@@ -205,6 +209,7 @@ async function initializeAddon() {
         loadTeamConfig(isMigration),
         loadSidebarConfig(isMigration),
         loadXrayConfig(isMigration),
+        loadAuctionHouseConfig(isMigration),
         import('@features/anticheat/index.js').then((m) => m.initialize(isMigration))
     ]);
 
