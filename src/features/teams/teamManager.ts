@@ -80,6 +80,15 @@ export function initialize() {
             allIds = JSON.parse(allIdsStr) as number[];
         }
 
+        // Safety: Ensure nextTeamId is greater than any existing ID to prevent collisions
+        if (allIds.length > 0) {
+            const maxId = Math.max(...allIds);
+            if (nextTeamId <= maxId) {
+                nextTeamId = maxId + 1;
+                saveNextTeamId();
+            }
+        }
+
         // Run loading job
         mc.system.runJob(loadTeamsJob(allIds));
 

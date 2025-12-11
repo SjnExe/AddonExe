@@ -30,12 +30,12 @@ export function setTrackedInterval(callback: () => void, tickInterval: number): 
  * @returns The ID of the timeout.
  */
 export function setTrackedTimeout(callback: () => void, tickDelay: number): number {
-    const id = mc.system.runTimeout(callback, tickDelay);
-    timeoutIds.add(id);
-    // When the timeout completes, it no longer needs to be tracked.
-    mc.system.runTimeout(() => {
+    // Wrap callback to auto-cleanup ID from set upon completion
+    const id = mc.system.runTimeout(() => {
         timeoutIds.delete(id);
+        callback();
     }, tickDelay);
+    timeoutIds.add(id);
     return id;
 }
 

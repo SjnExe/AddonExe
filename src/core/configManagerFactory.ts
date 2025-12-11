@@ -58,7 +58,13 @@ export default function createConfigManager<T>(
             isFirstInit = true;
             currentConfig = newDefaultConfig;
             lastLoadedConfig = newDefaultConfig;
-            errorLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
+            // Use infoLog instead of errorLog for initial setup to avoid confusing users
+            if (name === 'Main') {
+                debugLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
+            } else {
+                // Keep debug for other subsystems unless important
+                debugLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
+            }
             saveLastLoadedConfig();
         } else {
             let userSavedConfig: Record<string, unknown>;

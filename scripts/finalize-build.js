@@ -14,7 +14,7 @@ if (!fs.existsSync(SCRIPTS_DIR)) {
 function findFiles(dir, filter) {
     let results = [];
     const list = fs.readdirSync(dir);
-    list.forEach(file => {
+    list.forEach((file) => {
         file = path.join(dir, file);
         const stat = fs.statSync(file);
         if (stat && stat.isDirectory()) {
@@ -30,10 +30,10 @@ try {
     // 1. Rewrite imports in all JS files
     // Changes: import ... from './config.default.js' -> './config.js'
     console.log('Rewriting imports...');
-    const jsFiles = findFiles(SCRIPTS_DIR, f => f.endsWith('.js'));
+    const jsFiles = findFiles(SCRIPTS_DIR, (f) => f.endsWith('.js'));
     let rewriteCount = 0;
 
-    jsFiles.forEach(file => {
+    jsFiles.forEach((file) => {
         let content = fs.readFileSync(file, 'utf8');
         if (content.includes('.default.js')) {
             content = content.replace(/\.default\.js/g, '.js');
@@ -47,9 +47,9 @@ try {
     // Strategy: If config.js doesn't exist, copy config.default.js to config.js.
     // Then delete config.default.js to avoid having both in the pack.
     console.log('Handling config files...');
-    const defaultConfigs = findFiles(SCRIPTS_DIR, f => f.endsWith('.default.js'));
+    const defaultConfigs = findFiles(SCRIPTS_DIR, (f) => f.endsWith('.default.js'));
 
-    defaultConfigs.forEach(defFile => {
+    defaultConfigs.forEach((defFile) => {
         const targetFile = defFile.replace('.default.js', '.js');
 
         // Only create the active config if it doesn't already exist (e.g. from a previous build step or user override)

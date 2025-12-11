@@ -263,7 +263,18 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
     for (let i = 0; i < inventory.size; i++) {
         const item = inventory.getItem(i);
         if (item && item.typeId === itemType.id) {
-            // Note: This does not check for special names or enchantments.
+            // Exploit Prevention: Skip damaged or enchanted items unless explicitly allowed
+            const durability = item.getComponent('minecraft:durability') as mc.ItemDurabilityComponent;
+            if (durability && durability.damage > 0) {
+                continue;
+            }
+
+            const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
+            const hasEnchants = enchantable && enchantable.getEnchantments && enchantable.getEnchantments().length > 0;
+            if (hasEnchants && !shopItem.enchantment) {
+                continue;
+            }
+
             count += item.amount;
         }
     }
@@ -287,6 +298,18 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
         if (remaining <= 0) break;
         const item = inventory.getItem(i);
         if (item && item.typeId === itemType.id) {
+            // Apply same exploit checks during removal
+            const durability = item.getComponent('minecraft:durability') as mc.ItemDurabilityComponent;
+            if (durability && durability.damage > 0) {
+                continue;
+            }
+
+            const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
+            const hasEnchants = enchantable && enchantable.getEnchantments && enchantable.getEnchantments().length > 0;
+            if (hasEnchants && !shopItem.enchantment) {
+                continue;
+            }
+
             if (item.amount <= remaining) {
                 remaining -= item.amount;
                 inventory.setItem(i, undefined);

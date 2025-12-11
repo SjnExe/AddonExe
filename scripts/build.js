@@ -29,7 +29,9 @@ const external = [
     './features/economy/economyConfig.js',
     './features/shop/shopConfig.js',
     './features/teams/teamConfig.js',
-    './features/anticheat/anticheatConfig.js'
+    './features/anticheat/anticheatConfig.js',
+    './features/auctionHouse/auctionHouseConfig.js',
+    './features/dailyRewards/dailyRewardsConfig.js'
 ];
 
 const isWatch = process.argv.includes('--watch');
@@ -46,7 +48,15 @@ const configsToCompile = [
     { src: '../src/features/economy/economyConfig.ts', dest: 'features/economy/economyConfig.js' },
     { src: '../src/features/shop/shopConfig.ts', dest: 'features/shop/shopConfig.js' },
     { src: '../src/features/teams/teamConfig.ts', dest: 'features/teams/teamConfig.js' },
-    { src: '../src/features/anticheat/anticheatConfig.ts', dest: 'features/anticheat/anticheatConfig.js' }
+    { src: '../src/features/anticheat/anticheatConfig.ts', dest: 'features/anticheat/anticheatConfig.js' },
+    {
+        src: '../src/features/auctionHouse/auctionHouseConfig.default.ts',
+        dest: 'features/auctionHouse/auctionHouseConfig.js'
+    },
+    {
+        src: '../src/features/dailyRewards/dailyRewardsConfig.default.ts',
+        dest: 'features/dailyRewards/dailyRewardsConfig.js'
+    }
 ];
 
 async function compileConfig(configEntry) {

@@ -76,6 +76,16 @@ export function formatDuration(ms: number): string {
 }
 
 /**
+ * Formats a duration in seconds into a human-readable string.
+ * Wrapper around formatDuration.
+ * @param seconds The duration in seconds.
+ * @returns The formatted string.
+ */
+export function formatTime(seconds: number): string {
+    return formatDuration(seconds * 1000);
+}
+
+/**
  * Plays a sound for a specific player.
  * @param player The player to play the sound for.
  * @param soundId The ID of the sound to play.
