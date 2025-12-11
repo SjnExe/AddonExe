@@ -41,7 +41,7 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, r
     }
 
     try {
-        const sanitizedReason = reason.replace(/"/g, '\\"');
+        const sanitizedReason = reason.replace(/"/g, '\\"').replace(/\n/g, ' ');
         const commandToRun = `kick "${targetPlayer.name}" ${sanitizedReason}`;
         mc.world.getDimension('overworld').runCommand(commandToRun);
         if (executor instanceof mc.Player) {

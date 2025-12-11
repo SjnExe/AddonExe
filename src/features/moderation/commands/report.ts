@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
+import { playSound } from '@core/utils.js';
 import { handleUIAction } from '@ui/actions.js';
 
 import * as reportManager from '../reportManager.js';
@@ -46,6 +47,7 @@ const reportCommand: CustomCommand = {
         if (message) {
             reportManager.createReport(executor, targetId, correctTargetName, message);
             executor.sendMessage('§aReport submitted. Thank you for your help.');
+            playSound(executor, 'random.orb');
         } else {
             await handleUIAction(executor, 'reportPlayer', {
                 targetPlayerId: targetId,
