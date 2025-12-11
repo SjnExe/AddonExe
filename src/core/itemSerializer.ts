@@ -74,12 +74,12 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     // We check existence.
     // As of latest beta, ItemLockComponent has 'mode'.
     try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
         const lock = itemStack.getComponent('minecraft:item_lock') as any;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (lock && lock.mode) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            serialized.lockMode = lock.mode;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            serialized.lockMode = String(lock.mode);
         }
     } catch {
         // Ignore if not supported
@@ -166,9 +166,10 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | null {
         // Lock Mode
         if (data.lockMode) {
              try {
-                // @ts-expect-error - Lock component types
-                const lock = itemStack.getComponent('minecraft:item_lock');
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+                const lock = itemStack.getComponent('minecraft:item_lock') as any;
                 if (lock) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     lock.mode = data.lockMode;
                 }
             } catch {

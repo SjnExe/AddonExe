@@ -93,7 +93,7 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
                         inventory.container.addItem(itemStack);
                         itemsGiven = true;
                     } catch (e) {
-                        errorLog(`[DailyRewards] Failed to give item ${itemDef.typeId}: ${e}`);
+                        errorLog(`[DailyRewards] Failed to give item ${itemDef.typeId}: ${String(e)}`);
                     }
                 }
                 if (!itemsGiven) {
@@ -114,7 +114,7 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
         };
 
     } catch (e) {
-        errorLog(`[DailyRewards] Error granting reward: ${e}`);
+        errorLog(`[DailyRewards] Error granting reward: ${String(e)}`);
         return { success: false, message: '§cAn error occurred while claiming your reward.' };
     }
 }

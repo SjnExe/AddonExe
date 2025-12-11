@@ -22,7 +22,6 @@ const vanishCommand: CustomCommand = {
 
         const isVanished = executor.hasTag(constants.vanishedTag);
         const config = getConfig();
-        // @ts-expect-error - customJoinLeave added dynamically to config.default.ts
         const joinLeaveConfig = config.playerInfo?.customJoinLeave;
 
         if (isVanished) {

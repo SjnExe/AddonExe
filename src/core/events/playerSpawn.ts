@@ -36,7 +36,6 @@ export function handlePlayerJoin(player: mc.Player) {
     const config = getConfig();
 
     // Custom Join Message (since RP hides vanilla)
-    // @ts-expect-error - customJoinLeave dynamic
     const joinLeaveConfig = config.playerInfo?.customJoinLeave;
     if (joinLeaveConfig?.enabled) {
         if (!player.hasTag(constants.vanishedTag)) {
