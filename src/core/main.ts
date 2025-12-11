@@ -57,6 +57,7 @@ import * as rankManager from './rankManager.js';
 import * as sidebarManager from './sidebarManager.js';
 import { cleanupTimers, setTrackedInterval } from './timerManager.js';
 
+import { initializeFeatureDependencies } from './featureDependencies.js';
 import type { config as Config } from '../config.default.js';
 import './mobDeathEvents.js';
 
@@ -230,6 +231,7 @@ async function initializeAddon() {
     const { initializePlayerCache } = await import('./playerCache.js');
     initializePlayerCache();
 
+    initializeFeatureDependencies();
     initializeManagers();
     checkConfiguration();
     initializeEventManager();

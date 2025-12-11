@@ -8,14 +8,12 @@ export interface DailyReward {
 }
 
 export interface DailyRewardsConfig {
-    enabled: boolean;
     claimCooldownHours: number; // 24
     streakResetHours: number; // 48
     rewards: DailyReward[];
 }
 
 export const dailyRewardsConfig: DailyRewardsConfig = {
-    enabled: true,
     claimCooldownHours: 24,
     streakResetHours: 48,
     rewards: [

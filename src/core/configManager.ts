@@ -9,6 +9,16 @@ import type { config as Config } from '../config.default.js';
 export type { Config };
 
 let mainConfigManager: ConfigManager<typeof Config>;
+const updateCallbacks: ((config: typeof Config) => void)[] = [];
+
+export function onConfigUpdated(callback: (config: typeof Config) => void) {
+    updateCallbacks.push(callback);
+}
+
+function notifyCallbacks() {
+    const config = mainConfigManager.get();
+    updateCallbacks.forEach((cb) => cb(config));
+}
 
 export async function initializeConfigManager(isMigration: boolean) {
     // Load external config.js (relative to the bundled script)
@@ -18,9 +28,15 @@ export async function initializeConfigManager(isMigration: boolean) {
 }
 
 export const getConfig = () => mainConfigManager.get();
-export const updateConfig = (key: string, value: unknown) => mainConfigManager.update(key, value);
+export const updateConfig = (key: string, value: unknown) => {
+    mainConfigManager.update(key, value);
+    notifyCallbacks();
+};
 export const reloadConfig = () => mainConfigManager.reload();
-export const updateMultipleConfig = (updates: Record<string, unknown>) => mainConfigManager.updateMultiple(updates);
+export const updateMultipleConfig = (updates: Record<string, unknown>) => {
+    mainConfigManager.updateMultiple(updates);
+    notifyCallbacks();
+};
 
 export async function resetConfigSection(
     sectionKey: string,

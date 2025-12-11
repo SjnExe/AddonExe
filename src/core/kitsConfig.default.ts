@@ -14,7 +14,6 @@ export interface KitDefinition {
 }
 
 export interface KitsConfig {
-    enabled: boolean;
     starterKit: {
         enabled: boolean;
         kitName: string;
@@ -23,7 +22,6 @@ export interface KitsConfig {
 }
 
 export const kitsConfig: KitsConfig = {
-    enabled: true,
     starterKit: {
         enabled: false,
         kitName: 'starter'

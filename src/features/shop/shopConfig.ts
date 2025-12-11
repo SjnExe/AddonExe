@@ -19,12 +19,10 @@ export interface ShopCategory {
 }
 
 export interface ShopConfig {
-    enabled: boolean;
     categories: Record<string, ShopCategory>;
 }
 
 export const shopConfig: ShopConfig = {
-    enabled: true,
     categories: {
         'Ores & Minerals': {
             icon: 'textures/ui/icon_iron_pickaxe',

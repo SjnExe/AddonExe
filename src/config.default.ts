@@ -58,6 +58,15 @@ export const config = {
     shop: {
         enabled: false
     },
+    auctionHouse: {
+        enabled: false
+    },
+    dailyRewards: {
+        enabled: false
+    },
+    voting: {
+        enabled: false
+    },
     reports: {
         resolvedReportLifetimeDays: 7
     },
@@ -87,14 +96,14 @@ export const config = {
         endLock: false
     },
     playerInfo: {
-        enableWelcomer: true,
+        enableWelcomer: false,
         // Available placeholders: {playerName}, {serverName}, {discordLink}, {websiteLink}. Use \n for a new line.
         welcomeMessage: 'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r to see available commands.',
         notifyAdminOnNewPlayer: true,
-        enableDeathCoords: true,
+        enableDeathCoords: false,
         deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.',
         customJoinLeave: {
-            enabled: true,
+            enabled: false,
             joinMessage: '§e{playerName} joined the game',
             leaveMessage: '§e{playerName} left the game'
         }
