@@ -92,7 +92,12 @@ export const config = {
         welcomeMessage: 'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r to see available commands.',
         notifyAdminOnNewPlayer: true,
         enableDeathCoords: true,
-        deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.'
+        deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.',
+        customJoinLeave: {
+            enabled: true,
+            joinMessage: '§e{playerName} joined the game',
+            leaveMessage: '§e{playerName} left the game'
+        }
     },
     ranks: {
         nameTagStyle: 'above' // Options: 'above', 'before', 'after', 'under'

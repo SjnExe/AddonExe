@@ -56,6 +56,7 @@ export interface PlayerData {
     lastDailyClaim: number;
     dailyStreak: number;
     starterKitClaimed: boolean;
+    isVanished: boolean;
     needsSave?: boolean;
 }
 
@@ -92,7 +93,8 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     mailbox: [],
     lastDailyClaim: 0,
     dailyStreak: 0,
-    starterKitClaimed: false
+    starterKitClaimed: false,
+    isVanished: false
 };
 
 // --- Generic Data Handling ---

@@ -13,6 +13,13 @@ import { formatLocation } from '../utils.js';
 
 export function handlePlayerJoin(player: mc.Player) {
     const pData = getOrCreatePlayer(player);
+    // Sync vanish state from tag
+    if (player.hasTag(constants.vanishedTag)) {
+        updatePlayerData(player.id, (d) => { d.isVanished = true; });
+    } else {
+        if (pData.isVanished) updatePlayerData(player.id, (d) => { d.isVanished = false; });
+    }
+
     debugLog(`[Add-on] Player ${player.name} joined with rank ${pData.rankId}.`);
 
     if (checkAndKickBannedPlayer(player)) {
@@ -27,6 +34,17 @@ export function handlePlayerJoin(player: mc.Player) {
     }
 
     const config = getConfig();
+
+    // Custom Join Message (since RP hides vanilla)
+    // @ts-expect-error - customJoinLeave dynamic
+    const joinLeaveConfig = config.playerInfo?.customJoinLeave;
+    if (joinLeaveConfig?.enabled) {
+        if (!player.hasTag(constants.vanishedTag)) {
+            let msg = joinLeaveConfig.joinMessage;
+            msg = msg.replace(/{playerName}/g, player.name);
+            mc.world.sendMessage(msg);
+        }
+    }
     if (config.playerInfo?.enableWelcomer && config.playerInfo?.welcomeMessage) {
         let welcomeMsg = config.playerInfo.welcomeMessage;
         welcomeMsg = welcomeMsg.replace(/{playerName}/g, player.name);
