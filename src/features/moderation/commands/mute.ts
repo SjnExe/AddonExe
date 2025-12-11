@@ -66,6 +66,7 @@ export function mutePlayer(
         executor.sendMessage(`§aSuccessfully muted ${targetPlayer.name} ${durationText}. Reason: ${reason}`);
     }
     sendMessage(`§cYou have been muted ${durationText} by ${announcer}.`, targetPlayer);
+    playSound(targetPlayer, 'mob.villager.no');
 }
 
 interface MuteCommandArgs {

@@ -4,6 +4,7 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { constants } from '@core/constants.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
+import { playSound } from '@core/utils.js';
 
 export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
     if (targetPlayer.hasTag(constants.frozenTag)) {
@@ -18,10 +19,12 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera disabled`);
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement disabled`);
         targetPlayer.addTag(constants.frozenTag);
+        playSound(targetPlayer, 'mob.stray.ambient');
 
         const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
         if (executor instanceof mc.Player) {
             sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`, executor);
+            playSound(executor, 'random.orb');
         } else {
             executor.sendMessage(`§aSuccessfully froze ${targetPlayer.name}.`);
         }
@@ -51,9 +54,11 @@ export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Playe
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera enabled`);
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement enabled`);
         targetPlayer.removeTag(constants.frozenTag);
+        playSound(targetPlayer, 'random.levelup');
 
         if (executor instanceof mc.Player) {
             sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`, executor);
+            playSound(executor, 'random.orb');
         } else {
             executor.sendMessage(`§aSuccessfully unfroze ${targetPlayer.name}.`);
         }

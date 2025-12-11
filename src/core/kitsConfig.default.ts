@@ -14,12 +14,18 @@ export interface KitDefinition {
 }
 
 export interface KitsConfig {
-    enabled: boolean;
+    starterKit: {
+        enabled: boolean;
+        kitName: string;
+    };
     kitDefinitions: Record<string, KitDefinition>;
 }
 
 export const kitsConfig: KitsConfig = {
-    enabled: true,
+    starterKit: {
+        enabled: false,
+        kitName: 'starter'
+    },
     kitDefinitions: {
         starter: {
             enabled: true,

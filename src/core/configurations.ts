@@ -9,6 +9,8 @@ import createConfigManager, { ConfigManager } from './configManagerFactory.js';
 import { setLockState } from './playerDataManager.js';
 import { reloadRanks } from './rankManager.js';
 
+import type { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
+import type { dailyRewardsConfig } from '@features/dailyRewards/dailyRewardsConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { teamConfig } from '@features/teams/teamConfig.js';
@@ -26,6 +28,8 @@ export type EconomyConfig = typeof economyConfig;
 export type XrayConfig = typeof xrayConfig;
 export type TeamConfig = typeof teamConfig;
 export type SidebarConfig = typeof sidebarConfig;
+export type AuctionHouseConfig = typeof auctionHouseConfig;
+export type DailyRewardsConfig = typeof dailyRewardsConfig;
 
 let kitsConfigManager: ConfigManager<KitsConfig>,
     shopConfigManager: ConfigManager<ShopConfig>,
@@ -34,7 +38,9 @@ let kitsConfigManager: ConfigManager<KitsConfig>,
     economyConfigManager: ConfigManager<EconomyConfig>,
     xrayConfigManager: ConfigManager<XrayConfig>,
     teamConfigManager: ConfigManager<TeamConfig>,
-    sidebarConfigManager: ConfigManager<SidebarConfig>;
+    sidebarConfigManager: ConfigManager<SidebarConfig>,
+    auctionHouseConfigManager: ConfigManager<AuctionHouseConfig>,
+    dailyRewardsConfigManager: ConfigManager<DailyRewardsConfig>;
 
 export const loadKitsConfig = async (isMigration: boolean) => {
     const defaultConfig = await asyncLoadConfig<KitsConfig>('./core/kitsConfig.js');
@@ -60,7 +66,16 @@ export const loadSpawnConfig = async (isMigration: boolean) => {
     spawnConfigManager.load(isMigration);
 };
 export const getSpawnConfig = (): SpawnConfig => spawnConfigManager.get();
-export const saveSpawnConfig = (config: SpawnConfig) => spawnConfigManager.set(config);
+export const saveSpawnConfig = (config: SpawnConfig) => {
+    spawnConfigManager.set(config);
+    if (config.spawn.worldSpawnRadius >= 0) {
+        try {
+            mc.world.gameRules.spawnRadius = config.spawn.worldSpawnRadius;
+        } catch {
+            // Ignore error if gamerule cannot be set
+        }
+    }
+};
 export const resetSpawnConfig = () => spawnConfigManager.reset();
 
 export const loadRanksConfig = async (isMigration: boolean) => {
@@ -107,6 +122,24 @@ export const loadSidebarConfig = async (isMigration: boolean) => {
 export const getSidebarConfig = (): SidebarConfig => sidebarConfigManager.get();
 export const saveSidebarConfig = (config: SidebarConfig) => sidebarConfigManager.set(config);
 export const resetSidebarConfig = () => sidebarConfigManager.reset();
+
+export const loadAuctionHouseConfig = async (isMigration: boolean) => {
+    const defaultConfig = await asyncLoadConfig<AuctionHouseConfig>('./features/auctionHouse/auctionHouseConfig.js');
+    auctionHouseConfigManager = createConfigManager('exe:auctionHouseConfig:current', defaultConfig, 'AuctionHouse');
+    auctionHouseConfigManager.load(isMigration);
+};
+export const getAuctionHouseConfig = (): AuctionHouseConfig => auctionHouseConfigManager.get();
+export const saveAuctionHouseConfig = (config: AuctionHouseConfig) => auctionHouseConfigManager.set(config);
+export const resetAuctionHouseConfig = () => auctionHouseConfigManager.reset();
+
+export const loadDailyRewardsConfig = async (isMigration: boolean) => {
+    const defaultConfig = await asyncLoadConfig<DailyRewardsConfig>('./features/dailyRewards/dailyRewardsConfig.js');
+    dailyRewardsConfigManager = createConfigManager('exe:dailyRewardsConfig:current', defaultConfig, 'DailyRewards');
+    dailyRewardsConfigManager.load(isMigration);
+};
+export const getDailyRewardsConfig = (): DailyRewardsConfig => dailyRewardsConfigManager.get();
+export const saveDailyRewardsConfig = (config: DailyRewardsConfig) => dailyRewardsConfigManager.set(config);
+export const resetDailyRewardsConfig = () => dailyRewardsConfigManager.reset();
 
 type ResetRegistryEntry = {
     reset: () => Promise<void>;
@@ -162,6 +195,14 @@ export const configResetRegistry: Record<string, ResetRegistryEntry> = {
     sidebar: {
         reset: resetSidebarConfig,
         message: "The 'sidebar' configuration section has been reset to default."
+    },
+    auctionHouse: {
+        reset: resetAuctionHouseConfig,
+        message: "The 'Auction House' configuration section has been reset to default."
+    },
+    dailyRewards: {
+        reset: resetDailyRewardsConfig,
+        message: "The 'Daily Rewards' configuration section has been reset to default."
     }
 };
 

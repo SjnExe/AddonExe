@@ -242,6 +242,18 @@ export const configPanelSchema: ConfigCategory[] = [
         category: 'World',
         settings: [
             {
+                key: 'spawn.syncWorldSpawn',
+                label: 'Sync World Spawn',
+                type: 'toggle',
+                description: 'If enabled, /setspawn updates the vanilla world spawn point too.'
+            },
+            {
+                key: 'spawn.worldSpawnRadius',
+                label: 'World Spawn Radius',
+                type: 'textField',
+                description: 'Sets the vanilla spawn radius. Set to -1 to disable update.'
+            },
+            {
                 key: 'spawn.cooldownSeconds',
                 label: 'Cooldown (s)',
                 type: 'textField',

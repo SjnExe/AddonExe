@@ -6,6 +6,8 @@ import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
 import { startTeleportWarmup } from '@core/utils.js';
 
+import { saveLastLocation } from './teleportUtils.js';
+
 type TpaRequestType = 'tpa' | 'tpahere';
 
 interface TpaRequest {
@@ -204,6 +206,7 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
             return;
         }
 
+        saveLastLocation(mover);
         mover.teleport(safeLoc, { dimension: destinationTarget.dimension });
 
         if (request.type === 'tpa') {

@@ -3,6 +3,8 @@ export const spawnConfig = {
     spawn: {
         cooldownSeconds: 60,
         teleportWarmupSeconds: 10,
+        syncWorldSpawn: true,
+        worldSpawnRadius: 1,
         // Default spawn location. Can be set manually here (e.g., { x: 0, y: 100, z: 0, dimensionId: 'minecraft:overworld' }) or with the in-game /setspawn command.
         spawnLocation: {
             x: undefined as number | undefined,
@@ -19,8 +21,6 @@ export const spawnConfig = {
         allowAdminBypass: true,
         preventPvP: true,
         preventHostileDamage: true,
-        preventItemPickup: true, // Note: Limited support in current API version
-        preventItemDropping: true, // Note: Limited support in current API version
         preventHostileMobSpawning: true,
         preventBlockBreaking: true,
         preventBlockPlacing: true,

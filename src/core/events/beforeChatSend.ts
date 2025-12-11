@@ -34,7 +34,16 @@ function handleChatSend(eventData: mc.ChatSendBeforeEvent) {
         const team = getTeamByPlayer(player.id);
         if (team) {
             eventData.cancel = true;
-            const teamMsg = `§a[Team] ${player.name}: §f${eventData.message}`;
+            const pData = playerDataManager.getOrCreatePlayer(player);
+            let rankPrefix = '';
+            if (pData) {
+                const rank = rankManager.getRankById(pData.rankId);
+                if (rank && rank.chatFormatting?.prefixText) {
+                    rankPrefix = `§e[§r${rank.chatFormatting.prefixText}§e]§r `;
+                }
+            }
+
+            const teamMsg = `§a[Team] ${rankPrefix}${player.name}: §f${eventData.message}`;
             // Broadcast to members
             const onlinePlayers = mc.world.getAllPlayers();
             for (const memberId of team.members) {

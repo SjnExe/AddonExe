@@ -6,9 +6,17 @@ import { getSpawnConfig } from '@core/configurations.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
 import { getPlayerRank } from '@core/rankManager.js';
 
+interface GenericEventSignal {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subscribe(handler: (arg: any) => void): void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    unsubscribe(handler: (arg: any) => void): void;
+}
+
 interface TrackedEvent {
-    event: mc.PlayerBreakBlockBeforeEventSignal | mc.PlayerPlaceBlockAfterEventSignal;
-    handler: (event: mc.PlayerBreakBlockBeforeEvent | mc.PlayerPlaceBlockAfterEvent) => void;
+    event: GenericEventSignal;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handler: (event: any) => void;
 }
 
 let eventHandlers: TrackedEvent[] = [];
@@ -40,10 +48,8 @@ function cleanup(): void {
     }
 }
 
-function subscribe(
-    event: mc.PlayerBreakBlockBeforeEventSignal | mc.PlayerPlaceBlockAfterEventSignal,
-    handler: (event: mc.PlayerBreakBlockBeforeEvent | mc.PlayerPlaceBlockAfterEvent) => void
-): void {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function subscribe(event: GenericEventSignal, handler: (event: any) => void): void {
     if (!event) {
         debugLog('[SpawnProtection] Attempted to subscribe to a non-existent event.');
         return;
@@ -136,7 +142,17 @@ function initialize(): void {
         });
     }
 
-    // Additional event subscriptions would go here...
+    if (spawnProtection.preventExplosions) {
+        subscribe(mc.world.beforeEvents.explosion, (event: mc.ExplosionBeforeEvent) => {
+            const blocks = event.getImpactedBlocks();
+            for (const block of blocks) {
+                if (isWithinSpawnProtection(block.location, block.dimension.id)) {
+                    event.cancel = true;
+                    return;
+                }
+            }
+        });
+    }
 
     intervalId = mc.system.runInterval(() => {
         const currentSpawnConfig = getSpawnConfig();
@@ -154,8 +170,7 @@ function initialize(): void {
                 player.addTag('inSpawn');
                 if (canBypass(player)) continue;
 
-                if (protection.preventItemPickup || protection.preventItemDropping)
-                    player.triggerEvent('exe:apply_spawn_protection');
+                // Pickup/Drop protection removed due to API limitations
                 if (protection.preventPvP) player.triggerEvent('exe:disable_pvp');
                 if (protection.preventHostileDamage) player.triggerEvent('exe:disable_hostile_damage');
             } else if (!isInSpawn && wasInSpawn) {
