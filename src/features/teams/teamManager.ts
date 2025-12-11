@@ -9,6 +9,7 @@ import {
     incrementPlayerBalance,
     updatePlayerData
 } from '@core/playerDataManager.js';
+import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 import { TeamPanelHandler } from './ui/teamPanel.js';
 
@@ -603,6 +604,7 @@ export function teleportToTeamHome(player: mc.Player): void {
             }
             try {
                 const dim = mc.world.getDimension(dimensionId);
+                saveLastLocation(player);
                 player.teleport({ x, y, z }, { dimension: dim });
                 player.sendMessage('§aTeleported to team home!');
             } catch {
@@ -612,6 +614,7 @@ export function teleportToTeamHome(player: mc.Player): void {
     } else {
         try {
             const dim = mc.world.getDimension(dimensionId);
+            saveLastLocation(player);
             player.teleport({ x, y, z }, { dimension: dim });
             player.sendMessage('§aTeleported to team home!');
         } catch {

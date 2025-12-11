@@ -46,6 +46,12 @@ export const config = {
         cooldownSeconds: 600, // 10 minutes
         teleportWarmupSeconds: 10
     },
+    back: {
+        enabled: false,
+        cooldownSeconds: 60,
+        teleportWarmupSeconds: 3,
+        cost: 0
+    },
     kits: {
         enabled: false
     },
@@ -86,7 +92,12 @@ export const config = {
         welcomeMessage: 'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r to see available commands.',
         notifyAdminOnNewPlayer: true,
         enableDeathCoords: true,
-        deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.'
+        deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.',
+        customJoinLeave: {
+            enabled: true,
+            joinMessage: '§e{playerName} joined the game',
+            leaveMessage: '§e{playerName} left the game'
+        }
     },
     ranks: {
         nameTagStyle: 'above' // Options: 'above', 'before', 'after', 'under'
@@ -144,6 +155,7 @@ export const config = {
     // --- Command Enable/Disable ---
     commandSettings: {
         admin: { enabled: true },
+        back: { enabled: true },
         balance: { enabled: true },
         baltop: { enabled: true },
         ban: { enabled: true },

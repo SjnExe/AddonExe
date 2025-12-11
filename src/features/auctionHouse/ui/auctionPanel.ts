@@ -14,21 +14,22 @@ import {
 
 const LISTINGS_PER_PAGE = 45; // Grid size
 
-export async function showAuctionHouse(player: mc.Player, page: number = 1) {
-    const totalListings = getListingsCount();
+export async function showAuctionHouse(player: mc.Player, page: number = 1, searchQuery?: string) {
+    const totalListings = getListingsCount(searchQuery);
     const totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE) || 1;
     page = Math.max(1, Math.min(page, totalPages));
 
-    const listings = getListings(page, LISTINGS_PER_PAGE);
+    const listings = getListings(page, LISTINGS_PER_PAGE, searchQuery);
+
+    const title = searchQuery ? `AH Search: "${searchQuery}" (${page}/${totalPages})` : `Auction House (${page}/${totalPages})`;
 
     const form = new ActionFormData()
-        .title(`Auction House (${page}/${totalPages})`)
-        .body(`Total Items: ${totalListings}\nBalance: ${formatCurrency(0)} (Visual bug, check sidebar)`);
-        // Note: Getting balance requires playerData which is fine but let's keep it simple.
+        .title(title)
+        .body(`Total Items: ${totalListings}${searchQuery ? ` matching "${searchQuery}"` : ''}`);
 
     form.button('§eCollection Bin / Mailbox', 'textures/ui/chest_icon');
     form.button('§bYour Listings', 'textures/ui/book_edit');
-    form.button('§6Search/Filter', 'textures/ui/magnifying_glass');
+    form.button(searchQuery ? '§cClear Search' : '§6Search/Filter', 'textures/ui/magnifying_glass');
 
     if (page > 1) form.button('§c< Previous Page');
     if (page < totalPages) form.button('§aNext Page >');
@@ -65,25 +66,30 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1) {
         return;
     }
     if (selection === 1) { // Your Listings
-        // TODO: Show player listings
+        // Placeholder for future expansion
+        player.sendMessage('§eYour listings feature coming soon. Use search to find your name.');
         return;
     }
     if (selection === 2) { // Search
-        // TODO: Search UI
+        if (searchQuery) {
+            await showAuctionHouse(player, 1); // Clear search
+        } else {
+            await showSearchUI(player);
+        }
         return;
     }
     offset = 3;
 
     if (page > 1) {
         if (selection === offset) {
-            await showAuctionHouse(player, page - 1);
+            await showAuctionHouse(player, page - 1, searchQuery);
             return;
         }
         offset++;
     }
     if (page < totalPages) {
         if (selection === offset) {
-            await showAuctionHouse(player, page + 1);
+            await showAuctionHouse(player, page + 1, searchQuery);
             return;
         }
         offset++;
@@ -166,6 +172,22 @@ async function showBidUI(player: mc.Player, listing: AuctionListing) {
 
     const res = placeBid(player, listing.id, amount);
     player.sendMessage(res.message);
+}
+
+async function showSearchUI(player: mc.Player) {
+    const form = new ModalFormData()
+        .title('Search Auction House')
+        .textField('Search Query (Item Name)', 'Diamond Sword');
+
+    const response = await uiWait(player, form);
+    if (!response || response.canceled || !response.formValues) return;
+
+    const query = response.formValues[0] as string;
+    if (query && query.trim().length > 0) {
+        await showAuctionHouse(player, 1, query.trim());
+    } else {
+        await showAuctionHouse(player, 1);
+    }
 }
 
 async function claimMailboxUI(player: mc.Player) {

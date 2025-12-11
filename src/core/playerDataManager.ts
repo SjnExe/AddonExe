@@ -39,6 +39,7 @@ export interface PlayerData {
     kitCooldowns: Record<string, number>;
     xrayNotificationsEnabled: boolean;
     lastDeathLocation: HomeLocation | null;
+    lastLocation: HomeLocation | null;
     deathNotificationSent: boolean;
     tpaRequestsDisabled: boolean;
     tpaBlockedPlayerIds: string[];
@@ -52,6 +53,10 @@ export interface PlayerData {
     totalPlayTime: number; // Stored in milliseconds
     sidebarVisible: boolean;
     mailbox: SerializedItem[];
+    lastDailyClaim: number;
+    dailyStreak: number;
+    starterKitClaimed: boolean;
+    isVanished: boolean;
     needsSave?: boolean;
 }
 
@@ -73,6 +78,7 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     balance: 0,
     xrayNotificationsEnabled: false,
     lastDeathLocation: null,
+    lastLocation: null,
     deathNotificationSent: true,
     tpaRequestsDisabled: false,
     announcementsMuted: false,
@@ -84,7 +90,11 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     killStreak: 0,
     totalPlayTime: 0,
     sidebarVisible: true,
-    mailbox: []
+    mailbox: [],
+    lastDailyClaim: 0,
+    dailyStreak: 0,
+    starterKitClaimed: false,
+    isVanished: false
 };
 
 // --- Generic Data Handling ---
@@ -600,6 +610,12 @@ export function setPlayerLastDeathLocation(playerId: string, location: HomeLocat
         if (location) {
             pData.deathNotificationSent = false;
         }
+    });
+}
+
+export function setPlayerLastLocation(playerId: string, location: HomeLocation | null) {
+    updatePlayerData(playerId, (pData) => {
+        pData.lastLocation = location;
     });
 }
 

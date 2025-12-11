@@ -15,3 +15,11 @@ This document is an archive of completed tasks.
 - Fixed race condition in `teamManager.ts` ID generation.
 - Updated pack manifests to target engine `1.21.130`.
 - Applied linting and formatting fixes across the codebase.
+
+### Feature Expansion (2025-05-XX)
+**Assignee:** Jules (AI Assistant)
+**Description:**
+- **Auction House:** Implemented a full marketplace with BIN, Bidding, Mailbox, Search, and Pagination.
+- **Daily Rewards:** Implemented a daily claim system with streak tracking and configurable rewards.
+- **Back Command:** Implemented `/back` functionality with teleportation history tracking.
+- **Safety:** Added logic to block unsafe items (Shulker Boxes) from AH.
