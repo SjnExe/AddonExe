@@ -9,6 +9,8 @@ import { debugLog, errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { startTeleportWarmup } from '@core/utils.js';
 
+import { saveLastLocation } from '../teleportUtils.js';
+
 const rtpCommand: CustomCommand = {
     name: 'rtp',
     aliases: ['randomtp'],
@@ -90,6 +92,7 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
 
                         const teleportLogic = () => {
                             try {
+                                saveLastLocation(player);
                                 player.teleport(potentialLoc);
                                 sendMessage('§aYou have been teleported to a random location!', player);
                                 setCooldown(player, 'rtp');

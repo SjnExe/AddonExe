@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 import { CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
+import { saveLastLocation } from '../teleportUtils.js';
 
 const command: CustomCommand = {
     name: 'tp',
@@ -30,6 +31,7 @@ const command: CustomCommand = {
                     sendMessage(`§cPlayer '${argValues[0]}' not found.`, executor);
                     return;
                 }
+                saveLastLocation(executor);
                 executor.teleport(destPlayer1.location, { dimension: destPlayer1.dimension });
                 sendMessage(`§aTeleported to ${destPlayer1.name}.`, executor);
                 break;
@@ -46,6 +48,7 @@ const command: CustomCommand = {
                     sendMessage(`§cPlayer '${argValues[1]}' not found.`, executor);
                     return;
                 }
+                saveLastLocation(playerToMove);
                 playerToMove.teleport(destPlayer2.location, { dimension: destPlayer2.dimension });
                 sendMessage(`§aTeleported ${playerToMove.name} to ${destPlayer2.name}.`, executor);
                 break;
@@ -57,6 +60,7 @@ const command: CustomCommand = {
                     sendMessage('§cInvalid coordinates provided.', executor);
                     return;
                 }
+                saveLastLocation(executor);
                 executor.teleport({ x: x3, y: y3, z: z3 });
                 sendMessage(`§aTeleported to ${x3}, ${y3}, ${z3}.`, executor);
                 break;
@@ -73,6 +77,7 @@ const command: CustomCommand = {
                     sendMessage('§cInvalid coordinates provided.', executor);
                     return;
                 }
+                saveLastLocation(targetPlayer);
                 targetPlayer.teleport({ x: x4, y: y4, z: z4 }, { dimension: targetPlayer.dimension });
                 sendMessage(`§aTeleported ${targetPlayer.name} to ${x4}, ${y4}, ${z4}.`, executor);
                 break;

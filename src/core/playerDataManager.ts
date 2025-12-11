@@ -39,6 +39,7 @@ export interface PlayerData {
     kitCooldowns: Record<string, number>;
     xrayNotificationsEnabled: boolean;
     lastDeathLocation: HomeLocation | null;
+    lastLocation: HomeLocation | null;
     deathNotificationSent: boolean;
     tpaRequestsDisabled: boolean;
     tpaBlockedPlayerIds: string[];
@@ -75,6 +76,7 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     balance: 0,
     xrayNotificationsEnabled: false,
     lastDeathLocation: null,
+    lastLocation: null,
     deathNotificationSent: true,
     tpaRequestsDisabled: false,
     announcementsMuted: false,
@@ -604,6 +606,12 @@ export function setPlayerLastDeathLocation(playerId: string, location: HomeLocat
         if (location) {
             pData.deathNotificationSent = false;
         }
+    });
+}
+
+export function setPlayerLastLocation(playerId: string, location: HomeLocation | null) {
+    updatePlayerData(playerId, (pData) => {
+        pData.lastLocation = location;
     });
 }
 

@@ -87,8 +87,15 @@ const mainCommand: CustomCommand = {
         }
 
         if (sub === 'search') {
-            // TODO: Open search UI
-            await showAuctionHouse(executor); // Fallback
+            if (args.price) { // Arg 2 is mapped to 'price' in definition, but here acts as query
+                await showAuctionHouse(executor, 1, args.price);
+            } else {
+                await showAuctionHouse(executor); // Or ideally open search UI directly, but we need to export showSearchUI?
+                // showSearchUI is internal to panel.
+                // We can just open main AH, user clicks search.
+                // Or export showSearchUI.
+                // For now, open AH main is fine as entry point.
+            }
             return;
         }
 

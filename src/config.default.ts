@@ -46,6 +46,12 @@ export const config = {
         cooldownSeconds: 600, // 10 minutes
         teleportWarmupSeconds: 10
     },
+    back: {
+        enabled: false,
+        cooldownSeconds: 60,
+        teleportWarmupSeconds: 3,
+        cost: 0
+    },
     kits: {
         enabled: false
     },
@@ -144,6 +150,7 @@ export const config = {
     // --- Command Enable/Disable ---
     commandSettings: {
         admin: { enabled: true },
+        back: { enabled: true },
         balance: { enabled: true },
         baltop: { enabled: true },
         ban: { enabled: true },

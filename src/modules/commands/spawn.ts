@@ -8,6 +8,7 @@ import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { playSound, startTeleportWarmup } from '@core/utils.js';
+import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 
 import { initializeSpawnProtection } from '@modules/detections/spawnProtection.js';
 
@@ -56,6 +57,7 @@ const spawnCommand: CustomCommand = {
         const teleportLogic = () => {
             try {
                 const dimension = mc.world.getDimension(spawnLocation.dimensionId);
+                saveLastLocation(executor);
                 executor.teleport(spawnLocation as mc.Vector3, { dimension: dimension });
                 sendMessage('§aTeleporting you to spawn...', executor);
                 playSound(executor, 'random.orb');

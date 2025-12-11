@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { getAuctionHouseConfig } from '@core/configurations.js';
-import { SerializedItem } from '@core/itemSerializer.js';
+import { deserializeItem, SerializedItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import {
     getOrCreatePlayer,
@@ -152,9 +152,6 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
 
     const inventory = buyer.getComponent('inventory') as mc.EntityInventoryComponent;
     if (inventory && inventory.container && inventory.container.emptySlotsCount > 0) {
-        // We need deserializeItem here. Circular dependency?
-        // We can import it.
-        const { deserializeItem } = require('@core/itemSerializer.js'); // Dynamic import to avoid circular if any
         const itemStack = deserializeItem(listing.item);
         if (itemStack) {
             inventory.container.addItem(itemStack);
@@ -318,8 +315,6 @@ export function claimMailbox(player: mc.Player): { success: boolean, message: st
     const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
     if (!inventory || !inventory.container) return { success: false, message: '§cInventory error.' };
 
-    const { deserializeItem } = require('@core/itemSerializer.js');
-
     let claimed = 0;
     const remainingItems: SerializedItem[] = [];
 
@@ -350,14 +345,31 @@ export function claimMailbox(player: mc.Player): { success: boolean, message: st
     }
 }
 
-export function getListings(page: number = 1, pageSize: number = 45): AuctionListing[] {
-    const all = Array.from(activeListings.values());
+export function getListings(page: number = 1, pageSize: number = 45, searchQuery?: string): AuctionListing[] {
+    let all = Array.from(activeListings.values());
+
+    if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        all = all.filter(l =>
+            l.item.typeId.toLowerCase().includes(query) ||
+            (l.item.nameTag && l.item.nameTag.toLowerCase().includes(query))
+        );
+    }
+
     // Sort by newest?
     all.sort((a, b) => b.startTime - a.startTime);
     const start = (page - 1) * pageSize;
     return all.slice(start, start + pageSize);
 }
 
-export function getListingsCount(): number {
-    return activeListings.size;
+export function getListingsCount(searchQuery?: string): number {
+    if (!searchQuery) return activeListings.size;
+    const query = searchQuery.toLowerCase();
+    let count = 0;
+    for (const l of activeListings.values()) {
+        if (l.item.typeId.toLowerCase().includes(query) || (l.item.nameTag && l.item.nameTag.toLowerCase().includes(query))) {
+            count++;
+        }
+    }
+    return count;
 }
