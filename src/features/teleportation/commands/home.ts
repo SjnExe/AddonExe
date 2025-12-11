@@ -9,8 +9,8 @@ import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { startTeleportWarmup, uiWait } from '@core/utils.js';
 
-import { saveLastLocation } from '../teleportUtils.js';
 import * as homesManager from '../homesManager.js';
+import { saveLastLocation } from '../teleportUtils.js';
 
 interface HomeCommandArgs {
     homeName?: string;

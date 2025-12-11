@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
 import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
-import { getKitsConfig } from '../configurations.js';
-import { getKit } from '../kitsManager.js';
 import { getConfig } from '../configManager.js';
+import { getKitsConfig } from '../configurations.js';
 import { constants } from '../constants.js';
+import { getKit } from '../kitsManager.js';
 import { debugLog } from '../logger.js';
 import { updatePlayerRank } from '../main.js';
 import { sendMessage } from '../messaging.js';
@@ -15,9 +15,14 @@ export function handlePlayerJoin(player: mc.Player) {
     const pData = getOrCreatePlayer(player);
     // Sync vanish state from tag
     if (player.hasTag(constants.vanishedTag)) {
-        updatePlayerData(player.id, (d) => { d.isVanished = true; });
+        updatePlayerData(player.id, (d) => {
+            d.isVanished = true;
+        });
     } else {
-        if (pData.isVanished) updatePlayerData(player.id, (d) => { d.isVanished = false; });
+        if (pData.isVanished)
+            updatePlayerData(player.id, (d) => {
+                d.isVanished = false;
+            });
     }
 
     debugLog(`[Add-on] Player ${player.name} joined with rank ${pData.rankId}.`);

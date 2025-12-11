@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import * as teamManager from '@features/teams/teamManager.js';
+import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import * as bountyManager from '../bountyManager.js';
 import { getConfig } from '../configManager.js';
 import * as lastHitManager from '../lastHitManager.js';

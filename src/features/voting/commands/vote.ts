@@ -1,21 +1,19 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getPlayerRank } from '@core/rankManager.js';
 import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
+import { getPlayerRank } from '@core/rankManager.js';
 
-import { endVote, getActiveVote } from '../voteManager.js';
 import { showVoteMenu } from '../ui/votePanel.js';
+import { endVote, getActiveVote } from '../voteManager.js';
 
 const voteCommand: CustomCommand = {
     name: 'vote',
     description: 'Participate in server votes or create one.',
     category: 'General',
     permissionLevel: 1024,
-    parameters: [
-        { name: 'subcommand', type: 'string', optional: true }
-    ],
+    parameters: [{ name: 'subcommand', type: 'string', optional: true }],
     execute: async (executor: CommandExecutor, args: { subcommand?: string }) => {
         if (!(executor instanceof mc.Player)) return;
 

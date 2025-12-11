@@ -6,6 +6,7 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const packageJsonPath = path.resolve(__dirname, '../package.json');
 const manifestJsonPath = path.resolve(__dirname, '../packs/behavior/manifest.json');
 
 // Color codes for console output
@@ -24,7 +25,78 @@ async function main() {
     const updates = [];
 
     // --- Package.json Logic ---
-    // (Removed as we now use "beta" tag directly in package.json)
+    if (fs.existsSync(packageJsonPath)) {
+        const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf8');
+        const packageJson = JSON.parse(packageJsonContent);
+
+        const devDeps = packageJson.devDependencies || {};
+        const overrides = packageJson.overrides || {};
+
+        // Identify targets: @minecraft/* packages in devDependencies that are NOT 'latest'
+        const targets = Object.keys(devDeps).filter(
+            (pkg) => pkg.startsWith('@minecraft/') && devDeps[pkg] !== 'latest'
+        );
+
+        if (targets.length > 0) {
+            const promiseResults = await Promise.allSettled(
+                targets.map(async (pkg) => {
+                    try {
+                        const { stdout } = await execAsync(`npm view ${pkg} versions --json`);
+                        const versions = JSON.parse(stdout);
+
+                        // Filter: Must include 'beta', end with '-stable', and NOT include 'preview'
+                        const candidates = versions
+                            .filter((v) => v.includes('beta') && v.endsWith('-stable') && !v.includes('preview'))
+                            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+                        let newVersion;
+                        if (candidates.length > 0) {
+                            // Pick the last one (which is the latest due to numeric sort)
+                            newVersion = candidates[candidates.length - 1];
+                        } else {
+                            // No matching stable beta found, preserve existing version
+                            return null;
+                        }
+
+                        return { pkg, newVersion };
+                    } catch (error) {
+                        console.error(
+                            `${colors.yellow}Warning: Failed to fetch versions for ${pkg}: ${error.message}${colors.reset}`
+                        );
+                        return null;
+                    }
+                })
+            );
+
+            let packageJsonUpdated = false;
+            for (const result of promiseResults) {
+                if (result.status === 'fulfilled' && result.value) {
+                    const { pkg, newVersion } = result.value;
+                    const currentVersion = devDeps[pkg];
+
+                    if (currentVersion !== newVersion) {
+                        devDeps[pkg] = newVersion;
+
+                        // Update overrides if the package exists there
+                        if (overrides[pkg]) {
+                            overrides[pkg] = newVersion;
+                        }
+
+                        updates.push(`[package.json] ${pkg}: ${currentVersion} -> ${newVersion}`);
+                        packageJsonUpdated = true;
+                    }
+                }
+            }
+
+            if (packageJsonUpdated) {
+                const indentation = 4;
+                fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, indentation) + '\n');
+                updated = true;
+            }
+        }
+    } else {
+        console.error(`${colors.red}Error: package.json not found at ${packageJsonPath}${colors.reset}`);
+    }
 
     // --- Manifest.json Logic ---
     if (fs.existsSync(manifestJsonPath)) {

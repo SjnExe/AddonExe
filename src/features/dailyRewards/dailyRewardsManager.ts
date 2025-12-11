@@ -2,11 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getDailyRewardsConfig } from '@core/configurations.js';
 import { errorLog } from '@core/logger.js';
-import {
-    getOrCreatePlayer,
-    incrementPlayerBalance,
-    updatePlayerData
-} from '@core/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
 import { formatDuration } from '@core/utils.js';
 
 export interface ClaimResult {
@@ -31,7 +27,10 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
     // Check cooldown
     if (timeSince < cooldownMs) {
         const remaining = cooldownMs - timeSince;
-        return { success: false, message: `§cYou have already claimed your daily reward. Come back in ${formatDuration(remaining)}.` };
+        return {
+            success: false,
+            message: `§cYou have already claimed your daily reward. Come back in ${formatDuration(remaining)}.`
+        };
     }
 
     let streak = pData.dailyStreak || 0;
@@ -64,7 +63,7 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
     // Find matching reward definition (allowing for sparse arrays or explicit days if user configured oddly)
     // We try to find match for cycleDay. If not found, find match for streak (one-time rewards?).
     // Simplest: Find reward where r.day == cycleDay.
-    const reward = config.rewards.find(r => r.day === cycleDay) || config.rewards[0]; // Fallback to first
+    const reward = config.rewards.find((r) => r.day === cycleDay) || config.rewards[0]; // Fallback to first
 
     // Grant Reward
     try {
@@ -112,7 +111,6 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
             success: true,
             message: `§aDaily Reward Claimed! (Streak: ${streak})\n§r${reward.message}`
         };
-
     } catch (e) {
         errorLog(`[DailyRewards] Error granting reward: ${String(e)}`);
         return { success: false, message: '§cAn error occurred while claiming your reward.' };

@@ -78,7 +78,7 @@ export function createListing(
 
     // Check limits
     const pData = getOrCreatePlayer(player);
-    const myListings = Array.from(activeListings.values()).filter(l => l.sellerId === player.id);
+    const myListings = Array.from(activeListings.values()).filter((l) => l.sellerId === player.id);
     if (myListings.length >= config.maxListingsPerPlayer) {
         return { success: false, message: '§cYou have reached the maximum number of active listings.' };
     }
@@ -86,7 +86,10 @@ export function createListing(
     // Listing Fee
     if (config.listingFee > 0) {
         if (pData.balance < config.listingFee) {
-            return { success: false, message: `§cInsufficient funds for listing fee (${formatCurrency(config.listingFee)}).` };
+            return {
+                success: false,
+                message: `§cInsufficient funds for listing fee (${formatCurrency(config.listingFee)}).`
+            };
         }
         incrementPlayerBalance(player.id, -config.listingFee);
     }
@@ -156,8 +159,8 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
             inventory.container.addItem(itemStack);
             buyer.sendMessage(`§aYou purchased ${listing.item.nameTag || listing.item.typeId}!`);
         } else {
-             addItemToMailbox(buyer.id, listing.item);
-             buyer.sendMessage('§cError creating item. It has been sent to your Collection Bin.');
+            addItemToMailbox(buyer.id, listing.item);
+            buyer.sendMessage('§cError creating item. It has been sent to your Collection Bin.');
         }
     } else {
         addItemToMailbox(buyer.id, listing.item);
@@ -183,7 +186,7 @@ export function placeBid(bidder: mc.Player, listingId: string, amount: number): 
 
     const bidderData = getOrCreatePlayer(bidder);
 
-    const minBid = (listing.bidPrice || listing.price); // Must exceed current bid? Or match start price?
+    const minBid = listing.bidPrice || listing.price; // Must exceed current bid? Or match start price?
     // If no bids, amount >= price.
     // If bids, amount > bidPrice.
 
@@ -216,8 +219,9 @@ export function placeBid(bidder: mc.Player, listingId: string, amount: number): 
     listing.highestBidderName = bidder.name;
 
     // Extend time if near end (Anti-Snipe)
-    const timeLeft = (listing.startTime + listing.duration * 1000) - Date.now();
-    if (timeLeft < 30000) { // Less than 30s
+    const timeLeft = listing.startTime + listing.duration * 1000 - Date.now();
+    if (timeLeft < 30000) {
+        // Less than 30s
         listing.duration += 60; // Add 1 minute
     }
 
@@ -288,7 +292,7 @@ function addItemToMailbox(playerId: string, item: SerializedItem) {
         updatePlayerData(playerId, (d) => {
             d.mailbox.push(item);
         });
-        const player = mc.world.getAllPlayers().find(p => p.id === playerId);
+        const player = mc.world.getAllPlayers().find((p) => p.id === playerId);
         if (player) player.sendMessage('§eYou have new items in your Collection Bin (/ah collect).');
         return;
     }
@@ -302,7 +306,7 @@ function addItemToMailbox(playerId: string, item: SerializedItem) {
     }
 }
 
-export function claimMailbox(player: mc.Player): { success: boolean, message: string } {
+export function claimMailbox(player: mc.Player): { success: boolean; message: string } {
     const pData = getOrCreatePlayer(player);
     const mailbox = pData.mailbox;
 
@@ -348,9 +352,10 @@ export function getListings(page: number = 1, pageSize: number = 45, searchQuery
 
     if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        all = all.filter(l =>
-            l.item.typeId.toLowerCase().includes(query) ||
-            (l.item.nameTag && l.item.nameTag.toLowerCase().includes(query))
+        all = all.filter(
+            (l) =>
+                l.item.typeId.toLowerCase().includes(query) ||
+                (l.item.nameTag && l.item.nameTag.toLowerCase().includes(query))
         );
     }
 
@@ -365,7 +370,10 @@ export function getListingsCount(searchQuery?: string): number {
     const query = searchQuery.toLowerCase();
     let count = 0;
     for (const l of activeListings.values()) {
-        if (l.item.typeId.toLowerCase().includes(query) || (l.item.nameTag && l.item.nameTag.toLowerCase().includes(query))) {
+        if (
+            l.item.typeId.toLowerCase().includes(query) ||
+            (l.item.nameTag && l.item.nameTag.toLowerCase().includes(query))
+        ) {
             count++;
         }
     }
