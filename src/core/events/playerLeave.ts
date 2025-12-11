@@ -11,7 +11,6 @@ export const eventName = 'playerLeave';
 function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
     const pData = playerDataManager.getPlayer(event.playerId);
     const config = getConfig();
-    // @ts-expect-error - customJoinLeave dynamic
     const joinLeaveConfig = config.playerInfo?.customJoinLeave;
 
     if (joinLeaveConfig?.enabled) {

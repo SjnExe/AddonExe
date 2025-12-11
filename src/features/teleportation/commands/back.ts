@@ -27,8 +27,7 @@ const backCommand: CustomCommand = {
 
         // Config access via casting or interface augmentation (since we added it to default but type might lag)
         const config = getConfig();
-        // @ts-expect-error - 'back' added to config.default.ts dynamically in this session
-        const backConfig = config.back as BackConfig;
+        const backConfig = config.back as unknown as BackConfig | undefined;
 
         if (!backConfig || !backConfig.enabled) {
             sendMessage('§cThe /back command is disabled.', executor);

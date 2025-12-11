@@ -14,7 +14,6 @@ import {
 } from '@features/moderation/punishmentManager.js';
 import { clearOldResolvedReports, loadReports } from '@features/moderation/reportManager.js';
 import * as shopFeature from '@features/shop/index.js';
-import { registerFriendlyFire } from '@features/teams/friendlyFire.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import * as teleportFeature from '@features/teleportation/index.js';
 import { initializeSpawnProtection } from '@modules/detections/spawnProtection.js';
@@ -132,7 +131,6 @@ function initializeManagers() {
     teleportFeature.initialize();
     moderationFeature.initialize();
     economyFeature.initialize();
-    registerFriendlyFire();
     sidebarManager.initialize();
     initializeLeaderboard();
     clearExpiredPunishments();

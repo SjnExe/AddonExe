@@ -1,7 +1,8 @@
-import { Config, getConfig, onConfigUpdated, updateConfig } from './configManager.js';
+import { getConfig, onConfigUpdated, updateConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 
-function checkDependencies(config: Config) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function checkDependencies(config: any) {
     // Define dependencies: Feature -> Dependency
     // Keys must match property names in Config
     const dependencies: Record<string, string[]> = {

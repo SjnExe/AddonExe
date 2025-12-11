@@ -138,9 +138,11 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing) {
     form.button('§cBack');
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled || response.selection === undefined) return;
+    if (!response || response.canceled) return;
+    const actionResponse = response as ActionFormResponse;
+    if (actionResponse.selection === undefined) return;
 
-    if (response.selection === 0) {
+    if (actionResponse.selection === 0) {
         if (listing.isBid) {
             await showBidUI(player, listing);
         } else {
