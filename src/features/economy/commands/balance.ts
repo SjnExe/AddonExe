@@ -5,7 +5,8 @@ import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { getLeaderboard } from '@core/leaderboardManager.js';
 import { sendMessage } from '@core/messaging.js';
-import { getOrCreatePlayer } from '@core/playerDataManager.js';
+import { findPlayerByName } from '@core/playerCache.js';
+import { getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/playerDataManager.js';
 import { formatCurrency } from '@core/utils.js';
 
 const balanceCommand: CustomCommand = {
@@ -14,7 +15,7 @@ const balanceCommand: CustomCommand = {
     description: "Checks your or another player's balance.",
     category: 'Economy',
     permissionLevel: 1024,
-    parameters: [{ name: 'target', type: 'player', optional: true }],
+    parameters: [{ name: 'target', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
         if (!config.economy.enabled) {
@@ -28,25 +29,51 @@ const balanceCommand: CustomCommand = {
         }
 
         const isConsole = !(executor instanceof mc.Player);
-        const targetPlayers = args.target as mc.Player[] | undefined;
+        const targetName = args.target as string | undefined;
 
-        if (isConsole && (!targetPlayers || targetPlayers.length === 0)) {
+        if (isConsole && !targetName) {
             executor.sendMessage('§cYou must specify a target player when running this command from the console.');
             return;
         }
 
-        let targetPlayer: mc.Player;
-        if (targetPlayers && targetPlayers.length > 0) {
-            targetPlayer = targetPlayers[0];
+        let targetId: string;
+        let displayName: string;
+
+        if (!targetName) {
+            // Self check
+            if (executor instanceof mc.Player) {
+                targetId = executor.id;
+                displayName = executor.name;
+            } else {
+                return; // Should be handled by isConsole check
+            }
         } else {
-            targetPlayer = executor as mc.Player;
+            // Resolve target
+            const targetPlayer = findPlayerByName(targetName);
+            if (targetPlayer) {
+                targetId = targetPlayer.id;
+                displayName = targetPlayer.name;
+            } else {
+                const id = getPlayerIdByName(targetName);
+                if (id) {
+                    targetId = id;
+                    displayName = getPlayerNameById(id) || targetName;
+                } else {
+                    const message = `§cPlayer "${targetName}" not found.`;
+                    if (executor instanceof mc.Player) {
+                        sendMessage(message, executor);
+                    } else {
+                        executor.sendMessage(message);
+                    }
+                    return;
+                }
+            }
         }
 
-        const pData = getOrCreatePlayer(targetPlayer);
-        const balance = pData.balance;
+        const pData = loadPlayerData(targetId);
 
-        if (balance === null) {
-            const message = `§cCould not retrieve balance for ${targetPlayer.name}.`;
+        if (!pData || pData.balance === null || pData.balance === undefined) {
+            const message = `§cCould not retrieve balance for ${displayName}.`;
             if (executor instanceof mc.Player) {
                 sendMessage(message, executor);
             } else {
@@ -55,10 +82,12 @@ const balanceCommand: CustomCommand = {
             return;
         }
 
-        if (!isConsole && targetPlayer.id === executor.id) {
+        const balance = pData.balance;
+
+        if (!isConsole && executor instanceof mc.Player && targetId === executor.id) {
             sendMessage(`§aYour balance is: §e${formatCurrency(balance)}`, executor);
         } else {
-            const message = `§a${targetPlayer.name}'s balance is: §e${formatCurrency(balance)}`;
+            const message = `§a${displayName}'s balance is: §e${formatCurrency(balance)}`;
             if (executor instanceof mc.Player) {
                 sendMessage(message, executor);
             } else {

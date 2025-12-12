@@ -4,17 +4,20 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
+import { findPlayerByName } from '@core/playerCache.js';
 import {
     clearPendingPayment,
     createPendingPayment,
     getPendingPayment,
     getPlayer,
+    getPlayerIdByName,
+    getPlayerNameById,
     transfer
 } from '@core/playerDataManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
 
 interface PayCommandArgs {
-    target?: mc.Player[];
+    target?: string;
     amount?: string;
 }
 
@@ -27,26 +30,40 @@ const payCommand: CustomCommand = {
     hasCooldown: true,
     defaultCooldown: 5,
     parameters: [
-        { name: 'target', type: 'player' },
+        { name: 'target', type: 'string' },
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: PayCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const { target, amount: amountStr } = args;
+        const { target: targetName, amount: amountStr } = args;
         const config = getConfig();
         if (!config.economy.enabled) {
             return sendMessage(constants.economyDisabled, executor);
         }
 
-        if (!target || target.length === 0) {
-            return sendMessage('§cPlayer not found.', executor);
+        if (!targetName) {
+            return sendMessage('§cPlease specify a player to pay.', executor);
         }
 
-        const targetPlayer = target[0];
+        // Resolve Target
+        const targetPlayer = findPlayerByName(targetName);
+        let targetId = targetPlayer?.id;
+        let displayName = targetPlayer?.name;
 
-        if (targetPlayer.id === executor.id) {
+        if (!targetId) {
+            targetId = getPlayerIdByName(targetName);
+            if (targetId) {
+                displayName = getPlayerNameById(targetId);
+            }
+        }
+
+        if (!targetId || !displayName) {
+            return sendMessage(`§cPlayer "${targetName}" not found.`, executor);
+        }
+
+        if (targetId === executor.id) {
             return sendMessage('§cYou cannot pay yourself.', executor);
         }
 
@@ -83,17 +100,22 @@ const payCommand: CustomCommand = {
         }
 
         if (amount > config.economy.paymentConfirmationThreshold) {
-            createPendingPayment(executor.id, targetPlayer.id, amount);
-            sendMessage(`§ePayment of ${formatCurrency(amount)} to ${targetPlayer.name} is pending.`, executor);
+            createPendingPayment(executor.id, targetId, amount);
+            sendMessage(`§ePayment of ${formatCurrency(amount)} to ${displayName} is pending.`, executor);
             sendMessage(
                 `§eType §a/payconfirm§e within ${config.economy.paymentConfirmationTimeout} seconds to complete the transaction.`,
                 executor
             );
         } else {
-            const result = transfer(executor.id, targetPlayer.id, amount);
+            const result = transfer(executor.id, targetId, amount);
             if (result.success) {
-                sendMessage(`§aYou have paid §e${formatCurrency(amount)}§a to ${targetPlayer.name}.`, executor);
-                sendMessage(`§aYou have received §e${formatCurrency(amount)}§a from ${executor.name}.`, targetPlayer);
+                sendMessage(`§aYou have paid §e${formatCurrency(amount)}§a to ${displayName}.`, executor);
+                if (targetPlayer) {
+                    sendMessage(
+                        `§aYou have received §e${formatCurrency(amount)}§a from ${executor.name}.`,
+                        targetPlayer
+                    );
+                }
             } else {
                 sendMessage(`§cPayment failed: ${result.message}`, executor);
             }
@@ -119,20 +141,15 @@ const payConfirmCommand: CustomCommand = {
 
         const { targetPlayerId, amount } = pendingPayment;
         const targetPlayer = Array.from(mc.world.getPlayers()).find((p) => p.id === targetPlayerId);
-
-        if (!targetPlayer) {
-            clearPendingPayment(executor.id);
-            return sendMessage('§cThe target player has gone offline. Payment cancelled.', executor);
-        }
+        const targetName = targetPlayer ? targetPlayer.name : getPlayerNameById(targetPlayerId) || 'Unknown';
 
         const result = transfer(executor.id, targetPlayerId, amount);
 
         if (result.success) {
-            sendMessage(
-                `§aPayment confirmed. You sent §e${formatCurrency(amount)}§a to ${targetPlayer.name}.`,
-                executor
-            );
-            sendMessage(`§aYou have received §e${formatCurrency(amount)}§a from ${executor.name}.`, targetPlayer);
+            sendMessage(`§aPayment confirmed. You sent §e${formatCurrency(amount)}§a to ${targetName}.`, executor);
+            if (targetPlayer) {
+                sendMessage(`§aYou have received §e${formatCurrency(amount)}§a from ${executor.name}.`, targetPlayer);
+            }
         } else {
             sendMessage(`§cPayment failed: ${result.message}`, executor);
         }

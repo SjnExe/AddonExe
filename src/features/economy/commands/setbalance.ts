@@ -1,7 +1,13 @@
 import { CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
-import { getOrCreatePlayer, incrementPlayerBalance, setPlayerBalance } from '@core/playerDataManager.js';
+import {
+    getPlayerIdByName,
+    getPlayerNameById,
+    incrementPlayerBalance,
+    loadPlayerData,
+    setPlayerBalance
+} from '@core/playerDataManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
 
 const setBalanceCommand: CustomCommand = {
@@ -19,8 +25,19 @@ const setBalanceCommand: CustomCommand = {
         const targetName = args.target as string;
         const amountStr = args.amount as string;
 
+        // Resolve Target
         const targetPlayer = findPlayerByName(targetName);
-        if (!targetPlayer) {
+        let targetId = targetPlayer?.id;
+        let displayName = targetPlayer?.name;
+
+        if (!targetId) {
+            targetId = getPlayerIdByName(targetName);
+            if (targetId) {
+                displayName = getPlayerNameById(targetId);
+            }
+        }
+
+        if (!targetId || !displayName) {
             sendMessage(`§cPlayer "${targetName}" not found.`);
             return;
         }
@@ -45,9 +62,14 @@ const setBalanceCommand: CustomCommand = {
             return;
         }
 
-        setPlayerBalance(targetPlayer.id, amount);
-        sendMessage(`§aSuccessfully set ${targetPlayer.name}'s balance to §e${formatCurrency(amount)}§a.`);
-        sendMessage(`§aYour balance has been set to §e${formatCurrency(amount)}§a by an administrator.`, targetPlayer);
+        setPlayerBalance(targetId, amount);
+        sendMessage(`§aSuccessfully set ${displayName}'s balance to §e${formatCurrency(amount)}§a.`);
+        if (targetPlayer) {
+            sendMessage(
+                `§aYour balance has been set to §e${formatCurrency(amount)}§a by an administrator.`,
+                targetPlayer
+            );
+        }
     }
 };
 
@@ -66,8 +88,19 @@ const addBalanceCommand: CustomCommand = {
         const targetName = args.target as string;
         const amountStr = args.amount as string;
 
+        // Resolve Target
         const targetPlayer = findPlayerByName(targetName);
-        if (!targetPlayer) {
+        let targetId = targetPlayer?.id;
+        let displayName = targetPlayer?.name;
+
+        if (!targetId) {
+            targetId = getPlayerIdByName(targetName);
+            if (targetId) {
+                displayName = getPlayerNameById(targetId);
+            }
+        }
+
+        if (!targetId || !displayName) {
             sendMessage(`§cPlayer "${targetName}" not found.`);
             return;
         }
@@ -92,12 +125,18 @@ const addBalanceCommand: CustomCommand = {
             return;
         }
 
-        incrementPlayerBalance(targetPlayer.id, amount);
-        const pData = getOrCreatePlayer(targetPlayer);
+        incrementPlayerBalance(targetId, amount);
+
+        // Retrieve new balance for display
+        const pData = loadPlayerData(targetId);
+        const newBalance = pData ? pData.balance : 0;
+
         sendMessage(
-            `§aSuccessfully added §e${formatCurrency(amount)}§a to ${targetPlayer.name}'s balance. New balance: §e${formatCurrency(pData.balance)}§a.`
+            `§aSuccessfully added §e${formatCurrency(amount)}§a to ${displayName}'s balance. New balance: §e${formatCurrency(newBalance)}§a.`
         );
-        sendMessage(`§aAn administrator has added §e${formatCurrency(amount)}§a to your balance.`, targetPlayer);
+        if (targetPlayer) {
+            sendMessage(`§aAn administrator has added §e${formatCurrency(amount)}§a to your balance.`, targetPlayer);
+        }
     }
 };
 
@@ -116,8 +155,19 @@ const removeBalanceCommand: CustomCommand = {
         const targetName = args.target as string;
         const amountStr = args.amount as string;
 
+        // Resolve Target
         const targetPlayer = findPlayerByName(targetName);
-        if (!targetPlayer) {
+        let targetId = targetPlayer?.id;
+        let displayName = targetPlayer?.name;
+
+        if (!targetId) {
+            targetId = getPlayerIdByName(targetName);
+            if (targetId) {
+                displayName = getPlayerNameById(targetId);
+            }
+        }
+
+        if (!targetId || !displayName) {
             sendMessage(`§cPlayer "${targetName}" not found.`);
             return;
         }
@@ -142,20 +192,35 @@ const removeBalanceCommand: CustomCommand = {
             return;
         }
 
-        const pData = getOrCreatePlayer(targetPlayer);
+        const pData = loadPlayerData(targetId);
+        if (!pData) {
+            sendMessage(`§cFailed to load data for ${displayName}.`);
+            return;
+        }
+
         if (pData.balance < amount) {
             sendMessage(
-                `§cCannot remove §e${formatCurrency(amount)}§c. ${targetPlayer.name}'s balance is only §e${formatCurrency(pData.balance)}§c.`
+                `§cCannot remove §e${formatCurrency(amount)}§c. ${displayName}'s balance is only §e${formatCurrency(pData.balance)}§c.`
             );
             return;
         }
 
-        incrementPlayerBalance(targetPlayer.id, -amount);
-        const newPData = getOrCreatePlayer(targetPlayer);
+        incrementPlayerBalance(targetId, -amount);
+        // pData is stale now, reload or calculate? incrementPlayerBalance updates storage.
+        // But loadPlayerData(targetId) returns the *cached* object if it exists.
+        // Since incrementPlayerBalance updates the *cached* object (if cached) or loads/updates/saves (if offline).
+        // If offline, incrementPlayerBalance unloads it. So loadPlayerData will load fresh from disk.
+        // If online, it returns the reference which was updated.
+        // So reloading is safe.
+        const newPData = loadPlayerData(targetId);
+        const newBalance = newPData ? newPData.balance : 0;
+
         sendMessage(
-            `§aSuccessfully removed §e${formatCurrency(amount)}§a from ${targetPlayer.name}'s balance. New balance: §e${formatCurrency(newPData.balance)}§a.`
+            `§aSuccessfully removed §e${formatCurrency(amount)}§a from ${displayName}'s balance. New balance: §e${formatCurrency(newBalance)}§a.`
         );
-        sendMessage(`§cAn administrator has removed §e${formatCurrency(amount)}§c from your balance.`, targetPlayer);
+        if (targetPlayer) {
+            sendMessage(`§cAn administrator has removed §e${formatCurrency(amount)}§c from your balance.`, targetPlayer);
+        }
     }
 };
 

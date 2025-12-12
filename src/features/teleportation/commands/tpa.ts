@@ -5,7 +5,13 @@ import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
-import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '@core/playerDataManager.js';
+import {
+    addTpaBlockedPlayer,
+    getPlayerIdByName,
+    getPlayerNameById,
+    removeTpaBlockedPlayer,
+    setTpaRequestsDisabled
+} from '@core/playerDataManager.js';
 import { playSound } from '@core/utils.js';
 
 import {
@@ -266,13 +272,26 @@ const tpaStopCommand: CustomCommand = {
         const targetName = typedArgs.player;
 
         if (targetName) {
+            let targetId: string | undefined;
+            let displayName = targetName;
+
             const target = findPlayerByName(targetName);
-            if (!target) {
+            if (target) {
+                targetId = target.id;
+                displayName = target.name;
+            } else {
+                targetId = getPlayerIdByName(targetName);
+                if (targetId) {
+                    displayName = getPlayerNameById(targetId) || targetName;
+                }
+            }
+
+            if (!targetId) {
                 sendMessage('§cPlayer not found.', executor);
                 return;
             }
-            addTpaBlockedPlayer(executor.id, target.id);
-            sendMessage(`§aYou have blocked ${target.name} from sending you TPA requests.`, executor);
+            addTpaBlockedPlayer(executor.id, targetId);
+            sendMessage(`§aYou have blocked ${displayName} from sending you TPA requests.`, executor);
         } else {
             setTpaRequestsDisabled(executor.id, true);
             sendMessage('§aYou have disabled all incoming TPA requests.', executor);
@@ -295,13 +314,26 @@ const tpaStartCommand: CustomCommand = {
         const targetName = typedArgs.player;
 
         if (targetName) {
+            let targetId: string | undefined;
+            let displayName = targetName;
+
             const target = findPlayerByName(targetName);
-            if (!target) {
+            if (target) {
+                targetId = target.id;
+                displayName = target.name;
+            } else {
+                targetId = getPlayerIdByName(targetName);
+                if (targetId) {
+                    displayName = getPlayerNameById(targetId) || targetName;
+                }
+            }
+
+            if (!targetId) {
                 sendMessage('§cPlayer not found.', executor);
                 return;
             }
-            removeTpaBlockedPlayer(executor.id, target.id);
-            sendMessage(`§aYou have unblocked ${target.name}. They can now send you TPA requests.`, executor);
+            removeTpaBlockedPlayer(executor.id, targetId);
+            sendMessage(`§aYou have unblocked ${displayName}. They can now send you TPA requests.`, executor);
         } else {
             setTpaRequestsDisabled(executor.id, false);
             sendMessage('§aYou have enabled all incoming TPA requests.', executor);

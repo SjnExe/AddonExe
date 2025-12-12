@@ -408,6 +408,15 @@ export function getPlayerIdByName(playerName: string): string | undefined {
 }
 
 /**
+ * Gets a player's name from their ID via the lookup map.
+ * @param playerId The ID of the player.
+ * @returns The player's name, or undefined if not found.
+ */
+export function getPlayerNameById(playerId: string): string | undefined {
+    return playerIdNameMap.get(playerId);
+}
+
+/**
  * Gets a player's data from the in-memory cache.
  * @param playerId
  */
@@ -663,7 +672,8 @@ export function transfer(
     if (sourceData.balance < amount) {
         return { success: false, message: 'You do not have enough money for this transaction.' };
     }
-    const targetData = getPlayer(targetPlayerId);
+    // Verify target exists (offline ok)
+    const targetData = loadPlayerData(targetPlayerId);
     if (!targetData) {
         return { success: false, message: "Could not find the target player's data." };
     }

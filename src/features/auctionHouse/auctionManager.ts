@@ -5,10 +5,7 @@ import { deserializeItem, SerializedItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import {
     getOrCreatePlayer,
-    getPlayer,
     incrementPlayerBalance,
-    loadPlayerData,
-    savePlayerData,
     updatePlayerData
 } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
@@ -269,40 +266,18 @@ function checkExpiredAuctions() {
 // --- Helpers ---
 
 function sendMoneyToPlayer(playerId: string, amount: number) {
-    // Try online first
-    if (getPlayer(playerId)) {
-        incrementPlayerBalance(playerId, amount);
-        return;
-    }
-    // Offline update
-    const pData = loadPlayerData(playerId);
-    if (pData) {
-        updatePlayerData(playerId, (d) => {
-            d.balance += amount;
-        });
-        savePlayerData(playerId); // Force save to disk
-    } else {
-        errorLog(`[AH] Failed to send money to unknown player ${playerId}`);
-    }
+    incrementPlayerBalance(playerId, amount);
 }
 
 function addItemToMailbox(playerId: string, item: SerializedItem) {
-    // Try online first
-    if (getPlayer(playerId)) {
-        updatePlayerData(playerId, (d) => {
-            d.mailbox.push(item);
-        });
-        const player = mc.world.getAllPlayers().find((p) => p.id === playerId);
-        if (player) player.sendMessage('§eYou have new items in your Collection Bin (/ah collect).');
-        return;
-    }
-    // Offline
-    const pData = loadPlayerData(playerId);
-    if (pData) {
-        updatePlayerData(playerId, (d) => {
-            d.mailbox.push(item);
-        });
-        savePlayerData(playerId);
+    updatePlayerData(playerId, (d) => {
+        d.mailbox.push(item);
+    });
+
+    // Notify if online
+    const player = mc.world.getAllPlayers().find((p) => p.id === playerId);
+    if (player) {
+        player.sendMessage('§eYou have new items in your Collection Bin (/ah collect).');
     }
 }
 
