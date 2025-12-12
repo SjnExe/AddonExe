@@ -102,14 +102,30 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
 /**
  * A generic function to update a player's data. It handles getting the data,
  * running a modification callback, and saving the data.
+ * Supports updating offline players by temporarily loading their data.
  * @param playerId The ID of the player to update.
  * @param modificationCallback A callback that receives the player data and modifies it.
  */
 export function updatePlayerData(playerId: string, modificationCallback: (pData: PlayerData) => void) {
-    const pData = getPlayer(playerId);
+    let pData = activePlayerData.get(playerId);
+    let wasCached = true;
+
+    if (!pData) {
+        wasCached = false;
+        pData = loadPlayerData(playerId) || undefined;
+    }
+
     if (pData) {
         modificationCallback(pData);
-        pData.needsSave = true; // Mark as dirty
+        if (wasCached) {
+            pData.needsSave = true; // Mark as dirty for auto-save
+        } else {
+            // For offline players, save immediately and remove from cache to prevent memory leaks
+            savePlayerData(playerId);
+            activePlayerData.delete(playerId);
+        }
+    } else {
+        errorLog(`[PlayerDataManager] Failed to update data for player ${playerId}: Not found.`);
     }
 }
 
