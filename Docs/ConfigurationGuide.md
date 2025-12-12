@@ -18,22 +18,25 @@ The addon's configuration is split across several files, each with a specific pu
 Follow these steps to gain administrative control of the addon.
 
 ### 1. Set the Server Owner(s)
+
 - **File:** `packs/behavior/scripts/config.js`
 - **Action:** Find `ownerPlayerNames` and add your **exact** in-game name (case-sensitive).
-  ```javascript
-  // Example in packs/behavior/scripts/config.js
-  ownerPlayerNames: ['YourExactPlayerName', 'AnotherOwnerName'],
-  ```
+    ```javascript
+    // Example in packs/behavior/scripts/config.js
+    ownerPlayerNames: ['YourExactPlayerName', 'AnotherOwnerName'],
+    ```
 - **Applying Changes:** After editing `config.js`, simply run `/xreload` in-game as an Admin. A full server restart is no longer required for most config changes.
 - **➡️ For a summary, see the [F.A.Q.](F.A.Q.md#how-do-i-change-the-server-owner)**
 
 ### 2. Set Server Admins (Optional)
+
 - **File:** `packs/behavior/scripts/config.js`
 - **Action:** The `adminTag` setting (default: `"admin"`) determines who gets the Admin rank.
 - **Usage:** To make someone an admin, give them the tag: `/tag "PlayerName" add admin`.
 - **➡️ For a summary, see the [F.A.Q.](F.A.Q.md#how-do-i-make-myself-an-admin)**
 
 ### 3. Configure Ranks and Permissions
+
 For more advanced control over permissions and visual styles, you can edit the ranks file.
 
 - **File:** `packs/behavior/scripts/core/ranksConfig.js`
@@ -50,6 +53,7 @@ AddonExe features a smart reloading system to apply configuration changes withou
 - **Permission:** Admin
 
 ### How it Works
+
 The addon uses a two-state configuration system to prevent accidental loss of in-game changes (like a player's balance set via a command).
 
 1.  **Live Config:** This is the configuration currently being used by the addon. It can be modified by in-game commands.
@@ -57,8 +61,8 @@ The addon uses a two-state configuration system to prevent accidental loss of in
 
 When you run `/xreload`, the addon compares the current `config.js` file on disk to the `Last Loaded Config`.
 
--   **If a setting has been changed in the file:** The addon will update the live config with the new value from the file. This means changes in the file always take priority.
--   **If a setting has NOT been changed in the file:** The addon will leave the live config value untouched, preserving any changes made through in-game commands.
+- **If a setting has been changed in the file:** The addon will update the live config with the new value from the file. This means changes in the file always take priority.
+- **If a setting has NOT been changed in the file:** The addon will leave the live config value untouched, preserving any changes made through in-game commands.
 
 After the reload, a new snapshot is taken, and the process repeats on the next `/xreload`.
 
@@ -70,117 +74,126 @@ After the reload, a new snapshot is taken, and the process repeats on the next `
 ## 📄 Core Configuration Files
 
 ### `config.js` - The Main Hub
+
 This is the primary file for most top-level settings. **Changes to this file can be reloaded with `/xreload`**.
 
 - **File:** `packs/behavior/scripts/config.js`
 - **Purpose:**
-  - Define `ownerPlayerNames` and the `adminTag`.
-  - Enable or disable major systems (`tpa.enabled`, `homes.enabled`, `economy.enabled`, etc.).
-  - Set the global chat command `prefix` (default: `!`).
-  - Configure server features like starting economy balance, max homes, or welcome messages.
-  - Customize server info like Discord links and rules.
-  - Toggle individual commands on or off in the `commandSettings` section.
+    - Define `ownerPlayerNames` and the `adminTag`.
+    - Enable or disable major systems (`tpa.enabled`, `homes.enabled`, `economy.enabled`, etc.).
+    - Set the global chat command `prefix` (default: `!`).
+    - Configure server features like starting economy balance, max homes, or welcome messages.
+    - Customize server info like Discord links and rules.
+    - Toggle individual commands on or off in the `commandSettings` section.
 
 #### TPA System (`tpa`)
+
 - **Description:** Manages the player-to-player teleportation request system.
 - **Settings:**
-  - `enabled` (boolean): Toggles the entire TPA feature suite (`/tpa`, `/tpahere`, `/tpaccept`, etc.).
-  - `requestTimeoutSeconds` (number): How long (in seconds) a player has to accept a TPA request before it expires.
-  - `cooldownSeconds` (number): The time a player must wait after a successful teleport before sending a new `/tpa` or `/tpahere` request.
-  - `teleportWarmupSeconds` (number): The time a player must stand still after a TPA request is accepted before they are teleported.
+    - `enabled` (boolean): Toggles the entire TPA feature suite (`/tpa`, `/tpahere`, `/tpaccept`, etc.).
+    - `requestTimeoutSeconds` (number): How long (in seconds) a player has to accept a TPA request before it expires.
+    - `cooldownSeconds` (number): The time a player must wait after a successful teleport before sending a new `/tpa` or `/tpahere` request.
+    - `teleportWarmupSeconds` (number): The time a player must stand still after a TPA request is accepted before they are teleported.
 
 #### Home System (`homes`)
+
 - **Description:** Configures the personal home system for players.
 - **Settings:**
-  - `enabled` (boolean): Toggles the home system commands (`/home`, `/sethome`, etc.).
-  - `maxHomes` (number): The maximum number of homes a player can set.
-  - `cooldownSeconds` (number): The time a player must wait after using `/home` before they can use it again.
-  - `teleportWarmupSeconds` (number): The time a player must stand still before teleporting to their home.
+    - `enabled` (boolean): Toggles the home system commands (`/home`, `/sethome`, etc.).
+    - `maxHomes` (number): The maximum number of homes a player can set.
+    - `cooldownSeconds` (number): The time a player must wait after using `/home` before they can use it again.
+    - `teleportWarmupSeconds` (number): The time a player must stand still before teleporting to their home.
 
 #### Random Teleport (`rtp`)
+
 - **Description:** Configures the `/rtp` command for random, safe teleportation.
 - **Settings:**
-  - `enabled` (boolean): Toggles the `/rtp` command.
-  - `minRange` (number): The minimum distance (in blocks) a player will be teleported.
-  - `maxRange` (number): The maximum distance (in blocks) a player can be teleported.
-  - `cooldownSeconds` (number): The time a player must wait after a successful teleport before using `/rtp` again.
-  - `teleportWarmupSeconds` (number): The time a player must stand still before being teleported.
+    - `enabled` (boolean): Toggles the `/rtp` command.
+    - `minRange` (number): The minimum distance (in blocks) a player will be teleported.
+    - `maxRange` (number): The maximum distance (in blocks) a player can be teleported.
+    - `cooldownSeconds` (number): The time a player must wait after a successful teleport before using `/rtp` again.
+    - `teleportWarmupSeconds` (number): The time a player must stand still before being teleported.
 
 #### Dimension Locking (`dimensionLock`)
+
 - **Description:** Configures the dimension locking feature.
 - **Settings:**
-  - `allowAdminBypass` (boolean): If `true`, players with admin permissions can enter locked dimensions. If `false`, the lock applies to everyone.
+    - `allowAdminBypass` (boolean): If `true`, players with admin permissions can enter locked dimensions. If `false`, the lock applies to everyone.
 
 ### `ranksConfig.js` - Ranks & Permissions
+
 This file defines the entire hierarchy of roles on your server. **Requires a server restart to apply changes.**
 
 - **File:** `packs/behavior/scripts/core/ranksConfig.js`
 - **Purpose:**
-  - Define all available ranks (e.g., Owner, Admin, Member, custom ranks).
-  - Set the `permissionLevel` for each rank, which controls access to commands.
-  - Customize the visual `chatFormatting` (prefix, name color) for each rank.
-  - Set a `nametagPrefix` for each rank.
-  - Define the `conditions` for how a rank is assigned (e.g., based on the `ownerPlayerNames` list, the `adminTag`, or being the default).
+    - Define all available ranks (e.g., Owner, Admin, Member, custom ranks).
+    - Set the `permissionLevel` for each rank, which controls access to commands.
+    - Customize the visual `chatFormatting` (prefix, name color) for each rank.
+    - Set a `nametagPrefix` for each rank.
+    - Define the `conditions` for how a rank is assigned (e.g., based on the `ownerPlayerNames` list, the `adminTag`, or being the default).
 
 ### `panelLayoutConfig.js` - Admin Panel UI
+
 This file controls the layout, buttons, and actions of the `/panel` user interface. **Requires a server restart to apply changes.**
 
 - **File:** `packs/behavior/scripts/core/panelLayoutConfig.js`
 - **Purpose:**
-  - Add, remove, or reorder categories and buttons.
-  - Change button text, icons, and required permission levels.
-  - Link buttons to specific actions (like running a command or opening another panel).
+    - Add, remove, or reorder categories and buttons.
+    - Change button text, icons, and required permission levels.
+    - Link buttons to specific actions (like running a command or opening another panel).
 
 ### Kit System Configuration
+
 The kit system is configured through a combination of a master file (`kitsConfig.js`) and an in-game management panel.
 
 - **`kitsConfig.js` - Master Kit List**
-  - This file defines all possible kits that can be available. It serves as a master list that populates the in-game "Kit Management" panel. You should edit this file to add new kits or change the items within a kit. **Requires a server restart to apply changes.**
-  - **File:** `packs/behavior/scripts/core/kitsConfig.js`
-  - **Purpose:**
-    - Define a comprehensive list of all kits you want on your server.
-    - For each kit, you define the `items` it contains. The `enabled` status, `cooldownSeconds`, and `permissionLevel` in this file act as the defaults for when a kit is first loaded.
-  - **Note:** While you can define kits here, managing their live properties (like enabling/disabling, cooldowns, and permissions) is done in-game.
+    - This file defines all possible kits that can be available. It serves as a master list that populates the in-game "Kit Management" panel. You should edit this file to add new kits or change the items within a kit. **Requires a server restart to apply changes.**
+    - **File:** `packs/behavior/scripts/core/kitsConfig.js`
+    - **Purpose:**
+        - Define a comprehensive list of all kits you want on your server.
+        - For each kit, you define the `items` it contains. The `enabled` status, `cooldownSeconds`, and `permissionLevel` in this file act as the defaults for when a kit is first loaded.
+    - **Note:** While you can define kits here, managing their live properties (like enabling/disabling, cooldowns, and permissions) is done in-game.
 
 - **In-Game Kit Management**
-  - The live settings for kits are configured in-game by an admin. This allows for live updates without restarting the server.
-  - **Command:** `/panel` -> "Config" -> "§l§dKit System§r"
-  - **Permission:** Admin
-  - **How it Works:**
-    - Admins can see a list of all kits defined in `kitsConfig.js`.
-    - For each kit, an admin can set:
-      - **Enabled/Disabled:** Toggles whether the kit can be claimed.
-      - **Cooldown (seconds):** The time a player must wait between claims.
-      - **Permission Level:** The minimum permission level a player must have to claim the kit (e.g., `0` for Owner, `1` for Admin, `1024` for all Members).
+    - The live settings for kits are configured in-game by an admin. This allows for live updates without restarting the server.
+    - **Command:** `/panel` -> "Config" -> "§l§dKit System§r"
+    - **Permission:** Admin
+    - **How it Works:**
+        - Admins can see a list of all kits defined in `kitsConfig.js`.
+        - For each kit, an admin can set:
+            - **Enabled/Disabled:** Toggles whether the kit can be claimed.
+            - **Cooldown (seconds):** The time a player must wait between claims.
+            - **Permission Level:** The minimum permission level a player must have to claim the kit (e.g., `0` for Owner, `1` for Admin, `1024` for all Members).
 
 ### Shop System Configuration
+
 The shop system is configured through a combination of files and in-game actions.
 
 - **`itemsConfig.js` - Master Shop Item List**
-  - This file defines all possible items that can be sold in the shop. It serves as a master list from which admins can enable items. **Requires a server restart to apply changes.**
-  - **File:** `packs/behavior/scripts/core/itemsConfig.js`
-  - **Purpose:**
-    - Define a comprehensive list of all items you might ever want to sell.
-    - For each item, you can set a default buy price, sell price, category, and icon.
-    - Enchanted books can be defined with their specific enchantment type and level.
-  - **Note:** This file only defines what *can* be in the shop. To actually make an item available for players to buy or sell, an admin must enable it through the in-game "Edit Shop" panel.
+    - This file defines all possible items that can be sold in the shop. It serves as a master list from which admins can enable items. **Requires a server restart to apply changes.**
+    - **File:** `packs/behavior/scripts/core/itemsConfig.js`
+    - **Purpose:**
+        - Define a comprehensive list of all items you might ever want to sell.
+        - For each item, you can set a default buy price, sell price, category, and icon.
+        - Enchanted books can be defined with their specific enchantment type and level.
+    - **Note:** This file only defines what _can_ be in the shop. To actually make an item available for players to buy or sell, an admin must enable it through the in-game "Edit Shop" panel.
 
 - **`shopCategoryConfig.js` - Shop Category Icons**
-  - This file defines the icons used for each category and sub-category in the shop UI. **Requires a server restart to apply changes.**
-  - **File:** `packs/behavior/scripts/core/shopCategoryConfig.js`
-  - **Purpose:**
-    - Assign a specific texture path to each category name (e.g., 'Building Blocks', 'Ores & Minerals').
+    - This file defines the icons used for each category and sub-category in the shop UI. **Requires a server restart to apply changes.**
+    - **File:** `packs/behavior/scripts/core/shopCategoryConfig.js`
+    - **Purpose:**
+        - Assign a specific texture path to each category name (e.g., 'Building Blocks', 'Ores & Minerals').
 
 - **In-Game Shop Management**
-  - Unlike other systems, the shop's active inventory and prices are configured entirely in-game by an admin. This allows for live updates without restarting the server.
-  - **Command:** `/panel` -> "Edit Shop" button
-  - **Permission:** Admin
-  - **How it Works:**
-    - Admins can browse all items defined in `itemsConfig.js` through a categorized UI.
-    - For each item, an admin can:
-      - **Toggle it on/off:** An item must be enabled to appear in the player-facing shop.
-      - **Set Buy/Sell Prices:** Admins can override the default prices from `itemsConfig.js`. Setting a price to `0` or `-1` will disable the buy or sell option for that item, respectively.
-  - **Data Persistence:** The shop configuration is saved to the world's data and will persist across server restarts. The loading system is also designed to preserve your shop setup even when the addon is updated.
+    - Unlike other systems, the shop's active inventory and prices are configured entirely in-game by an admin. This allows for live updates without restarting the server.
+    - **Command:** `/panel` -> "Edit Shop" button
+    - **Permission:** Admin
+    - **How it Works:**
+        - Admins can browse all items defined in `itemsConfig.js` through a categorized UI.
+        - For each item, an admin can:
+            - **Toggle it on/off:** An item must be enabled to appear in the player-facing shop.
+            - **Set Buy/Sell Prices:** Admins can override the default prices from `itemsConfig.js`. Setting a price to `0` or `-1` will disable the buy or sell option for that item, respectively.
+    - **Data Persistence:** The shop configuration is saved to the world's data and will persist across server restarts. The loading system is also designed to preserve your shop setup even when the addon is updated.
 
 > [!IMPORTANT]
 > **Cheat Detection Configuration Coming Soon**

@@ -1,8 +1,8 @@
+import chokidar from 'chokidar';
 import esbuild from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import chokidar from 'chokidar';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -122,7 +122,9 @@ async function build() {
 
             watcher.on('change', async (filePath) => {
                 // Find which config entry matches
-                const configEntry = configsToCompile.find((c) => path.resolve(__dirname, c.src) === path.resolve(filePath));
+                const configEntry = configsToCompile.find(
+                    (c) => path.resolve(__dirname, c.src) === path.resolve(filePath)
+                );
                 if (configEntry) {
                     console.log(`Config changed: ${configEntry.src}, recompiling...`);
                     await compileConfig(configEntry);

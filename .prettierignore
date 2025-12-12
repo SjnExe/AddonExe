@@ -1,7 +1,3 @@
 # Ignore files and directories that should not be formatted
-.github/
 Dev/
-Docs/
-README.md
 prompt.md
-agents.md

@@ -1,126 +1,126 @@
 name: Release mcaddon
 on:
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+*"
+    push:
+        tags:
+            - 'v[0-9]+.[0-9]+.[0-9]+*'
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+    build:
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
 
-      - name: Set up Node.js and cache npm dependencies
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20'
-          cache: 'npm'
+            - name: Set up Node.js and cache npm dependencies
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '20'
+                  cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Extract version from tag
-        shell: bash
-        run: |
-          set -e
-          RAW_TAG_NAME="${{ github.ref_name }}"
-          echo "FULL_TAG_NAME=$RAW_TAG_NAME" >> $GITHUB_ENV
+            - name: Extract version from tag
+              shell: bash
+              run: |
+                  set -e
+                  RAW_TAG_NAME="${{ github.ref_name }}"
+                  echo "FULL_TAG_NAME=$RAW_TAG_NAME" >> $GITHUB_ENV
 
-          # Check for -beta suffix
-          IS_BETA="false"
-          if [[ "$RAW_TAG_NAME" == *"-beta" ]]; then
-            IS_BETA="true"
-          fi
-          echo "IS_BETA_RELEASE=$IS_BETA" >> $GITHUB_ENV
+                  # Check for -beta suffix
+                  IS_BETA="false"
+                  if [[ "$RAW_TAG_NAME" == *"-beta" ]]; then
+                    IS_BETA="true"
+                  fi
+                  echo "IS_BETA_RELEASE=$IS_BETA" >> $GITHUB_ENV
 
-          # Strip 'v' prefix and '-beta' suffix to get the clean version string
-          VERSION_STR="${RAW_TAG_NAME#v}"
-          VERSION_STR="${VERSION_STR%-beta}"
-          echo "VERSION_STRING=$VERSION_STR" >> $GITHUB_ENV
+                  # Strip 'v' prefix and '-beta' suffix to get the clean version string
+                  VERSION_STR="${RAW_TAG_NAME#v}"
+                  VERSION_STR="${VERSION_STR%-beta}"
+                  echo "VERSION_STRING=$VERSION_STR" >> $GITHUB_ENV
 
-          # Create version array string
-          VERSION_ARR_STR="[$(echo "$VERSION_STR" | tr '.' ',')]"
-          echo "VERSION_ARRAY_STRING=$VERSION_ARR_STR" >> $GITHUB_ENV
+                  # Create version array string
+                  VERSION_ARR_STR="[$(echo "$VERSION_STR" | tr '.' ',')]"
+                  echo "VERSION_ARRAY_STRING=$VERSION_ARR_STR" >> $GITHUB_ENV
 
-          echo "Full tag: $RAW_TAG_NAME"
-          echo "Is Beta: $IS_BETA"
-          echo "Clean Version String: $VERSION_STR"
-          echo "Version Array String: $VERSION_ARR_STR"
+                  echo "Full tag: $RAW_TAG_NAME"
+                  echo "Is Beta: $IS_BETA"
+                  echo "Clean Version String: $VERSION_STR"
+                  echo "Version Array String: $VERSION_ARR_STR"
 
-      - name: Prepare Release (Update Source)
-        shell: bash
-        env:
-          VERSION_STRING: ${{ env.VERSION_STRING }}
-          VERSION_ARRAY_STRING: ${{ env.VERSION_ARRAY_STRING }}
-          IS_BETA_RELEASE: ${{ env.IS_BETA_RELEASE }}
-        run: |
-          set -e
-          node scripts/prepare-release.js
+            - name: Prepare Release (Update Source)
+              shell: bash
+              env:
+                  VERSION_STRING: ${{ env.VERSION_STRING }}
+                  VERSION_ARRAY_STRING: ${{ env.VERSION_ARRAY_STRING }}
+                  IS_BETA_RELEASE: ${{ env.IS_BETA_RELEASE }}
+              run: |
+                  set -e
+                  node scripts/prepare-release.js
 
-          echo "--- Verification ---"
-          echo "BP Manifest:"
-          cat packs/behavior/manifest.json
-          echo "RP Manifest:"
-          cat packs/resource/manifest.json
-          echo "Config Source:"
-          if [ -f "src/config.ts" ]; then
-            head -n 15 src/config.ts
-          elif [ -f "src/config.default.ts" ]; then
-            head -n 15 src/config.default.ts
-          else
-            echo "Error: No config file found."
-            exit 1
-          fi
-          echo "--- End Verification ---"
+                  echo "--- Verification ---"
+                  echo "BP Manifest:"
+                  cat packs/behavior/manifest.json
+                  echo "RP Manifest:"
+                  cat packs/resource/manifest.json
+                  echo "Config Source:"
+                  if [ -f "src/config.ts" ]; then
+                    head -n 15 src/config.ts
+                  elif [ -f "src/config.default.ts" ]; then
+                    head -n 15 src/config.default.ts
+                  else
+                    echo "Error: No config file found."
+                    exit 1
+                  fi
+                  echo "--- End Verification ---"
 
-      - name: Cache TypeScript Build Info
-        uses: actions/cache@v5
-        with:
-          path: tsconfig.tsbuildinfo
-          key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-tsbuildinfo-
+            - name: Cache TypeScript Build Info
+              uses: actions/cache@v5
+              with:
+                  path: tsconfig.tsbuildinfo
+                  key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-tsbuildinfo-
 
-      - name: Build TypeScript
-        run: npm run build
+            - name: Build TypeScript
+              run: npm run build
 
-      - name: Process Config Files
-        run: node scripts/finalize-build.js
+            - name: Process Config Files
+              run: node scripts/finalize-build.js
 
-      - name: Create staging directory and copy addon folders
-        run: |
-          set -e
-          mkdir staging
-          cp -r packs/behavior staging/
-          cp -r packs/resource staging/
+            - name: Create staging directory and copy addon folders
+              run: |
+                  set -e
+                  mkdir staging
+                  cp -r packs/behavior staging/
+                  cp -r packs/resource staging/
 
-          # Remove source map files from staging to reduce package size
-          find staging -name "*.map" -type f -delete
+                  # Remove source map files from staging to reduce package size
+                  find staging -name "*.map" -type f -delete
 
-      - name: Create Release Archives
-        shell: bash
-        env:
-          FULL_TAG_NAME: ${{ env.FULL_TAG_NAME }}
-        run: |
-          set -e
-          # Create main .mcaddon with max compression
-          (cd staging && zip -r -9 "../AddonExe.${FULL_TAG_NAME}.mcaddon" ./*)
+            - name: Create Release Archives
+              shell: bash
+              env:
+                  FULL_TAG_NAME: ${{ env.FULL_TAG_NAME }}
+              run: |
+                  set -e
+                  # Create main .mcaddon with max compression
+                  (cd staging && zip -r -9 "../AddonExe.${FULL_TAG_NAME}.mcaddon" ./*)
 
-          # Create BP .mcpack with max compression
-          (cd staging/behavior && zip -r -9 "../../AddonExe.BP${FULL_TAG_NAME}.mcpack" ./*)
+                  # Create BP .mcpack with max compression
+                  (cd staging/behavior && zip -r -9 "../../AddonExe.BP${FULL_TAG_NAME}.mcpack" ./*)
 
-          # Create RP .mcpack with max compression
-          (cd staging/resource && zip -r -9 "../../AddonExe.RP${FULL_TAG_NAME}.mcpack" ./*)
-          echo "Created release archives with maximum compression."
+                  # Create RP .mcpack with max compression
+                  (cd staging/resource && zip -r -9 "../../AddonExe.RP${FULL_TAG_NAME}.mcpack" ./*)
+                  echo "Created release archives with maximum compression."
 
-      - name: Upload Release Assets
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          files: |
-            ./AddonExe.${{ env.FULL_TAG_NAME }}.mcaddon
-            ./AddonExe.BP${{ env.FULL_TAG_NAME }}.mcpack
-            ./AddonExe.RP${{ env.FULL_TAG_NAME }}.mcpack
+            - name: Upload Release Assets
+              uses: softprops/action-gh-release@v2
+              with:
+                  generate_release_notes: true
+                  files: |
+                      ./AddonExe.${{ env.FULL_TAG_NAME }}.mcaddon
+                      ./AddonExe.BP${{ env.FULL_TAG_NAME }}.mcpack
+                      ./AddonExe.RP${{ env.FULL_TAG_NAME }}.mcpack

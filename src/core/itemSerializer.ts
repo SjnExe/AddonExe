@@ -23,6 +23,10 @@ export interface SerializedItem {
     canPlaceOn?: string[];
 }
 
+interface ItemLockComponent extends mc.ItemComponent {
+    mode: string;
+}
+
 /**
  * Serializes an ItemStack into a JSON-compatible object.
  * Warning: Does not support container contents (Shulker Boxes).
@@ -74,11 +78,8 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     // We check existence.
     // As of latest beta, ItemLockComponent has 'mode'.
     try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-        const lock = itemStack.getComponent('minecraft:item_lock') as any;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const lock = itemStack.getComponent('minecraft:item_lock') as unknown as ItemLockComponent;
         if (lock && lock.mode) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             serialized.lockMode = String(lock.mode);
         }
     } catch {
@@ -166,10 +167,8 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | null {
         // Lock Mode
         if (data.lockMode) {
             try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-                const lock = itemStack.getComponent('minecraft:item_lock') as any;
+                const lock = itemStack.getComponent('minecraft:item_lock') as unknown as ItemLockComponent;
                 if (lock) {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     lock.mode = data.lockMode;
                 }
             } catch {

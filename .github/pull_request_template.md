@@ -1,13 +1,13 @@
 ---
 name: Pull Request
 about: Propose changes to the AddonExe
-title: "Brief description of changes (e.g., Fix: Resolve fly detection false positive)"
+title: 'Brief description of changes (e.g., Fix: Resolve fly detection false positive)'
 labels: ''
 assignees: ''
-
 ---
 
 **Description of Changes:**
+
 <!--
 Provide a detailed description of the changes introduced by this PR.
 What problem does it solve? How does it solve it?
@@ -16,12 +16,14 @@ Link to any related issues here, e.g., "Fixes #123".
 -->
 
 **How Has This Been Tested?**
+
 <!--
 Please describe the tests that you ran to verify your changes.
 Provide instructions so we can reproduce.
 -->
 
 **Checklist:**
+
 - [ ] I have read the **CONTRIBUTING.md** document.
 - [ ] My code follows the project's coding style and guidelines.
 - [ ] I have performed a self-review of my own code.

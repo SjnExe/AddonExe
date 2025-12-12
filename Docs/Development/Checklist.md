@@ -34,10 +34,10 @@ function formatDuration(ms) {
     let totalSeconds = Math.floor(ms / 1000);
 
     const days = Math.floor(totalSeconds / (hoursPerDay * minutesPerHour * secondsPerMinute));
-    totalSeconds %= (hoursPerDay * minutesPerHour * secondsPerMinute);
+    totalSeconds %= hoursPerDay * minutesPerHour * secondsPerMinute;
 
     const hours = Math.floor(totalSeconds / (minutesPerHour * secondsPerMinute));
-    totalSeconds %= (minutesPerHour * secondsPerMinute);
+    totalSeconds %= minutesPerHour * secondsPerMinute;
 
     const minutes = Math.floor(totalSeconds / secondsPerMinute);
     const seconds = totalSeconds % secondsPerMinute;
@@ -87,7 +87,11 @@ function _resetCheckFlags(pData, checkType, flagData, dependencies) {
     }
     pData.automodState[checkType] = { lastActionThreshold: 0, lastActionTimestamp: 0, lastActionedFlagCount: 0 };
     pData.isDirtyForSave = true;
-    playerUtils?.debugLog(`[AutoModManager] Reset flags for ${checkType} on ${pData.playerNameTag}.`, pData.playerNameTag, dependencies);
+    playerUtils?.debugLog(
+        `[AutoModManager] Reset flags for ${checkType} on ${pData.playerNameTag}.`,
+        pData.playerNameTag,
+        dependencies
+    );
 }
 
 /**
@@ -104,12 +108,20 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
     const { playerUtils, logManager, config: globalConfig, playerDataManager } = dependencies;
 
     if (!player.isValid()) {
-        playerUtils?.debugLog(`[AutoModManager] Aborted action '${actionType}' for ${pData.playerNameTag} because player became invalid.`, 'SystemWarn', dependencies);
+        playerUtils?.debugLog(
+            `[AutoModManager] Aborted action '${actionType}' for ${pData.playerNameTag} because player became invalid.`,
+            'SystemWarn',
+            dependencies
+        );
         return false;
     }
 
     const flagThresholdForRule = parameters.flagThresholdInternal || 0;
-    playerUtils?.debugLog(`[AutoModManager] Dispatching action '${actionType}' for ${player?.nameTag} due to ${checkType}. Rule Params: ${JSON.stringify(parameters)}`, player?.nameTag, dependencies);
+    playerUtils?.debugLog(
+        `[AutoModManager] Dispatching action '${actionType}' for ${player?.nameTag} due to ${checkType}. Rule Params: ${JSON.stringify(parameters)}`,
+        player?.nameTag,
+        dependencies
+    );
     let actionProcessed = false;
     let logDetails = '';
     let durationForLog = null;
@@ -125,10 +137,14 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
         duration: 'N/A',
         itemTypeId: parameters.itemToRemoveTypeId || 'N/A',
         itemQuantity: 0,
-        teleportCoordinates: 'N/A',
+        teleportCoordinates: 'N/A'
     };
-    const messageTemplate = parameters.messageTemplate || 'AutoMod Default: {actionType} for {checkType} on {playerName} (Flags: {flagCount}/{flagThreshold}).';
-    const adminMessageTemplate = parameters.adminMessageTemplate || 'AutoMod Action: {actionType} on §e{playerName}§r for §b{checkType}§r (Flags: §a{flagCount}/{flagThreshold}§r). Rule Threshold: §a{flagThreshold}§r. Duration: §b{duration}§r. Item: §a{itemTypeId}x{itemQuantity}§r. Coords: §a{teleportCoordinates}§r.';
+    const messageTemplate =
+        parameters.messageTemplate ||
+        'AutoMod Default: {actionType} for {checkType} on {playerName} (Flags: {flagCount}/{flagThreshold}).';
+    const adminMessageTemplate =
+        parameters.adminMessageTemplate ||
+        'AutoMod Action: {actionType} on §e{playerName}§r for §b{checkType}§r (Flags: §a{flagCount}/{flagThreshold}§r). Rule Threshold: §a{flagThreshold}§r. Duration: §b{duration}§r. Item: §a{itemTypeId}x{itemQuantity}§r. Coords: §a{teleportCoordinates}§r.';
     switch (actionType) {
         case 'warn': {
             const messageWarn = formatAutomodMessage(messageTemplate, baseMessageContext);
@@ -145,22 +161,51 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
                 actionProcessed = true;
                 playerUtils?.playSoundForEvent(player, 'automodActionTaken', dependencies);
             } catch (e) {
-                playerUtils?.debugLog(`[AutoModManager CRITICAL] Error kicking player ${player?.nameTag}: ${e.stack || e}`, player?.nameTag, dependencies);
+                playerUtils?.debugLog(
+                    `[AutoModManager CRITICAL] Error kicking player ${player?.nameTag}: ${e.stack || e}`,
+                    player?.nameTag,
+                    dependencies
+                );
                 logDetails = `Failed to kick player ${player?.nameTag}. Check: ${checkType}. Reason: '${kickReason}'. Error: ${e.message}`;
-                logManager?.addLog({ actionType: 'errorAutomodKick', adminName: 'AutoMod', targetName: player?.nameTag, reason: kickReason, details: `Error: ${e.message}`, checkType }, dependencies);
+                logManager?.addLog(
+                    {
+                        actionType: 'errorAutomodKick',
+                        adminName: 'AutoMod',
+                        targetName: player?.nameTag,
+                        reason: kickReason,
+                        details: `Error: ${e.message}`,
+                        checkType
+                    },
+                    dependencies
+                );
             }
             break;
         }
         case 'tempBan': {
             const durationStringTempBan = parameters?.duration || '5m';
             let parsedDurationMsTempBan = playerUtils?.parseDuration(durationStringTempBan);
-            if (parsedDurationMsTempBan === null || (parsedDurationMsTempBan <= 0 && parsedDurationMsTempBan !== Infinity)) {
-                playerUtils?.debugLog(`[AutoModManager] Invalid duration string '${durationStringTempBan}' for tempBan on ${player?.nameTag}. Defaulting to 5m.`, player?.nameTag, dependencies);
+            if (
+                parsedDurationMsTempBan === null ||
+                (parsedDurationMsTempBan <= 0 && parsedDurationMsTempBan !== Infinity)
+            ) {
+                playerUtils?.debugLog(
+                    `[AutoModManager] Invalid duration string '${durationStringTempBan}' for tempBan on ${player?.nameTag}. Defaulting to 5m.`,
+                    player?.nameTag,
+                    dependencies
+                );
                 parsedDurationMsTempBan = defaultAutomodTempbanDurationMs;
             }
             const friendlyDurationTempBan = formatDuration(parsedDurationMsTempBan);
             const banReasonForStorageTemp = `AutoMod ${checkType} - ${actionType} (${friendlyDurationTempBan})`;
-            const banSuccessTemp = playerDataManager?.addBan(player, parsedDurationMsTempBan, banReasonForStorageTemp, 'AutoMod', true, checkType, dependencies);
+            const banSuccessTemp = playerDataManager?.addBan(
+                player,
+                parsedDurationMsTempBan,
+                banReasonForStorageTemp,
+                'AutoMod',
+                true,
+                checkType,
+                dependencies
+            );
             if (banSuccessTemp) {
                 durationForLog = parsedDurationMsTempBan;
                 baseMessageContext.duration = friendlyDurationTempBan;
@@ -171,16 +216,44 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
                     logDetails = `Temp banned player for ${friendlyDurationTempBan}. Check: ${checkType}. Kick Reason: '${kickMsgTempBan}'. Stored Reason: ${banReasonForStorageTemp}`;
                     playerUtils?.playSoundForEvent(player, 'automodActionTaken', dependencies);
                 } catch (e) {
-                    playerUtils?.debugLog(`[AutoModManager CRITICAL] Error kicking player ${player?.nameTag} after tempBan: ${e.stack || e}`, player?.nameTag, dependencies);
+                    playerUtils?.debugLog(
+                        `[AutoModManager CRITICAL] Error kicking player ${player?.nameTag} after tempBan: ${e.stack || e}`,
+                        player?.nameTag,
+                        dependencies
+                    );
                     logDetails = `Temp banned player (kick failed). Duration: ${friendlyDurationTempBan}, Check: ${checkType}. Stored Reason: ${banReasonForStorageTemp}. Error: ${e.message}`;
-                    logManager?.addLog({ actionType: 'errorAutomodKick', adminName: 'AutoMod', targetName: player?.nameTag, reason: kickMsgTempBan, details: `Error: ${e.message}`, checkType }, dependencies);
+                    logManager?.addLog(
+                        {
+                            actionType: 'errorAutomodKick',
+                            adminName: 'AutoMod',
+                            targetName: player?.nameTag,
+                            reason: kickMsgTempBan,
+                            details: `Error: ${e.message}`,
+                            checkType
+                        },
+                        dependencies
+                    );
                     playerUtils?.playSoundForEvent(player, 'automodActionTaken', dependencies);
                 }
                 actionProcessed = true;
             } else {
-                playerUtils?.debugLog(`[AutoModManager CRITICAL] Failed to apply tempBan to ${player?.nameTag} via playerDataManager.addBan.`, player?.nameTag, dependencies);
+                playerUtils?.debugLog(
+                    `[AutoModManager CRITICAL] Failed to apply tempBan to ${player?.nameTag} via playerDataManager.addBan.`,
+                    player?.nameTag,
+                    dependencies
+                );
                 logDetails = `Failed to apply tempBan. Check: ${checkType}. Reason: ${banReasonForStorageTemp}`;
-                logManager?.addLog({ actionType: 'errorAutomodAddBan', adminName: 'AutoMod', targetName: player?.nameTag, reason: banReasonForStorageTemp, details: `Duration: ${parsedDurationMsTempBan}ms`, checkType }, dependencies);
+                logManager?.addLog(
+                    {
+                        actionType: 'errorAutomodAddBan',
+                        adminName: 'AutoMod',
+                        targetName: player?.nameTag,
+                        reason: banReasonForStorageTemp,
+                        details: `Duration: ${parsedDurationMsTempBan}ms`,
+                        checkType
+                    },
+                    dependencies
+                );
             }
             break;
         }
@@ -188,7 +261,15 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
             const permBanContext = { ...baseMessageContext, duration: 'Permanent' };
             const kickMsgPermBan = formatAutomodMessage(messageTemplate, permBanContext);
             const permBanReasonForStorage = `AutoMod ${checkType} - ${actionType} (Permanent)`;
-            const banSuccessPerm = playerDataManager?.addBan(player, Infinity, permBanReasonForStorage, 'AutoMod', true, checkType, dependencies);
+            const banSuccessPerm = playerDataManager?.addBan(
+                player,
+                Infinity,
+                permBanReasonForStorage,
+                'AutoMod',
+                true,
+                checkType,
+                dependencies
+            );
             if (banSuccessPerm) {
                 durationForLog = Infinity;
                 baseMessageContext.duration = 'Permanent';
@@ -197,16 +278,44 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
                     logDetails = `Permanently banned player. Check: ${checkType}. Kick Reason: '${kickMsgPermBan}'. Stored Reason: ${permBanReasonForStorage}`;
                     playerUtils?.playSoundForEvent(player, 'automodActionTaken', dependencies);
                 } catch (e) {
-                    playerUtils?.debugLog(`[AutoModManager CRITICAL] Error kicking player ${player?.nameTag} after permBan: ${e.stack || e}`, player?.nameTag, dependencies);
+                    playerUtils?.debugLog(
+                        `[AutoModManager CRITICAL] Error kicking player ${player?.nameTag} after permBan: ${e.stack || e}`,
+                        player?.nameTag,
+                        dependencies
+                    );
                     logDetails = `Permanently banned player (kick failed). Check: ${checkType}. Stored Reason: ${permBanReasonForStorage}. Error: ${e.message}`;
-                    logManager?.addLog({ actionType: 'errorAutomodKick', adminName: 'AutoMod', targetName: player?.nameTag, reason: kickMsgPermBan, details: `Error: ${e.message}`, checkType }, dependencies);
+                    logManager?.addLog(
+                        {
+                            actionType: 'errorAutomodKick',
+                            adminName: 'AutoMod',
+                            targetName: player?.nameTag,
+                            reason: kickMsgPermBan,
+                            details: `Error: ${e.message}`,
+                            checkType
+                        },
+                        dependencies
+                    );
                     playerUtils?.playSoundForEvent(player, 'automodActionTaken', dependencies);
                 }
                 actionProcessed = true;
             } else {
-                playerUtils?.debugLog(`[AutoModManager CRITICAL] Failed to apply permBan to ${player?.nameTag} via playerDataManager.addBan.`, player?.nameTag, dependencies);
+                playerUtils?.debugLog(
+                    `[AutoModManager CRITICAL] Failed to apply permBan to ${player?.nameTag} via playerDataManager.addBan.`,
+                    player?.nameTag,
+                    dependencies
+                );
                 logDetails = `Failed to apply permBan. Check: ${checkType}. Reason: ${permBanReasonForStorage}`;
-                logManager?.addLog({ actionType: 'errorAutomodAddBan', adminName: 'AutoMod', targetName: player?.nameTag, reason: permBanReasonForStorage, details: 'Duration: Infinity', checkType }, dependencies);
+                logManager?.addLog(
+                    {
+                        actionType: 'errorAutomodAddBan',
+                        adminName: 'AutoMod',
+                        targetName: player?.nameTag,
+                        reason: permBanReasonForStorage,
+                        details: 'Duration: Infinity',
+                        checkType
+                    },
+                    dependencies
+                );
             }
             break;
         }
@@ -214,12 +323,24 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
             const durationStringMute = parameters?.duration || '10m';
             let parsedDurationMsMute = playerUtils?.parseDuration(durationStringMute);
             if (parsedDurationMsMute === null || (parsedDurationMsMute <= 0 && parsedDurationMsMute !== Infinity)) {
-                playerUtils?.debugLog(`[AutoModManager] Invalid duration string '${durationStringMute}' for mute on ${player?.nameTag}. Defaulting to 10m.`, player?.nameTag, dependencies);
+                playerUtils?.debugLog(
+                    `[AutoModManager] Invalid duration string '${durationStringMute}' for mute on ${player?.nameTag}. Defaulting to 10m.`,
+                    player?.nameTag,
+                    dependencies
+                );
                 parsedDurationMsMute = defaultAutomodMuteDurationMs;
             }
             const friendlyDurationMute = formatDuration(parsedDurationMsMute);
             const muteReasonForStorage = `AutoMod ${checkType} - ${actionType} (${friendlyDurationMute})`;
-            const muteSuccess = playerDataManager?.addMute(player, parsedDurationMsMute, muteReasonForStorage, 'AutoMod', true, checkType, dependencies);
+            const muteSuccess = playerDataManager?.addMute(
+                player,
+                parsedDurationMsMute,
+                muteReasonForStorage,
+                'AutoMod',
+                true,
+                checkType,
+                dependencies
+            );
             if (muteSuccess) {
                 durationForLog = parsedDurationMsMute;
                 baseMessageContext.duration = friendlyDurationMute;
@@ -230,9 +351,23 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
                 actionProcessed = true;
                 playerUtils?.playSoundForEvent(player, 'automodActionTaken', dependencies);
             } else {
-                playerUtils?.debugLog(`[AutoModManager CRITICAL] Failed to apply mute to ${player?.nameTag} via playerDataManager.addMute.`, player?.nameTag, dependencies);
+                playerUtils?.debugLog(
+                    `[AutoModManager CRITICAL] Failed to apply mute to ${player?.nameTag} via playerDataManager.addMute.`,
+                    player?.nameTag,
+                    dependencies
+                );
                 logDetails = `Failed to apply mute. Duration: ${durationStringMute}, Check: ${checkType}. Reason: ${muteReasonForStorage}`;
-                logManager?.addLog({ actionType: 'errorAutomodAddMute', adminName: 'AutoMod', targetName: player?.nameTag, reason: muteReasonForStorage, details: `Duration: ${parsedDurationMsMute}ms`, checkType }, dependencies);
+                logManager?.addLog(
+                    {
+                        actionType: 'errorAutomodAddMute',
+                        adminName: 'AutoMod',
+                        targetName: player?.nameTag,
+                        reason: muteReasonForStorage,
+                        details: `Duration: ${parsedDurationMsMute}ms`,
+                        checkType
+                    },
+                    dependencies
+                );
             }
             break;
         }
@@ -241,7 +376,11 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
             playerUtils?.warnPlayer(player, freezeMessage, dependencies);
             logDetails = `Player ${player?.nameTag} 'frozen' by AutoMod for ${checkType}. Message: '${freezeMessage}'. (Note: Actual freeze mechanics depend on separate implementation and 'frozenPlayerTag' from config.js).`;
             actionProcessed = true;
-            playerUtils?.debugLog(`[AutoModManager] 'freezePlayer' action for ${player?.nameTag} (check: ${checkType}). Player notified.`, player?.nameTag, dependencies);
+            playerUtils?.debugLog(
+                `[AutoModManager] 'freezePlayer' action for ${player?.nameTag} (check: ${checkType}). Player notified.`,
+                player?.nameTag,
+                dependencies
+            );
             if (globalConfig.frozenPlayerTag) {
                 player?.addTag(globalConfig.frozenPlayerTag);
             }
@@ -250,7 +389,11 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
         case 'removeIllegalItem': {
             const itemTypeIdToRemove = parameters?.itemToRemoveTypeId;
             if (!itemTypeIdToRemove) {
-                playerUtils?.debugLog(`[AutoModManager] itemToRemoveTypeId not provided for removeIllegalItem on ${player?.nameTag}.`, player?.nameTag, dependencies);
+                playerUtils?.debugLog(
+                    `[AutoModManager] itemToRemoveTypeId not provided for removeIllegalItem on ${player?.nameTag}.`,
+                    player?.nameTag,
+                    dependencies
+                );
                 logDetails = 'itemToRemoveTypeId missing in parameters for removeIllegalItem.';
                 actionProcessed = false;
                 break;
@@ -258,7 +401,11 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
             try {
                 const inventory = player?.getComponent('minecraft:inventory');
                 if (!inventory?.container) {
-                    playerUtils?.debugLog(`[AutoModManager] Could not get inventory for ${player?.nameTag} for removeIllegalItem.`, player?.nameTag, dependencies);
+                    playerUtils?.debugLog(
+                        `[AutoModManager] Could not get inventory for ${player?.nameTag} for removeIllegalItem.`,
+                        player?.nameTag,
+                        dependencies
+                    );
                     logDetails = 'Failed to get player inventory for removeIllegalItem.';
                     actionProcessed = false;
                     break;
@@ -281,9 +428,23 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
                 }
                 actionProcessed = true;
             } catch (e) {
-                playerUtils?.debugLog(`[AutoModManager CRITICAL] Error during removeIllegalItem for ${player?.nameTag} (${itemTypeIdToRemove}): ${e.stack || e}`, player?.nameTag, dependencies);
+                playerUtils?.debugLog(
+                    `[AutoModManager CRITICAL] Error during removeIllegalItem for ${player?.nameTag} (${itemTypeIdToRemove}): ${e.stack || e}`,
+                    player?.nameTag,
+                    dependencies
+                );
                 logDetails = `Error removing item ${itemTypeIdToRemove} from ${player?.nameTag}: ${e.message}`;
-                logManager?.addLog({ actionType: 'errorAutomodRemoveItem', adminName: 'AutoMod', targetName: player?.nameTag, reason: `Item: ${itemTypeIdToRemove}`, details: `Error: ${e.message}`, checkType }, dependencies);
+                logManager?.addLog(
+                    {
+                        actionType: 'errorAutomodRemoveItem',
+                        adminName: 'AutoMod',
+                        targetName: player?.nameTag,
+                        reason: `Item: ${itemTypeIdToRemove}`,
+                        details: `Error: ${e.message}`,
+                        checkType
+                    },
+                    dependencies
+                );
             }
             break;
         }
@@ -291,7 +452,11 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
             const { world } = dependencies;
             const targetCoordinatesParam = parameters?.coordinates;
             if (!targetCoordinatesParam || typeof targetCoordinatesParam.y !== 'number') {
-                playerUtils?.debugLog(`[AutoModManager] Invalid or missing coordinates for teleportSafe on ${player?.nameTag}. Y-coordinate is mandatory.`, player?.nameTag, dependencies);
+                playerUtils?.debugLog(
+                    `[AutoModManager] Invalid or missing coordinates for teleportSafe on ${player?.nameTag}. Y-coordinate is mandatory.`,
+                    player?.nameTag,
+                    dependencies
+                );
                 logDetails = `Invalid coordinates for teleportSafe. Y-coordinate missing. Check: ${checkType}`;
                 actionProcessed = false;
                 break;
@@ -303,7 +468,11 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
                 try {
                     targetDimension = world.getDimension(targetDimensionId);
                 } catch (e) {
-                    playerUtils?.debugLog(`[AutoModManager] Invalid dimensionId '${targetDimensionId}' specified for teleportSafe. Defaulting to player's current dimension. Error: ${e.message}`, player?.nameTag, dependencies);
+                    playerUtils?.debugLog(
+                        `[AutoModManager] Invalid dimensionId '${targetDimensionId}' specified for teleportSafe. Defaulting to player's current dimension. Error: ${e.message}`,
+                        player?.nameTag,
+                        dependencies
+                    );
                 }
             }
 
@@ -314,7 +483,10 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
             finalTeleportDesc = teleportTargetDesc;
             const teleportLocation = { x: targetX, y: targetY, z: targetZ };
             try {
-                const safeLocation = targetDimension?.findClosestSafeLocation(teleportLocation, { maxHeightDifference: 5, searchDistance: 5 });
+                const safeLocation = targetDimension?.findClosestSafeLocation(teleportLocation, {
+                    maxHeightDifference: 5,
+                    searchDistance: 5
+                });
                 const locationToTeleport = safeLocation || teleportLocation;
                 if (safeLocation) {
                     finalTeleportDesc = `X:${safeLocation.x.toFixed(1)}, Y:${safeLocation.y.toFixed(1)}, Z:${safeLocation.z.toFixed(1)} (near requested ${teleportTargetDesc})`;
@@ -326,10 +498,24 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
                 logDetails = `Teleported player ${player?.nameTag} to ${finalTeleportDesc}. Check: ${checkType}. Message: '${teleportMessage}'`;
                 actionProcessed = true;
             } catch (e) {
-                playerUtils?.debugLog(`[AutoModManager CRITICAL] Error teleporting player ${player?.nameTag} for teleportSafe: ${e.stack || e}`, player?.nameTag, dependencies);
+                playerUtils?.debugLog(
+                    `[AutoModManager CRITICAL] Error teleporting player ${player?.nameTag} for teleportSafe: ${e.stack || e}`,
+                    player?.nameTag,
+                    dependencies
+                );
                 playerUtils?.warnPlayer(player, `Failed to teleport: ${e.message}`, dependencies);
                 logDetails = `Failed to teleport player ${player?.nameTag} to ${teleportTargetDesc}. Check: ${checkType}. Error: ${e.message}`;
-                logManager?.addLog({ actionType: 'errorAutomodTeleport', adminName: 'AutoMod', targetName: player?.nameTag, reason: `Target: ${teleportTargetDesc}`, details: `Error: ${e.message}`, checkType }, dependencies);
+                logManager?.addLog(
+                    {
+                        actionType: 'errorAutomodTeleport',
+                        adminName: 'AutoMod',
+                        targetName: player?.nameTag,
+                        reason: `Target: ${teleportTargetDesc}`,
+                        details: `Error: ${e.message}`,
+                        checkType
+                    },
+                    dependencies
+                );
             }
             break;
         }
@@ -342,17 +528,20 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
     }
     const finalReasonForLog = `automod.${checkType}.${actionType}`;
     if (actionProcessed) {
-        logManager?.addLog({
-            actionType: `automod${actionType.charAt(0).toUpperCase() + actionType.slice(1)}Taken`,
-            adminName: 'AutoMod',
-            targetName: player?.nameTag,
-            targetId: player?.id,
-            duration: durationForLog,
-            reason: finalReasonForLog,
-            details: logDetails,
-            checkType,
-            actionParams: { ...parameters, flagCount, ...violationDetails },
-        }, dependencies);
+        logManager?.addLog(
+            {
+                actionType: `automod${actionType.charAt(0).toUpperCase() + actionType.slice(1)}Taken`,
+                adminName: 'AutoMod',
+                targetName: player?.nameTag,
+                targetId: player?.id,
+                duration: durationForLog,
+                reason: finalReasonForLog,
+                details: logDetails,
+                checkType,
+                actionParams: { ...parameters, flagCount, ...violationDetails }
+            },
+            dependencies
+        );
         const adminContext = { ...baseMessageContext };
         const finalAdminMessage = formatAutomodMessage(adminMessageTemplate, adminContext);
         if (globalConfig.notifyOnAutoModAction !== false) {
@@ -361,16 +550,23 @@ function _executeAutomodAction(player, pData, actionType, parameters, checkType,
     } else {
         const criticalActions = ['warn', 'kick', 'tempBan', 'permBan', 'mute', 'removeIllegalItem', 'teleportSafe'];
         if (criticalActions.includes(actionType)) {
-            playerUtils?.debugLog(`[AutoModManager CRITICAL] Action '${actionType}' for ${player?.nameTag} (check: ${checkType}) was not processed successfully. Details: ${logDetails}`, player?.nameTag, dependencies);
-            logManager?.addLog({
-                actionType: `errorAutomod${actionType.charAt(0).toUpperCase() + actionType.slice(1)}Processing`,
-                adminName: 'AutoMod',
-                targetName: player?.nameTag,
-                targetId: player?.id,
-                details: logDetails,
-                checkType,
-                actionParams: parameters,
-            }, dependencies);
+            playerUtils?.debugLog(
+                `[AutoModManager CRITICAL] Action '${actionType}' for ${player?.nameTag} (check: ${checkType}) was not processed successfully. Details: ${logDetails}`,
+                player?.nameTag,
+                dependencies
+            );
+            logManager?.addLog(
+                {
+                    actionType: `errorAutomod${actionType.charAt(0).toUpperCase() + actionType.slice(1)}Processing`,
+                    adminName: 'AutoMod',
+                    targetName: player?.nameTag,
+                    targetId: player?.id,
+                    details: logDetails,
+                    checkType,
+                    actionParams: parameters
+                },
+                dependencies
+            );
         }
     }
     return actionProcessed;
@@ -390,11 +586,15 @@ export async function processAutoModActions(player, pData, checkType, dependenci
     }
 
     if (!player.isValid()) {
-        playerUtils?.debugLog(`[AutoModManager] Aborted processAutoModActions for ${pData.playerNameTag} because player became invalid.`, 'SystemWarn', dependencies);
+        playerUtils?.debugLog(
+            `[AutoModManager] Aborted processAutoModActions for ${pData.playerNameTag} because player became invalid.`,
+            'SystemWarn',
+            dependencies
+        );
         return;
     }
 
-    const ruleSet = moduleAutomodConfig?.automodRuleSets?.find(rs => rs.checkType === checkType);
+    const ruleSet = moduleAutomodConfig?.automodRuleSets?.find((rs) => rs.checkType === checkType);
     if (!ruleSet || !ruleSet.enabled) {
         return;
     }
@@ -415,24 +615,51 @@ export async function processAutoModActions(player, pData, checkType, dependenci
     const checkState = pData.automodState[checkType];
 
     // Find the highest-tier rule the player currently qualifies for.
-    const applicableRule = rulesForCheck.find(rule => currentFlags >= rule.flagThreshold);
+    const applicableRule = rulesForCheck.find((rule) => currentFlags >= rule.flagThreshold);
 
     if (!applicableRule || applicableRule.flagThreshold <= checkState.lastActionThreshold) {
-        playerUtils?.debugLog(`[AutoModManager] No new action needed for ${player?.nameTag} for ${checkType}. Current flags: ${currentFlags}, Last action threshold: ${checkState.lastActionThreshold}.`, player?.nameTag, dependencies);
+        playerUtils?.debugLog(
+            `[AutoModManager] No new action needed for ${player?.nameTag} for ${checkType}. Current flags: ${currentFlags}, Last action threshold: ${checkState.lastActionThreshold}.`,
+            player?.nameTag,
+            dependencies
+        );
         return;
     }
 
     if (applicableRule.flagThreshold < checkState.lastActionThreshold) {
-        playerUtils?.debugLog(`[AutoModManager] Player ${player?.nameTag} qualifies for a lower-tier rule (${applicableRule.flagThreshold}) for ${checkType} after a likely flag reset. Last action was at ${checkState.lastActionThreshold}. Proceeding.`, player?.nameTag, dependencies);
+        playerUtils?.debugLog(
+            `[AutoModManager] Player ${player?.nameTag} qualifies for a lower-tier rule (${applicableRule.flagThreshold}) for ${checkType} after a likely flag reset. Last action was at ${checkState.lastActionThreshold}. Proceeding.`,
+            player?.nameTag,
+            dependencies
+        );
     }
 
-    playerUtils?.debugLog(`[AutoModManager] ${player?.nameTag} (flags: ${currentFlags} for ${checkType}) meets threshold ${applicableRule.flagThreshold}. Intended action: ${applicableRule.actionType}`, player?.nameTag, dependencies);
+    playerUtils?.debugLog(
+        `[AutoModManager] ${player?.nameTag} (flags: ${currentFlags} for ${checkType}) meets threshold ${applicableRule.flagThreshold}. Intended action: ${applicableRule.actionType}`,
+        player?.nameTag,
+        dependencies
+    );
     if (applicableRule.parameters) {
-        playerUtils?.debugLog(`[AutoModManager] Action parameters: ${JSON.stringify(applicableRule.parameters)}`, player?.nameTag, dependencies);
+        playerUtils?.debugLog(
+            `[AutoModManager] Action parameters: ${JSON.stringify(applicableRule.parameters)}`,
+            player?.nameTag,
+            dependencies
+        );
     }
 
-    const finalParameters = { ...(applicableRule.parameters || {}), flagThresholdInternal: applicableRule.flagThreshold };
-    const actionSuccess = await _executeAutomodAction(player, pData, applicableRule.actionType, finalParameters, checkType, dependencies, violationDetails);
+    const finalParameters = {
+        ...(applicableRule.parameters || {}),
+        flagThresholdInternal: applicableRule.flagThreshold
+    };
+    const actionSuccess = await _executeAutomodAction(
+        player,
+        pData,
+        applicableRule.actionType,
+        finalParameters,
+        checkType,
+        dependencies,
+        violationDetails
+    );
 
     if (actionSuccess) {
         checkState.lastActionThreshold = applicableRule.flagThreshold;
@@ -441,7 +668,11 @@ export async function processAutoModActions(player, pData, checkType, dependenci
         pData.isDirtyForSave = true;
 
         if (applicableRule.resetFlagsAfterAction) {
-            playerUtils?.debugLog(`[AutoModManager] Resetting flags for ${checkType} on ${player?.nameTag} as per rule (Threshold: ${applicableRule.flagThreshold}, Action: ${applicableRule.actionType}).`, player?.nameTag, dependencies);
+            playerUtils?.debugLog(
+                `[AutoModManager] Resetting flags for ${checkType} on ${player?.nameTag} as per rule (Threshold: ${applicableRule.flagThreshold}, Action: ${applicableRule.actionType}).`,
+                player?.nameTag,
+                dependencies
+            );
             _resetCheckFlags(pData, checkType, flagData, dependencies);
         }
     }
@@ -449,9 +680,13 @@ export async function processAutoModActions(player, pData, checkType, dependenci
     if (ruleSet.resetFlagsAfterSeconds && ruleSet.resetFlagsAfterSeconds > 0) {
         const lastFlagTime = flagData?.lastDetectionTime || 0;
         const now = Date.now();
-        if (lastFlagTime > 0 && (now - lastFlagTime) > (ruleSet.resetFlagsAfterSeconds * 1000)) {
+        if (lastFlagTime > 0 && now - lastFlagTime > ruleSet.resetFlagsAfterSeconds * 1000) {
             if (checkState.lastActionTimestamp <= lastFlagTime || flagData.count === 0) {
-                playerUtils?.debugLog(`[AutoModManager] Globally resetting flags for ${checkType} on ${player?.nameTag} due to inactivity (resetAfterSeconds: ${ruleSet.resetFlagsAfterSeconds}).`, player?.nameTag, dependencies);
+                playerUtils?.debugLog(
+                    `[AutoModManager] Globally resetting flags for ${checkType} on ${player?.nameTag} due to inactivity (resetAfterSeconds: ${ruleSet.resetFlagsAfterSeconds}).`,
+                    player?.nameTag,
+                    dependencies
+                );
                 _resetCheckFlags(pData, checkType, flagData, dependencies);
             }
         }
@@ -502,7 +737,7 @@ function formatActionMessage(template, playerName, checkType, violationDetails) 
         playerName,
         checkType,
         detailsString,
-        ...violationDetails,
+        ...violationDetails
     };
 
     const performReplacement = (text) => {
@@ -524,7 +759,7 @@ function formatActionMessage(template, playerName, checkType, violationDetails) 
             return performReplacement(data);
         }
         if (Array.isArray(data)) {
-            return data.map(item => deepFormat(item));
+            return data.map((item) => deepFormat(item));
         }
         if (typeof data === 'object' && data !== null) {
             const newObj = {};
@@ -553,7 +788,11 @@ function formatActionMessage(template, playerName, checkType, violationDetails) 
 async function _handleFlagging(player, profile, flagReasonMessage, checkType, dependencies, violationDetails) {
     if (!player || !profile.flag) {
         if (!player && profile.flag) {
-            dependencies.playerUtils?.debugLog(`[ActionManager] Skipping flagging for checkType '${checkType}' (player is null).`, null, dependencies);
+            dependencies.playerUtils?.debugLog(
+                `[ActionManager] Skipping flagging for checkType '${checkType}' (player is null).`,
+                null,
+                dependencies
+            );
         }
         return;
     }
@@ -563,7 +802,11 @@ async function _handleFlagging(player, profile, flagReasonMessage, checkType, de
 
     await dependencies.playerDataManager?.addFlag(player, flagType, dependencies, violationDetails, increment);
 
-    dependencies.playerUtils?.debugLog(`[ActionManager] Dispatched flag action for ${player.nameTag} for ${flagType} (x${increment}). Reason: '${flagReasonMessage}'`, player.nameTag, dependencies);
+    dependencies.playerUtils?.debugLog(
+        `[ActionManager] Dispatched flag action for ${player.nameTag} for ${flagType} (x${increment}). Reason: '${flagReasonMessage}'`,
+        player.nameTag,
+        dependencies
+    );
 }
 
 function _handleLogging(player, profile, flagReasonMessage, checkType, violationDetails, dependencies) {
@@ -577,17 +820,20 @@ function _handleLogging(player, profile, flagReasonMessage, checkType, violation
         logDetailsString += formatViolationDetails(violationDetails);
     }
 
-    logManager?.addLog({
-        adminName: 'System',
-        actionType: logActionType,
-        targetName: playerNameForLog,
-        targetId: player?.id,
-        details: logDetailsString.trim() || 'N/A',
-        reason: flagReasonMessage,
-        checkType,
-        location: player?.location,
-        dimensionId: player?.dimension?.id,
-    }, dependencies);
+    logManager?.addLog(
+        {
+            adminName: 'System',
+            actionType: logActionType,
+            targetName: playerNameForLog,
+            targetId: player?.id,
+            details: logDetailsString.trim() || 'N/A',
+            reason: flagReasonMessage,
+            checkType,
+            location: player?.location,
+            dimensionId: player?.dimension?.id
+        },
+        dependencies
+    );
 }
 
 function _handleAdminNotifications(player, profile, checkType, violationDetails, dependencies) {
@@ -608,13 +854,21 @@ function _handleAdminNotifications(player, profile, checkType, violationDetails,
 function _handleViolationDetailsStorage(player, checkType, violationDetails, dependencies) {
     if (!player || !violationDetails || Object.keys(violationDetails).length === 0) {
         if (!player && violationDetails && Object.keys(violationDetails).length > 0) {
-            dependencies.playerUtils?.debugLog(`[ActionManager] Skipping violation details storage for '${checkType}' (player is null).`, null, dependencies);
+            dependencies.playerUtils?.debugLog(
+                `[ActionManager] Skipping violation details storage for '${checkType}' (player is null).`,
+                null,
+                dependencies
+            );
         }
         return;
     }
 
     if (!player.isValid()) {
-        dependencies.playerUtils?.debugLog(`[ActionManager] Player became invalid before storing violation details. Skipping for check '${checkType}'.`, null, dependencies);
+        dependencies.playerUtils?.debugLog(
+            `[ActionManager] Player became invalid before storing violation details. Skipping for check '${checkType}'.`,
+            null,
+            dependencies
+        );
         return;
     }
 
@@ -626,13 +880,21 @@ function _handleViolationDetailsStorage(player, checkType, violationDetails, dep
             timestamp: Date.now(),
             details: formatViolationDetails(violationDetails),
             ...(violationDetails.itemTypeId && { itemTypeId: violationDetails.itemTypeId }),
-            ...(typeof violationDetails.quantityFound === 'number' && { quantityFound: violationDetails.quantityFound }),
+            ...(typeof violationDetails.quantityFound === 'number' && { quantityFound: violationDetails.quantityFound })
         };
         currentPData.lastViolationDetailsMap[checkType] = detailsToStore;
         currentPData.isDirtyForSave = true;
-        playerUtils?.debugLog(`[ActionManager] Stored violation details for check '${checkType}' for ${currentPData.playerNameTag}: ${JSON.stringify(detailsToStore)}`, currentPData.playerNameTag, dependencies);
+        playerUtils?.debugLog(
+            `[ActionManager] Stored violation details for check '${checkType}' for ${currentPData.playerNameTag}: ${JSON.stringify(detailsToStore)}`,
+            currentPData.playerNameTag,
+            dependencies
+        );
     } else {
-        playerUtils?.debugLog(`[ActionManager] Could not store violation details for '${checkType}' (pData not found for player).`, null, dependencies);
+        playerUtils?.debugLog(
+            `[ActionManager] Could not store violation details for '${checkType}' (pData not found for player).`,
+            null,
+            dependencies
+        );
     }
 }
 
@@ -653,7 +915,11 @@ export async function executeCheckAction(player, checkType, violationDetails, de
 
     // After any await, the player object might have become invalid. Check before proceeding.
     if (player && !player.isValid()) {
-        playerUtils?.debugLog(`[ActionManager] Player ${playerNameForLog} became invalid after flagging. Aborting further actions for check '${checkType}'.`, null, dependencies);
+        playerUtils?.debugLog(
+            `[ActionManager] Player ${playerNameForLog} became invalid after flagging. Aborting further actions for check '${checkType}'.`,
+            null,
+            dependencies
+        );
         return;
     }
 
@@ -669,7 +935,9 @@ export async function executeCheckAction(player, checkType, violationDetails, de
 ```
 
 #### 1.3. Other Missing Core Scripts
+
 The following core script files are also missing, indicating a significant loss of functionality:
+
 - `automodConfig.js`
 - `chatProcessor.js`
 - `commandManager.js`
@@ -731,11 +999,19 @@ export async function checkFly(player, pData, dependencies) {
     if (player.isGliding) {
         pData.lastUsedElytraTick = currentTick;
         pData.isDirtyForSave = true;
-        playerUtils?.debugLog(`[FlyCheck] ${playerName} is gliding. Standard fly checks bypassed.`, watchedPlayerName, dependencies);
+        playerUtils?.debugLog(
+            `[FlyCheck] ${playerName} is gliding. Standard fly checks bypassed.`,
+            watchedPlayerName,
+            dependencies
+        );
         return;
     }
     if (player.isFlying) {
-        playerUtils?.debugLog(`[FlyCheck] ${playerName} is legitimately flying (isFlying=true). Standard fly checks bypassed.`, watchedPlayerName, dependencies);
+        playerUtils?.debugLog(
+            `[FlyCheck] ${playerName} is legitimately flying (isFlying=true). Standard fly checks bypassed.`,
+            watchedPlayerName,
+            dependencies
+        );
         return;
     }
 
@@ -747,7 +1023,11 @@ export async function checkFly(player, pData, dependencies) {
         const effectiveMaxYVelocity = baseYVelocityPositive + jumpBoostBonus;
 
         if (pData.isWatched) {
-            playerUtils?.debugLog(`[FlyCheck][Y-Velo] ${playerName}: CurrentYVelo: ${currentYVelocity.toFixed(3)}, BaseMax: ${baseYVelocityPositive.toFixed(3)}, JumpBoostLvl: ${jumpBoostAmplifierValue}, JumpBoostBonus: ${jumpBoostBonus.toFixed(3)}, EffectiveMax: ${effectiveMaxYVelocity.toFixed(3)}`, watchedPlayerName, dependencies);
+            playerUtils?.debugLog(
+                `[FlyCheck][Y-Velo] ${playerName}: CurrentYVelo: ${currentYVelocity.toFixed(3)}, BaseMax: ${baseYVelocityPositive.toFixed(3)}, JumpBoostLvl: ${jumpBoostAmplifierValue}, JumpBoostBonus: ${jumpBoostBonus.toFixed(3)}, EffectiveMax: ${effectiveMaxYVelocity.toFixed(3)}`,
+                watchedPlayerName,
+                dependencies
+            );
         }
 
         const ticksSinceLastDamage = currentTick - (pData.lastTookDamageTick ?? -Infinity);
@@ -756,14 +1036,13 @@ export async function checkFly(player, pData, dependencies) {
         const ticksSinceLastLaunch = currentTick - (pData.transient?.lastLaunchTick ?? -Infinity);
         const graceTicks = config?.yVelocityGraceTicks ?? 10;
 
-        const underGraceCondition = (
+        const underGraceCondition =
             ticksSinceLastDamage <= graceTicks ||
             ticksSinceLastElytra <= graceTicks ||
             ticksSinceLastOnSlime <= graceTicks ||
             ticksSinceLastLaunch <= graceTicks ||
             player.isClimbing ||
-            (pData.hasSlowFalling && currentYVelocity < 0)
-        );
+            (pData.hasSlowFalling && currentYVelocity < 0);
 
         if (underGraceCondition && pData.isWatched) {
             const graceReasons = [];
@@ -785,7 +1064,11 @@ export async function checkFly(player, pData, dependencies) {
             if (pData.hasSlowFalling && currentYVelocity < 0) {
                 graceReasons.push('slow falling downwards');
             }
-            playerUtils?.debugLog(`[FlyCheck][Y-Velo] ${playerName}: Y-velocity check grace due to: ${graceReasons.join(', ')}.`, watchedPlayerName, dependencies);
+            playerUtils?.debugLog(
+                `[FlyCheck][Y-Velo] ${playerName}: Y-velocity check grace due to: ${graceReasons.join(', ')}.`,
+                watchedPlayerName,
+                dependencies
+            );
         }
 
         if (currentYVelocity > effectiveMaxYVelocity && !underGraceCondition) {
@@ -799,11 +1082,20 @@ export async function checkFly(player, pData, dependencies) {
                 ticksSinceElytra: ticksSinceLastElytra > graceTicks ? 'N/A' : ticksSinceLastElytra.toString(),
                 isClimbing: player.isClimbing.toString(),
                 hasSlowFalling: (pData.hasSlowFalling ?? false).toString(),
-                hasLevitation: (pData.hasLevitation ?? false).toString(),
+                hasLevitation: (pData.hasLevitation ?? false).toString()
             };
             const highYVelocityActionProfileKey = config?.highYVelocityActionProfileName ?? 'movementHighYVelocity';
-            await actionManager?.executeCheckAction(player, highYVelocityActionProfileKey, violationDetails, dependencies);
-            playerUtils?.debugLog(`[FlyCheck][Y-Velo] Flagged ${playerName}. Velo: ${currentYVelocity.toFixed(3)}, Max: ${effectiveMaxYVelocity.toFixed(3)}`, watchedPlayerName, dependencies);
+            await actionManager?.executeCheckAction(
+                player,
+                highYVelocityActionProfileKey,
+                violationDetails,
+                dependencies
+            );
+            playerUtils?.debugLog(
+                `[FlyCheck][Y-Velo] Flagged ${playerName}. Velo: ${currentYVelocity.toFixed(3)}, Max: ${effectiveMaxYVelocity.toFixed(3)}`,
+                watchedPlayerName,
+                dependencies
+            );
         }
     }
 
@@ -812,24 +1104,41 @@ export async function checkFly(player, pData, dependencies) {
     }
 
     if (pData.hasLevitation && (pData.transient.lastVelocity?.y ?? 0) > 0) {
-        playerUtils?.debugLog(`[FlyCheck] ${playerName} allowing upward movement due to levitation. VSpeed: ${(pData.transient.lastVelocity?.y ?? 0).toFixed(2)}`, watchedPlayerName, dependencies);
+        playerUtils?.debugLog(
+            `[FlyCheck] ${playerName} allowing upward movement due to levitation. VSpeed: ${(pData.transient.lastVelocity?.y ?? 0).toFixed(2)}`,
+            watchedPlayerName,
+            dependencies
+        );
         return;
     }
     if (pData.hasSlowFalling && (pData.transient.lastVelocity?.y ?? 0) < 0) {
-        playerUtils?.debugLog(`[FlyCheck] ${playerName} noting slow descent due to Slow Falling. VSpeed: ${(pData.transient.lastVelocity?.y ?? 0).toFixed(2)}. Hover/Sustained checks might still apply if not actually falling significantly.`, watchedPlayerName, dependencies);
+        playerUtils?.debugLog(
+            `[FlyCheck] ${playerName} noting slow descent due to Slow Falling. VSpeed: ${(pData.transient.lastVelocity?.y ?? 0).toFixed(2)}. Hover/Sustained checks might still apply if not actually falling significantly.`,
+            watchedPlayerName,
+            dependencies
+        );
         // Don't return yet, as hovering with slow fall might still be an issue if not losing altitude.
     }
 
-
     const verticalSpeed = pData.transient.lastVelocity?.y ?? 0;
     if (pData.isWatched) {
-        playerUtils?.debugLog(`[FlyCheck] Processing Sustained/Hover for ${playerName}. VSpeed=${verticalSpeed.toFixed(3)}, OffGroundTicks=${pData.transient.ticksSinceLastOnGround}, FallDist=${pData.fallDistance?.toFixed(2)}`, watchedPlayerName, dependencies);
+        playerUtils?.debugLog(
+            `[FlyCheck] Processing Sustained/Hover for ${playerName}. VSpeed=${verticalSpeed.toFixed(3)}, OffGroundTicks=${pData.transient.ticksSinceLastOnGround}, FallDist=${pData.fallDistance?.toFixed(2)}`,
+            watchedPlayerName,
+            dependencies
+        );
     }
 
     const sustainedThreshold = config?.flySustainedVerticalSpeedThreshold ?? 0.45;
     const sustainedTicks = config?.flySustainedOffGroundTicksThreshold ?? 10;
 
-    if (!player.isOnGround && verticalSpeed > sustainedThreshold && !player.isClimbing && !pData.hasLevitation && !player.isInWater) {
+    if (
+        !player.isOnGround &&
+        verticalSpeed > sustainedThreshold &&
+        !player.isClimbing &&
+        !pData.hasLevitation &&
+        !player.isInWater
+    ) {
         if (pData.transient.ticksSinceLastOnGround > sustainedTicks) {
             const violationDetails = {
                 type: 'sustainedVertical',
@@ -837,11 +1146,20 @@ export async function checkFly(player, pData, dependencies) {
                 offGroundTicks: (pData.transient.ticksSinceLastOnGround ?? 0).toString(),
                 isClimbing: player.isClimbing.toString(),
                 isInWater: player.isInWater.toString(),
-                hasLevitation: (pData.hasLevitation ?? false).toString(),
+                hasLevitation: (pData.hasLevitation ?? false).toString()
             };
             const sustainedFlyActionProfileKey = config?.sustainedFlyActionProfileName ?? 'movementSustainedFly';
-            await actionManager?.executeCheckAction(player, sustainedFlyActionProfileKey, violationDetails, dependencies);
-            playerUtils?.debugLog(`[FlyCheck][Sustained] Flagged ${playerName}. VSpeed: ${verticalSpeed.toFixed(3)}, OffGround: ${pData.transient.ticksSinceLastOnGround}t`, watchedPlayerName, dependencies);
+            await actionManager?.executeCheckAction(
+                player,
+                sustainedFlyActionProfileKey,
+                violationDetails,
+                dependencies
+            );
+            playerUtils?.debugLog(
+                `[FlyCheck][Sustained] Flagged ${playerName}. VSpeed: ${verticalSpeed.toFixed(3)}, OffGround: ${pData.transient.ticksSinceLastOnGround}t`,
+                watchedPlayerName,
+                dependencies
+            );
         }
     }
 
@@ -856,7 +1174,8 @@ export async function checkFly(player, pData, dependencies) {
     }
 
     // Check for hover/low-gravity movement
-    const isHoverCandidate = !player.isOnGround &&
+    const isHoverCandidate =
+        !player.isOnGround &&
         Math.abs(verticalSpeed) < hoverVSpeedThreshold &&
         (pData.transient.ticksSinceLastOnGround ?? 0) > hoverOffGroundTicks &&
         (pData.fallDistance ?? 0) < hoverMaxFallDist &&
@@ -877,11 +1196,15 @@ export async function checkFly(player, pData, dependencies) {
             isClimbing: player.isClimbing.toString(),
             isInWater: player.isInWater.toString(),
             hasLevitation: (pData.hasLevitation ?? false).toString(),
-            hasSlowFalling: (pData.hasSlowFalling ?? false).toString(),
+            hasSlowFalling: (pData.hasSlowFalling ?? false).toString()
         };
         const hoverFlyActionProfileKey = config?.hoverFlyActionProfileName ?? 'movementFlyHover';
         await actionManager?.executeCheckAction(player, hoverFlyActionProfileKey, violationDetails, dependencies);
-        playerUtils?.debugLog(`[FlyCheck][Hover] Flagged ${playerName}. VSpeed: ${verticalSpeed.toFixed(3)}, OffGround: ${pData.transient.ticksSinceLastOnGround}t, FallDist: ${pData.fallDistance?.toFixed(2)}`, watchedPlayerName, dependencies);
+        playerUtils?.debugLog(
+            `[FlyCheck][Hover] Flagged ${playerName}. VSpeed: ${verticalSpeed.toFixed(3)}, OffGround: ${pData.transient.ticksSinceLastOnGround}t, FallDist: ${pData.fallDistance?.toFixed(2)}`,
+            watchedPlayerName,
+            dependencies
+        );
     }
 }
 ```
@@ -915,21 +1238,12 @@ This file defined the main anti-cheat panel UI.
     "namespace": "anticheat_panel",
     "main_panel": {
         "type": "panel",
-        "size": [
-            "100%",
-            "100%"
-        ],
+        "size": ["100%", "100%"],
         "controls": [
             {
                 "button@common.button": {
-                    "size": [
-                        100,
-                        20
-                    ],
-                    "offset": [
-                        0,
-                        0
-                    ],
+                    "size": [100, 20],
+                    "offset": [0, 0],
                     "$pressed_button_name": "button_1",
                     "bindings": [
                         {
@@ -942,14 +1256,8 @@ This file defined the main anti-cheat panel UI.
             },
             {
                 "hover_button@common.button": {
-                    "size": [
-                        100,
-                        20
-                    ],
-                    "offset": [
-                        0,
-                        0
-                    ],
+                    "size": [100, 20],
+                    "offset": [0, 0],
                     "$pressed_button_name": "button_1",
                     "bindings": [
                         {
@@ -959,16 +1267,8 @@ This file defined the main anti-cheat panel UI.
                         }
                     ],
                     "anim_type": "color_cycle",
-                    "initial_color": [
-                        0.8,
-                        0.8,
-                        0.8
-                    ],
-                    "final_color": [
-                        1,
-                        1,
-                        1
-                    ],
+                    "initial_color": [0.8, 0.8, 0.8],
+                    "final_color": [1, 1, 1],
                     "duration": 0.5,
                     "easing": "linear"
                 }
@@ -987,26 +1287,16 @@ This file defined the anti-cheat settings section in the world settings UI.
 {
     "anticheat_section": {
         "type": "panel",
-        "size": [
-            "100%",
-            "100%cm"
-        ],
+        "size": ["100%", "100%cm"],
         "controls": [
             {
                 "title@world_section.level_seed_selector": {
                     "type": "label",
                     "text": "AntiCheats Settings",
-                    "color": [
-                        0.6,
-                        0.6,
-                        0.6
-                    ],
+                    "color": [0.6, 0.6, 0.6],
                     "anchor_from": "top_left",
                     "anchor_to": "top_left",
-                    "offset": [
-                        0,
-                        0
-                    ]
+                    "offset": [0, 0]
                 }
             }
         ]
@@ -1017,6 +1307,7 @@ This file defined the anti-cheat settings section in the world settings UI.
 ### 2. Font Files
 
 The custom font used in the old UI is missing.
+
 - `font/Roboto-Regular.ttf`
 - `font/glyph_size.json`
 
@@ -1027,16 +1318,19 @@ The custom font used in the old UI is missing.
 This file tracks features that have been discussed but not yet implemented. This can be used to maintain context between development sessions.
 
 ## 3. Dimension Lockdown Commands
+
 - [ ] **`!endlock` command:** Create a command for admins to prevent players from entering the End dimension.
 - [ ] **`!netherlock` command:** Create a command for admins to prevent players from entering the Nether dimension.
 - [ ] **Mechanism:** This will likely involve checking a player's location when they change dimensions and teleporting them back if the corresponding lockdown is active.
 
 ## 5. Missing Player Management Panel Features
+
 - [ ] **View Detailed Flags:** Add a button to show a player's specific anti-cheat violation counts.
 - [ ] **Reset Player Flags:** Add a button to reset a player's flags to zero.
 - [ ] **Toggle Watch:** Add a button to add/remove a player from a "watch list" for easier monitoring.
 
 ## 6. Other Missing Commands
+
 - [ ] `inspect`: A text-based command to get detailed player information.
 - [ ] `myflags`: A command for players to check their own flag count.
 - [ ] `listranks`: A command to list all configured ranks.

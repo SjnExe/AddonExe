@@ -16,12 +16,12 @@ Instead, please report vulnerabilities using one of the following methods:
 
 When reporting a vulnerability, please include as much detail as possible to help us understand and address the issue effectively:
 
-*   **Type of vulnerability:** (e.g., Remote Code Execution, Data Exposure, Denial of Service, Bypass of a specific check)
-*   **Description of the vulnerability:** A clear explanation of the issue and its potential impact.
-*   **Steps to reproduce:** Detailed instructions on how to reproduce the vulnerability. This may include specific configurations, commands, or interactions.
-*   **Affected version(s):** Specify which version(s) of the AddonExe are affected. If possible, test against the latest release.
-*   **Proof of Concept (PoC):** If possible, provide a simple PoC (code, commands, or a detailed explanation) that demonstrates the vulnerability.
-*   **Your name or alias for acknowledgment (optional):** Let us know if you'd like to be credited for your discovery.
+- **Type of vulnerability:** (e.g., Remote Code Execution, Data Exposure, Denial of Service, Bypass of a specific check)
+- **Description of the vulnerability:** A clear explanation of the issue and its potential impact.
+- **Steps to reproduce:** Detailed instructions on how to reproduce the vulnerability. This may include specific configurations, commands, or interactions.
+- **Affected version(s):** Specify which version(s) of the AddonExe are affected. If possible, test against the latest release.
+- **Proof of Concept (PoC):** If possible, provide a simple PoC (code, commands, or a detailed explanation) that demonstrates the vulnerability.
+- **Your name or alias for acknowledgment (optional):** Let us know if you'd like to be credited for your discovery.
 
 ## Our Commitment
 
