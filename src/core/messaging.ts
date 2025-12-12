@@ -12,17 +12,17 @@ import { warnLog } from './logger.js';
  */
 export function sendMessage(
     message: string,
-    target: mc.Player | 'all' | mc.World = mc.world,
+    target: { sendMessage: (msg: string) => void } | 'all' = mc.world,
 
     _options: { raw?: boolean; title?: string | null } = {}
 ) {
     const finalMessage = message;
 
     try {
-        if (target === 'all' || target === mc.world) {
+        if (target === 'all') {
             mc.world.sendMessage(finalMessage);
-        } else if (target && typeof (target as mc.Player).sendMessage === 'function') {
-            (target as mc.Player).sendMessage(finalMessage);
+        } else if (target && typeof target.sendMessage === 'function') {
+            target.sendMessage(finalMessage);
         } else {
             warnLog(`[sendMessage] Invalid target provided.`);
         }
