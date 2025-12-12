@@ -216,7 +216,7 @@ export class TeamPanelHandler implements IPanelHandler {
                         icon: 'textures/ui/color_plus',
                         permissionLevel: 1024,
                         actionType: 'openPanel',
-                        actionValue: 'playerSearchPanel'
+                        actionValue: 'teamInviteSearchPanel'
                     });
                     items.push({
                         id: 'joinRequests',
@@ -359,6 +359,10 @@ export class TeamPanelHandler implements IPanelHandler {
             return new ModalFormData().title('Search Team').textField('Team Name or ID', 'Enter Name or ID');
         }
 
+        if (panelId === 'teamInviteSearchPanel') {
+            return new ModalFormData().title('Invite Player').textField('Player Name', 'Enter exact name');
+        }
+
         if (panelId === 'teamSettingsPanel') {
             const pData = getOrCreatePlayer(player);
             const team = teamManager.getTeamByPlayer(player.id);
@@ -433,6 +437,21 @@ export class TeamPanelHandler implements IPanelHandler {
                 }
             }
             return showPanel(player, 'teamJoinPanel');
+        }
+
+        if (panelId === 'teamInviteSearchPanel') {
+            if ((response as ModalFormResponse).canceled) return showPanel(player, 'teamManagePanel', context);
+            const [name] = values || [];
+            if (typeof name === 'string') {
+                const targetId = getPlayerIdByName(name);
+                if (targetId) {
+                    const result = teamManager.invitePlayer(Number(context.teamId), targetId);
+                    player.sendMessage(result.message ?? '');
+                } else {
+                    player.sendMessage('§cPlayer not found.');
+                }
+            }
+            return showPanel(player, 'teamManagePanel', context);
         }
 
         if (panelId === 'teamSettingsPanel') {
