@@ -5,8 +5,7 @@ import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { getLeaderboard } from '@core/leaderboardManager.js';
 import { sendMessage } from '@core/messaging.js';
-import { findPlayerByName } from '@core/playerCache.js';
-import { getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/playerDataManager.js';
+import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/playerDataManager.js';
 import { formatCurrency } from '@core/utils.js';
 
 const balanceCommand: CustomCommand = {
@@ -15,85 +14,55 @@ const balanceCommand: CustomCommand = {
     description: "Checks your or another player's balance.",
     category: 'Economy',
     permissionLevel: 1024,
-    parameters: [{ name: 'target', type: 'string', optional: true }],
+    parameters: [{ name: 'targets', type: 'player', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
-        if (!config.economy.enabled) {
-            const message = constants.economyDisabled;
-            if (executor instanceof mc.Player) {
-                sendMessage(message, executor);
-            } else {
-                executor.sendMessage(message);
-            }
-            return;
-        }
+        if (!config.economy.enabled) return sendMessage(constants.economyDisabled, executor);
 
-        const isConsole = !(executor instanceof mc.Player);
-        const targetName = args.target as string | undefined;
+        const targets = args.targets as mc.Player[] | undefined;
 
-        if (isConsole && !targetName) {
-            executor.sendMessage('§cYou must specify a target player when running this command from the console.');
-            return;
-        }
-
-        let targetId: string;
-        let displayName: string;
-
-        if (!targetName) {
+        if (!targets) {
             // Self check
             if (executor instanceof mc.Player) {
-                targetId = executor.id;
-                displayName = executor.name;
+                const pData = getOrCreatePlayer(executor);
+                sendMessage(`§aYour balance is: §e${formatCurrency(pData.balance)}`, executor);
             } else {
-                return; // Should be handled by isConsole check
-            }
-        } else {
-            // Resolve target
-            const targetPlayer = findPlayerByName(targetName);
-            if (targetPlayer) {
-                targetId = targetPlayer.id;
-                displayName = targetPlayer.name;
-            } else {
-                const id = getPlayerIdByName(targetName);
-                if (id) {
-                    targetId = id;
-                    displayName = getPlayerNameById(id) || targetName;
-                } else {
-                    const message = `§cPlayer "${targetName}" not found.`;
-                    if (executor instanceof mc.Player) {
-                        sendMessage(message, executor);
-                    } else {
-                        executor.sendMessage(message);
-                    }
-                    return;
-                }
-            }
-        }
-
-        const pData = loadPlayerData(targetId);
-
-        if (!pData || pData.balance === null || pData.balance === undefined) {
-            const message = `§cCould not retrieve balance for ${displayName}.`;
-            if (executor instanceof mc.Player) {
-                sendMessage(message, executor);
-            } else {
-                executor.sendMessage(message);
+                executor.sendMessage('§cConsole must specify a target.');
             }
             return;
         }
 
-        const balance = pData.balance;
-
-        if (!isConsole && executor instanceof mc.Player && targetId === executor.id) {
-            sendMessage(`§aYour balance is: §e${formatCurrency(balance)}`, executor);
-        } else {
-            const message = `§a${displayName}'s balance is: §e${formatCurrency(balance)}`;
-            if (executor instanceof mc.Player) {
-                sendMessage(message, executor);
-            } else {
-                executor.sendMessage(message);
-            }
+        for (const target of targets) {
+            const pData = getOrCreatePlayer(target);
+            sendMessage(`§a${target.name}'s balance is: §e${formatCurrency(pData.balance)}`, executor);
         }
+    }
+};
+
+const oBalanceCommand: CustomCommand = {
+    name: 'obalance',
+    aliases: ['obal', 'offlinebalance'],
+    description: "Checks an offline player's balance.",
+    category: 'Economy',
+    permissionLevel: 1024,
+    allowConsole: true,
+    parameters: [{ name: 'target', type: 'string' }],
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const config = getConfig();
+        if (!config.economy.enabled) return sendMessage(constants.economyDisabled, executor);
+
+        const targetName = args.target as string;
+        if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
+
+        const targetId = getPlayerIdByName(targetName);
+        if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+
+        const displayName = getPlayerNameById(targetId) || targetName;
+        const pData = loadPlayerData(targetId);
+
+        if (!pData) return sendMessage(`§cCould not load data for ${displayName}.`, executor);
+
+        sendMessage(`§a${displayName}'s balance is: §e${formatCurrency(pData.balance)} (Offline)`, executor);
     }
 };
 
@@ -106,29 +75,13 @@ const baltopCommand: CustomCommand = {
     allowConsole: true,
     execute: (executor: CommandExecutor) => {
         const config = getConfig();
-        if (!config.economy.enabled) {
-            const message = constants.economyDisabled;
-            if (executor instanceof mc.Player) {
-                sendMessage(message, executor);
-            } else {
-                executor.sendMessage(message);
-            }
-            return;
-        }
+        if (!config.economy.enabled) return sendMessage(constants.economyDisabled, executor);
 
         const leaderboard = getLeaderboard();
         const displayLimit = config.economy.baltopLimit ?? 10;
         const topPlayers = leaderboard.slice(0, displayLimit);
 
-        if (topPlayers.length === 0) {
-            const message = '§cThe leaderboard is currently empty.';
-            if (executor instanceof mc.Player) {
-                sendMessage(message, executor);
-            } else {
-                executor.sendMessage(message);
-            }
-            return;
-        }
+        if (topPlayers.length === 0) return sendMessage('§cThe leaderboard is currently empty.', executor);
 
         const rankColors: { [key: number]: string } = {
             1: '§4', // Dark Red
@@ -152,4 +105,4 @@ const baltopCommand: CustomCommand = {
     }
 };
 
-export default [balanceCommand, baltopCommand];
+export default [balanceCommand, oBalanceCommand, baltopCommand];
