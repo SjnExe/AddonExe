@@ -15,11 +15,6 @@ import {
 } from '@core/playerDataManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
 
-interface PayCommandArgs {
-    targets?: mc.Player[];
-    amount?: string;
-}
-
 const payCommand: CustomCommand = {
     name: 'pay',
     aliases: ['givemoney', 'transfer'],

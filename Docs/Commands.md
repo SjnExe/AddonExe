@@ -80,6 +80,14 @@ Commands available to all players by default.
     - Cancels your outgoing teleport request.
 - **/tpastatus**
     - Checks the status of your TPA requests.
+- **/tpastop [targets]**
+    - Blocks specific players or disables all TPA requests.
+- **/tpastart [targets]**
+    - Unblocks specific players or enables all TPA requests.
+- **/otpastop <target>**
+    - Blocks an offline player from sending TPA requests.
+- **/otpastart <target>**
+    - Unblocks an offline player.
 
 ### Home System
 
@@ -94,12 +102,16 @@ Commands available to all players by default.
 
 ### Economy System
 
-- **/balance [target]**
-    - Shows your or another player's balance.
+- **/balance [targets]**
+    - Shows your or another player's balance. Supports selectors (e.g. `@a`).
+- **/obalance <target>**
+    - Shows an offline player's balance.
 - **/baltop**
     - Shows the players with the highest balances on the server.
 - **/pay <target> <amount>**
     - Pays another player from your balance.
+- **/opay <target> <amount>**
+    - Pays an offline player.
 - **/payconfirm**
     - Confirms a pending high-value payment.
 
@@ -107,10 +119,16 @@ Commands available to all players by default.
 
 - **/bounty <target> <amount>**
     - Places a bounty on a player.
+- **/obounty <target> <amount>**
+    - Places a bounty on an offline player.
 - **/listbounty [target]**
     - Lists active bounties.
+- **/olistbounty <target>**
+    - Lists bounties for an offline player.
 - **/removebounty <amount> [target]**
     - Removes a portion of a bounty from a player.
+- **/oremovebounty <amount> <target>**
+    - Removes a portion of a bounty from an offline player.
 
 ### Shop System
 
@@ -133,11 +151,12 @@ Commands available to Admins and above.
 ### Player Punishment
 
 - **/ban <target> [duration] [reason]**
-    - Bans an online player. For offline players, use `/offlineban`.
+    - Bans an online player.
+- **/oban <target> [duration] [reason]**
+    - Bans a player who is currently offline.
+    - _Alias: `/offlineban`_
 - **/unban <target>**
     - Unbans a player, allowing them to rejoin.
-- **/offlineban <target> [duration] [reason]**
-    - Bans a player who is currently offline.
 - **/kick <target> [reason]**
     - Kicks a player from the server.
 - **/mute <target> [duration] [reason]**
@@ -198,8 +217,18 @@ Commands for high-level server management.
 
 ### Player & World
 
-- **/setbalance <target> <amount>**
-    - Sets a player's balance.
+- **/setbalance <targets> <amount>**
+    - Sets a player's (or players') balance. Supports selectors.
+- **/osetbalance <target> <amount>**
+    - Sets an offline player's balance.
+- **/addbalance <targets> <amount>**
+    - Adds to a player's balance.
+- **/oaddbalance <target> <amount>**
+    - Adds to an offline player's balance.
+- **/removebalance <targets> <amount>**
+    - Removes from a player's balance.
+- **/oremovebalance <target> <amount>**
+    - Removes from an offline player's balance.
 - **/setspawn [x] [y] [z]**
     - Sets the world's default spawn point.
 - **/tp <target> [destination]**

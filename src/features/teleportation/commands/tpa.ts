@@ -23,10 +23,6 @@ import {
     getOutgoingRequest
 } from '../tpaManager.js';
 
-interface TpaCommandArgs {
-    target: string;
-}
-
 const tpaCommand: CustomCommand = {
     name: 'tpa',
     description: 'Sends a request to teleport to another player.',

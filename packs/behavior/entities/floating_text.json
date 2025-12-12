@@ -12,8 +12,8 @@
                 "family": ["inanimate", "floating_text"]
             },
             "minecraft:collision_box": {
-                "width": 0.1,
-                "height": 0.1
+                "width": 0.0,
+                "height": 0.0
             },
             "minecraft:health": {
                 "value": 1,

@@ -4,7 +4,6 @@ import * as bountyManager from '@core/bountyManager.js';
 import { getConfig } from '@core/configManager.js';
 import { infoLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { findPlayerByName } from '@core/playerCache.js';
 import {
     getOrCreatePlayer,
     getPlayerIdByName,
@@ -12,7 +11,7 @@ import {
     incrementPlayerBalance,
     loadPlayerData
 } from '@core/playerDataManager.js';
-import { formatCurrency, parseCurrency } from '@core/utils.js';
+import { parseCurrency } from '@core/utils.js';
 
 import { CommandExecutor, CustomCommand } from './commandManager.js';
 
