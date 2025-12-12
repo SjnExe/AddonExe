@@ -113,7 +113,7 @@ export default tseslint.config(
             '@typescript-eslint/no-shadow': 'error',
             '@typescript-eslint/no-floating-promises': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
-            '@typescript-eslint/no-unused-vars': ['error', { args: 'none' }],
+            '@typescript-eslint/no-unused-vars': ['error', { args: 'all', argsIgnorePattern: '^_' }],
             // Strict type safety rules
             '@typescript-eslint/no-unsafe-argument': 'error',
             '@typescript-eslint/no-unsafe-assignment': 'error',

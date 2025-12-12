@@ -77,8 +77,13 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     const mobId = deadEntity.typeId;
     const reward = economyConfig.mobMoney[mobId];
 
-    if (reward && reward > 0) {
+    if (reward && reward !== 0) {
         incrementPlayerBalance(killer.id, reward);
-        infoLog(`Gave ${killer.name} ${formatCurrency(reward)} for killing a ${mobId}.`);
+        if (reward > 0) {
+            infoLog(`Gave ${killer.name} ${formatCurrency(reward)} for killing a ${mobId}.`);
+        } else {
+            infoLog(`Took ${formatCurrency(Math.abs(reward))} from ${killer.name} for killing a ${mobId}.`);
+            killer.sendMessage(`§cPenalty: ${formatCurrency(reward)} for killing a ${mobId}.`);
+        }
     }
 });

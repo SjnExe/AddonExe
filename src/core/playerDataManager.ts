@@ -102,14 +102,30 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
 /**
  * A generic function to update a player's data. It handles getting the data,
  * running a modification callback, and saving the data.
+ * Supports updating offline players by temporarily loading their data.
  * @param playerId The ID of the player to update.
  * @param modificationCallback A callback that receives the player data and modifies it.
  */
 export function updatePlayerData(playerId: string, modificationCallback: (pData: PlayerData) => void) {
-    const pData = getPlayer(playerId);
+    let pData = activePlayerData.get(playerId);
+    let wasCached = true;
+
+    if (!pData) {
+        wasCached = false;
+        pData = loadPlayerData(playerId) || undefined;
+    }
+
     if (pData) {
         modificationCallback(pData);
-        pData.needsSave = true; // Mark as dirty
+        if (wasCached) {
+            pData.needsSave = true; // Mark as dirty for auto-save
+        } else {
+            // For offline players, save immediately and remove from cache to prevent memory leaks
+            savePlayerData(playerId);
+            activePlayerData.delete(playerId);
+        }
+    } else {
+        errorLog(`[PlayerDataManager] Failed to update data for player ${playerId}: Not found.`);
     }
 }
 
@@ -392,6 +408,15 @@ export function getPlayerIdByName(playerName: string): string | undefined {
 }
 
 /**
+ * Gets a player's name from their ID via the lookup map.
+ * @param playerId The ID of the player.
+ * @returns The player's name, or undefined if not found.
+ */
+export function getPlayerNameById(playerId: string): string | undefined {
+    return playerIdNameMap.get(playerId);
+}
+
+/**
  * Gets a player's data from the in-memory cache.
  * @param playerId
  */
@@ -647,7 +672,8 @@ export function transfer(
     if (sourceData.balance < amount) {
         return { success: false, message: 'You do not have enough money for this transaction.' };
     }
-    const targetData = getPlayer(targetPlayerId);
+    // Verify target exists (offline ok)
+    const targetData = loadPlayerData(targetPlayerId);
     if (!targetData) {
         return { success: false, message: "Could not find the target player's data." };
     }

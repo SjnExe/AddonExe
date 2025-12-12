@@ -24,23 +24,23 @@ Designed to be robust, highly configurable, and packed with features to ensure f
 ## 🌟 Core Features
 
 - 🛠️ **Powerful Admin & Moderation Tools:**
-  - A universal, dynamic in-game UI panel (`/panel`) that shows each player only the buttons they are permitted to see.
-  - Perform a wide range of actions: Kick, Ban/Unban, Mute/Unmute, Freeze, View/Clear Inventory, Teleport.
-  - Extensive slash commands for all administrative functions, which can also be run directly from the server console.
+    - A universal, dynamic in-game UI panel (`/panel`) that shows each player only the buttons they are permitted to see.
+    - Perform a wide range of actions: Kick, Ban/Unban, Mute/Unmute, Freeze, View/Clear Inventory, Teleport.
+    - Extensive slash commands for all administrative functions, which can also be run directly from the server console.
 - 💾 **Persistent Player Data Management:**
-  - Mutes and bans are saved across player sessions using dynamic properties.
+    - Mutes and bans are saved across player sessions using dynamic properties.
 - ⚙️ **Highly Configurable System:**
-  - Toggle major features, customize messages, and define all permissions and ranks in easy-to-edit configuration files.
+    - Toggle major features, customize messages, and define all permissions and ranks in easy-to-edit configuration files.
 - 🏅 **Flexible Rank System:**
-  - Define Owner, Admin, Member, and custom roles with specific permissions and visual chat/nametag prefixes.
+    - Define Owner, Admin, Member, and custom roles with specific permissions and visual chat/nametag prefixes.
 - 📞 **Teleport Request System (TPA/TPAHere):**
-  - Allows players to request teleports to others or summon others, with configurable cooldowns and warmup periods.
+    - Allows players to request teleports to others or summon others, with configurable cooldowns and warmup periods.
 - ✨ **Player & Server Utilities:**
-  - **Economy & Bounties:** A simple economy system with player balances, payment commands, and a full bounty system.
-  - **In-Game Shop:** A complete GUI-based shop where players can buy and sell items.
-  - **Homes:** Allows players to set and teleport to their own personal "homes".
-  - **Kits:** A system for players to claim predefined kits of items with cooldowns.
-  - **Random Teleport (RTP):** A command for players to teleport to a random, safe location.
+    - **Economy & Bounties:** A simple economy system with player balances, payment commands, and a full bounty system.
+    - **In-Game Shop:** A complete GUI-based shop where players can buy and sell items.
+    - **Homes:** Allows players to set and teleport to their own personal "homes".
+    - **Kits:** A system for players to claim predefined kits of items with cooldowns.
+    - **Random Teleport (RTP):** A command for players to teleport to a random, safe location.
 
 > [!NOTE]
 > **Cheat Detection Suite (Under Redevelopment)**
@@ -61,7 +61,7 @@ We recommend the following manual installation method, as it makes future config
     - Do **not** open the `.mcaddon` file directly. Instead, rename it to end in `.zip` (e.g., `AddonExe.mcaddon` -> `AddonExe.zip`).
     - Unzip the file. Inside, you will find two folders: `AddonExeBP` (the Behavior Pack) and `AddonExeRP` (the Resource Pack).
     - Move these two folders into your Minecraft's `behavior_packs` and `resource_packs` folders, respectively.
-    > **Why this method?** Installing the folders directly makes it simple to find and edit the `config.js` file later.
+        > **Why this method?** Installing the folders directly makes it simple to find and edit the `config.js` file later.
 3.  **Apply to Your World:**
     - Open Minecraft and go to your world's settings.
     - Apply both `AddonExeBP` and `AddonExeRP` to your world.
@@ -73,15 +73,16 @@ We recommend the following manual installation method, as it makes future config
 ### For Bedrock Dedicated Server (BDS)
 
 Follow steps 1 & 2 above, then:
+
 1.  **Place the Pack Folders:**
-    -   Move the extracted `AddonExeBP` and `AddonExeRP` folders into your BDS's `behavior_packs` and `resource_packs` folders.
+    - Move the extracted `AddonExeBP` and `AddonExeRP` folders into your BDS's `behavior_packs` and `resource_packs` folders.
 2.  **Activate the Packs:**
-    -   Download the following two files from the root of the repository:
-        -   [**`world_behavior_packs.json`**](https://github.com/SjnExe/AddonExe/blob/exe/world_behavior_packs.json)
-        -   [**`world_resource_packs.json`**](https://github.com/SjnExe/AddonExe/blob/exe/world_resource_packs.json)
-    -   Place both of these files into the root folder of your world (the same folder that contains your `level.dat`).
+    - Download the following two files from the root of the repository:
+        - [**`world_behavior_packs.json`**](https://github.com/SjnExe/AddonExe/blob/exe/world_behavior_packs.json)
+        - [**`world_resource_packs.json`**](https://github.com/SjnExe/AddonExe/blob/exe/world_resource_packs.json)
+    - Place both of these files into the root folder of your world (the same folder that contains your `level.dat`).
 3.  **Enable Beta APIs:**
-    -   The easiest method is to download your world, open it in a local version of Minecraft, enable the "Beta APIs" experiment, and then re-upload the world to your server.
+    - The easiest method is to download your world, open it in a local version of Minecraft, enable the "Beta APIs" experiment, and then re-upload the world to your server.
 
 ---
 
@@ -110,6 +111,7 @@ After installing, you **must** set yourself as the owner to access admin command
 - 🛠️ [**Troubleshooting Guide**](https://github.com/SjnExe/AddonExe/blob/exe/Docs/Troubleshooting.md) - Solutions for common problems.
 
 ### Need Help?
+
 - **Join our [Discord Server](https://discord.gg/SMUHUnGyyz)** for community support.
 - **Report Bugs** on our [GitHub Issues Page](https://github.com/SjnExe/AddonExe/issues).
 

@@ -2,7 +2,6 @@ import * as mc from '@minecraft/server';
 
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { findPlayerByName } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 
 import { CommandExecutor, CustomCommand } from './commandManager.js';
@@ -29,55 +28,51 @@ const gamemodeNames = new Map<mc.GameMode, string>([
 
 // --- Core Logic ---
 
-function setGamemode(executor: CommandExecutor, gamemode: string, targetName?: string): void {
-    let targetPlayer: mc.Player | undefined;
-
-    if (targetName) {
-        targetPlayer = findPlayerByName(targetName);
-        if (!targetPlayer) {
-            sendMessage(`§cPlayer "${targetName}" not found.`);
-            return;
-        }
-    } else {
-        if (!(executor instanceof mc.Player)) {
+function setGamemode(executor: CommandExecutor, gamemode: string, targets?: mc.Player[]): void {
+    if (!targets || targets.length === 0) {
+        if (executor instanceof mc.Player) {
+            targets = [executor];
+        } else {
             sendMessage('§cYou must specify a target player when running this command from the console.');
-            return;
-        }
-        targetPlayer = executor;
-    }
-
-    // Permission check: Ensure executor isn't targeting a higher/equal rank
-    if (executor instanceof mc.Player && executor.id !== targetPlayer.id) {
-        const executorData = getPlayer(executor.id);
-        const targetData = getPlayer(targetPlayer.id);
-        if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
-            sendMessage('§cYou cannot change the gamemode of a player with the same or higher rank.');
             return;
         }
     }
 
     const gameModeValue = gamemodes[gamemode.toLowerCase()];
     if (gameModeValue === undefined) {
-        sendMessage(`§cInvalid gamemode specified: ${gamemode}`);
+        sendMessage(`§cInvalid gamemode specified: ${gamemode}`, executor);
         return;
     }
 
-    try {
-        targetPlayer.setGameMode(gameModeValue);
-        const gamemodeName = gamemodeNames.get(gameModeValue);
-        const announcer = executor instanceof mc.Player ? executor.name : 'Console';
+    const gamemodeName = gamemodeNames.get(gameModeValue);
+    const announcer = executor instanceof mc.Player ? executor.name : 'Console';
+    const executorData = executor instanceof mc.Player ? getPlayer(executor.id) : null;
 
-        if (executor instanceof mc.Player && executor.id === targetPlayer.id) {
-            sendMessage(`§aYour gamemode has been set to §e${gamemodeName}§a.`);
-        } else {
-            sendMessage(`§aSuccessfully set §e${targetPlayer.name}§a's gamemode to §e${gamemodeName}§a.`);
+    let successCount = 0;
+
+    for (const targetPlayer of targets) {
+        // Permission check
+        if (executor instanceof mc.Player && executor.id !== targetPlayer.id) {
+            const targetData = getPlayer(targetPlayer.id);
+            if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+                sendMessage(`§cSkipped ${targetPlayer.name}: You cannot change their gamemode (equal/higher rank).`, executor);
+                continue;
+            }
+        }
+
+        try {
+            targetPlayer.setGameMode(gameModeValue);
             sendMessage(`§aYour gamemode was set to §e${gamemodeName}§a by §e${announcer}§a.`, targetPlayer);
+            successCount++;
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                errorLog(`[/gamemode] Failed to set gamemode for ${targetPlayer.name}: ${e.stack}`);
+            }
         }
-    } catch (e: unknown) {
-        sendMessage('§cFailed to set gamemode. Please check the console for details.');
-        if (e instanceof Error) {
-            errorLog(`[/gamemode] Failed to set gamemode for ${targetPlayer.name}: ${e.stack}`);
-        }
+    }
+
+    if (successCount > 0) {
+        sendMessage(`§aSuccessfully set gamemode to §e${gamemodeName}§a for ${successCount} player(s).`, executor);
     }
 }
 
@@ -97,11 +92,11 @@ const mainGamemodeCommand: CustomCommand = {
             description: 'Gamemode (s, c, a, sp, or full name)',
             enumOptions: Object.keys(gamemodes)
         },
-        { name: 'target', type: 'string', description: 'The target player name', optional: true }
+        { name: 'targets', type: 'player', description: 'The target player(s)', optional: true }
     ],
     execute: (executor, args) => {
-        const { gamemode, target } = args;
-        setGamemode(executor, gamemode as string, target as string | undefined);
+        const { gamemode, targets } = args;
+        setGamemode(executor, gamemode as string, targets as mc.Player[] | undefined);
     }
 };
 
@@ -136,10 +131,10 @@ const legacyCommands: CustomCommand[] = legacyCommandDefs.map((cmd) => ({
     category: 'Administration',
     permissionLevel: 1,
     allowConsole: true,
-    parameters: [{ name: 'target', type: 'string', description: 'The player to set the gamemode for', optional: true }],
+    parameters: [{ name: 'targets', type: 'player', description: 'The player(s) to set the gamemode for', optional: true }],
     execute: (executor, args) => {
-        const { target } = args;
-        setGamemode(executor, cmd.gamemode, target as string | undefined);
+        const { targets } = args;
+        setGamemode(executor, cmd.gamemode, targets as mc.Player[] | undefined);
     }
 }));
 

@@ -1,3 +1,4 @@
+import chokidar from 'chokidar';
 import esbuild from 'esbuild';
 import fs from 'fs';
 import path from 'path';
@@ -109,13 +110,25 @@ async function build() {
             await ctx.watch();
             console.log('Watching for changes...');
 
-            // Watch config files manually since they are separate builds
-            configsToCompile.forEach((config) => {
-                const srcPath = path.join(__dirname, config.src);
-                fs.watchFile(srcPath, { interval: 1000 }, async () => {
-                    console.log(`Config changed: ${config.src}, recompiling...`);
-                    await compileConfig(config);
-                });
+            // Watch config files using chokidar for better performance
+            const configPaths = configsToCompile.map((c) => path.join(__dirname, c.src));
+            const watcher = chokidar.watch(configPaths, {
+                ignoreInitial: true,
+                awaitWriteFinish: {
+                    stabilityThreshold: 100,
+                    pollInterval: 100
+                }
+            });
+
+            watcher.on('change', async (filePath) => {
+                // Find which config entry matches
+                const configEntry = configsToCompile.find(
+                    (c) => path.resolve(__dirname, c.src) === path.resolve(filePath)
+                );
+                if (configEntry) {
+                    console.log(`Config changed: ${configEntry.src}, recompiling...`);
+                    await compileConfig(configEntry);
+                }
             });
         } else {
             await ctx.rebuild();

@@ -1,8 +1,7 @@
 import { getConfig, onConfigUpdated, updateConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function checkDependencies(config: any) {
+function checkDependencies(config: unknown) {
     // Define dependencies: Feature -> Dependency
     // Keys must match property names in Config
     const dependencies: Record<string, string[]> = {
@@ -12,7 +11,7 @@ function checkDependencies(config: any) {
     };
 
     // Cast to generic record to allow dynamic access
-    const typedConfig = config as unknown as Record<string, { enabled?: boolean }>;
+    const typedConfig = config as Record<string, { enabled?: boolean }>;
 
     for (const feature in dependencies) {
         const featureEnabled = typedConfig[feature]?.enabled;

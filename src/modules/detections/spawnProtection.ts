@@ -6,17 +6,16 @@ import { getSpawnConfig } from '@core/configurations.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
 import { getPlayerRank } from '@core/rankManager.js';
 
+type EventHandler = (arg: unknown) => void;
+
 interface GenericEventSignal {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    subscribe(handler: (arg: any) => void): void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    unsubscribe(handler: (arg: any) => void): void;
+    subscribe(handler: EventHandler): void;
+    unsubscribe(handler: EventHandler): void;
 }
 
 interface TrackedEvent {
     event: GenericEventSignal;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handler: (event: any) => void;
+    handler: EventHandler;
 }
 
 let eventHandlers: TrackedEvent[] = [];
@@ -48,14 +47,19 @@ function cleanup(): void {
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function subscribe(event: GenericEventSignal, handler: (event: any) => void): void {
+function subscribe<T>(
+    event: { subscribe: (h: (arg: T) => void) => void; unsubscribe: (h: (arg: T) => void) => void },
+    handler: (arg: T) => void
+): void {
     if (!event) {
         debugLog('[SpawnProtection] Attempted to subscribe to a non-existent event.');
         return;
     }
     event.subscribe(handler);
-    eventHandlers.push({ event, handler });
+    eventHandlers.push({
+        event: event as unknown as GenericEventSignal,
+        handler: handler as unknown as EventHandler
+    });
 }
 
 function isWithinSpawnProtection(location: mc.Vector3, dimensionId: string): boolean {

@@ -50,27 +50,27 @@ Designed to be robust, highly configurable, and packed with features to ensure f
 This addon is packed with features to keep your server clean:
 
 - 🛠️ **Powerful Admin & Moderation Tools:**
-  - A universal, dynamic in-game UI panel that shows each player only the buttons they are permitted to see. The panel item can be crafted by anyone, or spawned directly with the admin-only `/panel` command.
-  - **Enhanced Player Management Panel:**
-    - View online players, sorted by rank and name.
-    - Player names are clearly marked with `(Owner)`, `(Admin)`, and `(You)` suffixes.
-    - Perform a wide range of actions: Kick, Ban/Unban, Mute/Unmute, Freeze, View/Clear Inventory, Teleport.
-  - **New Commands:** `/xclear` (clear inventory), `/ecwipe` (wipe ender chest), `/invsee` (view inventory).
-  - Extensive slash commands for all administrative functions (Note: a `!` prefix is available as a fallback).
+    - A universal, dynamic in-game UI panel that shows each player only the buttons they are permitted to see. The panel item can be crafted by anyone, or spawned directly with the admin-only `/panel` command.
+    - **Enhanced Player Management Panel:**
+        - View online players, sorted by rank and name.
+        - Player names are clearly marked with `(Owner)`, `(Admin)`, and `(You)` suffixes.
+        - Perform a wide range of actions: Kick, Ban/Unban, Mute/Unmute, Freeze, View/Clear Inventory, Teleport.
+    - **New Commands:** `/xclear` (clear inventory), `/ecwipe` (wipe ender chest), `/invsee` (view inventory).
+    - Extensive slash commands for all administrative functions (Note: a `!` prefix is available as a fallback).
 - 💾 **Persistent Player Data Management:**
-  - Mutes and bans are saved across player sessions using dynamic properties.
+    - Mutes and bans are saved across player sessions using dynamic properties.
 - ⚙️ **Highly Configurable System:**
-  - Toggle major features, customize messages, and define all permissions and ranks in easy-to-edit configuration files.
+    - Toggle major features, customize messages, and define all permissions and ranks in easy-to-edit configuration files.
 - 🏅 **Flexible Rank System:**
-  - Define Owner, Admin, Member, and custom roles with specific permissions and visual chat/nametag prefixes.
+    - Define Owner, Admin, Member, and custom roles with specific permissions and visual chat/nametag prefixes.
 - 📞 **Teleport Request System (TPA/TPAHere):**
-  - Allows players to request teleports to others or summon others, with configurable cooldowns and warmup periods.
+    - Allows players to request teleports to others or summon others, with configurable cooldowns and warmup periods.
 - ✨ **Player & Server Utilities:**
-  - **Economy & Bounties:** A simple economy system with player balances, payment commands, and a full bounty system.
-  - **In-Game Shop:** A fully-featured, GUI-based shop where players can buy and sell items. Admins can configure all items and prices from an in-game panel.
-  - **Homes:** Allows players to set and teleport to their own personal "homes".
-  - **Random Teleport (RTP):** A command for players to teleport to a random, safe location in the world.
-  - **Kits:** A system for players to claim predefined kits of items with cooldowns.
+    - **Economy & Bounties:** A simple economy system with player balances, payment commands, and a full bounty system.
+    - **In-Game Shop:** A fully-featured, GUI-based shop where players can buy and sell items. Admins can configure all items and prices from an in-game panel.
+    - **Homes:** Allows players to set and teleport to their own personal "homes".
+    - **Random Teleport (RTP):** A command for players to teleport to a random, safe location in the world.
+    - **Kits:** A system for players to claim predefined kits of items with cooldowns.
 
 > [!NOTE]
 > **Cheat Detection Suite (Under Redevelopment)**
@@ -94,6 +94,7 @@ For a standard installation, follow these steps:
     - In the "Experiments" section, enable the **"Beta APIs"** toggle.
 
     > **For Bedrock Dedicated Server (BDS) users:**
+    >
     > - You must also edit your `server.properties` file and set `allow-cheats=true`.
 
 5.  **Configure:** Once in-game, you can configure most of the addon's features via the `/panel` command or by editing the configuration files directly.
@@ -106,8 +107,8 @@ AddonExe is designed to be highly customizable. There are two main ways to confi
 
 ### 1. In-Game Configuration (Recommended for most users)
 
--   **Admin Panel:** The easiest way to configure the addon is through the in-game UI. As an Owner or Admin, type `/panel` to open the main configuration menu.
--   **Live Reloading:** Changes made in the panel are applied instantly. For manual file changes, they are safely merged and applied after using the `/reload` or `/xreload` commands.
+- **Admin Panel:** The easiest way to configure the addon is through the in-game UI. As an Owner or Admin, type `/panel` to open the main configuration menu.
+- **Live Reloading:** Changes made in the panel are applied instantly. For manual file changes, they are safely merged and applied after using the `/reload` or `/xreload` commands.
 
 ### 2. File-Based Configuration (For developers and advanced users)
 
@@ -116,15 +117,16 @@ This method is ideal for those who fork the repository to make their own custom 
 1.  **Fork the Repository:** Start by forking the [AddonExe repository](https://github.com/SjnExe/AddonExe).
 2.  **Locate Default Configs:** Inside the `src/` and `src/core/` directories, you will find several configuration files ending in `.default.ts` (e.g., `config.default.ts`, `economyConfig.default.ts`). These are the template files.
 3.  **Create Your Local Config:**
-    -   To create your own custom configuration, simply **copy and rename** the default file, removing the `.default` part.
-    -   For example, copy `config.default.ts` and rename the new file to `config.ts`.
+    - To create your own custom configuration, simply **copy and rename** the default file, removing the `.default` part.
+    - For example, copy `config.default.ts` and rename the new file to `config.ts`.
 4.  **Customize:** Open your new `config.ts` file and make any changes you desire.
 5.  **Build:** Run `npm run build` to compile your changes into the `packs/behavior` folder.
 
 **How it Works:**
--   When you build the addon, the system will automatically use your local `config.ts` if it exists.
--   If `config.ts` is not found, it will fall back to using the `config.default.ts`.
--   Because your local `config.ts` files are listed in `.gitignore`, they will never be tracked by Git, completely preventing merge conflicts when you pull updates from the main repository.
+
+- When you build the addon, the system will automatically use your local `config.ts` if it exists.
+- If `config.ts` is not found, it will fall back to using the `config.default.ts`.
+- Because your local `config.ts` files are listed in `.gitignore`, they will never be tracked by Git, completely preventing merge conflicts when you pull updates from the main repository.
 
 <details>
 <summary><strong>💡 Quick Troubleshooting Tips & Full Guide</strong></summary>
@@ -195,15 +197,17 @@ This project is also made possible by the community and all the developers who d
 ➡️ You can see a list of code contributors on [**GitHub**](https://github.com/SjnExe/AddonExe/graphs/contributors).
 
 ---
+
 <div align="center">
 
 ## ⚖️ License
-  
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 In the spirit of open source, you are free to use, modify, and distribute this code with or without credit to SjnExe.
+
 </div>
 Thank you for using AddonExe!
 We hope it helps create a fairer and more enjoyable Minecraft experience for your community.

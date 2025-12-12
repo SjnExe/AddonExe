@@ -41,6 +41,7 @@ If your issue isn't listed in the F.A.Q. or this guide, please consider [reporti
 This is the most common setup issue. The key is understanding that the addon's configuration is loaded when the server starts, but the Owner rank might not update automatically if it was already set to someone else.
 
 **Solution:**
+
 1.  **Stop your server.**
 2.  **Open the correct file:** `AddonExeBP/scripts/config.js`.
 3.  **Add your name:** Find the `ownerPlayerNames` setting and add your **exact**, case-sensitive in-game name.
@@ -58,10 +59,10 @@ For a quick summary, see the [F.A.Q.](F.A.Q.md#how-do-i-change-the-server-owner)
 **Problem: Changes I made to `config.js` aren't taking effect.**
 
 - **Editing Correct File:** Ensure you are editing the `config.js` within the `AddonExeBP` (Behavior Pack) and not a stray copy.
-- **Re-Applying Packs:** If you edit `config.js` *after* the pack is already applied to a world, Minecraft might not always pick up the changes immediately. The most reliable way is to:
-  1. Remove `AddonExeBP` and `AddonExeRP` from your world.
-  2. Make your changes to `config.js` in your source/downloaded pack.
-  3. Re-import the modified `.mcaddon` or re-apply the modified packs to your world.
+- **Re-Applying Packs:** If you edit `config.js` _after_ the pack is already applied to a world, Minecraft might not always pick up the changes immediately. The most reliable way is to:
+    1. Remove `AddonExeBP` and `AddonExeRP` from your world.
+    2. Make your changes to `config.js` in your source/downloaded pack.
+    3. Re-import the modified `.mcaddon` or re-apply the modified packs to your world.
 - **Server vs. Local:** If on a server, ensure the server has fully restarted after updating the pack files.
 
 ---
@@ -104,7 +105,7 @@ For a quick summary, see the [F.A.Q.](F.A.Q.md#how-do-i-change-the-server-owner)
 
 - **Restart:** Sometimes, simply restarting your Minecraft client, server, or world can resolve temporary glitches.
 - **Check Minecraft Version:** Ensure your AddonExe version is designed for your current Minecraft Bedrock Edition version. Check the [GitHub Releases](https://github.com/SjnExe/AddonExe/releases/latest) page.
-- **Test with No Other Addons:** To rule out addon conflicts, try running AddonExe on a test world with *no other Behavior Packs or Resource Packs* applied. If it works fine, then another addon is likely causing the issue. You can then add your other addons back one by one to find the culprit.
+- **Test with No Other Addons:** To rule out addon conflicts, try running AddonExe on a test world with _no other Behavior Packs or Resource Packs_ applied. If it works fine, then another addon is likely causing the issue. You can then add your other addons back one by one to find the culprit.
 - **Check for Updates:** Make sure you are using the latest version of AddonExe.
 
 ---

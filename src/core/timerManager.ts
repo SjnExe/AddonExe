@@ -10,6 +10,7 @@ import { debugLog } from './logger.js';
 // Use Sets to store the IDs of active timers. Sets provide O(1) for add/delete.
 const intervalIds = new Set<number>();
 const timeoutIds = new Set<number>();
+const jobIds = new Set<number>();
 
 /**
  * A wrapper for system.runInterval that tracks the interval ID.
@@ -40,6 +41,20 @@ export function setTrackedTimeout(callback: () => void, tickDelay: number): numb
 }
 
 /**
+ * A wrapper for system.runJob that tracks the job ID.
+ * @param generator The generator to execute.
+ * @returns The ID of the job.
+ */
+export function setTrackedJob(generator: Generator<void, void, void>): number {
+    const id = mc.system.runJob(generator);
+    jobIds.add(id);
+    // Note: Jobs don't have a simple "done" callback we can wrap easily to auto-cleanup from Set,
+    // unless we wrap the generator. But typically jobs are long-running.
+    // We could wrap the generator but for now we just track it for cleanup.
+    return id;
+}
+
+/**
  * Clears a specific interval and removes it from tracking.
  * @param id The ID of the interval to clear.
  */
@@ -62,11 +77,24 @@ export function clearTrackedTimeout(id: number): void {
 }
 
 /**
+ * Clears a specific job and removes it from tracking.
+ * @param id The ID of the job to clear.
+ */
+export function clearTrackedJob(id: number): void {
+    if (jobIds.has(id)) {
+        mc.system.clearJob(id);
+        jobIds.delete(id);
+    }
+}
+
+/**
  * Clears all tracked intervals and timeouts.
  * This is crucial for handling script reloads gracefully.
  */
 export function cleanupTimers(): void {
-    debugLog(`[TimerManager] Clearing ${intervalIds.size} intervals and ${timeoutIds.size} timeouts.`);
+    debugLog(
+        `[TimerManager] Clearing ${intervalIds.size} intervals, ${timeoutIds.size} timeouts, and ${jobIds.size} jobs.`
+    );
 
     for (const id of intervalIds) {
         mc.system.clearRun(id);
@@ -78,5 +106,10 @@ export function cleanupTimers(): void {
     }
     timeoutIds.clear();
 
-    debugLog('[TimerManager] All tracked timers have been cleared.');
+    for (const id of jobIds) {
+        mc.system.clearJob(id);
+    }
+    jobIds.clear();
+
+    debugLog('[TimerManager] All tracked timers and jobs have been cleared.');
 }
