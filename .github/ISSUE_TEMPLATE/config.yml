@@ -1,11 +1,11 @@
 blank_issues_enabled: false # Users must select a template
 contact_links:
-  - name: 🤔 Questions & General Discussion
-    url: https://github.com/SjnExe/AddonExe/discussions # Or link to Discord if preferred for general questions
-    about: Please ask and answer questions here, or start a general discussion.
-  - name: 📖 Project Documentation
-    url: https://github.com/SjnExe/AddonExe/tree/main/Docs
-    about: Check our documentation for guides and detailed information.
-  - name: 🤝 Contributing Guide
-    url: https://github.com/SjnExe/AddonExe/blob/main/.github/CONTRIBUTING.md
-    about: Read our contributing guidelines before submitting code or major suggestions.
+    - name: 🤔 Questions & General Discussion
+      url: https://github.com/SjnExe/AddonExe/discussions # Or link to Discord if preferred for general questions
+      about: Please ask and answer questions here, or start a general discussion.
+    - name: 📖 Project Documentation
+      url: https://github.com/SjnExe/AddonExe/tree/main/Docs
+      about: Check our documentation for guides and detailed information.
+    - name: 🤝 Contributing Guide
+      url: https://github.com/SjnExe/AddonExe/blob/main/.github/CONTRIBUTING.md
+      about: Read our contributing guidelines before submitting code or major suggestions.

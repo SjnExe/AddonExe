@@ -39,8 +39,8 @@ The use of `snake_case` (e.g., `my_variable`) or `UPPER_SNAKE_CASE` (e.g., `MY_C
 - **Purpose:** Logging is crucial for diagnosing issues and understanding behavior. Logs **SHOULD** be clear, concise, and informative.
 - **Performance:** Expensive operations to gather data for logs **MUST** be conditional on a check like `if (config.enableDebugLogging || pData?.isWatched)`.
 - **Tooling:**
-  - Use `playerUtils.debugLog()` for development messages.
-  - Use `logManager.addLog()` for persistent, structured action and error logging.
-  - Use `playerUtils.notifyAdmins()` for important real-time notifications to staff.
-  - Use `playerUtils.warnPlayer()` for direct warnings to players.
+    - Use `playerUtils.debugLog()` for development messages.
+    - Use `logManager.addLog()` for persistent, structured action and error logging.
+    - Use `playerUtils.notifyAdmins()` for important real-time notifications to staff.
+    - Use `playerUtils.warnPlayer()` for direct warnings to players.
 - For detailed implementation, see the **Debugging and Logging** section in the main `README.md` or `AGENTS.md`.

@@ -5,7 +5,13 @@ import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
-import { addTpaBlockedPlayer, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '@core/playerDataManager.js';
+import {
+    addTpaBlockedPlayer,
+    getPlayerIdByName,
+    getPlayerNameById,
+    removeTpaBlockedPlayer,
+    setTpaRequestsDisabled
+} from '@core/playerDataManager.js';
 import { playSound } from '@core/utils.js';
 
 import {
@@ -17,10 +23,6 @@ import {
     getOutgoingRequest
 } from '../tpaManager.js';
 
-interface TpaCommandArgs {
-    target: string;
-}
-
 const tpaCommand: CustomCommand = {
     name: 'tpa',
     description: 'Sends a request to teleport to another player.',
@@ -28,46 +30,24 @@ const tpaCommand: CustomCommand = {
     aliases: ['tprequest', 'asktp', 'requesttp'],
     permissionLevel: 1024,
     hasCooldown: true,
-    parameters: [{ name: 'target', type: 'string' }],
+    parameters: [{ name: 'target', type: 'player' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) {
-            return;
-        }
-        const { target } = args as unknown as TpaCommandArgs;
+        if (!(executor instanceof mc.Player)) return;
+
+        const targets = args.target as mc.Player[];
         const config = getConfig();
-        if (!config.tpa.enabled) {
-            sendMessage(constants.tpaDisabled, executor);
-            return;
-        }
+        if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
 
-        if (!target) {
-            sendMessage('§cPlease specify a player.', executor);
-            return;
-        }
+        if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+        const targetPlayer = targets[0];
 
-        const targetPlayer = findPlayerByName(target);
-
-        if (!targetPlayer) {
-            sendMessage('§cPlayer not found.', executor);
-            return;
-        }
-
-        if (targetPlayer.id === executor.id) {
-            sendMessage('§cYou cannot send a TPA request to yourself.', executor);
-            return;
-        }
+        if (targetPlayer.id === executor.id) return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
 
         const result = createRequest(executor, targetPlayer, 'tpa');
 
         if (result.success) {
-            sendMessage(
-                `§aTPA request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`,
-                executor
-            );
-            sendMessage(
-                `§a${executor.name} has requested to teleport to you. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`,
-                targetPlayer
-            );
+            sendMessage(`§aTPA request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`, executor);
+            sendMessage(`§a${executor.name} has requested to teleport to you. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`, targetPlayer);
         } else {
             sendMessage(`§c${result.message}`, executor);
         }
@@ -82,46 +62,24 @@ const tpaHereCommand: CustomCommand = {
     permissionLevel: 1024,
     hasCooldown: true,
     cooldownId: 'tpa',
-    parameters: [{ name: 'target', type: 'string' }],
+    parameters: [{ name: 'target', type: 'player' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) {
-            return;
-        }
-        const { target } = args as unknown as TpaCommandArgs;
+        if (!(executor instanceof mc.Player)) return;
+
+        const targets = args.target as mc.Player[];
         const config = getConfig();
-        if (!config.tpa.enabled) {
-            sendMessage(constants.tpaDisabled, executor);
-            return;
-        }
+        if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
 
-        if (!target) {
-            sendMessage('§cPlease specify a player.', executor);
-            return;
-        }
+        if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+        const targetPlayer = targets[0];
 
-        const targetPlayer = findPlayerByName(target);
-
-        if (!targetPlayer) {
-            sendMessage('§cPlayer not found.', executor);
-            return;
-        }
-
-        if (targetPlayer.id === executor.id) {
-            sendMessage('§cYou cannot send a TPA request to yourself.', executor);
-            return;
-        }
+        if (targetPlayer.id === executor.id) return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
 
         const result = createRequest(executor, targetPlayer, 'tpahere');
 
         if (result.success) {
-            sendMessage(
-                `§aTPA Here request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`,
-                executor
-            );
-            sendMessage(
-                `§a${executor.name} has requested for you to teleport to them. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`,
-                targetPlayer
-            );
+            sendMessage(`§aTPA Here request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`, executor);
+            sendMessage(`§a${executor.name} has requested for you to teleport to them. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`, targetPlayer);
         } else {
             sendMessage(`§c${result.message}`, executor);
         }
@@ -140,23 +98,16 @@ const tpaAcceptCommand: CustomCommand = {
     permissionLevel: 1024,
     parameters: [{ name: 'player', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) {
-            return;
-        }
+        if (!(executor instanceof mc.Player)) return;
         const config = getConfig();
-        if (!config.tpa.enabled) {
-            sendMessage(constants.tpaDisabled, executor);
-            return;
-        }
+        if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
 
         const typedArgs = args as unknown as TpaResponseArgs;
         let targetName = typedArgs.player;
 
         if (targetName) {
             const targetPlayer = findPlayerByName(targetName);
-            if (targetPlayer) {
-                targetName = targetPlayer.name;
-            }
+            if (targetPlayer) targetName = targetPlayer.name;
         }
 
         acceptRequest(executor, targetName);
@@ -171,23 +122,16 @@ const tpaDenyCommand: CustomCommand = {
     permissionLevel: 1024,
     parameters: [{ name: 'player', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) {
-            return;
-        }
+        if (!(executor instanceof mc.Player)) return;
         const config = getConfig();
-        if (!config.tpa.enabled) {
-            sendMessage(constants.tpaDisabled, executor);
-            return;
-        }
+        if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
 
         const typedArgs = args as unknown as TpaResponseArgs;
         let targetName = typedArgs.player;
 
         if (targetName) {
             const targetPlayer = findPlayerByName(targetName);
-            if (targetPlayer) {
-                targetName = targetPlayer.name;
-            }
+            if (targetPlayer) targetName = targetPlayer.name;
         }
 
         denyRequest(executor, targetName);
@@ -200,14 +144,9 @@ const tpaCancelCommand: CustomCommand = {
     category: 'Transportation',
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {
-            return;
-        }
+        if (!(executor instanceof mc.Player)) return;
         const config = getConfig();
-        if (!config.tpa.enabled) {
-            sendMessage(constants.tpaDisabled, executor);
-            return;
-        }
+        if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
 
         cancelRequest(executor);
     }
@@ -219,9 +158,7 @@ const tpaStatusCommand: CustomCommand = {
     category: 'Transportation',
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) {
-            return;
-        }
+        if (!(executor instanceof mc.Player)) return;
         const outgoing = getOutgoingRequest(executor);
         const incoming = getIncomingRequest(executor);
 
@@ -251,28 +188,24 @@ const tpaStatusCommand: CustomCommand = {
     }
 };
 
+// --- Online Blocking (Selectors) ---
+
 const tpaStopCommand: CustomCommand = {
     name: 'tpastop',
     aliases: ['tpstop', 'tpablock', 'tpblock'],
-    description: 'Disables TPA requests or blocks a specific player.',
+    description: 'Disables TPA requests or blocks specific players.',
     category: 'Transportation',
     permissionLevel: 1024,
-    parameters: [{ name: 'player', type: 'string', optional: true }],
+    parameters: [{ name: 'targets', type: 'player', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) {
-            return;
-        }
-        const typedArgs = args as unknown as TpaResponseArgs;
-        const targetName = typedArgs.player;
+        if (!(executor instanceof mc.Player)) return;
+        const targets = args.targets as mc.Player[] | undefined;
 
-        if (targetName) {
-            const target = findPlayerByName(targetName);
-            if (!target) {
-                sendMessage('§cPlayer not found.', executor);
-                return;
+        if (targets && targets.length > 0) {
+            for (const target of targets) {
+                addTpaBlockedPlayer(executor.id, target.id);
+                sendMessage(`§aYou have blocked ${target.name} from sending you TPA requests.`, executor);
             }
-            addTpaBlockedPlayer(executor.id, target.id);
-            sendMessage(`§aYou have blocked ${target.name} from sending you TPA requests.`, executor);
         } else {
             setTpaRequestsDisabled(executor.id, true);
             sendMessage('§aYou have disabled all incoming TPA requests.', executor);
@@ -283,29 +216,69 @@ const tpaStopCommand: CustomCommand = {
 const tpaStartCommand: CustomCommand = {
     name: 'tpastart',
     aliases: ['tpstart', 'tpaunblock', 'tpunblock'],
-    description: 'Enables TPA requests or unblocks a specific player.',
+    description: 'Enables TPA requests or unblocks specific players.',
     category: 'Transportation',
     permissionLevel: 1024,
-    parameters: [{ name: 'player', type: 'string', optional: true }],
+    parameters: [{ name: 'targets', type: 'player', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) {
-            return;
-        }
-        const typedArgs = args as unknown as TpaResponseArgs;
-        const targetName = typedArgs.player;
+        if (!(executor instanceof mc.Player)) return;
+        const targets = args.targets as mc.Player[] | undefined;
 
-        if (targetName) {
-            const target = findPlayerByName(targetName);
-            if (!target) {
-                sendMessage('§cPlayer not found.', executor);
-                return;
+        if (targets && targets.length > 0) {
+            for (const target of targets) {
+                removeTpaBlockedPlayer(executor.id, target.id);
+                sendMessage(`§aYou have unblocked ${target.name}. They can now send you TPA requests.`, executor);
             }
-            removeTpaBlockedPlayer(executor.id, target.id);
-            sendMessage(`§aYou have unblocked ${target.name}. They can now send you TPA requests.`, executor);
         } else {
             setTpaRequestsDisabled(executor.id, false);
             sendMessage('§aYou have enabled all incoming TPA requests.', executor);
         }
+    }
+};
+
+// --- Offline Blocking (Strings) ---
+
+const oTpaStopCommand: CustomCommand = {
+    name: 'otpastop',
+    aliases: ['offlinetpastop', 'otpablock'],
+    description: 'Blocks an offline player from sending TPA requests.',
+    category: 'Transportation',
+    permissionLevel: 1024,
+    parameters: [{ name: 'target', type: 'string' }],
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        if (!(executor instanceof mc.Player)) return;
+        const targetName = args.target as string;
+
+        if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
+
+        const targetId = getPlayerIdByName(targetName);
+        if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        const displayName = getPlayerNameById(targetId) || targetName;
+
+        addTpaBlockedPlayer(executor.id, targetId);
+        sendMessage(`§aYou have blocked ${displayName} from sending you TPA requests (Offline).`, executor);
+    }
+};
+
+const oTpaStartCommand: CustomCommand = {
+    name: 'otpastart',
+    aliases: ['offlinetpastart', 'otpaunblock'],
+    description: 'Unblocks an offline player from sending TPA requests.',
+    category: 'Transportation',
+    permissionLevel: 1024,
+    parameters: [{ name: 'target', type: 'string' }],
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        if (!(executor instanceof mc.Player)) return;
+        const targetName = args.target as string;
+
+        if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
+
+        const targetId = getPlayerIdByName(targetName);
+        if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        const displayName = getPlayerNameById(targetId) || targetName;
+
+        removeTpaBlockedPlayer(executor.id, targetId);
+        sendMessage(`§aYou have unblocked ${displayName} (Offline).`, executor);
     }
 };
 
@@ -317,5 +290,7 @@ export default [
     tpaCancelCommand,
     tpaStatusCommand,
     tpaStopCommand,
-    tpaStartCommand
+    tpaStartCommand,
+    oTpaStopCommand,
+    oTpaStartCommand
 ];

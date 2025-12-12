@@ -11,14 +11,14 @@ The primary hub for all official Bedrock addon development documentation is:
 ### Scripting APIs (`@minecraft/server`)
 
 - **Overview & Getting Started:**
-  - [Introduction to Scripting](https://learn.microsoft.com/en-us/minecraft/creator/documents/scripting/introduction?view=minecraft-bedrock-stable)
-  - [Scripting API Reference (Main Page)](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/?view=minecraft-bedrock-stable)
+    - [Introduction to Scripting](https://learn.microsoft.com/en-us/minecraft/creator/documents/scripting/introduction?view=minecraft-bedrock-stable)
+    - [Scripting API Reference (Main Page)](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/?view=minecraft-bedrock-stable)
 - **Core World & Event Handling:**
-  - [World Class (world, events)](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/world?view=minecraft-bedrock-stable)
-  - [WorldBeforeEvents Class](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/worldbeforeevents?view=minecraft-bedrock-stable)
-  - [WorldAfterEvents Class](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/worldafterevents?view=minecraft-bedrock-stable)
+    - [World Class (world, events)](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/world?view=minecraft-bedrock-stable)
+    - [WorldBeforeEvents Class](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/worldbeforeevents?view=minecraft-bedrock-stable)
+    - [WorldAfterEvents Class](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/worldafterevents?view=minecraft-bedrock-stable)
 - **User Interface (Server-Side):**
-  - [@minecraft/server-ui Module](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server-ui/minecraft-server-ui?view=minecraft-bedrock-stable)
+    - [@minecraft/server-ui Module](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server-ui/minecraft-server-ui?view=minecraft-bedrock-stable)
 
 ## Target Minecraft Version
 
@@ -29,9 +29,9 @@ The addon currently targets Minecraft Bedrock version 1.21.110 and newer. Please
 The AddonExe is structured to be modular and configurable.
 
 - **`src/`**: The root for all source code (TypeScript). This is compiled to `packs/behavior/scripts/`.
-  - **`config.default.ts`**: The template configuration. Developers should copy this to `src/config.ts` for local customization.
-  - **`core/`**: Houses the central manager modules that form the backbone of the addon (e.g., `playerDataManager.ts`, `rankManager.ts`).
-  - **`modules/`**: Contains feature-specific logic, separated from the core managers (e.g., commands).
+    - **`config.default.ts`**: The template configuration. Developers should copy this to `src/config.ts` for local customization.
+    - **`core/`**: Houses the central manager modules that form the backbone of the addon (e.g., `playerDataManager.ts`, `rankManager.ts`).
+    - **`modules/`**: Contains feature-specific logic, separated from the core managers (e.g., commands).
 
 ## TypeScript Development
 
@@ -40,9 +40,9 @@ The codebase uses **TypeScript** for robustness and maintainability.
 - **Source Directory:** All behavior pack scripts are located in `src/`.
 - **Compilation:** Run `npm run build` to compile the TypeScript source into JavaScript in `packs/behavior/scripts/`.
 - **Local Configuration:**
-  - The repository contains `src/config.default.ts` as the template.
-  - **Action:** Create a copy named `src/config.ts`. This file is git-ignored.
-  - Use `src/config.ts` to customize your local development environment. The build process will prioritize it.
+    - The repository contains `src/config.default.ts` as the template.
+    - **Action:** Create a copy named `src/config.ts`. This file is git-ignored.
+    - Use `src/config.ts` to customize your local development environment. The build process will prioritize it.
 
 ## Performance Profiling
 
@@ -54,6 +54,7 @@ To help identify potential bottlenecks, the addon includes a basic performance p
 ## Task Management for Development
 
 Tasks are tracked in the `Docs/Development/tasks/` directory:
+
 - **`Docs/Development/tasks/ongoing.md`**: Current active task.
 - **`Docs/Development/tasks/todo.md`**: Planned tasks.
 - **`Docs/Development/tasks/completed.md`**: History of completed work.

@@ -1,141 +1,141 @@
 name: Dev Build (Nightly)
 on:
-  push:
-    branches:
-      - "Dev"
+    push:
+        branches:
+            - 'Dev'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+    build:
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
 
-      - name: Set up Node.js and cache npm dependencies
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20'
-          cache: 'npm'
+            - name: Set up Node.js and cache npm dependencies
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '20'
+                  cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Generate Dev Version
-        shell: bash
-        run: |
-          set -e
-          # Read base version from package.json (e.g., 0.7.0)
-          BASE_VER=$(node -p "require('./package.json').version")
+            - name: Generate Dev Version
+              shell: bash
+              run: |
+                  set -e
+                  # Read base version from package.json (e.g., 0.7.0)
+                  BASE_VER=$(node -p "require('./package.json').version")
 
-          MAJOR=$(echo $BASE_VER | cut -d. -f1)
-          MINOR=$(echo $BASE_VER | cut -d. -f2)
-          PATCH=${{ github.run_number }}
+                  MAJOR=$(echo $BASE_VER | cut -d. -f1)
+                  MINOR=$(echo $BASE_VER | cut -d. -f2)
+                  PATCH=${{ github.run_number }}
 
-          VERSION_STR="${MAJOR}.${MINOR}.${PATCH}"
-          VERSION_ARR_STR="[${MAJOR}, ${MINOR}, ${PATCH}]"
+                  VERSION_STR="${MAJOR}.${MINOR}.${PATCH}"
+                  VERSION_ARR_STR="[${MAJOR}, ${MINOR}, ${PATCH}]"
 
-          # Treat all dev builds as Beta/Debug builds
-          IS_BETA="true"
+                  # Treat all dev builds as Beta/Debug builds
+                  IS_BETA="true"
 
-          FULL_TAG_NAME="nightly"
+                  FULL_TAG_NAME="nightly"
 
-          echo "FULL_TAG_NAME=$FULL_TAG_NAME" >> $GITHUB_ENV
-          echo "IS_BETA_RELEASE=$IS_BETA" >> $GITHUB_ENV
-          echo "VERSION_STRING=$VERSION_STR" >> $GITHUB_ENV
-          echo "VERSION_ARRAY_STRING=$VERSION_ARR_STR" >> $GITHUB_ENV
+                  echo "FULL_TAG_NAME=$FULL_TAG_NAME" >> $GITHUB_ENV
+                  echo "IS_BETA_RELEASE=$IS_BETA" >> $GITHUB_ENV
+                  echo "VERSION_STRING=$VERSION_STR" >> $GITHUB_ENV
+                  echo "VERSION_ARRAY_STRING=$VERSION_ARR_STR" >> $GITHUB_ENV
 
-          # Generate Date
-          BUILD_DATE=$(date -u)
-          echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
+                  # Generate Date
+                  BUILD_DATE=$(date -u)
+                  echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
 
-          echo "Base Version: $BASE_VER"
-          echo "Dev Version: $VERSION_STR"
-          echo "Dev Version Array: $VERSION_ARR_STR"
+                  echo "Base Version: $BASE_VER"
+                  echo "Dev Version: $VERSION_STR"
+                  echo "Dev Version Array: $VERSION_ARR_STR"
 
-      - name: Prepare Release (Update Source)
-        shell: bash
-        env:
-          VERSION_STRING: ${{ env.VERSION_STRING }}
-          VERSION_ARRAY_STRING: ${{ env.VERSION_ARRAY_STRING }}
-          IS_BETA_RELEASE: ${{ env.IS_BETA_RELEASE }}
-        run: |
-          set -e
-          node scripts/prepare-release.js
+            - name: Prepare Release (Update Source)
+              shell: bash
+              env:
+                  VERSION_STRING: ${{ env.VERSION_STRING }}
+                  VERSION_ARRAY_STRING: ${{ env.VERSION_ARRAY_STRING }}
+                  IS_BETA_RELEASE: ${{ env.IS_BETA_RELEASE }}
+              run: |
+                  set -e
+                  node scripts/prepare-release.js
 
-          echo "--- Verification ---"
-          echo "BP Manifest:"
-          cat packs/behavior/manifest.json
-          echo "RP Manifest:"
-          cat packs/resource/manifest.json
-          echo "Config Source:"
-          if [ -f "src/config.ts" ]; then
-            head -n 15 src/config.ts
-          elif [ -f "src/config.default.ts" ]; then
-            head -n 15 src/config.default.ts
-          else
-            echo "Error: No config file found."
-            exit 1
-          fi
-          echo "--- End Verification ---"
+                  echo "--- Verification ---"
+                  echo "BP Manifest:"
+                  cat packs/behavior/manifest.json
+                  echo "RP Manifest:"
+                  cat packs/resource/manifest.json
+                  echo "Config Source:"
+                  if [ -f "src/config.ts" ]; then
+                    head -n 15 src/config.ts
+                  elif [ -f "src/config.default.ts" ]; then
+                    head -n 15 src/config.default.ts
+                  else
+                    echo "Error: No config file found."
+                    exit 1
+                  fi
+                  echo "--- End Verification ---"
 
-      - name: Build TypeScript
-        run: npm run build
+            - name: Build TypeScript
+              run: npm run build
 
-      - name: Process Config Files
-        run: node scripts/finalize-build.js
+            - name: Process Config Files
+              run: node scripts/finalize-build.js
 
-      - name: Create staging directory and copy addon folders
-        run: |
-          set -e
-          mkdir staging
-          cp -r packs/behavior staging/
-          cp -r packs/resource staging/
+            - name: Create staging directory and copy addon folders
+              run: |
+                  set -e
+                  mkdir staging
+                  cp -r packs/behavior staging/
+                  cp -r packs/resource staging/
 
-          # Remove source map files from staging to reduce package size
-          find staging -name "*.map" -type f -delete
+                  # Remove source map files from staging to reduce package size
+                  find staging -name "*.map" -type f -delete
 
-      - name: Create Release Archives
-        shell: bash
-        env:
-          FULL_TAG_NAME: ${{ env.FULL_TAG_NAME }}
-          VERSION_STRING: ${{ env.VERSION_STRING }}
-        run: |
-          set -e
-          # Create main .mcaddon with max compression
-          # We name the file using the Version String (e.g. 0.7.145) to make it distinct
-          (cd staging && zip -r -9 "../AddonExe.Nightly.${VERSION_STRING}.mcaddon" ./*)
+            - name: Create Release Archives
+              shell: bash
+              env:
+                  FULL_TAG_NAME: ${{ env.FULL_TAG_NAME }}
+                  VERSION_STRING: ${{ env.VERSION_STRING }}
+              run: |
+                  set -e
+                  # Create main .mcaddon with max compression
+                  # We name the file using the Version String (e.g. 0.7.145) to make it distinct
+                  (cd staging && zip -r -9 "../AddonExe.Nightly.${VERSION_STRING}.mcaddon" ./*)
 
-          # Create BP .mcpack with max compression
-          (cd staging/behavior && zip -r -9 "../../AddonExe_BP.Nightly.${VERSION_STRING}.mcpack" ./*)
+                  # Create BP .mcpack with max compression
+                  (cd staging/behavior && zip -r -9 "../../AddonExe_BP.Nightly.${VERSION_STRING}.mcpack" ./*)
 
-          # Create RP .mcpack with max compression
-          (cd staging/resource && zip -r -9 "../../AddonExe_RP.Nightly.${VERSION_STRING}.mcpack" ./*)
-          echo "Created release archives."
+                  # Create RP .mcpack with max compression
+                  (cd staging/resource && zip -r -9 "../../AddonExe_RP.Nightly.${VERSION_STRING}.mcpack" ./*)
+                  echo "Created release archives."
 
-      - name: Clean Old Nightly Assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release delete nightly --cleanup-tag --yes || true
+            - name: Clean Old Nightly Assets
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh release delete nightly --cleanup-tag --yes || true
 
-      - name: Publish Nightly Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Nightly Build (Latest Dev)
-          tag_name: nightly
-          prerelease: true
-          make_latest: false
-          body: |
-            **Latest Nightly Build**
-            Version: `${{ env.VERSION_STRING }}`
-            Commit: `${{ github.sha }}`
-            Date: `${{ env.BUILD_DATE }}`
+            - name: Publish Nightly Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  name: Nightly Build (Latest Dev)
+                  tag_name: nightly
+                  prerelease: true
+                  make_latest: false
+                  body: |
+                      **Latest Nightly Build**
+                      Version: `${{ env.VERSION_STRING }}`
+                      Commit: `${{ github.sha }}`
+                      Date: `${{ env.BUILD_DATE }}`
 
-            *This is an automated development build. It may contain bugs.*
-          files: |
-            ./AddonExe.Nightly.${{ env.VERSION_STRING }}.mcaddon
-            ./AddonExe_BP.Nightly.${{ env.VERSION_STRING }}.mcpack
-            ./AddonExe_RP.Nightly.${{ env.VERSION_STRING }}.mcpack
+                      *This is an automated development build. It may contain bugs.*
+                  files: |
+                      ./AddonExe.Nightly.${{ env.VERSION_STRING }}.mcaddon
+                      ./AddonExe_BP.Nightly.${{ env.VERSION_STRING }}.mcpack
+                      ./AddonExe_RP.Nightly.${{ env.VERSION_STRING }}.mcpack

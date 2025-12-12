@@ -8,19 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.7.0] - 2025-10-28
 
 ### Updated to 1.21.120
+
 ## [0.6.3] - 2025-10-02
 
 ### 🐛 Bug Fixes
+
 - Fixed a bug where `/function admin` wasn't working.
 
 ## [0.6.0] - 2025-09-30
 
 ### 🚀 Performance
+
 - **Paginated UI Lists**: Implemented pagination for the Player Management, Online Player List, Bounty List, and Report Management UIs. This prevents server lag and crashes when viewing lists with a large number of entries.
 - **Efficient Leaderboard**: The economy leaderboard is now updated dynamically only when a player's balance changes significantly, removing the previous inefficient interval-based updates.
 - **Optimized Data Loading**: Revamped the data loading strategy to prevent the addon from loading all player data at startup, significantly improving server start times.
 
 ### 🔒 Reliability
+
 - **Immediate Data Saving**: Replaced the periodic auto-save system with an immediate-save mechanism. All player data (balances, homes, ranks, etc.) is now saved instantly upon modification, preventing data loss from server crashes.
 
 This version introduces a new random teleport feature, includes bug fixes for core gameplay systems, and expands the capabilities of the in-game configuration editor.
@@ -54,9 +58,9 @@ This version introduces critical security fixes, bug fixes, and stability improv
 ### ✨ Features
 
 - **In-Game Shop System**: Introduced a comprehensive, GUI-based shop system.
-  - Players can access the shop via the `/shop` command or the main admin panel.
-  - The UI supports browsing categorized items, buying, and selling.
-  - New commands were added for direct access: `/buy` opens the buy view, `/sell` opens the sell view, and `/sellhand` allows for quickly selling the item in the main hand.
+    - Players can access the shop via the `/shop` command or the main admin panel.
+    - The UI supports browsing categorized items, buying, and selling.
+    - New commands were added for direct access: `/buy` opens the buy view, `/sell` opens the sell view, and `/sellhand` allows for quickly selling the item in the main hand.
 
 ### 🔒 Security
 
@@ -109,13 +113,13 @@ This version introduces a major performance overhaul for the bounty system, a ne
 
 ### 🐛 Bug Fixes
 
--   Fixed a critical startup crash (`ReferenceError: clearExpiredPayments`) caused by an incorrect function call during initialization.
--   Corrected several linting warnings by removing unused imports from the UI manager.
+- Fixed a critical startup crash (`ReferenceError: clearExpiredPayments`) caused by an incorrect function call during initialization.
+- Corrected several linting warnings by removing unused imports from the UI manager.
 
 ### 📚 Documentation
 
--   **Command Documentation**: Updated `Docs/Commands.md` to clearly explain the difference between slash commands (`/`) and chat commands (`!`), especially regarding how they handle multi-word arguments with quotes.
--   **Features Documentation**: Added details about the hidden world seed anti-cheat feature to `Docs/FeaturesOverview.md`.
+- **Command Documentation**: Updated `Docs/Commands.md` to clearly explain the difference between slash commands (`/`) and chat commands (`!`), especially regarding how they handle multi-word arguments with quotes.
+- **Features Documentation**: Added details about the hidden world seed anti-cheat feature to `Docs/FeaturesOverview.md`.
 
 ## [0.1.0] - 2025-09-06
 
@@ -145,8 +149,8 @@ This is the second public release of AddonExe, introducing a wide range of featu
 
 ### Commands
 
-*Commands are run with a `/` prefix. For example: `/status`.*
-*Some commands use an `x` prefix (e.g. `/xhelp`) to avoid conflicts with vanilla commands.*
+_Commands are run with a `/` prefix. For example: `/status`._
+_Some commands use an `x` prefix (e.g. `/xhelp`) to avoid conflicts with vanilla commands._
 
 #### General Commands
 

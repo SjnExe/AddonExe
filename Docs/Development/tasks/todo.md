@@ -6,21 +6,16 @@ This document outlines planned tasks for improving the addon.
 
 ### High Priority
 
-*(No high priority tasks currently planned)*
+_(No high priority tasks currently planned)_
 
 ---
 
 ### Medium Priority
 
-*(No medium priority tasks currently planned)*
-
-
-
-
-
+_(No medium priority tasks currently planned)_
 
 ---
 
 ### Low Priority
 
-*(No low priority tasks currently planned)*
+_(No low priority tasks currently planned)_
