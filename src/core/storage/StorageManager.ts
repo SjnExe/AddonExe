@@ -70,4 +70,23 @@ export class StorageManager {
             return null;
         }
     }
+
+    /**
+     * Deletes all data associated with this storage instance.
+     */
+    delete(): void {
+        try {
+            const meta = mc.world.getDynamicProperty(`${this.dbName}:meta`);
+            const chunks = typeof meta === 'number' ? meta : 0;
+
+            for (let i = 0; i < chunks; i++) {
+                mc.world.setDynamicProperty(`${this.dbName}:${i}`, undefined);
+            }
+            mc.world.setDynamicProperty(`${this.dbName}:meta`, undefined);
+            // Try legacy clean up too
+            mc.world.setDynamicProperty(this.dbName, undefined);
+        } catch (e) {
+            errorLog(`[StorageManager] Failed to delete ${this.dbName}`, e);
+        }
+    }
 }

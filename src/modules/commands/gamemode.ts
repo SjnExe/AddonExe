@@ -55,7 +55,10 @@ function setGamemode(executor: CommandExecutor, gamemode: string, targets?: mc.P
         if (executor instanceof mc.Player && executor.id !== targetPlayer.id) {
             const targetData = getPlayer(targetPlayer.id);
             if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
-                sendMessage(`§cSkipped ${targetPlayer.name}: You cannot change their gamemode (equal/higher rank).`, executor);
+                sendMessage(
+                    `§cSkipped ${targetPlayer.name}: You cannot change their gamemode (equal/higher rank).`,
+                    executor
+                );
                 continue;
             }
         }
@@ -131,7 +134,9 @@ const legacyCommands: CustomCommand[] = legacyCommandDefs.map((cmd) => ({
     category: 'Administration',
     permissionLevel: 1,
     allowConsole: true,
-    parameters: [{ name: 'targets', type: 'player', description: 'The player(s) to set the gamemode for', optional: true }],
+    parameters: [
+        { name: 'targets', type: 'player', description: 'The player(s) to set the gamemode for', optional: true }
+    ],
     execute: (executor, args) => {
         const { targets } = args;
         setGamemode(executor, cmd.gamemode, targets as mc.Player[] | undefined);

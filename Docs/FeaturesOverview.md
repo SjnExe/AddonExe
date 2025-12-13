@@ -23,6 +23,13 @@ This document provides a detailed breakdown of the features available in AddonEx
 - **Freeze/Unfreeze:** A robust freeze system that completely immobilizes a player.
     - **Commands:** `/freeze <target>`, `/unfreeze <target>`.
     - **Mechanism:** Uses the native `/inputpermission` command to disable both player movement and camera control, preventing all actions including block placement, item use, and interaction. This is a much more effective "hard freeze" than simple slowness effects.
+- **Chat Logging & History:**
+    - **Description:** Automatically records all chat messages. Admins can view and search chat history in-game.
+    - **Features:** Supports filtering by player, keyword, and date. Logs are automatically pruned after a configurable period (default 7 days).
+    - **Commands:** `/logs` (Main Menu), `/chatlog` (Direct access).
+- **Warnings:**
+    - **Description:** Issue formal warnings to players. Warnings are logged and displayed to the player.
+    - **Command:** `/warn <player> <reason>`.
 
 ### B. Flexible Rank System
 

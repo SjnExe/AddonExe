@@ -97,9 +97,6 @@ jobs:
                   cp -r packs/behavior staging/
                   cp -r packs/resource staging/
 
-                  # Remove source map files from staging to reduce package size
-                  find staging -name "*.map" -type f -delete
-
             - name: Create Release Archives
               shell: bash
               env:
@@ -107,14 +104,20 @@ jobs:
               run: |
                   set -e
                   # Create main .mcaddon with max compression
-                  (cd staging && zip -r -9 "../AddonExe.${FULL_TAG_NAME}.mcaddon" ./*)
+                  (cd staging && zip -r -9 "../AddonExe.${FULL_TAG_NAME}.mcaddon" ./* -x "*.map")
 
                   # Create BP .mcpack with max compression
-                  (cd staging/behavior && zip -r -9 "../../AddonExe.BP${FULL_TAG_NAME}.mcpack" ./*)
+                  (cd staging/behavior && zip -r -9 "../../AddonExe.BP${FULL_TAG_NAME}.mcpack" ./* -x "*.map")
 
                   # Create RP .mcpack with max compression
-                  (cd staging/resource && zip -r -9 "../../AddonExe.RP${FULL_TAG_NAME}.mcpack" ./*)
+                  (cd staging/resource && zip -r -9 "../../AddonExe.RP${FULL_TAG_NAME}.mcpack" ./* -x "*.map")
                   echo "Created release archives with maximum compression."
+
+            - name: Upload Debug Symbols
+              uses: actions/upload-artifact@v4
+              with:
+                  name: debug-symbols-release
+                  path: staging/**/*.map
 
             - name: Upload Release Assets
               uses: softprops/action-gh-release@v2

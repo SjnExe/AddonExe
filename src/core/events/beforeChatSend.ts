@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { commandManager } from '@commands/commandManager.js';
 
+import { addChatLog } from '@features/moderation/chatLogManager.js';
 import { getPunishment } from '@features/moderation/punishmentManager.js';
 import { isTeamChatEnabled, toggleTeamChat } from '@features/teams/commands/team.js';
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
@@ -84,6 +85,8 @@ function handleChatSend(eventData: mc.ChatSendBeforeEvent) {
         // Using a plain-text version for the console log to avoid clutter from formatting codes
         rawLog(`<${player.name}> ${eventData.message}`);
     }
+
+    addChatLog(player.name, eventData.message, rank?.name);
 
     mc.world.sendMessage(formattedMessage);
 }

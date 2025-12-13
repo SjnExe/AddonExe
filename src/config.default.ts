@@ -71,7 +71,9 @@ export const config = {
         resolvedReportLifetimeDays: 7
     },
     chat: {
-        logToConsole: false
+        logToConsole: false,
+        loggingEnabled: true,
+        logExpirationDays: 7
     },
     economy: {
         enabled: false,

@@ -49,6 +49,39 @@ export class ShopPanelHandler implements IPanelHandler {
         return panelId.startsWith('shop');
     }
 
+    async getTitle(_player: mc.Player, panelId: string, context: UIContext): Promise<string | null> {
+        // Satisfy require-await
+        await Promise.resolve();
+
+        if (panelId.startsWith('shopCategoryPanel_')) {
+            return context.categoryName as string;
+        }
+        if (panelId.startsWith('shopItemListPanel_')) {
+            return context.subCategoryName as string;
+        }
+        if (panelId.startsWith('shopAdminCategoryPanel_')) {
+            const categoryName = context.categoryName as string;
+            return `Manage ${categoryName}`;
+        }
+        if (panelId.startsWith('shopAdminSubCategoryItemPanel_')) {
+            const subName = context.subCategoryName as string;
+            return `Manage ${subName}`;
+        }
+        if (panelId.startsWith('shopAddItemPanel_')) {
+            const categoryName = context.categoryName as string;
+            return `Add Item to ${categoryName}`;
+        }
+        if (panelId.startsWith('shopAdminCategoryActionPanel_')) {
+            const name = panelId.replace('shopAdminCategoryActionPanel_', '');
+            return `Edit ${name}`;
+        }
+        if (panelId.startsWith('shopAdminSubCategoryActionPanel_')) {
+            const name = panelId.replace('shopAdminSubCategoryActionPanel_', '');
+            return `Edit ${name}`;
+        }
+        return null;
+    }
+
     async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         // Initialize items config if needed
         await ensureItemsConfig();

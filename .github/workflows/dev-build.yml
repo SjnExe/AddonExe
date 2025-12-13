@@ -81,6 +81,14 @@ jobs:
                   fi
                   echo "--- End Verification ---"
 
+            - name: Cache TypeScript Build Info
+              uses: actions/cache@v5
+              with:
+                  path: tsconfig.tsbuildinfo
+                  key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-tsbuildinfo-
+
             - name: Build TypeScript
               run: npm run build
 
@@ -94,9 +102,6 @@ jobs:
                   cp -r packs/behavior staging/
                   cp -r packs/resource staging/
 
-                  # Remove source map files from staging to reduce package size
-                  find staging -name "*.map" -type f -delete
-
             - name: Create Release Archives
               shell: bash
               env:
@@ -104,16 +109,22 @@ jobs:
                   VERSION_STRING: ${{ env.VERSION_STRING }}
               run: |
                   set -e
-                  # Create main .mcaddon with max compression
+                  # Create main .mcaddon with max compression (Exclude maps)
                   # We name the file using the Version String (e.g. 0.7.145) to make it distinct
-                  (cd staging && zip -r -9 "../AddonExe.Nightly.${VERSION_STRING}.mcaddon" ./*)
+                  (cd staging && zip -r -9 "../AddonExe.Nightly.${VERSION_STRING}.mcaddon" ./* -x "*.map")
 
-                  # Create BP .mcpack with max compression
-                  (cd staging/behavior && zip -r -9 "../../AddonExe_BP.Nightly.${VERSION_STRING}.mcpack" ./*)
+                  # Create BP .mcpack with max compression (Exclude maps)
+                  (cd staging/behavior && zip -r -9 "../../AddonExe_BP.Nightly.${VERSION_STRING}.mcpack" ./* -x "*.map")
 
-                  # Create RP .mcpack with max compression
-                  (cd staging/resource && zip -r -9 "../../AddonExe_RP.Nightly.${VERSION_STRING}.mcpack" ./*)
+                  # Create RP .mcpack with max compression (Exclude maps)
+                  (cd staging/resource && zip -r -9 "../../AddonExe_RP.Nightly.${VERSION_STRING}.mcpack" ./* -x "*.map")
                   echo "Created release archives."
+
+            - name: Upload Debug Symbols
+              uses: actions/upload-artifact@v4
+              with:
+                  name: debug-symbols-nightly
+                  path: staging/**/*.map
 
             - name: Clean Old Nightly Assets
               env:

@@ -69,6 +69,19 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
     const panelDef = panelDefinitions[panelId];
     let title = panelDef ? panelDef.title : panelId;
 
+    // Delegation: Get title from handler
+    const handler = panelRouter.getHandler(panelId);
+    if (handler && handler.getTitle) {
+        try {
+            const dynamicTitle = await handler.getTitle(player, panelId, context);
+            if (dynamicTitle) {
+                title = dynamicTitle;
+            }
+        } catch (e) {
+            errorLog(`[UIManager] Error getting title for panel ${panelId}`, e);
+        }
+    }
+
     if (context.customTitle) title = context.customTitle as string;
 
     // Resolve placeholders in title
@@ -90,7 +103,6 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
     form.title(title);
 
     // Delegation: Get body from handler
-    const handler = panelRouter.getHandler(panelId);
     if (handler && handler.getBody) {
         try {
             const bodyText = await handler.getBody(player, panelId, context);
