@@ -38,7 +38,7 @@ export function initializeAuctionHouse() {
 
     // Start Expiry Loop (Every minute)
     mc.system.runInterval(() => {
-        checkExpiredAuctions();
+        mc.system.runJob(checkExpiredAuctionsJob());
     }, 1200); // 60 seconds * 20 ticks
 }
 
@@ -222,11 +222,13 @@ export function placeBid(bidder: mc.Player, listingId: string, amount: number): 
     return { success: true, message: `§aBid placed: ${formatCurrency(amount)}.` };
 }
 
-function checkExpiredAuctions() {
+function* checkExpiredAuctionsJob() {
     const now = Date.now();
     const expired: string[] = [];
+    const entries = Array.from(activeListings.entries());
 
-    for (const [id, listing] of activeListings) {
+    for (let i = 0; i < entries.length; i++) {
+        const [id, listing] = entries[i];
         const expiry = listing.startTime + listing.duration * 1000;
         if (now >= expiry) {
             expired.push(id);
@@ -248,6 +250,11 @@ function checkExpiredAuctions() {
                 addItemToMailbox(listing.sellerId, listing.item);
                 debugLog(`[AH] Listing ${id} expired. Returned to seller.`);
             }
+        }
+
+        // Yield every 5 items to prevent server lag from heavy IO
+        if (i % 5 === 0) {
+            yield;
         }
     }
 
