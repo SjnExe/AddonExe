@@ -6,7 +6,6 @@ import cmdLegacyBounty from './bounty.js';
 import cmdLegacyChattoconsole from './chattoconsole.js';
 import cmdLegacyClear from './clear.js';
 import cmdLegacyClearchat from './clearchat.js';
-import cmdLegacyCrashme from './crashme.js';
 import cmdLegacyDebug from './debug.js';
 import cmdLegacyDimensionLock from './dimensionLock.js';
 import cmdLegacyFloatingtext from './floatingtext.js';
@@ -60,7 +59,6 @@ export function loadCommands() {
         cmdLegacyChattoconsole,
         cmdLegacyClear,
         cmdLegacyClearchat,
-        cmdLegacyCrashme,
         cmdLegacyDebug,
         cmdLegacyDimensionLock,
         cmdLegacyFloatingtext,
