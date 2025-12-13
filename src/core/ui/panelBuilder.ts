@@ -103,7 +103,6 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
     form.title(title);
 
     // Delegation: Get body from handler
-    const handler = panelRouter.getHandler(panelId);
     if (handler && handler.getBody) {
         try {
             const bodyText = await handler.getBody(player, panelId, context);

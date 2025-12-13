@@ -615,21 +615,6 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         parentPanelId: 'helpfulLinksManagementPanel',
         items: [] // Dynamically populated
     },
-    shopAdminCategoryActionPanel: {
-        title: 'Manage Category',
-        parentPanelId: 'shopManagementPanel',
-        items: [] // Dynamically populated
-    },
-    shopAdminSubCategoryItemPanel: {
-        title: 'Manage Subcategory Items',
-        parentPanelId: 'shopAdminCategoryPanel', // This will be dynamic
-        items: [] // Dynamically populated
-    },
-    shopAdminSubCategoryActionPanel: {
-        title: 'Manage Subcategory',
-        parentPanelId: 'shopAdminSubCategoryItemPanel', // This will be dynamic
-        items: [] // Dynamically populated
-    },
     floatingTextListPanel: {
         title: 'Floating Text',
         parentPanelId: 'adminPanel',
