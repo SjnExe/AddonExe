@@ -3,11 +3,7 @@ import * as mc from '@minecraft/server';
 import { getAuctionHouseConfig } from '@core/configurations.js';
 import { deserializeItem, SerializedItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog } from '@core/logger.js';
-import {
-    getOrCreatePlayer,
-    incrementPlayerBalance,
-    updatePlayerData
-} from '@core/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { formatCurrency } from '@core/utils.js';
 

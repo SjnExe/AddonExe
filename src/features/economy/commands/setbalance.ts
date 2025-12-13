@@ -30,7 +30,7 @@ const setBalanceCommand: CustomCommand = {
     permissionLevel: 1,
     allowConsole: true,
     parameters: [
-        { name: 'targets', type: 'player', description: "The player(s) to target." },
+        { name: 'targets', type: 'player', description: 'The player(s) to target.' },
         { name: 'amount', type: 'string', description: 'The amount to set.' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -47,10 +47,7 @@ const setBalanceCommand: CustomCommand = {
         let count = 0;
         for (const target of targets) {
             setPlayerBalance(target.id, amount);
-            sendMessage(
-                `§aYour balance has been set to §e${formatCurrency(amount)}§a by an administrator.`,
-                target
-            );
+            sendMessage(`§aYour balance has been set to §e${formatCurrency(amount)}§a by an administrator.`, target);
             count++;
         }
 
@@ -83,10 +80,7 @@ const addBalanceCommand: CustomCommand = {
         let count = 0;
         for (const target of targets) {
             incrementPlayerBalance(target.id, amount);
-            sendMessage(
-                `§aAn administrator has added §e${formatCurrency(amount)}§a to your balance.`,
-                target
-            );
+            sendMessage(`§aAn administrator has added §e${formatCurrency(amount)}§a to your balance.`, target);
             count++;
         }
 
@@ -125,14 +119,14 @@ const removeBalanceCommand: CustomCommand = {
                 continue;
             }
             incrementPlayerBalance(target.id, -amount);
-            sendMessage(
-                `§cAn administrator has removed §e${formatCurrency(amount)}§c from your balance.`,
-                target
-            );
+            sendMessage(`§cAn administrator has removed §e${formatCurrency(amount)}§c from your balance.`, target);
             count++;
         }
 
-        sendMessage(`§aRemoved §e${formatCurrency(amount)}§a from ${count} player(s). §cFailed for ${failCount} (insufficient funds).`, executor);
+        sendMessage(
+            `§aRemoved §e${formatCurrency(amount)}§a from ${count} player(s). §cFailed for ${failCount} (insufficient funds).`,
+            executor
+        );
     }
 };
 
@@ -162,7 +156,10 @@ const oSetBalanceCommand: CustomCommand = {
         const displayName = getPlayerNameById(targetId) || targetName;
 
         setPlayerBalance(targetId, amount);
-        sendMessage(`§aSuccessfully set ${displayName}'s balance to §e${formatCurrency(amount)}§a (Offline).`, executor);
+        sendMessage(
+            `§aSuccessfully set ${displayName}'s balance to §e${formatCurrency(amount)}§a (Offline).`,
+            executor
+        );
     }
 };
 
@@ -193,7 +190,10 @@ const oAddBalanceCommand: CustomCommand = {
         const pData = loadPlayerData(targetId);
         const newBal = pData ? pData.balance : 0;
 
-        sendMessage(`§aAdded §e${formatCurrency(amount)}§a to ${displayName}. New Balance: §e${formatCurrency(newBal)}§a (Offline).`, executor);
+        sendMessage(
+            `§aAdded §e${formatCurrency(amount)}§a to ${displayName}. New Balance: §e${formatCurrency(newBal)}§a (Offline).`,
+            executor
+        );
     }
 };
 
@@ -222,18 +222,28 @@ const oRemoveBalanceCommand: CustomCommand = {
 
         const pData = loadPlayerData(targetId);
         if (!pData || pData.balance < amount) {
-            return sendMessage(`§cCannot remove. ${displayName} only has §e${formatCurrency(pData?.balance ?? 0)}§c.`, executor);
+            return sendMessage(
+                `§cCannot remove. ${displayName} only has §e${formatCurrency(pData?.balance ?? 0)}§c.`,
+                executor
+            );
         }
 
         incrementPlayerBalance(targetId, -amount);
         const newPData = loadPlayerData(targetId);
         const newBal = newPData ? newPData.balance : 0;
 
-        sendMessage(`§aRemoved §e${formatCurrency(amount)}§a from ${displayName}. New Balance: §e${formatCurrency(newBal)}§a (Offline).`, executor);
+        sendMessage(
+            `§aRemoved §e${formatCurrency(amount)}§a from ${displayName}. New Balance: §e${formatCurrency(newBal)}§a (Offline).`,
+            executor
+        );
     }
 };
 
 export default [
-    setBalanceCommand, addBalanceCommand, removeBalanceCommand,
-    oSetBalanceCommand, oAddBalanceCommand, oRemoveBalanceCommand
+    setBalanceCommand,
+    addBalanceCommand,
+    removeBalanceCommand,
+    oSetBalanceCommand,
+    oAddBalanceCommand,
+    oRemoveBalanceCommand
 ];

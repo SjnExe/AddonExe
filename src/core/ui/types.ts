@@ -77,6 +77,8 @@ export interface IPanelHandler {
     buildModal?(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | ActionFormData | null>;
     /** Optional: Returns the body text for an ActionFormData panel. */
     getBody?(player: mc.Player, panelId: string, context: UIContext): Promise<string | null>;
+    /** Optional: Returns the title for an ActionFormData panel. */
+    getTitle?(player: mc.Player, panelId: string, context: UIContext): Promise<string | null>;
 }
 
 export interface ShopListEntry {

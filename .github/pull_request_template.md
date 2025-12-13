@@ -2,8 +2,6 @@
 name: Pull Request
 about: Propose changes to the AddonExe
 title: 'Brief description of changes (e.g., Fix: Resolve fly detection false positive)'
-labels: ''
-assignees: ''
 ---
 
 **Description of Changes:**

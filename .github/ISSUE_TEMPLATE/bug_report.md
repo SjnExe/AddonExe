@@ -3,7 +3,6 @@ name: Bug Report
 about: Create a report to help us improve the AddonExe
 title: '[BUG] Brief description of bug'
 labels: bug, needs-triage
-assignees: ''
 ---
 
 **Thank you for taking the time to fill out this bug report!**

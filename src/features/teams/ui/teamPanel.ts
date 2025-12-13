@@ -2,12 +2,7 @@ import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getTeamConfig } from '@core/configurations.js';
-import {
-    getOrCreatePlayer,
-    getPlayerIdByName,
-    loadPlayerData,
-    PlayerData
-} from '@core/playerDataManager.js';
+import { getOrCreatePlayer, getPlayerIdByName, loadPlayerData, PlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils.js';
 import { handleUIAction } from '@ui/actions.js';
@@ -20,6 +15,17 @@ import * as teamManager from '../teamManager.js';
 export class TeamPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
         return panelId.startsWith('team') || panelId === 'memberActionPanel' || panelId === 'config_team';
+    }
+
+    async getTitle(player: mc.Player, panelId: string, context: UIContext): Promise<string | null> {
+        if (panelId === 'teamManagePanel') {
+            const { teamId } = context;
+            let team;
+            if (teamId) team = teamManager.getTeam(Number(teamId));
+            else team = teamManager.getTeamByPlayer(player.id);
+            return team ? `Manage ${team.name}` : 'Manage Team';
+        }
+        return null;
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
@@ -450,8 +456,20 @@ export class TeamPanelHandler implements IPanelHandler {
             if (typeof name === 'string') {
                 const targetId = getPlayerIdByName(name);
                 if (targetId) {
-                    const result = teamManager.invitePlayer(Number(context.teamId), targetId);
-                    player.sendMessage(result.message ?? '');
+                    let teamId = context.teamId ? Number(context.teamId) : undefined;
+                    if (!teamId) {
+                        const team = teamManager.getTeamByPlayer(player.id);
+                        if (team && (team.ownerId === player.id || team.admins.includes(player.id))) {
+                            teamId = team.id;
+                        }
+                    }
+
+                    if (teamId) {
+                        const result = teamManager.invitePlayer(teamId, targetId);
+                        player.sendMessage(result.message ?? '');
+                    } else {
+                        player.sendMessage('§cTeam not found or you do not have permission.');
+                    }
                 } else {
                     player.sendMessage('§cPlayer not found.');
                 }
