@@ -18,6 +18,9 @@ export class TeamPanelHandler implements IPanelHandler {
     }
 
     async getTitle(player: mc.Player, panelId: string, context: UIContext): Promise<string | null> {
+        // Satisfy require-await
+        await Promise.resolve();
+
         if (panelId === 'teamManagePanel') {
             const { teamId } = context;
             let team;

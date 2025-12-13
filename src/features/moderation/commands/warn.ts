@@ -1,7 +1,7 @@
-import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { addPunishmentLog } from '@features/anticheat/logManager.js';
+import * as mc from '@minecraft/server';
 
 const warnCommand: CustomCommand = {
     name: 'warn',

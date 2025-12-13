@@ -1,6 +1,6 @@
-import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import * as mc from '@minecraft/server';
 
 export interface ChatLog {
     timestamp: number;

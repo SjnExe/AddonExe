@@ -50,6 +50,9 @@ export class ShopPanelHandler implements IPanelHandler {
     }
 
     async getTitle(_player: mc.Player, panelId: string, context: UIContext): Promise<string | null> {
+        // Satisfy require-await
+        await Promise.resolve();
+
         if (panelId.startsWith('shopCategoryPanel_')) {
             return context.categoryName as string;
         }

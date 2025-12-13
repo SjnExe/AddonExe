@@ -53,7 +53,7 @@ async function showPunishmentFilter(player: mc.Player) {
     const modal = new ModalFormData()
         .title('Filter Punishments')
         .textField('Player Name (Optional)', 'Search...')
-        .dropdown('Type', ['All', 'Ban', 'Mute', 'Warn', 'Kick'], 0);
+        .dropdown('Type', ['All', 'Ban', 'Mute', 'Warn', 'Kick'], { defaultValueIndex: 0 });
 
     const res = await uiWait(player, modal);
     if (!res || res.canceled) return showLogsMenu(player);
@@ -69,12 +69,7 @@ async function showPunishmentFilter(player: mc.Player) {
     await showPunishmentLogs(player, 1, nameQuery, typeFilter);
 }
 
-async function showPunishmentLogs(
-    player: mc.Player,
-    page: number,
-    nameQuery?: string,
-    typeFilter?: string | null
-) {
+async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: string, typeFilter?: string | null) {
     let logs = getPunishmentLogs().sort((a, b) => b.timestamp - a.timestamp);
 
     // Filtering
@@ -148,9 +143,7 @@ async function showPunishmentLogs(
 // --- Flags ---
 
 async function showFlagFilter(player: mc.Player) {
-    const modal = new ModalFormData()
-        .title('Filter Flags')
-        .textField('Player Name (Optional)', 'Search...');
+    const modal = new ModalFormData().title('Filter Flags').textField('Player Name (Optional)', 'Search...');
 
     const res = await uiWait(player, modal);
     if (!res || res.canceled) return showLogsMenu(player);
@@ -240,7 +233,7 @@ export async function showChatFilter(player: mc.Player) {
 
     const modal = new ModalFormData()
         .title('Filter Chat')
-        .dropdown('Date', dates, 0)
+        .dropdown('Date', dates, { defaultValueIndex: 0 })
         .textField('Player Name (Optional)', 'Search...')
         .textField('Keyword (Optional)', 'Search message...');
 
@@ -257,13 +250,7 @@ export async function showChatFilter(player: mc.Player) {
     await showChatLogs(player, 1, date, nameQuery, keywordQuery);
 }
 
-async function showChatLogs(
-    player: mc.Player,
-    page: number,
-    date: string,
-    nameQuery?: string,
-    keyword?: string
-) {
+async function showChatLogs(player: mc.Player, page: number, date: string, nameQuery?: string, keyword?: string) {
     let logs = getChatLogs(date).sort((a, b) => b.timestamp - a.timestamp);
 
     if (nameQuery) {

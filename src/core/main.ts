@@ -4,6 +4,7 @@ import { restartAnnouncer } from '@commands/announcement.js';
 import { loadCommands } from '@commands/index.js';
 import * as auctionHouseFeature from '@features/auctionHouse/index.js';
 import * as kitsFeature from '@features/kits/index.js';
+import { initializeChatLogger } from '@features/moderation/chatLogManager.js';
 import * as moderationFeature from '@features/moderation/index.js';
 import {
     checkAndKickBannedPlayer,
@@ -12,7 +13,6 @@ import {
     loadPunishments
 } from '@features/moderation/punishmentManager.js';
 import { clearOldResolvedReports, loadReports } from '@features/moderation/reportManager.js';
-import { initializeChatLogger } from '@features/moderation/chatLogManager.js';
 import * as shopFeature from '@features/shop/index.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import * as teleportFeature from '@features/teleportation/index.js';

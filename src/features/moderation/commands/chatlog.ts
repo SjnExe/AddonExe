@@ -1,6 +1,6 @@
-import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { showChatFilter } from '@features/anticheat/commands/logs.js';
+import * as mc from '@minecraft/server';
 
 const chatlogCommand: CustomCommand = {
     name: 'chatlog',
