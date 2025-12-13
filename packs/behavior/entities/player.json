@@ -39,7 +39,6 @@
                     }
                 }
             },
-            "exe:spawn_protected": {},
             "exe:pvp_disabled": {
                 "minecraft:damage_sensor": {
                     "triggers": [
@@ -230,16 +229,6 @@
             "minecraft:remove_raid_trigger": {
                 "remove": {
                     "component_groups": ["minecraft:raid_trigger"]
-                }
-            },
-            "exe:apply_spawn_protection": {
-                "add": {
-                    "component_groups": ["exe:spawn_protected"]
-                }
-            },
-            "exe:remove_spawn_protection": {
-                "remove": {
-                    "component_groups": ["exe:spawn_protected"]
                 }
             },
             "exe:disable_pvp": {
