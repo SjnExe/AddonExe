@@ -231,7 +231,7 @@ async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string)
 
 // --- Chat ---
 
-async function showChatFilter(player: mc.Player) {
+export async function showChatFilter(player: mc.Player) {
     const dates = getAvailableDates();
     if (dates.length === 0) {
         player.sendMessage('§cNo chat logs available.');

@@ -36,6 +36,7 @@ import cmdEconomyBalance from '@features/economy/commands/balance.js';
 import cmdEconomyPay from '@features/economy/commands/pay.js';
 import cmdEconomySetbalance from '@features/economy/commands/setbalance.js';
 import cmdModerationBan from '@features/moderation/commands/ban.js';
+import cmdModerationChatlog from '@features/moderation/commands/chatlog.js';
 import cmdModerationFreeze from '@features/moderation/commands/freeze.js';
 import cmdModerationKick from '@features/moderation/commands/kick.js';
 import cmdModerationMute from '@features/moderation/commands/mute.js';
@@ -89,6 +90,7 @@ export function loadCommands() {
         cmdEconomyPay,
         cmdEconomySetbalance,
         cmdModerationBan,
+        cmdModerationChatlog,
         cmdModerationFreeze,
         cmdModerationKick,
         cmdModerationMute,
