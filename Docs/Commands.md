@@ -167,6 +167,8 @@ Commands available to Admins and above.
     - Freezes a player, preventing them from moving or looking around.
 - **/unfreeze <target>**
     - Unfreezes a player, allowing them to move and look around again.
+- **/warn <target> <reason>**
+    - Issues a formal warning to a player.
 
 ### Player Management
 
@@ -196,6 +198,10 @@ Commands available to Admins and above.
     - Clears the chat for all players.
 - **/xraynotify**
     - Toggles X-ray detection notifications for yourself.
+- **/logs**
+    - Opens the main logs menu (Punishments, Flags, Chat).
+- **/chatlog**
+    - Opens the chat log viewer directly.
 
 ---
 

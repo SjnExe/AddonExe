@@ -3,7 +3,6 @@ name: Feature Request
 about: Suggest an idea or enhancement for the AddonExe
 title: '[FEAT] Brief description of feature'
 labels: enhancement, needs-discussion
-assignees: ''
 ---
 
 **Thank you for suggesting a new feature or enhancement!**

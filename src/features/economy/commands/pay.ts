@@ -45,17 +45,22 @@ const payCommand: CustomCommand = {
 
         const amount = parseCurrency(amountStr);
         if (isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
-        if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001) return sendMessage('§cInvalid precision.', executor);
+        if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001)
+            return sendMessage('§cInvalid precision.', executor);
 
         const sourceData = getPlayer(executor.id);
         if (!sourceData) return sendMessage('§cCould not retrieve your data.', executor);
-        if (sourceData.balance < 0) return sendMessage('§cYou cannot transfer money while your balance is negative.', executor);
+        if (sourceData.balance < 0)
+            return sendMessage('§cYou cannot transfer money while your balance is negative.', executor);
         if (sourceData.balance < amount) return sendMessage('§cYou do not have enough money.', executor);
 
         if (amount > config.economy.paymentConfirmationThreshold) {
             createPendingPayment(executor.id, targetPlayer.id, amount);
             sendMessage(`§ePayment of ${formatCurrency(amount)} to ${targetPlayer.name} is pending.`, executor);
-            sendMessage(`§eType §a/payconfirm§e within ${config.economy.paymentConfirmationTimeout} seconds to complete.`, executor);
+            sendMessage(
+                `§eType §a/payconfirm§e within ${config.economy.paymentConfirmationTimeout} seconds to complete.`,
+                executor
+            );
         } else {
             const result = transfer(executor.id, targetPlayer.id, amount);
             if (result.success) {
@@ -105,7 +110,10 @@ const oPayCommand: CustomCommand = {
         if (amount > config.economy.paymentConfirmationThreshold) {
             createPendingPayment(executor.id, targetId, amount);
             sendMessage(`§ePayment of ${formatCurrency(amount)} to ${displayName} is pending.`, executor);
-            sendMessage(`§eType §a/payconfirm§e within ${config.economy.paymentConfirmationTimeout} seconds to complete.`, executor);
+            sendMessage(
+                `§eType §a/payconfirm§e within ${config.economy.paymentConfirmationTimeout} seconds to complete.`,
+                executor
+            );
         } else {
             const result = transfer(executor.id, targetId, amount);
             if (result.success) {

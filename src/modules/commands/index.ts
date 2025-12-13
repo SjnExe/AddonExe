@@ -6,7 +6,6 @@ import cmdLegacyBounty from './bounty.js';
 import cmdLegacyChattoconsole from './chattoconsole.js';
 import cmdLegacyClear from './clear.js';
 import cmdLegacyClearchat from './clearchat.js';
-import cmdLegacyCrashme from './crashme.js';
 import cmdLegacyDebug from './debug.js';
 import cmdLegacyDimensionLock from './dimensionLock.js';
 import cmdLegacyFloatingtext from './floatingtext.js';
@@ -36,10 +35,12 @@ import cmdEconomyBalance from '@features/economy/commands/balance.js';
 import cmdEconomyPay from '@features/economy/commands/pay.js';
 import cmdEconomySetbalance from '@features/economy/commands/setbalance.js';
 import cmdModerationBan from '@features/moderation/commands/ban.js';
+import cmdModerationChatlog from '@features/moderation/commands/chatlog.js';
 import cmdModerationFreeze from '@features/moderation/commands/freeze.js';
 import cmdModerationKick from '@features/moderation/commands/kick.js';
 import cmdModerationMute from '@features/moderation/commands/mute.js';
 import cmdModerationReport from '@features/moderation/commands/report.js';
+import cmdModerationWarn from '@features/moderation/commands/warn.js';
 import cmdShopShop from '@features/shop/commands/shop.js';
 import cmdTeamsTeam from '@features/teams/commands/team.js';
 import cmdTeleportationBack from '@features/teleportation/commands/back.js';
@@ -58,7 +59,6 @@ export function loadCommands() {
         cmdLegacyChattoconsole,
         cmdLegacyClear,
         cmdLegacyClearchat,
-        cmdLegacyCrashme,
         cmdLegacyDebug,
         cmdLegacyDimensionLock,
         cmdLegacyFloatingtext,
@@ -88,10 +88,12 @@ export function loadCommands() {
         cmdEconomyPay,
         cmdEconomySetbalance,
         cmdModerationBan,
+        cmdModerationChatlog,
         cmdModerationFreeze,
         cmdModerationKick,
         cmdModerationMute,
         cmdModerationReport,
+        cmdModerationWarn,
         cmdShopShop,
         cmdTeamsTeam,
         cmdTeleportationBack,

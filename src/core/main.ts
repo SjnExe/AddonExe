@@ -4,6 +4,7 @@ import { restartAnnouncer } from '@commands/announcement.js';
 import { loadCommands } from '@commands/index.js';
 import * as auctionHouseFeature from '@features/auctionHouse/index.js';
 import * as kitsFeature from '@features/kits/index.js';
+import { initializeChatLogger } from '@features/moderation/chatLogManager.js';
 import * as moderationFeature from '@features/moderation/index.js';
 import {
     checkAndKickBannedPlayer,
@@ -121,6 +122,7 @@ function initializeManagers() {
     infoLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
+    initializeChatLogger();
     floatingTextManager.initialize();
     teamManager.initialize();
     corePanels.initialize();

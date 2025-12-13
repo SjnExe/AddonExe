@@ -2,8 +2,9 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
+import { StorageManager } from '@core/storage/StorageManager.js';
 
-const reportsDbKey = 'exe:reports';
+const storage = new StorageManager('exe:reports');
 
 export interface Report {
     id: string;
@@ -25,15 +26,10 @@ let needsSave = false;
  */
 export function loadReports() {
     debugLog('[ReportManager] Loading reports...');
-    const dataStr = mc.world.getDynamicProperty(reportsDbKey);
-    if (typeof dataStr === 'string') {
-        try {
-            reports = JSON.parse(dataStr) as Report[];
-            debugLog(`[ReportManager] Loaded ${reports.length} reports.`);
-        } catch (e) {
-            errorLog('[ReportManager] Failed to parse report data from world property.', e);
-            reports = [];
-        }
+    const loaded = storage.load<Report[]>();
+    if (loaded) {
+        reports = loaded;
+        debugLog(`[ReportManager] Loaded ${reports.length} reports.`);
     }
 }
 
@@ -49,7 +45,7 @@ export function saveReports(options: { force?: boolean } = {}) {
     }
 
     try {
-        mc.world.setDynamicProperty(reportsDbKey, JSON.stringify(reports));
+        storage.save(reports);
         needsSave = false; // Reset flag after saving
         debugLog('[ReportManager] Saved reports to world properties.');
     } catch (e) {

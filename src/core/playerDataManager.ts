@@ -4,8 +4,9 @@ import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { SerializedItem } from './itemSerializer.js';
 import { updateAndSaveLeaderboard } from './leaderboardManager.js';
-import { debugLog, errorLog, infoLog, warnLog } from './logger.js';
+import { debugLog, errorLog, infoLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
+import { StorageManager } from './storage/StorageManager.js';
 
 const playerPropertyPrefix = 'exe:player.';
 // Legacy keys (kept for migration)
@@ -262,15 +263,8 @@ export function savePlayerData(playerId: string) {
                 sessionStartTimes.set(playerId, now);
             }
 
-            // Clean needsSave before saving to disk if we don't want to persist it (it's runtime flag).
-            // But serialization includes it. It's harmless.
-            const dataString = JSON.stringify(playerData);
-            if (dataString.length > 25000) {
-                warnLog(
-                    `[PlayerDataManager] Player ${playerData.name} (${playerId}) data size is large: ${dataString.length} bytes. Limit is ~32KB.`
-                );
-            }
-            mc.world.setDynamicProperty(`${playerPropertyPrefix}${playerId}`, dataString);
+            const storage = new StorageManager(`${playerPropertyPrefix}${playerId}`);
+            storage.save(playerData);
             playerData.needsSave = false;
         }
     } catch (e: unknown) {
@@ -291,10 +285,10 @@ export function loadPlayerData(playerId: string): PlayerData | null {
     }
 
     try {
-        const dataString = mc.world.getDynamicProperty(`${playerPropertyPrefix}${playerId}`) as string | undefined;
-        if (dataString && typeof dataString === 'string') {
-            const loadedData = JSON.parse(dataString) as Partial<PlayerData>;
+        const storage = new StorageManager(`${playerPropertyPrefix}${playerId}`);
+        const loadedData = storage.load<Partial<PlayerData>>();
 
+        if (loadedData) {
             // Merge with defaults to ensure all properties exist
             const playerData: PlayerData = {
                 name: 'Unknown', // Placeholder, will be updated by getOrCreate
