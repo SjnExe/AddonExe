@@ -113,12 +113,6 @@ jobs:
                   (cd staging/resource && zip -r -9 "../../AddonExe.RP${FULL_TAG_NAME}.mcpack" ./* -x "*.map")
                   echo "Created release archives with maximum compression."
 
-            - name: Upload Debug Symbols
-              uses: actions/upload-artifact@v4
-              with:
-                  name: debug-symbols-release
-                  path: staging/**/*.map
-
             - name: Upload Release Assets
               uses: softprops/action-gh-release@v2
               with:
