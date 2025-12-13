@@ -7,6 +7,7 @@ import { updateAndSaveLeaderboard } from './leaderboardManager.js';
 import { debugLog, errorLog, infoLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
 import { StorageManager } from './storage/StorageManager.js';
+import { formatCurrency } from './utils.js';
 
 const playerPropertyPrefix = 'exe:player.';
 // Legacy keys (kept for migration)
@@ -670,6 +671,18 @@ export function transfer(
     const targetData = loadPlayerData(targetPlayerId);
     if (!targetData) {
         return { success: false, message: "Could not find the target player's data." };
+    }
+
+    const economyConfig = getEconomyConfig();
+    const max = economyConfig.maxBalance ?? 1000000000;
+    const currentTargetBal = Number(targetData.balance);
+    const safeTargetBal = isNaN(currentTargetBal) ? 0 : currentTargetBal;
+
+    if (safeTargetBal + amount > max) {
+        return {
+            success: false,
+            message: `Transfer failed. The target player cannot hold more than ${formatCurrency(max)}.`
+        };
     }
 
     incrementPlayerBalance(sourcePlayerId, -amount);

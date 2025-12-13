@@ -334,8 +334,13 @@ export class ConfigPanelHandler implements IPanelHandler {
                         } else if (setting.type === 'textField') {
                             const strVal = value as string;
                             const current = getValueFromPath(getConfig(), setting.key);
-                            if (typeof current === 'number' && !isNaN(Number(strVal)) && strVal.trim() !== '') {
-                                value = Number(strVal);
+                            if (typeof current === 'number') {
+                                if (!isNaN(Number(strVal)) && strVal.trim() !== '') {
+                                    value = Number(strVal);
+                                } else {
+                                    // Skip update if input is invalid for a number field
+                                    return;
+                                }
                             }
                         }
                         updates[setting.key] = value;

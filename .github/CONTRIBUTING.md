@@ -67,7 +67,7 @@ We are excited to receive code contributions! If you'd like to contribute code, 
 
 ### Setting Up Your Environment
 
-Details on setting up a development environment can be found in our [Addon Development Resources](Dev/README.md). (This may include information on required software, project structure, and build processes if applicable).
+Details on setting up a development environment can be found in our [Addon Development Resources](Docs/Development/README.md). (This may include information on required software, project structure, and build processes if applicable).
 
 ### Contribution Workflow
 
@@ -75,7 +75,7 @@ Details on setting up a development environment can be found in our [Addon Devel
 2.  **Create a Branch:** Make your changes in a dedicated branch on your fork. Branch names should be descriptive (e.g., `fix/fly-detection-exploit`, `feature/new-reporting-ui`).
 3.  **Develop:** Make your code changes, adhering to the project's coding standards.
 4.  **Test:** Thoroughly test your changes to ensure they work as expected and do not introduce new issues or regressions.
-5.  **Document:** Update any relevant documentation in the `Docs/` folder or JSDoc comments if your changes affect user-facing features or complex code logic.
+5.  **Document:** Update any relevant documentation in the `Docs/` folder or JSDoc/TSDoc comments if your changes affect user-facing features or complex code logic.
 6.  **Commit:** Write clear, concise, and descriptive commit messages.
 7.  **Push:** Push your changes to your fork.
 8.  **Submit a Pull Request (PR):** Open a pull request from your branch to the `Dev` branch of the `SjnExe/AddonExe` repository. (Note: The `exe` branch is for stable releases only).
@@ -84,18 +84,19 @@ Details on setting up a development environment can be found in our [Addon Devel
 
 ### Coding Standards
 
-Please follow our [**Coding Style Guide**](Dev/CodingStyle.md) and [**Standardization Guidelines**](Dev/StandardizationGuidelines.md). This includes conventions for naming, formatting, JSDoc comments, and error handling. Adherence to these standards helps maintain code quality and consistency.
+Please follow our [**Coding Style Guide**](Docs/Development/CodingStyle.md) and [**Standardization Guidelines**](Docs/Development/StandardizationGuidelines.md). This includes conventions for naming, formatting, JSDoc/TSDoc comments, and error handling. Adherence to these standards helps maintain code quality and consistency.
 
 Key points:
 
-- All Behavior Pack scripts are written in plain JavaScript (ES6+ features as supported by Minecraft's engine). Do not use TypeScript syntax.
-- Pay close attention to all naming conventions (including for `checkType` and `actionType` identifiers, which must be `camelCase`), formatting, JSDoc practices, and error handling as detailed in these guides.
+- **TypeScript:** The project is migrating to TypeScript. All new code should be written in TypeScript (`.ts`) in the `src/` directory. Legacy JavaScript code should be preserved or migrated with care.
+- **Naming Conventions:** Pay close attention to naming conventions (typically `camelCase` for variables and functions), formatting, and documentation standards.
+- **Formatting & Linting:** Run `npm run format` and `npm run lint` before submitting your changes.
 
 ### Testing
 
 Ensure your changes are stable and do not introduce new issues. Test your changes in-game under various conditions. If you are fixing a bug, include steps on how to reproduce the bug and verify the fix. If you are adding a new feature, test its functionality thoroughly.
 
-(Placeholder: If specific testing frameworks or procedures are established, they will be detailed here or in `Dev/README.md`.)
+(Placeholder: If specific testing frameworks or procedures are established, they will be detailed here or in `Docs/Development/README.md`.)
 
 ### Documentation
 
