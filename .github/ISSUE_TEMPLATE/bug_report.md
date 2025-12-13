@@ -11,7 +11,7 @@ labels: bug, needs-triage
 
 - [ ] I have searched existing [GitHub Issues](https://github.com/SjnExe/AddonExe/issues) to ensure this bug has not already been reported.
 - [ ] I am using the latest version of the AddonExe (check [Releases](https://github.com/SjnExe/AddonExe/releases/latest)).
-- [ ] I have reviewed the [Troubleshooting Guide](https://github.com/SjnExe/AddonExe/blob/main/Docs/Troubleshooting.md) and the issue persists.
+- [ ] I have reviewed the [Troubleshooting Guide](https://github.com/SjnExe/AddonExe/blob/exe/Docs/Troubleshooting.md) and the issue persists.
 - [ ] I have disabled other behavior packs to ensure this is not a conflict, or I have identified a specific conflict.
 
 **Describe the Bug:**
@@ -47,4 +47,4 @@ Add any other context about the problem here. For example, did this start happen
 
 ---
 
-**Remember: Do NOT report security vulnerabilities here. Please see our [Security Policy](https://github.com/SjnExe/AddonExe/blob/main/.github/SECURITY.md) for how to report security issues.**
+**Remember: Do NOT report security vulnerabilities here. Please see our [Security Policy](https://github.com/SjnExe/AddonExe/blob/exe/.github/SECURITY.md) for how to report security issues.**

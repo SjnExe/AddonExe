@@ -78,7 +78,7 @@ Details on setting up a development environment can be found in our [Addon Devel
 5.  **Document:** Update any relevant documentation in the `Docs/` folder or JSDoc comments if your changes affect user-facing features or complex code logic.
 6.  **Commit:** Write clear, concise, and descriptive commit messages.
 7.  **Push:** Push your changes to your fork.
-8.  **Submit a Pull Request (PR):** Open a pull request from your branch to the `main` branch (or the relevant development branch) of the `SjnExe/AddonExe` repository.
+8.  **Submit a Pull Request (PR):** Open a pull request from your branch to the `exe` branch (or the relevant development branch like `Dev`) of the `SjnExe/AddonExe` repository.
     - Provide a clear title and description for your PR, explaining the changes you've made and why.
     - Reference any related issues (e.g., "Fixes #123").
 

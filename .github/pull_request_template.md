@@ -32,4 +32,4 @@ Provide instructions so we can reproduce.
 
 ---
 
-By submitting this pull request, you agree to license your contribution under the project's [MIT License](https://github.com/SjnExe/AddonExe/blob/main/LICENSE).
+By submitting this pull request, you agree to license your contribution under the project's [MIT License](https://github.com/SjnExe/AddonExe/blob/exe/LICENSE).
