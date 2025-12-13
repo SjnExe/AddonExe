@@ -12,6 +12,7 @@ import {
     loadPunishments
 } from '@features/moderation/punishmentManager.js';
 import { clearOldResolvedReports, loadReports } from '@features/moderation/reportManager.js';
+import { initializeChatLogger } from '@features/moderation/chatLogManager.js';
 import * as shopFeature from '@features/shop/index.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import * as teleportFeature from '@features/teleportation/index.js';
@@ -121,6 +122,7 @@ function initializeManagers() {
     infoLog('[AddonExe] Initializing managers...');
     rankManager.initialize();
     initializePunishmentManager();
+    initializeChatLogger();
     floatingTextManager.initialize();
     teamManager.initialize();
     corePanels.initialize();

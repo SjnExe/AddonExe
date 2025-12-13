@@ -40,6 +40,7 @@ import cmdModerationFreeze from '@features/moderation/commands/freeze.js';
 import cmdModerationKick from '@features/moderation/commands/kick.js';
 import cmdModerationMute from '@features/moderation/commands/mute.js';
 import cmdModerationReport from '@features/moderation/commands/report.js';
+import cmdModerationWarn from '@features/moderation/commands/warn.js';
 import cmdShopShop from '@features/shop/commands/shop.js';
 import cmdTeamsTeam from '@features/teams/commands/team.js';
 import cmdTeleportationBack from '@features/teleportation/commands/back.js';
@@ -92,6 +93,7 @@ export function loadCommands() {
         cmdModerationKick,
         cmdModerationMute,
         cmdModerationReport,
+        cmdModerationWarn,
         cmdShopShop,
         cmdTeamsTeam,
         cmdTeleportationBack,
