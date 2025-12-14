@@ -51,7 +51,7 @@ jobs:
                   if [[ `git status --porcelain` ]]; then
                     git add .
                     git commit -m "style: auto-fix linting and formatting"
-                    git push
+                    git push origin HEAD:${{ github.head_ref || github.ref_name }}
                   fi
 
             - name: Run Full Lint Check
