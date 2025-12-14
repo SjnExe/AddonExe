@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 import { getConfig } from './configManager.js';
 import { getKitsConfig } from './configurations.js';
 import { Kit } from './kitAdminManager.js';
+import { ItemInfo } from './kitItemsManager.js';
 import { errorLog } from './logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance, setKitCooldown } from './playerDataManager.js';
 import { formatCooldown } from './utils.js';
@@ -160,20 +161,7 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     }
 
     try {
-        for (const itemInfo of kit.items) {
-            const itemStack = new mc.ItemStack(itemInfo.typeId, itemInfo.amount);
-            if (itemInfo.nameTag) {
-                itemStack.nameTag = itemInfo.nameTag;
-            }
-            if (itemInfo.lore) {
-                itemStack.setLore(itemInfo.lore);
-            }
-            const leftovers = inventory.addItem(itemStack);
-            if (leftovers) {
-                player.dimension.spawnItem(leftovers, player.location);
-                player.sendMessage('§eYour inventory is full. Some items were dropped on the ground.');
-            }
-        }
+        giveKitItems(player, kit.items);
 
         // Set the new cooldown
         const now = Date.now();
@@ -188,5 +176,47 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
             errorLog(`[KitsManager] Failed to give kit: ${String(e)}`);
         }
         return { success: false, message: 'An unexpected error occurred while giving the kit.' };
+    }
+}
+
+/**
+ * Helper to give a list of items to a player safely.
+ * Handles enchantments, lore, nametags, and dropping leftovers.
+ */
+export function giveKitItems(player: mc.Player, items: ItemInfo[]): void {
+    const inventoryComp = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
+    if (!inventoryComp || !inventoryComp.container) {
+        throw new Error('Could not access player inventory.');
+    }
+    const inventory = inventoryComp.container;
+
+    for (const itemInfo of items) {
+        const itemStack = new mc.ItemStack(itemInfo.typeId, itemInfo.amount);
+        if (itemInfo.nameTag) {
+            itemStack.nameTag = itemInfo.nameTag;
+        }
+        if (itemInfo.lore) {
+            itemStack.setLore(itemInfo.lore);
+        }
+        if (itemInfo.enchantments) {
+            const enchantComp = itemStack.getComponent('enchantable') as mc.ItemEnchantableComponent;
+            if (enchantComp) {
+                for (const ench of itemInfo.enchantments) {
+                    const type = mc.EnchantmentTypes.get(ench.id);
+                    if (type) {
+                        try {
+                            enchantComp.addEnchantment({ type, level: ench.level });
+                        } catch {
+                            // Ignore invalid enchants
+                        }
+                    }
+                }
+            }
+        }
+        const leftovers = inventory.addItem(itemStack);
+        if (leftovers) {
+            player.dimension.spawnItem(leftovers, player.location);
+            player.sendMessage('§eYour inventory is full. Some items were dropped on the ground.');
+        }
     }
 }

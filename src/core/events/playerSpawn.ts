@@ -4,7 +4,7 @@ import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager
 import { getConfig } from '../configManager.js';
 import { getKitsConfig } from '../configurations.js';
 import { constants } from '../constants.js';
-import { getKit } from '../kitsManager.js';
+import { getKit, giveKitItems } from '../kitsManager.js';
 import { debugLog } from '../logger.js';
 import { updatePlayerRank } from '../main.js';
 import { sendMessage } from '../messaging.js';
@@ -18,6 +18,8 @@ export function handlePlayerJoin(player: mc.Player) {
         updatePlayerData(player.id, (d) => {
             d.isVanished = true;
         });
+        // Re-apply invisibility effect if player died or effect expired
+        player.addEffect('invisibility', 2000000, { amplifier: 1, showParticles: false });
     } else {
         if (pData.isVanished)
             updatePlayerData(player.id, (d) => {
@@ -75,22 +77,11 @@ export function handlePlayerJoin(player: mc.Player) {
             const kitName = kitsConfig.starterKit.kitName;
             const kit = getKit(kitName);
             if (kit) {
-                const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
-                if (inventory && inventory.container) {
-                    let itemsGiven = 0;
-                    for (const itemInfo of kit.items) {
-                        try {
-                            const itemStack = new mc.ItemStack(itemInfo.typeId, itemInfo.amount);
-                            // Simple items support only for starter kit
-                            inventory.container.addItem(itemStack);
-                            itemsGiven++;
-                        } catch {
-                            // Ignore invalid items
-                        }
-                    }
-                    if (itemsGiven > 0) {
-                        player.sendMessage(`§aWelcome! You have received the '${kitName}' starter kit.`);
-                    }
+                try {
+                    giveKitItems(player, kit.items);
+                    player.sendMessage(`§aWelcome! You have received the '${kitName}' starter kit.`);
+                } catch {
+                    // Ignore errors (e.g. invalid items)
                 }
             }
         }

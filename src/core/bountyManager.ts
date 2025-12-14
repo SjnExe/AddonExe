@@ -3,12 +3,12 @@
  * @module bountyManager
  */
 
-import * as mc from '@minecraft/server';
-
 import { debugLog, errorLog } from './logger.js';
 import * as playerDataManager from './playerDataManager.js';
+import { StorageManager } from './storage/StorageManager.js';
 
 const bountyDataKey = 'exe:bountyData';
+const storage = new StorageManager(bountyDataKey);
 
 interface BountyEntry {
     playerId: string;
@@ -27,9 +27,8 @@ let activeBounties = new Map<string, BountyEntry>();
  */
 export function loadBounties() {
     try {
-        const dataString = mc.world.getDynamicProperty(bountyDataKey);
-        if (dataString && typeof dataString === 'string') {
-            const parsedData = JSON.parse(dataString) as [string, BountyEntry][];
+        const parsedData = storage.load<[string, BountyEntry][]>();
+        if (parsedData) {
             activeBounties = new Map(parsedData);
             debugLog(`[BountyManager] Loaded ${activeBounties.size} active bounties.`);
         } else {
@@ -51,7 +50,7 @@ export function loadBounties() {
 export function saveBounties() {
     try {
         const dataToSave = Array.from(activeBounties.entries());
-        mc.world.setDynamicProperty(bountyDataKey, JSON.stringify(dataToSave));
+        storage.save(dataToSave);
         debugLog('[BountyManager] Saved active bounty data.');
     } catch (e: unknown) {
         if (e instanceof Error) {

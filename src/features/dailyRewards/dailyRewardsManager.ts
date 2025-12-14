@@ -84,19 +84,18 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
         if (reward.items && reward.items.length > 0) {
             const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
             if (inventory && inventory.container) {
-                let itemsGiven = false;
                 for (const itemDef of reward.items) {
                     try {
                         const itemStack = new mc.ItemStack(itemDef.typeId, itemDef.amount);
                         if (itemDef.name) itemStack.nameTag = itemDef.name;
-                        inventory.container.addItem(itemStack);
-                        itemsGiven = true;
+                        const leftovers = inventory.container.addItem(itemStack);
+                        if (leftovers) {
+                            player.dimension.spawnItem(leftovers, player.location);
+                            player.sendMessage('§eInventory full. Item dropped on ground.');
+                        }
                     } catch (e) {
                         errorLog(`[DailyRewards] Failed to give item ${itemDef.typeId}: ${String(e)}`);
                     }
-                }
-                if (!itemsGiven) {
-                    player.sendMessage('§cInventory full? Some items may have been dropped or lost.');
                 }
             }
         }

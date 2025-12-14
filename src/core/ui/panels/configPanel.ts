@@ -158,7 +158,10 @@ export class ConfigPanelHandler implements IPanelHandler {
             if (!handler) return Promise.resolve(null);
             const config = handler.get() as unknown as Record<string, unknown>;
 
-            for (const setting of category.settings) {
+            // Filter settings to ensure consistent index mapping
+            const validSettings = category.settings.filter((s) => ['toggle', 'textField', 'dropdown'].includes(s.type));
+
+            for (const setting of validSettings) {
                 const currentValue = getValueFromPath(config, setting.key);
                 if (setting.type === 'toggle') {
                     form.toggle(setting.label, { defaultValue: !!currentValue });
@@ -321,7 +324,13 @@ export class ConfigPanelHandler implements IPanelHandler {
             if (category) {
                 if (values) {
                     const updates: Record<string, unknown> = {};
-                    category.settings.forEach((setting, index) => {
+
+                    // Filter settings to match buildModal logic
+                    const validSettings = category.settings.filter((s) =>
+                        ['toggle', 'textField', 'dropdown'].includes(s.type)
+                    );
+
+                    validSettings.forEach((setting, index) => {
                         let value = values[index];
                         if (setting.type === 'dropdown') {
                             const options = setting.options || [];

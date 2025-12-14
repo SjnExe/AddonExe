@@ -9,6 +9,7 @@ import {
     incrementPlayerBalance,
     updatePlayerData
 } from '@core/playerDataManager.js';
+import { startTeleportWarmup } from '@core/utils.js';
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 import { TeamPanelHandler } from './ui/teamPanel.js';
@@ -601,21 +602,10 @@ export function teleportToTeamHome(player: mc.Player): void {
     const teamConfig = getTeamConfig();
     const warmup = teamConfig.teleportWarmupSeconds;
 
-    if (warmup > 0) {
-        player.sendMessage(`§aTeleporting to team home in ${warmup} seconds. Do not move.`);
-        const initialPos = { x: player.location.x, y: player.location.y, z: player.location.z };
-
-        mc.system.runTimeout(() => {
-            if (!player.isValid) return;
-            const currentPos = player.location;
-            if (
-                Math.abs(currentPos.x - initialPos.x) > 0.5 ||
-                Math.abs(currentPos.y - initialPos.y) > 0.5 ||
-                Math.abs(currentPos.z - initialPos.z) > 0.5
-            ) {
-                player.sendMessage('§cTeleport cancelled. You moved.');
-                return;
-            }
+    startTeleportWarmup(
+        player,
+        warmup,
+        () => {
             try {
                 const dim = mc.world.getDimension(dimensionId);
                 saveLastLocation(player);
@@ -624,15 +614,7 @@ export function teleportToTeamHome(player: mc.Player): void {
             } catch {
                 player.sendMessage('§cTeleport failed: Dimension not loaded or invalid.');
             }
-        }, warmup * 20);
-    } else {
-        try {
-            const dim = mc.world.getDimension(dimensionId);
-            saveLastLocation(player);
-            player.teleport({ x, y, z }, { dimension: dim });
-            player.sendMessage('§aTeleported to team home!');
-        } catch {
-            player.sendMessage('§cTeleport failed: Dimension not loaded or invalid.');
-        }
-    }
+        },
+        'Team Home'
+    );
 }

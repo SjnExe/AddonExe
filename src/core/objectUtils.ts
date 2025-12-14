@@ -390,9 +390,19 @@ export function mergeRanks(
     }
 
     // Preserve original order as much as possible
+    // Optimization: Create a map for O(1) lookups instead of O(N) findIndex
+    const fileRankIndexMap = new Map<unknown, number>();
+    newFileRanks.forEach((r, index) => {
+        if (r && r['id']) fileRankIndexMap.set(r['id'], index);
+    });
+
     finalRanks.sort((a, b) => {
-        const aIndex = newFileRanks.findIndex((r) => r['id'] === a['id']);
-        const bIndex = newFileRanks.findIndex((r) => r['id'] === b['id']);
+        const aId = a['id'];
+        const bId = b['id'];
+
+        const aIndex = fileRankIndexMap.has(aId) ? fileRankIndexMap.get(aId)! : -1;
+        const bIndex = fileRankIndexMap.has(bId) ? fileRankIndexMap.get(bId)! : -1;
+
         if (aIndex === -1 || bIndex === -1) {
             return 0;
         }

@@ -11,6 +11,8 @@ export interface SystemDefinition {
     configPanelId: string;
     /** The category of the system. */
     category?: string;
+    /** Whether this system is hidden from the main menu. */
+    hidden?: boolean;
     /** If true, this system is managed via a standard config schema panel. */
     isSimpleConfig: boolean;
 }
@@ -36,6 +38,7 @@ export function getSystemRegistry(): SystemDefinition[] {
                 icon: schema.icon,
                 configPanelId: `config_${schema.id}`,
                 category: schema.category,
+                hidden: schema.hidden,
                 isSimpleConfig: true
             })),
 
@@ -86,6 +89,7 @@ export function getSystemRegistry(): SystemDefinition[] {
             icon: 'textures/blocks/diamond_ore',
             configPanelId: 'xrayOresPanel',
             category: 'Moderation',
+            hidden: true,
             isSimpleConfig: false
         },
         {

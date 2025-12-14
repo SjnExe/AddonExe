@@ -156,10 +156,9 @@ export async function uiWait(
         if (subsequentAttempt.cancelationReason !== FormCancelationReason.UserBusy) {
             return subsequentAttempt;
         }
-        // Small delay to prevent tight loop, though await form.show is async.
-        // But if it returns immediately with UserBusy, we might spam.
-        // We can use a small sleep if we had one, but await show is usually enough.
-        // We'll trust the loop.
+
+        // Add a delay to prevent tight loop and allow the client to process the close chat action
+        await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 10));
     }
 
     return { canceled: true, cancelationReason: FormCancelationReason.UserClosed } as ActionFormResponse; // Timeout

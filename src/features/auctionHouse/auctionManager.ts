@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getAuctionHouseConfig } from '@core/configurations.js';
-import { deserializeItem, SerializedItem } from '@core/itemSerializer.js';
+import { deserializeItem, SerializedItem, serializeItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
@@ -146,16 +146,30 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
     // Best practice: Try inventory, fallback to mailbox.
 
     const inventory = buyer.getComponent('inventory') as mc.EntityInventoryComponent;
+    let itemGiven = false;
+
     if (inventory && inventory.container && inventory.container.emptySlotsCount > 0) {
         const itemStack = deserializeItem(listing.item);
         if (itemStack) {
-            inventory.container.addItem(itemStack);
-            buyer.sendMessage(`§aYou purchased ${listing.item.nameTag || listing.item.typeId}!`);
+            const leftovers = inventory.container.addItem(itemStack);
+            if (leftovers) {
+                // Partial failure, add leftovers to mailbox
+                const sLeftover = serializeItem(leftovers);
+                addItemToMailbox(buyer.id, sLeftover);
+                buyer.sendMessage(`§aPurchased! §eSome items didn't fit and were sent to your Collection Bin.`);
+            } else {
+                buyer.sendMessage(`§aYou purchased ${listing.item.nameTag || listing.item.typeId}!`);
+            }
+            itemGiven = true;
         } else {
+            // Deserialization failed
             addItemToMailbox(buyer.id, listing.item);
             buyer.sendMessage('§cError creating item. It has been sent to your Collection Bin.');
+            itemGiven = true;
         }
-    } else {
+    }
+
+    if (!itemGiven) {
         addItemToMailbox(buyer.id, listing.item);
         buyer.sendMessage('§eInventory full. Item sent to Collection Bin (/ah collect).');
     }
@@ -302,8 +316,14 @@ export function claimMailbox(player: mc.Player): { success: boolean; message: st
         if (inventory.container.emptySlotsCount > 0) {
             const stack = deserializeItem(sItem);
             if (stack) {
-                inventory.container.addItem(stack);
-                claimed++;
+                const leftovers = inventory.container.addItem(stack);
+                if (leftovers) {
+                    // Partial claim, keep leftovers
+                    remainingItems.push(serializeItem(leftovers));
+                } else {
+                    // Fully claimed
+                    claimed++;
+                }
             } else {
                 // Failed to deserialize? Keep it to avoid loss, but warn.
                 errorLog(`[AH] Failed to deserialize item in mailbox for ${player.name}`);

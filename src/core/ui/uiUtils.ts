@@ -177,8 +177,7 @@ export function getAllSystems(): SystemDefinition[] {
  */
 export function getVisibleSystems(pData: PlayerData): SystemDefinition[] {
     return getSystemRegistry().filter((sys) => {
-        if (sys.id === 'economyGeneralSettings') return false; // Handled by Economy Panel
-        if (sys.id === 'xray_ores') return false; // Handled by X-Ray Panel button, not main config
+        if (sys.hidden) return false;
         return pData.permissionLevel <= 1;
     });
 }

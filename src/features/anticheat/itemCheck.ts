@@ -42,6 +42,17 @@ function checkInventory(player: mc.Player, config: ItemCheckConfig) {
     for (let i = 0; i < container.size; i++) {
         const item = container.getItem(i);
         if (item) {
+            // Check for over-stacked items
+            if (item.amount > item.maxAmount) {
+                flag(player, 'itemCheck', `Illegal Stack: ${item.typeId} x${item.amount} (Max: ${item.maxAmount})`);
+                if (config.removeIllegalItems) {
+                    // Set amount to max allowed or remove?
+                    // Safe approach: Clamp to max
+                    item.amount = item.maxAmount;
+                    container.setItem(i, item);
+                }
+            }
+
             // Check illegal enchants
             const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
             if (enchantable && enchantable.getEnchantments) {

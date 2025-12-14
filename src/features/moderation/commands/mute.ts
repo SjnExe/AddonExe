@@ -137,7 +137,7 @@ export function unmutePlayer(executor: CommandExecutor, targetName: string) {
             return;
         }
     }
-    removePunishment(targetId);
+    removePunishment(targetId, 'mute');
 
     if (executor instanceof mc.Player) {
         sendMessage(`§aSuccessfully unmuted ${targetName}.`, executor);

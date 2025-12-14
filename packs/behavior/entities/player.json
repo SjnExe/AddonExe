@@ -81,6 +81,42 @@
                         }
                     ]
                 }
+            },
+            "exe:all_damage_disabled": {
+                "minecraft:damage_sensor": {
+                    "triggers": [
+                        {
+                            "on_damage": {
+                                "filters": {
+                                    "any_of": [
+                                        {
+                                            "test": "is_family",
+                                            "subject": "damager",
+                                            "value": "player"
+                                        },
+                                        {
+                                            "all_of": [
+                                                {
+                                                    "test": "is_family",
+                                                    "subject": "damager",
+                                                    "operator": "!=",
+                                                    "value": "player"
+                                                },
+                                                {
+                                                    "test": "is_family",
+                                                    "subject": "damager",
+                                                    "operator": "!=",
+                                                    "value": "inanimate"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            },
+                            "deals_damage": false
+                        }
+                    ]
+                }
             }
         },
         "components": {
@@ -249,6 +285,16 @@
             "exe:enable_hostile_damage": {
                 "remove": {
                     "component_groups": ["exe:hostile_damage_disabled"]
+                }
+            },
+            "exe:disable_all_damage": {
+                "add": {
+                    "component_groups": ["exe:all_damage_disabled"]
+                }
+            },
+            "exe:enable_all_damage": {
+                "remove": {
+                    "component_groups": ["exe:all_damage_disabled"]
                 }
             }
         }

@@ -157,7 +157,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                     if (!targetId) {
                         player.sendMessage('§4Player not found in database.');
                     } else {
-                        punishmentManager.removePunishment(targetId);
+                        punishmentManager.removePunishment(targetId, 'ban');
                         player.sendMessage(`§2Unbanned ${name}.`);
                     }
                     return showPanel(player, panelId, context);
@@ -174,7 +174,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                     if (!targetId) {
                         player.sendMessage('§4Player not found in database.');
                     } else {
-                        punishmentManager.removePunishment(targetId);
+                        punishmentManager.removePunishment(targetId, 'mute');
                         player.sendMessage(`§2Unmuted ${name}.`);
                     }
                     return showPanel(player, panelId, context);
