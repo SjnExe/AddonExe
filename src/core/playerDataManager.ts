@@ -5,7 +5,7 @@ import { getEconomyConfig } from './configurations.js';
 import { SerializedItem } from './itemSerializer.js';
 import { updateAndSaveLeaderboard } from './leaderboardManager.js';
 import { debugLog, errorLog, infoLog } from './logger.js';
-import { getPlayerFromCache } from './playerCache.js';
+import { getAllPlayersFromCache, getPlayerFromCache } from './playerCache.js';
 import { StorageManager } from './storage/StorageManager.js';
 import { formatCurrency } from './utils.js';
 
@@ -462,6 +462,39 @@ export function getAllKnownPlayers(): { id: string; name: string }[] {
         }
     }
     return players;
+}
+
+/**
+ * Returns a list of online players visible to the observer.
+ * @param observer The player viewing the list.
+ */
+export function getVisiblePlayers(observer: mc.Player): mc.Player[] {
+    const allPlayers = getAllPlayersFromCache();
+    const observerData = getPlayer(observer.id);
+    const observerLevel = observerData?.permissionLevel ?? 1024;
+
+    // Staff (Level <= 2) can see everyone
+    if (observerLevel <= 2) {
+        return allPlayers;
+    }
+
+    return allPlayers.filter((p) => {
+        // Observer is regular player
+        // Hide vanished players
+        const targetData = getPlayer(p.id);
+        return !targetData?.isVanished;
+    });
+}
+
+/**
+ * Finds a player by name, respecting vanish visibility rules.
+ * @param name The name to search for.
+ * @param observer The player performing the search.
+ */
+export function findVisiblePlayerByName(name: string, observer: mc.Player): mc.Player | undefined {
+    const visible = getVisiblePlayers(observer);
+    const lowerName = name.toLowerCase();
+    return visible.find(p => p.name.toLowerCase() === lowerName);
 }
 
 // --- Pending Payment Management ---

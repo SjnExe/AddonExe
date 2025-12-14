@@ -333,6 +333,17 @@ async function unfreezePlayer(player: mc.Player, context: UIContext) {
 async function tpaPlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
     if (!targetId) return;
+
+    // Visibility Check
+    const targetData = getPlayer(targetId);
+    if (targetData && targetData.isVanished) {
+        const observerData = getPlayer(player.id);
+        if (!observerData || observerData.permissionLevel > 2) {
+            player.sendMessage('§4Player is offline.');
+            return showPanel(player, 'playerActionsPanel', context);
+        }
+    }
+
     const target = getPlayerFromCache(targetId);
     if (!target) {
         player.sendMessage('§4Player is offline.');
@@ -347,6 +358,17 @@ async function tpaPlayer(player: mc.Player, context: UIContext) {
 async function tpaherePlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
     if (!targetId) return;
+
+    // Visibility Check
+    const targetData = getPlayer(targetId);
+    if (targetData && targetData.isVanished) {
+        const observerData = getPlayer(player.id);
+        if (!observerData || observerData.permissionLevel > 2) {
+            player.sendMessage('§4Player is offline.');
+            return showPanel(player, 'playerActionsPanel', context);
+        }
+    }
+
     const target = getPlayerFromCache(targetId);
     if (!target) {
         player.sendMessage('§4Player is offline.');

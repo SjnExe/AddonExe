@@ -5,7 +5,7 @@ import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
 import { addSentryBreadcrumb } from '@core/diagnostics.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
 import { findPlayerByName } from '@core/playerCache.js';
-import { getPlayer } from '@core/playerDataManager.js';
+import { findVisiblePlayerByName, getPlayer } from '@core/playerDataManager.js';
 
 // --- Type Definitions ---
 
@@ -377,7 +377,23 @@ class CommandManager {
             const parsedArgs: Record<string, unknown> = {};
             for (let i = 0; i < allParams.length; i++) {
                 if (rawArgs[i] !== undefined) {
-                    parsedArgs[allParams[i].name] = rawArgs[i];
+                    let value = rawArgs[i];
+                    // Filter vanished players for slash commands
+                    if (
+                        (allParams[i].type === 'player' || allParams[i].type === 'target') &&
+                        Array.isArray(value) &&
+                        'id' in executor // Only filter if executor is a player
+                    ) {
+                        const executorData = getPlayer(executor.id);
+                        // Level 2 (Mod) and below can see vanished players
+                        if (executorData && executorData.permissionLevel > 2) {
+                            value = (value as mc.Player[]).filter((target) => {
+                                const targetData = getPlayer(target.id);
+                                return !targetData?.isVanished;
+                            });
+                        }
+                    }
+                    parsedArgs[allParams[i].name] = value;
                 }
             }
             this._executeCommand(executor, command, parsedArgs);
@@ -591,7 +607,7 @@ class CommandManager {
                 parsedArgs[paramDef.name] = rawValue === 'true';
                 currentArgIndex++;
             } else if (paramDef.type === 'player' || paramDef.type === 'target') {
-                const p = findPlayerByName(rawValue);
+                const p = findVisiblePlayerByName(rawValue, player);
                 parsedArgs[paramDef.name] = p ? [p] : [];
                 currentArgIndex++;
             } else if (paramDef.enumOptions && paramDef.enumOptions.length > 0) {

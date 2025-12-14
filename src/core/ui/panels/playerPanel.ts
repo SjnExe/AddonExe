@@ -6,6 +6,7 @@ import {
     getAllKnownPlayers,
     getOrCreatePlayer,
     getPlayerIdByName,
+    getVisiblePlayers,
     loadPlayerData,
     PlayerData
 } from '@core/playerDataManager.js';
@@ -51,7 +52,8 @@ export class PlayerPanelHandler implements IPanelHandler {
             let playerEntries: { name: string; id: string }[] = [];
 
             if (isOnlineList) {
-                playerEntries = Array.from(mc.world.getAllPlayers()).map((p) => ({ name: p.name, id: p.id }));
+                // Filter vanished players for the public online list
+                playerEntries = getVisiblePlayers(player).map((p) => ({ name: p.name, id: p.id }));
             } else {
                 playerEntries = getAllKnownPlayers();
             }
