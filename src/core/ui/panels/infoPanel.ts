@@ -6,6 +6,7 @@ import * as helpfulLinksManager from '@core/helpfulLinksManager.js';
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import * as rulesManager from '@core/rulesManager.js';
 import { showPanel } from '@core/uiManager.js';
+import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler, MainConfig } from '@ui/types.js';
@@ -246,6 +247,11 @@ export class InfoPanelHandler implements IPanelHandler {
                     }
                     // Re-open panel
                     return showPanel(player, panelId, context);
+                }
+
+                if (item.actionType === 'functionCall') {
+                    await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id });
+                    return;
                 }
             }
         }
