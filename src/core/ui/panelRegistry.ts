@@ -382,11 +382,6 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         parentPanelId: 'gameplayPanel',
         items: [] // Body is dynamically generated
     },
-    helpfulLinksPanel: {
-        title: 'Helpful Links',
-        parentPanelId: 'infoPanel',
-        items: [] // Body is dynamically generated
-    },
     moderationPanel: {
         title: 'Moderation Tools',
         parentPanelId: 'adminPanel',
@@ -604,6 +599,16 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         title: 'Links Management',
         parentPanelId: 'infoPanel',
         items: [] // Dynamically populated
+    },
+    rulesPanel: {
+        title: 'Server Rules',
+        parentPanelId: 'infoPanel',
+        items: [] // Dynamically populated from config
+    },
+    helpfulLinksPanel: {
+        title: 'Helpful Links',
+        parentPanelId: 'infoPanel',
+        items: [] // Dynamically populated from config
     },
     addHelpfulLinkPanel: {
         title: 'Add New Link',

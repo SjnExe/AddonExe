@@ -7,8 +7,9 @@ import * as rulesManager from '@core/rulesManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
-import { IPanelHandler } from '@ui/types.js';
+import { IPanelHandler, MainConfig } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { getConfig } from '@core/configManager.js';
 
 export class InfoPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -32,6 +33,33 @@ export class InfoPanelHandler implements IPanelHandler {
         if (panelId === 'infoPanel') {
             const staticItems = getStaticMenuItems(panelDefinitions[panelId], permissionLevel);
             items.push(...staticItems);
+            return Promise.resolve(items);
+        }
+
+        if (panelId === 'rulesPanel') {
+            addBackButton(items, 'infoPanel');
+            // Rules are shown in getBody
+            return Promise.resolve(items);
+        }
+
+        if (panelId === 'helpfulLinksPanel') {
+            addBackButton(items, 'infoPanel');
+            const config = getConfig() as unknown as MainConfig;
+            // Explicit cast for safety
+            const serverInfo = config.serverInfo as { helpfulLinks: { title: string; url: string }[] };
+            const links = serverInfo?.helpfulLinks || [];
+
+            links.forEach((link, idx) => {
+                items.push({
+                    id: `link_${idx}`,
+                    text: link.title,
+                    icon: 'textures/ui/world_glyph_color_2x_black_outline',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'printLink', // Handled locally
+                    sortId: idx
+                });
+            });
             return Promise.resolve(items);
         }
 
@@ -109,6 +137,19 @@ export class InfoPanelHandler implements IPanelHandler {
         }
 
         return Promise.resolve(items);
+    }
+
+    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | null> {
+        if (panelId === 'rulesPanel') {
+            const config = getConfig() as unknown as MainConfig;
+            const serverInfo = config.serverInfo as { rules: string[] };
+            const rules = serverInfo?.rules || [];
+            return Promise.resolve(rules.join('\n\n'));
+        }
+        if (panelId === 'helpfulLinksPanel') {
+            return Promise.resolve('Click a button to see the link in chat.');
+        }
+        return Promise.resolve(null);
     }
 
     buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
@@ -191,6 +232,20 @@ export class InfoPanelHandler implements IPanelHandler {
                         player.sendMessage('§2Link deleted.');
                     }
                     return showPanel(player, 'helpfulLinksManagementPanel', context);
+                }
+
+                if (item.actionValue === 'printLink') {
+                    const config = getConfig() as unknown as MainConfig;
+                    const serverInfo = config.serverInfo as { helpfulLinks: { title: string; url: string }[] };
+                    const links = serverInfo?.helpfulLinks || [];
+                    const index = parseInt(item.id.split('_')[1]);
+                    const link = links[index];
+
+                    if (link) {
+                        player.sendMessage(`§eLink: §b${link.title}§r\n§a${link.url}`);
+                    }
+                    // Re-open panel
+                    return showPanel(player, panelId, context);
                 }
             }
         }

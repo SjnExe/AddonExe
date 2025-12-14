@@ -55,6 +55,7 @@ export async function buildPanelForm(
                 }
             }
         }
+
         return null;
     } catch (e) {
         errorLog(`[UIManager] Error building panel ${panelId}`, e);
