@@ -29,6 +29,8 @@ export interface ConfigCategory {
     configSource?: string;
     /** The configuration category this system belongs to (e.g., 'Economy', 'Moderation'). */
     category?: string;
+    /** Whether this panel should be hidden from the main configuration menu (for sub-panels). */
+    hidden?: boolean;
     /** An array of settings within this category. */
     settings: ConfigSetting[];
 }
@@ -135,6 +137,7 @@ export const configPanelSchema: ConfigCategory[] = [
         icon: 'textures/ui/Scaffolding',
         configSource: 'economy',
         category: 'Economy',
+        hidden: true,
         settings: [
             {
                 key: 'currencySymbol',

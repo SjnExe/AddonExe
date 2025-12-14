@@ -43,6 +43,7 @@ function cleanup(): void {
         player.removeTag('inSpawn');
         player.triggerEvent('exe:enable_pvp');
         player.triggerEvent('exe:enable_hostile_damage');
+        player.triggerEvent('exe:enable_all_damage');
     }
 }
 
@@ -174,12 +175,17 @@ function initialize(): void {
                 if (canBypass(player)) continue;
 
                 // Pickup/Drop protection removed due to API limitations
-                if (protection.preventPvP) player.triggerEvent('exe:disable_pvp');
-                if (protection.preventHostileDamage) player.triggerEvent('exe:disable_hostile_damage');
+                if (protection.preventPvP && protection.preventHostileDamage) {
+                    player.triggerEvent('exe:disable_all_damage');
+                } else {
+                    if (protection.preventPvP) player.triggerEvent('exe:disable_pvp');
+                    if (protection.preventHostileDamage) player.triggerEvent('exe:disable_hostile_damage');
+                }
             } else if (!isInSpawn && wasInSpawn) {
                 player.removeTag('inSpawn');
                 player.triggerEvent('exe:enable_pvp');
                 player.triggerEvent('exe:enable_hostile_damage');
+                player.triggerEvent('exe:enable_all_damage');
             }
         }
     }, 40);
