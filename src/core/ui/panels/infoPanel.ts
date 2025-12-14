@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
+import { getConfig } from '@core/configManager.js';
 import * as helpfulLinksManager from '@core/helpfulLinksManager.js';
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import * as rulesManager from '@core/rulesManager.js';
@@ -9,7 +10,6 @@ import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler, MainConfig } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
-import { getConfig } from '@core/configManager.js';
 
 export class InfoPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
