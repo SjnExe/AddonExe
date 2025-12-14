@@ -21,6 +21,8 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
+              with:
+                  ref: ${{ github.head_ref || github.ref }}
 
             - name: Set up Node.js and cache npm dependencies
               uses: actions/setup-node@v6
