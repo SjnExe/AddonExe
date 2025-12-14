@@ -33,6 +33,7 @@ A clear and concise description of what actually happened.
 
 **Logs & Error Messages:**
 Please paste any relevant logs, errors, or stack traces here. You can enable the Content Log in Minecraft settings -> Creator -> Enable Content Log file.
+
 ```text
 (Paste logs here)
 ```

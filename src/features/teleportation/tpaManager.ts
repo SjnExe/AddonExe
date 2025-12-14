@@ -62,7 +62,6 @@ function clearRequest(request: TpaRequest | undefined) {
     }
 }
 
-
 // ... (findIncomingRequest logic remains same)
 function _findIncomingRequest(
     targetPlayerId: string,
