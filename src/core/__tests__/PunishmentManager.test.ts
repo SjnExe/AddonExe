@@ -1,11 +1,6 @@
 import { jest } from '@jest/globals';
 import * as mc from '@minecraft/server';
-import {
-    addPunishment,
-    getPunishment,
-    loadPunishments,
-    removePunishment
-} from '../../features/moderation/punishmentManager.js';
+import { addPunishment, getPunishment, loadPunishments, removePunishment } from '../../features/moderation/punishmentManager.js';
 
 // Mock dependencies
 jest.mock('../configManager.js', () => ({
