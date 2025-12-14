@@ -143,7 +143,7 @@ export function unbanPlayer(executor: CommandExecutor, targetName: string) {
         }
     }
 
-    removePunishment(targetId);
+    removePunishment(targetId, 'ban');
     if (executor instanceof mc.Player) {
         sendMessage(`§aSuccessfully unbanned ${targetName}. They can now rejoin the server.`, executor);
         playSoundFromConfig(executor, 'adminNotificationReceived');

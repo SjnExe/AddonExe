@@ -221,13 +221,13 @@ async function unmutePlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
     if (!targetId) return;
 
-    const punishment = punishmentManager.getPunishment(targetId);
-    if (!punishment || punishment.type !== 'mute') {
+    const punishment = punishmentManager.getPunishment(targetId, 'mute');
+    if (!punishment) {
         player.sendMessage('§4Player is not muted.');
         return showPanel(player, 'playerActionsPanel', context);
     }
 
-    punishmentManager.removePunishment(targetId);
+    punishmentManager.removePunishment(targetId, 'mute');
     player.sendMessage(`§2Unmuted player.`);
 
     const target = getPlayerFromCache(targetId);
@@ -548,7 +548,7 @@ async function showUnbanForm(player: mc.Player, context: UIContext) {
         return showPanel(player, 'moderationPanel', context);
     }
 
-    punishmentManager.removePunishment(targetId);
+    punishmentManager.removePunishment(targetId, 'ban');
     player.sendMessage(`§2Unbanned ${name}.`);
     return showPanel(player, 'moderationPanel', context);
 }
@@ -573,7 +573,7 @@ async function showUnmuteForm(player: mc.Player, context: UIContext) {
         return showPanel(player, 'moderationPanel', context);
     }
 
-    punishmentManager.removePunishment(targetId);
+    punishmentManager.removePunishment(targetId, 'mute');
     player.sendMessage(`§2Unmuted ${name}.`);
     return showPanel(player, 'moderationPanel', context);
 }

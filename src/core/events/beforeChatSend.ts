@@ -16,8 +16,8 @@ export const eventName = 'beforeChatSend';
 function handleChatSend(eventData: mc.ChatSendBeforeEvent) {
     const player = eventData.sender;
 
-    const punishment = getPunishment(player.id);
-    if (punishment?.type === 'mute') {
+    const punishment = getPunishment(player.id, 'mute');
+    if (punishment) {
         eventData.cancel = true;
         const remainingTime = Math.round((punishment.expires - Date.now()) / 1000);
         const durationText = punishment.expires === Infinity ? 'permanently' : `for another ${remainingTime} seconds`;

@@ -192,7 +192,6 @@ export class ConfigPanelHandler implements IPanelHandler {
         context: UIContext
     ): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
-        // @ts-expect-error - Casting to ModalFormResponse to access formValues safely
         const values = (response as ModalFormResponse).formValues;
         const pData = getOrCreatePlayer(player);
 
