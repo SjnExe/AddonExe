@@ -66,6 +66,8 @@ export interface CustomCommand {
     disabledSlashAliases?: string[];
     /** An alternative name to use for the slash command registration. */
     slashName?: string;
+    /** Whether to hide the command from the help menu. */
+    hidden?: boolean;
 }
 
 interface CommandSettings {

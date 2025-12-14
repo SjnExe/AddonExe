@@ -46,6 +46,7 @@ const oBalanceCommand: CustomCommand = {
     category: 'Economy',
     permissionLevel: 1024,
     allowConsole: true,
+    hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
