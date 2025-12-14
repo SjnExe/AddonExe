@@ -1,116 +1,116 @@
 {
-  "format_version": "1.16.0",
-  "minecraft:entity": {
-    "description": {
-      "identifier": "minecraft:skeleton",
-      "is_spawnable": true,
-      "is_summonable": true,
-      "is_experimental": false
-    },
-    "components": {
-      "minecraft:experience_reward": {
-        "on_death": "query.last_hit_by_player ? 5 + (query.equipment_count * Math.Random(1,3)) : 0"
-      },
-      "minecraft:type_family": {
-        "family": [ "skeleton", "undead", "monster", "mob" ]
-      },
-      "minecraft:breathable": {
-        "total_supply": 15,
-        "suffocate_time": 0
-      },
-      "minecraft:nameable": {},
-      "minecraft:health": {
-        "value": 20,
-        "max": 20
-      },
-      "minecraft:hurt_on_condition": {
-        "damage_conditions": [
-          {
-            "filters": { "test": "in_lava", "subject": "self", "operator": "==", "value": true },
-            "cause": "lava",
-            "damage_per_tick": 4
-          }
-        ]
-      },
-      "minecraft:collision_box": {
-        "width": 0.6,
-        "height": 1.99
-      },
-      "minecraft:movement": {
-        "value": 0.25
-      },
-      "minecraft:navigation.walk": {
-        "can_path_over_water": true,
-        "avoid_water": true,
-        "avoid_damage_blocks": true
-      },
-      "minecraft:movement.basic": {},
-      "minecraft:jump.static": {},
-      "minecraft:can_climb": {},
-      "minecraft:behavior.float": {
-        "priority": 0
-      },
-      "minecraft:behavior.avoid_mob_type": {
-        "priority": 3,
-        "entity_types": [
-          {
-            "filters": {
-              "test": "is_family",
-              "subject": "other",
-              "value": "wolf"
+    "format_version": "1.16.0",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "minecraft:skeleton",
+            "is_spawnable": true,
+            "is_summonable": true,
+            "is_experimental": false
+        },
+        "components": {
+            "minecraft:experience_reward": {
+                "on_death": "query.last_hit_by_player ? 5 + (query.equipment_count * Math.Random(1,3)) : 0"
             },
-            "max_dist": 6,
-            "sprint_speed_multiplier": 1.2,
-            "walk_speed_multiplier": 1.0
-          }
-        ]
-      },
-      "minecraft:behavior.restrict_sun": {
-        "priority": 2
-      },
-      "minecraft:behavior.flee_sun": {
-        "priority": 3,
-        "speed_multiplier": 1.0
-      },
-      "minecraft:behavior.random_stroll": {
-        "priority": 5,
-        "speed_multiplier": 1.0
-      },
-      "minecraft:behavior.look_at_player": {
-        "priority": 6,
-        "look_distance": 8,
-        "probability": 0.02
-      },
-      "minecraft:behavior.random_look_around": {
-        "priority": 6
-      },
-      "minecraft:equipment": {
-        "table": "loot_tables/entities/skeleton_gear.json"
-      },
-      "minecraft:shooter": {
-        "def": "minecraft:arrow"
-      },
-      "minecraft:behavior.ranged_attack": {
-        "priority": 4,
-        "burst_interval": 2.0,
-        "charge_charged_trigger": 0.0,
-        "charge_shoot_trigger": 2.0,
-        "attack_interval_min": 1.0,
-        "attack_interval_max": 2.5,
-        "attack_radius": 15.0
-      },
-      "minecraft:behavior.nearest_attackable_target": {
-        "priority": 1,
-        "must_see": true,
-        "reselect_targets": true,
-        "validation_query": {
-          "any_of": [
-            { "test": "is_family", "subject": "other", "value": "player" },
-            { "test": "is_family", "subject": "other", "value": "irongolem" }
-          ]
+            "minecraft:type_family": {
+                "family": ["skeleton", "undead", "monster", "mob"]
+            },
+            "minecraft:breathable": {
+                "total_supply": 15,
+                "suffocate_time": 0
+            },
+            "minecraft:nameable": {},
+            "minecraft:health": {
+                "value": 20,
+                "max": 20
+            },
+            "minecraft:hurt_on_condition": {
+                "damage_conditions": [
+                    {
+                        "filters": { "test": "in_lava", "subject": "self", "operator": "==", "value": true },
+                        "cause": "lava",
+                        "damage_per_tick": 4
+                    }
+                ]
+            },
+            "minecraft:collision_box": {
+                "width": 0.6,
+                "height": 1.99
+            },
+            "minecraft:movement": {
+                "value": 0.25
+            },
+            "minecraft:navigation.walk": {
+                "can_path_over_water": true,
+                "avoid_water": true,
+                "avoid_damage_blocks": true
+            },
+            "minecraft:movement.basic": {},
+            "minecraft:jump.static": {},
+            "minecraft:can_climb": {},
+            "minecraft:behavior.float": {
+                "priority": 0
+            },
+            "minecraft:behavior.avoid_mob_type": {
+                "priority": 3,
+                "entity_types": [
+                    {
+                        "filters": {
+                            "test": "is_family",
+                            "subject": "other",
+                            "value": "wolf"
+                        },
+                        "max_dist": 6,
+                        "sprint_speed_multiplier": 1.2,
+                        "walk_speed_multiplier": 1.0
+                    }
+                ]
+            },
+            "minecraft:behavior.restrict_sun": {
+                "priority": 2
+            },
+            "minecraft:behavior.flee_sun": {
+                "priority": 3,
+                "speed_multiplier": 1.0
+            },
+            "minecraft:behavior.random_stroll": {
+                "priority": 5,
+                "speed_multiplier": 1.0
+            },
+            "minecraft:behavior.look_at_player": {
+                "priority": 6,
+                "look_distance": 8,
+                "probability": 0.02
+            },
+            "minecraft:behavior.random_look_around": {
+                "priority": 6
+            },
+            "minecraft:equipment": {
+                "table": "loot_tables/entities/skeleton_gear.json"
+            },
+            "minecraft:shooter": {
+                "def": "minecraft:arrow"
+            },
+            "minecraft:behavior.ranged_attack": {
+                "priority": 4,
+                "burst_interval": 2.0,
+                "charge_charged_trigger": 0.0,
+                "charge_shoot_trigger": 2.0,
+                "attack_interval_min": 1.0,
+                "attack_interval_max": 2.5,
+                "attack_radius": 15.0
+            },
+            "minecraft:behavior.nearest_attackable_target": {
+                "priority": 1,
+                "must_see": true,
+                "reselect_targets": true,
+                "validation_query": {
+                    "any_of": [
+                        { "test": "is_family", "subject": "other", "value": "player" },
+                        { "test": "is_family", "subject": "other", "value": "irongolem" }
+                    ]
+                }
+            },
+            "minecraft:physics": {}
         }
-      },
-      "minecraft:physics": {}
     }
-  }
 }

@@ -1,92 +1,90 @@
 {
-  "format_version": "1.16.0",
-  "minecraft:entity": {
-    "description": {
-      "identifier": "minecraft:creeper",
-      "is_spawnable": true,
-      "is_summonable": true,
-      "is_experimental": false
-    },
-    "components": {
-      "minecraft:experience_reward": {
-        "on_death": "query.last_hit_by_player ? 5 : 0"
-      },
-      "minecraft:type_family": {
-        "family": [ "creeper", "monster", "mob" ]
-      },
-      "minecraft:breathable": {
-        "total_supply": 15,
-        "suffocate_time": 0
-      },
-      "minecraft:nameable": {},
-      "minecraft:health": {
-        "value": 20,
-        "max": 20
-      },
-      "minecraft:hurt_on_condition": {
-        "damage_conditions": [
-          {
-            "filters": { "test": "in_lava", "subject": "self", "operator": "==", "value": true },
-            "cause": "lava",
-            "damage_per_tick": 4
-          }
-        ]
-      },
-      "minecraft:movement": {
-        "value": 0.2
-      },
-      "minecraft:navigation.walk": {
-        "can_path_over_water": true,
-        "avoid_water": true,
-        "avoid_damage_blocks": true
-      },
-      "minecraft:movement.basic": {},
-      "minecraft:jump.static": {},
-      "minecraft:can_climb": {},
-      "minecraft:collision_box": {
-        "width": 0.6,
-        "height": 1.7
-      },
-      "minecraft:behavior.float": {
-        "priority": 0
-      },
-      "minecraft:behavior.swell": {
-        "priority": 2
-      },
-      "minecraft:behavior.melee_attack": {
-        "priority": 4,
-        "speed_multiplier": 1.25,
-        "track_target": true
-      },
-      "minecraft:behavior.random_stroll": {
-        "priority": 5,
-        "speed_multiplier": 1
-      },
-      "minecraft:behavior.look_at_player": {
-        "priority": 6,
-        "look_distance": 8,
-        "probability": 0.02
-      },
-      "minecraft:behavior.random_look_around": {
-        "priority": 6
-      },
-      "minecraft:physics": {},
-      "minecraft:explode": {
-        "fuse_length": 1.5,
-        "fuse_lit": true,
-        "power": 3,
-        "causes_fire": false
-      },
-      "minecraft:behavior.nearest_attackable_target": {
-        "priority": 1,
-        "must_see": true,
-        "reselect_targets": true,
-        "validation_query": {
-          "any_of": [
-            { "test": "is_family", "subject": "other", "value": "player" }
-          ]
+    "format_version": "1.16.0",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "minecraft:creeper",
+            "is_spawnable": true,
+            "is_summonable": true,
+            "is_experimental": false
+        },
+        "components": {
+            "minecraft:experience_reward": {
+                "on_death": "query.last_hit_by_player ? 5 : 0"
+            },
+            "minecraft:type_family": {
+                "family": ["creeper", "monster", "mob"]
+            },
+            "minecraft:breathable": {
+                "total_supply": 15,
+                "suffocate_time": 0
+            },
+            "minecraft:nameable": {},
+            "minecraft:health": {
+                "value": 20,
+                "max": 20
+            },
+            "minecraft:hurt_on_condition": {
+                "damage_conditions": [
+                    {
+                        "filters": { "test": "in_lava", "subject": "self", "operator": "==", "value": true },
+                        "cause": "lava",
+                        "damage_per_tick": 4
+                    }
+                ]
+            },
+            "minecraft:movement": {
+                "value": 0.2
+            },
+            "minecraft:navigation.walk": {
+                "can_path_over_water": true,
+                "avoid_water": true,
+                "avoid_damage_blocks": true
+            },
+            "minecraft:movement.basic": {},
+            "minecraft:jump.static": {},
+            "minecraft:can_climb": {},
+            "minecraft:collision_box": {
+                "width": 0.6,
+                "height": 1.7
+            },
+            "minecraft:behavior.float": {
+                "priority": 0
+            },
+            "minecraft:behavior.swell": {
+                "priority": 2
+            },
+            "minecraft:behavior.melee_attack": {
+                "priority": 4,
+                "speed_multiplier": 1.25,
+                "track_target": true
+            },
+            "minecraft:behavior.random_stroll": {
+                "priority": 5,
+                "speed_multiplier": 1
+            },
+            "minecraft:behavior.look_at_player": {
+                "priority": 6,
+                "look_distance": 8,
+                "probability": 0.02
+            },
+            "minecraft:behavior.random_look_around": {
+                "priority": 6
+            },
+            "minecraft:physics": {},
+            "minecraft:explode": {
+                "fuse_length": 1.5,
+                "fuse_lit": true,
+                "power": 3,
+                "causes_fire": false
+            },
+            "minecraft:behavior.nearest_attackable_target": {
+                "priority": 1,
+                "must_see": true,
+                "reselect_targets": true,
+                "validation_query": {
+                    "any_of": [{ "test": "is_family", "subject": "other", "value": "player" }]
+                }
+            }
         }
-      }
     }
-  }
 }
