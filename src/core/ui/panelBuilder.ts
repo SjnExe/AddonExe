@@ -55,6 +55,39 @@ export async function buildPanelForm(
                 }
             }
         }
+
+        // 2. Legacy/Fallback for simple config panels (Rules/Links)
+        // If no custom handler exists (or it didn't return a form), we check if it's a simple panel
+        // that we can build directly from config here.
+        // Ideally, these should move to a dedicated handler file (e.g., infoHandlers.ts), but for now we fix it here.
+        if (panelId === 'rulesPanel') {
+            const config = getConfig() as unknown as MainConfig;
+            // Explicitly cast serverInfo to avoid TS18046 if index signature interferes
+            const serverInfo = config.serverInfo as { rules: string[] };
+            const rules = serverInfo?.rules || [];
+            const form = new ActionFormData()
+                .title(panelDefinitions[panelId]?.title || 'Rules')
+                .body(rules.join('\n\n'))
+                .button('§l§8< Back', 'textures/gui/controls/left.png'); // Back button
+            return form;
+        }
+
+        if (panelId === 'helpfulLinksPanel') {
+            const config = getConfig() as unknown as MainConfig;
+            // Explicitly cast serverInfo to avoid TS18046
+            const serverInfo = config.serverInfo as { helpfulLinks: { title: string; url: string }[] };
+            const links = serverInfo?.helpfulLinks || [];
+            const form = new ActionFormData()
+                .title(panelDefinitions[panelId]?.title || 'Helpful Links')
+                .body('Click a button to see the link in chat.')
+                .button('§l§8< Back', 'textures/gui/controls/left.png');
+
+            for (const link of links) {
+                form.button(link.title, 'textures/ui/world_glyph_color_2x_black_outline');
+            }
+            return form;
+        }
+
         return null;
     } catch (e) {
         errorLog(`[UIManager] Error building panel ${panelId}`, e);

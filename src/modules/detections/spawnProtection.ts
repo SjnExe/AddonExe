@@ -115,7 +115,7 @@ function initialize(): void {
 
     const spawnLocation = spawn?.spawnLocation;
     if (!spawnLocation || typeof spawnLocation.x !== 'number') {
-        errorLog('[SpawnProtection] Spawn protection is enabled, but no spawn location is set.');
+        infoLog('[SpawnProtection] Spawn protection is enabled, but no spawn location is set.');
         return;
     }
 
