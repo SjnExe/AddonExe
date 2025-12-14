@@ -168,6 +168,17 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
             if (itemInfo.lore) {
                 itemStack.setLore(itemInfo.lore);
             }
+            if (itemInfo.enchantments) {
+                const enchantComp = itemStack.getComponent('enchantable') as mc.ItemEnchantableComponent;
+                if (enchantComp) {
+                    for (const ench of itemInfo.enchantments) {
+                        const type = mc.EnchantmentTypes.get(ench.id);
+                        if (type) {
+                            enchantComp.addEnchantment({ type, level: ench.level });
+                        }
+                    }
+                }
+            }
             const leftovers = inventory.addItem(itemStack);
             if (leftovers) {
                 player.dimension.spawnItem(leftovers, player.location);

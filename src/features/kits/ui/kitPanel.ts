@@ -132,11 +132,19 @@ export class KitPanelHandler implements IPanelHandler {
             addBack(`kitActionMenu_${kitName}`);
             items.push({
                 id: 'addItem',
-                text: '§l§2+ Add New Item',
+                text: '§l§2+ Add New Item (Manual)',
                 icon: 'textures/ui/color_plus',
                 permissionLevel: 1,
                 actionType: 'functionCall',
                 actionValue: 'addKitItem'
+            });
+            items.push({
+                id: 'addItemHand',
+                text: '§l§6+ Add Item From Hand',
+                icon: 'textures/ui/inventory_icon',
+                permissionLevel: 1,
+                actionType: 'functionCall',
+                actionValue: 'addKitItemHand'
             });
 
             const allKits = kitAdminManager.getAllKits();
@@ -240,6 +248,13 @@ export class KitPanelHandler implements IPanelHandler {
                     kitAdminManager.deleteKit(kitName);
                     player.sendMessage('§2Kit deleted.');
                     return showPanel(player, 'kitManagementPanel', context);
+                }
+
+                if (item.actionValue === 'addKitItemHand') {
+                    const kitName = panelId.replace('kitItemsPanel_', '');
+                    const result = kitItemsManager.addItemFromHandToKit(kitName, player);
+                    player.sendMessage(result.message);
+                    return showPanel(player, panelId, context);
                 }
 
                 if (item.actionValue === 'addKitItem') {
