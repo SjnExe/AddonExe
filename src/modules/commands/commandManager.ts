@@ -4,7 +4,6 @@ import { getConfig } from '@core/configManager.js';
 import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
 import { addSentryBreadcrumb } from '@core/diagnostics.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
-import { findPlayerByName } from '@core/playerCache.js';
 import { findVisiblePlayerByName, getPlayer } from '@core/playerDataManager.js';
 
 // --- Type Definitions ---

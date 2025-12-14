@@ -494,7 +494,7 @@ export function getVisiblePlayers(observer: mc.Player): mc.Player[] {
 export function findVisiblePlayerByName(name: string, observer: mc.Player): mc.Player | undefined {
     const visible = getVisiblePlayers(observer);
     const lowerName = name.toLowerCase();
-    return visible.find(p => p.name.toLowerCase() === lowerName);
+    return visible.find((p) => p.name.toLowerCase() === lowerName);
 }
 
 // --- Pending Payment Management ---
