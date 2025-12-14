@@ -69,6 +69,45 @@ export const configPanelSchema: ConfigCategory[] = [
         ]
     },
     {
+        id: 'auctionHouse',
+        title: '§l§6Auction System§r',
+        icon: 'textures/ui/gold_icon',
+        configSource: 'auctionHouse',
+        category: 'Economy',
+        settings: [
+            {
+                key: 'taxRate',
+                label: 'Tax Rate (0.05 = 5%)',
+                type: 'textField',
+                description: 'The tax taken from the seller on a successful sale.'
+            },
+            {
+                key: 'listingFee',
+                label: 'Listing Fee',
+                type: 'textField',
+                description: 'Cost to list an item.'
+            },
+            {
+                key: 'maxListingsPerPlayer',
+                label: 'Max Listings',
+                type: 'textField',
+                description: 'Maximum active listings per player.'
+            },
+            {
+                key: 'defaultDurationSeconds',
+                label: 'Duration (s)',
+                type: 'textField',
+                description: 'How long a listing lasts (e.g. 86400 for 24h).'
+            },
+            {
+                key: 'allowBidding',
+                label: 'Allow Bidding',
+                type: 'toggle',
+                description: 'If disabled, only Buy It Now (BIN) is allowed.'
+            }
+        ]
+    },
+    {
         id: 'general_gameplay',
         title: '§l§3Gameplay Settings§r',
         icon: 'textures/items/iron_sword',

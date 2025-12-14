@@ -80,6 +80,7 @@ const oPayCommand: CustomCommand = {
     category: 'Economy',
     permissionLevel: 1024,
     hasCooldown: true,
+    hidden: true,
     parameters: [
         { name: 'target', type: 'string' },
         { name: 'amount', type: 'string' }

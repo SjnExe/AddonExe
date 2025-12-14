@@ -7,12 +7,15 @@ import {
     getSpawnConfig,
     getTeamConfig,
     getXrayConfig,
+    getAuctionHouseConfig,
     saveEconomyConfig,
     saveSidebarConfig,
     saveSpawnConfig,
     saveTeamConfig,
     saveXrayConfig,
-    SidebarConfig
+    saveAuctionHouseConfig,
+    SidebarConfig,
+    AuctionHouseConfig
 } from '@core/configurations.js';
 import { kitsConfig } from '@core/kitsConfig.default.js';
 import { PlayerData } from '@core/playerDataManager.js';
@@ -48,7 +51,8 @@ interface ConfigHandler {
         | KitsConfig
         | ShopConfig
         | SidebarConfig
-        | AnticheatConfig;
+        | AnticheatConfig
+        | AuctionHouseConfig;
     save: (config: unknown) => void;
 }
 
@@ -80,6 +84,10 @@ export const configHandlers: Record<string, ConfigHandler> = {
     anticheat: {
         get: getAnticheatConfig,
         save: (config: unknown) => saveAnticheatConfig(config as AnticheatConfig)
+    },
+    auctionHouse: {
+        get: getAuctionHouseConfig,
+        save: (config: unknown) => saveAuctionHouseConfig(config as AuctionHouseConfig)
     }
 };
 
