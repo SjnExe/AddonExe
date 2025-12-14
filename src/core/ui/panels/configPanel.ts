@@ -159,7 +159,9 @@ export class ConfigPanelHandler implements IPanelHandler {
             const config = handler.get() as unknown as Record<string, unknown>;
 
             // Filter settings to ensure consistent index mapping
-            const validSettings = category.settings.filter((s) => ['toggle', 'textField', 'dropdown'].includes(s.type));
+            const validSettings = category.settings.filter((s) =>
+                ['toggle', 'textField', 'dropdown'].includes(s.type)
+            );
 
             for (const setting of validSettings) {
                 const currentValue = getValueFromPath(config, setting.key);

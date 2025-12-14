@@ -2,8 +2,11 @@ import * as mc from '@minecraft/server';
 
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
 
+import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
+import * as lastHitManager from './lastHitManager.js';
 import { infoLog } from './logger.js';
+import { getPlayerFromCache } from './playerCache.js';
 import {
     getPlayer,
     incrementDeathCount,
@@ -26,11 +29,27 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
         resetKillStreak(victim.id);
     }
 
-    if (!damagingEntity || damagingEntity.typeId !== 'minecraft:player') {
+    let killer: mc.Player | undefined;
+
+    if (damagingEntity && damagingEntity.typeId === 'minecraft:player') {
+        killer = damagingEntity as mc.Player;
+    } else {
+        // Indirect kill (Void, etc.)
+        const lastHit = lastHitManager.getLastHit(deadEntity.id);
+        if (lastHit) {
+            const config = getConfig(); // Need main config for timeout
+            // Default 15s if not found
+            const creditTimeout = config.bounties?.bountyCreditTimeoutSeconds ?? 15;
+            if ((Date.now() - lastHit.timestamp) / 1000 <= creditTimeout) {
+                killer = getPlayerFromCache(lastHit.attackerId);
+            }
+        }
+    }
+
+    if (!killer || !killer.isValid) {
         return;
     }
 
-    const killer = damagingEntity as mc.Player;
     incrementKillCount(killer.id);
     incrementKillStreak(killer.id);
     const economyConfig = getEconomyConfig();
