@@ -41,7 +41,6 @@ function cleanup(): void {
     debugLog('[SpawnProtection] Forcefully removing protection effects from all online players.');
     for (const player of mc.world.getAllPlayers()) {
         player.removeTag('inSpawn');
-        player.triggerEvent('exe:remove_spawn_protection');
         player.triggerEvent('exe:enable_pvp');
         player.triggerEvent('exe:enable_hostile_damage');
     }
@@ -179,7 +178,6 @@ function initialize(): void {
                 if (protection.preventHostileDamage) player.triggerEvent('exe:disable_hostile_damage');
             } else if (!isInSpawn && wasInSpawn) {
                 player.removeTag('inSpawn');
-                player.triggerEvent('exe:remove_spawn_protection');
                 player.triggerEvent('exe:enable_pvp');
                 player.triggerEvent('exe:enable_hostile_damage');
             }

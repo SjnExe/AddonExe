@@ -20,6 +20,12 @@ Please describe the tests that you ran to verify your changes.
 Provide instructions so we can reproduce.
 -->
 
+**Screenshots / Video (for UI or visual changes):**
+
+<!--
+If your PR changes the UI or adds visual features, please include screenshots or a video recording here.
+-->
+
 **Checklist:**
 
 - [ ] I have read the **CONTRIBUTING.md** document.

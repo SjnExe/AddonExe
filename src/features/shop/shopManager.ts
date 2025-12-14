@@ -226,6 +226,30 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
 }
 
 /**
+ * Checks if an item from the player's inventory is valid to be sold as a specific shop item.
+ * @param item The item stack from inventory.
+ * @param shopItem The shop definition.
+ * @returns True if the item matches and is valid for sale.
+ */
+function isValidSellItem(item: mc.ItemStack, shopItem: ItemInfo): boolean {
+    if (item.typeId !== shopItem.itemId) return false;
+
+    // Exploit Prevention: Skip damaged or enchanted items unless explicitly allowed
+    const durability = item.getComponent('minecraft:durability') as mc.ItemDurabilityComponent;
+    if (durability && durability.damage > 0) {
+        return false;
+    }
+
+    const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
+    const hasEnchants = enchantable && enchantable.getEnchantments && enchantable.getEnchantments().length > 0;
+    if (hasEnchants && !shopItem.enchantment) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Handles a player's request to sell an item to the shop.
  * @param player The player selling the item.
  * @param itemId The ID of the item from itemsConfig.js.
@@ -262,19 +286,7 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
     let count = 0;
     for (let i = 0; i < inventory.size; i++) {
         const item = inventory.getItem(i);
-        if (item && item.typeId === itemType.id) {
-            // Exploit Prevention: Skip damaged or enchanted items unless explicitly allowed
-            const durability = item.getComponent('minecraft:durability') as mc.ItemDurabilityComponent;
-            if (durability && durability.damage > 0) {
-                continue;
-            }
-
-            const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
-            const hasEnchants = enchantable && enchantable.getEnchantments && enchantable.getEnchantments().length > 0;
-            if (hasEnchants && !shopItem.enchantment) {
-                continue;
-            }
-
+        if (item && isValidSellItem(item, shopItem)) {
             count += item.amount;
         }
     }
@@ -297,19 +309,7 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
     for (let i = 0; i < inventory.size; i++) {
         if (remaining <= 0) break;
         const item = inventory.getItem(i);
-        if (item && item.typeId === itemType.id) {
-            // Apply same exploit checks during removal
-            const durability = item.getComponent('minecraft:durability') as mc.ItemDurabilityComponent;
-            if (durability && durability.damage > 0) {
-                continue;
-            }
-
-            const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
-            const hasEnchants = enchantable && enchantable.getEnchantments && enchantable.getEnchantments().length > 0;
-            if (hasEnchants && !shopItem.enchantment) {
-                continue;
-            }
-
+        if (item && isValidSellItem(item, shopItem)) {
             if (item.amount <= remaining) {
                 remaining -= item.amount;
                 inventory.setItem(i, undefined);

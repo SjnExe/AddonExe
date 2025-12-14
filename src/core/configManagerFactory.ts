@@ -1,7 +1,6 @@
-import * as mc from '@minecraft/server';
-
 import { debugLog, errorLog } from './logger.js';
 import { deepClone, deepMerge, mergeObjectMaps, mergeRanks, reconcileConfig, setValueByPath } from './objectUtils.js';
+import { StorageManager } from './storage/StorageManager.js';
 
 /**
  * Creates a configuration manager for a specific configuration type.
@@ -35,12 +34,16 @@ export default function createConfigManager<T>(
         wrapperKey ? { [wrapperKey]: deepClone(defaultConfig) } : deepClone(defaultConfig)
     ) as T;
 
+    // Initialize Storage Managers for sharding support
+    const configStorage = new StorageManager(key);
+    const lastLoadedStorage = new StorageManager(lastLoadedKey);
+
     let currentConfig = deepClone(initialDefaultConfig);
     let lastLoadedConfig: T | null = null;
 
     function saveLastLoadedConfig() {
         try {
-            mc.world.setDynamicProperty(lastLoadedKey, JSON.stringify(lastLoadedConfig));
+            lastLoadedStorage.save(lastLoadedConfig);
         } catch (e) {
             errorLog(`[${name}ConfigManager] Failed to save last loaded config.`, e);
         }
@@ -51,10 +54,11 @@ export default function createConfigManager<T>(
         const newDefaultConfig = initialDefaultConfig;
         let isFirstInit = false;
 
-        const userSavedConfigStr = mc.world.getDynamicProperty(key) as string | undefined;
-        const lastLoadedConfigStr = mc.world.getDynamicProperty(lastLoadedKey) as string | undefined;
+        // StorageManager automatically handles legacy single-property fallback
+        const userSavedConfigLoaded = configStorage.load<Record<string, unknown>>();
+        const lastLoadedConfigLoaded = lastLoadedStorage.load<Record<string, unknown>>();
 
-        if (!userSavedConfigStr) {
+        if (!userSavedConfigLoaded) {
             isFirstInit = true;
             currentConfig = newDefaultConfig;
             lastLoadedConfig = newDefaultConfig;
@@ -62,18 +66,12 @@ export default function createConfigManager<T>(
             if (name === 'Main') {
                 debugLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
             } else {
-                // Keep debug for other subsystems unless important
                 debugLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
             }
             saveLastLoadedConfig();
         } else {
-            let userSavedConfig: Record<string, unknown>;
-            try {
-                userSavedConfig = JSON.parse(userSavedConfigStr) as Record<string, unknown>;
-            } catch (e) {
-                errorLog(`[${name}ConfigManager] Failed to parse user-saved config. It will be reset.`, e);
-                userSavedConfig = newDefaultConfig as unknown as Record<string, unknown>;
-            }
+            // StorageManager returns the parsed object, no need to JSON.parse
+            const userSavedConfig = userSavedConfigLoaded;
 
             if (name === 'Main' && userSavedConfig.spawnLocation && typeof userSavedConfig.spawnLocation === 'object') {
                 debugLog(`[${name}ConfigManager] Migrating legacy spawnLocation to spawn.spawnLocation.`);
@@ -87,49 +85,35 @@ export default function createConfigManager<T>(
                 delete userSavedConfig.spawnLocation;
             }
 
-            if (!isMigration && lastLoadedConfigStr) {
-                let lastLoadedConfigForMerge: Record<string, unknown> | null;
-                try {
-                    lastLoadedConfigForMerge = JSON.parse(lastLoadedConfigStr) as Record<string, unknown>;
-                } catch (e) {
-                    errorLog(`[${name}ConfigManager] Failed to parse last-loaded config. Using default merge.`, e);
-                    lastLoadedConfigForMerge = null; // Fallback
-                }
+            if (!isMigration && lastLoadedConfigLoaded) {
+                const lastLoadedConfigForMerge = lastLoadedConfigLoaded;
+                debugLog(`[${name}ConfigManager] Found last-loaded config. Proceeding with reconciliation.`);
 
-                if (lastLoadedConfigForMerge) {
-                    debugLog(`[${name}ConfigManager] Found last-loaded config. Proceeding with reconciliation.`);
-                    if (name === 'Main') {
-                        currentConfig = reconcileConfig(
-                            newDefaultConfig as unknown as Record<string, unknown>,
-                            lastLoadedConfigForMerge,
-                            userSavedConfig
-                        ) as unknown as T;
-                    } else if (name === 'Ranks') {
-                        const mergedRanks = mergeRanks(
-                            userSavedConfig.rankDefinitions as Record<string, unknown>[],
-                            (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] })
-                                .rankDefinitions,
-                            (lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]) || []
-                        );
-                        currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
-                    } else if (name === 'Kits' || name === 'Shop') {
-                        currentConfig = mergeObjectMaps(
-                            userSavedConfig,
-                            newDefaultConfig as unknown as Record<string, unknown>,
-                            lastLoadedConfigForMerge || {}
-                        ) as unknown as T;
-                    } else {
-                        currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
-                    }
-                } else {
-                    debugLog(
-                        `[${name}ConfigManager] Last-loaded config was unparsable. Falling back to default merge.`
+                if (name === 'Main') {
+                    currentConfig = reconcileConfig(
+                        newDefaultConfig as unknown as Record<string, unknown>,
+                        lastLoadedConfigForMerge,
+                        userSavedConfig
+                    ) as unknown as T;
+                } else if (name === 'Ranks') {
+                    const mergedRanks = mergeRanks(
+                        userSavedConfig.rankDefinitions as Record<string, unknown>[],
+                        (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] }).rankDefinitions,
+                        (lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]) || []
                     );
+                    currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
+                } else if (name === 'Kits' || name === 'Shop') {
+                    currentConfig = mergeObjectMaps(
+                        userSavedConfig,
+                        newDefaultConfig as unknown as Record<string, unknown>,
+                        lastLoadedConfigForMerge || {}
+                    ) as unknown as T;
+                } else {
                     currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
                 }
             } else {
                 if (!isMigration) {
-                    debugLog(`[${name}ConfigManager] No last-loaded config found. Using default merge.`);
+                    debugLog(`[${name}ConfigManager] No last-loaded config found (or migration). Using default merge.`);
                 }
                 currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
             }
@@ -149,7 +133,7 @@ export default function createConfigManager<T>(
 
     function saveConfig() {
         try {
-            mc.world.setDynamicProperty(key, JSON.stringify(currentConfig));
+            configStorage.save(currentConfig);
         } catch (e) {
             errorLog(`[${name}ConfigManager] Failed to save current config.`, e);
         }
@@ -181,6 +165,7 @@ export default function createConfigManager<T>(
     function resetConfig(): Promise<void> {
         currentConfig = initialDefaultConfig;
         lastLoadedConfig = initialDefaultConfig;
+        // save() handles sharding automatically
         saveConfig();
         saveLastLoadedConfig();
         debugLog(`[${name}ConfigManager] Configuration has been reset to default.`);

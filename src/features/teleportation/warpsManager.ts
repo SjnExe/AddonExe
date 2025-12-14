@@ -1,8 +1,10 @@
 import * as mc from '@minecraft/server';
 
 import { HomeLocation } from '@core/playerDataManager.js';
+import { StorageManager } from '@core/storage/StorageManager.js';
 
 const WARPS_PROPERTY_ID = 'exe:warps';
+const storage = new StorageManager(WARPS_PROPERTY_ID);
 
 interface ActionResult {
     success: boolean;
@@ -14,11 +16,8 @@ interface ActionResult {
  * @returns A record of warp names to their locations.
  */
 function getWarps(): Record<string, HomeLocation> {
-    const warpsJson = mc.world.getDynamicProperty(WARPS_PROPERTY_ID);
-    if (typeof warpsJson !== 'string') {
-        return {};
-    }
-    return JSON.parse(warpsJson) as Record<string, HomeLocation>;
+    const warps = storage.load<Record<string, HomeLocation>>();
+    return warps || {};
 }
 
 /**
@@ -26,7 +25,7 @@ function getWarps(): Record<string, HomeLocation> {
  * @param warps The record of warps to save.
  */
 function saveWarps(warps: Record<string, HomeLocation>) {
-    mc.world.setDynamicProperty(WARPS_PROPERTY_ID, JSON.stringify(warps));
+    storage.save(warps);
 }
 
 /**

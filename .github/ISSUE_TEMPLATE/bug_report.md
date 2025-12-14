@@ -29,7 +29,14 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Actual Behavior:**
-A clear and concise description of what actually happened. Please include any error messages from the in-game chat, server console, or content log.
+A clear and concise description of what actually happened.
+
+**Logs & Error Messages:**
+Please paste any relevant logs, errors, or stack traces here. You can enable the Content Log in Minecraft settings -> Creator -> Enable Content Log file.
+
+```text
+(Paste logs here)
+```
 
 **Screenshots or Videos (Optional but Recommended):**
 If applicable, add screenshots or link to videos to help explain your problem.
