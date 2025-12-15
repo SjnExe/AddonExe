@@ -13,7 +13,7 @@ import {
     getPlayerNameById,
     transfer
 } from '@core/playerDataManager.js';
-import { formatCurrency, parseCurrency } from '@core/utils.js';
+import { formatCurrency, parseCurrency, resolveTarget } from '@core/utils.js';
 
 const payCommand: CustomCommand = {
     name: 'pay',
@@ -24,17 +24,21 @@ const payCommand: CustomCommand = {
     hasCooldown: true,
     defaultCooldown: 5,
     parameters: [
-        { name: 'targets', type: 'player' },
+        { name: 'targets', type: 'string' },
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
 
-        const targets = args.targets as mc.Player[];
+        const targetName = args.targets as string;
         const amountStr = args.amount as string;
         const config = getConfig();
 
         if (!config.economy.enabled) return sendMessage(constants.economyDisabled, executor);
+        if (!targetName) return sendMessage('§cPlease specify a player.', executor);
+
+        // Resolve Target
+        const targets = resolveTarget(targetName, executor);
         if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
         if (targets.length > 1) return sendMessage('§cYou can only pay one player at a time.', executor);
 

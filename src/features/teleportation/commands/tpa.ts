@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { resolveTarget , playSound } from '@core/utils.js';
 import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
-import { findPlayerByName } from '@core/playerCache.js';
 import {
     addTpaBlockedPlayer,
     getPlayerIdByName,
@@ -12,7 +12,6 @@ import {
     removeTpaBlockedPlayer,
     setTpaRequestsDisabled
 } from '@core/playerDataManager.js';
-import { playSound } from '@core/utils.js';
 
 import {
     acceptRequest,
@@ -30,15 +29,20 @@ const tpaCommand: CustomCommand = {
     aliases: ['tprequest', 'asktp', 'requesttp'],
     permissionLevel: 1024,
     hasCooldown: true,
-    parameters: [{ name: 'target', type: 'player' }],
+    parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
 
-        const targets = args.target as mc.Player[];
+        const targetName = args.target as string;
         const config = getConfig();
         if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
 
+        if (!targetName) return sendMessage('§cPlease specify a player.', executor);
+
+        const targets = resolveTarget(targetName, executor);
+
         if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+        // If selector matches multiple, pick first one or error? Vanilla picks first usually.
         const targetPlayer = targets[0];
 
         if (targetPlayer.id === executor.id)
@@ -69,14 +73,17 @@ const tpaHereCommand: CustomCommand = {
     permissionLevel: 1024,
     hasCooldown: true,
     cooldownId: 'tpa',
-    parameters: [{ name: 'target', type: 'player' }],
+    parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
 
-        const targets = args.target as mc.Player[];
+        const targetName = args.target as string;
         const config = getConfig();
         if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
 
+        if (!targetName) return sendMessage('§cPlease specify a player.', executor);
+
+        const targets = resolveTarget(targetName, executor);
         if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
         const targetPlayer = targets[0];
 
@@ -120,8 +127,12 @@ const tpaAcceptCommand: CustomCommand = {
         let targetName = typedArgs.player;
 
         if (targetName) {
-            const targetPlayer = findPlayerByName(targetName);
-            if (targetPlayer) targetName = targetPlayer.name;
+            const targets = resolveTarget(targetName, executor);
+            if (targets.length > 0) targetName = targets[0].name;
+            else {
+                // If not online, maybe it's just a name string? But acceptRequest usually expects exact name or handles it.
+                // Let's pass the string as is if resolution fails, but tpaManager likely matches online players.
+            }
         }
 
         acceptRequest(executor, targetName);
@@ -144,8 +155,8 @@ const tpaDenyCommand: CustomCommand = {
         let targetName = typedArgs.player;
 
         if (targetName) {
-            const targetPlayer = findPlayerByName(targetName);
-            if (targetPlayer) targetName = targetPlayer.name;
+            const targets = resolveTarget(targetName, executor);
+            if (targets.length > 0) targetName = targets[0].name;
         }
 
         denyRequest(executor, targetName);
@@ -210,12 +221,15 @@ const tpaStopCommand: CustomCommand = {
     description: 'Disables TPA requests or blocks specific players.',
     category: 'Transportation',
     permissionLevel: 1024,
-    parameters: [{ name: 'targets', type: 'player', optional: true }],
+    parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
-        const targets = args.targets as mc.Player[] | undefined;
+        const targetStr = args.targets as string | undefined;
 
-        if (targets && targets.length > 0) {
+        if (targetStr) {
+            const targets = resolveTarget(targetStr, executor);
+            if (targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+
             for (const target of targets) {
                 addTpaBlockedPlayer(executor.id, target.id);
                 sendMessage(`§aYou have blocked ${target.name} from sending you TPA requests.`, executor);
@@ -233,12 +247,15 @@ const tpaStartCommand: CustomCommand = {
     description: 'Enables TPA requests or unblocks specific players.',
     category: 'Transportation',
     permissionLevel: 1024,
-    parameters: [{ name: 'targets', type: 'player', optional: true }],
+    parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
-        const targets = args.targets as mc.Player[] | undefined;
+        const targetStr = args.targets as string | undefined;
 
-        if (targets && targets.length > 0) {
+        if (targetStr) {
+            const targets = resolveTarget(targetStr, executor);
+            if (targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+
             for (const target of targets) {
                 removeTpaBlockedPlayer(executor.id, target.id);
                 sendMessage(`§aYou have unblocked ${target.name}. They can now send you TPA requests.`, executor);

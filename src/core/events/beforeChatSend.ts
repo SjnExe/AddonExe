@@ -3,8 +3,8 @@ import * as mc from '@minecraft/server';
 import { commandManager } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { infoLog } from '@core/logger.js';
-import { addChatLog } from '@features/moderation/chatLogManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
+import { addChatLog } from '@features/moderation/chatLogManager.js';
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
 
 export const eventName = 'chatSend';

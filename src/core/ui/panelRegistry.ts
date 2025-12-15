@@ -129,6 +129,15 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 sortId: 20
             },
             {
+                id: 'friend',
+                text: '§dFriends',
+                icon: 'textures/ui/icon_steve',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'friendMainPanel',
+                sortId: 25
+            },
+            {
                 id: 'bountyList',
                 text: '§6Bounty List',
                 icon: 'textures/items/netherite_sword.png',
@@ -165,6 +174,31 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 sortId: 60
             }
         ]
+    },
+    friendMainPanel: {
+        title: 'Friend System',
+        parentPanelId: 'gameplayPanel',
+        items: [] // Dynamic
+    },
+    friendAddPanel: {
+        title: 'Add Friend',
+        parentPanelId: 'friendMainPanel',
+        items: [] // Modal
+    },
+    friendRequestsPanel: {
+        title: 'Pending Requests',
+        parentPanelId: 'friendMainPanel',
+        items: [] // Dynamic
+    },
+    friendSettingsPanel: {
+        title: 'Friend Settings',
+        parentPanelId: 'friendMainPanel',
+        items: [] // Modal
+    },
+    friendActionPanel: {
+        title: 'Friend Actions',
+        parentPanelId: 'friendMainPanel',
+        items: [] // Dynamic
     },
     tpaSettingsPanel: {
         title: 'TPA Settings',

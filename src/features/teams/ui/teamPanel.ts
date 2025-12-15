@@ -572,6 +572,31 @@ export class TeamPanelHandler implements IPanelHandler {
                     return showPanel(player, panelId, context);
                 }
 
+                if (item.actionValue === 'manageRequest') {
+                    const requestingPlayerId = item.id;
+                    const team = teamManager.getTeamByPlayer(player.id);
+                    if (!team) return;
+
+                    // Show dialog to accept or deny
+                    await showConfirmationDialog(player, {
+                        title: 'Manage Request',
+                        body: `Do you want to accept ${item.text} into the team?`,
+                        confirmButtonText: '§2Accept',
+                        cancelButtonText: '§4Deny',
+                        onConfirm: () => {
+                            const res = teamManager.acceptApplication(team.id, requestingPlayerId);
+                            player.sendMessage(res.message || '');
+                            return showPanel(player, 'teamManagePanel');
+                        },
+                        onCancel: () => {
+                            const res = teamManager.denyApplication(team.id, requestingPlayerId);
+                            player.sendMessage(res.message || '');
+                            return showPanel(player, 'teamManagePanel');
+                        }
+                    });
+                    return;
+                }
+
                 if (item.actionValue === 'deleteTeam') {
                     const { teamId } = context;
                     let team;
