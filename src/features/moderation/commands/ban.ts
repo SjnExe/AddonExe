@@ -80,6 +80,7 @@ const banCommand: CustomCommand = {
     category: 'Moderation',
     permissionLevel: 2,
     allowConsole: true,
+    hidden: true,
     parameters: [
         { name: 'target', type: 'player' },
         { name: 'duration', type: 'string', optional: true },

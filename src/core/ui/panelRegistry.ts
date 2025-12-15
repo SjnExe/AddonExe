@@ -111,6 +111,15 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 sortId: 10
             },
             {
+                id: 'auctionHouse',
+                text: '§6Auction House',
+                icon: 'textures/ui/gold_icon',
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'openAuctionHouse',
+                sortId: 15
+            },
+            {
                 id: 'team',
                 text: '§1Team',
                 icon: 'textures/ui/icon_multiplayer.png',

@@ -12,6 +12,7 @@ import * as punishmentManager from '@features/moderation/punishmentManager.js';
 import * as reportManager from '@features/moderation/reportManager.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import * as tpaManager from '@features/teleportation/tpaManager.js';
+import { showAuctionHouse } from '@features/auctionHouse/ui/auctionPanel.js';
 
 import { UIContext } from './panelRegistry.js';
 import { MainConfig } from './types.js';
@@ -62,6 +63,8 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             player.sendMessage(`§aTPA Requests are now ${newState ? '§4Disabled' : '§2Enabled'}.`);
             return showPanel(player, 'tpaSettingsPanel', context);
         }
+        case 'openAuctionHouse':
+            return showAuctionHouse(player);
         case 'unblockPlayer':
             if (context.selectedItemId) {
                 tpaManager.unblockPlayer(player, context.selectedItemId as string);

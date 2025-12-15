@@ -29,6 +29,7 @@ const setBalanceCommand: CustomCommand = {
     category: 'Economy',
     permissionLevel: 1,
     allowConsole: true,
+    hidden: true,
     parameters: [
         { name: 'targets', type: 'player', description: 'The player(s) to target.' },
         { name: 'amount', type: 'string', description: 'The amount to set.' }
@@ -62,6 +63,7 @@ const addBalanceCommand: CustomCommand = {
     category: 'Economy',
     permissionLevel: 1,
     allowConsole: true,
+    hidden: true,
     parameters: [
         { name: 'targets', type: 'player' },
         { name: 'amount', type: 'string' }
@@ -95,6 +97,7 @@ const removeBalanceCommand: CustomCommand = {
     category: 'Economy',
     permissionLevel: 1,
     allowConsole: true,
+    hidden: true,
     parameters: [
         { name: 'targets', type: 'player' },
         { name: 'amount', type: 'string' }
