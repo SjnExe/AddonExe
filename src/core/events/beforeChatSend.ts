@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
 import { commandManager } from '@commands/commandManager.js';
-import { addChatMessage } from '@core/chatHistoryManager.js';
 import { getConfig } from '@core/configManager.js';
 import { infoLog } from '@core/logger.js';
+import { addChatLog } from '@features/moderation/chatLogManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
 
@@ -24,7 +24,7 @@ function handleChatSend(event: mc.ChatSendBeforeEvent) {
     }
 
     // Chat History
-    addChatMessage(sender.name, message);
+    addChatLog(sender.name, message);
 
     // Rank Formatting & Team Formatting
     const rank = getPlayerRank(sender, config);

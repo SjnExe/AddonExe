@@ -2,7 +2,6 @@ import * as mc from '@minecraft/server';
 
 import { restartAnnouncer } from '@commands/announcement.js';
 import { loadCommands } from '@commands/index.js';
-import { initializeChatHistory } from '@core/chatHistoryManager.js';
 import * as auctionHouseFeature from '@features/auctionHouse/index.js';
 import * as kitsFeature from '@features/kits/index.js';
 import { initializeChatLogger } from '@features/moderation/chatLogManager.js';
@@ -124,7 +123,6 @@ function initializeManagers() {
     rankManager.initialize();
     initializePunishmentManager();
     initializeChatLogger();
-    initializeChatHistory();
     floatingTextManager.initialize();
     teamManager.initialize();
     corePanels.initialize();
