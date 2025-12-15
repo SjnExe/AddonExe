@@ -50,7 +50,9 @@ export const config = {
         enabled: false,
         cooldownSeconds: 60,
         teleportWarmupSeconds: 3,
-        cost: 0
+        cost: 0,
+        saveOnDeath: true,
+        saveOnTeleport: true
     },
     kits: {
         enabled: false

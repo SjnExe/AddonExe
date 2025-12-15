@@ -69,6 +69,50 @@ export const configPanelSchema: ConfigCategory[] = [
         ]
     },
     {
+        id: 'back',
+        title: '§l§5Back System§r',
+        icon: 'textures/ui/refresh_light',
+        category: 'World',
+        settings: [
+            {
+                key: 'back.enabled',
+                label: 'Enable Back',
+                type: 'toggle',
+                description: 'Enables or disables the /back command.'
+            },
+            {
+                key: 'back.cost',
+                label: 'Cost',
+                type: 'textField',
+                description: 'Cost to use /back.'
+            },
+            {
+                key: 'back.saveOnDeath',
+                label: 'Save on Death',
+                type: 'toggle',
+                description: 'Saves location when a player dies.'
+            },
+            {
+                key: 'back.saveOnTeleport',
+                label: 'Save on Teleport',
+                type: 'toggle',
+                description: 'Saves location before a player teleports.'
+            },
+            {
+                key: 'back.cooldownSeconds',
+                label: 'Cooldown (s)',
+                type: 'textField',
+                description: 'How long a player must wait between using /back.'
+            },
+            {
+                key: 'back.teleportWarmupSeconds',
+                label: 'Warmup (s)',
+                type: 'textField',
+                description: 'How long a player must stand still before teleporting.'
+            }
+        ]
+    },
+    {
         id: 'auctionHouse',
         title: '§l§6Auction System§r',
         icon: 'textures/ui/gold_icon',
