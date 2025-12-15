@@ -9,13 +9,15 @@ import {
     getSpawnConfig,
     getTeamConfig,
     getXrayConfig,
-    saveAuctionHouseConfig,
+    getAuctionHouseConfig,
     saveEconomyConfig,
     saveSidebarConfig,
     saveSpawnConfig,
     saveTeamConfig,
     saveXrayConfig,
-    SidebarConfig
+    saveAuctionHouseConfig,
+    SidebarConfig,
+    AuctionHouseConfig
 } from '@core/configurations.js';
 import { kitsConfig } from '@core/kitsConfig.default.js';
 import { PlayerData } from '@core/playerDataManager.js';

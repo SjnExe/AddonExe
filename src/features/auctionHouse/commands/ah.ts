@@ -16,9 +16,9 @@ const mainCommand: CustomCommand = {
     category: 'Economy',
     permissionLevel: 1024,
     parameters: [
-        { name: 'subcommand', type: 'string', optional: true },
+        { name: 'subcommand', type: 'string', optional: true, enumOptions: ['sell', 'help', 'search'] },
         { name: 'price', type: 'string', optional: true },
-        { name: 'type', type: 'string', optional: true }
+        { name: 'type', type: 'string', optional: true, enumOptions: ['bin', 'bid'] }
     ],
     execute: async (executor: CommandExecutor, args: { subcommand?: string; price?: string; type?: string }) => {
         if (!(executor instanceof mc.Player)) return;

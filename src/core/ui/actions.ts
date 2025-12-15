@@ -13,6 +13,7 @@ import * as punishmentManager from '@features/moderation/punishmentManager.js';
 import * as reportManager from '@features/moderation/reportManager.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import * as tpaManager from '@features/teleportation/tpaManager.js';
+import { showAuctionHouse } from '@features/auctionHouse/ui/auctionPanel.js';
 
 import { UIContext } from './panelRegistry.js';
 import { MainConfig } from './types.js';
