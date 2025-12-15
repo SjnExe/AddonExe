@@ -263,6 +263,7 @@ async function showYourListings(player: mc.Player): Promise<void> {
     const response = await uiWait(player, form);
     if (!response || response.canceled) return;
     const selection = (response as ActionFormResponse).selection;
+    if (selection === undefined) return;
 
     if (selection === 0) {
         await showAuctionHouse(player);
@@ -294,6 +295,7 @@ async function showMailboxUI(player: mc.Player): Promise<void> {
         return;
     }
     const selection = (response as ActionFormResponse).selection;
+    if (selection === undefined) return;
 
     if (selection === 0) {
         await showAuctionHouse(player);
