@@ -40,6 +40,39 @@ export class StorageManager {
     }
 
     /**
+     * Generator version of save for use with mc.system.runJob to avoid lag spikes with large data.
+     */
+    *saveJob(data: unknown): Generator<void, void, void> {
+        try {
+            const jsonString = JSON.stringify(data);
+            yield; // Yield after stringify (heavy op)
+
+            const totalLength = jsonString.length;
+            const chunks = Math.ceil(totalLength / CHUNK_SIZE);
+
+            // Save chunk count
+            mc.world.setDynamicProperty(`${this.dbName}:meta`, chunks);
+            yield;
+
+            for (let i = 0; i < chunks; i++) {
+                const chunk = jsonString.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+                mc.world.setDynamicProperty(`${this.dbName}:${i}`, chunk);
+                if (i % 2 === 0) yield; // Yield every 2 chunks
+            }
+
+            // Cleanup old chunks
+            let nextIndex = chunks;
+            while (mc.world.getDynamicProperty(`${this.dbName}:${nextIndex}`) !== undefined) {
+                mc.world.setDynamicProperty(`${this.dbName}:${nextIndex}`, undefined); // Delete
+                nextIndex++;
+                if (nextIndex % 5 === 0) yield;
+            }
+        } catch (e) {
+            errorLog(`[StorageManager] Failed to saveJob ${this.dbName}`, e);
+        }
+    }
+
+    /**
      * Loads data from dynamic properties, reassembling shards.
      */
     load<T>(): T | null {

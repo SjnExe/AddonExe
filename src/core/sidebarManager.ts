@@ -147,8 +147,8 @@ export function resolveGlobalPlaceholders(text: string): string {
     return result;
 }
 
-function resolvePersonalPlaceholders(text: string, player: mc.Player): string {
-    let result = resolveGlobalPlaceholders(text);
+function resolvePersonalPlaceholders(text: string, player: mc.Player, skipGlobal = false): string {
+    let result = skipGlobal ? text : resolveGlobalPlaceholders(text);
 
     const pData = getOrCreatePlayer(player);
     if (!pData) return result;
@@ -273,11 +273,23 @@ function updatePersonalHUD() {
     const magicString = getMagicString(config.opacity || 'medium');
     const linesTemplate = config.actionBarLines.join('\n');
 
+    // Optimize: Resolve global placeholders once
+    const globalResolvedTemplate = resolveGlobalPlaceholders(linesTemplate);
+
     for (const player of mc.world.getAllPlayers()) {
         if (!getSidebarVisible(player.id)) {
             continue;
         }
-        const content = resolvePersonalPlaceholders(linesTemplate, player);
+        // Pass the already resolved global string to personal resolver
+        // We modify resolvePersonalPlaceholders to accept it?
+        // Or we just use globalResolvedTemplate as input to resolvePersonalPlaceholders?
+        // resolvePersonalPlaceholders calls resolveGlobalPlaceholders internally.
+        // We should change resolvePersonalPlaceholders to skip global if provided.
+        // But simpler: just pass globalResolvedTemplate. resolvePersonalPlaceholders
+        // calls resolveGlobalPlaceholders(text). If text already has globals resolved, it's fine
+        // (assuming no recursive placeholders).
+
+        const content = resolvePersonalPlaceholders(globalResolvedTemplate, player, true);
         const fullText = magicString + content;
 
         // Use Action Bar instead of Title for personal HUD

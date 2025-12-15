@@ -1,13 +1,23 @@
 import * as mc from '@minecraft/server';
 
+import { getConfig } from '@core/configManager.js';
 import { setPlayerLastLocation } from '@core/playerDataManager.js';
 
 /**
  * Saves the player's current location as their "last location" for /back command.
  * @param player The player to save location for.
+ * @param reason The reason for saving ('death' or 'teleport'). Defaults to 'teleport'.
  */
-export function saveLastLocation(player: mc.Player) {
+export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport' = 'teleport') {
     if (!player || !player.isValid) return;
+
+    const config = getConfig();
+    // Use optional chaining and defaults in case config isn't fully reloaded or types mismatch
+    const backConfig = config.back as { saveOnDeath?: boolean; saveOnTeleport?: boolean } | undefined;
+
+    if (reason === 'death' && !backConfig?.saveOnDeath) return;
+    if (reason === 'teleport' && !backConfig?.saveOnTeleport) return;
+
     try {
         const location = {
             x: player.location.x,

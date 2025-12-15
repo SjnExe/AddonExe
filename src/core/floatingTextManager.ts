@@ -71,8 +71,15 @@ function initialize() {
 }
 
 function runUpdateLoop() {
+    mc.system.runJob(updateLoopJob());
+}
+
+function* updateLoopJob() {
     const now = mc.system.currentTick;
     const textsByDimension = new Map<string, FloatingTextConfig[]>();
+
+    // 1. Identify texts needing update
+    let checkCount = 0;
     for (const textConfig of floatingTexts.values()) {
         if (!textConfig.updateInterval || textConfig.updateInterval <= 0) continue;
 
@@ -86,39 +93,50 @@ function runUpdateLoop() {
             textsByDimension.set(dim, []);
         }
         textsByDimension.get(dim)!.push(textConfig);
+
+        checkCount++;
+        if (checkCount % 50 === 0) yield; // Yield every 50 checks
     }
 
+    // 2. Batch update by dimension
     for (const [dimId, texts] of textsByDimension) {
         try {
             const dimension = mc.world.getDimension(dimId);
+            const entitiesMap = new Map<string, mc.Entity>();
+
+            // Batch query once per dimension
+            const allEntities = dimension.getEntities({ type: 'exe:floating_text' });
+            for (const entity of allEntities) {
+                if (!entity.isValid) continue;
+                for (const tag of entity.getTags()) {
+                    if (tag.startsWith('ft_')) {
+                        const id = tag.substring(3);
+                        entitiesMap.set(id, entity);
+                    }
+                }
+            }
+            yield;
+
             for (const textConfig of texts) {
                 const resolved = sm.resolveGlobalPlaceholders(textConfig.text);
-                // Even if resolved text hasn't changed, we force update if interval is set
-                // to catch any side-effect based placeholders, though usually placeholders change string.
-                // Optimally, check string change.
-
                 const last = lastResolvedText.get(textConfig.id);
 
                 if (resolved !== last) {
                     lastResolvedText.set(textConfig.id, resolved);
-                    // Update entity
-                    const entities = dimension.getEntities({
-                        type: 'exe:floating_text',
-                        tags: [`ft_${textConfig.id}`]
-                    });
-                    for (const entity of entities) {
-                        if (entity.isValid) {
-                            entity.nameTag = resolved.replace(/\\n/g, '\n');
-                        }
+                    const entity = entitiesMap.get(textConfig.id);
+
+                    if (entity && entity.isValid) {
+                        entity.nameTag = resolved.replace(/\\n/g, '\n');
                     }
                 }
             }
         } catch {
             // Ignore dimension load errors
         }
+        yield;
     }
 
-    // Run every tick to catch different intervals, but individual checks handle the rate
+    // Reschedule
     updateLoopId = mc.system.runTimeout(runUpdateLoop, 1);
 }
 

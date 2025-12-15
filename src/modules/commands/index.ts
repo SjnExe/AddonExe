@@ -32,6 +32,7 @@ import cmdLegacyClear from './clear.js';
 import cmdLegacyClearchat from './clearchat.js';
 import cmdLegacyDebug from './debug.js';
 import cmdLegacyDimensionLock from './dimensionLock.js';
+import cmdLegacyFixplayer from './fixplayer.js';
 import cmdLegacyFloatingtext from './floatingtext.js';
 import cmdLegacyGamemode from './gamemode.js';
 import cmdLegacyHelp from './help.js';
@@ -61,6 +62,7 @@ export function loadCommands() {
         cmdLegacyClearchat,
         cmdLegacyDebug,
         cmdLegacyDimensionLock,
+        cmdLegacyFixplayer,
         cmdLegacyFloatingtext,
         cmdLegacyGamemode,
         cmdLegacyHelp,

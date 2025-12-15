@@ -60,7 +60,7 @@ function loadTodayLogs() {
 function saveChatLogs() {
     if (!isDirty) return;
     const storage = new StorageManager(`exe:logs:chat:${today}`);
-    storage.save(currentDayLogs);
+    mc.system.runJob(storage.saveJob(currentDayLogs));
     isDirty = false;
 }
 

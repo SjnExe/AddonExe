@@ -8,7 +8,6 @@ import { getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
-import { showAuctionHouse } from '@features/auctionHouse/ui/auctionPanel.js';
 import * as punishmentManager from '@features/moderation/punishmentManager.js';
 import * as reportManager from '@features/moderation/reportManager.js';
 import * as teamManager from '@features/teams/teamManager.js';

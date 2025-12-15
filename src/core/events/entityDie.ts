@@ -21,7 +21,7 @@ function handleEntityDie(event: mc.EntityDieAfterEvent) {
     const config = getConfig();
 
     // Save location for /back
-    saveLastLocation(deadPlayer);
+    saveLastLocation(deadPlayer, 'death');
 
     if (config.playerInfo.enableDeathCoords) {
         const pData = getOrCreatePlayer(deadPlayer);

@@ -2,8 +2,6 @@ import { ActionFormData } from '@minecraft/server-ui';
 
 import { Config, getConfig, updateMultipleConfig } from '@core/configManager.js';
 import {
-    AuctionHouseConfig,
-    getAuctionHouseConfig,
     getEconomyConfig,
     getSidebarConfig,
     getSpawnConfig,
