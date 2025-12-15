@@ -49,8 +49,9 @@ function handleChatSend(event: mc.ChatSendBeforeEvent) {
     // Wait, the original file I read didn't show mute check.
     // I will keep it as is to avoid regression, but I should note it.
 
-    const prefix = rank.chatFormatting.prefixText ? `§6[§r${rank.chatFormatting.prefixText}§6]§r ` : '';
-    const nameColor = rank.chatFormatting.nameColor || '§r';
+    const fmt = rank.chatFormatting;
+    const prefix = fmt?.prefixText ? `§6[§r${fmt.prefixText}§6]§r ` : '';
+    const nameColor = fmt?.nameColor || '§r';
 
     // Final Format: Prefix Name[Team]: Message
     const finalMessage = `${prefix}${nameColor}${sender.name}§r${teamSuffix}§r: ${message}`;
