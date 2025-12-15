@@ -121,6 +121,7 @@ const oBountyCommand: CustomCommand = {
     description: 'Place a bounty on an offline player.',
     category: 'Economy',
     permissionLevel: 1024,
+    hidden: true,
     parameters: [
         { name: 'target', type: 'string' },
         { name: 'amount', type: 'string' }
@@ -150,6 +151,7 @@ const oRemoveBountyCommand: CustomCommand = {
     description: 'Removes a bounty from an offline player.',
     category: 'Economy',
     permissionLevel: 1024,
+    hidden: true,
     parameters: [
         { name: 'target', type: 'string' },
         { name: 'amount', type: 'string' }
@@ -233,6 +235,7 @@ const oListBountyCommand: CustomCommand = {
     category: 'Economy',
     permissionLevel: 1024,
     allowConsole: true,
+    hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const targetName = args.target as string;

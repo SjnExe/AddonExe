@@ -128,7 +128,7 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
 
     // Filter categories
     for (const [cat, cmds] of allCategories) {
-        if (cmds.some((c) => userPermissionLevel <= (c.permissionLevel ?? 1024))) {
+        if (cmds.some((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && !c.hidden)) {
             visibleCategories.push(cat);
         }
     }
@@ -148,7 +148,7 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
     for (const categoryName of sortedCats) {
         const commands = allCategories.get(categoryName) || [];
         const visibleCmds = commands
-            .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024))
+            .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && !c.hidden)
             .sort((a, b) => a.name.localeCompare(b.name));
 
         if (visibleCmds.length > 0) {
@@ -175,7 +175,7 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
     const visibleCategories: string[] = [];
 
     for (const [cat, cmds] of allCategories) {
-        if (cmds.some((c) => userPermissionLevel <= (c.permissionLevel ?? 1024))) {
+        if (cmds.some((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && !c.hidden)) {
             visibleCategories.push(cat);
         }
     }
@@ -205,7 +205,7 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
 async function showUICategory(player: mc.Player, category: string, userPermissionLevel: number) {
     const cmds = getCategorizedCommands().get(category) || [];
     const visibleCmds = cmds
-        .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024))
+        .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && !c.hidden)
         .sort((a, b) => a.name.localeCompare(b.name));
 
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);

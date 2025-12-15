@@ -21,6 +21,14 @@ export interface AuctionListing {
     duration: number; // Seconds
 }
 
+export enum SortOption {
+    PriceAsc,
+    PriceDesc,
+    Newest,
+    Oldest,
+    SellerAsc
+}
+
 const storage = new StorageManager('exe:auctionHouse');
 const activeListings = new Map<string, AuctionListing>();
 
@@ -345,35 +353,129 @@ export function claimMailbox(player: mc.Player): { success: boolean; message: st
     }
 }
 
-export function getListings(page: number = 1, pageSize: number = 45, searchQuery?: string): AuctionListing[] {
+export function claimMailboxItem(player: mc.Player, index: number): { success: boolean; message: string } {
+    const pData = getOrCreatePlayer(player);
+    const mailbox = pData.mailbox;
+
+    if (!mailbox || index < 0 || index >= mailbox.length) {
+        return { success: false, message: '§cItem not found.' };
+    }
+
+    const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
+    if (!inventory || !inventory.container) return { success: false, message: '§cInventory error.' };
+
+    if (inventory.container.emptySlotsCount === 0) {
+        return { success: false, message: '§cInventory full.' };
+    }
+
+    const sItem = mailbox[index];
+    const stack = deserializeItem(sItem);
+
+    if (stack) {
+        const leftovers = inventory.container.addItem(stack);
+
+        updatePlayerData(player.id, (d) => {
+            if (leftovers) {
+                // Update with leftover count
+                d.mailbox[index] = serializeItem(leftovers);
+            } else {
+                // Remove item
+                d.mailbox.splice(index, 1);
+            }
+        });
+
+        if (leftovers) {
+            return { success: true, message: '§ePartial claim (inventory full).' };
+        }
+        return { success: true, message: '§aItem claimed.' };
+    }
+
+    return { success: false, message: '§cError claiming item.' };
+}
+
+export function getListings(
+    page: number = 1,
+    pageSize: number = 45,
+    searchQuery?: string,
+    sort: SortOption = SortOption.Newest,
+    sellerId?: string
+): AuctionListing[] {
     let all = Array.from(activeListings.values());
+
+    if (sellerId) {
+        all = all.filter((l) => l.sellerId === sellerId);
+    }
 
     if (searchQuery) {
         const query = searchQuery.toLowerCase();
         all = all.filter(
             (l) =>
                 l.item.typeId.toLowerCase().includes(query) ||
-                (l.item.nameTag && l.item.nameTag.toLowerCase().includes(query))
+                (l.item.nameTag && l.item.nameTag.toLowerCase().includes(query)) ||
+                l.sellerName.toLowerCase().includes(query)
         );
     }
 
-    // Sort by newest?
-    all.sort((a, b) => b.startTime - a.startTime);
+    // Sort
+    all.sort((a, b) => {
+        switch (sort) {
+            case SortOption.PriceAsc:
+                return a.price - b.price;
+            case SortOption.PriceDesc:
+                return b.price - a.price;
+            case SortOption.Oldest:
+                return a.startTime - b.startTime;
+            case SortOption.SellerAsc:
+                return a.sellerName.localeCompare(b.sellerName);
+            case SortOption.Newest:
+            default:
+                return b.startTime - a.startTime;
+        }
+    });
+
     const start = (page - 1) * pageSize;
     return all.slice(start, start + pageSize);
 }
 
-export function getListingsCount(searchQuery?: string): number {
-    if (!searchQuery) return activeListings.size;
-    const query = searchQuery.toLowerCase();
+export function getListingsCount(searchQuery?: string, sellerId?: string): number {
+    if (!searchQuery && !sellerId) return activeListings.size;
+    const query = searchQuery ? searchQuery.toLowerCase() : '';
     let count = 0;
     for (const l of activeListings.values()) {
-        if (
-            l.item.typeId.toLowerCase().includes(query) ||
-            (l.item.nameTag && l.item.nameTag.toLowerCase().includes(query))
-        ) {
-            count++;
+        if (sellerId && l.sellerId !== sellerId) continue;
+        if (query) {
+            if (
+                !l.item.typeId.toLowerCase().includes(query) &&
+                (!l.item.nameTag || !l.item.nameTag.toLowerCase().includes(query)) &&
+                !l.sellerName.toLowerCase().includes(query)
+            ) {
+                continue;
+            }
         }
+        count++;
     }
     return count;
+}
+
+export function cancelListing(player: mc.Player, listingId: string): { success: boolean; message: string } {
+    const listing = activeListings.get(listingId);
+    if (!listing) return { success: false, message: '§cListing no longer exists.' };
+
+    if (listing.sellerId !== player.id) {
+        // Allow admins?
+        const pData = getOrCreatePlayer(player);
+        if (pData.permissionLevel > 1) {
+            return { success: false, message: '§cYou do not own this listing.' };
+        }
+    }
+
+    if (listing.isBid && listing.highestBidderId) {
+        return { success: false, message: '§cCannot cancel an auction with active bids.' };
+    }
+
+    addItemToMailbox(listing.sellerId, listing.item);
+    activeListings.delete(listingId);
+    saveAuctions();
+
+    return { success: true, message: '§aListing cancelled. Item returned to Collection Bin.' };
 }

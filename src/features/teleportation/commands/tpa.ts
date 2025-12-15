@@ -258,6 +258,7 @@ const oTpaStopCommand: CustomCommand = {
     description: 'Blocks an offline player from sending TPA requests.',
     category: 'Transportation',
     permissionLevel: 1024,
+    hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
@@ -280,6 +281,7 @@ const oTpaStartCommand: CustomCommand = {
     description: 'Unblocks an offline player from sending TPA requests.',
     category: 'Transportation',
     permissionLevel: 1024,
+    hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
