@@ -138,9 +138,7 @@ export class FriendPanelHandler implements IPanelHandler {
 
     buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         if (panelId === 'friendAddPanel') {
-            return Promise.resolve(
-                new ModalFormData().title('Add Friend').textField('Player Name', 'Enter exact name')
-            );
+            return Promise.resolve(new ModalFormData().title('Add Friend').textField('Player Name', 'Enter exact name'));
         }
 
         if (panelId === 'friendSettingsPanel') {
