@@ -17,7 +17,7 @@ import {
     SidebarConfig
 } from '@core/configurations.js';
 import { kitsConfig } from '@core/kitsConfig.default.js';
-import { PlayerData } from '@core/playerDataManager.js';
+import type { PlayerData } from '@core/playerDataManager.js';
 import ranksConfig from '@core/ranksConfig.default.js';
 import { spawnConfig } from '@core/spawnConfig.default.js';
 import { xrayConfig } from '@core/xrayConfig.default.js';
