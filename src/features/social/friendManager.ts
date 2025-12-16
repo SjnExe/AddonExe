@@ -147,16 +147,13 @@ export function isFriend(player1Id: string, player2Id: string): boolean {
 }
 
 export function toggleAutoFriendTp(player: mc.Player): boolean {
-    const newState = false;
+    let newState = false;
     updatePlayerData(player.id, (data) => {
-        // Assuming we store this in teamSettings or a new prop.
-        // Let's use a new prop in PlayerData interface if possible, or piggyback generic settings.
-        // For now, let's store it in `friendSettings` object if we added it to PlayerData interface.
-        // Since we can't easily change the Interface definition in a patch without finding it...
-        // We'll check `playerDataManager.ts` interface first.
-        // If not there, we'll store in dynamic property directly or assume it's part of `data`.
-        // Wait, `updatePlayerData` updates a typed object.
-        // I will check `playerDataManager.ts` first.
+        if (!data.friendSettings) {
+            data.friendSettings = { autoTpAccept: false };
+        }
+        data.friendSettings.autoTpAccept = !data.friendSettings.autoTpAccept;
+        newState = data.friendSettings.autoTpAccept;
     });
     return newState;
 }

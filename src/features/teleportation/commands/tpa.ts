@@ -1,7 +1,6 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { resolveTarget , playSound } from '@core/utils.js';
 import { getConfig } from '@core/configManager.js';
 import { constants } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
@@ -12,6 +11,7 @@ import {
     removeTpaBlockedPlayer,
     setTpaRequestsDisabled
 } from '@core/playerDataManager.js';
+import { playSound, resolveTarget } from '@core/utils.js';
 
 import {
     acceptRequest,
@@ -29,6 +29,8 @@ const tpaCommand: CustomCommand = {
     aliases: ['tprequest', 'asktp', 'requesttp'],
     permissionLevel: 1024,
     hasCooldown: true,
+    // Note: Using string type instead of 'player' to support non-op players (selector expansion requires permissions).
+    // Dynamic suggestions for online players are not possible with static enums for string types.
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
@@ -39,10 +41,16 @@ const tpaCommand: CustomCommand = {
 
         if (!targetName) return sendMessage('§cPlease specify a player.', executor);
 
+        // Block mass selectors
+        if (targetName.startsWith('@a') || targetName.startsWith('@e')) {
+            return sendMessage('§cSelectors @a and @e are disabled for TPA.', executor);
+        }
+
         const targets = resolveTarget(targetName, executor);
 
         if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
-        // If selector matches multiple, pick first one or error? Vanilla picks first usually.
+        if (targets.length > 1) return sendMessage('§cMultiple players found. Please be more specific.', executor);
+
         const targetPlayer = targets[0];
 
         if (targetPlayer.id === executor.id)
@@ -73,6 +81,7 @@ const tpaHereCommand: CustomCommand = {
     permissionLevel: 1024,
     hasCooldown: true,
     cooldownId: 'tpa',
+    // Note: Using string type instead of 'player' to support non-op players.
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
@@ -83,8 +92,15 @@ const tpaHereCommand: CustomCommand = {
 
         if (!targetName) return sendMessage('§cPlease specify a player.', executor);
 
+        // Block mass selectors
+        if (targetName.startsWith('@a') || targetName.startsWith('@e')) {
+            return sendMessage('§cSelectors @a and @e are disabled for TPA.', executor);
+        }
+
         const targets = resolveTarget(targetName, executor);
         if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+        if (targets.length > 1) return sendMessage('§cMultiple players found. Please be more specific.', executor);
+
         const targetPlayer = targets[0];
 
         if (targetPlayer.id === executor.id)

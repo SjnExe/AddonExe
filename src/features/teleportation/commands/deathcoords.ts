@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { resolveTarget , formatString } from '@core/utils.js';
 import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayer } from '@core/playerDataManager.js';
+import { formatString, resolveTarget } from '@core/utils.js';
 
 const deathCoordsCommand: CustomCommand = {
     name: 'deathcoords',

@@ -12,31 +12,31 @@ import { getOrCreatePlayer, incrementPlayerBalance, setPlayerLastDeathLocation }
 export const eventName = 'entityDie';
 
 function handleEntityDie(event: mc.EntityDieAfterEvent) {
-    const { deadEntity } = event;
-    if (deadEntity.typeId !== 'minecraft:player') {
-        return;
-    }
-
-    const deadPlayer = deadEntity as mc.Player;
-    const config = getConfig();
-
-    // Save location for /back
-    saveLastLocation(deadPlayer, 'death');
-
-    if (config.playerInfo.enableDeathCoords) {
-        const pData = getOrCreatePlayer(deadPlayer);
-        if (pData) {
-            const deathLocation = {
-                x: deadPlayer.location.x,
-                y: deadPlayer.location.y,
-                z: deadPlayer.location.z,
-                dimensionId: deadPlayer.dimension.id
-            };
-            setPlayerLastDeathLocation(deadPlayer.id, deathLocation);
-        }
-    }
-
     try {
+        const { deadEntity } = event;
+        if (deadEntity.typeId !== 'minecraft:player') {
+            return;
+        }
+
+        const deadPlayer = deadEntity as mc.Player;
+        const config = getConfig();
+
+        // Save location for /back
+        saveLastLocation(deadPlayer, 'death');
+
+        if (config.playerInfo.enableDeathCoords) {
+            const pData = getOrCreatePlayer(deadPlayer);
+            if (pData) {
+                const deathLocation = {
+                    x: deadPlayer.location.x,
+                    y: deadPlayer.location.y,
+                    z: deadPlayer.location.z,
+                    dimensionId: deadPlayer.dimension.id
+                };
+                setPlayerLastDeathLocation(deadPlayer.id, deathLocation);
+            }
+        }
+
         const lastHit = lastHitManager.getLastHit(deadPlayer.id);
         if (!lastHit) {
             return;

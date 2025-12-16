@@ -136,19 +136,23 @@ export class FriendPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
         if (panelId === 'friendAddPanel') {
-            return new ModalFormData().title('Add Friend').textField('Player Name', 'Enter exact name');
+            return Promise.resolve(
+                new ModalFormData().title('Add Friend').textField('Player Name', 'Enter exact name')
+            );
         }
 
         if (panelId === 'friendSettingsPanel') {
             const pData = getOrCreatePlayer(player);
-            return new ModalFormData()
-                .title('Friend Settings')
-                .toggle('Auto-Accept Friend TPA', { defaultValue: pData.friendSettings?.autoTpAccept ?? false });
+            return Promise.resolve(
+                new ModalFormData()
+                    .title('Friend Settings')
+                    .toggle('Auto-Accept Friend TPA', { defaultValue: pData.friendSettings?.autoTpAccept ?? false })
+            );
         }
 
-        return null;
+        return Promise.resolve(null);
     }
 
     async handleResponse(

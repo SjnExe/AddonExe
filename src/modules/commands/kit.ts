@@ -96,7 +96,15 @@ const kitCommand: CustomCommand = {
     description: 'Claims a specific kit. Leave blank to see a list of available kits.',
     category: 'Economy',
     permissionLevel: 1024,
-    parameters: [{ name: 'kitName', type: 'string', optional: true }],
+    parameters: [
+        {
+            name: 'kitName',
+            type: 'string',
+            optional: true,
+            // Provide suggestions for kit names based on currently loaded kits
+            enumOptions: Object.keys(getAllKits())
+        }
+    ],
     execute: async (executor: CommandExecutor, args: KitCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
             return;

@@ -2,6 +2,7 @@ import { ActionFormData } from '@minecraft/server-ui';
 
 import { Config, getConfig, updateMultipleConfig } from '@core/configManager.js';
 import {
+    getAuctionHouseConfig,
     getEconomyConfig,
     getSidebarConfig,
     getSpawnConfig,
@@ -16,11 +17,12 @@ import {
     SidebarConfig
 } from '@core/configurations.js';
 import { kitsConfig } from '@core/kitsConfig.default.js';
-import { PlayerData } from '@core/playerDataManager.js';
+import type { PlayerData } from '@core/playerDataManager.js';
 import ranksConfig from '@core/ranksConfig.default.js';
 import { spawnConfig } from '@core/spawnConfig.default.js';
 import { xrayConfig } from '@core/xrayConfig.default.js';
 import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
+import { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
 import { economyConfig } from '@features/economy/economyConfig.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/teams/teamConfig.js';
@@ -33,6 +35,7 @@ type TeamConfig = typeof teamConfig;
 type RanksConfig = typeof ranksConfig;
 type KitsConfig = typeof kitsConfig;
 type ShopConfig = typeof shopConfig;
+type AuctionHouseConfig = typeof auctionHouseConfig;
 
 import { getSystemRegistry, SystemDefinition } from './systemRegistry.js';
 

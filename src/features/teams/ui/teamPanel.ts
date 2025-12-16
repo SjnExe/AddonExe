@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getTeamConfig } from '@core/configurations.js';
-import { getOrCreatePlayer, getPlayerIdByName, loadPlayerData, PlayerData } from '@core/playerDataManager.js';
+import { getOrCreatePlayer, getPlayerIdByName, loadPlayerData, type PlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils.js';
 import { handleUIAction } from '@ui/actions.js';

@@ -6,7 +6,7 @@ import { refreshXrayCache } from '@modules/detections/xrayDetection.js';
 import { getConfig, resetConfigSection } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { getValueFromPath, setValueByPath } from '@core/objectUtils.js';
-import { getOrCreatePlayer, PlayerData } from '@core/playerDataManager.js';
+import { getOrCreatePlayer, type PlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
 import { handleUIAction } from '@ui/actions.js';

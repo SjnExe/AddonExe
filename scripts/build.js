@@ -36,6 +36,7 @@ const external = [
 ];
 
 const isWatch = process.argv.includes('--watch');
+const isMinify = process.argv.includes('--minify');
 
 // Map of source file -> destination relative to scripts/
 const configsToCompile = [
@@ -101,7 +102,7 @@ async function build() {
             target: 'es2020',
             external: external,
             sourcemap: true,
-            minify: false,
+            minify: isMinify,
             treeShaking: true,
             logLevel: 'info'
         });
