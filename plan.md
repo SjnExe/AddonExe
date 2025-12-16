@@ -4,9 +4,9 @@ This plan is designed for a future development session to safely enable the Type
 
 ## Overview
 
-*   **Goal:** Enable `noUncheckedIndexedAccess: true` in `tsconfig.json` and resolve all resulting type errors.
-*   **Current State:** The flag is currently disabled. Enabling it reveals approximately 600+ errors where code assumes array/map access always returns a defined value.
-*   **Strategy:** Enable the flag, then fix errors in logical batches to ensure stability.
+- **Goal:** Enable `noUncheckedIndexedAccess: true` in `tsconfig.json` and resolve all resulting type errors.
+- **Current State:** The flag is currently disabled. Enabling it reveals approximately 600+ errors where code assumes array/map access always returns a defined value.
+- **Strategy:** Enable the flag, then fix errors in logical batches to ensure stability.
 
 ## Prerequisites
 
@@ -19,6 +19,7 @@ This plan is designed for a future development session to safely enable the Type
 ## Execution Checklist
 
 ### Batch 1: Core Utilities & Managers
+
 Focus on the foundational files in `src/core`. These are critical and heavily used.
 
 - [ ] `src/core/utils.ts` - Fix array access in `resolveTarget` and helper functions.
@@ -27,6 +28,7 @@ Focus on the foundational files in `src/core`. These are critical and heavily us
 - [ ] `src/core/commandManager.ts` - Fix `this.commands.get(...)` returns (often returns `undefined`).
 
 ### Batch 2: Core UI Panels
+
 Fix UI logic which often iterates over arrays of items.
 
 - [ ] `src/core/ui/panelBuilder.ts`
@@ -35,6 +37,7 @@ Fix UI logic which often iterates over arrays of items.
 - [ ] `src/core/ui/panels/*.ts` (e.g., `rankPanel.ts`, `playerPanel.ts`)
 
 ### Batch 3: Command Modules (Part A)
+
 Fix the simpler commands in `src/modules/commands`.
 
 - [ ] `src/modules/commands/inventory.ts`
@@ -42,6 +45,7 @@ Fix the simpler commands in `src/modules/commands`.
 - [ ] `src/modules/commands/warp.ts` & `tpa.ts` (Parameter array access)
 
 ### Batch 4: Feature Modules (Part B)
+
 Fix complex feature logic in `src/features`.
 
 - [ ] `src/features/teams/teamManager.ts` (Map access for teams)
@@ -50,6 +54,7 @@ Fix complex feature logic in `src/features`.
 - [ ] `src/features/auctionHouse/auctionManager.ts`
 
 ### Batch 5: Detection Systems
+
 - [ ] `src/modules/detections/xrayDetection.ts` (Ore map access)
 - [ ] `src/modules/detections/spawnProtection.ts`
 
@@ -58,6 +63,7 @@ Fix complex feature logic in `src/features`.
 When fixing these errors, apply the following patterns:
 
 1.  **Optional Chaining (`?.`)**: Use if the value might be missing and `undefined` is acceptable propagation.
+
     ```typescript
     // Before
     const cmd = commands.get(name);
@@ -69,10 +75,11 @@ When fixing these errors, apply the following patterns:
     ```
 
 2.  **Null Checks / Guard Clauses**: Use when you need to ensure existence before proceeding.
+
     ```typescript
     const player = players[0];
     if (!player) return;
-    player.sendMessage("Hi");
+    player.sendMessage('Hi');
     ```
 
 3.  **Non-Null Assertion (`!`)**: **Avoid this** unless you are absolutely certain the value exists (e.g., inside a check that already verified existence, but TS missed it). Prefer explicit checks.
@@ -80,5 +87,6 @@ When fixing these errors, apply the following patterns:
 ## Verification
 
 After completing each batch:
+
 1.  Run `npm run check-types` to ensure the error count has decreased.
 2.  Run `npm run build` to ensure no syntax errors were introduced.
