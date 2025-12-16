@@ -5,6 +5,7 @@ import { setCooldown } from '@core/cooldownManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
 import { startTeleportWarmup } from '@core/utils.js';
+import { isFriend } from '../social/friendManager.js';
 
 import { findSafeLocation, saveLastLocation } from './teleportUtils.js';
 
@@ -83,7 +84,7 @@ function _findIncomingRequest(
 
 export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, type: TpaRequestType): ActionResult {
     if (outgoingRequests.has(sourcePlayer.id))
-        return { success: false, message: 'You already have an outgoing TPA request. Use !tpacancel to cancel it.' };
+        return { success: false, message: 'You already have an outgoing TPA request. Use /tpacancel to cancel it.' };
     const targetPlayerData = getOrCreatePlayer(targetPlayer);
     if (targetPlayerData.tpaRequestsDisabled)
         return { success: false, message: `§c${targetPlayer.name} is not accepting TPA requests.` };
@@ -102,6 +103,45 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
         type,
         expiryTimestamp
     };
+
+    // Auto-Accept Check for Friends and Team
+    const areFriends = isFriend(targetPlayer.id, sourcePlayer.id);
+    const inSameTeam = targetPlayerData.teamId && targetPlayerData.teamId === getOrCreatePlayer(sourcePlayer).teamId;
+
+    // Check target's settings for auto-accept
+    let autoAccept = false;
+    if (areFriends && targetPlayerData.friendSettings?.autoTpAccept) {
+        autoAccept = true;
+    }
+    // Team auto-accept (already existed in PlayerData logic, assuming config allows)
+    if (inSameTeam && targetPlayerData.teamSettings?.autoTpAccept) {
+        autoAccept = true;
+    }
+
+    if (autoAccept) {
+        // Immediate Teleport logic
+        // We reuse the teleport logic from acceptRequest but bypass the warmup?
+        // Usually auto-accept still triggers warmup or instant?
+        // Let's assume Instant or Short Warmup. Standard implementation is bypass manual accept step.
+        // We will call acceptRequest immediately on behalf of the target.
+
+        outgoingRequests.set(sourcePlayer.id, request);
+        if (!incomingRequests.has(targetPlayer.id)) incomingRequests.set(targetPlayer.id, []);
+        incomingRequests.get(targetPlayer.id)!.push(request);
+
+        // Trigger acceptance logic immediately
+        // Note: acceptRequest expects the execution to come from the target player usually.
+        // We need to simulate it or refactor the logic.
+        // Refactoring to separate teleport logic is cleaner.
+
+        // However, acceptRequest uses `startTeleportWarmup` which notifies players.
+        // Calling acceptRequest(targetPlayer, sourcePlayer.name) works.
+        mc.system.runTimeout(() => {
+            acceptRequest(targetPlayer, sourcePlayer.name);
+        }, 1);
+
+        return { success: true, message: `§aTPA request sent and auto-accepted by ${targetPlayer.name}.` };
+    }
 
     outgoingRequests.set(sourcePlayer.id, request);
     if (!incomingRequests.has(targetPlayer.id)) incomingRequests.set(targetPlayer.id, []);

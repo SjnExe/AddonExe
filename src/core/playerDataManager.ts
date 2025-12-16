@@ -32,6 +32,12 @@ export interface PendingInvite {
     timestamp: number;
 }
 
+export interface FriendRequest {
+    senderId: string;
+    senderName: string;
+    timestamp: number;
+}
+
 export interface PlayerData {
     name: string;
     rankId: string;
@@ -59,6 +65,9 @@ export interface PlayerData {
     dailyStreak: number;
     starterKitClaimed: boolean;
     isVanished: boolean;
+    friends?: string[];
+    friendRequests?: FriendRequest[];
+    friendSettings?: { autoTpAccept: boolean };
     needsSave?: boolean;
 }
 
@@ -96,7 +105,10 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     lastDailyClaim: 0,
     dailyStreak: 0,
     starterKitClaimed: false,
-    isVanished: false
+    isVanished: false,
+    friends: [],
+    friendRequests: [],
+    friendSettings: { autoTpAccept: false }
 };
 
 // --- Generic Data Handling ---
@@ -351,7 +363,10 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
         deaths: 0,
         killStreak: 0,
         totalPlayTime: 0,
-        sidebarVisible: true
+        sidebarVisible: true,
+        friends: [],
+        friendRequests: [],
+        friendSettings: { autoTpAccept: false }
     };
     activePlayerData.set(player.id, newPlayerData);
     sessionStartTimes.set(player.id, Date.now());

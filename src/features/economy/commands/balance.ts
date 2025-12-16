@@ -6,7 +6,7 @@ import { constants } from '@core/constants.js';
 import { getLeaderboard } from '@core/leaderboardManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/playerDataManager.js';
-import { formatCurrency } from '@core/utils.js';
+import { formatCurrency, resolveTarget } from '@core/utils.js';
 
 const balanceCommand: CustomCommand = {
     name: 'balance',
@@ -14,14 +14,14 @@ const balanceCommand: CustomCommand = {
     description: "Checks your or another player's balance.",
     category: 'Economy',
     permissionLevel: 1024,
-    parameters: [{ name: 'targets', type: 'player', optional: true }],
+    parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
         if (!config.economy.enabled) return sendMessage(constants.economyDisabled, executor);
 
-        const targets = args.targets as mc.Player[] | undefined;
+        const targetStr = args.targets as string | undefined;
 
-        if (!targets) {
+        if (!targetStr) {
             // Self check
             if (executor instanceof mc.Player) {
                 const pData = getOrCreatePlayer(executor);
@@ -32,9 +32,19 @@ const balanceCommand: CustomCommand = {
             return;
         }
 
-        for (const target of targets) {
-            const pData = getOrCreatePlayer(target);
-            sendMessage(`§a${target.name}'s balance is: §e${formatCurrency(pData.balance)}`, executor);
+        if (executor instanceof mc.Player) {
+            const targets = resolveTarget(targetStr, executor);
+            if (targets.length === 0) {
+                // Could act as obalance redirect?
+                // For now just error to keep it simple, suggest obalance.
+                sendMessage('§cPlayer not found (must be online). Use /obalance for offline players.', executor);
+                return;
+            }
+
+            for (const target of targets) {
+                const pData = getOrCreatePlayer(target);
+                sendMessage(`§a${target.name}'s balance is: §e${formatCurrency(pData.balance)}`, executor);
+            }
         }
     }
 };

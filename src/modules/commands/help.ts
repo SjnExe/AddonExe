@@ -126,7 +126,7 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
     const allCategories = getCategorizedCommands();
     const visibleCategories: string[] = [];
 
-    // Filter categories
+    // Filter categories: Only show if category contains at least one visible command
     for (const [cat, cmds] of allCategories) {
         if (cmds.some((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && !c.hidden)) {
             visibleCategories.push(cat);

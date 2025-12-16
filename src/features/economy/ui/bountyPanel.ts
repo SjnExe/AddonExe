@@ -25,7 +25,22 @@ export class BountyPanelHandler implements IPanelHandler {
             actionValue: 'gameplayPanel'
         });
 
-        const bounties = Array.from(bountyManager.getAllBounties().values()).sort((a, b) => b.amount - a.amount);
+        // Debug log to ensure bounties are retrieved
+        const allBounties = bountyManager.getAllBounties();
+        const bounties = Array.from(allBounties.values()).sort((a, b) => b.amount - a.amount);
+
+        // If empty, show a visual indicator item
+        if (bounties.length === 0) {
+            items.push({
+                id: 'no_bounties',
+                text: '§7No active bounties',
+                icon: 'textures/ui/info_icon',
+                permissionLevel: 1024,
+                actionType: 'functionCall',
+                actionValue: 'noop' // Does nothing
+            });
+            return items;
+        }
 
         const paginated = getPaginatedItems(bounties, (context.page as number) || 1);
 
@@ -80,6 +95,8 @@ export class BountyPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+
+                if (item.actionValue === 'noop') return; // Do nothing for informational items
 
                 if (item.actionType === 'openPanel') {
                     if (item.actionValue === 'playerActionsPanel') {
