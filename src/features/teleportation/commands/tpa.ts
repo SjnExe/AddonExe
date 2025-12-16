@@ -39,10 +39,16 @@ const tpaCommand: CustomCommand = {
 
         if (!targetName) return sendMessage('§cPlease specify a player.', executor);
 
+        // Block mass selectors
+        if (targetName.startsWith('@a') || targetName.startsWith('@e')) {
+            return sendMessage('§cSelectors @a and @e are disabled for TPA.', executor);
+        }
+
         const targets = resolveTarget(targetName, executor);
 
         if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
-        // If selector matches multiple, pick first one or error? Vanilla picks first usually.
+        if (targets.length > 1) return sendMessage('§cMultiple players found. Please be more specific.', executor);
+
         const targetPlayer = targets[0];
 
         if (targetPlayer.id === executor.id)
@@ -83,8 +89,15 @@ const tpaHereCommand: CustomCommand = {
 
         if (!targetName) return sendMessage('§cPlease specify a player.', executor);
 
+        // Block mass selectors
+        if (targetName.startsWith('@a') || targetName.startsWith('@e')) {
+            return sendMessage('§cSelectors @a and @e are disabled for TPA.', executor);
+        }
+
         const targets = resolveTarget(targetName, executor);
         if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+        if (targets.length > 1) return sendMessage('§cMultiple players found. Please be more specific.', executor);
+
         const targetPlayer = targets[0];
 
         if (targetPlayer.id === executor.id)

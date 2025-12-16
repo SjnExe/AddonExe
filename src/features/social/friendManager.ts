@@ -148,7 +148,7 @@ export function isFriend(player1Id: string, player2Id: string): boolean {
 
 export function toggleAutoFriendTp(player: mc.Player): boolean {
     const newState = false;
-    updatePlayerData(player.id, (data) => {
+    updatePlayerData(player.id, (_data) => {
         // Assuming we store this in teamSettings or a new prop.
         // Let's use a new prop in PlayerData interface if possible, or piggyback generic settings.
         // For now, let's store it in `friendSettings` object if we added it to PlayerData interface.

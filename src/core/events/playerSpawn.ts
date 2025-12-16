@@ -9,7 +9,7 @@ import { debugLog } from '../logger.js';
 import { updatePlayerRank } from '../main.js';
 import { sendMessage } from '../messaging.js';
 import { getOrCreatePlayer, updatePlayerData } from '../playerDataManager.js';
-import { formatLocation } from '../utils.js';
+import { formatLocation, formatString } from '../utils.js';
 
 export function handlePlayerJoin(player: mc.Player) {
     const pData = getOrCreatePlayer(player);
@@ -48,18 +48,17 @@ export function handlePlayerJoin(player: mc.Player) {
     const joinLeaveConfig = config.playerInfo?.customJoinLeave;
     if (joinLeaveConfig?.enabled) {
         if (!player.hasTag(constants.vanishedTag)) {
-            let msg = joinLeaveConfig.joinMessage;
-            msg = msg.replace(/{playerName}/g, player.name);
+            const msg = formatString(joinLeaveConfig.joinMessage, { playerName: player.name });
             mc.world.sendMessage(msg);
         }
     }
     if (config.playerInfo?.enableWelcomer && config.playerInfo?.welcomeMessage) {
-        let welcomeMsg = config.playerInfo.welcomeMessage;
-        welcomeMsg = welcomeMsg.replace(/{playerName}/g, player.name);
-        welcomeMsg = welcomeMsg.replace(/{serverName}/g, config.serverName || 'Server');
-        welcomeMsg = welcomeMsg.replace(/{discordLink}/g, config.serverInfo?.discordLink || '');
-        welcomeMsg = welcomeMsg.replace(/{websiteLink}/g, config.serverInfo?.websiteLink || '');
-        welcomeMsg = welcomeMsg.replace(/\\n/g, '\n');
+        const welcomeMsg = formatString(config.playerInfo.welcomeMessage, {
+            playerName: player.name,
+            serverName: config.serverName || 'Server',
+            discordLink: config.serverInfo?.discordLink || '',
+            websiteLink: config.serverInfo?.websiteLink || ''
+        });
 
         sendMessage(welcomeMsg, player);
     }

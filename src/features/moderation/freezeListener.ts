@@ -1,19 +1,10 @@
-import * as mc from '@minecraft/server';
 import { constants } from '@core/constants.js';
+import * as mc from '@minecraft/server';
 
 export function initializeFreezeListener() {
     // Block Item Use
     mc.world.beforeEvents.itemUse.subscribe((event) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((event as any).source.hasTag(constants.frozenTag)) {
-            event.cancel = true;
-        }
-    });
-
-    // Block Item Use On
-    mc.world.beforeEvents.itemUseOn.subscribe((event) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((event as any).source.hasTag(constants.frozenTag)) {
+        if (event.source.hasTag(constants.frozenTag)) {
             event.cancel = true;
         }
     });
@@ -50,7 +41,8 @@ export function initializeFreezeListener() {
     mc.world.beforeEvents.chatSend.subscribe((event) => {
         if (event.sender.hasTag(constants.frozenTag)) {
             const msg = event.message.trim();
-            if (msg.startsWith('!') || msg.startsWith('?') || msg.startsWith('/')) { // Check multiple prefixes
+            if (msg.startsWith('!') || msg.startsWith('?') || msg.startsWith('/')) {
+                // Check multiple prefixes
                 const cmd = msg.split(' ')[0].toLowerCase();
                 // Allow /msg, /tell, /w for communication with staff
                 if (cmd.includes('msg') || cmd.includes('tell') || cmd.includes('w')) {

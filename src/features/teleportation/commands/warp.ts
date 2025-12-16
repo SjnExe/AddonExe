@@ -24,7 +24,14 @@ const warpCommand: CustomCommand = {
     permissionLevel: 1024,
     hasCooldown: true,
     cooldownId: 'warp',
-    parameters: [{ name: 'warpName', type: 'string', optional: true }],
+    parameters: [
+        {
+            name: 'warpName',
+            type: 'string',
+            optional: true,
+            enumOptions: warpsManager.listWarps()
+        }
+    ],
     execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
@@ -150,7 +157,14 @@ const delWarpCommand: CustomCommand = {
     description: 'Deletes an existing warp.',
     category: 'Transportation',
     permissionLevel: 1, // Admin
-    parameters: [{ name: 'warpName', type: 'string', optional: true }],
+    parameters: [
+        {
+            name: 'warpName',
+            type: 'string',
+            optional: true,
+            enumOptions: warpsManager.listWarps()
+        }
+    ],
     execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;

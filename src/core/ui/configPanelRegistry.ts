@@ -574,6 +574,24 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Enable Death Coords',
                 type: 'toggle',
                 description: 'Tells players their coordinates upon respawning after death.'
+            },
+            {
+                key: 'playerInfo.customJoinLeave.enabled',
+                label: 'Custom Join/Leave',
+                type: 'toggle',
+                description: 'Enables custom join and leave messages.'
+            },
+            {
+                key: 'playerInfo.customJoinLeave.joinMessage',
+                label: 'Join Message',
+                type: 'textField',
+                description: 'Use {playerName} for the player name.'
+            },
+            {
+                key: 'playerInfo.customJoinLeave.leaveMessage',
+                label: 'Leave Message',
+                type: 'textField',
+                description: 'Use {playerName} for the player name.'
             }
         ]
     },
