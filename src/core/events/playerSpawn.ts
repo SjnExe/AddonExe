@@ -37,6 +37,8 @@ export function handlePlayerJoin(player: mc.Player) {
     if (player.hasTag(constants.frozenTag)) {
         player.dimension.runCommand(`inputpermission set "${player.name}" camera disabled`);
         player.dimension.runCommand(`inputpermission set "${player.name}" movement disabled`);
+        player.addEffect('resistance', 20000000, { amplifier: 255, showParticles: false });
+        player.addEffect('weakness', 20000000, { amplifier: 255, showParticles: false });
         sendMessage('§cYou are currently frozen.', player);
     }
 

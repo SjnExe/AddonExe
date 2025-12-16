@@ -19,6 +19,12 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera disabled`);
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement disabled`);
         targetPlayer.addTag(constants.frozenTag);
+
+        // Add invulnerability (Resistance 255)
+        targetPlayer.addEffect('resistance', 20000000, { amplifier: 255, showParticles: false });
+        // Add weakness to prevent attacking
+        targetPlayer.addEffect('weakness', 20000000, { amplifier: 255, showParticles: false });
+
         playSound(targetPlayer, 'mob.stray.ambient');
 
         const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
@@ -54,6 +60,11 @@ export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Playe
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera enabled`);
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement enabled`);
         targetPlayer.removeTag(constants.frozenTag);
+
+        // Remove effects
+        targetPlayer.removeEffect('resistance');
+        targetPlayer.removeEffect('weakness');
+
         playSound(targetPlayer, 'random.levelup');
 
         if (executor instanceof mc.Player) {
