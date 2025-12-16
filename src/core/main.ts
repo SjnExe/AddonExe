@@ -1,3 +1,4 @@
+import { disableWatchdog } from '@minecraft/debug-utilities';
 import * as mc from '@minecraft/server';
 
 import { restartAnnouncer } from '@commands/announcement.js';
@@ -176,6 +177,12 @@ function startSystemTimers() {
 }
 
 async function initializeAddon() {
+    try {
+        disableWatchdog(true);
+    } catch {
+        // Ignore if debug-utilities is not available or fails
+    }
+
     infoLog('[AddonExe] Initializing addon...');
 
     initializeDiagnostics();
