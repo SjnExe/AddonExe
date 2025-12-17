@@ -68,6 +68,7 @@ export function acceptFriendRequest(player: mc.Player, senderName: string): stri
     if (requestIndex === -1) return '§cFriend request not found.';
 
     const request = pData.friendRequests[requestIndex];
+    if (!request) return '§cFriend request not found.'; // Check undefined
     const newFriendId = request.senderId;
     const newFriendName = request.senderName;
 

@@ -110,6 +110,7 @@ export class ShopPanelHandler implements IPanelHandler {
 
             validCategories.forEach((catName: string) => {
                 const cat = shopConfig.categories[catName];
+                if (!cat) return;
                 items.push({
                     id: catName,
                     text: catName,
@@ -155,6 +156,7 @@ export class ShopPanelHandler implements IPanelHandler {
 
             const paginated = getPaginatedItems(results, (context.page as number) || 1);
             paginated.forEach((entry) => {
+                if (!entry) return;
                 const masterItem = allItems[entry.id] || {};
                 const buy = (entry.buyPrice ?? 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice!)}` : '';
                 const sell = (entry.sellPrice ?? 0) > 0 ? `§4S: ${formatCurrency(entry.sellPrice!)}` : '';
@@ -195,6 +197,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 const paginated = getPaginatedItems(allEntries, (context.page as number) || 1);
 
                 paginated.forEach((entry) => {
+                    if (!entry) return;
                     if (entry.type === 'subCategory') {
                         items.push({
                             id: entry.name!,
@@ -241,6 +244,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 }));
                 const paginated = getPaginatedItems(shopItems, (context.page as number) || 1);
                 paginated.forEach((entry) => {
+                    if (!entry) return;
                     const masterItem = allItems[entry.id] || {};
                     const displayName = entry.displayName || masterItem.displayName || entry.id;
                     const buy = (entry.buyPrice ?? 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
@@ -290,6 +294,7 @@ export class ShopPanelHandler implements IPanelHandler {
 
             paginated.forEach((catName: string) => {
                 const cat = shopConfig.categories[catName];
+                if (!cat) return;
                 items.push({
                     id: catName,
                     text: catName,
@@ -343,6 +348,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 const paginated = getPaginatedItems(allEntries, (context.page as number) || 1);
 
                 paginated.forEach((entry) => {
+                    if (!entry) return;
                     if (entry.type === 'subCategory') {
                         const sub = category.subCategories[entry.id];
                         items.push({
@@ -398,6 +404,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 const shopItems = Object.keys(subCategory.items);
                 const paginated = getPaginatedItems(shopItems, (context.page as number) || 1);
                 paginated.forEach((id: string) => {
+                    if (!id) return;
                     const item = (subCategory.items as Record<string, ShopItem>)[id];
                     const masterItem = allItems[id] || {};
                     items.push({
@@ -429,6 +436,7 @@ export class ShopPanelHandler implements IPanelHandler {
             const allPossibleItems = Object.keys(allItems);
             const paginated = getPaginatedItems(allPossibleItems, (context.page as number) || 1);
             paginated.forEach((itemId) => {
+                if (!itemId) return;
                 const masterItem = allItems[itemId];
                 items.push({
                     id: itemId,
@@ -666,6 +674,7 @@ export class ShopPanelHandler implements IPanelHandler {
         if (panelId === 'addCategoryPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'shopManagementPanel', context);
             const values = formValues as string[];
+            if (!values) return showPanel(player, 'shopManagementPanel', context);
             const [name, iconStr] = values;
             if (name) {
                 const result = shopAdminManager.addCategory(name, iconStr || '');
@@ -679,6 +688,7 @@ export class ShopPanelHandler implements IPanelHandler {
             if ((response as ModalFormResponse).canceled)
                 return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
             const values = formValues as string[];
+            if (!values) return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
             const [name, iconStr] = values;
             if (name) {
                 const result = shopAdminManager.addSubCategory(categoryName, name, iconStr || '');
@@ -697,6 +707,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 return showPanel(player, `shopAdminCategoryActionPanel_${targetName}`, context);
 
             const values = formValues as string[];
+            if (!values) return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
             const [newName, newIcon] = values;
             if (newName) {
                 const result = shopAdminManager.editCategory(targetName, newName, newIcon || '');
@@ -712,6 +723,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 return showPanel(player, `shopAdminSubCategoryActionPanel_${targetName}`, context);
 
             const values = formValues as string[];
+            if (!values) return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
             const [newName, newIcon] = values;
             if (newName) {
                 const result = shopAdminManager.editSubCategory(categoryName, targetName, newName, newIcon || '');
@@ -726,6 +738,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 return showPanel(player, `shopAddItemPanel_${categoryName}`, context);
 
             const values = formValues as string[];
+            if (!values) return showPanel(player, `shopAddItemPanel_${categoryName}`, context);
             const [customId, displayName, mcId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
             const icon = iconStr || '';
             const buyPrice = parseInt(buyPriceStr, 10);
@@ -771,13 +784,14 @@ export class ShopPanelHandler implements IPanelHandler {
             await ensureItemsConfig();
             const masterItem = allItems[itemId];
             const values = formValues as string[];
+            if (!values) return showPanel(player, `shopAddItemPanel_${categoryName}`, context);
             const [iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
             const icon = iconStr || '';
             const buyPrice = parseInt(buyPriceStr, 10);
             const sellPrice = parseInt(sellPriceStr, 10);
             const permissionLevel = parseInt(permLevelStr, 10);
 
-            if (!isNaN(buyPrice)) {
+            if (!isNaN(buyPrice) && masterItem) {
                 shopAdminManager.setItem(
                     context.categoryName as string,
                     (context.subCategoryName as string) || null,
@@ -812,6 +826,7 @@ export class ShopPanelHandler implements IPanelHandler {
             if ((response as ModalFormResponse).canceled) return showPanel(player, parent, context);
 
             const vals = formValues as string[];
+            if (!vals) return showPanel(player, parent, context);
             const [dName, mId, icon, bPrice, sPrice, pLevel] = vals;
             shopAdminManager.updateShopItem(categoryName, subCategoryName || null, itemId, {
                 buyPrice: Number(bPrice),

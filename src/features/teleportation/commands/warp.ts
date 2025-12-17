@@ -53,9 +53,14 @@ const warpCommand: CustomCommand = {
             const teleportLogic = () => {
                 try {
                     saveLastLocation(executor);
-                    executor.teleport(warpLocation, { dimension: mc.world.getDimension(warpLocation.dimensionId) });
-                    sendMessage(`§aTeleported to warp '${warpName}'.`, executor);
-                    setCooldown(executor, 'warp');
+                    const dimension = mc.world.getDimension(warpLocation.dimensionId);
+                    if (dimension) {
+                        executor.teleport(warpLocation, { dimension });
+                        sendMessage(`§aTeleported to warp '${warpName}'.`, executor);
+                        setCooldown(executor, 'warp');
+                    } else {
+                        sendMessage(`§cError: Dimension '${warpLocation.dimensionId}' not found.`, executor);
+                    }
                 } catch (e: unknown) {
                     if (e instanceof Error) {
                         sendMessage(`§cFailed to teleport. Error: ${e.message}`, executor);
@@ -67,7 +72,7 @@ const warpCommand: CustomCommand = {
         };
 
         const warpNameArg = (args as unknown as WarpCommandArgs).warpName;
-        if (warpNameArg) {
+        if (warpNameArg !== undefined) {
             teleportToWarp(warpNameArg);
             return;
         }
@@ -97,7 +102,9 @@ const warpCommand: CustomCommand = {
             const selection = (response as ActionFormResponse).selection;
             if (selection !== undefined) {
                 const selectedWarp = warpList[selection];
-                teleportToWarp(selectedWarp);
+                if (selectedWarp) {
+                    teleportToWarp(selectedWarp);
+                }
             }
         } catch (e: unknown) {
             errorLog(`[/warp UI] ${String(e)}`);
@@ -177,7 +184,7 @@ const delWarpCommand: CustomCommand = {
 
         const warpNameArg = (args as unknown as WarpCommandArgs).warpName;
         if (warpNameArg) {
-            deleteWarpByName(warpNameArg);
+            deleteWarpByName(warpNameArg as string);
             return;
         }
 

@@ -49,6 +49,7 @@ function* loadTeamsJob(allIds: number[]) {
     let loadedCount = 0;
     for (let i = 0; i < allIds.length; i++) {
         const id = allIds[i];
+        if (id === undefined) continue;
         try {
             const teamDataStr = mc.world.getDynamicProperty(`${teamPropertyPrefix}${id}`);
             if (teamDataStr && typeof teamDataStr === 'string') {
@@ -90,6 +91,9 @@ export function initialize() {
                 nextTeamId = maxId + 1;
                 saveNextTeamId();
             }
+        } else {
+            // No teams loaded, but maybe nextTeamId stored is outdated?
+            // Rely on stored nextTeamId
         }
 
         // Run loading job

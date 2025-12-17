@@ -30,11 +30,12 @@ const deathCoordsCommand: CustomCommand = {
             }
 
             const targets = resolveTarget(targetName, executor);
-            if (targets.length === 0) {
+            const target = targets[0];
+            if (!target) {
                 return sendMessage('§cPlayer not found.', executor);
             }
-            targetId = targets[0].id;
-            targetDisplayName = targets[0].name;
+            targetId = target.id;
+            targetDisplayName = target.name;
         }
 
         const pData = getPlayer(targetId);

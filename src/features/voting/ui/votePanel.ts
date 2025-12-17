@@ -70,8 +70,11 @@ export async function showVoteMenu(player: mc.Player) {
         }
 
         if (selection < activeVote.options.length) {
-            const res = castVote(player, activeVote.options[selection].id);
-            player.sendMessage(res.message);
+            const selectedOption = activeVote.options[selection];
+            if (selectedOption) {
+                const res = castVote(player, selectedOption.id);
+                player.sendMessage(res.message);
+            }
         }
     } else {
         // No active vote
@@ -129,7 +132,7 @@ async function showCreateVoteUI(player: mc.Player) {
         return;
     }
 
-    const duration = parseInt(durationStr) || 0;
+    const duration = parseInt(durationStr || '0') || 0;
     const durationSeconds = duration * 60;
 
     createVote(player, question, options, durationSeconds);

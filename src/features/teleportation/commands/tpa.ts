@@ -52,6 +52,7 @@ const tpaCommand: CustomCommand = {
         if (targets.length > 1) return sendMessage('§cMultiple players found. Please be more specific.', executor);
 
         const targetPlayer = targets[0];
+        if (!targetPlayer) return sendMessage('§cPlayer not found.', executor);
 
         if (targetPlayer.id === executor.id)
             return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
@@ -102,6 +103,7 @@ const tpaHereCommand: CustomCommand = {
         if (targets.length > 1) return sendMessage('§cMultiple players found. Please be more specific.', executor);
 
         const targetPlayer = targets[0];
+        if (!targetPlayer) return sendMessage('§cPlayer not found.', executor);
 
         if (targetPlayer.id === executor.id)
             return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
@@ -144,7 +146,8 @@ const tpaAcceptCommand: CustomCommand = {
 
         if (targetName) {
             const targets = resolveTarget(targetName, executor);
-            if (targets.length > 0) targetName = targets[0].name;
+            const target = targets[0];
+            if (target) targetName = target.name;
             else {
                 // If not online, maybe it's just a name string? But acceptRequest usually expects exact name or handles it.
                 // Let's pass the string as is if resolution fails, but tpaManager likely matches online players.
@@ -172,7 +175,8 @@ const tpaDenyCommand: CustomCommand = {
 
         if (targetName) {
             const targets = resolveTarget(targetName, executor);
-            if (targets.length > 0) targetName = targets[0].name;
+            const target = targets[0];
+            if (target) targetName = target.name;
         }
 
         denyRequest(executor, targetName);

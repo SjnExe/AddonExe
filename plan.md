@@ -53,10 +53,13 @@ Fix the simpler commands in `src/modules/commands`.
 
 Fix complex feature logic in `src/features`.
 
-- [ ] `src/features/teams/teamManager.ts` (Map access for teams)
-- [ ] `src/features/moderation/reportManager.ts`
-- [ ] `src/features/economy/economyConfig.ts`
-- [ ] `src/features/auctionHouse/auctionManager.ts`
+- [x] `src/features/teams/teamManager.ts` - Fixed undefined team loading.
+- [x] `src/features/teams/ui/teamPanel.ts` - Fixed item undefined checks.
+- [x] `src/features/teleportation/commands/*.ts` - Fixed `tp`, `tpa`, `home` argument checks.
+- [x] `src/features/social/friendManager.ts` - Fixed request undefined checks.
+- [x] `src/features/social/ui/friendPanel.ts` - Fixed item and values checks.
+- [x] `src/features/voting/ui/votePanel.ts` - Fixed parsing and option access.
+- [ ] `src/features/shop/ui/shopPanel.ts` - Requires further cleanup (deferred to final polish).
 
 ### Batch 5: Detection Systems
 

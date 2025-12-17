@@ -26,9 +26,11 @@ const command: CustomCommand = {
         switch (argValues.length) {
             case 1: {
                 // /tp <destinationPlayer>
-                const destPlayer1 = findPlayerByName(argValues[0]);
+                const targetName = argValues[0];
+                if (!targetName) return;
+                const destPlayer1 = findPlayerByName(targetName);
                 if (!destPlayer1) {
-                    sendMessage(`§cPlayer '${argValues[0]}' not found.`, executor);
+                    sendMessage(`§cPlayer '${targetName}' not found.`, executor);
                     return;
                 }
                 saveLastLocation(executor);
@@ -38,14 +40,18 @@ const command: CustomCommand = {
             }
             case 2: {
                 // /tp <playerToMove> <destinationPlayer>
-                const playerToMove = findPlayerByName(argValues[0]);
-                const destPlayer2 = findPlayerByName(argValues[1]);
+                const p1Name = argValues[0];
+                const p2Name = argValues[1];
+                if (!p1Name || !p2Name) return;
+
+                const playerToMove = findPlayerByName(p1Name);
+                const destPlayer2 = findPlayerByName(p2Name);
                 if (!playerToMove) {
-                    sendMessage(`§cPlayer '${argValues[0]}' not found.`, executor);
+                    sendMessage(`§cPlayer '${p1Name}' not found.`, executor);
                     return;
                 }
                 if (!destPlayer2) {
-                    sendMessage(`§cPlayer '${argValues[1]}' not found.`, executor);
+                    sendMessage(`§cPlayer '${p2Name}' not found.`, executor);
                     return;
                 }
                 saveLastLocation(playerToMove);
@@ -55,8 +61,11 @@ const command: CustomCommand = {
             }
             case 3: {
                 // /tp <x> <y> <z>
-                const [x3, y3, z3] = argValues.map(Number);
-                if (isNaN(x3) || isNaN(y3) || isNaN(z3)) {
+                const coords3 = argValues.map(Number);
+                const x3 = coords3[0];
+                const y3 = coords3[1];
+                const z3 = coords3[2];
+                if (x3 === undefined || y3 === undefined || z3 === undefined || isNaN(x3) || isNaN(y3) || isNaN(z3)) {
                     sendMessage('§cInvalid coordinates provided.', executor);
                     return;
                 }
@@ -67,13 +76,18 @@ const command: CustomCommand = {
             }
             case 4: {
                 // /tp <targetPlayer> <x> <y> <z>
-                const targetPlayer = findPlayerByName(argValues[0]);
+                const tName = argValues[0];
+                if (!tName) return;
+                const targetPlayer = findPlayerByName(tName);
                 if (!targetPlayer) {
-                    sendMessage(`§cPlayer '${argValues[0]}' not found.`, executor);
+                    sendMessage(`§cPlayer '${tName}' not found.`, executor);
                     return;
                 }
-                const [x4, y4, z4] = argValues.slice(1).map(Number);
-                if (isNaN(x4) || isNaN(y4) || isNaN(z4)) {
+                const coords4 = argValues.slice(1).map(Number);
+                const x4 = coords4[0];
+                const y4 = coords4[1];
+                const z4 = coords4[2];
+                if (x4 === undefined || y4 === undefined || z4 === undefined || isNaN(x4) || isNaN(y4) || isNaN(z4)) {
                     sendMessage('§cInvalid coordinates provided.', executor);
                     return;
                 }
