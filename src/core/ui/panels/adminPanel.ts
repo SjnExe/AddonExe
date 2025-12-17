@@ -19,8 +19,11 @@ export class AdminPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [];
         // Admin Panel uses static items (delegates to sub-panels)
         if (panelId === 'adminPanel') {
-            const staticItems = getStaticMenuItems(panelDefinitions[panelId], 1); // Admin
-            items.push(...staticItems);
+            const def = panelDefinitions[panelId];
+            if (def) {
+                const staticItems = getStaticMenuItems(def, 1); // Admin
+                items.push(...staticItems);
+            }
             return Promise.resolve(items);
         }
 
@@ -45,6 +48,7 @@ export class AdminPanelHandler implements IPanelHandler {
 
             const texts = floatingTextManager.getAllTexts();
             texts.forEach((text) => {
+                if (!text) return;
                 items.push({
                     id: text.id,
                     text: `§6${text.id}§r\n${formatLocation(text.location)}`,
@@ -108,6 +112,7 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextEditPanel') {
             const id = (context.id || context.selectedItemId) as string;
+            if (!id) return Promise.resolve(null);
             const text = floatingTextManager.getTextById(id);
             if (!text) return Promise.resolve(null);
             const expiresAt = text.expiresAt ?? null;
@@ -182,6 +187,7 @@ export class AdminPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {
                         ...context,

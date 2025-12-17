@@ -45,6 +45,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const categories = getVisibleCategories(pData);
             const paginated = getPaginatedItems(categories, (context.page as number) || 1);
             paginated.forEach((cat) => {
+                if (!cat) return;
                 items.push({
                     id: cat.id,
                     text: cat.title,
@@ -74,6 +75,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const systems = getSystemsByCategory(pData, category);
             const paginated = getPaginatedItems(systems, (context.page as number) || 1);
             paginated.forEach((sys) => {
+                if (!sys) return;
                 items.push({
                     id: sys.id,
                     text: sys.title,
@@ -92,6 +94,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const categories = getVisibleCategories(pData);
             const paginated = getPaginatedItems(categories, (context.page as number) || 1);
             paginated.forEach((cat) => {
+                if (!cat) return;
                 items.push({
                     id: cat.id,
                     text: `Reset ${cat.title}`,
@@ -131,6 +134,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             });
 
             paginated.forEach((sys) => {
+                if (!sys) return;
                 items.push({
                     id: sys.id,
                     text: `§4Reset ${sys.title}`,
@@ -197,6 +201,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
                 if (item.actionType === 'openPanel') {
                     // Title Fix for SubCategories
                     if (item.actionValue.startsWith('configSubCategoryPanel_')) {

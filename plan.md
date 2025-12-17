@@ -32,10 +32,10 @@ Focus on the foundational files in `src/core`. These are critical and heavily us
 
 Fix UI logic which often iterates over arrays of items.
 
-- [ ] `src/core/ui/panelBuilder.ts`
-- [ ] `src/core/ui/panelHandlers.ts`
-- [ ] `src/core/ui/uiUtils.ts`
-- [ ] `src/core/ui/panels/*.ts` (e.g., `rankPanel.ts`, `playerPanel.ts`)
+- [x] `src/core/ui/panelBuilder.ts` - Verified no errors.
+- [x] `src/core/ui/panelHandlers.ts` - Verified no errors.
+- [x] `src/core/ui/uiUtils.ts` - Verified no errors.
+- [x] `src/core/ui/panels/*.ts` - Fixed loop iterators and safe array access in all panels.
 
 ### Batch 3: Command Modules (Part A)
 

@@ -42,6 +42,7 @@ export class GeneralPanelHandler implements IPanelHandler {
         const items = await this.getItems(player, panelId, context);
         if (response.selection >= 0 && response.selection < items.length) {
             const item = items[response.selection];
+            if (!item) return;
             if (item.actionType === 'openPanel') {
                 return showPanel(player, item.actionValue, { ...context, page: 1 });
             }

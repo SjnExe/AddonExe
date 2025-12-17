@@ -32,8 +32,11 @@ export class InfoPanelHandler implements IPanelHandler {
         const page = (context.page as number) || 1;
 
         if (panelId === 'infoPanel') {
-            const staticItems = getStaticMenuItems(panelDefinitions[panelId], permissionLevel);
-            items.push(...staticItems);
+            const def = panelDefinitions[panelId];
+            if (def) {
+                const staticItems = getStaticMenuItems(def, permissionLevel);
+                items.push(...staticItems);
+            }
             return Promise.resolve(items);
         }
 
@@ -51,6 +54,7 @@ export class InfoPanelHandler implements IPanelHandler {
             const links = serverInfo?.helpfulLinks || [];
 
             links.forEach((link, idx) => {
+                if (!link) return;
                 items.push({
                     id: `link_${idx}`,
                     text: link.title,
@@ -79,6 +83,7 @@ export class InfoPanelHandler implements IPanelHandler {
             const rules = rulesManager.getRules();
             const paginated = getPaginatedItems(rules, page);
             paginated.forEach((rule, idx) => {
+                if (!rule) return;
                 const realIndex = (page - 1) * itemsPerPage + idx;
                 items.push({
                     id: String(realIndex),
@@ -123,6 +128,7 @@ export class InfoPanelHandler implements IPanelHandler {
             const links = helpfulLinksManager.getHelpfulLinks();
             const paginated = getPaginatedItems(links, page);
             paginated.forEach((link, idx) => {
+                if (!link) return;
                 const realIndex = (page - 1) * itemsPerPage + idx;
                 items.push({
                     id: String(realIndex),
@@ -198,6 +204,7 @@ export class InfoPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {
@@ -239,7 +246,7 @@ export class InfoPanelHandler implements IPanelHandler {
                     const config = getConfig() as unknown as MainConfig;
                     const serverInfo = config.serverInfo as { helpfulLinks: { title: string; url: string }[] };
                     const links = serverInfo?.helpfulLinks || [];
-                    const index = parseInt(item.id.split('_')[1]);
+                    const index = parseInt(item.id.split('_')[1] || '0');
                     const link = links[index];
 
                     if (link) {

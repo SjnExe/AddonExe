@@ -64,6 +64,7 @@ export class PlayerPanelHandler implements IPanelHandler {
             const config = getConfig();
 
             for (const entry of paginated) {
+                if (!entry) continue;
                 const targetP = mc.world.getAllPlayers().find((p) => p.id === entry.id);
                 const rank = targetP
                     ? rankManager.getPlayerRank(targetP, config)
@@ -104,6 +105,7 @@ export class PlayerPanelHandler implements IPanelHandler {
 
     private getVisiblePlayerActionItems(context: UIContext, permissionLevel: number, viewerId?: string): PanelItem[] {
         const panelDef = panelDefinitions.playerActionsPanel;
+        if (!panelDef) return [];
         const config = getConfig();
         const menuItems = getStaticMenuItems(panelDef, permissionLevel);
         const visibleItems: PanelItem[] = [];
@@ -206,6 +208,7 @@ export class PlayerPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
 
                 if (item.actionType === 'openPanel') {
                     const nextContext: UIContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };

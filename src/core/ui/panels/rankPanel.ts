@@ -48,6 +48,7 @@ export class RankPanelHandler implements IPanelHandler {
             ranks.sort((a, b) => a.permissionLevel - b.permissionLevel);
 
             ranks.forEach((rank) => {
+                if (!rank) return;
                 items.push({
                     id: rank.id,
                     text: `§l${rank.name}§r\nLevel: ${rank.permissionLevel}`,
@@ -123,16 +124,18 @@ export class RankPanelHandler implements IPanelHandler {
             }
 
             const newRank: RankDefinition = {
-                id,
-                name,
-                permissionLevel: parseInt(permStr) || 1024,
+                id: id as string,
+                name: name as string,
+                permissionLevel: parseInt(permStr as string) || 1024,
                 chatFormatting: {
                     prefixText: prefix,
-                    nameColor,
-                    messageColor
+                    nameColor: nameColor,
+                    messageColor: messageColor
                 },
-                conditions: []
-            };
+                nametagPrefix: undefined,
+                conditions: [],
+                locked: false
+            } as RankDefinition;
 
             const newConfig = { ...config };
             newConfig.rankDefinitions.push(newRank);
@@ -187,6 +190,7 @@ export class RankPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {
