@@ -75,7 +75,9 @@ async function showKitList(player: mc.Player, page: number) {
         }
 
         const selectedKitIndex = startIndex + selection;
-        const selectedKitName = availableKits[selectedKitIndex].name;
+        const selectedKit = availableKits[selectedKitIndex];
+        if (!selectedKit) return;
+        const selectedKitName = selectedKit.name;
         const result = kitsManager.giveKit(player, selectedKitName);
         if (result.success) {
             player.sendMessage(`§a${result.message}`);

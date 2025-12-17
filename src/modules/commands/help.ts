@@ -196,7 +196,9 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
         if (response.canceled || response.selection === undefined) return;
 
         const selectedCat = sortedCats[response.selection];
-        await showUICategory(player, selectedCat, userPermissionLevel);
+        if (selectedCat) {
+            await showUICategory(player, selectedCat, userPermissionLevel);
+        }
     } catch {
         // Ignore UI errors
     }
@@ -222,7 +224,9 @@ async function showUICategory(player: mc.Player, category: string, userPermissio
         }
 
         const selectedCmd = visibleCmds[response.selection - 1];
-        showSpecificHelp(player, selectedCmd.name);
+        if (selectedCmd) {
+            showSpecificHelp(player, selectedCmd.name);
+        }
     } catch {
         // Ignore UI errors
     }

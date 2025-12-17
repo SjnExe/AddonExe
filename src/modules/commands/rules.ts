@@ -31,9 +31,15 @@ const rulesCommand: CustomCommand = {
             return;
         }
 
-        const ruleNumber = args.ruleNumber ? Number(args.ruleNumber) : null;
+        // Explicitly handle "undefined" from args
+        const ruleNumber = args.ruleNumber !== undefined ? Number(args.ruleNumber) : null;
 
         if (ruleNumber !== null) {
+            // Note: rules.length is safe because rules is checked for length > 0 above
+            // But strictness: rules[ruleNumber-1] might be undefined if logic is flawed
+            // However, we check ruleNumber < 1 || ruleNumber > rules.length
+            // So ruleNumber-1 is in bounds [0, length-1].
+
             if (isNaN(ruleNumber) || ruleNumber < 1 || ruleNumber > rules.length) {
                 const message = '§cInvalid rule number. Use §e/rules§c to see all rules.';
                 if (executor instanceof mc.Player) {
@@ -43,7 +49,9 @@ const rulesCommand: CustomCommand = {
                 }
                 return;
             }
-            const messages = ['§l§a--- Server Rules ---', rules[ruleNumber - 1], '§l§a------------------'];
+            // Safe access because of range check above
+            const ruleText = rules[ruleNumber - 1];
+            const messages = ['§l§a--- Server Rules ---', ruleText || '', '§l§a------------------'];
             if (executor instanceof mc.Player) {
                 messages.forEach((msg) => sendMessage(msg, executor, { raw: true }));
             } else {

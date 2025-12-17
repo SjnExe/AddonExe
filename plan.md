@@ -41,9 +41,13 @@ Fix UI logic which often iterates over arrays of items.
 
 Fix the simpler commands in `src/modules/commands`.
 
-- [ ] `src/modules/commands/inventory.ts`
-- [ ] `src/modules/commands/help.ts` (Categorized commands logic)
-- [ ] `src/modules/commands/warp.ts` & `tpa.ts` (Parameter array access)
+- [x] `src/modules/commands/inventory.ts` - Added dimension and object checks.
+- [x] `src/modules/commands/help.ts` - Handled optional command arguments.
+- [x] `src/modules/commands/bounty.ts` - Added bounty existence checks.
+- [x] `src/modules/commands/kit.ts` - Added kit existence checks.
+- [x] `src/modules/commands/rules.ts` - Added rule index checks.
+- [x] `src/modules/commands/commandManager.ts` - Added config existence checks.
+- [x] `src/modules/commands/clear.ts` - Added target player checks.
 
 ### Batch 4: Feature Modules (Part B)
 

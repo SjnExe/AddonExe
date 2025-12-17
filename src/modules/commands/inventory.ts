@@ -17,15 +17,16 @@ const invseeCommand: CustomCommand = {
 
         const targetName = params.player as string;
         const targets = resolveTarget(targetName, executor);
-        if (targets.length === 0) {
+        const targetPlayer = targets[0];
+
+        if (!targetPlayer) {
             executor.sendMessage('§cPlayer not found.');
             return;
         }
-        const targetPlayer = targets[0];
 
         executor.sendMessage(`§eInventory of ${targetPlayer.name}:`);
         const inventory = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent)?.container;
-        const equipment = targetPlayer.getComponent('equippable') as mc.EntityEquippableComponent;
+        const equipment = targetPlayer.getComponent('equippable') as mc.EntityEquippableComponent | undefined;
 
         if (!inventory) {
             executor.sendMessage('§cCould not access inventory.');
@@ -115,7 +116,10 @@ const ecwipeCommand: CustomCommand = {
                 // Using runCommand to bypass API limitation
                 // Quote name to handle spaces
                 const command = `replaceitem entity "${targetNameResolved}" slot.enderchest ${i} air`;
-                mc.world.getDimension('overworld').runCommand(command);
+                const overworld = mc.world.getDimension('overworld');
+                if (overworld) {
+                    overworld.runCommand(command);
+                }
             }
         } catch {
             success = false;
@@ -147,11 +151,12 @@ const copyinvCommand: CustomCommand = {
 
         const targetName = params.player as string;
         const targets = resolveTarget(targetName, executor);
-        if (targets.length === 0) {
+        const targetPlayer = targets[0];
+
+        if (!targetPlayer) {
             executor.sendMessage('§cPlayer not found.');
             return;
         }
-        const targetPlayer = targets[0];
 
         const targetInv = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent)?.container;
         const myInv = (executor.getComponent('inventory') as mc.EntityInventoryComponent)?.container;
