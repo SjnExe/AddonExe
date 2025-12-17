@@ -63,8 +63,8 @@ Fix complex feature logic in `src/features`.
 
 ### Batch 5: Detection Systems
 
-- [ ] `src/modules/detections/xrayDetection.ts` (Ore map access)
-- [ ] `src/modules/detections/spawnProtection.ts`
+- [x] `src/modules/detections/xrayDetection.ts` - Fixed ore type existence checks.
+- [x] `src/modules/detections/spawnProtection.ts` - Verified safe.
 
 ## Fix Patterns
 
