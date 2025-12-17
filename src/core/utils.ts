@@ -58,7 +58,10 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
                         closestPlayer = p;
                     }
                 }
-                return closestPlayer ? [closestPlayer] : [executor];
+                if (closestPlayer !== null) {
+                    return [closestPlayer as mc.Player];
+                }
+                return [executor];
             }
             case '@r': {
                 if (allPlayers.length === 0) return [];
@@ -82,12 +85,12 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
 
     // Vanish Check: remove vanished players if executor is not staff
     const executorData = getPlayer(executor.id);
-    const isStaff = executorData && executorData.permissionLevel <= 2;
+    const isStaff = executorData !== undefined && executorData.permissionLevel <= 2;
 
     const visibleMatches = partialMatches.filter((p) => {
         if (isStaff) return true;
         const targetData = getPlayer(p.id);
-        return !targetData?.isVanished;
+        return targetData ? !targetData.isVanished : true;
     });
 
     return visibleMatches;
@@ -106,8 +109,14 @@ export function parseDuration(durationString: string): number {
         return 0;
     }
 
-    const value = parseInt(match[1], 10);
+    const valueStr = match[1];
     const unit = match[2];
+
+    if (valueStr === undefined || unit === undefined) {
+        return 0;
+    }
+
+    const value = parseInt(valueStr, 10);
     let multiplier = 0;
 
     switch (unit) {
@@ -450,7 +459,7 @@ export function generateDisplayName(typeId: string): string {
     }
 
     // Remove the namespace (e.g., 'minecraft:')
-    const nameWithoutNamespace = typeId.includes(':') ? typeId.split(':')[1] : typeId;
+    const nameWithoutNamespace = (typeId.includes(':') ? typeId.split(':')[1] : typeId) || typeId;
 
     // Replace underscores with spaces and capitalize each word
     const formattedName = nameWithoutNamespace
@@ -574,8 +583,12 @@ export function parseCurrency(input: string | number): number {
         return NaN;
     }
 
-    const value = parseFloat(match[1]);
+    const valueStr = match[1];
     const suffix = match[2];
+
+    if (valueStr === undefined) return NaN;
+
+    const value = parseFloat(valueStr);
 
     if (isNaN(value)) {
         return NaN;

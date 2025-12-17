@@ -22,10 +22,11 @@ This plan is designed for a future development session to safely enable the Type
 
 Focus on the foundational files in `src/core`. These are critical and heavily used.
 
-- [ ] `src/core/utils.ts` - Fix array access in `resolveTarget` and helper functions.
-- [ ] `src/core/playerDataManager.ts` - Fix map/object access for player data properties.
-- [ ] `src/core/configManager.ts` & `configurations.ts` - Fix config object access.
-- [ ] `src/core/commandManager.ts` - Fix `this.commands.get(...)` returns (often returns `undefined`).
+- [x] `src/core/utils.ts` - Fix array access in `resolveTarget` and helper functions.
+- [x] `src/core/playerDataManager.ts` - Verified no errors.
+- [x] `src/core/configManager.ts` & `configurations.ts` - Fix config object access.
+- [x] `src/core/commandManager.ts` - Fix `this.commands.get(...)` returns.
+- [x] `src/core/rankDb.ts`, `src/core/helpfulLinksManager.ts`, `src/core/kitsManager.ts`, `src/core/rulesManager.ts`, `src/core/sidebarManager.ts` - Fixed various `undefined` checks.
 
 ### Batch 2: Core UI Panels
 

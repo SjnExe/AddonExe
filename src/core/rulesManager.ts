@@ -44,6 +44,9 @@ export function editRule(index: number, newText: string) {
         return;
     }
     const oldText = rules[index];
+    if (oldText === undefined) {
+        return;
+    }
     rules[index] = newText;
     saveRules(rules);
     debugLog(`[RulesManager] Edited rule at index ${index}: from "${oldText}" to "${newText}"`);
@@ -59,6 +62,9 @@ export function deleteRule(index: number) {
         return;
     }
     const deletedRule = rules.splice(index, 1);
+    if (deletedRule[0] === undefined) {
+        return;
+    }
     saveRules(rules);
     debugLog(`[RulesManager] Deleted rule at index ${index}: "${deletedRule[0]}"`);
 }
@@ -78,14 +84,24 @@ export function moveRule(index: number, direction: 'up' | 'down') {
         if (index === 0) {
             return;
         } // Can't move up if already at the top
-        [rules[index - 1], rules[index]] = [rules[index], rules[index - 1]];
-        debugLog(`[RulesManager] Moved rule up at index ${index}`);
+        const prev = rules[index - 1];
+        const curr = rules[index];
+        if (prev !== undefined && curr !== undefined) {
+            rules[index - 1] = curr;
+            rules[index] = prev;
+            debugLog(`[RulesManager] Moved rule up at index ${index}`);
+        }
     } else if (direction === 'down') {
         if (index === rules.length - 1) {
             return;
         } // Can't move down if already at the bottom
-        [rules[index], rules[index + 1]] = [rules[index + 1], rules[index]];
-        debugLog(`[RulesManager] Moved rule down at index ${index}`);
+        const next = rules[index + 1];
+        const curr = rules[index];
+        if (next !== undefined && curr !== undefined) {
+            rules[index + 1] = curr;
+            rules[index] = next;
+            debugLog(`[RulesManager] Moved rule down at index ${index}`);
+        }
     }
 
     saveRules(rules);

@@ -561,7 +561,11 @@ class CommandManager {
                 ? arg.slice(1, -1)
                 : arg
         );
-        let commandName = cleanedArgs.shift()!.toLowerCase();
+        const rawCommandName = cleanedArgs.shift();
+        if (!rawCommandName) {
+            return true;
+        }
+        let commandName = rawCommandName.toLowerCase();
 
         // Resolve alias to primary command name
         commandName = this.aliases.get(commandName) || commandName;

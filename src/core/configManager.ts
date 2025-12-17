@@ -16,8 +16,10 @@ export function onConfigUpdated(callback: (config: typeof Config) => void) {
 }
 
 function notifyCallbacks() {
-    const config = mainConfigManager.get();
-    updateCallbacks.forEach((cb) => cb(config));
+    if (mainConfigManager) {
+        const config = mainConfigManager.get();
+        updateCallbacks.forEach((cb) => cb(config));
+    }
 }
 
 export async function initializeConfigManager(isMigration: boolean) {
@@ -27,15 +29,31 @@ export async function initializeConfigManager(isMigration: boolean) {
     mainConfigManager.load(isMigration);
 }
 
-export const getConfig = () => mainConfigManager.get();
-export const updateConfig = (key: string, value: unknown) => {
-    mainConfigManager.update(key, value);
-    notifyCallbacks();
+export const getConfig = () => {
+    if (!mainConfigManager) {
+        throw new Error('[ConfigManager] Config manager not initialized.');
+    }
+    return mainConfigManager.get();
 };
-export const reloadConfig = () => mainConfigManager.reload();
+
+export const updateConfig = (key: string, value: unknown) => {
+    if (mainConfigManager) {
+        mainConfigManager.update(key, value);
+        notifyCallbacks();
+    }
+};
+
+export const reloadConfig = () => {
+    if (mainConfigManager) {
+        mainConfigManager.reload();
+    }
+};
+
 export const updateMultipleConfig = (updates: Record<string, unknown>) => {
-    mainConfigManager.updateMultiple(updates);
-    notifyCallbacks();
+    if (mainConfigManager) {
+        mainConfigManager.updateMultiple(updates);
+        notifyCallbacks();
+    }
 };
 
 export async function resetConfigSection(

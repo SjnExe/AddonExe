@@ -51,6 +51,9 @@ export function editHelpfulLink(index: number, newTitle: string, newUrl: string)
         return;
     }
     const oldLink = links[index];
+    if (!oldLink) {
+        return;
+    }
     links[index] = { title: newTitle, url: newUrl };
     saveHelpfulLinks(links);
     debugLog(`[HelpfulLinksManager] Edited link at index ${index}: from "${oldLink.title}" to "${newTitle}"`);
@@ -66,8 +69,12 @@ export function deleteHelpfulLink(index: number) {
         return;
     }
     const deletedLink = links.splice(index, 1);
+    const link = deletedLink[0];
+    if (!link) {
+        return;
+    }
     saveHelpfulLinks(links);
-    debugLog(`[HelpfulLinksManager] Deleted link at index ${index}: "${deletedLink[0].title}"`);
+    debugLog(`[HelpfulLinksManager] Deleted link at index ${index}: "${link.title}"`);
 }
 
 /**
@@ -85,14 +92,24 @@ export function moveHelpfulLink(index: number, direction: 'up' | 'down') {
         if (index === 0) {
             return;
         } // Can't move up if already at the top
-        [links[index - 1], links[index]] = [links[index], links[index - 1]];
-        debugLog(`[HelpfulLinksManager] Moved link up at index ${index}`);
+        const prev = links[index - 1];
+        const curr = links[index];
+        if (prev && curr) {
+            links[index - 1] = curr;
+            links[index] = prev;
+            debugLog(`[HelpfulLinksManager] Moved link up at index ${index}`);
+        }
     } else if (direction === 'down') {
         if (index === links.length - 1) {
             return;
         } // Can't move down if already at the bottom
-        [links[index], links[index + 1]] = [links[index + 1], links[index]];
-        debugLog(`[HelpfulLinksManager] Moved link down at index ${index}`);
+        const next = links[index + 1];
+        const curr = links[index];
+        if (next && curr) {
+            links[index + 1] = curr;
+            links[index] = next;
+            debugLog(`[HelpfulLinksManager] Moved link down at index ${index}`);
+        }
     }
 
     saveHelpfulLinks(links);
