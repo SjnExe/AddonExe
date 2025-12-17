@@ -26,7 +26,7 @@ const invseeCommand: CustomCommand = {
 
         executor.sendMessage(`§eInventory of ${targetPlayer.name}:`);
         const inventory = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent)?.container;
-        const equipment = targetPlayer.getComponent('equippable') as mc.EntityEquippableComponent | undefined;
+        const equipment = targetPlayer.getComponent('equippable');
 
         if (!inventory) {
             executor.sendMessage('§cCould not access inventory.');

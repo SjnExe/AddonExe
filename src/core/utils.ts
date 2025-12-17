@@ -59,7 +59,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
                     }
                 }
                 if (closestPlayer !== null) {
-                    return [closestPlayer as mc.Player];
+                    return [closestPlayer];
                 }
                 return [executor];
             }

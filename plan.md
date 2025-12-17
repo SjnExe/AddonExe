@@ -66,6 +66,14 @@ Fix complex feature logic in `src/features`.
 - [x] `src/modules/detections/xrayDetection.ts` - Fixed ore type existence checks.
 - [x] `src/modules/detections/spawnProtection.ts` - Verified safe.
 
+### Final Polish
+
+- [x] `src/features/teleportation/commands/warp.ts` - Fixed type assertions.
+- [x] `src/features/social/ui/friendPanel.ts` - Fixed undefined check.
+- [x] `src/core/ui/panels/rankPanel.ts` - Fixed unnecessary assertions.
+- [x] Linting: Removed unnecessary type assertions across codebase.
+- [ ] `src/features/shop/ui/shopPanel.ts` - **Pending Refactor**: Contains remaining strict type errors due to complex UI flow. Recommended for future refactor.
+
 ## Fix Patterns
 
 When fixing these errors, apply the following patterns:

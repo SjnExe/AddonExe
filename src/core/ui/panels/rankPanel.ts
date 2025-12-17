@@ -124,9 +124,9 @@ export class RankPanelHandler implements IPanelHandler {
             }
 
             const newRank: RankDefinition = {
-                id: id as string,
-                name: name as string,
-                permissionLevel: parseInt(permStr as string) || 1024,
+                id: id,
+                name: name,
+                permissionLevel: parseInt(permStr) || 1024,
                 chatFormatting: {
                     prefixText: prefix,
                     nameColor: nameColor,

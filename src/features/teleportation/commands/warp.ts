@@ -184,7 +184,7 @@ const delWarpCommand: CustomCommand = {
 
         const warpNameArg = (args as unknown as WarpCommandArgs).warpName;
         if (warpNameArg) {
-            deleteWarpByName(warpNameArg as string);
+            deleteWarpByName(warpNameArg);
             return;
         }
 
