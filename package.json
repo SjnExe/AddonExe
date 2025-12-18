@@ -9,6 +9,7 @@
         "reinstall": "rm -rf node_modules package-lock.json && npm install",
         "check-types": "tsc --noEmit",
         "build": "node scripts/generate-command-index.js && npm run clean && node scripts/build.js",
+        "build:release": "node scripts/generate-command-index.js && npm run clean && node scripts/build.js --minify",
         "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"node scripts/build.js --watch\"",
         "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests",
         "lint": "eslint . && npm run check-types && node scripts/validate-filtered.js",
