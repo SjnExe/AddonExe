@@ -168,15 +168,20 @@ export class RankPanelHandler implements IPanelHandler {
             // Cannot edit locked ranks fully?
             // We allow editing logic, but maybe not deletion if locked.
 
-            const updatedRank = { ...config.rankDefinitions[rankIndex] };
-            updatedRank.name = name;
-            updatedRank.permissionLevel = parseInt(permStr) || 1024;
-            updatedRank.chatFormatting = {
-                prefixText: prefix,
-                nameColor,
-                messageColor
+            const existingRank = config.rankDefinitions[rankIndex];
+            if (!existingRank) return showPanel(player, 'rankManagementPanel');
+
+            const updatedRank: RankDefinition = {
+                ...existingRank,
+                name: name,
+                permissionLevel: parseInt(permStr) || 1024,
+                chatFormatting: {
+                    prefixText: prefix,
+                    nameColor,
+                    messageColor
+                },
+                locked: locked
             };
-            updatedRank.locked = locked;
 
             const newConfig = { ...config };
             newConfig.rankDefinitions[rankIndex] = updatedRank;

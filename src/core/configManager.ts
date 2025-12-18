@@ -70,11 +70,13 @@ export async function resetConfigSection(
         await Promise.all(resetPromises);
 
         for (const key in configResetCallbacks) {
-            configResetCallbacks[key](player);
+            const cb = configResetCallbacks[key];
+            if (cb) cb(player);
         }
         for (const key in configResetRegistry) {
-            if (configResetRegistry[key].postResetCallback) {
-                configResetRegistry[key].postResetCallback(player);
+            const entry = configResetRegistry[key];
+            if (entry && entry.postResetCallback) {
+                entry.postResetCallback(player);
             }
         }
 

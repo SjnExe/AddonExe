@@ -227,7 +227,9 @@ export class SidebarPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'moveUp') {
                     if (index > 0) {
-                        [lines[index - 1], lines[index]] = [lines[index], lines[index - 1]];
+                        const temp = lines[index - 1] || '';
+                        lines[index - 1] = lines[index] || '';
+                        lines[index] = temp;
                         save('§aMoved up.');
                     }
                     return showPanel(player, listPanelId);
@@ -235,7 +237,9 @@ export class SidebarPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'moveDown') {
                     if (index < lines.length - 1) {
-                        [lines[index + 1], lines[index]] = [lines[index], lines[index + 1]];
+                        const temp = lines[index + 1] || '';
+                        lines[index + 1] = lines[index] || '';
+                        lines[index] = temp;
                         save('§aMoved down.');
                     }
                     return showPanel(player, listPanelId);

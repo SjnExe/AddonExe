@@ -113,6 +113,7 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
 
     if (selection < slice.length) {
         const log = slice[selection];
+        if (!log) return;
         const detail = `Player: ${log.playerName}\nType: ${log.type}\nReason: ${log.reason}\nAdmin: ${log.adminName}\nDate: ${new Date(log.timestamp).toLocaleString()}\nDuration: ${log.duration || 'N/A'}`;
         const detailForm = new ActionFormData().title('Log Detail').body(detail).button('Back');
         await uiWait(player, detailForm);
@@ -195,6 +196,7 @@ async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string)
 
     if (selection < slice.length) {
         const log = slice[selection];
+        if (!log) return;
         const detail = `Player: ${log.playerName}\nCheck: ${log.checkName}\nVL: ${log.vl}\nDetails: ${log.details}\nTime: ${new Date(log.timestamp).toLocaleString()}`;
         const detailForm = new ActionFormData().title('Flag Detail').body(detail).button('Back');
         await uiWait(player, detailForm);
@@ -295,6 +297,7 @@ async function showChatLogs(player: mc.Player, page: number, date: string, nameQ
 
     if (selection < slice.length) {
         const log = slice[selection];
+        if (!log) return;
         const detail = `Player: ${log.playerName}\nRank: ${log.rank || 'Default'}\nTime: ${new Date(log.timestamp).toLocaleString()}\n\nMessage:\n${log.message}`;
         const detailForm = new ActionFormData().title('Chat Detail').body(detail).button('Back');
         await uiWait(player, detailForm);

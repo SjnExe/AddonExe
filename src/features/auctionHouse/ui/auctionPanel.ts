@@ -125,7 +125,10 @@ export async function showAuctionHouse(
     // Listing Selected
     const listingIndex = selection - offset;
     if (listingIndex >= 0 && listingIndex < listings.length) {
-        await showListingDetail(player, listings[listingIndex]);
+        const listing = listings[listingIndex];
+        if (listing) {
+            await showListingDetail(player, listing);
+        }
     }
 }
 
