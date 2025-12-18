@@ -20,16 +20,24 @@ interface Item {
     itemId?: string;
 }
 
-interface ShopEntry {
-    type: 'item' | 'subCategory';
+interface ShopCategoryEntry {
+    type: 'subCategory';
     id: string;
-    name?: string; // subCategory name
-    icon?: string;
-    displayName?: string; // item displayName
-    buyPrice?: number;
-    sellPrice?: number;
-    permissionLevel?: number;
+    name: string;
+    icon: string;
 }
+
+interface ShopItemEntry {
+    type: 'item';
+    id: string;
+    icon?: string;
+    displayName?: string;
+    buyPrice: number;
+    sellPrice: number;
+    permissionLevel: number;
+}
+
+type ShopEntry = ShopCategoryEntry | ShopItemEntry;
 
 let allItems: Record<string, Item> = {};
 
@@ -232,7 +240,7 @@ export class ShopPanelHandler implements IPanelHandler {
                     if (!entry) return;
                     if (entry.type === 'subCategory') {
                         items.push({
-                            id: entry.name!,
+                            id: entry.name,
                             text: `§6${entry.name}`,
                             icon: entry.icon,
                             permissionLevel: 1024,
@@ -388,8 +396,9 @@ export class ShopPanelHandler implements IPanelHandler {
                         const sub = category.subCategories[n];
                         return {
                             id: n,
+                            name: n,
                             type: 'subCategory' as const,
-                            icon: sub?.icon
+                            icon: sub?.icon || ''
                         };
                     }),
                     ...shopItems.map((n) => {
@@ -398,7 +407,10 @@ export class ShopPanelHandler implements IPanelHandler {
                             id: n,
                             type: 'item' as const,
                             icon: item?.icon,
-                            displayName: item?.displayName
+                            displayName: item?.displayName,
+                            buyPrice: item?.buyPrice || -1,
+                            sellPrice: item?.sellPrice || -1,
+                            permissionLevel: item?.permissionLevel || 1024
                         };
                     })
                 ];
@@ -465,7 +477,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 const paginated = getPaginatedItems(shopItems, (context.page as number) || 1);
                 paginated.forEach((id: string) => {
                     if (!id) return;
-                    const item = (subCategory.items as Record<string, ShopItem>)[id];
+                    const item = (subCategory.items as Record<string, any>)[id];
                     if (!item) return;
                     const masterItem = allItems[id] || {};
                     items.push({
@@ -531,9 +543,6 @@ export class ShopPanelHandler implements IPanelHandler {
 
         return items;
     }
-
-    // ... (rest of the file is mostly form handling, which is safer now with explicit checks)
-    // I will include the rest of the file content for completeness.
 
     async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
         if (panelId === 'shopSearchPanel') {
@@ -842,6 +851,9 @@ export class ShopPanelHandler implements IPanelHandler {
             if ((response as ModalFormResponse).canceled) return showPanel(player, parent, context);
 
             const shopConfig = getShopConfig();
+            await ensureItemsConfig();
+            const masterItem = allItems[itemId];
+
             let shopItem;
             if (subCategoryName) {
                 shopItem = shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId];
@@ -849,7 +861,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 shopItem = shopConfig.categories[categoryName]?.items[itemId];
             }
 
-            if (!shopItem) return;
+            if (!shopItem) return null;
 
             const canBuy = context.view !== 'sell' && (shopItem.buyPrice ?? 0) > 0;
             const canSell = context.view !== 'buy' && (shopItem.sellPrice ?? 0) > 0;

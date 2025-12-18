@@ -84,6 +84,7 @@ export class KitPanelHandler implements IPanelHandler {
             const paginated = getPaginatedItems(kitNames, (context.page as number) || 1);
             paginated.forEach((name) => {
                 const kit = allKits[name];
+                if (!kit) return;
                 items.push({
                     id: name,
                     text: `${name}\n${kit.enabled ? '§2[Enabled]' : '§4[Disabled]'}`,
@@ -203,6 +204,7 @@ export class KitPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {

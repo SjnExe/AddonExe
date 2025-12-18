@@ -108,6 +108,11 @@ const freezeCommand: CustomCommand = {
             return;
         }
         const targetPlayer = targetPlayers[0];
+        if (!targetPlayer) {
+            if (executor instanceof mc.Player) sendMessage('§cPlayer not found.', executor);
+            else executor.sendMessage('§cPlayer not found.');
+            return;
+        }
         if (executor instanceof mc.Player && executor.id === targetPlayer.id) {
             sendMessage('§cYou cannot freeze yourself.', executor);
             return;
@@ -133,7 +138,13 @@ const unfreezeCommand: CustomCommand = {
             }
             return;
         }
-        unfreezePlayer(executor, targetPlayers[0]);
+        const targetPlayer = targetPlayers[0];
+        if (!targetPlayer) {
+            if (executor instanceof mc.Player) sendMessage('§cPlayer not found.', executor);
+            else executor.sendMessage('§cPlayer not found.');
+            return;
+        }
+        unfreezePlayer(executor, targetPlayer);
     }
 };
 

@@ -65,6 +65,10 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
     // Simplest: Find reward where r.day == cycleDay.
     const reward = config.rewards.find((r) => r.day === cycleDay) || config.rewards[0]; // Fallback to first
 
+    if (!reward) {
+        return { success: false, message: '§cConfiguration error: No reward found.' };
+    }
+
     // Grant Reward
     try {
         if (reward.money && reward.money > 0) {

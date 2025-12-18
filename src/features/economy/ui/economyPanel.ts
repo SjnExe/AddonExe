@@ -84,7 +84,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             const paginated = getPaginatedItems(mobs, (context.page as number) || 1);
 
             paginated.forEach((mobId) => {
-                const amount = mobMoney[mobId];
+                const amount = mobMoney[mobId] ?? 0;
                 const color = amount >= 0 ? '§2' : '§c';
                 items.push({
                     id: mobId,
@@ -191,6 +191,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {
