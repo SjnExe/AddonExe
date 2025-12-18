@@ -27,7 +27,7 @@ import { errorLog } from './logger.js';
  * @returns An array of found players. Returns empty array if none found.
  */
 export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
-    const allPlayers = mc.world.getAllPlayers();
+    const allPlayers = Array.from(mc.world.getAllPlayers());
 
     // 1. Selector Handling
     if (input.startsWith('@')) {
@@ -43,7 +43,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
                 const exLoc = executor.location;
 
                 for (const p of allPlayers) {
-                    if (p.id === executor.id) continue; // @p usually implies "nearest other", but vanilla includes self if closest. Vanilla @p includes self.
+                    if (p.id === executor.id) continue;
 
                     if (p.dimension.id !== executor.dimension.id) continue;
 
@@ -58,7 +58,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
                         closestPlayer = p;
                     }
                 }
-                if (closestPlayer !== null) {
+                if (closestPlayer) {
                     return [closestPlayer];
                 }
                 return [executor];
@@ -66,7 +66,8 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
             case '@r': {
                 if (allPlayers.length === 0) return [];
                 const randomIndex = Math.floor(Math.random() * allPlayers.length);
-                return [allPlayers[randomIndex]];
+                const randomPlayer = allPlayers[randomIndex];
+                return randomPlayer ? [randomPlayer] : [];
             }
             default:
                 break;
@@ -85,7 +86,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
 
     // Vanish Check: remove vanished players if executor is not staff
     const executorData = getPlayer(executor.id);
-    const isStaff = executorData !== undefined && executorData.permissionLevel <= 2;
+    const isStaff = executorData && executorData.permissionLevel <= 2;
 
     const visibleMatches = partialMatches.filter((p) => {
         if (isStaff) return true;

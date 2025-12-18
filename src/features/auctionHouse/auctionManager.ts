@@ -297,6 +297,7 @@ function sendMoneyToPlayer(playerId: string, amount: number) {
 }
 
 function addItemToMailbox(playerId: string, item: SerializedItem) {
+    if (!item) return;
     updatePlayerData(playerId, (d) => {
         d.mailbox.push(item);
     });

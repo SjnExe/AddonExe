@@ -296,7 +296,7 @@ export class ShopPanelHandler implements IPanelHandler {
                     const priceString = [buy, sell].filter(Boolean).join(' ');
                     items.push({
                         id: entry.id,
-                        text: `${entry.displayName}\n${priceString}`,
+                        text: `${displayName}\n${priceString}`,
                         icon: entry.icon || '',
                         permissionLevel: 1024,
                         actionType: 'functionCall',
@@ -607,13 +607,12 @@ export class ShopPanelHandler implements IPanelHandler {
             if (!shopItem) return null;
 
             await ensureItemsConfig();
-            const masterItem = allItems[itemId] || {};
 
             return new ModalFormData()
                 .title(`Edit Item: ${String(itemId)}`)
-                .textField('Display Name', 'Name', { defaultValue: String(shopItem.displayName || masterItem.displayName || '') })
-                .textField('Minecraft ID', 'ID', { defaultValue: String(shopItem.itemId || masterItem.itemId || '') })
-                .textField('Icon', 'Icon', { defaultValue: String(shopItem.icon || masterItem.icon || '') })
+                .textField('Display Name', 'Name', { defaultValue: String(shopItem.displayName || '') })
+                .textField('Minecraft ID', 'ID', { defaultValue: String(shopItem.itemId || '') })
+                .textField('Icon', 'Icon', { defaultValue: String(shopItem.icon || '') })
                 .textField('Buy Price', 'Price', { defaultValue: String(shopItem.buyPrice ?? -1) })
                 .textField('Sell Price', 'Price', { defaultValue: String(shopItem.sellPrice ?? -1) })
                 .textField('Permission', 'Level', { defaultValue: String(shopItem.permissionLevel ?? 1024) });
@@ -856,7 +855,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 shopItem = shopConfig.categories[categoryName]?.items[itemId];
             }
 
-            if (!shopItem) return;
+            if (!shopItem) return null;
 
             const canBuy = context.view !== 'sell' && (shopItem.buyPrice ?? 0) > 0;
             const canSell = context.view !== 'buy' && (shopItem.sellPrice ?? 0) > 0;

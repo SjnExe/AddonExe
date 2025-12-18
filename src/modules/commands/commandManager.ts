@@ -187,7 +187,7 @@ class CommandManager {
     getEffectivePermissionLevel(command: CustomCommand): number {
         const config = getConfig() as Config;
         if (!config) return command.permissionLevel ?? 0;
-        const commandSettings = config.commandSettings[command.name];
+        const commandSettings = config.commandSettings?.[command.name];
         if (commandSettings && commandSettings.permissionLevel !== undefined) {
             return commandSettings.permissionLevel;
         }
@@ -202,7 +202,7 @@ class CommandManager {
     isCommandEnabled(command: CustomCommand): boolean {
         const config = getConfig() as Config;
         if (!config) return true;
-        const commandSettings = config.commandSettings[command.name];
+        const commandSettings = config.commandSettings?.[command.name];
         if (commandSettings && commandSettings.enabled === false) {
             return false;
         }
@@ -230,9 +230,9 @@ class CommandManager {
             return;
         }
 
-        const settings = config.commandSettings?.[command.name];
+        const commandSettings = config.commandSettings?.[command.name];
 
-        if (settings?.enabled === false) {
+        if (commandSettings?.enabled === false) {
             if ('sendMessage' in executor) {
                 executor.sendMessage('§cThis command is currently disabled.');
             }
@@ -307,7 +307,7 @@ class CommandManager {
                 // Set Cooldown
                 if (command.hasCooldown) {
                     const cooldownId = command.cooldownId || command.name;
-                    const cmdConfig = config.commandSettings[command.name];
+                    const cmdConfig = config.commandSettings?.[command.name];
                     const duration = cmdConfig?.cooldownSeconds ?? command.defaultCooldown ?? 0;
                     if (duration > 0) {
                         setCooldownCustom(player.id, cooldownId, duration);
@@ -462,7 +462,7 @@ class CommandManager {
      * Formats a parameter for registration with the Minecraft API.
      * @param {CommandParameter} param The parameter definition.
      * @param {string} commandName The name of the command (for unique enum naming).
-     * @param {mc.CustomCommandRegistry} registry The registry to register enums with.
+     * @param {mc.CustomCommandRegistry} registry The custom command registry for enum registration.
      * @returns {mc.CustomCommandParameter} The formatted parameter data.
      * @private
      */
@@ -585,8 +585,8 @@ class CommandManager {
             return true;
         }
 
-        const commandSettings = config.commandSettings[command.name] || {};
-        if (commandSettings.enabled === false) {
+        const commandSettings = config.commandSettings?.[command.name];
+        if (commandSettings?.enabled === false) {
             player.sendMessage('§cThis command is currently disabled.');
             return true;
         }
