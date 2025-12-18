@@ -375,20 +375,24 @@ class CommandManager {
 
         const commandCallback = (origin: mc.CustomCommandOrigin, ...rawArgs: unknown[]) => {
             const sourceEntity = origin.sourceEntity;
-            const executor: CommandExecutor = (sourceEntity as mc.Player) || {
-                isConsole: true,
-                sendMessage: (msg: string) => errorLog(msg.replace(/§[0-9a-fklmnor]/g, ''))
-            };
+            const executor: CommandExecutor =
+                sourceEntity instanceof mc.Player
+                    ? sourceEntity
+                    : {
+                          isConsole: true,
+                          sendMessage: (msg: string) => errorLog(msg.replace(/§[0-9a-fklmnor]/g, ''))
+                      };
 
             // Prepare arguments
             const allParams = command.parameters || [];
             const parsedArgs: Record<string, unknown> = {};
             for (let i = 0; i < allParams.length; i++) {
-                if (rawArgs[i] !== undefined) {
+                const param = allParams[i];
+                if (rawArgs[i] !== undefined && param) {
                     let value = rawArgs[i];
                     // Filter vanished players for slash commands
                     if (
-                        (allParams[i].type === 'player' || allParams[i].type === 'target') &&
+                        (param.type === 'player' || param.type === 'target') &&
                         Array.isArray(value) &&
                         'id' in executor // Only filter if executor is a player
                     ) {
@@ -401,7 +405,7 @@ class CommandManager {
                             });
                         }
                     }
-                    parsedArgs[allParams[i].name] = value;
+                    parsedArgs[param.name] = value;
                 }
             }
             this._executeCommand(executor, command, parsedArgs);
@@ -607,6 +611,7 @@ class CommandManager {
             }
 
             const rawValue = cleanedArgs[currentArgIndex];
+            if (rawValue === undefined) break; // Should not happen due to length check
 
             if (paramDef.type === 'text') {
                 // Greedy parameter (consumes the rest)

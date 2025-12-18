@@ -106,7 +106,8 @@ const ecwipeCommand: CustomCommand = {
 
         if (executor instanceof mc.Player) {
             const targets = resolveTarget(targetName, executor);
-            if (targets.length > 0) targetNameResolved = targets[0].name;
+            const firstTarget = targets[0];
+            if (firstTarget) targetNameResolved = firstTarget.name;
         }
 
         let success = true;

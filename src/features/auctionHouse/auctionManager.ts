@@ -372,6 +372,8 @@ export function claimMailboxItem(player: mc.Player, index: number): { success: b
     }
 
     const sItem = mailbox[index];
+    if (!sItem) return { success: false, message: '§cItem not found.' };
+
     const stack = deserializeItem(sItem);
 
     if (stack) {

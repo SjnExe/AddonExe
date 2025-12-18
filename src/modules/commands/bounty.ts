@@ -217,9 +217,10 @@ const listBountyCommand: CustomCommand = {
 
             if (executor instanceof mc.Player) {
                 const targets = resolveTarget(targetName, executor);
-                if (targets.length > 0) {
-                    targetId = targets[0].id;
-                    targetDisplayName = targets[0].name;
+                const firstTarget = targets[0];
+                if (firstTarget) {
+                    targetId = firstTarget.id;
+                    targetDisplayName = firstTarget.name;
                 } else {
                     // Try offline lookup if online failed
                     targetId = getPlayerIdByName(targetName);
