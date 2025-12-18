@@ -68,6 +68,7 @@ export class XrayPanelHandler implements IPanelHandler {
 
             paginated.forEach((key) => {
                 const ore = config.monitoredOreTypes[key];
+                if (!ore) return;
                 items.push({
                     id: key,
                     text: `${ore.oreName}\n${ore.enabled ? '§2[Enabled]' : '§4[Disabled]'}`,
@@ -131,6 +132,7 @@ export class XrayPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, { ...context, page: 1 });
                 }
@@ -148,8 +150,9 @@ export class XrayPanelHandler implements IPanelHandler {
 
         if (panelId === 'addXrayOrePanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'xrayOresPanel');
+            if (!values) return showPanel(player, 'xrayOresPanel');
             const [id, name, blockId, dimId, minY, maxY] = values as string[];
-            if (id && name && blockId) {
+            if (id && name && blockId && minY && maxY) {
                 const config = getXrayConfig();
                 config.monitoredOreTypes[id] = {
                     enabled: true,

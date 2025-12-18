@@ -396,10 +396,11 @@ export function setItem(
 
     let targetContainer: ShopCategory | ShopSubCategory = category;
     if (subCategoryName) {
-        targetContainer = category.subCategories[subCategoryName];
-        if (!targetContainer) {
+        const subCat = category.subCategories[subCategoryName];
+        if (!subCat) {
             return { success: false, message: `Subcategory '${subCategoryName}' not found in '${categoryName}'.` };
         }
+        targetContainer = subCat;
     }
 
     targetContainer.items[itemId] = {
@@ -453,10 +454,11 @@ export function removeItem(categoryName: string, subCategoryName: string | null,
 
     let targetContainer: ShopCategory | ShopSubCategory = category;
     if (subCategoryName) {
-        targetContainer = category.subCategories[subCategoryName];
-        if (!targetContainer) {
+        const subCat = category.subCategories[subCategoryName];
+        if (!subCat) {
             return { success: false, message: `Subcategory '${subCategoryName}' not found in '${categoryName}'.` };
         }
+        targetContainer = subCat;
     }
 
     if (!targetContainer.items[itemId]) {
@@ -510,10 +512,11 @@ export function updateShopItem(
 
     let targetContainer: ShopCategory | ShopSubCategory = category;
     if (subCategoryName) {
-        targetContainer = category.subCategories[subCategoryName];
-        if (!targetContainer) {
+        const subCat = category.subCategories[subCategoryName];
+        if (!subCat) {
             return { success: false, message: `Subcategory '${subCategoryName}' not found.` };
         }
+        targetContainer = subCat;
     }
 
     if (!targetContainer.items[itemId]) {

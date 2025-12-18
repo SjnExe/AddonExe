@@ -75,13 +75,13 @@ function findShopItem(itemId: string): ItemInfo | null {
         const category = categories[categoryName];
         if (!category) continue;
         if (category.items && category.items[itemId]) {
-            return { ...items[itemId], ...category.items[itemId] };
+            return { ...items[itemId], ...category.items[itemId], itemId: itemId };
         }
         if (category.subCategories) {
             for (const subCategoryName in category.subCategories) {
                 const subCategory = category.subCategories[subCategoryName];
                 if (subCategory && subCategory.items && subCategory.items[itemId]) {
-                    return { ...items[itemId], ...subCategory.items[itemId] };
+                    return { ...items[itemId], ...subCategory.items[itemId], itemId: itemId };
                 }
             }
         }

@@ -205,7 +205,9 @@ const delWarpCommand: CustomCommand = {
             const selection = (response as ActionFormResponse).selection;
             if (selection !== undefined) {
                 const selectedWarp = warpList[selection];
-                deleteWarpByName(selectedWarp);
+                if (selectedWarp) {
+                    deleteWarpByName(selectedWarp);
+                }
             }
         } catch (e: unknown) {
             errorLog(`[/delwarp UI] ${String(e)}`);

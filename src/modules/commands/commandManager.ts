@@ -230,9 +230,9 @@ class CommandManager {
             return;
         }
 
-        const commandSettings = config.commandSettings[command.name] || {};
+        const commandSettings = (config.commandSettings && config.commandSettings[command.name]) || {};
 
-        if (commandSettings.enabled === false) {
+        if (commandSettings && commandSettings.enabled === false) {
             if ('sendMessage' in executor) {
                 executor.sendMessage('§cThis command is currently disabled.');
             }

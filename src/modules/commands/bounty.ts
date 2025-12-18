@@ -17,13 +17,15 @@ import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 function placeBounty(executor: mc.Player, targetId: string, targetName: string, amount: number) {
     const config = getConfig();
+    if (!config) return;
+
     if (!config.economy.enabled) {
         sendMessage('§cThe economy system is currently disabled.', executor);
         return;
     }
 
-    if (isNaN(amount) || amount < config.bounties.minimumBounty) {
-        sendMessage(`§cInvalid amount. The minimum bounty is $${config.bounties.minimumBounty}.`, executor);
+    if (isNaN(amount) || amount < config!.bounties.minimumBounty) {
+        sendMessage(`§cInvalid amount. The minimum bounty is $${config!.bounties.minimumBounty}.`, executor);
         return;
     }
 
