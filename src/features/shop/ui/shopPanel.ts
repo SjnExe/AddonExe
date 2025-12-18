@@ -296,7 +296,7 @@ export class ShopPanelHandler implements IPanelHandler {
                     const priceString = [buy, sell].filter(Boolean).join(' ');
                     items.push({
                         id: entry.id,
-                        text: `${displayName}\n${priceString}`,
+                        text: `${entry.displayName}\n${priceString}`,
                         icon: entry.icon || '',
                         permissionLevel: 1024,
                         actionType: 'functionCall',
@@ -624,7 +624,7 @@ export class ShopPanelHandler implements IPanelHandler {
             const subCategoryName = context.subCategoryName as string | undefined;
             const shopConfig = getShopConfig();
             await ensureItemsConfig();
-            const masterItem = allItems[itemId];
+            // removed unused masterItem
 
             let shopItem;
             if (subCategoryName) {
@@ -638,7 +638,8 @@ export class ShopPanelHandler implements IPanelHandler {
             const canBuy = context.view !== 'sell' && (shopItem.buyPrice ?? 0) > 0;
             const canSell = context.view !== 'buy' && (shopItem.sellPrice ?? 0) > 0;
 
-            const modal = new ModalFormData().title(masterItem?.displayName ?? itemId);
+            // Fix: handle potential undefined display name from config with fallback
+            const modal = new ModalFormData().title(shopItem.displayName || itemId);
 
             if (canBuy && canSell) {
                 modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
@@ -822,14 +823,21 @@ export class ShopPanelHandler implements IPanelHandler {
 
             const vals = formValues as string[] | undefined;
             if (!vals) return showPanel(player, parent, context);
-            const [dName, mId, icon, bPrice, sPrice, pLevel] = vals;
+            // Fix: handle possible undefined from array destructuring
+            const dName = vals[0] || undefined;
+            const mId = vals[1] || undefined;
+            const icon = vals[2] || undefined;
+            const bPrice = vals[3] || undefined;
+            const sPrice = vals[4] || undefined;
+            const pLevel = vals[5] || undefined;
+
             shopAdminManager.updateShopItem(categoryName, subCategoryName || null, itemId, {
-                buyPrice: Number(bPrice),
-                sellPrice: Number(sPrice),
-                permissionLevel: Number(pLevel),
-                icon: icon || undefined,
-                minecraftId: mId || undefined,
-                displayName: dName || undefined
+                buyPrice: bPrice ? Number(bPrice) : -1,
+                sellPrice: sPrice ? Number(sPrice) : -1,
+                permissionLevel: pLevel ? Number(pLevel) : 1024,
+                icon: icon || '',
+                minecraftId: mId || itemId,
+                displayName: dName || itemId
             });
             player.sendMessage('§2Item updated.');
             return showPanel(player, parent, context);
@@ -846,7 +854,8 @@ export class ShopPanelHandler implements IPanelHandler {
 
             const shopConfig = getShopConfig();
             await ensureItemsConfig();
-            const masterItem = allItems[itemId];
+
+            // Fix: Removed unused masterItem variable
 
             let shopItem;
             if (subCategoryName) {
@@ -855,7 +864,8 @@ export class ShopPanelHandler implements IPanelHandler {
                 shopItem = shopConfig.categories[categoryName]?.items[itemId];
             }
 
-            if (!shopItem) return null;
+            // Fix: Return void instead of null
+            if (!shopItem) return;
 
             const canBuy = context.view !== 'sell' && (shopItem.buyPrice ?? 0) > 0;
             const canSell = context.view !== 'buy' && (shopItem.sellPrice ?? 0) > 0;
