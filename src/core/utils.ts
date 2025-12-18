@@ -136,6 +136,8 @@ export function parseDuration(durationString: string): number {
         case 'w':
             multiplier = 1000 * 60 * 60 * 24 * 7;
             break;
+        default:
+            break;
     }
 
     return value * multiplier;
@@ -585,7 +587,7 @@ export function parseCurrency(input: string | number): number {
     }
 
     const valueStr = match[1];
-    const suffix = match[2];
+    const suffix = match[2] || '';
 
     if (valueStr === undefined) return NaN;
 
@@ -608,6 +610,8 @@ export function parseCurrency(input: string | number): number {
             break;
         case 't':
             multiplier = 1000000000000;
+            break;
+        default:
             break;
     }
 

@@ -120,10 +120,10 @@ export function removeFriend(player: mc.Player, targetName: string): string {
 
     // Remove from both
     updatePlayerData(player.id, (data) => {
-        data.friends = data.friends?.filter((id) => id !== friendIdToRemove);
+        data.friends = data.friends?.filter((id) => id !== friendIdToRemove) || [];
     });
     updatePlayerData(friendIdToRemove, (data) => {
-        data.friends = data.friends?.filter((id) => id !== player.id);
+        data.friends = data.friends?.filter((id) => id !== player.id) || [];
     });
 
     return `§aRemoved ${friendName} from friends.`;

@@ -132,7 +132,6 @@ export class RankPanelHandler implements IPanelHandler {
                     nameColor: nameColor,
                     messageColor: messageColor
                 },
-                nametagPrefix: undefined,
                 conditions: [],
                 locked: false
             } as RankDefinition;

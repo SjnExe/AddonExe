@@ -169,7 +169,7 @@ const addKitCommand: CustomCommand = {
                 items.push({
                     typeId: item.typeId,
                     amount: item.amount,
-                    nameTag: item.nameTag,
+                    ...(item.nameTag ? { nameTag: item.nameTag } : {}),
                     lore: item.getLore()
                 });
             }

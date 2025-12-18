@@ -68,12 +68,13 @@ export function addChatLog(playerName: string, message: string, rank?: string) {
     const config = getConfig();
     if (!config.chat?.loggingEnabled) return;
 
-    currentDayLogs.push({
+    const log: ChatLog = {
         timestamp: Date.now(),
         playerName,
-        message,
-        rank
-    });
+        message
+    };
+    if (rank) log.rank = rank;
+    currentDayLogs.push(log);
     isDirty = true;
 }
 

@@ -93,6 +93,7 @@ export default tseslint.config(
         rules: {
             'minecraft-linting/avoid-unnecessary-command': 'error',
             'import/no-unresolved': ['error', { commonjs: true, amd: true }],
+            'import/no-cycle': 'error',
             'import/named': 'error',
             'import/namespace': 'error',
             'import/default': 'error',
@@ -123,7 +124,9 @@ export default tseslint.config(
             '@typescript-eslint/no-unsafe-enum-comparison': 'error',
             '@typescript-eslint/restrict-template-expressions': 'error',
             '@typescript-eslint/await-thenable': 'error',
-            '@typescript-eslint/require-await': 'error'
+            '@typescript-eslint/require-await': 'error',
+            '@typescript-eslint/switch-exhaustiveness-check': 'error',
+            '@typescript-eslint/prefer-readonly': 'error'
         }
     },
 

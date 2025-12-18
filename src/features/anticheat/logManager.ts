@@ -51,7 +51,8 @@ export function addPunishmentLog(
     adminName: string,
     duration?: string
 ) {
-    const log: PunishmentLog = { timestamp: Date.now(), playerName, type, reason, adminName, duration };
+    const log: PunishmentLog = { timestamp: Date.now(), playerName, type, reason, adminName };
+    if (duration) log.duration = duration;
     punishLogs.push(log);
 }
 

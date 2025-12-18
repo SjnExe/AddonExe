@@ -43,6 +43,10 @@ export async function showAuctionHouse(
         case SortOption.SellerAsc:
             sortLabel = 'Seller (A-Z)';
             break;
+        case SortOption.Newest:
+        default:
+            sortLabel = 'Newest';
+            break;
     }
 
     const title = searchQuery

@@ -147,7 +147,7 @@ export class ShopPanelHandler implements IPanelHandler {
                         results.push({
                             id: itemId,
                             type: 'item',
-                            icon: item.icon,
+                            ...(item.icon ? { icon: item.icon } : {}),
                             displayName: dName,
                             buyPrice: item.buyPrice,
                             sellPrice: item.sellPrice,
@@ -168,7 +168,7 @@ export class ShopPanelHandler implements IPanelHandler {
                             results.push({
                                 id: itemId,
                                 type: 'item',
-                                icon: item.icon,
+                                ...(item.icon ? { icon: item.icon } : {}),
                                 displayName: dName,
                                 buyPrice: item.buyPrice,
                                 sellPrice: item.sellPrice,
@@ -405,8 +405,8 @@ export class ShopPanelHandler implements IPanelHandler {
                         return {
                             id: n,
                             type: 'item' as const,
-                            icon: item?.icon,
-                            displayName: item?.displayName,
+                            ...(item?.icon ? { icon: item.icon } : {}),
+                            ...(item?.displayName ? { displayName: item.displayName } : {}),
                             buyPrice: item?.buyPrice || -1,
                             sellPrice: item?.sellPrice || -1,
                             permissionLevel: item?.permissionLevel || 1024
@@ -433,10 +433,11 @@ export class ShopPanelHandler implements IPanelHandler {
                         const item = category.items[entry.id];
                         if (!item) return;
                         const masterItem = allItems[entry.id] || {};
+                        const icon = item.icon || masterItem.icon;
                         items.push({
                             id: entry.id,
                             text: item.displayName || masterItem.displayName || entry.id,
-                            icon: item.icon || masterItem.icon,
+                            ...(icon ? { icon } : {}),
                             permissionLevel: 0,
                             actionType: 'functionCall',
                             actionValue: 'editItem'
@@ -479,10 +480,11 @@ export class ShopPanelHandler implements IPanelHandler {
                     const item = (subCategory.items as Record<string, ShopItem>)[id];
                     if (!item) return;
                     const masterItem = allItems[id] || {};
+                    const icon = item.icon || masterItem.icon;
                     items.push({
                         id: id,
                         text: item.displayName || masterItem.displayName || id,
-                        icon: item.icon || masterItem.icon,
+                        ...(icon ? { icon } : {}),
                         permissionLevel: 0,
                         actionType: 'functionCall',
                         actionValue: 'editItem'
@@ -514,7 +516,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 items.push({
                     id: itemId,
                     text: masterItem.displayName ?? itemId,
-                    icon: masterItem.icon,
+                    ...(masterItem.icon ? { icon: masterItem.icon } : {}),
                     permissionLevel: 0,
                     actionType: 'openPanel',
                     actionValue: 'addItemFromListPanel'

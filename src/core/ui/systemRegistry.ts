@@ -32,15 +32,18 @@ export function getSystemRegistry(): SystemDefinition[] {
         // 1. Add simple schema-based systems first
         ...configPanelSchema
             .filter((s) => s.id !== 'sidebar')
-            .map((schema) => ({
-                id: schema.id,
-                title: schema.title,
-                icon: schema.icon,
-                configPanelId: `config_${schema.id}`,
-                category: schema.category,
-                hidden: schema.hidden,
-                isSimpleConfig: true
-            })),
+            .map((schema) => {
+                const def: SystemDefinition = {
+                    id: schema.id,
+                    title: schema.title,
+                    icon: schema.icon,
+                    configPanelId: `config_${schema.id}`,
+                    isSimpleConfig: true
+                };
+                if (schema.category) def.category = schema.category;
+                if (schema.hidden) def.hidden = schema.hidden;
+                return def;
+            }),
 
         // 2. Add complex custom systems
         {

@@ -89,9 +89,9 @@ interface Config {
 class CommandManager {
     public commands: Map<string, CustomCommand> = new Map();
     public aliases: Map<string, string> = new Map();
-    private registeredSlashCommands = new Set<string>();
+    private readonly registeredSlashCommands = new Set<string>();
     private readonly prefix = 'exe'; // Namespace for all custom commands
-    private vanillaCommands = new Set([
+    private readonly vanillaCommands = new Set([
         'tp',
         'teleport',
         'kick',

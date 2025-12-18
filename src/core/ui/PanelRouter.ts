@@ -1,7 +1,7 @@
 import { IPanelHandler } from './types.js';
 
 class PanelRouter {
-    private handlers: IPanelHandler[] = [];
+    private readonly handlers: IPanelHandler[] = [];
 
     register(handler: IPanelHandler) {
         this.handlers.push(handler);

@@ -102,10 +102,10 @@ export function createListing(
         item: item,
         price: price,
         isBid: isBid,
-        bidPrice: isBid ? price : undefined,
         startTime: Date.now(),
         duration: duration
     };
+    if (isBid) listing.bidPrice = price;
 
     activeListings.set(listing.id, listing);
     saveAuctions();

@@ -41,6 +41,10 @@ export function addSentryBreadcrumb(
             case 'fatal':
                 sentryLevel = SentryEventLevel.fatal;
                 break;
+            case 'info':
+            default:
+                sentryLevel = SentryEventLevel.info;
+                break;
         }
         sentry.addBreadcrumb(sentryLevel, message, category);
     } catch {
