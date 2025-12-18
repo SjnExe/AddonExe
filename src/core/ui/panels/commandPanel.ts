@@ -32,6 +32,7 @@ export class CommandPanelHandler implements IPanelHandler {
             const paginated = getPaginatedItems(commands, (context.page as number) || 1);
 
             paginated.forEach((cmd) => {
+                if (!cmd) return;
                 const cmdSettings = settings[cmd.name] || {};
                 const isEnabled = cmdSettings.enabled !== false;
                 const color = isEnabled ? '§2' : '§4';
@@ -88,6 +89,7 @@ export class CommandPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, { ...context, page: 1 });
                 }

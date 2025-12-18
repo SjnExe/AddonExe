@@ -75,7 +75,8 @@ function _findIncomingRequest(
         return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
     if (onlineOnly) {
         for (let i = requests.length - 1; i >= 0; i--) {
-            if (getPlayerFromCache(requests[i].sourcePlayerId)) return requests[i];
+            const req = requests[i];
+            if (req && getPlayerFromCache(req.sourcePlayerId)) return req;
         }
         return undefined;
     }

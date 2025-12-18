@@ -38,7 +38,7 @@ export function refreshXrayCache(): void {
     // Iterate over all configured ore types
     for (const oreTypeKey in xrayConfig.monitoredOreTypes) {
         const oreType = xrayConfig.monitoredOreTypes[oreTypeKey];
-        if (!oreType.enabled) continue;
+        if (!oreType || !oreType.enabled) continue;
 
         // Iterate over blocks defined for this ore type
         for (const blockDef of oreType.blocks) {
@@ -46,12 +46,15 @@ export function refreshXrayCache(): void {
                 oreCache.set(blockDef.blockId, []);
             }
 
-            oreCache.get(blockDef.blockId)!.push({
-                oreType: oreType,
-                minY: blockDef.minY,
-                maxY: blockDef.maxY,
-                dimensionId: blockDef.dimensionId
-            });
+            const cacheEntry = oreCache.get(blockDef.blockId);
+            if (cacheEntry) {
+                cacheEntry.push({
+                    oreType: oreType,
+                    minY: blockDef.minY,
+                    maxY: blockDef.maxY,
+                    dimensionId: blockDef.dimensionId
+                });
+            }
         }
     }
 }

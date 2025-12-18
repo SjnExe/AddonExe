@@ -17,13 +17,16 @@ import { CommandExecutor, CustomCommand } from './commandManager.js';
 
 function placeBounty(executor: mc.Player, targetId: string, targetName: string, amount: number) {
     const config = getConfig();
+    if (!config) return;
+
     if (!config.economy.enabled) {
         sendMessage('§cThe economy system is currently disabled.', executor);
         return;
     }
 
-    if (isNaN(amount) || amount < config.bounties.minimumBounty) {
-        sendMessage(`§cInvalid amount. The minimum bounty is $${config.bounties.minimumBounty}.`, executor);
+    const min = config.bounties?.minimumBounty ?? 0;
+    if (isNaN(amount) || amount < min) {
+        sendMessage(`§cInvalid amount. The minimum bounty is $${min}.`, executor);
         return;
     }
 
@@ -70,12 +73,12 @@ const bountyCommand: CustomCommand = {
 
         // Resolve
         const targets = resolveTarget(targetName, executor);
-        if (targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+        const target = targets[0];
+        if (!target) return sendMessage('§cPlayer not found.', executor);
 
         const amount = parseCurrency(amountStr);
         if (isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
-        const target = targets[0];
         placeBounty(executor, target.id, target.name, amount);
     }
 };
@@ -100,16 +103,17 @@ const removeBountyCommand: CustomCommand = {
 
         // Resolve
         const targets = resolveTarget(targetName, executor);
-        if (targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+        const target = targets[0];
+        if (!target) return sendMessage('§cPlayer not found.', executor);
 
         const amount = parseCurrency(amountStr);
         if (isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
-        const target = targets[0];
         const targetBounty = bountyManager.getBounty(target.id);
 
         if (!targetBounty) return sendMessage('§cThis player has no bounty on them.', executor);
-        if (amount > targetBounty.amount)
+        // Explicit check to satisfy TS
+        if (targetBounty && amount > targetBounty.amount)
             return sendMessage(`§cAmount exceeds bounty ($${targetBounty.amount.toFixed(2)}).`, executor);
 
         const pData = getOrCreatePlayer(executor);
@@ -181,7 +185,7 @@ const oRemoveBountyCommand: CustomCommand = {
 
         const targetBounty = bountyManager.getBounty(targetId);
         if (!targetBounty) return sendMessage('§cThis player has no bounty on them.', executor);
-        if (amount > targetBounty.amount)
+        if (targetBounty && amount > targetBounty.amount)
             return sendMessage(`§cAmount exceeds bounty ($${targetBounty.amount.toFixed(2)}).`, executor);
 
         const pData = getOrCreatePlayer(executor);
@@ -250,7 +254,9 @@ const listBountyCommand: CustomCommand = {
             } else {
                 allBounties.sort((a, b) => b.amount - a.amount);
                 for (const bounty of allBounties) {
-                    message += `§e${bounty.name}§r: $${bounty.amount.toFixed(2)}\n`;
+                    if (bounty) {
+                        message += `§e${bounty.name}§r: $${bounty.amount.toFixed(2)}\n`;
+                    }
                 }
             }
             if (executor instanceof mc.Player) sendMessage(message.trim(), executor);

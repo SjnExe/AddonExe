@@ -27,7 +27,7 @@ import { errorLog } from './logger.js';
  * @returns An array of found players. Returns empty array if none found.
  */
 export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
-    const allPlayers = mc.world.getAllPlayers();
+    const allPlayers = Array.from(mc.world.getAllPlayers());
 
     // 1. Selector Handling
     if (input.startsWith('@')) {
@@ -43,7 +43,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
                 const exLoc = executor.location;
 
                 for (const p of allPlayers) {
-                    if (p.id === executor.id) continue; // @p usually implies "nearest other", but vanilla includes self if closest. Vanilla @p includes self.
+                    if (p.id === executor.id) continue;
 
                     if (p.dimension.id !== executor.dimension.id) continue;
 
@@ -58,12 +58,16 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
                         closestPlayer = p;
                     }
                 }
-                return closestPlayer ? [closestPlayer] : [executor];
+                if (closestPlayer) {
+                    return [closestPlayer];
+                }
+                return [executor];
             }
             case '@r': {
                 if (allPlayers.length === 0) return [];
                 const randomIndex = Math.floor(Math.random() * allPlayers.length);
-                return [allPlayers[randomIndex]];
+                const randomPlayer = allPlayers[randomIndex];
+                return randomPlayer ? [randomPlayer] : [];
             }
             default:
                 break;
@@ -87,7 +91,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
     const visibleMatches = partialMatches.filter((p) => {
         if (isStaff) return true;
         const targetData = getPlayer(p.id);
-        return !targetData?.isVanished;
+        return targetData ? !targetData.isVanished : true;
     });
 
     return visibleMatches;
@@ -106,8 +110,14 @@ export function parseDuration(durationString: string): number {
         return 0;
     }
 
-    const value = parseInt(match[1], 10);
+    const valueStr = match[1];
     const unit = match[2];
+
+    if (valueStr === undefined || unit === undefined) {
+        return 0;
+    }
+
+    const value = parseInt(valueStr, 10);
     let multiplier = 0;
 
     switch (unit) {
@@ -450,7 +460,7 @@ export function generateDisplayName(typeId: string): string {
     }
 
     // Remove the namespace (e.g., 'minecraft:')
-    const nameWithoutNamespace = typeId.includes(':') ? typeId.split(':')[1] : typeId;
+    const nameWithoutNamespace = (typeId.includes(':') ? typeId.split(':')[1] : typeId) || typeId;
 
     // Replace underscores with spaces and capitalize each word
     const formattedName = nameWithoutNamespace
@@ -574,8 +584,12 @@ export function parseCurrency(input: string | number): number {
         return NaN;
     }
 
-    const value = parseFloat(match[1]);
+    const valueStr = match[1];
     const suffix = match[2];
+
+    if (valueStr === undefined) return NaN;
+
+    const value = parseFloat(valueStr);
 
     if (isNaN(value)) {
         return NaN;

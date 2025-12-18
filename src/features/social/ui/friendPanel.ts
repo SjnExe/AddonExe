@@ -177,6 +177,7 @@ export class FriendPanelHandler implements IPanelHandler {
         if (panelId === 'friendSettingsPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'friendMainPanel');
             const [autoTp] = values as boolean[];
+            if (autoTp === undefined) return showPanel(player, 'friendMainPanel');
 
             updatePlayerData(player.id, (data) => {
                 if (!data.friendSettings) data.friendSettings = { autoTpAccept: false };
@@ -190,6 +191,7 @@ export class FriendPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
 
                 if (item.actionValue === 'noop') return;
 

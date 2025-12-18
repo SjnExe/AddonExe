@@ -24,7 +24,15 @@ const clearCommand: CustomCommand = {
         const targetPlayers = args.target;
 
         if (targetPlayers && targetPlayers.length > 0) {
-            targetPlayer = targetPlayers[0];
+            const p = targetPlayers[0];
+            // Check for undefined in array if strictness requires
+            if (!p) {
+                 if (executor instanceof mc.Player) {
+                    executor.sendMessage('§cInvalid target.');
+                 }
+                 return;
+            }
+            targetPlayer = p;
         } else {
             if (!(executor instanceof mc.Player)) {
                 executor.sendMessage('§cYou must specify a target player when running this command from the console.');

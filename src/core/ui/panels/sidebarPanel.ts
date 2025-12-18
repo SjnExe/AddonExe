@@ -36,8 +36,11 @@ export class SidebarPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [];
 
         if (panelId === 'sidebarMainPanel') {
-            const staticItems = getStaticMenuItems(panelDefinitions[panelId], 1); // Admin
-            items.push(...staticItems);
+            const def = panelDefinitions[panelId];
+            if (def) {
+                const staticItems = getStaticMenuItems(def, 1); // Admin
+                items.push(...staticItems);
+            }
             return Promise.resolve(items);
         }
 
@@ -57,6 +60,7 @@ export class SidebarPanelHandler implements IPanelHandler {
             const lines = isSidebar ? config.sidebarLines : config.actionBarLines;
 
             lines.forEach((line, idx) => {
+                if (line === undefined) return;
                 items.push({
                     id: String(idx),
                     text: `${idx + 1}. ${line}`,
@@ -154,8 +158,10 @@ export class SidebarPanelHandler implements IPanelHandler {
         const isSidebar = panelId.startsWith('sidebar');
         const listPanelId = isSidebar || panelId === 'sidebarLinesPanel' ? 'sidebarLinesPanel' : 'actionBarLinesPanel';
         const config = getSidebarConfig();
-        const lines =
-            isSidebar || panelId === 'sidebarLinesPanel' ? [...config.sidebarLines] : [...config.actionBarLines];
+        const lines: string[] =
+            isSidebar || panelId === 'sidebarLinesPanel'
+                ? [...(config.sidebarLines || [])]
+                : [...(config.actionBarLines || [])];
 
         // Helper to save
         const save = (msg: string) => {
@@ -178,9 +184,10 @@ export class SidebarPanelHandler implements IPanelHandler {
 
         if (panelId === 'sidebarLineEditPanel' || panelId === 'actionBarLineEditPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, listPanelId);
-            const [newLine] = values as [string];
+            const valuesArray = values as (string | undefined)[];
+            const newLine = valuesArray?.[0];
             const index = context.lineIndex as number;
-            if (newLine !== undefined) {
+            if (newLine !== undefined && typeof newLine === 'string') {
                 lines[index] = newLine;
                 save('§aLine updated.');
             }
@@ -191,6 +198,7 @@ export class SidebarPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
 
                 if (item.actionType === 'openPanel') {
                     // Inject lineIndex if needed
@@ -219,7 +227,9 @@ export class SidebarPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'moveUp') {
                     if (index > 0) {
-                        [lines[index - 1], lines[index]] = [lines[index], lines[index - 1]];
+                        const temp = lines[index - 1] || '';
+                        lines[index - 1] = lines[index] || '';
+                        lines[index] = temp;
                         save('§aMoved up.');
                     }
                     return showPanel(player, listPanelId);
@@ -227,7 +237,9 @@ export class SidebarPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'moveDown') {
                     if (index < lines.length - 1) {
-                        [lines[index + 1], lines[index]] = [lines[index], lines[index + 1]];
+                        const temp = lines[index + 1] || '';
+                        lines[index + 1] = lines[index] || '';
+                        lines[index] = temp;
                         save('§aMoved down.');
                     }
                     return showPanel(player, listPanelId);

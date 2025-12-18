@@ -18,6 +18,7 @@ function checkDependencies(config: unknown) {
 
         if (featureEnabled) {
             const deps = dependencies[feature];
+            if (!deps) continue;
             for (const dep of deps) {
                 const depEnabled = typedConfig[dep]?.enabled;
 

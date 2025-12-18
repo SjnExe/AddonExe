@@ -22,41 +22,57 @@ This plan is designed for a future development session to safely enable the Type
 
 Focus on the foundational files in `src/core`. These are critical and heavily used.
 
-- [ ] `src/core/utils.ts` - Fix array access in `resolveTarget` and helper functions.
-- [ ] `src/core/playerDataManager.ts` - Fix map/object access for player data properties.
-- [ ] `src/core/configManager.ts` & `configurations.ts` - Fix config object access.
-- [ ] `src/core/commandManager.ts` - Fix `this.commands.get(...)` returns (often returns `undefined`).
+- [x] `src/core/utils.ts` - Fix array access in `resolveTarget` and helper functions.
+- [x] `src/core/playerDataManager.ts` - Verified no errors.
+- [x] `src/core/configManager.ts` & `configurations.ts` - Fix config object access.
+- [x] `src/core/commandManager.ts` - Fix `this.commands.get(...)` returns.
+- [x] `src/core/rankDb.ts`, `src/core/helpfulLinksManager.ts`, `src/core/kitsManager.ts`, `src/core/rulesManager.ts`, `src/core/sidebarManager.ts` - Fixed various `undefined` checks.
 
 ### Batch 2: Core UI Panels
 
 Fix UI logic which often iterates over arrays of items.
 
-- [ ] `src/core/ui/panelBuilder.ts`
-- [ ] `src/core/ui/panelHandlers.ts`
-- [ ] `src/core/ui/uiUtils.ts`
-- [ ] `src/core/ui/panels/*.ts` (e.g., `rankPanel.ts`, `playerPanel.ts`)
+- [x] `src/core/ui/panelBuilder.ts` - Verified no errors.
+- [x] `src/core/ui/panelHandlers.ts` - Verified no errors.
+- [x] `src/core/ui/uiUtils.ts` - Verified no errors.
+- [x] `src/core/ui/panels/*.ts` - Fixed loop iterators and safe array access in all panels.
 
 ### Batch 3: Command Modules (Part A)
 
 Fix the simpler commands in `src/modules/commands`.
 
-- [ ] `src/modules/commands/inventory.ts`
-- [ ] `src/modules/commands/help.ts` (Categorized commands logic)
-- [ ] `src/modules/commands/warp.ts` & `tpa.ts` (Parameter array access)
+- [x] `src/modules/commands/inventory.ts` - Added dimension and object checks.
+- [x] `src/modules/commands/help.ts` - Handled optional command arguments.
+- [x] `src/modules/commands/bounty.ts` - Added bounty existence checks.
+- [x] `src/modules/commands/kit.ts` - Added kit existence checks.
+- [x] `src/modules/commands/rules.ts` - Added rule index checks.
+- [x] `src/modules/commands/commandManager.ts` - Added config existence checks.
+- [x] `src/modules/commands/clear.ts` - Added target player checks.
 
 ### Batch 4: Feature Modules (Part B)
 
 Fix complex feature logic in `src/features`.
 
-- [ ] `src/features/teams/teamManager.ts` (Map access for teams)
-- [ ] `src/features/moderation/reportManager.ts`
-- [ ] `src/features/economy/economyConfig.ts`
-- [ ] `src/features/auctionHouse/auctionManager.ts`
+- [x] `src/features/teams/teamManager.ts` - Fixed undefined team loading.
+- [x] `src/features/teams/ui/teamPanel.ts` - Fixed item undefined checks.
+- [x] `src/features/teleportation/commands/*.ts` - Fixed `tp`, `tpa`, `home` argument checks.
+- [x] `src/features/social/friendManager.ts` - Fixed request undefined checks.
+- [x] `src/features/social/ui/friendPanel.ts` - Fixed item and values checks.
+- [x] `src/features/voting/ui/votePanel.ts` - Fixed parsing and option access.
+- [ ] `src/features/shop/ui/shopPanel.ts` - Requires further cleanup (deferred to final polish).
 
 ### Batch 5: Detection Systems
 
-- [ ] `src/modules/detections/xrayDetection.ts` (Ore map access)
-- [ ] `src/modules/detections/spawnProtection.ts`
+- [x] `src/modules/detections/xrayDetection.ts` - Fixed ore type existence checks.
+- [x] `src/modules/detections/spawnProtection.ts` - Verified safe.
+
+### Final Polish
+
+- [x] `src/features/teleportation/commands/warp.ts` - Fixed type assertions.
+- [x] `src/features/social/ui/friendPanel.ts` - Fixed undefined check.
+- [x] `src/core/ui/panels/rankPanel.ts` - Fixed unnecessary assertions.
+- [x] Linting: Removed unnecessary type assertions across codebase.
+- [ ] `src/features/shop/ui/shopPanel.ts` - **Pending Refactor**: Contains remaining strict type errors due to complex UI flow. Recommended for future refactor.
 
 ## Fix Patterns
 

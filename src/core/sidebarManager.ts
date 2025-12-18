@@ -239,6 +239,9 @@ function updateSidebar() {
 
         for (let i = 0; i < newLines.length; i++) {
             let lineText = newLines[i];
+            // Safety check for undefined if array has gaps
+            if (lineText === undefined) continue;
+
             while (usedLines.has(lineText)) {
                 lineText += ' ';
             }

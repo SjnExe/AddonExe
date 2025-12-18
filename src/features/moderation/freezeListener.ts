@@ -43,7 +43,9 @@ export function initializeFreezeListener() {
             const msg = event.message.trim();
             if (msg.startsWith('!') || msg.startsWith('?') || msg.startsWith('/')) {
                 // Check multiple prefixes
-                const cmd = msg.split(' ')[0].toLowerCase();
+                const part = msg.split(' ')[0];
+                if (!part) return;
+                const cmd = part.toLowerCase();
                 // Allow /msg, /tell, /w for communication with staff
                 if (cmd.includes('msg') || cmd.includes('tell') || cmd.includes('w')) {
                     return;

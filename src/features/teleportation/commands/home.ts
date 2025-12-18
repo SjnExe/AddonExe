@@ -45,9 +45,14 @@ const homeCommand: CustomCommand = {
             const teleportLogic = () => {
                 try {
                     saveLastLocation(executor);
-                    executor.teleport(homeLocation, { dimension: mc.world.getDimension(homeLocation.dimensionId) });
-                    sendMessage(`§aTeleported to home '${homeName}'.`, executor);
-                    setCooldown(executor, 'homes');
+                    const dimension = mc.world.getDimension(homeLocation.dimensionId);
+                    if (dimension) {
+                        executor.teleport(homeLocation, { dimension });
+                        sendMessage(`§aTeleported to home '${homeName}'.`, executor);
+                        setCooldown(executor, 'homes');
+                    } else {
+                        sendMessage(`§cError: Dimension '${homeLocation.dimensionId}' not found.`, executor);
+                    }
                 } catch (e: unknown) {
                     const message = e instanceof Error ? e.message : String(e);
                     const stack = e instanceof Error ? e.stack : String(e);
@@ -71,8 +76,9 @@ const homeCommand: CustomCommand = {
             return;
         }
 
-        if (homeList.length === 1) {
-            teleportToHome(homeList[0]);
+        const firstHome = homeList[0];
+        if (homeList.length === 1 && firstHome) {
+            teleportToHome(firstHome);
             return;
         }
 
@@ -86,7 +92,9 @@ const homeCommand: CustomCommand = {
             const selection = (response as ActionFormResponse).selection;
             if (selection !== undefined) {
                 const selectedHome = homeList[selection];
-                teleportToHome(selectedHome);
+                if (selectedHome) {
+                    teleportToHome(selectedHome);
+                }
             }
         } catch (e: unknown) {
             errorLog(`[/home UI] ${String(e)}`);
@@ -160,8 +168,9 @@ const delHomeCommand: CustomCommand = {
             return;
         }
 
-        if (homeList.length === 1) {
-            deleteHomeByName(homeList[0]);
+        const firstHome = homeList[0];
+        if (homeList.length === 1 && firstHome) {
+            deleteHomeByName(firstHome);
             return;
         }
 
@@ -175,7 +184,9 @@ const delHomeCommand: CustomCommand = {
             const selection = (response as ActionFormResponse).selection;
             if (selection !== undefined) {
                 const selectedHome = homeList[selection];
-                deleteHomeByName(selectedHome);
+                if (selectedHome) {
+                    deleteHomeByName(selectedHome);
+                }
             }
         } catch (e: unknown) {
             errorLog(`[/delhome UI] ${String(e)}`);

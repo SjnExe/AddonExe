@@ -95,9 +95,10 @@ const sellHandCommand: CustomCommand = {
         }
 
         const itemTypeId = item.typeId;
-        const shopItemKey = Object.keys(allItems).find(
-            (key) => (allItems as Record<string, { itemId: string }>)[key].itemId === itemTypeId
-        );
+        const shopItemKey = Object.keys(allItems).find((key) => {
+            const entry = (allItems as Record<string, { itemId: string }>)[key];
+            return entry && entry.itemId === itemTypeId;
+        });
 
         if (!shopItemKey) {
             return executor.sendMessage("§cYou can't sell this item to the shop.");

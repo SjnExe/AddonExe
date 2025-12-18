@@ -64,7 +64,8 @@ export function updateAndSaveLeaderboard(playerId: string, name: string, balance
     }
 
     if (playerIsOnBoard) {
-        if (leaderboardCache[existingIndex].balance === balance) {
+        const existingEntry = leaderboardCache[existingIndex];
+        if (existingEntry && existingEntry.balance === balance) {
             return;
         } // No change in value
         leaderboardCache.splice(existingIndex, 1);

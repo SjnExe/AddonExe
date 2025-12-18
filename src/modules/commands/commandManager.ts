@@ -186,10 +186,12 @@ class CommandManager {
      */
     getEffectivePermissionLevel(command: CustomCommand): number {
         const config = getConfig() as Config;
-        const commandSettings = config.commandSettings[command.name] || {};
-        return commandSettings.permissionLevel !== undefined
-            ? commandSettings.permissionLevel
-            : (command.permissionLevel ?? 0);
+        if (!config) return command.permissionLevel ?? 0;
+        const commandSettings = config.commandSettings?.[command.name];
+        if (commandSettings && commandSettings.permissionLevel !== undefined) {
+            return commandSettings.permissionLevel;
+        }
+        return command.permissionLevel ?? 0;
     }
 
     /**
@@ -199,8 +201,12 @@ class CommandManager {
      */
     isCommandEnabled(command: CustomCommand): boolean {
         const config = getConfig() as Config;
-        const commandSettings = config.commandSettings[command.name] || {};
-        return commandSettings.enabled !== false;
+        if (!config) return true;
+        const commandSettings = config.commandSettings?.[command.name];
+        if (commandSettings && commandSettings.enabled === false) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -224,9 +230,9 @@ class CommandManager {
             return;
         }
 
-        const commandSettings = config.commandSettings[command.name] || {};
+        const commandSettings = config.commandSettings?.[command.name];
 
-        if (commandSettings.enabled === false) {
+        if (commandSettings?.enabled === false) {
             if ('sendMessage' in executor) {
                 executor.sendMessage('§cThis command is currently disabled.');
             }
@@ -301,7 +307,7 @@ class CommandManager {
                 // Set Cooldown
                 if (command.hasCooldown) {
                     const cooldownId = command.cooldownId || command.name;
-                    const cmdConfig = config.commandSettings[command.name];
+                    const cmdConfig = config.commandSettings?.[command.name];
                     const duration = cmdConfig?.cooldownSeconds ?? command.defaultCooldown ?? 0;
                     if (duration > 0) {
                         setCooldownCustom(player.id, cooldownId, duration);
@@ -368,7 +374,8 @@ class CommandManager {
         const commandData = this.prepareCommandData(command, name, customCommandRegistry);
 
         const commandCallback = (origin: mc.CustomCommandOrigin, ...rawArgs: unknown[]) => {
-            const executor: CommandExecutor = (origin.sourceEntity as mc.Player) || {
+            const sourceEntity = origin.sourceEntity;
+            const executor: CommandExecutor = (sourceEntity as mc.Player) || {
                 isConsole: true,
                 sendMessage: (msg: string) => errorLog(msg.replace(/§[0-9a-fklmnor]/g, ''))
             };
@@ -455,7 +462,7 @@ class CommandManager {
      * Formats a parameter for registration with the Minecraft API.
      * @param {CommandParameter} param The parameter definition.
      * @param {string} commandName The name of the command (for unique enum naming).
-     * @param {mc.CustomCommandRegistry} registry The registry to register enums with.
+     * @param {mc.CustomCommandRegistry} registry The custom command registry for enum registration.
      * @returns {mc.CustomCommandParameter} The formatted parameter data.
      * @private
      */
@@ -541,8 +548,10 @@ class CommandManager {
      */
     handleChatCommand(eventData: mc.ChatSendBeforeEvent): boolean {
         const config = getConfig() as Config;
+        if (!config) return false;
         const { sender: player, message } = eventData;
-        if (!message.startsWith(config.commandPrefix)) {
+        const prefix = config.commandPrefix;
+        if (!prefix || !message.startsWith(prefix)) {
             return false;
         }
 
@@ -550,7 +559,7 @@ class CommandManager {
         eventData.cancel = true;
 
         // Using a regex to split by spaces while respecting quoted strings.
-        const commandString = message.slice(config.commandPrefix.length).trim();
+        const commandString = message.slice(prefix.length).trim();
         const rawArgs = commandString.match(/"[^"]*"|'[^']*'|\S+/g) || [];
         if (rawArgs.length === 0) {
             return true;
@@ -561,7 +570,11 @@ class CommandManager {
                 ? arg.slice(1, -1)
                 : arg
         );
-        let commandName = cleanedArgs.shift()!.toLowerCase();
+        const rawCommandName = cleanedArgs.shift();
+        if (!rawCommandName) {
+            return true;
+        }
+        let commandName = rawCommandName.toLowerCase();
 
         // Resolve alias to primary command name
         commandName = this.aliases.get(commandName) || commandName;
@@ -572,8 +585,8 @@ class CommandManager {
             return true;
         }
 
-        const commandSettings = config.commandSettings[command.name] || {};
-        if (commandSettings.enabled === false) {
+        const commandSettings = config.commandSettings?.[command.name];
+        if (commandSettings?.enabled === false) {
             player.sendMessage('§cThis command is currently disabled.');
             return true;
         }

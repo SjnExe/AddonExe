@@ -66,16 +66,22 @@ export class EconomyPanelHandler implements IPanelHandler {
             // economyPanel has a parent in registry, so getStaticMenuItems handles back button?
             // Actually configCategoryPanel is dynamic.
             // Let's rely on getStaticMenuItems or add it if missing.
-            const staticItems = getStaticMenuItems(panelDefinitions[panelId], pData.permissionLevel);
-            items.push(...staticItems);
+            const def = panelDefinitions[panelId];
+            if (def) {
+                const staticItems = getStaticMenuItems(def, pData.permissionLevel);
+                items.push(...staticItems);
+            }
             return items;
         }
 
         if (panelId === 'mobDropsSystemPanel') {
             addBack('economyPanel');
             // Static items first (Add Button)
-            const staticItems = getStaticMenuItems(panelDefinitions[panelId], pData.permissionLevel);
-            items.push(...staticItems);
+            const def = panelDefinitions[panelId];
+            if (def) {
+                const staticItems = getStaticMenuItems(def, pData.permissionLevel);
+                items.push(...staticItems);
+            }
 
             const config = getEconomyConfig();
             const mobMoney = config.mobMoney || {};
@@ -84,7 +90,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             const paginated = getPaginatedItems(mobs, (context.page as number) || 1);
 
             paginated.forEach((mobId) => {
-                const amount = mobMoney[mobId];
+                const amount = mobMoney[mobId] ?? 0;
                 const color = amount >= 0 ? '§2' : '§c';
                 items.push({
                     id: mobId,
@@ -191,6 +197,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {

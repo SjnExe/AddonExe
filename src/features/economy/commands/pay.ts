@@ -43,6 +43,7 @@ const payCommand: CustomCommand = {
         if (targets.length > 1) return sendMessage('§cYou can only pay one player at a time.', executor);
 
         const targetPlayer = targets[0];
+        if (!targetPlayer) return sendMessage('§cPlayer not found.', executor);
 
         if (targetPlayer.id === executor.id) return sendMessage('§cYou cannot pay yourself.', executor);
         if (!amountStr) return sendMessage('§cPlease specify an amount.', executor);

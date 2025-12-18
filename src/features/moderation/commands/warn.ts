@@ -18,6 +18,7 @@ const warnCommand: CustomCommand = {
 
         if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
         const target = targets[0];
+        if (!target) return sendMessage('§cPlayer not found.', executor);
 
         if (!reason) return sendMessage('§cPlease provide a reason.', executor);
 

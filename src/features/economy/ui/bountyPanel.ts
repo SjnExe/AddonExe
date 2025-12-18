@@ -95,6 +95,7 @@ export class BountyPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
 
                 if (item.actionValue === 'noop') return; // Do nothing for informational items
 

@@ -30,8 +30,9 @@ export async function loadConfig<T>(modulePath: string, suppressError?: boolean)
 
         // Strategy 2: If there's exactly one export, use it
         const keys = Object.keys(module);
-        if (keys.length === 1 && keys[0] !== 'default') {
-            return module[keys[0]] as T;
+        const firstKey = keys[0];
+        if (keys.length === 1 && firstKey !== 'default' && firstKey !== undefined) {
+            return module[firstKey] as T;
         }
 
         throw new Error(`Module '${modulePath}' has no default export and auto-discovery failed.`);

@@ -46,11 +46,14 @@ export function updateRank(
     }
 
     const originalRank = ranksConfig.rankDefinitions[rankIndex];
+    if (!originalRank) {
+        return { success: false, message: `Rank with ID '${rankId}' not found.` };
+    }
 
     // Check for critical immutable properties on locked ranks
     if (originalRank.locked) {
         // We prevent changing the ID of locked ranks to avoid breaking internal references (like code that checks for 'admin' rank)
-        if (updatedData.id && updatedData.id !== originalRank.id) {
+        if (updatedData.id !== undefined && updatedData.id !== originalRank.id) {
             return { success: false, message: 'Cannot change the ID of a locked rank.' };
         }
 
@@ -59,7 +62,7 @@ export function updateRank(
     }
 
     // Ensure the ID is not changed if a new ID is passed in updatedData that already exists (and isn't the current one)
-    if (updatedData.id && updatedData.id !== rankId && getRankById(updatedData.id)) {
+    if (updatedData.id !== undefined && updatedData.id !== rankId && getRankById(updatedData.id)) {
         return { success: false, message: `Cannot rename rank ID to '${updatedData.id}' as it already exists.` };
     }
 
@@ -70,7 +73,10 @@ export function updateRank(
         message += `\n§eWARNING:§r The rank ID (tag) was changed from '${rankId}' to '${updatedData.id}'. Players with the old rank tag will need to be updated manually.`;
     }
 
-    ranksConfig.rankDefinitions[rankIndex] = { ...ranksConfig.rankDefinitions[rankIndex], ...updatedData };
+    const currentRank = ranksConfig.rankDefinitions[rankIndex];
+    if (currentRank) {
+        ranksConfig.rankDefinitions[rankIndex] = { ...currentRank, ...updatedData };
+    }
     saveRanksConfig(ranksConfig);
     return { success: true, message };
 }
@@ -87,13 +93,16 @@ export function deleteRank(rankId: string): { success: boolean; message: string 
     }
 
     const rank = ranksConfig.rankDefinitions[rankIndex];
+    if (!rank) {
+        return { success: false, message: `Rank with ID '${rankId}' not found.` };
+    }
 
     // We strictly prevent deleting "locked" ranks (default system ranks) to ensure the system always has its base structure.
     if (rank.locked) {
         return { success: false, message: `Cannot delete locked rank '${rank.name}'.` };
     }
 
-    const deletedRankName = ranksConfig.rankDefinitions[rankIndex].name;
+    const deletedRankName = rank.name;
     ranksConfig.rankDefinitions.splice(rankIndex, 1);
     saveRanksConfig(ranksConfig);
     return { success: true, message: `Rank '${deletedRankName}' deleted successfully.` };

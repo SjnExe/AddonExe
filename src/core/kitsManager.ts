@@ -27,10 +27,11 @@ interface KitResult {
  */
 export function getKit(kitName: string): Kit | undefined {
     const kitsConfig = getKitsConfig();
-    if (!kitsConfig.kitDefinitions) {
+    const defs = kitsConfig.kitDefinitions;
+    if (!defs) {
         return undefined;
     }
-    return (kitsConfig.kitDefinitions as Record<string, Kit>)[kitName.toLowerCase()];
+    return (defs as Record<string, Kit>)[kitName.toLowerCase()];
 }
 
 /**
@@ -54,7 +55,7 @@ export function listKits(player: mc.Player): KitInfo[] {
     return Object.keys(kitDefs)
         .filter((kitName) => {
             const kit = kitDefs[kitName];
-            if (!kit.enabled) {
+            if (!kit || !kit.enabled) {
                 return false;
             }
             const requiredPermission = kit.permissionLevel ?? 1024;
@@ -62,6 +63,10 @@ export function listKits(player: mc.Player): KitInfo[] {
         })
         .map((kitName) => {
             const kit = kitDefs[kitName];
+            if (!kit) {
+                // Should be unreachable due to filter, but TS checks
+                return { name: kitName, icon: '', price: 0, cooldown: 0 };
+            }
             return {
                 name: kitName,
                 icon: kit.icon || 'textures/ui/gift_square',

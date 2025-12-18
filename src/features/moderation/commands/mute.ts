@@ -100,6 +100,11 @@ const muteCommand: CustomCommand = {
             return;
         }
         const targetPlayer = targetPlayers[0];
+        if (!targetPlayer) {
+            if (executor instanceof mc.Player) sendMessage('§cPlayer not found.', executor);
+            else executor.sendMessage('§cPlayer not found.');
+            return;
+        }
 
         if (duration && parseDuration(duration) === 0) {
             reason = `${duration}${reason ? ' ' + reason : ''}`;

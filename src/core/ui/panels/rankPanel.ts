@@ -48,6 +48,7 @@ export class RankPanelHandler implements IPanelHandler {
             ranks.sort((a, b) => a.permissionLevel - b.permissionLevel);
 
             ranks.forEach((rank) => {
+                if (!rank) return;
                 items.push({
                     id: rank.id,
                     text: `§l${rank.name}§r\nLevel: ${rank.permissionLevel}`,
@@ -123,16 +124,18 @@ export class RankPanelHandler implements IPanelHandler {
             }
 
             const newRank: RankDefinition = {
-                id,
-                name,
+                id: id,
+                name: name,
                 permissionLevel: parseInt(permStr) || 1024,
                 chatFormatting: {
                     prefixText: prefix,
-                    nameColor,
-                    messageColor
+                    nameColor: nameColor,
+                    messageColor: messageColor
                 },
-                conditions: []
-            };
+                nametagPrefix: undefined,
+                conditions: [],
+                locked: false
+            } as RankDefinition;
 
             const newConfig = { ...config };
             newConfig.rankDefinitions.push(newRank);
@@ -165,15 +168,20 @@ export class RankPanelHandler implements IPanelHandler {
             // Cannot edit locked ranks fully?
             // We allow editing logic, but maybe not deletion if locked.
 
-            const updatedRank = { ...config.rankDefinitions[rankIndex] };
-            updatedRank.name = name;
-            updatedRank.permissionLevel = parseInt(permStr) || 1024;
-            updatedRank.chatFormatting = {
-                prefixText: prefix,
-                nameColor,
-                messageColor
+            const existingRank = config.rankDefinitions[rankIndex];
+            if (!existingRank) return showPanel(player, 'rankManagementPanel');
+
+            const updatedRank: RankDefinition = {
+                ...existingRank,
+                name: name,
+                permissionLevel: parseInt(permStr) || 1024,
+                chatFormatting: {
+                    prefixText: prefix,
+                    nameColor,
+                    messageColor
+                },
+                locked: locked
             };
-            updatedRank.locked = locked;
 
             const newConfig = { ...config };
             newConfig.rankDefinitions[rankIndex] = updatedRank;
@@ -187,6 +195,7 @@ export class RankPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
+                if (!item) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {
