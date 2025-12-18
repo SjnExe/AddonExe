@@ -24,8 +24,9 @@ function placeBounty(executor: mc.Player, targetId: string, targetName: string, 
         return;
     }
 
-    if (isNaN(amount) || amount < config.bounties.minimumBounty) {
-        sendMessage(`§cInvalid amount. The minimum bounty is $${config.bounties.minimumBounty}.`, executor);
+    const min = config.bounties?.minimumBounty ?? 0;
+    if (isNaN(amount) || amount < min) {
+        sendMessage(`§cInvalid amount. The minimum bounty is $${min}.`, executor);
         return;
     }
 

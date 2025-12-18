@@ -111,15 +111,15 @@ const ecwipeCommand: CustomCommand = {
 
         let success = true;
         try {
+            const overworld = mc.world.getDimension('overworld');
+            if (!overworld) throw new Error('Overworld not found');
+
             // Ender Chest has 27 slots (0-26)
             for (let i = 0; i < 27; i++) {
                 // Using runCommand to bypass API limitation
                 // Quote name to handle spaces
                 const command = `replaceitem entity "${targetNameResolved}" slot.enderchest ${i} air`;
-                const overworld = mc.world.getDimension('overworld');
-                if (overworld) {
-                    overworld.runCommand(command);
-                }
+                overworld.runCommand(command);
             }
         } catch {
             success = false;

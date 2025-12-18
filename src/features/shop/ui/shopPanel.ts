@@ -182,14 +182,13 @@ export class ShopPanelHandler implements IPanelHandler {
             const paginated = getPaginatedItems(results, (context.page as number) || 1);
             paginated.forEach((entry) => {
                 if (!entry) return;
-                const masterItem = allItems[entry.id] || {};
                 const buy = (entry.buyPrice ?? 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice!)}` : '';
                 const sell = (entry.sellPrice ?? 0) > 0 ? `§4S: ${formatCurrency(entry.sellPrice!)}` : '';
                 const priceString = [buy, sell].filter(Boolean).join(' ');
                 items.push({
                     id: entry.id,
                     text: `${entry.displayName}\n${priceString}`,
-                    icon: entry.icon || masterItem.icon,
+                    icon: entry.icon || '',
                     permissionLevel: 1024,
                     actionType: 'functionCall',
                     actionValue: 'buyOrSell'
@@ -217,7 +216,7 @@ export class ShopPanelHandler implements IPanelHandler {
                             type: 'subCategory' as const
                         };
                     })
-                    .filter((x): x is ShopCategoryEntry => x !== null);
+                    .filter((x) => x !== null) as ShopCategoryEntry[];
 
                 const shopItems: ShopEntry[] = Object.keys(category.items).map((id) => {
                     const item = category.items[id];
@@ -231,7 +230,7 @@ export class ShopPanelHandler implements IPanelHandler {
                         permissionLevel: item.permissionLevel,
                         type: 'item' as const
                     };
-                }).filter((x): x is ShopItemEntry => x !== null);
+                }).filter((x) => x !== null) as ShopItemEntry[];
 
                 const allEntries = [...subCategories, ...shopItems];
                 const paginated = getPaginatedItems(allEntries, (context.page as number) || 1);
@@ -248,15 +247,13 @@ export class ShopPanelHandler implements IPanelHandler {
                             actionValue: `shopItemListPanel_${categoryName}_${entry.name}`
                         });
                     } else {
-                        const masterItem = allItems[entry.id] || {};
-                        const displayName = entry.displayName || masterItem.displayName || entry.id;
                         const buy = (entry.buyPrice ?? 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice!)}` : '';
                         const sell = (entry.sellPrice ?? 0) > 0 ? `§4S: ${formatCurrency(entry.sellPrice!)}` : '';
                         const priceString = [buy, sell].filter(Boolean).join(' ');
                         items.push({
                             id: entry.id,
-                            text: `${displayName}\n${priceString}`,
-                            icon: entry.icon || masterItem.icon,
+                            text: `${entry.displayName}\n${priceString}`,
+                            icon: entry.icon || '',
                             permissionLevel: 1024,
                             actionType: 'functionCall',
                             actionValue: 'buyOrSell'
@@ -289,20 +286,18 @@ export class ShopPanelHandler implements IPanelHandler {
                         permissionLevel: item.permissionLevel,
                         type: 'item' as const
                     };
-                }).filter((x): x is ShopItemEntry => x !== null);
+                }).filter((x) => x !== null) as ShopItemEntry[];
 
                 const paginated = getPaginatedItems(shopItems, (context.page as number) || 1);
                 paginated.forEach((entry) => {
                     if (!entry) return;
-                    const masterItem = allItems[entry.id] || {};
-                    const displayName = entry.displayName || masterItem.displayName || entry.id;
                     const buy = (entry.buyPrice ?? 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice!)}` : '';
                     const sell = (entry.sellPrice ?? 0) > 0 ? `§4S: ${formatCurrency(entry.sellPrice!)}` : '';
                     const priceString = [buy, sell].filter(Boolean).join(' ');
                     items.push({
                         id: entry.id,
-                        text: `${displayName}\n${priceString}`,
-                        icon: entry.icon || masterItem.icon,
+                        text: `${entry.displayName}\n${priceString}`,
+                        icon: entry.icon || '',
                         permissionLevel: 1024,
                         actionType: 'functionCall',
                         actionValue: 'buyOrSell'
@@ -851,6 +846,9 @@ export class ShopPanelHandler implements IPanelHandler {
             if ((response as ModalFormResponse).canceled) return showPanel(player, parent, context);
 
             const shopConfig = getShopConfig();
+            await ensureItemsConfig();
+            const masterItem = allItems[itemId];
+
             let shopItem;
             if (subCategoryName) {
                 shopItem = shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId];
