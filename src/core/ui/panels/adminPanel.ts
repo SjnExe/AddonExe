@@ -154,7 +154,7 @@ export class AdminPanelHandler implements IPanelHandler {
                 player.sendMessage('§4Invalid ID.');
                 return showPanel(player, 'floatingTextCreatePanel');
             }
-            if (floatingTextManager.createText(player, id, text)) {
+            if (floatingTextManager.createText(player, id, text || '')) {
                 // Success msg in manager
             }
             return showPanel(player, 'floatingTextListPanel');

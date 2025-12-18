@@ -61,7 +61,7 @@ async function showPunishmentFilter(player: mc.Player) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return;
 
-    const nameQuery = values[0] as string;
+    const nameQuery = (values[0] as string) || '';
     const typeIndex = values[1] as number;
     const types = [null, 'ban', 'mute', 'warn', 'kick'];
     const typeFilter = types[typeIndex];
@@ -151,7 +151,7 @@ async function showFlagFilter(player: mc.Player) {
 
     const values = (res as ModalFormResponse).formValues;
     if (!values) return;
-    const nameQuery = values[0] as string;
+    const nameQuery = (values[0] as string) || '';
 
     await showFlagLogs(player, 1, nameQuery);
 }
@@ -245,8 +245,8 @@ export async function showChatFilter(player: mc.Player) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return;
     const dateIndex = values[0] as number;
-    const nameQuery = values[1] as string;
-    const keywordQuery = values[2] as string;
+    const nameQuery = (values[1] as string) || '';
+    const keywordQuery = (values[2] as string) || '';
     const date = dates[dateIndex];
 
     await showChatLogs(player, 1, date, nameQuery, keywordQuery);
