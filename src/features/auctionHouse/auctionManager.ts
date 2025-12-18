@@ -250,7 +250,9 @@ function* checkExpiredAuctionsJob() {
     const entries = Array.from(activeListings.entries());
 
     for (let i = 0; i < entries.length; i++) {
-        const [id, listing] = entries[i];
+        const entry = entries[i];
+        if (!entry) continue;
+        const [id, listing] = entry;
         const expiry = listing.startTime + listing.duration * 1000;
         if (now >= expiry) {
             expired.push(id);
