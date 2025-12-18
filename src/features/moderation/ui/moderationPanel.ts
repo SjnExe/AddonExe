@@ -56,8 +56,11 @@ export class ModerationPanelHandler implements IPanelHandler {
         };
 
         if (panelId === 'moderationPanel') {
-            const staticItems = getStaticMenuItems(panelDefinitions[panelId], 1); // Admin only
-            items.push(...staticItems);
+            const def = panelDefinitions[panelId];
+            if (def) {
+                const staticItems = getStaticMenuItems(def, 1); // Admin only
+                items.push(...staticItems);
+            }
             return items;
         }
 
@@ -85,8 +88,11 @@ export class ModerationPanelHandler implements IPanelHandler {
         if (panelId === 'reportActionsPanel') {
             addBack('reportListPanel');
             // Static items from registry
-            const staticItems = getStaticMenuItems(panelDefinitions[panelId], 2);
-            items.push(...staticItems.filter((i) => i.id !== '__back__')); // AddBack handled manually
+            const def = panelDefinitions[panelId];
+            if (def) {
+                const staticItems = getStaticMenuItems(def, 2);
+                items.push(...staticItems.filter((i) => i.id !== '__back__')); // AddBack handled manually
+            }
             return items;
         }
 

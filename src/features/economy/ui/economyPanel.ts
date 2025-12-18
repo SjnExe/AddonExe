@@ -66,16 +66,22 @@ export class EconomyPanelHandler implements IPanelHandler {
             // economyPanel has a parent in registry, so getStaticMenuItems handles back button?
             // Actually configCategoryPanel is dynamic.
             // Let's rely on getStaticMenuItems or add it if missing.
-            const staticItems = getStaticMenuItems(panelDefinitions[panelId], pData.permissionLevel);
-            items.push(...staticItems);
+            const def = panelDefinitions[panelId];
+            if (def) {
+                const staticItems = getStaticMenuItems(def, pData.permissionLevel);
+                items.push(...staticItems);
+            }
             return items;
         }
 
         if (panelId === 'mobDropsSystemPanel') {
             addBack('economyPanel');
             // Static items first (Add Button)
-            const staticItems = getStaticMenuItems(panelDefinitions[panelId], pData.permissionLevel);
-            items.push(...staticItems);
+            const def = panelDefinitions[panelId];
+            if (def) {
+                const staticItems = getStaticMenuItems(def, pData.permissionLevel);
+                items.push(...staticItems);
+            }
 
             const config = getEconomyConfig();
             const mobMoney = config.mobMoney || {};
