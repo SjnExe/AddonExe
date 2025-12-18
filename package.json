@@ -13,7 +13,7 @@
         "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests",
         "lint": "eslint . && npm run check-types && node scripts/validate-filtered.js",
         "lint:check": "eslint . && npm run check-types && prettier --check .",
-        "lint:fix": "eslint . --fix",
+        "lint:fix": "eslint . --fix && npm run check-types",
         "lint:report": "eslint . --output-file eslint_report.txt",
         "format": "prettier --write .",
         "format:check": "prettier --check .",

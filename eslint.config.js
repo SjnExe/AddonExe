@@ -109,7 +109,7 @@ export default tseslint.config(
             'promise/catch-or-return': 'warn',
             'promise/no-return-wrap': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
-            '@typescript-eslint/no-var-requires': 'off',
+            '@typescript-eslint/no-var-requires': 'error',
             '@typescript-eslint/no-shadow': 'error',
             '@typescript-eslint/no-floating-promises': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
