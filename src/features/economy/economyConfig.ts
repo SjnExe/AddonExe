@@ -22,8 +22,8 @@ export interface EconomyConfig {
 export const economyConfig: EconomyConfig = {
     currencySymbol: '$',
     startingBalance: 100,
-    minBalance: -1000000,
-    maxBalance: 1000000000,
+    minBalance: -1_000_000,
+    maxBalance: 1_000_000_000,
     logToConsole: false,
     mobMoney: {
         // Low reward for common/farmable mobs

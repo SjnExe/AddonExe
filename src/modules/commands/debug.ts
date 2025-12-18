@@ -38,18 +38,22 @@ const logCommand: CustomCommand = {
         let level: number | undefined;
         if (levelStr) {
             switch (levelStr.toUpperCase()) {
-                case 'ERROR':
+                case 'ERROR': {
                     level = LogLevels.ERROR;
                     break;
-                case 'WARN':
+                }
+                case 'WARN': {
                     level = LogLevels.WARN;
                     break;
-                case 'INFO':
+                }
+                case 'INFO': {
                     level = LogLevels.INFO;
                     break;
-                case 'DEBUG':
+                }
+                case 'DEBUG': {
                     level = LogLevels.DEBUG;
                     break;
+                }
             }
         }
 

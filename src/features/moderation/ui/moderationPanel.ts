@@ -71,7 +71,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                 .filter((r) => r.status === 'open' || r.status === 'assigned')
                 .sort((a, b) => a.timestamp - b.timestamp);
             const paginated = getPaginatedItems(reports, (context.page as number) || 1);
-            paginated.forEach((report) => {
+            for (const report of paginated) {
                 const statusColor = report.status === 'assigned' ? '§6' : '§4';
                 items.push({
                     id: report.id,
@@ -80,7 +80,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: 'reportActionsPanel'
                 });
-            });
+            }
             addPagination(reports.length);
             return items;
         }
@@ -161,11 +161,11 @@ export class ModerationPanelHandler implements IPanelHandler {
                     if (res.canceled) return showPanel(player, panelId, context);
                     const [name] = res.formValues as [string];
                     const targetId = getPlayerIdByName(name);
-                    if (!targetId) {
-                        player.sendMessage('§4Player not found in database.');
-                    } else {
+                    if (targetId) {
                         punishmentManager.removePunishment(targetId, 'ban');
                         player.sendMessage(`§2Unbanned ${name}.`);
+                    } else {
+                        player.sendMessage('§4Player not found in database.');
                     }
                     return showPanel(player, panelId, context);
                 }
@@ -178,11 +178,11 @@ export class ModerationPanelHandler implements IPanelHandler {
                     if (res.canceled) return showPanel(player, panelId, context);
                     const [name] = res.formValues as [string];
                     const targetId = getPlayerIdByName(name);
-                    if (!targetId) {
-                        player.sendMessage('§4Player not found in database.');
-                    } else {
+                    if (targetId) {
                         punishmentManager.removePunishment(targetId, 'mute');
                         player.sendMessage(`§2Unmuted ${name}.`);
+                    } else {
+                        player.sendMessage('§4Player not found in database.');
                     }
                     return showPanel(player, panelId, context);
                 }

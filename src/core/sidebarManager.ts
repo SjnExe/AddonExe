@@ -61,7 +61,7 @@ function startTPSCounter() {
         if (tickCounts.length > 5) tickCounts.shift();
 
         const sum = tickCounts.reduce((a, b) => a + b, 0);
-        currentTPS = parseFloat((sum / tickCounts.length).toFixed(1));
+        currentTPS = Number.parseFloat((sum / tickCounts.length).toFixed(1));
     }, 20);
 }
 
@@ -137,12 +137,12 @@ export function resolveGlobalPlaceholders(text: string): string {
     const online = mc.world.getAllPlayers().length;
 
     const result = text
-        .replace(/{server_name}/g, mainConfig?.serverName ?? 'Server')
-        .replace(/{tps}/g, currentTPS.toString())
-        .replace(/{online}/g, online.toString())
-        .replace(/{max_players}/g, config.maxPlayers.toString())
-        .replace(/{time}/g, new Date().toLocaleTimeString())
-        .replace(/{date}/g, new Date().toLocaleDateString());
+        .replaceAll('{server_name}', mainConfig?.serverName ?? 'Server')
+        .replaceAll('{tps}', currentTPS.toString())
+        .replaceAll('{online}', online.toString())
+        .replaceAll('{max_players}', config.maxPlayers.toString())
+        .replaceAll('{time}', new Date().toLocaleTimeString())
+        .replaceAll('{date}', new Date().toLocaleDateString());
 
     return result;
 }
@@ -165,34 +165,38 @@ function resolvePersonalPlaceholders(text: string, player: mc.Player, skipGlobal
     // Dimension
     let dimName = 'Unknown';
     switch (player.dimension.id) {
-        case MinecraftDimensionTypes.Overworld as string:
+        case MinecraftDimensionTypes.Overworld as string: {
             dimName = 'Overworld';
             break;
-        case MinecraftDimensionTypes.Nether as string:
+        }
+        case MinecraftDimensionTypes.Nether as string: {
             dimName = 'Nether';
             break;
-        case MinecraftDimensionTypes.TheEnd as string:
+        }
+        case MinecraftDimensionTypes.TheEnd as string: {
             dimName = 'The End';
             break;
-        default:
+        }
+        default: {
             dimName = player.dimension.id.replace('minecraft:', '');
+        }
     }
 
     result = result
-        .replace(/{name}/g, player.name)
-        .replace(/{money}/g, money)
-        .replace(/{rank}/g, rank ? (rank.name ?? 'Unknown') : 'Unknown')
-        .replace(/{kills}/g, (pData.kills || 0).toString())
-        .replace(/{deaths}/g, (pData.deaths || 0).toString())
-        .replace(/{streak}/g, (pData.killStreak || 0).toString())
-        .replace(/{kdr}/g, kdr.toString())
-        .replace(/{playtime}/g, playTime)
-        .replace(/{team}/g, team ? team.name : 'None')
-        .replace(/{ping}/g, 'N/A')
-        .replace(/{x}/g, Math.floor(x).toString())
-        .replace(/{y}/g, Math.floor(y).toString())
-        .replace(/{z}/g, Math.floor(z).toString())
-        .replace(/{dimension}/g, dimName);
+        .replaceAll('{name}', player.name)
+        .replaceAll('{money}', money)
+        .replaceAll('{rank}', rank ? (rank.name ?? 'Unknown') : 'Unknown')
+        .replaceAll('{kills}', (pData.kills || 0).toString())
+        .replaceAll('{deaths}', (pData.deaths || 0).toString())
+        .replaceAll('{streak}', (pData.killStreak || 0).toString())
+        .replaceAll('{kdr}', kdr.toString())
+        .replaceAll('{playtime}', playTime)
+        .replaceAll('{team}', team ? team.name : 'None')
+        .replaceAll('{ping}', 'N/A')
+        .replaceAll('{x}', Math.floor(x).toString())
+        .replaceAll('{y}', Math.floor(y).toString())
+        .replaceAll('{z}', Math.floor(z).toString())
+        .replaceAll('{dimension}', dimName);
 
     return result;
 }
@@ -222,9 +226,9 @@ function updateSidebar() {
 
         const participants = objective.getParticipants();
         const newLines: string[] = [];
-        config.sidebarLines.forEach((line) => {
+        for (const line of config.sidebarLines) {
             newLines.push(resolveGlobalPlaceholders(line));
-        });
+        }
 
         let score = newLines.length;
         const desiredLinesSet = new Set(newLines);
@@ -237,8 +241,7 @@ function updateSidebar() {
 
         const usedLines = new Set<string>();
 
-        for (let i = 0; i < newLines.length; i++) {
-            let lineText = newLines[i];
+        for (let lineText of newLines) {
             // Safety check for undefined if array has gaps
             if (lineText === undefined) continue;
 
@@ -256,16 +259,21 @@ function updateSidebar() {
 
 function getMagicString(opacity: string): string {
     switch (opacity) {
-        case 'high':
+        case 'high': {
             return MAGIC_STRING_BASE + '§1';
-        case 'medium':
+        }
+        case 'medium': {
             return MAGIC_STRING_BASE + '§2';
-        case 'low':
+        }
+        case 'low': {
             return MAGIC_STRING_BASE + '§3';
-        case 'none':
+        }
+        case 'none': {
             return MAGIC_STRING_BASE + '§4';
-        default:
+        }
+        default: {
             return MAGIC_STRING_BASE + '§2';
+        }
     }
 }
 

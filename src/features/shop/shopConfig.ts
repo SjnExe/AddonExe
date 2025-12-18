@@ -31,7 +31,7 @@ export const shopConfig: ShopConfig = {
                 emerald: { buyPrice: 800, sellPrice: 400, permissionLevel: 1024 },
                 goldIngot: { buyPrice: 100, sellPrice: 50, permissionLevel: 1024 },
                 ironIngot: { buyPrice: 50, sellPrice: 25, permissionLevel: 1024 },
-                netheriteIngot: { buyPrice: 10000, sellPrice: 5000, permissionLevel: 1024 },
+                netheriteIngot: { buyPrice: 10_000, sellPrice: 5000, permissionLevel: 1024 },
                 netheriteScrap: { buyPrice: 2000, sellPrice: 1000, permissionLevel: 1024 },
                 ancientDebris: { buyPrice: 1800, sellPrice: 900, permissionLevel: 1024 },
                 lapisLazuli: { buyPrice: 20, sellPrice: 10, permissionLevel: 1024 },
@@ -43,11 +43,11 @@ export const shopConfig: ShopConfig = {
             icon: 'textures/ui/filledStar',
             items: {
                 totemOfUndying: { buyPrice: 5000, sellPrice: 2500, permissionLevel: 1024 },
-                netherStar: { buyPrice: 20000, sellPrice: -1, permissionLevel: 1024 },
+                netherStar: { buyPrice: 20_000, sellPrice: -1, permissionLevel: 1024 },
                 shulkerShell: { buyPrice: 750, sellPrice: 300, permissionLevel: 1024 },
-                elytra: { buyPrice: 15000, sellPrice: -1, permissionLevel: 1024 },
+                elytra: { buyPrice: 15_000, sellPrice: -1, permissionLevel: 1024 },
                 witherSkeletonSkull: { buyPrice: 8000, sellPrice: 2000, permissionLevel: 1024 },
-                enchantedGoldenApple: { buyPrice: 25000, sellPrice: -1, permissionLevel: 1024 }
+                enchantedGoldenApple: { buyPrice: 25_000, sellPrice: -1, permissionLevel: 1024 }
             },
             subCategories: {}
         },
@@ -68,8 +68,8 @@ export const shopConfig: ShopConfig = {
                 Netherite: {
                     icon: 'textures/items/netherite_ingot',
                     items: {
-                        netheriteSword: { buyPrice: 15000, sellPrice: 7500, permissionLevel: 1024 },
-                        netheritePickaxe: { buyPrice: 18000, sellPrice: 8000, permissionLevel: 1024 }
+                        netheriteSword: { buyPrice: 15_000, sellPrice: 7500, permissionLevel: 1024 },
+                        netheritePickaxe: { buyPrice: 18_000, sellPrice: 8000, permissionLevel: 1024 }
                     }
                 }
             }
@@ -90,10 +90,10 @@ export const shopConfig: ShopConfig = {
                 Netherite: {
                     icon: 'textures/items/netherite_ingot',
                     items: {
-                        netheriteHelmet: { buyPrice: 20000, sellPrice: 10000, permissionLevel: 1024 },
-                        netheriteChestplate: { buyPrice: 30000, sellPrice: 15000, permissionLevel: 1024 },
-                        netheriteLeggings: { buyPrice: 25000, sellPrice: 12000, permissionLevel: 1024 },
-                        netheriteBoots: { buyPrice: 18000, sellPrice: 9000, permissionLevel: 1024 }
+                        netheriteHelmet: { buyPrice: 20_000, sellPrice: 10_000, permissionLevel: 1024 },
+                        netheriteChestplate: { buyPrice: 30_000, sellPrice: 15_000, permissionLevel: 1024 },
+                        netheriteLeggings: { buyPrice: 25_000, sellPrice: 12_000, permissionLevel: 1024 },
+                        netheriteBoots: { buyPrice: 18_000, sellPrice: 9000, permissionLevel: 1024 }
                     }
                 }
             }

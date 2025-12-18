@@ -59,7 +59,7 @@ export function banPlayer(
     }
 
     try {
-        const sanitizedReason = reason.replace(/"/g, '\\"').replace(/\n/g, ' ');
+        const sanitizedReason = reason.replaceAll('"', String.raw`\"`).replaceAll('\n', ' ');
         const command = `kick "${targetPlayer.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`;
         mc.world.getDimension('overworld').runCommand(command);
     } catch (error: unknown) {
@@ -226,7 +226,7 @@ export function offlineBanPlayer(
     }
 
     try {
-        const sanitizedReason = reason.replace(/"/g, '\\"').replace(/\n/g, ' ');
+        const sanitizedReason = reason.replaceAll('"', String.raw`\"`).replaceAll('\n', ' ');
         mc.world
             .getDimension('overworld')
             .runCommand(`kick "${targetName}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);

@@ -43,12 +43,10 @@ const backCommand: CustomCommand = {
         }
 
         // Cost Check
-        if (backConfig.cost > 0) {
-            if (pData.balance < backConfig.cost) {
+        if (backConfig.cost > 0 && pData.balance < backConfig.cost) {
                 sendMessage(`§cInsufficient funds. Cost: ${formatCurrency(backConfig.cost)}`, executor);
                 return;
             }
-        }
 
         const warmupSeconds = backConfig.teleportWarmupSeconds;
 

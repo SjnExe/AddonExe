@@ -46,7 +46,7 @@ export const config = {
     rtp: {
         enabled: false,
         minRange: 1000,
-        maxRange: 10000,
+        maxRange: 10_000,
         cooldownSeconds: 600, // 10 minutes
         teleportWarmupSeconds: 10
     },
@@ -65,7 +65,7 @@ export const config = {
     economy: {
         enabled: false,
         baltopLimit: 10,
-        paymentConfirmationThreshold: 10000, // Payments over this amount require confirmation
+        paymentConfirmationThreshold: 10_000, // Payments over this amount require confirmation
         paymentConfirmationTimeout: 60 // Seconds to confirm a payment
     },
     bounties: {
@@ -139,10 +139,10 @@ export const config = {
 
     // --- Sound Events ---
     soundEvents: {
-        tpaRequestReceived: { enabled: true, soundId: 'random.orb', volume: 1.0, pitch: 1.2 },
+        tpaRequestReceived: { enabled: true, soundId: 'random.orb', volume: 1, pitch: 1.2 },
         adminNotificationReceived: { enabled: true, soundId: 'note.pling', volume: 0.8, pitch: 1.5 },
-        playerWarningReceived: { enabled: true, soundId: 'note.bass', volume: 1.0, pitch: 0.8 },
-        commandError: { enabled: true, soundId: 'mob.villager.no', volume: 1.0, pitch: 0.9 }
+        playerWarningReceived: { enabled: true, soundId: 'note.bass', volume: 1, pitch: 0.8 },
+        commandError: { enabled: true, soundId: 'mob.villager.no', volume: 1, pitch: 0.9 }
     },
 
     // --- Command Enable/Disable ---

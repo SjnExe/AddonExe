@@ -91,11 +91,7 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
         if (targetId) {
             const onlinePlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
             let pData;
-            if (onlinePlayer) {
-                pData = getOrCreatePlayer(onlinePlayer);
-            } else {
-                pData = loadPlayerData(targetId);
-            }
+            pData = onlinePlayer ? getOrCreatePlayer(onlinePlayer) : loadPlayerData(targetId);
 
             if (pData) title = title.replace('{playerName}', pData.name);
         }

@@ -112,18 +112,18 @@ export class PlayerPanelHandler implements IPanelHandler {
 
         const targetId = context.targetPlayerId as string;
         const isSelf = viewerId && targetId === viewerId;
-        const selfDisabledActions = ['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze', 'tpa', 'tpahere', 'report'];
-        const adminActions = ['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze'];
+        const selfDisabledActions = new Set(['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze', 'tpa', 'tpahere', 'report']);
+        const adminActions = new Set(['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze']);
 
         for (const item of menuItems) {
             if (item.id === '__back__') continue;
 
             // Filter out admin actions if coming from the Gameplay Player List
-            if (context.fromPanel === 'playerListPanel' && adminActions.includes(item.id)) {
+            if (context.fromPanel === 'playerListPanel' && adminActions.has(item.id)) {
                 continue;
             }
 
-            if (isSelf && selfDisabledActions.includes(item.id)) {
+            if (isSelf && selfDisabledActions.has(item.id)) {
                 continue;
             }
             const commandName = item.id;

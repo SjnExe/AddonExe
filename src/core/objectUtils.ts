@@ -37,8 +37,8 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
         if (a.length !== b.length) {
             return false;
         }
-        for (let i = 0; i < a.length; i++) {
-            if (!isDeepEqual(a[i], b[i], map)) {
+        for (const [i, element] of a.entries()) {
+            if (!isDeepEqual(element, b[i], map)) {
                 return false;
             }
         }
@@ -82,20 +82,20 @@ export function deepMerge(target: unknown, source: unknown): unknown {
     }
     const output = { ...target } as Record<string, unknown>;
 
-    Object.keys(source).forEach((key) => {
+    for (const key of Object.keys(source)) {
         const sourceValue = source[key];
         const targetValue = target[key];
 
         if (isObject(sourceValue)) {
-            if (!(key in target)) {
-                Object.assign(output, { [key]: sourceValue });
-            } else {
+            if (key in target) {
                 output[key] = deepMerge(targetValue, sourceValue);
+            } else {
+                Object.assign(output, { [key]: sourceValue });
             }
         } else {
             Object.assign(output, { [key]: sourceValue });
         }
-    });
+    }
 
     return output;
 }
@@ -123,7 +123,7 @@ export function getValueFromPath(obj: unknown, path: string): unknown {
         if (current && typeof current === 'object' && key in current) {
             return (current as Record<string, unknown>)[key];
         }
-        return undefined;
+        return;
     }, obj);
 }
 
@@ -305,7 +305,7 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
     }
 
     const result = (
-        obj instanceof Array ? [] : Object.create(Object.getPrototypeOf(obj as object) as object | null)
+        Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj as object) as object | null)
     ) as T;
 
     hash.set(obj as object, result);
@@ -392,9 +392,9 @@ export function mergeRanks(
     // Preserve original order as much as possible
     // Optimization: Create a map for O(1) lookups instead of O(N) findIndex
     const fileRankIndexMap = new Map<unknown, number>();
-    newFileRanks.forEach((r, index) => {
+    for (const [index, r] of newFileRanks.entries()) {
         if (r && r['id']) fileRankIndexMap.set(r['id'], index);
-    });
+    }
 
     finalRanks.sort((a, b) => {
         const aId = a['id'];

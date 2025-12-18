@@ -152,8 +152,8 @@ const addShopCommand: CustomCommand = {
 
         // Validate max 2 decimal places
         if (
-            Math.abs(buyPrice - parseFloat(buyPrice.toFixed(2))) > 0.001 ||
-            Math.abs(sellPrice - parseFloat(sellPrice.toFixed(2))) > 0.001
+            Math.abs(buyPrice - Number.parseFloat(buyPrice.toFixed(2))) > 0.001 ||
+            Math.abs(sellPrice - Number.parseFloat(sellPrice.toFixed(2))) > 0.001
         ) {
             return executor.sendMessage(
                 '§cInvalid precision. Prices can only have up to 2 decimal places (e.g. 10.55).'

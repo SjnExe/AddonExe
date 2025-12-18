@@ -33,8 +33,7 @@ export class RankPanelHandler implements IPanelHandler {
                 actionType: 'openPanel',
                 actionValue: 'addRankPanel',
                 sortId: 0
-            });
-            items.push({
+            }, {
                 id: 'rankSettings',
                 text: 'Settings',
                 icon: 'textures/ui/settings_glyph_color_2x',
@@ -47,8 +46,8 @@ export class RankPanelHandler implements IPanelHandler {
             const ranks = rankManager.getAllRanks();
             ranks.sort((a, b) => a.permissionLevel - b.permissionLevel);
 
-            ranks.forEach((rank) => {
-                if (!rank) return;
+            for (const rank of ranks) {
+                if (!rank) continue;
                 items.push({
                     id: rank.id,
                     text: `§l${rank.name}§r\nLevel: ${rank.permissionLevel}`,
@@ -57,7 +56,7 @@ export class RankPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: 'editRankPanel'
                 });
-            });
+            }
 
             return Promise.resolve(items);
         }
@@ -126,7 +125,7 @@ export class RankPanelHandler implements IPanelHandler {
             const newRank: RankDefinition = {
                 id: id,
                 name: name,
-                permissionLevel: parseInt(permStr) || 1024,
+                permissionLevel: Number.parseInt(permStr) || 1024,
                 chatFormatting: {
                     prefixText: prefix,
                     nameColor: nameColor,
@@ -173,7 +172,7 @@ export class RankPanelHandler implements IPanelHandler {
             const updatedRank: RankDefinition = {
                 ...existingRank,
                 name: name,
-                permissionLevel: parseInt(permStr) || 1024,
+                permissionLevel: Number.parseInt(permStr) || 1024,
                 chatFormatting: {
                     prefixText: prefix,
                     nameColor,

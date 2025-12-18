@@ -5,6 +5,7 @@ import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 import jsonc from 'eslint-plugin-jsonc';
 import minecraftLinting from 'eslint-plugin-minecraft-linting';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import promisePlugin from 'eslint-plugin-promise';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
@@ -36,6 +37,11 @@ export default tseslint.config(
     },
     // Base JS configuration
     eslint.configs.recommended,
+
+    // Unicorn Configuration
+    // Disabled to prevent massive file diffs in the development environment.
+    // Uncomment to enable stricter rules.
+    // eslintPluginUnicorn.configs['flat/recommended'],
 
     // TS Configuration (Type-Checked)
     {

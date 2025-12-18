@@ -129,11 +129,9 @@ function initialize(): void {
                     'block' in event &&
                     isWithinSpawnProtection(event.block.location, event.block.dimension.id) &&
                     !canBypass(event.player)
-                ) {
-                    if ('cancel' in event) {
+                 && 'cancel' in event) {
                         event.cancel = true;
                     }
-                }
             }
         );
     }

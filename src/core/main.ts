@@ -80,12 +80,12 @@ export function updatePlayerRank(player: mc.Player) {
     // Update if rank ID changed OR if the permission level of the current rank has changed in config
     if (oldRankId !== newRank.id || pData.permissionLevel !== newRank.permissionLevel) {
         setPlayerRank(player.id, newRank.id, newRank.permissionLevel);
-        if (oldRankId !== newRank.id) {
-            infoLog(`[AddonExe] Player ${player.name}'s rank updated from ${oldRankId} to ${newRank.name}.`);
-            player.sendMessage(`§aYour rank has been updated to ${newRank.name}.`);
-        } else {
+        if (oldRankId === newRank.id) {
             // Permission level update only (silent or debug log)
             infoLog(`[AddonExe] Player ${player.name}'s permission level updated to ${newRank.permissionLevel}.`);
+        } else {
+            infoLog(`[AddonExe] Player ${player.name}'s rank updated from ${oldRankId} to ${newRank.name}.`);
+            player.sendMessage(`§aYour rank has been updated to ${newRank.name}.`);
         }
     }
     rankManager.updatePlayerNameTag(player, config);
@@ -196,11 +196,9 @@ async function initializeAddon() {
             lastVersion.length >= 2 &&
             Array.isArray(newVersion) &&
             newVersion.length >= 2
-        ) {
-            if (lastVersion[0] === newVersion[0] && lastVersion[1] === newVersion[1]) {
+         && lastVersion[0] === newVersion[0] && lastVersion[1] === newVersion[1]) {
                 isMigration = false;
             }
-        }
     }
 
     await initializeConfigManager(isMigration);

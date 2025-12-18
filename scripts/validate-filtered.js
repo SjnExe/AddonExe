@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn } from 'node:child_process';
 
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const child = spawn(npmCommand, ['run', 'validate'], { shell: true, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -8,10 +8,10 @@ let hasPrintedError = false;
 
 // Create regex dynamically to avoid no-control-regex lint error
 const esc = String.fromCharCode(27);
-const ansiRegex = new RegExp(esc + '\\[\\d+m', 'g');
+const ansiRegex = new RegExp(esc + String.raw`\[\d+m`, 'g');
 
 function stripAnsi(str) {
-    return str.replace(ansiRegex, '');
+    return str.replaceAll(ansiRegex, '');
 }
 
 function processOutput(line, isStderr) {
@@ -56,12 +56,12 @@ child.stdout.on('data', (data) => {
     const lines = buffer.split(/\r?\n/);
     buffer = lines.pop() || '';
 
-    lines.forEach((line) => processOutput(line, false));
+    for (const line of lines) processOutput(line, false);
 });
 
 child.stderr.on('data', (data) => {
     const lines = data.toString().split(/\r?\n/);
-    lines.forEach((line) => processOutput(line, true));
+    for (const line of lines) processOutput(line, true);
 });
 
 child.on('close', (code) => {

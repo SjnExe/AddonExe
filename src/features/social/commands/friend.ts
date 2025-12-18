@@ -26,25 +26,30 @@ const friendCommand: CustomCommand = {
 
         switch (sub) {
             case 'add':
-            case 'invite':
+            case 'invite': {
                 if (!target) return executor.sendMessage('§cUsage: /friend add <player>');
                 executor.sendMessage(sendFriendRequest(executor, target));
                 break;
+            }
             case 'remove':
-            case 'delete':
+            case 'delete': {
                 if (!target) return executor.sendMessage('§cUsage: /friend remove <player>');
                 executor.sendMessage(removeFriend(executor, target));
                 break;
-            case 'accept':
+            }
+            case 'accept': {
                 if (!target) return executor.sendMessage('§cUsage: /friend accept <player>');
                 executor.sendMessage(acceptFriendRequest(executor, target));
                 break;
-            case 'list':
+            }
+            case 'list': {
                 executor.sendMessage(listFriends(executor));
                 break;
-            default:
+            }
+            default: {
                 executor.sendMessage('§cUsage: /friend <add|remove|accept|list> [player] or /friend to open UI.');
                 break;
+            }
         }
     }
 };

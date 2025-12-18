@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const VERSION_STRING = process.env.VERSION_STRING;
 const VERSION_ARRAY_STRING = process.env.VERSION_ARRAY_STRING;
@@ -68,33 +68,29 @@ function updateManifest(filePath) {
             // Replace v1.0.0 placeholder
             json.header.description = json.header.description.replace('v1.0.0', `v${VERSION_STRING}`);
             // Replace any existing vX.X.X pattern if re-running or if base file changed
-            json.header.description = json.header.description.replace(/v\d+\.\d+\.\d+(-beta)?/g, `v${VERSION_STRING}`);
+            json.header.description = json.header.description.replaceAll(/v\d+\.\d+\.\d+(-beta)?/g, `v${VERSION_STRING}`);
         }
     }
 
     // Update modules version
     if (json.modules) {
-        json.modules.forEach((module) => {
-            if (module.version) {
-                // Keep beta dependencies as is, unless they match the [1, 0, 0] placeholder we are replacing.
-                if (JSON.stringify(module.version) === '[1,0,0]' || JSON.stringify(module.version) === '[1, 0, 0]') {
+        for (const module of json.modules) {
+            if (module.version && // Keep beta dependencies as is, unless they match the [1, 0, 0] placeholder we are replacing.
+                (JSON.stringify(module.version) === '[1,0,0]' || JSON.stringify(module.version) === '[1, 0, 0]')) {
                     module.version = versionArray;
                 }
-            }
-        });
+        }
     }
 
     // Update dependencies version
     if (json.dependencies) {
-        json.dependencies.forEach((dep) => {
-            if (dep.version) {
-                // Only update if version is [1, 0, 0]
+        for (const dep of json.dependencies) {
+            if (dep.version && // Only update if version is [1, 0, 0]
                 // This avoids touching "beta" or other specific versions
-                if (JSON.stringify(dep.version) === '[1,0,0]' || JSON.stringify(dep.version) === '[1, 0, 0]') {
+                (JSON.stringify(dep.version) === '[1,0,0]' || JSON.stringify(dep.version) === '[1, 0, 0]')) {
                     dep.version = versionArray;
                 }
-            }
-        });
+        }
     }
 
     fs.writeFileSync(fullPath, JSON.stringify(json, null, 4));
@@ -113,23 +109,23 @@ function updateConfig(filePath) {
 
     // Update version
     // Regex matches: version: [1, 0, 0] (with flexible whitespace)
-    content = content.replace(/version:\s*\[\s*1\s*,\s*0\s*,\s*0\s*\]/g, `version: ${VERSION_ARRAY_STRING}`);
+    content = content.replaceAll(/version:\s*\[\s*1\s*,\s*0\s*,\s*0\s*\]/g, `version: ${VERSION_ARRAY_STRING}`);
 
     if (IS_BETA_RELEASE) {
         console.log('Applying Beta Release Modifications...');
         // Update ownerPlayerNames
         // Regex matches: ownerPlayerNames: ['Your•Name•Here']
-        content = content.replace(
+        content = content.replaceAll(
             /ownerPlayerNames:\s*\[\s*'Your•Name•Here'\s*\]/g,
             "ownerPlayerNames: ['SjnTechMlmYT']"
         );
 
         // Update logLevel
         // Regex matches: logLevel: 2
-        content = content.replace(/logLevel:\s*2/g, 'logLevel: 3');
+        content = content.replaceAll(/logLevel:\s*2/g, 'logLevel: 3');
 
         // Update isNightly
-        content = content.replace(/isNightly:\s*false/g, 'isNightly: true');
+        content = content.replaceAll(/isNightly:\s*false/g, 'isNightly: true');
     }
 
     fs.writeFileSync(fullPath, content);

@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,13 +10,13 @@ const COMMANDS_DIR = path.join(SRC_DIR, 'modules/commands');
 const FEATURES_DIR = path.join(SRC_DIR, 'features');
 const INDEX_FILE = path.join(COMMANDS_DIR, 'index.ts');
 
-const EXCLUSIONS = ['index.ts', 'commandManager.ts'];
+const EXCLUSIONS = new Set(['index.ts', 'commandManager.ts']);
 
 function getCommandFiles(dir) {
     if (!fs.existsSync(dir)) return [];
     return fs
         .readdirSync(dir)
-        .filter((file) => file.endsWith('.ts') && !EXCLUSIONS.includes(file))
+        .filter((file) => file.endsWith('.ts') && !EXCLUSIONS.has(file))
         .map((file) => ({
             name: file,
             path: path.join(dir, file)
@@ -36,17 +36,17 @@ function generate() {
     const featureCommands = [];
     if (fs.existsSync(FEATURES_DIR)) {
         const features = fs.readdirSync(FEATURES_DIR);
-        features.forEach((feature) => {
+        for (const feature of features) {
             const cmdDir = path.join(FEATURES_DIR, feature, 'commands');
             const cmds = getCommandFiles(cmdDir);
             // Use path alias for cleaner imports
-            cmds.forEach((c) => {
+            for (const c of cmds) {
                 featureCommands.push({
                     ...c,
                     relativePath: `@features/${feature}/commands/${path.basename(c.name, '.ts')}.js`
                 });
-            });
-        });
+            }
+        }
     }
 
     const allCommands = [...legacyCommands, ...featureCommands];
@@ -55,11 +55,11 @@ function generate() {
     const imports = allCommands
         .map((cmd) => {
             const base = path.basename(cmd.name, '.ts');
-            const safeBase = base.replace(/[^a-zA-Z0-9]/g, '');
+            const safeBase = base.replaceAll(/[^a-zA-Z0-9]/g, '');
             // Use feature name prefix to ensure unique variable names
             const featureMatch = cmd.relativePath.match(/features\/([^/]+)\//);
             const featureName = featureMatch ? featureMatch[1] : 'legacy';
-            const safeFeature = featureName.replace(/[^a-zA-Z0-9]/g, '');
+            const safeFeature = featureName.replaceAll(/[^a-zA-Z0-9]/g, '');
             const name =
                 'cmd' +
                 safeFeature.charAt(0).toUpperCase() +

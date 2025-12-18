@@ -24,8 +24,7 @@ export class TeamPanelHandler implements IPanelHandler {
         if (panelId === 'teamManagePanel') {
             const { teamId } = context;
             let team;
-            if (teamId) team = teamManager.getTeam(Number(teamId));
-            else team = teamManager.getTeamByPlayer(player.id);
+            team = teamId ? teamManager.getTeam(Number(teamId)) : teamManager.getTeamByPlayer(player.id);
             return team ? `Manage ${team.name}` : 'Manage Team';
         }
         return null;
@@ -72,8 +71,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     permissionLevel: 1024,
                     actionType: 'openPanel',
                     actionValue: 'teamSettingsPanel'
-                });
-                items.push({
+                }, {
                     id: 'leaveTeam',
                     text: '§4Leave Team',
                     icon: 'textures/ui/cancel',
@@ -89,8 +87,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     permissionLevel: 1024,
                     actionType: 'openPanel',
                     actionValue: 'teamCreatePanel'
-                });
-                items.push({
+                }, {
                     id: 'joinTeam',
                     text: '§l§9Join Team',
                     icon: 'textures/ui/world_glyph_color',
@@ -112,7 +109,7 @@ export class TeamPanelHandler implements IPanelHandler {
             teams.sort((a, b) => b.members.length - a.members.length);
             const paginated = getPaginatedItems(teams, (context.page as number) || 1);
 
-            paginated.forEach((team) => {
+            for (const team of paginated) {
                 const ownerData = loadPlayerData(team.ownerId);
                 items.push({
                     id: String(team.id),
@@ -121,7 +118,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     actionType: 'functionCall',
                     actionValue: 'applyToTeam'
                 });
-            });
+            }
             addPaginationItems(items, page, teams.length);
             return items;
         }
@@ -212,11 +209,7 @@ export class TeamPanelHandler implements IPanelHandler {
             addBackButton(items, 'teamMainPanel');
             const { teamId } = context;
             let team;
-            if (teamId && permissionLevel < 1024) {
-                team = teamManager.getTeam(Number(teamId));
-            } else {
-                team = teamManager.getTeamByPlayer(player.id);
-            }
+            team = teamId && permissionLevel < 1024 ? teamManager.getTeam(Number(teamId)) : teamManager.getTeamByPlayer(player.id);
 
             if (team) {
                 const isOwner = team.ownerId === player.id;
@@ -231,16 +224,14 @@ export class TeamPanelHandler implements IPanelHandler {
                         permissionLevel: 1024,
                         actionType: 'openPanel',
                         actionValue: 'teamInviteSearchPanel'
-                    });
-                    items.push({
+                    }, {
                         id: 'joinRequests',
                         text: `§l§6Join Requests §r(${team.applications.length})`,
                         icon: 'textures/ui/mail_icon',
                         permissionLevel: 1024,
                         actionType: 'openPanel',
                         actionValue: 'teamRequestsPanel'
-                    });
-                    items.push({
+                    }, {
                         id: 'manageMembers',
                         text: '§l§3Manage Members',
                         icon: 'textures/ui/icon_multiplayer',
@@ -316,7 +307,7 @@ export class TeamPanelHandler implements IPanelHandler {
             addBackButton(items, 'teamManagePanel');
             const team = teamManager.getTeamByPlayer(player.id);
             if (team && team.applications.length > 0) {
-                team.applications.forEach((app) => {
+                for (const app of team.applications) {
                     items.push({
                         id: app.playerId,
                         text: app.playerName,
@@ -324,7 +315,7 @@ export class TeamPanelHandler implements IPanelHandler {
                         actionType: 'functionCall',
                         actionValue: 'manageRequest'
                     });
-                });
+                }
             }
             return items;
         }
@@ -333,7 +324,7 @@ export class TeamPanelHandler implements IPanelHandler {
             addBackButton(items, 'teamMainPanel');
             const invites = pData.pendingInvites || [];
             if (invites.length > 0) {
-                invites.forEach((invite) => {
+                for (const invite of invites) {
                     const date = new Date(invite.timestamp).toLocaleDateString();
                     items.push({
                         id: String(invite.teamId),
@@ -342,7 +333,7 @@ export class TeamPanelHandler implements IPanelHandler {
                         actionType: 'functionCall',
                         actionValue: 'manageInvite'
                     });
-                });
+                }
                 items.push({
                     id: 'denyAll',
                     text: '§4Deny All Invites',
@@ -508,9 +499,8 @@ export class TeamPanelHandler implements IPanelHandler {
             if (!values) return;
 
             const config = getTeamConfig();
-            const newConfig = { ...config };
+            const newConfig = { ...config , enabled: values[0] as boolean,};
 
-            newConfig.enabled = values[0] as boolean;
             newConfig.maxMembers = Number(values[1]);
             newConfig.creationCost = Number(values[2]);
             newConfig.nameMinLength = Number(values[3]);
@@ -601,8 +591,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 if (item.actionValue === 'deleteTeam') {
                     const { teamId } = context;
                     let team;
-                    if (teamId) team = teamManager.getTeam(Number(teamId));
-                    else team = teamManager.getTeamByPlayer(player.id);
+                    team = teamId ? teamManager.getTeam(Number(teamId)) : teamManager.getTeamByPlayer(player.id);
 
                     if (team) {
                         await showConfirmationDialog(player, {

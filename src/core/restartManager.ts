@@ -49,7 +49,7 @@ export function startRestart(initiator: CommandExecutor): void {
 
             for (const player of mc.world.getAllPlayers()) {
                 player.onScreenDisplay.setActionBar(message);
-                player.playSound('note.pling', { pitch: pitch, volume: 1.0 });
+                player.playSound('note.pling', { pitch: pitch, volume: 1 });
 
                 if (countdownTimer <= 5) {
                     player.onScreenDisplay.setTitle(`§c${countdownTimer}`);
@@ -86,7 +86,7 @@ function finalizeRestart(): void {
 
         try {
             for (const player of mc.world.getAllPlayers()) {
-                player.playSound('random.levelup', { pitch: 1.0, volume: 1.0 });
+                player.playSound('random.levelup', { pitch: 1, volume: 1 });
             }
 
             const players = mc.world.getAllPlayers();

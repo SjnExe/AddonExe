@@ -36,7 +36,7 @@ const command: CustomCommand = {
         }
 
         switch (subcommand) {
-            case 'create':
+            case 'create': {
                 if (!id || !text) {
                     executor.sendMessage('§cUsage: /floatingtext create <id> <text>');
                     return;
@@ -47,33 +47,35 @@ const command: CustomCommand = {
                 }
                 floatingTextManager.createText(executor, id, text);
                 break;
-            case 'delete':
+            }
+            case 'delete': {
                 if (!id) {
                     executor.sendMessage('§cUsage: /floatingtext delete <id>');
                     return;
                 }
                 floatingTextManager.deleteText(executor, id);
                 break;
-            case 'list':
+            }
+            case 'list': {
                 floatingTextManager.listTexts(executor);
                 break;
-            case 'teleport':
+            }
+            case 'teleport': {
                 if (!id) {
                     executor.sendMessage('§cUsage: /floatingtext teleport <id>');
                     return;
                 }
                 floatingTextManager.teleportToText(executor, id);
                 break;
-            case 'edit':
-                if (!id) {
-                    await showPanel(executor, 'floatingTextListPanel');
-                } else {
-                    await showPanel(executor, 'floatingTextEditPanel', { id });
-                }
+            }
+            case 'edit': {
+                await (id ? showPanel(executor, 'floatingTextEditPanel', { id }) : showPanel(executor, 'floatingTextListPanel'));
                 break;
-            default:
+            }
+            default: {
                 executor.sendMessage(`§cUnknown subcommand: ${subcommand}. Use /help floatingtext for details.`);
                 break;
+            }
         }
     }
 };

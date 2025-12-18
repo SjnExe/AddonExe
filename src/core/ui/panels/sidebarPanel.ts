@@ -59,8 +59,8 @@ export class SidebarPanelHandler implements IPanelHandler {
             const config = getSidebarConfig();
             const lines = isSidebar ? config.sidebarLines : config.actionBarLines;
 
-            lines.forEach((line, idx) => {
-                if (line === undefined) return;
+            for (const [idx, line] of lines.entries()) {
+                if (line === undefined) continue;
                 items.push({
                     id: String(idx),
                     text: `${idx + 1}. ${line}`,
@@ -68,7 +68,7 @@ export class SidebarPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: isSidebar ? 'sidebarLineActionPanel' : 'actionBarLineActionPanel'
                 });
-            });
+            }
             return Promise.resolve(items);
         }
 
@@ -82,24 +82,21 @@ export class SidebarPanelHandler implements IPanelHandler {
                 permissionLevel: 1,
                 actionType: 'functionCall',
                 actionValue: 'editLine'
-            });
-            items.push({
+            }, {
                 id: 'moveUp',
                 text: 'Move Up',
                 icon: 'textures/gui/controls/up',
                 permissionLevel: 1,
                 actionType: 'functionCall',
                 actionValue: 'moveUp'
-            });
-            items.push({
+            }, {
                 id: 'moveDown',
                 text: 'Move Down',
                 icon: 'textures/gui/controls/down',
                 permissionLevel: 1,
                 actionType: 'functionCall',
                 actionValue: 'moveDown'
-            });
-            items.push({
+            }, {
                 id: 'delete',
                 text: 'Delete',
                 icon: 'textures/ui/trash',

@@ -32,9 +32,16 @@ const rulesCommand: CustomCommand = {
         }
 
         // Explicitly handle "undefined" from args
-        const ruleNumber = args.ruleNumber !== undefined ? Number(args.ruleNumber) : null;
+        const ruleNumber = args.ruleNumber === undefined ? null : Number(args.ruleNumber);
 
-        if (ruleNumber !== null) {
+        if (ruleNumber === null) {
+            const messages = ['§l§a--- Server Rules ---', ...rules, '§l§a------------------'];
+            if (executor instanceof mc.Player) {
+                for (const msg of messages) sendMessage(msg, executor, { raw: true });
+            } else {
+                for (const msg of messages) executor.sendMessage(msg);
+            }
+        } else {
             // Note: rules.length is safe because rules is checked for length > 0 above
             // But strictness: rules[ruleNumber-1] might be undefined if logic is flawed
             // However, we check ruleNumber < 1 || ruleNumber > rules.length
@@ -53,16 +60,9 @@ const rulesCommand: CustomCommand = {
             const ruleText = rules[ruleNumber - 1];
             const messages = ['§l§a--- Server Rules ---', ruleText || '', '§l§a------------------'];
             if (executor instanceof mc.Player) {
-                messages.forEach((msg) => sendMessage(msg, executor, { raw: true }));
+                for (const msg of messages) sendMessage(msg, executor, { raw: true });
             } else {
-                messages.forEach((msg) => executor.sendMessage(msg));
-            }
-        } else {
-            const messages = ['§l§a--- Server Rules ---', ...rules, '§l§a------------------'];
-            if (executor instanceof mc.Player) {
-                messages.forEach((msg) => sendMessage(msg, executor, { raw: true }));
-            } else {
-                messages.forEach((msg) => executor.sendMessage(msg));
+                for (const msg of messages) executor.sendMessage(msg);
             }
         }
     }

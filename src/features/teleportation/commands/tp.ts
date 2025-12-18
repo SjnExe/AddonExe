@@ -96,9 +96,10 @@ const command: CustomCommand = {
                 sendMessage(`§aTeleported ${targetPlayer.name} to ${x4}, ${y4}, ${z4}.`, executor);
                 break;
             }
-            default:
+            default: {
                 sendMessage('§cUsage: /tp <target> [destination] OR /tp [target] <x> <y> <z>', executor);
                 break;
+            }
         }
     }
 };

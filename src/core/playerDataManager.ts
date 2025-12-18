@@ -7,7 +7,7 @@ import { updateAndSaveLeaderboard } from './leaderboardManager.js';
 import { debugLog, errorLog, infoLog } from './logger.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from './playerCache.js';
 import { StorageManager } from './storage/StorageManager.js';
-import { formatCurrency } from './utils.js';
+import { formatCurrency } from './utils/economy.js';
 
 const playerPropertyPrefix = 'exe:player.';
 // Legacy keys (kept for migration)
@@ -159,7 +159,7 @@ export function cleanupPlayerDataManager() {
  * Helper to save a map across multiple dynamic properties (shards).
  */
 function saveShardedMap(map: Map<string, string>, prefix: string) {
-    const entries = Array.from(map.entries());
+    const entries = [...map.entries()];
     const totalShards = Math.ceil(entries.length / MAP_SHARD_SIZE);
 
     for (let i = 0; i < totalShards; i++) {
@@ -188,7 +188,7 @@ function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix
     if (legacyData) {
         try {
             const entries = JSON.parse(legacyData) as [string, string][];
-            entries.forEach(([k, v]) => map.set(k, v));
+            for (const [k, v] of entries) map.set(k, v);
             // Delete legacy key immediately to mark migration complete
             mc.world.setDynamicProperty(legacyKey, undefined);
             migrated = true;
@@ -207,7 +207,7 @@ function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix
             if (!data) break;
             try {
                 const entries = JSON.parse(data) as [string, string][];
-                entries.forEach(([k, v]) => map.set(k, v));
+                for (const [k, v] of entries) map.set(k, v);
             } catch (e) {
                 errorLog(`[PlayerDataManager] Failed to load shard ${shardPrefix}${i}: ${String(e)}`);
             }
@@ -628,21 +628,21 @@ export function deletePlayerHome(playerId: string, homeName: string) {
 
 export function setPlayerBalance(playerId: string, newBalance: number) {
     const economyConfig = getEconomyConfig();
-    const min = economyConfig.minBalance ?? -1000000;
-    const max = economyConfig.maxBalance ?? 1000000000;
+    const min = economyConfig.minBalance ?? -1_000_000;
+    const max = economyConfig.maxBalance ?? 1_000_000_000;
 
     updatePlayerData(playerId, (pData) => {
         const clampedBalance = Math.max(min, Math.min(newBalance, max));
         // Strict 2-decimal precision
-        pData.balance = parseFloat(clampedBalance.toFixed(2));
+        pData.balance = Number.parseFloat(clampedBalance.toFixed(2));
         updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
     });
 }
 
 export function incrementPlayerBalance(playerId: string, amount: number) {
     const economyConfig = getEconomyConfig();
-    const min = economyConfig.minBalance ?? -1000000;
-    const max = economyConfig.maxBalance ?? 1000000000;
+    const min = economyConfig.minBalance ?? -1_000_000;
+    const max = economyConfig.maxBalance ?? 1_000_000_000;
 
     updatePlayerData(playerId, (pData) => {
         // Ensure current balance is treated as a number to prevent string concatenation or NaN issues
@@ -651,7 +651,7 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
         const potentialBalance = safeBal + amount;
         const clampedBalance = Math.max(min, Math.min(potentialBalance, max));
         // Strict 2-decimal precision
-        pData.balance = parseFloat(clampedBalance.toFixed(2));
+        pData.balance = Number.parseFloat(clampedBalance.toFixed(2));
         // Log transaction regardless of debug level
         infoLog(
             `[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`
@@ -722,7 +722,7 @@ export function transfer(
     }
 
     const economyConfig = getEconomyConfig();
-    const max = economyConfig.maxBalance ?? 1000000000;
+    const max = economyConfig.maxBalance ?? 1_000_000_000;
     const currentTargetBal = Number(targetData.balance);
     const safeTargetBal = isNaN(currentTargetBal) ? 0 : currentTargetBal;
 

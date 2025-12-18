@@ -69,8 +69,7 @@ export class KitPanelHandler implements IPanelHandler {
                 permissionLevel: 1,
                 actionType: 'functionCall',
                 actionValue: 'toggleKits'
-            });
-            items.push({
+            }, {
                 id: 'createKit',
                 text: '§l§2+ Create New Kit',
                 icon: 'textures/ui/color_plus',
@@ -82,9 +81,9 @@ export class KitPanelHandler implements IPanelHandler {
             const allKits = kitAdminManager.getAllKits();
             const kitNames = Object.keys(allKits);
             const paginated = getPaginatedItems(kitNames, (context.page as number) || 1);
-            paginated.forEach((name) => {
+            for (const name of paginated) {
                 const kit = allKits[name];
-                if (!kit) return;
+                if (!kit) continue;
                 items.push({
                     id: name,
                     text: `${name}\n${kit.enabled ? '§2[Enabled]' : '§4[Disabled]'}`,
@@ -93,7 +92,7 @@ export class KitPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: `kitActionMenu_${name}`
                 });
-            });
+            }
             addPagination(kitNames.length);
             return items;
         }
@@ -108,16 +107,14 @@ export class KitPanelHandler implements IPanelHandler {
                 permissionLevel: 1,
                 actionType: 'openPanel',
                 actionValue: `kitSettingsPanel_${kitName}`
-            });
-            items.push({
+            }, {
                 id: 'editItems',
                 text: 'Edit Items',
                 icon: 'textures/ui/inventory_icon',
                 permissionLevel: 1,
                 actionType: 'openPanel',
                 actionValue: `kitItemsPanel_${kitName}`
-            });
-            items.push({
+            }, {
                 id: 'deleteKit',
                 text: '§4Delete Kit',
                 icon: 'textures/ui/cancel',
@@ -138,8 +135,7 @@ export class KitPanelHandler implements IPanelHandler {
                 permissionLevel: 1,
                 actionType: 'functionCall',
                 actionValue: 'addKitItem'
-            });
-            items.push({
+            }, {
                 id: 'addItemHand',
                 text: '§l§6+ Add Item From Hand',
                 icon: 'textures/ui/inventory_icon',
@@ -152,7 +148,7 @@ export class KitPanelHandler implements IPanelHandler {
             const kit = allKits[kitName];
             if (kit) {
                 const paginated = getPaginatedItems(kit.items, (context.page as number) || 1);
-                paginated.forEach((item, idx) => {
+                for (const [idx, item] of paginated.entries()) {
                     const realIdx = ((context.page as number) || 1 - 1) * itemsPerPage + idx;
                     items.push({
                         id: String(realIdx),
@@ -162,7 +158,7 @@ export class KitPanelHandler implements IPanelHandler {
                         actionType: 'functionCall',
                         actionValue: 'manageKitItem'
                     });
-                });
+                }
                 addPagination(kit.items.length);
             }
             return items;
@@ -268,7 +264,7 @@ export class KitPanelHandler implements IPanelHandler {
                     const res = await form.show(player);
                     if (!res.canceled && res.formValues) {
                         const [typeId, amountStr] = res.formValues as [string, string];
-                        const amount = parseInt(amountStr);
+                        const amount = Number.parseInt(amountStr);
                         if (typeId && !isNaN(amount)) {
                             const result = kitItemsManager.addItemToKit(kitName, { typeId, amount });
                             player.sendMessage(result.message);
@@ -309,9 +305,9 @@ export class KitPanelHandler implements IPanelHandler {
                     string,
                     string
                 ];
-                const cooldown = parseInt(cooldownStr) || 0;
-                const perm = parseInt(permStr) || 1024;
-                const price = parseInt(priceStr) || 0;
+                const cooldown = Number.parseInt(cooldownStr) || 0;
+                const perm = Number.parseInt(permStr) || 1024;
+                const price = Number.parseInt(priceStr) || 0;
 
                 kitAdminManager.updateKitSettings(kitName, {
                     enabled,

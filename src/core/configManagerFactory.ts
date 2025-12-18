@@ -58,18 +58,7 @@ export default function createConfigManager<T>(
         const userSavedConfigLoaded = configStorage.load<Record<string, unknown>>();
         const lastLoadedConfigLoaded = lastLoadedStorage.load<Record<string, unknown>>();
 
-        if (!userSavedConfigLoaded) {
-            isFirstInit = true;
-            currentConfig = newDefaultConfig;
-            lastLoadedConfig = newDefaultConfig;
-            // Use infoLog instead of errorLog for initial setup to avoid confusing users
-            if (name === 'Main') {
-                debugLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
-            } else {
-                debugLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
-            }
-            saveLastLoadedConfig();
-        } else {
+        if (userSavedConfigLoaded) {
             // StorageManager returns the parsed object, no need to JSON.parse
             const userSavedConfig = userSavedConfigLoaded;
 
@@ -89,27 +78,39 @@ export default function createConfigManager<T>(
                 const lastLoadedConfigForMerge = lastLoadedConfigLoaded;
                 debugLog(`[${name}ConfigManager] Found last-loaded config. Proceeding with reconciliation.`);
 
-                if (name === 'Main') {
+                switch (name) {
+                case 'Main': {
                     currentConfig = reconcileConfig(
                         newDefaultConfig as unknown as Record<string, unknown>,
                         lastLoadedConfigForMerge,
                         userSavedConfig
                     ) as unknown as T;
-                } else if (name === 'Ranks') {
+
+                break;
+                }
+                case 'Ranks': {
                     const mergedRanks = mergeRanks(
                         userSavedConfig.rankDefinitions as Record<string, unknown>[],
                         (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] }).rankDefinitions,
                         (lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]) || []
                     );
                     currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
-                } else if (name === 'Kits' || name === 'Shop') {
+
+                break;
+                }
+                case 'Kits':
+                case 'Shop': {
                     currentConfig = mergeObjectMaps(
                         userSavedConfig,
                         newDefaultConfig as unknown as Record<string, unknown>,
                         lastLoadedConfigForMerge || {}
                     ) as unknown as T;
-                } else {
+
+                break;
+                }
+                default: {
                     currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
+                }
                 }
             } else {
                 if (!isMigration) {
@@ -119,6 +120,17 @@ export default function createConfigManager<T>(
             }
 
             lastLoadedConfig = newDefaultConfig;
+            saveLastLoadedConfig();
+        } else {
+            isFirstInit = true;
+            currentConfig = newDefaultConfig;
+            lastLoadedConfig = newDefaultConfig;
+            // Use infoLog instead of errorLog for initial setup to avoid confusing users
+            if (name === 'Main') {
+                debugLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
+            } else {
+                debugLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
+            }
             saveLastLoadedConfig();
         }
 

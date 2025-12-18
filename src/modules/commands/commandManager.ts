@@ -134,9 +134,9 @@ class CommandManager {
         mc.system.beforeEvents.startup.subscribe(
             ({ customCommandRegistry }: { customCommandRegistry: mc.CustomCommandRegistry }) => {
                 infoLog('[CommandManager] Startup event received. Registering slash commands...');
-                this.commands.forEach((command) => {
+                for (const command of this.commands) {
                     if (command.disableSlashCommand) {
-                        return;
+                        continue;
                     }
 
                     // Register the primary command name
@@ -144,14 +144,14 @@ class CommandManager {
 
                     // Register all aliases as separate slash commands
                     if (command.aliases) {
-                        command.aliases.forEach((alias) => {
+                        for (const alias of command.aliases) {
                             if (command.disabledSlashAliases && command.disabledSlashAliases.includes(alias)) {
-                                return; // Skip slash command registration for this alias
+                                continue; // Skip slash command registration for this alias
                             }
                             this._registerSlashCommand(customCommandRegistry, command, alias);
-                        });
+                        }
                     }
-                });
+                }
             }
         );
     }
@@ -176,7 +176,7 @@ class CommandManager {
      * @returns {CustomCommand[]} An array of all registered commands.
      */
     getAllCommands(): CustomCommand[] {
-        return Array.from(this.commands.values());
+        return [...this.commands.values()];
     }
 
     /**
@@ -380,14 +380,13 @@ class CommandManager {
                     ? sourceEntity
                     : {
                           isConsole: true,
-                          sendMessage: (msg: string) => errorLog(msg.replace(/§[0-9a-fklmnor]/g, ''))
+                          sendMessage: (msg: string) => errorLog(msg.replaceAll(/§[0-9a-fklmnor]/g, ''))
                       };
 
             // Prepare arguments
             const allParams = command.parameters || [];
             const parsedArgs: Record<string, unknown> = {};
-            for (let i = 0; i < allParams.length; i++) {
-                const param = allParams[i];
+            for (const [i, param] of allParams.entries()) {
                 if (rawArgs[i] !== undefined && param) {
                     let value = rawArgs[i];
                     // Filter vanished players for slash commands
@@ -409,7 +408,7 @@ class CommandManager {
                 }
             }
             this._executeCommand(executor, command, parsedArgs);
-            return undefined;
+            return;
         };
 
         try {
@@ -418,14 +417,12 @@ class CommandManager {
             debugLog(`[CommandManager] Successfully registered slash command: ${name}`);
         } catch (e: unknown) {
             const errStr = String(e);
-            if (errStr.includes('already in use')) {
-                if (!isRetry) {
+            if (errStr.includes('already in use') && !isRetry) {
                     const newName = `x${name}`;
                     errorLog(`[CommandManager] Command alias '${name}' collision. Retrying as '${newName}'.`);
                     this._registerSlashCommand(customCommandRegistry, command, newName, true);
                     return;
                 }
-            }
             if (e instanceof Error) {
                 errorLog(`[CommandManager] Failed to register slash command '${name}':`, e);
             }
@@ -477,8 +474,8 @@ class CommandManager {
     ): mc.CustomCommandParameter {
         // --- Enum Handling ---
         if (param.enumOptions && Array.isArray(param.enumOptions) && registry) {
-            const safeCmdName = (commandName || 'cmd').replace(/[^a-zA-Z0-9_]/g, '');
-            const safeParamName = param.name.replace(/[^a-zA-Z0-9_]/g, '');
+            const safeCmdName = (commandName || 'cmd').replaceAll(/[^a-zA-Z0-9_]/g, '');
+            const safeParamName = param.name.replaceAll(/[^a-zA-Z0-9_]/g, '');
             const enumName = `${this.prefix}:${safeCmdName}_${safeParamName}`;
 
             try {

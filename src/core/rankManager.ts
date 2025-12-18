@@ -127,19 +127,23 @@ export function updatePlayerNameTag(player: mc.Player, config: typeof Config) {
 
     if (finalPrefix) {
         switch (nameTagStyle) {
-            case 'before':
+            case 'before': {
                 newNameTag = `${finalPrefix} ${player.name}`;
                 break;
-            case 'after':
+            }
+            case 'after': {
                 newNameTag = `${player.name} ${finalPrefix}`;
                 break;
-            case 'under':
+            }
+            case 'under': {
                 newNameTag = `${player.name}\n${finalPrefix}`;
                 break;
+            }
             case 'above':
-            default:
+            default: {
                 newNameTag = `${finalPrefix}\n${player.name}`;
                 break;
+            }
         }
     } else {
         newNameTag = player.name;

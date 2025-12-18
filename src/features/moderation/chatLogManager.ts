@@ -33,15 +33,15 @@ export function initializeChatLogger() {
     // Auto-save loop
     mc.system.runInterval(() => {
         const newDay = getTodayDateString();
-        if (newDay !== today) {
+        if (newDay === today) {
+            saveChatLogs();
+        } else {
             // Day changed, save old day, reset
             saveChatLogs();
             today = newDay;
             currentDayLogs = []; // Reset first, then load (which creates empty or loads existing if restarted same day)
             loadTodayLogs();
             pruneOldLogs();
-        } else {
-            saveChatLogs();
         }
     }, 1200); // 60s
 }

@@ -189,7 +189,7 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
 
     const form = new ActionFormData().title('§lHelp Menu').body('Select a category to view commands:');
 
-    sortedCats.forEach((cat) => form.button(cat));
+    for (const cat of sortedCats) form.button(cat);
 
     try {
         const response = (await uiWait(player, form)) as ActionFormResponse;
@@ -213,7 +213,7 @@ async function showUICategory(player: mc.Player, category: string, userPermissio
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
 
     form.button('§c< Back');
-    visibleCmds.forEach((c) => form.button(`/${c.name}`));
+    for (const c of visibleCmds) form.button(`/${c.name}`);
 
     try {
         const response = (await uiWait(player, form)) as ActionFormResponse;

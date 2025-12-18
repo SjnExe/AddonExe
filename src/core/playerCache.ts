@@ -31,7 +31,7 @@ export function removePlayerFromCache(playerId: string): void {
 }
 
 export function getAllPlayersFromCache(): mc.Player[] {
-    return Array.from(playerCache.values());
+    return [...playerCache.values()];
 }
 
 export function findPlayerByName(name: string): mc.Player | undefined {

@@ -31,7 +31,7 @@ const command: CustomCommand = {
             sendMessage(statusMessage, executor);
 
             if (newStatus) {
-                playSound(executor, 'random.orb', { volume: 0.5, pitch: 1.0 });
+                playSound(executor, 'random.orb', { volume: 0.5, pitch: 1 });
             } else {
                 playSound(executor, 'note.bass', { volume: 0.5, pitch: 0.8 });
             }
