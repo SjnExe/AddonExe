@@ -27,8 +27,7 @@ export class TeleportPanelHandler implements IPanelHandler {
                 permissionLevel: 1024,
                 actionType: 'functionCall',
                 actionValue: 'toggleTpa'
-            });
-            items.push({
+            }, {
                 id: 'blockList',
                 text: 'Blocked Players',
                 icon: 'textures/ui/icon_multiplayer',

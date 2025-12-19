@@ -66,7 +66,7 @@ export const items: Record<string, ItemData> = {
     netheriteIngot: {
         itemId: 'minecraft:netherite_ingot',
         icon: 'textures/items/netherite_ingot',
-        buyPrice: 10000,
+        buyPrice: 10_000,
         sellPrice: 5000,
         category: 'Ores & Minerals',
         displayName: 'Netherite Ingot'
@@ -116,7 +116,7 @@ export const items: Record<string, ItemData> = {
     netherStar: {
         itemId: 'minecraft:nether_star',
         icon: 'textures/items/nether_star',
-        buyPrice: 20000,
+        buyPrice: 20_000,
         sellPrice: -1, // Cannot be sold
         category: 'Special Items',
         displayName: 'Nether Star'
@@ -132,7 +132,7 @@ export const items: Record<string, ItemData> = {
     elytra: {
         itemId: 'minecraft:elytra',
         icon: 'textures/items/elytra',
-        buyPrice: 15000,
+        buyPrice: 15_000,
         sellPrice: -1,
         category: 'Special Items',
         displayName: 'Elytra'
@@ -148,7 +148,7 @@ export const items: Record<string, ItemData> = {
     enchantedGoldenApple: {
         itemId: 'minecraft:enchanted_golden_apple',
         icon: 'textures/items/apple_golden',
-        buyPrice: 25000,
+        buyPrice: 25_000,
         sellPrice: -1,
         category: 'Special Items',
         displayName: 'Enchanted Golden Apple'
@@ -203,7 +203,7 @@ export const items: Record<string, ItemData> = {
     netheriteSword: {
         itemId: 'minecraft:netherite_sword',
         icon: 'textures/items/netherite_sword',
-        buyPrice: 15000,
+        buyPrice: 15_000,
         sellPrice: 7500,
         category: 'Tools & Weapons',
         subCategory: 'Netherite',
@@ -212,7 +212,7 @@ export const items: Record<string, ItemData> = {
     netheritePickaxe: {
         itemId: 'minecraft:netherite_pickaxe',
         icon: 'textures/items/netherite_pickaxe',
-        buyPrice: 18000,
+        buyPrice: 18_000,
         sellPrice: 8000,
         category: 'Tools & Weapons',
         subCategory: 'Netherite',
@@ -259,8 +259,8 @@ export const items: Record<string, ItemData> = {
     netheriteHelmet: {
         itemId: 'minecraft:netherite_helmet',
         icon: 'textures/items/netherite_helmet',
-        buyPrice: 20000,
-        sellPrice: 10000,
+        buyPrice: 20_000,
+        sellPrice: 10_000,
         category: 'Armor',
         subCategory: 'Netherite',
         displayName: 'Netherite Helmet'
@@ -268,8 +268,8 @@ export const items: Record<string, ItemData> = {
     netheriteChestplate: {
         itemId: 'minecraft:netherite_chestplate',
         icon: 'textures/items/netherite_chestplate',
-        buyPrice: 30000,
-        sellPrice: 15000,
+        buyPrice: 30_000,
+        sellPrice: 15_000,
         category: 'Armor',
         subCategory: 'Netherite',
         displayName: 'Netherite Chestplate'
@@ -277,8 +277,8 @@ export const items: Record<string, ItemData> = {
     netheriteLeggings: {
         itemId: 'minecraft:netherite_leggings',
         icon: 'textures/items/netherite_leggings',
-        buyPrice: 25000,
-        sellPrice: 12000,
+        buyPrice: 25_000,
+        sellPrice: 12_000,
         category: 'Armor',
         subCategory: 'Netherite',
         displayName: 'Netherite Leggings'
@@ -286,7 +286,7 @@ export const items: Record<string, ItemData> = {
     netheriteBoots: {
         itemId: 'minecraft:netherite_boots',
         icon: 'textures/items/netherite_boots',
-        buyPrice: 18000,
+        buyPrice: 18_000,
         sellPrice: 9000,
         category: 'Armor',
         subCategory: 'Netherite',

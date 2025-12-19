@@ -31,18 +31,27 @@ export async function showAuctionHouse(
 
     let sortLabel = 'Newest';
     switch (sort) {
-        case SortOption.PriceAsc:
+        case SortOption.PriceAsc: {
             sortLabel = 'Price (Low)';
             break;
-        case SortOption.PriceDesc:
+        }
+        case SortOption.PriceDesc: {
             sortLabel = 'Price (High)';
             break;
-        case SortOption.Oldest:
+        }
+        case SortOption.Oldest: {
             sortLabel = 'Oldest';
             break;
-        case SortOption.SellerAsc:
+        }
+        case SortOption.SellerAsc: {
             sortLabel = 'Seller (A-Z)';
             break;
+        }
+        case SortOption.Newest:
+        default: {
+            sortLabel = 'Newest';
+            break;
+        }
     }
 
     const title = searchQuery
@@ -66,11 +75,7 @@ export async function showAuctionHouse(
         let label = `§f${listing.item.nameTag || listing.item.typeId.replace('minecraft:', '')}`;
         label += `\n§7x${listing.item.amount} `;
 
-        if (listing.isBid) {
-            label += `§eBid: ${formatCurrency(listing.bidPrice || listing.price)}`;
-        } else {
-            label += `§a${formatCurrency(listing.price)}`;
-        }
+        label += listing.isBid ? `§eBid: ${formatCurrency(listing.bidPrice || listing.price)}` : `§a${formatCurrency(listing.price)}`;
         label += ` §8By: ${listing.sellerName}`;
 
         form.button(label);
@@ -94,11 +99,7 @@ export async function showAuctionHouse(
         return;
     }
     if (selection === 2) {
-        if (searchQuery) {
-            await showAuctionHouse(player, 1, undefined, sort);
-        } else {
-            await showSearchUI(player, sort);
-        }
+        await (searchQuery ? showAuctionHouse(player, 1, undefined, sort) : showSearchUI(player, sort));
         return;
     }
     if (selection === 3) {
@@ -142,9 +143,9 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing): Pr
     if (item.lore && item.lore.length > 0) details += `\n§5Lore:\n§d${item.lore.join('\n')}\n`;
     if (item.enchantments && item.enchantments.length > 0) {
         details += `\n§5Enchantments:\n`;
-        item.enchantments.forEach((e) => {
+        for (const e of item.enchantments) {
             details += `§7- ${e.id} ${e.level}\n`;
-        });
+        }
     }
     if (item.durability) {
         details += `\n§7Durability: ${item.durability.max - item.durability.damage}/${item.durability.max}\n`;
@@ -201,7 +202,7 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
     if (!modalResponse.formValues) return;
 
     const amountStr = modalResponse.formValues[0] as string;
-    const amount = parseFloat(amountStr);
+    const amount = Number.parseFloat(amountStr);
 
     if (isNaN(amount)) {
         player.sendMessage('§cInvalid number.');

@@ -84,7 +84,7 @@ const homeCommand: CustomCommand = {
 
         const form = new ActionFormData().title('Teleport to Home').body('Select a home to teleport to:');
 
-        homeList.forEach((homeName) => form.button(homeName));
+        for (const homeName of homeList) form.button(homeName);
 
         try {
             const response = await uiWait(executor, form);
@@ -176,7 +176,7 @@ const delHomeCommand: CustomCommand = {
 
         const form = new ActionFormData().title('Delete a Home').body('Select a home to delete:');
 
-        homeList.forEach((homeName) => form.button(homeName));
+        for (const homeName of homeList) form.button(homeName);
 
         try {
             const response = await uiWait(executor, form);

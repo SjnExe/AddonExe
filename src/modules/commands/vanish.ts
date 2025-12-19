@@ -40,7 +40,7 @@ const vanishCommand: CustomCommand = {
             }
         } else {
             executor.addTag(constants.vanishedTag);
-            executor.addEffect('invisibility', 2000000, { amplifier: 1, showParticles: false });
+            executor.addEffect('invisibility', 2_000_000, { amplifier: 1, showParticles: false });
             updatePlayerData(executor.id, (d) => {
                 d.isVanished = true;
             });

@@ -2,10 +2,10 @@ import * as mc from '@minecraft/server';
 
 import { errorLog } from '../logger.js';
 
-const CHUNK_SIZE = 30000; // Safe limit below 32kb
+const CHUNK_SIZE = 30_000; // Safe limit below 32kb
 
 export class StorageManager {
-    private dbName: string;
+    private readonly dbName: string;
 
     constructor(dbName: string) {
         this.dbName = dbName;

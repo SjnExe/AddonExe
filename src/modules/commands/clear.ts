@@ -27,10 +27,10 @@ const clearCommand: CustomCommand = {
             const p = targetPlayers[0];
             // Check for undefined in array if strictness requires
             if (!p) {
-                 if (executor instanceof mc.Player) {
+                if (executor instanceof mc.Player) {
                     executor.sendMessage('§cInvalid target.');
-                 }
-                 return;
+                }
+                return;
             }
             targetPlayer = p;
         } else {

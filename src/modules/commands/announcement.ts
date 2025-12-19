@@ -35,12 +35,12 @@ export function restartAnnouncer(): void {
         }
 
         const message = currentConfig.announcements.message;
-        mc.world.getAllPlayers().forEach((player) => {
+        for (const player of mc.world.getAllPlayers()) {
             const pData = getPlayer(player.id);
             if (!pData || !pData.announcementsMuted) {
                 player.sendMessage(message);
             }
-        });
+        }
     }, config.announcements.interval * 20);
 }
 
@@ -110,11 +110,7 @@ const motdNotifyCommand: CustomCommand = {
         if (!pData) return;
 
         let announcementsMuted: boolean;
-        if (args.enabled !== undefined && typeof args.enabled === 'boolean') {
-            announcementsMuted = !args.enabled;
-        } else {
-            announcementsMuted = !(pData.announcementsMuted ?? false);
-        }
+        announcementsMuted = args.enabled !== undefined && typeof args.enabled === 'boolean' ? !args.enabled : !(pData.announcementsMuted ?? false);
 
         setPlayerAnnouncementsMuted(executor.id, announcementsMuted);
         executor.sendMessage(`§7Announcements are now §${announcementsMuted ? 'cOFF' : '2ON'}§7 for you.`);

@@ -61,7 +61,7 @@ export function getLogLevel(): number {
  * @param {number | string} level The log level to set (use LogLevels enum).
  */
 export function setLogLevel(level: number | string): void {
-    const numericLevel = typeof level === 'string' ? parseInt(level, 10) : level;
+    const numericLevel = typeof level === 'string' ? Number.parseInt(level, 10) : level;
     if (!isNaN(numericLevel) && numericLevel >= LogLevels.ERROR && numericLevel <= LogLevels.DEBUG) {
         currentLogLevel = numericLevel;
         // Provide feedback on the new log level for clarity during startup

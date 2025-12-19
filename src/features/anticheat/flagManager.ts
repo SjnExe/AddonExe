@@ -35,7 +35,7 @@ export function initializeFlagManager() {
 export function saveFlags() {
     const dataToSave: [string, [string, FlagData][]][] = [];
     for (const [playerId, checkMap] of flags) {
-        dataToSave.push([playerId, Array.from(checkMap.entries())]);
+        dataToSave.push([playerId, [...checkMap.entries()]]);
     }
     storage.save(dataToSave);
 }

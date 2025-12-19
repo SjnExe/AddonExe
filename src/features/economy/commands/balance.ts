@@ -102,11 +102,11 @@ const baltopCommand: CustomCommand = {
         const defaultColor = '§e'; // Yellow
 
         let message = '§l§b--- Top Balances ---\n';
-        topPlayers.forEach((entry, index) => {
+        for (const [index, entry] of topPlayers.entries()) {
             const rank = index + 1;
             const color = rankColors[rank] || defaultColor;
             message += `${color}#${rank}§r ${entry.name}: §a${formatCurrency(entry.balance)}\n`;
-        });
+        }
 
         if (executor instanceof mc.Player) {
             sendMessage(message.trim(), executor, { raw: true });

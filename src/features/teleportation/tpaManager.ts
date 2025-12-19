@@ -80,7 +80,7 @@ function _findIncomingRequest(
         }
         return undefined;
     }
-    return requests[requests.length - 1];
+    return requests.at(-1);
 }
 
 export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, type: TpaRequestType): ActionResult {
@@ -156,7 +156,7 @@ export function getIncomingRequest(player: mc.Player, sourcePlayerName?: string)
     if (!requests || requests.length === 0) return undefined;
     if (sourcePlayerName)
         return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
-    return requests[requests.length - 1];
+    return requests.at(-1);
 }
 
 export function getOutgoingRequest(player: mc.Player): TpaRequest | undefined {

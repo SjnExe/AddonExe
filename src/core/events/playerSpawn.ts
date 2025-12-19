@@ -19,7 +19,7 @@ export function handlePlayerJoin(player: mc.Player) {
             d.isVanished = true;
         });
         // Re-apply invisibility effect if player died or effect expired
-        player.addEffect('invisibility', 2000000, { amplifier: 1, showParticles: false });
+        player.addEffect('invisibility', 2_000_000, { amplifier: 1, showParticles: false });
     } else {
         if (pData.isVanished)
             updatePlayerData(player.id, (d) => {
@@ -37,8 +37,8 @@ export function handlePlayerJoin(player: mc.Player) {
     if (player.hasTag(constants.frozenTag)) {
         player.dimension.runCommand(`inputpermission set "${player.name}" camera disabled`);
         player.dimension.runCommand(`inputpermission set "${player.name}" movement disabled`);
-        player.addEffect('resistance', 20000000, { amplifier: 255, showParticles: false });
-        player.addEffect('weakness', 20000000, { amplifier: 255, showParticles: false });
+        player.addEffect('resistance', 20_000_000, { amplifier: 255, showParticles: false });
+        player.addEffect('weakness', 20_000_000, { amplifier: 255, showParticles: false });
         sendMessage('§cYou are currently frozen.', player);
     }
 
@@ -46,12 +46,10 @@ export function handlePlayerJoin(player: mc.Player) {
 
     // Custom Join Message (since RP hides vanilla)
     const joinLeaveConfig = config.playerInfo?.customJoinLeave;
-    if (joinLeaveConfig?.enabled) {
-        if (!player.hasTag(constants.vanishedTag)) {
+    if (joinLeaveConfig?.enabled && !player.hasTag(constants.vanishedTag)) {
             const msg = formatString(joinLeaveConfig.joinMessage, { playerName: player.name });
             mc.world.sendMessage(msg);
         }
-    }
     if (config.playerInfo?.enableWelcomer && config.playerInfo?.welcomeMessage) {
         const welcomeMsg = formatString(config.playerInfo.welcomeMessage, {
             playerName: player.name,
@@ -74,7 +72,7 @@ export function handlePlayerJoin(player: mc.Player) {
     if (kitsConfig.starterKit?.enabled && !pData.starterKitClaimed) {
         // Only give to strictly new players (joined within last minute)
         // If older, we mark as claimed to prevent future issues.
-        if (pData.totalPlayTime < 60000) {
+        if (pData.totalPlayTime < 60_000) {
             const kitName = kitsConfig.starterKit.kitName;
             const kit = getKit(kitName);
             if (kit) {

@@ -6,7 +6,7 @@ import { deepClone } from './objectUtils.js';
 
 import type { config as Config } from '../config.default.js';
 
-export type { Config };
+
 
 let mainConfigManager: ConfigManager<typeof Config>;
 const updateCallbacks: ((config: typeof Config) => void)[] = [];
@@ -18,7 +18,7 @@ export function onConfigUpdated(callback: (config: typeof Config) => void) {
 function notifyCallbacks() {
     if (mainConfigManager) {
         const config = mainConfigManager.get();
-        updateCallbacks.forEach((cb) => cb(config));
+        for (const cb of updateCallbacks) cb(config);
     }
 }
 
@@ -117,3 +117,5 @@ export async function resetConfigSection(
         return { success: false, message: `Failed to load default configuration file. Error: ${errorMessage}` };
     }
 }
+
+export {type config as Config} from '../config.default.js';

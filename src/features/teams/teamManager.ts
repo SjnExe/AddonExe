@@ -47,8 +47,7 @@ let nextTeamId = 1;
 
 function* loadTeamsJob(allIds: number[]) {
     let loadedCount = 0;
-    for (let i = 0; i < allIds.length; i++) {
-        const id = allIds[i];
+    for (const [i, id] of allIds.entries()) {
         if (id === undefined) continue;
         try {
             const teamDataStr = mc.world.getDynamicProperty(`${teamPropertyPrefix}${id}`);
@@ -126,7 +125,7 @@ function saveTeam(teamId: number) {
 }
 
 function saveAllTeamIds() {
-    const ids = Array.from(activeTeams.keys());
+    const ids = [...activeTeams.keys()];
     mc.world.setDynamicProperty('exe:allTeamIds', JSON.stringify(ids));
 }
 
@@ -267,7 +266,7 @@ export function getTeam(teamId: number): TeamData | undefined {
 }
 
 export function getAllTeams(): TeamData[] {
-    return Array.from(activeTeams.values());
+    return [...activeTeams.values()];
 }
 
 export function getPlayerTeamId(playerId: string): number | null {

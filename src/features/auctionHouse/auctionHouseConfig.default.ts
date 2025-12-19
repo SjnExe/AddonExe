@@ -11,7 +11,7 @@ export const auctionHouseConfig: AuctionHouseConfig = {
     taxRate: 0.05,
     listingFee: 0,
     maxListingsPerPlayer: 5,
-    defaultDurationSeconds: 86400, // 24 Hours
+    defaultDurationSeconds: 86_400, // 24 Hours
     allowBidding: true,
     blockedItemIds: [
         'minecraft:shulker_box',

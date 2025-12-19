@@ -144,11 +144,9 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     }
 
     // Check for price
-    if (kit.price && kit.price > 0) {
-        if (pData.balance < kit.price) {
+    if (kit.price && kit.price > 0 && pData.balance < kit.price) {
             return { success: false, message: `You cannot afford this kit. It costs $${kit.price}.` };
         }
-    }
 
     const inventoryComp = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
     if (!inventoryComp || !inventoryComp.container) {

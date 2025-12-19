@@ -21,9 +21,9 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
         targetPlayer.addTag(constants.frozenTag);
 
         // Add invulnerability (Resistance 255)
-        targetPlayer.addEffect('resistance', 20000000, { amplifier: 255, showParticles: false });
+        targetPlayer.addEffect('resistance', 20_000_000, { amplifier: 255, showParticles: false });
         // Add weakness to prevent attacking
-        targetPlayer.addEffect('weakness', 20000000, { amplifier: 255, showParticles: false });
+        targetPlayer.addEffect('weakness', 20_000_000, { amplifier: 255, showParticles: false });
 
         playSound(targetPlayer, 'mob.stray.ambient');
 

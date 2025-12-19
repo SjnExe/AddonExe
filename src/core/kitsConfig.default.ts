@@ -54,7 +54,7 @@ export const kitsConfig: KitsConfig = {
         warrior: {
             enabled: true,
             description: 'A kit for the aspiring warrior.',
-            cooldownSeconds: 86400, // 24 hours
+            cooldownSeconds: 86_400, // 24 hours
             icon: 'textures/items/iron_sword',
             price: 100,
             permissionLevel: 1024,
@@ -71,7 +71,7 @@ export const kitsConfig: KitsConfig = {
         archer: {
             enabled: true,
             description: 'A kit for the skilled archer.',
-            cooldownSeconds: 86400, // 24 hours
+            cooldownSeconds: 86_400, // 24 hours
             icon: 'textures/items/bow_standby',
             price: 100,
             permissionLevel: 1024,
@@ -88,7 +88,7 @@ export const kitsConfig: KitsConfig = {
         miner: {
             enabled: true,
             description: 'A kit for the dedicated miner.',
-            cooldownSeconds: 43200, // 12 hours
+            cooldownSeconds: 43_200, // 12 hours
             icon: 'textures/items/iron_pickaxe',
             price: 50,
             permissionLevel: 1024,
@@ -103,7 +103,7 @@ export const kitsConfig: KitsConfig = {
         builder: {
             enabled: true,
             description: 'A kit for the creative builder.',
-            cooldownSeconds: 86400, // 24 hours
+            cooldownSeconds: 86_400, // 24 hours
             icon: 'textures/blocks/planks_oak',
             price: 200,
             permissionLevel: 1024,

@@ -109,10 +109,10 @@ export function endVote() {
 
     const totalVotes = currentVote.votedPlayerIds.length;
 
-    sortedOptions.forEach((opt) => {
+    for (const opt of sortedOptions) {
         const percent = totalVotes > 0 ? ((opt.count / totalVotes) * 100).toFixed(1) : '0.0';
         results += `§7- §f${opt.text}: §a${opt.count} §7(${percent}%)\n`;
-    });
+    }
 
     mc.world.sendMessage(results);
 }

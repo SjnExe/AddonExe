@@ -34,7 +34,7 @@ const activeListings = new Map<string, AuctionListing>();
 
 // Generate a simple UUID
 function generateUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replaceAll(/[xy]/g, (c) => {
         const r = (Math.random() * 16) | 0;
         const v = c === 'x' ? r : (r & 0x3) | 0x8;
         return v.toString(16);
@@ -61,7 +61,7 @@ function loadAuctions() {
 }
 
 function saveAuctions() {
-    const data = Array.from(activeListings.values());
+    const data = [...activeListings.values()];
     storage.save(data);
 }
 
@@ -79,7 +79,7 @@ export function createListing(
 
     // Check limits
     const pData = getOrCreatePlayer(player);
-    const myListings = Array.from(activeListings.values()).filter((l) => l.sellerId === player.id);
+    const myListings = [...activeListings.values()].filter((l) => l.sellerId === player.id);
     if (myListings.length >= config.maxListingsPerPlayer) {
         return { success: false, message: '§cYou have reached the maximum number of active listings.' };
     }
@@ -102,10 +102,10 @@ export function createListing(
         item: item,
         price: price,
         isBid: isBid,
-        bidPrice: isBid ? price : undefined,
         startTime: Date.now(),
         duration: duration
     };
+    if (isBid) listing.bidPrice = price;
 
     activeListings.set(listing.id, listing);
     saveAuctions();
@@ -235,7 +235,7 @@ export function placeBid(bidder: mc.Player, listingId: string, amount: number): 
 
     // Extend time if near end (Anti-Snipe)
     const timeLeft = listing.startTime + listing.duration * 1000 - Date.now();
-    if (timeLeft < 30000) {
+    if (timeLeft < 30_000) {
         // Less than 30s
         listing.duration += 60; // Add 1 minute
     }
@@ -247,10 +247,9 @@ export function placeBid(bidder: mc.Player, listingId: string, amount: number): 
 function* checkExpiredAuctionsJob() {
     const now = Date.now();
     const expired: string[] = [];
-    const entries = Array.from(activeListings.entries());
+    const entries = [...activeListings.entries()];
 
-    for (let i = 0; i < entries.length; i++) {
-        const entry = entries[i];
+    for (const [i, entry] of entries.entries()) {
         if (!entry) continue;
         const [id, listing] = entry;
         const expiry = listing.startTime + listing.duration * 1000;
@@ -349,11 +348,7 @@ export function claimMailbox(player: mc.Player): { success: boolean; message: st
         d.mailbox = remainingItems;
     });
 
-    if (claimed > 0) {
-        return { success: true, message: `§aClaimed ${claimed} items.` };
-    } else {
-        return { success: false, message: '§cInventory full. Could not claim items.' };
-    }
+    return claimed > 0 ? { success: true, message: `§aClaimed ${claimed} items.` } : { success: false, message: '§cInventory full. Could not claim items.' };
 }
 
 export function claimMailboxItem(player: mc.Player, index: number): { success: boolean; message: string } {
@@ -372,6 +367,8 @@ export function claimMailboxItem(player: mc.Player, index: number): { success: b
     }
 
     const sItem = mailbox[index];
+    if (!sItem) return { success: false, message: '§cItem not found.' };
+
     const stack = deserializeItem(sItem);
 
     if (stack) {
@@ -403,7 +400,7 @@ export function getListings(
     sort: SortOption = SortOption.Newest,
     sellerId?: string
 ): AuctionListing[] {
-    let all = Array.from(activeListings.values());
+    let all = [...activeListings.values()];
 
     if (sellerId) {
         all = all.filter((l) => l.sellerId === sellerId);
@@ -422,17 +419,22 @@ export function getListings(
     // Sort
     all.sort((a, b) => {
         switch (sort) {
-            case SortOption.PriceAsc:
+            case SortOption.PriceAsc: {
                 return a.price - b.price;
-            case SortOption.PriceDesc:
+            }
+            case SortOption.PriceDesc: {
                 return b.price - a.price;
-            case SortOption.Oldest:
+            }
+            case SortOption.Oldest: {
                 return a.startTime - b.startTime;
-            case SortOption.SellerAsc:
+            }
+            case SortOption.SellerAsc: {
                 return a.sellerName.localeCompare(b.sellerName);
+            }
             case SortOption.Newest:
-            default:
+            default: {
                 return b.startTime - a.startTime;
+            }
         }
     });
 
@@ -446,15 +448,13 @@ export function getListingsCount(searchQuery?: string, sellerId?: string): numbe
     let count = 0;
     for (const l of activeListings.values()) {
         if (sellerId && l.sellerId !== sellerId) continue;
-        if (query) {
-            if (
+        if (query &&
                 !l.item.typeId.toLowerCase().includes(query) &&
                 (!l.item.nameTag || !l.item.nameTag.toLowerCase().includes(query)) &&
                 !l.sellerName.toLowerCase().includes(query)
             ) {
                 continue;
             }
-        }
         count++;
     }
     return count;

@@ -67,7 +67,7 @@ export function createReport(
     reason: string
 ) {
     const report: Report = {
-        id: Math.random().toString(36).substring(2, 9),
+        id: Math.random().toString(36).slice(2, 9),
         reporterId: reporter.id,
         reporterName: reporter.name,
         reportedPlayerId: reportedPlayerId,
@@ -174,4 +174,4 @@ export function clearOldResolvedReports() {
 // Periodically clean up old reports. Saving is now handled by the central dataManager.
 mc.system.runInterval(() => {
     clearOldResolvedReports();
-}, 36000); // Clean up every 30 minutes (36000 ticks)
+}, 36_000); // Clean up every 30 minutes (36000 ticks)

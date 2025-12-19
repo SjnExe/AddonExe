@@ -49,7 +49,7 @@ export function loadBounties() {
  */
 export function saveBounties() {
     try {
-        const dataToSave = Array.from(activeBounties.entries());
+        const dataToSave = [...activeBounties.entries()];
         storage.save(dataToSave);
         debugLog('[BountyManager] Saved active bounty data.');
     } catch (e: unknown) {
@@ -97,7 +97,7 @@ export function setBounty(playerId: string, amount: number) {
     }
 
     // Strict 2-decimal precision
-    const roundedAmount = parseFloat(amount.toFixed(2));
+    const roundedAmount = Number.parseFloat(amount.toFixed(2));
 
     const bountyEntry: BountyEntry = {
         playerId: playerId,

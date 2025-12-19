@@ -108,7 +108,7 @@ function savePunishments() {
         return;
     }
     try {
-        const dataToSave = Array.from(punishments.entries());
+        const dataToSave = [...punishments.entries()];
         storage.save(dataToSave);
         needsSave = false;
         debugLog('[PunishmentManager] Saved punishments to world properties.');

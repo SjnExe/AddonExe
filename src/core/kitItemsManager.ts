@@ -96,9 +96,9 @@ export function addItemFromHandToKit(kitName: string, player: mc.Player): Action
     const itemInfo: ItemInfo = {
         typeId: item.typeId,
         amount: item.amount,
-        nameTag: item.nameTag,
         lore: item.getLore(),
-        enchantments: enchantments.length > 0 ? enchantments : undefined
+        ...(item.nameTag ? { nameTag: item.nameTag } : {}),
+        ...(enchantments.length > 0 ? { enchantments } : {})
     };
 
     return addItemToKit(kitName, itemInfo);

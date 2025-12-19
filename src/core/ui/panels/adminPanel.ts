@@ -36,8 +36,7 @@ export class AdminPanelHandler implements IPanelHandler {
                 permissionLevel: 1,
                 actionType: 'openPanel',
                 actionValue: 'placeholderListPanel'
-            });
-            items.push({
+            }, {
                 id: 'create',
                 text: '§l§2+ Create New',
                 icon: 'textures/ui/color_plus',
@@ -47,8 +46,8 @@ export class AdminPanelHandler implements IPanelHandler {
             });
 
             const texts = floatingTextManager.getAllTexts();
-            texts.forEach((text) => {
-                if (!text) return;
+            for (const text of texts) {
+                if (!text) continue;
                 items.push({
                     id: text.id,
                     text: `§6${text.id}§r\n${formatLocation(text.location)}`,
@@ -56,7 +55,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: 'floatingTextActionPanel'
                 });
-            });
+            }
             return Promise.resolve(items);
         }
 
@@ -69,24 +68,21 @@ export class AdminPanelHandler implements IPanelHandler {
                 permissionLevel: 1,
                 actionType: 'openPanel',
                 actionValue: 'floatingTextEditPanel'
-            });
-            items.push({
+            }, {
                 id: 'respawn',
                 text: 'Respawn Entity',
                 icon: 'textures/ui/refresh_light',
                 permissionLevel: 1,
                 actionType: 'functionCall',
                 actionValue: 'respawnText'
-            });
-            items.push({
+            }, {
                 id: 'despawn',
                 text: 'Despawn Entity',
                 icon: 'textures/ui/cancel',
                 permissionLevel: 1,
                 actionType: 'functionCall',
                 actionValue: 'despawnText'
-            });
-            items.push({
+            }, {
                 id: 'delete',
                 text: '§4Delete Text',
                 icon: 'textures/ui/trash',
@@ -131,7 +127,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     .textField('Update Interval', '0 to disable', { defaultValue: String(updateInterval) })
                     .toggle('Expiration', { defaultValue: !!expiresAt })
                     .textField('Expiration (mins)', 'mins', {
-                        defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60000)) : '0'
+                        defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60_000)) : '0'
                     })
             );
         }
@@ -170,12 +166,12 @@ export class AdminPanelHandler implements IPanelHandler {
 
             const updatedConfig = {
                 text: textContent,
-                location: { x: parseFloat(x), y: parseFloat(y), z: parseFloat(z) },
+                location: { x: Number.parseFloat(x), y: Number.parseFloat(y), z: Number.parseFloat(z) },
                 dimension: selectedDimension,
-                updateInterval: parseInt(updateIntervalStr) || 0,
+                updateInterval: Number.parseInt(updateIntervalStr) || 0,
                 expiresAt:
                     useExpiration && Number(expirationMinutes) > 0
-                        ? Date.now() + Number(expirationMinutes) * 60000
+                        ? Date.now() + Number(expirationMinutes) * 60_000
                         : null
             };
             floatingTextManager.updateText(id, updatedConfig);

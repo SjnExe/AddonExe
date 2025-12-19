@@ -48,14 +48,14 @@ const invseeCommand: CustomCommand = {
 
         if (equipment) {
             output += '§6[Armor & Offhand]§r\n';
-            armorSlots.forEach((slot, index) => {
+            for (const [index, slot] of armorSlots.entries()) {
                 const item = equipment.getEquipment(slot);
                 if (item) {
                     hasItems = true;
                     const name = item.nameTag || item.typeId.replace('minecraft:', '');
                     output += ` §7${armorNames[index]}: §f${name} §7x${item.amount}\n`;
                 }
-            });
+            }
         }
 
         // Inventory
@@ -73,10 +73,10 @@ const invseeCommand: CustomCommand = {
             }
         }
 
-        if (!hasItems) {
-            executor.sendMessage('§7Inventory is empty.');
-        } else {
+        if (hasItems) {
             executor.sendMessage(output.trim());
+        } else {
+            executor.sendMessage('§7Inventory is empty.');
         }
     }
 };
@@ -106,7 +106,8 @@ const ecwipeCommand: CustomCommand = {
 
         if (executor instanceof mc.Player) {
             const targets = resolveTarget(targetName, executor);
-            if (targets.length > 0) targetNameResolved = targets[0].name;
+            const firstTarget = targets[0];
+            if (firstTarget) targetNameResolved = firstTarget.name;
         }
 
         let success = true;

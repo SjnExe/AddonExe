@@ -52,9 +52,9 @@ const command: CustomCommand = {
         if (!action || action.toLowerCase() === 'list') {
             let message = '§a--- Available Ranks (Most to Least Powerful) ---\n';
             const sortedRanks = rankManager.getAllRanks().sort((a, b) => a.permissionLevel - b.permissionLevel);
-            sortedRanks.forEach((rank) => {
+            for (const rank of sortedRanks) {
                 message += `§e${rank.name}§r (ID: §b${rank.id}§r, Perms: §6${rank.permissionLevel}§r)\n`;
-            });
+            }
             executor.sendMessage(message.trim());
             return;
         }

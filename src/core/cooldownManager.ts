@@ -38,7 +38,7 @@ function saveCooldowns() {
     }
     try {
         // Convert Map to an array for JSON serialization
-        const dataToSave = Array.from(cooldowns.entries());
+        const dataToSave = [...cooldowns.entries()];
         mc.world.setDynamicProperty(cooldownDbKey, JSON.stringify(dataToSave));
         needsSave = false;
         debugLog('[CooldownManager] Saved cooldowns to world properties.');

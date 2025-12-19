@@ -89,7 +89,7 @@ export class EconomyPanelHandler implements IPanelHandler {
 
             const paginated = getPaginatedItems(mobs, (context.page as number) || 1);
 
-            paginated.forEach((mobId) => {
+            for (const mobId of paginated) {
                 const amount = mobMoney[mobId] ?? 0;
                 const color = amount >= 0 ? '§2' : '§c';
                 items.push({
@@ -100,7 +100,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: 'editMobDropPanel'
                 });
-            });
+            }
             addPagination(mobs.length);
             return items;
         }
@@ -117,8 +117,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                 permissionLevel: 1,
                 actionType: 'functionCall',
                 actionValue: 'editMobValue'
-            });
-            items.push({
+            }, {
                 id: 'delete',
                 text: '§4Delete',
                 icon: 'textures/ui/trash',
@@ -164,7 +163,7 @@ export class EconomyPanelHandler implements IPanelHandler {
         if (panelId === 'addMobDropPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'mobDropsSystemPanel', context);
             const [mobId, amountStr] = values as [string, string];
-            const amount = parseInt(amountStr);
+            const amount = Number.parseInt(amountStr);
 
             if (mobId && !isNaN(amount)) {
                 const config = getEconomyConfig();
@@ -181,7 +180,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             if ((response as ModalFormResponse).canceled)
                 return showPanel(player, 'editMobDropPanel', { ...context, id: context.selectedItemId });
             const [amountStr] = values as [string];
-            const amount = parseInt(amountStr);
+            const amount = Number.parseInt(amountStr);
             const mobId = context.selectedItemId as string;
 
             if (!isNaN(amount) && mobId) {

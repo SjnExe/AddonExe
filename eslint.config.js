@@ -5,6 +5,7 @@ import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 import jsonc from 'eslint-plugin-jsonc';
 import minecraftLinting from 'eslint-plugin-minecraft-linting';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import promisePlugin from 'eslint-plugin-promise';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
@@ -36,6 +37,39 @@ export default tseslint.config(
     },
     // Base JS configuration
     eslint.configs.recommended,
+
+    // Unicorn Configuration
+    eslintPluginUnicorn.configs['flat/recommended'],
+    {
+        rules: {
+            'unicorn/filename-case': 'off',
+            'unicorn/prevent-abbreviations': 'off',
+            'unicorn/no-null': 'off',
+            'unicorn/prefer-top-level-await': 'off',
+            'unicorn/catch-error-name': 'off',
+            'unicorn/no-array-reduce': 'off',
+            'unicorn/prefer-module': 'off',
+            'unicorn/no-process-exit': 'off',
+            'unicorn/prefer-node-protocol': 'off',
+            'unicorn/numeric-separators-style': 'off',
+            'unicorn/better-regex': 'off',
+            'unicorn/no-array-for-each': 'off',
+            'unicorn/prefer-switch': 'off',
+            'unicorn/consistent-function-scoping': 'off',
+            'unicorn/no-array-callback-reference': 'off',
+            'unicorn/prefer-ternary': 'off',
+            'unicorn/no-useless-undefined': 'off',
+            'unicorn/throw-new-error': 'off',
+            'unicorn/prefer-string-slice': 'off',
+            'unicorn/no-array-push-push': 'off',
+            'unicorn/prefer-date-now': 'off',
+            'unicorn/explicit-length-check': 'off',
+            'unicorn/prefer-default-parameters': 'off',
+            'unicorn/no-lonely-if': 'off',
+            'unicorn/empty-brace-spaces': 'off',
+            'unicorn/template-indent': 'off'
+        }
+    },
 
     // TS Configuration (Type-Checked)
     {
@@ -93,6 +127,7 @@ export default tseslint.config(
         rules: {
             'minecraft-linting/avoid-unnecessary-command': 'error',
             'import/no-unresolved': ['error', { commonjs: true, amd: true }],
+            'import/no-cycle': 'error',
             'import/named': 'error',
             'import/namespace': 'error',
             'import/default': 'error',
@@ -109,7 +144,7 @@ export default tseslint.config(
             'promise/catch-or-return': 'warn',
             'promise/no-return-wrap': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
-            '@typescript-eslint/no-var-requires': 'off',
+            '@typescript-eslint/no-var-requires': 'error',
             '@typescript-eslint/no-shadow': 'error',
             '@typescript-eslint/no-floating-promises': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
@@ -123,7 +158,9 @@ export default tseslint.config(
             '@typescript-eslint/no-unsafe-enum-comparison': 'error',
             '@typescript-eslint/restrict-template-expressions': 'error',
             '@typescript-eslint/await-thenable': 'error',
-            '@typescript-eslint/require-await': 'error'
+            '@typescript-eslint/require-await': 'error',
+            '@typescript-eslint/switch-exhaustiveness-check': 'error',
+            '@typescript-eslint/prefer-readonly': 'error'
         }
     },
 

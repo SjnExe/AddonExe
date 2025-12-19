@@ -22,9 +22,9 @@ export async function showVoteMenu(player: mc.Player) {
             // Show results preview? Or just "Close"
             // Let's show current standings
             let results = '\n§lCurrent Standings:§r\n';
-            activeVote.options.forEach((opt) => {
+            for (const opt of activeVote.options) {
                 results += `${opt.text}: ${opt.count}\n`;
-            });
+            }
             body += results;
         }
 
@@ -33,9 +33,9 @@ export async function showVoteMenu(player: mc.Player) {
         if (hasVoted) {
             form.button('§cClose');
         } else {
-            activeVote.options.forEach((opt) => {
+            for (const opt of activeVote.options) {
                 form.button(opt.text);
-            });
+            }
         }
 
         if (isAdmin) {
@@ -132,7 +132,7 @@ async function showCreateVoteUI(player: mc.Player) {
         return;
     }
 
-    const duration = parseInt(durationStr || '0') || 0;
+    const duration = Number.parseInt(durationStr || '0') || 0;
     const durationSeconds = duration * 60;
 
     createVote(player, question, options, durationSeconds);

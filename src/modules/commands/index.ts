@@ -110,11 +110,11 @@ export function loadCommands() {
         cmdVotingVote
     ];
 
-    commands.forEach(cmdModule => {
+    for (const cmdModule of commands) {
         if (Array.isArray(cmdModule)) {
-            cmdModule.forEach(cmd => commandManager.register(cmd));
+            for (const cmd of cmdModule) commandManager.register(cmd);
         } else if (cmdModule) {
             commandManager.register(cmdModule);
         }
-    });
+    }
 }

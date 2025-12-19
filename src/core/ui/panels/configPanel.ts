@@ -44,8 +44,8 @@ export class ConfigPanelHandler implements IPanelHandler {
             addBackButton(items, 'adminPanel');
             const categories = getVisibleCategories(pData);
             const paginated = getPaginatedItems(categories, (context.page as number) || 1);
-            paginated.forEach((cat) => {
-                if (!cat) return;
+            for (const cat of paginated) {
+                if (!cat) continue;
                 items.push({
                     id: cat.id,
                     text: cat.title,
@@ -54,7 +54,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: `configSubCategoryPanel_${cat.id}`
                 });
-            });
+            }
             if (permissionLevel === 0) {
                 items.push({
                     id: 'resetSettings',
@@ -74,8 +74,8 @@ export class ConfigPanelHandler implements IPanelHandler {
             addBackButton(items, 'configCategoryPanel');
             const systems = getSystemsByCategory(pData, category);
             const paginated = getPaginatedItems(systems, (context.page as number) || 1);
-            paginated.forEach((sys) => {
-                if (!sys) return;
+            for (const sys of paginated) {
+                if (!sys) continue;
                 items.push({
                     id: sys.id,
                     text: sys.title,
@@ -84,7 +84,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: sys.id.startsWith('config_') ? sys.id : sys.id
                 });
-            });
+            }
             addPaginationItems(items, (context.page as number) || 1, systems.length);
             return Promise.resolve(items);
         }
@@ -93,8 +93,8 @@ export class ConfigPanelHandler implements IPanelHandler {
             addBackButton(items, 'configCategoryPanel');
             const categories = getVisibleCategories(pData);
             const paginated = getPaginatedItems(categories, (context.page as number) || 1);
-            paginated.forEach((cat) => {
-                if (!cat) return;
+            for (const cat of paginated) {
+                if (!cat) continue;
                 items.push({
                     id: cat.id,
                     text: `Reset ${cat.title}`,
@@ -103,7 +103,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: `configResetCategoryPanel_${cat.id}`
                 });
-            });
+            }
             if (((context.page as number) || 1) >= Math.ceil(categories.length / itemsPerPage)) {
                 items.push({
                     id: 'resetAll',
@@ -133,8 +133,8 @@ export class ConfigPanelHandler implements IPanelHandler {
                 actionValue: `resetCategory_${category}`
             });
 
-            paginated.forEach((sys) => {
-                if (!sys) return;
+            for (const sys of paginated) {
+                if (!sys) continue;
                 items.push({
                     id: sys.id,
                     text: `§4Reset ${sys.title}`,
@@ -143,7 +143,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     actionType: 'functionCall',
                     actionValue: `resetSystem_${sys.id}`
                 });
-            });
+            }
             addPaginationItems(items, (context.page as number) || 1, systems.length);
             return Promise.resolve(items);
         }
@@ -167,19 +167,29 @@ export class ConfigPanelHandler implements IPanelHandler {
 
             for (const setting of validSettings) {
                 const currentValue = getValueFromPath(config, setting.key);
-                if (setting.type === 'toggle') {
+                switch (setting.type) {
+                case 'toggle': {
                     form.toggle(setting.label, { defaultValue: !!currentValue });
-                } else if (setting.type === 'textField') {
+
+                break;
+                }
+                case 'textField': {
                     const val = currentValue ?? '';
                     const strVal =
                         typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
                     form.textField(setting.label, setting.description || '', { defaultValue: strVal });
-                } else if (setting.type === 'dropdown') {
+
+                break;
+                }
+                case 'dropdown': {
                     let index = -1;
                     const options = setting.options || [];
-                    if (setting.key === 'logLevel' && typeof currentValue === 'number') index = currentValue;
-                    else index = options.indexOf(currentValue as string);
+                    index = setting.key === 'logLevel' && typeof currentValue === 'number' ? currentValue : options.indexOf(currentValue as string);
                     form.dropdown(setting.label, options, { defaultValueIndex: Math.max(0, index) });
+
+                break;
+                }
+                // No default
                 }
             }
             return Promise.resolve(form);
@@ -326,8 +336,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
             }
 
-            if (category) {
-                if (values) {
+            if (category && values) {
                     const updates: Record<string, unknown> = {};
 
                     // Filter settings to match buildModal logic
@@ -335,16 +344,12 @@ export class ConfigPanelHandler implements IPanelHandler {
                         ['toggle', 'textField', 'dropdown'].includes(s.type)
                     );
 
-                    validSettings.forEach((setting, index) => {
+                    for (const [index, setting] of validSettings.entries()) {
                         let value = values[index];
                         if (setting.type === 'dropdown') {
                             const options = setting.options || [];
                             const selectedIndex = value as number;
-                            if (setting.key === 'logLevel') {
-                                value = selectedIndex;
-                            } else {
-                                value = options[selectedIndex];
-                            }
+                            value = setting.key === 'logLevel' ? selectedIndex : options[selectedIndex];
                         } else if (setting.type === 'textField') {
                             const strVal = value as string;
                             const current = getValueFromPath(getConfig(), setting.key);
@@ -353,12 +358,12 @@ export class ConfigPanelHandler implements IPanelHandler {
                                     value = Number(strVal);
                                 } else {
                                     // Skip update if input is invalid for a number field
-                                    return;
+                                    continue;
                                 }
                             }
                         }
                         updates[setting.key] = value;
-                    });
+                    }
 
                     const configSource = category.configSource || 'main';
                     const handler = uiConfigHandlers[configSource];
@@ -383,7 +388,6 @@ export class ConfigPanelHandler implements IPanelHandler {
                         }
                     }
                 }
-            }
             if (category && category.category) {
                 return showPanel(player, `configSubCategoryPanel_${category.category}`, { ...context, page: 1 });
             }

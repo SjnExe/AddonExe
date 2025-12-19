@@ -50,7 +50,7 @@ const payCommand: CustomCommand = {
 
         const amount = parseCurrency(amountStr);
         if (isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
-        if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001)
+        if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001)
             return sendMessage('§cInvalid precision.', executor);
 
         const sourceData = getPlayer(executor.id);
@@ -146,7 +146,7 @@ const payConfirmCommand: CustomCommand = {
         const { targetPlayerId, amount } = pendingPayment;
 
         // Try to find online player for notification
-        const targetPlayer = Array.from(mc.world.getPlayers()).find((p) => p.id === targetPlayerId);
+        const targetPlayer = [...mc.world.getPlayers()].find((p) => p.id === targetPlayerId);
         const targetName = targetPlayer ? targetPlayer.name : getPlayerNameById(targetPlayerId) || 'Unknown';
 
         const result = transfer(executor.id, targetPlayerId, amount);

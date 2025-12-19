@@ -38,9 +38,7 @@ export class FriendPanelHandler implements IPanelHandler {
                 permissionLevel: 1024,
                 actionType: 'openPanel',
                 actionValue: 'friendRequestsPanel'
-            });
-
-            items.push({
+            }, {
                 id: 'settings',
                 text: 'Settings',
                 icon: 'textures/ui/icon_setting',
@@ -119,9 +117,7 @@ export class FriendPanelHandler implements IPanelHandler {
                 permissionLevel: 1024,
                 actionType: 'functionCall',
                 actionValue: 'removeFriend'
-            });
-            // TPA?
-            items.push({
+            }, {
                 id: 'tpa',
                 text: 'Teleport',
                 icon: 'textures/items/ender_pearl',

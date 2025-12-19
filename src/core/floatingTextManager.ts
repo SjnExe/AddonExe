@@ -51,7 +51,7 @@ function loadTexts() {
 
 function saveTexts() {
     try {
-        const dataToSave = Array.from(floatingTexts.entries());
+        const dataToSave = [...floatingTexts.entries()];
         mc.world.setDynamicProperty(floatingTextDataKey, JSON.stringify(dataToSave));
     } catch (e: unknown) {
         if (e instanceof Error) {
@@ -110,7 +110,7 @@ function* updateLoopJob() {
                 if (!entity.isValid) continue;
                 for (const tag of entity.getTags()) {
                     if (tag.startsWith('ft_')) {
-                        const id = tag.substring(3);
+                        const id = tag.slice(3);
                         entitiesMap.set(id, entity);
                     }
                 }
@@ -126,7 +126,7 @@ function* updateLoopJob() {
                     const entity = entitiesMap.get(textConfig.id);
 
                     if (entity && entity.isValid) {
-                        entity.nameTag = resolved.replace(/\\n/g, '\n');
+                        entity.nameTag = resolved.replaceAll(String.raw`\n`, '\n');
                     }
                 }
             }
@@ -187,7 +187,7 @@ function spawnAllTexts() {
                 if (!entity.isValid) continue;
                 for (const tag of entity.getTags()) {
                     if (tag.startsWith('ft_')) {
-                        const id = tag.substring(3);
+                        const id = tag.slice(3);
                         if (!entityMap.has(id)) entityMap.set(id, entity);
                         break;
                     }
@@ -252,7 +252,7 @@ function spawnText(textConfig: FloatingTextConfig) {
         );
         const resolvedText = sm.resolveGlobalPlaceholders(textConfig.text);
         lastResolvedText.set(textConfig.id, resolvedText);
-        entity.nameTag = resolvedText.replace(/\\n/g, '\n');
+        entity.nameTag = resolvedText.replaceAll(String.raw`\n`, '\n');
         entity.addTag(`ft_${textConfig.id}`);
 
         unloadedChunkQueue.delete(textConfig.id);
@@ -293,7 +293,7 @@ async function findEntityWithRetries(
 }
 
 function getAllTexts(): FloatingTextConfig[] {
-    return Array.from(floatingTexts.values());
+    return [...floatingTexts.values()];
 }
 
 function getTextById(id: string): FloatingTextConfig | undefined {
@@ -387,7 +387,7 @@ function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                 if (textChanged || intervalChanged) {
                     const resolved = sm.resolveGlobalPlaceholders(newConfig.text);
                     lastResolvedText.set(id, resolved);
-                    entity.nameTag = resolved.replace(/\\n/g, '\n');
+                    entity.nameTag = resolved.replaceAll(String.raw`\n`, '\n');
                 }
             } catch (e: unknown) {
                 if (e instanceof Error) {

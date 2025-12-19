@@ -25,7 +25,7 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
     }
 
     switch (id) {
-        case 'exe:restart':
+        case 'exe:restart': {
             if (sourceEntity instanceof mc.Player) {
                 startRestart(sourceEntity);
             } else if (!sourceEntity) {
@@ -37,6 +37,7 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
                 } as CommandExecutor);
             }
             break;
+        }
 
         case 'exe:toggle_chat_log': {
             const chatConfig = config.chat || { logToConsole: false };

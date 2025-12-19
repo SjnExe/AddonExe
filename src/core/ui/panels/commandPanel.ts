@@ -24,15 +24,15 @@ export class CommandPanelHandler implements IPanelHandler {
         if (panelId === 'commandSystemPanel') {
             addBackButton(items, 'configCategoryPanel');
 
-            const commands = Array.from(commandManager.commands.values()).sort((a, b) => a.name.localeCompare(b.name));
+            const commands = [...commandManager.commands.values()].sort((a, b) => a.name.localeCompare(b.name));
 
             const config = getConfig() as unknown as MainConfig;
             const settings = (config.commandSettings || {}) as Record<string, CmdSettings>;
 
             const paginated = getPaginatedItems(commands, (context.page as number) || 1);
 
-            paginated.forEach((cmd) => {
-                if (!cmd) return;
+            for (const cmd of paginated) {
+                if (!cmd) continue;
                 const cmdSettings = settings[cmd.name] || {};
                 const isEnabled = cmdSettings.enabled !== false;
                 const color = isEnabled ? '§2' : '§4';
@@ -46,7 +46,7 @@ export class CommandPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: `commandSettingsPanel_${cmd.name}`
                 });
-            });
+            }
             addPaginationItems(items, (context.page as number) || 1, commands.length);
             return Promise.resolve(items);
         }
@@ -111,13 +111,10 @@ export class CommandPanelHandler implements IPanelHandler {
 
             if (values) {
                 const [enabled, permStr, cooldownStr] = values as [boolean, string, string];
-                const perm = parseInt(permStr) || 0;
-                const cooldown = parseInt(cooldownStr) || 0;
+                const perm = Number.parseInt(permStr) || 0;
+                const cooldown = Number.parseInt(cooldownStr) || 0;
 
-                const updates: Record<string, unknown> = {};
-                updates[`commandSettings.${cmdName}.enabled`] = enabled;
-                updates[`commandSettings.${cmdName}.permissionLevel`] = perm;
-                updates[`commandSettings.${cmdName}.cooldownSeconds`] = cooldown;
+                const updates: Record<string, unknown> = { [`commandSettings.${cmdName}.enabled`]: enabled, [`commandSettings.${cmdName}.permissionLevel`]: perm, [`commandSettings.${cmdName}.cooldownSeconds`]: cooldown,};
 
                 updateMultipleConfig(updates);
                 player.sendMessage(`§2Updated /${cmdName}.`);

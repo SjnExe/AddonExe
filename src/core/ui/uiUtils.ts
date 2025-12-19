@@ -197,11 +197,11 @@ export function getVisibleSystems(pData: PlayerData): SystemDefinition[] {
 export function getVisibleCategories(pData: PlayerData): SystemItem[] {
     const systems = getVisibleSystems(pData);
     const categories = new Set<string>();
-    systems.forEach((sys) => {
+    for (const sys of systems) {
         if (sys.category) categories.add(sys.category);
-    });
+    }
 
-    const sortedCategories = Array.from(categories).sort();
+    const sortedCategories = [...categories].sort();
 
     // Add "Reset" category if Owner
     if (pData.permissionLevel === 0) {
@@ -227,5 +227,5 @@ export function getSystemsByCategory(pData: PlayerData, category: string): Syste
             title: sys.title,
             icon: sys.icon
         }))
-        .sort((a, b) => a.title.replace(/§./g, '').localeCompare(b.title.replace(/§./g, '')));
+        .sort((a, b) => a.title.replaceAll(/§./g, '').localeCompare(b.title.replaceAll(/§./g, '')));
 }

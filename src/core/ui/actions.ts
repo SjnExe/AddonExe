@@ -22,55 +22,75 @@ import { MainConfig } from './types.js';
  */
 export async function handleUIAction(player: mc.Player, actionName: string, context: UIContext = {}): Promise<void> {
     switch (actionName) {
-        case 'showRules':
+        case 'showRules': {
             return showPanel(player, 'rulesManagementPanel', context);
-        case 'showHelpfulLinks':
+        }
+        case 'showHelpfulLinks': {
             return showPanel(player, 'helpfulLinksManagementPanel', context);
-        case 'kickPlayer':
+        }
+        case 'kickPlayer': {
             return kickPlayer(player, context);
-        case 'mutePlayer':
+        }
+        case 'mutePlayer': {
             return mutePlayer(player, context);
-        case 'unmutePlayer':
+        }
+        case 'unmutePlayer': {
             return unmutePlayer(player, context);
-        case 'banPlayer':
+        }
+        case 'banPlayer': {
             return banPlayer(player, context);
-        case 'freezePlayer':
+        }
+        case 'freezePlayer': {
             return freezePlayer(player, context);
-        case 'unfreezePlayer':
+        }
+        case 'unfreezePlayer': {
             return unfreezePlayer(player, context);
-        case 'tpaPlayer':
+        }
+        case 'tpaPlayer': {
             return tpaPlayer(player, context);
-        case 'tpaherePlayer':
+        }
+        case 'tpaherePlayer': {
             return tpaherePlayer(player, context);
-        case 'reportPlayer':
+        }
+        case 'reportPlayer': {
             return reportPlayer(player, context);
-        case 'bountyPlayer':
+        }
+        case 'bountyPlayer': {
             return bountyPlayer(player, context);
-        case 'removePlayerBounty':
+        }
+        case 'removePlayerBounty': {
             return removePlayerBounty(player, context);
-        case 'assignReport':
+        }
+        case 'assignReport': {
             return assignReport(player, context);
-        case 'resolveReport':
+        }
+        case 'resolveReport': {
             return resolveReport(player, context);
-        case 'clearReport':
+        }
+        case 'clearReport': {
             return clearReport(player, context);
-        case 'showUnbanForm':
+        }
+        case 'showUnbanForm': {
             return showUnbanForm(player, context);
-        case 'showUnmuteForm':
+        }
+        case 'showUnmuteForm': {
             return showUnmuteForm(player, context);
+        }
         case 'toggleTpa': {
             const newState = tpaManager.toggleTpaRequests(player);
             player.sendMessage(`§aTPA Requests are now ${newState ? '§4Disabled' : '§2Enabled'}.`);
             return showPanel(player, 'tpaSettingsPanel', context);
         }
-        case 'openAuctionHouse':
+        case 'openAuctionHouse': {
             return showAuctionHouse(player);
-        case 'unblockPlayer':
+        }
+        case 'unblockPlayer': {
             if (context.selectedItemId) {
                 tpaManager.unblockPlayer(player, context.selectedItemId as string);
             }
             return showPanel(player, 'tpaBlockListPanel', context);
-        case 'respawnText':
+        }
+        case 'respawnText': {
             try {
                 if (context.id) {
                     floatingTextManager.respawnText(context.id as string);
@@ -80,7 +100,8 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
                 player.sendMessage(`§4Error respawning text: ${String(error)}`);
             }
             return showPanel(player, 'floatingTextActionPanel', context);
-        case 'despawnText':
+        }
+        case 'despawnText': {
             try {
                 if (context.id) {
                     floatingTextManager.despawnText(context.id as string);
@@ -90,7 +111,8 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
                 player.sendMessage(`§4Error despawning text: ${String(error)}`);
             }
             return showPanel(player, 'floatingTextActionPanel', context);
-        case 'deleteText':
+        }
+        case 'deleteText': {
             try {
                 if (context.id) {
                     floatingTextManager.deleteText(player, context.id as string);
@@ -100,6 +122,7 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             }
             // Go back to list after delete
             return showPanel(player, 'floatingTextListPanel', context);
+        }
         case 'kickTeamMember': {
             const team = teamManager.getTeamByPlayer(player.id);
             if (team && context.selectedItemId) {
@@ -132,8 +155,9 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
-        default:
+        default: {
             player.sendMessage(`§4Action '${actionName}' is not implemented yet.`);
+        }
     }
 }
 
@@ -193,7 +217,7 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
     if (!values) return showPanel(player, 'playerActionsPanel', context);
 
     const [durationStr, reason] = values as [string, string];
-    const durationMins = parseInt(durationStr);
+    const durationMins = Number.parseInt(durationStr);
 
     if (isNaN(durationMins) || durationMins <= 0) {
         player.sendMessage('§4Invalid duration.');
@@ -261,7 +285,7 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     if (!values) return showPanel(player, 'playerActionsPanel', context);
 
     const [durationStr, reason] = values as [string, string];
-    const durationHours = parseInt(durationStr);
+    const durationHours = Number.parseInt(durationStr);
 
     if (isNaN(durationHours) || durationHours < 0) {
         player.sendMessage('§4Invalid duration.');
@@ -410,7 +434,7 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
 
     reportManager.createReport(player, targetId, targetData.name, reason);
     player.sendMessage('§2Report sent successfully. Admins have been notified.');
-    return Promise.resolve();
+    return;
 }
 
 async function bountyPlayer(player: mc.Player, context: UIContext) {
@@ -441,7 +465,7 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
     }
 
     // Validate max 2 decimal places
-    if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001) {
+    if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) {
         player.sendMessage(
             '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123'
         );
@@ -498,7 +522,7 @@ async function removePlayerBounty(player: mc.Player, context: UIContext) {
     }
 
     // Validate max 2 decimal places
-    if (Math.abs(amount - parseFloat(amount.toFixed(2))) > 0.001) {
+    if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) {
         player.sendMessage(
             '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123'
         );

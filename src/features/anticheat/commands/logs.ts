@@ -36,14 +36,28 @@ async function showLogsMenu(player: mc.Player) {
     const selection = (response as ActionFormResponse).selection;
     if (selection === undefined) return;
 
-    if (selection === 0) {
+    switch (selection) {
+    case 0: {
         await showPunishmentFilter(player);
-    } else if (selection === 1) {
+
+    break;
+    }
+    case 1: {
         await showFlagFilter(player);
-    } else if (selection === 2) {
+
+    break;
+    }
+    case 2: {
         await showChatFilter(player);
-    } else if (selection === 3) {
+
+    break;
+    }
+    case 3: {
         await showLogSettings(player);
+
+    break;
+    }
+    // No default
     }
 }
 
@@ -91,10 +105,10 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
     if (slice.length === 0) {
         form.body('No logs match your criteria.');
     } else {
-        slice.forEach((log) => {
+        for (const log of slice) {
             const date = new Date(log.timestamp).toLocaleString();
             form.button(`${log.playerName} - ${log.type}\n${date}`);
-        });
+        }
     }
 
     if (page > 1) form.button('Previous');
@@ -174,10 +188,10 @@ async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string)
     if (slice.length === 0) {
         form.body('No logs match your criteria.');
     } else {
-        slice.forEach((log) => {
+        for (const log of slice) {
             const date = new Date(log.timestamp).toLocaleTimeString();
             form.button(`${log.playerName} - ${log.checkName} (VL: ${log.vl})\n${date}`);
-        });
+        }
     }
 
     if (page > 1) form.button('Previous');
@@ -233,9 +247,11 @@ export async function showChatFilter(player: mc.Player) {
         return showLogsMenu(player);
     }
 
+    const validDates = dates.filter((d): d is string => d !== undefined);
+
     const modal = new ModalFormData()
         .title('Filter Chat')
-        .dropdown('Date', dates, { defaultValueIndex: 0 })
+        .dropdown('Date', validDates, { defaultValueIndex: 0 })
         .textField('Player Name (Optional)', 'Search...')
         .textField('Keyword (Optional)', 'Search message...');
 
@@ -248,6 +264,7 @@ export async function showChatFilter(player: mc.Player) {
     const nameQuery = (values[1] as string) || '';
     const keywordQuery = (values[2] as string) || '';
     const date = dates[dateIndex];
+    if (!date) return;
 
     await showChatLogs(player, 1, date, nameQuery, keywordQuery);
 }
@@ -274,11 +291,11 @@ async function showChatLogs(player: mc.Player, page: number, date: string, nameQ
     if (slice.length === 0) {
         form.body('No chat logs match your criteria.');
     } else {
-        slice.forEach((log) => {
+        for (const log of slice) {
             const dateStr = new Date(log.timestamp).toLocaleTimeString();
-            const msg = log.message.length > 20 ? log.message.substring(0, 20) + '...' : log.message;
+            const msg = log.message.length > 20 ? log.message.slice(0, 20) + '...' : log.message;
             form.button(`${log.playerName}: ${msg}\n${dateStr}`);
-        });
+        }
     }
 
     if (page > 1) form.button('Previous');
@@ -342,7 +359,7 @@ async function showLogSettings(player: mc.Player) {
 
     const enabled = values[0] as boolean;
     const daysStr = values[1] as string;
-    let days = parseInt(daysStr, 10);
+    let days = Number.parseInt(daysStr, 10);
     if (isNaN(days) || days < 1) days = 1;
 
     updateMultipleConfig({

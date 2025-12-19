@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const SCRIPTS_DIR = 'packs/behavior/scripts';
 
@@ -14,7 +14,7 @@ if (!fs.existsSync(SCRIPTS_DIR)) {
 function findFiles(dir, filter) {
     let results = [];
     const list = fs.readdirSync(dir);
-    list.forEach((file) => {
+    for (let file of list) {
         file = path.join(dir, file);
         const stat = fs.statSync(file);
         if (stat && stat.isDirectory()) {
@@ -22,7 +22,7 @@ function findFiles(dir, filter) {
         } else {
             if (filter(file)) results.push(file);
         }
-    });
+    }
     return results;
 }
 
@@ -33,14 +33,14 @@ try {
     const jsFiles = findFiles(SCRIPTS_DIR, (f) => f.endsWith('.js'));
     let rewriteCount = 0;
 
-    jsFiles.forEach((file) => {
+    for (const file of jsFiles) {
         let content = fs.readFileSync(file, 'utf8');
         if (content.includes('.default.js')) {
-            content = content.replace(/\.default\.js/g, '.js');
+            content = content.replaceAll('.default.js', '.js');
             fs.writeFileSync(file, content);
             rewriteCount++;
         }
-    });
+    }
     console.log(`Rewrote imports in ${rewriteCount} files.`);
 
     // 2. Process Configuration Files
@@ -49,7 +49,7 @@ try {
     console.log('Handling config files...');
     const defaultConfigs = findFiles(SCRIPTS_DIR, (f) => f.endsWith('.default.js'));
 
-    defaultConfigs.forEach((defFile) => {
+    for (const defFile of defaultConfigs) {
         const targetFile = defFile.replace('.default.js', '.js');
 
         // Only create the active config if it doesn't already exist (e.g. from a previous build step or user override)
@@ -62,7 +62,7 @@ try {
         // Always remove the .default.js file from the final build artifact
         fs.unlinkSync(defFile);
         console.log(`Removed template: ${defFile}`);
-    });
+    }
 
     console.log('Build finalization complete.');
 } catch (error) {

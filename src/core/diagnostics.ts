@@ -29,18 +29,27 @@ export function addSentryBreadcrumb(
     try {
         let sentryLevel = SentryEventLevel.info;
         switch (level) {
-            case 'error':
+            case 'error': {
                 sentryLevel = SentryEventLevel.error;
                 break;
-            case 'debug':
+            }
+            case 'debug': {
                 sentryLevel = SentryEventLevel.debug;
                 break;
-            case 'warning':
+            }
+            case 'warning': {
                 sentryLevel = SentryEventLevel.warning;
                 break;
-            case 'fatal':
+            }
+            case 'fatal': {
                 sentryLevel = SentryEventLevel.fatal;
                 break;
+            }
+            case 'info':
+            default: {
+                sentryLevel = SentryEventLevel.info;
+                break;
+            }
         }
         sentry.addBreadcrumb(sentryLevel, message, category);
     } catch {
@@ -113,7 +122,7 @@ function restoreDebugState() {
             setSentryDebug(false);
         }, remainingTicks);
 
-        debugLog(`[Diagnostics] Restored Sentry debug mode. Expires in ${(remainingMs / 60000).toFixed(1)} mins.`);
+        debugLog(`[Diagnostics] Restored Sentry debug mode. Expires in ${(remainingMs / 60_000).toFixed(1)} mins.`);
     } else if (expiry) {
         // Expired while offline
         setSentryDebug(false);
@@ -137,7 +146,7 @@ export function initializeDiagnostics() {
         sentry.init({
             dsn: SENTRY_DSN,
             debug: false,
-            sampleRate: 1.0,
+            sampleRate: 1,
             maxBreadcrumbs: 50
         });
 

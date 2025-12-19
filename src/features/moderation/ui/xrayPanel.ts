@@ -66,9 +66,9 @@ export class XrayPanelHandler implements IPanelHandler {
             const oreKeys = Object.keys(config.monitoredOreTypes);
             const paginated = getPaginatedItems(oreKeys, (context.page as number) || 1);
 
-            paginated.forEach((key) => {
+            for (const key of paginated) {
                 const ore = config.monitoredOreTypes[key];
-                if (!ore) return;
+                if (!ore) continue;
                 items.push({
                     id: key,
                     text: `${ore.oreName}\n${ore.enabled ? '§2[Enabled]' : '§4[Disabled]'}`,
@@ -77,7 +77,7 @@ export class XrayPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: `editXrayOrePanel_${key}`
                 });
-            });
+            }
             addPagination(oreKeys.length);
             return items;
         }
@@ -161,8 +161,8 @@ export class XrayPanelHandler implements IPanelHandler {
                         {
                             blockId,
                             dimensionId: dimId || 'minecraft:overworld',
-                            minY: parseInt(minY) || -64,
-                            maxY: parseInt(maxY) || 320
+                            minY: Number.parseInt(minY) || -64,
+                            maxY: Number.parseInt(maxY) || 320
                         }
                     ]
                 };
@@ -191,8 +191,8 @@ export class XrayPanelHandler implements IPanelHandler {
                     config.monitoredOreTypes[key].blocks[0] = {
                         blockId,
                         dimensionId: dimId,
-                        minY: parseInt(minY),
-                        maxY: parseInt(maxY)
+                        minY: Number.parseInt(minY),
+                        maxY: Number.parseInt(maxY)
                     };
                     saveXrayConfig(config);
                     player.sendMessage('§aOre updated.');

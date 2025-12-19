@@ -53,8 +53,8 @@ export class InfoPanelHandler implements IPanelHandler {
             const serverInfo = config.serverInfo as { helpfulLinks: { title: string; url: string }[] };
             const links = serverInfo?.helpfulLinks || [];
 
-            links.forEach((link, idx) => {
-                if (!link) return;
+            for (const [idx, link] of links.entries()) {
+                if (!link) continue;
                 items.push({
                     id: `link_${idx}`,
                     text: link.title,
@@ -64,7 +64,7 @@ export class InfoPanelHandler implements IPanelHandler {
                     actionValue: 'printLink', // Handled locally
                     sortId: idx
                 });
-            });
+            }
             return Promise.resolve(items);
         }
 
@@ -82,8 +82,8 @@ export class InfoPanelHandler implements IPanelHandler {
             }
             const rules = rulesManager.getRules();
             const paginated = getPaginatedItems(rules, page);
-            paginated.forEach((rule, idx) => {
-                if (!rule) return;
+            for (const [idx, rule] of paginated.entries()) {
+                if (!rule) continue;
                 const realIndex = (page - 1) * itemsPerPage + idx;
                 items.push({
                     id: String(realIndex),
@@ -92,7 +92,7 @@ export class InfoPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: 'ruleActionPanel'
                 });
-            });
+            }
             addPaginationItems(items, page, rules.length);
             return Promise.resolve(items);
         }
@@ -127,8 +127,8 @@ export class InfoPanelHandler implements IPanelHandler {
             }
             const links = helpfulLinksManager.getHelpfulLinks();
             const paginated = getPaginatedItems(links, page);
-            paginated.forEach((link, idx) => {
-                if (!link) return;
+            for (const [idx, link] of paginated.entries()) {
+                if (!link) continue;
                 const realIndex = (page - 1) * itemsPerPage + idx;
                 items.push({
                     id: String(realIndex),
@@ -138,7 +138,7 @@ export class InfoPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: 'helpfulLinkActionPanel'
                 });
-            });
+            }
             addPaginationItems(items, page, links.length);
             return Promise.resolve(items);
         }
@@ -246,7 +246,7 @@ export class InfoPanelHandler implements IPanelHandler {
                     const config = getConfig() as unknown as MainConfig;
                     const serverInfo = config.serverInfo as { helpfulLinks: { title: string; url: string }[] };
                     const links = serverInfo?.helpfulLinks || [];
-                    const index = parseInt(item.id.split('_')[1] || '0');
+                    const index = Number.parseInt(item.id.split('_')[1] || '0');
                     const link = links[index];
 
                     if (link) {

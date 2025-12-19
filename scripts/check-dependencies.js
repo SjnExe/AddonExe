@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,7 +31,7 @@ const minecraftManifestDeps = manifestDeps
 const errors = [];
 
 // List of modules that are actual Script API modules and should be in manifest.json if used
-const runtimeModules = [
+const runtimeModules = new Set([
     '@minecraft/server',
     '@minecraft/server-ui',
     '@minecraft/server-gametest',
@@ -41,28 +41,26 @@ const runtimeModules = [
     '@minecraft/diagnostics',
     '@minecraft/common',
     '@minecraft/gameplay-utilities'
-];
+]);
 
 // Modules allowed to be in package.json (for types/dev) but NOT in manifest.json (runtime)
-const devOnlyModules = ['@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common'];
+const devOnlyModules = new Set(['@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common']);
 
-minecraftPackageDeps.forEach((pkg) => {
-    if (runtimeModules.includes(pkg) && !devOnlyModules.includes(pkg)) {
-        if (!minecraftManifestDeps.includes(pkg)) {
+for (const pkg of minecraftPackageDeps) {
+    if (runtimeModules.has(pkg) && !devOnlyModules.has(pkg) && !minecraftManifestDeps.includes(pkg)) {
             errors.push(`Package '${pkg}' is in package.json but missing from manifest.json dependencies.`);
         }
-    }
-});
+}
 
-minecraftManifestDeps.forEach((pkg) => {
+for (const pkg of minecraftManifestDeps) {
     if (!minecraftPackageDeps.includes(pkg)) {
         errors.push(`Module '${pkg}' is in manifest.json but missing from package.json dependencies.`);
     }
-});
+}
 
 if (errors.length > 0) {
     console.error('Dependency mismatch detected:');
-    errors.forEach((e) => console.error(`- ${e}`));
+    for (const e of errors) console.error(`- ${e}`);
     process.exit(1);
 } else {
     console.log('Dependency check passed.');

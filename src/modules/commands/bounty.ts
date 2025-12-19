@@ -217,9 +217,10 @@ const listBountyCommand: CustomCommand = {
 
             if (executor instanceof mc.Player) {
                 const targets = resolveTarget(targetName, executor);
-                if (targets.length > 0) {
-                    targetId = targets[0].id;
-                    targetDisplayName = targets[0].name;
+                const firstTarget = targets[0];
+                if (firstTarget) {
+                    targetId = firstTarget.id;
+                    targetDisplayName = firstTarget.name;
                 } else {
                     // Try offline lookup if online failed
                     targetId = getPlayerIdByName(targetName);
@@ -247,7 +248,7 @@ const listBountyCommand: CustomCommand = {
             else executor.sendMessage(`§aBounty on ${targetDisplayName}: §e$${bounty.amount.toFixed(2)}`);
         } else {
             let message = '§a--- All Player Bounties ---\n';
-            const allBounties = Array.from(bountyManager.getAllBounties().values());
+            const allBounties = [...bountyManager.getAllBounties().values()];
 
             if (allBounties.length === 0) {
                 message += '§7No active bounties.';

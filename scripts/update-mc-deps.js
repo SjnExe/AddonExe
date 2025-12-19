@@ -1,8 +1,8 @@
-import { exec } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { promisify } from 'util';
+import { exec } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -11,11 +11,11 @@ const manifestJsonPath = path.resolve(__dirname, '../packs/behavior/manifest.jso
 
 // Color codes for console output
 const colors = {
-    reset: '\x1b[0m',
-    green: '\x1b[32m',
-    yellow: '\x1b[33m',
-    blue: '\x1b[34m',
-    red: '\x1b[31m'
+    reset: '\u001B[0m',
+    green: '\u001B[32m',
+    yellow: '\u001B[33m',
+    blue: '\u001B[34m',
+    red: '\u001B[31m'
 };
 
 async function main() {
@@ -52,7 +52,7 @@ async function main() {
                         let newVersion;
                         if (candidates.length > 0) {
                             // Pick the last one (which is the latest due to numeric sort)
-                            newVersion = candidates[candidates.length - 1];
+                            newVersion = candidates.at(-1);
                         } else {
                             // No matching stable beta found, preserve existing version
                             return null;
@@ -149,7 +149,7 @@ async function main() {
     // --- Final Output ---
     if (updated) {
         console.log(`${colors.green}Updated Minecraft dependencies:${colors.reset}`);
-        updates.forEach((u) => console.log(`  ${u}`));
+        for (const u of updates) console.log(`  ${u}`);
         console.log(
             `${colors.yellow}Dependencies updated. Please run 'npm install' again to install the new versions.${colors.reset}`
         );

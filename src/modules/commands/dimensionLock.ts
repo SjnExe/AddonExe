@@ -21,11 +21,7 @@ function createLockCommandExecute(dimension: Dimension): (executor: CommandExecu
         const currentState = getLockState(dimension);
         let newState: boolean;
 
-        if (typeof args.isLocked === 'boolean') {
-            newState = args.isLocked;
-        } else {
-            newState = !currentState;
-        }
+        newState = typeof args.isLocked === 'boolean' ? args.isLocked : !currentState;
 
         setLockState(dimension, newState);
 

@@ -21,8 +21,8 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
     const now = Date.now();
     const lastClaim = pData.lastDailyClaim || 0;
     const timeSince = now - lastClaim;
-    const cooldownMs = config.claimCooldownHours * 3600000;
-    const resetMs = config.streakResetHours * 3600000;
+    const cooldownMs = config.claimCooldownHours * 3_600_000;
+    const resetMs = config.streakResetHours * 3_600_000;
 
     // Check cooldown
     if (timeSince < cooldownMs) {
@@ -81,7 +81,7 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
 
         if (reward.command) {
             // Execute as server
-            const cmd = reward.command.replace(/{player}/g, `"${player.name}"`);
+            const cmd = reward.command.replaceAll('{player}', `"${player.name}"`);
             player.dimension.runCommand(cmd);
         }
 
@@ -126,7 +126,7 @@ export function getNextRewardInfo(player: mc.Player): string {
     const now = Date.now();
     const lastClaim = pData.lastDailyClaim || 0;
     const timeSince = now - lastClaim;
-    const cooldownMs = config.claimCooldownHours * 3600000;
+    const cooldownMs = config.claimCooldownHours * 3_600_000;
 
     if (timeSince < cooldownMs) {
         return `§7Next reward in: ${formatDuration(cooldownMs - timeSince)}`;

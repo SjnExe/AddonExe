@@ -30,7 +30,7 @@ async function showKitList(player: mc.Player, page: number) {
         .title(`Available Kits (Page ${page}/${totalPages})`)
         .body('Select a kit to claim:');
 
-    kitsToShow.forEach((kit) => {
+    for (const kit of kitsToShow) {
         let buttonText = kit.name;
         if (kit.price > 0) {
             buttonText += ` - $${kit.price}`;
@@ -39,7 +39,7 @@ async function showKitList(player: mc.Player, page: number) {
             buttonText += ` - Cooldown: ${formatCooldown(kit.cooldown)}`;
         }
         form.button(buttonText, kit.icon || 'textures/ui/inventory_icon');
-    });
+    }
 
     if (page > 1) {
         form.button('§e< Previous Page');
@@ -66,11 +66,9 @@ async function showKitList(player: mc.Player, page: number) {
                 }
                 buttonIndex--;
             }
-            if (page < totalPages) {
-                if (buttonIndex === 0) {
+            if (page < totalPages && buttonIndex === 0) {
                     await showKitList(player, page + 1);
                 }
-            }
             return;
         }
 
@@ -169,7 +167,7 @@ const addKitCommand: CustomCommand = {
                 items.push({
                     typeId: item.typeId,
                     amount: item.amount,
-                    nameTag: item.nameTag,
+                    ...(item.nameTag ? { nameTag: item.nameTag } : {}),
                     lore: item.getLore()
                 });
             }

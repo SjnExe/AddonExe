@@ -33,15 +33,15 @@ export function initializeChatLogger() {
     // Auto-save loop
     mc.system.runInterval(() => {
         const newDay = getTodayDateString();
-        if (newDay !== today) {
+        if (newDay === today) {
+            saveChatLogs();
+        } else {
             // Day changed, save old day, reset
             saveChatLogs();
             today = newDay;
             currentDayLogs = []; // Reset first, then load (which creates empty or loads existing if restarted same day)
             loadTodayLogs();
             pruneOldLogs();
-        } else {
-            saveChatLogs();
         }
     }, 1200); // 60s
 }
@@ -68,12 +68,13 @@ export function addChatLog(playerName: string, message: string, rank?: string) {
     const config = getConfig();
     if (!config.chat?.loggingEnabled) return;
 
-    currentDayLogs.push({
+    const log: ChatLog = {
         timestamp: Date.now(),
         playerName,
-        message,
-        rank
-    });
+        message
+    };
+    if (rank) log.rank = rank;
+    currentDayLogs.push(log);
     isDirty = true;
 }
 

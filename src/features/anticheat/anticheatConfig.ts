@@ -81,9 +81,9 @@ export const anticheatConfig: AnticheatConfig = {
             { threshold: 10, command: 'warn {player} Moving too fast.' },
             { threshold: 20, command: 'kick {player} Suspicious movement.' }
         ],
-        maxSpeed: 10.0, // Strict walking speed
-        maxSpeedIce: 25.0, // Ice/Slime allowance
-        maxSpeedElytra: 80.0, // Gliding allowance
+        maxSpeed: 10, // Strict walking speed
+        maxSpeedIce: 25, // Ice/Slime allowance
+        maxSpeedElytra: 80, // Gliding allowance
         flightDetection: false
     },
     worldBorder: {
