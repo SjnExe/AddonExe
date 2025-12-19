@@ -6,8 +6,6 @@ import { deepClone } from './objectUtils.js';
 
 import type { config as Config } from '../config.default.js';
 
-
-
 let mainConfigManager: ConfigManager<typeof Config>;
 const updateCallbacks: ((config: typeof Config) => void)[] = [];
 
@@ -118,4 +116,4 @@ export async function resetConfigSection(
     }
 }
 
-export {type config as Config} from '../config.default.js';
+export { type config as Config } from '../config.default.js';

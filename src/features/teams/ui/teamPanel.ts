@@ -64,37 +64,43 @@ export class TeamPanelHandler implements IPanelHandler {
                         actionValue: 'teamManagePanel'
                     });
                 }
-                items.push({
-                    id: 'teamSettingsPanel',
-                    text: '§l§6Team Settings',
-                    icon: 'textures/ui/icon_setting',
-                    permissionLevel: 1024,
-                    actionType: 'openPanel',
-                    actionValue: 'teamSettingsPanel'
-                }, {
-                    id: 'leaveTeam',
-                    text: '§4Leave Team',
-                    icon: 'textures/ui/cancel',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'leaveTeam'
-                });
+                items.push(
+                    {
+                        id: 'teamSettingsPanel',
+                        text: '§l§6Team Settings',
+                        icon: 'textures/ui/icon_setting',
+                        permissionLevel: 1024,
+                        actionType: 'openPanel',
+                        actionValue: 'teamSettingsPanel'
+                    },
+                    {
+                        id: 'leaveTeam',
+                        text: '§4Leave Team',
+                        icon: 'textures/ui/cancel',
+                        permissionLevel: 1024,
+                        actionType: 'functionCall',
+                        actionValue: 'leaveTeam'
+                    }
+                );
             } else {
-                items.push({
-                    id: 'createTeam',
-                    text: `§l§2Create Team\n§r§6Cost: ${formatCurrency(teamConfig.creationCost)}`,
-                    icon: 'textures/ui/color_plus',
-                    permissionLevel: 1024,
-                    actionType: 'openPanel',
-                    actionValue: 'teamCreatePanel'
-                }, {
-                    id: 'joinTeam',
-                    text: '§l§9Join Team',
-                    icon: 'textures/ui/world_glyph_color',
-                    permissionLevel: 1024,
-                    actionType: 'openPanel',
-                    actionValue: 'teamBrowserPanel'
-                });
+                items.push(
+                    {
+                        id: 'createTeam',
+                        text: `§l§2Create Team\n§r§6Cost: ${formatCurrency(teamConfig.creationCost)}`,
+                        icon: 'textures/ui/color_plus',
+                        permissionLevel: 1024,
+                        actionType: 'openPanel',
+                        actionValue: 'teamCreatePanel'
+                    },
+                    {
+                        id: 'joinTeam',
+                        text: '§l§9Join Team',
+                        icon: 'textures/ui/world_glyph_color',
+                        permissionLevel: 1024,
+                        actionType: 'openPanel',
+                        actionValue: 'teamBrowserPanel'
+                    }
+                );
             }
             return items;
         }
@@ -209,7 +215,10 @@ export class TeamPanelHandler implements IPanelHandler {
             addBackButton(items, 'teamMainPanel');
             const { teamId } = context;
             let team;
-            team = teamId && permissionLevel < 1024 ? teamManager.getTeam(Number(teamId)) : teamManager.getTeamByPlayer(player.id);
+            team =
+                teamId && permissionLevel < 1024
+                    ? teamManager.getTeam(Number(teamId))
+                    : teamManager.getTeamByPlayer(player.id);
 
             if (team) {
                 const isOwner = team.ownerId === player.id;
@@ -217,28 +226,32 @@ export class TeamPanelHandler implements IPanelHandler {
                 const isServerAdmin = permissionLevel < 1024;
 
                 if (isOwner || isAdmin || isServerAdmin) {
-                    items.push({
-                        id: 'invitePlayer',
-                        text: '§l§2Invite Player',
-                        icon: 'textures/ui/color_plus',
-                        permissionLevel: 1024,
-                        actionType: 'openPanel',
-                        actionValue: 'teamInviteSearchPanel'
-                    }, {
-                        id: 'joinRequests',
-                        text: `§l§6Join Requests §r(${team.applications.length})`,
-                        icon: 'textures/ui/mail_icon',
-                        permissionLevel: 1024,
-                        actionType: 'openPanel',
-                        actionValue: 'teamRequestsPanel'
-                    }, {
-                        id: 'manageMembers',
-                        text: '§l§3Manage Members',
-                        icon: 'textures/ui/icon_multiplayer',
-                        permissionLevel: 1024,
-                        actionType: 'openPanel',
-                        actionValue: 'teamMembersPanel'
-                    });
+                    items.push(
+                        {
+                            id: 'invitePlayer',
+                            text: '§l§2Invite Player',
+                            icon: 'textures/ui/color_plus',
+                            permissionLevel: 1024,
+                            actionType: 'openPanel',
+                            actionValue: 'teamInviteSearchPanel'
+                        },
+                        {
+                            id: 'joinRequests',
+                            text: `§l§6Join Requests §r(${team.applications.length})`,
+                            icon: 'textures/ui/mail_icon',
+                            permissionLevel: 1024,
+                            actionType: 'openPanel',
+                            actionValue: 'teamRequestsPanel'
+                        },
+                        {
+                            id: 'manageMembers',
+                            text: '§l§3Manage Members',
+                            icon: 'textures/ui/icon_multiplayer',
+                            permissionLevel: 1024,
+                            actionType: 'openPanel',
+                            actionValue: 'teamMembersPanel'
+                        }
+                    );
                 }
                 if (isOwner || isAdmin) {
                     items.push({
@@ -499,7 +512,7 @@ export class TeamPanelHandler implements IPanelHandler {
             if (!values) return;
 
             const config = getTeamConfig();
-            const newConfig = { ...config , enabled: values[0] as boolean,};
+            const newConfig = { ...config, enabled: values[0] as boolean };
 
             newConfig.maxMembers = Number(values[1]);
             newConfig.creationCost = Number(values[2]);

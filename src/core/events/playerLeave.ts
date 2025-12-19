@@ -14,9 +14,9 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
     const joinLeaveConfig = config.playerInfo?.customJoinLeave;
 
     if (joinLeaveConfig?.enabled && !pData?.isVanished) {
-            const msg = formatString(joinLeaveConfig.leaveMessage, { playerName: event.playerName });
-            mc.world.sendMessage(msg);
-        }
+        const msg = formatString(joinLeaveConfig.leaveMessage, { playerName: event.playerName });
+        mc.world.sendMessage(msg);
+    }
 
     playerDataManager.handlePlayerLeave(event.playerId);
     playerCache.removePlayerFromCache(event.playerId);

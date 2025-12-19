@@ -168,28 +168,31 @@ export class ConfigPanelHandler implements IPanelHandler {
             for (const setting of validSettings) {
                 const currentValue = getValueFromPath(config, setting.key);
                 switch (setting.type) {
-                case 'toggle': {
-                    form.toggle(setting.label, { defaultValue: !!currentValue });
+                    case 'toggle': {
+                        form.toggle(setting.label, { defaultValue: !!currentValue });
 
-                break;
-                }
-                case 'textField': {
-                    const val = currentValue ?? '';
-                    const strVal =
-                        typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
-                    form.textField(setting.label, setting.description || '', { defaultValue: strVal });
+                        break;
+                    }
+                    case 'textField': {
+                        const val = currentValue ?? '';
+                        const strVal =
+                            typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
+                        form.textField(setting.label, setting.description || '', { defaultValue: strVal });
 
-                break;
-                }
-                case 'dropdown': {
-                    let index = -1;
-                    const options = setting.options || [];
-                    index = setting.key === 'logLevel' && typeof currentValue === 'number' ? currentValue : options.indexOf(currentValue as string);
-                    form.dropdown(setting.label, options, { defaultValueIndex: Math.max(0, index) });
+                        break;
+                    }
+                    case 'dropdown': {
+                        let index = -1;
+                        const options = setting.options || [];
+                        index =
+                            setting.key === 'logLevel' && typeof currentValue === 'number'
+                                ? currentValue
+                                : options.indexOf(currentValue as string);
+                        form.dropdown(setting.label, options, { defaultValueIndex: Math.max(0, index) });
 
-                break;
-                }
-                // No default
+                        break;
+                    }
+                    // No default
                 }
             }
             return Promise.resolve(form);
@@ -337,57 +340,57 @@ export class ConfigPanelHandler implements IPanelHandler {
             }
 
             if (category && values) {
-                    const updates: Record<string, unknown> = {};
+                const updates: Record<string, unknown> = {};
 
-                    // Filter settings to match buildModal logic
-                    const validSettings = category.settings.filter((s) =>
-                        ['toggle', 'textField', 'dropdown'].includes(s.type)
-                    );
+                // Filter settings to match buildModal logic
+                const validSettings = category.settings.filter((s) =>
+                    ['toggle', 'textField', 'dropdown'].includes(s.type)
+                );
 
-                    for (const [index, setting] of validSettings.entries()) {
-                        let value = values[index];
-                        if (setting.type === 'dropdown') {
-                            const options = setting.options || [];
-                            const selectedIndex = value as number;
-                            value = setting.key === 'logLevel' ? selectedIndex : options[selectedIndex];
-                        } else if (setting.type === 'textField') {
-                            const strVal = value as string;
-                            const current = getValueFromPath(getConfig(), setting.key);
-                            if (typeof current === 'number') {
-                                if (!isNaN(Number(strVal)) && strVal.trim() !== '') {
-                                    value = Number(strVal);
-                                } else {
-                                    // Skip update if input is invalid for a number field
-                                    continue;
-                                }
+                for (const [index, setting] of validSettings.entries()) {
+                    let value = values[index];
+                    if (setting.type === 'dropdown') {
+                        const options = setting.options || [];
+                        const selectedIndex = value as number;
+                        value = setting.key === 'logLevel' ? selectedIndex : options[selectedIndex];
+                    } else if (setting.type === 'textField') {
+                        const strVal = value as string;
+                        const current = getValueFromPath(getConfig(), setting.key);
+                        if (typeof current === 'number') {
+                            if (!Number.isNaN(Number(strVal)) && strVal.trim() !== '') {
+                                value = Number(strVal);
+                            } else {
+                                // Skip update if input is invalid for a number field
+                                continue;
                             }
                         }
-                        updates[setting.key] = value;
+                    }
+                    updates[setting.key] = value;
+                }
+
+                const configSource = category.configSource || 'main';
+                const handler = uiConfigHandlers[configSource];
+                if (handler) {
+                    if (configSource === 'main') {
+                        handler.save(updates);
+                    } else {
+                        const currentConfig = handler.get();
+                        for (const key in updates) {
+                            setValueByPath(currentConfig, key, updates[key]);
+                        }
+                        handler.save(currentConfig);
+                    }
+                    player.sendMessage('§2Configuration saved.');
+
+                    if (categoryId === 'data') {
+                        await import('@core/dataManager.js').then(({ restartAutoSave }) => restartAutoSave());
                     }
 
-                    const configSource = category.configSource || 'main';
-                    const handler = uiConfigHandlers[configSource];
-                    if (handler) {
-                        if (configSource === 'main') {
-                            handler.save(updates);
-                        } else {
-                            const currentConfig = handler.get();
-                            for (const key in updates) {
-                                setValueByPath(currentConfig, key, updates[key]);
-                            }
-                            handler.save(currentConfig);
-                        }
-                        player.sendMessage('§2Configuration saved.');
-
-                        if (categoryId === 'data') {
-                            await import('@core/dataManager.js').then(({ restartAutoSave }) => restartAutoSave());
-                        }
-
-                        if (configSource === 'xray') {
-                            refreshXrayCache();
-                        }
+                    if (configSource === 'xray') {
+                        refreshXrayCache();
                     }
                 }
+            }
             if (category && category.category) {
                 return showPanel(player, `configSubCategoryPanel_${category.category}`, { ...context, page: 1 });
             }

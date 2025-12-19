@@ -195,10 +195,12 @@ async function initializeAddon() {
             Array.isArray(lastVersion) &&
             lastVersion.length >= 2 &&
             Array.isArray(newVersion) &&
-            newVersion.length >= 2
-         && lastVersion[0] === newVersion[0] && lastVersion[1] === newVersion[1]) {
-                isMigration = false;
-            }
+            newVersion.length >= 2 &&
+            lastVersion[0] === newVersion[0] &&
+            lastVersion[1] === newVersion[1]
+        ) {
+            isMigration = false;
+        }
     }
 
     await initializeConfigManager(isMigration);

@@ -47,9 +47,9 @@ export function handlePlayerJoin(player: mc.Player) {
     // Custom Join Message (since RP hides vanilla)
     const joinLeaveConfig = config.playerInfo?.customJoinLeave;
     if (joinLeaveConfig?.enabled && !player.hasTag(constants.vanishedTag)) {
-            const msg = formatString(joinLeaveConfig.joinMessage, { playerName: player.name });
-            mc.world.sendMessage(msg);
-        }
+        const msg = formatString(joinLeaveConfig.joinMessage, { playerName: player.name });
+        mc.world.sendMessage(msg);
+    }
     if (config.playerInfo?.enableWelcomer && config.playerInfo?.welcomeMessage) {
         const welcomeMsg = formatString(config.playerInfo.welcomeMessage, {
             playerName: player.name,

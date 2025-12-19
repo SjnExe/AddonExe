@@ -68,28 +68,35 @@ function updateManifest(filePath) {
             // Replace v1.0.0 placeholder
             json.header.description = json.header.description.replace('v1.0.0', `v${VERSION_STRING}`);
             // Replace any existing vX.X.X pattern if re-running or if base file changed
-            json.header.description = json.header.description.replaceAll(/v\d+\.\d+\.\d+(-beta)?/g, `v${VERSION_STRING}`);
+            json.header.description = json.header.description.replaceAll(
+                /v\d+\.\d+\.\d+(-beta)?/g,
+                `v${VERSION_STRING}`
+            );
         }
     }
 
     // Update modules version
     if (json.modules) {
         for (const module of json.modules) {
-            if (module.version && // Keep beta dependencies as is, unless they match the [1, 0, 0] placeholder we are replacing.
-                (JSON.stringify(module.version) === '[1,0,0]' || JSON.stringify(module.version) === '[1, 0, 0]')) {
-                    module.version = versionArray;
-                }
+            if (
+                module.version && // Keep beta dependencies as is, unless they match the [1, 0, 0] placeholder we are replacing.
+                (JSON.stringify(module.version) === '[1,0,0]' || JSON.stringify(module.version) === '[1, 0, 0]')
+            ) {
+                module.version = versionArray;
+            }
         }
     }
 
     // Update dependencies version
     if (json.dependencies) {
         for (const dep of json.dependencies) {
-            if (dep.version && // Only update if version is [1, 0, 0]
+            if (
+                dep.version && // Only update if version is [1, 0, 0]
                 // This avoids touching "beta" or other specific versions
-                (JSON.stringify(dep.version) === '[1,0,0]' || JSON.stringify(dep.version) === '[1, 0, 0]')) {
-                    dep.version = versionArray;
-                }
+                (JSON.stringify(dep.version) === '[1,0,0]' || JSON.stringify(dep.version) === '[1, 0, 0]')
+            ) {
+                dep.version = versionArray;
+            }
         }
     }
 

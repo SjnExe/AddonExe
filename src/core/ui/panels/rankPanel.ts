@@ -25,23 +25,26 @@ export class RankPanelHandler implements IPanelHandler {
             // Wait, panelBuilder combines static and dynamic.
             // We just return dynamic here.
 
-            items.push({
-                id: 'addRank',
-                text: 'Create New Rank',
-                icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'addRankPanel',
-                sortId: 0
-            }, {
-                id: 'rankSettings',
-                text: 'Settings',
-                icon: 'textures/ui/settings_glyph_color_2x',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'rankSettingsPanel',
-                sortId: 1
-            });
+            items.push(
+                {
+                    id: 'addRank',
+                    text: 'Create New Rank',
+                    icon: 'textures/ui/color_plus',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'addRankPanel',
+                    sortId: 0
+                },
+                {
+                    id: 'rankSettings',
+                    text: 'Settings',
+                    icon: 'textures/ui/settings_glyph_color_2x',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'rankSettingsPanel',
+                    sortId: 1
+                }
+            );
 
             const ranks = rankManager.getAllRanks();
             ranks.sort((a, b) => a.permissionLevel - b.permissionLevel);

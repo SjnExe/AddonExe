@@ -321,7 +321,7 @@ export const uiActionFunctions: Record<
             const amountStr = values ? (values[0] as string) : '0';
             const amount = Number(amountStr);
             const config = getConfig();
-            if (isNaN(amount) || amount < config.bounties.minimumBounty) {
+            if (Number.isNaN(amount) || amount < config.bounties.minimumBounty) {
                 player.sendMessage(
                     `§cInvalid amount. The minimum bounty is ${formatCurrency(config.bounties.minimumBounty)}.`
                 );
@@ -391,7 +391,7 @@ export const uiActionFunctions: Record<
             const amountStr = values ? (values[0] as string) : '0';
             const amount = Number(amountStr);
 
-            if (isNaN(amount) || amount <= 0) {
+            if (Number.isNaN(amount) || amount <= 0) {
                 player.sendMessage('§cInvalid amount. Please enter a positive number.');
                 return true;
             }

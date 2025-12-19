@@ -7,7 +7,7 @@ let buffer = '';
 let hasPrintedError = false;
 
 // Create regex dynamically to avoid no-control-regex lint error
-const esc = String.fromCharCode(27);
+const esc = String.fromCodePoint(27);
 const ansiRegex = new RegExp(esc + String.raw`\[\d+m`, 'g');
 
 function stripAnsi(str) {

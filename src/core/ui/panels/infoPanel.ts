@@ -226,7 +226,7 @@ export class InfoPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'deleteRule') {
                     const ruleIndex = Number(context.selectedItemId); // ID passed from list
-                    if (!isNaN(ruleIndex)) {
+                    if (!Number.isNaN(ruleIndex)) {
                         rulesManager.deleteRule(ruleIndex);
                         player.sendMessage('§2Rule deleted.');
                     }
@@ -235,7 +235,7 @@ export class InfoPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'deleteHelpfulLink') {
                     const linkIndex = Number(context.selectedItemId);
-                    if (!isNaN(linkIndex)) {
+                    if (!Number.isNaN(linkIndex)) {
                         helpfulLinksManager.deleteHelpfulLink(linkIndex);
                         player.sendMessage('§2Link deleted.');
                     }

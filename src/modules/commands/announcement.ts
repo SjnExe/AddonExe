@@ -110,7 +110,10 @@ const motdNotifyCommand: CustomCommand = {
         if (!pData) return;
 
         let announcementsMuted: boolean;
-        announcementsMuted = args.enabled !== undefined && typeof args.enabled === 'boolean' ? !args.enabled : !(pData.announcementsMuted ?? false);
+        announcementsMuted =
+            args.enabled !== undefined && typeof args.enabled === 'boolean'
+                ? !args.enabled
+                : !(pData.announcementsMuted ?? false);
 
         setPlayerAnnouncementsMuted(executor.id, announcementsMuted);
         executor.sendMessage(`§7Announcements are now §${announcementsMuted ? 'cOFF' : '2ON'}§7 for you.`);

@@ -73,7 +73,7 @@ export function parseCurrency(input: string | number): number {
 
     const value = Number.parseFloat(valueStr);
 
-    if (isNaN(value)) {
+    if (Number.isNaN(value)) {
         return Number.NaN;
     }
 

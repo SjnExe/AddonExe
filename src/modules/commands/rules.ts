@@ -47,7 +47,7 @@ const rulesCommand: CustomCommand = {
             // However, we check ruleNumber < 1 || ruleNumber > rules.length
             // So ruleNumber-1 is in bounds [0, length-1].
 
-            if (isNaN(ruleNumber) || ruleNumber < 1 || ruleNumber > rules.length) {
+            if (Number.isNaN(ruleNumber) || ruleNumber < 1 || ruleNumber > rules.length) {
                 const message = '§cInvalid rule number. Use §e/rules§c to see all rules.';
                 if (executor instanceof mc.Player) {
                     sendMessage(message, executor);

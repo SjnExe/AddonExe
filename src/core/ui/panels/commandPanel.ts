@@ -114,7 +114,11 @@ export class CommandPanelHandler implements IPanelHandler {
                 const perm = Number.parseInt(permStr) || 0;
                 const cooldown = Number.parseInt(cooldownStr) || 0;
 
-                const updates: Record<string, unknown> = { [`commandSettings.${cmdName}.enabled`]: enabled, [`commandSettings.${cmdName}.permissionLevel`]: perm, [`commandSettings.${cmdName}.cooldownSeconds`]: cooldown,};
+                const updates: Record<string, unknown> = {
+                    [`commandSettings.${cmdName}.enabled`]: enabled,
+                    [`commandSettings.${cmdName}.permissionLevel`]: perm,
+                    [`commandSettings.${cmdName}.cooldownSeconds`]: cooldown
+                };
 
                 updateMultipleConfig(updates);
                 player.sendMessage(`§2Updated /${cmdName}.`);

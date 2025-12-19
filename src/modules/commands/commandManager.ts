@@ -134,7 +134,7 @@ class CommandManager {
         mc.system.beforeEvents.startup.subscribe(
             ({ customCommandRegistry }: { customCommandRegistry: mc.CustomCommandRegistry }) => {
                 infoLog('[CommandManager] Startup event received. Registering slash commands...');
-                for (const command of this.commands) {
+                for (const command of this.commands.values()) {
                     if (command.disableSlashCommand) {
                         continue;
                     }
@@ -408,7 +408,7 @@ class CommandManager {
                 }
             }
             this._executeCommand(executor, command, parsedArgs);
-            return;
+            return undefined;
         };
 
         try {
@@ -418,11 +418,11 @@ class CommandManager {
         } catch (e: unknown) {
             const errStr = String(e);
             if (errStr.includes('already in use') && !isRetry) {
-                    const newName = `x${name}`;
-                    errorLog(`[CommandManager] Command alias '${name}' collision. Retrying as '${newName}'.`);
-                    this._registerSlashCommand(customCommandRegistry, command, newName, true);
-                    return;
-                }
+                const newName = `x${name}`;
+                errorLog(`[CommandManager] Command alias '${name}' collision. Retrying as '${newName}'.`);
+                this._registerSlashCommand(customCommandRegistry, command, newName, true);
+                return;
+            }
             if (e instanceof Error) {
                 errorLog(`[CommandManager] Failed to register slash command '${name}':`, e);
             }
@@ -617,7 +617,7 @@ class CommandManager {
                 break;
             } else if (paramDef.type === 'int' || paramDef.type === 'float') {
                 const num = Number(rawValue);
-                parsedArgs[paramDef.name] = isNaN(num) ? undefined : num;
+                parsedArgs[paramDef.name] = Number.isNaN(num) ? undefined : num;
                 currentArgIndex++;
             } else if (paramDef.type === 'boolean') {
                 parsedArgs[paramDef.name] = rawValue === 'true';

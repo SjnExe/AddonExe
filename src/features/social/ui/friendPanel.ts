@@ -31,21 +31,24 @@ export class FriendPanelHandler implements IPanelHandler {
             });
 
             const pendingCount = pData.friendRequests?.length || 0;
-            items.push({
-                id: 'requests',
-                text: `Requests (${pendingCount})`,
-                icon: 'textures/ui/mail_icon',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'friendRequestsPanel'
-            }, {
-                id: 'settings',
-                text: 'Settings',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'friendSettingsPanel'
-            });
+            items.push(
+                {
+                    id: 'requests',
+                    text: `Requests (${pendingCount})`,
+                    icon: 'textures/ui/mail_icon',
+                    permissionLevel: 1024,
+                    actionType: 'openPanel',
+                    actionValue: 'friendRequestsPanel'
+                },
+                {
+                    id: 'settings',
+                    text: 'Settings',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 1024,
+                    actionType: 'openPanel',
+                    actionValue: 'friendSettingsPanel'
+                }
+            );
 
             // List Friends
             if (pData.friends && pData.friends.length > 0) {
@@ -110,21 +113,24 @@ export class FriendPanelHandler implements IPanelHandler {
             const targetId = context.selectedItemId as string;
             if (!targetId) return items;
 
-            items.push({
-                id: 'remove',
-                text: '§4Remove Friend',
-                icon: 'textures/ui/trash',
-                permissionLevel: 1024,
-                actionType: 'functionCall',
-                actionValue: 'removeFriend'
-            }, {
-                id: 'tpa',
-                text: 'Teleport',
-                icon: 'textures/items/ender_pearl',
-                permissionLevel: 1024,
-                actionType: 'functionCall',
-                actionValue: 'tpaFriend'
-            });
+            items.push(
+                {
+                    id: 'remove',
+                    text: '§4Remove Friend',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'removeFriend'
+                },
+                {
+                    id: 'tpa',
+                    text: 'Teleport',
+                    icon: 'textures/items/ender_pearl',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'tpaFriend'
+                }
+            );
 
             return items;
         }

@@ -67,8 +67,8 @@ async function showKitList(player: mc.Player, page: number) {
                 buttonIndex--;
             }
             if (page < totalPages && buttonIndex === 0) {
-                    await showKitList(player, page + 1);
-                }
+                await showKitList(player, page + 1);
+            }
             return;
         }
 

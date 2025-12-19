@@ -22,7 +22,7 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
         player.dimension.runCommand(`inputpermission set "${player.name}" movement disabled`);
 
         // Small delay to let client process the state change
-        await new Promise((resolve) => mc.system.runTimeout(() => resolve(), 2));
+        await new Promise<void>((resolve) => mc.system.runTimeout(() => resolve(), 2));
 
         if (player.isValid) {
             player.dimension.runCommand(`inputpermission set "${player.name}" camera enabled`);

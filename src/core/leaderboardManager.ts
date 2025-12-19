@@ -54,7 +54,7 @@ export function updateAndSaveLeaderboard(playerId: string, name: string, balance
     const config = getConfig();
     const cacheSize = (config.economy.baltopLimit ?? 10) + 5;
     const lowestBalanceOnBoard =
-        leaderboardCache.length < cacheSize ? 0 : (leaderboardCache.at(-1)?.balance ?? 0);
+        leaderboardCache.length < cacheSize ? 0 : (leaderboardCache[leaderboardCache.length - 1]?.balance ?? 0);
     const existingIndex = leaderboardCache.findIndex((p) => p.playerId === playerId);
     const playerIsOnBoard = existingIndex !== -1;
 

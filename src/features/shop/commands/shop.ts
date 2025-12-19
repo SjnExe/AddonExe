@@ -146,7 +146,7 @@ const addShopCommand: CustomCommand = {
         const buyPrice = parseCurrency(buyPriceStr);
         const sellPrice = parseCurrency(sellPriceStr);
 
-        if (isNaN(buyPrice) || buyPrice < 0 || isNaN(sellPrice) || sellPrice < 0) {
+        if (Number.isNaN(buyPrice) || buyPrice < 0 || Number.isNaN(sellPrice) || sellPrice < 0) {
             return executor.sendMessage('§cInvalid prices. Please enter non-negative numbers.');
         }
 

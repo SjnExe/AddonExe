@@ -37,27 +37,27 @@ async function showLogsMenu(player: mc.Player) {
     if (selection === undefined) return;
 
     switch (selection) {
-    case 0: {
-        await showPunishmentFilter(player);
+        case 0: {
+            await showPunishmentFilter(player);
 
-    break;
-    }
-    case 1: {
-        await showFlagFilter(player);
+            break;
+        }
+        case 1: {
+            await showFlagFilter(player);
 
-    break;
-    }
-    case 2: {
-        await showChatFilter(player);
+            break;
+        }
+        case 2: {
+            await showChatFilter(player);
 
-    break;
-    }
-    case 3: {
-        await showLogSettings(player);
+            break;
+        }
+        case 3: {
+            await showLogSettings(player);
 
-    break;
-    }
-    // No default
+            break;
+        }
+        // No default
     }
 }
 
@@ -360,7 +360,7 @@ async function showLogSettings(player: mc.Player) {
     const enabled = values[0] as boolean;
     const daysStr = values[1] as string;
     let days = Number.parseInt(daysStr, 10);
-    if (isNaN(days) || days < 1) days = 1;
+    if (Number.isNaN(days) || days < 1) days = 1;
 
     updateMultipleConfig({
         'chat.loggingEnabled': enabled,

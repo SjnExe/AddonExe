@@ -75,35 +75,40 @@ export class SidebarPanelHandler implements IPanelHandler {
         if (panelId === 'sidebarLineActionPanel' || panelId === 'actionBarLineActionPanel') {
             const isSidebar = panelId === 'sidebarLineActionPanel';
             addBackButton(items, isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel');
-            items.push({
-                id: 'edit',
-                text: 'Edit',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'editLine'
-            }, {
-                id: 'moveUp',
-                text: 'Move Up',
-                icon: 'textures/gui/controls/up',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'moveUp'
-            }, {
-                id: 'moveDown',
-                text: 'Move Down',
-                icon: 'textures/gui/controls/down',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'moveDown'
-            }, {
-                id: 'delete',
-                text: 'Delete',
-                icon: 'textures/ui/trash',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'deleteLine'
-            });
+            items.push(
+                {
+                    id: 'edit',
+                    text: 'Edit',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'editLine'
+                },
+                {
+                    id: 'moveUp',
+                    text: 'Move Up',
+                    icon: 'textures/gui/controls/up',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'moveUp'
+                },
+                {
+                    id: 'moveDown',
+                    text: 'Move Down',
+                    icon: 'textures/gui/controls/down',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'moveDown'
+                },
+                {
+                    id: 'delete',
+                    text: 'Delete',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'deleteLine'
+                }
+            );
             return Promise.resolve(items);
         }
 

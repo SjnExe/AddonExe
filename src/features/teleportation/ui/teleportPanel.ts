@@ -20,21 +20,24 @@ export class TeleportPanelHandler implements IPanelHandler {
         if (panelId === 'tpaSettingsPanel') {
             addBackButton(items, 'gameplayPanel');
             const isEnabled = !pData?.tpaRequestsDisabled;
-            items.push({
-                id: 'toggleTpa',
-                text: isEnabled ? '§2Requests: Allowed' : '§4Requests: Blocked',
-                icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
-                permissionLevel: 1024,
-                actionType: 'functionCall',
-                actionValue: 'toggleTpa'
-            }, {
-                id: 'blockList',
-                text: 'Blocked Players',
-                icon: 'textures/ui/icon_multiplayer',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'tpaBlockListPanel'
-            });
+            items.push(
+                {
+                    id: 'toggleTpa',
+                    text: isEnabled ? '§2Requests: Allowed' : '§4Requests: Blocked',
+                    icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'toggleTpa'
+                },
+                {
+                    id: 'blockList',
+                    text: 'Blocked Players',
+                    icon: 'textures/ui/icon_multiplayer',
+                    permissionLevel: 1024,
+                    actionType: 'openPanel',
+                    actionValue: 'tpaBlockListPanel'
+                }
+            );
             return items;
         }
 

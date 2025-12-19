@@ -128,10 +128,11 @@ function initialize(): void {
                 if (
                     'block' in event &&
                     isWithinSpawnProtection(event.block.location, event.block.dimension.id) &&
-                    !canBypass(event.player)
-                 && 'cancel' in event) {
-                        event.cancel = true;
-                    }
+                    !canBypass(event.player) &&
+                    'cancel' in event
+                ) {
+                    event.cancel = true;
+                }
             }
         );
     }

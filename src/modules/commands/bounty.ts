@@ -25,7 +25,7 @@ function placeBounty(executor: mc.Player, targetId: string, targetName: string, 
     }
 
     const min = config.bounties?.minimumBounty ?? 0;
-    if (isNaN(amount) || amount < min) {
+    if (Number.isNaN(amount) || amount < min) {
         sendMessage(`§cInvalid amount. The minimum bounty is $${min}.`, executor);
         return;
     }
@@ -77,7 +77,7 @@ const bountyCommand: CustomCommand = {
         if (!target) return sendMessage('§cPlayer not found.', executor);
 
         const amount = parseCurrency(amountStr);
-        if (isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         placeBounty(executor, target.id, target.name, amount);
     }
@@ -107,7 +107,7 @@ const removeBountyCommand: CustomCommand = {
         if (!target) return sendMessage('§cPlayer not found.', executor);
 
         const amount = parseCurrency(amountStr);
-        if (isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         const targetBounty = bountyManager.getBounty(target.id);
 
@@ -147,7 +147,7 @@ const oBountyCommand: CustomCommand = {
         if (!amountStr) return sendMessage('§cUsage: /obounty <player> <amount>', executor);
 
         const amount = parseCurrency(amountStr);
-        if (isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         const targetId = getPlayerIdByName(targetName);
         if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
@@ -177,7 +177,7 @@ const oRemoveBountyCommand: CustomCommand = {
         if (!amountStr) return sendMessage('§cPlease specify an amount.', executor);
 
         const amount = parseCurrency(amountStr);
-        if (isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         const targetId = getPlayerIdByName(targetName);
         if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);

@@ -35,7 +35,7 @@ const activeListings = new Map<string, AuctionListing>();
 // Generate a simple UUID
 function generateUUID(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replaceAll(/[xy]/g, (c) => {
-        const r = (Math.random() * 16) | 0;
+        const r = Math.trunc(Math.random() * 16);
         const v = c === 'x' ? r : (r & 0x3) | 0x8;
         return v.toString(16);
     });
@@ -348,7 +348,9 @@ export function claimMailbox(player: mc.Player): { success: boolean; message: st
         d.mailbox = remainingItems;
     });
 
-    return claimed > 0 ? { success: true, message: `§aClaimed ${claimed} items.` } : { success: false, message: '§cInventory full. Could not claim items.' };
+    return claimed > 0
+        ? { success: true, message: `§aClaimed ${claimed} items.` }
+        : { success: false, message: '§cInventory full. Could not claim items.' };
 }
 
 export function claimMailboxItem(player: mc.Player, index: number): { success: boolean; message: string } {
@@ -431,7 +433,6 @@ export function getListings(
             case SortOption.SellerAsc: {
                 return a.sellerName.localeCompare(b.sellerName);
             }
-            case SortOption.Newest:
             default: {
                 return b.startTime - a.startTime;
             }
@@ -448,13 +449,14 @@ export function getListingsCount(searchQuery?: string, sellerId?: string): numbe
     let count = 0;
     for (const l of activeListings.values()) {
         if (sellerId && l.sellerId !== sellerId) continue;
-        if (query &&
-                !l.item.typeId.toLowerCase().includes(query) &&
-                (!l.item.nameTag || !l.item.nameTag.toLowerCase().includes(query)) &&
-                !l.sellerName.toLowerCase().includes(query)
-            ) {
-                continue;
-            }
+        if (
+            query &&
+            !l.item.typeId.toLowerCase().includes(query) &&
+            (!l.item.nameTag || !l.item.nameTag.toLowerCase().includes(query)) &&
+            !l.sellerName.toLowerCase().includes(query)
+        ) {
+            continue;
+        }
         count++;
     }
     return count;

@@ -647,7 +647,7 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
     updatePlayerData(playerId, (pData) => {
         // Ensure current balance is treated as a number to prevent string concatenation or NaN issues
         const currentBal = Number(pData.balance);
-        const safeBal = isNaN(currentBal) ? 0 : currentBal;
+        const safeBal = Number.isNaN(currentBal) ? 0 : currentBal;
         const potentialBalance = safeBal + amount;
         const clampedBalance = Math.max(min, Math.min(potentialBalance, max));
         // Strict 2-decimal precision
@@ -724,7 +724,7 @@ export function transfer(
     const economyConfig = getEconomyConfig();
     const max = economyConfig.maxBalance ?? 1_000_000_000;
     const currentTargetBal = Number(targetData.balance);
-    const safeTargetBal = isNaN(currentTargetBal) ? 0 : currentTargetBal;
+    const safeTargetBal = Number.isNaN(currentTargetBal) ? 0 : currentTargetBal;
 
     if (safeTargetBal + amount > max) {
         return {

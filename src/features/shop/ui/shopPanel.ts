@@ -319,21 +319,24 @@ export class ShopPanelHandler implements IPanelHandler {
             const mainConfig = getConfig() as unknown as MainConfig;
             const isEnabled = mainConfig.shop.enabled;
             const toggleText = isEnabled ? '§2Shop System: ENABLED' : '§4Shop System: DISABLED';
-            items.push({
-                id: 'toggleShop',
-                text: toggleText,
-                icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
-                permissionLevel: 0,
-                actionType: 'functionCall',
-                actionValue: 'toggleShop'
-            }, {
-                id: 'addCategory',
-                text: '§l§2+ Add Category',
-                icon: 'textures/ui/color_plus',
-                permissionLevel: 0,
-                actionType: 'openPanel',
-                actionValue: 'addCategoryPanel'
-            });
+            items.push(
+                {
+                    id: 'toggleShop',
+                    text: toggleText,
+                    icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
+                    permissionLevel: 0,
+                    actionType: 'functionCall',
+                    actionValue: 'toggleShop'
+                },
+                {
+                    id: 'addCategory',
+                    text: '§l§2+ Add Category',
+                    icon: 'textures/ui/color_plus',
+                    permissionLevel: 0,
+                    actionType: 'openPanel',
+                    actionValue: 'addCategoryPanel'
+                }
+            );
 
             const shopConfig = getShopConfig();
             const categories = Object.keys(shopConfig.categories).sort();
@@ -358,28 +361,32 @@ export class ShopPanelHandler implements IPanelHandler {
         if (panelId.startsWith('shopAdminCategoryPanel_')) {
             const categoryName = context.categoryName as string;
             addBackButton(items, 'shopManagementPanel');
-            items.push({
-                id: 'addItem',
-                text: '§l§2+ Add Item',
-                icon: 'textures/ui/color_plus',
-                permissionLevel: 0,
-                actionType: 'openPanel',
-                actionValue: `shopAddItemPanel_${categoryName}`
-            }, {
-                id: 'addSubCategory',
-                text: '§l§2+ Add Subcategory',
-                icon: 'textures/ui/color_plus',
-                permissionLevel: 0,
-                actionType: 'openPanel',
-                actionValue: 'addSubCategoryPanel'
-            }, {
-                id: 'editCategory',
-                text: '§l§9* Edit Category',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 0,
-                actionType: 'openPanel',
-                actionValue: `shopAdminCategoryActionPanel_${categoryName}`
-            });
+            items.push(
+                {
+                    id: 'addItem',
+                    text: '§l§2+ Add Item',
+                    icon: 'textures/ui/color_plus',
+                    permissionLevel: 0,
+                    actionType: 'openPanel',
+                    actionValue: `shopAddItemPanel_${categoryName}`
+                },
+                {
+                    id: 'addSubCategory',
+                    text: '§l§2+ Add Subcategory',
+                    icon: 'textures/ui/color_plus',
+                    permissionLevel: 0,
+                    actionType: 'openPanel',
+                    actionValue: 'addSubCategoryPanel'
+                },
+                {
+                    id: 'editCategory',
+                    text: '§l§9* Edit Category',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 0,
+                    actionType: 'openPanel',
+                    actionValue: `shopAdminCategoryActionPanel_${categoryName}`
+                }
+            );
 
             const shopConfig = getShopConfig();
             const category = shopConfig.categories[categoryName];
@@ -450,21 +457,24 @@ export class ShopPanelHandler implements IPanelHandler {
             const categoryName = context.categoryName as string;
             const subCategoryName = context.subCategoryName as string;
             addBackButton(items, `shopAdminCategoryPanel_${categoryName}`);
-            items.push({
-                id: 'addItem',
-                text: '§l§2+ Add Item',
-                icon: 'textures/ui/color_plus',
-                permissionLevel: 0,
-                actionType: 'openPanel',
-                actionValue: `shopAddItemPanel_${categoryName}`
-            }, {
-                id: 'editSubCategory',
-                text: '§l§9* Edit Subcategory',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 0,
-                actionType: 'openPanel',
-                actionValue: `shopAdminSubCategoryActionPanel_${subCategoryName}`
-            });
+            items.push(
+                {
+                    id: 'addItem',
+                    text: '§l§2+ Add Item',
+                    icon: 'textures/ui/color_plus',
+                    permissionLevel: 0,
+                    actionType: 'openPanel',
+                    actionValue: `shopAddItemPanel_${categoryName}`
+                },
+                {
+                    id: 'editSubCategory',
+                    text: '§l§9* Edit Subcategory',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 0,
+                    actionType: 'openPanel',
+                    actionValue: `shopAdminSubCategoryActionPanel_${subCategoryName}`
+                }
+            );
 
             const shopConfig = getShopConfig();
             const subCategory = shopConfig.categories[categoryName]?.subCategories[subCategoryName];
@@ -525,42 +535,48 @@ export class ShopPanelHandler implements IPanelHandler {
         if (panelId.startsWith('shopAdminCategoryActionPanel_')) {
             const categoryName = panelId.replace('shopAdminCategoryActionPanel_', '');
             addBackButton(items, `shopAdminCategoryPanel_${categoryName}`);
-            items.push({
-                id: 'edit',
-                text: 'Edit',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 0,
-                actionType: 'openPanel',
-                actionValue: 'editCategoryPanel'
-            }, {
-                id: 'delete',
-                text: '§4Delete',
-                icon: 'textures/ui/trash',
-                permissionLevel: 0,
-                actionType: 'functionCall',
-                actionValue: 'deleteCategory'
-            });
+            items.push(
+                {
+                    id: 'edit',
+                    text: 'Edit',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 0,
+                    actionType: 'openPanel',
+                    actionValue: 'editCategoryPanel'
+                },
+                {
+                    id: 'delete',
+                    text: '§4Delete',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 0,
+                    actionType: 'functionCall',
+                    actionValue: 'deleteCategory'
+                }
+            );
             return items;
         }
 
         if (panelId.startsWith('shopAdminSubCategoryActionPanel_')) {
             const subCategoryName = panelId.replace('shopAdminSubCategoryActionPanel_', '');
             addBackButton(items, `shopAdminSubCategoryItemPanel_${subCategoryName}`);
-            items.push({
-                id: 'edit',
-                text: 'Edit',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 0,
-                actionType: 'openPanel',
-                actionValue: 'editSubCategoryPanel'
-            }, {
-                id: 'delete',
-                text: '§4Delete',
-                icon: 'textures/ui/trash',
-                permissionLevel: 0,
-                actionType: 'functionCall',
-                actionValue: 'deleteSubCategory'
-            });
+            items.push(
+                {
+                    id: 'edit',
+                    text: 'Edit',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 0,
+                    actionType: 'openPanel',
+                    actionValue: 'editSubCategoryPanel'
+                },
+                {
+                    id: 'delete',
+                    text: '§4Delete',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 0,
+                    actionType: 'functionCall',
+                    actionValue: 'deleteSubCategory'
+                }
+            );
             return items;
         }
 
@@ -643,7 +659,9 @@ export class ShopPanelHandler implements IPanelHandler {
             const subCategoryName = context.subCategoryName as string | undefined;
             const shopConfig = getShopConfig();
             let shopItem;
-            shopItem = subCategoryName ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId] : shopConfig.categories[categoryName]?.items[itemId];
+            shopItem = subCategoryName
+                ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
+                : shopConfig.categories[categoryName]?.items[itemId];
 
             if (!shopItem) return null;
 
@@ -668,7 +686,9 @@ export class ShopPanelHandler implements IPanelHandler {
             // removed unused masterItem
 
             let shopItem;
-            shopItem = subCategoryName ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId] : shopConfig.categories[categoryName]?.items[itemId];
+            shopItem = subCategoryName
+                ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
+                : shopConfig.categories[categoryName]?.items[itemId];
 
             if (!shopItem) return null;
 
@@ -793,7 +813,7 @@ export class ShopPanelHandler implements IPanelHandler {
             const sellPrice = Number.parseInt(sellPriceStr || '-1', 10);
             const permissionLevel = Number.parseInt(permLevelStr || '1024', 10);
 
-            if (customId && displayName && mcId && !isNaN(buyPrice)) {
+            if (customId && displayName && mcId && !Number.isNaN(buyPrice)) {
                 shopAdminManager.addCustomItemToConfig(customId, {
                     itemId: mcId,
                     icon,
@@ -839,7 +859,7 @@ export class ShopPanelHandler implements IPanelHandler {
             const sellPrice = Number.parseInt(sellPriceStr || '-1', 10);
             const permissionLevel = Number.parseInt(permLevelStr || '1024', 10);
 
-            if (!isNaN(buyPrice) && masterItem) {
+            if (!Number.isNaN(buyPrice) && masterItem) {
                 shopAdminManager.setItem(
                     context.categoryName as string,
                     (context.subCategoryName as string) || null,
@@ -912,7 +932,9 @@ export class ShopPanelHandler implements IPanelHandler {
             // Fix: Removed unused masterItem variable
 
             let shopItem;
-            shopItem = subCategoryName ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId] : shopConfig.categories[categoryName]?.items[itemId];
+            shopItem = subCategoryName
+                ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
+                : shopConfig.categories[categoryName]?.items[itemId];
 
             // Fix: Return void instead of null
             if (!shopItem) return;
@@ -950,13 +972,16 @@ export class ShopPanelHandler implements IPanelHandler {
 
             if (useMax) {
                 amount = -1;
-            } else if (isNaN(amount) || amount <= 0) {
+            } else if (Number.isNaN(amount) || amount <= 0) {
                 player.sendMessage('§4Invalid amount.');
                 return showPanel(player, parent, context);
             }
 
             let result;
-            result = action === 'buy' ? shopManager.buyItem(player, itemId, amount) : shopManager.sellItem(player, itemId, amount);
+            result =
+                action === 'buy'
+                    ? shopManager.buyItem(player, itemId, amount)
+                    : shopManager.sellItem(player, itemId, amount);
             player.sendMessage(result.message);
             return showPanel(player, parent, context);
         }

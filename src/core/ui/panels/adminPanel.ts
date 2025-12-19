@@ -29,21 +29,24 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextListPanel') {
             addBackButton(items, 'adminPanel');
-            items.push({
-                id: 'placeholderList',
-                text: '§l§6View Placeholders',
-                icon: 'textures/ui/icon_sign',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'placeholderListPanel'
-            }, {
-                id: 'create',
-                text: '§l§2+ Create New',
-                icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'floatingTextCreatePanel'
-            });
+            items.push(
+                {
+                    id: 'placeholderList',
+                    text: '§l§6View Placeholders',
+                    icon: 'textures/ui/icon_sign',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'placeholderListPanel'
+                },
+                {
+                    id: 'create',
+                    text: '§l§2+ Create New',
+                    icon: 'textures/ui/color_plus',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'floatingTextCreatePanel'
+                }
+            );
 
             const texts = floatingTextManager.getAllTexts();
             for (const text of texts) {
@@ -61,35 +64,40 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextActionPanel') {
             addBackButton(items, 'floatingTextListPanel');
-            items.push({
-                id: 'edit',
-                text: 'Edit Settings',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'floatingTextEditPanel'
-            }, {
-                id: 'respawn',
-                text: 'Respawn Entity',
-                icon: 'textures/ui/refresh_light',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'respawnText'
-            }, {
-                id: 'despawn',
-                text: 'Despawn Entity',
-                icon: 'textures/ui/cancel',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'despawnText'
-            }, {
-                id: 'delete',
-                text: '§4Delete Text',
-                icon: 'textures/ui/trash',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'deleteText'
-            });
+            items.push(
+                {
+                    id: 'edit',
+                    text: 'Edit Settings',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'floatingTextEditPanel'
+                },
+                {
+                    id: 'respawn',
+                    text: 'Respawn Entity',
+                    icon: 'textures/ui/refresh_light',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'respawnText'
+                },
+                {
+                    id: 'despawn',
+                    text: 'Despawn Entity',
+                    icon: 'textures/ui/cancel',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'despawnText'
+                },
+                {
+                    id: 'delete',
+                    text: '§4Delete Text',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'deleteText'
+                }
+            );
             return Promise.resolve(items);
         }
 

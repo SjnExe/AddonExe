@@ -112,7 +112,17 @@ export class PlayerPanelHandler implements IPanelHandler {
 
         const targetId = context.targetPlayerId as string;
         const isSelf = viewerId && targetId === viewerId;
-        const selfDisabledActions = new Set(['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze', 'tpa', 'tpahere', 'report']);
+        const selfDisabledActions = new Set([
+            'kick',
+            'ban',
+            'mute',
+            'unmute',
+            'freeze',
+            'unfreeze',
+            'tpa',
+            'tpahere',
+            'report'
+        ]);
         const adminActions = new Set(['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze']);
 
         for (const item of menuItems) {

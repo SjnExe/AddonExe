@@ -79,38 +79,39 @@ export default function createConfigManager<T>(
                 debugLog(`[${name}ConfigManager] Found last-loaded config. Proceeding with reconciliation.`);
 
                 switch (name) {
-                case 'Main': {
-                    currentConfig = reconcileConfig(
-                        newDefaultConfig as unknown as Record<string, unknown>,
-                        lastLoadedConfigForMerge,
-                        userSavedConfig
-                    ) as unknown as T;
+                    case 'Main': {
+                        currentConfig = reconcileConfig(
+                            newDefaultConfig as unknown as Record<string, unknown>,
+                            lastLoadedConfigForMerge,
+                            userSavedConfig
+                        ) as unknown as T;
 
-                break;
-                }
-                case 'Ranks': {
-                    const mergedRanks = mergeRanks(
-                        userSavedConfig.rankDefinitions as Record<string, unknown>[],
-                        (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] }).rankDefinitions,
-                        (lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]) || []
-                    );
-                    currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
+                        break;
+                    }
+                    case 'Ranks': {
+                        const mergedRanks = mergeRanks(
+                            userSavedConfig.rankDefinitions as Record<string, unknown>[],
+                            (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] })
+                                .rankDefinitions,
+                            (lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]) || []
+                        );
+                        currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
 
-                break;
-                }
-                case 'Kits':
-                case 'Shop': {
-                    currentConfig = mergeObjectMaps(
-                        userSavedConfig,
-                        newDefaultConfig as unknown as Record<string, unknown>,
-                        lastLoadedConfigForMerge || {}
-                    ) as unknown as T;
+                        break;
+                    }
+                    case 'Kits':
+                    case 'Shop': {
+                        currentConfig = mergeObjectMaps(
+                            userSavedConfig,
+                            newDefaultConfig as unknown as Record<string, unknown>,
+                            lastLoadedConfigForMerge || {}
+                        ) as unknown as T;
 
-                break;
-                }
-                default: {
-                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
-                }
+                        break;
+                    }
+                    default: {
+                        currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
+                    }
                 }
             } else {
                 if (!isMigration) {

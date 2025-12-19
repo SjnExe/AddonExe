@@ -62,7 +62,7 @@ export function getLogLevel(): number {
  */
 export function setLogLevel(level: number | string): void {
     const numericLevel = typeof level === 'string' ? Number.parseInt(level, 10) : level;
-    if (!isNaN(numericLevel) && numericLevel >= LogLevels.ERROR && numericLevel <= LogLevels.DEBUG) {
+    if (!Number.isNaN(numericLevel) && numericLevel >= LogLevels.ERROR && numericLevel <= LogLevels.DEBUG) {
         currentLogLevel = numericLevel;
         // Provide feedback on the new log level for clarity during startup
         const levelName = (Object.keys(LogLevels) as LogLevelKey[]).find((key) => LogLevels[key] === numericLevel);

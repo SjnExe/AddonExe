@@ -36,7 +36,7 @@ const mainCommand: CustomCommand = {
                 return;
             }
             const price = parseCurrency(args.price);
-            if (isNaN(price) || price <= 0) {
+            if (Number.isNaN(price) || price <= 0) {
                 sendMessage('§cInvalid price.', executor);
                 return;
             }

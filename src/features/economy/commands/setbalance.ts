@@ -14,7 +14,7 @@ import { formatCurrency, parseCurrency } from '@core/utils.js';
 function validateAmount(amountStr: string | undefined): number | null {
     if (!amountStr) return null;
     const amount = parseCurrency(amountStr);
-    if (isNaN(amount)) return null;
+    if (Number.isNaN(amount)) return null;
     // Validate max 2 decimal places
     if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) return null;
     return amount;

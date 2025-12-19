@@ -104,7 +104,7 @@ function pruneOldLogs() {
 
     for (const dateStr of availableDates) {
         const date = new Date(dateStr);
-        if (isNaN(date.getTime())) continue;
+        if (Number.isNaN(date.getTime())) continue;
 
         // If the date is older than the limit
         if (now - date.getTime() > limit) {
