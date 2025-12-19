@@ -57,7 +57,17 @@ export default tseslint.config(
             'unicorn/prefer-switch': 'off',
             'unicorn/consistent-function-scoping': 'off',
             'unicorn/no-array-callback-reference': 'off',
-            'unicorn/prefer-ternary': 'off'
+            'unicorn/prefer-ternary': 'off',
+            'unicorn/no-useless-undefined': 'off',
+            'unicorn/throw-new-error': 'off',
+            'unicorn/prefer-string-slice': 'off',
+            'unicorn/no-array-push-push': 'off',
+            'unicorn/prefer-date-now': 'off',
+            'unicorn/explicit-length-check': 'off',
+            'unicorn/prefer-default-parameters': 'off',
+            'unicorn/no-lonely-if': 'off',
+            'unicorn/empty-brace-spaces': 'off',
+            'unicorn/template-indent': 'off'
         }
     },
 
