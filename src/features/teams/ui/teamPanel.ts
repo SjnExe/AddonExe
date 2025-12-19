@@ -23,8 +23,7 @@ export class TeamPanelHandler implements IPanelHandler {
 
         if (panelId === 'teamManagePanel') {
             const { teamId } = context;
-            let team;
-            team = teamId ? teamManager.getTeam(Number(teamId)) : teamManager.getTeamByPlayer(player.id);
+            const team = teamId ? teamManager.getTeam(Number(teamId)) : teamManager.getTeamByPlayer(player.id);
             return team ? `Manage ${team.name}` : 'Manage Team';
         }
         return null;
@@ -214,8 +213,7 @@ export class TeamPanelHandler implements IPanelHandler {
         if (panelId === 'teamManagePanel') {
             addBackButton(items, 'teamMainPanel');
             const { teamId } = context;
-            let team;
-            team =
+            const team =
                 teamId && permissionLevel < 1024
                     ? teamManager.getTeam(Number(teamId))
                     : teamManager.getTeamByPlayer(player.id);
@@ -512,12 +510,14 @@ export class TeamPanelHandler implements IPanelHandler {
             if (!values) return;
 
             const config = getTeamConfig();
-            const newConfig = { ...config, enabled: values[0] as boolean };
-
-            newConfig.maxMembers = Number(values[1]);
-            newConfig.creationCost = Number(values[2]);
-            newConfig.nameMinLength = Number(values[3]);
-            newConfig.nameMaxLength = Number(values[4]);
+            const newConfig = {
+                ...config,
+                enabled: values[0] as boolean,
+                maxMembers: Number(values[1]),
+                creationCost: Number(values[2]),
+                nameMinLength: Number(values[3]),
+                nameMaxLength: Number(values[4])
+            };
 
             const { saveTeamConfig } = await import('@core/configurations.js');
             saveTeamConfig(newConfig);
@@ -603,8 +603,7 @@ export class TeamPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'deleteTeam') {
                     const { teamId } = context;
-                    let team;
-                    team = teamId ? teamManager.getTeam(Number(teamId)) : teamManager.getTeamByPlayer(player.id);
+                    const team = teamId ? teamManager.getTeam(Number(teamId)) : teamManager.getTeamByPlayer(player.id);
 
                     if (team) {
                         await showConfirmationDialog(player, {

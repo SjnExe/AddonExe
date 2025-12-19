@@ -7,7 +7,7 @@ import { showConfirmationDialog } from '@ui/components.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
 import { addBackButton } from '@ui/uiUtils.js';
-import { acceptFriendRequest, FriendRequest, removeFriend, sendFriendRequest } from '../friendManager.js';
+import { acceptFriendRequest, removeFriend, sendFriendRequest } from '../friendManager.js';
 
 export class FriendPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -95,7 +95,7 @@ export class FriendPanelHandler implements IPanelHandler {
                     actionValue: 'noop'
                 });
             } else {
-                requests.forEach((req: FriendRequest) => {
+                for (const req of requests) {
                     items.push({
                         id: req.senderName, // Use name for easy identification in handler
                         text: `Request from ${req.senderName}`,
@@ -103,7 +103,7 @@ export class FriendPanelHandler implements IPanelHandler {
                         actionType: 'functionCall',
                         actionValue: 'manageFriendRequest'
                     });
-                });
+                }
             }
             return items;
         }

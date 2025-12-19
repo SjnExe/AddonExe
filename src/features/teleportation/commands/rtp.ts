@@ -96,8 +96,8 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
                                 player.teleport(potentialLoc);
                                 sendMessage('§aYou have been teleported to a random location!', player);
                                 setCooldown(player, 'rtp');
-                            } catch (e: unknown) {
-                                const stack = e instanceof Error ? e.stack : String(e);
+                            } catch (error: unknown) {
+                                const stack = error instanceof Error ? error.stack : String(error);
                                 sendMessage('§cFailed to teleport to the location. Please try again.', player);
                                 errorLog(`[/rtp] Failed to teleport: ${stack}`);
                             }

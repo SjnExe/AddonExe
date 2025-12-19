@@ -22,8 +22,8 @@ export function loadCooldowns() {
             // Reconstruct the Map from the saved array
             cooldowns = new Map(parsedData);
             debugLog(`[CooldownManager] Loaded ${cooldowns.size} cooldowns.`);
-        } catch (e) {
-            errorLog('[CooldownManager] Failed to parse cooldown data from world property.', e);
+        } catch (error) {
+            errorLog('[CooldownManager] Failed to parse cooldown data from world property.', error);
             cooldowns = new Map();
         }
     }
@@ -42,8 +42,8 @@ function saveCooldowns() {
         mc.world.setDynamicProperty(cooldownDbKey, JSON.stringify(dataToSave));
         needsSave = false;
         debugLog('[CooldownManager] Saved cooldowns to world properties.');
-    } catch (e) {
-        errorLog('[CooldownManager] Failed to save cooldowns.', e);
+    } catch (error) {
+        errorLog('[CooldownManager] Failed to save cooldowns.', error);
     }
 }
 

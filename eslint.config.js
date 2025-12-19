@@ -42,32 +42,14 @@ export default tseslint.config(
     eslintPluginUnicorn.configs['flat/recommended'],
     {
         rules: {
-            'unicorn/filename-case': 'off',
-            'unicorn/prevent-abbreviations': 'off',
+            'unicorn/prefer-at': 'off',
             'unicorn/no-null': 'off',
-            'unicorn/prefer-top-level-await': 'off',
-            'unicorn/catch-error-name': 'off',
+            'unicorn/prevent-abbreviations': 'off',
+            'unicorn/filename-case': 'off',
+            'unicorn/no-array-sort': 'off',
+            'unicorn/no-array-reverse': 'off',
             'unicorn/no-array-reduce': 'off',
-            'unicorn/prefer-module': 'off',
-            'unicorn/no-process-exit': 'off',
-            'unicorn/prefer-node-protocol': 'off',
-            'unicorn/numeric-separators-style': 'off',
-            'unicorn/better-regex': 'off',
-            'unicorn/no-array-for-each': 'off',
-            'unicorn/prefer-switch': 'off',
-            'unicorn/consistent-function-scoping': 'off',
-            'unicorn/no-array-callback-reference': 'off',
-            'unicorn/prefer-ternary': 'off',
-            'unicorn/no-useless-undefined': 'off',
-            'unicorn/throw-new-error': 'off',
-            'unicorn/prefer-string-slice': 'off',
-            'unicorn/no-array-push-push': 'off',
-            'unicorn/prefer-date-now': 'off',
-            'unicorn/explicit-length-check': 'off',
-            'unicorn/prefer-default-parameters': 'off',
-            'unicorn/no-lonely-if': 'off',
-            'unicorn/empty-brace-spaces': 'off',
-            'unicorn/template-indent': 'off'
+            'unicorn/no-useless-undefined': 'off'
         }
     },
 
@@ -177,7 +159,9 @@ export default tseslint.config(
         files: ['scripts/**/*.js'],
         extends: [...tseslint.configs.recommended],
         rules: {
-            'no-console': 'off'
+            'no-console': 'off',
+            'unicorn/no-process-exit': 'off',
+            'unicorn/prefer-top-level-await': 'off'
         }
     },
 

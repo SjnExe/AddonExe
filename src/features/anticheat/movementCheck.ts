@@ -46,8 +46,8 @@ export function startMovementCheckLoop() {
                     checkNetherRoof(player, config.antiNetherRoof);
                 }
             }
-        } catch (e) {
-            errorLog('Anticheat Movement Loop Error', e);
+        } catch (error) {
+            errorLog('Anticheat Movement Loop Error', error);
         }
     }, 5);
 }

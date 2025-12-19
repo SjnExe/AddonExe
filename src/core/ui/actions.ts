@@ -190,8 +190,8 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
         // Enclose name in quotes to handle spaces
         player.dimension.runCommand(`kick "${target.name}" ${reason}`);
         player.sendMessage(`§2Kicked ${target.name}.`);
-    } catch (e) {
-        player.sendMessage(`§4Failed to kick player: ${String(e)}`);
+    } catch (error) {
+        player.sendMessage(`§4Failed to kick player: ${String(error)}`);
     }
     return showPanel(player, 'playerActionsPanel', context);
 }

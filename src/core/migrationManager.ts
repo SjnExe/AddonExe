@@ -51,8 +51,8 @@ export function initializeMigration(): void {
             runMigrations(currentVersion);
             mc.world.setDynamicProperty(DATA_VERSION_KEY, CURRENT_DATA_VERSION);
             infoLog(`[MigrationManager] Successfully migrated to version ${CURRENT_DATA_VERSION}.`);
-        } catch (e: unknown) {
-            const stack = e instanceof Error ? e.stack : String(e);
+        } catch (error: unknown) {
+            const stack = error instanceof Error ? error.stack : String(error);
             errorLog(`[MigrationManager] Critical error during migration: ${stack}`);
             // We do NOT update the version if migration fails, so it can retry next time.
         }
@@ -95,8 +95,8 @@ function migrateToV2(): void {
             ranksData = JSON.parse(ranksDataStr) as RanksConfig & {
                 rankDefinitions: { id: string; permissionLevel: number }[];
             };
-        } catch (e) {
-            errorLog('[MigrationManager] Failed to parse stored rank config for migration.', e);
+        } catch (error) {
+            errorLog('[MigrationManager] Failed to parse stored rank config for migration.', error);
             return;
         }
 
@@ -115,8 +115,8 @@ function migrateToV2(): void {
                 infoLog('[MigrationManager] Successfully migrated rank permissions.');
             }
         }
-    } catch (e) {
-        errorLog('[MigrationManager] Error migrating rank permissions:', e);
+    } catch (error) {
+        errorLog('[MigrationManager] Error migrating rank permissions:', error);
     }
 }
 
@@ -140,8 +140,8 @@ function migrateToV1(): void {
         let ranksData: RanksConfig;
         try {
             ranksData = JSON.parse(ranksDataStr) as RanksConfig;
-        } catch (e) {
-            errorLog('[MigrationManager] Failed to parse stored rank config for migration.', e);
+        } catch (error) {
+            errorLog('[MigrationManager] Failed to parse stored rank config for migration.', error);
             return;
         }
 
@@ -175,8 +175,8 @@ function migrateToV1(): void {
         } else {
             infoLog('[MigrationManager] Rank data structure did not match expected format. Skipping.');
         }
-    } catch (e) {
-        errorLog('[MigrationManager] Error migrating rank configs:', e);
+    } catch (error) {
+        errorLog('[MigrationManager] Error migrating rank configs:', error);
     }
 }
 

@@ -41,8 +41,8 @@ function handlePlayerDimensionChange(event: mc.PlayerDimensionChangeAfterEvent) 
         };
         player.teleport(returnLocation, { dimension: fromDimension });
         player.sendMessage(`§cThe ${dimensionId} dimension is currently locked.`);
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
+    } catch (error: unknown) {
+        const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[DimensionLock] Failed to teleport player ${player.name} from locked dimension: ${stack}`);
     }
 }

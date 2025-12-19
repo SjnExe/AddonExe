@@ -49,8 +49,8 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
                     level: itemInfo.enchantment.level
                 });
             }
-        } catch (e) {
-            errorLog(`[ShopManager] Failed to apply enchantment for ${itemInfo.itemId}:`, e);
+        } catch (error) {
+            errorLog(`[ShopManager] Failed to apply enchantment for ${itemInfo.itemId}:`, error);
         }
     }
 

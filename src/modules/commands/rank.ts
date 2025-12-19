@@ -153,10 +153,10 @@ const command: CustomCommand = {
             if (executor instanceof mc.Player) {
                 playSound(executor, 'random.orb');
             }
-        } catch (e: unknown) {
+        } catch (error: unknown) {
             sendExecutorMessage('§cFailed to update rank tag.');
-            if (e instanceof Error) {
-                errorLog(`[/rank] Error: ${e.stack}`);
+            if (error instanceof Error) {
+                errorLog(`[/rank] Error: ${error.stack}`);
             }
         }
     }

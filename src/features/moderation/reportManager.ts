@@ -48,8 +48,8 @@ export function saveReports(options: { force?: boolean } = {}) {
         storage.save(reports);
         needsSave = false; // Reset flag after saving
         debugLog('[ReportManager] Saved reports to world properties.');
-    } catch (e) {
-        errorLog('[ReportManager] Failed to save reports.', e);
+    } catch (error) {
+        errorLog('[ReportManager] Failed to save reports.', error);
     }
 }
 

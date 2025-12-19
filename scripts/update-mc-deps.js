@@ -159,7 +159,7 @@ async function main() {
     }
 }
 
-main().catch((err) => {
-    console.error(`${colors.red}Fatal error updating dependencies: ${err}${colors.reset}`);
+main().catch((error) => {
+    console.error(`${colors.red}Fatal error updating dependencies: ${error}${colors.reset}`);
     process.exit(0);
 });

@@ -83,8 +83,8 @@ const announcementCommand: CustomCommand = {
         try {
             const uiManager = await import('@core/uiManager.js');
             await uiManager.showPanel(executor, announcementPanelId);
-        } catch (e) {
-            errorLog(`Failed to load uiManager for announcements panel: ${String(e)}`);
+        } catch (error) {
+            errorLog(`Failed to load uiManager for announcements panel: ${String(error)}`);
         }
     }
 };
@@ -109,8 +109,7 @@ const motdNotifyCommand: CustomCommand = {
         const pData = getPlayer(executor.id);
         if (!pData) return;
 
-        let announcementsMuted: boolean;
-        announcementsMuted =
+        const announcementsMuted: boolean =
             args.enabled !== undefined && typeof args.enabled === 'boolean'
                 ? !args.enabled
                 : !(pData.announcementsMuted ?? false);

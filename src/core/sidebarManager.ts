@@ -123,8 +123,8 @@ function getOrCreateSidebarObjective(): mc.ScoreboardObjective | undefined {
             const config = getSidebarConfig();
             const title = resolveGlobalPlaceholders(config.title);
             objective = mc.world.scoreboard.addObjective(SIDEBAR_OBJECTIVE, title);
-        } catch (e) {
-            errorLog(`[SidebarManager] Failed to create objective: ${String(e)}`);
+        } catch (error) {
+            errorLog(`[SidebarManager] Failed to create objective: ${String(error)}`);
             return undefined;
         }
     }
@@ -252,8 +252,8 @@ function updateSidebar() {
             objective.setScore(lineText, score);
             score--;
         }
-    } catch (e) {
-        errorLog(`[SidebarManager] Error updating sidebar: ${String(e)}`);
+    } catch (error) {
+        errorLog(`[SidebarManager] Error updating sidebar: ${String(error)}`);
     }
 }
 

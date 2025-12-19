@@ -61,10 +61,10 @@ const warpCommand: CustomCommand = {
                     } else {
                         sendMessage(`§cError: Dimension '${warpLocation.dimensionId}' not found.`, executor);
                     }
-                } catch (e: unknown) {
-                    if (e instanceof Error) {
-                        sendMessage(`§cFailed to teleport. Error: ${e.message}`, executor);
-                        errorLog(`[/warp] Failed to teleport: ${e.stack}`);
+                } catch (error: unknown) {
+                    if (error instanceof Error) {
+                        sendMessage(`§cFailed to teleport. Error: ${error.message}`, executor);
+                        errorLog(`[/warp] Failed to teleport: ${error.stack}`);
                     }
                 }
             };
@@ -86,14 +86,14 @@ const warpCommand: CustomCommand = {
 
         const form = new ActionFormData().title('Teleport to a Warp').body('Select a warp to teleport to:');
 
-        warpList.forEach((warpName: string) => {
+        for (const warpName of warpList) {
             const location = warpsManager.getWarp(warpName);
             if (location) {
                 form.button(
                     `${warpName}\n§7(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`
                 );
             }
-        });
+        }
 
         try {
             const response = await uiWait(executor, form);
@@ -106,8 +106,8 @@ const warpCommand: CustomCommand = {
                     teleportToWarp(selectedWarp);
                 }
             }
-        } catch (e: unknown) {
-            errorLog(`[/warp UI] ${String(e)}`);
+        } catch (error: unknown) {
+            errorLog(`[/warp UI] ${String(error)}`);
         }
     }
 };
@@ -196,7 +196,9 @@ const delWarpCommand: CustomCommand = {
 
         const form = new ActionFormData().title('Delete a Warp').body('Select a warp to delete:');
 
-        warpList.forEach((warpName: string) => form.button(warpName));
+        for (const warpName of warpList) {
+            form.button(warpName);
+        }
 
         try {
             const response = await uiWait(executor, form);
@@ -209,8 +211,8 @@ const delWarpCommand: CustomCommand = {
                     deleteWarpByName(selectedWarp);
                 }
             }
-        } catch (e: unknown) {
-            errorLog(`[/delwarp UI] ${String(e)}`);
+        } catch (error: unknown) {
+            errorLog(`[/delwarp UI] ${String(error)}`);
         }
     }
 };

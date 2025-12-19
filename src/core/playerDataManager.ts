@@ -192,8 +192,8 @@ function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix
             // Delete legacy key immediately to mark migration complete
             mc.world.setDynamicProperty(legacyKey, undefined);
             migrated = true;
-        } catch (e) {
-            errorLog(`[PlayerDataManager] Failed to migrate legacy map ${legacyKey}: ${String(e)}`);
+        } catch (error) {
+            errorLog(`[PlayerDataManager] Failed to migrate legacy map ${legacyKey}: ${String(error)}`);
         }
     }
 
@@ -208,8 +208,8 @@ function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix
             try {
                 const entries = JSON.parse(data) as [string, string][];
                 for (const [k, v] of entries) map.set(k, v);
-            } catch (e) {
-                errorLog(`[PlayerDataManager] Failed to load shard ${shardPrefix}${i}: ${String(e)}`);
+            } catch (error) {
+                errorLog(`[PlayerDataManager] Failed to load shard ${shardPrefix}${i}: ${String(error)}`);
             }
             i++;
         }
@@ -228,8 +228,8 @@ export function saveNameIdMap() {
 
         isNameIdMapDirty = false;
         debugLog('[PlayerDataManager] Saved name-to-ID maps (Sharded).');
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
+    } catch (error: unknown) {
+        const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[PlayerDataManager] Failed to save name-to-ID map: ${stack}`);
     }
 }
@@ -248,8 +248,8 @@ export function loadNameIdMap() {
         debugLog(
             `[PlayerDataManager] Loaded maps. Name->ID: ${playerNameIdMap.size}, ID->Name: ${playerIdNameMap.size}`
         );
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
+    } catch (error: unknown) {
+        const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[PlayerDataManager] Failed to load name-to-ID map: ${stack}`);
     }
 }
@@ -280,8 +280,8 @@ export function savePlayerData(playerId: string) {
             storage.save(playerData);
             playerData.needsSave = false;
         }
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
+    } catch (error: unknown) {
+        const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[PlayerDataManager] Failed to save data for player ${playerId}: ${stack}`);
     }
 }
@@ -315,8 +315,8 @@ export function loadPlayerData(playerId: string): PlayerData | null {
             activePlayerData.set(playerId, playerData);
             return playerData;
         }
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
+    } catch (error: unknown) {
+        const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[PlayerDataManager] Failed to load data for player ${playerId}: ${stack}`);
     }
     return null;

@@ -12,13 +12,13 @@ if (!fs.existsSync(SCRIPTS_DIR)) {
 
 // Helper to find files recursively
 function findFiles(dir, filter) {
-    let results = [];
+    const results = [];
     const list = fs.readdirSync(dir);
     for (let file of list) {
         file = path.join(dir, file);
         const stat = fs.statSync(file);
         if (stat && stat.isDirectory()) {
-            results = results.concat(findFiles(file, filter));
+            results.push(...findFiles(file, filter));
         } else {
             if (filter(file)) results.push(file);
         }

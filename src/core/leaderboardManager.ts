@@ -25,8 +25,8 @@ function saveLeaderboardIfDirty() {
     try {
         mc.world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
         isLeaderboardDirty = false;
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
+    } catch (error: unknown) {
+        const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[LeaderboardManager] Failed to save leaderboard: ${stack}`);
     }
 }
@@ -43,8 +43,8 @@ export function initializeLeaderboard() {
 
         // Start periodic save loop (every 30 seconds)
         saveIntervalId = setTrackedInterval(saveLeaderboardIfDirty, 30 * 20);
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
+    } catch (error: unknown) {
+        const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[LeaderboardManager] Failed to load leaderboard from storage: ${stack}`);
         leaderboardCache = [];
     }

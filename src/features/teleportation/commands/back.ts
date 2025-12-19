@@ -62,10 +62,10 @@ const backCommand: CustomCommand = {
                 sendMessage('§aTeleported back to previous location.', executor);
                 playSound(executor, 'random.orb');
                 setCooldown(executor, 'back');
-            } catch (e: unknown) {
+            } catch (error: unknown) {
                 sendMessage('§cFailed to teleport back. Dimension might be unloaded.', executor);
-                if (e instanceof Error) {
-                    errorLog(`[/back] Teleport error: ${e.message}`);
+                if (error instanceof Error) {
+                    errorLog(`[/back] Teleport error: ${error.message}`);
                 }
             }
         };

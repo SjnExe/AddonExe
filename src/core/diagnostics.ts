@@ -45,6 +45,7 @@ export function addSentryBreadcrumb(
                 sentryLevel = SentryEventLevel.fatal;
                 break;
             }
+            // eslint-disable-next-line unicorn/no-useless-switch-case
             case 'info':
             default: {
                 sentryLevel = SentryEventLevel.info;
@@ -175,8 +176,8 @@ export function initializeDiagnostics() {
         });
 
         debugLog('[Diagnostics] Sentry initialized.');
-    } catch (e) {
+    } catch (error) {
         // Log explicitly if it fails, but don't crash the addon
-        errorLog(`[Diagnostics] Failed to initialize Sentry: ${String(e)}`);
+        errorLog(`[Diagnostics] Failed to initialize Sentry: ${String(error)}`);
     }
 }

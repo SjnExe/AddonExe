@@ -172,11 +172,11 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
         setKitCooldown(player.id, lowerCaseKitName, newCooldown);
 
         return { success: true, message: `You have received the '${kitName}' kit.` };
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            errorLog(`[KitsManager] Failed to give kit: ${e.stack}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[KitsManager] Failed to give kit: ${error.stack}`);
         } else {
-            errorLog(`[KitsManager] Failed to give kit: ${String(e)}`);
+            errorLog(`[KitsManager] Failed to give kit: ${String(error)}`);
         }
         return { success: false, message: 'An unexpected error occurred while giving the kit.' };
     }

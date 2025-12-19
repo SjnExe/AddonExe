@@ -56,8 +56,8 @@ function* loadTeamsJob(allIds: number[]) {
                 activeTeams.set(id, team);
                 loadedCount++;
             }
-        } catch (e) {
-            errorLog(`[TeamManager] Error loading team ${id}: ${String(e)}`);
+        } catch (error) {
+            errorLog(`[TeamManager] Error loading team ${id}: ${String(error)}`);
         }
         // Yield every 20 teams to prevent lag
         if (i % 20 === 0) yield;
@@ -99,11 +99,11 @@ export function initialize() {
         mc.system.runJob(loadTeamsJob(allIds));
 
         panelRouter.register(new TeamPanelHandler());
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            errorLog(`[TeamManager] Failed to initialize: ${e.stack}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[TeamManager] Failed to initialize: ${error.stack}`);
         } else {
-            errorLog(`[TeamManager] Failed to initialize: ${String(e)}`);
+            errorLog(`[TeamManager] Failed to initialize: ${String(error)}`);
         }
     }
 }
@@ -115,11 +115,11 @@ function saveTeam(teamId: number) {
     }
     try {
         mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`, JSON.stringify(team));
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            errorLog(`[TeamManager] Failed to save team ${teamId}: ${e.stack}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[TeamManager] Failed to save team ${teamId}: ${error.stack}`);
         } else {
-            errorLog(`[TeamManager] Failed to save team ${teamId}: ${String(e)}`);
+            errorLog(`[TeamManager] Failed to save team ${teamId}: ${String(error)}`);
         }
     }
 }
@@ -222,11 +222,11 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         saveNextTeamId();
         // Update player data last
         setPlayerTeam(player.id, newTeamId);
-    } catch (e) {
+    } catch (error) {
         // Rollback
         incrementPlayerBalance(player.id, cost);
         activeTeams.delete(newTeamId);
-        errorLog(`[TeamManager] Failed to create team, rolled back. Error: ${String(e)}`);
+        errorLog(`[TeamManager] Failed to create team, rolled back. Error: ${String(error)}`);
         return { success: false, message: '§cFailed to create team due to storage error. Funds refunded.' };
     }
 

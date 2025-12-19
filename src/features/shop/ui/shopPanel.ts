@@ -113,9 +113,9 @@ export class ShopPanelHandler implements IPanelHandler {
                 })
                 .sort();
 
-            validCategories.forEach((catName: string) => {
+            for (const catName of validCategories) {
                 const cat = shopConfig.categories[catName];
-                if (!cat) return;
+                if (!cat) continue;
                 items.push({
                     id: catName,
                     text: catName,
@@ -124,7 +124,7 @@ export class ShopPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: `shopCategoryPanel_${catName}`
                 });
-            });
+            }
             return items;
         }
 
@@ -342,9 +342,9 @@ export class ShopPanelHandler implements IPanelHandler {
             const categories = Object.keys(shopConfig.categories).sort();
             const paginated = getPaginatedItems(categories, (context.page as number) || 1);
 
-            paginated.forEach((catName: string) => {
+            for (const catName of paginated) {
                 const cat = shopConfig.categories[catName];
-                if (!cat) return;
+                if (!cat) continue;
                 items.push({
                     id: catName,
                     text: catName,
@@ -353,7 +353,7 @@ export class ShopPanelHandler implements IPanelHandler {
                     actionType: 'openPanel',
                     actionValue: `shopAdminCategoryPanel_${catName}`
                 });
-            });
+            }
             addPaginationItems(items, (context.page as number) || 1, categories.length);
             return items;
         }
@@ -481,10 +481,10 @@ export class ShopPanelHandler implements IPanelHandler {
             if (subCategory) {
                 const shopItems = Object.keys(subCategory.items);
                 const paginated = getPaginatedItems(shopItems, (context.page as number) || 1);
-                paginated.forEach((id: string) => {
-                    if (!id) return;
+                for (const id of paginated) {
+                    if (!id) continue;
                     const item = (subCategory.items as Record<string, ShopItem>)[id];
-                    if (!item) return;
+                    if (!item) continue;
                     const masterItem = allItems[id] || {};
                     const icon = item.icon || masterItem.icon;
                     items.push({
@@ -495,7 +495,7 @@ export class ShopPanelHandler implements IPanelHandler {
                         actionType: 'functionCall',
                         actionValue: 'editItem'
                     });
-                });
+                }
                 addPaginationItems(items, (context.page as number) || 1, shopItems.length);
             }
             return items;
@@ -658,8 +658,7 @@ export class ShopPanelHandler implements IPanelHandler {
             const categoryName = context.categoryName as string;
             const subCategoryName = context.subCategoryName as string | undefined;
             const shopConfig = getShopConfig();
-            let shopItem;
-            shopItem = subCategoryName
+            const shopItem = subCategoryName
                 ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
                 : shopConfig.categories[categoryName]?.items[itemId];
 
@@ -685,8 +684,7 @@ export class ShopPanelHandler implements IPanelHandler {
             await ensureItemsConfig();
             // removed unused masterItem
 
-            let shopItem;
-            shopItem = subCategoryName
+            const shopItem = subCategoryName
                 ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
                 : shopConfig.categories[categoryName]?.items[itemId];
 
@@ -931,8 +929,7 @@ export class ShopPanelHandler implements IPanelHandler {
 
             // Fix: Removed unused masterItem variable
 
-            let shopItem;
-            shopItem = subCategoryName
+            const shopItem = subCategoryName
                 ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
                 : shopConfig.categories[categoryName]?.items[itemId];
 
@@ -977,8 +974,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 return showPanel(player, parent, context);
             }
 
-            let result;
-            result =
+            const result =
                 action === 'buy'
                     ? shopManager.buyItem(player, itemId, amount)
                     : shopManager.sellItem(player, itemId, amount);

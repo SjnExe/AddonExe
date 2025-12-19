@@ -22,8 +22,8 @@ interface SoundEventConfig {
 export function playSound(player: mc.Player, soundId: string, options: mc.PlayerSoundOptions = {}): void {
     try {
         player.playSound(soundId, options);
-    } catch (e: unknown) {
-        errorLog(`Failed to play sound "${soundId}" for player ${player.name}: ${String(e)}`);
+    } catch (error: unknown) {
+        errorLog(`Failed to play sound "${soundId}" for player ${player.name}: ${String(error)}`);
     }
 }
 

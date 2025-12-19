@@ -90,8 +90,8 @@ export function startTeleportWarmup(
                 cleanup();
                 onWarmupComplete();
             }
-        } catch (e: unknown) {
-            errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${String(e)}`);
+        } catch (error: unknown) {
+            errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${String(error)}`);
             cleanup();
         }
     }, 20);

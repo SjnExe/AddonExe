@@ -103,7 +103,7 @@ function executePunishment(player: mc.Player, commandTemplate: string) {
     try {
         player.dimension.runCommand(cmd);
         debugLog(`[AntiCheat] Executed: ${cmd}`);
-    } catch (e) {
-        errorLog(`[AntiCheat] Failed to execute punishment: ${cmd}`, e);
+    } catch (error) {
+        errorLog(`[AntiCheat] Failed to execute punishment: ${cmd}`, error);
     }
 }

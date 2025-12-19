@@ -415,16 +415,16 @@ class CommandManager {
             customCommandRegistry.registerCommand(commandData, commandCallback);
             this.registeredSlashCommands.add(name);
             debugLog(`[CommandManager] Successfully registered slash command: ${name}`);
-        } catch (e: unknown) {
-            const errStr = String(e);
+        } catch (error: unknown) {
+            const errStr = String(error);
             if (errStr.includes('already in use') && !isRetry) {
                 const newName = `x${name}`;
                 errorLog(`[CommandManager] Command alias '${name}' collision. Retrying as '${newName}'.`);
                 this._registerSlashCommand(customCommandRegistry, command, newName, true);
                 return;
             }
-            if (e instanceof Error) {
-                errorLog(`[CommandManager] Failed to register slash command '${name}':`, e);
+            if (error instanceof Error) {
+                errorLog(`[CommandManager] Failed to register slash command '${name}':`, error);
             }
         }
     }
@@ -480,10 +480,10 @@ class CommandManager {
 
             try {
                 registry.registerEnum(enumName, param.enumOptions);
-            } catch (e: unknown) {
+            } catch (error: unknown) {
                 // Ignore if enum already exists (e.g. alias sharing same params)
                 // But log other errors to debug issues
-                const errStr = String(e);
+                const errStr = String(error);
                 if (!errStr.includes('already exists')) {
                     errorLog(`[CommandManager] Failed to register enum '${enumName}': ${errStr}`);
                 }
@@ -610,34 +610,59 @@ class CommandManager {
             const rawValue = cleanedArgs[currentArgIndex];
             if (rawValue === undefined) break; // Should not happen due to length check
 
-            if (paramDef.type === 'text') {
-                // Greedy parameter (consumes the rest)
-                parsedArgs[paramDef.name] = cleanedArgs.slice(currentArgIndex).join(' ');
-                currentArgIndex = cleanedArgs.length; // Mark all as consumed
-                break;
-            } else if (paramDef.type === 'int' || paramDef.type === 'float') {
-                const num = Number(rawValue);
-                parsedArgs[paramDef.name] = Number.isNaN(num) ? undefined : num;
-                currentArgIndex++;
-            } else if (paramDef.type === 'boolean') {
-                parsedArgs[paramDef.name] = rawValue === 'true';
-                currentArgIndex++;
-            } else if (paramDef.type === 'player' || paramDef.type === 'target') {
-                const p = findVisiblePlayerByName(rawValue, player);
-                parsedArgs[paramDef.name] = p ? [p] : [];
-                currentArgIndex++;
-            } else if (paramDef.enumOptions && paramDef.enumOptions.length > 0) {
-                if (!paramDef.enumOptions.includes(rawValue)) {
-                    player.sendMessage(
-                        `§cInvalid option '${rawValue}' for parameter '${paramDef.name}'. Valid options: ${paramDef.enumOptions.join(', ')}`
-                    );
-                    return true;
+            switch (paramDef.type) {
+                case 'text': {
+                    // Greedy parameter (consumes the rest)
+                    parsedArgs[paramDef.name] = cleanedArgs.slice(currentArgIndex).join(' ');
+                    currentArgIndex = cleanedArgs.length; // Mark all as consumed
+                    break;
                 }
-                parsedArgs[paramDef.name] = rawValue;
-                currentArgIndex++;
-            } else {
-                parsedArgs[paramDef.name] = rawValue;
-                currentArgIndex++;
+
+                case 'int':
+                case 'float': {
+                    const num = Number(rawValue);
+                    parsedArgs[paramDef.name] = Number.isNaN(num) ? undefined : num;
+                    currentArgIndex++;
+                    break;
+                }
+
+                case 'boolean': {
+                    parsedArgs[paramDef.name] = rawValue === 'true';
+                    currentArgIndex++;
+                    break;
+                }
+
+                case 'player':
+                case 'target': {
+                    const p = findVisiblePlayerByName(rawValue, player);
+                    parsedArgs[paramDef.name] = p ? [p] : [];
+                    currentArgIndex++;
+                    break;
+                }
+
+                /* eslint-disable unicorn/no-useless-switch-case */
+                case 'string':
+                case 'item':
+                case 'block':
+                case 'position':
+                /* eslint-enable unicorn/no-useless-switch-case */
+                // falls through
+                default: {
+                    if (paramDef.enumOptions && paramDef.enumOptions.length > 0) {
+                        if (!paramDef.enumOptions.includes(rawValue)) {
+                            player.sendMessage(
+                                `§cInvalid option '${rawValue}' for parameter '${paramDef.name}'. Valid options: ${paramDef.enumOptions.join(', ')}`
+                            );
+                            return true;
+                        }
+                        parsedArgs[paramDef.name] = rawValue;
+                        currentArgIndex++;
+                    } else {
+                        parsedArgs[paramDef.name] = rawValue;
+                        currentArgIndex++;
+                    }
+                    break;
+                }
             }
         }
 

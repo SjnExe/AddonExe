@@ -62,13 +62,13 @@ const spawnCommand: CustomCommand = {
                 sendMessage('§aTeleporting you to spawn...', executor);
                 playSound(executor, 'random.orb');
                 setCooldown(executor, 'spawn');
-            } catch (e: unknown) {
+            } catch (error: unknown) {
                 sendMessage(
                     '§cFailed to teleport to spawn. The dimension may be invalid or the location unsafe.',
                     executor
                 );
-                if (e instanceof Error) {
-                    errorLog(`[/spawn] Failed to teleport: ${e.stack}`);
+                if (error instanceof Error) {
+                    errorLog(`[/spawn] Failed to teleport: ${error.stack}`);
                 }
                 playSound(executor, 'note.bass');
             }
@@ -157,9 +157,9 @@ const setSpawnCommand: CustomCommand = {
                     } else {
                         executor.sendMessage('§aWorld spawn point updated successfully.');
                     }
-                } catch (e: unknown) {
-                    if (e instanceof Error) {
-                        errorLog(`[/setspawn] Failed to set default world spawn: ${e.stack}`);
+                } catch (error: unknown) {
+                    if (error instanceof Error) {
+                        errorLog(`[/setspawn] Failed to set default world spawn: ${error.stack}`);
                     }
                     if (executor instanceof mc.Player) {
                         sendMessage(
@@ -180,9 +180,9 @@ const setSpawnCommand: CustomCommand = {
                     } else {
                         executor.sendMessage(`§aWorld spawn radius set to ${radius}.`);
                     }
-                } catch (e: unknown) {
-                    if (e instanceof Error) {
-                        errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${e.stack}`);
+                } catch (error: unknown) {
+                    if (error instanceof Error) {
+                        errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${error.stack}`);
                     }
                     if (executor instanceof mc.Player) {
                         sendMessage(
@@ -198,14 +198,14 @@ const setSpawnCommand: CustomCommand = {
             if (executor instanceof mc.Player) {
                 playSound(executor, 'random.orb');
             }
-        } catch (e: unknown) {
+        } catch (error: unknown) {
             if (executor instanceof mc.Player) {
                 sendMessage('§cAn unexpected error occurred while setting the spawn.', executor);
             } else {
                 executor.sendMessage('§cAn unexpected error occurred while setting the spawn.');
             }
-            if (e instanceof Error) {
-                errorLog(`[/setspawn] General error: ${e.stack}`);
+            if (error instanceof Error) {
+                errorLog(`[/setspawn] General error: ${error.stack}`);
             }
         }
     }

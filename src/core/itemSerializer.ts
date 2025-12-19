@@ -185,8 +185,8 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | null {
         }
 
         return itemStack;
-    } catch (e) {
-        errorLog(`[ItemSerializer] Failed to deserialize item:`, e);
+    } catch (error) {
+        errorLog(`[ItemSerializer] Failed to deserialize item:`, error);
         return null;
     }
 }

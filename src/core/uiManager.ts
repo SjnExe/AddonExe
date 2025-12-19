@@ -36,8 +36,8 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
         }
 
         await handleFormResponse(player, panelId, response, context);
-    } catch (e: unknown) {
-        errorLog(`[UIManager] showPanel failed for panel '${String(panelId)}': ${String(e)}`);
+    } catch (error: unknown) {
+        errorLog(`[UIManager] showPanel failed for panel '${String(panelId)}': ${String(error)}`);
         player.sendMessage(
             '§cAn unexpected error occurred while trying to open the UI. Please check the content log for details.'
         );

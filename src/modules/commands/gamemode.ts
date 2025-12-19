@@ -67,9 +67,9 @@ function setGamemode(executor: CommandExecutor, gamemode: string, targets?: mc.P
             targetPlayer.setGameMode(gameModeValue);
             sendMessage(`§aYour gamemode was set to §e${gamemodeName}§a by §e${announcer}§a.`, targetPlayer);
             successCount++;
-        } catch (e: unknown) {
-            if (e instanceof Error) {
-                errorLog(`[/gamemode] Failed to set gamemode for ${targetPlayer.name}: ${e.stack}`);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                errorLog(`[/gamemode] Failed to set gamemode for ${targetPlayer.name}: ${error.stack}`);
             }
         }
     }

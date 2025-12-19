@@ -16,8 +16,8 @@ export function startItemCheckLoop() {
                     checkInventory(player, config.itemCheck);
                 }
             }
-        } catch (e) {
-            errorLog('Anticheat Item Loop Error', e);
+        } catch (error) {
+            errorLog('Anticheat Item Loop Error', error);
         }
     }, 100); // Check every 5 seconds
 }

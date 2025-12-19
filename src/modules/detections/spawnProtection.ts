@@ -26,8 +26,8 @@ function cleanup(): void {
     for (const { event, handler } of eventHandlers) {
         try {
             event.unsubscribe(handler);
-        } catch (e: unknown) {
-            errorLog(`[SpawnProtection] Failed to unsubscribe from an event: ${String(e)}`);
+        } catch (error: unknown) {
+            errorLog(`[SpawnProtection] Failed to unsubscribe from an event: ${String(error)}`);
         }
     }
     eventHandlers = [];

@@ -46,8 +46,8 @@ function updateManifest(filePath) {
     let json;
     try {
         json = JSON.parse(content);
-    } catch (e) {
-        console.error(`Error parsing JSON file ${fullPath}:`, e);
+    } catch (error) {
+        console.error(`Error parsing JSON file ${fullPath}:`, error);
         process.exit(1);
     }
 
@@ -55,8 +55,8 @@ function updateManifest(filePath) {
     let versionArray;
     try {
         versionArray = JSON.parse(VERSION_ARRAY_STRING);
-    } catch (e) {
-        console.error('Error parsing VERSION_ARRAY_STRING:', e);
+    } catch (error) {
+        console.error('Error parsing VERSION_ARRAY_STRING:', error);
         process.exit(1);
     }
 

@@ -44,8 +44,8 @@ export default function createConfigManager<T>(
     function saveLastLoadedConfig() {
         try {
             lastLoadedStorage.save(lastLoadedConfig);
-        } catch (e) {
-            errorLog(`[${name}ConfigManager] Failed to save last loaded config.`, e);
+        } catch (error) {
+            errorLog(`[${name}ConfigManager] Failed to save last loaded config.`, error);
         }
     }
 
@@ -147,8 +147,8 @@ export default function createConfigManager<T>(
     function saveConfig() {
         try {
             configStorage.save(currentConfig);
-        } catch (e) {
-            errorLog(`[${name}ConfigManager] Failed to save current config.`, e);
+        } catch (error) {
+            errorLog(`[${name}ConfigManager] Failed to save current config.`, error);
         }
     }
 

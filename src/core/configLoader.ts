@@ -10,8 +10,7 @@ import { errorLog } from './logger.js';
  * @param suppressError If true, errors will be thrown but not logged as FATAL.
  * @returns A promise that resolves with the loaded config module's default export.
  */
-export async function loadConfig<T>(modulePath: string, suppressError?: boolean): Promise<T> {
-    const shouldSuppress = suppressError ?? false;
+export async function loadConfig<T>(modulePath: string, suppressError = false): Promise<T> {
     try {
         const module = (await import(modulePath)) as Record<string, unknown>;
         if (module.default) {
@@ -36,9 +35,9 @@ export async function loadConfig<T>(modulePath: string, suppressError?: boolean)
         }
 
         throw new Error(`Module '${modulePath}' has no default export and auto-discovery failed.`);
-    } catch (e: unknown) {
-        const err = e as Error;
-        if (!shouldSuppress) {
+    } catch (error: unknown) {
+        const err = error as Error;
+        if (!suppressError) {
             errorLog(`[ConfigLoader] FATAL: Failed to load config file: ${modulePath}`, err);
         }
         throw err;

@@ -30,16 +30,10 @@ export function formatCurrency(amount: number): string {
 
     const suffix = suffixes.find((s) => absAmount >= s.value);
 
-    if (suffix) {
-        // Use at most 2 decimal places for large numbers, but remove trailing zeros/decimal if whole
-        formattedAmount =
-            (absAmount / suffix.value)
-                .toFixed(2)
-                .replace(/\.00$/, '')
-                .replace(/(\.\d)0$/, '$1') + suffix.symbol;
-    } else {
-        formattedAmount = absAmount.toFixed(2);
-    }
+    // Use at most 2 decimal places for large numbers, but remove trailing zeros/decimal if whole
+    formattedAmount = suffix
+        ? (absAmount / suffix.value).toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1') + suffix.symbol
+        : absAmount.toFixed(2);
 
     return `${isNegative ? '-' : ''}${symbol}${formattedAmount}`;
 }

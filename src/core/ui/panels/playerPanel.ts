@@ -51,12 +51,10 @@ export class PlayerPanelHandler implements IPanelHandler {
             const isOnlineList = panelId === 'playerListPanel';
             let playerEntries: { name: string; id: string }[] = [];
 
-            if (isOnlineList) {
-                // Filter vanished players for the public online list
-                playerEntries = getVisiblePlayers(player).map((p) => ({ name: p.name, id: p.id }));
-            } else {
-                playerEntries = getAllKnownPlayers();
-            }
+            playerEntries = isOnlineList
+                ? getVisiblePlayers(player).map((p) => ({ name: p.name, id: p.id }))
+                : getAllKnownPlayers();
+
             playerEntries.sort((a, b) => a.name.localeCompare(b.name));
 
             const paginated = getPaginatedItems(playerEntries, page);

@@ -57,8 +57,8 @@ export async function buildPanelForm(
         }
 
         return null;
-    } catch (e) {
-        errorLog(`[UIManager] Error building panel ${panelId}`, e);
+    } catch (error) {
+        errorLog(`[UIManager] Error building panel ${panelId}`, error);
         return null;
     }
 }
@@ -78,8 +78,8 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
             if (dynamicTitle) {
                 title = dynamicTitle;
             }
-        } catch (e) {
-            errorLog(`[UIManager] Error getting title for panel ${panelId}`, e);
+        } catch (error) {
+            errorLog(`[UIManager] Error getting title for panel ${panelId}`, error);
         }
     }
 
@@ -90,8 +90,7 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
         const targetId = (context.targetPlayerId || context.selectedItemId) as string;
         if (targetId) {
             const onlinePlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
-            let pData;
-            pData = onlinePlayer ? getOrCreatePlayer(onlinePlayer) : loadPlayerData(targetId);
+            const pData = onlinePlayer ? getOrCreatePlayer(onlinePlayer) : loadPlayerData(targetId);
 
             if (pData) title = title.replace('{playerName}', pData.name);
         }
@@ -106,8 +105,8 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
             if (bodyText) {
                 form.body(bodyText);
             }
-        } catch (e) {
-            errorLog(`[UIManager] Error getting body for panel ${panelId}`, e);
+        } catch (error) {
+            errorLog(`[UIManager] Error getting body for panel ${panelId}`, error);
         }
     }
 

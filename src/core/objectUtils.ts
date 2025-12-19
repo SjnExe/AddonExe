@@ -450,12 +450,10 @@ export function mergeObjectMaps(
 
             if (fileDidChange) {
                 // If the item is a nested object, recurse. Otherwise, just apply the file value.
-                if (isObject(userValue) && isObject(fileValue) && isObject(lastValue)) {
-                    finalConfig[key] = mergeObjectMaps(userValue, fileValue, lastValue);
-                } else {
-                    // The file value takes precedence for this property.
-                    finalConfig[key] = deepClone(fileValue);
-                }
+                finalConfig[key] =
+                    isObject(userValue) && isObject(fileValue) && isObject(lastValue)
+                        ? mergeObjectMaps(userValue, fileValue, lastValue)
+                        : deepClone(fileValue);
             }
             // If fileDidChange is false, we do nothing, preserving the userValue that's already in finalConfig.
         }
