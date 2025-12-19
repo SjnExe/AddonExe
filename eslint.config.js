@@ -39,9 +39,27 @@ export default tseslint.config(
     eslint.configs.recommended,
 
     // Unicorn Configuration
-    // Disabled to prevent massive file diffs in the development environment.
-    // Uncomment to enable stricter rules.
-    // eslintPluginUnicorn.configs['flat/recommended'],
+    eslintPluginUnicorn.configs['flat/recommended'],
+    {
+        rules: {
+            'unicorn/filename-case': 'off',
+            'unicorn/prevent-abbreviations': 'off',
+            'unicorn/no-null': 'off',
+            'unicorn/prefer-top-level-await': 'off',
+            'unicorn/catch-error-name': 'off',
+            'unicorn/no-array-reduce': 'off',
+            'unicorn/prefer-module': 'off',
+            'unicorn/no-process-exit': 'off',
+            'unicorn/prefer-node-protocol': 'off',
+            'unicorn/numeric-separators-style': 'off',
+            'unicorn/better-regex': 'off',
+            'unicorn/no-array-for-each': 'off',
+            'unicorn/prefer-switch': 'off',
+            'unicorn/consistent-function-scoping': 'off',
+            'unicorn/no-array-callback-reference': 'off',
+            'unicorn/prefer-ternary': 'off'
+        }
+    },
 
     // TS Configuration (Type-Checked)
     {
