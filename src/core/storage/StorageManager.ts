@@ -99,7 +99,10 @@ export class StorageManager {
 
             return JSON.parse(fullString) as T;
         } catch (error) {
-            errorLog(`[StorageManager] Failed to load ${this.dbName}`, error);
+            const msg = String(error);
+            if (!msg.includes('cannot be used in early execution')) {
+                errorLog(`[StorageManager] Failed to load ${this.dbName}`, error);
+            }
             return undefined;
         }
     }
