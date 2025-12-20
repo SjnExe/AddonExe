@@ -14,7 +14,7 @@ export interface LeaderboardEntry {
 
 let leaderboardCache: LeaderboardEntry[] = [];
 let isLeaderboardDirty = false;
-let saveIntervalId: number | undefined = undefined;
+let saveIntervalId: number | undefined;
 
 export function getLeaderboard(): LeaderboardEntry[] {
     return leaderboardCache;

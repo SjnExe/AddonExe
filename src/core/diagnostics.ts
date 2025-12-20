@@ -19,7 +19,7 @@ const DEBUG_EXPIRY_PROP = 'exe:sentryDebugExpiry';
 const ORIGINAL_LOG_LEVEL_PROP = 'exe:sentryOriginalLogLevel';
 
 let isSentryDebugMode = false;
-let debugTimeout: number | undefined = undefined;
+let debugTimeout: number | undefined;
 
 export function addSentryBreadcrumb(
     message: string,

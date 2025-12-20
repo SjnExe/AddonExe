@@ -104,7 +104,7 @@ export class AdminPanelHandler implements IPanelHandler {
         return Promise.resolve(items);
     }
 
-    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined> {
+    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined | void> {
         if (panelId === 'floatingTextCreatePanel') {
             return Promise.resolve(
                 new ModalFormData()
@@ -116,9 +116,9 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextEditPanel') {
             const id = (context.id || context.selectedItemId) as string;
-            if (!id) return Promise.resolve(undefined);
+            if (!id) return Promise.resolve();
             const text = floatingTextManager.getTextById(id);
-            if (!text) return Promise.resolve(undefined);
+            if (!text) return Promise.resolve();
             const expiresAt = text.expiresAt ?? undefined;
             const updateInterval = text.updateInterval ?? 0;
             const dimensionOptions = ['Overworld', 'Nether', 'The End'];
@@ -139,7 +139,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     })
             );
         }
-        return Promise.resolve(undefined);
+        return Promise.resolve();
     }
 
     async handleResponse(

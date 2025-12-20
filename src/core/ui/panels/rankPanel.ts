@@ -67,7 +67,7 @@ export class RankPanelHandler implements IPanelHandler {
         return Promise.resolve(items);
     }
 
-    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined> {
+    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined | void> {
         if (panelId === 'addRankPanel') {
             return Promise.resolve(
                 new ModalFormData()
@@ -84,7 +84,7 @@ export class RankPanelHandler implements IPanelHandler {
         if (panelId === 'editRankPanel') {
             const rankId = context.id as string;
             const rank = rankManager.getRankById(rankId);
-            if (!rank) return Promise.resolve(undefined);
+            if (!rank) return Promise.resolve();
 
             return Promise.resolve(
                 new ModalFormData()
@@ -98,7 +98,7 @@ export class RankPanelHandler implements IPanelHandler {
             );
         }
 
-        return Promise.resolve(undefined);
+        return Promise.resolve();
     }
 
     async handleResponse(

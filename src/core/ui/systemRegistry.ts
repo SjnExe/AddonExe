@@ -21,7 +21,7 @@ export interface SystemDefinition {
  * Registry of all configurable systems in the addon.
  * This unifies simple schema-based configs and complex custom UI systems.
  */
-let cachedSystemRegistry: SystemDefinition[] | undefined = undefined;
+let cachedSystemRegistry: SystemDefinition[] | undefined;
 
 export function getSystemRegistry(): SystemDefinition[] {
     if (cachedSystemRegistry) {

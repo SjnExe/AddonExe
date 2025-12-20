@@ -44,8 +44,7 @@ export default tseslint.config(
         rules: {
             'unicorn/filename-case': 'off',
             'unicorn/prevent-abbreviations': 'off',
-            'unicorn/no-null': 'off',
-            'unicorn/no-useless-undefined': 'off'
+            'unicorn/no-null': 'off'
         }
     },
 

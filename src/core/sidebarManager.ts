@@ -10,9 +10,9 @@ import { getOrCreatePlayer, getPlayTime, getSidebarVisible } from './playerDataM
 import { getRankById } from './rankManager.js';
 import { formatCurrency, formatDuration } from './utils.js';
 
-let sidebarLoopId: number | undefined = undefined;
-let hudLoopId: number | undefined = undefined;
-let tpsLoopId: number | undefined = undefined;
+let sidebarLoopId: number | undefined;
+let hudLoopId: number | undefined;
+let tpsLoopId: number | undefined;
 
 let currentTPS = 20;
 let lastTickTime = Date.now();
