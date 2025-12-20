@@ -11,12 +11,12 @@ import {
 } from '@core/playerDataManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
 
-function validateAmount(amountStr: string | undefined): number | null {
-    if (!amountStr) return null;
+function validateAmount(amountStr: string | undefined): number | undefined {
+    if (!amountStr) return undefined;
     const amount = parseCurrency(amountStr);
-    if (Number.isNaN(amount)) return null;
+    if (Number.isNaN(amount)) return undefined;
     // Validate max 2 decimal places
-    if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) return null;
+    if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) return undefined;
     return amount;
 }
 
@@ -41,7 +41,7 @@ const setBalanceCommand: CustomCommand = {
         if (!targets || targets.length === 0) {
             return sendMessage('§cNo players found matching selector.', executor);
         }
-        if (amount === null || amount < 0) {
+        if (amount === undefined || amount < 0) {
             return sendMessage('§cInvalid amount. Must be non-negative with max 2 decimal places.', executor);
         }
 
@@ -75,7 +75,7 @@ const addBalanceCommand: CustomCommand = {
         if (!targets || targets.length === 0) {
             return sendMessage('§cNo players found matching selector.', executor);
         }
-        if (amount === null || amount <= 0) {
+        if (amount === undefined || amount <= 0) {
             return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
         }
 
@@ -109,7 +109,7 @@ const removeBalanceCommand: CustomCommand = {
         if (!targets || targets.length === 0) {
             return sendMessage('§cNo players found matching selector.', executor);
         }
-        if (amount === null || amount <= 0) {
+        if (amount === undefined || amount <= 0) {
             return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
         }
 
@@ -151,7 +151,7 @@ const oSetBalanceCommand: CustomCommand = {
         const amount = validateAmount(args.amount as string);
 
         if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
-        if (amount === null || amount < 0) return sendMessage('§cInvalid amount.', executor);
+        if (amount === undefined || amount < 0) return sendMessage('§cInvalid amount.', executor);
 
         const targetId = getPlayerIdByName(targetName);
         if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
@@ -182,7 +182,7 @@ const oAddBalanceCommand: CustomCommand = {
         const amount = validateAmount(args.amount as string);
 
         if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
-        if (amount === null || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        if (amount === undefined || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         const targetId = getPlayerIdByName(targetName);
         if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
@@ -216,7 +216,7 @@ const oRemoveBalanceCommand: CustomCommand = {
         const amount = validateAmount(args.amount as string);
 
         if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
-        if (amount === null || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        if (amount === undefined || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         const targetId = getPlayerIdByName(targetName);
         if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);

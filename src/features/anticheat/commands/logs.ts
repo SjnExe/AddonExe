@@ -77,13 +77,13 @@ async function showPunishmentFilter(player: mc.Player) {
 
     const nameQuery = (values[0] as string) || '';
     const typeIndex = values[1] as number;
-    const types = [null, 'ban', 'mute', 'warn', 'kick'];
+    const types = [undefined, 'ban', 'mute', 'warn', 'kick'];
     const typeFilter = types[typeIndex];
 
     await showPunishmentLogs(player, 1, nameQuery, typeFilter);
 }
 
-async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: string, typeFilter?: string | null) {
+async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: string, typeFilter?: string | undefined) {
     let logs = getPunishmentLogs().toSorted((a, b) => b.timestamp - a.timestamp);
 
     // Filtering

@@ -14,7 +14,7 @@ export function sendMessage(
     message: string,
     target: { sendMessage: (msg: string) => void } | 'all' = mc.world,
 
-    _options: { raw?: boolean; title?: string | null } = {}
+    _options: { raw?: boolean; title?: string | undefined } = {}
 ) {
     const finalMessage = message;
 

@@ -46,7 +46,7 @@ function setGamemode(executor: CommandExecutor, gamemode: string, targets?: mc.P
 
     const gamemodeName = gamemodeNames.get(gameModeValue);
     const announcer = executor instanceof mc.Player ? executor.name : 'Console';
-    const executorData = executor instanceof mc.Player ? getPlayer(executor.id) : null;
+    const executorData = executor instanceof mc.Player ? getPlayer(executor.id) : undefined;
 
     let successCount = 0;
 

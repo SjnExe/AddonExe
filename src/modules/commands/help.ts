@@ -10,7 +10,7 @@ import { uiWait } from '@core/utils.js';
 import { CommandExecutor, commandManager, CustomCommand } from './commandManager.js';
 
 // Cache for categorized commands
-let categorizedCache: Map<string, CustomCommand[]> | null = null;
+let categorizedCache: Map<string, CustomCommand[]> | undefined = undefined;
 
 function getCategorizedCommands(): Map<string, CustomCommand[]> {
     if (categorizedCache) return categorizedCache;
@@ -75,7 +75,7 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
         }
     }
 
-    const pData = isConsole ? null : getPlayer(executor.id);
+    const pData = isConsole ? undefined : getPlayer(executor.id);
     const userPermissionLevel = isConsole ? 0 : (pData?.permissionLevel ?? 1024);
 
     if (!cmd || (isConsole && !cmd.allowConsole) || userPermissionLevel > (cmd.permissionLevel ?? 1024)) {
@@ -256,7 +256,7 @@ const helpCommand: CustomCommand = {
             userPermissionLevel = 0;
         }
 
-        const topic = args.command ? String(args.command).toLowerCase() : null;
+        const topic = args.command ? String(args.command).toLowerCase() : undefined;
 
         // Handle Mode Switching Override
         if (topic === 'ui' && executor instanceof mc.Player) {

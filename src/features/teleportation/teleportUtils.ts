@@ -36,9 +36,9 @@ export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport'
  * Scans a small radius for a solid block with 2 air blocks above.
  * @param dimension The dimension to check.
  * @param location The target location.
- * @returns The safe location or null.
+ * @returns The safe location or undefined.
  */
-export function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3): mc.Vector3 | null {
+export function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3): mc.Vector3 | undefined {
     const { x: startX, y: startY, z: startZ } = location;
     const radius = 3; // Scan radius
 
@@ -75,5 +75,5 @@ export function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3):
             }
         }
     }
-    return null;
+    return undefined;
 }

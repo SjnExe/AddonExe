@@ -57,7 +57,7 @@ export class ShopPanelHandler implements IPanelHandler {
         return panelId.startsWith('shop');
     }
 
-    async getTitle(_player: mc.Player, panelId: string, context: UIContext): Promise<string | null> {
+    async getTitle(_player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined> {
         await Promise.resolve();
 
         if (panelId.startsWith('shopCategoryPanel_')) {
@@ -86,7 +86,7 @@ export class ShopPanelHandler implements IPanelHandler {
             const name = panelId.replace('shopAdminSubCategoryActionPanel_', '');
             return `Edit ${name}`;
         }
-        return null;
+        return undefined;
     }
 
     async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
@@ -208,7 +208,7 @@ export class ShopPanelHandler implements IPanelHandler {
                     .toSorted()
                     .map((name) => {
                         const sub = category.subCategories[name];
-                        if (!sub) return null;
+                        if (!sub) return undefined;
                         return {
                             id: name,
                             name,
@@ -216,12 +216,12 @@ export class ShopPanelHandler implements IPanelHandler {
                             type: 'subCategory' as const
                         };
                     })
-                    .filter((x) => x !== null) as ShopCategoryEntry[];
+                    .filter((x) => x !== undefined) as ShopCategoryEntry[];
 
                 const shopItems: ShopEntry[] = Object.keys(category.items)
                     .map((id) => {
                         const item = category.items[id];
-                        if (!item) return null;
+                        if (!item) return undefined;
                         return {
                             id,
                             icon: item.icon,
@@ -232,7 +232,7 @@ export class ShopPanelHandler implements IPanelHandler {
                             type: 'item' as const
                         };
                     })
-                    .filter((x) => x !== null) as ShopItemEntry[];
+                    .filter((x) => x !== undefined) as ShopItemEntry[];
 
                 const allEntries = [...subCategories, ...shopItems];
                 const paginated = getPaginatedItems(allEntries, (context.page as number) || 1);
@@ -279,7 +279,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 const shopItems = Object.keys(subCategory.items)
                     .map((id) => {
                         const item = subCategory.items[id];
-                        if (!item) return null;
+                        if (!item) return undefined;
                         return {
                             id,
                             icon: item.icon,
@@ -290,7 +290,7 @@ export class ShopPanelHandler implements IPanelHandler {
                             type: 'item' as const
                         };
                     })
-                    .filter((x) => x !== null) as ShopItemEntry[];
+                    .filter((x) => x !== undefined) as ShopItemEntry[];
 
                 const paginated = getPaginatedItems(shopItems, (context.page as number) || 1);
                 for (const entry of paginated) {
@@ -583,7 +583,7 @@ export class ShopPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined> {
         if (panelId === 'shopSearchPanel') {
             return new ModalFormData().title('Search Shop').textField('Item Name/ID', 'e.g. diamond');
         }
@@ -607,7 +607,7 @@ export class ShopPanelHandler implements IPanelHandler {
             }
             const shopConfig = getShopConfig();
             const category = shopConfig.categories[targetName];
-            if (!category) return null;
+            if (!category) return undefined;
             return new ModalFormData()
                 .title('Edit Category')
                 .textField('Category Name', 'Enter new name', { defaultValue: targetName })
@@ -619,7 +619,7 @@ export class ShopPanelHandler implements IPanelHandler {
             const { categoryName } = context;
             const shopConfig = getShopConfig();
             const subCategory = shopConfig.categories[categoryName as string]?.subCategories[targetName];
-            if (!subCategory) return null;
+            if (!subCategory) return undefined;
             return new ModalFormData()
                 .title('Edit Subcategory')
                 .textField('Subcategory Name', 'Enter new name', { defaultValue: targetName })
@@ -642,7 +642,7 @@ export class ShopPanelHandler implements IPanelHandler {
             const itemId = context.selectedItemId as string;
             await ensureItemsConfig();
             const masterItem = allItems[itemId];
-            if (!masterItem) return null;
+            if (!masterItem) return undefined;
             return new ModalFormData()
                 .title(`Add ${String(masterItem.displayName ?? itemId)}`)
                 .textField('Icon Path', 'e.g., textures/items/diamond_sword', {
@@ -662,7 +662,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
                 : shopConfig.categories[categoryName]?.items[itemId];
 
-            if (!shopItem) return null;
+            if (!shopItem) return undefined;
 
             await ensureItemsConfig();
 
@@ -688,7 +688,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
                 : shopConfig.categories[categoryName]?.items[itemId];
 
-            if (!shopItem) return null;
+            if (!shopItem) return undefined;
 
             const canBuy = context.view !== 'sell' && (shopItem.buyPrice ?? 0) > 0;
             const canSell = context.view !== 'buy' && (shopItem.sellPrice ?? 0) > 0;
@@ -715,7 +715,7 @@ export class ShopPanelHandler implements IPanelHandler {
             return modal;
         }
 
-        return null;
+        return undefined;
     }
 
     async handleResponse(
@@ -821,7 +821,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 });
                 shopAdminManager.setItem(
                     context.categoryName as string,
-                    (context.subCategoryName as string) || null,
+                    (context.subCategoryName as string) || undefined,
                     customId,
                     {
                         buyPrice,
@@ -860,7 +860,7 @@ export class ShopPanelHandler implements IPanelHandler {
             if (!Number.isNaN(buyPrice) && masterItem) {
                 shopAdminManager.setItem(
                     context.categoryName as string,
-                    (context.subCategoryName as string) || null,
+                    (context.subCategoryName as string) || undefined,
                     itemId,
                     {
                         buyPrice,
@@ -901,7 +901,7 @@ export class ShopPanelHandler implements IPanelHandler {
             const sPrice = vals[4] || undefined;
             const pLevel = vals[5] || undefined;
 
-            shopAdminManager.updateShopItem(categoryName, subCategoryName || null, itemId, {
+            shopAdminManager.updateShopItem(categoryName, subCategoryName || undefined, itemId, {
                 buyPrice: bPrice ? Number(bPrice) : -1,
                 sellPrice: sPrice ? Number(sPrice) : -1,
                 permissionLevel: pLevel ? Number(pLevel) : 1024,
@@ -933,7 +933,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
                 : shopConfig.categories[categoryName]?.items[itemId];
 
-            // Fix: Return void instead of null
+            // Fix: Return void instead of undefined
             if (!shopItem) return;
 
             const canBuy = context.view !== 'sell' && (shopItem.buyPrice ?? 0) > 0;
@@ -1071,7 +1071,7 @@ export class ShopPanelHandler implements IPanelHandler {
                     } else if (actionRes.selection === 1) {
                         shopAdminManager.removeItem(
                             context.categoryName as string,
-                            (context.subCategoryName as string) || null,
+                            (context.subCategoryName as string) || undefined,
                             item.id
                         );
                         player.sendMessage('§2Item removed.');

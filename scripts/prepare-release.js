@@ -100,7 +100,7 @@ function updateManifest(filePath) {
         }
     }
 
-    fs.writeFileSync(fullPath, JSON.stringify(json, null, 4));
+    fs.writeFileSync(fullPath, JSON.stringify(json, undefined, 4));
     console.log(`Updated ${filePath}`);
 }
 

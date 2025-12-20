@@ -177,13 +177,13 @@ export class KitPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
         await Promise.resolve();
         if (panelId.startsWith('kitSettingsPanel_')) {
             const kitName = panelId.replace('kitSettingsPanel_', '');
             const kitsConfig = kitAdminManager.getAllKits();
             const kit = kitsConfig[kitName];
-            if (!kit) return null;
+            if (!kit) return undefined;
             return new ModalFormData()
                 .title(`Edit Kit: ${kitName}`)
                 .toggle('Enabled', { defaultValue: kit.enabled })
@@ -194,7 +194,7 @@ export class KitPanelHandler implements IPanelHandler {
                 .textField('Permission', 'Level', { defaultValue: String(kit.permissionLevel) })
                 .textField('Price', 'Price', { defaultValue: String(kit.price || 0) });
         }
-        return null;
+        return undefined;
     }
 
     async handleResponse(

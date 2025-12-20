@@ -134,7 +134,7 @@ export class EconomyPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined> {
         await Promise.resolve();
         if (panelId === 'addMobDropPanel') {
             return new ModalFormData()
@@ -151,7 +151,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                 .title(`Edit ${mobId}`)
                 .textField('Reward Amount', 'Negative for penalty', { defaultValue: String(currentVal) });
         }
-        return null;
+        return undefined;
     }
 
     async handleResponse(

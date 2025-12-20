@@ -157,7 +157,7 @@ function checkWorldBorder(
         overworldRadius: number;
         endRadius: number;
         netherRadiusRatio: number;
-        center: { x: number; z: number } | null;
+        center: { x: number; z: number } | undefined;
         knockbackAmount: number;
     }
 ) {

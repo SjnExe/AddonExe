@@ -11,8 +11,8 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
         return true;
     }
 
-    // Different types or null objects are not equal.
-    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+    // Different types or undefined objects are not equal.
+    if (typeof a !== 'object' || a === undefined || typeof b !== 'object' || b === undefined) {
         return false;
     }
 
@@ -212,7 +212,7 @@ function getFinalValue(newDefaultValue: unknown, userSavedValue: unknown, userHa
 export function reconcileConfig(
     newDefault: Record<string, unknown>,
     oldDefault: Record<string, unknown>,
-    userSaved: Record<string, unknown> | null
+    userSaved: Record<string, unknown> | undefined
 ): Record<string, unknown> {
     const finalConfig: Record<string, unknown> = {};
 
@@ -308,7 +308,7 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
     }
 
     const result = (
-        Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj as object) as object | null)
+        Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj as object) as object | undefined)
     ) as T;
 
     hash.set(obj as object, result);

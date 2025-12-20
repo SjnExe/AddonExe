@@ -170,7 +170,7 @@ const addShopCommand: CustomCommand = {
             return executor.sendMessage("§cYou aren't holding anything.");
         }
 
-        const result = shopAdminManager.addShopItemFromHand(item, category, subCategory || null, buyPrice, sellPrice);
+        const result = shopAdminManager.addShopItemFromHand(item, category, subCategory || undefined, buyPrice, sellPrice);
 
         executor.sendMessage(result.message);
 

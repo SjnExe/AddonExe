@@ -14,7 +14,7 @@ export interface Report {
     reportedPlayerName: string;
     reason: string;
     status: 'open' | 'assigned' | 'resolved';
-    assignedAdminId: string | null;
+    assignedAdminId: string | undefined;
     timestamp: number;
 }
 
@@ -74,7 +74,7 @@ export function createReport(
         reportedPlayerName: reportedPlayerName,
         reason: reason,
         status: 'open',
-        assignedAdminId: null,
+        assignedAdminId: undefined,
         timestamp: Date.now()
     };
     reports.push(report);

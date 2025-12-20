@@ -82,7 +82,7 @@ function formatError(error: unknown): string {
     if (error instanceof Error) {
         return `\n  Message: ${error.message}\n  Stack: ${error.stack}`;
     }
-    if (typeof error === 'object' && error !== null) {
+    if (typeof error === 'object' && error !== undefined) {
         try {
             // For other objects, attempt to stringify them.
             return JSON.stringify(

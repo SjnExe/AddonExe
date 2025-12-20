@@ -10,9 +10,9 @@ import { getOrCreatePlayer, getPlayTime, getSidebarVisible } from './playerDataM
 import { getRankById } from './rankManager.js';
 import { formatCurrency, formatDuration } from './utils.js';
 
-let sidebarLoopId: number | null = null;
-let hudLoopId: number | null = null;
-let tpsLoopId: number | null = null;
+let sidebarLoopId: number | undefined = undefined;
+let hudLoopId: number | undefined = undefined;
+let tpsLoopId: number | undefined = undefined;
 
 let currentTPS = 20;
 let lastTickTime = Date.now();
@@ -47,7 +47,7 @@ export function cleanup() {
 }
 
 function startTPSCounter() {
-    if (tpsLoopId !== null) return;
+    if (tpsLoopId !== undefined) return;
 
     tpsLoopId = mc.system.runInterval(() => {
         const now = Date.now();
@@ -66,16 +66,16 @@ function startTPSCounter() {
 }
 
 function stopTPSCounter() {
-    if (tpsLoopId !== null) {
+    if (tpsLoopId !== undefined) {
         mc.system.clearRun(tpsLoopId);
-        tpsLoopId = null;
+        tpsLoopId = undefined;
     }
 }
 
 function startLoops() {
     const config = getSidebarConfig();
 
-    if (sidebarLoopId === null) {
+    if (sidebarLoopId === undefined) {
         sidebarLoopId = mc.system.runInterval(
             () => {
                 updateSidebar();
@@ -84,7 +84,7 @@ function startLoops() {
         );
     }
 
-    if (hudLoopId === null && config.actionBarEnabled) {
+    if (hudLoopId === undefined && config.actionBarEnabled) {
         hudLoopId = mc.system.runInterval(
             () => {
                 updatePersonalHUD();
@@ -95,13 +95,13 @@ function startLoops() {
 }
 
 function stopLoops() {
-    if (sidebarLoopId !== null) {
+    if (sidebarLoopId !== undefined) {
         mc.system.clearRun(sidebarLoopId);
-        sidebarLoopId = null;
+        sidebarLoopId = undefined;
     }
-    if (hudLoopId !== null) {
+    if (hudLoopId !== undefined) {
         mc.system.clearRun(hudLoopId);
-        hudLoopId = null;
+        hudLoopId = undefined;
     }
 }
 

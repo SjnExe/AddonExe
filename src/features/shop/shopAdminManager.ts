@@ -279,7 +279,7 @@ export function deleteSubCategory(categoryName: string, subCategoryName: string)
 export function addShopItemFromHand(
     itemStack: mc.ItemStack,
     categoryName: string,
-    subCategoryName: string | null,
+    subCategoryName: string | undefined,
     buyPrice: number,
     sellPrice: number
 ): ActionResult {
@@ -376,14 +376,14 @@ export function addShopItemFromHand(
 /**
  * Adds or updates an item in the shop.
  * @param categoryName - The name of the category.
- * @param subCategoryName - The name of the subcategory, or null for the main category.
+ * @param subCategoryName - The name of the subcategory, or undefined for the main category.
  * @param itemId - The ID of the item to add/update.
  * @param itemData - The data for the item (buyPrice, sellPrice, permissionLevel).
  * @returns The result of the operation.
  */
 export function setItem(
     categoryName: string,
-    subCategoryName: string | null,
+    subCategoryName: string | undefined,
     itemId: string,
     itemData: ItemData
 ): ActionResult {
@@ -440,11 +440,11 @@ export function addCustomItemToConfig(itemId: string, itemData: ItemData): Actio
 /**
  * Removes an item from the shop.
  * @param categoryName - The name of the category.
- * @param subCategoryName - The name of the subcategory, or null for the main category.
+ * @param subCategoryName - The name of the subcategory, or undefined for the main category.
  * @param itemId - The ID of the item to remove.
  * @returns The result of the operation.
  */
-export function removeItem(categoryName: string, subCategoryName: string | null, itemId: string): ActionResult {
+export function removeItem(categoryName: string, subCategoryName: string | undefined, itemId: string): ActionResult {
     const config = getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
@@ -481,7 +481,7 @@ export function removeItem(categoryName: string, subCategoryName: string | null,
  */
 export function updateShopItem(
     categoryName: string,
-    subCategoryName: string | null,
+    subCategoryName: string | undefined,
     itemId: string,
     newData: UpdateItemData
 ): ActionResult {

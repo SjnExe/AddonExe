@@ -17,7 +17,7 @@ export class TeamPanelHandler implements IPanelHandler {
         return panelId.startsWith('team') || panelId === 'memberActionPanel' || panelId === 'config_team';
     }
 
-    async getTitle(player: mc.Player, panelId: string, context: UIContext): Promise<string | null> {
+    async getTitle(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined> {
         // Satisfy require-await
         await Promise.resolve();
 
@@ -26,7 +26,7 @@ export class TeamPanelHandler implements IPanelHandler {
             const team = teamId ? teamManager.getTeam(Number(teamId)) : teamManager.getTeamByPlayer(player.id);
             return team ? `Manage ${team.name}` : 'Manage Team';
         }
-        return null;
+        return undefined;
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
@@ -360,7 +360,7 @@ export class TeamPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
         // Satisfy async requirement
         await Promise.resolve();
 
@@ -382,7 +382,7 @@ export class TeamPanelHandler implements IPanelHandler {
         if (panelId === 'teamSettingsPanel') {
             const pData = getOrCreatePlayer(player);
             const team = teamManager.getTeamByPlayer(player.id);
-            if (!team) return null;
+            if (!team) return undefined;
             const canManage = team.ownerId === player.id || team.admins.includes(player.id);
             const form = new ModalFormData().title('Team Settings');
             form.toggle('Auto-Accept Team Teleport', { defaultValue: pData.teamSettings?.autoTpAccept ?? false });
@@ -404,7 +404,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 .textField('Max Name Length', '16', { defaultValue: String(config.nameMaxLength) });
         }
 
-        return null;
+        return undefined;
     }
 
     async handleResponse(

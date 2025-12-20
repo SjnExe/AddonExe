@@ -104,7 +104,7 @@ export class AdminPanelHandler implements IPanelHandler {
         return Promise.resolve(items);
     }
 
-    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined> {
         if (panelId === 'floatingTextCreatePanel') {
             return Promise.resolve(
                 new ModalFormData()
@@ -116,10 +116,10 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextEditPanel') {
             const id = (context.id || context.selectedItemId) as string;
-            if (!id) return Promise.resolve(null);
+            if (!id) return Promise.resolve(undefined);
             const text = floatingTextManager.getTextById(id);
-            if (!text) return Promise.resolve(null);
-            const expiresAt = text.expiresAt ?? null;
+            if (!text) return Promise.resolve(undefined);
+            const expiresAt = text.expiresAt ?? undefined;
             const updateInterval = text.updateInterval ?? 0;
             const dimensionOptions = ['Overworld', 'Nether', 'The End'];
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
@@ -139,7 +139,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     })
             );
         }
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     async handleResponse(
@@ -180,7 +180,7 @@ export class AdminPanelHandler implements IPanelHandler {
                 expiresAt:
                     useExpiration && Number(expirationMinutes) > 0
                         ? Date.now() + Number(expirationMinutes) * 60_000
-                        : null
+                        : undefined
             };
             floatingTextManager.updateText(id, updatedConfig);
             player.sendMessage(`§2Successfully updated floating text: ${id}`);

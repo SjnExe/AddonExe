@@ -103,12 +103,12 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
 /**
  * Deserializes a SerializedItem back into an ItemStack.
  */
-export function deserializeItem(data: SerializedItem): mc.ItemStack | null {
+export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined {
     try {
         const itemType = mc.ItemTypes.get(data.typeId);
         if (!itemType) {
             errorLog(`[ItemSerializer] Unknown item type: ${data.typeId}`);
-            return null;
+            return undefined;
         }
 
         const itemStack = new mc.ItemStack(itemType, data.amount);
@@ -187,6 +187,6 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | null {
         return itemStack;
     } catch (error) {
         errorLog(`[ItemSerializer] Failed to deserialize item:`, error);
-        return null;
+        return undefined;
     }
 }

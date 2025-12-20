@@ -12,7 +12,7 @@ export interface FloatingTextConfig {
     text: string;
     location: mc.Vector3;
     dimension: string;
-    expiresAt: number | null;
+    expiresAt: number | undefined;
     updateInterval?: number; // Ticks
     lastUpdated?: number; // Timestamp
 }
@@ -144,7 +144,7 @@ function runExpirationLoop() {
     const now = Date.now();
     for (const textConfig of floatingTexts.values()) {
         if (textConfig.expiresAt && now >= textConfig.expiresAt) {
-            void deleteText(null, textConfig.id);
+            void deleteText(undefined, textConfig.id);
         }
     }
     expirationIntervalId = mc.system.runTimeout(runExpirationLoop, 200); // Check every 10 seconds
@@ -279,7 +279,7 @@ async function findEntityWithRetries(
     query: mc.EntityQueryOptions,
     maxRetries = 10,
     delayBetweenRetries = 4
-): Promise<mc.Entity | null> {
+): Promise<mc.Entity | undefined> {
     for (let i = 0; i < maxRetries; i++) {
         const entities = dimension.getEntities(query);
         const entity = entities.length > 0 ? entities[0] : undefined;
@@ -289,7 +289,7 @@ async function findEntityWithRetries(
         await new Promise<void>((resolve) => mc.system.runTimeout(resolve, delayBetweenRetries));
     }
     debugLog(`[FloatingText] Could not find entity for query after ${maxRetries} attempts.`);
-    return null;
+    return undefined;
 }
 
 function getAllTexts(): FloatingTextConfig[] {
@@ -309,7 +309,7 @@ function updateText(id: string, updates: Partial<FloatingTextConfig>) {
 
     const newConfig = { ...oldConfig, ...updates };
     if (updates.expiresAt === undefined && oldConfig.expiresAt === undefined) {
-        newConfig.expiresAt = null;
+        newConfig.expiresAt = undefined;
     } else if (updates.expiresAt !== undefined) {
         newConfig.expiresAt = updates.expiresAt;
     }
@@ -417,7 +417,7 @@ function createText(player: mc.Player, id: string, text: string): boolean {
             z: Math.round(player.location.z * 100) / 100
         },
         dimension: player.dimension.id,
-        expiresAt: null
+        expiresAt: undefined
     };
 
     floatingTexts.set(id, newTextConfig);
@@ -469,10 +469,7 @@ function despawnText(id: string) {
         // The log below helps debugging.
         if (!String(error).includes('LocationInUnloadedChunkError')) {
             if (error instanceof Error) {
-                errorLog(
-                    `[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`,
-                    error
-                );
+                errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, error);
             } else {
                 errorLog(
                     `[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`,
@@ -510,7 +507,7 @@ function respawnText(id: string) {
     const textConfig = getTextById(id);
     if (textConfig) {
         if (textConfig.expiresAt) {
-            textConfig.expiresAt = null;
+            textConfig.expiresAt = undefined;
             saveTexts();
         }
         despawnText(id);
@@ -520,7 +517,7 @@ function respawnText(id: string) {
     }
 }
 
-function deleteText(player: mc.Player | null, id: string) {
+function deleteText(player: mc.Player | undefined, id: string) {
     if (!floatingTexts.has(id)) {
         if (player) {
             player.sendMessage(`§cFloating text with ID "${id}" not found.`);

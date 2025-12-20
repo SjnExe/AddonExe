@@ -39,7 +39,7 @@ export async function buildPanelForm(
     player: mc.Player,
     panelId: string,
     context: UIContext
-): Promise<ActionFormData | ModalFormData | null> {
+): Promise<ActionFormData | ModalFormData | undefined> {
     try {
         // 1. Check Panel Router (Modular System)
         const handler = panelRouter.getHandler(panelId);
@@ -56,10 +56,10 @@ export async function buildPanelForm(
             }
         }
 
-        return null;
+        return undefined;
     } catch (error) {
         errorLog(`[UIManager] Error building panel ${panelId}`, error);
-        return null;
+        return undefined;
     }
 }
 

@@ -19,7 +19,7 @@ const DEBUG_EXPIRY_PROP = 'exe:sentryDebugExpiry';
 const ORIGINAL_LOG_LEVEL_PROP = 'exe:sentryOriginalLogLevel';
 
 let isSentryDebugMode = false;
-let debugTimeout: number | null = null;
+let debugTimeout: number | undefined = undefined;
 
 export function addSentryBreadcrumb(
     message: string,
@@ -99,7 +99,7 @@ export function setSentryDebug(enabled: boolean, minutes: number = 5) {
 
         if (debugTimeout) {
             mc.system.clearRun(debugTimeout);
-            debugTimeout = null;
+            debugTimeout = undefined;
         }
         debugLog('[Diagnostics] Sentry debug mode DISABLED.');
     }

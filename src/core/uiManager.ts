@@ -20,7 +20,7 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
 
         const form = await buildPanelForm(player, panelId, context);
         if (!form) {
-            debugLog(`[UIManager] buildPanelForm returned null for panel '${panelId}'. Aborting.`);
+            debugLog(`[UIManager] buildPanelForm returned undefined for panel '${panelId}'. Aborting.`);
             return;
         }
 

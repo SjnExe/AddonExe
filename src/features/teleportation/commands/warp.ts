@@ -136,9 +136,9 @@ const addWarpCommand: CustomCommand = {
             return;
         }
         const { warpName, x, y, z } = args as unknown as AddWarpArgs;
-        const hasX = x !== undefined && x !== null;
-        const hasY = y !== undefined && y !== null;
-        const hasZ = z !== undefined && z !== null;
+        const hasX = x !== undefined && x !== undefined;
+        const hasY = y !== undefined && y !== undefined;
+        const hasZ = z !== undefined && z !== undefined;
 
         let location;
 

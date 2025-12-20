@@ -21,7 +21,7 @@ export interface ActiveVote {
 }
 
 const storage = new StorageManager('exe:voting');
-let currentVote: ActiveVote | null = null;
+let currentVote: ActiveVote | undefined = undefined;
 
 export function initializeVoting() {
     currentVote = storage.load<ActiveVote>();
@@ -117,11 +117,11 @@ export function endVote() {
     mc.world.sendMessage(results);
 }
 
-export function getActiveVote(): ActiveVote | null {
+export function getActiveVote(): ActiveVote | undefined {
     if (currentVote && currentVote.status === 'active') return currentVote;
-    return null;
+    return undefined;
 }
 
-export function getLastVote(): ActiveVote | null {
+export function getLastVote(): ActiveVote | undefined {
     return currentVote;
 }

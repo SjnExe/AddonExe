@@ -99,7 +99,7 @@ export class ModerationPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async getBody(_player: mc.Player, panelId: string, context: UIContext): Promise<string | null> {
+    async getBody(_player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined> {
         await Promise.resolve();
         if (panelId === 'reportActionsPanel') {
             const reportId = context.selectedItemId as string;
@@ -116,7 +116,7 @@ export class ModerationPanelHandler implements IPanelHandler {
             }
             return '§cReport not found.';
         }
-        return null;
+        return undefined;
     }
 
     async handleResponse(

@@ -75,7 +75,7 @@ export class StorageManager {
     /**
      * Loads data from dynamic properties, reassembling shards.
      */
-    load<T>(): T | null {
+    load<T>(): T | undefined {
         try {
             const meta = mc.world.getDynamicProperty(`${this.dbName}:meta`);
             if (typeof meta !== 'number') {
@@ -84,7 +84,7 @@ export class StorageManager {
                 if (typeof legacy === 'string') {
                     return JSON.parse(legacy) as T;
                 }
-                return null;
+                return undefined;
             }
 
             let fullString = '';
@@ -92,7 +92,7 @@ export class StorageManager {
                 const chunk = mc.world.getDynamicProperty(`${this.dbName}:${i}`);
                 if (typeof chunk !== 'string') {
                     errorLog(`[StorageManager] Corrupt data for ${this.dbName}: Missing chunk ${i}`);
-                    return null;
+                    return undefined;
                 }
                 fullString += chunk;
             }
@@ -100,7 +100,7 @@ export class StorageManager {
             return JSON.parse(fullString) as T;
         } catch (error) {
             errorLog(`[StorageManager] Failed to load ${this.dbName}`, error);
-            return null;
+            return undefined;
         }
     }
 

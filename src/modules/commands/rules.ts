@@ -32,9 +32,9 @@ const rulesCommand: CustomCommand = {
         }
 
         // Explicitly handle "undefined" from args
-        const ruleNumber = args.ruleNumber === undefined ? null : Number(args.ruleNumber);
+        const ruleNumber = args.ruleNumber === undefined ? undefined : Number(args.ruleNumber);
 
-        if (ruleNumber === null) {
+        if (ruleNumber === undefined) {
             const messages = ['§l§a--- Server Rules ---', ...rules, '§l§a------------------'];
             if (executor instanceof mc.Player) {
                 for (const msg of messages) sendMessage(msg, executor, { raw: true });

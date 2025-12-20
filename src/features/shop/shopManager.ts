@@ -23,18 +23,18 @@ interface ShopTransactionResult {
  * Creates an ItemStack for a given item ID, handling enchantments.
  * @param itemInfo The item info object.
  * @param quantity The amount of items.
- * @returns The created ItemStack or null if failed.
+ * @returns The created ItemStack or undefined if failed.
  */
-function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack | null {
+function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack | undefined {
     if (!itemInfo) {
         errorLog('[ShopManager] Could not find item info for creating item stack.');
-        return null;
+        return undefined;
     }
 
     const itemType = mc.ItemTypes.get(itemInfo.itemId);
     if (!itemType) {
         errorLog(`[ShopManager] Could not find item type for itemId: ${itemInfo.itemId}`);
-        return null;
+        return undefined;
     }
 
     const itemStack = new mc.ItemStack(itemType, quantity);
@@ -64,9 +64,9 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
 /**
  * Finds a shop item definition by its ID.
  * @param itemId The item ID to look up.
- * @returns The item definition or null if not found.
+ * @returns The item definition or undefined if not found.
  */
-function findShopItem(itemId: string): ItemInfo | null {
+function findShopItem(itemId: string): ItemInfo | undefined {
     const shopConfig = getShopConfig();
     const categories = shopConfig.categories;
     const items = allItems as Record<string, ItemInfo>;
@@ -86,7 +86,7 @@ function findShopItem(itemId: string): ItemInfo | null {
             }
         }
     }
-    return null;
+    return undefined;
 }
 
 /**

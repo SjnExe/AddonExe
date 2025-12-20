@@ -26,7 +26,7 @@ export default function createConfigManager<T>(
     key: string,
     defaultConfig: T,
     name: string,
-    wrapperKey: string | null = null
+    wrapperKey: string | undefined = undefined
 ): ConfigManager<T> {
     const lastLoadedKey = `${key}:last_loaded`;
 
@@ -39,7 +39,7 @@ export default function createConfigManager<T>(
     const lastLoadedStorage = new StorageManager(lastLoadedKey);
 
     let currentConfig = deepClone(initialDefaultConfig);
-    let lastLoadedConfig: T | null = null;
+    let lastLoadedConfig: T | undefined = undefined;
 
     function saveLastLoadedConfig() {
         try {

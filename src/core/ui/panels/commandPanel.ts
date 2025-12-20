@@ -53,7 +53,7 @@ export class CommandPanelHandler implements IPanelHandler {
         return Promise.resolve(items);
     }
 
-    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
         if (panelId.startsWith('commandSettingsPanel_')) {
             const cmdName = panelId.replace('commandSettingsPanel_', '');
             const config = getConfig() as unknown as MainConfig;
@@ -73,7 +73,7 @@ export class CommandPanelHandler implements IPanelHandler {
                     .textField('Cooldown (seconds)', '0 to disable', { defaultValue: String(cooldown) })
             );
         }
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     async handleResponse(

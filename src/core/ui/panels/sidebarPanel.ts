@@ -20,7 +20,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         );
     }
 
-    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | null> {
+    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined> {
         if (panelId === 'placeholderListPanel') {
             return Promise.resolve(
                 `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
@@ -29,7 +29,7 @@ export class SidebarPanelHandler implements IPanelHandler {
                     `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
             );
         }
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
@@ -115,7 +115,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         return Promise.resolve(items);
     }
 
-    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined> {
         if (panelId === 'sidebarLineEditPanel') {
             const config = getSidebarConfig();
             const lines = config.sidebarLines;
@@ -145,7 +145,7 @@ export class SidebarPanelHandler implements IPanelHandler {
                 new ModalFormData().title('Add Line').textField('Content', 'Supports {money}, {name}, etc.')
             );
         }
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     async handleResponse(
