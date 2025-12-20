@@ -68,7 +68,7 @@ export function setLogLevel(level: number | string): void {
         const levelName = (Object.keys(LogLevels) as LogLevelKey[]).find((key) => LogLevels[key] === numericLevel);
         infoLog(`[Logger] Log level set to: ${levelName}`);
     } else {
-        errorLog(`[Logger] Invalid log level provided: '${level}'. Defaulting to INFO.`);
+        errorLog(`[Logger] Invalid log level provided: '${String(level)}'. Defaulting to INFO.`);
         currentLogLevel = LogLevels.INFO;
     }
 }
@@ -82,24 +82,34 @@ function formatError(error: unknown): string {
     if (error instanceof Error) {
         return `\n  Message: ${error.message}\n  Stack: ${error.stack}`;
     }
-    if (typeof error === 'object' && error !== undefined) {
-        try {
-            // For other objects, attempt to stringify them.
-            return JSON.stringify(
-                error,
-                (_key: string, value: unknown) => {
-                    if (value instanceof Error) {
-                        return { message: value.message, stack: value.stack };
-                    }
-                    return value;
-                },
-                2
-            );
-        } catch {
-            return 'Unserializable object';
-        }
+
+    if (
+        typeof error === 'string' ||
+        typeof error === 'number' ||
+        typeof error === 'boolean' ||
+        typeof error === 'symbol' ||
+        typeof error === 'bigint' ||
+        error === undefined ||
+        error === null
+    ) {
+        return String(error);
     }
-    return String(error);
+
+    // For other objects, attempt to stringify them.
+    try {
+        return JSON.stringify(
+            error,
+            (_key: string, value: unknown) => {
+                if (value instanceof Error) {
+                    return { message: value.message, stack: value.stack };
+                }
+                return value;
+            },
+            2
+        );
+    } catch {
+        return 'Unserializable object';
+    }
 }
 
 type ConsoleMethod = 'log' | 'info' | 'warn' | 'error';

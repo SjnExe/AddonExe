@@ -12,7 +12,7 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
     }
 
     // Different types or undefined objects are not equal.
-    if (typeof a !== 'object' || a === undefined || typeof b !== 'object' || b === undefined) {
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
         return false;
     }
 
@@ -308,7 +308,7 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
     }
 
     const result = (
-        Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj as object) as object | undefined)
+        Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj as object) as object | null)
     ) as T;
 
     hash.set(obj as object, result);

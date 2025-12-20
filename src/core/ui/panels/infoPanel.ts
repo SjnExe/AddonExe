@@ -146,7 +146,7 @@ export class InfoPanelHandler implements IPanelHandler {
         return Promise.resolve(items);
     }
 
-    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined> {
+    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined | void> {
         if (panelId === 'rulesPanel') {
             const config = getConfig() as unknown as MainConfig;
             const serverInfo = config.serverInfo as { rules: string[] };
@@ -156,10 +156,10 @@ export class InfoPanelHandler implements IPanelHandler {
         if (panelId === 'helpfulLinksPanel') {
             return Promise.resolve('Click a button to see the link in chat.');
         }
-        return Promise.resolve(undefined);
+        return Promise.resolve();
     }
 
-    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
+    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined | void> {
         if (panelId === 'addRulePanel') {
             return Promise.resolve(new ModalFormData().title('Add Rule').textField('Rule Content', 'Enter rule text'));
         }
@@ -168,7 +168,7 @@ export class InfoPanelHandler implements IPanelHandler {
                 new ModalFormData().title('Add Link').textField('Title', 'Link Title').textField('URL', 'https://...')
             );
         }
-        return Promise.resolve(undefined);
+        return Promise.resolve();
     }
 
     async handleResponse(

@@ -55,7 +55,7 @@ async function main() {
                             newVersion = candidates.at(-1);
                         } else {
                             // No matching stable beta found, preserve existing version
-                            return undefined;
+                            return;
                         }
 
                         return { pkg, newVersion };
@@ -63,7 +63,7 @@ async function main() {
                         console.error(
                             `${colors.yellow}Warning: Failed to fetch versions for ${pkg}: ${error.message}${colors.reset}`
                         );
-                        return undefined;
+                        return;
                     }
                 })
             );
@@ -118,10 +118,10 @@ async function main() {
                     console.error(
                         `${colors.yellow}Warning: Failed to fetch latest version for manifest dependency ${dep.module_name}: ${error.message}${colors.reset}`
                     );
-                    return undefined;
+                    return;
                 }
             }
-            return undefined;
+            return;
         });
 
         const manifestResults = await Promise.allSettled(manifestPromises);

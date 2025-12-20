@@ -74,11 +74,15 @@ export interface IPanelHandler {
         context: UIContext
     ): Promise<void>;
     /** Optional: Builds a custom Modal form (if not using headless items) */
-    buildModal?(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | ActionFormData | undefined>;
+    buildModal?(
+        player: mc.Player,
+        panelId: string,
+        context: UIContext
+    ): Promise<ModalFormData | ActionFormData | undefined | void>;
     /** Optional: Returns the body text for an ActionFormData panel. */
-    getBody?(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined>;
+    getBody?(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined | void>;
     /** Optional: Returns the title for an ActionFormData panel. */
-    getTitle?(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined>;
+    getTitle?(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined | void>;
 }
 
 export interface ShopListEntry {

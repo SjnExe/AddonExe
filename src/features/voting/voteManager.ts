@@ -21,7 +21,7 @@ export interface ActiveVote {
 }
 
 const storage = new StorageManager('exe:voting');
-let currentVote: ActiveVote | undefined = undefined;
+let currentVote: ActiveVote | undefined;
 
 export function initializeVoting() {
     currentVote = storage.load<ActiveVote>();

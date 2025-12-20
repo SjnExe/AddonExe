@@ -10,7 +10,7 @@ import { uiWait } from '@core/utils.js';
 import { CommandExecutor, commandManager, CustomCommand } from './commandManager.js';
 
 // Cache for categorized commands
-let categorizedCache: Map<string, CustomCommand[]> | undefined = undefined;
+let categorizedCache: Map<string, CustomCommand[]> | undefined;
 
 function getCategorizedCommands(): Map<string, CustomCommand[]> {
     if (categorizedCache) return categorizedCache;

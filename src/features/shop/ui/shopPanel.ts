@@ -208,7 +208,7 @@ export class ShopPanelHandler implements IPanelHandler {
                     .toSorted()
                     .map((name) => {
                         const sub = category.subCategories[name];
-                        if (!sub) return undefined;
+                        if (!sub) return;
                         return {
                             id: name,
                             name,
@@ -221,7 +221,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 const shopItems: ShopEntry[] = Object.keys(category.items)
                     .map((id) => {
                         const item = category.items[id];
-                        if (!item) return undefined;
+                        if (!item) return;
                         return {
                             id,
                             icon: item.icon,
@@ -279,7 +279,7 @@ export class ShopPanelHandler implements IPanelHandler {
                 const shopItems = Object.keys(subCategory.items)
                     .map((id) => {
                         const item = subCategory.items[id];
-                        if (!item) return undefined;
+                        if (!item) return;
                         return {
                             id,
                             icon: item.icon,
