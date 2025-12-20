@@ -27,7 +27,7 @@ export class BountyPanelHandler implements IPanelHandler {
 
         // Debug log to ensure bounties are retrieved
         const allBounties = bountyManager.getAllBounties();
-        const bounties = [...allBounties.values()].sort((a, b) => b.amount - a.amount);
+        const bounties = [...allBounties.values()].toSorted((a, b) => b.amount - a.amount);
 
         // If empty, show a visual indicator item
         if (bounties.length === 0) {

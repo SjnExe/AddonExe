@@ -42,13 +42,9 @@ export default tseslint.config(
     eslintPluginUnicorn.configs['flat/recommended'],
     {
         rules: {
-            'unicorn/prefer-at': 'off',
             'unicorn/no-null': 'off',
             'unicorn/prevent-abbreviations': 'off',
             'unicorn/filename-case': 'off',
-            'unicorn/no-array-sort': 'off',
-            'unicorn/no-array-reverse': 'off',
-            'unicorn/no-array-reduce': 'off',
             'unicorn/no-useless-undefined': 'off'
         }
     },

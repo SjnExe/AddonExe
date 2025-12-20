@@ -248,12 +248,11 @@ const listBountyCommand: CustomCommand = {
             else executor.sendMessage(`§aBounty on ${targetDisplayName}: §e$${bounty.amount.toFixed(2)}`);
         } else {
             let message = '§a--- All Player Bounties ---\n';
-            const allBounties = [...bountyManager.getAllBounties().values()];
+            const allBounties = [...bountyManager.getAllBounties().values()].toSorted((a, b) => b.amount - a.amount);
 
             if (allBounties.length === 0) {
                 message += '§7No active bounties.';
             } else {
-                allBounties.sort((a, b) => b.amount - a.amount);
                 for (const bounty of allBounties) {
                     if (bounty) {
                         message += `§e${bounty.name}§r: $${bounty.amount.toFixed(2)}\n`;

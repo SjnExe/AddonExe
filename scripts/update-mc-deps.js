@@ -47,7 +47,7 @@ async function main() {
                         // Filter: Must include 'beta', end with '-stable', and NOT include 'preview'
                         const candidates = versions
                             .filter((v) => v.includes('beta') && v.endsWith('-stable') && !v.includes('preview'))
-                            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+                            .toSorted((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
                         let newVersion;
                         if (candidates.length > 0) {

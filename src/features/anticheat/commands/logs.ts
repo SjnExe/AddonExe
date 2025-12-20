@@ -84,7 +84,7 @@ async function showPunishmentFilter(player: mc.Player) {
 }
 
 async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: string, typeFilter?: string | null) {
-    let logs = getPunishmentLogs().sort((a, b) => b.timestamp - a.timestamp);
+    let logs = getPunishmentLogs().toSorted((a, b) => b.timestamp - a.timestamp);
 
     // Filtering
     if (nameQuery) {
@@ -171,7 +171,7 @@ async function showFlagFilter(player: mc.Player) {
 }
 
 async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string) {
-    let logs = getFlagLogs().sort((a, b) => b.timestamp - a.timestamp);
+    let logs = getFlagLogs().toSorted((a, b) => b.timestamp - a.timestamp);
 
     if (nameQuery) {
         const q = nameQuery.toLowerCase();
@@ -270,7 +270,7 @@ export async function showChatFilter(player: mc.Player) {
 }
 
 async function showChatLogs(player: mc.Player, page: number, date: string, nameQuery?: string, keyword?: string) {
-    let logs = getChatLogs(date).sort((a, b) => b.timestamp - a.timestamp);
+    let logs = getChatLogs(date).toSorted((a, b) => b.timestamp - a.timestamp);
 
     if (nameQuery) {
         const q = nameQuery.toLowerCase();

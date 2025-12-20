@@ -105,7 +105,7 @@ export function endVote() {
     let results = `§a§lVote Ended!§r\n§e${currentVote.question}\n§fResults:\n`;
 
     // Sort options by count descending
-    const sortedOptions = [...currentVote.options].sort((a, b) => b.count - a.count);
+    const sortedOptions = [...currentVote.options].toSorted((a, b) => b.count - a.count);
 
     const totalVotes = currentVote.votedPlayerIds.length;
 

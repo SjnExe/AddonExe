@@ -17,7 +17,7 @@ export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: n
             }
             return permissionLevel <= item.permissionLevel;
         })
-        .sort((a: PanelItem, b: PanelItem) => (a.sortId || 0) - (b.sortId || 0));
+        .toSorted((a: PanelItem, b: PanelItem) => (a.sortId || 0) - (b.sortId || 0));
 
     // Create a copy to avoid mutating the registry
     const resultItems: PanelItem[] = items.map((i) => ({ ...i }));

@@ -111,7 +111,7 @@ export class ShopPanelHandler implements IPanelHandler {
                     if (!category) return false;
                     return Object.keys(category.items).length > 0 || Object.keys(category.subCategories).length > 0;
                 })
-                .sort();
+                .toSorted();
 
             for (const catName of validCategories) {
                 const cat = shopConfig.categories[catName];
@@ -205,7 +205,7 @@ export class ShopPanelHandler implements IPanelHandler {
             const category = shopConfig.categories[categoryName];
             if (category) {
                 const subCategories: ShopEntry[] = Object.keys(category.subCategories)
-                    .sort()
+                    .toSorted()
                     .map((name) => {
                         const sub = category.subCategories[name];
                         if (!sub) return null;
@@ -339,7 +339,7 @@ export class ShopPanelHandler implements IPanelHandler {
             );
 
             const shopConfig = getShopConfig();
-            const categories = Object.keys(shopConfig.categories).sort();
+            const categories = Object.keys(shopConfig.categories).toSorted();
             const paginated = getPaginatedItems(categories, (context.page as number) || 1);
 
             for (const catName of paginated) {
@@ -391,7 +391,7 @@ export class ShopPanelHandler implements IPanelHandler {
             const shopConfig = getShopConfig();
             const category = shopConfig.categories[categoryName];
             if (category) {
-                const subCategories = Object.keys(category.subCategories).sort();
+                const subCategories = Object.keys(category.subCategories).toSorted();
                 const shopItems = Object.keys(category.items);
 
                 const allEntries: ShopEntry[] = [

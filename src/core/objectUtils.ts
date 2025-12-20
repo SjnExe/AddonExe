@@ -119,12 +119,15 @@ export function getValueFromPath(obj: unknown, path: string): unknown {
     if (!path) {
         return obj;
     }
-    return path.split('.').reduce<unknown>((current, key) => {
+    let current = obj;
+    for (const key of path.split('.')) {
         if (current && typeof current === 'object' && key in current) {
-            return (current as Record<string, unknown>)[key];
+            current = (current as Record<string, unknown>)[key];
+        } else {
+            return undefined;
         }
-        return;
-    }, obj);
+    }
+    return current;
 }
 
 /**
@@ -140,13 +143,13 @@ export function setValueByPath(obj: unknown, path: string, value: unknown): void
     if (!lastKey || !isObject(obj)) {
         return;
     }
-    const lastObj = keys.reduce<Record<string, unknown>>((current, key) => {
-        const record = current;
-        if (!record[key]) {
-            record[key] = {};
+    let lastObj = obj;
+    for (const key of keys) {
+        if (!lastObj[key]) {
+            lastObj[key] = {};
         }
-        return record[key] as Record<string, unknown>;
-    }, obj);
+        lastObj = lastObj[key] as Record<string, unknown>;
+    }
     lastObj[lastKey] = value;
 }
 
@@ -396,7 +399,7 @@ export function mergeRanks(
         if (r && r['id']) fileRankIndexMap.set(r['id'], index);
     }
 
-    finalRanks.sort((a, b) => {
+    return finalRanks.toSorted((a, b) => {
         const aId = a['id'];
         const bId = b['id'];
 
@@ -408,8 +411,6 @@ export function mergeRanks(
         }
         return aIndex - bIndex;
     });
-
-    return finalRanks;
 }
 
 /**

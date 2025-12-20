@@ -24,7 +24,7 @@ export class CommandPanelHandler implements IPanelHandler {
         if (panelId === 'commandSystemPanel') {
             addBackButton(items, 'configCategoryPanel');
 
-            const commands = [...commandManager.commands.values()].sort((a, b) => a.name.localeCompare(b.name));
+            const commands = [...commandManager.commands.values()].toSorted((a, b) => a.name.localeCompare(b.name));
 
             const config = getConfig() as unknown as MainConfig;
             const settings = (config.commandSettings || {}) as Record<string, CmdSettings>;

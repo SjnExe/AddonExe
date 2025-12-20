@@ -419,7 +419,7 @@ export function getListings(
     }
 
     // Sort
-    all.sort((a, b) => {
+    all = all.toSorted((a, b) => {
         switch (sort) {
             case SortOption.PriceAsc: {
                 return a.price - b.price;

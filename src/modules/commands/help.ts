@@ -40,7 +40,7 @@ const CATEGORY_ORDER = [
 
 function getSortedCategories(availableCategories: string[]): string[] {
     const sorted = [...availableCategories];
-    sorted.sort((a, b) => {
+    sorted.toSorted((a, b) => {
         const idxA = CATEGORY_ORDER.indexOf(a);
         const idxB = CATEGORY_ORDER.indexOf(b);
         if (idxA !== -1 && idxB !== -1) return idxA - idxB;
@@ -149,7 +149,7 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
         const commands = allCategories.get(categoryName) || [];
         const visibleCmds = commands
             .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && !c.hidden)
-            .sort((a, b) => a.name.localeCompare(b.name));
+            .toSorted((a, b) => a.name.localeCompare(b.name));
 
         if (visibleCmds.length > 0) {
             helpMessage += `\n§l§e--- ${categoryName} ---§r`;
@@ -208,7 +208,7 @@ async function showUICategory(player: mc.Player, category: string, userPermissio
     const cmds = getCategorizedCommands().get(category) || [];
     const visibleCmds = cmds
         .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && !c.hidden)
-        .sort((a, b) => a.name.localeCompare(b.name));
+        .toSorted((a, b) => a.name.localeCompare(b.name));
 
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
 
