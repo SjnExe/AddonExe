@@ -30,7 +30,7 @@ export interface TeamData {
     admins: string[];
     members: string[]; // Includes owner and admins
     createdDate: number;
-    home: HomeLocation | null;
+    home: HomeLocation | undefined;
     applications: TeamApplication[];
     balance: number;
     open: boolean;
@@ -56,8 +56,8 @@ function* loadTeamsJob(allIds: number[]) {
                 activeTeams.set(id, team);
                 loadedCount++;
             }
-        } catch (e) {
-            errorLog(`[TeamManager] Error loading team ${id}: ${String(e)}`);
+        } catch (error) {
+            errorLog(`[TeamManager] Error loading team ${id}: ${String(error)}`);
         }
         // Yield every 20 teams to prevent lag
         if (i % 20 === 0) yield;
@@ -99,11 +99,11 @@ export function initialize() {
         mc.system.runJob(loadTeamsJob(allIds));
 
         panelRouter.register(new TeamPanelHandler());
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            errorLog(`[TeamManager] Failed to initialize: ${e.stack}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[TeamManager] Failed to initialize: ${error.stack}`);
         } else {
-            errorLog(`[TeamManager] Failed to initialize: ${String(e)}`);
+            errorLog(`[TeamManager] Failed to initialize: ${String(error)}`);
         }
     }
 }
@@ -115,11 +115,11 @@ function saveTeam(teamId: number) {
     }
     try {
         mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`, JSON.stringify(team));
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            errorLog(`[TeamManager] Failed to save team ${teamId}: ${e.stack}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[TeamManager] Failed to save team ${teamId}: ${error.stack}`);
         } else {
-            errorLog(`[TeamManager] Failed to save team ${teamId}: ${String(e)}`);
+            errorLog(`[TeamManager] Failed to save team ${teamId}: ${String(error)}`);
         }
     }
 }
@@ -195,7 +195,7 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         admins: [],
         members: [player.id],
         createdDate: Date.now(),
-        home: null,
+        home: undefined,
         applications: [],
         balance: 0,
         open: true
@@ -222,11 +222,11 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         saveNextTeamId();
         // Update player data last
         setPlayerTeam(player.id, newTeamId);
-    } catch (e) {
+    } catch (error) {
         // Rollback
         incrementPlayerBalance(player.id, cost);
         activeTeams.delete(newTeamId);
-        errorLog(`[TeamManager] Failed to create team, rolled back. Error: ${String(e)}`);
+        errorLog(`[TeamManager] Failed to create team, rolled back. Error: ${String(error)}`);
         return { success: false, message: '§cFailed to create team due to storage error. Funds refunded.' };
     }
 
@@ -246,7 +246,7 @@ export function deleteTeam(teamId: number): boolean {
 
     // Remove all members
     for (const memberId of team.members) {
-        setPlayerTeam(memberId, null);
+        setPlayerTeam(memberId, undefined);
         const p = mc.world.getAllPlayers().find((pl) => pl.id === memberId);
         if (p) {
             p.sendMessage('§cYour team has been deleted by the owner.');
@@ -255,7 +255,7 @@ export function deleteTeam(teamId: number): boolean {
 
     activeTeams.delete(teamId);
     // Clean up storage
-    mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`, undefined); // undefined or null deletes property
+    mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`, undefined); // undefined or undefined deletes property
     saveAllTeamIds();
 
     return true;
@@ -269,22 +269,22 @@ export function getAllTeams(): TeamData[] {
     return [...activeTeams.values()];
 }
 
-export function getPlayerTeamId(playerId: string): number | null {
+export function getPlayerTeamId(playerId: string): number | undefined {
     const pData = getPlayer(playerId);
-    return pData?.teamId ?? null;
+    return pData?.teamId ?? undefined;
 }
 
-export function getTeamByPlayer(playerId: string): TeamData | null {
+export function getTeamByPlayer(playerId: string): TeamData | undefined {
     const teamId = getPlayerTeamId(playerId);
-    return teamId ? activeTeams.get(teamId) || null : null;
+    return teamId ? activeTeams.get(teamId) || undefined : undefined;
 }
 
 /**
  * Helper to update player data with team ID.
  * @param playerId The player ID.
- * @param teamId The team ID or null to remove.
+ * @param teamId The team ID or undefined to remove.
  */
-export function setPlayerTeam(playerId: string, teamId: number | null) {
+export function setPlayerTeam(playerId: string, teamId: number | undefined) {
     updatePlayerData(playerId, (data) => {
         data.teamId = teamId;
     });
@@ -305,7 +305,7 @@ export function kickMember(teamId: number, targetId: string): ActionResult {
     team.members = team.members.filter((id) => id !== targetId);
     team.admins = team.admins.filter((id) => id !== targetId);
 
-    setPlayerTeam(targetId, null);
+    setPlayerTeam(targetId, undefined);
     saveTeam(teamId);
 
     return { success: true, message: 'Player kicked.' };
@@ -563,7 +563,7 @@ export function deleteTeamHome(teamId: number): ActionResult {
     if (!team) {
         return { success: false };
     }
-    team.home = null;
+    team.home = undefined;
     saveTeam(teamId);
     return { success: true, message: '§aTeam home deleted!' };
 }

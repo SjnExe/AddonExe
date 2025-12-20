@@ -62,21 +62,24 @@ export class KitPanelHandler implements IPanelHandler {
             addBack('configCategoryPanel');
             const mainConfig = getConfig();
             const isEnabled = mainConfig.kits.enabled;
-            items.push({
-                id: 'toggleKits',
-                text: isEnabled ? '§2Kit System: ENABLED' : '§4Kit System: DISABLED',
-                icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'toggleKits'
-            }, {
-                id: 'createKit',
-                text: '§l§2+ Create New Kit',
-                icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'createKit'
-            });
+            items.push(
+                {
+                    id: 'toggleKits',
+                    text: isEnabled ? '§2Kit System: ENABLED' : '§4Kit System: DISABLED',
+                    icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'toggleKits'
+                },
+                {
+                    id: 'createKit',
+                    text: '§l§2+ Create New Kit',
+                    icon: 'textures/ui/color_plus',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'createKit'
+                }
+            );
 
             const allKits = kitAdminManager.getAllKits();
             const kitNames = Object.keys(allKits);
@@ -100,49 +103,56 @@ export class KitPanelHandler implements IPanelHandler {
         if (panelId.startsWith('kitActionMenu_')) {
             const kitName = panelId.replace('kitActionMenu_', '');
             addBack('kitManagementPanel');
-            items.push({
-                id: 'editSettings',
-                text: 'Edit Settings',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: `kitSettingsPanel_${kitName}`
-            }, {
-                id: 'editItems',
-                text: 'Edit Items',
-                icon: 'textures/ui/inventory_icon',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: `kitItemsPanel_${kitName}`
-            }, {
-                id: 'deleteKit',
-                text: '§4Delete Kit',
-                icon: 'textures/ui/cancel',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'deleteKit'
-            });
+            items.push(
+                {
+                    id: 'editSettings',
+                    text: 'Edit Settings',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: `kitSettingsPanel_${kitName}`
+                },
+                {
+                    id: 'editItems',
+                    text: 'Edit Items',
+                    icon: 'textures/ui/inventory_icon',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: `kitItemsPanel_${kitName}`
+                },
+                {
+                    id: 'deleteKit',
+                    text: '§4Delete Kit',
+                    icon: 'textures/ui/cancel',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'deleteKit'
+                }
+            );
             return items;
         }
 
         if (panelId.startsWith('kitItemsPanel_')) {
             const kitName = panelId.replace('kitItemsPanel_', '');
             addBack(`kitActionMenu_${kitName}`);
-            items.push({
-                id: 'addItem',
-                text: '§l§2+ Add New Item (Manual)',
-                icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'addKitItem'
-            }, {
-                id: 'addItemHand',
-                text: '§l§6+ Add Item From Hand',
-                icon: 'textures/ui/inventory_icon',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'addKitItemHand'
-            });
+            items.push(
+                {
+                    id: 'addItem',
+                    text: '§l§2+ Add New Item (Manual)',
+                    icon: 'textures/ui/color_plus',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'addKitItem'
+                },
+                {
+                    id: 'addItemHand',
+                    text: '§l§6+ Add Item From Hand',
+                    icon: 'textures/ui/inventory_icon',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'addKitItemHand'
+                }
+            );
 
             const allKits = kitAdminManager.getAllKits();
             const kit = allKits[kitName];
@@ -167,13 +177,13 @@ export class KitPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
         await Promise.resolve();
         if (panelId.startsWith('kitSettingsPanel_')) {
             const kitName = panelId.replace('kitSettingsPanel_', '');
             const kitsConfig = kitAdminManager.getAllKits();
             const kit = kitsConfig[kitName];
-            if (!kit) return null;
+            if (!kit) return undefined;
             return new ModalFormData()
                 .title(`Edit Kit: ${kitName}`)
                 .toggle('Enabled', { defaultValue: kit.enabled })
@@ -184,7 +194,7 @@ export class KitPanelHandler implements IPanelHandler {
                 .textField('Permission', 'Level', { defaultValue: String(kit.permissionLevel) })
                 .textField('Price', 'Price', { defaultValue: String(kit.price || 0) });
         }
-        return null;
+        return undefined;
     }
 
     async handleResponse(
@@ -265,7 +275,7 @@ export class KitPanelHandler implements IPanelHandler {
                     if (!res.canceled && res.formValues) {
                         const [typeId, amountStr] = res.formValues as [string, string];
                         const amount = Number.parseInt(amountStr);
-                        if (typeId && !isNaN(amount)) {
+                        if (typeId && !Number.isNaN(amount)) {
                             const result = kitItemsManager.addItemToKit(kitName, { typeId, amount });
                             player.sendMessage(result.message);
                         }

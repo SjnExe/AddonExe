@@ -201,7 +201,7 @@ export function getVisibleCategories(pData: PlayerData): SystemItem[] {
         if (sys.category) categories.add(sys.category);
     }
 
-    const sortedCategories = [...categories].sort();
+    const sortedCategories = [...categories].toSorted();
 
     // Add "Reset" category if Owner
     if (pData.permissionLevel === 0) {
@@ -227,5 +227,5 @@ export function getSystemsByCategory(pData: PlayerData, category: string): Syste
             title: sys.title,
             icon: sys.icon
         }))
-        .sort((a, b) => a.title.replaceAll(/§./g, '').localeCompare(b.title.replaceAll(/§./g, '')));
+        .toSorted((a, b) => a.title.replaceAll(/§./g, '').localeCompare(b.title.replaceAll(/§./g, '')));
 }

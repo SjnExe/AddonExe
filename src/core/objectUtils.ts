@@ -11,8 +11,8 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
         return true;
     }
 
-    // Different types or null objects are not equal.
-    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+    // Different types or undefined objects are not equal.
+    if (typeof a !== 'object' || a === undefined || typeof b !== 'object' || b === undefined) {
         return false;
     }
 
@@ -119,12 +119,15 @@ export function getValueFromPath(obj: unknown, path: string): unknown {
     if (!path) {
         return obj;
     }
-    return path.split('.').reduce<unknown>((current, key) => {
+    let current = obj;
+    for (const key of path.split('.')) {
         if (current && typeof current === 'object' && key in current) {
-            return (current as Record<string, unknown>)[key];
+            current = (current as Record<string, unknown>)[key];
+        } else {
+            return undefined;
         }
-        return;
-    }, obj);
+    }
+    return current;
 }
 
 /**
@@ -140,13 +143,13 @@ export function setValueByPath(obj: unknown, path: string, value: unknown): void
     if (!lastKey || !isObject(obj)) {
         return;
     }
-    const lastObj = keys.reduce<Record<string, unknown>>((current, key) => {
-        const record = current;
-        if (!record[key]) {
-            record[key] = {};
+    let lastObj = obj;
+    for (const key of keys) {
+        if (!lastObj[key]) {
+            lastObj[key] = {};
         }
-        return record[key] as Record<string, unknown>;
-    }, obj);
+        lastObj = lastObj[key] as Record<string, unknown>;
+    }
     lastObj[lastKey] = value;
 }
 
@@ -209,7 +212,7 @@ function getFinalValue(newDefaultValue: unknown, userSavedValue: unknown, userHa
 export function reconcileConfig(
     newDefault: Record<string, unknown>,
     oldDefault: Record<string, unknown>,
-    userSaved: Record<string, unknown> | null
+    userSaved: Record<string, unknown> | undefined
 ): Record<string, unknown> {
     const finalConfig: Record<string, unknown> = {};
 
@@ -305,7 +308,7 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
     }
 
     const result = (
-        Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj as object) as object | null)
+        Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj as object) as object | undefined)
     ) as T;
 
     hash.set(obj as object, result);
@@ -396,7 +399,7 @@ export function mergeRanks(
         if (r && r['id']) fileRankIndexMap.set(r['id'], index);
     }
 
-    finalRanks.sort((a, b) => {
+    return finalRanks.toSorted((a, b) => {
         const aId = a['id'];
         const bId = b['id'];
 
@@ -408,8 +411,6 @@ export function mergeRanks(
         }
         return aIndex - bIndex;
     });
-
-    return finalRanks;
 }
 
 /**
@@ -450,12 +451,10 @@ export function mergeObjectMaps(
 
             if (fileDidChange) {
                 // If the item is a nested object, recurse. Otherwise, just apply the file value.
-                if (isObject(userValue) && isObject(fileValue) && isObject(lastValue)) {
-                    finalConfig[key] = mergeObjectMaps(userValue, fileValue, lastValue);
-                } else {
-                    // The file value takes precedence for this property.
-                    finalConfig[key] = deepClone(fileValue);
-                }
+                finalConfig[key] =
+                    isObject(userValue) && isObject(fileValue) && isObject(lastValue)
+                        ? mergeObjectMaps(userValue, fileValue, lastValue)
+                        : deepClone(fileValue);
             }
             // If fileDidChange is false, we do nothing, preserving the userValue that's already in finalConfig.
         }

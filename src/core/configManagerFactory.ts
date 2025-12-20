@@ -26,7 +26,7 @@ export default function createConfigManager<T>(
     key: string,
     defaultConfig: T,
     name: string,
-    wrapperKey: string | null = null
+    wrapperKey: string | undefined = undefined
 ): ConfigManager<T> {
     const lastLoadedKey = `${key}:last_loaded`;
 
@@ -39,13 +39,13 @@ export default function createConfigManager<T>(
     const lastLoadedStorage = new StorageManager(lastLoadedKey);
 
     let currentConfig = deepClone(initialDefaultConfig);
-    let lastLoadedConfig: T | null = null;
+    let lastLoadedConfig: T | undefined = undefined;
 
     function saveLastLoadedConfig() {
         try {
             lastLoadedStorage.save(lastLoadedConfig);
-        } catch (e) {
-            errorLog(`[${name}ConfigManager] Failed to save last loaded config.`, e);
+        } catch (error) {
+            errorLog(`[${name}ConfigManager] Failed to save last loaded config.`, error);
         }
     }
 
@@ -79,38 +79,39 @@ export default function createConfigManager<T>(
                 debugLog(`[${name}ConfigManager] Found last-loaded config. Proceeding with reconciliation.`);
 
                 switch (name) {
-                case 'Main': {
-                    currentConfig = reconcileConfig(
-                        newDefaultConfig as unknown as Record<string, unknown>,
-                        lastLoadedConfigForMerge,
-                        userSavedConfig
-                    ) as unknown as T;
+                    case 'Main': {
+                        currentConfig = reconcileConfig(
+                            newDefaultConfig as unknown as Record<string, unknown>,
+                            lastLoadedConfigForMerge,
+                            userSavedConfig
+                        ) as unknown as T;
 
-                break;
-                }
-                case 'Ranks': {
-                    const mergedRanks = mergeRanks(
-                        userSavedConfig.rankDefinitions as Record<string, unknown>[],
-                        (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] }).rankDefinitions,
-                        (lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]) || []
-                    );
-                    currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
+                        break;
+                    }
+                    case 'Ranks': {
+                        const mergedRanks = mergeRanks(
+                            userSavedConfig.rankDefinitions as Record<string, unknown>[],
+                            (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] })
+                                .rankDefinitions,
+                            (lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]) || []
+                        );
+                        currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
 
-                break;
-                }
-                case 'Kits':
-                case 'Shop': {
-                    currentConfig = mergeObjectMaps(
-                        userSavedConfig,
-                        newDefaultConfig as unknown as Record<string, unknown>,
-                        lastLoadedConfigForMerge || {}
-                    ) as unknown as T;
+                        break;
+                    }
+                    case 'Kits':
+                    case 'Shop': {
+                        currentConfig = mergeObjectMaps(
+                            userSavedConfig,
+                            newDefaultConfig as unknown as Record<string, unknown>,
+                            lastLoadedConfigForMerge || {}
+                        ) as unknown as T;
 
-                break;
-                }
-                default: {
-                    currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
-                }
+                        break;
+                    }
+                    default: {
+                        currentConfig = deepMerge(newDefaultConfig, userSavedConfig) as T;
+                    }
                 }
             } else {
                 if (!isMigration) {
@@ -146,8 +147,8 @@ export default function createConfigManager<T>(
     function saveConfig() {
         try {
             configStorage.save(currentConfig);
-        } catch (e) {
-            errorLog(`[${name}ConfigManager] Failed to save current config.`, e);
+        } catch (error) {
+            errorLog(`[${name}ConfigManager] Failed to save current config.`, error);
         }
     }
 

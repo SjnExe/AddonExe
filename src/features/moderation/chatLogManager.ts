@@ -90,7 +90,8 @@ export function getChatLogs(date?: string): ChatLog[] {
 }
 
 export function getAvailableDates(): string[] {
-    return [...availableDates].sort().reverse(); // Newest first
+    const dates = indexStorage.load<string[]>() || [];
+    return [...dates].toSorted().toReversed(); // Newest first
 }
 
 function pruneOldLogs() {
@@ -104,7 +105,7 @@ function pruneOldLogs() {
 
     for (const dateStr of availableDates) {
         const date = new Date(dateStr);
-        if (isNaN(date.getTime())) continue;
+        if (Number.isNaN(date.getTime())) continue;
 
         // If the date is older than the limit
         if (now - date.getTime() > limit) {

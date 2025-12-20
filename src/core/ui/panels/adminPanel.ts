@@ -29,21 +29,24 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextListPanel') {
             addBackButton(items, 'adminPanel');
-            items.push({
-                id: 'placeholderList',
-                text: '§l§6View Placeholders',
-                icon: 'textures/ui/icon_sign',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'placeholderListPanel'
-            }, {
-                id: 'create',
-                text: '§l§2+ Create New',
-                icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'floatingTextCreatePanel'
-            });
+            items.push(
+                {
+                    id: 'placeholderList',
+                    text: '§l§6View Placeholders',
+                    icon: 'textures/ui/icon_sign',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'placeholderListPanel'
+                },
+                {
+                    id: 'create',
+                    text: '§l§2+ Create New',
+                    icon: 'textures/ui/color_plus',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'floatingTextCreatePanel'
+                }
+            );
 
             const texts = floatingTextManager.getAllTexts();
             for (const text of texts) {
@@ -61,42 +64,47 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextActionPanel') {
             addBackButton(items, 'floatingTextListPanel');
-            items.push({
-                id: 'edit',
-                text: 'Edit Settings',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'floatingTextEditPanel'
-            }, {
-                id: 'respawn',
-                text: 'Respawn Entity',
-                icon: 'textures/ui/refresh_light',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'respawnText'
-            }, {
-                id: 'despawn',
-                text: 'Despawn Entity',
-                icon: 'textures/ui/cancel',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'despawnText'
-            }, {
-                id: 'delete',
-                text: '§4Delete Text',
-                icon: 'textures/ui/trash',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'deleteText'
-            });
+            items.push(
+                {
+                    id: 'edit',
+                    text: 'Edit Settings',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'floatingTextEditPanel'
+                },
+                {
+                    id: 'respawn',
+                    text: 'Respawn Entity',
+                    icon: 'textures/ui/refresh_light',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'respawnText'
+                },
+                {
+                    id: 'despawn',
+                    text: 'Despawn Entity',
+                    icon: 'textures/ui/cancel',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'despawnText'
+                },
+                {
+                    id: 'delete',
+                    text: '§4Delete Text',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'deleteText'
+                }
+            );
             return Promise.resolve(items);
         }
 
         return Promise.resolve(items);
     }
 
-    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined> {
         if (panelId === 'floatingTextCreatePanel') {
             return Promise.resolve(
                 new ModalFormData()
@@ -108,10 +116,10 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextEditPanel') {
             const id = (context.id || context.selectedItemId) as string;
-            if (!id) return Promise.resolve(null);
+            if (!id) return Promise.resolve(undefined);
             const text = floatingTextManager.getTextById(id);
-            if (!text) return Promise.resolve(null);
-            const expiresAt = text.expiresAt ?? null;
+            if (!text) return Promise.resolve(undefined);
+            const expiresAt = text.expiresAt ?? undefined;
             const updateInterval = text.updateInterval ?? 0;
             const dimensionOptions = ['Overworld', 'Nether', 'The End'];
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
@@ -131,7 +139,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     })
             );
         }
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     async handleResponse(
@@ -172,7 +180,7 @@ export class AdminPanelHandler implements IPanelHandler {
                 expiresAt:
                     useExpiration && Number(expirationMinutes) > 0
                         ? Date.now() + Number(expirationMinutes) * 60_000
-                        : null
+                        : undefined
             };
             floatingTextManager.updateText(id, updatedConfig);
             player.sendMessage(`§2Successfully updated floating text: ${id}`);

@@ -17,7 +17,7 @@ export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: n
             }
             return permissionLevel <= item.permissionLevel;
         })
-        .sort((a: PanelItem, b: PanelItem) => (a.sortId || 0) - (b.sortId || 0));
+        .toSorted((a: PanelItem, b: PanelItem) => (a.sortId || 0) - (b.sortId || 0));
 
     // Create a copy to avoid mutating the registry
     const resultItems: PanelItem[] = items.map((i) => ({ ...i }));
@@ -39,7 +39,7 @@ export async function buildPanelForm(
     player: mc.Player,
     panelId: string,
     context: UIContext
-): Promise<ActionFormData | ModalFormData | null> {
+): Promise<ActionFormData | ModalFormData | undefined> {
     try {
         // 1. Check Panel Router (Modular System)
         const handler = panelRouter.getHandler(panelId);
@@ -56,10 +56,10 @@ export async function buildPanelForm(
             }
         }
 
-        return null;
-    } catch (e) {
-        errorLog(`[UIManager] Error building panel ${panelId}`, e);
-        return null;
+        return undefined;
+    } catch (error) {
+        errorLog(`[UIManager] Error building panel ${panelId}`, error);
+        return undefined;
     }
 }
 
@@ -78,8 +78,8 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
             if (dynamicTitle) {
                 title = dynamicTitle;
             }
-        } catch (e) {
-            errorLog(`[UIManager] Error getting title for panel ${panelId}`, e);
+        } catch (error) {
+            errorLog(`[UIManager] Error getting title for panel ${panelId}`, error);
         }
     }
 
@@ -90,8 +90,7 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
         const targetId = (context.targetPlayerId || context.selectedItemId) as string;
         if (targetId) {
             const onlinePlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
-            let pData;
-            pData = onlinePlayer ? getOrCreatePlayer(onlinePlayer) : loadPlayerData(targetId);
+            const pData = onlinePlayer ? getOrCreatePlayer(onlinePlayer) : loadPlayerData(targetId);
 
             if (pData) title = title.replace('{playerName}', pData.name);
         }
@@ -106,8 +105,8 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
             if (bodyText) {
                 form.body(bodyText);
             }
-        } catch (e) {
-            errorLog(`[UIManager] Error getting body for panel ${panelId}`, e);
+        } catch (error) {
+            errorLog(`[UIManager] Error getting body for panel ${panelId}`, error);
         }
     }
 

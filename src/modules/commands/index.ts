@@ -112,7 +112,9 @@ export function loadCommands() {
 
     for (const cmdModule of commands) {
         if (Array.isArray(cmdModule)) {
-            for (const cmd of cmdModule) commandManager.register(cmd);
+            for (const cmd of cmdModule) {
+                commandManager.register(cmd);
+            }
         } else if (cmdModule) {
             commandManager.register(cmdModule);
         }

@@ -53,8 +53,8 @@ export interface PanelItem {
 export interface PanelDefinition {
     /** The title of the panel. */
     title: string;
-    /** The ID of the parent panel for back navigation. null for top-level panels. */
-    parentPanelId: string | null;
+    /** The ID of the parent panel for back navigation. undefined for top-level panels. */
+    parentPanelId: string | undefined;
     /** The buttons to display on this panel. */
     items: PanelItem[];
 }
@@ -66,7 +66,7 @@ export type UIContext = Record<string, unknown>;
 export const panelDefinitions: Record<string, PanelDefinition> = {
     mainPanel: {
         title: 'Main Menu',
-        parentPanelId: null,
+        parentPanelId: undefined,
         items: [
             {
                 id: 'gameplay',
@@ -859,7 +859,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     placeholderListPanel: {
         title: 'Placeholder List',
-        parentPanelId: null, // Dynamic
+        parentPanelId: undefined, // Dynamic
         items: [] // Body text
     }
 };

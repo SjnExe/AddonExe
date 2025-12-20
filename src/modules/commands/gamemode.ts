@@ -46,7 +46,7 @@ function setGamemode(executor: CommandExecutor, gamemode: string, targets?: mc.P
 
     const gamemodeName = gamemodeNames.get(gameModeValue);
     const announcer = executor instanceof mc.Player ? executor.name : 'Console';
-    const executorData = executor instanceof mc.Player ? getPlayer(executor.id) : null;
+    const executorData = executor instanceof mc.Player ? getPlayer(executor.id) : undefined;
 
     let successCount = 0;
 
@@ -67,9 +67,9 @@ function setGamemode(executor: CommandExecutor, gamemode: string, targets?: mc.P
             targetPlayer.setGameMode(gameModeValue);
             sendMessage(`§aYour gamemode was set to §e${gamemodeName}§a by §e${announcer}§a.`, targetPlayer);
             successCount++;
-        } catch (e: unknown) {
-            if (e instanceof Error) {
-                errorLog(`[/gamemode] Failed to set gamemode for ${targetPlayer.name}: ${e.stack}`);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                errorLog(`[/gamemode] Failed to set gamemode for ${targetPlayer.name}: ${error.stack}`);
             }
         }
     }

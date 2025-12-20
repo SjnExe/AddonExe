@@ -34,11 +34,11 @@ export function loadBounties() {
         } else {
             debugLog('[BountyManager] No bounty data found in storage. Starting fresh.');
         }
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            errorLog(`[BountyManager] Failed to load bounty data: ${e.stack}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[BountyManager] Failed to load bounty data: ${error.stack}`);
         } else {
-            errorLog(`[BountyManager] Failed to load bounty data: ${String(e)}`);
+            errorLog(`[BountyManager] Failed to load bounty data: ${String(error)}`);
         }
         activeBounties = new Map(); // Start with a clean slate on error
     }
@@ -52,11 +52,11 @@ export function saveBounties() {
         const dataToSave = [...activeBounties.entries()];
         storage.save(dataToSave);
         debugLog('[BountyManager] Saved active bounty data.');
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            errorLog(`[BountyManager] Failed to save bounty data: ${e.stack}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[BountyManager] Failed to save bounty data: ${error.stack}`);
         } else {
-            errorLog(`[BountyManager] Failed to save bounty data: ${String(e)}`);
+            errorLog(`[BountyManager] Failed to save bounty data: ${String(error)}`);
         }
     }
 }

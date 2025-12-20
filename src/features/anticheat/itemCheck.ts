@@ -16,8 +16,8 @@ export function startItemCheckLoop() {
                     checkInventory(player, config.itemCheck);
                 }
             }
-        } catch (e) {
-            errorLog('Anticheat Item Loop Error', e);
+        } catch (error) {
+            errorLog('Anticheat Item Loop Error', error);
         }
     }, 100); // Check every 5 seconds
 }
@@ -75,7 +75,7 @@ function checkInventory(player: mc.Player, config: ItemCheckConfig) {
             }
 
             // Check banned items
-            // If item was removed by enchant check, item is null/undefined now? No, we need to check existence if we continue logic.
+            // If item was removed by enchant check, item is undefined/undefined now? No, we need to check existence if we continue logic.
             // But we used 'break' above.
             // However, we should check `item` typeId again if we didn't break.
             // Actually, best to check existence again or use continue.

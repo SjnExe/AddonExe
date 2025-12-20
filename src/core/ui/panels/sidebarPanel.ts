@@ -20,7 +20,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         );
     }
 
-    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | null> {
+    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined> {
         if (panelId === 'placeholderListPanel') {
             return Promise.resolve(
                 `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
@@ -29,7 +29,7 @@ export class SidebarPanelHandler implements IPanelHandler {
                     `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
             );
         }
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
@@ -75,42 +75,47 @@ export class SidebarPanelHandler implements IPanelHandler {
         if (panelId === 'sidebarLineActionPanel' || panelId === 'actionBarLineActionPanel') {
             const isSidebar = panelId === 'sidebarLineActionPanel';
             addBackButton(items, isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel');
-            items.push({
-                id: 'edit',
-                text: 'Edit',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'editLine'
-            }, {
-                id: 'moveUp',
-                text: 'Move Up',
-                icon: 'textures/gui/controls/up',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'moveUp'
-            }, {
-                id: 'moveDown',
-                text: 'Move Down',
-                icon: 'textures/gui/controls/down',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'moveDown'
-            }, {
-                id: 'delete',
-                text: 'Delete',
-                icon: 'textures/ui/trash',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'deleteLine'
-            });
+            items.push(
+                {
+                    id: 'edit',
+                    text: 'Edit',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'editLine'
+                },
+                {
+                    id: 'moveUp',
+                    text: 'Move Up',
+                    icon: 'textures/gui/controls/up',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'moveUp'
+                },
+                {
+                    id: 'moveDown',
+                    text: 'Move Down',
+                    icon: 'textures/gui/controls/down',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'moveDown'
+                },
+                {
+                    id: 'delete',
+                    text: 'Delete',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'deleteLine'
+                }
+            );
             return Promise.resolve(items);
         }
 
         return Promise.resolve(items);
     }
 
-    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined> {
         if (panelId === 'sidebarLineEditPanel') {
             const config = getSidebarConfig();
             const lines = config.sidebarLines;
@@ -140,7 +145,7 @@ export class SidebarPanelHandler implements IPanelHandler {
                 new ModalFormData().title('Add Line').textField('Content', 'Supports {money}, {name}, etc.')
             );
         }
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     async handleResponse(

@@ -65,7 +65,14 @@ const command: CustomCommand = {
                 const x3 = coords3[0];
                 const y3 = coords3[1];
                 const z3 = coords3[2];
-                if (x3 === undefined || y3 === undefined || z3 === undefined || isNaN(x3) || isNaN(y3) || isNaN(z3)) {
+                if (
+                    x3 === undefined ||
+                    y3 === undefined ||
+                    z3 === undefined ||
+                    Number.isNaN(x3) ||
+                    Number.isNaN(y3) ||
+                    Number.isNaN(z3)
+                ) {
                     sendMessage('§cInvalid coordinates provided.', executor);
                     return;
                 }
@@ -87,7 +94,14 @@ const command: CustomCommand = {
                 const x4 = coords4[0];
                 const y4 = coords4[1];
                 const z4 = coords4[2];
-                if (x4 === undefined || y4 === undefined || z4 === undefined || isNaN(x4) || isNaN(y4) || isNaN(z4)) {
+                if (
+                    x4 === undefined ||
+                    y4 === undefined ||
+                    z4 === undefined ||
+                    Number.isNaN(x4) ||
+                    Number.isNaN(y4) ||
+                    Number.isNaN(z4)
+                ) {
                     sendMessage('§cInvalid coordinates provided.', executor);
                     return;
                 }

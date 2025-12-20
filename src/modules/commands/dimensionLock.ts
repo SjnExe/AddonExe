@@ -19,9 +19,7 @@ interface LockCommandArgs {
 function createLockCommandExecute(dimension: Dimension): (executor: CommandExecutor, args: LockCommandArgs) => void {
     return (executor, args) => {
         const currentState = getLockState(dimension);
-        let newState: boolean;
-
-        newState = typeof args.isLocked === 'boolean' ? args.isLocked : !currentState;
+        const newState: boolean = typeof args.isLocked === 'boolean' ? args.isLocked : !currentState;
 
         setLockState(dimension, newState);
 

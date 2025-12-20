@@ -47,7 +47,7 @@ async function main() {
                         // Filter: Must include 'beta', end with '-stable', and NOT include 'preview'
                         const candidates = versions
                             .filter((v) => v.includes('beta') && v.endsWith('-stable') && !v.includes('preview'))
-                            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+                            .toSorted((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
                         let newVersion;
                         if (candidates.length > 0) {
@@ -55,7 +55,7 @@ async function main() {
                             newVersion = candidates.at(-1);
                         } else {
                             // No matching stable beta found, preserve existing version
-                            return null;
+                            return undefined;
                         }
 
                         return { pkg, newVersion };
@@ -63,7 +63,7 @@ async function main() {
                         console.error(
                             `${colors.yellow}Warning: Failed to fetch versions for ${pkg}: ${error.message}${colors.reset}`
                         );
-                        return null;
+                        return undefined;
                     }
                 })
             );
@@ -90,7 +90,7 @@ async function main() {
 
             if (packageJsonUpdated) {
                 const indentation = 4;
-                fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, indentation) + '\n');
+                fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, undefined, indentation) + '\n');
                 updated = true;
             }
         }
@@ -118,10 +118,10 @@ async function main() {
                     console.error(
                         `${colors.yellow}Warning: Failed to fetch latest version for manifest dependency ${dep.module_name}: ${error.message}${colors.reset}`
                     );
-                    return null;
+                    return undefined;
                 }
             }
-            return null;
+            return undefined;
         });
 
         const manifestResults = await Promise.allSettled(manifestPromises);
@@ -139,7 +139,7 @@ async function main() {
 
         if (manifestUpdated) {
             const indentation = 4;
-            fs.writeFileSync(manifestJsonPath, JSON.stringify(manifestJson, null, indentation) + '\n');
+            fs.writeFileSync(manifestJsonPath, JSON.stringify(manifestJson, undefined, indentation) + '\n');
             updated = true;
         }
     } else {
@@ -159,7 +159,7 @@ async function main() {
     }
 }
 
-main().catch((err) => {
-    console.error(`${colors.red}Fatal error updating dependencies: ${err}${colors.reset}`);
+main().catch((error) => {
+    console.error(`${colors.red}Fatal error updating dependencies: ${error}${colors.reset}`);
     process.exit(0);
 });

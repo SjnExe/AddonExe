@@ -14,7 +14,7 @@ export interface Report {
     reportedPlayerName: string;
     reason: string;
     status: 'open' | 'assigned' | 'resolved';
-    assignedAdminId: string | null;
+    assignedAdminId: string | undefined;
     timestamp: number;
 }
 
@@ -48,8 +48,8 @@ export function saveReports(options: { force?: boolean } = {}) {
         storage.save(reports);
         needsSave = false; // Reset flag after saving
         debugLog('[ReportManager] Saved reports to world properties.');
-    } catch (e) {
-        errorLog('[ReportManager] Failed to save reports.', e);
+    } catch (error) {
+        errorLog('[ReportManager] Failed to save reports.', error);
     }
 }
 
@@ -74,7 +74,7 @@ export function createReport(
         reportedPlayerName: reportedPlayerName,
         reason: reason,
         status: 'open',
-        assignedAdminId: null,
+        assignedAdminId: undefined,
         timestamp: Date.now()
     };
     reports.push(report);

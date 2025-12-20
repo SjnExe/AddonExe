@@ -46,13 +46,13 @@ export interface PlayerData {
     balance: number;
     kitCooldowns: Record<string, number>;
     xrayNotificationsEnabled: boolean;
-    lastDeathLocation: HomeLocation | null;
-    lastLocation: HomeLocation | null;
+    lastDeathLocation: HomeLocation | undefined;
+    lastLocation: HomeLocation | undefined;
     deathNotificationSent: boolean;
     tpaRequestsDisabled: boolean;
     tpaBlockedPlayerIds: string[];
     announcementsMuted: boolean;
-    teamId: number | null;
+    teamId: number | undefined;
     teamSettings: { autoTpAccept: boolean };
     pendingInvites: PendingInvite[];
     kills: number;
@@ -88,12 +88,12 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     permissionLevel: 1024,
     balance: 0,
     xrayNotificationsEnabled: false,
-    lastDeathLocation: null,
-    lastLocation: null,
+    lastDeathLocation: undefined,
+    lastLocation: undefined,
     deathNotificationSent: true,
     tpaRequestsDisabled: false,
     announcementsMuted: false,
-    teamId: null,
+    teamId: undefined,
     teamSettings: { autoTpAccept: false },
     pendingInvites: [],
     kills: 0,
@@ -192,8 +192,8 @@ function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix
             // Delete legacy key immediately to mark migration complete
             mc.world.setDynamicProperty(legacyKey, undefined);
             migrated = true;
-        } catch (e) {
-            errorLog(`[PlayerDataManager] Failed to migrate legacy map ${legacyKey}: ${String(e)}`);
+        } catch (error) {
+            errorLog(`[PlayerDataManager] Failed to migrate legacy map ${legacyKey}: ${String(error)}`);
         }
     }
 
@@ -208,8 +208,8 @@ function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix
             try {
                 const entries = JSON.parse(data) as [string, string][];
                 for (const [k, v] of entries) map.set(k, v);
-            } catch (e) {
-                errorLog(`[PlayerDataManager] Failed to load shard ${shardPrefix}${i}: ${String(e)}`);
+            } catch (error) {
+                errorLog(`[PlayerDataManager] Failed to load shard ${shardPrefix}${i}: ${String(error)}`);
             }
             i++;
         }
@@ -228,8 +228,8 @@ export function saveNameIdMap() {
 
         isNameIdMapDirty = false;
         debugLog('[PlayerDataManager] Saved name-to-ID maps (Sharded).');
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
+    } catch (error: unknown) {
+        const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[PlayerDataManager] Failed to save name-to-ID map: ${stack}`);
     }
 }
@@ -248,8 +248,8 @@ export function loadNameIdMap() {
         debugLog(
             `[PlayerDataManager] Loaded maps. Name->ID: ${playerNameIdMap.size}, ID->Name: ${playerIdNameMap.size}`
         );
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
+    } catch (error: unknown) {
+        const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[PlayerDataManager] Failed to load name-to-ID map: ${stack}`);
     }
 }
@@ -280,8 +280,8 @@ export function savePlayerData(playerId: string) {
             storage.save(playerData);
             playerData.needsSave = false;
         }
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
+    } catch (error: unknown) {
+        const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[PlayerDataManager] Failed to save data for player ${playerId}: ${stack}`);
     }
 }
@@ -289,9 +289,9 @@ export function savePlayerData(playerId: string) {
 /**
  * Loads a single player's data from their unique dynamic property into the cache.
  * @param playerId The ID of the player to load.
- * @returns The loaded player data, or null if not found.
+ * @returns The loaded player data, or undefined if not found.
  */
-export function loadPlayerData(playerId: string): PlayerData | null {
+export function loadPlayerData(playerId: string): PlayerData | undefined {
     // Safe Load: If data is already in memory, return it to avoid overwriting with stale disk data.
     if (activePlayerData.has(playerId)) {
         return activePlayerData.get(playerId)!;
@@ -315,11 +315,11 @@ export function loadPlayerData(playerId: string): PlayerData | null {
             activePlayerData.set(playerId, playerData);
             return playerData;
         }
-    } catch (e: unknown) {
-        const stack = e instanceof Error ? e.stack : String(e);
+    } catch (error: unknown) {
+        const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[PlayerDataManager] Failed to load data for player ${playerId}: ${stack}`);
     }
-    return null;
+    return undefined;
 }
 
 /**
@@ -356,7 +356,7 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
         homes: {},
         kitCooldowns: {},
         tpaBlockedPlayerIds: [],
-        teamId: null,
+        teamId: undefined,
         teamSettings: { autoTpAccept: false },
         pendingInvites: [],
         kills: 0,
@@ -647,7 +647,7 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
     updatePlayerData(playerId, (pData) => {
         // Ensure current balance is treated as a number to prevent string concatenation or NaN issues
         const currentBal = Number(pData.balance);
-        const safeBal = isNaN(currentBal) ? 0 : currentBal;
+        const safeBal = Number.isNaN(currentBal) ? 0 : currentBal;
         const potentialBalance = safeBal + amount;
         const clampedBalance = Math.max(min, Math.min(potentialBalance, max));
         // Strict 2-decimal precision
@@ -672,7 +672,7 @@ export function setPlayerXrayNotifications(playerId: string, status: boolean) {
     });
 }
 
-export function setPlayerLastDeathLocation(playerId: string, location: HomeLocation | null) {
+export function setPlayerLastDeathLocation(playerId: string, location: HomeLocation | undefined) {
     updatePlayerData(playerId, (pData) => {
         pData.lastDeathLocation = location;
         if (location) {
@@ -681,7 +681,7 @@ export function setPlayerLastDeathLocation(playerId: string, location: HomeLocat
     });
 }
 
-export function setPlayerLastLocation(playerId: string, location: HomeLocation | null) {
+export function setPlayerLastLocation(playerId: string, location: HomeLocation | undefined) {
     updatePlayerData(playerId, (pData) => {
         pData.lastLocation = location;
     });
@@ -695,9 +695,9 @@ export function setDeathNotificationSent(playerId: string, status: boolean) {
 
 // --- Economy Specific Logic ---
 
-export function getBalance(playerId: string): number | null {
+export function getBalance(playerId: string): number | undefined {
     const pData = getPlayer(playerId);
-    return pData?.balance ?? null;
+    return pData?.balance ?? undefined;
 }
 
 export function transfer(
@@ -724,7 +724,7 @@ export function transfer(
     const economyConfig = getEconomyConfig();
     const max = economyConfig.maxBalance ?? 1_000_000_000;
     const currentTargetBal = Number(targetData.balance);
-    const safeTargetBal = isNaN(currentTargetBal) ? 0 : currentTargetBal;
+    const safeTargetBal = Number.isNaN(currentTargetBal) ? 0 : currentTargetBal;
 
     if (safeTargetBal + amount > max) {
         return {

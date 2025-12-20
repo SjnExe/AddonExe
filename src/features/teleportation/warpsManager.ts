@@ -60,11 +60,11 @@ export function setWarp(warpName: string, location: mc.Vector3, dimensionId: str
 /**
  * Gets a warp's location.
  * @param warpName The name of the warp.
- * @returns The location of the warp, or null if it doesn't exist.
+ * @returns The location of the warp, or undefined if it doesn't exist.
  */
-export function getWarp(warpName: string): HomeLocation | null {
+export function getWarp(warpName: string): HomeLocation | undefined {
     const warps = getWarps();
-    return warps[warpName.toLowerCase()] || null;
+    return warps[warpName.toLowerCase()] || undefined;
 }
 
 /**

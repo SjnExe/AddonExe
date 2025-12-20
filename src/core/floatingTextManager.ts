@@ -12,7 +12,7 @@ export interface FloatingTextConfig {
     text: string;
     location: mc.Vector3;
     dimension: string;
-    expiresAt: number | null;
+    expiresAt: number | undefined;
     updateInterval?: number; // Ticks
     lastUpdated?: number; // Timestamp
 }
@@ -39,11 +39,11 @@ function loadTexts() {
         } else {
             debugLog('[FloatingText] No floating text data found. Starting fresh.');
         }
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            errorLog(`[FloatingText] Failed to load floating text data: ${e.stack}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[FloatingText] Failed to load floating text data: ${error.stack}`);
         } else {
-            errorLog(`[FloatingText] Failed to load floating text data: ${String(e)}`);
+            errorLog(`[FloatingText] Failed to load floating text data: ${String(error)}`);
         }
         floatingTexts = new Map();
     }
@@ -53,11 +53,11 @@ function saveTexts() {
     try {
         const dataToSave = [...floatingTexts.entries()];
         mc.world.setDynamicProperty(floatingTextDataKey, JSON.stringify(dataToSave));
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            errorLog(`[FloatingText] Failed to save floating text data: ${e.stack}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[FloatingText] Failed to save floating text data: ${error.stack}`);
         } else {
-            errorLog(`[FloatingText] Failed to save floating text data: ${String(e)}`);
+            errorLog(`[FloatingText] Failed to save floating text data: ${String(error)}`);
         }
     }
 }
@@ -144,7 +144,7 @@ function runExpirationLoop() {
     const now = Date.now();
     for (const textConfig of floatingTexts.values()) {
         if (textConfig.expiresAt && now >= textConfig.expiresAt) {
-            void deleteText(null, textConfig.id);
+            void deleteText(undefined, textConfig.id);
         }
     }
     expirationIntervalId = mc.system.runTimeout(runExpirationLoop, 200); // Check every 10 seconds
@@ -193,8 +193,8 @@ function spawnAllTexts() {
                     }
                 }
             }
-        } catch (e) {
-            debugLog(`[FloatingText] Failed to batch query dimension ${dimId}: ${String(e)}`);
+        } catch (error) {
+            debugLog(`[FloatingText] Failed to batch query dimension ${dimId}: ${String(error)}`);
         }
 
         for (const textConfig of texts) {
@@ -279,7 +279,7 @@ async function findEntityWithRetries(
     query: mc.EntityQueryOptions,
     maxRetries = 10,
     delayBetweenRetries = 4
-): Promise<mc.Entity | null> {
+): Promise<mc.Entity | undefined> {
     for (let i = 0; i < maxRetries; i++) {
         const entities = dimension.getEntities(query);
         const entity = entities.length > 0 ? entities[0] : undefined;
@@ -289,7 +289,7 @@ async function findEntityWithRetries(
         await new Promise<void>((resolve) => mc.system.runTimeout(resolve, delayBetweenRetries));
     }
     debugLog(`[FloatingText] Could not find entity for query after ${maxRetries} attempts.`);
-    return null;
+    return undefined;
 }
 
 function getAllTexts(): FloatingTextConfig[] {
@@ -309,7 +309,7 @@ function updateText(id: string, updates: Partial<FloatingTextConfig>) {
 
     const newConfig = { ...oldConfig, ...updates };
     if (updates.expiresAt === undefined && oldConfig.expiresAt === undefined) {
-        newConfig.expiresAt = null;
+        newConfig.expiresAt = undefined;
     } else if (updates.expiresAt !== undefined) {
         newConfig.expiresAt = updates.expiresAt;
     }
@@ -376,8 +376,8 @@ function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                         // but might fail if target is unloaded.
                         entity.teleport(newConfig.location);
                         debugLog(`[FloatingText] Teleported entity for ID: ${id}.`);
-                    } catch (e) {
-                        debugLog(`[FloatingText] Teleport failed for ID: ${id}, respawning. ${String(e)}`);
+                    } catch (error) {
+                        debugLog(`[FloatingText] Teleport failed for ID: ${id}, respawning. ${String(error)}`);
                         despawnText(id);
                         spawnText(newConfig);
                         return;
@@ -389,11 +389,11 @@ function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                     lastResolvedText.set(id, resolved);
                     entity.nameTag = resolved.replaceAll(String.raw`\n`, '\n');
                 }
-            } catch (e: unknown) {
-                if (e instanceof Error) {
-                    errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, e.stack);
+            } catch (error: unknown) {
+                if (error instanceof Error) {
+                    errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, error.stack);
                 } else {
-                    errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, String(e));
+                    errorLog(`[FloatingText] Error during deferred entity update for ID: ${id}.`, String(error));
                 }
                 despawnText(id);
                 spawnText(newConfig);
@@ -417,7 +417,7 @@ function createText(player: mc.Player, id: string, text: string): boolean {
             z: Math.round(player.location.z * 100) / 100
         },
         dimension: player.dimension.id,
-        expiresAt: null
+        expiresAt: undefined
     };
 
     floatingTexts.set(id, newTextConfig);
@@ -462,18 +462,18 @@ function despawnText(id: string) {
         if (found) {
             return;
         }
-    } catch (e: unknown) {
+    } catch (error: unknown) {
         // If specific error handling is needed, check e.
         // But we generally want to fall through to command if direct removal fails
         // (e.g. unloaded chunk, though remove() usually just doesn't find it).
         // The log below helps debugging.
-        if (!String(e).includes('LocationInUnloadedChunkError')) {
-            if (e instanceof Error) {
-                errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, e);
+        if (!String(error).includes('LocationInUnloadedChunkError')) {
+            if (error instanceof Error) {
+                errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, error);
             } else {
                 errorLog(
                     `[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`,
-                    String(e)
+                    String(error)
                 );
             }
         }
@@ -507,7 +507,7 @@ function respawnText(id: string) {
     const textConfig = getTextById(id);
     if (textConfig) {
         if (textConfig.expiresAt) {
-            textConfig.expiresAt = null;
+            textConfig.expiresAt = undefined;
             saveTexts();
         }
         despawnText(id);
@@ -517,7 +517,7 @@ function respawnText(id: string) {
     }
 }
 
-function deleteText(player: mc.Player | null, id: string) {
+function deleteText(player: mc.Player | undefined, id: string) {
     if (!floatingTexts.has(id)) {
         if (player) {
             player.sendMessage(`§cFloating text with ID "${id}" not found.`);

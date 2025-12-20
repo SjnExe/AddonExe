@@ -42,7 +42,7 @@ const conditionEvaluators: Record<string, ConditionEvaluator> = {
  */
 export function reloadRanks() {
     const allRanks = getRanksConfig().rankDefinitions;
-    sortedRanks = [...allRanks].sort((a, b) => a.permissionLevel - b.permissionLevel);
+    sortedRanks = [...allRanks].toSorted((a, b) => a.permissionLevel - b.permissionLevel);
     debugLog(`[RankManager] Reloaded and sorted ${sortedRanks.length} ranks.`);
 }
 
@@ -139,6 +139,7 @@ export function updatePlayerNameTag(player: mc.Player, config: typeof Config) {
                 newNameTag = `${player.name}\n${finalPrefix}`;
                 break;
             }
+            // eslint-disable-next-line unicorn/no-useless-switch-case
             case 'above':
             default: {
                 newNameTag = `${finalPrefix}\n${player.name}`;

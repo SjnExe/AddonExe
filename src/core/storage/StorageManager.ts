@@ -34,8 +34,8 @@ export class StorageManager {
                 mc.world.setDynamicProperty(`${this.dbName}:${nextIndex}`, undefined); // Delete
                 nextIndex++;
             }
-        } catch (e) {
-            errorLog(`[StorageManager] Failed to save ${this.dbName}`, e);
+        } catch (error) {
+            errorLog(`[StorageManager] Failed to save ${this.dbName}`, error);
         }
     }
 
@@ -67,15 +67,15 @@ export class StorageManager {
                 nextIndex++;
                 if (nextIndex % 5 === 0) yield;
             }
-        } catch (e) {
-            errorLog(`[StorageManager] Failed to saveJob ${this.dbName}`, e);
+        } catch (error) {
+            errorLog(`[StorageManager] Failed to saveJob ${this.dbName}`, error);
         }
     }
 
     /**
      * Loads data from dynamic properties, reassembling shards.
      */
-    load<T>(): T | null {
+    load<T>(): T | undefined {
         try {
             const meta = mc.world.getDynamicProperty(`${this.dbName}:meta`);
             if (typeof meta !== 'number') {
@@ -84,7 +84,7 @@ export class StorageManager {
                 if (typeof legacy === 'string') {
                     return JSON.parse(legacy) as T;
                 }
-                return null;
+                return undefined;
             }
 
             let fullString = '';
@@ -92,15 +92,15 @@ export class StorageManager {
                 const chunk = mc.world.getDynamicProperty(`${this.dbName}:${i}`);
                 if (typeof chunk !== 'string') {
                     errorLog(`[StorageManager] Corrupt data for ${this.dbName}: Missing chunk ${i}`);
-                    return null;
+                    return undefined;
                 }
                 fullString += chunk;
             }
 
             return JSON.parse(fullString) as T;
-        } catch (e) {
-            errorLog(`[StorageManager] Failed to load ${this.dbName}`, e);
-            return null;
+        } catch (error) {
+            errorLog(`[StorageManager] Failed to load ${this.dbName}`, error);
+            return undefined;
         }
     }
 
@@ -118,8 +118,8 @@ export class StorageManager {
             mc.world.setDynamicProperty(`${this.dbName}:meta`, undefined);
             // Try legacy clean up too
             mc.world.setDynamicProperty(this.dbName, undefined);
-        } catch (e) {
-            errorLog(`[StorageManager] Failed to delete ${this.dbName}`, e);
+        } catch (error) {
+            errorLog(`[StorageManager] Failed to delete ${this.dbName}`, error);
         }
     }
 }

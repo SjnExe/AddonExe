@@ -49,7 +49,7 @@ const payCommand: CustomCommand = {
         if (!amountStr) return sendMessage('§cPlease specify an amount.', executor);
 
         const amount = parseCurrency(amountStr);
-        if (isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
         if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001)
             return sendMessage('§cInvalid precision.', executor);
 
@@ -107,7 +107,7 @@ const oPayCommand: CustomCommand = {
         if (targetId === executor.id) return sendMessage('§cYou cannot pay yourself.', executor);
 
         const amount = parseCurrency(amountStr);
-        if (isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         const sourceData = getPlayer(executor.id);
         if (!sourceData || sourceData.balance < amount) return sendMessage('§cInsufficient funds.', executor);

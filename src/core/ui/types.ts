@@ -53,8 +53,8 @@ export interface PanelItem {
 export interface PanelDefinition {
     /** The title of the panel. */
     title: string;
-    /** The ID of the parent panel for back navigation. null for top-level panels. */
-    parentPanelId: string | null;
+    /** The ID of the parent panel for back navigation. undefined for top-level panels. */
+    parentPanelId: string | undefined;
     /** The buttons to display on this panel. */
     items: PanelItem[];
 }
@@ -64,7 +64,7 @@ export type UIContext = Record<string, unknown>;
 export interface IPanelHandler {
     /** Returns true if this handler manages the given panelId */
     canHandle(panelId: string): boolean;
-    /** Returns the items for a HEADLESS panel (buttons list). Returns null/empty if not applicable. */
+    /** Returns the items for a HEADLESS panel (buttons list). Returns undefined/empty if not applicable. */
     getItems?(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]>;
     /** Handles the result (button click or modal submit) */
     handleResponse?(
@@ -74,11 +74,11 @@ export interface IPanelHandler {
         context: UIContext
     ): Promise<void>;
     /** Optional: Builds a custom Modal form (if not using headless items) */
-    buildModal?(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | ActionFormData | null>;
+    buildModal?(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | ActionFormData | undefined>;
     /** Optional: Returns the body text for an ActionFormData panel. */
-    getBody?(player: mc.Player, panelId: string, context: UIContext): Promise<string | null>;
+    getBody?(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined>;
     /** Optional: Returns the title for an ActionFormData panel. */
-    getTitle?(player: mc.Player, panelId: string, context: UIContext): Promise<string | null>;
+    getTitle?(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined>;
 }
 
 export interface ShopListEntry {

@@ -10,7 +10,7 @@ import { uiWait } from '@core/utils.js';
 import { CommandExecutor, commandManager, CustomCommand } from './commandManager.js';
 
 // Cache for categorized commands
-let categorizedCache: Map<string, CustomCommand[]> | null = null;
+let categorizedCache: Map<string, CustomCommand[]> | undefined = undefined;
 
 function getCategorizedCommands(): Map<string, CustomCommand[]> {
     if (categorizedCache) return categorizedCache;
@@ -40,7 +40,7 @@ const CATEGORY_ORDER = [
 
 function getSortedCategories(availableCategories: string[]): string[] {
     const sorted = [...availableCategories];
-    sorted.sort((a, b) => {
+    sorted.toSorted((a, b) => {
         const idxA = CATEGORY_ORDER.indexOf(a);
         const idxB = CATEGORY_ORDER.indexOf(b);
         if (idxA !== -1 && idxB !== -1) return idxA - idxB;
@@ -75,7 +75,7 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
         }
     }
 
-    const pData = isConsole ? null : getPlayer(executor.id);
+    const pData = isConsole ? undefined : getPlayer(executor.id);
     const userPermissionLevel = isConsole ? 0 : (pData?.permissionLevel ?? 1024);
 
     if (!cmd || (isConsole && !cmd.allowConsole) || userPermissionLevel > (cmd.permissionLevel ?? 1024)) {
@@ -149,7 +149,7 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
         const commands = allCategories.get(categoryName) || [];
         const visibleCmds = commands
             .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && !c.hidden)
-            .sort((a, b) => a.name.localeCompare(b.name));
+            .toSorted((a, b) => a.name.localeCompare(b.name));
 
         if (visibleCmds.length > 0) {
             helpMessage += `\n§l§e--- ${categoryName} ---§r`;
@@ -208,7 +208,7 @@ async function showUICategory(player: mc.Player, category: string, userPermissio
     const cmds = getCategorizedCommands().get(category) || [];
     const visibleCmds = cmds
         .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && !c.hidden)
-        .sort((a, b) => a.name.localeCompare(b.name));
+        .toSorted((a, b) => a.name.localeCompare(b.name));
 
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
 
@@ -256,7 +256,7 @@ const helpCommand: CustomCommand = {
             userPermissionLevel = 0;
         }
 
-        const topic = args.command ? String(args.command).toLowerCase() : null;
+        const topic = args.command ? String(args.command).toLowerCase() : undefined;
 
         // Handle Mode Switching Override
         if (topic === 'ui' && executor instanceof mc.Player) {

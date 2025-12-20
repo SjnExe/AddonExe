@@ -46,8 +46,8 @@ export function startMovementCheckLoop() {
                     checkNetherRoof(player, config.antiNetherRoof);
                 }
             }
-        } catch (e) {
-            errorLog('Anticheat Movement Loop Error', e);
+        } catch (error) {
+            errorLog('Anticheat Movement Loop Error', error);
         }
     }, 5);
 }
@@ -157,7 +157,7 @@ function checkWorldBorder(
         overworldRadius: number;
         endRadius: number;
         netherRadiusRatio: number;
-        center: { x: number; z: number } | null;
+        center: { x: number; z: number } | undefined;
         knockbackAmount: number;
     }
 ) {

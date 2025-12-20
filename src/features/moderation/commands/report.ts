@@ -52,7 +52,7 @@ const reportCommand: CustomCommand = {
             await handleUIAction(executor, 'reportPlayer', {
                 targetPlayerId: targetId,
                 targetPlayerName: correctTargetName,
-                returnPanel: null // Close, don't return to list
+                returnPanel: undefined // Close, don't return to list
             });
         }
     }

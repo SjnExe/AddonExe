@@ -36,7 +36,7 @@ const mainCommand: CustomCommand = {
                 return;
             }
             const price = parseCurrency(args.price);
-            if (isNaN(price) || price <= 0) {
+            if (Number.isNaN(price) || price <= 0) {
                 sendMessage('§cInvalid price.', executor);
                 return;
             }
@@ -84,16 +84,8 @@ const mainCommand: CustomCommand = {
         }
 
         if (sub === 'search') {
-            if (args.price) {
-                // Arg 2 is mapped to 'price' in definition, but here acts as query
-                await showAuctionHouse(executor, 1, args.price);
-            } else {
-                await showAuctionHouse(executor); // Or ideally open search UI directly, but we need to export showSearchUI?
-                // showSearchUI is internal to panel.
-                // We can just open main AH, user clicks search.
-                // Or export showSearchUI.
-                // For now, open AH main is fine as entry point.
-            }
+            // Arg 2 is mapped to 'price' in definition, but here acts as query
+            await (args.price ? showAuctionHouse(executor, 1, args.price) : showAuctionHouse(executor));
             return;
         }
 

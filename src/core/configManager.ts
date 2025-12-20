@@ -6,8 +6,6 @@ import { deepClone } from './objectUtils.js';
 
 import type { config as Config } from '../config.default.js';
 
-
-
 let mainConfigManager: ConfigManager<typeof Config>;
 const updateCallbacks: ((config: typeof Config) => void)[] = [];
 
@@ -64,9 +62,9 @@ export async function resetConfigSection(
 
     if (sectionKey === 'all') {
         const resetPromises = [mainConfigManager.reset()];
-        Object.values(configResetRegistry).forEach((config: { reset: () => Promise<void> }) =>
-            resetPromises.push(config.reset())
-        );
+        for (const config of Object.values(configResetRegistry)) {
+            resetPromises.push(config.reset());
+        }
         await Promise.all(resetPromises);
 
         for (const key in configResetCallbacks) {
@@ -112,10 +110,10 @@ export async function resetConfigSection(
         } else {
             return { success: false, message: `Configuration section '${sectionKey}' not found.` };
         }
-    } catch (e: unknown) {
-        const errorMessage = e instanceof Error ? e.message : String(e);
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, message: `Failed to load default configuration file. Error: ${errorMessage}` };
     }
 }
 
-export {type config as Config} from '../config.default.js';
+export { type config as Config } from '../config.default.js';

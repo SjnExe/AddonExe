@@ -27,7 +27,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
             case '@p': {
                 // Find closest player
                 let closestDist = Infinity;
-                let closestPlayer: mc.Player | null = null;
+                let closestPlayer: mc.Player | undefined = undefined;
                 const exLoc = executor.location;
 
                 for (const p of allPlayers) {

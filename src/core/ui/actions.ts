@@ -190,8 +190,8 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
         // Enclose name in quotes to handle spaces
         player.dimension.runCommand(`kick "${target.name}" ${reason}`);
         player.sendMessage(`§2Kicked ${target.name}.`);
-    } catch (e) {
-        player.sendMessage(`§4Failed to kick player: ${String(e)}`);
+    } catch (error) {
+        player.sendMessage(`§4Failed to kick player: ${String(error)}`);
     }
     return showPanel(player, 'playerActionsPanel', context);
 }
@@ -219,7 +219,7 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
     const [durationStr, reason] = values as [string, string];
     const durationMins = Number.parseInt(durationStr);
 
-    if (isNaN(durationMins) || durationMins <= 0) {
+    if (Number.isNaN(durationMins) || durationMins <= 0) {
         player.sendMessage('§4Invalid duration.');
         return showPanel(player, 'playerActionsPanel', context);
     }
@@ -287,7 +287,7 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     const [durationStr, reason] = values as [string, string];
     const durationHours = Number.parseInt(durationStr);
 
-    if (isNaN(durationHours) || durationHours < 0) {
+    if (Number.isNaN(durationHours) || durationHours < 0) {
         player.sendMessage('§4Invalid duration.');
         return showPanel(player, 'playerActionsPanel', context);
     }
@@ -459,7 +459,7 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
     const [amountStr] = values as [string];
     const amount = utils.parseCurrency(amountStr);
 
-    if (isNaN(amount) || amount <= 0) {
+    if (Number.isNaN(amount) || amount <= 0) {
         player.sendMessage('§4Invalid amount. Please enter a positive number (e.g. 100, 2.5k).');
         return showPanel(player, 'bountyActionsPanel', context);
     }
@@ -516,7 +516,7 @@ async function removePlayerBounty(player: mc.Player, context: UIContext) {
     const [amountStr] = values as [string];
     const amount = utils.parseCurrency(amountStr);
 
-    if (isNaN(amount) || amount <= 0) {
+    if (Number.isNaN(amount) || amount <= 0) {
         player.sendMessage('§4Invalid amount. Please enter a positive number (e.g. 100, 2.5k).');
         return showPanel(player, 'bountyActionsPanel', context);
     }

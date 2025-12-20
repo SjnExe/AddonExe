@@ -112,8 +112,8 @@ function savePunishments() {
         storage.save(dataToSave);
         needsSave = false;
         debugLog('[PunishmentManager] Saved punishments to world properties.');
-    } catch (e) {
-        errorLog('[PunishmentManager] Failed to save punishments.', e);
+    } catch (error) {
+        errorLog('[PunishmentManager] Failed to save punishments.', error);
     }
 }
 

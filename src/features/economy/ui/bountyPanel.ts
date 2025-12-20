@@ -14,19 +14,20 @@ export class BountyPanelHandler implements IPanelHandler {
 
     async getItems(_player: mc.Player, _panelId: string, context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
-        const items: PanelItem[] = [ {
-            id: '__back__',
-            text: '§l§8< Back',
-            icon: 'textures/gui/controls/left.png',
-            permissionLevel: 1024,
-            actionType: 'openPanel',
-            actionValue: 'gameplayPanel'
-        }];
-
+        const items: PanelItem[] = [
+            {
+                id: '__back__',
+                text: '§l§8< Back',
+                icon: 'textures/gui/controls/left.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'gameplayPanel'
+            }
+        ];
 
         // Debug log to ensure bounties are retrieved
         const allBounties = bountyManager.getAllBounties();
-        const bounties = [...allBounties.values()].sort((a, b) => b.amount - a.amount);
+        const bounties = [...allBounties.values()].toSorted((a, b) => b.amount - a.amount);
 
         // If empty, show a visual indicator item
         if (bounties.length === 0) {

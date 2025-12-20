@@ -85,7 +85,7 @@ export class EconomyPanelHandler implements IPanelHandler {
 
             const config = getEconomyConfig();
             const mobMoney = config.mobMoney || {};
-            const mobs = Object.keys(mobMoney).sort();
+            const mobs = Object.keys(mobMoney).toSorted();
 
             const paginated = getPaginatedItems(mobs, (context.page as number) || 1);
 
@@ -110,28 +110,31 @@ export class EconomyPanelHandler implements IPanelHandler {
             const mobId = context.selectedItemId as string;
             if (!mobId) return items;
 
-            items.push({
-                id: 'edit',
-                text: 'Edit Value',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'editMobValue'
-            }, {
-                id: 'delete',
-                text: '§4Delete',
-                icon: 'textures/ui/trash',
-                permissionLevel: 1,
-                actionType: 'functionCall',
-                actionValue: 'deleteMobDrop'
-            });
+            items.push(
+                {
+                    id: 'edit',
+                    text: 'Edit Value',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'editMobValue'
+                },
+                {
+                    id: 'delete',
+                    text: '§4Delete',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'deleteMobDrop'
+                }
+            );
             return items;
         }
 
         return items;
     }
 
-    async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined> {
         await Promise.resolve();
         if (panelId === 'addMobDropPanel') {
             return new ModalFormData()
@@ -148,7 +151,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                 .title(`Edit ${mobId}`)
                 .textField('Reward Amount', 'Negative for penalty', { defaultValue: String(currentVal) });
         }
-        return null;
+        return undefined;
     }
 
     async handleResponse(
@@ -165,7 +168,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             const [mobId, amountStr] = values as [string, string];
             const amount = Number.parseInt(amountStr);
 
-            if (mobId && !isNaN(amount)) {
+            if (mobId && !Number.isNaN(amount)) {
                 const config = getEconomyConfig();
                 config.mobMoney[mobId] = amount;
                 saveEconomyConfig(config);
@@ -183,7 +186,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             const amount = Number.parseInt(amountStr);
             const mobId = context.selectedItemId as string;
 
-            if (!isNaN(amount) && mobId) {
+            if (!Number.isNaN(amount) && mobId) {
                 const config = getEconomyConfig();
                 config.mobMoney[mobId] = amount;
                 saveEconomyConfig(config);

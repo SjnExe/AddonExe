@@ -51,13 +51,16 @@ export function updateRank(
     }
 
     // Check for critical immutable properties on locked ranks
-    if (originalRank.locked && // We prevent changing the ID of locked ranks to avoid breaking internal references (like code that checks for 'admin' rank)
-        updatedData.id !== undefined && updatedData.id !== originalRank.id) {
-            return { success: false, message: 'Cannot change the ID of a locked rank.' };
-        }
+    if (
+        originalRank.locked && // We prevent changing the ID of locked ranks to avoid breaking internal references (like code that checks for 'admin' rank)
+        updatedData.id !== undefined &&
+        updatedData.id !== originalRank.id
+    ) {
+        return { success: false, message: 'Cannot change the ID of a locked rank.' };
+    }
 
-        // We allow changing Permission Level now, as requested.
-        // We allow changing Name, Prefix, etc.
+    // We allow changing Permission Level now, as requested.
+    // We allow changing Name, Prefix, etc.
 
     // Ensure the ID is not changed if a new ID is passed in updatedData that already exists (and isn't the current one)
     if (updatedData.id !== undefined && updatedData.id !== rankId && getRankById(updatedData.id)) {

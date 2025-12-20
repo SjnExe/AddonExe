@@ -146,7 +146,7 @@ const addShopCommand: CustomCommand = {
         const buyPrice = parseCurrency(buyPriceStr);
         const sellPrice = parseCurrency(sellPriceStr);
 
-        if (isNaN(buyPrice) || buyPrice < 0 || isNaN(sellPrice) || sellPrice < 0) {
+        if (Number.isNaN(buyPrice) || buyPrice < 0 || Number.isNaN(sellPrice) || sellPrice < 0) {
             return executor.sendMessage('§cInvalid prices. Please enter non-negative numbers.');
         }
 
@@ -170,7 +170,7 @@ const addShopCommand: CustomCommand = {
             return executor.sendMessage("§cYou aren't holding anything.");
         }
 
-        const result = shopAdminManager.addShopItemFromHand(item, category, subCategory || null, buyPrice, sellPrice);
+        const result = shopAdminManager.addShopItemFromHand(item, category, subCategory || undefined, buyPrice, sellPrice);
 
         executor.sendMessage(result.message);
 

@@ -53,9 +53,9 @@ const homeCommand: CustomCommand = {
                     } else {
                         sendMessage(`§cError: Dimension '${homeLocation.dimensionId}' not found.`, executor);
                     }
-                } catch (e: unknown) {
-                    const message = e instanceof Error ? e.message : String(e);
-                    const stack = e instanceof Error ? e.stack : String(e);
+                } catch (error: unknown) {
+                    const message = error instanceof Error ? error.message : String(error);
+                    const stack = error instanceof Error ? error.stack : String(error);
                     sendMessage(`§cFailed to teleport. Error: ${message}`, executor);
                     errorLog(`[/home] Failed to teleport: ${stack}`);
                 }
@@ -96,8 +96,8 @@ const homeCommand: CustomCommand = {
                     teleportToHome(selectedHome);
                 }
             }
-        } catch (e: unknown) {
-            errorLog(`[/home UI] ${String(e)}`);
+        } catch (error: unknown) {
+            errorLog(`[/home UI] ${String(error)}`);
         }
     }
 };
@@ -188,8 +188,8 @@ const delHomeCommand: CustomCommand = {
                     deleteHomeByName(selectedHome);
                 }
             }
-        } catch (e: unknown) {
-            errorLog(`[/delhome UI] ${String(e)}`);
+        } catch (error: unknown) {
+            errorLog(`[/delhome UI] ${String(error)}`);
         }
     }
 };

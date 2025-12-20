@@ -48,8 +48,8 @@ const devOnlyModules = new Set(['@minecraft/server-gametest', '@minecraft/debug-
 
 for (const pkg of minecraftPackageDeps) {
     if (runtimeModules.has(pkg) && !devOnlyModules.has(pkg) && !minecraftManifestDeps.includes(pkg)) {
-            errors.push(`Package '${pkg}' is in package.json but missing from manifest.json dependencies.`);
-        }
+        errors.push(`Package '${pkg}' is in package.json but missing from manifest.json dependencies.`);
+    }
 }
 
 for (const pkg of minecraftManifestDeps) {

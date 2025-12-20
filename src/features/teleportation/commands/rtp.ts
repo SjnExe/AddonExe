@@ -85,7 +85,7 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
                 const z = centerZ + Math.floor(Math.random() * (searchRadius * 2) - searchRadius);
                 const y = findHighestSolidBlock(player.dimension, x, z);
 
-                if (y !== null) {
+                if (y !== undefined) {
                     const potentialLoc = { x: x + 0.5, y: y + 1, z: z + 0.5 };
                     if (isLocationSafe(player.dimension, potentialLoc)) {
                         const warmupSeconds = getConfig().rtp.teleportWarmupSeconds;
@@ -96,8 +96,8 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
                                 player.teleport(potentialLoc);
                                 sendMessage('§aYou have been teleported to a random location!', player);
                                 setCooldown(player, 'rtp');
-                            } catch (e: unknown) {
-                                const stack = e instanceof Error ? e.stack : String(e);
+                            } catch (error: unknown) {
+                                const stack = error instanceof Error ? error.stack : String(error);
                                 sendMessage('§cFailed to teleport to the location. Please try again.', player);
                                 errorLog(`[/rtp] Failed to teleport: ${stack}`);
                             }
@@ -141,7 +141,7 @@ function safeRemoveTickingArea(dimension: mc.Dimension, name: string) {
     }
 }
 
-function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): number | null {
+function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): number | undefined {
     // Attempt to use the newer getTopmostBlock API for performance
     try {
         const block = dimension.getTopmostBlock({ x, z });
@@ -157,10 +157,10 @@ function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): n
                 return y;
             }
         } catch {
-            return null;
+            return undefined;
         }
     }
-    return null;
+    return undefined;
 }
 
 function isLocationSafe(dimension: mc.Dimension, location: mc.Vector3): boolean {

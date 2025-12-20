@@ -47,6 +47,7 @@ export async function showAuctionHouse(
             sortLabel = 'Seller (A-Z)';
             break;
         }
+        // eslint-disable-next-line unicorn/no-useless-switch-case
         case SortOption.Newest:
         default: {
             sortLabel = 'Newest';
@@ -75,7 +76,9 @@ export async function showAuctionHouse(
         let label = `§f${listing.item.nameTag || listing.item.typeId.replace('minecraft:', '')}`;
         label += `\n§7x${listing.item.amount} `;
 
-        label += listing.isBid ? `§eBid: ${formatCurrency(listing.bidPrice || listing.price)}` : `§a${formatCurrency(listing.price)}`;
+        label += listing.isBid
+            ? `§eBid: ${formatCurrency(listing.bidPrice || listing.price)}`
+            : `§a${formatCurrency(listing.price)}`;
         label += ` §8By: ${listing.sellerName}`;
 
         form.button(label);
@@ -204,7 +207,7 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
     const amountStr = modalResponse.formValues[0] as string;
     const amount = Number.parseFloat(amountStr);
 
-    if (isNaN(amount)) {
+    if (Number.isNaN(amount)) {
         player.sendMessage('§cInvalid number.');
         return;
     }

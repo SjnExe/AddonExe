@@ -25,13 +25,13 @@ export function startTeleportWarmup(
     let remainingSeconds = durationSeconds;
     const initialLocation = { x: player.location.x, y: player.location.y, z: player.location.z };
     const dimensionId = player.dimension.id;
-    let intervalId: number | null = null;
-    let hurtListener: ((event: mc.EntityHurtAfterEvent) => void) | null = null;
+    let intervalId: number | undefined = undefined;
+    let hurtListener: ((event: mc.EntityHurtAfterEvent) => void) | undefined = undefined;
 
     const cleanup = () => {
-        if (intervalId !== null) {
+        if (intervalId !== undefined) {
             mc.system.clearRun(intervalId);
-            intervalId = null;
+            intervalId = undefined;
         }
         if (hurtListener) {
             try {
@@ -42,7 +42,7 @@ export function startTeleportWarmup(
             } catch {
                 // Ignore cleanup errors to prevent cascading crashes
             }
-            hurtListener = null;
+            hurtListener = undefined;
         }
     };
 
@@ -90,8 +90,8 @@ export function startTeleportWarmup(
                 cleanup();
                 onWarmupComplete();
             }
-        } catch (e: unknown) {
-            errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${String(e)}`);
+        } catch (error: unknown) {
+            errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${String(error)}`);
             cleanup();
         }
     }, 20);

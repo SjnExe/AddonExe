@@ -25,23 +25,26 @@ export class RankPanelHandler implements IPanelHandler {
             // Wait, panelBuilder combines static and dynamic.
             // We just return dynamic here.
 
-            items.push({
-                id: 'addRank',
-                text: 'Create New Rank',
-                icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'addRankPanel',
-                sortId: 0
-            }, {
-                id: 'rankSettings',
-                text: 'Settings',
-                icon: 'textures/ui/settings_glyph_color_2x',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: 'rankSettingsPanel',
-                sortId: 1
-            });
+            items.push(
+                {
+                    id: 'addRank',
+                    text: 'Create New Rank',
+                    icon: 'textures/ui/color_plus',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'addRankPanel',
+                    sortId: 0
+                },
+                {
+                    id: 'rankSettings',
+                    text: 'Settings',
+                    icon: 'textures/ui/settings_glyph_color_2x',
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: 'rankSettingsPanel',
+                    sortId: 1
+                }
+            );
 
             const ranks = rankManager.getAllRanks();
             ranks.sort((a, b) => a.permissionLevel - b.permissionLevel);
@@ -64,7 +67,7 @@ export class RankPanelHandler implements IPanelHandler {
         return Promise.resolve(items);
     }
 
-    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined> {
         if (panelId === 'addRankPanel') {
             return Promise.resolve(
                 new ModalFormData()
@@ -81,7 +84,7 @@ export class RankPanelHandler implements IPanelHandler {
         if (panelId === 'editRankPanel') {
             const rankId = context.id as string;
             const rank = rankManager.getRankById(rankId);
-            if (!rank) return Promise.resolve(null);
+            if (!rank) return Promise.resolve(undefined);
 
             return Promise.resolve(
                 new ModalFormData()
@@ -95,7 +98,7 @@ export class RankPanelHandler implements IPanelHandler {
             );
         }
 
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     async handleResponse(

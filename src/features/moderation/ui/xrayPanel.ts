@@ -85,7 +85,7 @@ export class XrayPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
         await Promise.resolve();
         if (panelId === 'addXrayOrePanel') {
             return new ModalFormData()
@@ -102,7 +102,7 @@ export class XrayPanelHandler implements IPanelHandler {
             const key = panelId.replace('editXrayOrePanel_', '');
             const config = getXrayConfig();
             const ore = config.monitoredOreTypes[key];
-            if (!ore) return null;
+            if (!ore) return undefined;
 
             // Simplify: Only edit first block definition for now in UI
             const block = ore.blocks[0] || { blockId: '', dimensionId: 'minecraft:overworld', minY: -64, maxY: 320 };
@@ -116,7 +116,7 @@ export class XrayPanelHandler implements IPanelHandler {
                 .textField('Min Y', 'Y', { defaultValue: String(block.minY) })
                 .textField('Max Y', 'Y', { defaultValue: String(block.maxY) });
         }
-        return null;
+        return undefined;
     }
 
     async handleResponse(

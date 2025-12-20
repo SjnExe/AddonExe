@@ -51,12 +51,10 @@ export class PlayerPanelHandler implements IPanelHandler {
             const isOnlineList = panelId === 'playerListPanel';
             let playerEntries: { name: string; id: string }[] = [];
 
-            if (isOnlineList) {
-                // Filter vanished players for the public online list
-                playerEntries = getVisiblePlayers(player).map((p) => ({ name: p.name, id: p.id }));
-            } else {
-                playerEntries = getAllKnownPlayers();
-            }
+            playerEntries = isOnlineList
+                ? getVisiblePlayers(player).map((p) => ({ name: p.name, id: p.id }))
+                : getAllKnownPlayers();
+
             playerEntries.sort((a, b) => a.name.localeCompare(b.name));
 
             const paginated = getPaginatedItems(playerEntries, page);
@@ -112,7 +110,17 @@ export class PlayerPanelHandler implements IPanelHandler {
 
         const targetId = context.targetPlayerId as string;
         const isSelf = viewerId && targetId === viewerId;
-        const selfDisabledActions = new Set(['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze', 'tpa', 'tpahere', 'report']);
+        const selfDisabledActions = new Set([
+            'kick',
+            'ban',
+            'mute',
+            'unmute',
+            'freeze',
+            'unfreeze',
+            'tpa',
+            'tpahere',
+            'report'
+        ]);
         const adminActions = new Set(['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze']);
 
         for (const item of menuItems) {
@@ -137,7 +145,7 @@ export class PlayerPanelHandler implements IPanelHandler {
         return visibleItems;
     }
 
-    async getBody(player: mc.Player, panelId: string, context: UIContext): Promise<string | null> {
+    async getBody(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined> {
         if (panelId === 'myStatsPanel') {
             const pData = getOrCreatePlayer(player);
             const { getTeamByPlayer } = await import('@features/teams/teamManager.js');
@@ -173,14 +181,14 @@ export class PlayerPanelHandler implements IPanelHandler {
                 ].join('\n');
             }
         }
-        return null;
+        return undefined;
     }
 
-    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
         if (panelId === 'playerSearchPanel') {
             return Promise.resolve(new ModalFormData().title('Search Player').textField('Name', 'Enter exact name'));
         }
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     async handleResponse(

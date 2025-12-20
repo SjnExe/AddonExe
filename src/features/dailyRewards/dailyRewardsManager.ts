@@ -97,8 +97,8 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
                             player.dimension.spawnItem(leftovers, player.location);
                             player.sendMessage('§eInventory full. Item dropped on ground.');
                         }
-                    } catch (e) {
-                        errorLog(`[DailyRewards] Failed to give item ${itemDef.typeId}: ${String(e)}`);
+                    } catch (error) {
+                        errorLog(`[DailyRewards] Failed to give item ${itemDef.typeId}: ${String(error)}`);
                     }
                 }
             }
@@ -114,8 +114,8 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
             success: true,
             message: `§aDaily Reward Claimed! (Streak: ${streak})\n§r${reward.message}`
         };
-    } catch (e) {
-        errorLog(`[DailyRewards] Error granting reward: ${String(e)}`);
+    } catch (error) {
+        errorLog(`[DailyRewards] Error granting reward: ${String(error)}`);
         return { success: false, message: '§cAn error occurred while claiming your reward.' };
     }
 }

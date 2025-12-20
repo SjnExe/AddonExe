@@ -30,7 +30,7 @@ export interface WorldBorderConfig {
     overworldRadius: number;
     endRadius: number;
     netherRadiusRatio: number;
-    center: { x: number; z: number } | null;
+    center: { x: number; z: number } | undefined;
     knockbackAmount: number;
 }
 
@@ -91,7 +91,7 @@ export const anticheatConfig: AnticheatConfig = {
         overworldRadius: 5000,
         endRadius: 5000,
         netherRadiusRatio: 8,
-        center: null, // Use world spawn by default
+        center: undefined, // Use world spawn by default
         knockbackAmount: 3
     },
     antiNetherRoof: {

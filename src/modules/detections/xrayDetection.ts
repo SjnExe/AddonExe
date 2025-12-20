@@ -86,8 +86,8 @@ function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Ve
         if (pData && pData.permissionLevel <= requiredLevel && pData.xrayNotificationsEnabled) {
             try {
                 onlinePlayer.sendMessage(message);
-            } catch (e) {
-                warnLog(`Failed to send X-Ray alert to ${onlinePlayer.name}: ${String(e)}`);
+            } catch (error) {
+                warnLog(`Failed to send X-Ray alert to ${onlinePlayer.name}: ${String(error)}`);
             }
         }
     }

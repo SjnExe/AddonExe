@@ -7,7 +7,7 @@ import { showConfirmationDialog } from '@ui/components.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
 import { addBackButton } from '@ui/uiUtils.js';
-import { acceptFriendRequest, FriendRequest, removeFriend, sendFriendRequest } from '../friendManager.js';
+import { acceptFriendRequest, removeFriend, sendFriendRequest } from '../friendManager.js';
 
 export class FriendPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -31,21 +31,24 @@ export class FriendPanelHandler implements IPanelHandler {
             });
 
             const pendingCount = pData.friendRequests?.length || 0;
-            items.push({
-                id: 'requests',
-                text: `Requests (${pendingCount})`,
-                icon: 'textures/ui/mail_icon',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'friendRequestsPanel'
-            }, {
-                id: 'settings',
-                text: 'Settings',
-                icon: 'textures/ui/icon_setting',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'friendSettingsPanel'
-            });
+            items.push(
+                {
+                    id: 'requests',
+                    text: `Requests (${pendingCount})`,
+                    icon: 'textures/ui/mail_icon',
+                    permissionLevel: 1024,
+                    actionType: 'openPanel',
+                    actionValue: 'friendRequestsPanel'
+                },
+                {
+                    id: 'settings',
+                    text: 'Settings',
+                    icon: 'textures/ui/icon_setting',
+                    permissionLevel: 1024,
+                    actionType: 'openPanel',
+                    actionValue: 'friendSettingsPanel'
+                }
+            );
 
             // List Friends
             if (pData.friends && pData.friends.length > 0) {
@@ -92,7 +95,7 @@ export class FriendPanelHandler implements IPanelHandler {
                     actionValue: 'noop'
                 });
             } else {
-                requests.forEach((req: FriendRequest) => {
+                for (const req of requests) {
                     items.push({
                         id: req.senderName, // Use name for easy identification in handler
                         text: `Request from ${req.senderName}`,
@@ -100,7 +103,7 @@ export class FriendPanelHandler implements IPanelHandler {
                         actionType: 'functionCall',
                         actionValue: 'manageFriendRequest'
                     });
-                });
+                }
             }
             return items;
         }
@@ -110,21 +113,24 @@ export class FriendPanelHandler implements IPanelHandler {
             const targetId = context.selectedItemId as string;
             if (!targetId) return items;
 
-            items.push({
-                id: 'remove',
-                text: '§4Remove Friend',
-                icon: 'textures/ui/trash',
-                permissionLevel: 1024,
-                actionType: 'functionCall',
-                actionValue: 'removeFriend'
-            }, {
-                id: 'tpa',
-                text: 'Teleport',
-                icon: 'textures/items/ender_pearl',
-                permissionLevel: 1024,
-                actionType: 'functionCall',
-                actionValue: 'tpaFriend'
-            });
+            items.push(
+                {
+                    id: 'remove',
+                    text: '§4Remove Friend',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'removeFriend'
+                },
+                {
+                    id: 'tpa',
+                    text: 'Teleport',
+                    icon: 'textures/items/ender_pearl',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'tpaFriend'
+                }
+            );
 
             return items;
         }
@@ -132,7 +138,7 @@ export class FriendPanelHandler implements IPanelHandler {
         return items;
     }
 
-    buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
         if (panelId === 'friendAddPanel') {
             return Promise.resolve(
                 new ModalFormData().title('Add Friend').textField('Player Name', 'Enter exact name')
@@ -148,7 +154,7 @@ export class FriendPanelHandler implements IPanelHandler {
             );
         }
 
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     async handleResponse(

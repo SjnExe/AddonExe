@@ -29,17 +29,17 @@ function registerEvent<T>(
         cleanupActions.push(() => {
             try {
                 signal.unsubscribe(handler);
-            } catch (e: unknown) {
-                const errorMessage = e instanceof Error ? e.message : String(e);
+            } catch (error: unknown) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
                 // Suppress specific errors that occur during shutdown or reload
                 const ignoredErrors = ['does not have required privileges', 'restricted execution'];
                 if (!ignoredErrors.some((msg) => errorMessage.includes(msg))) {
-                    errorLog(`[EventManager] Failed to unsubscribe from event '${name}'. Error: ${String(e)}`);
+                    errorLog(`[EventManager] Failed to unsubscribe from event '${name}'. Error: ${String(error)}`);
                 }
             }
         });
-    } catch (e: unknown) {
-        errorLog(`[EventManager] Failed to subscribe to event '${name}'. Error: ${String(e)}`);
+    } catch (error: unknown) {
+        errorLog(`[EventManager] Failed to subscribe to event '${name}'. Error: ${String(error)}`);
     }
 }
 

@@ -62,14 +62,14 @@ export function setHome(player: mc.Player, homeName: string): ActionResult {
  * Gets a player's home location.
  * @param player The player.
  * @param homeName The name of the home.
- * @returns The location of the home, or null if it doesn't exist.
+ * @returns The location of the home, or undefined if it doesn't exist.
  */
-export function getHome(player: mc.Player, homeName: string): HomeLocation | null {
+export function getHome(player: mc.Player, homeName: string): HomeLocation | undefined {
     const pData = getOrCreatePlayer(player);
     if (!pData) {
-        return null;
+        return undefined;
     }
-    return pData.homes[homeName.toLowerCase()] || null;
+    return pData.homes[homeName.toLowerCase()] || undefined;
 }
 
 /**

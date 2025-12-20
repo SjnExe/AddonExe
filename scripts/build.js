@@ -75,8 +75,8 @@ async function compileConfig(configEntry) {
             sourcemap: false
         });
         console.log(`Compiled config: ${configEntry.dest}`);
-    } catch (e) {
-        console.error(`Failed to compile config: ${configEntry.src}`, e);
+    } catch (error) {
+        console.error(`Failed to compile config: ${configEntry.src}`, error);
     }
 }
 
@@ -136,8 +136,8 @@ async function build() {
             await ctx.dispose();
             console.log('Build successful!');
         }
-    } catch (e) {
-        console.error('Build failed:', e);
+    } catch (error) {
+        console.error('Build failed:', error);
         process.exit(1);
     }
 }

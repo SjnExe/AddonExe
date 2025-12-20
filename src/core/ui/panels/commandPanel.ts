@@ -24,7 +24,7 @@ export class CommandPanelHandler implements IPanelHandler {
         if (panelId === 'commandSystemPanel') {
             addBackButton(items, 'configCategoryPanel');
 
-            const commands = [...commandManager.commands.values()].sort((a, b) => a.name.localeCompare(b.name));
+            const commands = [...commandManager.commands.values()].toSorted((a, b) => a.name.localeCompare(b.name));
 
             const config = getConfig() as unknown as MainConfig;
             const settings = (config.commandSettings || {}) as Record<string, CmdSettings>;
@@ -53,7 +53,7 @@ export class CommandPanelHandler implements IPanelHandler {
         return Promise.resolve(items);
     }
 
-    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
         if (panelId.startsWith('commandSettingsPanel_')) {
             const cmdName = panelId.replace('commandSettingsPanel_', '');
             const config = getConfig() as unknown as MainConfig;
@@ -73,7 +73,7 @@ export class CommandPanelHandler implements IPanelHandler {
                     .textField('Cooldown (seconds)', '0 to disable', { defaultValue: String(cooldown) })
             );
         }
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     async handleResponse(
@@ -114,7 +114,11 @@ export class CommandPanelHandler implements IPanelHandler {
                 const perm = Number.parseInt(permStr) || 0;
                 const cooldown = Number.parseInt(cooldownStr) || 0;
 
-                const updates: Record<string, unknown> = { [`commandSettings.${cmdName}.enabled`]: enabled, [`commandSettings.${cmdName}.permissionLevel`]: perm, [`commandSettings.${cmdName}.cooldownSeconds`]: cooldown,};
+                const updates: Record<string, unknown> = {
+                    [`commandSettings.${cmdName}.enabled`]: enabled,
+                    [`commandSettings.${cmdName}.permissionLevel`]: perm,
+                    [`commandSettings.${cmdName}.cooldownSeconds`]: cooldown
+                };
 
                 updateMultipleConfig(updates);
                 player.sendMessage(`§2Updated /${cmdName}.`);

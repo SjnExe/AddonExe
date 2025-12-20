@@ -37,27 +37,27 @@ async function showLogsMenu(player: mc.Player) {
     if (selection === undefined) return;
 
     switch (selection) {
-    case 0: {
-        await showPunishmentFilter(player);
+        case 0: {
+            await showPunishmentFilter(player);
 
-    break;
-    }
-    case 1: {
-        await showFlagFilter(player);
+            break;
+        }
+        case 1: {
+            await showFlagFilter(player);
 
-    break;
-    }
-    case 2: {
-        await showChatFilter(player);
+            break;
+        }
+        case 2: {
+            await showChatFilter(player);
 
-    break;
-    }
-    case 3: {
-        await showLogSettings(player);
+            break;
+        }
+        case 3: {
+            await showLogSettings(player);
 
-    break;
-    }
-    // No default
+            break;
+        }
+        // No default
     }
 }
 
@@ -77,14 +77,14 @@ async function showPunishmentFilter(player: mc.Player) {
 
     const nameQuery = (values[0] as string) || '';
     const typeIndex = values[1] as number;
-    const types = [null, 'ban', 'mute', 'warn', 'kick'];
+    const types = [undefined, 'ban', 'mute', 'warn', 'kick'];
     const typeFilter = types[typeIndex];
 
     await showPunishmentLogs(player, 1, nameQuery, typeFilter);
 }
 
-async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: string, typeFilter?: string | null) {
-    let logs = getPunishmentLogs().sort((a, b) => b.timestamp - a.timestamp);
+async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: string, typeFilter?: string | undefined) {
+    let logs = getPunishmentLogs().toSorted((a, b) => b.timestamp - a.timestamp);
 
     // Filtering
     if (nameQuery) {
@@ -171,7 +171,7 @@ async function showFlagFilter(player: mc.Player) {
 }
 
 async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string) {
-    let logs = getFlagLogs().sort((a, b) => b.timestamp - a.timestamp);
+    let logs = getFlagLogs().toSorted((a, b) => b.timestamp - a.timestamp);
 
     if (nameQuery) {
         const q = nameQuery.toLowerCase();
@@ -270,7 +270,7 @@ export async function showChatFilter(player: mc.Player) {
 }
 
 async function showChatLogs(player: mc.Player, page: number, date: string, nameQuery?: string, keyword?: string) {
-    let logs = getChatLogs(date).sort((a, b) => b.timestamp - a.timestamp);
+    let logs = getChatLogs(date).toSorted((a, b) => b.timestamp - a.timestamp);
 
     if (nameQuery) {
         const q = nameQuery.toLowerCase();
@@ -360,7 +360,7 @@ async function showLogSettings(player: mc.Player) {
     const enabled = values[0] as boolean;
     const daysStr = values[1] as string;
     let days = Number.parseInt(daysStr, 10);
-    if (isNaN(days) || days < 1) days = 1;
+    if (Number.isNaN(days) || days < 1) days = 1;
 
     updateMultipleConfig({
         'chat.loggingEnabled': enabled,

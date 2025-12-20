@@ -69,7 +69,9 @@ const command: CustomCommand = {
                 break;
             }
             case 'edit': {
-                await (id ? showPanel(executor, 'floatingTextEditPanel', { id }) : showPanel(executor, 'floatingTextListPanel'));
+                await (id
+                    ? showPanel(executor, 'floatingTextEditPanel', { id })
+                    : showPanel(executor, 'floatingTextListPanel'));
                 break;
             }
             default: {

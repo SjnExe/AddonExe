@@ -63,11 +63,11 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
         saveKitsConfig(config);
         debugLog(`[KitItemsManager] Added item ${itemInfo.typeId} x${itemInfo.amount} to kit ${kitName}`);
         return { success: true, message: 'Item added successfully.' };
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            errorLog(`[KitItemsManager] Failed to add item to kit: ${e.stack}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[KitItemsManager] Failed to add item to kit: ${error.stack}`);
         } else {
-            errorLog(`[KitItemsManager] Failed to add item to kit: ${String(e)}`);
+            errorLog(`[KitItemsManager] Failed to add item to kit: ${String(error)}`);
         }
         return { success: false, message: `Invalid item type ID: ${itemInfo.typeId}` };
     }
@@ -169,11 +169,11 @@ export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo:
         saveKitsConfig(config);
         debugLog(`[KitItemsManager] Updated item at index ${itemIndex} in kit ${kitName}`);
         return { success: true, message: 'Item updated successfully.' };
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            errorLog(`[KitItemsManager] Failed to update item in kit: ${e.stack}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[KitItemsManager] Failed to update item in kit: ${error.stack}`);
         } else {
-            errorLog(`[KitItemsManager] Failed to update item in kit: ${String(e)}`);
+            errorLog(`[KitItemsManager] Failed to update item in kit: ${String(error)}`);
         }
         return { success: false, message: `Invalid item type ID: ${newItemInfo.typeId}` };
     }

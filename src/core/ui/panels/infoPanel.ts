@@ -146,7 +146,7 @@ export class InfoPanelHandler implements IPanelHandler {
         return Promise.resolve(items);
     }
 
-    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | null> {
+    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined> {
         if (panelId === 'rulesPanel') {
             const config = getConfig() as unknown as MainConfig;
             const serverInfo = config.serverInfo as { rules: string[] };
@@ -156,10 +156,10 @@ export class InfoPanelHandler implements IPanelHandler {
         if (panelId === 'helpfulLinksPanel') {
             return Promise.resolve('Click a button to see the link in chat.');
         }
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
-    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | null> {
+    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
         if (panelId === 'addRulePanel') {
             return Promise.resolve(new ModalFormData().title('Add Rule').textField('Rule Content', 'Enter rule text'));
         }
@@ -168,7 +168,7 @@ export class InfoPanelHandler implements IPanelHandler {
                 new ModalFormData().title('Add Link').textField('Title', 'Link Title').textField('URL', 'https://...')
             );
         }
-        return Promise.resolve(null);
+        return Promise.resolve(undefined);
     }
 
     async handleResponse(
@@ -226,7 +226,7 @@ export class InfoPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'deleteRule') {
                     const ruleIndex = Number(context.selectedItemId); // ID passed from list
-                    if (!isNaN(ruleIndex)) {
+                    if (!Number.isNaN(ruleIndex)) {
                         rulesManager.deleteRule(ruleIndex);
                         player.sendMessage('§2Rule deleted.');
                     }
@@ -235,7 +235,7 @@ export class InfoPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'deleteHelpfulLink') {
                     const linkIndex = Number(context.selectedItemId);
-                    if (!isNaN(linkIndex)) {
+                    if (!Number.isNaN(linkIndex)) {
                         helpfulLinksManager.deleteHelpfulLink(linkIndex);
                         player.sendMessage('§2Link deleted.');
                     }
