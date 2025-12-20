@@ -100,7 +100,15 @@ const kitCommand: CustomCommand = {
         {
             name: 'kitName',
             type: 'string',
-            optional: true
+            optional: true,
+            // Provide suggestions for kit names based on currently loaded kits
+            enumOptions: () => {
+                try {
+                    return Object.keys(getAllKits());
+                } catch {
+                    return [];
+                }
+            }
         }
     ],
     execute: async (executor: CommandExecutor, args: KitCommandArgs) => {

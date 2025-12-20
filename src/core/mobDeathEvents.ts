@@ -22,13 +22,6 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     const { deadEntity, damageSource } = event;
     const { damagingEntity } = damageSource;
 
-    // Handle Player Death (Stat updates)
-    if (deadEntity.typeId === 'minecraft:player') {
-        const victim = deadEntity as mc.Player;
-        incrementDeathCount(victim.id);
-        resetKillStreak(victim.id);
-    }
-
     let killer: mc.Player | undefined;
 
     if (damagingEntity && damagingEntity.typeId === 'minecraft:player') {
@@ -46,12 +39,26 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
         }
     }
 
+    // Handle Player Death (Stat updates)
+    if (deadEntity.typeId === 'minecraft:player') {
+        const victim = deadEntity as mc.Player;
+        // KDR Death: Only count if killed by another player (PvP)
+        if (killer && killer.isValid && killer.typeId === 'minecraft:player') {
+            incrementDeathCount(victim.id);
+        }
+        resetKillStreak(victim.id);
+    }
+
     if (!killer || !killer.isValid) {
         return;
     }
 
-    incrementKillCount(killer.id);
-    incrementKillStreak(killer.id);
+    // KDR Kill & Streak: Only count if victim was a player (PvP)
+    if (deadEntity.typeId === 'minecraft:player') {
+        incrementKillCount(killer.id);
+        incrementKillStreak(killer.id);
+    }
+
     const economyConfig = getEconomyConfig();
 
     if (deadEntity.typeId === 'minecraft:player') {

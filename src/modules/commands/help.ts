@@ -96,7 +96,8 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
             ' ' +
             cmd.parameters
                 .map((p) => {
-                    const name = p.enumOptions ? p.enumOptions.join('|') : p.name;
+                    const options = typeof p.enumOptions === 'function' ? p.enumOptions() : p.enumOptions;
+                    const name = options ? options.join('|') : p.name;
                     return p.optional ? `[${name}]` : `<${name}>`;
                 })
                 .join(' ');

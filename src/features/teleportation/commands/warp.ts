@@ -29,7 +29,13 @@ const warpCommand: CustomCommand = {
             name: 'warpName',
             type: 'string',
             optional: true,
-            enumOptions: warpsManager.listWarps()
+            enumOptions: () => {
+                try {
+                    return warpsManager.listWarps();
+                } catch {
+                    return [];
+                }
+            }
         }
     ],
     execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -169,7 +175,13 @@ const delWarpCommand: CustomCommand = {
             name: 'warpName',
             type: 'string',
             optional: true,
-            enumOptions: warpsManager.listWarps()
+            enumOptions: () => {
+                try {
+                    return warpsManager.listWarps();
+                } catch {
+                    return [];
+                }
+            }
         }
     ],
     execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
