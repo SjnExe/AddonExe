@@ -32,7 +32,10 @@ export function formatCurrency(amount: number): string {
 
     // Use at most 2 decimal places for large numbers, but remove trailing zeros/decimal if whole
     formattedAmount = suffix
-        ? (absAmount / suffix.value).toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1') + suffix.symbol
+        ? (absAmount / suffix.value)
+              .toFixed(2)
+              .replace(/\.00$/, '')
+              .replace(/(\.\d)0$/, '$1') + suffix.symbol
         : absAmount.toFixed(2);
 
     return `${isNegative ? '-' : ''}${symbol}${formattedAmount}`;
