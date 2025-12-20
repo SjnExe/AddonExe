@@ -28,8 +28,7 @@ const warpCommand: CustomCommand = {
         {
             name: 'warpName',
             type: 'string',
-            optional: true,
-            enumOptions: warpsManager.listWarps()
+            optional: true
         }
     ],
     execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -168,8 +167,7 @@ const delWarpCommand: CustomCommand = {
         {
             name: 'warpName',
             type: 'string',
-            optional: true,
-            enumOptions: warpsManager.listWarps()
+            optional: true
         }
     ],
     execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
