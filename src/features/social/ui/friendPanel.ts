@@ -138,7 +138,7 @@ export class FriendPanelHandler implements IPanelHandler {
         return items;
     }
 
-    buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
+    buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined | void> {
         if (panelId === 'friendAddPanel') {
             return Promise.resolve(
                 new ModalFormData().title('Add Friend').textField('Player Name', 'Enter exact name')
@@ -154,7 +154,7 @@ export class FriendPanelHandler implements IPanelHandler {
             );
         }
 
-        return Promise.resolve(undefined);
+        return Promise.resolve();
     }
 
     async handleResponse(
