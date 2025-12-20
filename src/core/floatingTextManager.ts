@@ -469,10 +469,7 @@ function despawnText(id: string) {
         // The log below helps debugging.
         if (!String(error).includes('LocationInUnloadedChunkError')) {
             if (error instanceof Error) {
-                errorLog(
-                    `[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`,
-                    error
-                );
+                errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, error);
             } else {
                 errorLog(
                     `[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`,
