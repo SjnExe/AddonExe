@@ -72,6 +72,18 @@ function minifyFiles(dir) {
             } catch (error) {
                 console.warn(`Skipped minification for ${filePath}: ${error.message}`);
             }
+        } else if (file.endsWith('.mcfunction')) {
+            try {
+                const content = fs.readFileSync(filePath, 'utf8');
+                const lines = content.split('\n');
+                const minifiedLines = lines
+                    .map((line) => line.trim())
+                    .filter((line) => line.length > 0 && !line.startsWith('#'));
+                fs.writeFileSync(filePath, minifiedLines.join('\n'));
+                console.log(`Minified MCFunction: ${filePath}`);
+            } catch (error) {
+                console.warn(`Skipped minification for ${filePath}: ${error.message}`);
+            }
         }
     }
 }
