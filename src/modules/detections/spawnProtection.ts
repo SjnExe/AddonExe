@@ -116,10 +116,9 @@ function initialize(): void {
     const spawnLocation = spawn?.spawnLocation;
     if (!spawnLocation || typeof spawnLocation.x !== 'number') {
         infoLog('[SpawnProtection] Spawn protection is enabled, but no spawn location is set.');
-        return;
+    } else {
+        infoLog(`[SpawnProtection] Protection ENABLED. Radius: ${spawnProtection.protectionRadius}`);
     }
-
-    infoLog(`[SpawnProtection] Protection ENABLED. Radius: ${spawnProtection.protectionRadius}`);
 
     if (spawnProtection.preventBlockBreaking) {
         subscribe(
@@ -160,9 +159,8 @@ function initialize(): void {
     intervalId = mc.system.runInterval(() => {
         const currentSpawnConfig = getSpawnConfig();
         const protection = currentSpawnConfig?.spawnProtection;
-        const loc = currentSpawnConfig?.spawn?.spawnLocation;
 
-        if (!protection?.enabled || !loc || typeof loc.x !== 'number') return;
+        if (!protection?.enabled) return;
 
         // Interval logic for mob spawning and player effects
         for (const player of mc.world.getAllPlayers()) {
