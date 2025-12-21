@@ -3,7 +3,7 @@ import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { constants } from '@core/constants.js';
+import { warpsDisabled } from '@core/constants.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
@@ -44,7 +44,7 @@ const warpCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.warps.enabled) {
-            sendMessage(constants.warpsDisabled, executor);
+            sendMessage(warpsDisabled, executor);
             return;
         }
 

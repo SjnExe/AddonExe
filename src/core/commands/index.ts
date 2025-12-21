@@ -3,17 +3,44 @@ import { commandManager } from './commandManager.js';
 
 import cmdAnticheatLogs from '@features/anticheat/commands/logs.js';
 import cmdAnticheatNotify from '@features/anticheat/commands/notify.js';
+import cmdAnticheatXraynotify from '@features/anticheat/commands/xraynotify.js';
 import cmdAuctionHouseAh from '@features/auctionHouse/commands/ah.js';
 import cmdDailyRewardsDaily from '@features/dailyRewards/commands/daily.js';
 import cmdEconomyBalance from '@features/economy/commands/balance.js';
+import cmdEconomyBounty from '@features/economy/commands/bounty.js';
 import cmdEconomyPay from '@features/economy/commands/pay.js';
 import cmdEconomySetbalance from '@features/economy/commands/setbalance.js';
+import cmdEssentialsAnnouncement from '@features/essentials/commands/announcement.js';
+import cmdEssentialsChattoconsole from '@features/essentials/commands/chattoconsole.js';
+import cmdEssentialsClear from '@features/essentials/commands/clear.js';
+import cmdEssentialsDebug from '@features/essentials/commands/debug.js';
+import cmdEssentialsFixplayer from '@features/essentials/commands/fixplayer.js';
+import cmdEssentialsFloatingtext from '@features/essentials/commands/floatingtext.js';
+import cmdEssentialsGamemode from '@features/essentials/commands/gamemode.js';
+import cmdEssentialsHelp from '@features/essentials/commands/help.js';
+import cmdEssentialsLinks from '@features/essentials/commands/links.js';
+import cmdEssentialsPanel from '@features/essentials/commands/panel.js';
+import cmdEssentialsPvp from '@features/essentials/commands/pvp.js';
+import cmdEssentialsRank from '@features/essentials/commands/rank.js';
+import cmdEssentialsReload from '@features/essentials/commands/reload.js';
+import cmdEssentialsRestart from '@features/essentials/commands/restart.js';
+import cmdEssentialsRules from '@features/essentials/commands/rules.js';
+import cmdEssentialsSave from '@features/essentials/commands/save.js';
+import cmdEssentialsSidebar from '@features/essentials/commands/sidebar.js';
+import cmdEssentialsSpawn from '@features/essentials/commands/spawn.js';
+import cmdEssentialsStatus from '@features/essentials/commands/status.js';
+import cmdEssentialsVersion from '@features/essentials/commands/version.js';
+import cmdKitsKit from '@features/kits/commands/kit.js';
 import cmdModerationBan from '@features/moderation/commands/ban.js';
 import cmdModerationChatlog from '@features/moderation/commands/chatlog.js';
+import cmdModerationClearchat from '@features/moderation/commands/clearchat.js';
+import cmdModerationDimensionLock from '@features/moderation/commands/dimensionLock.js';
 import cmdModerationFreeze from '@features/moderation/commands/freeze.js';
+import cmdModerationInventory from '@features/moderation/commands/inventory.js';
 import cmdModerationKick from '@features/moderation/commands/kick.js';
 import cmdModerationMute from '@features/moderation/commands/mute.js';
 import cmdModerationReport from '@features/moderation/commands/report.js';
+import cmdModerationVanish from '@features/moderation/commands/vanish.js';
 import cmdModerationWarn from '@features/moderation/commands/warn.js';
 import cmdShopShop from '@features/shop/commands/shop.js';
 import cmdSocialFriend from '@features/social/commands/friend.js';
@@ -26,76 +53,49 @@ import cmdTeleportationTp from '@features/teleportation/commands/tp.js';
 import cmdTeleportationTpa from '@features/teleportation/commands/tpa.js';
 import cmdTeleportationWarp from '@features/teleportation/commands/warp.js';
 import cmdVotingVote from '@features/voting/commands/vote.js';
-import cmdLegacyAnnouncement from './announcement.js';
-import cmdLegacyBounty from './bounty.js';
-import cmdLegacyChattoconsole from './chattoconsole.js';
-import cmdLegacyClear from './clear.js';
-import cmdLegacyClearchat from './clearchat.js';
-import cmdLegacyDebug from './debug.js';
-import cmdLegacyDimensionLock from './dimensionLock.js';
-import cmdLegacyFixplayer from './fixplayer.js';
-import cmdLegacyFloatingtext from './floatingtext.js';
-import cmdLegacyGamemode from './gamemode.js';
-import cmdLegacyHelp from './help.js';
-import cmdLegacyInventory from './inventory.js';
-import cmdLegacyKit from './kit.js';
-import cmdLegacyLinks from './links.js';
-import cmdLegacyPanel from './panel.js';
-import cmdLegacyPvp from './pvp.js';
-import cmdLegacyRank from './rank.js';
-import cmdLegacyReload from './reload.js';
-import cmdLegacyRestart from './restart.js';
-import cmdLegacyRules from './rules.js';
-import cmdLegacySave from './save.js';
-import cmdLegacySidebar from './sidebar.js';
-import cmdLegacySpawn from './spawn.js';
-import cmdLegacyStatus from './status.js';
-import cmdLegacyVanish from './vanish.js';
-import cmdLegacyVersion from './version.js';
-import cmdLegacyXraynotify from './xraynotify.js';
 
 export function loadCommands() {
     const commands = [
-        cmdLegacyAnnouncement,
-        cmdLegacyBounty,
-        cmdLegacyChattoconsole,
-        cmdLegacyClear,
-        cmdLegacyClearchat,
-        cmdLegacyDebug,
-        cmdLegacyDimensionLock,
-        cmdLegacyFixplayer,
-        cmdLegacyFloatingtext,
-        cmdLegacyGamemode,
-        cmdLegacyHelp,
-        cmdLegacyInventory,
-        cmdLegacyKit,
-        cmdLegacyLinks,
-        cmdLegacyPanel,
-        cmdLegacyPvp,
-        cmdLegacyRank,
-        cmdLegacyReload,
-        cmdLegacyRestart,
-        cmdLegacyRules,
-        cmdLegacySave,
-        cmdLegacySidebar,
-        cmdLegacySpawn,
-        cmdLegacyStatus,
-        cmdLegacyVanish,
-        cmdLegacyVersion,
-        cmdLegacyXraynotify,
         cmdAnticheatLogs,
         cmdAnticheatNotify,
+        cmdAnticheatXraynotify,
         cmdAuctionHouseAh,
         cmdDailyRewardsDaily,
         cmdEconomyBalance,
+        cmdEconomyBounty,
         cmdEconomyPay,
         cmdEconomySetbalance,
+        cmdEssentialsAnnouncement,
+        cmdEssentialsChattoconsole,
+        cmdEssentialsClear,
+        cmdEssentialsDebug,
+        cmdEssentialsFixplayer,
+        cmdEssentialsFloatingtext,
+        cmdEssentialsGamemode,
+        cmdEssentialsHelp,
+        cmdEssentialsLinks,
+        cmdEssentialsPanel,
+        cmdEssentialsPvp,
+        cmdEssentialsRank,
+        cmdEssentialsReload,
+        cmdEssentialsRestart,
+        cmdEssentialsRules,
+        cmdEssentialsSave,
+        cmdEssentialsSidebar,
+        cmdEssentialsSpawn,
+        cmdEssentialsStatus,
+        cmdEssentialsVersion,
+        cmdKitsKit,
         cmdModerationBan,
         cmdModerationChatlog,
+        cmdModerationClearchat,
+        cmdModerationDimensionLock,
         cmdModerationFreeze,
+        cmdModerationInventory,
         cmdModerationKick,
         cmdModerationMute,
         cmdModerationReport,
+        cmdModerationVanish,
         cmdModerationWarn,
         cmdShopShop,
         cmdSocialFriend,

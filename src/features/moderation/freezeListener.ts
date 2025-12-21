@@ -1,45 +1,45 @@
-import { constants } from '@core/constants.js';
+import { frozenTag } from '@core/constants.js';
 import * as mc from '@minecraft/server';
 
 export function initializeFreezeListener() {
     // Block Item Use
     mc.world.beforeEvents.itemUse.subscribe((event) => {
-        if (event.source.hasTag(constants.frozenTag)) {
+        if (event.source.hasTag(frozenTag)) {
             event.cancel = true;
         }
     });
 
     // Block Block Breaking
     mc.world.beforeEvents.playerBreakBlock.subscribe((event) => {
-        if (event.player.hasTag(constants.frozenTag)) {
+        if (event.player.hasTag(frozenTag)) {
             event.cancel = true;
         }
     });
 
     // Block Block Placing
     mc.world.beforeEvents.playerPlaceBlock.subscribe((event) => {
-        if (event.player.hasTag(constants.frozenTag)) {
+        if (event.player.hasTag(frozenTag)) {
             event.cancel = true;
         }
     });
 
     // Block Interaction with Entities
     mc.world.beforeEvents.playerInteractWithEntity.subscribe((event) => {
-        if (event.player.hasTag(constants.frozenTag)) {
+        if (event.player.hasTag(frozenTag)) {
             event.cancel = true;
         }
     });
 
     // Block Interaction with Blocks
     mc.world.beforeEvents.playerInteractWithBlock.subscribe((event) => {
-        if (event.player.hasTag(constants.frozenTag)) {
+        if (event.player.hasTag(frozenTag)) {
             event.cancel = true;
         }
     });
 
     // Block Chat Commands (except allowed)
     mc.world.beforeEvents.chatSend.subscribe((event) => {
-        if (event.sender.hasTag(constants.frozenTag)) {
+        if (event.sender.hasTag(frozenTag)) {
             const msg = event.message.trim();
             if (msg.startsWith('!') || msg.startsWith('?') || msg.startsWith('/')) {
                 // Check multiple prefixes

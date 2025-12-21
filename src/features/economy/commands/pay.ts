@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { constants } from '@core/constants.js';
+import { economyDisabled } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import {
     clearPendingPayment,
@@ -34,7 +34,7 @@ const payCommand: CustomCommand = {
         const amountStr = args.amount as string;
         const config = getConfig();
 
-        if (!config.economy.enabled) return sendMessage(constants.economyDisabled, executor);
+        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
         if (!targetName) return sendMessage('§cPlease specify a player.', executor);
 
         // Resolve Target
@@ -97,7 +97,7 @@ const oPayCommand: CustomCommand = {
         const amountStr = args.amount as string;
         const config = getConfig();
 
-        if (!config.economy.enabled) return sendMessage(constants.economyDisabled, executor);
+        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
         if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
 
         const targetId = getPlayerIdByName(targetName);

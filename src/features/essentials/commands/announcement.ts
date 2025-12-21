@@ -4,7 +4,7 @@ import { getConfig, updateConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { getPlayer, setPlayerAnnouncementsMuted } from '@core/playerDataManager.js';
 
-import { CustomCommand } from './commandManager.js';
+import { CustomCommand } from '@commands/commandManager.js';
 
 const announcementPanelId = 'config_announcements';
 

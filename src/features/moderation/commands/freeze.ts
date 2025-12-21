@@ -1,13 +1,13 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { constants } from '@core/constants.js';
+import { frozenTag } from '@core/constants.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { playSound } from '@core/utils.js';
 
 export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
-    if (targetPlayer.hasTag(constants.frozenTag)) {
+    if (targetPlayer.hasTag(frozenTag)) {
         if (executor instanceof mc.Player) {
             sendMessage(`§ePlayer ${targetPlayer.name} is already frozen.`, executor);
         } else {
@@ -18,7 +18,7 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
     try {
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera disabled`);
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement disabled`);
-        targetPlayer.addTag(constants.frozenTag);
+        targetPlayer.addTag(frozenTag);
 
         // Add invulnerability (Resistance 255)
         targetPlayer.addEffect('resistance', 20_000_000, { amplifier: 255, showParticles: false });
@@ -48,7 +48,7 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
 }
 
 export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
-    if (!targetPlayer.hasTag(constants.frozenTag)) {
+    if (!targetPlayer.hasTag(frozenTag)) {
         if (executor instanceof mc.Player) {
             sendMessage(`§ePlayer ${targetPlayer.name} is not frozen.`, executor);
         } else {
@@ -59,7 +59,7 @@ export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Playe
     try {
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera enabled`);
         targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement enabled`);
-        targetPlayer.removeTag(constants.frozenTag);
+        targetPlayer.removeTag(frozenTag);
 
         // Remove effects
         targetPlayer.removeEffect('resistance');

@@ -10,9 +10,9 @@ import { getPlayerRank } from '@core/rankManager.js';
 import { playSound, startTeleportWarmup } from '@core/utils.js';
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 
-import { initializeSpawnProtection } from '@modules/detections/spawnProtection.js';
+import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
 
-import { CommandExecutor, CustomCommand } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 interface SpawnLocation {
     x: number | undefined;

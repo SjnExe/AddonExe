@@ -4,7 +4,7 @@ import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayer } from '@core/playerDataManager.js';
 
-import { CommandExecutor, CustomCommand } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 // --- Gamemode Definitions ---
 

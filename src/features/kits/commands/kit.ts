@@ -9,7 +9,7 @@ import { errorLog } from '@core/logger.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCooldown, uiWait } from '@core/utils.js';
 
-import { CommandExecutor, CustomCommand } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 const KITS_PER_PAGE = 8;
 

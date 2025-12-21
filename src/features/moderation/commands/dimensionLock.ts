@@ -5,7 +5,7 @@ import { sendMessage } from '@core/messaging.js';
 import { getLockState, setLockState } from '@core/playerDataManager.js';
 import { playSound } from '@core/utils.js';
 
-import { CommandExecutor, CustomCommand } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 type Dimension = 'nether' | 'end';
 

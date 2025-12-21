@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { constants } from '@core/constants.js';
+import { soundError, soundTeleport } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
@@ -18,7 +18,7 @@ export function mutePlayer(
     if (!targetPlayer) {
         if (executor instanceof mc.Player) {
             sendMessage('§cPlayer not found.', executor);
-            playSound(executor, constants.soundError);
+            playSound(executor, soundError);
         } else {
             executor.sendMessage('§cPlayer not found.');
         }
@@ -27,19 +27,19 @@ export function mutePlayer(
     if (executor instanceof mc.Player) {
         if (executor.id === targetPlayer.id) {
             sendMessage('§cYou cannot mute yourself.', executor);
-            playSound(executor, constants.soundError);
+            playSound(executor, soundError);
             return;
         }
         const executorData = getPlayer(executor.id);
         const targetData = getPlayer(targetPlayer.id);
         if (!executorData || !targetData) {
             sendMessage('§cCould not retrieve player data for permission check.', executor);
-            playSound(executor, constants.soundError);
+            playSound(executor, soundError);
             return;
         }
         if (executorData.permissionLevel >= targetData.permissionLevel) {
             sendMessage('§cYou cannot mute a player with the same or higher rank than you.', executor);
-            playSound(executor, constants.soundError);
+            playSound(executor, soundError);
             return;
         }
     }
@@ -61,7 +61,7 @@ export function mutePlayer(
 
     if (executor instanceof mc.Player) {
         sendMessage(`§aSuccessfully muted ${targetPlayer.name} ${durationText}. Reason: ${reason}`, executor);
-        playSound(executor, constants.soundTeleport);
+        playSound(executor, soundTeleport);
     } else {
         executor.sendMessage(`§aSuccessfully muted ${targetPlayer.name} ${durationText}. Reason: ${reason}`);
     }
@@ -146,7 +146,7 @@ export function unmutePlayer(executor: CommandExecutor, targetName: string) {
 
     if (executor instanceof mc.Player) {
         sendMessage(`§aSuccessfully unmuted ${targetName}.`, executor);
-        playSound(executor, constants.soundTeleport);
+        playSound(executor, soundTeleport);
     } else {
         executor.sendMessage(`§aSuccessfully unmuted ${targetName}.`);
     }

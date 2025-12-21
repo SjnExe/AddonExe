@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getSidebarVisible, setSidebarVisible } from '@core/playerDataManager.js';
 
-import { CustomCommand } from './commandManager.js';
+import { CustomCommand } from '@commands/commandManager.js';
 
 const command: CustomCommand = {
     name: 'sidebar',

@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
-import { constants } from '@core/constants.js';
+import { vanishedTag } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { updatePlayerData } from '@core/playerDataManager.js';
 import { formatString } from '@core/utils.js';
 
-import { CommandExecutor, CustomCommand } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 const vanishCommand: CustomCommand = {
     name: 'vanish',
@@ -20,12 +20,12 @@ const vanishCommand: CustomCommand = {
             return;
         }
 
-        const isVanished = executor.hasTag(constants.vanishedTag);
+        const isVanished = executor.hasTag(vanishedTag);
         const config = getConfig();
         const joinLeaveConfig = config.playerInfo?.customJoinLeave;
 
         if (isVanished) {
-            executor.removeTag(constants.vanishedTag);
+            executor.removeTag(vanishedTag);
             executor.removeEffect('invisibility');
             updatePlayerData(executor.id, (d) => {
                 d.isVanished = false;
@@ -39,7 +39,7 @@ const vanishCommand: CustomCommand = {
                 mc.world.sendMessage(`§e${executor.name} joined the game.`);
             }
         } else {
-            executor.addTag(constants.vanishedTag);
+            executor.addTag(vanishedTag);
             executor.addEffect('invisibility', 2_000_000, { amplifier: 1, showParticles: false });
             updatePlayerData(executor.id, (d) => {
                 d.isVanished = true;

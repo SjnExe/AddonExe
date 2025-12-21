@@ -10,7 +10,7 @@ import { rankDefinitions } from '@core/ranksConfig.default.js';
 import { playSound } from '@core/utils.js';
 
 import type { RankCondition, RankDefinition } from '@core/ranksConfig.default.js';
-import type { CustomCommand } from './commandManager.js';
+import type { CustomCommand } from '@commands/commandManager.js';
 
 interface RankCommandArgs {
     action?: string;

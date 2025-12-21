@@ -4,7 +4,7 @@ import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { acceptPvP, denyPvP, requestPvP } from '@core/pvpManager.js';
 
-import { CustomCommand } from './commandManager.js';
+import { CustomCommand } from '@commands/commandManager.js';
 
 const command: CustomCommand = {
     name: 'pvp',

@@ -1,8 +1,15 @@
 ## This file is for localization of text in the resource pack.
-## It is currently a placeholder for future use.
 
 ## Item Names
 item.exe:panel.name=Panel
+
+## Errors
+error.no_permission=§cYou do not have permission to use this command.
+error.homes_disabled=§cThe homes system is currently disabled.
+error.tpa_disabled=§cThe TPA system is currently disabled.
+error.economy_disabled=§cThe economy system is currently disabled.
+error.rtp_disabled=§cThe Random Teleport system is currently disabled.
+error.warps_disabled=§cThe warps system is currently disabled.
 
 ## Hide Vanilla Join/Leave Messages (Handled by AddonExe Script)
 multiplayer.player.joined=
