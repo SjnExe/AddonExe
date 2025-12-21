@@ -1,0 +1,44 @@
+import * as mc from '@minecraft/server';
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { gameManager } from '../gameManager.js';
+import { gameConfig } from '../gameConfig.js';
+
+const gameCommand: CustomCommand = {
+    name: 'game',
+    description: 'Manage server games.',
+    category: 'Games',
+    permissionLevel: 1, // Admin
+    allowConsole: true,
+    parameters: [
+        { name: 'action', type: 'string', enumOptions: ['start', 'stop'] },
+        { name: 'gameId', type: 'string', enumOptions: ['wordGuess'] },
+        { name: 'arg1', type: 'string', optional: true } // Custom word
+    ],
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const action = args.action as string;
+        const gameId = args.gameId as string;
+        const arg1 = args.arg1 as string;
+
+        if (action === 'start') {
+            const config: Record<string, unknown> = { word: arg1 };
+            if (gameId === 'wordGuess' && !arg1) {
+                const words = gameConfig.wordGuess.wordList;
+                config.word = words[Math.floor(Math.random() * words.length)];
+            }
+
+            if (gameManager.startGlobalGame(gameId, config)) {
+                if (executor instanceof mc.Player) executor.sendMessage(`§aStarted ${gameId}.`);
+                else (executor as { sendMessage: (s: string) => void }).sendMessage(`§aStarted ${gameId}.`);
+            } else {
+                if (executor instanceof mc.Player) executor.sendMessage(`§cFailed to start ${gameId}.`);
+                else (executor as { sendMessage: (s: string) => void }).sendMessage(`§cFailed to start ${gameId}.`);
+            }
+        } else if (action === 'stop') {
+            gameManager.stopGlobalGame(gameId);
+            if (executor instanceof mc.Player) executor.sendMessage(`§aStopped ${gameId}.`);
+            else (executor as { sendMessage: (s: string) => void }).sendMessage(`§aStopped ${gameId}.`);
+        }
+    }
+};
+
+export default gameCommand;
