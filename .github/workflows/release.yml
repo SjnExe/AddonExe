@@ -84,8 +84,8 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-tsbuildinfo-
 
-            - name: Build TypeScript
-              run: npm run build
+            - name: Build TypeScript (Release)
+              run: npm run build:release
 
             - name: Process Config Files
               run: node scripts/finalize-build.js

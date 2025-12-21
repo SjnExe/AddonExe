@@ -1833,7 +1833,7 @@
         "destroy_at_end": "hud_actionbar_text",
         "end_event": "hud_actionbar_text_complete"
     },
-    "hud_actionbar_text": {
+    "custom_actionbar_text": {
         "type": "panel",
         "size": ["100%c", "100%c"],
         "offset": [0, -42],
@@ -2289,7 +2289,7 @@
                     "factory": {
                         "name": "hud_actionbar_text_factory",
                         "control_ids": {
-                            "hud_actionbar_text": "hud_actionbar_text@hud.hud_actionbar_text"
+                            "hud_actionbar_text": "hud_actionbar_text@hud.custom_actionbar_text"
                         }
                     }
                 }
