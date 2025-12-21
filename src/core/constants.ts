@@ -1,3 +1,5 @@
+import { RawMessage } from '@minecraft/server';
+
 /**
  * This file contains centralized constants for the addon.
  * Using constants helps prevent "magic strings" and makes the code easier to maintain.
@@ -18,13 +20,14 @@ export const mainPanelTitle = '§l§bAddonExe Control Panel';
 export const commandPrefix = '!'; // This will be read from config later
 
 // --- Default Messages ---
-export const noPermission = '§cYou do not have permission to use this command.';
-export const homesDisabled = '§cThe homes system is currently disabled.';
-export const tpaDisabled = '§cThe TPA system is currently disabled.';
-export const economyDisabled = '§cThe economy system is currently disabled.';
-export const rtpDisabled = '§cThe Random Teleport system is currently disabled.';
-export const warpsDisabled = '§cThe warps system is currently disabled.';
+export const noPermission: RawMessage = { translate: 'error.no_permission' };
+export const homesDisabled: RawMessage = { translate: 'error.homes_disabled' };
+export const tpaDisabled: RawMessage = { translate: 'error.tpa_disabled' };
+export const economyDisabled: RawMessage = { translate: 'error.economy_disabled' };
+export const rtpDisabled: RawMessage = { translate: 'error.rtp_disabled' };
+export const warpsDisabled: RawMessage = { translate: 'error.warps_disabled' };
 
 // --- Sound Events ---
+// TODO: Migrate to MinecraftSoundTypes when available
 export const soundTeleport = 'random.orb';
 export const soundError = 'note.bass';

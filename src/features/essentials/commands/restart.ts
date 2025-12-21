@@ -1,6 +1,6 @@
 import { startRestart } from '@core/restartManager.js';
 
-import { CustomCommand } from './commandManager.js';
+import { CustomCommand } from '@commands/commandManager.js';
 
 const command: CustomCommand = {
     name: 'restart',

@@ -1,8 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { restartAnnouncer } from '@commands/announcement.js';
 import { loadCommands } from '@commands/index.js';
+import { initializeXrayDetection } from '@features/anticheat/xrayDetection.js';
 import * as auctionHouseFeature from '@features/auctionHouse/index.js';
+import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
+import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
 import * as kitsFeature from '@features/kits/index.js';
 import { initializeChatLogger } from '@features/moderation/chatLogManager.js';
 import * as moderationFeature from '@features/moderation/index.js';
@@ -17,8 +19,6 @@ import * as shopFeature from '@features/shop/index.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import * as teleportFeature from '@features/teleportation/index.js';
 import * as votingFeature from '@features/voting/index.js';
-import { initializeSpawnProtection } from '@modules/detections/spawnProtection.js';
-import { initializeXrayDetection } from '@modules/detections/xrayDetection.js';
 import * as corePanels from './ui/panels/index.js';
 
 import * as economyFeature from '@features/economy/index.js';

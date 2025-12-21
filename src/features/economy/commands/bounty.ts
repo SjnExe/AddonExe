@@ -13,7 +13,7 @@ import {
 } from '@core/playerDataManager.js';
 import { parseCurrency, resolveTarget } from '@core/utils.js';
 
-import { CommandExecutor, CustomCommand } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 function placeBounty(executor: mc.Player, targetId: string, targetName: string, amount: number) {
     const config = getConfig();

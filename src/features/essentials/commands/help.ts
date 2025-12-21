@@ -7,7 +7,7 @@ import { sendMessage } from '@core/messaging.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { uiWait } from '@core/utils.js';
 
-import { CommandExecutor, commandManager, CustomCommand } from './commandManager.js';
+import { CommandExecutor, commandManager, CustomCommand } from '@commands/commandManager.js';
 
 // Cache for categorized commands
 let categorizedCache: Map<string, CustomCommand[]> | undefined;

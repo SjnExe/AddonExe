@@ -6,7 +6,7 @@ import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, setPlayerXrayNotifications } from '@core/playerDataManager.js';
 import { playSound } from '@core/utils.js';
 
-import { CustomCommand } from './commandManager.js';
+import { CustomCommand } from '@commands/commandManager.js';
 
 const command: CustomCommand = {
     name: 'xraynotify',

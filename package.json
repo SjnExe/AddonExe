@@ -93,7 +93,8 @@
             "^@minecraft/server$": "<rootDir>/src/core/__tests__/__mocks__/minecraftMock.ts",
             "^@minecraft/server-ui$": "<rootDir>/src/core/__tests__/__mocks__/minecraftMock.ts",
             "^@core/(.*)\\.js$": "<rootDir>/src/core/$1",
-            "^@modules/(.*)\\.js$": "<rootDir>/src/modules/$1"
+            "^@features/(.*)\\.js$": "<rootDir>/src/features/$1",
+            "^@commands/(.*)\\.js$": "<rootDir>/src/core/commands/$1"
         },
         "transform": {
             "^.+\\.tsx?$": [
@@ -107,7 +108,7 @@
             "/node_modules/",
             "/packs/behavior/scripts/",
             "/__mocks__/",
-            "<rootDir>/src/modules/commands/test.ts"
+            "<rootDir>/src/features/essentials/commands/test.ts"
         ]
     },
     "lint-staged": {

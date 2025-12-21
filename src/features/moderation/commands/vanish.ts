@@ -6,7 +6,7 @@ import { sendMessage } from '@core/messaging.js';
 import { updatePlayerData } from '@core/playerDataManager.js';
 import { formatString } from '@core/utils.js';
 
-import { CommandExecutor, CustomCommand } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 const vanishCommand: CustomCommand = {
     name: 'vanish',

@@ -24,10 +24,9 @@
         "baseUrl": "./src",
         "paths": {
             "@core/*": ["./core/*"],
-            "@modules/*": ["./modules/*"],
             "@features/*": ["./features/*"],
             "@ui/*": ["./core/ui/*"],
-            "@commands/*": ["./modules/commands/*"]
+            "@commands/*": ["./core/commands/*"]
         },
         "types": [
             "node",

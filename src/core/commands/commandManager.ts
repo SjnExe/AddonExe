@@ -31,7 +31,7 @@ export type CommandExecutor =
     | mc.Player
     | {
           isConsole: true;
-          sendMessage: (message: string) => void;
+          sendMessage: (message: string | mc.RawMessage) => void;
       };
 
 /**
@@ -381,7 +381,13 @@ class CommandManager {
                     ? sourceEntity
                     : {
                           isConsole: true,
-                          sendMessage: (msg: string) => errorLog(msg.replaceAll(/§[0-9a-fklmnor]/g, ''))
+                          sendMessage: (msg: string | mc.RawMessage) => {
+                              if (typeof msg === 'string') {
+                                  errorLog(msg.replaceAll(/§[0-9a-fklmnor]/g, ''));
+                              } else {
+                                  errorLog(JSON.stringify(msg));
+                              }
+                          }
                       };
 
             // Prepare arguments

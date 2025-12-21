@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { sendMessage } from '@core/messaging.js';
 
-import { CommandExecutor, CustomCommand } from './commandManager.js';
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 const statusCommand: CustomCommand = {
     name: 'status',
