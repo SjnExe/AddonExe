@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { resolveTarget } from '@core/utils.js';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { resolveTarget } from '@core/utils.js';
 
 const invseeCommand: CustomCommand = {
     name: 'invsee',
