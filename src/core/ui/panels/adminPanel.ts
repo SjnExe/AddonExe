@@ -193,19 +193,32 @@ export class AdminPanelHandler implements IPanelHandler {
                 const item = items[selection];
                 if (!item) return;
                 if (item.actionType === 'openPanel') {
-                    return showPanel(player, item.actionValue, {
+                    const newContext = {
                         ...context,
                         page: 1,
                         selectedItemId: item.id,
                         id: item.id
-                    });
+                    };
+
+                    // Fix: Preserve the floating text ID when navigating to the edit panel
+                    if (panelId === 'floatingTextActionPanel' && item.actionValue === 'floatingTextEditPanel') {
+                        newContext.id = context.id as string;
+                    }
+
+                    return showPanel(player, item.actionValue, newContext);
                 }
                 if (item.actionType === 'functionCall') {
-                    await handleUIAction(player, item.actionValue, {
+                    const actionContext = {
                         ...context,
                         selectedItemId: item.id,
                         id: item.id
-                    });
+                    };
+
+                    if (panelId === 'floatingTextActionPanel') {
+                        actionContext.id = context.id as string;
+                    }
+
+                    await handleUIAction(player, item.actionValue, actionContext);
                     return;
                 }
             }

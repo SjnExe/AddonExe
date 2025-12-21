@@ -6,7 +6,8 @@ import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
-import { formatCurrency, playSound, startTeleportWarmup } from '@core/utils.js';
+import { startTeleportWarmup } from '@core/teleportLogic.js';
+import { formatCurrency, playSound } from '@core/utils.js';
 
 interface BackConfig {
     enabled: boolean;

@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 
+import { getConfig } from '@core/configManager.js';
 import { loadPlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
@@ -19,11 +20,23 @@ export class TeleportPanelHandler implements IPanelHandler {
 
         if (panelId === 'tpaSettingsPanel') {
             addBackButton(items, 'gameplayPanel');
+            const config = getConfig();
+            if (!config.tpa.enabled) {
+                items.push({
+                    id: 'tpaDisabled',
+                    text: '§cSystem Globally Disabled',
+                    icon: 'textures/ui/warning_alert',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'noop'
+                });
+            }
+
             const isEnabled = !pData?.tpaRequestsDisabled;
             items.push(
                 {
                     id: 'toggleTpa',
-                    text: isEnabled ? '§2Requests: Allowed' : '§4Requests: Blocked',
+                    text: isEnabled ? '§2Incoming Requests: Allowed' : '§4Incoming Requests: Blocked',
                     icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
                     permissionLevel: 1024,
                     actionType: 'functionCall',
@@ -76,6 +89,10 @@ export class TeleportPanelHandler implements IPanelHandler {
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, { ...context, page: 1 });
+                }
+
+                if (item.actionValue === 'noop') {
+                    return showPanel(player, panelId, context);
                 }
 
                 if (item.actionValue === 'toggleTpa') {

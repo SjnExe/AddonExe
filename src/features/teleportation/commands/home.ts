@@ -3,11 +3,12 @@ import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { constants } from '@core/constants.js';
+import { homesDisabled } from '@core/constants.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { startTeleportWarmup, uiWait } from '@core/utils.js';
+import { startTeleportWarmup } from '@core/teleportLogic.js';
+import { uiWait } from '@core/utils.js';
 
 import * as homesManager from '../homesManager.js';
 import { saveLastLocation } from '../teleportUtils.js';
@@ -30,7 +31,7 @@ const homeCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.homes.enabled) {
-            sendMessage(constants.homesDisabled, executor);
+            sendMessage(homesDisabled, executor);
             return;
         }
 
@@ -114,7 +115,7 @@ const homesCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.homes.enabled) {
-            sendMessage(constants.homesDisabled, executor);
+            sendMessage(homesDisabled, executor);
             return;
         }
 
@@ -146,7 +147,7 @@ const delHomeCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.homes.enabled) {
-            sendMessage(constants.homesDisabled, executor);
+            sendMessage(homesDisabled, executor);
             return;
         }
 
@@ -207,7 +208,7 @@ const setHomeCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.homes.enabled) {
-            sendMessage(constants.homesDisabled, executor);
+            sendMessage(homesDisabled, executor);
             return;
         }
 

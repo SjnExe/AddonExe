@@ -6,6 +6,7 @@ import { getConfig } from './configManager.js';
 import { saveAllData } from './dataManager.js';
 import { debugLog, errorLog } from './logger.js';
 import { getPlayerRank } from './rankManager.js';
+import { setActionBarOverride } from './sidebarManager.js';
 import { clearTrackedInterval, setTrackedInterval, setTrackedTimeout } from './timerManager.js';
 
 let restartInProgress = false;
@@ -48,7 +49,7 @@ export function startRestart(initiator: CommandExecutor): void {
             const pitch = 0.5 + progress * 1.5;
 
             for (const player of mc.world.getAllPlayers()) {
-                player.onScreenDisplay.setActionBar(message);
+                setActionBarOverride(player, message, 1100);
                 player.playSound('note.pling', { pitch: pitch, volume: 1 });
 
                 if (countdownTimer <= 5) {

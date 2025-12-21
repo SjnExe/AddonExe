@@ -6,9 +6,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const SRC_DIR = path.join(__dirname, '../src');
-const COMMANDS_DIR = path.join(SRC_DIR, 'modules/commands');
+// This is where index.ts lives now
+const CORE_COMMANDS_DIR = path.join(SRC_DIR, 'core/commands');
 const FEATURES_DIR = path.join(SRC_DIR, 'features');
-const INDEX_FILE = path.join(COMMANDS_DIR, 'index.ts');
+const INDEX_FILE = path.join(CORE_COMMANDS_DIR, 'index.ts');
 
 const EXCLUSIONS = new Set(['index.ts', 'commandManager.ts']);
 
@@ -26,13 +27,7 @@ function getCommandFiles(dir) {
 function generate() {
     console.log('Generating command index...');
 
-    // 1. Get commands from modules/commands
-    const legacyCommands = getCommandFiles(COMMANDS_DIR).map((f) => ({
-        ...f,
-        relativePath: `./${path.basename(f.name, '.ts')}.js`
-    }));
-
-    // 2. Get commands from features/**/commands
+    // 1. Get commands from features/**/commands
     const featureCommands = [];
     if (fs.existsSync(FEATURES_DIR)) {
         const features = fs.readdirSync(FEATURES_DIR);
@@ -49,7 +44,7 @@ function generate() {
         }
     }
 
-    const allCommands = [...legacyCommands, ...featureCommands];
+    const allCommands = [...featureCommands];
     console.log(`Found ${allCommands.length} command files.`);
 
     const imports = allCommands

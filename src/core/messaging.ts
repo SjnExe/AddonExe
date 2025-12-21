@@ -11,8 +11,8 @@ import { warnLog } from './logger.js';
  * @param options.title An optional title to replace the default server name.
  */
 export function sendMessage(
-    message: string,
-    target: { sendMessage: (msg: string) => void } | 'all' = mc.world,
+    message: string | mc.RawMessage,
+    target: { sendMessage: (msg: string | mc.RawMessage) => void } | 'all' = mc.world,
 
     _options: { raw?: boolean; title?: string | undefined } = {}
 ) {
