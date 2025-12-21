@@ -1,4 +1,4 @@
-export const gameConfig = {
+export const gamesConfig = {
     enabled: true,
     wordGuess: {
         enabled: true,

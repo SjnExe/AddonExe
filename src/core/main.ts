@@ -31,6 +31,7 @@ import {
     loadAuctionHouseConfig,
     loadDailyRewardsConfig,
     loadEconomyConfig,
+    loadGamesConfig,
     loadKitsConfig,
     loadRanksConfig,
     loadShopConfig,
@@ -217,6 +218,7 @@ async function initializeAddon() {
         loadXrayConfig(isMigration),
         loadAuctionHouseConfig(isMigration),
         loadDailyRewardsConfig(isMigration),
+        loadGamesConfig(isMigration),
         import('@features/anticheat/index.js').then((m) => m.initialize(isMigration))
     ]);
 

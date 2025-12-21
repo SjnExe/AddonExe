@@ -1,6 +1,8 @@
 import * as mc from '@minecraft/server';
 import { IGame } from '../types.js';
 import { incrementPlayerBalance } from '@core/playerDataManager.js';
+import { getGamesConfig } from '@core/configurations.js';
+import { gameManager } from '../gameManager.js';
 
 export class WordGuessGame implements IGame {
     id = 'wordGuess';
@@ -40,12 +42,14 @@ export class WordGuessGame implements IGame {
         }
 
         if (input === target) {
+            const reward = getGamesConfig().wordGuess.reward;
             mc.world.sendMessage(`§a[WordGuess] §e${player.name}§a guessed the word: §b${this.currentWord}§a!`);
-            incrementPlayerBalance(player.id, 100);
-            player.sendMessage(`§aYou received $100.`);
-            // Callback to manager to clear active game?
-            // For now, just stop internal state. Manager still holds instance.
+            incrementPlayerBalance(player.id, reward);
+            player.sendMessage(`§aYou received $${reward}.`);
+
+            // Stop logic
             this.stop();
+            gameManager.stopGlobalGame(this.id);
             return;
         }
 

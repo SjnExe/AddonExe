@@ -32,7 +32,8 @@ const external = [
     './features/teams/teamConfig.js',
     './features/anticheat/anticheatConfig.js',
     './features/auctionHouse/auctionHouseConfig.js',
-    './features/dailyRewards/dailyRewardsConfig.js'
+    './features/dailyRewards/dailyRewardsConfig.js',
+    './features/games/gamesConfig.js'
 ];
 
 const isWatch = process.argv.includes('--watch');
@@ -108,6 +109,10 @@ const configsToCompile = [
     {
         src: '../src/features/dailyRewards/dailyRewardsConfig.default.ts',
         dest: 'features/dailyRewards/dailyRewardsConfig.js'
+    },
+    {
+        src: '../src/features/games/gamesConfig.default.ts',
+        dest: 'features/games/gamesConfig.js'
     }
 ];
 

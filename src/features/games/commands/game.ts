@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { getGamesConfig } from '@core/configurations.js';
 import { gameManager } from '../gameManager.js';
-import { gameConfig } from '../gameConfig.js';
 
 const gameCommand: CustomCommand = {
     name: 'game',
@@ -21,8 +21,26 @@ const gameCommand: CustomCommand = {
 
         if (action === 'start') {
             const config: Record<string, unknown> = { word: arg1 };
+            const gamesConfig = getGamesConfig();
+
+            if (!gamesConfig.enabled) {
+                const msg = '§cGames system is disabled.';
+                if (executor instanceof mc.Player) executor.sendMessage(msg);
+                else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
+                return;
+            }
+
+            // Check individual game enabled status
+            const specificGameConfig = (gamesConfig as any)[gameId];
+            if (specificGameConfig && specificGameConfig.enabled === false) {
+                const msg = `§cGame '${gameId}' is disabled in configuration.`;
+                if (executor instanceof mc.Player) executor.sendMessage(msg);
+                else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
+                return;
+            }
+
             if (gameId === 'wordGuess' && !arg1) {
-                const words = gameConfig.wordGuess.wordList;
+                const words = gamesConfig.wordGuess.wordList;
                 config.word = words[Math.floor(Math.random() * words.length)];
             }
 

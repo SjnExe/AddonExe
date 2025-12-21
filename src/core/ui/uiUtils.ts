@@ -4,16 +4,19 @@ import { Config, getConfig, updateMultipleConfig } from '@core/configManager.js'
 import {
     getAuctionHouseConfig,
     getEconomyConfig,
+    getGamesConfig,
     getSidebarConfig,
     getSpawnConfig,
     getTeamConfig,
     getXrayConfig,
     saveAuctionHouseConfig,
     saveEconomyConfig,
+    saveGamesConfig,
     saveSidebarConfig,
     saveSpawnConfig,
     saveTeamConfig,
     saveXrayConfig,
+    GamesConfig,
     SidebarConfig
 } from '@core/configurations.js';
 import { kitsConfig } from '@core/kitsConfig.default.js';
@@ -89,6 +92,10 @@ export const configHandlers: Record<string, ConfigHandler> = {
     auctionHouse: {
         get: getAuctionHouseConfig,
         save: (config: unknown) => saveAuctionHouseConfig(config as AuctionHouseConfig)
+    },
+    games: {
+        get: getGamesConfig,
+        save: (config: unknown) => saveGamesConfig(config as GamesConfig)
     }
 };
 

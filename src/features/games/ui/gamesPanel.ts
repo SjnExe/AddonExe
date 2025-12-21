@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 import { ActionFormResponse } from '@minecraft/server-ui';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { showPanel } from '@core/uiManager.js';
+import { getGamesConfig } from '@core/configurations.js';
 import { gameManager } from '../gameManager.js';
 import { addBackButton } from '@ui/uiUtils.js';
 
@@ -15,9 +16,26 @@ export class GamesPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [];
         addBackButton(items, 'gameplayPanel');
 
+        if (!getGamesConfig().enabled) {
+            items.push({
+                id: 'games_disabled',
+                text: '§cGames Disabled',
+                permissionLevel: 1024,
+                actionType: 'none',
+                actionValue: ''
+            });
+            return items;
+        }
+
         const defs = gameManager.getAllDefinitions();
+        const config = getGamesConfig();
+
         for (const def of defs) {
             if (def.id === 'wordGuess') continue;
+
+            // Check individual game enabled status safely
+            const gameConfig = (config as any)[def.id];
+            if (gameConfig && gameConfig.enabled === false) continue;
 
             items.push({
                 id: def.id,
