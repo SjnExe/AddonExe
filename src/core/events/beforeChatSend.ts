@@ -5,6 +5,7 @@ import { getConfig } from '@core/configManager.js';
 import { infoLog } from '@core/logger.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { addChatLog } from '@features/moderation/chatLogManager.js';
+import { isTeamChatEnabled } from '@features/teams/commands/team.js';
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
 
 export const eventName = 'chatSend';
@@ -15,6 +16,26 @@ function handleChatSend(event: mc.ChatSendBeforeEvent) {
 
     // Command interception
     if (commandManager.handleChatCommand(event)) {
+        return;
+    }
+
+    // Team Chat Handling
+    if (isTeamChatEnabled(sender.id)) {
+        event.cancel = true;
+        const team = getTeamByPlayer(sender.id);
+        if (team) {
+            const teamMsg = `§a[Team] §f<${sender.name}> ${message}`;
+            // Broadcast to online members
+            for (const memberId of team.members) {
+                const member = mc.world.getAllPlayers().find((p) => p.id === memberId);
+                if (member) member.sendMessage(teamMsg);
+            }
+            if (config.chat?.logToConsole) {
+                infoLog(`[TeamChat] [${team.name}] <${sender.name}> ${message}`);
+            }
+        } else {
+            sender.sendMessage('§cYou are not in a team. Team chat disabled.');
+        }
         return;
     }
 
