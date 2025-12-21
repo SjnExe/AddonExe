@@ -161,7 +161,42 @@ function runRetrySpawnLoop() {
             }
         }
     }
+
+    pruneOrphanedTexts();
+
     retrySpawnIntervalId = mc.system.runTimeout(runRetrySpawnLoop, 200);
+}
+
+function pruneOrphanedTexts() {
+    const dimensions = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
+    for (const dimId of dimensions) {
+        try {
+            const dimension = mc.world.getDimension(dimId);
+            const entities = dimension.getEntities({ type: 'exe:floating_text' });
+            for (const entity of entities) {
+                if (!entity.isValid) continue;
+                let isTracked = false;
+                for (const tag of entity.getTags()) {
+                    if (tag.startsWith('ft_')) {
+                        const id = tag.slice(3);
+                        if (floatingTexts.has(id)) {
+                            isTracked = true;
+                        }
+                        break;
+                    }
+                }
+
+                if (!isTracked) {
+                    debugLog(
+                        `[FloatingText] Removing orphaned entity at ${entity.location.x.toFixed(1)}, ${entity.location.y.toFixed(1)}, ${entity.location.z.toFixed(1)}`
+                    );
+                    entity.remove();
+                }
+            }
+        } catch {
+            // Ignore dimension errors
+        }
+    }
 }
 
 function spawnAllTexts() {
