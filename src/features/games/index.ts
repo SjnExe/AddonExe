@@ -1,4 +1,5 @@
 import { gameManager } from './gameManager.js';
+import { DiceRollGame } from './games/diceRoll.js';
 import { WordGuessGame } from './games/wordGuess.js';
 
 export function initialize() {
@@ -8,5 +9,19 @@ export function initialize() {
         description: 'Guess the hidden word!',
         icon: 'textures/items/book_writable',
         factory: () => new WordGuessGame()
+    });
+    gameManager.register({
+        id: 'diceRoll',
+        name: 'Dice Roll',
+        description: 'Roll a random number.',
+        icon: 'textures/items/emerald',
+        factory: () => new DiceRollGame()
+    });
+    gameManager.register({
+        id: 'ticTacToe',
+        name: 'Tic Tac Toe',
+        description: 'Classic strategy game.',
+        icon: 'textures/ui/controller_glyph_color',
+        factory: (): IGame => ticTacToe
     });
 }

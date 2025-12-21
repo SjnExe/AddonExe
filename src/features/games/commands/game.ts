@@ -11,7 +11,7 @@ const gameCommand: CustomCommand = {
     allowConsole: true,
     parameters: [
         { name: 'action', type: 'string', enumOptions: ['start', 'stop'] },
-        { name: 'gameId', type: 'string', enumOptions: ['wordGuess'] },
+        { name: 'gameId', type: 'string', enumOptions: ['wordGuess', 'diceRoll', 'ticTacToe'] },
         { name: 'arg1', type: 'string', optional: true } // Custom word
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {

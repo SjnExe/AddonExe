@@ -172,8 +172,22 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 actionType: 'openPanel',
                 actionValue: 'tpaSettingsPanel',
                 sortId: 60
+            },
+            {
+                id: 'games',
+                text: '§5Games',
+                icon: 'textures/ui/controller_glyph_color',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'gamesPanel',
+                sortId: 70
             }
         ]
+    },
+    gamesPanel: {
+        title: 'Games',
+        parentPanelId: 'gameplayPanel',
+        items: [] // Dynamic
     },
     friendMainPanel: {
         title: 'Friend System',

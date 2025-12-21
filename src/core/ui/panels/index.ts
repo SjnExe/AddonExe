@@ -1,3 +1,4 @@
+import { GamesPanelHandler } from '@features/games/ui/gamesPanel.js';
 import { FriendPanelHandler } from '@features/social/ui/friendPanel.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 import { AdminPanelHandler } from './adminPanel.js';
@@ -19,4 +20,5 @@ export function initialize() {
     panelRouter.register(new RankPanelHandler());
     panelRouter.register(new SidebarPanelHandler());
     panelRouter.register(new FriendPanelHandler());
+    panelRouter.register(new GamesPanelHandler());
 }
