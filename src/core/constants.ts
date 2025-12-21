@@ -1,38 +1,33 @@
+import { RawMessage } from '@minecraft/server';
+
 /**
  * This file contains centralized constants for the addon.
  * Using constants helps prevent "magic strings" and makes the code easier to maintain.
  */
 
-export const DimensionId = {
-    Overworld: 'minecraft:overworld',
-    Nether: 'minecraft:nether',
-    End: 'minecraft:the_end'
-};
+// --- Entity Identifiers ---
+export const floatingTextId = 'exe:floating_text';
 
-export const constants = {
-    // --- Entity Identifiers ---
-    floatingTextId: 'exe:floating_text',
+// --- Common Tags ---
+export const adminTag = 'admin';
+export const vanishedTag = 'vanished';
+export const frozenTag = 'frozen';
 
-    // --- Common Tags ---
-    adminTag: 'admin',
-    vanishedTag: 'vanished',
-    frozenTag: 'frozen',
+// --- UI Form Titles ---
+export const mainPanelTitle = '§l§bAddonExe Control Panel';
 
-    // --- UI Form Titles ---
-    mainPanelTitle: '§l§bAddonExe Control Panel',
+// --- Command Prefixes ---
+export const commandPrefix = '!'; // This will be read from config later
 
-    // --- Command Prefixes ---
-    commandPrefix: '!', // This will be read from config later
+// --- Default Messages ---
+export const noPermission: RawMessage = { translate: 'error.no_permission' };
+export const homesDisabled: RawMessage = { translate: 'error.homes_disabled' };
+export const tpaDisabled: RawMessage = { translate: 'error.tpa_disabled' };
+export const economyDisabled: RawMessage = { translate: 'error.economy_disabled' };
+export const rtpDisabled: RawMessage = { translate: 'error.rtp_disabled' };
+export const warpsDisabled: RawMessage = { translate: 'error.warps_disabled' };
 
-    // --- Default Messages ---
-    noPermission: '§cYou do not have permission to use this command.',
-    homesDisabled: '§cThe homes system is currently disabled.',
-    tpaDisabled: '§cThe TPA system is currently disabled.',
-    economyDisabled: '§cThe economy system is currently disabled.',
-    rtpDisabled: '§cThe Random Teleport system is currently disabled.',
-    warpsDisabled: '§cThe warps system is currently disabled.',
-
-    // --- Sound Events ---
-    soundTeleport: 'random.orb',
-    soundError: 'note.bass'
-};
+// --- Sound Events ---
+// TODO: Migrate to MinecraftSoundTypes when available
+export const soundTeleport = 'random.orb';
+export const soundError = 'note.bass';

@@ -1836,7 +1836,7 @@
     "custom_actionbar_text": {
         "type": "panel",
         "size": ["100%c", "100%c"],
-        "offset": [0, -42],
+        "offset": [0, -65],
         "anchor_from": "bottom_middle",
         "anchor_to": "bottom_middle",
         "controls": [

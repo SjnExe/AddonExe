@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { refreshXrayCache } from '@modules/detections/xrayDetection.js';
+import { refreshXrayCache } from '@features/anticheat/xrayDetection.js';
 
 import { getConfig, resetConfigSection } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
