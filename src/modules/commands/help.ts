@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { getConfig } from '@core/configManager.js';
-import { constants } from '@core/constants.js';
+import { noPermission } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { uiWait } from '@core/utils.js';
@@ -136,9 +136,9 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
 
     if (visibleCategories.length === 0) {
         if (executor instanceof mc.Player) {
-            sendMessage(constants.noPermission, executor);
+            sendMessage(noPermission, executor);
         } else {
-            executor.sendMessage(constants.noPermission);
+            executor.sendMessage(noPermission);
         }
         return;
     }
@@ -182,7 +182,7 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
     }
 
     if (visibleCategories.length === 0) {
-        sendMessage(constants.noPermission, player);
+        sendMessage(noPermission, player);
         return;
     }
 

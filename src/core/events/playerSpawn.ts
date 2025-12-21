@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
 import { getConfig } from '../configManager.js';
 import { getKitsConfig } from '../configurations.js';
-import { constants } from '../constants.js';
+import { frozenTag, vanishedTag } from '../constants.js';
 import { getKit, giveKitItems } from '../kitsManager.js';
 import { debugLog } from '../logger.js';
 import { updatePlayerRank } from '../main.js';
@@ -14,7 +14,7 @@ import { formatLocation, formatString } from '../utils.js';
 export function handlePlayerJoin(player: mc.Player) {
     const pData = getOrCreatePlayer(player);
     // Sync vanish state from tag
-    if (player.hasTag(constants.vanishedTag)) {
+    if (player.hasTag(vanishedTag)) {
         updatePlayerData(player.id, (d) => {
             d.isVanished = true;
         });
@@ -34,7 +34,7 @@ export function handlePlayerJoin(player: mc.Player) {
     }
 
     // Re-apply freeze if needed
-    if (player.hasTag(constants.frozenTag)) {
+    if (player.hasTag(frozenTag)) {
         player.dimension.runCommand(`inputpermission set "${player.name}" camera disabled`);
         player.dimension.runCommand(`inputpermission set "${player.name}" movement disabled`);
         player.addEffect('resistance', 20_000_000, { amplifier: 255, showParticles: false });
@@ -46,7 +46,7 @@ export function handlePlayerJoin(player: mc.Player) {
 
     // Custom Join Message (since RP hides vanilla)
     const joinLeaveConfig = config.playerInfo?.customJoinLeave;
-    if (joinLeaveConfig?.enabled && !player.hasTag(constants.vanishedTag)) {
+    if (joinLeaveConfig?.enabled && !player.hasTag(vanishedTag)) {
         const msg = formatString(joinLeaveConfig.joinMessage, { playerName: player.name });
         mc.world.sendMessage(msg);
     }

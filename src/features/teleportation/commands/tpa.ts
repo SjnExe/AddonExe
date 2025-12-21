@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { constants } from '@core/constants.js';
+import { soundTeleport, tpaDisabled } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import {
     addTpaBlockedPlayer,
@@ -37,7 +37,7 @@ const tpaCommand: CustomCommand = {
 
         const targetName = args.target as string;
         const config = getConfig();
-        if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
+        if (!config.tpa.enabled) return sendMessage(tpaDisabled, executor);
 
         if (!targetName) return sendMessage('§cPlease specify a player.', executor);
 
@@ -89,7 +89,7 @@ const tpaHereCommand: CustomCommand = {
 
         const targetName = args.target as string;
         const config = getConfig();
-        if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
+        if (!config.tpa.enabled) return sendMessage(tpaDisabled, executor);
 
         if (!targetName) return sendMessage('§cPlease specify a player.', executor);
 
@@ -139,7 +139,7 @@ const tpaAcceptCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
         const config = getConfig();
-        if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
+        if (!config.tpa.enabled) return sendMessage(tpaDisabled, executor);
 
         const typedArgs = args as unknown as TpaResponseArgs;
         let targetName = typedArgs.player;
@@ -168,7 +168,7 @@ const tpaDenyCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
         const config = getConfig();
-        if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
+        if (!config.tpa.enabled) return sendMessage(tpaDisabled, executor);
 
         const typedArgs = args as unknown as TpaResponseArgs;
         let targetName = typedArgs.player;
@@ -191,7 +191,7 @@ const tpaCancelCommand: CustomCommand = {
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
         const config = getConfig();
-        if (!config.tpa.enabled) return sendMessage(constants.tpaDisabled, executor);
+        if (!config.tpa.enabled) return sendMessage(tpaDisabled, executor);
 
         cancelRequest(executor);
     }
@@ -229,7 +229,7 @@ const tpaStatusCommand: CustomCommand = {
         }
 
         sendMessage(statusMessage.trim(), executor, { raw: true });
-        playSound(executor, constants.soundTeleport);
+        playSound(executor, soundTeleport);
     }
 };
 

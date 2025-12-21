@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { constants } from '@core/constants.js';
+import { soundError, soundTeleport } from '@core/constants.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
@@ -12,7 +12,7 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, r
     if (!targetPlayer) {
         if (executor instanceof mc.Player) {
             sendMessage('§cPlayer not found.', executor);
-            playSound(executor, constants.soundError);
+            playSound(executor, soundError);
         } else {
             executor.sendMessage('§cPlayer not found.');
         }
@@ -21,7 +21,7 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, r
 
     if (executor instanceof mc.Player && executor.id === targetPlayer.id) {
         sendMessage('§cYou cannot kick yourself.', executor);
-        playSound(executor, constants.soundError);
+        playSound(executor, soundError);
         return;
     }
 
@@ -30,12 +30,12 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, r
         const targetData = getPlayer(targetPlayer.id);
         if (!executorData || !targetData) {
             sendMessage('§cCould not retrieve player data for permission check.', executor);
-            playSound(executor, constants.soundError);
+            playSound(executor, soundError);
             return;
         }
         if (executorData.permissionLevel >= targetData.permissionLevel) {
             sendMessage('§cYou cannot kick a player with the same or higher rank than you.', executor);
-            playSound(executor, constants.soundError);
+            playSound(executor, soundError);
             return;
         }
     }
@@ -46,14 +46,14 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, r
         mc.world.getDimension('overworld').runCommand(commandToRun);
         if (executor instanceof mc.Player) {
             sendMessage(`§aSuccessfully kicked ${targetPlayer.name}. Reason: ${reason}`, executor);
-            playSound(executor, constants.soundTeleport);
+            playSound(executor, soundTeleport);
         } else {
             executor.sendMessage(`§aSuccessfully kicked ${targetPlayer.name}. Reason: ${reason}`);
         }
     } catch (error: unknown) {
         if (executor instanceof mc.Player) {
             sendMessage(`§cFailed to kick ${targetPlayer.name}. See console for details.`, executor);
-            playSound(executor, constants.soundError);
+            playSound(executor, soundError);
         } else {
             executor.sendMessage(`§cFailed to kick ${targetPlayer.name}. See console for details.`);
         }
