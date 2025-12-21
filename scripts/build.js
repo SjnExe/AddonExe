@@ -52,7 +52,7 @@ function minifyFiles(dir) {
             try {
                 const content = fs.readFileSync(filePath, 'utf8');
                 // Simple regex for stripping comments (not perfect but often sufficient for MC):
-                const jsonWithoutComments = content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '');
+                const jsonWithoutComments = content.replaceAll(/\/\/.*|\/\*[\s\S]*?\*\//g, '');
                 const json = JSON.parse(jsonWithoutComments);
                 const minified = JSON.stringify(json);
                 fs.writeFileSync(filePath, minified);
