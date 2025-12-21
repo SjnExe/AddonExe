@@ -202,7 +202,7 @@ export class AdminPanelHandler implements IPanelHandler {
 
                     // Fix: Preserve the floating text ID when navigating to the edit panel
                     if (panelId === 'floatingTextActionPanel' && item.actionValue === 'floatingTextEditPanel') {
-                        newContext.id = context.id;
+                        newContext.id = context.id as string;
                     }
 
                     return showPanel(player, item.actionValue, newContext);
