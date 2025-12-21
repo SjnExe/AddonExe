@@ -145,7 +145,7 @@ export class PlayerPanelHandler implements IPanelHandler {
         return visibleItems;
     }
 
-    async getBody(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined> {
+    async getBody(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined | void> {
         if (panelId === 'myStatsPanel') {
             const pData = getOrCreatePlayer(player);
             const { getTeamByPlayer } = await import('@features/teams/teamManager.js');
@@ -184,11 +184,11 @@ export class PlayerPanelHandler implements IPanelHandler {
         return undefined;
     }
 
-    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
+    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined | void> {
         if (panelId === 'playerSearchPanel') {
             return Promise.resolve(new ModalFormData().title('Search Player').textField('Name', 'Enter exact name'));
         }
-        return Promise.resolve(undefined);
+        return Promise.resolve();
     }
 
     async handleResponse(

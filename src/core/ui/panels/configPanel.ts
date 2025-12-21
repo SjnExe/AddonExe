@@ -151,15 +151,15 @@ export class ConfigPanelHandler implements IPanelHandler {
         return Promise.resolve(items);
     }
 
-    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
+    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined | void> {
         if (panelId.startsWith('config_')) {
             const categoryId = panelId.replace('config_', '');
             const category = configPanelSchema.find((c) => c.id === categoryId);
-            if (!category) return Promise.resolve(undefined);
+            if (!category) return Promise.resolve();
             const form = new ModalFormData().title(category.title);
             const configSource = category.configSource || 'main';
             const handler = uiConfigHandlers[configSource];
-            if (!handler) return Promise.resolve(undefined);
+            if (!handler) return Promise.resolve();
             const config = handler.get() as unknown as Record<string, unknown>;
 
             // Filter settings to ensure consistent index mapping
@@ -197,7 +197,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             }
             return Promise.resolve(form);
         }
-        return Promise.resolve(undefined);
+        return Promise.resolve();
     }
 
     async handleResponse(

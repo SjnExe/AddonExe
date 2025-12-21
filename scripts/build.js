@@ -38,6 +38,39 @@ const external = [
 const isWatch = process.argv.includes('--watch');
 const isMinify = process.argv.includes('--minify');
 
+// Function to minify JSON files recursively
+function minifyJsonFiles(dir) {
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+        if (stat.isDirectory()) {
+            if (file !== 'scripts') {
+                minifyJsonFiles(filePath);
+            }
+        } else if (file.endsWith('.json')) {
+            try {
+                const content = fs.readFileSync(filePath, 'utf8');
+                // Remove comments (JSONC support) using regex or a parser if needed.
+                // For now, assume standard JSON or use a simple regex for // comments
+                // But Minecraft uses JSONC heavily. JSON.parse might fail on comments.
+                // We will try JSON.parse. If it fails, we skip (or use a relaxed parser).
+                // Actually, let's just strip whitespace if it parses.
+                // Note: Minecraft JSONs often have comments. JSON.parse fails on comments.
+                // We should probably use a JSONC parser or just regex replacement.
+                // Simple regex for stripping comments (not perfect but often sufficient for MC):
+                const jsonWithoutComments = content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '');
+                const json = JSON.parse(jsonWithoutComments);
+                const minified = JSON.stringify(json);
+                fs.writeFileSync(filePath, minified);
+                console.log(`Minified: ${filePath}`);
+            } catch (error) {
+                console.warn(`Skipped minification for ${filePath}: ${error.message}`);
+            }
+        }
+    }
+}
+
 // Map of source file -> destination relative to scripts/
 const configsToCompile = [
     { src: '../src/config.default.ts', dest: 'config.js' },
@@ -134,6 +167,11 @@ async function build() {
         } else {
             await ctx.rebuild();
             await ctx.dispose();
+            if (isMinify) {
+                console.log('Minifying JSON files...');
+                const packsDir = path.join(__dirname, '../packs');
+                minifyJsonFiles(packsDir);
+            }
             console.log('Build successful!');
         }
     } catch (error) {

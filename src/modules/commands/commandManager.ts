@@ -18,8 +18,8 @@ export interface CommandParameter {
     type: 'player' | 'string' | 'text' | 'int' | 'float' | 'boolean' | 'block' | 'item' | 'position' | 'target';
     /** Whether the parameter is optional. */
     optional?: boolean;
-    /** A list of possible values for an enum parameter. */
-    enumOptions?: string[];
+    /** A list of possible values for an enum parameter, or a function that returns them. */
+    enumOptions?: string[] | (() => string[]);
     /** A brief description of the parameter. */
     description?: string;
 }
@@ -334,8 +334,9 @@ class CommandManager {
             if (p.optional) {
                 return `[${p.name}]`;
             } else {
-                if (p.enumOptions && p.enumOptions.length <= 4) {
-                    return `<${p.enumOptions.join('|')}>`;
+                const options = typeof p.enumOptions === 'function' ? p.enumOptions() : p.enumOptions;
+                if (options && options.length <= 4) {
+                    return `<${options.join('|')}>`;
                 }
                 return `<${p.name}>`;
             }
@@ -408,6 +409,7 @@ class CommandManager {
                 }
             }
             this._executeCommand(executor, command, parsedArgs);
+            // eslint-disable-next-line unicorn/no-useless-undefined
             return undefined;
         };
 
@@ -473,27 +475,31 @@ class CommandManager {
         registry: mc.CustomCommandRegistry
     ): mc.CustomCommandParameter {
         // --- Enum Handling ---
-        if (param.enumOptions && Array.isArray(param.enumOptions) && registry) {
-            const safeCmdName = (commandName || 'cmd').replaceAll(/[^a-zA-Z0-9_]/g, '');
-            const safeParamName = param.name.replaceAll(/[^a-zA-Z0-9_]/g, '');
-            const enumName = `${this.prefix}:${safeCmdName}_${safeParamName}`;
+        if (param.enumOptions && registry) {
+            const options = typeof param.enumOptions === 'function' ? param.enumOptions() : param.enumOptions;
 
-            try {
-                registry.registerEnum(enumName, param.enumOptions);
-            } catch (error: unknown) {
-                // Ignore if enum already exists (e.g. alias sharing same params)
-                // But log other errors to debug issues
-                const errStr = String(error);
-                if (!errStr.includes('already exists')) {
-                    errorLog(`[CommandManager] Failed to register enum '${enumName}': ${errStr}`);
+            if (Array.isArray(options) && options.length > 0) {
+                const safeCmdName = (commandName || 'cmd').replaceAll(/[^a-zA-Z0-9_]/g, '');
+                const safeParamName = param.name.replaceAll(/[^a-zA-Z0-9_]/g, '');
+                const enumName = `${this.prefix}:${safeCmdName}_${safeParamName}`;
+
+                try {
+                    registry.registerEnum(enumName, options);
+                } catch (error: unknown) {
+                    // Ignore if enum already exists (e.g. alias sharing same params)
+                    // But log other errors to debug issues
+                    const errStr = String(error);
+                    if (!errStr.includes('already exists')) {
+                        errorLog(`[CommandManager] Failed to register enum '${enumName}': ${errStr}`);
+                    }
                 }
-            }
 
-            return {
-                name: param.name,
-                type: mc.CustomCommandParamType.Enum,
-                enumName: enumName
-            };
+                return {
+                    name: param.name,
+                    type: mc.CustomCommandParamType.Enum,
+                    enumName: enumName
+                };
+            }
         }
 
         // --- Standard Types ---
@@ -648,10 +654,12 @@ class CommandManager {
                 /* eslint-enable unicorn/no-useless-switch-case */
                 // falls through
                 default: {
-                    if (paramDef.enumOptions && paramDef.enumOptions.length > 0) {
-                        if (!paramDef.enumOptions.includes(rawValue)) {
+                    const options =
+                        typeof paramDef.enumOptions === 'function' ? paramDef.enumOptions() : paramDef.enumOptions;
+                    if (options && options.length > 0) {
+                        if (!options.includes(rawValue)) {
                             player.sendMessage(
-                                `§cInvalid option '${rawValue}' for parameter '${paramDef.name}'. Valid options: ${paramDef.enumOptions.join(', ')}`
+                                `§cInvalid option '${rawValue}' for parameter '${paramDef.name}'. Valid options: ${options.join(', ')}`
                             );
                             return true;
                         }

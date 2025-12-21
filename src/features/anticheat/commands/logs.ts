@@ -83,7 +83,7 @@ async function showPunishmentFilter(player: mc.Player) {
     await showPunishmentLogs(player, 1, nameQuery, typeFilter);
 }
 
-async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: string, typeFilter?: string | undefined) {
+async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: string, typeFilter?: string) {
     let logs = getPunishmentLogs().toSorted((a, b) => b.timestamp - a.timestamp);
 
     // Filtering
