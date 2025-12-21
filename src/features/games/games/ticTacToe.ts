@@ -1,3 +1,4 @@
+
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 import { IGame } from '../types.js';
@@ -121,10 +122,15 @@ export class TicTacToeGame implements IGame {
     }
 
     private checkWin(match: Match) {
-        const wins = [
-            [0,1,2], [3,4,5], [6,7,8], // Rows
-            [0,3,6], [1,4,7], [2,5,8], // Cols
-            [0,4,8], [2,4,6]           // Diagonals
+        const wins: [number, number, number][] = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8], // Rows
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8], // Cols
+            [0, 4, 8],
+            [2, 4, 6] // Diagonals
         ];
 
         for (const [a, b, c] of wins) {
@@ -140,9 +146,10 @@ export class TicTacToeGame implements IGame {
     }
 
     private makeAIMove(match: Match) {
+        const board = match.board;
         const available: number[] = [];
-        for (let i = 0; i < match.board.length; i++) {
-            if (match.board[i] === null) {
+        for (const [i, element] of board.entries()) {
+            if (element === null) {
                 available.push(i);
             }
         }
@@ -151,8 +158,8 @@ export class TicTacToeGame implements IGame {
             const randomIndex = Math.floor(Math.random() * available.length);
             const move = available[randomIndex];
             if (typeof move === 'number') {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                match.board[move] = 'O';
+
+                board[move] = 'O';
                 this.checkWin(match);
                 if (!match.winner) {
                     match.turn = 'X';
