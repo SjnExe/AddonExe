@@ -403,6 +403,14 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
         });
         success = true;
         msg = '§aInvite sent successfully.';
+
+        // Notify target if online
+        const targetPlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
+        if (targetPlayer) {
+            targetPlayer.sendMessage(
+                `§aYou have been invited to join team §e${team.name}§a.\nType §e/team join§a or use the menu to accept.`
+            );
+        }
     });
 
     return { success, message: msg };
