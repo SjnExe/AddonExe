@@ -1,5 +1,5 @@
-import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import * as mc from '@minecraft/server';
 import { gameManager } from '../gameManager.js';
 import { WordGuessGame } from '../games/wordGuess.js';
 

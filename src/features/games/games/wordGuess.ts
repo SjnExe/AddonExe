@@ -1,8 +1,8 @@
-import * as mc from '@minecraft/server';
-import { IGame } from '../types.js';
-import { incrementPlayerBalance } from '@core/playerDataManager.js';
 import { getGamesConfig } from '@core/configurations.js';
+import { incrementPlayerBalance } from '@core/playerDataManager.js';
+import * as mc from '@minecraft/server';
 import { gameManager } from '../gameManager.js';
+import { IGame } from '../types.js';
 
 export class WordGuessGame implements IGame {
     id = 'wordGuess';
@@ -42,7 +42,7 @@ export class WordGuessGame implements IGame {
         }
 
         if (input === target) {
-            const reward = getGamesConfig().wordGuess.reward;
+            const reward = getGamesConfig().wordGuess.rewards.money;
             mc.world.sendMessage(`§a[WordGuess] §e${player.name}§a guessed the word: §b${this.currentWord}§a!`);
             incrementPlayerBalance(player.id, reward);
             player.sendMessage(`§aYou received $${reward}.`);

@@ -1,8 +1,7 @@
-
+import { uiWait } from '@core/utils.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 import { IGame } from '../types.js';
-import { uiWait } from '@core/utils.js';
 
 interface Match {
     p1Id: string;
@@ -42,7 +41,7 @@ export class TicTacToeGame implements IGame {
             p1Name: p1.name,
             p2Id: p2Id,
             p2Name: p2Name,
-            board: Array.from({length: 9}).fill(null) as (string | null)[],
+            board: Array.from({ length: 9 }).fill(null) as (string | null)[],
             turn: 'X',
             winner: null
         };
@@ -67,9 +66,10 @@ export class TicTacToeGame implements IGame {
 
         const form = new ActionFormData()
             .title(`Vs ${isP1 ? match.p2Name : match.p1Name}`)
-            .body(match.winner
-                ? `Game Over! ${match.winner === 'Draw' ? 'It\'s a Draw!' : (match.winner === mySymbol ? '§2You Won!' : '§4You Lost!')}`
-                : `Turn: ${match.turn} (${isMyTurn ? '§l§2YOU§r' : 'Opponent'})`
+            .body(
+                match.winner
+                    ? `Game Over! ${match.winner === 'Draw' ? "It's a Draw!" : match.winner === mySymbol ? '§2You Won!' : '§4You Lost!'}`
+                    : `Turn: ${match.turn} (${isMyTurn ? '§l§2YOU§r' : 'Opponent'})`
             );
 
         for (let i = 0; i < 9; i++) {
@@ -158,7 +158,6 @@ export class TicTacToeGame implements IGame {
             const randomIndex = Math.floor(Math.random() * available.length);
             const move = available[randomIndex];
             if (typeof move === 'number') {
-
                 board[move] = 'O';
                 this.checkWin(match);
                 if (!match.winner) {

@@ -1,6 +1,6 @@
-import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getGamesConfig } from '@core/configurations.js';
+import * as mc from '@minecraft/server';
 import { gameManager } from '../gameManager.js';
 
 const gameCommand: CustomCommand = {
@@ -31,7 +31,7 @@ const gameCommand: CustomCommand = {
             }
 
             // Check individual game enabled status
-            const specificGameConfig = (gamesConfig as any)[gameId];
+            const specificGameConfig = (gamesConfig as unknown as Record<string, { enabled?: boolean }>)[gameId];
             if (specificGameConfig && specificGameConfig.enabled === false) {
                 const msg = `§cGame '${gameId}' is disabled in configuration.`;
                 if (executor instanceof mc.Player) executor.sendMessage(msg);

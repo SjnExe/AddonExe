@@ -1,5 +1,5 @@
-import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import * as mc from '@minecraft/server';
 import { gameManager } from '../gameManager.js';
 
 const playCommand: CustomCommand = {
@@ -7,9 +7,7 @@ const playCommand: CustomCommand = {
     description: 'Play a game.',
     category: 'Games',
     permissionLevel: 1024,
-    parameters: [
-        { name: 'gameId', type: 'string', enumOptions: ['diceRoll', 'ticTacToe'] }
-    ],
+    parameters: [{ name: 'gameId', type: 'string', enumOptions: ['diceRoll', 'ticTacToe'] }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
         const gameId = args.gameId as string;

@@ -1,10 +1,10 @@
+import { getGamesConfig } from '@core/configurations.js';
+import { showPanel } from '@core/uiManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormResponse } from '@minecraft/server-ui';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
-import { showPanel } from '@core/uiManager.js';
-import { getGamesConfig } from '@core/configurations.js';
-import { gameManager } from '../gameManager.js';
 import { addBackButton } from '@ui/uiUtils.js';
+import { gameManager } from '../gameManager.js';
 
 export class GamesPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -21,8 +21,8 @@ export class GamesPanelHandler implements IPanelHandler {
                 id: 'games_disabled',
                 text: '§cGames Disabled',
                 permissionLevel: 1024,
-                actionType: 'none',
-                actionValue: ''
+                actionType: 'functionCall',
+                actionValue: 'noop'
             });
             return items;
         }
@@ -34,7 +34,7 @@ export class GamesPanelHandler implements IPanelHandler {
             if (def.id === 'wordGuess') continue;
 
             // Check individual game enabled status safely
-            const gameConfig = (config as any)[def.id];
+            const gameConfig = (config as unknown as Record<string, { enabled?: boolean }>)[def.id];
             if (gameConfig && gameConfig.enabled === false) continue;
 
             items.push({
@@ -49,7 +49,12 @@ export class GamesPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse, context: UIContext): Promise<void> {
+    async handleResponse(
+        player: mc.Player,
+        panelId: string,
+        response: ActionFormResponse,
+        context: UIContext
+    ): Promise<void> {
         const selection = response.selection;
         if (typeof selection === 'number') {
             const items = await this.getItems(player, panelId, context);

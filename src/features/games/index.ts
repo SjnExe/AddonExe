@@ -1,8 +1,8 @@
-import { IGame } from './types.js';
 import { gameManager } from './gameManager.js';
 import { DiceRollGame } from './games/diceRoll.js';
 import { ticTacToe } from './games/ticTacToe.js';
 import { WordGuessGame } from './games/wordGuess.js';
+import { IGame } from './types.js';
 
 export function initialize() {
     gameManager.register({

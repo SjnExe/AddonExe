@@ -2,6 +2,7 @@ import { ActionFormData } from '@minecraft/server-ui';
 
 import { Config, getConfig, updateMultipleConfig } from '@core/configManager.js';
 import {
+    GamesConfig,
     getAuctionHouseConfig,
     getEconomyConfig,
     getGamesConfig,
@@ -16,7 +17,6 @@ import {
     saveSpawnConfig,
     saveTeamConfig,
     saveXrayConfig,
-    GamesConfig,
     SidebarConfig
 } from '@core/configurations.js';
 import { kitsConfig } from '@core/kitsConfig.default.js';
@@ -56,7 +56,8 @@ interface ConfigHandler {
         | ShopConfig
         | SidebarConfig
         | AnticheatConfig
-        | AuctionHouseConfig;
+        | AuctionHouseConfig
+        | GamesConfig;
     save: (config: unknown) => void;
 }
 
