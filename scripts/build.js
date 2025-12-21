@@ -59,7 +59,7 @@ function minifyJsonFiles(dir) {
                 // Note: Minecraft JSONs often have comments. JSON.parse fails on comments.
                 // We should probably use a JSONC parser or just regex replacement.
                 // Simple regex for stripping comments (not perfect but often sufficient for MC):
-                const jsonWithoutComments = content.replaceAll(/\/\/.*|\/\*[\s\S]*?\*\//g, '');
+                const jsonWithoutComments = content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '');
                 const json = JSON.parse(jsonWithoutComments);
                 const minified = JSON.stringify(json);
                 fs.writeFileSync(filePath, minified);

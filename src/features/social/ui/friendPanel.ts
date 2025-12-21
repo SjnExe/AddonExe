@@ -57,7 +57,7 @@ export class FriendPanelHandler implements IPanelHandler {
 
                 for (const fid of pData.friends) {
                     const onlineP = mc.world.getAllPlayers().find((p) => p.id === fid);
-                    const status = onlineP ? '§a● Online' : '§7● Offline';
+                    const status = onlineP ? '§2● Online' : '§8● Offline';
                     // We need name. If online, use player object. If offline, use cache or fallback.
                     const name = getPlayerNameById(fid) || 'Unknown';
 
@@ -73,7 +73,7 @@ export class FriendPanelHandler implements IPanelHandler {
             } else {
                 items.push({
                     id: 'no_friends',
-                    text: '§7No friends added.',
+                    text: '§8No friends added.',
                     permissionLevel: 1024,
                     actionType: 'functionCall',
                     actionValue: 'noop'

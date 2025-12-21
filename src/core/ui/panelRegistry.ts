@@ -113,7 +113,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             {
                 id: 'auctionHouse',
                 text: '§6Auction House',
-                icon: 'textures/ui/gold_icon',
+                icon: 'textures/items/gold_ingot',
                 permissionLevel: 1024,
                 actionType: 'functionCall',
                 actionValue: 'openAuctionHouse',
@@ -130,7 +130,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'friend',
-                text: '§dFriends',
+                text: '§5Friends',
                 icon: 'textures/ui/icon_steve',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
