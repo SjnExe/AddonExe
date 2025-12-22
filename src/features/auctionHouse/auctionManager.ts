@@ -77,6 +77,10 @@ export function createListing(
 ): { success: boolean; message: string } {
     const config = getAuctionHouseConfig();
 
+    if (price <= 0) {
+        return { success: false, message: '§cPrice must be positive.' };
+    }
+
     // Check limits
     const pData = getOrCreatePlayer(player);
     const myListings = [...activeListings.values()].filter((l) => l.sellerId === player.id);
@@ -252,6 +256,10 @@ function* checkExpiredAuctionsJob() {
     for (const [i, entry] of entries.entries()) {
         if (!entry) continue;
         const [id, listing] = entry;
+
+        // Ensure listing still exists (Race Condition Check)
+        if (!activeListings.has(id)) continue;
+
         const expiry = listing.startTime + listing.duration * 1000;
         if (now >= expiry) {
             expired.push(id);
