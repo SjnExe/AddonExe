@@ -33,6 +33,7 @@ import cmdEssentialsVersion from '@features/essentials/commands/version.js';
 import cmdGamesGame from '@features/games/commands/game.js';
 import cmdGamesGuess from '@features/games/commands/guess.js';
 import cmdGamesPlay from '@features/games/commands/play.js';
+import cmdGamesWordGuess from '@features/games/commands/wordGuess.js';
 import cmdKitsKit from '@features/kits/commands/kit.js';
 import cmdModerationBan from '@features/moderation/commands/ban.js';
 import cmdModerationChatlog from '@features/moderation/commands/chatlog.js';
@@ -91,6 +92,7 @@ export function loadCommands() {
         cmdGamesGame,
         cmdGamesGuess,
         cmdGamesPlay,
+        cmdGamesWordGuess,
         cmdKitsKit,
         cmdModerationBan,
         cmdModerationChatlog,
