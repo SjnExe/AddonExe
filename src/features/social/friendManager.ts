@@ -5,11 +5,11 @@ import {
     loadPlayerData,
     updatePlayerData
 } from '@core/playerDataManager.js';
-import * as mc from '@minecraft/server';
-import { friendConfig } from './friendConfig.js';
-import { gameManager } from '../games/gameManager.js';
 import { uiWait } from '@core/utils.js';
+import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
+import { gameManager } from '../games/gameManager.js';
+import { friendConfig } from './friendConfig.js';
 
 export interface FriendRequest {
     senderId: string;
@@ -181,15 +181,13 @@ export async function inviteFriendToGame(player: mc.Player, gameId: string) {
         return;
     }
 
-    const onlineFriends = mc.world.getAllPlayers().filter(p => pData.friends?.includes(p.id));
+    const onlineFriends = mc.world.getAllPlayers().filter((p) => pData.friends?.includes(p.id));
     if (onlineFriends.length === 0) {
         player.sendMessage('§cNo friends are currently online.');
         return;
     }
 
-    const form = new ActionFormData()
-        .title('Invite Friend to Game')
-        .body('Select a friend to invite:');
+    const form = new ActionFormData().title('Invite Friend to Game').body('Select a friend to invite:');
 
     for (const f of onlineFriends) form.button(f.name);
 
@@ -211,7 +209,9 @@ export async function inviteFriendToGame(player: mc.Player, gameId: string) {
     });
 
     player.sendMessage(`§aInvite sent to ${target.name}.`);
-    target.sendMessage(`§a${player.name} invited you to play ${gameId}! Type §e/friend acceptgame ${player.name}§a to join.`);
+    target.sendMessage(
+        `§a${player.name} invited you to play ${gameId}! Type §e/friend acceptgame ${player.name}§a to join.`
+    );
 
     // Auto-expire after 60s (cleanup logic could be added to a tick loop, but for now we filter on accept)
 }
@@ -226,7 +226,7 @@ export function acceptGameInvite(player: mc.Player, hostName: string) {
     }
 
     const inviteIndex = pendingGameInvites.findIndex(
-        inv => inv.targetId === player.id && inv.senderName.toLowerCase() === hostName.toLowerCase()
+        (inv) => inv.targetId === player.id && inv.senderName.toLowerCase() === hostName.toLowerCase()
     );
 
     if (inviteIndex === -1) {
@@ -237,7 +237,7 @@ export function acceptGameInvite(player: mc.Player, hostName: string) {
     const invite = pendingGameInvites[inviteIndex];
     if (!invite) return;
 
-    const sender = mc.world.getAllPlayers().find(p => p.id === invite.senderId);
+    const sender = mc.world.getAllPlayers().find((p) => p.id === invite.senderId);
     if (!sender) {
         player.sendMessage('§cThe host is no longer online.');
         pendingGameInvites.splice(inviteIndex, 1);
@@ -279,10 +279,12 @@ export function acceptGameInvite(player: mc.Player, hostName: string) {
 
     // We'll try to find it or start it.
     let gameInstance = gameManager.getActiveGame(invite.gameId);
-    if (!gameInstance && // If not active, try starting it (it registers itself as active)
-        gameManager.startGlobalGame(invite.gameId)) {
-            gameInstance = gameManager.getActiveGame(invite.gameId);
-        }
+    if (
+        !gameInstance && // If not active, try starting it (it registers itself as active)
+        gameManager.startGlobalGame(invite.gameId)
+    ) {
+        gameInstance = gameManager.getActiveGame(invite.gameId);
+    }
 
     if (gameInstance) {
         // Start match with opponent config

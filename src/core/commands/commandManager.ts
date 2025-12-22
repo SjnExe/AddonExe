@@ -17,7 +17,18 @@ export interface CommandParameter {
     /** The name of the parameter. */
     name: string;
     /** The data type of the parameter. */
-    type: 'player' | 'string' | 'text' | 'int' | 'float' | 'boolean' | 'block' | 'item' | 'position' | 'target' | mc.CustomCommandParamType;
+    type:
+        | 'player'
+        | 'string'
+        | 'text'
+        | 'int'
+        | 'float'
+        | 'boolean'
+        | 'block'
+        | 'item'
+        | 'position'
+        | 'target'
+        | mc.CustomCommandParamType;
     /** Whether the parameter is optional. */
     optional?: boolean;
     /** A list of possible values for an enum parameter, or a function that returns them. */
@@ -524,9 +535,10 @@ class CommandManager {
             target: mc.CustomCommandParamType.PlayerSelector
         };
 
-        const type = typeof param.type === 'string'
-            ? paramTypeMap[param.type.toLowerCase()]
-            : (param.type as mc.CustomCommandParamType);
+        const type =
+            typeof param.type === 'string'
+                ? paramTypeMap[param.type.toLowerCase()]
+                : (param.type as mc.CustomCommandParamType);
 
         if (!type) {
             errorLog(
@@ -633,27 +645,28 @@ class CommandManager {
             if (typeof paramDef.type === 'string') {
                 typeKey = paramDef.type.toLowerCase();
             } else {
-                 switch (paramDef.type) {
-                 case mc.CustomCommandParamType.Integer: {
-                 typeKey = 'int';
-                 break;
-                 }
-                 case mc.CustomCommandParamType.Float: {
-                 typeKey = 'float';
-                 break;
-                 }
-                 case mc.CustomCommandParamType.Boolean: {
-                 typeKey = 'boolean';
-                 break;
-                 }
-                 case mc.CustomCommandParamType.String: { {
-                 typeKey = 'string';
-                 // No default
-                 }
-                 break;
-                 }
-                 }
-                 // ... others map to string for chat purposes usually
+                switch (paramDef.type) {
+                    case mc.CustomCommandParamType.Integer: {
+                        typeKey = 'int';
+                        break;
+                    }
+                    case mc.CustomCommandParamType.Float: {
+                        typeKey = 'float';
+                        break;
+                    }
+                    case mc.CustomCommandParamType.Boolean: {
+                        typeKey = 'boolean';
+                        break;
+                    }
+                    case mc.CustomCommandParamType.String: {
+                        {
+                            typeKey = 'string';
+                            // No default
+                        }
+                        break;
+                    }
+                }
+                // ... others map to string for chat purposes usually
             }
 
             switch (typeKey) {

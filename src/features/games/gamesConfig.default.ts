@@ -1,5 +1,1 @@
-
-
-
-
-export {gamesConfig} from './gamesConfig.js';
+export { gamesConfig } from './gamesConfig.js';

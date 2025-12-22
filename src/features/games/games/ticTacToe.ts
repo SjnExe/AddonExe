@@ -1,7 +1,7 @@
 import { uiWait } from '@core/utils.js';
+import { inviteFriendToGame } from '@features/social/friendManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
-import { inviteFriendToGame } from '@features/social/friendManager.js';
 import { IGame } from '../types.js';
 
 interface Match {
@@ -74,7 +74,7 @@ export class TicTacToeGame implements IGame {
                 (match.winner
                     ? `Game Over! ${match.winner === 'Draw' ? "It's a Draw!" : match.winner === mySymbol ? '§2You Won!' : '§4You Lost!'}`
                     : `Turn: ${match.turn} (${isMyTurn ? '§l§2YOU§r' : 'Opponent'})`) +
-                `\n\n${boardVisual}\n\nSelect a cell to move:`
+                    `\n\n${boardVisual}\n\nSelect a cell to move:`
             );
 
         // Buttons 1-9
@@ -126,11 +126,13 @@ export class TicTacToeGame implements IGame {
             }
 
             void this.openUI(player);
-        } else if (selection === 9) { // Refresh/Exit
-             void this.openUI(player);
-        } else if (match.p2Id === 'AI' && selection === 10) { // Invite Friend
-             this.cleanupMatch(match); // End bot match to invite friend
-             await inviteFriendToGame(player, 'ticTacToe');
+        } else if (selection === 9) {
+            // Refresh/Exit
+            void this.openUI(player);
+        } else if (match.p2Id === 'AI' && selection === 10) {
+            // Invite Friend
+            this.cleanupMatch(match); // End bot match to invite friend
+            await inviteFriendToGame(player, 'ticTacToe');
         }
     }
 

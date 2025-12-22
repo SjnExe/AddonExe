@@ -26,10 +26,10 @@ const wordGuessCommand: CustomCommand = {
 
         if (action === 'start') {
             if (!word) {
-                 const msg = '§cUsage: /wordguess start <word> [reward]';
-                 if (executor instanceof mc.Player) executor.sendMessage(msg);
-                 else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
-                 return;
+                const msg = '§cUsage: /wordguess start <word> [reward]';
+                if (executor instanceof mc.Player) executor.sendMessage(msg);
+                else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
+                return;
             }
 
             // We need to access the game instance. If it's already running, we use it.
@@ -43,21 +43,20 @@ const wordGuessCommand: CustomCommand = {
             if (game) {
                 game.startCustom(word, reward);
                 const msg = `§aInterrupted current game and started custom Word Guess with word: ${word}`;
-                 if (executor instanceof mc.Player) executor.sendMessage(msg);
-                 else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
+                if (executor instanceof mc.Player) executor.sendMessage(msg);
+                else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
             } else {
                 // Start fresh
                 gameManager.startGlobalGame('wordGuess', { word, reward, continuous: true });
-                 const msg = `§aStarted custom Word Guess with word: ${word}`;
-                 if (executor instanceof mc.Player) executor.sendMessage(msg);
-                 else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
+                const msg = `§aStarted custom Word Guess with word: ${word}`;
+                if (executor instanceof mc.Player) executor.sendMessage(msg);
+                else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
             }
-
         } else if (action === 'stop') {
             gameManager.stopGlobalGame('wordGuess');
             const msg = '§aStopped Word Guess game.';
-             if (executor instanceof mc.Player) executor.sendMessage(msg);
-             else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
+            if (executor instanceof mc.Player) executor.sendMessage(msg);
+            else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
         }
     }
 };
