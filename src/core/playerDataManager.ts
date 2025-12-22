@@ -762,12 +762,12 @@ export function transfer(
         targetData.balance = newTargetBal;
         updateAndSaveLeaderboard(targetPlayerId, targetData.name, targetData.balance);
 
-        if (targetIsCached) {
-            targetData.needsSave = true;
-        } else {
+        if (!targetIsCached) {
             savePlayerData(targetPlayerId);
             activePlayerData.delete(targetPlayerId);
             debugLog(`[Economy] Unloaded offline target ${targetPlayerId} after transfer.`);
+        } else {
+            targetData.needsSave = true;
         }
 
         infoLog(

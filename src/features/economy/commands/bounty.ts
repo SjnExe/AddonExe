@@ -2,12 +2,14 @@ import * as mc from '@minecraft/server';
 
 import * as bountyManager from '@core/bountyManager.js';
 import { getConfig } from '@core/configManager.js';
+import { infoLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import {
     getOrCreatePlayer,
     getPlayerIdByName,
     getPlayerNameById,
-    incrementPlayerBalance
+    incrementPlayerBalance,
+    loadPlayerData
 } from '@core/playerDataManager.js';
 import { parseCurrency, resolveTarget } from '@core/utils.js';
 
