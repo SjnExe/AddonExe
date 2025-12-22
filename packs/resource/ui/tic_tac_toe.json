@@ -39,7 +39,13 @@
                 "label": {
                     "type": "label",
                     "text": "#button_text",
-                    "bindings": [ { "binding_name": "#button_text", "binding_type": "collection", "binding_collection_name": "ttt_cells" } ]
+                    "bindings": [
+                        {
+                            "binding_name": "#button_text",
+                            "binding_type": "collection",
+                            "binding_collection_name": "ttt_cells"
+                        }
+                    ]
                 }
             }
         ],

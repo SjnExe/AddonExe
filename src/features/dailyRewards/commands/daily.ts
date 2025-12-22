@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { sendMessage } from '@core/messaging.js';
 import { getDailyRewardsConfig } from '@core/configurations.js';
+import { sendMessage } from '@core/messaging.js';
 
 import { claimDailyReward } from '../dailyRewardsManager.js';
 

@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { sendMessage } from '@core/messaging.js';
 import { getConfig } from '@core/configManager.js';
+import { sendMessage } from '@core/messaging.js';
 import {
     getPlayerIdByName,
     getPlayerNameById,

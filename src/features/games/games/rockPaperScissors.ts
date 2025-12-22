@@ -1,8 +1,8 @@
+import { getGamesConfig } from '@core/configurations.js';
+import { incrementPlayerBalance } from '@core/playerDataManager.js';
 import { uiWait } from '@core/utils.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
-import { getGamesConfig } from '@core/configurations.js';
-import { incrementPlayerBalance } from '@core/playerDataManager.js';
 import { IGame } from '../types.js';
 
 type Choice = 'Rock' | 'Paper' | 'Scissors';
@@ -55,7 +55,7 @@ export class RockPaperScissorsGame implements IGame {
 
         void this.openUI(p1);
         if (!isAI && opponent) {
-             void this.openUI(opponent);
+            void this.openUI(opponent);
         }
     }
 
@@ -82,7 +82,7 @@ export class RockPaperScissorsGame implements IGame {
             .title(`RPS vs ${opponentName}`)
             .body(
                 `Your opponent is ${opponentChoice ? '§aREADY' : '§eTHINKING'}...\n\n` +
-                (myChoice ? `You picked: §b${myChoice}§r` : 'Choose your move:')
+                    (myChoice ? `You picked: §b${myChoice}§r` : 'Choose your move:')
             );
 
         if (myChoice) {
@@ -104,25 +104,25 @@ export class RockPaperScissorsGame implements IGame {
         const response = res as ActionFormResponse;
 
         if (response.selection !== undefined) {
-             if (myChoice) {
-                 // Refresh
-                 this.checkResult(match);
-                 void this.openUI(player);
-             } else {
-                 const choices: Choice[] = ['Rock', 'Paper', 'Scissors'];
-                 const picked = choices[response.selection];
-                 if (picked) {
-                     if (isP1) match.p1Choice = picked;
-                     else match.p2Choice = picked;
+            if (myChoice) {
+                // Refresh
+                this.checkResult(match);
+                void this.openUI(player);
+            } else {
+                const choices: Choice[] = ['Rock', 'Paper', 'Scissors'];
+                const picked = choices[response.selection];
+                if (picked) {
+                    if (isP1) match.p1Choice = picked;
+                    else match.p2Choice = picked;
 
-                     if (match.isAI) {
-                         match.p2Choice = choices[Math.floor(Math.random() * 3)] as Choice;
-                     }
+                    if (match.isAI) {
+                        match.p2Choice = choices[Math.floor(Math.random() * 3)] as Choice;
+                    }
 
-                     this.checkResult(match);
-                     void this.openUI(player); // Re-open to show result
-                 }
-             }
+                    this.checkResult(match);
+                    void this.openUI(player); // Re-open to show result
+                }
+            }
         }
     }
 
@@ -151,8 +151,8 @@ export class RockPaperScissorsGame implements IGame {
     }
 
     private announceWinner(match: Match, winner: 'p1' | 'p2' | 'draw') {
-        const p1 = mc.world.getAllPlayers().find(p => p.id === match.p1Id);
-        const p2 = match.isAI ? null : mc.world.getAllPlayers().find(p => p.id === match.p2Id);
+        const p1 = mc.world.getAllPlayers().find((p) => p.id === match.p1Id);
+        const p2 = match.isAI ? null : mc.world.getAllPlayers().find((p) => p.id === match.p2Id);
 
         const reward = getGamesConfig().rockPaperScissors.rewards.money;
         const p1Msg = `§e${match.p1Name}§r chose §b${match.p1Choice}§r`;
@@ -161,22 +161,22 @@ export class RockPaperScissorsGame implements IGame {
         const resultMsg = `\n${p1Msg}\n${p2Msg}\n\n`;
 
         if (winner === 'draw') {
-             if (p1) p1.sendMessage(`§eIt's a Draw!${resultMsg}`);
-             if (p2) p2.sendMessage(`§eIt's a Draw!${resultMsg}`);
+            if (p1) p1.sendMessage(`§eIt's a Draw!${resultMsg}`);
+            if (p2) p2.sendMessage(`§eIt's a Draw!${resultMsg}`);
         } else if (winner === 'p1') {
-             if (p1) {
-                 p1.sendMessage(`§aYou Won!${resultMsg}`);
-                 incrementPlayerBalance(p1.id, reward);
-                 p1.sendMessage(`§a+${reward}`);
-             }
-             if (p2) p2.sendMessage(`§cYou Lost!${resultMsg}`);
+            if (p1) {
+                p1.sendMessage(`§aYou Won!${resultMsg}`);
+                incrementPlayerBalance(p1.id, reward);
+                p1.sendMessage(`§a+${reward}`);
+            }
+            if (p2) p2.sendMessage(`§cYou Lost!${resultMsg}`);
         } else {
-             if (p1) p1.sendMessage(`§cYou Lost!${resultMsg}`);
-             if (p2) {
-                 p2.sendMessage(`§aYou Won!${resultMsg}`);
-                 incrementPlayerBalance(p2.id, reward);
-                 p2.sendMessage(`§a+${reward}`);
-             }
+            if (p1) p1.sendMessage(`§cYou Lost!${resultMsg}`);
+            if (p2) {
+                p2.sendMessage(`§aYou Won!${resultMsg}`);
+                incrementPlayerBalance(p2.id, reward);
+                p2.sendMessage(`§a+${reward}`);
+            }
         }
     }
 

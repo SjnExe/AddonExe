@@ -78,16 +78,16 @@ export class WordGuessGame implements IGame {
             if (this.isContinuous) {
                 const cooldown = getGamesConfig().wordGuess.cooldownSeconds;
                 if (cooldown > 0) {
-                     mc.world.sendMessage(`§7Next game starting in ${cooldown} seconds...`);
-                     mc.system.runTimeout(() => {
-                         this.start([], { continuous: true });
-                     }, cooldown * 20);
+                    mc.world.sendMessage(`§7Next game starting in ${cooldown} seconds...`);
+                    mc.system.runTimeout(() => {
+                        this.start([], { continuous: true });
+                    }, cooldown * 20);
                 } else {
                     // Start immediately
                     this.start([], { continuous: true });
                 }
             } else {
-                 gameManager.stopGlobalGame(this.id);
+                gameManager.stopGlobalGame(this.id);
             }
             return;
         }

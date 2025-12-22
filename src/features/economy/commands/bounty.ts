@@ -229,7 +229,8 @@ const listBountyCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
         if (!config.economy.enabled || !config.bounties?.enabled) {
-            if (executor instanceof mc.Player) sendMessage('§cThe Bounties system is currently disabled globally.', executor);
+            if (executor instanceof mc.Player)
+                sendMessage('§cThe Bounties system is currently disabled globally.', executor);
             else executor.sendMessage('§cThe Bounties system is currently disabled globally.');
             return;
         }
@@ -303,7 +304,8 @@ const oListBountyCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
         if (!config.economy.enabled || !config.bounties?.enabled) {
-            if (executor instanceof mc.Player) sendMessage('§cThe Bounties system is currently disabled globally.', executor);
+            if (executor instanceof mc.Player)
+                sendMessage('§cThe Bounties system is currently disabled globally.', executor);
             else executor.sendMessage('§cThe Bounties system is currently disabled globally.');
             return;
         }

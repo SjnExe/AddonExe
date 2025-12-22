@@ -1,6 +1,6 @@
-import { wordGuessConfig } from './wordGuessConfig.js';
-import { ticTacToeConfig } from './ticTacToeConfig.js';
 import { rpsConfig } from './rpsConfig.js';
+import { ticTacToeConfig } from './ticTacToeConfig.js';
+import { wordGuessConfig } from './wordGuessConfig.js';
 
 export const gamesConfig = {
     enabled: true,
