@@ -131,3 +131,30 @@ export function removeBounty(playerId: string) {
         debugLog(`[BountyManager] Removed bounty for player ID ${playerId}.`);
     }
 }
+
+/**
+ * Places a bounty on a player, handling money deduction safely.
+ */
+export function placeBounty(
+    sourcePlayerId: string,
+    targetPlayerId: string,
+    amount: number
+): { success: boolean; message: string } {
+    if (amount <= 0) return { success: false, message: 'Invalid amount.' };
+
+    const pData = playerDataManager.getPlayer(sourcePlayerId);
+    if (!pData) return { success: false, message: 'Could not find your data.' };
+    if (pData.balance < amount) return { success: false, message: 'Insufficient funds.' };
+
+    // Verify target (offline supported)
+    const targetData = playerDataManager.loadPlayerData(targetPlayerId);
+    if (!targetData) return { success: false, message: 'Target not found.' };
+
+    // Deduct Money
+    playerDataManager.incrementPlayerBalance(sourcePlayerId, -amount);
+
+    // Add Bounty
+    incrementBounty(targetPlayerId, amount);
+
+    return { success: true, message: `Placed bounty of $${amount} on ${targetData.name}.` };
+}

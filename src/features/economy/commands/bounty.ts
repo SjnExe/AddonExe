@@ -35,25 +35,14 @@ function placeBounty(executor: mc.Player, targetId: string, targetName: string, 
         return;
     }
 
-    const pData = getOrCreatePlayer(executor);
-    if (pData.balance < amount) {
-        sendMessage('§cYou do not have enough money for this bounty.', executor);
-        return;
+    const result = bountyManager.placeBounty(executor.id, targetId, amount);
+
+    if (result.success) {
+        sendMessage(`§aYou have placed a bounty of §e$${amount}§a on ${targetName}.`, executor);
+        mc.world.sendMessage(`§cSomeone has placed a bounty of §e$${amount}§c on ${targetName}!`);
+    } else {
+        sendMessage(`§c${result.message}`, executor);
     }
-
-    // Verify target exists
-    const targetData = loadPlayerData(targetId);
-    if (!targetData) {
-        sendMessage("§cCould not find the target player's data.", executor);
-        return;
-    }
-
-    infoLog(`[Bounty] Deducting ${amount} from ${executor.name} (${executor.id})`);
-    incrementPlayerBalance(executor.id, -amount);
-    bountyManager.incrementBounty(targetId, amount);
-
-    sendMessage(`§aYou have placed a bounty of §e$${amount}§a on ${targetName}.`, executor);
-    mc.world.sendMessage(`§cSomeone has placed a bounty of §e$${amount}§c on ${targetName}!`);
 }
 
 // --- Online Commands ---

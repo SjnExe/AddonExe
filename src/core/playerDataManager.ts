@@ -708,15 +708,27 @@ export function transfer(
     if (amount <= 0) {
         return { success: false, message: 'Transfer amount must be positive.' };
     }
+
+    // 1. Get Source Data
     const sourceData = getPlayer(sourcePlayerId);
     if (!sourceData) {
         return { success: false, message: 'Could not find your player data.' };
     }
-    if (sourceData.balance < amount) {
+
+    const currentSourceBal = Number(sourceData.balance);
+    if (currentSourceBal < amount) {
         return { success: false, message: 'You do not have enough money for this transaction.' };
     }
-    // Verify target exists (offline ok)
-    const targetData = loadPlayerData(targetPlayerId);
+
+    // 2. Get Target Data (Load if offline)
+    // Check if target is already cached to decide if we should unload later
+    const targetIsCached = activePlayerData.has(targetPlayerId);
+    let targetData = activePlayerData.get(targetPlayerId);
+
+    if (!targetData) {
+        targetData = loadPlayerData(targetPlayerId);
+    }
+
     if (!targetData) {
         return { success: false, message: "Could not find the target player's data." };
     }
@@ -727,16 +739,46 @@ export function transfer(
     const safeTargetBal = Number.isNaN(currentTargetBal) ? 0 : currentTargetBal;
 
     if (safeTargetBal + amount > max) {
+        if (!targetIsCached) {
+            activePlayerData.delete(targetPlayerId);
+        }
         return {
             success: false,
             message: `Transfer failed. The target player cannot hold more than ${formatCurrency(max)}.`
         };
     }
 
-    incrementPlayerBalance(sourcePlayerId, -amount);
-    incrementPlayerBalance(targetPlayerId, amount);
+    // 3. Execute Transaction (Atomic In-Memory)
+    try {
+        const newSourceBal = Number.parseFloat((currentSourceBal - amount).toFixed(2));
+        const newTargetBal = Number.parseFloat((safeTargetBal + amount).toFixed(2));
 
-    return { success: true, message: 'Transfer successful.' };
+        // Apply Source
+        sourceData.balance = newSourceBal;
+        updateAndSaveLeaderboard(sourcePlayerId, sourceData.name, sourceData.balance);
+        sourceData.needsSave = true;
+
+        // Apply Target
+        targetData.balance = newTargetBal;
+        updateAndSaveLeaderboard(targetPlayerId, targetData.name, targetData.balance);
+
+        if (!targetIsCached) {
+            savePlayerData(targetPlayerId);
+            activePlayerData.delete(targetPlayerId);
+            debugLog(`[Economy] Unloaded offline target ${targetPlayerId} after transfer.`);
+        } else {
+            targetData.needsSave = true;
+        }
+
+        infoLog(
+            `[Economy] Transfer: ${sourceData.name} -> ${targetData.name} ($${amount}). New Bals: ${newSourceBal} / ${newTargetBal}`
+        );
+
+        return { success: true, message: 'Transfer successful.' };
+    } catch (error) {
+        errorLog(`[Economy] Transfer transaction error: ${String(error)}`);
+        return { success: false, message: 'An internal error occurred during transfer.' };
+    }
 }
 
 // --- Stats Management ---
