@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { soundTeleport, tpaDisabled } from '@core/constants.js';
+import { soundTeleport } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import {
     addTpaBlockedPlayer,
@@ -35,10 +35,13 @@ const tpaCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
 
-        const targetName = args.target as string;
         const config = getConfig();
-        if (!config.tpa.enabled) return sendMessage(tpaDisabled, executor);
+        if (!config.tpa.enabled) {
+            sendMessage('§cThe TPA system is currently disabled globally.', executor);
+            return;
+        }
 
+        const targetName = args.target as string;
         if (!targetName) return sendMessage('§cPlease specify a player.', executor);
 
         // Block mass selectors
@@ -87,10 +90,13 @@ const tpaHereCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
 
-        const targetName = args.target as string;
         const config = getConfig();
-        if (!config.tpa.enabled) return sendMessage(tpaDisabled, executor);
+        if (!config.tpa.enabled) {
+            sendMessage('§cThe TPA system is currently disabled globally.', executor);
+            return;
+        }
 
+        const targetName = args.target as string;
         if (!targetName) return sendMessage('§cPlease specify a player.', executor);
 
         // Block mass selectors
@@ -139,7 +145,10 @@ const tpaAcceptCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
         const config = getConfig();
-        if (!config.tpa.enabled) return sendMessage(tpaDisabled, executor);
+        if (!config.tpa.enabled) {
+            sendMessage('§cThe TPA system is currently disabled globally.', executor);
+            return;
+        }
 
         const typedArgs = args as unknown as TpaResponseArgs;
         let targetName = typedArgs.player;
@@ -168,7 +177,10 @@ const tpaDenyCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
         const config = getConfig();
-        if (!config.tpa.enabled) return sendMessage(tpaDisabled, executor);
+        if (!config.tpa.enabled) {
+            sendMessage('§cThe TPA system is currently disabled globally.', executor);
+            return;
+        }
 
         const typedArgs = args as unknown as TpaResponseArgs;
         let targetName = typedArgs.player;
@@ -191,7 +203,10 @@ const tpaCancelCommand: CustomCommand = {
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
         const config = getConfig();
-        if (!config.tpa.enabled) return sendMessage(tpaDisabled, executor);
+        if (!config.tpa.enabled) {
+            sendMessage('§cThe TPA system is currently disabled globally.', executor);
+            return;
+        }
 
         cancelRequest(executor);
     }
@@ -204,6 +219,13 @@ const tpaStatusCommand: CustomCommand = {
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
+
+        const config = getConfig();
+        if (!config.tpa.enabled) {
+            sendMessage('§cThe TPA system is currently disabled globally.', executor);
+            return;
+        }
+
         const outgoing = getOutgoingRequest(executor);
         const incoming = getIncomingRequest(executor);
 
@@ -244,6 +266,13 @@ const tpaStopCommand: CustomCommand = {
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
+
+        const config = getConfig();
+        if (!config.tpa.enabled) {
+            sendMessage('§cThe TPA system is currently disabled globally.', executor);
+            return;
+        }
+
         const targetStr = args.targets as string | undefined;
 
         if (targetStr) {
@@ -270,6 +299,13 @@ const tpaStartCommand: CustomCommand = {
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
+
+        const config = getConfig();
+        if (!config.tpa.enabled) {
+            sendMessage('§cThe TPA system is currently disabled globally.', executor);
+            return;
+        }
+
         const targetStr = args.targets as string | undefined;
 
         if (targetStr) {
@@ -299,6 +335,13 @@ const oTpaStopCommand: CustomCommand = {
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
+
+        const config = getConfig();
+        if (!config.tpa.enabled) {
+            sendMessage('§cThe TPA system is currently disabled globally.', executor);
+            return;
+        }
+
         const targetName = args.target as string;
 
         if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
@@ -322,6 +365,13 @@ const oTpaStartCommand: CustomCommand = {
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
+
+        const config = getConfig();
+        if (!config.tpa.enabled) {
+            sendMessage('§cThe TPA system is currently disabled globally.', executor);
+            return;
+        }
+
         const targetName = args.target as string;
 
         if (!targetName) return sendMessage('§cPlease specify a player name.', executor);

@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
 import {
     getPlayerIdByName,
@@ -35,6 +36,12 @@ const setBalanceCommand: CustomCommand = {
         { name: 'amount', type: 'string', description: 'The amount to set.' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const config = getConfig();
+        if (!config.economy.enabled) {
+            sendMessage('§cThe Economy system is currently disabled globally.', executor);
+            return;
+        }
+
         const targets = args.targets as mc.Player[];
         const amount = validateAmount(args.amount as string);
 
@@ -69,6 +76,12 @@ const addBalanceCommand: CustomCommand = {
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const config = getConfig();
+        if (!config.economy.enabled) {
+            sendMessage('§cThe Economy system is currently disabled globally.', executor);
+            return;
+        }
+
         const targets = args.targets as mc.Player[];
         const amount = validateAmount(args.amount as string);
 
@@ -103,6 +116,12 @@ const removeBalanceCommand: CustomCommand = {
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const config = getConfig();
+        if (!config.economy.enabled) {
+            sendMessage('§cThe Economy system is currently disabled globally.', executor);
+            return;
+        }
+
         const targets = args.targets as mc.Player[];
         const amount = validateAmount(args.amount as string);
 
@@ -147,6 +166,12 @@ const oSetBalanceCommand: CustomCommand = {
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const config = getConfig();
+        if (!config.economy.enabled) {
+            sendMessage('§cThe Economy system is currently disabled globally.', executor);
+            return;
+        }
+
         const targetName = args.target as string;
         const amount = validateAmount(args.amount as string);
 
@@ -178,6 +203,12 @@ const oAddBalanceCommand: CustomCommand = {
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const config = getConfig();
+        if (!config.economy.enabled) {
+            sendMessage('§cThe Economy system is currently disabled globally.', executor);
+            return;
+        }
+
         const targetName = args.target as string;
         const amount = validateAmount(args.amount as string);
 
@@ -212,6 +243,12 @@ const oRemoveBalanceCommand: CustomCommand = {
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const config = getConfig();
+        if (!config.economy.enabled) {
+            sendMessage('§cThe Economy system is currently disabled globally.', executor);
+            return;
+        }
+
         const targetName = args.target as string;
         const amount = validateAmount(args.amount as string);
 

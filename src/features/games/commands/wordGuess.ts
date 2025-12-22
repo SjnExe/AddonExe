@@ -1,4 +1,5 @@
 import { CommandExecutor, CustomCommand, CustomCommandParamType } from '@commands/commandManager.js';
+import { getGamesConfig } from '@core/configurations.js';
 import * as mc from '@minecraft/server';
 import { gameManager } from '../gameManager.js';
 import { WordGuessGame } from '../games/wordGuess.js';
@@ -15,6 +16,14 @@ const wordGuessCommand: CustomCommand = {
         { name: 'reward', type: CustomCommandParamType.Integer, optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const gamesConfig = getGamesConfig();
+        if (!gamesConfig.enabled) {
+            const msg = '§cThe Games system is currently disabled globally.';
+            if (executor instanceof mc.Player) executor.sendMessage(msg);
+            else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
+            return;
+        }
+
         const action = args.action as string;
         const word = args.word as string;
         const reward = args.reward as number | undefined;

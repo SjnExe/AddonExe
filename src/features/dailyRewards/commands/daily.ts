@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { getDailyRewardsConfig } from '@core/configurations.js';
 import { sendMessage } from '@core/messaging.js';
 
 import { claimDailyReward } from '../dailyRewardsManager.js';
@@ -13,6 +14,12 @@ const dailyCommand: CustomCommand = {
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
+
+        const config = getDailyRewardsConfig();
+        if (!config.enabled) {
+            sendMessage('§cThe Daily Rewards system is currently disabled globally.', executor);
+            return;
+        }
 
         const result = claimDailyReward(executor);
         sendMessage(result.message, executor);

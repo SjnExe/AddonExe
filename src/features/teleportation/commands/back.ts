@@ -26,12 +26,12 @@ const backCommand: CustomCommand = {
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
 
-        // Config access via casting or interface augmentation (since we added it to default but type might lag)
         const config = getConfig();
         const backConfig = config.back as unknown as BackConfig | undefined;
 
+        // Check global feature toggle first
         if (!backConfig || !backConfig.enabled) {
-            sendMessage('§cThe /back command is disabled.', executor);
+            sendMessage('§cThe Back system is currently disabled globally.', executor);
             return;
         }
 

@@ -117,7 +117,7 @@ const kitCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.kits.enabled) {
-            executor.sendMessage('§cThe kits system is currently disabled.');
+            executor.sendMessage('§cThe Kits system is currently disabled globally.');
             return;
         }
 
@@ -149,6 +149,13 @@ const addKitCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
+
+        const config = getConfig();
+        if (!config.kits.enabled) {
+            executor.sendMessage('§cThe Kits system is currently disabled globally.');
+            return;
+        }
+
         let kitName = args.kitName;
 
         if (!kitName) {

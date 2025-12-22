@@ -20,7 +20,12 @@ function placeBounty(executor: mc.Player, targetId: string, targetName: string, 
     if (!config) return;
 
     if (!config.economy.enabled) {
-        sendMessage('§cThe economy system is currently disabled.', executor);
+        sendMessage('§cThe Economy system is currently disabled globally.', executor);
+        return;
+    }
+
+    if (!config.bounties?.enabled) {
+        sendMessage('§cThe Bounties system is currently disabled globally.', executor);
         return;
     }
 
@@ -95,6 +100,13 @@ const removeBountyCommand: CustomCommand = {
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
+
+        const config = getConfig();
+        if (!config.economy.enabled || !config.bounties?.enabled) {
+            sendMessage('§cThe Bounties system is currently disabled globally.', executor);
+            return;
+        }
+
         const targetName = args.target as string;
         const amountStr = args.amount as string;
 
@@ -170,6 +182,13 @@ const oRemoveBountyCommand: CustomCommand = {
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
+
+        const config = getConfig();
+        if (!config.economy.enabled || !config.bounties?.enabled) {
+            sendMessage('§cThe Bounties system is currently disabled globally.', executor);
+            return;
+        }
+
         const targetName = args.target as string;
         const amountStr = args.amount as string;
 
@@ -208,6 +227,14 @@ const listBountyCommand: CustomCommand = {
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const config = getConfig();
+        if (!config.economy.enabled || !config.bounties?.enabled) {
+            if (executor instanceof mc.Player)
+                sendMessage('§cThe Bounties system is currently disabled globally.', executor);
+            else executor.sendMessage('§cThe Bounties system is currently disabled globally.');
+            return;
+        }
+
         const targetName = args.target as string | undefined;
 
         if (targetName) {
@@ -275,6 +302,14 @@ const oListBountyCommand: CustomCommand = {
     hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const config = getConfig();
+        if (!config.economy.enabled || !config.bounties?.enabled) {
+            if (executor instanceof mc.Player)
+                sendMessage('§cThe Bounties system is currently disabled globally.', executor);
+            else executor.sendMessage('§cThe Bounties system is currently disabled globally.');
+            return;
+        }
+
         const targetName = args.target as string;
         if (!targetName) {
             if (executor instanceof mc.Player) sendMessage('§cPlease specify a player name.', executor);

@@ -3,7 +3,6 @@ import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { warpsDisabled } from '@core/constants.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
@@ -45,7 +44,7 @@ const warpCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.warps.enabled) {
-            sendMessage(warpsDisabled, executor);
+            sendMessage('§cThe Warps system is currently disabled globally.', executor);
             return;
         }
 
@@ -142,6 +141,13 @@ const addWarpCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
+
+        const config = getConfig();
+        if (!config.warps.enabled) {
+            sendMessage('§cThe Warps system is currently disabled globally.', executor);
+            return;
+        }
+
         const { warpName, x, y, z } = args as unknown as AddWarpArgs;
         const hasX = x !== undefined && x !== undefined;
         const hasY = y !== undefined && y !== undefined;
@@ -187,6 +193,12 @@ const delWarpCommand: CustomCommand = {
     ],
     execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
+            return;
+        }
+
+        const config = getConfig();
+        if (!config.warps.enabled) {
+            sendMessage('§cThe Warps system is currently disabled globally.', executor);
             return;
         }
 

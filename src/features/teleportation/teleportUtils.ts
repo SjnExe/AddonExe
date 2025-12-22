@@ -12,7 +12,11 @@ export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport'
     if (!player || !player.isValid) return;
 
     const config = getConfig();
-    // Use optional chaining and defaults in case config isn't fully reloaded or types mismatch
+
+    // Check if Back system is globally enabled
+    if (!config.back || !config.back.enabled) return;
+
+    // Use optional chaining and defaults
     const backConfig = config.back as { saveOnDeath?: boolean; saveOnTeleport?: boolean } | undefined;
 
     if (reason === 'death' && !backConfig?.saveOnDeath) return;
