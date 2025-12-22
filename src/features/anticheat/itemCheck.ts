@@ -100,7 +100,7 @@ function checkItem(
                     `Illegal Enchant: ${enchant.type.id} Level ${enchant.level} (Max: ${allowed})`
                 );
                 if (config.removeIllegalItems) {
-                    updateItem(undefined); // Remove item
+                    updateItem(); // Remove item
                     return; // Stop checking this item
                 }
             }
@@ -111,7 +111,7 @@ function checkItem(
     if (bannedItems.includes(item.typeId)) {
         flag(player, 'itemCheck', `Banned Item: ${item.typeId}`);
         if (config.removeIllegalItems) {
-            updateItem(undefined);
+            updateItem();
             return;
         }
     }
