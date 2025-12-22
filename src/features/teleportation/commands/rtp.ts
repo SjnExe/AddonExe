@@ -7,7 +7,7 @@ import { rtpDisabled } from '@core/constants.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { startTeleportWarmup } from '@core/utils.js';
+import { startTeleportWarmup } from '@core/teleportLogic.js';
 
 import { saveLastLocation } from '../teleportUtils.js';
 

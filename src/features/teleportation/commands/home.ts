@@ -7,7 +7,8 @@ import { homesDisabled } from '@core/constants.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { startTeleportWarmup, uiWait } from '@core/utils.js';
+import { startTeleportWarmup } from '@core/teleportLogic.js';
+import { uiWait } from '@core/utils.js';
 
 import * as homesManager from '../homesManager.js';
 import { saveLastLocation } from '../teleportUtils.js';

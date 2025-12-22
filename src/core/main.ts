@@ -5,6 +5,7 @@ import { initializeXrayDetection } from '@features/anticheat/xrayDetection.js';
 import * as auctionHouseFeature from '@features/auctionHouse/index.js';
 import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
 import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
+import * as gamesFeature from '@features/games/index.js';
 import * as kitsFeature from '@features/kits/index.js';
 import { initializeChatLogger } from '@features/moderation/chatLogManager.js';
 import * as moderationFeature from '@features/moderation/index.js';
@@ -30,6 +31,7 @@ import {
     loadAuctionHouseConfig,
     loadDailyRewardsConfig,
     loadEconomyConfig,
+    loadGamesConfig,
     loadKitsConfig,
     loadRanksConfig,
     loadShopConfig,
@@ -127,6 +129,7 @@ function initializeManagers() {
     teamManager.initialize();
     corePanels.initialize();
     kitsFeature.initialize();
+    gamesFeature.initialize();
     shopFeature.initialize();
     auctionHouseFeature.initialize();
     votingFeature.initialize();
@@ -215,6 +218,7 @@ async function initializeAddon() {
         loadXrayConfig(isMigration),
         loadAuctionHouseConfig(isMigration),
         loadDailyRewardsConfig(isMigration),
+        loadGamesConfig(isMigration),
         import('@features/anticheat/index.js').then((m) => m.initialize(isMigration))
     ]);
 

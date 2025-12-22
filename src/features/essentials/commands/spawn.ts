@@ -7,7 +7,8 @@ import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayerRank } from '@core/rankManager.js';
-import { playSound, startTeleportWarmup } from '@core/utils.js';
+import { startTeleportWarmup } from '@core/teleportLogic.js';
+import { playSound } from '@core/utils.js';
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 
 import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';

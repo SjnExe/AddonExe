@@ -22,6 +22,17 @@ const tickCounts: number[] = [];
 const SIDEBAR_OBJECTIVE = 'exe:sidebar';
 const MAGIC_STRING_BASE = '§~§s§b';
 
+const actionBarOverrides = new Map<string, number>();
+
+export function setActionBarOverride(player: mc.Player, text: string, durationMs = 1000) {
+    try {
+        player.onScreenDisplay.setActionBar(text);
+    } catch {
+        // Ignore
+    }
+    actionBarOverrides.set(player.id, Date.now() + durationMs);
+}
+
 export function initialize() {
     startTPSCounter();
     startLoops();
@@ -288,6 +299,12 @@ function updatePersonalHUD() {
     const globalResolvedTemplate = resolveGlobalPlaceholders(linesTemplate);
 
     for (const player of mc.world.getAllPlayers()) {
+        const overrideExpiry = actionBarOverrides.get(player.id);
+        if (overrideExpiry) {
+            if (Date.now() < overrideExpiry) continue;
+            actionBarOverrides.delete(player.id);
+        }
+
         if (!getSidebarVisible(player.id)) {
             continue;
         }

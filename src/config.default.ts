@@ -49,7 +49,7 @@ export const config = {
     back: {
         enabled: false,
         cooldownSeconds: 60,
-        teleportWarmupSeconds: 3,
+        teleportWarmupSeconds: 10,
         cost: 0,
         saveOnDeath: true,
         saveOnTeleport: true

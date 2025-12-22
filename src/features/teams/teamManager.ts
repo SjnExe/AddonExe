@@ -9,7 +9,7 @@ import {
     incrementPlayerBalance,
     updatePlayerData
 } from '@core/playerDataManager.js';
-import { startTeleportWarmup } from '@core/utils.js';
+import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 import { TeamPanelHandler } from './ui/teamPanel.js';

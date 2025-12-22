@@ -69,6 +69,46 @@ export const configPanelSchema: ConfigCategory[] = [
         ]
     },
     {
+        id: 'games',
+        title: '§l§5Game Settings§r',
+        icon: 'textures/ui/controller_glyph_color',
+        configSource: 'games',
+        category: 'Gameplay',
+        settings: [
+            {
+                key: 'enabled',
+                label: 'Enable Games',
+                type: 'toggle',
+                description: 'Master switch for the Game System.'
+            },
+            {
+                key: 'wordGuess.enabled',
+                label: 'Word Guess Enabled',
+                type: 'toggle'
+            },
+            {
+                key: 'wordGuess.rewards.money',
+                label: 'Word Guess Reward',
+                type: 'textField'
+            },
+            {
+                key: 'wordGuess.cooldownSeconds',
+                label: 'Word Guess Cooldown',
+                type: 'textField'
+            },
+            {
+                key: 'ticTacToe.enabled',
+                label: 'Tic Tac Toe Enabled',
+                type: 'toggle'
+            },
+            {
+                key: 'diceRoll.enabled',
+                label: 'Dice Roll Enabled',
+                type: 'toggle'
+            }
+        ]
+    },
+    {
         id: 'back',
         title: '§l§5Back System§r',
         icon: 'textures/ui/refresh_light',

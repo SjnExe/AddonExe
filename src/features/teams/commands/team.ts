@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayer } from '@core/playerDataManager.js';
-import { startTeleportWarmup } from '@core/utils.js';
+import { startTeleportWarmup } from '@core/teleportLogic.js';
 
 import { teamConfig } from '../teamConfig.js';
 import { getTeamByPlayer } from '../teamManager.js';
