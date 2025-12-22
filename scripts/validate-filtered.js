@@ -41,6 +41,7 @@ function processOutput(line, isStderr) {
     if (cleanLine.includes('.map')) return; // Allow source maps for debug
     if (cleanLine.includes('FORBFILE000') || cleanLine.includes('Check Forbidden Files Generator')) return;
     if (cleanLine.includes('UNLINK323') && cleanLine.includes('minecraft:stick')) return;
+    if (cleanLine.includes('UNLINK191') && cleanLine.includes('copper_golem.png')) return;
 
     // --- If not suppressed, print it and flag error ---
     if (isStderr) {
