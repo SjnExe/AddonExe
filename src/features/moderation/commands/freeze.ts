@@ -4,9 +4,19 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { frozenTag } from '@core/constants.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
+import { getPlayer } from '@core/playerDataManager.js';
 import { playSound } from '@core/utils.js';
 
 export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
+    if (executor instanceof mc.Player) {
+        const executorData = getPlayer(executor.id);
+        const targetData = getPlayer(targetPlayer.id);
+        if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+            sendMessage('§cYou cannot freeze a player with the same or higher rank than you.', executor);
+            return;
+        }
+    }
+
     if (targetPlayer.hasTag(frozenTag)) {
         if (executor instanceof mc.Player) {
             sendMessage(`§ePlayer ${targetPlayer.name} is already frozen.`, executor);
@@ -48,6 +58,15 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
 }
 
 export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
+    if (executor instanceof mc.Player) {
+        const executorData = getPlayer(executor.id);
+        const targetData = getPlayer(targetPlayer.id);
+        if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+            sendMessage('§cYou cannot unfreeze a player with the same or higher rank than you.', executor);
+            return;
+        }
+    }
+
     if (!targetPlayer.hasTag(frozenTag)) {
         if (executor instanceof mc.Player) {
             sendMessage(`§ePlayer ${targetPlayer.name} is not frozen.`, executor);
