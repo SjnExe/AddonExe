@@ -40,32 +40,21 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
         }
 
         case 'exe:toggle_chat_log': {
+            const chatConfig = config.chat || { logToConsole: false };
+            const newValue = !chatConfig.logToConsole;
+            chatConfig.logToConsole = newValue;
+            updateConfig('chat', chatConfig);
+
+            const feedbackMessage = `§aChat-to-console has been ${newValue ? '§aenabled' : '§cdisabled'}§a.`;
             if (sourceEntity instanceof mc.Player) {
-                const rank = rankManager.getPlayerRank(sourceEntity, config);
-                if (rank.permissionLevel > 1 && !sourceEntity.isOp()) {
-                    sourceEntity.sendMessage('§cYou do not have permission to toggle chat logs.');
-                    break;
-                }
-
-                const chatConfig = config.chat || { logToConsole: false };
-                const newValue = !chatConfig.logToConsole;
-                chatConfig.logToConsole = newValue;
-                updateConfig('chat', chatConfig);
-
-                const feedbackMessage = `§aChat-to-console has been ${newValue ? '§aenabled' : '§cdisabled'}§a.`;
                 sourceEntity.sendMessage(feedbackMessage);
-                infoLog(`[AddonExe] ${feedbackMessage}`);
             }
+            infoLog(`[AddonExe] ${feedbackMessage}`);
             break;
         }
 
         case 'exe:grant_admin_self': {
             if (sourceEntity instanceof mc.Player) {
-                if (!sourceEntity.isOp()) {
-                    sourceEntity.sendMessage('§cYou must be a server operator to use this command.');
-                    break;
-                }
-
                 const adminRank = rankManager.getRankById('admin');
                 if (!adminRank) {
                     errorLog(
