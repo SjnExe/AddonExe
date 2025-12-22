@@ -67,14 +67,15 @@ const {
 
 describe('Economy System', () => {
     // Helper to mock a player
-    const mockPlayer = (id: string, name: string) => ({
-        id,
-        name,
-        isValid: true,
-        sendMessage: jest.fn(),
-        getGameMode: jest.fn(),
-        getComponent: jest.fn()
-    } as unknown as mc.Player);
+    const mockPlayer = (id: string, name: string) =>
+        ({
+            id,
+            name,
+            isValid: true,
+            sendMessage: jest.fn(),
+            getGameMode: jest.fn(),
+            getComponent: jest.fn()
+        }) as unknown as mc.Player;
 
     beforeEach(() => {
         jest.clearAllMocks();
