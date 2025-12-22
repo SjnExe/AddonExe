@@ -8,6 +8,8 @@ import { findVisiblePlayerByName, getPlayer } from '@core/playerDataManager.js';
 
 // --- Type Definitions ---
 
+export { CustomCommandParamType } from '@minecraft/server';
+
 /**
  * Represents a parameter for a custom command.
  */
@@ -15,7 +17,18 @@ export interface CommandParameter {
     /** The name of the parameter. */
     name: string;
     /** The data type of the parameter. */
-    type: 'player' | 'string' | 'text' | 'int' | 'float' | 'boolean' | 'block' | 'item' | 'position' | 'target';
+    type:
+        | 'player'
+        | 'string'
+        | 'text'
+        | 'int'
+        | 'float'
+        | 'boolean'
+        | 'block'
+        | 'item'
+        | 'position'
+        | 'target'
+        | mc.CustomCommandParamType;
     /** Whether the parameter is optional. */
     optional?: boolean;
     /** A list of possible values for an enum parameter, or a function that returns them. */
@@ -522,11 +535,14 @@ class CommandManager {
             target: mc.CustomCommandParamType.PlayerSelector
         };
 
-        const type = paramTypeMap[param.type.toLowerCase()];
+        const type =
+            typeof param.type === 'string'
+                ? paramTypeMap[param.type.toLowerCase()]
+                : (param.type as mc.CustomCommandParamType);
 
         if (!type) {
             errorLog(
-                `[CommandManager] Unknown parameter type '${param.type}' for parameter '${param.name}'. Defaulting to String.`
+                `[CommandManager] Unknown parameter type '${String(param.type)}' for parameter '${param.name}'. Defaulting to String.`
             );
             return {
                 name: param.name,
@@ -622,7 +638,38 @@ class CommandManager {
             const rawValue = cleanedArgs[currentArgIndex];
             if (rawValue === undefined) break; // Should not happen due to length check
 
-            switch (paramDef.type) {
+            // Use string for unknown types in chat parsing
+            // This logic assumes paramDef.type is one of the string keys.
+            // If it's a CustomCommandParamType enum, we need to map it back or handle it.
+            let typeKey = 'string';
+            if (typeof paramDef.type === 'string') {
+                typeKey = paramDef.type.toLowerCase();
+            } else {
+                switch (paramDef.type) {
+                    case mc.CustomCommandParamType.Integer: {
+                        typeKey = 'int';
+                        break;
+                    }
+                    case mc.CustomCommandParamType.Float: {
+                        typeKey = 'float';
+                        break;
+                    }
+                    case mc.CustomCommandParamType.Boolean: {
+                        typeKey = 'boolean';
+                        break;
+                    }
+                    case mc.CustomCommandParamType.String: {
+                        {
+                            typeKey = 'string';
+                            // No default
+                        }
+                        break;
+                    }
+                }
+                // ... others map to string for chat purposes usually
+            }
+
+            switch (typeKey) {
                 case 'text': {
                     // Greedy parameter (consumes the rest)
                     parsedArgs[paramDef.name] = cleanedArgs.slice(currentArgIndex).join(' ');

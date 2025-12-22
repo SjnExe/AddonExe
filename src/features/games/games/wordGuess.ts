@@ -13,18 +13,42 @@ export class WordGuessGame implements IGame {
 
     private currentWord = '';
     private active = false;
+    private customReward: number | undefined;
 
-    start(_players: mc.Player[], config: Record<string, unknown>) {
+    // Continuous mode state
+    private isContinuous = true; // Default to true based on user request
+
+    start(_players: mc.Player[], config: Record<string, unknown> = {}) {
         this.active = true;
-        this.currentWord = (config.word as string) || 'apple';
+        this.customReward = typeof config.reward === 'number' ? config.reward : undefined;
+        this.isContinuous = config.continuous !== false; // Default to true unless explicitly disabled
+
+        const wordList = getGamesConfig().wordGuess.wordList;
+        const randomWord = wordList[Math.floor(Math.random() * wordList.length)] || 'apple';
+
+        this.currentWord = (config.word as string) || randomWord;
+
+        const rewardMsg = this.customReward ? ` Reward: $${this.customReward}` : '';
         mc.world.sendMessage(
-            `§a[WordGuess] A new game has started! Guess the ${this.currentWord.length}-letter word using /guess <word>`
+            `§a[WordGuess] A new game has started! Guess the ${this.currentWord.length}-letter word using /guess <word>.${rewardMsg}`
         );
+    }
+
+    startCustom(word: string, reward?: number) {
+        // Stop any current game
+        if (this.active) {
+            this.stop();
+        }
+
+        // Start custom game
+        // We pass continuous: true so that when this custom game ends, the cycle continues
+        this.start([], { word, reward, continuous: true });
     }
 
     stop() {
         this.active = false;
         this.currentWord = '';
+        this.customReward = undefined;
     }
 
     processGuess(player: mc.Player, guess: string) {
@@ -42,14 +66,29 @@ export class WordGuessGame implements IGame {
         }
 
         if (input === target) {
-            const reward = getGamesConfig().wordGuess.rewards.money;
+            const reward = this.customReward ?? getGamesConfig().wordGuess.rewards.money;
             mc.world.sendMessage(`§a[WordGuess] §e${player.name}§a guessed the word: §b${this.currentWord}§a!`);
             incrementPlayerBalance(player.id, reward);
             player.sendMessage(`§aYou received $${reward}.`);
 
-            // Stop logic
+            // Stop current game
             this.stop();
-            gameManager.stopGlobalGame(this.id);
+
+            // Check continuous mode
+            if (this.isContinuous) {
+                const cooldown = getGamesConfig().wordGuess.cooldownSeconds;
+                if (cooldown > 0) {
+                    mc.world.sendMessage(`§7Next game starting in ${cooldown} seconds...`);
+                    mc.system.runTimeout(() => {
+                        this.start([], { continuous: true });
+                    }, cooldown * 20);
+                } else {
+                    // Start immediately
+                    this.start([], { continuous: true });
+                }
+            } else {
+                gameManager.stopGlobalGame(this.id);
+            }
             return;
         }
 

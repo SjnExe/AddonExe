@@ -1,4 +1,5 @@
 import { uiWait } from '@core/utils.js';
+import { inviteFriendToGame } from '@features/social/friendManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 import { IGame } from '../types.js';
@@ -64,21 +65,31 @@ export class TicTacToeGame implements IGame {
         const mySymbol = isP1 ? 'X' : 'O';
         const isMyTurn = match.turn === mySymbol;
 
+        // Render the board as text for "Grid Visualization" (Option B fallback / primary visualization)
+        const boardVisual = this.renderBoard(match.board);
+
         const form = new ActionFormData()
-            .title(`Vs ${isP1 ? match.p2Name : match.p1Name}`)
+            .title('Tic Tac Toe') // Generic title for server_form.json hook if active
             .body(
-                match.winner
+                (match.winner
                     ? `Game Over! ${match.winner === 'Draw' ? "It's a Draw!" : match.winner === mySymbol ? '§2You Won!' : '§4You Lost!'}`
-                    : `Turn: ${match.turn} (${isMyTurn ? '§l§2YOU§r' : 'Opponent'})`
+                    : `Turn: ${match.turn} (${isMyTurn ? '§l§2YOU§r' : 'Opponent'})`) +
+                    `\n\n${boardVisual}\n\nSelect a cell to move:`
             );
 
+        // Buttons 1-9
+        // We add numbering to buttons to match grid positions
         for (let i = 0; i < 9; i++) {
             const cell = match.board[i];
-            const label = cell ? (cell === 'X' ? '§c❌' : '§a⭕') : ' ';
+            const label = cell ? (cell === 'X' ? '§cX' : '§aO') : `§7${i + 1}`;
             form.button(label);
         }
 
         form.button('Refresh / Exit');
+
+        if (match.p2Id === 'AI' && !match.winner) {
+            form.button('Invite Friend');
+        }
 
         const res = await uiWait(player, form);
         if (!res || res.canceled) return;
@@ -115,10 +126,26 @@ export class TicTacToeGame implements IGame {
             }
 
             void this.openUI(player);
-        } else {
-            // Refresh
+        } else if (selection === 9) {
+            // Refresh/Exit
             void this.openUI(player);
+        } else if (match.p2Id === 'AI' && selection === 10) {
+            // Invite Friend
+            this.cleanupMatch(match); // End bot match to invite friend
+            await inviteFriendToGame(player, 'ticTacToe');
         }
+    }
+
+    private renderBoard(board: (string | null)[]): string {
+        const sym = (i: number) => {
+            const val = board[i];
+            if (val === 'X') return '§c❌§r';
+            if (val === 'O') return '§a⭕§r';
+            return '§8⬜§r';
+        };
+
+        // Centered ASCII-ish grid
+        return `   ${sym(0)} ${sym(1)} ${sym(2)}\n   ${sym(3)} ${sym(4)} ${sym(5)}\n   ${sym(6)} ${sym(7)} ${sym(8)}`;
     }
 
     private checkWin(match: Match) {
