@@ -30,11 +30,12 @@ const payCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
 
+        const config = getConfig();
+        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
+
         const targetName = args.targets as string;
         const amountStr = args.amount as string;
-        const config = getConfig();
 
-        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
         if (!targetName) return sendMessage('§cPlease specify a player.', executor);
 
         // Resolve Target
@@ -93,11 +94,12 @@ const oPayCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
 
+        const config = getConfig();
+        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
+
         const targetName = args.target as string;
         const amountStr = args.amount as string;
-        const config = getConfig();
 
-        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
         if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
 
         const targetId = getPlayerIdByName(targetName);
@@ -139,6 +141,10 @@ const payConfirmCommand: CustomCommand = {
     permissionLevel: 1024,
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
+
+        const config = getConfig();
+        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
+
         const pendingPayment = getPendingPayment(executor.id);
 
         if (!pendingPayment) return sendMessage('§cYou have no pending payment to confirm.', executor);

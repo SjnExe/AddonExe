@@ -21,7 +21,7 @@ const shopCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.shop.enabled) {
-            return executor.sendMessage('§cThe shop is currently disabled.');
+            return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
         await showPanel(executor, 'shopMainPanel', { view: 'shop' });
     }
@@ -39,7 +39,7 @@ const buyCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.shop.enabled) {
-            return executor.sendMessage('§cThe shop is currently disabled.');
+            return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
         await showPanel(executor, 'shopMainPanel', { view: 'buy' });
     }
@@ -57,7 +57,7 @@ const sellCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.shop.enabled) {
-            return executor.sendMessage('§cThe shop is currently disabled.');
+            return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
         await showPanel(executor, 'shopMainPanel', { view: 'sell' });
     }
@@ -76,7 +76,7 @@ const sellHandCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.shop.enabled) {
-            return executor.sendMessage('§cThe shop is currently disabled.');
+            return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
         const equipment = executor.getComponent('minecraft:equippable');
         if (!equipment) {
@@ -132,6 +132,12 @@ const addShopCommand: CustomCommand = {
         if (!(executor instanceof mc.Player) || !args) {
             return;
         }
+
+        const config = getConfig();
+        if (!config.shop.enabled) {
+            return executor.sendMessage('§cThe Shop system is currently disabled globally.');
+        }
+
         const {
             category,
             buyPrice: buyPriceStr,

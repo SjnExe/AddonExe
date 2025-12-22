@@ -23,31 +23,31 @@ export const config = {
 
     // --- Feature Toggles & Settings ---
     tpa: {
-        enabled: false,
+        enabled: true,
         requestTimeoutSeconds: 60,
         cooldownSeconds: 30,
         teleportWarmupSeconds: 10
     },
     homes: {
-        enabled: false,
+        enabled: true,
         maxHomes: 5,
         cooldownSeconds: 60, // 1 minute
         teleportWarmupSeconds: 10
     },
     warps: {
-        enabled: false,
+        enabled: true,
         cooldownSeconds: 60, // 1 minute
         teleportWarmupSeconds: 10
     },
     rtp: {
-        enabled: false,
+        enabled: true,
         minRange: 1000,
         maxRange: 10_000,
         cooldownSeconds: 600, // 10 minutes
         teleportWarmupSeconds: 10
     },
     back: {
-        enabled: false,
+        enabled: true,
         cooldownSeconds: 60,
         teleportWarmupSeconds: 10,
         cost: 0,

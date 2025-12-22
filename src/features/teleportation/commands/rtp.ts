@@ -3,7 +3,6 @@ import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { rtpDisabled } from '@core/constants.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
@@ -25,7 +24,7 @@ const rtpCommand: CustomCommand = {
 
         const config = getConfig();
         if (!config.rtp.enabled) {
-            sendMessage(rtpDisabled, executor);
+            sendMessage('§cThe RTP system is currently disabled globally.', executor);
             return;
         }
 

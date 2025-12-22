@@ -23,6 +23,12 @@ const mainCommand: CustomCommand = {
     execute: async (executor: CommandExecutor, args: { subcommand?: string; price?: string; type?: string }) => {
         if (!(executor instanceof mc.Player)) return;
 
+        const config = getAuctionHouseConfig();
+        if (!config.enabled) {
+            sendMessage('§cThe Auction House system is currently disabled globally.', executor);
+            return;
+        }
+
         const sub = args.subcommand?.toLowerCase();
 
         if (!sub) {
@@ -51,8 +57,6 @@ const mainCommand: CustomCommand = {
                 sendMessage('§cYou are not holding an item.', executor);
                 return;
             }
-
-            const config = getAuctionHouseConfig();
 
             // Check blocked items
             if (config.blockedItemIds.includes(item.typeId)) {

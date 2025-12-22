@@ -19,16 +19,16 @@ const gameCommand: CustomCommand = {
         const gameId = args.gameId as string;
         const arg1 = args.arg1 as string;
 
+        const gamesConfig = getGamesConfig();
+        if (!gamesConfig.enabled) {
+            const msg = '§cThe Games system is currently disabled globally.';
+            if (executor instanceof mc.Player) executor.sendMessage(msg);
+            else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
+            return;
+        }
+
         if (action === 'start') {
             const config: Record<string, unknown> = { word: arg1 };
-            const gamesConfig = getGamesConfig();
-
-            if (!gamesConfig.enabled) {
-                const msg = '§cGames system is disabled.';
-                if (executor instanceof mc.Player) executor.sendMessage(msg);
-                else (executor as { sendMessage: (s: string) => void }).sendMessage(msg);
-                return;
-            }
 
             // Check individual game enabled status
             const specificGameConfig = (gamesConfig as unknown as Record<string, { enabled?: boolean }>)[gameId];

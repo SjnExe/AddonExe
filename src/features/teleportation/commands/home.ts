@@ -3,7 +3,6 @@ import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { homesDisabled } from '@core/constants.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
@@ -30,8 +29,9 @@ const homeCommand: CustomCommand = {
             return;
         }
         const config = getConfig();
+        // Check global feature toggle first
         if (!config.homes.enabled) {
-            sendMessage(homesDisabled, executor);
+            sendMessage('§cThe Homes system is currently disabled globally.', executor);
             return;
         }
 
@@ -115,7 +115,7 @@ const homesCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.homes.enabled) {
-            sendMessage(homesDisabled, executor);
+            sendMessage('§cThe Homes system is currently disabled globally.', executor);
             return;
         }
 
@@ -147,7 +147,7 @@ const delHomeCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.homes.enabled) {
-            sendMessage(homesDisabled, executor);
+            sendMessage('§cThe Homes system is currently disabled globally.', executor);
             return;
         }
 
@@ -208,7 +208,7 @@ const setHomeCommand: CustomCommand = {
         }
         const config = getConfig();
         if (!config.homes.enabled) {
-            sendMessage(homesDisabled, executor);
+            sendMessage('§cThe Homes system is currently disabled globally.', executor);
             return;
         }
 

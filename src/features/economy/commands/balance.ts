@@ -2,7 +2,6 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { economyDisabled } from '@core/constants.js';
 import { getLeaderboard } from '@core/leaderboardManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/playerDataManager.js';
@@ -17,7 +16,10 @@ const balanceCommand: CustomCommand = {
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
-        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
+        if (!config.economy.enabled) {
+            sendMessage('§cThe Economy system is currently disabled globally.', executor);
+            return;
+        }
 
         const targetStr = args.targets as string | undefined;
 
@@ -60,7 +62,10 @@ const oBalanceCommand: CustomCommand = {
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
-        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
+        if (!config.economy.enabled) {
+            sendMessage('§cThe Economy system is currently disabled globally.', executor);
+            return;
+        }
 
         const targetName = args.target as string;
         if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
@@ -86,7 +91,10 @@ const baltopCommand: CustomCommand = {
     allowConsole: true,
     execute: (executor: CommandExecutor) => {
         const config = getConfig();
-        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
+        if (!config.economy.enabled) {
+            sendMessage('§cThe Economy system is currently disabled globally.', executor);
+            return;
+        }
 
         const leaderboard = getLeaderboard();
         const displayLimit = config.economy.baltopLimit ?? 10;

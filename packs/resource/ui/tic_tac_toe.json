@@ -1,0 +1,54 @@
+{
+    "namespace": "addonexe_ttt",
+    "grid_screen": {
+        "type": "input_panel",
+        "controls": [
+            {
+                "main_stack": {
+                    "type": "stack_panel",
+                    "orientation": "vertical",
+                    "size": ["100%", "100%"],
+                    "controls": [
+                        {
+                            "header": {
+                                "type": "label",
+                                "text": "Tic Tac Toe",
+                                "size": ["100%", 20],
+                                "text_alignment": "center"
+                            }
+                        },
+                        {
+                            "game_grid": {
+                                "type": "grid",
+                                "grid_dimensions": [3, 3],
+                                "size": [150, 150],
+                                "grid_item_template": "addonexe_ttt.grid_button",
+                                "collection_name": "ttt_cells"
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "grid_button": {
+        "type": "button",
+        "size": [48, 48],
+        "controls": [
+            {
+                "label": {
+                    "type": "label",
+                    "text": "#button_text",
+                    "bindings": [ { "binding_name": "#button_text", "binding_type": "collection", "binding_collection_name": "ttt_cells" } ]
+                }
+            }
+        ],
+        "button_mappings": [
+            {
+                "from_button_id": "button.menu_select",
+                "to_button_id": "button.click_cell",
+                "mapping_type": "pressed"
+            }
+        ]
+    }
+}

@@ -18,6 +18,12 @@ const deathCoordsCommand: CustomCommand = {
             return;
         }
 
+        const config = getConfig();
+        if (!config.playerInfo.enableDeathCoords) {
+            sendMessage('§cThe Death Coordinates feature is currently disabled globally.', executor);
+            return;
+        }
+
         const targetName = args.target as string | undefined;
         let targetId = executor.id;
         let targetDisplayName = 'You';
@@ -41,7 +47,6 @@ const deathCoordsCommand: CustomCommand = {
         const pData = getPlayer(targetId);
         if (pData && pData.lastDeathLocation) {
             const location = pData.lastDeathLocation;
-            const config = getConfig();
             const context = {
                 x: location.x.toFixed(2),
                 y: location.y.toFixed(2),
