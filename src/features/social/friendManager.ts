@@ -5,7 +5,10 @@ import {
     loadPlayerData,
     updatePlayerData
 } from '@core/playerDataManager.js';
+import { uiWait } from '@core/utils.js';
 import * as mc from '@minecraft/server';
+import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
+import { gameManager } from '../games/gameManager.js';
 import { friendConfig } from './friendConfig.js';
 import { gameManager } from '../games/gameManager.js';
 import { uiWait } from '@core/utils.js';

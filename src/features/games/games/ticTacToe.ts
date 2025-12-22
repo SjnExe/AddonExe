@@ -1,4 +1,5 @@
 import { uiWait } from '@core/utils.js';
+import { inviteFriendToGame } from '@features/social/friendManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 import { inviteFriendToGame } from '@features/social/friendManager.js';
