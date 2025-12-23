@@ -580,6 +580,9 @@ class CommandManager {
         if (!config) return false;
         const { sender: player, message } = eventData;
         const prefix = config.commandPrefix;
+
+        if (message.length > 1024) return false; // Safety limit for command parsing
+
         if (!prefix || !message.startsWith(prefix)) {
             return false;
         }
@@ -680,12 +683,22 @@ class CommandManager {
                 case 'int':
                 case 'float': {
                     const num = Number(rawValue);
-                    parsedArgs[paramDef.name] = Number.isNaN(num) ? undefined : num;
+                    if (Number.isNaN(num)) {
+                        player.sendMessage(`§cInvalid number '${rawValue}' for parameter '${paramDef.name}'.`);
+                        return true;
+                    }
+                    parsedArgs[paramDef.name] = num;
                     currentArgIndex++;
                     break;
                 }
 
                 case 'boolean': {
+                    if (rawValue !== 'true' && rawValue !== 'false') {
+                        player.sendMessage(
+                            `§cInvalid boolean '${rawValue}' for parameter '${paramDef.name}'. Expected true or false.`
+                        );
+                        return true;
+                    }
                     parsedArgs[paramDef.name] = rawValue === 'true';
                     currentArgIndex++;
                     break;

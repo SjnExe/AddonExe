@@ -53,8 +53,13 @@ const backCommand: CustomCommand = {
 
         const teleportLogic = () => {
             try {
-                // Deduct cost
+                // Deduct cost (Re-check funds to prevent bypass)
                 if (backConfig.cost > 0) {
+                    const currentData = getOrCreatePlayer(executor);
+                    if (currentData.balance < backConfig.cost) {
+                        sendMessage(`§cTeleport cancelled. Insufficient funds.`, executor);
+                        return;
+                    }
                     incrementPlayerBalance(executor.id, -backConfig.cost);
                 }
 

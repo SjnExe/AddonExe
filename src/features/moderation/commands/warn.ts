@@ -1,5 +1,6 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
+import { getPlayer } from '@core/playerDataManager.js';
 import { addPunishmentLog } from '@features/anticheat/logManager.js';
 import * as mc from '@minecraft/server';
 
@@ -19,6 +20,14 @@ const warnCommand: CustomCommand = {
         if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
         const target = targets[0];
         if (!target) return sendMessage('§cPlayer not found.', executor);
+
+        if (executor instanceof mc.Player) {
+            const executorData = getPlayer(executor.id);
+            const targetData = getPlayer(target.id);
+            if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+                return sendMessage('§cYou cannot warn a player with the same or higher rank than you.', executor);
+            }
+        }
 
         if (!reason) return sendMessage('§cPlease provide a reason.', executor);
 

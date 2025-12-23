@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { resolveTarget } from '@core/utils.js';
 
 const invseeCommand: CustomCommand = {
@@ -21,6 +22,13 @@ const invseeCommand: CustomCommand = {
 
         if (!targetPlayer) {
             executor.sendMessage('§cPlayer not found.');
+            return;
+        }
+
+        const executorData = getPlayer(executor.id);
+        const targetData = getPlayer(targetPlayer.id);
+        if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+            executor.sendMessage('§cYou cannot view the inventory of a player with the same or higher rank than you.');
             return;
         }
 
@@ -108,6 +116,18 @@ const ecwipeCommand: CustomCommand = {
             const targets = resolveTarget(targetName, executor);
             const firstTarget = targets[0];
             if (firstTarget) targetNameResolved = firstTarget.name;
+
+            const targetId = getPlayerIdByName(targetNameResolved);
+            if (targetId) {
+                const executorData = getPlayer(executor.id);
+                const targetData = loadPlayerData(targetId);
+                if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+                    executor.sendMessage(
+                        '§cYou cannot wipe the ender chest of a player with the same or higher rank than you.'
+                    );
+                    return;
+                }
+            }
         }
 
         let success = true;
@@ -156,6 +176,13 @@ const copyinvCommand: CustomCommand = {
 
         if (!targetPlayer) {
             executor.sendMessage('§cPlayer not found.');
+            return;
+        }
+
+        const executorData = getPlayer(executor.id);
+        const targetData = getPlayer(targetPlayer.id);
+        if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+            executor.sendMessage('§cYou cannot copy the inventory of a player with the same or higher rank than you.');
             return;
         }
 

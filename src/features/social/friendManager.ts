@@ -175,6 +175,15 @@ export function toggleAutoFriendTp(player: mc.Player): boolean {
 // --- Game Invites ---
 
 export async function inviteFriendToGame(player: mc.Player, gameId: string) {
+    // Clean expired invites to prevent memory leaks
+    const now = Date.now();
+    for (let i = pendingGameInvites.length - 1; i >= 0; i--) {
+        const invite = pendingGameInvites[i];
+        if (invite && now - invite.timestamp > 60_000) {
+            pendingGameInvites.splice(i, 1);
+        }
+    }
+
     const pData = getOrCreatePlayer(player);
     if (!pData.friends || pData.friends.length === 0) {
         player.sendMessage('§cYou have no friends to invite.');

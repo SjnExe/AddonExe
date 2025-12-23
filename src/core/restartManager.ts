@@ -29,6 +29,15 @@ export function startRestart(initiator: CommandExecutor): void {
         initiator.sendMessage('§cInternal error: Could not load configuration to start restart.');
         return;
     }
+
+    if (initiator instanceof mc.Player) {
+        const rank = getPlayerRank(initiator, config);
+        if (rank.permissionLevel > 1) {
+            initiator.sendMessage('§cYou do not have permission to initiate a restart.');
+            return;
+        }
+    }
+
     const countdownSeconds = config.restart?.countdownSeconds ?? 30;
     const subtitle = config.restart?.subtitle ?? '§eServer Restarting...';
     const announcer = initiator instanceof mc.Player ? initiator.name : 'Console';

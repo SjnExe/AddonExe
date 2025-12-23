@@ -102,13 +102,17 @@
                 {
                     "useESM": true
                 }
-            ]
+            ],
+            "^.+\\.js$": "babel-jest"
         },
         "testPathIgnorePatterns": [
             "/node_modules/",
             "/packs/behavior/scripts/",
             "/__mocks__/",
             "<rootDir>/src/features/essentials/commands/test.ts"
+        ],
+        "transformIgnorePatterns": [
+            "node_modules/(?!@minecraft)"
         ]
     },
     "lint-staged": {

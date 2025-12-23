@@ -51,6 +51,7 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
         );
 
         const tickingAreaName = `rtp_${player.id}`;
+        let keepTickingArea = false;
 
         try {
             player.dimension.runCommand(`tickingarea add circle ${centerX} 0 ${centerZ} 1 ${tickingAreaName}`);
@@ -108,11 +109,25 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
                         );
 
                         mc.system.runTimeout(() => {
-                            if (!player.isValid) return;
-                            startTeleportWarmup(player, warmupSeconds, teleportLogic, 'a random location');
+                            if (!player.isValid) {
+                                safeRemoveTickingArea(player.dimension, tickingAreaName);
+                                return;
+                            }
+                            startTeleportWarmup(
+                                player,
+                                warmupSeconds,
+                                () => {
+                                    teleportLogic();
+                                    safeRemoveTickingArea(player.dimension, tickingAreaName);
+                                },
+                                'a random location',
+                                () => {
+                                    safeRemoveTickingArea(player.dimension, tickingAreaName);
+                                }
+                            );
                         }, 100);
 
-                        safeRemoveTickingArea(player.dimension, tickingAreaName);
+                        keepTickingArea = true;
                         return;
                     }
                 }
@@ -120,7 +135,9 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
         } catch (error: unknown) {
             debugLog(`[RTP] Search attempt ${i + 1} error: ${String(error)}`);
         } finally {
-            safeRemoveTickingArea(player.dimension, tickingAreaName);
+            if (!keepTickingArea) {
+                safeRemoveTickingArea(player.dimension, tickingAreaName);
+            }
         }
 
         await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 20));

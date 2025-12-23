@@ -9,7 +9,8 @@ export function startTeleportWarmup(
     player: mc.Player,
     durationSeconds: number,
     onWarmupComplete: () => void,
-    teleportName = 'teleport'
+    teleportName = 'teleport',
+    onCancel?: () => void
 ): void {
     if (durationSeconds <= 0) {
         onWarmupComplete();
@@ -39,11 +40,16 @@ export function startTeleportWarmup(
         }
     };
 
+    const cancel = () => {
+        cleanup();
+        if (onCancel) onCancel();
+    };
+
     hurtListener = (event: mc.EntityHurtAfterEvent) => {
         if (event.hurtEntity.id === player.id) {
             setActionBarOverride(player, '§cTeleport canceled because you took damage.', 3000);
             playSound(player, 'note.bass', { volume: 1, pitch: 0.5 });
-            cleanup();
+            cancel();
         }
     };
 
@@ -54,7 +60,7 @@ export function startTeleportWarmup(
     intervalId = mc.system.runInterval(() => {
         try {
             if (!player.isValid) {
-                cleanup();
+                cancel();
                 return;
             }
             const currentLocation = player.location;
@@ -63,7 +69,7 @@ export function startTeleportWarmup(
             if (distanceMoved > 2 || player.dimension.id !== dimensionId) {
                 setActionBarOverride(player, '§cTeleport canceled because you moved.', 3000);
                 playSound(player, 'note.bass', { volume: 1, pitch: 0.5 });
-                cleanup();
+                cancel();
                 return;
             }
 
@@ -83,7 +89,7 @@ export function startTeleportWarmup(
             }
         } catch (error: unknown) {
             errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${String(error)}`);
-            cleanup();
+            cancel();
         }
     }, 20);
 }
