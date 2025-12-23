@@ -3,6 +3,7 @@ export * from './utils/formatting.js';
 export * from './utils/item.js';
 export * from './utils/location.js';
 export * from './utils/player.js';
+export * from './utils/sanitization.js';
 export * from './utils/sound.js';
 export * from './utils/time.js';
 export * from './utils/ui.js';

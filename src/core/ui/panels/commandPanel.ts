@@ -15,7 +15,11 @@ interface CmdSettings {
 
 export class CommandPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return panelId === 'commandSystemPanel' || panelId.startsWith('commandSettingsPanel_');
+        return (
+            panelId === 'commandSystemPanel' ||
+            panelId === 'commandSettingsPanel' ||
+            panelId.startsWith('commandSettingsPanel_')
+        );
     }
 
     getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {

@@ -181,7 +181,7 @@ export class EconomyPanelHandler implements IPanelHandler {
 
         if (panelId === 'editMobValue') {
             if ((response as ModalFormResponse).canceled)
-                return showPanel(player, 'editMobDropPanel', { ...context, id: context.selectedItemId });
+                return showPanel(player, 'editMobDropPanel', { ...context, id: context.selectedItemId || '' });
             const [amountStr] = values as [string];
             const amount = Number.parseInt(amountStr);
             const mobId = context.selectedItemId as string;
@@ -192,7 +192,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                 saveEconomyConfig(config);
                 player.sendMessage(`§2Updated ${mobId} to ${formatCurrency(amount)}`);
             }
-            return showPanel(player, 'editMobDropPanel', { ...context, id: mobId });
+            return showPanel(player, 'editMobDropPanel', { ...context, id: mobId || '' });
         }
 
         if (typeof selection === 'number') {

@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
 import { debugLog, errorLog } from './logger.js';
 import { buildPanelForm } from './ui/panelBuilder.js';
 import { handleFormResponse } from './ui/panelHandlers.js';
@@ -16,6 +17,13 @@ import * as utils from './utils.js';
  */
 export async function showPanel(player: mc.Player, panelId: string, context: UIContext = {}) {
     try {
+        // Rate Limiting
+        const cooldown = getCooldown(player.id, 'ui_spam');
+        if (cooldown > 0) {
+            return;
+        }
+        setCooldownCustom(player.id, 'ui_spam', 0.5); // 0.5s global UI cooldown
+
         debugLog(`[UIManager] Showing panel '${panelId}' to ${player.name} with context: ${JSON.stringify(context)}`);
 
         const form = await buildPanelForm(player, panelId, context);

@@ -8,7 +8,12 @@ import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 export class XrayPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return panelId === 'xrayOresPanel' || panelId === 'addXrayOrePanel' || panelId.startsWith('editXrayOrePanel_');
+        return (
+            panelId === 'xrayOresPanel' ||
+            panelId === 'addXrayOrePanel' ||
+            panelId === 'editXrayOrePanel' ||
+            panelId.startsWith('editXrayOrePanel_')
+        );
     }
 
     async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {

@@ -86,15 +86,15 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
         }
         case 'unblockPlayer': {
             if (context.selectedItemId) {
-                tpaManager.unblockPlayer(player, context.selectedItemId as string);
+                tpaManager.unblockPlayer(player, context.selectedItemId);
             }
             return showPanel(player, 'tpaBlockListPanel', context);
         }
         case 'respawnText': {
             try {
                 if (context.id) {
-                    floatingTextManager.respawnText(context.id as string);
-                    player.sendMessage(`§2Respawned text: ${context.id as string}`);
+                    floatingTextManager.respawnText(context.id);
+                    player.sendMessage(`§2Respawned text: ${context.id}`);
                 }
             } catch (error) {
                 player.sendMessage(`§4Error respawning text: ${String(error)}`);
@@ -104,8 +104,8 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
         case 'despawnText': {
             try {
                 if (context.id) {
-                    floatingTextManager.despawnText(context.id as string);
-                    player.sendMessage(`§2Despawned text: ${context.id as string}`);
+                    floatingTextManager.despawnText(context.id);
+                    player.sendMessage(`§2Despawned text: ${context.id}`);
                 }
             } catch (error) {
                 player.sendMessage(`§4Error despawning text: ${String(error)}`);
@@ -115,7 +115,7 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
         case 'deleteText': {
             try {
                 if (context.id) {
-                    floatingTextManager.deleteText(player, context.id as string);
+                    floatingTextManager.deleteText(player, context.id);
                 }
             } catch (error) {
                 player.sendMessage(`§4Error deleting text: ${String(error)}`);
@@ -126,7 +126,7 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
         case 'kickTeamMember': {
             const team = teamManager.getTeamByPlayer(player.id);
             if (team && context.selectedItemId) {
-                const res = teamManager.kickMember(team.id, context.selectedItemId as string);
+                const res = teamManager.kickMember(team.id, context.selectedItemId);
                 player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
             }
             return showPanel(player, 'teamMembersPanel', context);
@@ -134,7 +134,7 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
         case 'promoteTeamMember': {
             const team = teamManager.getTeamByPlayer(player.id);
             if (team && context.selectedItemId) {
-                const res = teamManager.promoteMember(team.id, context.selectedItemId as string);
+                const res = teamManager.promoteMember(team.id, context.selectedItemId);
                 player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
             }
             return showPanel(player, 'teamMembersPanel', context);
@@ -142,7 +142,7 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
         case 'demoteTeamMember': {
             const team = teamManager.getTeamByPlayer(player.id);
             if (team && context.selectedItemId) {
-                const res = teamManager.demoteMember(team.id, context.selectedItemId as string);
+                const res = teamManager.demoteMember(team.id, context.selectedItemId);
                 player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
             }
             return showPanel(player, 'teamMembersPanel', context);
@@ -150,7 +150,7 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
         case 'transferTeamOwnership': {
             const team = teamManager.getTeamByPlayer(player.id);
             if (team && context.selectedItemId) {
-                const res = teamManager.transferOwnership(team.id, context.selectedItemId as string);
+                const res = teamManager.transferOwnership(team.id, context.selectedItemId);
                 player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
             }
             return showPanel(player, 'teamMembersPanel', context);
@@ -184,11 +184,12 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
     const [reason] = values as [string];
+    const safeReason = utils.sanitizeString(reason, true).replaceAll('"', "'");
 
     // Use dimension.runCommand to bypass permissions
     try {
         // Enclose name in quotes to handle spaces
-        player.dimension.runCommand(`kick "${target.name}" ${reason}`);
+        player.dimension.runCommand(`kick "${target.name}" ${safeReason}`);
         player.sendMessage(`§2Kicked ${target.name}.`);
     } catch (error) {
         player.sendMessage(`§4Failed to kick player: ${String(error)}`);
@@ -216,7 +217,8 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return showPanel(player, 'playerActionsPanel', context);
 
-    const [durationStr, reason] = values as [string, string];
+    const [durationStr, reasonRaw] = values as [string, string];
+    const reason = utils.sanitizeString(reasonRaw, true);
     const durationMins = Number.parseInt(durationStr);
 
     if (Number.isNaN(durationMins) || durationMins <= 0) {
@@ -284,7 +286,8 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return showPanel(player, 'playerActionsPanel', context);
 
-    const [durationStr, reason] = values as [string, string];
+    const [durationStr, reasonRaw] = values as [string, string];
+    const reason = utils.sanitizeString(reasonRaw, true).replaceAll('"', "'");
     const durationHours = Number.parseInt(durationStr);
 
     if (Number.isNaN(durationHours) || durationHours < 0) {
@@ -426,11 +429,12 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
-    const [reason] = values as [string];
-    if (!reason) {
+    const [reasonRaw] = values as [string];
+    if (!reasonRaw) {
         player.sendMessage('§4Reason is required.');
         return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
     }
+    const reason = utils.sanitizeString(reasonRaw, true);
 
     reportManager.createReport(player, targetId, targetData.name, reason);
     player.sendMessage('§2Report sent successfully. Admins have been notified.');

@@ -4,6 +4,7 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { getConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { getOrCreatePlayer, loadPlayerData } from '@core/playerDataManager.js';
+import { getPlayerRank } from '@core/rankManager.js';
 import { panelRouter } from './PanelRouter.js';
 import { panelDefinitions } from './panelRegistry.js';
 import { MainConfig, PanelDefinition, PanelItem, UIContext } from './types.js';
@@ -41,6 +42,17 @@ export async function buildPanelForm(
     context: UIContext
 ): Promise<ActionFormData | ModalFormData | undefined> {
     try {
+        const panelDef = panelDefinitions[panelId];
+        if (panelDef && typeof panelDef.permissionLevel === 'number') {
+            const config = getConfig() as unknown as MainConfig;
+            // @ts-expect-error - Config type mismatch
+            const rank = getPlayerRank(player, config);
+            if (rank.permissionLevel > panelDef.permissionLevel) {
+                // Access Denied
+                return undefined;
+            }
+        }
+
         // 1. Check Panel Router (Modular System)
         const handler = panelRouter.getHandler(panelId);
         if (handler) {
@@ -83,7 +95,7 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
         }
     }
 
-    if (context.customTitle) title = context.customTitle as string;
+    if (context.customTitle) title = context.customTitle;
 
     // Resolve placeholders in title
     if (title.includes('{playerName}')) {
