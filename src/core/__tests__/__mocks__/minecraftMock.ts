@@ -104,6 +104,13 @@ export enum CustomCommandParamType {
     PlayerSelector = 'player'
 }
 
+export enum GameMode {
+    Survival = 'survival',
+    Creative = 'creative',
+    Adventure = 'adventure',
+    Spectator = 'spectator'
+}
+
 // --- @minecraft/server-ui Mocks ---
 
 export enum FormCancelationReason {

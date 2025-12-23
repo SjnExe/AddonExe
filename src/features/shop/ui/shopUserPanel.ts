@@ -40,6 +40,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
     }
 
     async getTitle(_player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined> {
+        await Promise.resolve();
         if (panelId.startsWith('shopCategoryPanel_')) {
             return context.categoryName as string;
         }

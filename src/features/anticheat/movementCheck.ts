@@ -3,7 +3,7 @@ import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftEffectTypes } fr
 
 import { errorLog } from '@core/logger.js';
 
-import { getAnticheatConfig } from './anticheatConfigLoader.js';
+import { AnticheatConfig, getAnticheatConfig } from './anticheatConfigLoader.js';
 import { flag } from './flagManager.js';
 
 interface PlayerMovementState {
@@ -11,6 +11,7 @@ interface PlayerMovementState {
 }
 
 const movementStates = new Map<string, PlayerMovementState>();
+let isChecking = false;
 
 // Slippery blocks that allow faster movement
 const ICE_BLOCKS = new Set<string>([
@@ -23,18 +24,27 @@ const ICE_BLOCKS = new Set<string>([
 
 export function startMovementCheckLoop() {
     // Check world border/roof/movement every few ticks
-    // Using runJob is better for performance if widely supported, but runInterval is safer for stability.
-    // However, for smooth checks, runInterval with a small delay is good.
-    // Let's use 5 ticks (0.25s) for checks.
+    // Using runJob to spread execution across ticks to prevent lag with many players.
     mc.system.runInterval(() => {
+        if (isChecking) return;
         try {
             const config = getAnticheatConfig();
             if (!config.enabled) return;
 
-            const players = mc.world.getAllPlayers();
-            for (const player of players) {
-                if (!player.isValid) continue;
+            mc.system.runJob(checkPlayersGenerator(config));
+        } catch (error) {
+            errorLog('Anticheat Movement Loop Error', error);
+        }
+    }, 5);
+}
 
+function* checkPlayersGenerator(config: AnticheatConfig) {
+    isChecking = true;
+    try {
+        const players = mc.world.getAllPlayers();
+        for (const player of players) {
+            // Process one player per tick/slice
+            if (player.isValid) {
                 // Run checks
                 if (config.movementCheck.enabled) {
                     checkMovement(player, config.movementCheck);
@@ -46,10 +56,13 @@ export function startMovementCheckLoop() {
                     checkNetherRoof(player, config.antiNetherRoof);
                 }
             }
-        } catch (error) {
-            errorLog('Anticheat Movement Loop Error', error);
+            yield;
         }
-    }, 5);
+    } catch (error) {
+        errorLog('Anticheat Job Error', error);
+    } finally {
+        isChecking = false;
+    }
 }
 
 interface MovementCheckConfig {
@@ -140,6 +153,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     const FLAGGING_THRESHOLD = 20;
 
     if (state.violationLevel > FLAGGING_THRESHOLD) {
+        // console.log('Flagging player:', player.name, state.violationLevel);
         flag(
             player,
             'movementCheck',

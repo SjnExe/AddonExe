@@ -46,6 +46,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
     }
 
     async getTitle(_player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined> {
+        await Promise.resolve();
         if (panelId.startsWith('shopAdminCategoryPanel_')) {
             const categoryName = context.categoryName as string;
             return `Manage ${categoryName}`;
