@@ -40,10 +40,7 @@ export const system = {
         return 0;
     }),
     runInterval: jest.fn(() => 1),
-    runTimeout: jest.fn((cb: () => void) => {
-        cb();
-        return 1;
-    }), // Run immediately for tests
+    runTimeout: jest.fn((cb: () => void) => { cb(); return 1; }), // Run immediately for tests
     runJob: jest.fn((generator: Generator) => {
         // Execute generator fully for tests
         let result = generator.next();
@@ -92,9 +89,7 @@ export class Player {
     playSound = jest.fn();
     getDynamicProperty = jest.fn();
     setDynamicProperty = jest.fn();
-    isValid() {
-        return true;
-    }
+    isValid() { return true; }
     triggerEvent = jest.fn();
     getComponent = jest.fn();
 }
@@ -151,12 +146,12 @@ export class ModalFormData {
 
     show = jest.fn().mockImplementation(async () => {
         return {
-            formValues: this._controls.map((c) => {
-                if (c.type === 'toggle') return c.defaultValue ?? false;
-                if (c.type === 'textField') return c.defaultValue ?? '';
-                if (c.type === 'dropdown') return c.defaultValueIndex ?? 0;
-                if (c.type === 'slider') return c.defaultValue ?? c.min;
-                return null;
+            formValues: this._controls.map(c => {
+                 if (c.type === 'toggle') return c.defaultValue ?? false;
+                 if (c.type === 'textField') return c.defaultValue ?? '';
+                 if (c.type === 'dropdown') return c.defaultValueIndex ?? 0;
+                 if (c.type === 'slider') return c.defaultValue ?? c.min;
+                 return null;
             }),
             canceled: false
         };

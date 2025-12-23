@@ -26,6 +26,7 @@ const { initialize } = await import('../ui/panels/index.js');
 initialize();
 
 describe('UI Integrity Check', () => {
+
     it('should have a registered handler for every panel in registry', () => {
         const missingHandlers: string[] = [];
 
@@ -49,10 +50,9 @@ describe('UI Integrity Check', () => {
                 if (item.actionType === 'openPanel') {
                     // Target panel must exist in registry OR be a known dynamic pattern
                     const targetId = item.actionValue;
-                    const isKnown =
-                        panelDefinitions[targetId] ||
-                        targetId.startsWith('config_') ||
-                        panelRouter.getHandler(targetId); // Some dynamic panels might not be in static registry but have handlers
+                    const isKnown = panelDefinitions[targetId] ||
+                                  targetId.startsWith('config_') ||
+                                  panelRouter.getHandler(targetId); // Some dynamic panels might not be in static registry but have handlers
 
                     if (!isKnown) {
                         brokenLinks.push(`${panelId} -> ${targetId}`);

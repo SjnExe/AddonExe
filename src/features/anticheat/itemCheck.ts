@@ -2,24 +2,40 @@ import * as mc from '@minecraft/server';
 
 import { errorLog } from '@core/logger.js';
 
-import { getAnticheatConfig } from './anticheatConfigLoader.js';
+import { AnticheatConfig, getAnticheatConfig } from './anticheatConfigLoader.js';
 import { flag } from './flagManager.js';
+
+let isChecking = false;
 
 export function startItemCheckLoop() {
     mc.system.runInterval(() => {
+        if (isChecking) return;
         try {
             const config = getAnticheatConfig();
             if (!config.enabled || !config.itemCheck.enabled) return;
 
-            for (const player of mc.world.getAllPlayers()) {
-                if (player.isValid) {
-                    checkPlayerInventory(player, config.itemCheck);
-                }
-            }
+            mc.system.runJob(checkInventoryGenerator(config));
         } catch (error) {
             errorLog('Anticheat Item Loop Error', error);
         }
     }, 100); // Check every 5 seconds
+}
+
+function* checkInventoryGenerator(config: AnticheatConfig) {
+    isChecking = true;
+    try {
+        const players = mc.world.getAllPlayers();
+        for (const player of players) {
+            if (player.isValid) {
+                checkPlayerInventory(player, config.itemCheck);
+            }
+            yield;
+        }
+    } catch (error) {
+        errorLog('Anticheat Item Job Error', error);
+    } finally {
+        isChecking = false;
+    }
 }
 
 interface ItemCheckConfig {

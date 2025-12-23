@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { getShopConfig, saveShopConfig } from '@core/configurations.js';
 import { items } from '@core/itemsConfig.default.js';
 import { debugLog } from '@core/logger.js';
-import { generateDisplayName, resolveIcon } from '@core/utils.js';
+import { generateDisplayName, resolveIcon, sanitizeString, validateInput } from '@core/utils.js';
 
 import { ShopCategory, ShopSubCategory } from './shopConfig.js';
 
@@ -39,13 +39,18 @@ interface UpdateItemData {
  * @returns The result of the operation.
  */
 export function addCategory(categoryName: string, icon: string): ActionResult {
+    if (!validateInput(categoryName, 32)) {
+        return { success: false, message: 'Category name is too long (max 32).' };
+    }
+    const safeName = sanitizeString(categoryName, true);
+
     const config = getShopConfig();
     const categories = config.categories;
-    if (categories[categoryName]) {
-        return { success: false, message: `A category with the name '${categoryName}' already exists.` };
+    if (categories[safeName]) {
+        return { success: false, message: `A category with the name '${safeName}' already exists.` };
     }
 
-    categories[categoryName] = {
+    categories[safeName] = {
         icon: icon || 'textures/ui/folder_glyph',
         items: {},
         subCategories: {}
@@ -181,20 +186,25 @@ export function deleteCategory(categoryName: string): ActionResult {
  * @returns The result of the operation.
  */
 export function addSubCategory(categoryName: string, subCategoryName: string, icon: string): ActionResult {
+    if (!validateInput(subCategoryName, 32)) {
+        return { success: false, message: 'Subcategory name is too long (max 32).' };
+    }
+    const safeName = sanitizeString(subCategoryName, true);
+
     const config = getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
     if (!category) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
-    if (category.subCategories[subCategoryName]) {
+    if (category.subCategories[safeName]) {
         return {
             success: false,
-            message: `A subcategory with the name '${subCategoryName}' already exists in '${categoryName}'.`
+            message: `A subcategory with the name '${safeName}' already exists in '${categoryName}'.`
         };
     }
 
-    category.subCategories[subCategoryName] = {
+    category.subCategories[safeName] = {
         icon: icon || 'textures/ui/folder_glyph',
         items: {}
     };

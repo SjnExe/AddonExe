@@ -184,11 +184,12 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
     const [reason] = values as [string];
+    const safeReason = utils.sanitizeString(reason, true).replaceAll('"', "'");
 
     // Use dimension.runCommand to bypass permissions
     try {
         // Enclose name in quotes to handle spaces
-        player.dimension.runCommand(`kick "${target.name}" ${reason}`);
+        player.dimension.runCommand(`kick "${target.name}" ${safeReason}`);
         player.sendMessage(`§2Kicked ${target.name}.`);
     } catch (error) {
         player.sendMessage(`§4Failed to kick player: ${String(error)}`);
@@ -216,7 +217,8 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return showPanel(player, 'playerActionsPanel', context);
 
-    const [durationStr, reason] = values as [string, string];
+    const [durationStr, reasonRaw] = values as [string, string];
+    const reason = utils.sanitizeString(reasonRaw, true);
     const durationMins = Number.parseInt(durationStr);
 
     if (Number.isNaN(durationMins) || durationMins <= 0) {
@@ -284,7 +286,8 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return showPanel(player, 'playerActionsPanel', context);
 
-    const [durationStr, reason] = values as [string, string];
+    const [durationStr, reasonRaw] = values as [string, string];
+    const reason = utils.sanitizeString(reasonRaw, true).replaceAll('"', "'");
     const durationHours = Number.parseInt(durationStr);
 
     if (Number.isNaN(durationHours) || durationHours < 0) {
@@ -426,11 +429,12 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
-    const [reason] = values as [string];
-    if (!reason) {
+    const [reasonRaw] = values as [string];
+    if (!reasonRaw) {
         player.sendMessage('§4Reason is required.');
         return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
     }
+    const reason = utils.sanitizeString(reasonRaw, true);
 
     reportManager.createReport(player, targetId, targetData.name, reason);
     player.sendMessage('§2Report sent successfully. Admins have been notified.');

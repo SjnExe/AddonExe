@@ -20,6 +20,7 @@ interface TrackedEvent {
 
 let eventHandlers: TrackedEvent[] = [];
 let intervalId: number | undefined;
+let isChecking = false;
 
 function cleanup(): void {
     debugLog('[SpawnProtection] Cleaning up old event handlers and timers...');
@@ -165,13 +166,25 @@ function initialize(): void {
     }
 
     intervalId = mc.system.runInterval(() => {
+        if (isChecking) return;
         const currentSpawnConfig = getSpawnConfig();
         const protection = currentSpawnConfig?.spawnProtection;
 
         if (!protection?.enabled) return;
 
-        // Interval logic for mob spawning and player effects
-        for (const player of mc.world.getAllPlayers()) {
+        mc.system.runJob(checkSpawnProtectionGenerator(protection));
+    }, 40);
+}
+
+function* checkSpawnProtectionGenerator(protection: {
+    preventPvP: boolean;
+    preventHostileDamage: boolean;
+}) {
+    isChecking = true;
+    try {
+        const players = mc.world.getAllPlayers();
+        for (const player of players) {
+            if (!player.isValid) continue;
             const wasInSpawn = player.hasTag('inSpawn');
             const isInSpawn = isWithinSpawnProtection(player.location, player.dimension.id);
 
@@ -179,7 +192,6 @@ function initialize(): void {
                 player.addTag('inSpawn');
                 if (canBypass(player)) continue;
 
-                // Pickup/Drop protection removed due to API limitations
                 if (protection.preventPvP && protection.preventHostileDamage) {
                     player.triggerEvent('exe:disable_all_damage');
                 } else {
@@ -192,8 +204,13 @@ function initialize(): void {
                 player.triggerEvent('exe:enable_hostile_damage');
                 player.triggerEvent('exe:enable_all_damage');
             }
+            yield;
         }
-    }, 40);
+    } catch (error) {
+        errorLog(`[SpawnProtection] Error in check job: ${String(error)}`);
+    } finally {
+        isChecking = false;
+    }
 }
 
 export { initialize as initializeSpawnProtection };
