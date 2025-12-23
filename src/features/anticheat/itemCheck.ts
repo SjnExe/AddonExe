@@ -29,7 +29,7 @@ interface ItemCheckConfig {
     removeIllegalItems?: boolean;
 }
 
-function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig) {
+export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig) {
     if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) return;
 
     // Check Main Inventory
@@ -64,7 +64,7 @@ function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig) {
     }
 }
 
-function checkItem(
+export function checkItem(
     item: mc.ItemStack,
     player: mc.Player,
     config: ItemCheckConfig,
