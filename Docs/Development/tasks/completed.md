@@ -41,3 +41,12 @@ This document is an archive of completed tasks.
 - **Social:** Fixed memory leak in game invites.
 - **Essentials:** Added `preventBlockInteraction` to spawn protection.
 - **Testing:** Added comprehensive unit tests for Economy and Moderation logic.
+
+### Teleportation Audit & Hardening (2025-05-XX)
+
+**Assignee:** Jules (AI Assistant)
+**Description:**
+
+- **Back Command:** Patched an exploit where players could bypass teleport costs by dropping currency during the warmup period. Added re-verification logic.
+- **Audit:** Reviewed RTP, TPA, Spawn, and Warp systems for safety and exploits. Verified robust safety checks (`findSafeLocation`) are in place.
+- **Testing:** Added unit tests for the `back` command to prevent regression of the cost bypass vulnerability.

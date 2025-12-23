@@ -33,12 +33,10 @@ describe('ItemCheck', () => {
             getComponent: jest.fn((id: string) => {
                 if (id === 'minecraft:enchantable') {
                     return {
-                        getEnchantments: () => [
-                            {
-                                type: { id: 'sharpness', maxLevel: 5 },
-                                level: 10
-                            }
-                        ]
+                        getEnchantments: () => [{
+                            type: { id: 'sharpness', maxLevel: 5 },
+                            level: 10
+                        }]
                     };
                 }
                 return undefined;
@@ -66,12 +64,10 @@ describe('ItemCheck', () => {
             getComponent: jest.fn((id: string) => {
                 if (id === 'minecraft:enchantable') {
                     return {
-                        getEnchantments: () => [
-                            {
-                                type: { id: 'sharpness', maxLevel: 10 }, // Hypothetical vanilla max 10
-                                level: 10
-                            }
-                        ]
+                        getEnchantments: () => [{
+                            type: { id: 'sharpness', maxLevel: 10 }, // Hypothetical vanilla max 10
+                            level: 10
+                        }]
                     };
                 }
                 return undefined;
