@@ -176,10 +176,7 @@ function initialize(): void {
     }, 40);
 }
 
-function* checkSpawnProtectionGenerator(protection: {
-    preventPvP: boolean;
-    preventHostileDamage: boolean;
-}) {
+function* checkSpawnProtectionGenerator(protection: { preventPvP: boolean; preventHostileDamage: boolean }) {
     isChecking = true;
     try {
         const players = mc.world.getAllPlayers();
