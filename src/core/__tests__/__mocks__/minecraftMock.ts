@@ -3,6 +3,7 @@ import { jest } from '@jest/globals';
 export const world = {
     getDynamicProperty: jest.fn(),
     setDynamicProperty: jest.fn(),
+    getDimension: jest.fn(),
     getAllPlayers: jest.fn(() => []),
     afterEvents: {
         playerSpawn: { subscribe: jest.fn() },
