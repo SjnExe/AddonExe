@@ -156,6 +156,14 @@ function initialize(): void {
         });
     }
 
+    if (spawnProtection.preventBlockInteraction) {
+        subscribe(mc.world.beforeEvents.playerInteractWithBlock, (event: mc.PlayerInteractWithBlockBeforeEvent) => {
+            if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
+                event.cancel = true;
+            }
+        });
+    }
+
     intervalId = mc.system.runInterval(() => {
         const currentSpawnConfig = getSpawnConfig();
         const protection = currentSpawnConfig?.spawnProtection;
