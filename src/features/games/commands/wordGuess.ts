@@ -1,4 +1,4 @@
-import { CommandExecutor, CustomCommand, CustomCommandParamType } from '@commands/commandManager.js';
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getGamesConfig } from '@core/configurations.js';
 import * as mc from '@minecraft/server';
 import { gameManager } from '../gameManager.js';
