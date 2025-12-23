@@ -63,10 +63,10 @@ export async function showAuctionHouse(
         .title(title)
         .body(`Total Items: ${totalListings}${searchQuery ? ` matching "${searchQuery}"` : ''}`);
 
-    form.button('§eCollection Bin / Mailbox', 'textures/items/chest');
+    form.button('§eCollection Bin / Mailbox', 'textures/items/minecart_chest');
     form.button('§bYour Listings', 'textures/ui/recipe_book_icon');
     form.button(searchQuery ? '§cClear Search' : '§6Search/Filter', 'textures/ui/magnifying_glass');
-    form.button(`§dSort: ${sortLabel}`, 'textures/ui/up_down_arrow');
+    form.button(`§dSort: ${sortLabel}`, 'textures/items/hopper');
 
     if (page > 1) form.button('§c< Previous Page');
     if (page < totalPages) form.button('§aNext Page >');

@@ -11,3 +11,5 @@ export const gamesConfig = {
         enabled: true
     }
 };
+
+export default gamesConfig;

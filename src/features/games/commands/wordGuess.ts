@@ -13,7 +13,7 @@ const wordGuessCommand: CustomCommand = {
     parameters: [
         { name: 'action', type: 'string', enumOptions: ['start', 'stop'] },
         { name: 'word', type: 'string', optional: true },
-        { name: 'reward', type: CustomCommandParamType.Integer, optional: true }
+        { name: 'reward', type: 'int', optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const gamesConfig = getGamesConfig();
