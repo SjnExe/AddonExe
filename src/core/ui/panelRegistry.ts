@@ -3,63 +3,9 @@
  * It is used by the uiManager and its sub-modules to dynamically generate UI forms.
  */
 
-// --- TYPE DEFINITIONS ---
+import { PanelDefinition } from './types.js';
 
-export type UIControlType = 'toggle' | 'textField' | 'dropdown';
-
-export interface ConfigSetting {
-    /** The dot-separated path to the setting in the config object (e.g., 'tpa.enabled'). */
-    key: string;
-    /** The user-friendly label for the setting in the UI. */
-    label: string;
-    /** The type of UI control to use for this setting. */
-    type: UIControlType;
-    /** For 'dropdown' type, the list of available option strings. */
-    options?: string[];
-    /** A short description of the setting, shown as a tooltip or help text. */
-    description?: string;
-}
-
-export interface ConfigCategory {
-    /** A unique identifier for the category. */
-    id: string;
-    /** The title of the category panel. */
-    title: string;
-    /** The icon texture path for the category button. */
-    icon: string;
-    /** The source of the configuration (e.g., 'spawn'). Defaults to 'main'. */
-    configSource?: string;
-    /** An array of settings within this category. */
-    settings: ConfigSetting[];
-}
-
-export interface PanelItem {
-    /** A unique identifier for the button. */
-    id: string;
-    /** The display text for the button. */
-    text: string;
-    /** An optional icon texture path. */
-    icon?: string;
-    /** The minimum permission level required to see this button. */
-    permissionLevel: number;
-    /** The action to perform when clicked. */
-    actionType: 'openPanel' | 'functionCall';
-    /** The ID of the panel to open or the function to call. */
-    actionValue: string;
-    /** An optional number to control the order of items. Lower numbers appear first. */
-    sortId?: number;
-}
-
-export interface PanelDefinition {
-    /** The title of the panel. */
-    title: string;
-    /** The ID of the parent panel for back navigation. undefined for top-level panels. */
-    parentPanelId: string | undefined;
-    /** The buttons to display on this panel. */
-    items: PanelItem[];
-}
-
-export type UIContext = Record<string, unknown>;
+export * from './types.js';
 
 // --- PANEL REGISTRIES ---
 
@@ -251,6 +197,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     adminPanel: {
         title: 'Admin Dashboard',
         parentPanelId: 'mainPanel',
+        permissionLevel: 3,
         items: [
             {
                 id: 'reportManagement',
@@ -397,6 +344,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     reportListPanel: {
         title: 'Active Reports',
         parentPanelId: 'adminPanel',
+        permissionLevel: 3,
         items: [] // Dynamically populated
     },
     reportActionsPanel: {
@@ -442,6 +390,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     moderationPanel: {
         title: 'Moderation Tools',
         parentPanelId: 'adminPanel',
+        permissionLevel: 3,
         items: [
             {
                 id: 'unbanPlayer',
@@ -464,6 +413,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     configCategoryPanel: {
         title: 'Configuration',
         parentPanelId: 'adminPanel',
+        permissionLevel: 1,
         items: [] // Dynamically populated
     },
     kitManagementPanel: {
@@ -514,6 +464,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     playerManagementPanel: {
         title: 'Player Management',
         parentPanelId: 'adminPanel',
+        permissionLevel: 3,
         items: [] // Dynamically populated
     },
     playerListPanel: {

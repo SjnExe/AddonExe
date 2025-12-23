@@ -57,9 +57,18 @@ export interface PanelDefinition {
     parentPanelId: string | undefined;
     /** The buttons to display on this panel. */
     items: PanelItem[];
+    /** Optional: Minimum permission level to view this panel. */
+    permissionLevel?: number;
 }
 
-export type UIContext = Record<string, unknown>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface UIContext extends Record<string, any> {
+    page?: number;
+    id?: string;
+    selectedItemId?: string;
+    targetPlayerId?: string;
+    customTitle?: string;
+}
 
 export interface IPanelHandler {
     /** Returns true if this handler manages the given panelId */

@@ -159,13 +159,13 @@ export class TeamPanelHandler implements IPanelHandler {
             if (!memberId) return items;
 
             const team = teamManager.getTeamByPlayer(player.id);
-            const targetTeam = teamManager.getTeamByPlayer(memberId as string);
+            const targetTeam = teamManager.getTeamByPlayer(memberId);
 
             if (team && targetTeam && team.id === targetTeam.id) {
                 const isOwner = team.ownerId === player.id;
                 const isAdmin = team.admins.includes(player.id);
                 const targetIsOwner = team.ownerId === memberId;
-                const targetIsAdmin = team.admins.includes(memberId as string);
+                const targetIsAdmin = team.admins.includes(memberId);
 
                 if ((isOwner || isAdmin) && !targetIsOwner) {
                     items.push({

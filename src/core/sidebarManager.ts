@@ -13,6 +13,7 @@ import { formatCurrency, formatDuration } from './utils.js';
 let sidebarLoopId: number | undefined;
 let hudLoopId: number | undefined;
 let tpsLoopId: number | undefined;
+let isUpdatingHUD = false;
 
 let currentTPS = 20;
 let lastTickTime = Date.now();
@@ -289,39 +290,45 @@ function getMagicString(opacity: string): string {
 }
 
 function updatePersonalHUD() {
+    if (isUpdatingHUD) return;
     const config = getSidebarConfig();
     if (!config.actionBarEnabled || config.actionBarLines.length === 0) return;
 
-    const magicString = getMagicString(config.opacity || 'medium');
-    const linesTemplate = config.actionBarLines.join('\n');
+    // Use runJob to spread processing across ticks
+    mc.system.runJob(hudUpdateGenerator(config));
+}
 
-    // Optimize: Resolve global placeholders once
-    const globalResolvedTemplate = resolveGlobalPlaceholders(linesTemplate);
+function* hudUpdateGenerator(config: ReturnType<typeof getSidebarConfig>) {
+    isUpdatingHUD = true;
+    try {
+        const magicString = getMagicString(config.opacity || 'medium');
+        const linesTemplate = config.actionBarLines.join('\n');
+        const globalResolvedTemplate = resolveGlobalPlaceholders(linesTemplate);
 
-    for (const player of mc.world.getAllPlayers()) {
-        const overrideExpiry = actionBarOverrides.get(player.id);
-        if (overrideExpiry) {
-            if (Date.now() < overrideExpiry) continue;
-            actionBarOverrides.delete(player.id);
+        const players = mc.world.getAllPlayers();
+        for (const player of players) {
+            // Process one player per step to avoid lag
+            try {
+                const overrideExpiry = actionBarOverrides.get(player.id);
+                if (overrideExpiry) {
+                    if (Date.now() < overrideExpiry) continue;
+                    actionBarOverrides.delete(player.id);
+                }
+
+                if (!getSidebarVisible(player.id)) {
+                    continue;
+                }
+
+                const content = resolvePersonalPlaceholders(globalResolvedTemplate, player, true);
+                const fullText = magicString + content;
+                player.onScreenDisplay.setActionBar(fullText);
+            } catch {
+                // Ignore errors for disconnected players
+            }
+            yield;
         }
-
-        if (!getSidebarVisible(player.id)) {
-            continue;
-        }
-        // Pass the already resolved global string to personal resolver
-        // We modify resolvePersonalPlaceholders to accept it?
-        // Or we just use globalResolvedTemplate as input to resolvePersonalPlaceholders?
-        // resolvePersonalPlaceholders calls resolveGlobalPlaceholders internally.
-        // We should change resolvePersonalPlaceholders to skip global if provided.
-        // But simpler: just pass globalResolvedTemplate. resolvePersonalPlaceholders
-        // calls resolveGlobalPlaceholders(text). If text already has globals resolved, it's fine
-        // (assuming no recursive placeholders).
-
-        const content = resolvePersonalPlaceholders(globalResolvedTemplate, player, true);
-        const fullText = magicString + content;
-
-        // Use Action Bar instead of Title for personal HUD
-        player.onScreenDisplay.setActionBar(fullText);
+    } finally {
+        isUpdatingHUD = false;
     }
 }
 

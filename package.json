@@ -92,8 +92,10 @@
             "^(\\.{1,2}/.*)\\.js$": "$1",
             "^@minecraft/server$": "<rootDir>/src/core/__tests__/__mocks__/minecraftMock.ts",
             "^@minecraft/server-ui$": "<rootDir>/src/core/__tests__/__mocks__/minecraftMock.ts",
+            "^@minecraft/diagnostics$": "<rootDir>/src/core/__tests__/__mocks__/minecraftMock.ts",
             "^@core/(.*)\\.js$": "<rootDir>/src/core/$1",
             "^@features/(.*)\\.js$": "<rootDir>/src/features/$1",
+            "^@ui/(.*)\\.js$": "<rootDir>/src/core/ui/$1",
             "^@commands/(.*)\\.js$": "<rootDir>/src/core/commands/$1"
         },
         "transform": {
