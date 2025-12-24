@@ -1,57 +1,57 @@
 name: Release
 on:
-  push:
-    tags:
-      - "v*"
+    push:
+        tags:
+            - 'v*'
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
+    release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+              with:
+                  fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: "npm"
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 18
+                  cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm ci
+            - name: Install Dependencies
+              run: npm ci
 
-      - name: Lint
-        run: npm run lint
+            - name: Lint
+              run: npm run lint
 
-      - name: Build Release
-        run: |
-          npm run build:release
+            - name: Build Release
+              run: |
+                  npm run build:release
 
-      - name: Create Artifacts
-        run: |
-          # Create individual packs and the combined addon
-          cd packs
+            - name: Create Artifacts
+              run: |
+                  # Create individual packs and the combined addon
+                  cd packs
 
-          # Zip Behavior Pack
-          zip -r -9 ../AddonExe-BP-${{ github.ref_name }}.mcpack behavior
+                  # Zip Behavior Pack
+                  zip -r -9 ../AddonExe-BP-${{ github.ref_name }}.mcpack behavior
 
-          # Zip Resource Pack
-          zip -r -9 ../AddonExe-RP-${{ github.ref_name }}.mcpack resource
+                  # Zip Resource Pack
+                  zip -r -9 ../AddonExe-RP-${{ github.ref_name }}.mcpack resource
 
-          # Zip Combined Addon
-          zip -r -9 ../AddonExe-Release-${{ github.ref_name }}.mcaddon behavior resource
+                  # Zip Combined Addon
+                  zip -r -9 ../AddonExe-Release-${{ github.ref_name }}.mcaddon behavior resource
 
-          cd ..
+                  cd ..
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            AddonExe-Release-${{ github.ref_name }}.mcaddon
-            AddonExe-BP-${{ github.ref_name }}.mcpack
-            AddonExe-RP-${{ github.ref_name }}.mcpack
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+            - name: Create Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: |
+                      AddonExe-Release-${{ github.ref_name }}.mcaddon
+                      AddonExe-BP-${{ github.ref_name }}.mcpack
+                      AddonExe-RP-${{ github.ref_name }}.mcpack
+                  generate_release_notes: true
+                  draft: false
+                  prerelease: false
