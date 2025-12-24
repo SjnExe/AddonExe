@@ -21,7 +21,7 @@ const external = [
     '@minecraft/diagnostics',
     '@minecraft/common',
     './config.js',
-    './core/kitsConfig.js',
+    './features/kits/kitsConfig.js',
     './core/spawnConfig.js',
     './core/itemsConfig.js',
     './core/sidebarConfig.js',
@@ -33,7 +33,10 @@ const external = [
     './features/anticheat/anticheatConfig.js',
     './features/auctionHouse/auctionHouseConfig.js',
     './features/dailyRewards/dailyRewardsConfig.js',
-    './features/games/gamesConfig.js'
+    './features/games/gamesConfig.js',
+    './features/games/rpsConfig.js',
+    './features/games/ticTacToeConfig.js',
+    './features/games/wordGuessConfig.js'
 ];
 
 const isWatch = process.argv.includes('--watch');
@@ -92,7 +95,7 @@ function minifyFiles(dir) {
 // Map of source file -> destination relative to scripts/
 const configsToCompile = [
     { src: '../src/config.default.ts', dest: 'config.js' },
-    { src: '../src/core/kitsConfig.default.ts', dest: 'core/kitsConfig.js' },
+    { src: '../src/features/kits/kitsConfig.default.ts', dest: 'features/kits/kitsConfig.js' },
     { src: '../src/core/spawnConfig.default.ts', dest: 'core/spawnConfig.js' },
     { src: '../src/core/itemsConfig.default.ts', dest: 'core/itemsConfig.js' },
     { src: '../src/core/sidebarConfig.default.ts', dest: 'core/sidebarConfig.js' },
@@ -113,23 +116,47 @@ const configsToCompile = [
     {
         src: '../src/features/games/gamesConfig.default.ts',
         dest: 'features/games/gamesConfig.js'
+    },
+    {
+        src: '../src/features/games/rpsConfig.default.ts',
+        dest: 'features/games/rpsConfig.js'
+    },
+    {
+        src: '../src/features/games/ticTacToeConfig.default.ts',
+        dest: 'features/games/ticTacToeConfig.js'
+    },
+    {
+        src: '../src/features/games/wordGuessConfig.default.ts',
+        dest: 'features/games/wordGuessConfig.js'
     }
 ];
 
 async function compileConfig(configEntry) {
-    const srcPath = path.join(__dirname, configEntry.src);
+    const defaultSrcPath = path.join(__dirname, configEntry.src);
+    let sourcePathToUse = defaultSrcPath;
+    let customSrcPath = null;
+
+    if (configEntry.src.endsWith('.default.ts')) {
+        customSrcPath = path.join(__dirname, configEntry.src.replace('.default.ts', '.ts'));
+    }
+
+    if (customSrcPath && fs.existsSync(customSrcPath)) {
+        console.log(`Found custom config: ${path.basename(customSrcPath)}, using it instead of default.`);
+        sourcePathToUse = customSrcPath;
+    }
+
     const destPath = path.join(scriptsDir, configEntry.dest);
 
     try {
         await esbuild.build({
-            entryPoints: [srcPath],
+            entryPoints: [sourcePathToUse],
             outfile: destPath,
             bundle: false, // Do not bundle configs
             format: 'esm',
             target: 'es2020',
             sourcemap: false
         });
-        console.log(`Compiled config: ${configEntry.dest}`);
+        console.log(`Compiled config: ${configEntry.dest} (from ${path.basename(sourcePathToUse)})`);
     } catch (error) {
         console.error(`Failed to compile config: ${configEntry.src}`, error);
     }
@@ -166,9 +193,12 @@ async function build() {
             await ctx.watch();
             console.log('Watching for changes...');
 
-            // Watch config files using chokidar for better performance
             const configPaths = configsToCompile.map((c) => path.join(__dirname, c.src));
-            const watcher = chokidar.watch(configPaths, {
+            const customConfigPaths = configsToCompile
+                .filter((c) => c.src.endsWith('.default.ts'))
+                .map((c) => path.join(__dirname, c.src.replace('.default.ts', '.ts')));
+
+            const watcher = chokidar.watch([...configPaths, ...customConfigPaths], {
                 ignoreInitial: true,
                 awaitWriteFinish: {
                     stabilityThreshold: 100,
@@ -177,12 +207,18 @@ async function build() {
             });
 
             watcher.on('change', async (filePath) => {
-                // Find which config entry matches
-                const configEntry = configsToCompile.find(
+                let configEntry = configsToCompile.find(
                     (c) => path.resolve(__dirname, c.src) === path.resolve(filePath)
                 );
+
+                if (!configEntry) {
+                     configEntry = configsToCompile.find(
+                        (c) => c.src.endsWith('.default.ts') && path.resolve(__dirname, c.src.replace('.default.ts', '.ts')) === path.resolve(filePath)
+                    );
+                }
+
                 if (configEntry) {
-                    console.log(`Config changed: ${configEntry.src}, recompiling...`);
+                    console.log(`Config changed: ${path.basename(filePath)}, recompiling...`);
                     await compileConfig(configEntry);
                 }
             });
