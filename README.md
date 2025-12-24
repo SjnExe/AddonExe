@@ -85,6 +85,8 @@ This addon is packed with features to keep your server clean:
 For a standard installation, follow these steps:
 
 1.  **Download:** Grab the latest `.mcaddon` file from our [**GitHub Releases**](https://github.com/SjnExe/AddonExe/releases/latest).
+    - **Stable Releases:** Best for public servers.
+    - **Nightly Builds:** Available in the "Nightly" tag, containing the absolute latest changes (potentially unstable).
 2.  **Install:** Open the `.mcaddon` file with Minecraft. It will automatically install both the Behavior Pack and Resource Pack.
 3.  **Apply to Your World:**
     - Open Minecraft and go to your world's settings.
