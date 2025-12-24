@@ -40,7 +40,8 @@ const gameCommand: CustomCommand = {
             }
 
             if (gameId === 'wordGuess' && !arg1) {
-                const words = gamesConfig.wordGuess.wordList;
+                const wgConfig = gamesConfig.wordGuess as { wordList: string[] };
+                const words = wgConfig.wordList;
                 config.word = words[Math.floor(Math.random() * words.length)];
             }
 

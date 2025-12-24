@@ -154,7 +154,9 @@ export class RockPaperScissorsGame implements IGame {
         const p1 = mc.world.getAllPlayers().find((p) => p.id === match.p1Id);
         const p2 = match.isAI ? null : mc.world.getAllPlayers().find((p) => p.id === match.p2Id);
 
-        const reward = getGamesConfig().rockPaperScissors.rewards.money;
+        const gamesConfig = getGamesConfig();
+        const rpsConfig = gamesConfig.rockPaperScissors as { rewards: { money: number } };
+        const reward = rpsConfig.rewards.money;
         const p1Msg = `§e${match.p1Name}§r chose §b${match.p1Choice}§r`;
         const p2Msg = `§e${match.p2Name}§r chose §b${match.p2Choice}§r`;
 

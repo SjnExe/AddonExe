@@ -23,7 +23,9 @@ export class WordGuessGame implements IGame {
         this.customReward = typeof config.reward === 'number' ? config.reward : undefined;
         this.isContinuous = config.continuous !== false; // Default to true unless explicitly disabled
 
-        const wordList = getGamesConfig().wordGuess.wordList;
+        const gamesConfig = getGamesConfig();
+        const wgConfig = gamesConfig.wordGuess as { wordList: string[] };
+        const wordList = wgConfig.wordList;
         const randomWord = wordList[Math.floor(Math.random() * wordList.length)] || 'apple';
 
         this.currentWord = (config.word as string) || randomWord;
@@ -66,7 +68,9 @@ export class WordGuessGame implements IGame {
         }
 
         if (input === target) {
-            const reward = this.customReward ?? getGamesConfig().wordGuess.rewards.money;
+            const gamesConfig = getGamesConfig();
+            const wgConfig = gamesConfig.wordGuess as { rewards: { money: number }; cooldownSeconds: number };
+            const reward = this.customReward ?? wgConfig.rewards.money;
             mc.world.sendMessage(`§a[WordGuess] §e${player.name}§a guessed the word: §b${this.currentWord}§a!`);
             incrementPlayerBalance(player.id, reward);
             player.sendMessage(`§aYou received $${reward}.`);
@@ -76,7 +80,7 @@ export class WordGuessGame implements IGame {
 
             // Check continuous mode
             if (this.isContinuous) {
-                const cooldown = getGamesConfig().wordGuess.cooldownSeconds;
+                const cooldown = wgConfig.cooldownSeconds;
                 if (cooldown > 0) {
                     mc.world.sendMessage(`§7Next game starting in ${cooldown} seconds...`);
                     mc.system.runTimeout(() => {
