@@ -212,8 +212,10 @@ async function build() {
                 );
 
                 if (!configEntry) {
-                     configEntry = configsToCompile.find(
-                        (c) => c.src.endsWith('.default.ts') && path.resolve(__dirname, c.src.replace('.default.ts', '.ts')) === path.resolve(filePath)
+                    configEntry = configsToCompile.find(
+                        (c) =>
+                            c.src.endsWith('.default.ts') &&
+                            path.resolve(__dirname, c.src.replace('.default.ts', '.ts')) === path.resolve(filePath)
                     );
                 }
 

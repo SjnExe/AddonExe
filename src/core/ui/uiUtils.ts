@@ -19,7 +19,6 @@ import {
     saveXrayConfig,
     SidebarConfig
 } from '@core/configurations.js';
-import { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import type { PlayerData } from '@core/playerDataManager.js';
 import ranksConfig from '@core/ranksConfig.default.js';
 import { spawnConfig } from '@core/spawnConfig.default.js';
@@ -27,6 +26,7 @@ import { xrayConfig } from '@core/xrayConfig.default.js';
 import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
 import { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
 import { economyConfig } from '@features/economy/economyConfig.js';
+import { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/teams/teamConfig.js';
 import { PanelItem } from './types.js';
