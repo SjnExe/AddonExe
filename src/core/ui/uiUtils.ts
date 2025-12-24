@@ -19,7 +19,7 @@ import {
     saveXrayConfig,
     SidebarConfig
 } from '@core/configurations.js';
-import { kitsConfig } from '@core/kitsConfig.default.js';
+import { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import type { PlayerData } from '@core/playerDataManager.js';
 import ranksConfig from '@core/ranksConfig.default.js';
 import { spawnConfig } from '@core/spawnConfig.default.js';
