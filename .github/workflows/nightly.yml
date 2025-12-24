@@ -1,0 +1,78 @@
+name: Nightly Build
+on:
+  push:
+    branches:
+      - Dev
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build Nightly
+        # Pass the run number to the build script
+        run: |
+           npm run clean
+           node scripts/generate-command-index.js
+           node scripts/set-version.js --nightly --build-number ${{ github.run_number }}
+           node scripts/build.js
+
+      - name: Create Artifacts
+        run: |
+          # Read package version for filename
+          VERSION=$(node -p "require('./package.json').version")
+          MAJOR_MINOR=$(echo $VERSION | cut -d. -f1-2)
+          BASE_NAME="AddonExe-Nightly-v${MAJOR_MINOR}.${{ github.run_number }}"
+
+          cd packs
+
+          # Zip Behavior Pack
+          zip -r -9 ../${BASE_NAME}-BP.mcpack behavior
+
+          # Zip Resource Pack
+          zip -r -9 ../${BASE_NAME}-RP.mcpack resource
+
+          # Zip Combined Addon
+          zip -r -9 ../${BASE_NAME}.mcaddon behavior resource
+
+          cd ..
+
+          echo "ARTIFACT_ADDON=${BASE_NAME}.mcaddon" >> $GITHUB_ENV
+          echo "ARTIFACT_BP=${BASE_NAME}-BP.mcpack" >> $GITHUB_ENV
+          echo "ARTIFACT_RP=${BASE_NAME}-RP.mcpack" >> $GITHUB_ENV
+
+      - name: Update Nightly Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: Nightly Build
+          body: |
+            AddonExe Nightly Build
+            Version: ${{ env.ARTIFACT_ADDON }}
+            Commit: ${{ github.sha }}
+          files: |
+            ${{ env.ARTIFACT_ADDON }}
+            ${{ env.ARTIFACT_BP }}
+            ${{ env.ARTIFACT_RP }}
+          prerelease: true
+          replace_artifacts: true

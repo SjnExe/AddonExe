@@ -4,7 +4,7 @@
         "name": "§l§cAddon§6Exe §5RP§r",
         "description": "§aThe required resource pack for AddonExe. Provides UI elements and assets for the moderation tools. By Sjn.exe. Version §uv1.0.0§r",
         "uuid": "9dca0c93-f6ec-4701-a74c-a774600640a4",
-        "version": [0, 7, 8],
+        "version": [1, 0, 0],
         "min_engine_version": [1, 21, 130],
         "capabilities": ["pbr", "raytraced"]
     },
@@ -13,7 +13,7 @@
             "description": "UI assets and resources for AddonExe.",
             "type": "resources",
             "uuid": "da4ec34d-3a7a-4b10-bd5d-909810558a51",
-            "version": [0, 7, 8]
+            "version": [1, 0, 0]
         }
     ],
     "dependencies": [
