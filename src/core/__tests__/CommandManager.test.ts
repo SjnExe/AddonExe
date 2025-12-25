@@ -35,9 +35,11 @@ jest.unstable_mockModule('../diagnostics.js', () => ({
 const { commandManager } = await import('../commands/commandManager.js');
 
 describe('CommandManager', () => {
-    const player = new (mc.Player as any)('p1', 'TestPlayer');
-    (player as any).sendMessage = jest.fn();
-    (player as any).isValid = true;
+    // Explicitly cast to unknown then Player to avoid type mismatches if strict compliance is enforced,
+    // or just assume the mock matches the Player interface locally.
+    const player = new (mc.Player as unknown as new (id: string, name: string) => mc.Player)('p1', 'TestPlayer');
+    // Ensure the mock function is properly typed or cast if needed
+    (player.sendMessage as unknown as jest.Mock).mockImplementation(() => {});
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -54,7 +56,12 @@ describe('CommandManager', () => {
 
     it('should prevent execution of excessively long commands', () => {
         const longMessage = '!' + 'a'.repeat(2000);
-        const event = { sender: player, message: longMessage, cancel: false } as any;
+        // Using Partial<mc.ChatSendBeforeEvent> to avoid full event mocking
+        const event = {
+            sender: player,
+            message: longMessage,
+            cancel: false
+        } as unknown as mc.ChatSendBeforeEvent;
         const result = commandManager.handleChatCommand(event);
         expect(result).toBe(false);
     });
@@ -66,9 +73,15 @@ describe('CommandManager', () => {
             parameters: [{ name: 'val', type: 'int' }],
             execute: jest.fn()
         };
-        commandManager.register(cmd as any);
+        // Cast cmd to CustomCommand if available, or unknown -> any if we can't import the type easily
+        // But better to use explicit CustomCommand type if possible.
+        commandManager.register(cmd as unknown as any);
 
-        const event = { sender: player, message: '!testint invalid', cancel: false } as any;
+        const event = {
+            sender: player,
+            message: '!testint invalid',
+            cancel: false
+        } as unknown as mc.ChatSendBeforeEvent;
         const result = commandManager.handleChatCommand(event);
 
         expect(result).toBe(true); // Handled (intercepted)
@@ -85,9 +98,13 @@ describe('CommandManager', () => {
             parameters: [{ name: 'val', type: 'int' }],
             execute
         };
-        commandManager.register(cmd as any);
+        commandManager.register(cmd as unknown as any);
 
-        const event = { sender: player, message: '!testint 123', cancel: false } as any;
+        const event = {
+            sender: player,
+            message: '!testint 123',
+            cancel: false
+        } as unknown as mc.ChatSendBeforeEvent;
         commandManager.handleChatCommand(event);
 
         expect(execute).toHaveBeenCalledWith(player, { val: 123 });

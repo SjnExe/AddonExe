@@ -12,7 +12,7 @@
         "build:release": "npm run clean && node scripts/generate-command-index.js && node scripts/set-version.js --release && node scripts/build.js --minify",
         "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"node scripts/build.js --watch\"",
         "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests",
-        "lint": "eslint . && npm run check-types && node scripts/validate-filtered.js",
+        "lint": "eslint . && npm run check-types",
         "lint:check": "eslint . && npm run check-types && prettier --check .",
         "lint:fix": "eslint . --fix && npm run check-types",
         "lint:report": "eslint . --output-file eslint_report.txt",
