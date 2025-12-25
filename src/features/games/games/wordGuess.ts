@@ -24,7 +24,7 @@ export class WordGuessGame implements IGame {
         this.isContinuous = config.continuous !== false; // Default to true unless explicitly disabled
 
         const gamesConfig = getGamesConfig();
-        const wgConfig = gamesConfig.wordGuess as { wordList: string[] };
+        const wgConfig = gamesConfig.wordGuess;
         const wordList = wgConfig.wordList;
         const randomWord = wordList[Math.floor(Math.random() * wordList.length)] || 'apple';
 
@@ -69,7 +69,7 @@ export class WordGuessGame implements IGame {
 
         if (input === target) {
             const gamesConfig = getGamesConfig();
-            const wgConfig = gamesConfig.wordGuess as { rewards: { money: number }; cooldownSeconds: number };
+            const wgConfig = gamesConfig.wordGuess;
             const reward = this.customReward ?? wgConfig.rewards.money;
             mc.world.sendMessage(`§a[WordGuess] §e${player.name}§a guessed the word: §b${this.currentWord}§a!`);
             incrementPlayerBalance(player.id, reward);
