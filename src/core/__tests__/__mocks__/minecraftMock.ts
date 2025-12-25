@@ -92,9 +92,7 @@ export class Player {
     playSound = jest.fn();
     getDynamicProperty = jest.fn();
     setDynamicProperty = jest.fn();
-    isValid() {
-        return true;
-    }
+    isValid = jest.fn().mockReturnValue(true);
     triggerEvent = jest.fn();
     getComponent = jest.fn();
 }
@@ -123,8 +121,20 @@ export enum FormCancelationReason {
     UserClosed = 'UserClosed'
 }
 
+interface Control {
+    type: string;
+    label: string;
+    placeholder?: string;
+    defaultValue?: string | boolean | number | undefined;
+    options?: string[];
+    defaultValueIndex?: number | undefined;
+    min?: number | undefined;
+    max?: number | undefined;
+    step?: number | undefined;
+}
+
 export class ModalFormData {
-    private _controls: any[] = [];
+    private _controls: Control[] = [];
 
     title(_text: string) {
         return this;
@@ -164,7 +174,7 @@ export class ModalFormData {
 }
 
 export class ActionFormData {
-    private _buttons: any[] = [];
+    private _buttons: { text: string; iconPath?: string | undefined }[] = [];
 
     title(_text: string) {
         return this;

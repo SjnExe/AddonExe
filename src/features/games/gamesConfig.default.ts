@@ -8,11 +8,17 @@ import { ticTacToeConfig } from './ticTacToeConfig.js';
 // eslint-disable-next-line import/no-unresolved
 import { wordGuessConfig } from './wordGuessConfig.js';
 
+interface GameConfig {
+    enabled: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
+}
+
 export const gamesConfig = {
     enabled: true,
-    wordGuess: wordGuessConfig,
-    ticTacToe: ticTacToeConfig,
-    rockPaperScissors: rpsConfig,
+    wordGuess: wordGuessConfig as unknown as GameConfig,
+    ticTacToe: ticTacToeConfig as unknown as GameConfig,
+    rockPaperScissors: rpsConfig as unknown as GameConfig,
     diceRoll: {
         enabled: true
     }
