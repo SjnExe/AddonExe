@@ -8,16 +8,35 @@ import { ticTacToeConfig } from './ticTacToeConfig.js';
 // eslint-disable-next-line import/no-unresolved
 import { wordGuessConfig } from './wordGuessConfig.js';
 
-interface GameConfig {
+interface BaseGameConfig {
     enabled: boolean;
-    [key: string]: unknown;
+}
+
+interface RPSConfig extends BaseGameConfig {
+    rewards: {
+        money: number;
+    };
+}
+
+interface TicTacToeConfig extends BaseGameConfig {
+    rewards: {
+        money: number;
+    };
+}
+
+interface WordGuessConfig extends BaseGameConfig {
+    rewards: {
+        money: number;
+    };
+    cooldownSeconds: number;
+    wordList: string[];
 }
 
 export const gamesConfig = {
     enabled: true,
-    wordGuess: wordGuessConfig as unknown as GameConfig,
-    ticTacToe: ticTacToeConfig as unknown as GameConfig,
-    rockPaperScissors: rpsConfig as unknown as GameConfig,
+    wordGuess: wordGuessConfig as WordGuessConfig,
+    ticTacToe: ticTacToeConfig as TicTacToeConfig,
+    rockPaperScissors: rpsConfig as RPSConfig,
     diceRoll: {
         enabled: true
     }
