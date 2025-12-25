@@ -10,8 +10,7 @@ import { wordGuessConfig } from './wordGuessConfig.js';
 
 interface GameConfig {
     enabled: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export const gamesConfig = {
