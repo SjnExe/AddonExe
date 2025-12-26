@@ -34,76 +34,6 @@ function copyIcon() {
     }
 }
 
-// Function to update JSON manifest
-function updateManifest(filePath) {
-    const fullPath = path.join(baseDir, filePath);
-    if (!fs.existsSync(fullPath)) {
-        console.error(`Error: File not found: ${fullPath}`);
-        process.exit(1);
-    }
-
-    const content = fs.readFileSync(fullPath, 'utf8');
-    let json;
-    try {
-        json = JSON.parse(content);
-    } catch (error) {
-        console.error(`Error parsing JSON file ${fullPath}:`, error);
-        process.exit(1);
-    }
-
-    // Parse version array string "[1, 0, 0]" -> [1, 0, 0]
-    let versionArray;
-    try {
-        versionArray = JSON.parse(VERSION_ARRAY_STRING);
-    } catch (error) {
-        console.error('Error parsing VERSION_ARRAY_STRING:', error);
-        process.exit(1);
-    }
-
-    // Update header version
-    if (json.header) {
-        json.header.version = versionArray;
-        // Update description version string
-        if (json.header.description) {
-            // Replace v1.0.0 placeholder
-            json.header.description = json.header.description.replace('v1.0.0', `v${VERSION_STRING}`);
-            // Replace any existing vX.X.X pattern if re-running or if base file changed
-            json.header.description = json.header.description.replaceAll(
-                /v\d+\.\d+\.\d+(-beta)?/g,
-                `v${VERSION_STRING}`
-            );
-        }
-    }
-
-    // Update modules version
-    if (json.modules) {
-        for (const module of json.modules) {
-            if (
-                module.version && // Keep beta dependencies as is, unless they match the [1, 0, 0] placeholder we are replacing.
-                (JSON.stringify(module.version) === '[1,0,0]' || JSON.stringify(module.version) === '[1, 0, 0]')
-            ) {
-                module.version = versionArray;
-            }
-        }
-    }
-
-    // Update dependencies version
-    if (json.dependencies) {
-        for (const dep of json.dependencies) {
-            if (
-                dep.version && // Only update if version is [1, 0, 0]
-                // This avoids touching "beta" or other specific versions
-                (JSON.stringify(dep.version) === '[1,0,0]' || JSON.stringify(dep.version) === '[1, 0, 0]')
-            ) {
-                dep.version = versionArray;
-            }
-        }
-    }
-
-    fs.writeFileSync(fullPath, JSON.stringify(json, undefined, 4));
-    console.log(`Updated ${filePath}`);
-}
-
 // Function to update config.ts (Source)
 function updateConfig(filePath) {
     const fullPath = path.join(baseDir, filePath);
@@ -145,8 +75,9 @@ console.log(`Version Array: ${VERSION_ARRAY_STRING}`);
 console.log(`Is Beta: ${IS_BETA_RELEASE}`);
 
 copyIcon();
-updateManifest('packs/behavior/manifest.json');
-updateManifest('packs/resource/manifest.json');
+
+// Manifest updates are handled by scripts/set-version.js during the build process.
+// We removed updateManifest() from here to avoid race conditions/ordering issues in CI.
 
 // Update the TypeScript source config
 // Priority: src/config.ts (User Custom) -> src/config.default.ts (Repo Default)
