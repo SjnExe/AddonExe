@@ -108,15 +108,6 @@ jobs:
                   cat packs/resource/manifest.json
                   echo "--- End Verification ---"
 
-            - name: Verify Build Artifacts
-              run: |
-                  echo "--- Verification (Build) ---"
-                  echo "BP Manifest:"
-                  cat packs/behavior/manifest.json
-                  echo "RP Manifest:"
-                  cat packs/resource/manifest.json
-                  echo "--- End Verification ---"
-
             - name: Process Config Files
               run: node scripts/finalize-build.js
 
