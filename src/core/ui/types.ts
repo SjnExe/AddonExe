@@ -61,8 +61,7 @@ export interface PanelDefinition {
     permissionLevel?: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface UIContext extends Record<string, any> {
+export interface UIContext extends Record<string, unknown> {
     page?: number;
     id?: string;
     selectedItemId?: string;
