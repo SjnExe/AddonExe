@@ -46,7 +46,8 @@ let kitsConfigManager: ConfigManager<KitsConfig>,
     gamesConfigManager: ConfigManager<GamesConfig>;
 
 export const loadKitsConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<KitsConfig>('./core/kitsConfig.js');
+    // Corrected path to match the build output location relative to main.js (root of scripts/)
+    const defaultConfig = await asyncLoadConfig<KitsConfig>('./features/kits/kitsConfig.js');
     kitsConfigManager = createConfigManager('exe:kitsConfig:current', defaultConfig, 'Kits');
     kitsConfigManager.load(isMigration);
 };

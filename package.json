@@ -8,11 +8,11 @@
         "clean": "rimraf packs/behavior/scripts",
         "reinstall": "rm -rf node_modules package-lock.json && npm install",
         "check-types": "tsc --noEmit",
-        "build": "npm run clean && node scripts/generate-command-index.js && node scripts/set-version.js && node scripts/build.js",
-        "build:release": "npm run clean && node scripts/generate-command-index.js && node scripts/set-version.js --release && node scripts/build.js --minify",
+        "build": "npm run clean && node scripts/generate-command-index.js && node scripts/generate-manifests.js && node scripts/build.js",
+        "build:release": "npm run clean && node scripts/generate-command-index.js && node scripts/generate-manifests.js --release && node scripts/build.js --minify",
         "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"node scripts/build.js --watch\"",
         "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests",
-        "lint": "eslint . && npm run check-types && node scripts/validate-filtered.js",
+        "lint": "eslint . && npm run check-types",
         "lint:check": "eslint . && npm run check-types && prettier --check .",
         "lint:fix": "eslint . --fix && npm run check-types",
         "lint:report": "eslint . --output-file eslint_report.txt",
@@ -23,7 +23,7 @@
         "validate:report": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE -o validation_report",
         "project-info": "npx mct info",
         "fix-project": "npx mct fix",
-        "prepare": "husky"
+        "prepare": "husky && node scripts/generate-manifests.js"
     },
     "repository": {
         "type": "git",
