@@ -48,10 +48,10 @@ jest.unstable_mockModule('../playerCache.js', () => ({
 }));
 
 jest.unstable_mockModule('../storage/StorageManager.js', () => ({
-    StorageManager: jest.fn().mockImplementation(((key: string) => ({
+    StorageManager: jest.fn().mockImplementation((key: unknown) => ({
         load: () => mockStorageLoad(key),
         save: mockStorageSave
-    })) as any)
+    }))
 }));
 
 // Import module under test
@@ -71,7 +71,7 @@ describe('Economy System', () => {
         ({
             id,
             name,
-            isValid: true,
+            isValid: () => true,
             sendMessage: jest.fn(),
             getGameMode: jest.fn(),
             getComponent: jest.fn()
@@ -141,11 +141,12 @@ describe('Economy System', () => {
             incrementPlayerBalance('p1', 500);
 
             // Configure mock for p2
-            mockStorageLoad.mockImplementation(((key: string) => {
+            mockStorageLoad.mockImplementation((key: unknown) => {
+                const k = key as string;
                 // key format: exe:player.p2
-                if (key.includes('p2')) return { balance: 100, name: 'PlayerTwo' };
+                if (k.includes('p2')) return { balance: 100, name: 'PlayerTwo' };
                 return undefined;
-            }) as any);
+            });
 
             const result = transfer('p1', 'p2', 200);
 
