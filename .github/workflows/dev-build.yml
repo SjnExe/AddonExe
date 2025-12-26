@@ -92,8 +92,21 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-tsbuildinfo-
 
-            - name: Build TypeScript
-              run: npm run build
+            - name: Build TypeScript (Nightly)
+              run: |
+                  npm run clean
+                  node scripts/generate-command-index.js
+                  node scripts/generate-manifests.js --nightly --build-number ${{ github.run_number }}
+                  node scripts/build.js
+
+            - name: Verify Build Artifacts
+              run: |
+                  echo "--- Verification (Build) ---"
+                  echo "BP Manifest:"
+                  cat packs/behavior/manifest.json
+                  echo "RP Manifest:"
+                  cat packs/resource/manifest.json
+                  echo "--- End Verification ---"
 
             - name: Verify Build Artifacts
               run: |
