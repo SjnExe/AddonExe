@@ -27,6 +27,9 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
+            - name: Lint
+              run: npm run lint
+
             - name: Generate Dev Version
               shell: bash
               run: |
@@ -69,11 +72,7 @@ jobs:
                   set -e
                   node scripts/prepare-release.js
 
-                  echo "--- Verification ---"
-                  echo "BP Manifest:"
-                  cat packs/behavior/manifest.json
-                  echo "RP Manifest:"
-                  cat packs/resource/manifest.json
+                  echo "--- Verification (Source) ---"
                   echo "Config Source:"
                   if [ -f "src/config.ts" ]; then
                     head -n 15 src/config.ts
@@ -95,6 +94,15 @@ jobs:
 
             - name: Build TypeScript
               run: npm run build
+
+            - name: Verify Build Artifacts
+              run: |
+                  echo "--- Verification (Build) ---"
+                  echo "BP Manifest:"
+                  cat packs/behavior/manifest.json
+                  echo "RP Manifest:"
+                  cat packs/resource/manifest.json
+                  echo "--- End Verification ---"
 
             - name: Process Config Files
               run: node scripts/finalize-build.js
