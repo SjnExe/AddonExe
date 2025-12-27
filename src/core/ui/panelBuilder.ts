@@ -44,8 +44,7 @@ export async function buildPanelForm(
     try {
         const panelDef = panelDefinitions[panelId];
         if (panelDef && typeof panelDef.permissionLevel === 'number') {
-            const config = getConfig() as unknown as MainConfig;
-            // @ts-expect-error - Config type mismatch
+            const config = getConfig();
             const rank = getPlayerRank(player, config);
             if (rank.permissionLevel > panelDef.permissionLevel) {
                 // Access Denied
