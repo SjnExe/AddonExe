@@ -712,13 +712,10 @@ class CommandManager {
                     break;
                 }
 
-                /* eslint-disable unicorn/no-useless-switch-case */
                 case 'string':
                 case 'item':
                 case 'block':
                 case 'position':
-                /* eslint-enable unicorn/no-useless-switch-case */
-                // falls through
                 default: {
                     const options =
                         typeof paramDef.enumOptions === 'function' ? paramDef.enumOptions() : paramDef.enumOptions;

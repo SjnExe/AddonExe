@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
+import { config as Config } from '../../config.default.js';
 import { getConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { getOrCreatePlayer, loadPlayerData } from '@core/playerDataManager.js';
@@ -44,8 +45,7 @@ export async function buildPanelForm(
     try {
         const panelDef = panelDefinitions[panelId];
         if (panelDef && typeof panelDef.permissionLevel === 'number') {
-            const config = getConfig() as unknown as MainConfig;
-            // @ts-expect-error - Config type mismatch
+            const config = getConfig() as typeof Config;
             const rank = getPlayerRank(player, config);
             if (rank.permissionLevel > panelDef.permissionLevel) {
                 // Access Denied

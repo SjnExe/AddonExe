@@ -139,7 +139,6 @@ export function updatePlayerNameTag(player: mc.Player, config: typeof Config) {
                 newNameTag = `${player.name}\n${finalPrefix}`;
                 break;
             }
-            // eslint-disable-next-line unicorn/no-useless-switch-case
             case 'above':
             default: {
                 newNameTag = `${finalPrefix}\n${player.name}`;

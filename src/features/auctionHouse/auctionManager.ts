@@ -441,7 +441,6 @@ export function getListings(
             case SortOption.SellerAsc: {
                 return a.sellerName.localeCompare(b.sellerName);
             }
-            // eslint-disable-next-line unicorn/no-useless-switch-case
             case SortOption.Newest:
             default: {
                 return b.startTime - a.startTime;

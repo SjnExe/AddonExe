@@ -1,0 +1,7 @@
+      3 src/features/games/gamesConfig.default.ts
+      2 src/core/commands/commandManager.ts
+      1 src/features/auctionHouse/ui/auctionPanel.ts
+      1 src/features/auctionHouse/auctionManager.ts
+      1 src/core/utils/sanitization.ts
+      1 src/core/rankManager.ts
+      1 src/core/diagnostics.ts
