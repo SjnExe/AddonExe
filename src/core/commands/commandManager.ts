@@ -712,10 +712,6 @@ class CommandManager {
                     break;
                 }
 
-                case 'string':
-                case 'item':
-                case 'block':
-                case 'position':
                 default: {
                     const options =
                         typeof paramDef.enumOptions === 'function' ? paramDef.enumOptions() : paramDef.enumOptions;

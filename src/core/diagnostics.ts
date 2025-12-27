@@ -45,6 +45,7 @@ export function addSentryBreadcrumb(
                 sentryLevel = SentryEventLevel.fatal;
                 break;
             }
+            // eslint-disable-next-line unicorn/no-useless-switch-case
             case 'info':
             default: {
                 sentryLevel = SentryEventLevel.info;
