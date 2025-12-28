@@ -47,8 +47,10 @@ export async function showAuctionHouse(
             sortLabel = 'Seller (A-Z)';
             break;
         }
-        // eslint-disable-next-line unicorn/no-useless-switch-case
-        case SortOption.Newest:
+        case SortOption.Newest: {
+            sortLabel = 'Newest';
+            break;
+        }
         default: {
             sortLabel = 'Newest';
             break;

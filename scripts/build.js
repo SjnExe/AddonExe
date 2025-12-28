@@ -33,10 +33,7 @@ const external = [
     './features/anticheat/anticheatConfig.js',
     './features/auctionHouse/auctionHouseConfig.js',
     './features/dailyRewards/dailyRewardsConfig.js',
-    './features/games/gamesConfig.js',
-    './features/games/rpsConfig.js',
-    './features/games/ticTacToeConfig.js',
-    './features/games/wordGuessConfig.js'
+    './features/games/gamesConfig.js'
 ];
 
 const isWatch = process.argv.includes('--watch');
@@ -116,18 +113,6 @@ const configsToCompile = [
     {
         src: '../src/features/games/gamesConfig.default.ts',
         dest: 'features/games/gamesConfig.js'
-    },
-    {
-        src: '../src/features/games/rpsConfig.default.ts',
-        dest: 'features/games/rpsConfig.js'
-    },
-    {
-        src: '../src/features/games/ticTacToeConfig.default.ts',
-        dest: 'features/games/ticTacToeConfig.js'
-    },
-    {
-        src: '../src/features/games/wordGuessConfig.default.ts',
-        dest: 'features/games/wordGuessConfig.js'
     }
 ];
 

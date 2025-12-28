@@ -1,6 +1,8 @@
 import { jest } from '@jest/globals';
 import * as mc from '@minecraft/server';
 
+import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
+
 // Mocks
 const mockFlag = jest.fn();
 jest.unstable_mockModule('../flagManager.js', () => ({
@@ -18,7 +20,8 @@ jest.unstable_mockModule('../anticheatConfigLoader.js', () => ({
 const { checkItem } = await import('../itemCheck.js');
 
 describe('ItemCheck', () => {
-    const player = new (mc.Player as any)('p1', 'Cheater');
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const player = new PlayerMock('p1', 'Cheater');
     const updateItem = jest.fn();
 
     beforeEach(() => {
