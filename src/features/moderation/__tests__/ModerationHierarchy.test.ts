@@ -46,21 +46,40 @@ const { freezePlayer } = await import('../commands/freeze.js');
 const { default: warnCommand } = await import('../commands/warn.js');
 const { default: inventoryCommands } = await import('../commands/inventory.js');
 
+import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
+import { CustomCommand } from '@core/commands/commandManager.js';
+
 describe('Moderation Hierarchy', () => {
     // Use the mock class to satisfy instanceof checks
-    const executor = new (mc.Player as any)('executorId', 'Executor');
-    (executor as any).sendMessage = jest.fn();
-    (executor as any).isValid = true;
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
 
-    const target = new (mc.Player as any)('targetId', 'Target');
-    (target as any).sendMessage = jest.fn();
-    (target as any).hasTag = jest.fn(() => false);
-    (target as any).addTag = jest.fn();
-    (target as any).removeTag = jest.fn();
-    (target as any).addEffect = jest.fn();
-    (target as any).removeEffect = jest.fn();
-    (target as any).dimension = { runCommand: jest.fn() };
-    (target as any).getComponent = jest.fn();
+    const executor = new PlayerMock('executorId', 'Executor');
+    executor.sendMessage = jest.fn();
+    Object.defineProperty(executor, 'isValid', {
+        value: true,
+        writable: true
+    });
+
+    const target = new PlayerMock('targetId', 'Target');
+    target.sendMessage = jest.fn();
+    target.hasTag = jest.fn(() => false);
+    target.addTag = jest.fn() as unknown as (tag: string) => boolean;
+    target.removeTag = jest.fn() as unknown as (tag: string) => boolean;
+    target.addEffect = jest.fn() as unknown as (
+        effectType: string | mc.EffectType,
+        duration: number,
+        options?: mc.EntityEffectOptions
+    ) => mc.Effect | undefined;
+    target.removeEffect = jest.fn() as unknown as (effectType: string | mc.EffectType) => boolean;
+
+    Object.defineProperty(target, 'dimension', {
+        value: { runCommand: jest.fn() },
+        writable: true
+    });
+
+    target.getComponent = jest.fn() as unknown as <T extends string>(
+        componentId: T
+    ) => mc.EntityComponentReturnType<T> | undefined;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -73,11 +92,11 @@ describe('Moderation Hierarchy', () => {
             if (id === 'executorId') return { permissionLevel: executorLevel, name: 'Executor' };
             if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
             return undefined;
-        }) as any);
+        }) as unknown as typeof mockGetPlayer);
         mockLoadPlayerData.mockImplementation(((id: string) => {
             if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
             return undefined;
-        }) as any);
+        }) as unknown as typeof mockLoadPlayerData);
     };
 
     describe('Warn Command', () => {
@@ -115,8 +134,8 @@ describe('Moderation Hierarchy', () => {
     });
 
     describe('Inventory Commands', () => {
-        const ecwipe = inventoryCommands.find((c: any) => c.name === 'ecwipe')!;
-        const copyinv = inventoryCommands.find((c: any) => c.name === 'copyinv')!;
+        const ecwipe = (inventoryCommands as CustomCommand[]).find((c) => c.name === 'ecwipe')!;
+        const copyinv = (inventoryCommands as CustomCommand[]).find((c) => c.name === 'copyinv')!;
 
         it('ecwipe should fail if executor rank is lower', () => {
             setupRanks(2, 1);

@@ -38,15 +38,21 @@ jest.unstable_mockModule('@core/logger.js', () => ({
     errorLog: jest.fn()
 }));
 
+import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
+
 // Import command
 const { default: backCommands } = await import('../commands/back.js');
 const backCommand = backCommands[0]!;
 
 describe('Back Command', () => {
-    const player = new (mc.Player as any)('p1', 'TestPlayer');
-    (player as any).sendMessage = jest.fn();
-    (player as any).isValid = true;
-    (player as any).teleport = jest.fn();
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const player = new PlayerMock('p1', 'TestPlayer');
+    player.sendMessage = jest.fn();
+    Object.defineProperty(player, 'isValid', {
+        value: true,
+        writable: true
+    });
+    player.teleport = jest.fn();
 
     const dimension = { id: 'minecraft:overworld' };
     (mc.world.getDimension as jest.Mock).mockReturnValue(dimension);

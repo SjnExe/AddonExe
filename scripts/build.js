@@ -1,5 +1,6 @@
 import chokidar from 'chokidar';
 import esbuild from 'esbuild';
+import { globSync } from 'glob';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,34 +11,6 @@ const __dirname = path.dirname(__filename);
 const entryPoint = path.join(__dirname, '../src/core/main.ts');
 const outfile = path.join(__dirname, '../packs/behavior/scripts/main.js');
 const scriptsDir = path.join(__dirname, '../packs/behavior/scripts');
-
-// Dependencies that are provided by the game engine and should NOT be bundled
-// We also exclude the config files so they can be loaded externally
-const external = [
-    '@minecraft/server',
-    '@minecraft/server-ui',
-    '@minecraft/server-gametest',
-    '@minecraft/debug-utilities',
-    '@minecraft/diagnostics',
-    '@minecraft/common',
-    './config.js',
-    './features/kits/kitsConfig.js',
-    './core/spawnConfig.js',
-    './core/itemsConfig.js',
-    './core/sidebarConfig.js',
-    './core/xrayConfig.js',
-    './core/ranksConfig.js',
-    './features/economy/economyConfig.js',
-    './features/shop/shopConfig.js',
-    './features/teams/teamConfig.js',
-    './features/anticheat/anticheatConfig.js',
-    './features/auctionHouse/auctionHouseConfig.js',
-    './features/dailyRewards/dailyRewardsConfig.js',
-    './features/games/gamesConfig.js',
-    './features/games/rpsConfig.js',
-    './features/games/ticTacToeConfig.js',
-    './features/games/wordGuessConfig.js'
-];
 
 const isWatch = process.argv.includes('--watch');
 const isMinify = process.argv.includes('--minify');
@@ -92,43 +65,47 @@ function minifyFiles(dir) {
     }
 }
 
-// Map of source file -> destination relative to scripts/
-const configsToCompile = [
-    { src: '../src/config.default.ts', dest: 'config.js' },
-    { src: '../src/features/kits/kitsConfig.default.ts', dest: 'features/kits/kitsConfig.js' },
-    { src: '../src/core/spawnConfig.default.ts', dest: 'core/spawnConfig.js' },
-    { src: '../src/core/itemsConfig.default.ts', dest: 'core/itemsConfig.js' },
-    { src: '../src/core/sidebarConfig.default.ts', dest: 'core/sidebarConfig.js' },
-    { src: '../src/core/xrayConfig.default.ts', dest: 'core/xrayConfig.js' },
-    { src: '../src/core/ranksConfig.default.ts', dest: 'core/ranksConfig.js' },
-    { src: '../src/features/economy/economyConfig.ts', dest: 'features/economy/economyConfig.js' },
-    { src: '../src/features/shop/shopConfig.ts', dest: 'features/shop/shopConfig.js' },
-    { src: '../src/features/teams/teamConfig.ts', dest: 'features/teams/teamConfig.js' },
-    { src: '../src/features/anticheat/anticheatConfig.ts', dest: 'features/anticheat/anticheatConfig.js' },
-    {
-        src: '../src/features/auctionHouse/auctionHouseConfig.default.ts',
-        dest: 'features/auctionHouse/auctionHouseConfig.js'
-    },
-    {
-        src: '../src/features/dailyRewards/dailyRewardsConfig.default.ts',
-        dest: 'features/dailyRewards/dailyRewardsConfig.js'
-    },
-    {
-        src: '../src/features/games/gamesConfig.default.ts',
-        dest: 'features/games/gamesConfig.js'
-    },
-    {
-        src: '../src/features/games/rpsConfig.default.ts',
-        dest: 'features/games/rpsConfig.js'
-    },
-    {
-        src: '../src/features/games/ticTacToeConfig.default.ts',
-        dest: 'features/games/ticTacToeConfig.js'
-    },
-    {
-        src: '../src/features/games/wordGuessConfig.default.ts',
-        dest: 'features/games/wordGuessConfig.js'
+// Automatically discover configuration files
+const srcDir = path.join(__dirname, '../src');
+const configFiles = globSync(['**/*Config{.ts,.default.ts}', 'config.default.ts'], {
+    cwd: srcDir,
+    ignore: [
+        '**/__tests__/**',
+        '**/__mocks__/**',
+        'core/configManager*.ts',
+        'core/configurations.ts',
+        'core/configLoader.ts',
+        'features/anticheat/anticheatConfigLoader.ts'
+    ]
+});
+
+const configsToCompile = configFiles.map((file) => {
+    const srcPath = path.join('../src', file);
+    // Relative path inside src/ to maintain structure in scripts/
+    // e.g. features/games/gamesConfig.default.ts -> features/games/gamesConfig.js
+    let destPath = file.replace('.default.ts', '.js').replace('.ts', '.js');
+
+    // Special case for root config.default.ts -> config.js
+    if (file === 'config.default.ts') {
+        destPath = 'config.js';
     }
+
+    return {
+        src: srcPath,
+        dest: destPath
+    };
+});
+
+// Dependencies that are provided by the game engine and should NOT be bundled
+// We also exclude the config files so they can be loaded externally
+const external = [
+    '@minecraft/server',
+    '@minecraft/server-ui',
+    '@minecraft/server-gametest',
+    '@minecraft/debug-utilities',
+    '@minecraft/diagnostics',
+    '@minecraft/common',
+    ...configsToCompile.map((c) => `./${c.dest}`)
 ];
 
 async function compileConfig(configEntry) {
@@ -170,6 +147,7 @@ async function build() {
             fs.mkdirSync(outDir, { recursive: true });
         }
 
+        console.log(`Found ${configsToCompile.length} configuration files.`);
         console.log('Compiling default configuration files...');
         for (const config of configsToCompile) {
             await compileConfig(config);
