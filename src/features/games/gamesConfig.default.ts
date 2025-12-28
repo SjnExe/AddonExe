@@ -1,10 +1,3 @@
-
-import { rpsConfig } from './rpsConfig.js';
-
-import { ticTacToeConfig } from './ticTacToeConfig.js';
-
-import { wordGuessConfig } from './wordGuessConfig.js';
-
 interface BaseGameConfig {
     enabled: boolean;
 }
@@ -31,9 +24,43 @@ interface WordGuessConfig extends BaseGameConfig {
 
 export const gamesConfig = {
     enabled: true,
-    wordGuess: wordGuessConfig as WordGuessConfig,
-    ticTacToe: ticTacToeConfig as TicTacToeConfig,
-    rockPaperScissors: rpsConfig as RPSConfig,
+    wordGuess: {
+        enabled: true,
+        rewards: {
+            money: 100
+        },
+        // continuous mode usually implies 0 cooldown or short delay
+        cooldownSeconds: 5,
+        wordList: [
+            'apple',
+            'block',
+            'craft',
+            'diamond',
+            'elytra',
+            'farm',
+            'ghast',
+            'horse',
+            'iron',
+            'jump',
+            'creeper',
+            'portal',
+            'dragon',
+            'wither',
+            'beacon'
+        ]
+    } as WordGuessConfig,
+    ticTacToe: {
+        enabled: true,
+        rewards: {
+            money: 50
+        }
+    } as TicTacToeConfig,
+    rockPaperScissors: {
+        enabled: true,
+        rewards: {
+            money: 50
+        }
+    } as RPSConfig,
     diceRoll: {
         enabled: true
     }
