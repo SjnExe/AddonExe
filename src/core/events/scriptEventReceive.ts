@@ -30,11 +30,12 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
                 startRestart(sourceEntity);
             } else if (!sourceEntity) {
                 // If no source entity, assume console/server
-                startRestart({
-                    sendMessage: (msg: string) => warnLog(msg),
+                const executor: CommandExecutor = {
+                    sendMessage: (msg: string | mc.RawMessage) => warnLog(typeof msg === 'string' ? msg : 'RawMessage'),
                     name: 'Console',
                     isConsole: true
-                } as CommandExecutor);
+                };
+                startRestart(executor);
             }
             break;
         }
