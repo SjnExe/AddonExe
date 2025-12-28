@@ -118,15 +118,15 @@ const configsToCompile = [
         dest: 'features/games/gamesConfig.js'
     },
     {
-        src: '../src/features/games/rpsConfig.default.ts',
+        src: '../src/features/games/rpsConfig.ts',
         dest: 'features/games/rpsConfig.js'
     },
     {
-        src: '../src/features/games/ticTacToeConfig.default.ts',
+        src: '../src/features/games/ticTacToeConfig.ts',
         dest: 'features/games/ticTacToeConfig.js'
     },
     {
-        src: '../src/features/games/wordGuessConfig.default.ts',
+        src: '../src/features/games/wordGuessConfig.ts',
         dest: 'features/games/wordGuessConfig.js'
     }
 ];
