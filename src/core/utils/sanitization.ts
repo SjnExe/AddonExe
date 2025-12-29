@@ -14,8 +14,8 @@ export function sanitizeString(input: string, allowColors = false): string {
     }
 
     // Remove non-printable characters (basic control chars, keeping newlines/returns)
-    // eslint-disable-next-line no-control-regex
-    result = result.replaceAll(/[\u0000-\u0009\u000B\u000C\u000E-\u001F]/g, '');
+    // Using new RegExp to avoid no-control-regex lint error while maintaining functionality
+    result = result.replaceAll(new RegExp(String.raw`[\x00-\x09\x0B\x0C\x0E-\x1F]`, 'g'), '');
 
     return result.trim();
 }

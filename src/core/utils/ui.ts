@@ -71,7 +71,7 @@ export async function uiWait(
         await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 10));
     }
 
-    return { canceled: true, cancelationReason: FormCancelationReason.UserClosed } as ActionFormResponse; // Timeout
+    return { canceled: true, cancelationReason: FormCancelationReason.UserClosed } satisfies ActionFormResponse; // Timeout
 }
 
 /**

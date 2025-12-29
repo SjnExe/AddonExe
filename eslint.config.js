@@ -126,18 +126,24 @@ export default tseslint.config(
             '@typescript-eslint/no-floating-promises': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
             '@typescript-eslint/no-unused-vars': ['error', { args: 'all', argsIgnorePattern: '^_' }],
-            // Strict type safety rules - Downgraded to warn for legacy code compatibility
-            '@typescript-eslint/no-unsafe-argument': 'warn',
-            '@typescript-eslint/no-unsafe-assignment': 'warn',
-            '@typescript-eslint/no-unsafe-call': 'warn',
-            '@typescript-eslint/no-unsafe-member-access': 'warn',
-            '@typescript-eslint/no-unsafe-return': 'warn',
-            '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
-            '@typescript-eslint/restrict-template-expressions': 'warn',
+            // Strict type safety rules - Upgraded to error
+            '@typescript-eslint/no-unsafe-argument': 'error',
+            '@typescript-eslint/no-unsafe-assignment': 'error',
+            '@typescript-eslint/no-unsafe-call': 'error',
+            '@typescript-eslint/no-unsafe-member-access': 'error',
+            '@typescript-eslint/no-unsafe-return': 'error',
+            '@typescript-eslint/no-unsafe-enum-comparison': 'error',
+            '@typescript-eslint/restrict-template-expressions': 'error',
+            '@typescript-eslint/only-throw-error': 'error',
+            '@typescript-eslint/consistent-type-assertions': [
+                'error',
+                { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }
+            ],
             '@typescript-eslint/await-thenable': 'error',
             '@typescript-eslint/require-await': 'error',
             '@typescript-eslint/switch-exhaustiveness-check': 'error',
-            '@typescript-eslint/prefer-readonly': 'error'
+            '@typescript-eslint/prefer-readonly': 'error',
+            '@typescript-eslint/no-unnecessary-condition': 'warn'
         }
     },
 

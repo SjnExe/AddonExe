@@ -1,6 +1,8 @@
 import { jest } from '@jest/globals';
 import * as mc from '@minecraft/server';
 
+import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
+
 // Mocks
 const mockFlag = jest.fn();
 const mockGetConfig = jest.fn();
@@ -43,12 +45,19 @@ describe('MovementCheck', () => {
     it('should flag player exceeding speed limit', () => {
         startMovementCheckLoop();
 
-        const player = new (mc.Player as any)('p1', 'Speedy');
+        const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+        const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+        const player = new PlayerMock('p1', 'Speedy');
         // player.isValid() is mocked in class
-        (player as any).getGameMode = () => mc.GameMode.Survival;
-        (player as any).getVelocity = () => ({ x: 1, y: 0, z: 0 }); // 20 blocks/sec (1 * 20)
-        (player as any).getEffect = () => undefined;
-        (player as any).dimension = new (mc.Dimension as any)('overworld');
+        player.getGameMode = () => mc.GameMode.Survival;
+        player.getVelocity = () => ({ x: 1, y: 0, z: 0 }); // 20 blocks/sec (1 * 20)
+        player.getEffect = () => undefined;
+
+        Object.defineProperty(player, 'dimension', {
+            value: new DimensionMock('overworld'),
+            writable: true
+        });
 
         // Mock World Players
         (mc.world.getAllPlayers as jest.Mock).mockReturnValue([player]);
@@ -68,9 +77,11 @@ describe('MovementCheck', () => {
     it('should not flag creative players', () => {
         startMovementCheckLoop();
 
-        const player = new (mc.Player as any)('p2', 'Creative');
-        (player as any).getGameMode = () => mc.GameMode.Creative;
-        (player as any).getVelocity = () => ({ x: 100, y: 0, z: 0 }); // Super fast
+        const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+
+        const player = new PlayerMock('p2', 'Creative');
+        player.getGameMode = () => mc.GameMode.Creative;
+        player.getVelocity = () => ({ x: 100, y: 0, z: 0 }); // Super fast
 
         (mc.world.getAllPlayers as jest.Mock).mockReturnValue([player]);
 
