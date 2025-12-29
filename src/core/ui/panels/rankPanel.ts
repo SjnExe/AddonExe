@@ -126,17 +126,17 @@ export class RankPanelHandler implements IPanelHandler {
             }
 
             const newRank: RankDefinition = {
-                id: id,
-                name: name,
-                permissionLevel: Number.parseInt(permStr) || 1024,
+                id: id || '',
+                name: name || '',
+                permissionLevel: Number.parseInt(permStr || '1024') || 1024,
                 chatFormatting: {
-                    prefixText: prefix,
-                    nameColor: nameColor,
-                    messageColor: messageColor
+                    prefixText: prefix || '',
+                    nameColor: nameColor || '§r',
+                    messageColor: messageColor || '§r'
                 },
                 conditions: [],
                 locked: false
-            } as RankDefinition;
+            } satisfies RankDefinition;
 
             const newConfig = { ...config };
             newConfig.rankDefinitions.push(newRank);

@@ -48,19 +48,19 @@ export const gamesConfig = {
             'wither',
             'beacon'
         ]
-    } as WordGuessConfig,
+    } satisfies WordGuessConfig,
     ticTacToe: {
         enabled: true,
         rewards: {
             money: 50
         }
-    } as TicTacToeConfig,
+    } satisfies TicTacToeConfig,
     rockPaperScissors: {
         enabled: true,
         rewards: {
             money: 50
         }
-    } as RPSConfig,
+    } satisfies RPSConfig,
     diceRoll: {
         enabled: true
     }

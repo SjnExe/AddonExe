@@ -2,6 +2,59 @@
 
 This document provides a detailed, technical explanation of how AddonExe's configuration system works. It covers how settings are loaded, saved, and merged in various scenarios, with a focus on preserving manual file edits while maintaining in-game changes.
 
+## Adding a New Configuration File
+
+The configuration system is designed to be scalable and developer-friendly. Adding a new configuration file is automated.
+
+### 1. Create the Config File
+
+Create a new TypeScript file in your feature directory (e.g., `src/features/myFeature/myFeatureConfig.ts`).
+The file name **must** end with `Config.ts` or `Config.default.ts` to be automatically detected by the build system.
+
+**Example (`src/features/myFeature/myFeatureConfig.ts`):**
+
+```typescript
+export const myFeatureConfig = {
+    enabled: true,
+    someSetting: 100
+};
+
+export default myFeatureConfig;
+```
+
+### 2. Build Process (Automated)
+
+The `scripts/build.js` script automatically scans the `src/` directory for any file matching `*Config.ts` or `*Config.default.ts`.
+It compiles these files into the `packs/behavior/scripts/` directory, maintaining the folder structure (e.g., `features/myFeature/myFeatureConfig.js`).
+You do **not** need to manually register the file in the build script.
+
+### 3. Registering for Usage (Runtime)
+
+To use the config in-game and support reloading/merging, you must register it in `src/core/configurations.ts`.
+
+**Example:**
+
+```typescript
+// src/core/configurations.ts
+import myFeatureConfig from '../features/myFeature/myFeatureConfig.js'; // Import default
+
+// ... inside the file ...
+export const getMyFeatureConfig = () => myFeatureConfigManager.get() as typeof myFeatureConfig;
+
+export function initializeConfigurations(isMigration: boolean) {
+    // ...
+    // Initialize manager
+    myFeatureConfigManager = createConfigManager('exe:myFeature', myFeatureConfig, 'MyFeature');
+    myFeatureConfigManager.load(isMigration);
+}
+```
+
+### 4. Adding to UI (Optional)
+
+To make the settings editable in-game, add an entry to `src/core/ui/configPanelRegistry.ts`.
+
+---
+
 ## Core Concepts
 
 The configuration system is built on four fundamental components:

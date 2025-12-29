@@ -27,10 +27,12 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
     }
 
     // Handle circular references for objects and arrays.
-    if (map.has(a) && map.get(a) === b) {
+    // Cast a to object because map uses object keys
+    const aObj = a;
+    if (map.has(aObj) && map.get(aObj) === b) {
         return true;
     }
-    map.set(a, b);
+    map.set(aObj, b);
 
     // Handle Arrays
     if (Array.isArray(a) && Array.isArray(b)) {
@@ -80,7 +82,7 @@ export function deepMerge(target: unknown, source: unknown): unknown {
     if (!isObject(target) || !isObject(source)) {
         return target;
     }
-    const output = { ...target } as Record<string, unknown>;
+    const output: Record<string, unknown> = { ...target };
 
     for (const key of Object.keys(source)) {
         const sourceValue = source[key];
