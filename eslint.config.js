@@ -142,8 +142,7 @@ export default tseslint.config(
             '@typescript-eslint/await-thenable': 'error',
             '@typescript-eslint/require-await': 'error',
             '@typescript-eslint/switch-exhaustiveness-check': 'error',
-            '@typescript-eslint/prefer-readonly': 'error',
-            '@typescript-eslint/no-unnecessary-condition': 'warn'
+            '@typescript-eslint/prefer-readonly': 'error'
         }
     },
 
