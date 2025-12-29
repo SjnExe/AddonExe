@@ -46,8 +46,8 @@ const { freezePlayer } = await import('../commands/freeze.js');
 const { default: warnCommand } = await import('../commands/warn.js');
 const { default: inventoryCommands } = await import('../commands/inventory.js');
 
-import { CustomCommand } from '@core/commands/commandManager.js';
 import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
+import { CustomCommand } from '@core/commands/commandManager.js';
 
 describe('Moderation Hierarchy', () => {
     // Use the mock class to satisfy instanceof checks
