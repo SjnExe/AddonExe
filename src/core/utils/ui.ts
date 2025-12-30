@@ -15,6 +15,7 @@ import {
  */
 export async function forceCloseChat(player: mc.Player): Promise<void> {
     try {
+
         if (!player.isValid) return;
 
         // Toggle permissions to force close UI/Chat
@@ -24,6 +25,7 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
         // Small delay to let client process the state change
         await new Promise<void>((resolve) => mc.system.runTimeout(() => resolve(), 2));
 
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (player.isValid) {
             player.dimension.runCommand(`inputpermission set "${player.name}" camera enabled`);
             player.dimension.runCommand(`inputpermission set "${player.name}" movement enabled`);
@@ -93,4 +95,15 @@ export function getCountdownColor(secondsRemaining: number): string {
         return '§e';
     } // Yellow
     return '§a'; // Green
+}
+
+/**
+ * Plays the click sound for UI interactions.
+ * This is a standard feedback sound for the addon.
+ */
+export function playClickSound(player: mc.Player): void {
+
+    if (player.isValid) {
+        player.playSound('random.click', { pitch: 1, volume: 1 });
+    }
 }

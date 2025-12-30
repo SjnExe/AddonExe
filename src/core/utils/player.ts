@@ -75,7 +75,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
 
     // Vanish Check: remove vanished players if executor is not staff
     const executorData = getPlayer(executor.id);
-    const isStaff = executorData && executorData.permissionLevel <= 2;
+    const isStaff = executorData ? executorData.permissionLevel <= 2 : false;
 
     const visibleMatches = partialMatches.filter((p) => {
         if (isStaff) return true;

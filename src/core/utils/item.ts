@@ -7,12 +7,13 @@ import * as mc from '@minecraft/server';
  * @returns A formatted display name.
  */
 export function generateDisplayName(typeId: string): string {
-    if (!typeId) {
+    if (!typeId || typeId.length === 0) {
         return 'Unknown Item';
     }
 
     // Remove the namespace (e.g., 'minecraft:')
-    const nameWithoutNamespace = (typeId.includes(':') ? typeId.split(':')[1] : typeId) || typeId;
+    const parts = typeId.includes(':') ? typeId.split(':')[1] : undefined;
+    const nameWithoutNamespace = parts ?? typeId;
 
     // Replace underscores with spaces and capitalize each word
     const formattedName = nameWithoutNamespace
