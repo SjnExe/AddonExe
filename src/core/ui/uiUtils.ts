@@ -194,7 +194,7 @@ export function getAllSystems(): SystemDefinition[] {
  */
 export function getVisibleSystems(pData: PlayerData): SystemDefinition[] {
     return getSystemRegistry().filter((sys) => {
-        if (sys.hidden) return false;
+        if (sys.hidden === true) return false;
         return pData.permissionLevel <= 1;
     });
 }
@@ -206,7 +206,7 @@ export function getVisibleCategories(pData: PlayerData): SystemItem[] {
     const systems = getVisibleSystems(pData);
     const categories = new Set<string>();
     for (const sys of systems) {
-        if (sys.category) categories.add(sys.category);
+        if (sys.category !== undefined && sys.category.length > 0) categories.add(sys.category);
     }
 
     const sortedCategories = [...categories].toSorted();
@@ -220,7 +220,7 @@ export function getVisibleCategories(pData: PlayerData): SystemItem[] {
     return sortedCategories.map((cat) => ({
         id: cat,
         title: `§l§3${cat} Settings§r`,
-        icon: categoryIcons[cat] || 'textures/ui/settings_glyph_color_2x'
+        icon: categoryIcons[cat] ?? 'textures/ui/settings_glyph_color_2x'
     }));
 }
 

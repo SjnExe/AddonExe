@@ -158,7 +158,10 @@ class CommandManager {
                     // Register all aliases as separate slash commands
                     if (command.aliases) {
                         for (const alias of command.aliases) {
-                            if (command.disabledSlashAliases && command.disabledSlashAliases.includes(alias)) {
+                            if (
+                                command.disabledSlashAliases &&
+                                command.disabledSlashAliases.includes(alias)
+                            ) {
                                 continue; // Skip slash command registration for this alias
                             }
                             this._registerSlashCommand(customCommandRegistry, command, alias);
@@ -199,9 +202,10 @@ class CommandManager {
      */
     getEffectivePermissionLevel(command: CustomCommand): number {
         const config = getConfig() as Config;
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (!config) return command.permissionLevel ?? 0;
         const commandSettings = config.commandSettings?.[command.name];
-        if (commandSettings && commandSettings.permissionLevel !== undefined) {
+        if (commandSettings !== undefined && commandSettings.permissionLevel !== undefined) {
             return commandSettings.permissionLevel;
         }
         return command.permissionLevel ?? 0;
@@ -214,9 +218,10 @@ class CommandManager {
      */
     isCommandEnabled(command: CustomCommand): boolean {
         const config = getConfig() as Config;
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (!config) return true;
         const commandSettings = config.commandSettings?.[command.name];
-        if (commandSettings && commandSettings.enabled === false) {
+        if (commandSettings !== undefined && commandSettings.enabled === false) {
             return false;
         }
         return true;
@@ -236,6 +241,7 @@ class CommandManager {
         const executorName = isPlayerCheck ? executor.name : 'Console';
         addSentryBreadcrumb(`Executing command '/${command.name}' by ${executorName}`, 'command', 'info');
 
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (!config) {
             if ('sendMessage' in executor) {
                 executor.sendMessage('§cServer is starting up. Please wait...');
@@ -342,13 +348,13 @@ class CommandManager {
      * @returns {string} e.g. "Usage: /gm [s|c|a] <target>"
      */
     getUsageString(command: CustomCommand): string {
-        const params = command.parameters || [];
+        const params = command.parameters ?? [];
         const parts = params.map((p) => {
-            if (p.optional) {
+            if (p.optional === true) {
                 return `[${p.name}]`;
             } else {
                 const options = typeof p.enumOptions === 'function' ? p.enumOptions() : p.enumOptions;
-                if (options && options.length <= 4) {
+                if (options !== undefined && options.length <= 4) {
                     return `<${options.join('|')}>`;
                 }
                 return `<${p.name}>`;

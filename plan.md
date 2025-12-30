@@ -22,9 +22,11 @@ This plan outlines the steps to upgrade the codebase with strict TypeScript lint
 - [ ] **Batch 1: Core Infrastructure (`src/core`)**
     - [x] Fix `src/core/utils/`
     - [x] Fix `src/core/configLoader.ts`
-    - [ ] Fix `src/core/logger.ts`, `src/core/commands/`
-    - [ ] Fix `src/core/storage/`
-    - [ ] Fix `src/core/ui/`
+    - [x] Fix `src/core/ui/systemRegistry.ts` & `src/core/ui/uiUtils.ts`
+    - [x] Fix `src/core/commands/index.ts`
+    - [ ] Fix `src/core/commands/commandManager.ts` (Partially fixed, ~30 errors remaining)
+    - [ ] Fix `src/core/ui/panels/` (Pending)
+    - [ ] Fix `src/core/logger.ts`, `src/core/storage/` (Status: Clean or Pending check)
 - [ ] **Batch 2: Features - Economy & Ranks**
     - `src/features/economy/`
     - `src/features/ranks/`
