@@ -62,7 +62,7 @@
         "eslint": "latest",
         "eslint-config-prettier": "latest",
         "eslint-import-resolver-typescript": "latest",
-        "eslint-plugin-deprecation": "^3.0.0",
+        "eslint-plugin-deprecation": "latest",
         "eslint-plugin-import": "latest",
         "eslint-plugin-jsonc": "latest",
         "eslint-plugin-minecraft-linting": "latest",
@@ -80,7 +80,7 @@
         "ts-jest": "latest",
         "ts-node": "latest",
         "tsc-alias": "latest",
-        "type-fest": "^5.3.1",
+        "type-fest": "latest",
         "typescript": "latest",
         "typescript-eslint": "latest"
     },
