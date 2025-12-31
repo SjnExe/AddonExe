@@ -40,8 +40,8 @@ export function getSystemRegistry(): SystemDefinition[] {
                     configPanelId: `config_${schema.id}`,
                     isSimpleConfig: true
                 };
-                if (schema.category) def.category = schema.category;
-                if (schema.hidden) def.hidden = schema.hidden;
+                if (schema.category && schema.category.length > 0) def.category = schema.category;
+                if (schema.hidden === true) def.hidden = schema.hidden;
                 return def;
             }),
 
