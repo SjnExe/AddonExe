@@ -5,6 +5,7 @@ import { getRanksConfig, saveRanksConfig } from '@core/configurations.js';
 import * as rankManager from '@core/rankManager.js';
 import { RankDefinition } from '@core/ranksConfig.default.js';
 import { showPanel } from '@core/uiManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
@@ -50,7 +51,7 @@ export class RankPanelHandler implements IPanelHandler {
             ranks.sort((a, b) => a.permissionLevel - b.permissionLevel);
 
             for (const rank of ranks) {
-                if (!rank) continue;
+                if (!isDefined(rank)) continue;
                 items.push({
                     id: rank.id,
                     text: `§l${rank.name}§r\nLevel: ${rank.permissionLevel}`,
@@ -84,7 +85,7 @@ export class RankPanelHandler implements IPanelHandler {
         if (panelId === 'editRankPanel') {
             const rankId = context.id as string;
             const rank = rankManager.getRankById(rankId);
-            if (!rank) return Promise.resolve();
+            if (!isDefined(rank)) return Promise.resolve();
 
             return Promise.resolve(
                 new ModalFormData()
@@ -94,7 +95,7 @@ export class RankPanelHandler implements IPanelHandler {
                     .textField('Prefix', '', { defaultValue: rank.chatFormatting?.prefixText || '' })
                     .textField('Name Color', '', { defaultValue: rank.chatFormatting?.nameColor || '' })
                     .textField('Chat Color', '', { defaultValue: rank.chatFormatting?.messageColor || '' })
-                    .toggle('Is Locked (Prevent Deletion)', { defaultValue: rank.locked || false })
+                    .toggle('Is Locked (Prevent Deletion)', { defaultValue: Boolean(rank.locked) })
             );
         }
 
@@ -112,9 +113,14 @@ export class RankPanelHandler implements IPanelHandler {
 
         if (panelId === 'addRankPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'rankManagementPanel');
-            const [id, name, permStr, prefix, nameColor, messageColor] = values as string[];
+            const rawValues = (values as (string | undefined)[]) ?? [];
+            const [id, name, permStr, prefix, nameColor, messageColor] = rawValues;
 
-            if (!id || !name || !permStr) {
+            if (
+                !isNonEmptyString(id) ||
+                !isNonEmptyString(name) ||
+                !isNonEmptyString(permStr)
+            ) {
                 player.sendMessage('§cInvalid input.');
                 return showPanel(player, 'rankManagementPanel');
             }
@@ -126,13 +132,13 @@ export class RankPanelHandler implements IPanelHandler {
             }
 
             const newRank: RankDefinition = {
-                id: id || '',
-                name: name || '',
-                permissionLevel: Number.parseInt(permStr || '1024') || 1024,
+                id: id,
+                name: name,
+                permissionLevel: Number.parseInt(permStr) || 1024,
                 chatFormatting: {
-                    prefixText: prefix || '',
-                    nameColor: nameColor || '§r',
-                    messageColor: messageColor || '§r'
+                    prefixText: prefix ?? '',
+                    nameColor: nameColor ?? '§r',
+                    messageColor: messageColor ?? '§r'
                 },
                 conditions: [],
                 locked: false
@@ -149,13 +155,14 @@ export class RankPanelHandler implements IPanelHandler {
         if (panelId === 'editRankPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'rankManagementPanel');
             const rankId = context.id as string;
-            const [name, permStr, prefix, nameColor, messageColor, locked] = values as [
-                string,
-                string,
-                string,
-                string,
-                string,
-                boolean
+            const rawValues = (values as (string | boolean | undefined)[]) ?? [];
+            const [name, permStr, prefix, nameColor, messageColor, locked] = rawValues as [
+                string | undefined,
+                string | undefined,
+                string | undefined,
+                string | undefined,
+                string | undefined,
+                boolean | undefined
             ];
 
             const config = getRanksConfig();
@@ -170,18 +177,20 @@ export class RankPanelHandler implements IPanelHandler {
             // We allow editing logic, but maybe not deletion if locked.
 
             const existingRank = config.rankDefinitions[rankIndex];
-            if (!existingRank) return showPanel(player, 'rankManagementPanel');
+            if (!isDefined(existingRank)) return showPanel(player, 'rankManagementPanel');
 
             const updatedRank: RankDefinition = {
                 ...existingRank,
-                name: name,
-                permissionLevel: Number.parseInt(permStr) || 1024,
+                name: name || existingRank.name,
+                permissionLevel: isNonEmptyString(permStr)
+                    ? Number.parseInt(permStr) || 1024
+                    : existingRank.permissionLevel,
                 chatFormatting: {
-                    prefixText: prefix,
-                    nameColor,
-                    messageColor
+                    prefixText: prefix || existingRank.chatFormatting?.prefixText || '',
+                    nameColor: nameColor || existingRank.chatFormatting?.nameColor || '§r',
+                    messageColor: messageColor || existingRank.chatFormatting?.messageColor || '§r'
                 },
-                locked: locked
+                locked: (locked ?? existingRank.locked) || false
             };
 
             const newConfig = { ...config };
@@ -206,9 +215,7 @@ export class RankPanelHandler implements IPanelHandler {
                     });
                 }
 
-                if (item.actionType === 'functionCall') {
-                    await handleUIAction(player, item.actionValue, context);
-                }
+                await handleUIAction(player, item.actionValue, context);
             }
         }
     }

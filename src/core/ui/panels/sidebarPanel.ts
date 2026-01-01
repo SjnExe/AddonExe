@@ -4,6 +4,7 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 import { getSidebarConfig, saveSidebarConfig } from '@core/configurations.js';
 import { forceUpdate } from '@core/sidebarManager.js';
 import { showPanel } from '@core/uiManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
@@ -37,7 +38,7 @@ export class SidebarPanelHandler implements IPanelHandler {
 
         if (panelId === 'sidebarMainPanel') {
             const def = panelDefinitions[panelId];
-            if (def) {
+            if (isDefined(def)) {
                 const staticItems = getStaticMenuItems(def, 1); // Admin
                 items.push(...staticItems);
             }
@@ -60,7 +61,7 @@ export class SidebarPanelHandler implements IPanelHandler {
             const lines = isSidebar ? config.sidebarLines : config.actionBarLines;
 
             for (const [idx, line] of lines.entries()) {
-                if (line === undefined) continue;
+                if (!isDefined(line)) continue;
                 items.push({
                     id: String(idx),
                     text: `${idx + 1}. ${line}`,
@@ -119,7 +120,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         if (panelId === 'sidebarLineEditPanel') {
             const config = getSidebarConfig();
             const lines = config.sidebarLines;
-            const index = (context.lineIndex as number) ?? 0;
+            const index = (context.lineIndex as number) || 0;
             const line = lines[index] ?? '';
             return Promise.resolve(
                 new ModalFormData()
@@ -131,7 +132,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         if (panelId === 'actionBarLineEditPanel') {
             const config = getSidebarConfig();
             const lines = config.actionBarLines;
-            const index = (context.lineIndex as number) ?? 0;
+            const index = (context.lineIndex as number) || 0;
             const line = lines[index] ?? '';
             return Promise.resolve(
                 new ModalFormData()
@@ -176,8 +177,8 @@ export class SidebarPanelHandler implements IPanelHandler {
 
         if (panelId === 'sidebarLineAddPanel' || panelId === 'actionBarLineAddPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, listPanelId);
-            const [newLine] = values as [string];
-            if (newLine) {
+            const [newLine] = (values as [string | undefined]) || [];
+            if (isNonEmptyString(newLine)) {
                 lines.push(newLine);
                 save('§aLine added.');
             }
@@ -186,10 +187,10 @@ export class SidebarPanelHandler implements IPanelHandler {
 
         if (panelId === 'sidebarLineEditPanel' || panelId === 'actionBarLineEditPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, listPanelId);
-            const valuesArray = values as (string | undefined)[];
-            const newLine = valuesArray?.[0];
+            const valuesArray = (values as (string | undefined)[]) || [];
+            const newLine = valuesArray[0];
             const index = context.lineIndex as number;
-            if (newLine !== undefined && typeof newLine === 'string') {
+            if (isNonEmptyString(newLine)) {
                 lines[index] = newLine;
                 save('§aLine updated.');
             }
@@ -200,8 +201,9 @@ export class SidebarPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!item) return; // Check if item exists first
 
+                // The logic below assumes item exists
                 if (item.actionType === 'openPanel') {
                     // Inject lineIndex if needed
                     let nextContext: UIContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
@@ -229,8 +231,8 @@ export class SidebarPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'moveUp') {
                     if (index > 0) {
-                        const temp = lines[index - 1] || '';
-                        lines[index - 1] = lines[index] || '';
+                        const temp = lines[index - 1] ?? '';
+                        lines[index - 1] = lines[index] ?? '';
                         lines[index] = temp;
                         save('§aMoved up.');
                     }
@@ -239,8 +241,8 @@ export class SidebarPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'moveDown') {
                     if (index < lines.length - 1) {
-                        const temp = lines[index + 1] || '';
-                        lines[index + 1] = lines[index] || '';
+                        const temp = lines[index + 1] ?? '';
+                        lines[index + 1] = lines[index] ?? '';
                         lines[index] = temp;
                         save('§aMoved down.');
                     }

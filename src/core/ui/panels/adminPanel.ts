@@ -4,6 +4,7 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 import { floatingTextManager } from '@core/floatingTextManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatLocation } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
@@ -50,7 +51,6 @@ export class AdminPanelHandler implements IPanelHandler {
 
             const texts = floatingTextManager.getAllTexts();
             for (const text of texts) {
-                if (!text) continue;
                 items.push({
                     id: text.id,
                     text: `§6${text.id}§r\n${formatLocation(text.location)}`,
@@ -115,10 +115,10 @@ export class AdminPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'floatingTextEditPanel') {
-            const id = (context.id || context.selectedItemId) as string;
-            if (!id) return Promise.resolve();
+            const id = (context.id ?? context.selectedItemId) as string;
+            if (!isNonEmptyString(id)) return Promise.resolve();
             const text = floatingTextManager.getTextById(id);
-            if (!text) return Promise.resolve();
+            if (text === undefined) return Promise.resolve();
             const expiresAt = text.expiresAt ?? undefined;
             const updateInterval = text.updateInterval ?? 0;
             const dimensionOptions = ['Overworld', 'Nether', 'The End'];
@@ -127,15 +127,17 @@ export class AdminPanelHandler implements IPanelHandler {
             return Promise.resolve(
                 new ModalFormData()
                     .title(`Edit: ${id}`)
-                    .textField('Text Content', 'Enter the text to display', { defaultValue: text.text ?? '' })
-                    .textField('X', 'X', { defaultValue: String(+(text.location?.x ?? 0).toFixed(2)) })
-                    .textField('Y', 'Y', { defaultValue: String(+(text.location?.y ?? 0).toFixed(2)) })
-                    .textField('Z', 'Z', { defaultValue: String(+(text.location?.z ?? 0).toFixed(2)) })
+                    .textField('Text Content', 'Enter the text to display', { defaultValue: text.text })
+                    .textField('X', 'X', { defaultValue: String(text.location.x.toFixed(2)) })
+                    .textField('Y', 'Y', { defaultValue: String(text.location.y.toFixed(2)) })
+                    .textField('Z', 'Z', { defaultValue: String(text.location.z.toFixed(2)) })
                     .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
                     .textField('Update Interval', '0 to disable', { defaultValue: String(updateInterval) })
-                    .toggle('Expiration', { defaultValue: !!expiresAt })
+                    .toggle('Expiration', { defaultValue: isDefined(expiresAt) })
                     .textField('Expiration (mins)', 'mins', {
-                        defaultValue: expiresAt ? String(Math.round((expiresAt - Date.now()) / 60_000)) : '0'
+                        defaultValue: isDefined(expiresAt)
+                            ? String(Math.round((expiresAt - Date.now()) / 60_000))
+                            : '0'
                     })
             );
         }
@@ -153,12 +155,12 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextCreatePanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'floatingTextListPanel');
-            const [id, text] = values as string[];
-            if (!id || id.includes(' ')) {
+            const [id, text] = (values as string[]);
+            if (!isNonEmptyString(id) || id.includes(' ')) {
                 player.sendMessage('§4Invalid ID.');
                 return showPanel(player, 'floatingTextCreatePanel');
             }
-            if (floatingTextManager.createText(player, id, text || '')) {
+            if (floatingTextManager.createText(player, id, isNonEmptyString(text) ? text : '')) {
                 // Success msg in manager
             }
             return showPanel(player, 'floatingTextListPanel');
@@ -167,8 +169,9 @@ export class AdminPanelHandler implements IPanelHandler {
         if (panelId === 'floatingTextEditPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'floatingTextActionPanel', context);
             const id = context.id as string;
+            const rawValues = values as [string, string, string, string, number, string, boolean, string];
             const [textContent, x, y, z, dimensionIndex, updateIntervalStr, useExpiration, expirationMinutes] =
-                values as [string, string, string, string, number, string, boolean, string];
+                rawValues;
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
             const selectedDimension = dimensionIds[dimensionIndex] ?? 'minecraft:overworld';
 
@@ -207,20 +210,18 @@ export class AdminPanelHandler implements IPanelHandler {
 
                     return showPanel(player, item.actionValue, newContext);
                 }
-                if (item.actionType === 'functionCall') {
-                    const actionContext = {
-                        ...context,
-                        selectedItemId: item.id,
-                        id: item.id
-                    };
+                const actionContext = {
+                    ...context,
+                    selectedItemId: item.id,
+                    id: item.id
+                };
 
-                    if (panelId === 'floatingTextActionPanel') {
-                        actionContext.id = context.id as string;
-                    }
-
-                    await handleUIAction(player, item.actionValue, actionContext);
-                    return;
+                if (panelId === 'floatingTextActionPanel') {
+                    actionContext.id = context.id as string;
                 }
+
+                await handleUIAction(player, item.actionValue, actionContext);
+                return;
             }
         }
     }

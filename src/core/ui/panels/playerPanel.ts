@@ -12,6 +12,7 @@ import {
 } from '@core/playerDataManager.js';
 import * as rankManager from '@core/rankManager.js';
 import { showPanel } from '@core/uiManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
@@ -62,14 +63,17 @@ export class PlayerPanelHandler implements IPanelHandler {
             const config = getConfig();
 
             for (const entry of paginated) {
-                if (!entry) continue;
+                if (!isDefined(entry)) continue;
                 const targetP = mc.world.getAllPlayers().find((p) => p.id === entry.id);
+
                 const rank = targetP
                     ? rankManager.getPlayerRank(targetP, config)
-                    : rankManager.getRankById(loadPlayerData(entry.id)?.rankId || '');
+                    : rankManager.getRankById(loadPlayerData(entry.id)?.rankId ?? '');
                 const team = getTeamByPlayer(entry.id);
-                const prefix = rank?.chatFormatting?.prefixText ? `§6[§r${rank.chatFormatting.prefixText}§6]§r ` : '';
-                const teamSuffix = team ? `\n§6[§r${team.name}§6]` : '';
+                // Null-safe access to rank and team
+                const prefixText = rank?.chatFormatting?.prefixText;
+                const prefix = isNonEmptyString(prefixText) ? `§6[§r${prefixText}§6]§r ` : '';
+                const teamSuffix = isDefined(team) ? `\n§6[§r${team.name}§6]` : '';
 
                 items.push({
                     id: entry.id,
@@ -85,7 +89,7 @@ export class PlayerPanelHandler implements IPanelHandler {
 
         if (panelId === 'playerActionsPanel') {
             const fromPanel = context.fromPanel as string;
-            if (fromPanel) addBackButton(items, fromPanel);
+            if (isNonEmptyString(fromPanel)) addBackButton(items, fromPanel);
             else addBackButton(items, 'mainPanel');
 
             const visible = this.getVisiblePlayerActionItems(context, permissionLevel, player.id);
@@ -103,13 +107,13 @@ export class PlayerPanelHandler implements IPanelHandler {
 
     private getVisiblePlayerActionItems(context: UIContext, permissionLevel: number, viewerId?: string): PanelItem[] {
         const panelDef = panelDefinitions.playerActionsPanel;
-        if (!panelDef) return [];
+        if (!isDefined(panelDef)) return [];
         const config = getConfig();
         const menuItems = getStaticMenuItems(panelDef, permissionLevel);
         const visibleItems: PanelItem[] = [];
 
         const targetId = context.targetPlayerId as string;
-        const isSelf = viewerId && targetId === viewerId;
+        const isSelf = isDefined(viewerId) && targetId === viewerId;
         const selfDisabledActions = new Set([
             'kick',
             'ban',
@@ -131,12 +135,13 @@ export class PlayerPanelHandler implements IPanelHandler {
                 continue;
             }
 
-            if (isSelf && selfDisabledActions.has(item.id)) {
+            if (Boolean(isSelf) && selfDisabledActions.has(item.id)) {
                 continue;
             }
             const commandName = item.id;
-            const settings = (config.commandSettings || {}) as Record<string, { enabled?: boolean }>;
-            if (settings[commandName]?.enabled === false) {
+            const settings = (config.commandSettings || {}) as Record<string, { enabled?: boolean } | undefined>;
+            const cmdSettings = settings[commandName];
+            if (isDefined(cmdSettings) && cmdSettings.enabled === false) {
                 continue;
             }
 
@@ -165,10 +170,10 @@ export class PlayerPanelHandler implements IPanelHandler {
             ].join('\n');
         }
 
-        if (panelId === 'playerActionsPanel' && context.targetPlayerId) {
-            const targetId = String(context.targetPlayerId as string | number);
+        if (panelId === 'playerActionsPanel' && isDefined(context.targetPlayerId)) {
+            const targetId = String(context.targetPlayerId);
             const pData = (context.targetData as PlayerData | undefined) || loadPlayerData(targetId);
-            if (pData) {
+            if (isDefined(pData)) {
                 const { getRankById } = await import('@core/rankManager.js');
                 const { getBounty } = await import('@core/bountyManager.js');
                 const { formatCurrency } = await import('@core/utils.js');
@@ -202,9 +207,9 @@ export class PlayerPanelHandler implements IPanelHandler {
 
         if (panelId === 'playerSearchPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'playerListPanel');
-            const [name] = values as [string];
-            const targetId = getPlayerIdByName(name);
-            if (targetId) {
+            const [name] = (values as [string | undefined]) ?? [];
+            const targetId = isNonEmptyString(name) ? getPlayerIdByName(name) : undefined;
+            if (isNonEmptyString(targetId)) {
                 return showPanel(player, 'playerActionsPanel', { ...context, selectedItemId: targetId, id: targetId });
             } else {
                 player.sendMessage('§cPlayer not found.');
@@ -216,7 +221,7 @@ export class PlayerPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!isDefined(item)) return;
 
                 if (item.actionType === 'openPanel') {
                     const nextContext: UIContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
@@ -247,14 +252,12 @@ export class PlayerPanelHandler implements IPanelHandler {
                     return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
                 }
 
-                if (item.actionType === 'functionCall') {
-                    await handleUIAction(player, item.actionValue, {
-                        ...context,
-                        selectedItemId: item.id,
-                        targetPlayerId: context.targetPlayerId || item.id
-                    });
-                    return;
-                }
+                await handleUIAction(player, item.actionValue, {
+                    ...context,
+                    selectedItemId: item.id,
+                    targetPlayerId: context.targetPlayerId ?? item.id
+                });
+                return;
             }
         }
     }
