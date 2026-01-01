@@ -135,9 +135,10 @@ export class AdminPanelHandler implements IPanelHandler {
                     .textField('Update Interval', '0 to disable', { defaultValue: String(updateInterval) })
                     .toggle('Expiration', { defaultValue: isDefined(expiresAt) })
                     .textField('Expiration (mins)', 'mins', {
-                        defaultValue: isDefined(expiresAt)
-                            ? String(Math.round((expiresAt - Date.now()) / 60_000))
-                            : '0'
+                        defaultValue:
+                            expiresAt !== undefined && expiresAt !== null
+                                ? String(Math.round((expiresAt - Date.now()) / 60_000))
+                                : '0'
                     })
             );
         }

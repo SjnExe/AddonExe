@@ -97,7 +97,8 @@
             "^@core/(.*)\\.js$": "<rootDir>/src/core/$1",
             "^@features/(.*)\\.js$": "<rootDir>/src/features/$1",
             "^@ui/(.*)\\.js$": "<rootDir>/src/core/ui/$1",
-            "^@commands/(.*)\\.js$": "<rootDir>/src/core/commands/$1"
+            "^@commands/(.*)\\.js$": "<rootDir>/src/core/commands/$1",
+            "^@lib/(.*)\\.js$": "<rootDir>/src/lib/$1"
         },
         "transform": {
             "^.+\\.tsx?$": [
