@@ -26,7 +26,8 @@
             "@core/*": ["./core/*"],
             "@features/*": ["./features/*"],
             "@ui/*": ["./core/ui/*"],
-            "@commands/*": ["./core/commands/*"]
+            "@commands/*": ["./core/commands/*"],
+            "@lib/*": ["./lib/*"]
         },
         "types": [
             "node",
