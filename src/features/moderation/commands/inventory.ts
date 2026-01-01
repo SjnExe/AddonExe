@@ -1,8 +1,10 @@
+// FIXED
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { resolveTarget } from '@core/utils.js';
+import { isDefined } from '@lib/guards.js';
 
 const invseeCommand: CustomCommand = {
     name: 'invsee',
@@ -16,27 +18,28 @@ const invseeCommand: CustomCommand = {
             return;
         }
 
-        const targetName = params.player as string;
+        const targetName = params.player;
+        if (typeof targetName !== 'string') return;
         const targets = resolveTarget(targetName, executor);
         const targetPlayer = targets[0];
 
-        if (!targetPlayer) {
+        if (!isDefined(targetPlayer)) {
             executor.sendMessage('§cPlayer not found.');
             return;
         }
 
         const executorData = getPlayer(executor.id);
         const targetData = getPlayer(targetPlayer.id);
-        if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+        if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
             executor.sendMessage('§cYou cannot view the inventory of a player with the same or higher rank than you.');
             return;
         }
 
         executor.sendMessage(`§eInventory of ${targetPlayer.name}:`);
-        const inventory = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent)?.container;
+        const inventory = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent | undefined)?.container;
         const equipment = targetPlayer.getComponent('equippable');
 
-        if (!inventory) {
+        if (!isDefined(inventory)) {
             executor.sendMessage('§cCould not access inventory.');
             return;
         }
@@ -54,13 +57,13 @@ const invseeCommand: CustomCommand = {
         ];
         const armorNames = ['Head', 'Chest', 'Legs', 'Feet', 'Offhand'];
 
-        if (equipment) {
+        if (isDefined(equipment)) {
             output += '§6[Armor & Offhand]§r\n';
             for (const [index, slot] of armorSlots.entries()) {
                 const item = equipment.getEquipment(slot);
-                if (item) {
+                if (isDefined(item)) {
                     hasItems = true;
-                    const name = item.nameTag || item.typeId.replace('minecraft:', '');
+                    const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '');
                     output += ` §7${armorNames[index]}: §f${name} §7x${item.amount}\n`;
                 }
             }
@@ -72,9 +75,9 @@ const invseeCommand: CustomCommand = {
 
         for (let i = 0; i < inventory.size; i++) {
             const item = inventory.getItem(i);
-            if (item) {
+            if (isDefined(item)) {
                 hasItems = true;
-                const name = item.nameTag || item.typeId.replace('minecraft:', '');
+                const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '');
                 const isHotbar = i < hotbarSize;
                 const prefix = isHotbar ? '§e' : '§7';
                 output += ` ${prefix}[${i}] §f${name} §7x${item.amount}\n`;
@@ -107,7 +110,8 @@ const ecwipeCommand: CustomCommand = {
     permissionLevel: 3,
     parameters: [{ name: 'player', type: 'string', optional: false }],
     execute: (executor: CommandExecutor, params: Record<string, unknown>) => {
-        const targetName = params.player as string;
+        const targetName = params.player;
+        if (typeof targetName !== 'string') return;
         // Manual resolve since it might be offline?
         // Current logic requires online for commands generally, but let's use resolveTarget for consistency.
         let targetNameResolved = targetName;
@@ -115,13 +119,13 @@ const ecwipeCommand: CustomCommand = {
         if (executor instanceof mc.Player) {
             const targets = resolveTarget(targetName, executor);
             const firstTarget = targets[0];
-            if (firstTarget) targetNameResolved = firstTarget.name;
+            if (isDefined(firstTarget)) targetNameResolved = firstTarget.name;
 
             const targetId = getPlayerIdByName(targetNameResolved);
-            if (targetId) {
+            if (isDefined(targetId)) {
                 const executorData = getPlayer(executor.id);
                 const targetData = loadPlayerData(targetId);
-                if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+                if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
                     executor.sendMessage(
                         '§cYou cannot wipe the ender chest of a player with the same or higher rank than you.'
                     );
@@ -133,7 +137,6 @@ const ecwipeCommand: CustomCommand = {
         let success = true;
         try {
             const overworld = mc.world.getDimension('overworld');
-            if (!overworld) throw new Error('Overworld not found');
 
             // Ender Chest has 27 slots (0-26)
             for (let i = 0; i < 27; i++) {
@@ -170,26 +173,27 @@ const copyinvCommand: CustomCommand = {
             return;
         }
 
-        const targetName = params.player as string;
+        const targetName = params.player;
+        if (typeof targetName !== 'string') return;
         const targets = resolveTarget(targetName, executor);
         const targetPlayer = targets[0];
 
-        if (!targetPlayer) {
+        if (!isDefined(targetPlayer)) {
             executor.sendMessage('§cPlayer not found.');
             return;
         }
 
         const executorData = getPlayer(executor.id);
         const targetData = getPlayer(targetPlayer.id);
-        if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+        if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
             executor.sendMessage('§cYou cannot copy the inventory of a player with the same or higher rank than you.');
             return;
         }
 
-        const targetInv = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent)?.container;
-        const myInv = (executor.getComponent('inventory') as mc.EntityInventoryComponent)?.container;
+        const targetInv = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent | undefined)?.container;
+        const myInv = (executor.getComponent('inventory') as mc.EntityInventoryComponent | undefined)?.container;
 
-        if (!targetInv || !myInv) {
+        if (!isDefined(targetInv) || !isDefined(myInv)) {
             executor.sendMessage('§cCould not access inventory.');
             return;
         }
@@ -203,7 +207,7 @@ const copyinvCommand: CustomCommand = {
         let copiedCount = 0;
         for (let i = 0; i < targetInv.size; i++) {
             const item = targetInv.getItem(i);
-            if (item) {
+            if (isDefined(item)) {
                 // Clone the item to avoid reference issues
                 myInv.setItem(i, item.clone());
                 copiedCount++;

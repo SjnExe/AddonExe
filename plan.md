@@ -30,7 +30,7 @@ This plan outlines the steps to upgrade the codebase with strict TypeScript lint
 - [x] **Batch 2: Features - Economy & Ranks**
     - `src/features/economy/`
     - `src/features/ranks/` (Refactored from `src/core/`)
-- [ ] **Batch 3: Features - Moderation & AntiCheat**
+- [x] **Batch 3: Features - Moderation & AntiCheat**
     - `src/features/moderation/`
     - `src/features/anticheat/`
 - [ ] **Batch 4: Features - World & Player**
