@@ -6,11 +6,17 @@ import * as helpfulLinksManager from '@core/helpfulLinksManager.js';
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import * as rulesManager from '@core/rulesManager.js';
 import { showPanel } from '@core/uiManager.js';
+import { isDefined, isNonEmptyString } from '../../../lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler, MainConfig } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+
+interface ServerInfo {
+    helpfulLinks?: { title: string; url: string }[];
+    rules?: string[];
+}
 
 export class InfoPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -33,7 +39,7 @@ export class InfoPanelHandler implements IPanelHandler {
 
         if (panelId === 'infoPanel') {
             const def = panelDefinitions[panelId];
-            if (def) {
+            if (isDefined(def)) {
                 const staticItems = getStaticMenuItems(def, permissionLevel);
                 items.push(...staticItems);
             }
@@ -49,19 +55,19 @@ export class InfoPanelHandler implements IPanelHandler {
         if (panelId === 'helpfulLinksPanel') {
             addBackButton(items, 'infoPanel');
             const config = getConfig() as unknown as MainConfig;
-            // Explicit cast for safety
-            const serverInfo = config.serverInfo as { helpfulLinks: { title: string; url: string }[] };
-            const links = serverInfo?.helpfulLinks || [];
+            // Explicitly cast to ensure type safety in tests
+            const serverInfo = config.serverInfo as ServerInfo | undefined;
+            const links = serverInfo?.helpfulLinks ?? [];
 
             for (const [idx, link] of links.entries()) {
-                if (!link) continue;
+                if (!isDefined(link)) continue;
                 items.push({
                     id: `link_${idx}`,
                     text: link.title,
                     icon: 'textures/ui/world_glyph_color_2x_black_outline',
                     permissionLevel: 1024,
                     actionType: 'functionCall',
-                    actionValue: 'printLink', // Handled locally
+                    actionValue: 'printLink',
                     sortId: idx
                 });
             }
@@ -83,7 +89,7 @@ export class InfoPanelHandler implements IPanelHandler {
             const rules = rulesManager.getRules();
             const paginated = getPaginatedItems(rules, page);
             for (const [idx, rule] of paginated.entries()) {
-                if (!rule) continue;
+                if (!isNonEmptyString(rule)) continue;
                 const realIndex = (page - 1) * itemsPerPage + idx;
                 items.push({
                     id: String(realIndex),
@@ -108,7 +114,6 @@ export class InfoPanelHandler implements IPanelHandler {
                     actionType: 'functionCall',
                     actionValue: 'deleteRule'
                 });
-                // Add Move Up/Down if needed
             }
             return Promise.resolve(items);
         }
@@ -128,7 +133,7 @@ export class InfoPanelHandler implements IPanelHandler {
             const links = helpfulLinksManager.getHelpfulLinks();
             const paginated = getPaginatedItems(links, page);
             for (const [idx, link] of paginated.entries()) {
-                if (!link) continue;
+                if (!isDefined(link)) continue;
                 const realIndex = (page - 1) * itemsPerPage + idx;
                 items.push({
                     id: String(realIndex),
@@ -143,14 +148,29 @@ export class InfoPanelHandler implements IPanelHandler {
             return Promise.resolve(items);
         }
 
+        if (panelId === 'helpfulLinkActionPanel') {
+            addBackButton(items, 'helpfulLinksManagementPanel');
+            if (permissionLevel <= 1) {
+                items.push({
+                    id: 'delete',
+                    text: 'Delete Link',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 1,
+                    actionType: 'functionCall',
+                    actionValue: 'deleteHelpfulLink'
+                });
+            }
+            return Promise.resolve(items);
+        }
+
         return Promise.resolve(items);
     }
 
     getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined | void> {
         if (panelId === 'rulesPanel') {
             const config = getConfig() as unknown as MainConfig;
-            const serverInfo = config.serverInfo as { rules: string[] };
-            const rules = serverInfo?.rules || [];
+            const serverInfo = config.serverInfo as ServerInfo | undefined;
+            const rules = serverInfo?.rules ?? [];
             return Promise.resolve(rules.join('\n\n'));
         }
         if (panelId === 'helpfulLinksPanel') {
@@ -182,8 +202,8 @@ export class InfoPanelHandler implements IPanelHandler {
 
         if (panelId === 'addRulePanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'rulesManagementPanel');
-            const [rule] = values as [string];
-            if (rule) {
+            const [rule] = (values as [string | undefined]) ?? [];
+            if (isNonEmptyString(rule)) {
                 rulesManager.addRule(rule);
                 player.sendMessage('§2Rule added.');
             }
@@ -192,8 +212,8 @@ export class InfoPanelHandler implements IPanelHandler {
 
         if (panelId === 'addHelpfulLinkPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'helpfulLinksManagementPanel');
-            const [title, url] = values as [string, string];
-            if (title && url) {
+            const [title, url] = (values as [string | undefined, string | undefined]) ?? [];
+            if (isNonEmptyString(title) && isNonEmptyString(url)) {
                 helpfulLinksManager.addHelpfulLink(title, url);
                 player.sendMessage('§2Link added.');
             }
@@ -204,7 +224,7 @@ export class InfoPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!isDefined(item)) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {
@@ -244,22 +264,20 @@ export class InfoPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'printLink') {
                     const config = getConfig() as unknown as MainConfig;
-                    const serverInfo = config.serverInfo as { helpfulLinks: { title: string; url: string }[] };
-                    const links = serverInfo?.helpfulLinks || [];
-                    const index = Number.parseInt(item.id.split('_')[1] || '0');
+                    const serverInfo = config.serverInfo as ServerInfo | undefined;
+                    const links = serverInfo?.helpfulLinks ?? [];
+                    const index = Number.parseInt(item.id.split('_')[1] ?? '0');
                     const link = links[index];
 
-                    if (link) {
+                    if (isDefined(link)) {
                         player.sendMessage(`§eLink: §b${link.title}§r\n§a${link.url}`);
                     }
                     // Re-open panel
                     return showPanel(player, panelId, context);
                 }
 
-                if (item.actionType === 'functionCall') {
-                    await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id });
-                    return;
-                }
+                await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id });
+                return;
             }
         }
     }

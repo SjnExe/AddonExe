@@ -9,6 +9,7 @@ import { getValueFromPath, setValueByPath } from '@core/objectUtils.js';
 import { getOrCreatePlayer, type PlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '../../../lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';
@@ -17,11 +18,11 @@ import { IPanelHandler } from '@ui/types.js';
 import {
     addBackButton,
     addPaginationItems,
+    configHandlers as uiConfigHandlers,
     getPaginatedItems,
     getSystemsByCategory,
     getVisibleCategories,
-    itemsPerPage,
-    configHandlers as uiConfigHandlers
+    itemsPerPage
 } from '@ui/uiUtils.js';
 
 export class ConfigPanelHandler implements IPanelHandler {
@@ -45,7 +46,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const categories = getVisibleCategories(pData);
             const paginated = getPaginatedItems(categories, (context.page as number) || 1);
             for (const cat of paginated) {
-                if (!cat) continue;
+                if (!isDefined(cat)) continue;
                 items.push({
                     id: cat.id,
                     text: cat.title,
@@ -75,7 +76,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const systems = getSystemsByCategory(pData, category);
             const paginated = getPaginatedItems(systems, (context.page as number) || 1);
             for (const sys of paginated) {
-                if (!sys) continue;
+                if (!isDefined(sys)) continue;
                 items.push({
                     id: sys.id,
                     text: sys.title,
@@ -94,7 +95,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const categories = getVisibleCategories(pData);
             const paginated = getPaginatedItems(categories, (context.page as number) || 1);
             for (const cat of paginated) {
-                if (!cat) continue;
+                if (!isDefined(cat)) continue;
                 items.push({
                     id: cat.id,
                     text: `Reset ${cat.title}`,
@@ -134,7 +135,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             });
 
             for (const sys of paginated) {
-                if (!sys) continue;
+                if (!isDefined(sys)) continue;
                 items.push({
                     id: sys.id,
                     text: `§4Reset ${sys.title}`,
@@ -155,12 +156,17 @@ export class ConfigPanelHandler implements IPanelHandler {
         if (panelId.startsWith('config_')) {
             const categoryId = panelId.replace('config_', '');
             const category = configPanelSchema.find((c) => c.id === categoryId);
-            if (!category) return Promise.resolve();
+            if (!isDefined(category)) return Promise.resolve();
             const form = new ModalFormData().title(category.title);
-            const configSource = category.configSource || 'main';
-            const handler = uiConfigHandlers[configSource];
-            if (!handler) return Promise.resolve();
-            const config = handler.get() as unknown as Record<string, unknown>;
+            const configSource = isNonEmptyString(category.configSource) ? category.configSource : 'main';
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+            const handlers = uiConfigHandlers as any;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            const handler = handlers[configSource] as { get: () => unknown; save: (cfg: unknown) => void } | undefined;
+
+            if (!isDefined(handler)) return Promise.resolve();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const config = handler.get() as Record<string, any>;
 
             // Filter settings to ensure consistent index mapping
             const validSettings = category.settings.filter((s) => ['toggle', 'textField', 'dropdown'].includes(s.type));
@@ -169,7 +175,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 const currentValue = getValueFromPath(config, setting.key);
                 switch (setting.type) {
                     case 'toggle': {
-                        form.toggle(setting.label, { defaultValue: !!currentValue });
+                        form.toggle(setting.label, { defaultValue: Boolean(currentValue) });
 
                         break;
                     }
@@ -177,13 +183,17 @@ export class ConfigPanelHandler implements IPanelHandler {
                         const val = currentValue ?? '';
                         const strVal =
                             typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
-                        form.textField(setting.label, setting.description || '', { defaultValue: strVal });
+                        form.textField(
+                            setting.label,
+                            isNonEmptyString(setting.description) ? setting.description : '',
+                            { defaultValue: strVal }
+                        );
 
                         break;
                     }
                     case 'dropdown': {
                         let index = -1;
-                        const options = setting.options || [];
+                        const options = setting.options ?? [];
                         index =
                             setting.key === 'logLevel' && typeof currentValue === 'number'
                                 ? currentValue
@@ -214,7 +224,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!isDefined(item)) return;
                 if (item.actionType === 'openPanel') {
                     // Title Fix for SubCategories
                     if (item.actionValue.startsWith('configSubCategoryPanel_')) {
@@ -251,7 +261,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                             if (finalConfirmResponse.canceled) return showPanel(player, panelId, context);
                             const confirmModal = finalConfirmResponse as ModalFormResponse;
                             const confirmationValue =
-                                confirmModal.formValues && confirmModal.formValues[0]
+                                isDefined(confirmModal.formValues) && isDefined(confirmModal.formValues[0])
                                     ? String(confirmModal.formValues[0])
                                     : '';
                             if (confirmationValue.trim().toLowerCase() !== 'confirm') {
@@ -320,10 +330,9 @@ export class ConfigPanelHandler implements IPanelHandler {
                     return;
                 }
 
-                if (item.actionType === 'functionCall') {
-                    await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id });
-                    return;
-                }
+                // Removed redundant functionCall check
+                await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id });
+                return;
             }
         }
 
@@ -333,13 +342,13 @@ export class ConfigPanelHandler implements IPanelHandler {
             const category = configPanelSchema.find((c) => c.id === categoryId);
 
             if ((response as ModalFormResponse).canceled) {
-                if (category && category.category) {
+                if (isDefined(category) && isNonEmptyString(category.category)) {
                     return showPanel(player, `configSubCategoryPanel_${category.category}`, { ...context, page: 1 });
                 }
                 return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
             }
 
-            if (category && values) {
+            if (isDefined(category) && isDefined(values)) {
                 const updates: Record<string, unknown> = {};
 
                 // Filter settings to match buildModal logic
@@ -350,14 +359,14 @@ export class ConfigPanelHandler implements IPanelHandler {
                 for (const [index, setting] of validSettings.entries()) {
                     let value = values[index];
                     if (setting.type === 'dropdown') {
-                        const options = setting.options || [];
+                        const options = setting.options ?? [];
                         const selectedIndex = value as number;
                         value = setting.key === 'logLevel' ? selectedIndex : options[selectedIndex];
                     } else if (setting.type === 'textField') {
                         const strVal = value as string;
                         const current = getValueFromPath(getConfig(), setting.key);
                         if (typeof current === 'number') {
-                            if (!Number.isNaN(Number(strVal)) && strVal.trim() !== '') {
+                            if (!Number.isNaN(Number(strVal)) && isNonEmptyString(strVal) && strVal.trim() !== '') {
                                 value = Number(strVal);
                             } else {
                                 // Skip update if input is invalid for a number field
@@ -368,13 +377,18 @@ export class ConfigPanelHandler implements IPanelHandler {
                     updates[setting.key] = value;
                 }
 
-                const configSource = category.configSource || 'main';
-                const handler = uiConfigHandlers[configSource];
-                if (handler) {
+                const configSource = isNonEmptyString(category.configSource) ? category.configSource : 'main';
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+                const handlers = uiConfigHandlers as any;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                const handler = handlers[configSource] as { get: () => unknown; save: (cfg: unknown) => void } | undefined;
+
+                if (isDefined(handler)) {
                     if (configSource === 'main') {
                         handler.save(updates);
                     } else {
-                        const currentConfig = handler.get();
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const currentConfig = handler.get() as Record<string, any>;
                         for (const key in updates) {
                             setValueByPath(currentConfig, key, updates[key]);
                         }
@@ -391,7 +405,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     }
                 }
             }
-            if (category && category.category) {
+            if (isDefined(category) && isNonEmptyString(category.category)) {
                 return showPanel(player, `configSubCategoryPanel_${category.category}`, { ...context, page: 1 });
             }
             return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });

@@ -62,7 +62,6 @@
         "eslint": "latest",
         "eslint-config-prettier": "latest",
         "eslint-import-resolver-typescript": "latest",
-        "eslint-plugin-deprecation": "latest",
         "eslint-plugin-import": "latest",
         "eslint-plugin-jsonc": "latest",
         "eslint-plugin-minecraft-linting": "latest",

@@ -4,6 +4,7 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 import { commandManager } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { showPanel } from '@core/uiManager.js';
+import { isDefined } from '../../../lib/guards.js';
 import { IPanelHandler, MainConfig, PanelItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 
@@ -36,8 +37,8 @@ export class CommandPanelHandler implements IPanelHandler {
             const paginated = getPaginatedItems(commands, (context.page as number) || 1);
 
             for (const cmd of paginated) {
-                if (!cmd) continue;
-                const cmdSettings = settings[cmd.name] || {};
+                if (!isDefined(cmd)) continue;
+                const cmdSettings = settings[cmd.name] ?? {};
                 const isEnabled = cmdSettings.enabled !== false;
                 const color = isEnabled ? '§2' : '§4';
                 const perm = cmdSettings.permissionLevel ?? cmd.permissionLevel ?? 0;
@@ -62,7 +63,7 @@ export class CommandPanelHandler implements IPanelHandler {
             const cmdName = panelId.replace('commandSettingsPanel_', '');
             const config = getConfig() as unknown as MainConfig;
             const settings = (config.commandSettings || {}) as Record<string, CmdSettings>;
-            const cmdSettings = settings[cmdName] || {};
+            const cmdSettings = settings[cmdName] ?? {};
             const command = commandManager.commands.get(cmdName);
 
             const isEnabled = cmdSettings.enabled !== false;
@@ -93,7 +94,7 @@ export class CommandPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!isDefined(item)) return;
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, { ...context, page: 1 });
                 }
