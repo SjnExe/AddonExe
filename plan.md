@@ -27,9 +27,9 @@ This plan outlines the steps to upgrade the codebase with strict TypeScript lint
     - [x] Fix `src/core/commands/commandManager.ts` (Completed)
     - [x] Fix `src/core/ui/panels/` (Completed: Refactored to strict null safety and aliased imports)
     - [x] Fix `src/core/logger.ts`, `src/core/storage/` (Verified clean)
-- [ ] **Batch 2: Features - Economy & Ranks**
+- [x] **Batch 2: Features - Economy & Ranks**
     - `src/features/economy/`
-    - `src/features/ranks/`
+    - `src/features/ranks/` (Refactored from `src/core/`)
 - [ ] **Batch 3: Features - Moderation & AntiCheat**
     - `src/features/moderation/`
     - `src/features/anticheat/`
