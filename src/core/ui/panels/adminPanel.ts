@@ -4,7 +4,7 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 import { floatingTextManager } from '@core/floatingTextManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatLocation } from '@core/utils.js';
-import { isDefined, isNonEmptyString } from '../../../lib/guards.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';

@@ -5,7 +5,7 @@ import { getRanksConfig, saveRanksConfig } from '@core/configurations.js';
 import * as rankManager from '@core/rankManager.js';
 import { RankDefinition } from '@core/ranksConfig.default.js';
 import { showPanel } from '@core/uiManager.js';
-import { isDefined, isNonEmptyString } from '../../../lib/guards.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';

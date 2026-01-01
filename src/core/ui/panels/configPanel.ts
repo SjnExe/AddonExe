@@ -9,7 +9,7 @@ import { getValueFromPath, setValueByPath } from '@core/objectUtils.js';
 import { getOrCreatePlayer, type PlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
-import { isDefined, isNonEmptyString } from '../../../lib/guards.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';

@@ -4,7 +4,7 @@ import { ActionFormResponse } from '@minecraft/server-ui';
 import { getConfig } from '@core/configManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { showPanel } from '@core/uiManager.js';
-import { isDefined } from '../../../lib/guards.js';
+import { isDefined } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';

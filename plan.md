@@ -19,13 +19,13 @@ This plan outlines the steps to upgrade the codebase with strict TypeScript lint
 ## Phase 2: Batch Fixes (Linting Compliance)
 *Fixing errors exposed by the new rules, one directory at a time.*
 
-- [ ] **Batch 1: Core Infrastructure (`src/core`)**
+- [x] **Batch 1: Core Infrastructure (`src/core`)**
     - [x] Fix `src/core/utils/`
     - [x] Fix `src/core/configLoader.ts`
     - [x] Fix `src/core/ui/systemRegistry.ts` & `src/core/ui/uiUtils.ts`
     - [x] Fix `src/core/commands/index.ts`
-    - [ ] Fix `src/core/commands/commandManager.ts` (Partially fixed, ~30 errors remaining)
-    - [ ] Fix `src/core/ui/panels/` (Pending)
+    - [x] Fix `src/core/commands/commandManager.ts` (Completed)
+    - [x] Fix `src/core/ui/panels/` (Completed: Refactored to strict null safety and aliased imports)
     - [ ] Fix `src/core/logger.ts`, `src/core/storage/` (Status: Clean or Pending check)
 - [ ] **Batch 2: Features - Economy & Ranks**
     - `src/features/economy/`

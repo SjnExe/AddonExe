@@ -12,7 +12,7 @@ import {
 } from '@core/playerDataManager.js';
 import * as rankManager from '@core/rankManager.js';
 import { showPanel } from '@core/uiManager.js';
-import { isDefined, isNonEmptyString } from '../../../lib/guards.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';

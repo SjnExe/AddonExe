@@ -4,7 +4,7 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 import { commandManager } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { showPanel } from '@core/uiManager.js';
-import { isDefined } from '../../../lib/guards.js';
+import { isDefined } from '@lib/guards.js';
 import { IPanelHandler, MainConfig, PanelItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 
