@@ -1,3 +1,4 @@
+// FIXED
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
@@ -5,6 +6,7 @@ import { errorLog, warnLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { parseDuration, playSoundFromConfig } from '@core/utils.js';
+import { isDefined } from '@lib/guards.js';
 
 import { addPunishment, removePunishment } from '../punishmentManager.js';
 
@@ -34,9 +36,9 @@ export function banPlayer(
         }
     }
 
-    const durationString = duration || 'perm';
-    const durationMs = duration ? parseDuration(duration) : Infinity;
-    const expires = durationMs === Infinity ? Infinity : Date.now() + durationMs;
+    const durationString = isDefined(duration) ? duration : 'perm';
+    const durationMs = isDefined(duration) ? parseDuration(duration) : Infinity;
+    const expires = durationMs === Infinity ? Infinity : Date.now() + (durationMs as number);
     const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
 
     addPunishment(
@@ -90,7 +92,7 @@ const banCommand: CustomCommand = {
         const targetPlayers = args.target;
         let { duration, reason } = args;
 
-        if (!targetPlayers || targetPlayers.length === 0) {
+        if (!isDefined(targetPlayers) || targetPlayers.length === 0) {
             if (executor instanceof mc.Player) {
                 sendMessage('§cPlayer not found. If they are offline, use the /offlineban command.', executor);
             } else {
@@ -108,19 +110,20 @@ const banCommand: CustomCommand = {
             return;
         }
 
-        if (duration && parseDuration(duration) === 0) {
-            reason = `${duration}${reason ? ' ' + reason : ''}`;
+        if (isDefined(duration) && parseDuration(duration) === 0) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            reason = `${duration}${isDefined(reason) ? ' ' + reason : ''}`;
             duration = undefined;
         }
 
-        banPlayer(executor, targetPlayer, duration, reason || 'No reason provided.');
+        banPlayer(executor, targetPlayer, duration, isDefined(reason) ? reason : 'No reason provided.');
     }
 };
 
 export function unbanPlayer(executor: CommandExecutor, targetName: string) {
     const targetId = getPlayerIdByName(targetName);
 
-    if (!targetId) {
+    if (!isDefined(targetId)) {
         if (executor instanceof mc.Player) {
             sendMessage(
                 `§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`,
@@ -201,9 +204,9 @@ export function offlineBanPlayer(
         }
     }
 
-    const durationString = duration || 'perm';
-    const durationMs = duration ? parseDuration(duration) : Infinity;
-    const expires = durationMs === Infinity ? Infinity : Date.now() + durationMs;
+    const durationString = isDefined(duration) ? duration : 'perm';
+    const durationMs = isDefined(duration) ? parseDuration(duration) : Infinity;
+    const expires = durationMs === Infinity ? Infinity : Date.now() + (durationMs as number);
     const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
 
     addPunishment(
@@ -259,7 +262,7 @@ const offlineBanCommand: CustomCommand = {
         let { duration, reason } = argsTyped;
 
         const targetId = getPlayerIdByName(targetName);
-        if (!targetId) {
+        if (!isDefined(targetId)) {
             if (executor instanceof mc.Player) {
                 sendMessage(`§cPlayer "${targetName}" has never joined this server.`, executor);
             } else {
@@ -269,14 +272,15 @@ const offlineBanCommand: CustomCommand = {
         }
 
         const targetData = loadPlayerData(targetId);
-        const correctTargetName = targetData ? targetData.name : targetName;
+        const correctTargetName = isDefined(targetData) ? targetData.name : targetName;
 
-        if (duration && parseDuration(duration) === 0) {
-            reason = `${duration}${reason ? ' ' + reason : ''}`;
+        if (isDefined(duration) && parseDuration(duration) === 0) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            reason = `${duration}${isDefined(reason) ? ' ' + reason : ''}`;
             duration = undefined;
         }
 
-        offlineBanPlayer(executor, targetId, correctTargetName, duration, reason || 'No reason provided.');
+        offlineBanPlayer(executor, targetId, correctTargetName, duration, isDefined(reason) ? reason : 'No reason provided.');
     }
 };
 

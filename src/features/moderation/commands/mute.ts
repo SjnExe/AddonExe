@@ -6,6 +6,7 @@ import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { parseDuration, playSound } from '@core/utils.js';
+import { isDefined } from '@lib/guards.js';
 
 import { addPunishment, removePunishment } from '../punishmentManager.js';
 
@@ -15,15 +16,6 @@ export function mutePlayer(
     duration: string | undefined,
     reason: string
 ) {
-    if (!targetPlayer) {
-        if (executor instanceof mc.Player) {
-            sendMessage('§cPlayer not found.', executor);
-            playSound(executor, soundError);
-        } else {
-            executor.sendMessage('§cPlayer not found.');
-        }
-        return;
-    }
     if (executor instanceof mc.Player) {
         if (executor.id === targetPlayer.id) {
             sendMessage('§cYou cannot mute yourself.', executor);
@@ -43,8 +35,8 @@ export function mutePlayer(
             return;
         }
     }
-    const durationString = duration || 'perm';
-    const durationMs = duration ? parseDuration(duration) : Infinity;
+    const durationString = isDefined(duration) ? duration : 'perm';
+    const durationMs = isDefined(duration) ? parseDuration(duration) : Infinity;
     const expires = durationMs === Infinity ? Infinity : Date.now() + durationMs;
     const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
     addPunishment(
@@ -91,7 +83,7 @@ const muteCommand: CustomCommand = {
         const targetPlayers = args.target;
         let { duration, reason } = args;
 
-        if (!targetPlayers || targetPlayers.length === 0) {
+        if (!isDefined(targetPlayers) || targetPlayers.length === 0) {
             if (executor instanceof mc.Player) {
                 sendMessage('§cPlayer not found.', executor);
             } else {
@@ -106,19 +98,20 @@ const muteCommand: CustomCommand = {
             return;
         }
 
-        if (duration && parseDuration(duration) === 0) {
-            reason = `${duration}${reason ? ' ' + reason : ''}`;
+        if (isDefined(duration) && parseDuration(duration) === 0) {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            reason = `${duration}${isDefined(reason) ? ' ' + reason : ''}`;
             duration = undefined;
         }
 
-        mutePlayer(executor, targetPlayer, duration, reason || 'No reason provided.');
+        mutePlayer(executor, targetPlayer, duration, isDefined(reason) ? reason : 'No reason provided.');
     }
 };
 
 export function unmutePlayer(executor: CommandExecutor, targetName: string) {
     const targetId = getPlayerIdByName(targetName);
 
-    if (!targetId) {
+    if (!isDefined(targetId)) {
         if (executor instanceof mc.Player) {
             sendMessage(`§cPlayer "${targetName}" has never joined the server or name is misspelled.`, executor);
         } else {

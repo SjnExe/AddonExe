@@ -30,7 +30,7 @@ This plan outlines the steps to upgrade the codebase with strict TypeScript lint
 - [x] **Batch 2: Features - Economy & Ranks**
     - `src/features/economy/`
     - `src/features/ranks/` (Refactored from `src/core/`)
-- [ ] **Batch 3: Features - Moderation & AntiCheat**
+- [x] **Batch 3: Features - Moderation & AntiCheat**
     - `src/features/moderation/`
     - `src/features/anticheat/`
 - [ ] **Batch 4: Features - World & Player**
@@ -52,3 +52,9 @@ This plan outlines the steps to upgrade the codebase with strict TypeScript lint
 4.  **Use `src/lib`:** Replace ad-hoc null checks with `isDefined()` or similar guards from `src/lib`.
 5.  **Verify:** Ensure `npm run build` passes after every batch.
 6.  **Update Plan:** Mark the batch as complete in this file.
+
+### Learned Best Practices
+*   **Use `isDefined`:** Always import `{ isDefined } from '@lib/guards.js'` for null/undefined checks. Avoid loose boolean checks on objects or strings.
+*   **Overwrite for Reliability:** When applying broad fixes to a file, prefer `overwrite_file_with_block` over `replace_with_git_merge_diff` if the diffs are complex or if you suspect partial application issues.
+*   **ESLint Caching:** If `eslint` reports errors that contradict the file content (verified via `read_file`), run `npx eslint --no-cache` to clear stale results.
+*   **Strict Boolean Expressions:** The linter forbids `if (nullableString)`. Use `if (isDefined(nullableString) && nullableString.length > 0)` or similar explicit checks.
