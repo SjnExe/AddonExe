@@ -1,5 +1,6 @@
 import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
+import { isDefined, isNumber } from '@lib/guards.js';
 import { errorLog } from './logger.js';
 import { setActionBarOverride } from './sidebarManager.js';
 import { playSound } from './utils/sound.js';
@@ -24,13 +25,18 @@ export function startTeleportWarmup(
     let hurtListener: ((event: mc.EntityHurtAfterEvent) => void) | undefined = undefined;
 
     const cleanup = () => {
-        if (intervalId !== undefined) {
+        if (isNumber(intervalId)) {
             mc.system.clearRun(intervalId);
             intervalId = undefined;
         }
-        if (hurtListener) {
+        if (isDefined(hurtListener)) {
             try {
-                if (mc.world?.afterEvents?.entityHurt?.unsubscribe) {
+                if (
+                    isDefined(mc.world) &&
+                    isDefined(mc.world.afterEvents) &&
+                    isDefined(mc.world.afterEvents.entityHurt) &&
+                    typeof mc.world.afterEvents.entityHurt.unsubscribe === 'function'
+                ) {
                     mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
                 }
             } catch {
@@ -42,7 +48,7 @@ export function startTeleportWarmup(
 
     const cancel = () => {
         cleanup();
-        if (onCancel) onCancel();
+        if (isDefined(onCancel)) onCancel();
     };
 
     hurtListener = (event: mc.EntityHurtAfterEvent) => {
@@ -59,7 +65,8 @@ export function startTeleportWarmup(
 
     intervalId = mc.system.runInterval(() => {
         try {
-            if (!player.isValid) {
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            if (!(player as any).isValid()) {
                 cancel();
                 return;
             }

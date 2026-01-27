@@ -1,3 +1,4 @@
+import { isDefined } from '@lib/guards.js';
 import { getConfig, onConfigUpdated, updateConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 
@@ -14,15 +15,17 @@ function checkDependencies(config: unknown) {
     const typedConfig = config as Record<string, { enabled?: boolean }>;
 
     for (const feature in dependencies) {
-        const featureEnabled = typedConfig[feature]?.enabled;
+        const featureConfig = typedConfig[feature];
+        const featureEnabled = isDefined(featureConfig) ? featureConfig.enabled : undefined;
 
-        if (featureEnabled) {
+        if (featureEnabled === true) {
             const deps = dependencies[feature];
-            if (!deps) continue;
+            if (!isDefined(deps)) continue;
             for (const dep of deps) {
-                const depEnabled = typedConfig[dep]?.enabled;
+                const depConfig = typedConfig[dep];
+                const depEnabled = isDefined(depConfig) ? depConfig.enabled : undefined;
 
-                if (!depEnabled) {
+                if (depEnabled !== true) {
                     debugLog(`[FeatureDependencies] Enabling '${dep}' because '${feature}' is enabled.`);
                     updateConfig(`${dep}.enabled`, true);
                 }
@@ -34,7 +37,7 @@ function checkDependencies(config: unknown) {
 export function initializeFeatureDependencies() {
     // Initial check
     const config = getConfig();
-    if (config) {
+    if (isDefined(config)) {
         checkDependencies(config);
     }
 

@@ -19,14 +19,14 @@ This document outlines the strategy to resolve the 500+ linting errors identifie
 
 ## Batches
 
-### Batch 1: Critical Fixes & Setup
+### Batch 1: Critical Fixes & Setup [x] Completed
 **Goal:** Fix high-severity issues and setup patterns.
 - **Files:**
   - `src/features/essentials/commands/help.ts` (Fix `no-unsafe-assignment`)
   - `src/core/commands/commandManager.ts` (High volume of errors, core logic)
   - `src/core/commands/index.ts`
 
-### Batch 2: Core Event Handlers
+### Batch 2: Core Event Handlers [x] Completed
 **Goal:** Ensure event stability.
 - **Files:**
   - `src/core/events/beforeChatSend.ts`
@@ -39,7 +39,7 @@ This document outlines the strategy to resolve the 500+ linting errors identifie
   - `src/core/events/scriptEventReceive.ts`
   - `src/core/mobDeathEvents.ts`
 
-### Batch 3: Core Managers (Part A)
+### Batch 3: Core Managers (Part A) [x] Completed
 **Goal:** Fix configuration and data management.
 - **Files:**
   - `src/core/configManager.ts`
