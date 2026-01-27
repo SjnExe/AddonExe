@@ -5,6 +5,7 @@ import { getConfig } from '@core/configManager.js';
 import { items as allItems } from '@core/itemsConfig.default.js';
 import { showPanel } from '@core/uiManager.js';
 import { parseCurrency } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import * as shopAdminManager from '../shopAdminManager.js';
 import * as shopManager from '../shopManager.js';
@@ -79,12 +80,12 @@ const sellHandCommand: CustomCommand = {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
         const equipment = executor.getComponent('minecraft:equippable');
-        if (!equipment) {
+        if (!isDefined(equipment)) {
             return executor.sendMessage('§cCould not access your inventory.');
         }
         const item = equipment.getEquipment(mc.EquipmentSlot.Mainhand);
 
-        if (!item) {
+        if (!isDefined(item)) {
             return executor.sendMessage("§cYou aren't holding anything.");
         }
 
@@ -97,10 +98,10 @@ const sellHandCommand: CustomCommand = {
         const itemTypeId = item.typeId;
         const shopItemKey = Object.keys(allItems).find((key) => {
             const entry = (allItems as Record<string, { itemId: string }>)[key];
-            return entry && entry.itemId === itemTypeId;
+            return isDefined(entry) && entry.itemId === itemTypeId;
         });
 
-        if (!shopItemKey) {
+        if (!isNonEmptyString(shopItemKey)) {
             return executor.sendMessage("§cYou can't sell this item to the shop.");
         }
 
@@ -129,7 +130,7 @@ const addShopCommand: CustomCommand = {
         { name: 'subCategory', type: 'string', optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player) || !args) {
+        if (!(executor instanceof mc.Player) || !isDefined(args)) {
             return;
         }
 
@@ -145,7 +146,7 @@ const addShopCommand: CustomCommand = {
             subCategory
         } = args as unknown as AddShopCommandArgs;
 
-        if (!buyPriceStr || !sellPriceStr) {
+        if (!isNonEmptyString(buyPriceStr) || !isNonEmptyString(sellPriceStr)) {
             return executor.sendMessage('§cPlease specify buy and sell prices.');
         }
 
@@ -167,19 +168,19 @@ const addShopCommand: CustomCommand = {
         }
 
         const equipment = executor.getComponent('minecraft:equippable');
-        if (!equipment) {
+        if (!isDefined(equipment)) {
             return executor.sendMessage('§cCould not access your inventory.');
         }
         const item = equipment.getEquipment(mc.EquipmentSlot.Mainhand);
 
-        if (!item) {
+        if (!isDefined(item)) {
             return executor.sendMessage("§cYou aren't holding anything.");
         }
 
         const result = shopAdminManager.addShopItemFromHand(
             item,
             category,
-            subCategory || undefined,
+            isNonEmptyString(subCategory) ? subCategory : undefined,
             buyPrice,
             sellPrice
         );

@@ -12,6 +12,7 @@ import {
     setTpaRequestsDisabled
 } from '@core/playerDataManager.js';
 import { playSound, resolveTarget } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import {
     acceptRequest,
@@ -42,7 +43,7 @@ const tpaCommand: CustomCommand = {
         }
 
         const targetName = args.target as string;
-        if (!targetName) return sendMessage('§cPlease specify a player.', executor);
+        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player.', executor);
 
         // Block mass selectors
         if (targetName.startsWith('@a') || targetName.startsWith('@e')) {
@@ -51,11 +52,11 @@ const tpaCommand: CustomCommand = {
 
         const targets = resolveTarget(targetName, executor);
 
-        if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(targets) || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
         if (targets.length > 1) return sendMessage('§cMultiple players found. Please be more specific.', executor);
 
         const targetPlayer = targets[0];
-        if (!targetPlayer) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(targetPlayer)) return sendMessage('§cPlayer not found.', executor);
 
         if (targetPlayer.id === executor.id)
             return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
@@ -97,7 +98,7 @@ const tpaHereCommand: CustomCommand = {
         }
 
         const targetName = args.target as string;
-        if (!targetName) return sendMessage('§cPlease specify a player.', executor);
+        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player.', executor);
 
         // Block mass selectors
         if (targetName.startsWith('@a') || targetName.startsWith('@e')) {
@@ -105,11 +106,11 @@ const tpaHereCommand: CustomCommand = {
         }
 
         const targets = resolveTarget(targetName, executor);
-        if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(targets) || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
         if (targets.length > 1) return sendMessage('§cMultiple players found. Please be more specific.', executor);
 
         const targetPlayer = targets[0];
-        if (!targetPlayer) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(targetPlayer)) return sendMessage('§cPlayer not found.', executor);
 
         if (targetPlayer.id === executor.id)
             return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
@@ -153,10 +154,10 @@ const tpaAcceptCommand: CustomCommand = {
         const typedArgs = args as unknown as TpaResponseArgs;
         let targetName = typedArgs.player;
 
-        if (targetName) {
+        if (isNonEmptyString(targetName)) {
             const targets = resolveTarget(targetName, executor);
             const target = targets[0];
-            if (target) targetName = target.name;
+            if (isDefined(target)) targetName = target.name;
             else {
                 // If not online, maybe it's just a name string? But acceptRequest usually expects exact name or handles it.
                 // Let's pass the string as is if resolution fails, but tpaManager likely matches online players.
@@ -185,10 +186,10 @@ const tpaDenyCommand: CustomCommand = {
         const typedArgs = args as unknown as TpaResponseArgs;
         let targetName = typedArgs.player;
 
-        if (targetName) {
+        if (isNonEmptyString(targetName)) {
             const targets = resolveTarget(targetName, executor);
             const target = targets[0];
-            if (target) targetName = target.name;
+            if (isDefined(target)) targetName = target.name;
         }
 
         denyRequest(executor, targetName);
@@ -232,14 +233,14 @@ const tpaStatusCommand: CustomCommand = {
         let statusMessage = '§a--- TPA Status ---\n';
         let foundRequest = false;
 
-        if (outgoing) {
+        if (isDefined(outgoing)) {
             foundRequest = true;
             const typeText = outgoing.type === 'tpa' ? 'teleport to them' : 'teleport them to you';
             statusMessage += `§eOutgoing Request:§r You have sent a request to §b${outgoing.targetPlayerName}§r to ${typeText}.\n`;
             statusMessage += '§7(Use /tpacancel to cancel this request)\n';
         }
 
-        if (incoming) {
+        if (isDefined(incoming)) {
             foundRequest = true;
             const typeText = incoming.type === 'tpa' ? 'teleport to you' : 'teleport you to them';
             statusMessage += `§eIncoming Request:§r You have a request from §b${incoming.sourcePlayerName}§r to ${typeText}.\n`;
@@ -275,7 +276,7 @@ const tpaStopCommand: CustomCommand = {
 
         const targetStr = args.targets as string | undefined;
 
-        if (targetStr) {
+        if (isNonEmptyString(targetStr)) {
             const targets = resolveTarget(targetStr, executor);
             if (targets.length === 0) return sendMessage('§cPlayer not found.', executor);
 
@@ -308,7 +309,7 @@ const tpaStartCommand: CustomCommand = {
 
         const targetStr = args.targets as string | undefined;
 
-        if (targetStr) {
+        if (isNonEmptyString(targetStr)) {
             const targets = resolveTarget(targetStr, executor);
             if (targets.length === 0) return sendMessage('§cPlayer not found.', executor);
 
@@ -344,11 +345,11 @@ const oTpaStopCommand: CustomCommand = {
 
         const targetName = args.target as string;
 
-        if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
+        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
 
         const targetId = getPlayerIdByName(targetName);
-        if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
-        const displayName = getPlayerNameById(targetId) || targetName;
+        if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        const displayName = getPlayerNameById(targetId) ?? targetName;
 
         addTpaBlockedPlayer(executor.id, targetId);
         sendMessage(`§aYou have blocked ${displayName} from sending you TPA requests (Offline).`, executor);
@@ -374,11 +375,11 @@ const oTpaStartCommand: CustomCommand = {
 
         const targetName = args.target as string;
 
-        if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
+        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
 
         const targetId = getPlayerIdByName(targetName);
-        if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
-        const displayName = getPlayerNameById(targetId) || targetName;
+        if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        const displayName = getPlayerNameById(targetId) ?? targetName;
 
         removeTpaBlockedPlayer(executor.id, targetId);
         sendMessage(`§aYou have unblocked ${displayName} (Offline).`, executor);

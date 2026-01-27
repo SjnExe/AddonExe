@@ -7,6 +7,7 @@ import { showPanel } from '@core/uiManager.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { addBackButton } from '@ui/uiUtils.js';
 import * as tpaManager from '../tpaManager.js';
+import { isNonEmptyString } from '@lib/guards.js';
 
 export class TeleportPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -32,7 +33,7 @@ export class TeleportPanelHandler implements IPanelHandler {
                 });
             }
 
-            const isEnabled = !pData?.tpaRequestsDisabled;
+            const isEnabled = !(pData?.tpaRequestsDisabled ?? false);
             items.push(
                 {
                     id: 'toggleTpa',
@@ -56,9 +57,9 @@ export class TeleportPanelHandler implements IPanelHandler {
 
         if (panelId === 'tpaBlockListPanel') {
             addBackButton(items, 'tpaSettingsPanel');
-            const blocked = pData?.tpaBlockedPlayerIds || [];
+            const blocked = pData?.tpaBlockedPlayerIds ?? [];
             for (const id of blocked) {
-                const name = loadPlayerData(id)?.name || id;
+                const name = loadPlayerData(id)?.name ?? id;
                 items.push({
                     id: id,
                     text: name,
@@ -103,7 +104,7 @@ export class TeleportPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'unblockPlayer') {
                     const targetId = item.id;
-                    if (targetId) {
+                    if (isNonEmptyString(targetId)) {
                         tpaManager.unblockPlayer(player, targetId);
                         player.sendMessage('§aPlayer unblocked.');
                     }

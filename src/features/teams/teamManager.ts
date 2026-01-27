@@ -11,6 +11,7 @@ import {
 } from '@core/playerDataManager.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 import { TeamPanelHandler } from './ui/teamPanel.js';
 
@@ -48,10 +49,9 @@ let nextTeamId = 1;
 function* loadTeamsJob(allIds: number[]) {
     let loadedCount = 0;
     for (const [i, id] of allIds.entries()) {
-        if (id === undefined) continue;
         try {
             const teamDataStr = mc.world.getDynamicProperty(`${teamPropertyPrefix}${id}`);
-            if (teamDataStr && typeof teamDataStr === 'string') {
+            if (isNonEmptyString(teamDataStr)) {
                 const team = JSON.parse(teamDataStr) as TeamData;
                 activeTeams.set(id, team);
                 loadedCount++;
@@ -110,7 +110,7 @@ export function initialize() {
 
 function saveTeam(teamId: number) {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return;
     }
     try {
@@ -176,7 +176,7 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
     }
 
     const pData = getOrCreatePlayer(player);
-    if (pData.teamId) {
+    if (isDefined(pData.teamId)) {
         return { success: false, message: '§cYou are already in a team.' };
     }
     if (pData.balance < teamConfig.creationCost) {
@@ -240,7 +240,7 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
  */
 export function deleteTeam(teamId: number): boolean {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return false;
     }
 
@@ -248,7 +248,7 @@ export function deleteTeam(teamId: number): boolean {
     for (const memberId of team.members) {
         setPlayerTeam(memberId, undefined);
         const p = mc.world.getAllPlayers().find((pl) => pl.id === memberId);
-        if (p) {
+        if (isDefined(p)) {
             p.sendMessage('§cYour team has been deleted by the owner.');
         }
     }
@@ -276,7 +276,7 @@ export function getPlayerTeamId(playerId: string): number | undefined {
 
 export function getTeamByPlayer(playerId: string): TeamData | undefined {
     const teamId = getPlayerTeamId(playerId);
-    return teamId ? activeTeams.get(teamId) || undefined : undefined;
+    return isDefined(teamId) ? activeTeams.get(teamId) || undefined : undefined;
 }
 
 /**
@@ -294,7 +294,7 @@ export function setPlayerTeam(playerId: string, teamId: number | undefined) {
 
 export function kickMember(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return { success: false, message: 'Team not found.' };
     }
 
@@ -313,7 +313,7 @@ export function kickMember(teamId: number, targetId: string): ActionResult {
 
 export function promoteMember(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return { success: false };
     }
     if (!team.members.includes(targetId)) {
@@ -330,7 +330,7 @@ export function promoteMember(teamId: number, targetId: string): ActionResult {
 
 export function demoteMember(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return { success: false };
     }
     team.admins = team.admins.filter((id) => id !== targetId);
@@ -340,7 +340,7 @@ export function demoteMember(teamId: number, targetId: string): ActionResult {
 
 export function transferOwnership(teamId: number, newOwnerId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return { success: false };
     }
     if (!team.members.includes(newOwnerId)) {
@@ -360,7 +360,7 @@ export function transferOwnership(teamId: number, newOwnerId: string): ActionRes
 
 export function invitePlayer(teamId: number, targetId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return { success: false };
     }
 
@@ -373,11 +373,11 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
     let msg = '';
 
     updatePlayerData(targetId, (data) => {
-        if (data.teamId) {
+        if (isDefined(data.teamId)) {
             msg = '§cPlayer is already in a team.';
             return;
         }
-        if (!data.pendingInvites) {
+        if (!isDefined(data.pendingInvites)) {
             data.pendingInvites = [];
         }
 
@@ -406,7 +406,7 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
 
         // Notify target if online
         const targetPlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
-        if (targetPlayer) {
+        if (isDefined(targetPlayer)) {
             targetPlayer.sendMessage(
                 `§aYou have been invited to join team §e${team.name}§a.\nType §e/team join§a or use the menu to accept.`
             );
@@ -418,20 +418,20 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
 
 export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
     const pData = getOrCreatePlayer(player);
-    if (pData.teamId) {
+    if (isDefined(pData.teamId)) {
         return { success: false, message: '§cYou are already in a team.' };
     }
 
-    const inviteIndex = (pData.pendingInvites || []).findIndex((inv) => inv.teamId === teamId);
+    const inviteIndex = pData.pendingInvites.findIndex((inv) => inv.teamId === teamId);
     if (inviteIndex === -1) {
         return { success: false, message: '§cInvite not found or expired.' };
     }
 
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         // Clean up invalid invite
         updatePlayerData(player.id, (d) => {
-            if (d.pendingInvites) {
+            if (isDefined(d.pendingInvites)) {
                 d.pendingInvites.splice(inviteIndex, 1);
             }
         });
@@ -459,7 +459,7 @@ export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
 export function denyInvite(playerId: string, teamId: number): ActionResult {
     let found = false;
     updatePlayerData(playerId, (d) => {
-        if (!d.pendingInvites) {
+        if (!isDefined(d.pendingInvites)) {
             return;
         }
         const initialLength = d.pendingInvites.length;
@@ -468,6 +468,7 @@ export function denyInvite(playerId: string, teamId: number): ActionResult {
             found = true;
         }
     });
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     return { success: found, message: found ? '§aInvite denied.' : '§cInvite not found.' };
 }
 
@@ -476,13 +477,13 @@ export function denyInvite(playerId: string, teamId: number): ActionResult {
 
 export function applyToTeam(player: mc.Player, teamId: number): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return { success: false, message: '§cTeam not found.' };
     }
 
     const teamConfig = getTeamConfig();
     const pData = getOrCreatePlayer(player);
-    if (pData.teamId) {
+    if (isDefined(pData.teamId)) {
         return { success: false, message: '§cYou are already in a team.' };
     }
 
@@ -516,7 +517,7 @@ export function applyToTeam(player: mc.Player, teamId: number): ActionResult {
 
 export function acceptApplication(teamId: number, playerId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return { success: false, message: 'Team error.' };
     }
 
@@ -540,12 +541,12 @@ export function acceptApplication(teamId: number, playerId: string): ActionResul
     // Update player
     setPlayerTeam(playerId, teamId);
 
-    return { success: true, message: `§aAccepted ${pData ? pData.name : 'player'} into the team.` };
+    return { success: true, message: `§aAccepted ${isDefined(pData) ? pData.name : 'player'} into the team.` };
 }
 
 export function denyApplication(teamId: number, playerId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return { success: false };
     }
 
@@ -558,7 +559,7 @@ export function denyApplication(teamId: number, playerId: string): ActionResult 
 
 export function setTeamHome(teamId: number, location: mc.Vector3, dimensionId: string): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return { success: false };
     }
     team.home = { x: location.x, y: location.y, z: location.z, dimensionId };
@@ -568,7 +569,7 @@ export function setTeamHome(teamId: number, location: mc.Vector3, dimensionId: s
 
 export function deleteTeamHome(teamId: number): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return { success: false };
     }
     team.home = undefined;
@@ -578,7 +579,7 @@ export function deleteTeamHome(teamId: number): ActionResult {
 
 export function setTeamOpenStatus(teamId: number, isOpen: boolean): ActionResult {
     const team = activeTeams.get(teamId);
-    if (!team) {
+    if (!isDefined(team)) {
         return { success: false };
     }
     team.open = !!isOpen;
@@ -588,7 +589,7 @@ export function setTeamOpenStatus(teamId: number, isOpen: boolean): ActionResult
 
 export function leaveTeam(player: mc.Player): ActionResult {
     const team = getTeamByPlayer(player.id);
-    if (!team) return { success: false, message: 'You are not in a team.' };
+    if (!isDefined(team)) return { success: false, message: 'You are not in a team.' };
     if (team.ownerId === player.id) {
         return { success: false, message: 'Owner cannot leave. Delete team or transfer ownership.' };
     }
@@ -604,7 +605,7 @@ export function updateTeamSetting(teamId: number, setting: string, value: boolea
 
 export function teleportToTeamHome(player: mc.Player): void {
     const team = getTeamByPlayer(player.id);
-    if (!team || !team.home) {
+    if (!isDefined(team) || !isDefined(team.home)) {
         player.sendMessage('§cNo team home set.');
         return;
     }

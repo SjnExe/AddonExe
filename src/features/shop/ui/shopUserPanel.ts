@@ -4,6 +4,7 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 import { getShopConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
+import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 import * as shopManager from '../shopManager.js';
@@ -54,6 +55,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         await ensureItemsConfig();
         const allItems = getAllItems();
         const items: PanelItem[] = [];
+        const page = isNumber(context.page) ? context.page : 1;
 
         if (panelId === 'shopMainPanel') {
             addBackButton(items, 'mainPanel');
@@ -70,14 +72,14 @@ export class ShopUserPanelHandler implements IPanelHandler {
             const validCategories = Object.keys(shopConfig.categories)
                 .filter((categoryName: string) => {
                     const category = shopConfig.categories[categoryName];
-                    if (!category) return false;
+                    if (!isDefined(category)) return false;
                     return Object.keys(category.items).length > 0 || Object.keys(category.subCategories).length > 0;
                 })
                 .toSorted();
 
             for (const catName of validCategories) {
                 const cat = shopConfig.categories[catName];
-                if (!cat) continue;
+                if (!isDefined(cat)) continue;
                 items.push({
                     id: catName,
                     text: catName,
@@ -92,24 +94,24 @@ export class ShopUserPanelHandler implements IPanelHandler {
 
         if (panelId === 'shopSearchResultsPanel') {
             addBackButton(items, 'shopMainPanel');
-            const query = ((context.searchQuery as string) || '').toLowerCase();
+            const query = (isNonEmptyString(context.searchQuery) ? context.searchQuery : '').toLowerCase();
             const shopConfig = getShopConfig();
             const results: ShopItemEntry[] = [];
 
             for (const catName in shopConfig.categories) {
                 const cat = shopConfig.categories[catName];
-                if (!cat) continue;
+                if (!isDefined(cat)) continue;
                 // Items
                 for (const itemId in cat.items) {
                     const item = cat.items[itemId];
-                    if (!item) continue;
-                    const master = allItems[itemId] || {};
-                    const dName = item.displayName || master.displayName || itemId;
+                    if (!isDefined(item)) continue;
+                    const master = allItems[itemId] ?? {};
+                    const dName = item.displayName ?? master.displayName ?? itemId;
                     if (dName.toLowerCase().includes(query) || itemId.toLowerCase().includes(query)) {
                         results.push({
                             id: itemId,
                             type: 'item',
-                            ...(item.icon ? { icon: item.icon } : {}),
+                            ...(isNonEmptyString(item.icon) ? { icon: item.icon } : {}),
                             displayName: dName,
                             buyPrice: item.buyPrice,
                             sellPrice: item.sellPrice,
@@ -120,17 +122,17 @@ export class ShopUserPanelHandler implements IPanelHandler {
                 // Subcategories
                 for (const subName in cat.subCategories) {
                     const sub = cat.subCategories[subName];
-                    if (!sub) continue;
+                    if (!isDefined(sub)) continue;
                     for (const itemId in sub.items) {
                         const item = sub.items[itemId];
-                        if (!item) continue;
-                        const master = allItems[itemId] || {};
-                        const dName = item.displayName || master.displayName || itemId;
+                        if (!isDefined(item)) continue;
+                        const master = allItems[itemId] ?? {};
+                    const dName = item.displayName ?? master.displayName ?? itemId;
                         if (dName.toLowerCase().includes(query) || itemId.toLowerCase().includes(query)) {
                             results.push({
                                 id: itemId,
                                 type: 'item',
-                                ...(item.icon ? { icon: item.icon } : {}),
+                                ...(isNonEmptyString(item.icon) ? { icon: item.icon } : {}),
                                 displayName: dName,
                                 buyPrice: item.buyPrice,
                                 sellPrice: item.sellPrice,
@@ -141,22 +143,22 @@ export class ShopUserPanelHandler implements IPanelHandler {
                 }
             }
 
-            const paginated = getPaginatedItems(results, (context.page as number) || 1);
+            const paginated = getPaginatedItems(results, page);
             for (const entry of paginated) {
-                if (!entry) continue;
-                const buy = (entry.buyPrice ?? 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
-                const sell = (entry.sellPrice ?? 0) > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
+                if (!isDefined(entry)) continue;
+                const buy = entry.buyPrice > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
+                const sell = entry.sellPrice > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
                 const priceString = [buy, sell].filter(Boolean).join(' ');
                 items.push({
                     id: entry.id,
                     text: `${entry.displayName}\n${priceString}`,
-                    icon: entry.icon || '',
+                    icon: entry.icon ?? '',
                     permissionLevel: 1024,
                     actionType: 'functionCall',
                     actionValue: 'buyOrSell'
                 });
             }
-            addPaginationItems(items, (context.page as number) || 1, results.length);
+            addPaginationItems(items, page, results.length);
             return items;
         }
 
@@ -165,12 +167,12 @@ export class ShopUserPanelHandler implements IPanelHandler {
             addBackButton(items, 'shopMainPanel');
             const shopConfig = getShopConfig();
             const category = shopConfig.categories[categoryName];
-            if (category) {
+            if (isDefined(category)) {
                 const subCategories: ShopEntry[] = Object.keys(category.subCategories)
                     .toSorted()
                     .map((name) => {
                         const sub = category.subCategories[name];
-                        if (!sub) return;
+                        if (!isDefined(sub)) return;
                         return {
                             id: name,
                             name,
@@ -178,12 +180,12 @@ export class ShopUserPanelHandler implements IPanelHandler {
                             type: 'subCategory' as const
                         };
                     })
-                    .filter((x) => x !== undefined) as ShopCategoryEntry[];
+                    .filter((x): x is ShopCategoryEntry => isDefined(x));
 
                 const shopItems: ShopEntry[] = Object.keys(category.items)
                     .map((id) => {
                         const item = category.items[id];
-                        if (!item) return;
+                        if (!isDefined(item)) return;
                         return {
                             id,
                             icon: item.icon,
@@ -192,15 +194,15 @@ export class ShopUserPanelHandler implements IPanelHandler {
                             displayName: item.displayName,
                             permissionLevel: item.permissionLevel,
                             type: 'item' as const
-                        };
+                        } as ShopItemEntry;
                     })
-                    .filter((x) => x !== undefined) as ShopItemEntry[];
+                    .filter((x): x is ShopItemEntry => isDefined(x));
 
                 const allEntries = [...subCategories, ...shopItems];
-                const paginated = getPaginatedItems(allEntries, (context.page as number) || 1);
+                const paginated = getPaginatedItems(allEntries, page);
 
                 for (const entry of paginated) {
-                    if (!entry) continue;
+                    if (!isDefined(entry)) continue;
                     if (entry.type === 'subCategory') {
                         items.push({
                             id: entry.name,
@@ -211,20 +213,20 @@ export class ShopUserPanelHandler implements IPanelHandler {
                             actionValue: `shopItemListPanel_${categoryName}_${entry.name}`
                         });
                     } else {
-                        const buy = (entry.buyPrice ?? 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
-                        const sell = (entry.sellPrice ?? 0) > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
+                        const buy = entry.buyPrice > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
+                        const sell = entry.sellPrice > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
                         const priceString = [buy, sell].filter(Boolean).join(' ');
                         items.push({
                             id: entry.id,
                             text: `${entry.displayName}\n${priceString}`,
-                            icon: entry.icon || '',
+                            icon: entry.icon ?? '',
                             permissionLevel: 1024,
                             actionType: 'functionCall',
                             actionValue: 'buyOrSell'
                         });
                     }
                 }
-                addPaginationItems(items, (context.page as number) || 1, allEntries.length);
+                addPaginationItems(items, page, allEntries.length);
             }
             return items;
         }
@@ -237,11 +239,11 @@ export class ShopUserPanelHandler implements IPanelHandler {
             const category = shopConfig.categories[categoryName];
             const subCategory = category?.subCategories[subCategoryName];
 
-            if (subCategory) {
+            if (isDefined(subCategory)) {
                 const shopItems = Object.keys(subCategory.items)
                     .map((id) => {
                         const item = subCategory.items[id];
-                        if (!item) return;
+                        if (!isDefined(item)) return;
                         return {
                             id,
                             icon: item.icon,
@@ -250,26 +252,26 @@ export class ShopUserPanelHandler implements IPanelHandler {
                             displayName: item.displayName,
                             permissionLevel: item.permissionLevel,
                             type: 'item' as const
-                        };
+                        } as ShopItemEntry;
                     })
-                    .filter((x) => x !== undefined) as ShopItemEntry[];
+                    .filter((x): x is ShopItemEntry => isDefined(x));
 
-                const paginated = getPaginatedItems(shopItems, (context.page as number) || 1);
+                const paginated = getPaginatedItems(shopItems, page);
                 for (const entry of paginated) {
-                    if (!entry) continue;
-                    const buy = (entry.buyPrice ?? 0) > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
-                    const sell = (entry.sellPrice ?? 0) > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
+                    if (!isDefined(entry)) continue;
+                    const buy = entry.buyPrice > 0 ? `§2B: ${formatCurrency(entry.buyPrice)}` : '';
+                    const sell = entry.sellPrice > 0 ? `§4S: ${formatCurrency(entry.sellPrice)}` : '';
                     const priceString = [buy, sell].filter(Boolean).join(' ');
                     items.push({
                         id: entry.id,
                         text: `${entry.displayName}\n${priceString}`,
-                        icon: entry.icon || '',
+                        icon: entry.icon ?? '',
                         permissionLevel: 1024,
                         actionType: 'functionCall',
                         actionValue: 'buyOrSell'
                     });
                 }
-                addPaginationItems(items, (context.page as number) || 1, shopItems.length);
+                addPaginationItems(items, page, shopItems.length);
             }
             return items;
         }
@@ -290,16 +292,16 @@ export class ShopUserPanelHandler implements IPanelHandler {
             const subCategoryName = context.subCategoryName as string | undefined;
             const shopConfig = getShopConfig();
 
-            const shopItem = subCategoryName
+            const shopItem = isNonEmptyString(subCategoryName)
                 ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
                 : shopConfig.categories[categoryName]?.items[itemId];
 
-            if (!shopItem) return undefined;
+            if (!isDefined(shopItem)) return undefined;
 
-            const canBuy = context.view !== 'sell' && (shopItem.buyPrice ?? 0) > 0;
-            const canSell = context.view !== 'buy' && (shopItem.sellPrice ?? 0) > 0;
+            const canBuy = context.view !== 'sell' && shopItem.buyPrice > 0;
+            const canSell = context.view !== 'buy' && shopItem.sellPrice > 0;
 
-            const modal = new ModalFormData().title(shopItem.displayName || itemId);
+            const modal = new ModalFormData().title(shopItem.displayName ?? itemId);
 
             if (canBuy && canSell) {
                 modal.textField('Amount', 'Enter the amount', { defaultValue: '1' });
@@ -335,9 +337,9 @@ export class ShopUserPanelHandler implements IPanelHandler {
         if (panelId === 'shopSearchPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'shopMainPanel', context);
             const values = formValues as string[] | undefined;
-            if (!values) return showPanel(player, 'shopMainPanel', context);
-            const [query] = values;
-            if (query && query.length > 0) {
+            if (!isDefined(values)) return showPanel(player, 'shopMainPanel', context);
+            const query = values[0];
+            if (isNonEmptyString(query)) {
                 return showPanel(player, 'shopSearchResultsPanel', { ...context, searchQuery: query, page: 1 });
             }
             return showPanel(player, 'shopMainPanel', context);
@@ -348,7 +350,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
             const categoryName = context.categoryName as string;
             const subCategoryName = context.subCategoryName as string | undefined;
 
-            const parent = subCategoryName
+            const parent = isNonEmptyString(subCategoryName)
                 ? `shopItemListPanel_${categoryName}_${subCategoryName}`
                 : `shopCategoryPanel_${categoryName}`;
 
@@ -356,14 +358,14 @@ export class ShopUserPanelHandler implements IPanelHandler {
 
             const shopConfig = getShopConfig();
 
-            const shopItem = subCategoryName
+            const shopItem = isNonEmptyString(subCategoryName)
                 ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
                 : shopConfig.categories[categoryName]?.items[itemId];
 
-            if (!shopItem) return;
+            if (!isDefined(shopItem)) return;
 
-            const canBuy = context.view !== 'sell' && (shopItem.buyPrice ?? 0) > 0;
-            const canSell = context.view !== 'buy' && (shopItem.sellPrice ?? 0) > 0;
+            const canBuy = context.view !== 'sell' && shopItem.buyPrice > 0;
+            const canSell = context.view !== 'buy' && shopItem.sellPrice > 0;
             const hasDropdown = canBuy && canSell;
 
             let amount;
@@ -372,21 +374,21 @@ export class ShopUserPanelHandler implements IPanelHandler {
 
             if (hasDropdown) {
                 const values = formValues as [string, number, boolean] | undefined;
-                if (!values) return showPanel(player, parent, context);
+                if (!isDefined(values)) return showPanel(player, parent, context);
                 const amountStr = values[0];
                 const actionIndex = values[1];
                 useMax = values[2];
                 amount = parseCurrency(amountStr);
                 const options = [`Buy ($${shopItem.buyPrice})`, `Sell ($${shopItem.sellPrice})`];
                 const selectedActionString = options[actionIndex];
-                if (selectedActionString) {
+                if (isNonEmptyString(selectedActionString)) {
                     action = selectedActionString.startsWith('Buy') ? 'buy' : 'sell';
                 } else {
                     action = 'buy';
                 }
             } else {
                 const values = formValues as [string, boolean] | undefined;
-                if (!values) return showPanel(player, parent, context);
+                if (!isDefined(values)) return showPanel(player, parent, context);
                 const amountStr = values[0];
                 useMax = values[1];
                 amount = parseCurrency(amountStr);
@@ -408,11 +410,11 @@ export class ShopUserPanelHandler implements IPanelHandler {
             return showPanel(player, parent, context);
         }
 
-        if (typeof selection === 'number') {
+        if (isNumber(selection)) {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!isDefined(item)) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {
@@ -424,13 +426,15 @@ export class ShopUserPanelHandler implements IPanelHandler {
                 }
 
                 if (item.actionValue === 'prevPage') {
+                    const currentPage = isNumber(context.page) ? context.page : 1;
                     return showPanel(player, panelId, {
                         ...context,
-                        page: Math.max(1, ((context.page as number) || 1) - 1)
+                        page: Math.max(1, currentPage - 1)
                     });
                 }
                 if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
+                    const currentPage = isNumber(context.page) ? context.page : 1;
+                    return showPanel(player, panelId, { ...context, page: currentPage + 1 });
                 }
 
                 if (item.actionValue === 'buyOrSell') {

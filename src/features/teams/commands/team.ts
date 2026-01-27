@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
+import { isDefined } from '@lib/guards.js';
 
 import { teamConfig } from '../teamConfig.js';
 import { getTeamByPlayer } from '../teamManager.js';
@@ -10,13 +11,13 @@ import { getTeamByPlayer } from '../teamManager.js';
 const teamChatActive = new Map<string, boolean>();
 
 export function toggleTeamChat(playerId: string): boolean {
-    const current = teamChatActive.get(playerId) || false;
+    const current = teamChatActive.get(playerId) ?? false;
     teamChatActive.set(playerId, !current);
     return !current;
 }
 
 export function isTeamChatEnabled(playerId: string): boolean {
-    return teamChatActive.get(playerId) || false;
+    return teamChatActive.get(playerId) ?? false;
 }
 
 const teamChatCommand: CustomCommand = {
@@ -30,12 +31,12 @@ const teamChatCommand: CustomCommand = {
         }
 
         const pData = getPlayer(executor.id);
-        if (!pData) {
+        if (!isDefined(pData)) {
             return;
         }
 
         const team = getTeamByPlayer(executor.id);
-        if (!team) {
+        if (!isDefined(team)) {
             executor.sendMessage('§cYou are not in a team.');
             return;
         }
@@ -57,37 +58,36 @@ const hqCommand: CustomCommand = {
 
         const team = getTeamByPlayer(executor.id);
 
-        if (!team) {
+        if (!isDefined(team)) {
             executor.sendMessage('§cYou are not in a team.');
             return;
         }
 
-        if (!team.home) {
+        if (!isDefined(team.home)) {
             executor.sendMessage('§cYour team does not have a home set.');
             return;
         }
 
         const { x, y, z, dimensionId } = team.home;
-        const dimension = mc.world.getDimension(dimensionId);
 
-        if (!dimension) {
-            executor.sendMessage('§cError: Team home dimension is invalid or unloaded.');
-            return;
+        try {
+            const dimension = mc.world.getDimension(dimensionId);
+             startTeleportWarmup(
+                executor,
+                teamConfig.teleportWarmupSeconds,
+                () => {
+                    try {
+                        executor.teleport({ x, y, z }, { dimension: dimension });
+                        executor.sendMessage('§aTeleported to team home.');
+                    } catch {
+                        executor.sendMessage('§cFailed to teleport to team home.');
+                    }
+                },
+                'team home'
+            );
+        } catch {
+             executor.sendMessage('§cError: Team home dimension is invalid or unloaded.');
         }
-
-        startTeleportWarmup(
-            executor,
-            teamConfig.teleportWarmupSeconds,
-            () => {
-                try {
-                    executor.teleport({ x, y, z }, { dimension: dimension });
-                    executor.sendMessage('§aTeleported to team home.');
-                } catch {
-                    executor.sendMessage('§cFailed to teleport to team home.');
-                }
-            },
-            'team home'
-        );
     }
 };
 

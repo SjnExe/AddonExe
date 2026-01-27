@@ -8,6 +8,7 @@ import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { uiWait } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import * as homesManager from '../homesManager.js';
 import { saveLastLocation } from '../teleportUtils.js';
@@ -37,7 +38,7 @@ const homeCommand: CustomCommand = {
 
         const teleportToHome = (homeName: string) => {
             const homeLocation = homesManager.getHome(executor, homeName);
-            if (!homeLocation) {
+            if (!isDefined(homeLocation)) {
                 sendMessage(`§cHome '${homeName}' not found.`, executor);
                 return;
             }
@@ -47,7 +48,7 @@ const homeCommand: CustomCommand = {
                 try {
                     saveLastLocation(executor);
                     const dimension = mc.world.getDimension(homeLocation.dimensionId);
-                    if (dimension) {
+                    if (isDefined(dimension)) {
                         executor.teleport(homeLocation, { dimension });
                         sendMessage(`§aTeleported to home '${homeName}'.`, executor);
                         setCooldown(executor, 'homes');
@@ -65,7 +66,7 @@ const homeCommand: CustomCommand = {
         };
 
         const homeNameArg = args.homeName;
-        if (homeNameArg) {
+        if (isNonEmptyString(homeNameArg)) {
             teleportToHome(homeNameArg);
             return;
         }
@@ -78,7 +79,7 @@ const homeCommand: CustomCommand = {
         }
 
         const firstHome = homeList[0];
-        if (homeList.length === 1 && firstHome) {
+        if (homeList.length === 1 && isNonEmptyString(firstHome)) {
             teleportToHome(firstHome);
             return;
         }
@@ -89,11 +90,11 @@ const homeCommand: CustomCommand = {
 
         try {
             const response = await uiWait(executor, form);
-            if (!response || response.canceled) return;
+            if (!isDefined(response) || response.canceled) return;
             const selection = (response as ActionFormResponse).selection;
-            if (selection !== undefined) {
+            if (isDefined(selection)) {
                 const selectedHome = homeList[selection];
-                if (selectedHome) {
+                if (isNonEmptyString(selectedHome)) {
                     teleportToHome(selectedHome);
                 }
             }
@@ -157,7 +158,7 @@ const delHomeCommand: CustomCommand = {
         };
 
         const homeNameArg = args.homeName;
-        if (homeNameArg) {
+        if (isNonEmptyString(homeNameArg)) {
             deleteHomeByName(homeNameArg);
             return;
         }
@@ -170,7 +171,7 @@ const delHomeCommand: CustomCommand = {
         }
 
         const firstHome = homeList[0];
-        if (homeList.length === 1 && firstHome) {
+        if (homeList.length === 1 && isNonEmptyString(firstHome)) {
             deleteHomeByName(firstHome);
             return;
         }
@@ -181,11 +182,11 @@ const delHomeCommand: CustomCommand = {
 
         try {
             const response = await uiWait(executor, form);
-            if (!response || response.canceled) return;
+            if (!isDefined(response) || response.canceled) return;
             const selection = (response as ActionFormResponse).selection;
-            if (selection !== undefined) {
+            if (isDefined(selection)) {
                 const selectedHome = homeList[selection];
-                if (selectedHome) {
+                if (isNonEmptyString(selectedHome)) {
                     deleteHomeByName(selectedHome);
                 }
             }
@@ -215,7 +216,7 @@ const setHomeCommand: CustomCommand = {
         let homeNameToSet;
         const homeNameArg = args.homeName;
 
-        if (homeNameArg) {
+        if (isNonEmptyString(homeNameArg)) {
             homeNameToSet = homeNameArg;
         } else {
             const existingHomes = new Set(homesManager.listHomes(executor).map((h: string) => h.toLowerCase()));
@@ -223,15 +224,10 @@ const setHomeCommand: CustomCommand = {
             const baseName = 'home';
             homeNameToSet = baseName;
 
-            if (existingHomes.has(homeNameToSet)) {
-                i = 2;
-                while (true) {
-                    homeNameToSet = `${baseName}${i}`;
-                    if (!existingHomes.has(homeNameToSet)) {
-                        break;
-                    }
-                    i++;
-                }
+            i = 2;
+            while (existingHomes.has(homeNameToSet)) {
+                homeNameToSet = `${baseName}${i}`;
+                i++;
             }
         }
 

@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 import { CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
+import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { saveLastLocation } from '../teleportUtils.js';
 
 const command: CustomCommand = {
@@ -21,15 +22,15 @@ const command: CustomCommand = {
     execute: (executor, args) => {
         if (!(executor instanceof mc.Player)) return;
 
-        const argValues = [args.arg1, args.arg2, args.arg3, args.arg4].filter((arg) => arg !== undefined) as string[];
+        const argValues = [args.arg1, args.arg2, args.arg3, args.arg4].filter((arg) => isDefined(arg)) as string[];
 
         switch (argValues.length) {
             case 1: {
                 // /tp <destinationPlayer>
                 const targetName = argValues[0];
-                if (!targetName) return;
+                if (!isNonEmptyString(targetName)) return;
                 const destPlayer1 = findPlayerByName(targetName);
-                if (!destPlayer1) {
+                if (!isDefined(destPlayer1)) {
                     sendMessage(`§cPlayer '${targetName}' not found.`, executor);
                     return;
                 }
@@ -42,15 +43,15 @@ const command: CustomCommand = {
                 // /tp <playerToMove> <destinationPlayer>
                 const p1Name = argValues[0];
                 const p2Name = argValues[1];
-                if (!p1Name || !p2Name) return;
+                if (!isNonEmptyString(p1Name) || !isNonEmptyString(p2Name)) return;
 
                 const playerToMove = findPlayerByName(p1Name);
                 const destPlayer2 = findPlayerByName(p2Name);
-                if (!playerToMove) {
+                if (!isDefined(playerToMove)) {
                     sendMessage(`§cPlayer '${p1Name}' not found.`, executor);
                     return;
                 }
-                if (!destPlayer2) {
+                if (!isDefined(destPlayer2)) {
                     sendMessage(`§cPlayer '${p2Name}' not found.`, executor);
                     return;
                 }
@@ -65,14 +66,7 @@ const command: CustomCommand = {
                 const x3 = coords3[0];
                 const y3 = coords3[1];
                 const z3 = coords3[2];
-                if (
-                    x3 === undefined ||
-                    y3 === undefined ||
-                    z3 === undefined ||
-                    Number.isNaN(x3) ||
-                    Number.isNaN(y3) ||
-                    Number.isNaN(z3)
-                ) {
+                if (!isNumber(x3) || !isNumber(y3) || !isNumber(z3)) {
                     sendMessage('§cInvalid coordinates provided.', executor);
                     return;
                 }
@@ -84,9 +78,9 @@ const command: CustomCommand = {
             case 4: {
                 // /tp <targetPlayer> <x> <y> <z>
                 const tName = argValues[0];
-                if (!tName) return;
+                if (!isNonEmptyString(tName)) return;
                 const targetPlayer = findPlayerByName(tName);
-                if (!targetPlayer) {
+                if (!isDefined(targetPlayer)) {
                     sendMessage(`§cPlayer '${tName}' not found.`, executor);
                     return;
                 }
@@ -94,14 +88,7 @@ const command: CustomCommand = {
                 const x4 = coords4[0];
                 const y4 = coords4[1];
                 const z4 = coords4[2];
-                if (
-                    x4 === undefined ||
-                    y4 === undefined ||
-                    z4 === undefined ||
-                    Number.isNaN(x4) ||
-                    Number.isNaN(y4) ||
-                    Number.isNaN(z4)
-                ) {
+                if (!isNumber(x4) || !isNumber(y4) || !isNumber(z4)) {
                     sendMessage('§cInvalid coordinates provided.', executor);
                     return;
                 }

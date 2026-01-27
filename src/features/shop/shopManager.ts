@@ -243,8 +243,7 @@ function isValidSellItem(item: mc.ItemStack, shopItem: ItemInfo): boolean {
     }
 
     const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
-    const hasEnchants =
-        isDefined(enchantable) && isDefined(enchantable.getEnchantments) && enchantable.getEnchantments().length > 0;
+    const hasEnchants = isDefined(enchantable) && enchantable.getEnchantments().length > 0;
     if (hasEnchants && !isDefined(shopItem.enchantment)) {
         return false;
     }

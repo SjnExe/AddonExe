@@ -33,19 +33,15 @@ This plan outlines the steps to upgrade the codebase with strict TypeScript lint
 - [x] **Batch 3: Features - Moderation & AntiCheat**
     - [x] `src/features/moderation/`
     - [x] `src/features/anticheat/`
-- [ ] **Batch 4: Features - Auction & Daily Rewards (COMPLETED)**
+- [x] **Batch 4: Features - Auction & Daily Rewards**
     - [x] `src/features/auctionHouse/` (Manager, UI, Commands fully migrated)
     - [x] `src/features/dailyRewards/` (Manager fully migrated)
-- [ ] **Batch 5: Features - Teams & Shop (PARTIAL)**
-    - [x] `src/features/teams/teamManager.ts` (Fixed)
-    - [ ] `src/features/teams/ui/` & `src/features/teams/commands/` (PENDING)
-    - [x] `src/features/shop/shopManager.ts` (Fixed)
-    - [ ] `src/features/shop/ui/` & `src/features/shop/commands/` (PENDING)
-- [ ] **Batch 6: Features - Social & Teleportation (PARTIAL)**
-    - [x] `src/features/social/friendManager.ts` (Fixed)
-    - [ ] `src/features/social/ui/` & `src/features/social/commands/` (PENDING)
-    - [x] `src/features/teleportation/warpsManager.ts`, `homesManager.ts`, `tpaManager.ts` (Fixed)
-    - [ ] `src/features/teleportation/commands/` & `teleportUtils.ts` (PENDING - High error count)
+- [x] **Batch 5: Features - Teams & Shop**
+    - [x] `src/features/teams/` (Manager, UI, Commands fully migrated)
+    - [x] `src/features/shop/` (Manager, UI, Commands fully migrated)
+- [x] **Batch 6: Features - Social & Teleportation**
+    - [x] `src/features/social/` (Manager, UI, Commands fully migrated)
+    - [x] `src/features/teleportation/` (Managers, UI, Commands fully migrated)
 - [ ] **Batch 7: Features - Essentials, Games, Kits, Voting**
     - [ ] `src/features/essentials/`
     - [ ] `src/features/games/`

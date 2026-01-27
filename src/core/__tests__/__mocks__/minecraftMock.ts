@@ -15,6 +15,10 @@ export class Dimension {
     playSound = jest.fn();
 }
 
+export class BlockVolume {
+    constructor(public from: {x:number,y:number,z:number}, public to: {x:number,y:number,z:number}) {}
+}
+
 export const world = {
     getDynamicProperty: jest.fn(),
     setDynamicProperty: jest.fn(),
