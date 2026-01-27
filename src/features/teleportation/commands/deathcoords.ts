@@ -5,6 +5,7 @@ import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { formatString, resolveTarget } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 const deathCoordsCommand: CustomCommand = {
     name: 'deathcoords',
@@ -28,16 +29,16 @@ const deathCoordsCommand: CustomCommand = {
         let targetId = executor.id;
         let targetDisplayName = 'You';
 
-        if (targetName) {
+        if (isNonEmptyString(targetName)) {
             // Check permission
             const executorData = getPlayer(executor.id);
-            if (!executorData || executorData.permissionLevel > 2) {
+            if (!isDefined(executorData) || executorData.permissionLevel > 2) {
                 return sendMessage("§cYou do not have permission to view other players' death coordinates.", executor);
             }
 
             const targets = resolveTarget(targetName, executor);
             const target = targets[0];
-            if (!target) {
+            if (!isDefined(target)) {
                 return sendMessage('§cPlayer not found.', executor);
             }
             targetId = target.id;
@@ -45,7 +46,7 @@ const deathCoordsCommand: CustomCommand = {
         }
 
         const pData = getPlayer(targetId);
-        if (pData && pData.lastDeathLocation) {
+        if (isDefined(pData) && isDefined(pData.lastDeathLocation)) {
             const location = pData.lastDeathLocation;
             const context = {
                 x: location.x.toFixed(2),

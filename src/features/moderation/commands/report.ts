@@ -5,6 +5,7 @@ import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { playSound } from '@core/utils.js';
 import { handleUIAction } from '@ui/actions.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import * as reportManager from '../reportManager.js';
 
@@ -26,7 +27,7 @@ const reportCommand: CustomCommand = {
         const reportedPlayerName = args.target as string | undefined;
         const message = args.message as string | undefined;
 
-        if (!reportedPlayerName) {
+        if (!isNonEmptyString(reportedPlayerName)) {
             // Show list
             await showPanel(executor, 'playerListPanel', {
                 customTitle: 'Select Player to Report',
@@ -36,15 +37,15 @@ const reportCommand: CustomCommand = {
         }
 
         const targetId = getPlayerIdByName(reportedPlayerName);
-        if (!targetId) {
+        if (!isNonEmptyString(targetId)) {
             executor.sendMessage(`§cPlayer "${reportedPlayerName}" has never joined this server.`);
             return;
         }
 
         const offlineData = loadPlayerData(targetId);
-        const correctTargetName = offlineData ? offlineData.name : reportedPlayerName;
+        const correctTargetName = isDefined(offlineData) ? offlineData.name : reportedPlayerName;
 
-        if (message) {
+        if (isNonEmptyString(message)) {
             reportManager.createReport(executor, targetId, correctTargetName, message);
             executor.sendMessage('§aReport submitted. Thank you for your help.');
             playSound(executor, 'random.orb');

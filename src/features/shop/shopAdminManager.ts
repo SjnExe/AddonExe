@@ -4,6 +4,7 @@ import { getShopConfig, saveShopConfig } from '@core/configurations.js';
 import { items } from '@core/itemsConfig.default.js';
 import { debugLog } from '@core/logger.js';
 import { generateDisplayName, resolveIcon, sanitizeString, validateInput } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import { ShopCategory, ShopSubCategory } from './shopConfig.js';
 
@@ -46,12 +47,12 @@ export function addCategory(categoryName: string, icon: string): ActionResult {
 
     const config = getShopConfig();
     const categories = config.categories;
-    if (categories[safeName]) {
+    if (isDefined(categories[safeName])) {
         return { success: false, message: `A category with the name '${safeName}' already exists.` };
     }
 
     categories[safeName] = {
-        icon: icon || 'textures/ui/folder_glyph',
+        icon: isNonEmptyString(icon) ? icon : 'textures/ui/folder_glyph',
         items: {},
         subCategories: {}
     };
@@ -78,13 +79,13 @@ export function editSubCategory(
     const config = getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
-    if (!category) {
+    if (!isDefined(category)) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
-    if (!category.subCategories[oldSubCategoryName]) {
+    if (!isDefined(category.subCategories[oldSubCategoryName])) {
         return { success: false, message: `Subcategory '${oldSubCategoryName}' not found in '${categoryName}'.` };
     }
-    if (oldSubCategoryName !== newSubCategoryName && category.subCategories[newSubCategoryName]) {
+    if (oldSubCategoryName !== newSubCategoryName && isDefined(category.subCategories[newSubCategoryName])) {
         return {
             success: false,
             message: `A subcategory with the name '${newSubCategoryName}' already exists in '${categoryName}'.`
@@ -116,10 +117,10 @@ export function editSubCategory(
 export function editCategory(oldCategoryName: string, newCategoryName: string, newIcon: string): ActionResult {
     const config = getShopConfig();
     const categories = config.categories;
-    if (!categories[oldCategoryName]) {
+    if (!isDefined(categories[oldCategoryName])) {
         return { success: false, message: `Category '${oldCategoryName}' not found.` };
     }
-    if (oldCategoryName !== newCategoryName && categories[newCategoryName]) {
+    if (oldCategoryName !== newCategoryName && isDefined(categories[newCategoryName])) {
         return { success: false, message: `A category with the name '${newCategoryName}' already exists.` };
     }
 
@@ -145,10 +146,10 @@ export function editCategory(oldCategoryName: string, newCategoryName: string, n
 export function renameCategory(oldCategoryName: string, newCategoryName: string): ActionResult {
     const config = getShopConfig();
     const categories = config.categories;
-    if (!categories[oldCategoryName]) {
+    if (!isDefined(categories[oldCategoryName])) {
         return { success: false, message: `Category '${oldCategoryName}' not found.` };
     }
-    if (categories[newCategoryName]) {
+    if (isDefined(categories[newCategoryName])) {
         return { success: false, message: `A category with the name '${newCategoryName}' already exists.` };
     }
 
@@ -168,7 +169,7 @@ export function renameCategory(oldCategoryName: string, newCategoryName: string)
 export function deleteCategory(categoryName: string): ActionResult {
     const config = getShopConfig();
     const categories = config.categories;
-    if (!categories[categoryName]) {
+    if (!isDefined(categories[categoryName])) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
 
@@ -194,10 +195,10 @@ export function addSubCategory(categoryName: string, subCategoryName: string, ic
     const config = getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
-    if (!category) {
+    if (!isDefined(category)) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
-    if (category.subCategories[safeName]) {
+    if (isDefined(category.subCategories[safeName])) {
         return {
             success: false,
             message: `A subcategory with the name '${safeName}' already exists in '${categoryName}'.`
@@ -205,7 +206,7 @@ export function addSubCategory(categoryName: string, subCategoryName: string, ic
     }
 
     category.subCategories[safeName] = {
-        icon: icon || 'textures/ui/folder_glyph',
+        icon: isNonEmptyString(icon) ? icon : 'textures/ui/folder_glyph',
         items: {}
     };
 
@@ -229,13 +230,13 @@ export function renameSubCategory(
     const config = getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
-    if (!category) {
+    if (!isDefined(category)) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
-    if (!category.subCategories[oldSubCategoryName]) {
+    if (!isDefined(category.subCategories[oldSubCategoryName])) {
         return { success: false, message: `Subcategory '${oldSubCategoryName}' not found in '${categoryName}'.` };
     }
-    if (category.subCategories[newSubCategoryName]) {
+    if (isDefined(category.subCategories[newSubCategoryName])) {
         return {
             success: false,
             message: `A subcategory with the name '${newSubCategoryName}' already exists in '${categoryName}'.`
@@ -262,10 +263,10 @@ export function deleteSubCategory(categoryName: string, subCategoryName: string)
     const config = getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
-    if (!category) {
+    if (!isDefined(category)) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
-    if (!category.subCategories[subCategoryName]) {
+    if (!isDefined(category.subCategories[subCategoryName])) {
         return { success: false, message: `Subcategory '${subCategoryName}' not found in '${categoryName}'.` };
     }
 
@@ -293,23 +294,23 @@ export function addShopItemFromHand(
     buyPrice: number,
     sellPrice: number
 ): ActionResult {
-    if (!itemStack) {
+    if (!isDefined(itemStack)) {
         return { success: false, message: "You aren't holding anything." };
     }
 
     // 1. Generate a truly unique ID by checking both the base config and the live shop config.
     const allExistingIds = new Set(Object.keys(items));
     const shopConfig = getShopConfig();
-    if (shopConfig && shopConfig.categories) {
+    if (isDefined(shopConfig) && isDefined(shopConfig.categories)) {
         for (const category of Object.values(shopConfig.categories)) {
-            if (category.items) {
+            if (isDefined(category.items)) {
                 for (const itemId of Object.keys(category.items)) {
                     allExistingIds.add(itemId);
                 }
             }
-            if (category.subCategories) {
+            if (isDefined(category.subCategories)) {
                 for (const subCategory of Object.values(category.subCategories)) {
-                    if (subCategory.items) {
+                    if (isDefined(subCategory.items)) {
                         for (const itemId of Object.keys(subCategory.items)) {
                             allExistingIds.add(itemId);
                         }
@@ -335,18 +336,18 @@ export function addShopItemFromHand(
     const existingItem = Object.values(items as Record<string, ItemData>).find(
         (item) => item.itemId === itemStack.typeId
     );
-    if (existingItem) {
+    if (isDefined(existingItem)) {
         icon = existingItem.icon;
-        displayName = displayName || existingItem.displayName;
+        displayName = isNonEmptyString(displayName) ? displayName : existingItem.displayName;
         debugLog(`[ShopAdminManager] Found existing item for ${itemStack.typeId} in master config.`);
     }
 
     // Priority 2: Use auto-resolution for icon
-    if (!icon) {
+    if (!isNonEmptyString(icon)) {
         icon = resolveIcon(itemStack.typeId);
         debugLog(`[ShopAdminManager] Resolved icon for ${itemStack.typeId}: ${icon}`);
     }
-    if (!displayName) {
+    if (!isNonEmptyString(displayName)) {
         displayName = generateDisplayName(itemStack.typeId);
         debugLog(`[ShopAdminManager] Generated display name for ${itemStack.typeId}.`);
     }
@@ -400,14 +401,14 @@ export function setItem(
     const config = getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
-    if (!category) {
+    if (!isDefined(category)) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
 
     let targetContainer: ShopCategory | ShopSubCategory = category;
-    if (subCategoryName) {
+    if (isNonEmptyString(subCategoryName)) {
         const subCat = category.subCategories[subCategoryName];
-        if (!subCat) {
+        if (!isDefined(subCat)) {
             return { success: false, message: `Subcategory '${subCategoryName}' not found in '${categoryName}'.` };
         }
         targetContainer = subCat;
@@ -416,13 +417,13 @@ export function setItem(
     targetContainer.items[itemId] = {
         buyPrice: itemData.buyPrice,
         sellPrice: itemData.sellPrice,
-        permissionLevel: itemData.permissionLevel || 1024,
+        permissionLevel: itemData.permissionLevel ?? 1024,
         icon: itemData.icon,
         displayName: itemData.displayName
     };
 
     saveShopConfig(config);
-    debugLog(`[ShopAdminManager] Set item '${itemId}' in '${categoryName}/${subCategoryName || ''}'.`);
+    debugLog(`[ShopAdminManager] Set item '${itemId}' in '${categoryName}/${subCategoryName ?? ''}'.`);
     return { success: true, message: `Successfully set item '${itemId}'.` };
 }
 
@@ -433,7 +434,7 @@ export function setItem(
  * @returns The result of the operation.
  */
 export function addCustomItemToConfig(itemId: string, itemData: ItemData): ActionResult {
-    if ((items as Record<string, unknown>)[itemId]) {
+    if (isDefined((items as Record<string, unknown>)[itemId])) {
         return { success: false, message: `An item with the ID '${itemId}' already exists.` };
     }
     (items as Record<string, unknown>)[itemId] = {
@@ -458,26 +459,26 @@ export function removeItem(categoryName: string, subCategoryName: string | undef
     const config = getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
-    if (!category) {
+    if (!isDefined(category)) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
 
     let targetContainer: ShopCategory | ShopSubCategory = category;
-    if (subCategoryName) {
+    if (isNonEmptyString(subCategoryName)) {
         const subCat = category.subCategories[subCategoryName];
-        if (!subCat) {
+        if (!isDefined(subCat)) {
             return { success: false, message: `Subcategory '${subCategoryName}' not found in '${categoryName}'.` };
         }
         targetContainer = subCat;
     }
 
-    if (!targetContainer.items[itemId]) {
+    if (!isDefined(targetContainer.items[itemId])) {
         return { success: false, message: `Item '${itemId}' not found.` };
     }
 
     delete targetContainer.items[itemId];
     saveShopConfig(config);
-    debugLog(`[ShopAdminManager] Removed item '${itemId}' from '${categoryName}/${subCategoryName || ''}'.`);
+    debugLog(`[ShopAdminManager] Removed item '${itemId}' from '${categoryName}/${subCategoryName ?? ''}'.`);
     return { success: true, message: `Successfully removed item '${itemId}'.` };
 }
 
@@ -497,7 +498,7 @@ export function updateShopItem(
 ): ActionResult {
     // 1. Update the master item list (items.js)
     const itemsRecord = items as Record<string, ItemData>;
-    if (itemsRecord[itemId]) {
+    if (isDefined(itemsRecord[itemId])) {
         itemsRecord[itemId].displayName = newData.displayName;
         itemsRecord[itemId].itemId = newData.minecraftId;
         itemsRecord[itemId].icon = newData.icon;
@@ -516,20 +517,20 @@ export function updateShopItem(
     const shopConfig = getShopConfig();
     const categories = shopConfig.categories;
     const category = categories[categoryName];
-    if (!category) {
+    if (!isDefined(category)) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
 
     let targetContainer: ShopCategory | ShopSubCategory = category;
-    if (subCategoryName) {
+    if (isNonEmptyString(subCategoryName)) {
         const subCat = category.subCategories[subCategoryName];
-        if (!subCat) {
+        if (!isDefined(subCat)) {
             return { success: false, message: `Subcategory '${subCategoryName}' not found.` };
         }
         targetContainer = subCat;
     }
 
-    if (!targetContainer.items[itemId]) {
+    if (!isDefined(targetContainer.items[itemId])) {
         return { success: false, message: `Item '${itemId}' not found in shop config.` };
     }
 

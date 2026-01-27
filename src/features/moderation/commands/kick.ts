@@ -7,9 +7,10 @@ import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { playSound } from '@core/utils.js';
+import { isDefined } from '@lib/guards.js';
 
-export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, reason: string) {
-    if (!targetPlayer) {
+export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player | undefined, reason: string) {
+    if (!isDefined(targetPlayer)) {
         if (executor instanceof mc.Player) {
             sendMessage('§cPlayer not found.', executor);
             playSound(executor, soundError);
@@ -28,7 +29,7 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player, r
     if (executor instanceof mc.Player) {
         const executorData = getPlayer(executor.id);
         const targetData = getPlayer(targetPlayer.id);
-        if (!executorData || !targetData) {
+        if (!isDefined(executorData) || !isDefined(targetData)) {
             sendMessage('§cCould not retrieve player data for permission check.', executor);
             playSound(executor, soundError);
             return;
@@ -83,8 +84,10 @@ const kickCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const { target: targetName, reason = 'No reason provided' } = args as unknown as KickCommandArgs;
         const targetPlayer = findPlayerByName(targetName);
-        if (targetPlayer) {
+        if (isDefined(targetPlayer)) {
             kickPlayer(executor, targetPlayer, reason);
+        } else {
+            kickPlayer(executor, undefined, reason);
         }
     }
 };

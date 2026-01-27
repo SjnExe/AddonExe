@@ -193,7 +193,7 @@ export async function inviteFriendToGame(player: mc.Player, gameId: string) {
         return;
     }
 
-    const onlineFriends = mc.world.getAllPlayers().filter((p) => pData.friends?.includes(p.id));
+    const onlineFriends = mc.world.getAllPlayers().filter((p) => pData.friends?.includes(p.id) ?? false);
     if (onlineFriends.length === 0) {
         player.sendMessage('§cNo friends are currently online.');
         return;

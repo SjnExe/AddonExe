@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { setPlayerLastLocation } from '@core/playerDataManager.js';
+import { isDefined } from '@lib/guards.js';
 
 /**
  * Saves the player's current location as their "last location" for /back command.
@@ -9,18 +10,30 @@ import { setPlayerLastLocation } from '@core/playerDataManager.js';
  * @param reason The reason for saving ('death' or 'teleport'). Defaults to 'teleport'.
  */
 export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport' = 'teleport') {
-    if (!player || !player.isValid) return;
+
+    if (!isDefined(player)) return;
+
+
+    if (typeof player.isValid === 'function') {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unsafe-member-access
+        if (!(player as any).isValid()) return;
+    } else if (typeof player.isValid === 'boolean' && !player.isValid) {
+        return;
+    }
 
     const config = getConfig();
 
     // Check if Back system is globally enabled
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
     if (!config.back || !config.back.enabled) return;
 
     // Use optional chaining and defaults
     const backConfig = config.back as { saveOnDeath?: boolean; saveOnTeleport?: boolean } | undefined;
 
-    if (reason === 'death' && !backConfig?.saveOnDeath) return;
-    if (reason === 'teleport' && !backConfig?.saveOnTeleport) return;
+
+    if (reason === 'death' && backConfig?.saveOnDeath !== true) return;
+
+    if (reason === 'teleport' && backConfig?.saveOnTeleport !== true) return;
 
     try {
         const location = {
@@ -62,7 +75,7 @@ export function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3):
                 // Block at head
                 const head = dimension.getBlock({ x: checkPos.x, y: checkPos.y + 1, z: checkPos.z });
 
-                if (ground && feet && head) {
+                if (isDefined(ground) && isDefined(feet) && isDefined(head)) {
                     const isGroundSafe = !ground.isAir && !ground.isLiquid;
                     // Ensure feet and head are breathable (air or non-blocking) and NOT liquid (lava/water)
                     const isFeetSafe = !feet.isLiquid && feet.isAir;

@@ -10,24 +10,24 @@ import {
     incrementPlayerBalance
 } from '@core/playerDataManager.js';
 import { parseCurrency, resolveTarget } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 function placeBounty(executor: mc.Player, targetId: string, targetName: string, amount: number) {
     const config = getConfig();
-    if (!config) return;
 
     if (!config.economy.enabled) {
         sendMessage('§cThe Economy system is currently disabled globally.', executor);
         return;
     }
 
-    if (!config.bounties?.enabled) {
+    if (config.bounties.enabled !== true) {
         sendMessage('§cThe Bounties system is currently disabled globally.', executor);
         return;
     }
 
-    const min = config.bounties?.minimumBounty ?? 0;
+    const min = config.bounties.minimumBounty;
     if (Number.isNaN(amount) || amount < min) {
         sendMessage(`§cInvalid amount. The minimum bounty is $${min}.`, executor);
         return;
@@ -57,16 +57,16 @@ const bountyCommand: CustomCommand = {
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
-        const targetName = args.target as string;
-        const amountStr = args.amount as string;
+        const targetName = args.target as string | undefined;
+        const amountStr = args.amount as string | undefined;
 
-        if (!targetName) return sendMessage('§cPlease specify a player.', executor);
-        if (!amountStr) return sendMessage('§cUsage: /bounty <player> <amount>', executor);
+        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player.', executor);
+        if (!isNonEmptyString(amountStr)) return sendMessage('§cUsage: /bounty <player> <amount>', executor);
 
         // Resolve
         const targets = resolveTarget(targetName, executor);
         const target = targets[0];
-        if (!target) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(target)) return sendMessage('§cPlayer not found.', executor);
 
         const amount = parseCurrency(amountStr);
         if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
@@ -89,30 +89,30 @@ const removeBountyCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) return;
 
         const config = getConfig();
-        if (!config.economy.enabled || !config.bounties?.enabled) {
+        if (!config.economy.enabled || config.bounties.enabled !== true) {
             sendMessage('§cThe Bounties system is currently disabled globally.', executor);
             return;
         }
 
-        const targetName = args.target as string;
-        const amountStr = args.amount as string;
+        const targetName = args.target as string | undefined;
+        const amountStr = args.amount as string | undefined;
 
-        if (!targetName) return sendMessage('§cPlease specify a player.', executor);
-        if (!amountStr) return sendMessage('§cPlease specify an amount.', executor);
+        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player.', executor);
+        if (!isNonEmptyString(amountStr)) return sendMessage('§cPlease specify an amount.', executor);
 
         // Resolve
         const targets = resolveTarget(targetName, executor);
         const target = targets[0];
-        if (!target) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(target)) return sendMessage('§cPlayer not found.', executor);
 
         const amount = parseCurrency(amountStr);
         if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         const targetBounty = bountyManager.getBounty(target.id);
 
-        if (!targetBounty) return sendMessage('§cThis player has no bounty on them.', executor);
-        // Explicit check to satisfy TS
-        if (targetBounty && amount > targetBounty.amount)
+        if (!isDefined(targetBounty)) return sendMessage('§cThis player has no bounty on them.', executor);
+
+        if (amount > targetBounty.amount)
             return sendMessage(`§cAmount exceeds bounty ($${targetBounty.amount.toFixed(2)}).`, executor);
 
         const pData = getOrCreatePlayer(executor);
@@ -139,18 +139,18 @@ const oBountyCommand: CustomCommand = {
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
-        const targetName = args.target as string;
-        const amountStr = args.amount as string;
+        const targetName = args.target as string | undefined;
+        const amountStr = args.amount as string | undefined;
 
-        if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
-        if (!amountStr) return sendMessage('§cUsage: /obounty <player> <amount>', executor);
+        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
+        if (!isNonEmptyString(amountStr)) return sendMessage('§cUsage: /obounty <player> <amount>', executor);
 
         const amount = parseCurrency(amountStr);
         if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         const targetId = getPlayerIdByName(targetName);
-        if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
-        const displayName = getPlayerNameById(targetId) || targetName;
+        if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        const displayName = getPlayerNameById(targetId) ?? targetName;
 
         placeBounty(executor, targetId, displayName, amount);
     }
@@ -171,27 +171,27 @@ const oRemoveBountyCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) return;
 
         const config = getConfig();
-        if (!config.economy.enabled || !config.bounties?.enabled) {
+        if (!config.economy.enabled || config.bounties.enabled !== true) {
             sendMessage('§cThe Bounties system is currently disabled globally.', executor);
             return;
         }
 
-        const targetName = args.target as string;
-        const amountStr = args.amount as string;
+        const targetName = args.target as string | undefined;
+        const amountStr = args.amount as string | undefined;
 
-        if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
-        if (!amountStr) return sendMessage('§cPlease specify an amount.', executor);
+        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
+        if (!isNonEmptyString(amountStr)) return sendMessage('§cPlease specify an amount.', executor);
 
         const amount = parseCurrency(amountStr);
         if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         const targetId = getPlayerIdByName(targetName);
-        if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
-        const displayName = getPlayerNameById(targetId) || targetName;
+        if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        const displayName = getPlayerNameById(targetId) ?? targetName;
 
         const targetBounty = bountyManager.getBounty(targetId);
-        if (!targetBounty) return sendMessage('§cThis player has no bounty on them.', executor);
-        if (targetBounty && amount > targetBounty.amount)
+        if (!isDefined(targetBounty)) return sendMessage('§cThis player has no bounty on them.', executor);
+        if (amount > targetBounty.amount)
             return sendMessage(`§cAmount exceeds bounty ($${targetBounty.amount.toFixed(2)}).`, executor);
 
         const pData = getOrCreatePlayer(executor);
@@ -215,7 +215,7 @@ const listBountyCommand: CustomCommand = {
     parameters: [{ name: 'target', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
-        if (!config.economy.enabled || !config.bounties?.enabled) {
+        if (!config.economy.enabled || config.bounties.enabled !== true) {
             if (executor instanceof mc.Player)
                 sendMessage('§cThe Bounties system is currently disabled globally.', executor);
             else executor.sendMessage('§cThe Bounties system is currently disabled globally.');
@@ -224,7 +224,7 @@ const listBountyCommand: CustomCommand = {
 
         const targetName = args.target as string | undefined;
 
-        if (targetName) {
+        if (isNonEmptyString(targetName)) {
             // Check online match first, else use name directly?
             let targetId: string | undefined;
             let targetDisplayName = targetName;
@@ -232,26 +232,26 @@ const listBountyCommand: CustomCommand = {
             if (executor instanceof mc.Player) {
                 const targets = resolveTarget(targetName, executor);
                 const firstTarget = targets[0];
-                if (firstTarget) {
+                if (isDefined(firstTarget)) {
                     targetId = firstTarget.id;
                     targetDisplayName = firstTarget.name;
                 } else {
                     // Try offline lookup if online failed
                     targetId = getPlayerIdByName(targetName);
-                    if (targetId) targetDisplayName = getPlayerNameById(targetId) || targetName;
+                    if (isNonEmptyString(targetId)) targetDisplayName = getPlayerNameById(targetId) ?? targetName;
                 }
             } else {
                 targetId = getPlayerIdByName(targetName);
             }
 
-            if (!targetId) {
+            if (!isNonEmptyString(targetId)) {
                 if (executor instanceof mc.Player) sendMessage('§cPlayer not found (Online or Offline).', executor);
                 else executor.sendMessage('§cPlayer not found.');
                 return;
             }
 
             const bounty = bountyManager.getBounty(targetId);
-            if (!bounty) {
+            if (!isDefined(bounty)) {
                 if (executor instanceof mc.Player)
                     sendMessage(`§aThere is no bounty on ${targetDisplayName}.`, executor);
                 else executor.sendMessage(`§aThere is no bounty on ${targetDisplayName}.`);
@@ -268,7 +268,7 @@ const listBountyCommand: CustomCommand = {
                 message += '§7No active bounties.';
             } else {
                 for (const bounty of allBounties) {
-                    if (bounty) {
+                    if (isDefined(bounty)) {
                         message += `§e${bounty.name}§r: $${bounty.amount.toFixed(2)}\n`;
                     }
                 }
@@ -290,30 +290,30 @@ const oListBountyCommand: CustomCommand = {
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
-        if (!config.economy.enabled || !config.bounties?.enabled) {
+        if (!config.economy.enabled || config.bounties.enabled !== true) {
             if (executor instanceof mc.Player)
                 sendMessage('§cThe Bounties system is currently disabled globally.', executor);
             else executor.sendMessage('§cThe Bounties system is currently disabled globally.');
             return;
         }
 
-        const targetName = args.target as string;
-        if (!targetName) {
+        const targetName = args.target as string | undefined;
+        if (!isNonEmptyString(targetName)) {
             if (executor instanceof mc.Player) sendMessage('§cPlease specify a player name.', executor);
             else executor.sendMessage('§cPlease specify a player name.');
             return;
         }
 
         const targetId = getPlayerIdByName(targetName);
-        if (!targetId) {
+        if (!isNonEmptyString(targetId)) {
             if (executor instanceof mc.Player) sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
             else executor.sendMessage(`§cPlayer "${targetName}" never joined.`);
             return;
         }
-        const displayName = getPlayerNameById(targetId) || targetName;
+        const displayName = getPlayerNameById(targetId) ?? targetName;
 
         const bounty = bountyManager.getBounty(targetId);
-        if (!bounty) {
+        if (!isDefined(bounty)) {
             if (executor instanceof mc.Player) sendMessage(`§aThere is no bounty on ${displayName}.`, executor);
             else executor.sendMessage(`§aThere is no bounty on ${displayName}.`);
             return;

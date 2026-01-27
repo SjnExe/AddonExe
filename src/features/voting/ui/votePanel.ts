@@ -4,6 +4,7 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 import { getConfig } from '@core/configManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { uiWait } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { castVote, createVote, endVote, getActiveVote, getLastVote } from '../voteManager.js';
 
 export async function showVoteMenu(player: mc.Player) {
@@ -12,7 +13,7 @@ export async function showVoteMenu(player: mc.Player) {
     const rank = getPlayerRank(player, config);
     const isAdmin = rank.permissionLevel <= 1;
 
-    if (activeVote) {
+    if (isDefined(activeVote)) {
         // Show Vote UI
         const hasVoted = activeVote.votedPlayerIds.includes(player.id);
         let body = `§e${activeVote.question}\n§7Created by ${activeVote.creatorName}`;
@@ -43,9 +44,9 @@ export async function showVoteMenu(player: mc.Player) {
         }
 
         const response = await uiWait(player, form);
-        if (!response || response.canceled) return;
+        if (!isDefined(response) || response.canceled) return;
         const actionResponse = response as ActionFormResponse;
-        if (actionResponse.selection === undefined) return;
+        if (!isDefined(actionResponse.selection)) return;
 
         if (hasVoted) {
             if (isAdmin && actionResponse.selection === 1) {
@@ -71,7 +72,7 @@ export async function showVoteMenu(player: mc.Player) {
 
         if (selection < activeVote.options.length) {
             const selectedOption = activeVote.options[selection];
-            if (selectedOption) {
+            if (isDefined(selectedOption)) {
                 const res = castVote(player, selectedOption.id);
                 player.sendMessage(res.message);
             }
@@ -81,7 +82,7 @@ export async function showVoteMenu(player: mc.Player) {
         const lastVote = getLastVote();
         let body = 'There is currently no active vote.';
 
-        if (lastVote) {
+        if (isDefined(lastVote)) {
             body += `\n\n§7Last Vote: ${lastVote.question}\nStatus: Ended`;
         }
 
@@ -94,9 +95,9 @@ export async function showVoteMenu(player: mc.Player) {
         }
 
         const response = await uiWait(player, form);
-        if (!response || response.canceled) return;
+        if (!isDefined(response) || response.canceled) return;
         const actionResponse = response as ActionFormResponse;
-        if (actionResponse.selection === undefined) return;
+        if (!isDefined(actionResponse.selection)) return;
 
         if (isAdmin && actionResponse.selection === 0) {
             await showCreateVoteUI(player);
@@ -112,13 +113,13 @@ async function showCreateVoteUI(player: mc.Player) {
         .textField('Duration (minutes, 0 for infinite)', '10');
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) return;
+    if (!isDefined(response) || response.canceled) return;
     const modalResponse = response as ModalFormResponse;
-    if (!modalResponse.formValues) return;
+    if (!isDefined(modalResponse.formValues)) return;
 
     const [question, optionsStr, durationStr] = modalResponse.formValues as string[];
 
-    if (!question || !optionsStr) {
+    if (!isNonEmptyString(question) || !isNonEmptyString(optionsStr)) {
         player.sendMessage('§cQuestion and options are required.');
         return;
     }
@@ -132,7 +133,7 @@ async function showCreateVoteUI(player: mc.Player) {
         return;
     }
 
-    const duration = Number.parseInt(durationStr || '0') || 0;
+    const duration = Number.parseInt(durationStr ?? '0') || 0;
     const durationSeconds = duration * 60;
 
     createVote(player, question, options, durationSeconds);

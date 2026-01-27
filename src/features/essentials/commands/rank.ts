@@ -49,7 +49,7 @@ const command: CustomCommand = {
 
         const usageMessage = '§cUsage: /rank <set|remove> <targetName> <rankId>\n§cUsage: /rank list (or /rank)';
 
-        if (!action || action.toLowerCase() === 'list') {
+        if (action === undefined || action.toLowerCase() === 'list') {
             let message = '§a--- Available Ranks (Most to Least Powerful) ---\n';
             const sortedRanks = rankManager.getAllRanks().toSorted((a, b) => a.permissionLevel - b.permissionLevel);
             for (const rank of sortedRanks) {
@@ -73,7 +73,7 @@ const command: CustomCommand = {
             return;
         }
 
-        if (!targetName || !rankId) {
+        if (targetName === undefined || rankId === undefined) {
             sendExecutorMessage(usageMessage);
             return;
         }
@@ -102,12 +102,12 @@ const command: CustomCommand = {
         const tagCondition = rankDef.conditions.find(
             (c: RankCondition) => c.type === 'hasTag' && typeof c.value === 'string'
         );
-        if (!tagCondition || !tagCondition.value) {
+        if (!tagCondition || typeof tagCondition.value !== 'string') {
             sendExecutorMessage(`§cThe rank '${rankId}' is not configured to be assigned by a tag.`);
             if (executor instanceof mc.Player) playSound(executor, 'note.bass');
             return;
         }
-        const rankTag = tagCondition.value as string;
+        const rankTag = tagCondition.value;
 
         // --- Permission Checks ---
         if (executor instanceof mc.Player) {

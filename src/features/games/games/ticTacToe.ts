@@ -1,5 +1,6 @@
 import { uiWait } from '@core/utils.js';
 import { inviteFriendToGame } from '@features/social/friendManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 import { IGame } from '../types.js';
@@ -25,17 +26,17 @@ export class TicTacToeGame implements IGame {
 
     start(players: mc.Player[], config: Record<string, unknown>) {
         const p1 = players[0];
-        if (!p1) return;
+        if (!isDefined(p1)) return;
 
         if (this.matches.has(p1.id)) {
             void this.openUI(p1);
             return;
         }
 
-        const opponent = config?.opponent as mc.Player | undefined;
-        const isAI = !opponent;
-        const p2Id = isAI ? 'AI' : opponent.id;
-        const p2Name = isAI ? 'Bot' : opponent.name;
+        const opponent = config.opponent instanceof mc.Player ? config.opponent : undefined;
+        const isAI = !isDefined(opponent);
+        const p2Id = isDefined(opponent) ? opponent.id : 'AI';
+        const p2Name = isDefined(opponent) ? opponent.name : 'Bot';
 
         const match: Match = {
             p1Id: p1.id,
@@ -59,57 +60,56 @@ export class TicTacToeGame implements IGame {
 
     async openUI(player: mc.Player) {
         const match = this.matches.get(player.id);
-        if (!match) return;
+        if (!isDefined(match)) return;
 
         const isP1 = player.id === match.p1Id;
         const mySymbol = isP1 ? 'X' : 'O';
         const isMyTurn = match.turn === mySymbol;
 
-        // Render the board as text for "Grid Visualization" (Option B fallback / primary visualization)
+        // Render the board as text
         const boardVisual = this.renderBoard(match.board);
 
         const form = new ActionFormData()
-            .title('Tic Tac Toe') // Generic title for server_form.json hook if active
+            .title('Tic Tac Toe')
             .body(
-                (match.winner
+                (isNonEmptyString(match.winner)
                     ? `Game Over! ${match.winner === 'Draw' ? "It's a Draw!" : match.winner === mySymbol ? '§2You Won!' : '§4You Lost!'}`
                     : `Turn: ${match.turn} (${isMyTurn ? '§l§2YOU§r' : 'Opponent'})`) +
                     `\n\n${boardVisual}\n\nSelect a cell to move:`
             );
 
         // Buttons 1-9
-        // We add numbering to buttons to match grid positions
         for (let i = 0; i < 9; i++) {
             const cell = match.board[i];
-            const label = cell ? (cell === 'X' ? '§cX' : '§aO') : `§7${i + 1}`;
+            const label = isDefined(cell) ? (cell === 'X' ? '§cX' : '§aO') : `§7${i + 1}`;
             form.button(label);
         }
 
         form.button('Refresh / Exit');
 
-        if (match.p2Id === 'AI' && !match.winner) {
+        if (match.p2Id === 'AI' && !isDefined(match.winner)) {
             form.button('Invite Friend');
         }
 
         const res = await uiWait(player, form);
-        if (!res || res.canceled) return;
+        if (!isDefined(res) || res.canceled) return;
         const response = res as ActionFormResponse;
 
-        if (match.winner) {
+        if (isNonEmptyString(match.winner)) {
             this.cleanupMatch(match);
             return;
         }
 
         const selection = response.selection;
 
-        if (selection !== undefined && selection >= 0 && selection < 9) {
+        if (isDefined(selection) && selection >= 0 && selection < 9) {
             if (!isMyTurn && match.p2Id !== 'AI') {
                 player.sendMessage("§cIt's not your turn!");
                 void this.openUI(player);
                 return;
             }
 
-            if (match.board[selection]) {
+            if (isDefined(match.board[selection])) {
                 void this.openUI(player);
                 return;
             }
@@ -118,7 +118,8 @@ export class TicTacToeGame implements IGame {
             match.board[selection] = match.turn;
             this.checkWin(match);
 
-            if (!match.winner) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            if (match.winner === null) {
                 match.turn = match.turn === 'X' ? 'O' : 'X';
                 if (match.p2Id === 'AI' && match.turn === 'O') {
                     this.makeAIMove(match);
@@ -161,8 +162,9 @@ export class TicTacToeGame implements IGame {
         ];
 
         for (const [a, b, c] of wins) {
-            if (match.board[a] && match.board[a] === match.board[b] && match.board[a] === match.board[c]) {
-                match.winner = match.board[a];
+            const cellA = match.board[a];
+            if (isDefined(cellA) && cellA === match.board[b] && cellA === match.board[c]) {
+                match.winner = cellA;
                 return;
             }
         }
@@ -176,7 +178,7 @@ export class TicTacToeGame implements IGame {
         const board = match.board;
         const available: number[] = [];
         for (const [i, element] of board.entries()) {
-            if (element === null) {
+            if (!isDefined(element)) {
                 available.push(i);
             }
         }
@@ -184,10 +186,10 @@ export class TicTacToeGame implements IGame {
         if (available.length > 0) {
             const randomIndex = Math.floor(Math.random() * available.length);
             const move = available[randomIndex];
-            if (typeof move === 'number') {
+            if (isDefined(move)) {
                 board[move] = 'O';
                 this.checkWin(match);
-                if (!match.winner) {
+                if (match.winner === null) {
                     match.turn = 'X';
                 }
             }

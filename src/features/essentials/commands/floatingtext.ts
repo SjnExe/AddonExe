@@ -30,14 +30,14 @@ const command: CustomCommand = {
         const id = typeof args.id === 'string' ? args.id : undefined;
         const text = typeof args.text === 'string' ? args.text : undefined;
 
-        if (!subcommand) {
+        if (subcommand === undefined) {
             await showPanel(executor, 'floatingTextListPanel');
             return;
         }
 
         switch (subcommand) {
             case 'create': {
-                if (!id || !text) {
+                if (id === undefined || text === undefined) {
                     executor.sendMessage('§cUsage: /floatingtext create <id> <text>');
                     return;
                 }
@@ -49,7 +49,7 @@ const command: CustomCommand = {
                 break;
             }
             case 'delete': {
-                if (!id) {
+                if (id === undefined) {
                     executor.sendMessage('§cUsage: /floatingtext delete <id>');
                     return;
                 }
@@ -61,7 +61,7 @@ const command: CustomCommand = {
                 break;
             }
             case 'teleport': {
-                if (!id) {
+                if (id === undefined) {
                     executor.sendMessage('§cUsage: /floatingtext teleport <id>');
                     return;
                 }
@@ -69,9 +69,9 @@ const command: CustomCommand = {
                 break;
             }
             case 'edit': {
-                await (id
-                    ? showPanel(executor, 'floatingTextEditPanel', { id })
-                    : showPanel(executor, 'floatingTextListPanel'));
+                await (id === undefined
+                    ? showPanel(executor, 'floatingTextListPanel')
+                    : showPanel(executor, 'floatingTextEditPanel', { id }));
                 break;
             }
             default: {

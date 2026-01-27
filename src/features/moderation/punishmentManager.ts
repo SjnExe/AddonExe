@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { addPunishmentLog } from '../anticheat/logManager.js';
 
 const storage = new StorageManager('exe:punishments');
@@ -33,14 +34,15 @@ export function loadPunishments() {
     // Try loading new format first
     const data = storage.load<[string, PlayerPunishmentRecord | Punishment][]>();
 
-    if (data) {
+    if (isDefined(data)) {
         punishments = new Map();
         let migratedCount = 0;
 
         for (const [playerId, record] of data) {
             // Check if legacy format (has 'type' property directly)
-            if ('type' in record) {
-                const legacyPunishment = record;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+            if (isDefined((record as any).type)) {
+                const legacyPunishment = record as unknown as Punishment;
                 if (legacyPunishment.type === 'ban') {
                     punishments.set(playerId, { ban: legacyPunishment });
                 } else if (legacyPunishment.type === 'mute') {
@@ -48,7 +50,7 @@ export function loadPunishments() {
                 }
                 migratedCount++;
             } else {
-                punishments.set(playerId, record);
+                punishments.set(playerId, record as PlayerPunishmentRecord);
             }
         }
 
@@ -74,19 +76,19 @@ export function clearExpiredPunishments() {
     for (const [playerId, record] of punishments.entries()) {
         let changed = false;
 
-        if (record.ban && now > record.ban.expires) {
+        if (isDefined(record.ban) && now > record.ban.expires) {
             delete record.ban;
             changed = true;
             clearedCount++;
         }
-        if (record.mute && now > record.mute.expires) {
+        if (isDefined(record.mute) && now > record.mute.expires) {
             delete record.mute;
             changed = true;
             clearedCount++;
         }
 
         if (changed) {
-            if (!record.ban && !record.mute) {
+            if (!isDefined(record.ban) && !isDefined(record.mute)) {
                 punishments.delete(playerId);
             } else {
                 punishments.set(playerId, record);
@@ -125,7 +127,7 @@ function savePunishments() {
  * @param adminName The name of the admin who issued the punishment.
  */
 export function addPunishment(playerId: string, playerName: string, punishment: Punishment, adminName: string) {
-    const record = punishments.get(playerId) || {};
+    const record = punishments.get(playerId) ?? {};
 
     if (punishment.type === 'ban') {
         record.ban = punishment;
@@ -151,12 +153,12 @@ export function addPunishment(playerId: string, playerName: string, punishment: 
  */
 export function getPunishment(playerId: string, type: PunishmentType): Punishment | undefined {
     const record = punishments.get(playerId);
-    if (!record) {
+    if (!isDefined(record)) {
         return undefined;
     }
 
     const punishment = type === 'ban' ? record.ban : record.mute;
-    if (!punishment) {
+    if (!isDefined(punishment)) {
         return undefined;
     }
 
@@ -176,8 +178,8 @@ export function getPunishment(playerId: string, type: PunishmentType): Punishmen
  */
 export function checkAndKickBannedPlayer(player: mc.Player): boolean {
     const punishment = getPunishment(player.id, 'ban');
-    if (punishment) {
-        const banReason = punishment.reason || 'You are banned.';
+    if (isDefined(punishment)) {
+        const banReason = isNonEmptyString(punishment.reason) ? punishment.reason : 'You are banned.';
         // Use a slight delay to ensure the kick command processes after join
         mc.system.runTimeout(
             () => mc.world.getDimension('overworld').runCommand(`kick "${player.name}" ${banReason}`),
@@ -195,19 +197,21 @@ export function checkAndKickBannedPlayer(player: mc.Player): boolean {
  */
 export function removePunishment(playerId: string, type: PunishmentType) {
     const record = punishments.get(playerId);
-    if (!record) return;
+    if (!isDefined(record)) return;
 
     let changed = false;
-    if (type === 'ban' && record.ban) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (type === 'ban' && isDefined(record.ban)) {
         delete record.ban;
         changed = true;
-    } else if (type === 'mute' && record.mute) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    } else if (type === 'mute' && isDefined(record.mute)) {
         delete record.mute;
         changed = true;
     }
 
     if (changed) {
-        if (!record.ban && !record.mute) {
+        if (!isDefined(record.ban) && !isDefined(record.mute)) {
             punishments.delete(playerId);
         } else {
             punishments.set(playerId, record);
@@ -229,6 +233,6 @@ export function initializePunishmentManager() {
             clearExpiredPunishments();
             savePunishments();
         },
-        (config.data?.autoSaveIntervalSeconds ?? 30) * 20
+        (config.data.autoSaveIntervalSeconds) * 20
     );
 }

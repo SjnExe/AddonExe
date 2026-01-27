@@ -4,6 +4,7 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { getShopConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
+import { isDefined, isNonEmptyString, isNumber, isString } from '@lib/guards.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { IPanelHandler, MainConfig, PanelItem, ShopItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
@@ -74,6 +75,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         await ensureItemsConfig();
         const allItems = getAllItems();
         const items: PanelItem[] = [];
+        const page = isNumber(context.page) ? context.page : 1;
 
         if (panelId === 'shopManagementPanel') {
             addBackButton(items, 'configCategoryPanel');
@@ -101,11 +103,11 @@ export class ShopAdminPanelHandler implements IPanelHandler {
 
             const shopConfig = getShopConfig();
             const categories = Object.keys(shopConfig.categories).toSorted();
-            const paginated = getPaginatedItems(categories, (context.page as number) || 1);
+            const paginated = getPaginatedItems(categories, page);
 
             for (const catName of paginated) {
                 const cat = shopConfig.categories[catName];
-                if (!cat) continue;
+                if (!isDefined(cat)) continue;
                 items.push({
                     id: catName,
                     text: catName,
@@ -115,7 +117,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                     actionValue: `shopAdminCategoryPanel_${catName}`
                 });
             }
-            addPaginationItems(items, (context.page as number) || 1, categories.length);
+            addPaginationItems(items, page, categories.length);
             return items;
         }
 
@@ -151,7 +153,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
 
             const shopConfig = getShopConfig();
             const category = shopConfig.categories[categoryName];
-            if (category) {
+            if (isDefined(category)) {
                 const subCategories = Object.keys(category.subCategories).toSorted();
                 const shopItems = Object.keys(category.items);
 
@@ -162,7 +164,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                             id: n,
                             name: n,
                             type: 'subCategory' as const,
-                            icon: sub?.icon || ''
+                            icon: sub?.icon ?? ''
                         };
                     }),
                     ...shopItems.map((n) => {
@@ -170,22 +172,22 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                         return {
                             id: n,
                             type: 'item' as const,
-                            ...(item?.icon ? { icon: item.icon } : {}),
-                            ...(item?.displayName ? { displayName: item.displayName } : {}),
-                            buyPrice: item?.buyPrice || -1,
-                            sellPrice: item?.sellPrice || -1,
-                            permissionLevel: item?.permissionLevel || 1024
+                            ...(isNonEmptyString(item?.icon) ? { icon: item.icon } : {}),
+                            ...(isNonEmptyString(item?.displayName) ? { displayName: item.displayName } : {}),
+                            buyPrice: item?.buyPrice ?? -1,
+                            sellPrice: item?.sellPrice ?? -1,
+                            permissionLevel: item?.permissionLevel ?? 1024
                         };
                     })
                 ];
 
-                const paginated = getPaginatedItems(allEntries, (context.page as number) || 1);
+                const paginated = getPaginatedItems(allEntries, page);
 
                 for (const entry of paginated) {
-                    if (!entry) continue;
+                    if (!isDefined(entry)) continue;
                     if (entry.type === 'subCategory') {
                         const sub = category.subCategories[entry.id];
-                        if (!sub) continue;
+                        if (!isDefined(sub)) continue;
                         items.push({
                             id: entry.id,
                             text: `§6${entry.id}`,
@@ -196,20 +198,20 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                         });
                     } else {
                         const item = category.items[entry.id];
-                        if (!item) continue;
-                        const masterItem = allItems[entry.id] || {};
-                        const icon = item.icon || masterItem.icon;
+                        if (!isDefined(item)) continue;
+                        const masterItem = allItems[entry.id] ?? {};
+                        const icon = item.icon ?? masterItem.icon;
                         items.push({
                             id: entry.id,
-                            text: item.displayName || masterItem.displayName || entry.id,
-                            ...(icon ? { icon } : {}),
+                            text: item.displayName ?? masterItem.displayName ?? entry.id,
+                            ...(isNonEmptyString(icon) ? { icon } : {}),
                             permissionLevel: 0,
                             actionType: 'functionCall',
                             actionValue: 'editItem'
                         });
                     }
                 }
-                addPaginationItems(items, (context.page as number) || 1, allEntries.length);
+                addPaginationItems(items, page, allEntries.length);
             }
             return items;
         }
@@ -239,25 +241,25 @@ export class ShopAdminPanelHandler implements IPanelHandler {
 
             const shopConfig = getShopConfig();
             const subCategory = shopConfig.categories[categoryName]?.subCategories[subCategoryName];
-            if (subCategory) {
+            if (isDefined(subCategory)) {
                 const shopItems = Object.keys(subCategory.items);
-                const paginated = getPaginatedItems(shopItems, (context.page as number) || 1);
+                const paginated = getPaginatedItems(shopItems, page);
                 for (const id of paginated) {
-                    if (!id) continue;
+                    if (!isNonEmptyString(id)) continue;
                     const item = (subCategory.items as Record<string, ShopItem>)[id];
-                    if (!item) continue;
-                    const masterItem = allItems[id] || {};
-                    const icon = item.icon || masterItem.icon;
+                    if (!isDefined(item)) continue;
+                    const masterItem = allItems[id] ?? {};
+                    const icon = item.icon ?? masterItem.icon;
                     items.push({
                         id: id,
-                        text: item.displayName || masterItem.displayName || id,
-                        ...(icon ? { icon } : {}),
+                        text: item.displayName ?? masterItem.displayName ?? id,
+                        ...(isNonEmptyString(icon) ? { icon } : {}),
                         permissionLevel: 0,
                         actionType: 'functionCall',
                         actionValue: 'editItem'
                     });
                 }
-                addPaginationItems(items, (context.page as number) || 1, shopItems.length);
+                addPaginationItems(items, page, shopItems.length);
             }
             return items;
         }
@@ -275,21 +277,21 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             });
 
             const allPossibleItems = Object.keys(allItems);
-            const paginated = getPaginatedItems(allPossibleItems, (context.page as number) || 1);
+            const paginated = getPaginatedItems(allPossibleItems, page);
             for (const itemId of paginated) {
-                if (!itemId) continue;
+                if (!isNonEmptyString(itemId)) continue;
                 const masterItem = allItems[itemId];
-                if (!masterItem) continue;
+                if (!isDefined(masterItem)) continue;
                 items.push({
                     id: itemId,
                     text: masterItem.displayName ?? itemId,
-                    ...(masterItem.icon ? { icon: masterItem.icon } : {}),
+                    ...(isNonEmptyString(masterItem.icon) ? { icon: masterItem.icon } : {}),
                     permissionLevel: 0,
                     actionType: 'openPanel',
                     actionValue: 'addItemFromListPanel'
                 });
             }
-            addPaginationItems(items, (context.page as number) || 1, allPossibleItems.length);
+            addPaginationItems(items, page, allPossibleItems.length);
             return items;
         }
 
@@ -319,6 +321,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
 
         if (panelId.startsWith('shopAdminSubCategoryActionPanel_')) {
             const subCategoryName = panelId.replace('shopAdminSubCategoryActionPanel_', '');
+            // const categoryName = context.categoryName as string; // Unused, context preserves it
             addBackButton(items, `shopAdminSubCategoryItemPanel_${subCategoryName}`);
             items.push(
                 {
@@ -362,12 +365,12 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         }
         if (panelId === 'editCategoryPanel') {
             let targetName = context.categoryName as string;
-            if (!targetName && (context.id as string).startsWith('shopAdminCategoryActionPanel_')) {
-                targetName = (context.id as string).replace('shopAdminCategoryActionPanel_', '');
+            if (!isNonEmptyString(targetName) && isString(context.id) && context.id.startsWith('shopAdminCategoryActionPanel_')) {
+                targetName = context.id.replace('shopAdminCategoryActionPanel_', '');
             }
             const shopConfig = getShopConfig();
             const category = shopConfig.categories[targetName];
-            if (!category) return undefined;
+            if (!isDefined(category)) return undefined;
             return new ModalFormData()
                 .title('Edit Category')
                 .textField('Category Name', 'Enter new name', { defaultValue: targetName })
@@ -375,11 +378,11 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'editSubCategoryPanel') {
-            const targetName = (context.id as string).replace('shopAdminSubCategoryActionPanel_', '');
+            const targetName = isString(context.id) ? context.id.replace('shopAdminSubCategoryActionPanel_', '') : '';
             const { categoryName } = context;
             const shopConfig = getShopConfig();
             const subCategory = shopConfig.categories[categoryName as string]?.subCategories[targetName];
-            if (!subCategory) return undefined;
+            if (!isDefined(subCategory)) return undefined;
             return new ModalFormData()
                 .title('Edit Subcategory')
                 .textField('Subcategory Name', 'Enter new name', { defaultValue: targetName })
@@ -401,7 +404,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         if (panelId === 'addItemFromListPanel') {
             const itemId = context.selectedItemId as string;
             const masterItem = allItems[itemId];
-            if (!masterItem) return undefined;
+            if (!isDefined(masterItem)) return undefined;
             return new ModalFormData()
                 .title(`Add ${String(masterItem.displayName ?? itemId)}`)
                 .textField('Icon Path', 'e.g., textures/items/diamond_sword', {
@@ -417,20 +420,22 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             const categoryName = context.categoryName as string;
             const subCategoryName = context.subCategoryName as string | undefined;
             const shopConfig = getShopConfig();
-            const shopItem = subCategoryName
+            const shopItem = isNonEmptyString(subCategoryName)
                 ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
                 : shopConfig.categories[categoryName]?.items[itemId];
 
-            if (!shopItem) return undefined;
+            if (!isDefined(shopItem)) return undefined;
 
             return new ModalFormData()
                 .title(`Edit Item: ${String(itemId)}`)
-                .textField('Display Name', 'Name', { defaultValue: String(shopItem.displayName || '') })
-                .textField('Minecraft ID', 'ID', { defaultValue: String(shopItem.itemId || '') })
-                .textField('Icon', 'Icon', { defaultValue: String(shopItem.icon || '') })
-                .textField('Buy Price', 'Price', { defaultValue: String(shopItem.buyPrice ?? -1) })
-                .textField('Sell Price', 'Price', { defaultValue: String(shopItem.sellPrice ?? -1) })
-                .textField('Permission', 'Level', { defaultValue: String(shopItem.permissionLevel ?? 1024) });
+                .textField('Display Name', 'Name', {
+                    defaultValue: isNonEmptyString(shopItem.displayName) ? shopItem.displayName : ''
+                })
+                .textField('Minecraft ID', 'ID', { defaultValue: isNonEmptyString(shopItem.itemId) ? shopItem.itemId : '' })
+                .textField('Icon', 'Icon', { defaultValue: isNonEmptyString(shopItem.icon) ? shopItem.icon : '' })
+                .textField('Buy Price', 'Price', { defaultValue: String(shopItem.buyPrice) })
+                .textField('Sell Price', 'Price', { defaultValue: String(shopItem.sellPrice) })
+                .textField('Permission', 'Level', { defaultValue: String(shopItem.permissionLevel) });
         }
 
         return undefined;
@@ -451,10 +456,11 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         if (panelId === 'addCategoryPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'shopManagementPanel', context);
             const values = formValues as string[] | undefined;
-            if (!values) return showPanel(player, 'shopManagementPanel', context);
-            const [name, iconStr] = values;
-            if (name) {
-                const result = shopAdminManager.addCategory(name, iconStr || '');
+            if (!isDefined(values)) return showPanel(player, 'shopManagementPanel', context);
+            const name = values[0];
+            const iconStr = values[1];
+            if (isNonEmptyString(name)) {
+                const result = shopAdminManager.addCategory(name, iconStr ?? '');
                 player.sendMessage(result.message);
             }
             return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
@@ -465,10 +471,11 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             if ((response as ModalFormResponse).canceled)
                 return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
             const values = formValues as string[] | undefined;
-            if (!values) return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
-            const [name, iconStr] = values;
-            if (name) {
-                const result = shopAdminManager.addSubCategory(categoryName, name, iconStr || '');
+            if (!isDefined(values)) return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, context);
+            const name = values[0];
+            const iconStr = values[1];
+            if (isNonEmptyString(name)) {
+                const result = shopAdminManager.addSubCategory(categoryName, name, iconStr ?? '');
                 player.sendMessage(result.message);
             }
             return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
@@ -476,55 +483,65 @@ export class ShopAdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'editCategoryPanel') {
             let targetName = context.categoryName as string;
-            if (!targetName && (context.id as string).startsWith('shopAdminCategoryActionPanel_')) {
-                targetName = (context.id as string).replace('shopAdminCategoryActionPanel_', '');
+            if (!isNonEmptyString(targetName) && isString(context.id) && context.id.startsWith('shopAdminCategoryActionPanel_')) {
+                targetName = context.id.replace('shopAdminCategoryActionPanel_', '');
             }
             if ((response as ModalFormResponse).canceled)
                 return showPanel(player, `shopAdminCategoryActionPanel_${targetName}`, context);
 
             const values = formValues as string[] | undefined;
-            if (!values) return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
-            const [newName, newIcon] = values;
-            if (newName) {
-                const result = shopAdminManager.editCategory(targetName, newName, newIcon || '');
+            if (!isDefined(values)) return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
+            const newName = values[0];
+            const newIcon = values[1];
+            if (isNonEmptyString(newName)) {
+                const result = shopAdminManager.editCategory(targetName, newName, newIcon ?? '');
                 player.sendMessage(result.message);
             }
             return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
         }
 
         if (panelId === 'editSubCategoryPanel') {
-            const targetName = (context.id as string).replace('shopAdminSubCategoryActionPanel_', '');
+            const targetName = isString(context.id) ? context.id.replace('shopAdminSubCategoryActionPanel_', '') : '';
             const categoryName = context.categoryName as string;
             if ((response as ModalFormResponse).canceled)
                 return showPanel(player, `shopAdminSubCategoryActionPanel_${targetName}`, context);
 
             const values = formValues as string[] | undefined;
-            if (!values) return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
-            const [newName, newIcon] = values;
-            if (newName) {
-                const result = shopAdminManager.editSubCategory(categoryName, targetName, newName, newIcon || '');
+            if (!isDefined(values)) return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
+            const newName = values[0];
+            const newIcon = values[1];
+            if (isNonEmptyString(newName)) {
+                const result = shopAdminManager.editSubCategory(categoryName, targetName, newName, newIcon ?? '');
                 player.sendMessage(result.message);
             }
             return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
         }
 
         if (panelId === 'addCustomItemPanel') {
+            // categoryName is used in return path
             const categoryName = context.categoryName as string;
             if ((response as ModalFormResponse).canceled)
                 return showPanel(player, `shopAddItemPanel_${categoryName}`, context);
 
             const values = formValues as string[] | undefined;
-            if (!values) return showPanel(player, `shopAddItemPanel_${categoryName}`, context);
-            const [customId, displayName, mcId, iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
-            const icon = iconStr || '';
-            const buyPrice = Number.parseInt(buyPriceStr || '-1', 10);
-            const sellPrice = Number.parseInt(sellPriceStr || '-1', 10);
-            const permissionLevel = Number.parseInt(permLevelStr || '1024', 10);
+            if (!isDefined(values)) return showPanel(player, `shopAddItemPanel_${categoryName}`, context);
+            const customId = values[0];
+            const displayName = values[1];
+            const mcId = values[2];
+            const iconStr = values[3];
+            const buyPriceStr = values[4];
+            const sellPriceStr = values[5];
+            const permLevelStr = values[6];
 
-            if (customId && displayName && mcId && !Number.isNaN(buyPrice)) {
+            const icon = iconStr;
+            const buyPrice = Number.parseInt(isNonEmptyString(buyPriceStr) ? buyPriceStr : '-1', 10);
+            const sellPrice = Number.parseInt(isNonEmptyString(sellPriceStr) ? sellPriceStr : '-1', 10);
+            const permissionLevel = Number.parseInt(isNonEmptyString(permLevelStr) ? permLevelStr : '1024', 10);
+
+            if (isNonEmptyString(customId) && isNonEmptyString(displayName) && isNonEmptyString(mcId) && !Number.isNaN(buyPrice)) {
                 shopAdminManager.addCustomItemToConfig(customId, {
                     itemId: mcId,
-                    icon,
+                    icon: icon ?? '',
                     buyPrice,
                     sellPrice,
                     displayName
@@ -537,7 +554,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                         buyPrice,
                         sellPrice,
                         permissionLevel,
-                        icon,
+                        icon: icon ?? '',
                         displayName,
                         itemId: customId
                     }
@@ -545,7 +562,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 player.sendMessage(`§2Added ${displayName}.`);
             }
             const subName = context.subCategoryName as string | undefined;
-            const parent = subName
+            const parent = isNonEmptyString(subName)
                 ? `shopAdminSubCategoryItemPanel_${subName}`
                 : `shopAdminCategoryPanel_${context.categoryName as string}`;
             return showPanel(player, parent, { ...context, page: 1 });
@@ -559,14 +576,19 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             const itemId = context.selectedItemId as string;
             const masterItem = allItems[itemId];
             const values = formValues as string[] | undefined;
-            if (!values) return showPanel(player, `shopAddItemPanel_${categoryName}`, context);
-            const [iconStr, buyPriceStr, sellPriceStr, permLevelStr] = values;
-            const icon = iconStr || '';
-            const buyPrice = Number.parseInt(buyPriceStr || '-1', 10);
-            const sellPrice = Number.parseInt(sellPriceStr || '-1', 10);
-            const permissionLevel = Number.parseInt(permLevelStr || '1024', 10);
+            if (!isDefined(values)) return showPanel(player, `shopAddItemPanel_${categoryName}`, context);
 
-            if (!Number.isNaN(buyPrice) && masterItem) {
+            const iconStr = values[0];
+            const buyPriceStr = values[1];
+            const sellPriceStr = values[2];
+            const permLevelStr = values[3];
+
+            const icon = iconStr;
+            const buyPrice = Number.parseInt(isNonEmptyString(buyPriceStr) ? buyPriceStr : '-1', 10);
+            const sellPrice = Number.parseInt(isNonEmptyString(sellPriceStr) ? sellPriceStr : '-1', 10);
+            const permissionLevel = Number.parseInt(isNonEmptyString(permLevelStr) ? permLevelStr : '1024', 10);
+
+            if (!Number.isNaN(buyPrice) && isDefined(masterItem)) {
                 shopAdminManager.setItem(
                     context.categoryName as string,
                     (context.subCategoryName as string) || undefined,
@@ -575,15 +597,15 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                         buyPrice,
                         sellPrice,
                         permissionLevel,
-                        icon,
-                        displayName: masterItem.displayName || '',
+                        icon: icon ?? '',
+                        displayName: masterItem.displayName ?? '',
                         itemId: itemId
                     }
                 );
                 player.sendMessage(`§2Added ${masterItem.displayName}.`);
             }
             const subName = context.subCategoryName as string | undefined;
-            const parent = subName
+            const parent = isNonEmptyString(subName)
                 ? `shopAdminSubCategoryItemPanel_${subName}`
                 : `shopAdminCategoryPanel_${context.categoryName as string}`;
             return showPanel(player, parent, { ...context, page: 1 });
@@ -594,39 +616,39 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             const categoryName = context.categoryName as string;
             const subCategoryName = context.subCategoryName as string | undefined;
 
-            const parent = subCategoryName
+            const parent = isNonEmptyString(subCategoryName)
                 ? `shopAdminSubCategoryItemPanel_${subCategoryName}`
                 : `shopAdminCategoryPanel_${categoryName}`;
 
             if ((response as ModalFormResponse).canceled) return showPanel(player, parent, context);
 
             const vals = formValues as string[] | undefined;
-            if (!vals) return showPanel(player, parent, context);
-            // Fix: handle possible undefined from array destructuring
-            const dName = vals[0] || undefined;
-            const mId = vals[1] || undefined;
-            const icon = vals[2] || undefined;
-            const bPrice = vals[3] || undefined;
-            const sPrice = vals[4] || undefined;
-            const pLevel = vals[5] || undefined;
+            if (!isDefined(vals)) return showPanel(player, parent, context);
 
-            shopAdminManager.updateShopItem(categoryName, subCategoryName || undefined, itemId, {
-                buyPrice: bPrice ? Number(bPrice) : -1,
-                sellPrice: sPrice ? Number(sPrice) : -1,
-                permissionLevel: pLevel ? Number(pLevel) : 1024,
-                icon: icon || '',
-                minecraftId: mId || itemId,
-                displayName: dName || itemId
+            const dName = vals[0] ?? undefined;
+            const mId = vals[1] ?? undefined;
+            const icon = vals[2] ?? undefined;
+            const bPrice = vals[3] ?? undefined;
+            const sPrice = vals[4] ?? undefined;
+            const pLevel = vals[5] ?? undefined;
+
+            shopAdminManager.updateShopItem(categoryName, subCategoryName ?? undefined, itemId, {
+                buyPrice: isDefined(bPrice) ? Number(bPrice) : -1,
+                sellPrice: isDefined(sPrice) ? Number(sPrice) : -1,
+                permissionLevel: isDefined(pLevel) ? Number(pLevel) : 1024,
+                icon: icon ?? '',
+                minecraftId: mId ?? itemId,
+                displayName: dName ?? itemId
             });
             player.sendMessage('§2Item updated.');
             return showPanel(player, parent, context);
         }
 
-        if (typeof selection === 'number') {
+        if (isNumber(selection)) {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!isDefined(item)) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {
@@ -638,13 +660,15 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 }
 
                 if (item.actionValue === 'prevPage') {
+                    const currentPage = isNumber(context.page) ? context.page : 1;
                     return showPanel(player, panelId, {
                         ...context,
-                        page: Math.max(1, ((context.page as number) || 1) - 1)
+                        page: Math.max(1, currentPage - 1)
                     });
                 }
                 if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
+                    const currentPage = isNumber(context.page) ? context.page : 1;
+                    return showPanel(player, panelId, { ...context, page: currentPage + 1 });
                 }
 
                 if (item.actionValue === 'toggleShop') {

@@ -5,6 +5,7 @@ import { vanishedTag } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { updatePlayerData } from '@core/playerDataManager.js';
 import { formatString } from '@core/utils.js';
+import { isDefined } from '@lib/guards.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
@@ -22,7 +23,7 @@ const vanishCommand: CustomCommand = {
 
         const isVanished = executor.hasTag(vanishedTag);
         const config = getConfig();
-        const joinLeaveConfig = config.playerInfo?.customJoinLeave;
+        const joinLeaveConfig = config.playerInfo.customJoinLeave;
 
         if (isVanished) {
             executor.removeTag(vanishedTag);
@@ -32,7 +33,7 @@ const vanishCommand: CustomCommand = {
             });
             sendMessage('§aYou are no longer vanished. You are now visible to other players.', executor);
 
-            if (joinLeaveConfig?.enabled) {
+            if (isDefined(joinLeaveConfig) && joinLeaveConfig.enabled) {
                 const msg = formatString(joinLeaveConfig.joinMessage, { playerName: executor.name });
                 mc.world.sendMessage(msg);
             } else {
@@ -46,7 +47,7 @@ const vanishCommand: CustomCommand = {
             });
             sendMessage('§aYou are now vanished. You are hidden from other players.', executor);
 
-            if (joinLeaveConfig?.enabled) {
+            if (isDefined(joinLeaveConfig) && joinLeaveConfig.enabled) {
                 const msg = formatString(joinLeaveConfig.leaveMessage, { playerName: executor.name });
                 mc.world.sendMessage(msg);
             } else {

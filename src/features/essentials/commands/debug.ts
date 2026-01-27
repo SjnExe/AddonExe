@@ -36,7 +36,7 @@ const logCommand: CustomCommand = {
         const currentLogLevel = getConfig().logLevel;
 
         let level: number | undefined;
-        if (levelStr) {
+        if (levelStr !== undefined && levelStr !== '') {
             switch (levelStr.toUpperCase()) {
                 case 'ERROR': {
                     level = LogLevels.ERROR;

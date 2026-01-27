@@ -10,6 +10,7 @@ import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
 import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export class EconomyPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -67,7 +68,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             // Actually configCategoryPanel is dynamic.
             // Let's rely on getStaticMenuItems or add it if missing.
             const def = panelDefinitions[panelId];
-            if (def) {
+            if (isDefined(def)) {
                 const staticItems = getStaticMenuItems(def, pData.permissionLevel);
                 items.push(...staticItems);
             }
@@ -78,13 +79,13 @@ export class EconomyPanelHandler implements IPanelHandler {
             addBack('economyPanel');
             // Static items first (Add Button)
             const def = panelDefinitions[panelId];
-            if (def) {
+            if (isDefined(def)) {
                 const staticItems = getStaticMenuItems(def, pData.permissionLevel);
                 items.push(...staticItems);
             }
 
             const config = getEconomyConfig();
-            const mobMoney = config.mobMoney || {};
+            const mobMoney = config.mobMoney ?? {};
             const mobs = Object.keys(mobMoney).toSorted();
 
             const paginated = getPaginatedItems(mobs, (context.page as number) || 1);
@@ -108,7 +109,7 @@ export class EconomyPanelHandler implements IPanelHandler {
         if (panelId === 'editMobDropPanel') {
             addBack('mobDropsSystemPanel');
             const mobId = context.selectedItemId as string;
-            if (!mobId) return items;
+            if (!isNonEmptyString(mobId)) return items;
 
             items.push(
                 {
@@ -168,7 +169,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             const [mobId, amountStr] = values as [string, string];
             const amount = Number.parseInt(amountStr);
 
-            if (mobId && !Number.isNaN(amount)) {
+            if (isNonEmptyString(mobId) && !Number.isNaN(amount)) {
                 const config = getEconomyConfig();
                 config.mobMoney[mobId] = amount;
                 saveEconomyConfig(config);
@@ -181,25 +182,25 @@ export class EconomyPanelHandler implements IPanelHandler {
 
         if (panelId === 'editMobValue') {
             if ((response as ModalFormResponse).canceled)
-                return showPanel(player, 'editMobDropPanel', { ...context, id: context.selectedItemId || '' });
+                return showPanel(player, 'editMobDropPanel', { ...context, id: context.selectedItemId ?? '' });
             const [amountStr] = values as [string];
             const amount = Number.parseInt(amountStr);
             const mobId = context.selectedItemId as string;
 
-            if (!Number.isNaN(amount) && mobId) {
+            if (!Number.isNaN(amount) && isNonEmptyString(mobId)) {
                 const config = getEconomyConfig();
                 config.mobMoney[mobId] = amount;
                 saveEconomyConfig(config);
                 player.sendMessage(`§2Updated ${mobId} to ${formatCurrency(amount)}`);
             }
-            return showPanel(player, 'editMobDropPanel', { ...context, id: mobId || '' });
+            return showPanel(player, 'editMobDropPanel', { ...context, id: mobId ?? '' });
         }
 
         if (typeof selection === 'number') {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!isDefined(item)) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {
@@ -222,7 +223,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                 if (item.actionValue === 'editMobValue') {
                     // Open a modal
                     const modal = await this.buildModal(player, 'editMobValue', context);
-                    if (modal) {
+                    if (isDefined(modal)) {
                         const res = await modal.show(player);
                         return this.handleResponse(player, 'editMobValue', res, context);
                     }

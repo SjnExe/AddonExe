@@ -16,7 +16,7 @@ const linksCommand: CustomCommand = {
         const config = getConfig();
         const links = config.serverInfo.helpfulLinks;
 
-        if (!links || links.length === 0) {
+        if (links.length === 0) {
             const message = '§cNo helpful links have been configured by the admin.';
             if (executor instanceof mc.Player) {
                 sendMessage(message, executor);

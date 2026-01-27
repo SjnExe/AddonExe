@@ -14,6 +14,7 @@ import {
     transfer
 } from '@core/playerDataManager.js';
 import { formatCurrency, parseCurrency, resolveTarget } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 const payCommand: CustomCommand = {
     name: 'pay',
@@ -33,21 +34,21 @@ const payCommand: CustomCommand = {
         const config = getConfig();
         if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
 
-        const targetName = args.targets as string;
-        const amountStr = args.amount as string;
+        const targetName = args.targets as string | undefined;
+        const amountStr = args.amount as string | undefined;
 
-        if (!targetName) return sendMessage('§cPlease specify a player.', executor);
+        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player.', executor);
 
         // Resolve Target
         const targets = resolveTarget(targetName, executor);
-        if (!targets || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(targets) || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
         if (targets.length > 1) return sendMessage('§cYou can only pay one player at a time.', executor);
 
         const targetPlayer = targets[0];
-        if (!targetPlayer) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(targetPlayer)) return sendMessage('§cPlayer not found.', executor);
 
         if (targetPlayer.id === executor.id) return sendMessage('§cYou cannot pay yourself.', executor);
-        if (!amountStr) return sendMessage('§cPlease specify an amount.', executor);
+        if (!isNonEmptyString(amountStr)) return sendMessage('§cPlease specify an amount.', executor);
 
         const amount = parseCurrency(amountStr);
         if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
@@ -55,7 +56,7 @@ const payCommand: CustomCommand = {
             return sendMessage('§cInvalid precision.', executor);
 
         const sourceData = getPlayer(executor.id);
-        if (!sourceData) return sendMessage('§cCould not retrieve your data.', executor);
+        if (!isDefined(sourceData)) return sendMessage('§cCould not retrieve your data.', executor);
         if (sourceData.balance < 0)
             return sendMessage('§cYou cannot transfer money while your balance is negative.', executor);
         if (sourceData.balance < amount) return sendMessage('§cYou do not have enough money.', executor);
@@ -97,22 +98,23 @@ const oPayCommand: CustomCommand = {
         const config = getConfig();
         if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
 
-        const targetName = args.target as string;
-        const amountStr = args.amount as string;
+        const targetName = args.target as string | undefined;
+        const amountStr = args.amount as string | undefined;
 
-        if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
+        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
 
         const targetId = getPlayerIdByName(targetName);
-        if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
-        const displayName = getPlayerNameById(targetId) || targetName;
+        if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        const displayName = getPlayerNameById(targetId) ?? targetName;
 
         if (targetId === executor.id) return sendMessage('§cYou cannot pay yourself.', executor);
 
+        if (!isNonEmptyString(amountStr)) return sendMessage('§cPlease specify an amount.', executor);
         const amount = parseCurrency(amountStr);
         if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         const sourceData = getPlayer(executor.id);
-        if (!sourceData || sourceData.balance < amount) return sendMessage('§cInsufficient funds.', executor);
+        if (!isDefined(sourceData) || sourceData.balance < amount) return sendMessage('§cInsufficient funds.', executor);
 
         // Confirmation logic supports offline ID too
         if (amount > config.economy.paymentConfirmationThreshold) {
@@ -147,13 +149,13 @@ const payConfirmCommand: CustomCommand = {
 
         const pendingPayment = getPendingPayment(executor.id);
 
-        if (!pendingPayment) return sendMessage('§cYou have no pending payment to confirm.', executor);
+        if (!isDefined(pendingPayment)) return sendMessage('§cYou have no pending payment to confirm.', executor);
 
         const { targetPlayerId, amount } = pendingPayment;
 
         // Try to find online player for notification
         const targetPlayer = [...mc.world.getPlayers()].find((p) => p.id === targetPlayerId);
-        const targetName = targetPlayer ? targetPlayer.name : getPlayerNameById(targetPlayerId) || 'Unknown';
+        const targetName = targetPlayer ? targetPlayer.name : (getPlayerNameById(targetPlayerId) ?? 'Unknown');
 
         const result = transfer(executor.id, targetPlayerId, amount);
 

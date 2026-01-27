@@ -8,6 +8,7 @@ import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
 import { addBackButton } from '@ui/uiUtils.js';
 import { acceptFriendRequest, removeFriend, sendFriendRequest } from '../friendManager.js';
+import { isNonEmptyString } from '@lib/guards.js';
 
 export class FriendPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -30,7 +31,7 @@ export class FriendPanelHandler implements IPanelHandler {
                 actionValue: 'friendAddPanel'
             });
 
-            const pendingCount = pData.friendRequests?.length || 0;
+            const pendingCount = pData.friendRequests?.length ?? 0;
             items.push(
                 {
                     id: 'requests',
@@ -59,7 +60,7 @@ export class FriendPanelHandler implements IPanelHandler {
                     const onlineP = mc.world.getAllPlayers().find((p) => p.id === fid);
                     const status = onlineP ? '§2● Online' : '§8● Offline';
                     // We need name. If online, use player object. If offline, use cache or fallback.
-                    const name = getPlayerNameById(fid) || 'Unknown';
+                    const name = getPlayerNameById(fid) ?? 'Unknown';
 
                     items.push({
                         id: fid,
@@ -169,7 +170,7 @@ export class FriendPanelHandler implements IPanelHandler {
         if (panelId === 'friendAddPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'friendMainPanel');
             const [name] = values as string[];
-            if (name) {
+            if (isNonEmptyString(name)) {
                 const res = sendFriendRequest(player, name);
                 player.sendMessage(res);
             }
@@ -200,7 +201,8 @@ export class FriendPanelHandler implements IPanelHandler {
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {
                         ...context,
-                        selectedItemId: item.id
+                        selectedItemId: item.id,
+                        id: item.id
                     });
                 }
 
@@ -224,7 +226,7 @@ export class FriendPanelHandler implements IPanelHandler {
                 if (item.actionValue === 'removeFriend') {
                     const targetId = context.selectedItemId as string;
                     const { getPlayerNameById } = await import('@core/playerDataManager.js');
-                    const name = getPlayerNameById(targetId) || 'Unknown';
+                    const name = getPlayerNameById(targetId) ?? 'Unknown';
 
                     await showConfirmationDialog(player, {
                         title: 'Remove Friend',

@@ -8,6 +8,7 @@ import * as kitsManager from '@core/kitsManager.js';
 import { errorLog } from '@core/logger.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCooldown, uiWait } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
@@ -50,12 +51,12 @@ async function showKitList(player: mc.Player, page: number) {
 
     try {
         const response = await uiWait(player, form);
-        if (!response || response.canceled) {
+        if (!isDefined(response) || response.canceled) {
             return;
         }
 
         const selection = (response as ActionFormResponse).selection;
-        if (selection === undefined) return;
+        if (!isDefined(selection)) return;
 
         if (selection >= kitsToShow.length) {
             let buttonIndex = selection - kitsToShow.length;
@@ -74,7 +75,7 @@ async function showKitList(player: mc.Player, page: number) {
 
         const selectedKitIndex = startIndex + selection;
         const selectedKit = availableKits[selectedKitIndex];
-        if (!selectedKit) return;
+        if (!isDefined(selectedKit)) return;
         const selectedKitName = selectedKit.name;
         const result = kitsManager.giveKit(player, selectedKitName);
         if (result.success) {
@@ -123,7 +124,7 @@ const kitCommand: CustomCommand = {
 
         const kitName = args.kitName;
 
-        if (!kitName) {
+        if (!isNonEmptyString(kitName)) {
             await showKitList(executor, 1);
             return;
         }
@@ -158,7 +159,7 @@ const addKitCommand: CustomCommand = {
 
         let kitName = args.kitName;
 
-        if (!kitName) {
+        if (!isNonEmptyString(kitName)) {
             const allKits = getAllKits();
             let i = 1;
             kitName = 'kit';
@@ -169,18 +170,18 @@ const addKitCommand: CustomCommand = {
         }
 
         const inventory = executor.getComponent('minecraft:inventory')?.container;
-        if (!inventory) {
+        if (!isDefined(inventory)) {
             return executor.sendMessage('§cCould not access your inventory.');
         }
 
         const items = [];
         for (let i = 0; i < inventory.size; i++) {
             const item = inventory.getItem(i);
-            if (item) {
+            if (isDefined(item)) {
                 items.push({
                     typeId: item.typeId,
                     amount: item.amount,
-                    ...(item.nameTag ? { nameTag: item.nameTag } : {}),
+                    ...(isNonEmptyString(item.nameTag) ? { nameTag: item.nameTag } : {}),
                     lore: item.getLore()
                 });
             }

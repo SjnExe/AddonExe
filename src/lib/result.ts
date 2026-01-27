@@ -40,5 +40,6 @@ export function unwrap<T, E>(result: Result<T, E>): T {
     if (result.success) {
         return result.data;
     }
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw result.error;
 }

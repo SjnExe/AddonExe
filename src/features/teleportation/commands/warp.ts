@@ -8,6 +8,7 @@ import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { uiWait } from '@core/utils.js';
+import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
 import { saveLastLocation } from '../teleportUtils.js';
 import * as warpsManager from '../warpsManager.js';
@@ -50,7 +51,7 @@ const warpCommand: CustomCommand = {
 
         const teleportToWarp = (warpName: string) => {
             const warpLocation = warpsManager.getWarp(warpName);
-            if (!warpLocation) {
+            if (!isDefined(warpLocation)) {
                 sendMessage(`§cWarp '${warpName}' not found.`, executor);
                 return;
             }
@@ -60,7 +61,7 @@ const warpCommand: CustomCommand = {
                 try {
                     saveLastLocation(executor);
                     const dimension = mc.world.getDimension(warpLocation.dimensionId);
-                    if (dimension) {
+                    if (isDefined(dimension)) {
                         executor.teleport(warpLocation, { dimension });
                         sendMessage(`§aTeleported to warp '${warpName}'.`, executor);
                         setCooldown(executor, 'warp');
@@ -78,7 +79,7 @@ const warpCommand: CustomCommand = {
         };
 
         const warpNameArg = (args as unknown as WarpCommandArgs).warpName;
-        if (warpNameArg !== undefined) {
+        if (isNonEmptyString(warpNameArg)) {
             teleportToWarp(warpNameArg);
             return;
         }
@@ -94,7 +95,7 @@ const warpCommand: CustomCommand = {
 
         for (const warpName of warpList) {
             const location = warpsManager.getWarp(warpName);
-            if (location) {
+            if (isDefined(location)) {
                 form.button(
                     `${warpName}\n§7(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`
                 );
@@ -103,12 +104,12 @@ const warpCommand: CustomCommand = {
 
         try {
             const response = await uiWait(executor, form);
-            if (!response || response.canceled) return;
+            if (!isDefined(response) || response.canceled) return;
 
             const selection = (response as ActionFormResponse).selection;
-            if (selection !== undefined) {
+            if (isDefined(selection)) {
                 const selectedWarp = warpList[selection];
-                if (selectedWarp) {
+                if (isNonEmptyString(selectedWarp)) {
                     teleportToWarp(selectedWarp);
                 }
             }
@@ -149,9 +150,9 @@ const addWarpCommand: CustomCommand = {
         }
 
         const { warpName, x, y, z } = args as unknown as AddWarpArgs;
-        const hasX = x !== undefined && x !== undefined;
-        const hasY = y !== undefined && y !== undefined;
-        const hasZ = z !== undefined && z !== undefined;
+        const hasX = isNumber(x);
+        const hasY = isNumber(y);
+        const hasZ = isNumber(z);
 
         let location;
 
@@ -208,7 +209,7 @@ const delWarpCommand: CustomCommand = {
         };
 
         const warpNameArg = (args as unknown as WarpCommandArgs).warpName;
-        if (warpNameArg) {
+        if (isNonEmptyString(warpNameArg)) {
             deleteWarpByName(warpNameArg);
             return;
         }
@@ -227,12 +228,12 @@ const delWarpCommand: CustomCommand = {
 
         try {
             const response = await uiWait(executor, form);
-            if (!response || response.canceled) return;
+            if (!isDefined(response) || response.canceled) return;
 
             const selection = (response as ActionFormResponse).selection;
-            if (selection !== undefined) {
+            if (isDefined(selection)) {
                 const selectedWarp = warpList[selection];
-                if (selectedWarp) {
+                if (isNonEmptyString(selectedWarp)) {
                     deleteWarpByName(selectedWarp);
                 }
             }
