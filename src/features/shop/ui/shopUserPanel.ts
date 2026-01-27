@@ -190,13 +190,13 @@ export class ShopUserPanelHandler implements IPanelHandler {
                         if (!isDefined(item)) return undefined;
                         const entry: ShopItemEntry = {
                             id,
-                            icon: item.icon,
                             buyPrice: item.buyPrice,
                             sellPrice: item.sellPrice,
-                            displayName: item.displayName,
                             permissionLevel: item.permissionLevel,
                             type: 'item'
                         };
+                        if (isDefined(item.icon)) entry.icon = item.icon;
+                        if (isDefined(item.displayName)) entry.displayName = item.displayName;
                         return entry;
                     })
                     .filter((x): x is ShopItemEntry => isDefined(x));
@@ -249,13 +249,13 @@ export class ShopUserPanelHandler implements IPanelHandler {
                         if (!isDefined(item)) return undefined;
                         const entry: ShopItemEntry = {
                             id,
-                            icon: item.icon,
                             buyPrice: item.buyPrice,
                             sellPrice: item.sellPrice,
-                            displayName: item.displayName,
                             permissionLevel: item.permissionLevel,
                             type: 'item'
                         };
+                        if (isDefined(item.icon)) entry.icon = item.icon;
+                        if (isDefined(item.displayName)) entry.displayName = item.displayName;
                         return entry;
                     })
                     .filter((x): x is ShopItemEntry => isDefined(x));
