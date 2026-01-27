@@ -14,7 +14,7 @@ import { CommandExecutor, commandManager, CustomCommand } from '@commands/comman
 let categorizedCache: Map<string, CustomCommand[]> | undefined;
 
 function getCategorizedCommands(): Map<string, CustomCommand[]> {
-    if (categorizedCache) return categorizedCache;
+    if (isDefined(categorizedCache)) return categorizedCache;
 
     const map = new Map<string, CustomCommand[]>();
     for (const cmd of commandManager.commands.values()) {
@@ -66,10 +66,10 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
     const realCommandName = commandManager.aliases.get(commandName) ?? commandName;
     let cmd = commandManager.commands.get(realCommandName);
 
-    if (!cmd) {
+    if (!isDefined(cmd)) {
         // Fallback search by slashName
         for (const command of commandManager.commands.values()) {
-            if (command.slashName && command.slashName.toLowerCase() === commandName) {
+            if (isDefined(command.slashName) && command.slashName.toLowerCase() === commandName) {
                 cmd = command;
                 break;
             }
@@ -77,8 +77,8 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
     }
 
     const pData = isConsole ? undefined : getPlayer(executor.id);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    const userPermissionLevel = isConsole ? 0 : ((pData as any)?.permissionLevel ?? 1024);
+    const userPermissionLevel = isDefined(pData) ? pData.permissionLevel : 1024;
+    const effectivePermissionLevel = isConsole ? 0 : userPermissionLevel;
 
     if (!isDefined(cmd)) {
          const message = `§cUnknown command: '${commandName}'.`;
@@ -96,7 +96,7 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
          return;
     }
 
-    if (userPermissionLevel > (cmd.permissionLevel ?? 1024)) {
+    if (effectivePermissionLevel > (cmd.permissionLevel ?? 1024)) {
          const message = `§cYou do not have permission to view command: '${commandName}'.`;
          if (executor instanceof mc.Player) {
              sendMessage(message, executor);
@@ -109,14 +109,14 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
     const slashCommand = cmd.slashName ?? cmd.name;
 
     let paramString = '';
-    if (cmd.parameters && cmd.parameters.length > 0) {
+    if (isDefined(cmd.parameters) && cmd.parameters.length > 0) {
         paramString =
             ' ' +
             cmd.parameters
                 .map((p) => {
                     const options = typeof p.enumOptions === 'function' ? p.enumOptions() : p.enumOptions;
-                    const name = options ? options.join('|') : p.name;
-                    return p.optional ? `[${name}]` : `<${name}>`;
+                    const name = isDefined(options) ? options.join('|') : p.name;
+                    return p.optional === true ? `[${name}]` : `<${name}>`;
                 })
                 .join(' ');
     }
@@ -125,7 +125,7 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
     helpMessage += `§eDescription§r: ${cmd.description}\n`;
     helpMessage += `§eSyntax§r: /${slashCommand}${paramString}\n`;
 
-    if (cmd.aliases && cmd.aliases.length > 0) {
+    if (isDefined(cmd.aliases) && cmd.aliases.length > 0) {
         helpMessage += `§eAliases§r: ${cmd.aliases.join(', ')}\n`;
     }
 
@@ -150,8 +150,8 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
         if (
             cmds.some(
                 (c) =>
-                    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-                    userPermissionLevel <= (c.permissionLevel ?? 1024) && ((c as any).hidden ?? false) === false
+                    userPermissionLevel <= (c.permissionLevel ?? 1024) &&
+                    (c.hidden !== true)
             )
         ) {
             visibleCategories.push(cat);
@@ -173,8 +173,7 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
     for (const categoryName of sortedCats) {
         const commands = allCategories.get(categoryName) ?? [];
         const visibleCmds = commands
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && ((c as any).hidden ?? false) === false)
+            .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && (c.hidden !== true))
             .toSorted((a, b) => a.name.localeCompare(b.name));
 
         if (visibleCmds.length > 0) {
@@ -204,8 +203,8 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
         if (
             cmds.some(
                 (c) =>
-                    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-                    userPermissionLevel <= (c.permissionLevel ?? 1024) && ((c as any).hidden ?? false) === false
+                    userPermissionLevel <= (c.permissionLevel ?? 1024) &&
+                    (c.hidden !== true)
             )
         ) {
             visibleCategories.push(cat);
@@ -239,8 +238,7 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
 async function showUICategory(player: mc.Player, category: string, userPermissionLevel: number) {
     const cmds = getCategorizedCommands().get(category) ?? [];
     const visibleCmds = cmds
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && ((c as any).hidden ?? false) === false)
+        .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && (c.hidden !== true))
         .toSorted((a, b) => a.name.localeCompare(b.name));
 
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
@@ -257,7 +255,7 @@ async function showUICategory(player: mc.Player, category: string, userPermissio
         }
 
         const selectedCmd = visibleCmds[response.selection - 1];
-        if (selectedCmd) {
+        if (isDefined(selectedCmd)) {
             showSpecificHelp(player, selectedCmd.name);
         }
     } catch {
@@ -282,14 +280,14 @@ const helpCommand: CustomCommand = {
         let userPermissionLevel = 1024;
         if (executor instanceof mc.Player) {
             const pData = getPlayer(executor.id);
-            if (pData) {
+            if (isDefined(pData)) {
                 userPermissionLevel = pData.permissionLevel;
             }
         } else {
             userPermissionLevel = 0;
         }
 
-        const topic = args.command ? String(args.command).toLowerCase() : undefined;
+        const topic = isNonEmptyString(args.command) ? String(args.command).toLowerCase() : undefined;
 
         // Handle Mode Switching Override
         if (topic === 'ui' && executor instanceof mc.Player) {
@@ -308,7 +306,7 @@ const helpCommand: CustomCommand = {
 
         // Default Mode Logic
         const config = getConfig() as HelpConfig;
-        const defaultMode = config.helpSystem?.defaultMode ?? 'chat';
+        const defaultMode = (isDefined(config.helpSystem) ? config.helpSystem.defaultMode : undefined) ?? 'chat';
 
         if (defaultMode === 'ui' && executor instanceof mc.Player) {
             showUIHelp(executor, userPermissionLevel).catch(() => {});

@@ -65,7 +65,7 @@ function isWithinSpawnProtection(location: mc.Vector3, dimensionId: string): boo
     const protectionConfig = spawnConfig.spawnProtection;
     const spawnLocation = spawnConfig.spawn.spawnLocation;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
     const isEnabled = Boolean((protectionConfig as any).enabled);
 
     if (
@@ -110,7 +110,7 @@ function initialize(): void {
     const spawnConfig = getSpawnConfig();
     const { spawn, spawnProtection: protectionConfig } = spawnConfig;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
     const isEnabled = Boolean((protectionConfig as any).enabled);
 
     if (!isEnabled) {
@@ -174,7 +174,7 @@ function initialize(): void {
         const currentSpawnConfig = getSpawnConfig();
         const protection = currentSpawnConfig.spawnProtection;
 
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         const isEnabledNow = Boolean((protection as any).enabled);
 
         if (!isEnabledNow) return;

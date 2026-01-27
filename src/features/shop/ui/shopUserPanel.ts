@@ -172,7 +172,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                     .toSorted()
                     .map((name) => {
                         const sub = category.subCategories[name];
-                        if (!isDefined(sub)) return undefined;
+                        if (!isDefined(sub)) return;
                         // Use a clear type assertion or construct properly
                         const entry: ShopCategoryEntry = {
                             id: name,
@@ -187,7 +187,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                 const shopItems: ShopEntry[] = Object.keys(category.items)
                     .map((id) => {
                         const item = category.items[id];
-                        if (!isDefined(item)) return undefined;
+                        if (!isDefined(item)) return;
                         const entry: ShopItemEntry = {
                             id,
                             buyPrice: item.buyPrice,
@@ -246,7 +246,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                 const shopItems = Object.keys(subCategory.items)
                     .map((id) => {
                         const item = subCategory.items[id];
-                        if (!isDefined(item)) return undefined;
+                        if (!isDefined(item)) return;
                         const entry: ShopItemEntry = {
                             id,
                             buyPrice: item.buyPrice,

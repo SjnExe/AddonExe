@@ -200,11 +200,11 @@ export function removePunishment(playerId: string, type: PunishmentType) {
     if (!isDefined(record)) return;
 
     let changed = false;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     if (type === 'ban' && isDefined(record.ban)) {
         delete record.ban;
         changed = true;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     } else if (type === 'mute' && isDefined(record.mute)) {
         delete record.mute;
         changed = true;
