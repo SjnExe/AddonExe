@@ -5,6 +5,7 @@ import { items as allItems } from '@core/itemsConfig.default.js';
 import { errorLog } from '@core/logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { formatCurrency } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 interface ItemInfo {
     itemId: string;
@@ -26,13 +27,13 @@ interface ShopTransactionResult {
  * @returns The created ItemStack or undefined if failed.
  */
 function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack | undefined {
-    if (!itemInfo) {
+    if (!isDefined(itemInfo)) {
         errorLog('[ShopManager] Could not find item info for creating item stack.');
         return undefined;
     }
 
     const itemType = mc.ItemTypes.get(itemInfo.itemId);
-    if (!itemType) {
+    if (!isDefined(itemType)) {
         errorLog(`[ShopManager] Could not find item type for itemId: ${itemInfo.itemId}`);
         return undefined;
     }
@@ -40,10 +41,10 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
     const itemStack = new mc.ItemStack(itemType, quantity);
 
     // Handle enchantments
-    if (itemInfo.enchantment) {
+    if (isDefined(itemInfo.enchantment)) {
         try {
             const enchantable = itemStack.getComponent('minecraft:enchantable');
-            if (enchantable) {
+            if (isDefined(enchantable)) {
                 enchantable.addEnchantment({
                     type: mc.EnchantmentTypes.get(itemInfo.enchantment.id)!,
                     level: itemInfo.enchantment.level
@@ -54,7 +55,7 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
         }
     }
 
-    if (itemInfo.displayName) {
+    if (isNonEmptyString(itemInfo.displayName)) {
         itemStack.nameTag = `§r${itemInfo.displayName}`;
     }
 
@@ -73,14 +74,14 @@ function findShopItem(itemId: string): ItemInfo | undefined {
 
     for (const categoryName in categories) {
         const category = categories[categoryName];
-        if (!category) continue;
-        if (category.items && category.items[itemId]) {
+        if (!isDefined(category)) continue;
+        if (isDefined(category.items) && isDefined(category.items[itemId])) {
             return { ...items[itemId], ...category.items[itemId], itemId: itemId };
         }
-        if (category.subCategories) {
+        if (isDefined(category.subCategories)) {
             for (const subCategoryName in category.subCategories) {
                 const subCategory = category.subCategories[subCategoryName];
-                if (subCategory && subCategory.items && subCategory.items[itemId]) {
+                if (isDefined(subCategory) && isDefined(subCategory.items) && isDefined(subCategory.items[itemId])) {
                     return { ...items[itemId], ...subCategory.items[itemId], itemId: itemId };
                 }
             }
@@ -103,12 +104,12 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
 
     const shopItem = findShopItem(itemId);
 
-    if (!shopItem) {
+    if (!isDefined(shopItem)) {
         return { success: false, message: '§cThis item is not available in the shop.' };
     }
 
     const buyPrice = shopItem.buyPrice;
-    if (buyPrice === undefined || buyPrice <= 0) {
+    if (!isDefined(buyPrice) || buyPrice <= 0) {
         return { success: false, message: '§cThis item cannot be purchased.' };
     }
 
@@ -138,13 +139,13 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     }
 
     const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent;
-    if (!inventoryComp || !inventoryComp.container) {
+    if (!isDefined(inventoryComp) || !isDefined(inventoryComp.container)) {
         return { success: false, message: '§cCould not access inventory.' };
     }
     const inventory = inventoryComp.container;
     const itemStackTemplate = createShopItemStack(shopItem, 1);
 
-    if (!itemStackTemplate) {
+    if (!isDefined(itemStackTemplate)) {
         return { success: false, message: '§cThere was an error creating the item. Please report this to an admin.' };
     }
 
@@ -156,7 +157,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
         // Item is stackable
         for (let i = 0; i < inventory.size; i++) {
             const item = inventory.getItem(i);
-            if (!item) {
+            if (!isDefined(item)) {
                 spaceFound += maxStackSize;
             } else if (item.isStackableWith(itemStackTemplate)) {
                 spaceFound += maxStackSize - item.amount;
@@ -197,9 +198,9 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     while (remaining > 0) {
         const amount = Math.min(remaining, itemStackTemplate.maxAmount);
         const stack = createShopItemStack(shopItem, amount);
-        if (stack) {
+        if (isDefined(stack)) {
             const leftovers = inventory.addItem(stack);
-            if (leftovers) {
+            if (isDefined(leftovers)) {
                 failedCount += leftovers.amount;
                 // If we couldn't fit this stack, we likely can't fit the rest
                 failedCount += remaining - amount;
@@ -237,13 +238,14 @@ function isValidSellItem(item: mc.ItemStack, shopItem: ItemInfo): boolean {
 
     // Exploit Prevention: Skip damaged or enchanted items unless explicitly allowed
     const durability = item.getComponent('minecraft:durability') as mc.ItemDurabilityComponent;
-    if (durability && durability.damage > 0) {
+    if (isDefined(durability) && durability.damage > 0) {
         return false;
     }
 
     const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
-    const hasEnchants = enchantable && enchantable.getEnchantments && enchantable.getEnchantments().length > 0;
-    if (hasEnchants && !shopItem.enchantment) {
+    const hasEnchants =
+        isDefined(enchantable) && isDefined(enchantable.getEnchantments) && enchantable.getEnchantments().length > 0;
+    if (hasEnchants && !isDefined(shopItem.enchantment)) {
         return false;
     }
 
@@ -264,22 +266,22 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
 
     const shopItem = findShopItem(itemId);
 
-    if (!shopItem) {
+    if (!isDefined(shopItem)) {
         return { success: false, message: '§cThis item cannot be sold to the shop.' };
     }
 
     const sellPrice = shopItem.sellPrice;
-    if (sellPrice === undefined || sellPrice <= 0) {
+    if (!isDefined(sellPrice) || sellPrice <= 0) {
         return { success: false, message: '§cThis item cannot be sold.' };
     }
 
     const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent;
-    if (!inventoryComp || !inventoryComp.container) {
+    if (!isDefined(inventoryComp) || !isDefined(inventoryComp.container)) {
         return { success: false, message: '§cCould not access inventory.' };
     }
     const inventory = inventoryComp.container;
     const itemType = mc.ItemTypes.get(shopItem.itemId);
-    if (!itemType) {
+    if (!isDefined(itemType)) {
         return { success: false, message: '§cInternal server error: Item type not found.' };
     }
 
@@ -287,7 +289,7 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
     let count = 0;
     for (let i = 0; i < inventory.size; i++) {
         const item = inventory.getItem(i);
-        if (item && isValidSellItem(item, shopItem)) {
+        if (isDefined(item) && isValidSellItem(item, shopItem)) {
             count += item.amount;
         }
     }
@@ -310,7 +312,7 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
     for (let i = 0; i < inventory.size; i++) {
         if (remaining <= 0) break;
         const item = inventory.getItem(i);
-        if (item && isValidSellItem(item, shopItem)) {
+        if (isDefined(item) && isValidSellItem(item, shopItem)) {
             if (item.amount <= remaining) {
                 remaining -= item.amount;
                 inventory.setItem(i, undefined);

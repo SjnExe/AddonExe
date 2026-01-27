@@ -38,7 +38,7 @@ export function banPlayer(
 
     const durationString = isDefined(duration) ? duration : 'perm';
     const durationMs = isDefined(duration) ? parseDuration(duration) : Infinity;
-    const expires = durationMs === Infinity ? Infinity : Date.now() + (durationMs as number);
+    const expires = durationMs === Infinity ? Infinity : Date.now() + (durationMs);
     const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
 
     addPunishment(
@@ -111,7 +111,7 @@ const banCommand: CustomCommand = {
         }
 
         if (isDefined(duration) && parseDuration(duration) === 0) {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+
             reason = `${duration}${isDefined(reason) ? ' ' + reason : ''}`;
             duration = undefined;
         }
@@ -206,7 +206,7 @@ export function offlineBanPlayer(
 
     const durationString = isDefined(duration) ? duration : 'perm';
     const durationMs = isDefined(duration) ? parseDuration(duration) : Infinity;
-    const expires = durationMs === Infinity ? Infinity : Date.now() + (durationMs as number);
+    const expires = durationMs === Infinity ? Infinity : Date.now() + (durationMs);
     const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
 
     addPunishment(
@@ -275,12 +275,18 @@ const offlineBanCommand: CustomCommand = {
         const correctTargetName = isDefined(targetData) ? targetData.name : targetName;
 
         if (isDefined(duration) && parseDuration(duration) === 0) {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+
             reason = `${duration}${isDefined(reason) ? ' ' + reason : ''}`;
             duration = undefined;
         }
 
-        offlineBanPlayer(executor, targetId, correctTargetName, duration, isDefined(reason) ? reason : 'No reason provided.');
+        offlineBanPlayer(
+            executor,
+            targetId,
+            correctTargetName,
+            duration,
+            isDefined(reason) ? reason : 'No reason provided.'
+        );
     }
 };
 

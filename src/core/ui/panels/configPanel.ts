@@ -18,11 +18,11 @@ import { IPanelHandler } from '@ui/types.js';
 import {
     addBackButton,
     addPaginationItems,
-    configHandlers as uiConfigHandlers,
     getPaginatedItems,
     getSystemsByCategory,
     getVisibleCategories,
-    itemsPerPage
+    itemsPerPage,
+    configHandlers as uiConfigHandlers
 } from '@ui/uiUtils.js';
 
 export class ConfigPanelHandler implements IPanelHandler {
@@ -381,7 +381,9 @@ export class ConfigPanelHandler implements IPanelHandler {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
                 const handlers = uiConfigHandlers as any;
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                const handler = handlers[configSource] as { get: () => unknown; save: (cfg: unknown) => void } | undefined;
+                const handler = handlers[configSource] as
+                    | { get: () => unknown; save: (cfg: unknown) => void }
+                    | undefined;
 
                 if (isDefined(handler)) {
                     if (configSource === 'main') {

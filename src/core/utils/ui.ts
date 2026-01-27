@@ -15,7 +15,6 @@ import {
  */
 export async function forceCloseChat(player: mc.Player): Promise<void> {
     try {
-
         if (!player.isValid) return;
 
         // Toggle permissions to force close UI/Chat
@@ -102,7 +101,6 @@ export function getCountdownColor(secondsRemaining: number): string {
  * This is a standard feedback sound for the addon.
  */
 export function playClickSound(player: mc.Player): void {
-
     if (player.isValid) {
         player.playSound('random.click', { pitch: 1, volume: 1 });
     }

@@ -116,11 +116,7 @@ export class RankPanelHandler implements IPanelHandler {
             const rawValues = (values as (string | undefined)[]) ?? [];
             const [id, name, permStr, prefix, nameColor, messageColor] = rawValues;
 
-            if (
-                !isNonEmptyString(id) ||
-                !isNonEmptyString(name) ||
-                !isNonEmptyString(permStr)
-            ) {
+            if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isNonEmptyString(permStr)) {
                 player.sendMessage('§cInvalid input.');
                 return showPanel(player, 'rankManagementPanel');
             }

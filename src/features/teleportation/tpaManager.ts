@@ -5,6 +5,7 @@ import { setCooldown } from '@core/cooldownManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { isFriend } from '../social/friendManager.js';
 
 import { findSafeLocation, saveLastLocation } from './teleportUtils.js';
@@ -37,8 +38,8 @@ mc.system.runInterval(() => {
             clearRequest(request);
             const sourcePlayer = getPlayerFromCache(sourceId);
             const targetPlayer = getPlayerFromCache(request.targetPlayerId);
-            if (sourcePlayer) sourcePlayer.sendMessage('§cYour TPA request has expired.');
-            if (targetPlayer)
+            if (isDefined(sourcePlayer)) sourcePlayer.sendMessage('§cYour TPA request has expired.');
+            if (isDefined(targetPlayer))
                 targetPlayer.sendMessage(`§cThe TPA request from ${request.sourcePlayerName} has expired.`);
         }
     }
@@ -49,10 +50,10 @@ mc.system.runInterval(() => {
  * @param request The request to clear.
  */
 function clearRequest(request: TpaRequest | undefined) {
-    if (!request) return;
+    if (!isDefined(request)) return;
     outgoingRequests.delete(request.sourcePlayerId);
     const targetRequests = incomingRequests.get(request.targetPlayerId);
-    if (targetRequests) {
+    if (isDefined(targetRequests)) {
         const index = targetRequests.findIndex((r) => r.sourcePlayerId === request.sourcePlayerId);
         if (index !== -1) {
             targetRequests.splice(index, 1);
@@ -70,13 +71,13 @@ function _findIncomingRequest(
     onlineOnly: boolean = false
 ): TpaRequest | undefined {
     const requests = incomingRequests.get(targetPlayerId);
-    if (!requests || requests.length === 0) return undefined;
-    if (sourcePlayerName)
+    if (!isDefined(requests) || requests.length === 0) return undefined;
+    if (isNonEmptyString(sourcePlayerName))
         return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
     if (onlineOnly) {
         for (let i = requests.length - 1; i >= 0; i--) {
             const req = requests[i];
-            if (req && getPlayerFromCache(req.sourcePlayerId)) return req;
+            if (isDefined(req) && isDefined(getPlayerFromCache(req.sourcePlayerId))) return req;
         }
         return undefined;
     }
@@ -89,7 +90,10 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
     const targetPlayerData = getOrCreatePlayer(targetPlayer);
     if (targetPlayerData.tpaRequestsDisabled)
         return { success: false, message: `§c${targetPlayer.name} is not accepting TPA requests.` };
-    if (targetPlayerData.tpaBlockedPlayerIds?.includes(sourcePlayer.id))
+    if (
+        isDefined(targetPlayerData.tpaBlockedPlayerIds) &&
+        targetPlayerData.tpaBlockedPlayerIds.includes(sourcePlayer.id)
+    )
         return { success: false, message: `§cYou are blocked from sending TPA requests to ${targetPlayer.name}.` };
 
     const config = getConfig();
@@ -107,15 +111,16 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
 
     // Auto-Accept Check for Friends and Team
     const areFriends = isFriend(targetPlayer.id, sourcePlayer.id);
-    const inSameTeam = targetPlayerData.teamId && targetPlayerData.teamId === getOrCreatePlayer(sourcePlayer).teamId;
+    const inSameTeam =
+        isDefined(targetPlayerData.teamId) && targetPlayerData.teamId === getOrCreatePlayer(sourcePlayer).teamId;
 
     // Check target's settings for auto-accept
     let autoAccept = false;
-    if (areFriends && targetPlayerData.friendSettings?.autoTpAccept) {
+    if (areFriends && isDefined(targetPlayerData.friendSettings) && targetPlayerData.friendSettings.autoTpAccept) {
         autoAccept = true;
     }
     // Team auto-accept (already existed in PlayerData logic, assuming config allows)
-    if (inSameTeam && targetPlayerData.teamSettings?.autoTpAccept) {
+    if (inSameTeam && isDefined(targetPlayerData.teamSettings) && targetPlayerData.teamSettings.autoTpAccept) {
         autoAccept = true;
     }
 
@@ -153,8 +158,8 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
 
 export function getIncomingRequest(player: mc.Player, sourcePlayerName?: string): TpaRequest | undefined {
     const requests = incomingRequests.get(player.id);
-    if (!requests || requests.length === 0) return undefined;
-    if (sourcePlayerName)
+    if (!isDefined(requests) || requests.length === 0) return undefined;
+    if (isNonEmptyString(sourcePlayerName))
         return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
     return requests.at(-1);
 }
@@ -165,8 +170,9 @@ export function getOutgoingRequest(player: mc.Player): TpaRequest | undefined {
 
 export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
     const request = _findIncomingRequest(player.id, sourcePlayerName, true);
-    if (!request) {
-        if (sourcePlayerName) player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
+    if (!isDefined(request)) {
+        if (isNonEmptyString(sourcePlayerName))
+            player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
         else player.sendMessage('§cYou have no pending TPA requests from online players.');
         return;
     }
@@ -174,7 +180,7 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
     const sourcePlayer = getPlayerFromCache(request.sourcePlayerId);
     const targetPlayer = getPlayerFromCache(request.targetPlayerId);
 
-    if (!sourcePlayer || !targetPlayer) {
+    if (!isDefined(sourcePlayer) || !isDefined(targetPlayer)) {
         player.sendMessage('§cThe other player could not be found.');
         clearRequest(request);
         return;
@@ -186,14 +192,14 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
     const teleportLogic = () => {
         const freshSource = getPlayerFromCache(request.sourcePlayerId);
         const freshTarget = getPlayerFromCache(request.targetPlayerId);
-        if (!freshSource || !freshTarget) return;
+        if (!isDefined(freshSource) || !isDefined(freshTarget)) return;
 
         // SAFE GROUND CHECK
         const mover = request.type === 'tpa' ? freshSource : freshTarget;
         const destinationTarget = request.type === 'tpa' ? freshTarget : freshSource;
         const safeLoc = findSafeLocation(destinationTarget.dimension, destinationTarget.location);
 
-        if (!safeLoc) {
+        if (!isDefined(safeLoc)) {
             freshSource.sendMessage('§cTeleport cancelled: No safe location found near target.');
             freshTarget.sendMessage('§cTeleport cancelled: No safe location found near you.');
             clearRequest(request);
@@ -225,25 +231,26 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
 
 export function denyRequest(player: mc.Player, sourcePlayerName?: string) {
     const request = _findIncomingRequest(player.id, sourcePlayerName);
-    if (!request) {
-        if (sourcePlayerName) player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
+    if (!isDefined(request)) {
+        if (isNonEmptyString(sourcePlayerName))
+            player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
         else player.sendMessage('§cYou have no pending TPA requests.');
         return;
     }
     const sourcePlayer = getPlayerFromCache(request.sourcePlayerId);
-    if (sourcePlayer) sourcePlayer.sendMessage(`§c${player.name} has denied your TPA request.`);
+    if (isDefined(sourcePlayer)) sourcePlayer.sendMessage(`§c${player.name} has denied your TPA request.`);
     player.sendMessage(`§aYou have denied the TPA request from ${request.sourcePlayerName}.`);
     clearRequest(request);
 }
 
 export function cancelRequest(player: mc.Player) {
     const request = getOutgoingRequest(player);
-    if (!request) {
+    if (!isDefined(request)) {
         player.sendMessage('§cYou have no outgoing TPA requests.');
         return;
     }
     const targetPlayer = getPlayerFromCache(request.targetPlayerId);
-    if (targetPlayer) targetPlayer.sendMessage(`§c${player.name} has canceled their TPA request.`);
+    if (isDefined(targetPlayer)) targetPlayer.sendMessage(`§c${player.name} has canceled their TPA request.`);
     player.sendMessage('§aYou have canceled your TPA request.');
     clearRequest(request);
 }
@@ -261,14 +268,14 @@ export function toggleTpaRequests(player: mc.Player): boolean {
 
 export function blockPlayer(player: mc.Player, targetId: string) {
     updatePlayerData(player.id, (data) => {
-        if (!data.tpaBlockedPlayerIds) data.tpaBlockedPlayerIds = [];
+        if (!isDefined(data.tpaBlockedPlayerIds)) data.tpaBlockedPlayerIds = [];
         if (!data.tpaBlockedPlayerIds.includes(targetId)) data.tpaBlockedPlayerIds.push(targetId);
     });
 }
 
 export function unblockPlayer(player: mc.Player, targetId: string) {
     updatePlayerData(player.id, (data) => {
-        if (data.tpaBlockedPlayerIds) {
+        if (isDefined(data.tpaBlockedPlayerIds)) {
             data.tpaBlockedPlayerIds = data.tpaBlockedPlayerIds.filter((id) => id !== targetId);
         }
     });

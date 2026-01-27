@@ -99,7 +99,7 @@ const muteCommand: CustomCommand = {
         }
 
         if (isDefined(duration) && parseDuration(duration) === 0) {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+
             reason = `${duration}${isDefined(reason) ? ' ' + reason : ''}`;
             duration = undefined;
         }

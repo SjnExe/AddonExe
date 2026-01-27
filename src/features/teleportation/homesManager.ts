@@ -7,6 +7,7 @@ import {
     HomeLocation,
     setPlayerHome as setPlayerDataHome
 } from '@core/playerDataManager.js';
+import { isDefined } from '@lib/guards.js';
 
 interface ActionResult {
     success: boolean;
@@ -21,14 +22,14 @@ interface ActionResult {
  */
 export function setHome(player: mc.Player, homeName: string): ActionResult {
     const pData = getOrCreatePlayer(player);
-    if (!pData) {
+    if (!isDefined(pData)) {
         return { success: false, message: 'Could not find your player data.' };
     }
 
     const lowerCaseHomeName = homeName.toLowerCase();
 
     // Prevent overwriting an existing home
-    if (pData.homes[lowerCaseHomeName]) {
+    if (isDefined(pData.homes[lowerCaseHomeName])) {
         return {
             success: false,
             message: `You already have a home named '${homeName}'. Use /delhome to remove it first.`
@@ -66,7 +67,7 @@ export function setHome(player: mc.Player, homeName: string): ActionResult {
  */
 export function getHome(player: mc.Player, homeName: string): HomeLocation | undefined {
     const pData = getOrCreatePlayer(player);
-    if (!pData) {
+    if (!isDefined(pData)) {
         return undefined;
     }
     return pData.homes[homeName.toLowerCase()] || undefined;
@@ -80,13 +81,13 @@ export function getHome(player: mc.Player, homeName: string): HomeLocation | und
  */
 export function deleteHome(player: mc.Player, homeName: string): ActionResult {
     const pData = getOrCreatePlayer(player);
-    if (!pData) {
+    if (!isDefined(pData)) {
         return { success: false, message: 'Could not find your player data.' };
     }
 
     const lowerCaseHomeName = homeName.toLowerCase();
 
-    if (!pData.homes[lowerCaseHomeName]) {
+    if (!isDefined(pData.homes[lowerCaseHomeName])) {
         return { success: false, message: `Home '${homeName}' does not exist.` };
     }
 
@@ -101,7 +102,7 @@ export function deleteHome(player: mc.Player, homeName: string): ActionResult {
  */
 export function listHomes(player: mc.Player): string[] {
     const pData = getOrCreatePlayer(player);
-    if (!pData) {
+    if (!isDefined(pData)) {
         return [];
     }
     return Object.keys(pData.homes);
@@ -114,7 +115,7 @@ export function listHomes(player: mc.Player): string[] {
  */
 export function getHomeCount(player: mc.Player): number {
     const pData = getOrCreatePlayer(player);
-    if (!pData) {
+    if (!isDefined(pData)) {
         return 0;
     }
     return Object.keys(pData.homes).length;

@@ -30,13 +30,18 @@ const invseeCommand: CustomCommand = {
 
         const executorData = getPlayer(executor.id);
         const targetData = getPlayer(targetPlayer.id);
-        if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
+        if (
+            isDefined(executorData) &&
+            isDefined(targetData) &&
+            executorData.permissionLevel >= targetData.permissionLevel
+        ) {
             executor.sendMessage('§cYou cannot view the inventory of a player with the same or higher rank than you.');
             return;
         }
 
         executor.sendMessage(`§eInventory of ${targetPlayer.name}:`);
-        const inventory = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent | undefined)?.container;
+        const inventory = (targetPlayer.getComponent('inventory'))
+            ?.container;
         const equipment = targetPlayer.getComponent('equippable');
 
         if (!isDefined(inventory)) {
@@ -125,7 +130,11 @@ const ecwipeCommand: CustomCommand = {
             if (isDefined(targetId)) {
                 const executorData = getPlayer(executor.id);
                 const targetData = loadPlayerData(targetId);
-                if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
+                if (
+                    isDefined(executorData) &&
+                    isDefined(targetData) &&
+                    executorData.permissionLevel >= targetData.permissionLevel
+                ) {
                     executor.sendMessage(
                         '§cYou cannot wipe the ender chest of a player with the same or higher rank than you.'
                     );
@@ -185,13 +194,18 @@ const copyinvCommand: CustomCommand = {
 
         const executorData = getPlayer(executor.id);
         const targetData = getPlayer(targetPlayer.id);
-        if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
+        if (
+            isDefined(executorData) &&
+            isDefined(targetData) &&
+            executorData.permissionLevel >= targetData.permissionLevel
+        ) {
             executor.sendMessage('§cYou cannot copy the inventory of a player with the same or higher rank than you.');
             return;
         }
 
-        const targetInv = (targetPlayer.getComponent('inventory') as mc.EntityInventoryComponent | undefined)?.container;
-        const myInv = (executor.getComponent('inventory') as mc.EntityInventoryComponent | undefined)?.container;
+        const targetInv = (targetPlayer.getComponent('inventory'))
+            ?.container;
+        const myInv = (executor.getComponent('inventory'))?.container;
 
         if (!isDefined(targetInv) || !isDefined(myInv)) {
             executor.sendMessage('§cCould not access inventory.');

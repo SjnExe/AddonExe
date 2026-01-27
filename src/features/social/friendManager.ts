@@ -6,6 +6,7 @@ import {
     updatePlayerData
 } from '@core/playerDataManager.js';
 import { uiWait } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 import { gameManager } from '../games/gameManager.js';
@@ -29,28 +30,28 @@ const pendingGameInvites: GameInvite[] = [];
 
 export function sendFriendRequest(sender: mc.Player, targetName: string): string {
     const targetId = getPlayerIdByName(targetName);
-    if (!targetId) return '§cPlayer not found.';
+    if (!isNonEmptyString(targetId)) return '§cPlayer not found.';
     if (targetId === sender.id) return '§cYou cannot friend yourself.';
 
     const senderData = getOrCreatePlayer(sender);
     const targetData = loadPlayerData(targetId);
 
-    if (!targetData) return '§cPlayer data not found.';
+    if (!isDefined(targetData)) return '§cPlayer data not found.';
 
     // Check if already friends
-    if (senderData.friends?.includes(targetId)) return '§cYou are already friends.';
+    if (isDefined(senderData.friends) && senderData.friends.includes(targetId)) return '§cYou are already friends.';
 
     // Check existing request
-    if (targetData.friendRequests?.some((req) => req.senderId === sender.id)) {
+    if (isDefined(targetData.friendRequests) && targetData.friendRequests.some((req) => req.senderId === sender.id)) {
         return '§cYou have already sent a request to this player.';
     }
 
     // Check limits
-    if ((targetData.friendRequests?.length || 0) >= 10) return '§cPlayer has too many pending requests.';
-    if ((senderData.friends?.length || 0) >= friendConfig.maxFriends) return '§cYour friend list is full.';
+    if ((targetData.friendRequests?.length ?? 0) >= 10) return '§cPlayer has too many pending requests.';
+    if ((senderData.friends?.length ?? 0) >= friendConfig.maxFriends) return '§cYour friend list is full.';
 
     updatePlayerData(targetId, (data) => {
-        if (!data.friendRequests) data.friendRequests = [];
+        if (!isDefined(data.friendRequests)) data.friendRequests = [];
         data.friendRequests.push({
             senderId: sender.id,
             senderName: sender.name,
@@ -59,7 +60,7 @@ export function sendFriendRequest(sender: mc.Player, targetName: string): string
     });
 
     const targetPlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
-    if (targetPlayer) {
+    if (isDefined(targetPlayer)) {
         targetPlayer.sendMessage(
             `§aFriend request received from ${sender.name}. Type §e/friend accept ${sender.name}§a to accept.`
         );
@@ -70,7 +71,7 @@ export function sendFriendRequest(sender: mc.Player, targetName: string): string
 
 export function acceptFriendRequest(player: mc.Player, senderName: string): string {
     const pData = getOrCreatePlayer(player);
-    if (!pData.friendRequests || pData.friendRequests.length === 0) return '§cNo pending friend requests.';
+    if (!isDefined(pData.friendRequests) || pData.friendRequests.length === 0) return '§cNo pending friend requests.';
 
     // Try finding request by partial name match if exact fails
     const senderNameLower = senderName.toLowerCase();
@@ -81,26 +82,28 @@ export function acceptFriendRequest(player: mc.Player, senderName: string): stri
     if (requestIndex === -1) return '§cFriend request not found.';
 
     const request = pData.friendRequests[requestIndex];
-    if (!request) return '§cFriend request not found.'; // Check undefined
+    if (!isDefined(request)) return '§cFriend request not found.'; // Check undefined
     const newFriendId = request.senderId;
     const newFriendName = request.senderName;
 
     // Add to both lists
     updatePlayerData(player.id, (data) => {
-        if (!data.friends) data.friends = [];
+        if (!isDefined(data.friends)) data.friends = [];
         if (!data.friends.includes(newFriendId)) data.friends.push(newFriendId);
-        data.friendRequests?.splice(requestIndex, 1);
+        if (isDefined(data.friendRequests)) {
+            data.friendRequests.splice(requestIndex, 1);
+        }
     });
 
     updatePlayerData(newFriendId, (data) => {
-        if (!data.friends) data.friends = [];
+        if (!isDefined(data.friends)) data.friends = [];
         if (!data.friends.includes(player.id)) {
             data.friends.push(player.id);
         }
     });
 
     const senderPlayer = mc.world.getAllPlayers().find((p) => p.id === newFriendId);
-    if (senderPlayer) {
+    if (isDefined(senderPlayer)) {
         senderPlayer.sendMessage(`§a${player.name} accepted your friend request!`);
     }
 
@@ -109,34 +112,34 @@ export function acceptFriendRequest(player: mc.Player, senderName: string): stri
 
 export function removeFriend(player: mc.Player, targetName: string): string {
     const pData = getOrCreatePlayer(player);
-    if (!pData.friends || pData.friends.length === 0) return '§cYou have no friends.';
+    if (!isDefined(pData.friends) || pData.friends.length === 0) return '§cYou have no friends.';
 
     const targetId = getPlayerIdByName(targetName);
     let friendIdToRemove: string | undefined = targetId;
 
     // If ID lookup fails, search friends list for matching name
-    if (!friendIdToRemove) {
+    if (!isNonEmptyString(friendIdToRemove)) {
         for (const fid of pData.friends) {
             const fname = getPlayerNameById(fid);
-            if (fname && fname.toLowerCase() === targetName.toLowerCase()) {
+            if (isNonEmptyString(fname) && fname.toLowerCase() === targetName.toLowerCase()) {
                 friendIdToRemove = fid;
                 break;
             }
         }
     }
 
-    if (!friendIdToRemove || !pData.friends.includes(friendIdToRemove)) {
+    if (!isNonEmptyString(friendIdToRemove) || !pData.friends.includes(friendIdToRemove)) {
         return '§cPlayer not found in your friend list.';
     }
 
-    const friendName = getPlayerNameById(friendIdToRemove) || targetName;
+    const friendName = getPlayerNameById(friendIdToRemove) ?? targetName;
 
     // Remove from both
     updatePlayerData(player.id, (data) => {
-        data.friends = data.friends?.filter((id) => id !== friendIdToRemove) || [];
+        data.friends = data.friends?.filter((id) => id !== friendIdToRemove) ?? [];
     });
     updatePlayerData(friendIdToRemove, (data) => {
-        data.friends = data.friends?.filter((id) => id !== player.id) || [];
+        data.friends = data.friends?.filter((id) => id !== player.id) ?? [];
     });
 
     return `§aRemoved ${friendName} from friends.`;
@@ -144,10 +147,10 @@ export function removeFriend(player: mc.Player, targetName: string): string {
 
 export function listFriends(player: mc.Player): string {
     const pData = getOrCreatePlayer(player);
-    if (!pData.friends || pData.friends.length === 0) return '§cYou have no friends added.';
+    if (!isDefined(pData.friends) || pData.friends.length === 0) return '§cYou have no friends added.';
 
     const names = pData.friends.map((id) => {
-        const name = getPlayerNameById(id) || 'Unknown';
+        const name = getPlayerNameById(id) ?? 'Unknown';
         const isOnline = mc.world.getAllPlayers().some((p) => p.id === id);
         return isOnline ? `§a${name}` : `§7${name}`;
     });
@@ -157,13 +160,13 @@ export function listFriends(player: mc.Player): string {
 
 export function isFriend(player1Id: string, player2Id: string): boolean {
     const p1Data = loadPlayerData(player1Id);
-    return p1Data?.friends?.includes(player2Id) ?? false;
+    return isDefined(p1Data) && isDefined(p1Data.friends) && p1Data.friends.includes(player2Id);
 }
 
 export function toggleAutoFriendTp(player: mc.Player): boolean {
     let newState = false;
     updatePlayerData(player.id, (data) => {
-        if (!data.friendSettings) {
+        if (!isDefined(data.friendSettings)) {
             data.friendSettings = { autoTpAccept: false };
         }
         data.friendSettings.autoTpAccept = !data.friendSettings.autoTpAccept;
@@ -179,13 +182,13 @@ export async function inviteFriendToGame(player: mc.Player, gameId: string) {
     const now = Date.now();
     for (let i = pendingGameInvites.length - 1; i >= 0; i--) {
         const invite = pendingGameInvites[i];
-        if (invite && now - invite.timestamp > 60_000) {
+        if (isDefined(invite) && now - invite.timestamp > 60_000) {
             pendingGameInvites.splice(i, 1);
         }
     }
 
     const pData = getOrCreatePlayer(player);
-    if (!pData.friends || pData.friends.length === 0) {
+    if (!isDefined(pData.friends) || pData.friends.length === 0) {
         player.sendMessage('§cYou have no friends to invite.');
         return;
     }
@@ -201,12 +204,12 @@ export async function inviteFriendToGame(player: mc.Player, gameId: string) {
     for (const f of onlineFriends) form.button(f.name);
 
     const res = await uiWait(player, form);
-    if (!res || res.canceled) return;
+    if (!isDefined(res) || res.canceled) return;
     const response = res as ActionFormResponse;
-    if (response.selection === undefined) return;
+    if (!isDefined(response.selection)) return;
 
     const target = onlineFriends[response.selection];
-    if (!target) return;
+    if (!isDefined(target)) return;
 
     // Send Invite
     pendingGameInvites.push({
@@ -229,7 +232,8 @@ export function acceptGameInvite(player: mc.Player, hostName: string) {
     // Clean expired
     const now = Date.now();
     for (let i = pendingGameInvites.length - 1; i >= 0; i--) {
-        if (now - (pendingGameInvites[i] as GameInvite).timestamp > 60_000) {
+        const invite = pendingGameInvites[i];
+        if (isDefined(invite) && now - invite.timestamp > 60_000) {
             pendingGameInvites.splice(i, 1);
         }
     }
@@ -244,10 +248,10 @@ export function acceptGameInvite(player: mc.Player, hostName: string) {
     }
 
     const invite = pendingGameInvites[inviteIndex];
-    if (!invite) return;
+    if (!isDefined(invite)) return;
 
     const sender = mc.world.getAllPlayers().find((p) => p.id === invite.senderId);
-    if (!sender) {
+    if (!isDefined(sender)) {
         player.sendMessage('§cThe host is no longer online.');
         pendingGameInvites.splice(inviteIndex, 1);
         return;
@@ -260,7 +264,7 @@ export function acceptGameInvite(player: mc.Player, hostName: string) {
     // For TicTacToe / RPS, we usually construct the game instance manually or call start with config.
 
     const game = gameManager.getDefinition(invite.gameId);
-    if (!game) {
+    if (!isDefined(game)) {
         player.sendMessage('§cGame not found.');
         return;
     }
@@ -289,13 +293,13 @@ export function acceptGameInvite(player: mc.Player, hostName: string) {
     // We'll try to find it or start it.
     let gameInstance = gameManager.getActiveGame(invite.gameId);
     if (
-        !gameInstance && // If not active, try starting it (it registers itself as active)
+        !isDefined(gameInstance) && // If not active, try starting it (it registers itself as active)
         gameManager.startGlobalGame(invite.gameId)
     ) {
         gameInstance = gameManager.getActiveGame(invite.gameId);
     }
 
-    if (gameInstance) {
+    if (isDefined(gameInstance)) {
         // Start match with opponent config
         gameInstance.start([sender], { opponent: player });
         player.sendMessage(`§aJoined ${invite.senderName}'s game!`);
