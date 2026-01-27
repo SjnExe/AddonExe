@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { getOrCreatePlayer, loadPlayerData } from '@core/playerDataManager.js';
@@ -11,19 +12,22 @@ import { MainConfig, PanelDefinition, PanelItem, UIContext } from './types.js';
 
 export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: number): PanelItem[] {
     const config = getConfig() as unknown as MainConfig;
-    const items = (panelDef.items || [])
+    const items = (isDefined(panelDef.items) ? panelDef.items : [])
         .filter((item: PanelItem) => {
-            if (item.actionValue === 'shopMainPanel' && !config.shop.enabled) {
+            if (
+                item.actionValue === 'shopMainPanel' &&
+                (isDefined(config.shop) ? config.shop.enabled : undefined) !== true
+            ) {
                 return false;
             }
             return permissionLevel <= item.permissionLevel;
         })
-        .toSorted((a: PanelItem, b: PanelItem) => (a.sortId || 0) - (b.sortId || 0));
+        .toSorted((a: PanelItem, b: PanelItem) => (a.sortId ?? 0) - (b.sortId ?? 0));
 
     // Create a copy to avoid mutating the registry
     const resultItems: PanelItem[] = items.map((i) => ({ ...i }));
 
-    if (panelDef.parentPanelId) {
+    if (isNonEmptyString(panelDef.parentPanelId)) {
         resultItems.unshift({
             id: '__back__',
             text: '§l§8< Back',
@@ -54,14 +58,14 @@ export async function buildPanelForm(
 
         // 1. Check Panel Router (Modular System)
         const handler = panelRouter.getHandler(panelId);
-        if (handler) {
-            if (handler.buildModal) {
+        if (isDefined(handler)) {
+            if (isDefined(handler.buildModal)) {
                 const modal = await handler.buildModal(player, panelId, context);
-                if (modal) return modal;
+                if (isDefined(modal)) return modal;
             }
-            if (handler.getItems) {
+            if (isDefined(handler.getItems)) {
                 const items = await handler.getItems(player, panelId, context);
-                if (items) {
+                if (isDefined(items)) {
                     return buildActionFormFromItems(player, panelId, context, items);
                 }
             }
@@ -83,10 +87,10 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
 
     // Delegation: Get title from handler
     const handler = panelRouter.getHandler(panelId);
-    if (handler && handler.getTitle) {
+    if (isDefined(handler) && isDefined(handler.getTitle)) {
         try {
             const dynamicTitle = await handler.getTitle(player, panelId, context);
-            if (dynamicTitle) {
+            if (isNonEmptyString(dynamicTitle)) {
                 title = dynamicTitle;
             }
         } catch (error) {
@@ -94,26 +98,26 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
         }
     }
 
-    if (context.customTitle) title = context.customTitle;
+    if (isNonEmptyString(context.customTitle)) title = context.customTitle;
 
     // Resolve placeholders in title
     if (title.includes('{playerName}')) {
-        const targetId = (context.targetPlayerId || context.selectedItemId) as string;
-        if (targetId) {
+        const targetId = (context.targetPlayerId ?? context.selectedItemId) as string;
+        if (isNonEmptyString(targetId)) {
             const onlinePlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
-            const pData = onlinePlayer ? getOrCreatePlayer(onlinePlayer) : loadPlayerData(targetId);
+            const pData = isDefined(onlinePlayer) ? getOrCreatePlayer(onlinePlayer) : loadPlayerData(targetId);
 
-            if (pData) title = title.replace('{playerName}', pData.name);
+            if (isDefined(pData)) title = title.replace('{playerName}', pData.name);
         }
     }
 
     form.title(title);
 
     // Delegation: Get body from handler
-    if (handler && handler.getBody) {
+    if (isDefined(handler) && isDefined(handler.getBody)) {
         try {
             const bodyText = await handler.getBody(player, panelId, context);
-            if (bodyText) {
+            if (isNonEmptyString(bodyText)) {
                 form.body(bodyText);
             }
         } catch (error) {

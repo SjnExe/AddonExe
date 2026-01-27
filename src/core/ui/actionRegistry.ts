@@ -10,6 +10,7 @@ import * as rulesManager from '@core/rulesManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
 import { formatCurrency } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '@features/moderation/commands/ban.js';
 import { freezePlayer, unfreezePlayer } from '@features/moderation/commands/freeze.js';
 import { kickPlayer } from '@features/moderation/commands/kick.js';
@@ -37,7 +38,7 @@ export const uiActionFunctions: Record<
 
         const rulesForm = new ActionFormData().title('§l§6Server Rules').body(rules.join('\n'));
 
-        if (pData && pData.permissionLevel <= 1) {
+        if (isDefined(pData) && pData.permissionLevel <= 1) {
             rulesForm.button('§l§4Edit Rules', 'textures/ui/icon_setting');
         }
 
@@ -45,11 +46,11 @@ export const uiActionFunctions: Record<
 
         const response = await utils.uiWait(player, rulesForm);
 
-        if (!response || response.canceled) {
+        if (!isDefined(response) || response.canceled) {
             return;
         }
 
-        if (pData && pData.permissionLevel <= 1 && (response as ActionFormResponse).selection === 0) {
+        if (isDefined(pData) && pData.permissionLevel <= 1 && (response as ActionFormResponse).selection === 0) {
             return showPanel(player, 'rulesManagementPanel');
         }
     },
@@ -67,7 +68,7 @@ export const uiActionFunctions: Record<
             form.body(bodyText);
         }
 
-        if (pData && pData.permissionLevel <= 1) {
+        if (isDefined(pData) && pData.permissionLevel <= 1) {
             form.button('§l§4Edit Links', 'textures/ui/icon_setting');
         }
 
@@ -75,11 +76,11 @@ export const uiActionFunctions: Record<
 
         const response = await utils.uiWait(player, form);
 
-        if (!response || response.canceled) {
+        if (!isDefined(response) || response.canceled) {
             return;
         }
 
-        if (pData && pData.permissionLevel <= 1 && (response as ActionFormResponse).selection === 0) {
+        if (isDefined(pData) && pData.permissionLevel <= 1 && (response as ActionFormResponse).selection === 0) {
             return showPanel(player, 'helpfulLinksManagementPanel');
         }
     },
@@ -108,12 +109,12 @@ export const uiActionFunctions: Record<
     showUnbanForm: async (player: mc.Player) => {
         const form = new ModalFormData().title('Unban Player').textField('Player Name', 'Enter player name');
         const response = await utils.uiWait(player, form);
-        if (!response || response.canceled) {
+        if (!isDefined(response) || response.canceled) {
             return true;
         }
         const values = (response as ModalFormResponse).formValues;
-        const targetName = values ? (values[0] as string) : undefined;
-        if (!targetName) {
+        const targetName = isDefined(values) ? (values[0] as string) : undefined;
+        if (!isNonEmptyString(targetName)) {
             player.sendMessage('§cYou must enter a player name.');
             return true;
         }
@@ -124,12 +125,12 @@ export const uiActionFunctions: Record<
     showUnmuteForm: async (player: mc.Player) => {
         const form = new ModalFormData().title('Unmute Player').textField('Player Name', 'Enter player name');
         const response = await utils.uiWait(player, form);
-        if (!response || response.canceled) {
+        if (!isDefined(response) || response.canceled) {
             return true;
         }
         const values = (response as ModalFormResponse).formValues;
-        const targetName = values ? (values[0] as string) : undefined;
-        if (!targetName) {
+        const targetName = isDefined(values) ? (values[0] as string) : undefined;
+        if (!isNonEmptyString(targetName)) {
             player.sendMessage('§cYou must enter a player name.');
             return true;
         }
@@ -141,7 +142,7 @@ export const uiActionFunctions: Record<
         const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         const existingBounty = bountyManager.getBounty(targetPlayerId);
 
-        if (!existingBounty) {
+        if (!isDefined(existingBounty)) {
             player.sendMessage(`§c${targetPlayerName} does not have an active bounty.`);
             return Promise.resolve(true);
         }
@@ -160,7 +161,7 @@ export const uiActionFunctions: Record<
             return true;
         }
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
-        if (!targetPlayer) {
+        if (!isDefined(targetPlayer)) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
             return true;
         }
@@ -168,9 +169,9 @@ export const uiActionFunctions: Record<
             .title(`Kick ${targetPlayerName}`)
             .textField('Reason', 'Enter reason for kicking', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
-        if (response && !response.canceled) {
+        if (isDefined(response) && !response.canceled) {
             const values = (response as ModalFormResponse).formValues;
-            const reason = values ? (values[0] as string) : 'No reason provided.';
+            const reason = isDefined(values) ? (values[0] as string) : 'No reason provided.';
             kickPlayer(player, targetPlayer, reason);
         }
         return true;
@@ -183,7 +184,7 @@ export const uiActionFunctions: Record<
             return Promise.resolve(true);
         }
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
-        if (!targetPlayer) {
+        if (!isDefined(targetPlayer)) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
             return Promise.resolve(true);
         }
@@ -198,7 +199,7 @@ export const uiActionFunctions: Record<
             return Promise.resolve(true);
         }
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
-        if (!targetPlayer) {
+        if (!isDefined(targetPlayer)) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
             return Promise.resolve(true);
         }
@@ -223,7 +224,7 @@ export const uiActionFunctions: Record<
             return true;
         }
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
-        if (!targetPlayer) {
+        if (!isDefined(targetPlayer)) {
             player.sendMessage(`§c${targetPlayerName} is not online. Use /offlinemute instead.`);
             return true;
         }
@@ -232,9 +233,9 @@ export const uiActionFunctions: Record<
             .textField('Duration', 'e.g., 30m, 2h, 7d. Default: perm', { defaultValue: 'perm' })
             .textField('Reason', 'Enter reason for muting', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
-        if (response && !response.canceled) {
+        if (isDefined(response) && !response.canceled) {
             const values = (response as ModalFormResponse).formValues;
-            if (values) {
+            if (isDefined(values)) {
                 const [duration, reason] = values as [string, string];
                 mutePlayer(player, targetPlayer, duration, reason);
             }
@@ -253,12 +254,12 @@ export const uiActionFunctions: Record<
             .textField('Duration', 'e.g., 30m, 2h, 7d. Default: perm', { defaultValue: 'perm' })
             .textField('Reason', 'Enter reason for banning', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
-        if (response && !response.canceled) {
+        if (isDefined(response) && !response.canceled) {
             const values = (response as ModalFormResponse).formValues;
-            if (values) {
+            if (isDefined(values)) {
                 const [duration, reason] = values as [string, string];
                 const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
-                if (targetPlayer) {
+                if (isDefined(targetPlayer)) {
                     banPlayer(player, targetPlayer, duration, reason);
                 } else {
                     offlineBanPlayer(player, targetPlayerId, targetPlayerName, duration, reason);
@@ -271,7 +272,7 @@ export const uiActionFunctions: Record<
     tpaPlayer: (player: mc.Player, context: UIContext) => {
         const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
-        if (!targetPlayer) {
+        if (!isDefined(targetPlayer)) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
             return Promise.resolve(true);
         }
@@ -292,7 +293,7 @@ export const uiActionFunctions: Record<
     tpaherePlayer: (player: mc.Player, context: UIContext) => {
         const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         const targetPlayer = playerCache.getPlayerFromCache(targetPlayerId);
-        if (!targetPlayer) {
+        if (!isDefined(targetPlayer)) {
             player.sendMessage(`§c${targetPlayerName} is not online.`);
             return Promise.resolve(true);
         }
@@ -316,14 +317,14 @@ export const uiActionFunctions: Record<
         const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         const form = new ModalFormData().title(`Set Bounty on ${targetPlayerName}`).textField('Amount', 'Enter amount');
         const response = await utils.uiWait(player, form);
-        if (response && !response.canceled) {
+        if (isDefined(response) && !response.canceled) {
             const values = (response as ModalFormResponse).formValues;
-            const amountStr = values ? (values[0] as string) : '0';
+            const amountStr = isDefined(values) ? (values[0] as string) : '0';
             const amount = Number(amountStr);
             const config = getConfig();
-            if (Number.isNaN(amount) || amount < config.bounties.minimumBounty) {
+            if (Number.isNaN(amount) || (isDefined(config.bounties) && amount < config.bounties.minimumBounty)) {
                 player.sendMessage(
-                    `§cInvalid amount. The minimum bounty is ${formatCurrency(config.bounties.minimumBounty)}.`
+                    `§cInvalid amount. The minimum bounty is ${formatCurrency((isDefined(config.bounties) ? config.bounties.minimumBounty : undefined) ?? 0)}.`
                 );
                 return true;
             }
@@ -353,13 +354,13 @@ export const uiActionFunctions: Record<
             .title(`Report ${targetPlayerName}`)
             .textField('Reason for report:', 'Enter the reason here');
         const response = await utils.uiWait(player, form);
-        if (!response || response.canceled) {
+        if (!isDefined(response) || response.canceled) {
             player.sendMessage('§cReport canceled.');
             return true;
         }
         const values = (response as ModalFormResponse).formValues;
-        const reason = values ? (values[0] as string) : '';
-        if (!reason || reason.trim().length === 0) {
+        const reason = isDefined(values) ? (values[0] as string) : '';
+        if (!isNonEmptyString(reason) || reason.trim().length === 0) {
             player.sendMessage('§cYou must provide a reason.');
             return true;
         }
@@ -372,7 +373,7 @@ export const uiActionFunctions: Record<
         const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         const targetBounty = bountyManager.getBounty(targetPlayerId);
 
-        if (!targetBounty) {
+        if (!isDefined(targetBounty)) {
             player.sendMessage(`§c${targetPlayerName} does not have an active bounty.`);
             return true;
         }
@@ -386,9 +387,9 @@ export const uiActionFunctions: Record<
 
         const response = await utils.uiWait(player, form);
 
-        if (response && !response.canceled) {
+        if (isDefined(response) && !response.canceled) {
             const values = (response as ModalFormResponse).formValues;
-            const amountStr = values ? (values[0] as string) : '0';
+            const amountStr = isDefined(values) ? (values[0] as string) : '0';
             const amount = Number(amountStr);
 
             if (Number.isNaN(amount) || amount <= 0) {

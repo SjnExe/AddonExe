@@ -163,8 +163,8 @@ export class SidebarPanelHandler implements IPanelHandler {
         const config = getSidebarConfig();
         const lines: string[] =
             isSidebar || panelId === 'sidebarLinesPanel'
-                ? [...(config.sidebarLines || [])]
-                : [...(config.actionBarLines || [])];
+                ? [...(isDefined(config.sidebarLines) ? config.sidebarLines : [])]
+                : [...(isDefined(config.actionBarLines) ? config.actionBarLines : [])];
 
         // Helper to save
         const save = (msg: string) => {
@@ -177,7 +177,7 @@ export class SidebarPanelHandler implements IPanelHandler {
 
         if (panelId === 'sidebarLineAddPanel' || panelId === 'actionBarLineAddPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, listPanelId);
-            const [newLine] = (values as [string | undefined]) || [];
+            const [newLine] = (isDefined(values) ? values : []) as [string | undefined];
             if (isNonEmptyString(newLine)) {
                 lines.push(newLine);
                 save('§aLine added.');
@@ -187,7 +187,7 @@ export class SidebarPanelHandler implements IPanelHandler {
 
         if (panelId === 'sidebarLineEditPanel' || panelId === 'actionBarLineEditPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, listPanelId);
-            const valuesArray = (values as (string | undefined)[]) || [];
+            const valuesArray = (isDefined(values) ? values : []) as (string | undefined)[];
             const newLine = valuesArray[0];
             const index = context.lineIndex as number;
             if (isNonEmptyString(newLine)) {

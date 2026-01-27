@@ -66,12 +66,12 @@ export class PlayerPanelHandler implements IPanelHandler {
                 if (!isDefined(entry)) continue;
                 const targetP = mc.world.getAllPlayers().find((p) => p.id === entry.id);
 
-                const rank = targetP
+                const rank = isDefined(targetP)
                     ? rankManager.getPlayerRank(targetP, config)
-                    : rankManager.getRankById(loadPlayerData(entry.id)?.rankId ?? '');
+                    : rankManager.getRankById((loadPlayerData(entry.id) ?? { rankId: '' }).rankId);
                 const team = getTeamByPlayer(entry.id);
                 // Null-safe access to rank and team
-                const prefixText = rank?.chatFormatting?.prefixText;
+                const prefixText = isDefined(rank) && isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined;
                 const prefix = isNonEmptyString(prefixText) ? `§6[§r${prefixText}§6]§r ` : '';
                 const teamSuffix = isDefined(team) ? `\n§6[§r${team.name}§6]` : '';
 
@@ -135,11 +135,14 @@ export class PlayerPanelHandler implements IPanelHandler {
                 continue;
             }
 
-            if (Boolean(isSelf) && selfDisabledActions.has(item.id)) {
+            if (isSelf === true && selfDisabledActions.has(item.id)) {
                 continue;
             }
             const commandName = item.id;
-            const settings = (config.commandSettings || {}) as Record<string, { enabled?: boolean } | undefined>;
+            const settings = (isDefined(config.commandSettings) ? config.commandSettings : {}) as Record<
+                string,
+                { enabled?: boolean } | undefined
+            >;
             const cmdSettings = settings[commandName];
             if (isDefined(cmdSettings) && cmdSettings.enabled === false) {
                 continue;
@@ -155,15 +158,16 @@ export class PlayerPanelHandler implements IPanelHandler {
             const pData = getOrCreatePlayer(player);
             const { getTeamByPlayer } = await import('@features/teams/teamManager.js');
             const team = getTeamByPlayer(player.id);
-            const teamName = team ? `§3${team.name}` : '§8None';
+            const teamName = isDefined(team) ? `§3${team.name}` : '§8None';
             const { getPlayerRank } = await import('@core/rankManager.js');
             const rank = getPlayerRank(player, getConfig());
             const { getBounty } = await import('@core/bountyManager.js');
-            const bounty = getBounty(player.id)?.amount ?? 0;
+            const pBounty = getBounty(player.id);
+            const bounty = (isDefined(pBounty) ? pBounty.amount : undefined) ?? 0;
             const { formatCurrency } = await import('@core/utils.js');
 
             return [
-                `§8Rank: §r${rank.chatFormatting?.nameColor ?? '§8'}${rank.name}`,
+                `§8Rank: §r${(isDefined(rank.chatFormatting) ? rank.chatFormatting.nameColor : undefined) ?? '§8'}${rank.name}`,
                 `§8Team: ${teamName}`,
                 `§8Balance: §2${formatCurrency(pData.balance)}`,
                 `§8Bounty on you: §6${formatCurrency(bounty)}`
@@ -172,15 +176,15 @@ export class PlayerPanelHandler implements IPanelHandler {
 
         if (panelId === 'playerActionsPanel' && isDefined(context.targetPlayerId)) {
             const targetId = String(context.targetPlayerId);
-            const pData = (context.targetData as PlayerData | undefined) || loadPlayerData(targetId);
+            const pData = (isDefined(context.targetData) ? (context.targetData as PlayerData) : undefined) ?? loadPlayerData(targetId);
             if (isDefined(pData)) {
                 const { getRankById } = await import('@core/rankManager.js');
                 const { getBounty } = await import('@core/bountyManager.js');
                 const { formatCurrency } = await import('@core/utils.js');
                 const rank = getRankById(pData.rankId);
-                const bounty = getBounty(targetId)?.amount ?? 0;
+                const bounty = (isDefined(getBounty(targetId)) ? getBounty(targetId)!.amount : undefined) ?? 0;
                 return [
-                    `§8Rank: §r${rank?.chatFormatting?.nameColor ?? '§8'}${rank?.name ?? 'Unknown'}`,
+                    `§8Rank: §r${(isDefined(rank) && isDefined(rank.chatFormatting) ? rank.chatFormatting.nameColor : undefined) ?? '§8'}${(isDefined(rank) ? rank.name : undefined) ?? 'Unknown'}`,
                     `§8Balance: §2${formatCurrency(pData.balance)}`,
                     `§8Bounty: §6${formatCurrency(bounty)}`
                 ].join('\n');

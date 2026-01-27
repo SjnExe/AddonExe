@@ -49,7 +49,7 @@ This document outlines the strategy to resolve the 500+ linting errors identifie
   - `src/core/rankDb.ts`
   - `src/core/rankManager.ts`
 
-### Batch 4: Core Managers (Part B)
+### Batch 4: Core Managers (Part B) [x] Completed
 **Goal:** Fix gameplay systems.
 - **Files:**
   - `src/core/cooldownManager.ts`

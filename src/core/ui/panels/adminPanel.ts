@@ -21,7 +21,7 @@ export class AdminPanelHandler implements IPanelHandler {
         // Admin Panel uses static items (delegates to sub-panels)
         if (panelId === 'adminPanel') {
             const def = panelDefinitions[panelId];
-            if (def) {
+            if (isDefined(def)) {
                 const staticItems = getStaticMenuItems(def, 1); // Admin
                 items.push(...staticItems);
             }
@@ -118,8 +118,8 @@ export class AdminPanelHandler implements IPanelHandler {
             const id = (context.id ?? context.selectedItemId) as string;
             if (!isNonEmptyString(id)) return Promise.resolve();
             const text = floatingTextManager.getTextById(id);
-            if (text === undefined) return Promise.resolve();
-            const expiresAt = text.expiresAt ?? undefined;
+            if (!isDefined(text)) return Promise.resolve();
+            const expiresAt = text.expiresAt;
             const updateInterval = text.updateInterval ?? 0;
             const dimensionOptions = ['Overworld', 'Nether', 'The End'];
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
@@ -133,10 +133,11 @@ export class AdminPanelHandler implements IPanelHandler {
                     .textField('Z', 'Z', { defaultValue: String(text.location.z.toFixed(2)) })
                     .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
                     .textField('Update Interval', '0 to disable', { defaultValue: String(updateInterval) })
-                    .toggle('Expiration', { defaultValue: isDefined(expiresAt) })
+                    .toggle('Expiration', { defaultValue: isNumber(expiresAt) })
                     .textField('Expiration (mins)', 'mins', {
                         defaultValue:
-                            expiresAt !== undefined && expiresAt !== null
+                            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                            isNumber(expiresAt)
                                 ? String(Math.round((expiresAt - Date.now()) / 60_000))
                                 : '0'
                     })
@@ -174,7 +175,7 @@ export class AdminPanelHandler implements IPanelHandler {
             const [textContent, x, y, z, dimensionIndex, updateIntervalStr, useExpiration, expirationMinutes] =
                 rawValues;
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
-            const selectedDimension = dimensionIds[dimensionIndex] ?? 'minecraft:overworld';
+            const selectedDimension = (isDefined(dimensionIndex) ? dimensionIds[dimensionIndex] : undefined) ?? 'minecraft:overworld';
 
             const updatedConfig = {
                 text: textContent,
@@ -182,7 +183,7 @@ export class AdminPanelHandler implements IPanelHandler {
                 dimension: selectedDimension,
                 updateInterval: Number.parseInt(updateIntervalStr) || 0,
                 expiresAt:
-                    useExpiration && Number(expirationMinutes) > 0
+                    useExpiration === true && Number(expirationMinutes) > 0
                         ? Date.now() + Number(expirationMinutes) * 60_000
                         : undefined
             };
@@ -195,7 +196,7 @@ export class AdminPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!isDefined(item)) return;
                 if (item.actionType === 'openPanel') {
                     const newContext = {
                         ...context,
