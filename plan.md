@@ -47,13 +47,13 @@ This plan outlines the steps to upgrade the codebase with strict TypeScript lint
     - [x] `src/features/games/` (Strict lint compliant)
     - [x] `src/features/kits/` (Strict lint compliant)
     - [x] `src/features/voting/` (Strict lint compliant)
-- [ ] **Batch 8: Scripts & Root Files**
-    - `scripts/` directory
-    - Root files
+- [x] **Batch 8: Scripts & Root Files**
+    - [x] `scripts/` directory
+    - [x] Root files
 
 ## Phase 3: Verification
-- [ ] **Final Build Check** (`npm run build`)
-- [ ] **Final Test Run** (`npm test`)
+- [x] **Final Build Check** (`npm run build`)
+- [x] **Final Test Run** (`npm test`)
 
 ## Guidelines for Future Agents
 1.  **Read this Plan:** Always check the current status in this file.
