@@ -1,5 +1,6 @@
 import { getGamesConfig } from '@core/configurations.js';
 import { incrementPlayerBalance } from '@core/playerDataManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { gameManager } from '../gameManager.js';
 import { IGame } from '../types.js';
@@ -26,11 +27,11 @@ export class WordGuessGame implements IGame {
         const gamesConfig = getGamesConfig();
         const wgConfig = gamesConfig.wordGuess;
         const wordList = wgConfig.wordList;
-        const randomWord = wordList[Math.floor(Math.random() * wordList.length)] || 'apple';
+        const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
 
-        this.currentWord = (config.word as string) || randomWord;
+        this.currentWord = isNonEmptyString(config.word) ? config.word : (randomWord ?? 'apple');
 
-        const rewardMsg = this.customReward ? ` Reward: $${this.customReward}` : '';
+        const rewardMsg = isDefined(this.customReward) ? ` Reward: $${this.customReward}` : '';
         mc.world.sendMessage(
             `§a[WordGuess] A new game has started! Guess the ${this.currentWord.length}-letter word using /guess <word>.${rewardMsg}`
         );

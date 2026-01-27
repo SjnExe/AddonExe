@@ -4,6 +4,7 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayerRank } from '@core/rankManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import { showVoteMenu } from '../ui/votePanel.js';
 import { endVote, getActiveVote } from '../voteManager.js';
@@ -19,7 +20,7 @@ const voteCommand: CustomCommand = {
 
         const sub = args.subcommand?.toLowerCase();
 
-        if (!sub) {
+        if (!isNonEmptyString(sub)) {
             await showVoteMenu(executor);
             return;
         }
@@ -33,7 +34,7 @@ const voteCommand: CustomCommand = {
                 sendMessage('§cYou do not have permission to end votes.', executor);
                 return;
             }
-            if (!getActiveVote()) {
+            if (!isDefined(getActiveVote())) {
                 sendMessage('§cNo active vote to end.', executor);
                 return;
             }

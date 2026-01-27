@@ -1,6 +1,7 @@
 import { getGamesConfig } from '@core/configurations.js';
 import { incrementPlayerBalance } from '@core/playerDataManager.js';
 import { uiWait } from '@core/utils.js';
+import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 import { IGame } from '../types.js';
@@ -28,17 +29,17 @@ export class RockPaperScissorsGame implements IGame {
 
     start(players: mc.Player[], config: Record<string, unknown>) {
         const p1 = players[0];
-        if (!p1) return;
+        if (!isDefined(p1)) return;
 
         if (this.matches.has(p1.id)) {
             void this.openUI(p1);
             return;
         }
 
-        const opponent = config?.opponent as mc.Player | undefined;
-        const isAI = !opponent;
-        const p2Id = isAI ? 'AI' : opponent.id;
-        const p2Name = isAI ? 'Bot' : opponent.name;
+        const opponent = config.opponent instanceof mc.Player ? config.opponent : undefined;
+        const isAI = !isDefined(opponent);
+        const p2Id = isDefined(opponent) ? opponent.id : 'AI';
+        const p2Name = isDefined(opponent) ? opponent.name : 'Bot';
 
         const match: Match = {
             p1Id: p1.id,
@@ -54,7 +55,7 @@ export class RockPaperScissorsGame implements IGame {
         if (!isAI) this.matches.set(p2Id, match);
 
         void this.openUI(p1);
-        if (!isAI && opponent) {
+        if (!isAI && isDefined(opponent)) {
             void this.openUI(opponent);
         }
     }
@@ -65,58 +66,49 @@ export class RockPaperScissorsGame implements IGame {
 
     async openUI(player: mc.Player) {
         const match = this.matches.get(player.id);
-        if (!match) return;
+        if (!isDefined(match)) return;
 
         const isP1 = player.id === match.p1Id;
         const myChoice = isP1 ? match.p1Choice : match.p2Choice;
         const opponentChoice = isP1 ? match.p2Choice : match.p1Choice;
         const opponentName = isP1 ? match.p2Name : match.p1Name;
 
-        if (match.isAI && match.p2Choice === null) {
-            // AI picks immediately when game starts?
-            // Better: AI picks when player opens UI or when player picks.
-            // Let's make AI pick when player picks to simulate instant response.
-        }
-
         const form = new ActionFormData()
             .title(`RPS vs ${opponentName}`)
             .body(
-                `Your opponent is ${opponentChoice ? '§aREADY' : '§eTHINKING'}...\n\n` +
-                    (myChoice ? `You picked: §b${myChoice}§r` : 'Choose your move:')
+                `Your opponent is ${isDefined(opponentChoice) ? '§aREADY' : '§eTHINKING'}...\n\n` +
+                    (isDefined(myChoice) ? `You picked: §b${myChoice}§r` : 'Choose your move:')
             );
 
-        if (myChoice) {
+        if (isDefined(myChoice)) {
             form.button('Refresh / Wait Result');
         } else {
-            form.button('Rock', 'textures/items/coal'); // Using coal as rock placeholder if needed, or default
+            form.button('Rock', 'textures/items/coal');
             form.button('Paper', 'textures/items/paper');
             form.button('Scissors', 'textures/items/shears');
         }
 
-        // Add Invite Button if it's a Bot match and we want to allow converting to PvP?
-        // Or generic "Invite Friend" button if looking for opponent?
-        // Current logic: start() is called with opponent.
-        // If we want "Lobby" logic, we need a separate state.
-        // For now, assume this UI is for the active match.
-
         const res = await uiWait(player, form);
-        if (!res || res.canceled) return;
+        if (!isDefined(res) || res.canceled) return;
         const response = res as ActionFormResponse;
 
-        if (response.selection !== undefined) {
-            if (myChoice) {
+        if (isDefined(response.selection)) {
+            if (isDefined(myChoice)) {
                 // Refresh
                 this.checkResult(match);
                 void this.openUI(player);
             } else {
                 const choices: Choice[] = ['Rock', 'Paper', 'Scissors'];
                 const picked = choices[response.selection];
-                if (picked) {
+                if (isDefined(picked)) {
                     if (isP1) match.p1Choice = picked;
                     else match.p2Choice = picked;
 
                     if (match.isAI) {
-                        match.p2Choice = choices[Math.floor(Math.random() * 3)] as Choice;
+                        const randomChoice = choices[Math.floor(Math.random() * 3)];
+                        if (isDefined(randomChoice)) {
+                            match.p2Choice = randomChoice;
+                        }
                     }
 
                     this.checkResult(match);
@@ -127,7 +119,7 @@ export class RockPaperScissorsGame implements IGame {
     }
 
     private checkResult(match: Match) {
-        if (match.p1Choice && match.p2Choice) {
+        if (isDefined(match.p1Choice) && isDefined(match.p2Choice)) {
             // Both picked
             const p1 = match.p1Choice;
             const p2 = match.p2Choice;
@@ -163,18 +155,18 @@ export class RockPaperScissorsGame implements IGame {
         const resultMsg = `\n${p1Msg}\n${p2Msg}\n\n`;
 
         if (winner === 'draw') {
-            if (p1) p1.sendMessage(`§eIt's a Draw!${resultMsg}`);
-            if (p2) p2.sendMessage(`§eIt's a Draw!${resultMsg}`);
+            if (isDefined(p1)) p1.sendMessage(`§eIt's a Draw!${resultMsg}`);
+            if (isDefined(p2)) p2.sendMessage(`§eIt's a Draw!${resultMsg}`);
         } else if (winner === 'p1') {
-            if (p1) {
+            if (isDefined(p1)) {
                 p1.sendMessage(`§aYou Won!${resultMsg}`);
                 incrementPlayerBalance(p1.id, reward);
                 p1.sendMessage(`§a+${reward}`);
             }
-            if (p2) p2.sendMessage(`§cYou Lost!${resultMsg}`);
+            if (isDefined(p2)) p2.sendMessage(`§cYou Lost!${resultMsg}`);
         } else {
-            if (p1) p1.sendMessage(`§cYou Lost!${resultMsg}`);
-            if (p2) {
+            if (isDefined(p1)) p1.sendMessage(`§cYou Lost!${resultMsg}`);
+            if (isDefined(p2)) {
                 p2.sendMessage(`§aYou Won!${resultMsg}`);
                 incrementPlayerBalance(p2.id, reward);
                 p2.sendMessage(`§a+${reward}`);

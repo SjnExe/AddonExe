@@ -42,11 +42,11 @@ This plan outlines the steps to upgrade the codebase with strict TypeScript lint
 - [x] **Batch 6: Features - Social & Teleportation**
     - [x] `src/features/social/` (Manager, UI, Commands fully migrated)
     - [x] `src/features/teleportation/` (Managers, UI, Commands fully migrated)
-- [ ] **Batch 7: Features - Essentials, Games, Kits, Voting**
-    - [ ] `src/features/essentials/`
-    - [ ] `src/features/games/`
-    - [ ] `src/features/kits/`
-    - [ ] `src/features/voting/`
+- [x] **Batch 7: Features - Essentials, Games, Kits, Voting**
+    - [x] `src/features/essentials/` (Refactored and strict lint compliant)
+    - [x] `src/features/games/` (Strict lint compliant)
+    - [x] `src/features/kits/` (Strict lint compliant)
+    - [x] `src/features/voting/` (Strict lint compliant)
 - [ ] **Batch 8: Scripts & Root Files**
     - `scripts/` directory
     - Root files
