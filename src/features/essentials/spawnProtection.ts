@@ -52,10 +52,6 @@ function subscribe<T>(
     event: { subscribe: (h: (arg: T) => void) => void; unsubscribe: (h: (arg: T) => void) => void },
     handler: (arg: T) => void
 ): void {
-    if (!event) {
-        debugLog('[SpawnProtection] Attempted to subscribe to a non-existent event.');
-        return;
-    }
     event.subscribe(handler);
     eventHandlers.push({
         event: event as unknown as GenericEventSignal,
@@ -65,12 +61,16 @@ function subscribe<T>(
 
 function isWithinSpawnProtection(location: mc.Vector3, dimensionId: string): boolean {
     const spawnConfig = getSpawnConfig();
-    const spawnProtectionConfig = spawnConfig?.spawnProtection;
-    const spawnLocation = spawnConfig?.spawn?.spawnLocation;
+    const protectionConfig = spawnConfig.spawnProtection;
+    const spawnLocation = spawnConfig.spawn.spawnLocation;
+
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+    const isEnabled = protectionConfig.enabled;
 
     if (
-        !spawnProtectionConfig?.enabled ||
-        !spawnLocation?.dimensionId ||
+        !isEnabled ||
+        !spawnLocation ||
+        !spawnLocation.dimensionId ||
         typeof spawnLocation.x !== 'number' ||
         typeof spawnLocation.y !== 'number' ||
         typeof spawnLocation.z !== 'number'
@@ -85,7 +85,7 @@ function isWithinSpawnProtection(location: mc.Vector3, dimensionId: string): boo
     const dx = location.x - spawnLocation.x;
     const dz = location.z - spawnLocation.z;
     const distanceSquared = dx * dx + dz * dz;
-    const radiusSquared = spawnProtectionConfig.protectionRadius * spawnProtectionConfig.protectionRadius;
+    const radiusSquared = protectionConfig.protectionRadius * protectionConfig.protectionRadius;
 
     return distanceSquared <= radiusSquared;
 }
@@ -93,9 +93,9 @@ function isWithinSpawnProtection(location: mc.Vector3, dimensionId: string): boo
 function canBypass(player: mc.Player): boolean {
     const spawnConfig = getSpawnConfig();
     const mainConfig = getConfig();
-    const spawnProtectionConfig = spawnConfig?.spawnProtection;
+    const protectionConfig = spawnConfig.spawnProtection;
 
-    if (!spawnProtectionConfig?.allowAdminBypass) {
+    if (!protectionConfig.allowAdminBypass) {
         return false;
     }
     const playerRank = getPlayerRank(player, mainConfig);
@@ -107,21 +107,24 @@ function initialize(): void {
     cleanup();
 
     const spawnConfig = getSpawnConfig();
-    const { spawn, spawnProtection } = spawnConfig ?? {};
+    const { spawn, spawnProtection: protectionConfig } = spawnConfig;
 
-    if (!spawnProtection?.enabled) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+    const isEnabled = protectionConfig.enabled;
+
+    if (isEnabled === false) {
         infoLog('[SpawnProtection] Protection is disabled in the config.');
         return;
     }
 
-    const spawnLocation = spawn?.spawnLocation;
+    const spawnLocation = spawn.spawnLocation;
     if (!spawnLocation || typeof spawnLocation.x !== 'number') {
         infoLog('[SpawnProtection] Spawn protection is enabled, but no spawn location is set.');
     } else {
-        infoLog(`[SpawnProtection] Protection ENABLED. Radius: ${spawnProtection.protectionRadius}`);
+        infoLog(`[SpawnProtection] Protection ENABLED. Radius: ${protectionConfig.protectionRadius}`);
     }
 
-    if (spawnProtection.preventBlockBreaking) {
+    if (protectionConfig.preventBlockBreaking) {
         subscribe(
             mc.world.beforeEvents.playerBreakBlock,
             (event: mc.PlayerBreakBlockBeforeEvent | mc.PlayerPlaceBlockAfterEvent) => {
@@ -137,7 +140,7 @@ function initialize(): void {
         );
     }
 
-    if (spawnProtection.preventBlockPlacing) {
+    if (protectionConfig.preventBlockPlacing) {
         subscribe(mc.world.afterEvents.playerPlaceBlock, (event: mc.PlayerPlaceBlockAfterEvent) => {
             if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
                 event.block.setType(MinecraftBlockTypes.Air);
@@ -145,7 +148,7 @@ function initialize(): void {
         });
     }
 
-    if (spawnProtection.preventExplosions) {
+    if (protectionConfig.preventExplosions) {
         subscribe(mc.world.beforeEvents.explosion, (event: mc.ExplosionBeforeEvent) => {
             const blocks = event.getImpactedBlocks();
             for (const block of blocks) {
@@ -157,7 +160,7 @@ function initialize(): void {
         });
     }
 
-    if (spawnProtection.preventBlockInteraction) {
+    if (protectionConfig.preventBlockInteraction) {
         subscribe(mc.world.beforeEvents.playerInteractWithBlock, (event: mc.PlayerInteractWithBlockBeforeEvent) => {
             if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
                 event.cancel = true;
@@ -168,9 +171,12 @@ function initialize(): void {
     intervalId = mc.system.runInterval(() => {
         if (isChecking) return;
         const currentSpawnConfig = getSpawnConfig();
-        const protection = currentSpawnConfig?.spawnProtection;
+        const protection = currentSpawnConfig.spawnProtection;
 
-        if (!protection?.enabled) return;
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+        const isEnabledNow = protection.enabled;
+
+        if (isEnabledNow === false) return;
 
         mc.system.runJob(checkSpawnProtectionGenerator(protection));
     }, 40);

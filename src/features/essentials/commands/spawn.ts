@@ -174,7 +174,7 @@ const setSpawnCommand: CustomCommand = {
                     }
                 }
                 try {
-                    const radius = spawnConfig.spawn.worldSpawnRadius ?? 0;
+                    const radius = spawnConfig.spawn.worldSpawnRadius;
                     mc.world.gameRules.spawnRadius = radius;
                     if (executor instanceof mc.Player) {
                         sendMessage(`§aWorld spawn radius set to ${radius}.`, executor);

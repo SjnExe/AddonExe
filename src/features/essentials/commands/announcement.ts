@@ -23,13 +23,13 @@ export function restartAnnouncer(): void {
     stopAnnouncer();
 
     const config = getConfig();
-    if (!config?.announcements.enabled || !config.announcements.message || config.announcements.interval <= 0) {
+    if (!config.announcements.enabled || !config.announcements.message || config.announcements.interval <= 0) {
         return;
     }
 
     announcementIntervalId = mc.system.runInterval(() => {
         const currentConfig = getConfig();
-        if (!currentConfig?.announcements.enabled) {
+        if (!currentConfig.announcements.enabled) {
             stopAnnouncer();
             return;
         }
@@ -63,11 +63,7 @@ const announcementCommand: CustomCommand = {
     ],
     execute: async (executor, args) => {
         if (args.enabled !== undefined && typeof args.enabled === 'boolean') {
-            const announcementsConfig = getConfig()?.announcements;
-            if (!announcementsConfig) {
-                executor.sendMessage('§cCould not load announcements configuration.');
-                return;
-            }
+            const announcementsConfig = getConfig().announcements;
             announcementsConfig.enabled = args.enabled;
             updateConfig('announcements', announcementsConfig);
             restartAnnouncer();
@@ -112,7 +108,7 @@ const motdNotifyCommand: CustomCommand = {
         const announcementsMuted: boolean =
             args.enabled !== undefined && typeof args.enabled === 'boolean'
                 ? !args.enabled
-                : !(pData.announcementsMuted ?? false);
+                : !(pData.announcementsMuted);
 
         setPlayerAnnouncementsMuted(executor.id, announcementsMuted);
         executor.sendMessage(`§7Announcements are now §${announcementsMuted ? 'cOFF' : '2ON'}§7 for you.`);

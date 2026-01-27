@@ -21,7 +21,7 @@ const rulesCommand: CustomCommand = {
         const config = getConfig();
         const rules = config.serverInfo.rules;
 
-        if (!rules || rules.length === 0) {
+        if (rules.length === 0) {
             const message = '§cThe server rules have not been configured by the admin.';
             if (executor instanceof mc.Player) {
                 sendMessage(message, executor);
@@ -58,7 +58,7 @@ const rulesCommand: CustomCommand = {
             }
             // Safe access because of range check above
             const ruleText = rules[ruleNumber - 1];
-            const messages = ['§l§a--- Server Rules ---', ruleText || '', '§l§a------------------'];
+            const messages = ['§l§a--- Server Rules ---', ruleText ?? '', '§l§a------------------'];
             if (executor instanceof mc.Player) {
                 for (const msg of messages) sendMessage(msg, executor, { raw: true });
             } else {

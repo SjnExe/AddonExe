@@ -18,13 +18,9 @@ const command: CustomCommand = {
             optional: true
         }
     ],
-    execute: (executor, args) => {
+    execute: (_, args) => {
         const config = getConfig();
-        if (!config) {
-            executor.sendMessage('§cCould not load configuration.');
-            return;
-        }
-        const chatConfig = config.chat ?? { logToConsole: false };
+        const chatConfig = config.chat;
         const arg = typeof args.state === 'string' ? args.state.toLowerCase() : undefined;
 
         let newValue: boolean;
