@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined } from '@lib/guards.js';
 import { getConfig } from './configManager.js';
 import { debugLog, infoLog } from './logger.js';
 import { getAllPlayerData, isNameIdMapDirty, saveNameIdMap, savePlayerData } from './playerDataManager.js';
@@ -14,7 +15,7 @@ export function restartAutoSave() {
     }
 
     const config = getConfig();
-    const autoSaveIntervalSeconds = config.data?.autoSaveIntervalSeconds ?? 300;
+    const autoSaveIntervalSeconds = (isDefined(config.data) ? config.data.autoSaveIntervalSeconds : undefined) ?? 300;
 
     if (autoSaveIntervalSeconds > 0) {
         const intervalTicks = autoSaveIntervalSeconds * 20; // 20 ticks/sec
@@ -47,7 +48,7 @@ export function saveAllData(options: { log?: boolean } = {}): boolean {
     let anythingWasSaved = false;
 
     // Save the player name-to-ID map if it's dirty
-    if (isNameIdMapDirty) {
+    if (isNameIdMapDirty === true) {
         saveNameIdMap(); // This function will log its own success
         anythingWasSaved = true;
     }
@@ -56,7 +57,7 @@ export function saveAllData(options: { log?: boolean } = {}): boolean {
     const allPlayerData = getAllPlayerData();
     let savedPlayerCount = 0;
     for (const [playerId, playerData] of allPlayerData.entries()) {
-        if (playerData.needsSave) {
+        if (playerData.needsSave === true) {
             savePlayerData(playerId);
             savedPlayerCount++;
         }

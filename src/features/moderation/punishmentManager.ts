@@ -45,7 +45,7 @@ export function loadPunishments() {
                 const legacyPunishment = record as unknown as Punishment;
                 if (legacyPunishment.type === 'ban') {
                     punishments.set(playerId, { ban: legacyPunishment });
-                } else if (legacyPunishment.type === 'mute') {
+                } else {
                     punishments.set(playerId, { mute: legacyPunishment });
                 }
                 migratedCount++;
@@ -131,7 +131,7 @@ export function addPunishment(playerId: string, playerName: string, punishment: 
 
     if (punishment.type === 'ban') {
         record.ban = punishment;
-    } else if (punishment.type === 'mute') {
+    } else {
         record.mute = punishment;
     }
 
@@ -201,13 +201,16 @@ export function removePunishment(playerId: string, type: PunishmentType) {
 
     let changed = false;
 
-    if (type === 'ban' && isDefined(record.ban)) {
-        delete record.ban;
-        changed = true;
-
-    } else if (type === 'mute' && isDefined(record.mute)) {
-        delete record.mute;
-        changed = true;
+    if (type === 'ban') {
+        if (isDefined(record.ban)) {
+            delete record.ban;
+            changed = true;
+        }
+    } else {
+        if (isDefined(record.mute)) {
+            delete record.mute;
+            changed = true;
+        }
     }
 
     if (changed) {

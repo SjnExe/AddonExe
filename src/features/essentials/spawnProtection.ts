@@ -65,8 +65,7 @@ function isWithinSpawnProtection(location: mc.Vector3, dimensionId: string): boo
     const protectionConfig = spawnConfig.spawnProtection;
     const spawnLocation = spawnConfig.spawn.spawnLocation;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    const isEnabled = Boolean((protectionConfig as any).enabled);
+    const isEnabled = isDefined(protectionConfig) && protectionConfig.enabled === true;
 
     if (
         !isEnabled ||
@@ -110,8 +109,7 @@ function initialize(): void {
     const spawnConfig = getSpawnConfig();
     const { spawn, spawnProtection: protectionConfig } = spawnConfig;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    const isEnabled = Boolean((protectionConfig as any).enabled);
+    const isEnabled = isDefined(protectionConfig) && protectionConfig.enabled === true;
 
     if (!isEnabled) {
         infoLog('[SpawnProtection] Protection is disabled in the config.');
@@ -174,8 +172,7 @@ function initialize(): void {
         const currentSpawnConfig = getSpawnConfig();
         const protection = currentSpawnConfig.spawnProtection;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        const isEnabledNow = Boolean((protection as any).enabled);
+        const isEnabledNow = isDefined(protection) && protection.enabled === true;
 
         if (!isEnabledNow) return;
 
@@ -188,7 +185,8 @@ function* checkSpawnProtectionGenerator(protection: { preventPvP: boolean; preve
     try {
         const players = mc.world.getAllPlayers();
         for (const player of players) {
-            if (!player.isValid) continue;
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            if (!(player as any).isValid()) continue;
             const wasInSpawn = player.hasTag('inSpawn');
             const isInSpawn = isWithinSpawnProtection(player.location, player.dimension.id);
 

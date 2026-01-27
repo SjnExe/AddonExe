@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import { SerializedItem } from './itemSerializer.js';
@@ -124,12 +125,12 @@ export function updatePlayerData(playerId: string, modificationCallback: (pData:
     let pData = activePlayerData.get(playerId);
     let wasCached = true;
 
-    if (!pData) {
+    if (!isDefined(pData)) {
         wasCached = false;
-        pData = loadPlayerData(playerId) || undefined;
+        pData = loadPlayerData(playerId) ?? undefined;
     }
 
-    if (pData) {
+    if (isDefined(pData)) {
         modificationCallback(pData);
         if (wasCached) {
             pData.needsSave = true; // Mark as dirty for auto-save
@@ -185,7 +186,7 @@ function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix
 
     // 1. Try Legacy
     const legacyData = mc.world.getDynamicProperty(legacyKey) as string | undefined;
-    if (legacyData) {
+    if (isNonEmptyString(legacyData)) {
         try {
             const entries = JSON.parse(legacyData) as [string, string][];
             for (const [k, v] of entries) map.set(k, v);
@@ -204,7 +205,7 @@ function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix
         let i = 0;
         while (true) {
             const data = mc.world.getDynamicProperty(`${shardPrefix}${i}`) as string | undefined;
-            if (!data) break;
+            if (!isNonEmptyString(data)) break;
             try {
                 const entries = JSON.parse(data) as [string, string][];
                 for (const [k, v] of entries) map.set(k, v);
@@ -265,13 +266,13 @@ export function savePlayerData(playerId: string) {
     }
     try {
         const playerData = activePlayerData.get(playerId);
-        if (playerData) {
+        if (isDefined(playerData)) {
             // Update Playtime before saving
             const now = Date.now();
             const sessionStart = sessionStartTimes.get(playerId);
-            if (sessionStart) {
+            if (isDefined(sessionStart)) {
                 const sessionDuration = now - sessionStart;
-                playerData.totalPlayTime = (playerData.totalPlayTime || 0) + sessionDuration;
+                playerData.totalPlayTime = (playerData.totalPlayTime ?? 0) + sessionDuration;
                 // Reset session start to now to avoid double counting if saved multiple times
                 sessionStartTimes.set(playerId, now);
             }
@@ -301,7 +302,7 @@ export function loadPlayerData(playerId: string): PlayerData | undefined {
         const storage = new StorageManager(`${playerPropertyPrefix}${playerId}`);
         const loadedData = storage.load<Partial<PlayerData>>();
 
-        if (loadedData) {
+        if (isDefined(loadedData)) {
             // Merge with defaults to ensure all properties exist
             const playerData: PlayerData = {
                 name: 'Unknown', // Placeholder, will be updated by getOrCreate
@@ -330,7 +331,7 @@ function _updateNameMap(player: mc.Player) {
     // Update if ID mismatch (name change) OR if ID not in reverse map (init)
     if (playerNameIdMap.get(playerNameLower) !== player.id || !playerIdNameMap.has(player.id)) {
         const oldName = playerIdNameMap.get(player.id);
-        if (oldName) {
+        if (isNonEmptyString(oldName)) {
             playerNameIdMap.delete(oldName.toLowerCase());
         }
         playerNameIdMap.set(playerNameLower, player.id);
@@ -379,18 +380,18 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
  * @param player
  */
 export function getOrCreatePlayer(player: mc.Player): PlayerData {
-    if (!player) {
+    if (!isDefined(player)) {
         throw new Error('getOrCreatePlayer called with invalid/undefined player object');
     }
     _updateNameMap(player);
 
     let pData = activePlayerData.get(player.id);
 
-    if (!pData) {
-        pData = loadPlayerData(player.id) || undefined;
+    if (!isDefined(pData)) {
+        pData = loadPlayerData(player.id) ?? undefined;
     }
 
-    if (!pData) {
+    if (!isDefined(pData)) {
         return _createNewPlayerData(player);
     }
 
@@ -486,7 +487,7 @@ export function getAllKnownPlayers(): { id: string; name: string }[] {
 export function getVisiblePlayers(observer: mc.Player): mc.Player[] {
     const allPlayers = getAllPlayersFromCache();
     const observerData = getPlayer(observer.id);
-    const observerLevel = observerData?.permissionLevel ?? 1024;
+    const observerLevel = (isDefined(observerData) ? observerData.permissionLevel : undefined) ?? 1024;
 
     // Staff (Level <= 2) can see everyone
     if (observerLevel <= 2) {
@@ -497,7 +498,7 @@ export function getVisiblePlayers(observer: mc.Player): mc.Player[] {
         // Observer is regular player
         // Hide vanished players
         const targetData = getPlayer(p.id);
-        return !targetData?.isVanished;
+        return !(isDefined(targetData) && targetData.isVanished);
     });
 }
 
@@ -549,7 +550,7 @@ export function clearExpiredPayments() {
         if (now - payment.timestamp > timeout) {
             pendingPayments.delete(playerId);
             const player = getPlayerFromCache(playerId);
-            if (player) {
+            if (isDefined(player)) {
                 player.sendMessage('§cYour pending payment has expired.');
             }
         }
@@ -675,7 +676,7 @@ export function setPlayerXrayNotifications(playerId: string, status: boolean) {
 export function setPlayerLastDeathLocation(playerId: string, location: HomeLocation | undefined) {
     updatePlayerData(playerId, (pData) => {
         pData.lastDeathLocation = location;
-        if (location) {
+        if (isDefined(location)) {
             pData.deathNotificationSent = false;
         }
     });
@@ -697,7 +698,7 @@ export function setDeathNotificationSent(playerId: string, status: boolean) {
 
 export function getBalance(playerId: string): number | undefined {
     const pData = getPlayer(playerId);
-    return pData?.balance ?? undefined;
+    return (isDefined(pData) ? pData.balance : undefined) ?? undefined;
 }
 
 export function transfer(
@@ -711,7 +712,7 @@ export function transfer(
 
     // 1. Get Source Data
     const sourceData = getPlayer(sourcePlayerId);
-    if (!sourceData) {
+    if (!isDefined(sourceData)) {
         return { success: false, message: 'Could not find your player data.' };
     }
 
@@ -725,11 +726,11 @@ export function transfer(
     const targetIsCached = activePlayerData.has(targetPlayerId);
     let targetData = activePlayerData.get(targetPlayerId);
 
-    if (!targetData) {
+    if (!isDefined(targetData)) {
         targetData = loadPlayerData(targetPlayerId);
     }
 
-    if (!targetData) {
+    if (!isDefined(targetData)) {
         return { success: false, message: "Could not find the target player's data." };
     }
 
@@ -812,15 +813,15 @@ export function resetKillStreak(playerId: string) {
  */
 export function getPlayTime(playerId: string): number {
     const pData = getPlayer(playerId);
-    if (!pData) return 0;
+    if (!isDefined(pData)) return 0;
 
     let currentSessionTime = 0;
     const start = sessionStartTimes.get(playerId);
-    if (start) {
+    if (isDefined(start)) {
         currentSessionTime = Date.now() - start;
     }
 
-    return (pData.totalPlayTime || 0) + currentSessionTime;
+    return (pData.totalPlayTime ?? 0) + currentSessionTime;
 }
 
 export function setSidebarVisible(playerId: string, visible: boolean) {
@@ -831,5 +832,5 @@ export function setSidebarVisible(playerId: string, visible: boolean) {
 
 export function getSidebarVisible(playerId: string): boolean {
     const pData = getPlayer(playerId);
-    return pData?.sidebarVisible ?? true;
+    return (isDefined(pData) ? pData.sidebarVisible : undefined) ?? true;
 }

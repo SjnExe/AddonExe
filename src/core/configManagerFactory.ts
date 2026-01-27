@@ -1,3 +1,4 @@
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { debugLog, errorLog } from './logger.js';
 import { deepClone, deepMerge, mergeObjectMaps, mergeRanks, reconcileConfig, setValueByPath } from './objectUtils.js';
 import { StorageManager } from './storage/StorageManager.js';
@@ -31,7 +32,7 @@ export default function createConfigManager<T>(
     const lastLoadedKey = `${key}:last_loaded`;
 
     const initialDefaultConfig = (
-        wrapperKey ? { [wrapperKey]: deepClone(defaultConfig) } : deepClone(defaultConfig)
+        isNonEmptyString(wrapperKey) ? { [wrapperKey]: deepClone(defaultConfig) } : deepClone(defaultConfig)
     ) as T;
 
     // Initialize Storage Managers for sharding support
@@ -58,23 +59,27 @@ export default function createConfigManager<T>(
         const userSavedConfigLoaded = configStorage.load<Record<string, unknown>>();
         const lastLoadedConfigLoaded = lastLoadedStorage.load<Record<string, unknown>>();
 
-        if (userSavedConfigLoaded) {
+        if (isDefined(userSavedConfigLoaded)) {
             // StorageManager returns the parsed object, no need to JSON.parse
             const userSavedConfig = userSavedConfigLoaded;
 
-            if (name === 'Main' && userSavedConfig.spawnLocation && typeof userSavedConfig.spawnLocation === 'object') {
+            if (
+                name === 'Main' &&
+                isDefined(userSavedConfig.spawnLocation) &&
+                typeof userSavedConfig.spawnLocation === 'object'
+            ) {
                 debugLog(`[${name}ConfigManager] Migrating legacy spawnLocation to spawn.spawnLocation.`);
-                if (!userSavedConfig.spawn) {
+                if (!isDefined(userSavedConfig.spawn)) {
                     userSavedConfig.spawn = {};
                 }
                 const spawn = userSavedConfig.spawn as Record<string, unknown>;
-                if (!spawn.spawnLocation) {
+                if (!isDefined(spawn.spawnLocation)) {
                     spawn.spawnLocation = deepClone(userSavedConfig.spawnLocation);
                 }
                 delete userSavedConfig.spawnLocation;
             }
 
-            if (!isMigration && lastLoadedConfigLoaded) {
+            if (!isMigration && isDefined(lastLoadedConfigLoaded)) {
                 const lastLoadedConfigForMerge = lastLoadedConfigLoaded;
                 debugLog(`[${name}ConfigManager] Found last-loaded config. Proceeding with reconciliation.`);
 
@@ -93,7 +98,7 @@ export default function createConfigManager<T>(
                             userSavedConfig.rankDefinitions as Record<string, unknown>[],
                             (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] })
                                 .rankDefinitions,
-                            (lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]) || []
+                            (lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]) ?? []
                         );
                         currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
 
@@ -104,7 +109,7 @@ export default function createConfigManager<T>(
                         currentConfig = mergeObjectMaps(
                             userSavedConfig,
                             newDefaultConfig as unknown as Record<string, unknown>,
-                            lastLoadedConfigForMerge || {}
+                            lastLoadedConfigForMerge ?? {}
                         ) as unknown as T;
 
                         break;

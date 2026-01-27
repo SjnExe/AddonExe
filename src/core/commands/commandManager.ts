@@ -424,7 +424,7 @@ class CommandManager {
                         if (isDefined(executorData) && executorData.permissionLevel > 2) {
                             value = (value as mc.Player[]).filter((target) => {
                                 const targetData = getPlayer(target.id);
-                                return !(targetData && targetData.isVanished);
+                                return !(isDefined(targetData) && targetData.isVanished);
                             });
                         }
                     }
