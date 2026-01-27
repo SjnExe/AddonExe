@@ -64,8 +64,8 @@ function isWithinSpawnProtection(location: mc.Vector3, dimensionId: string): boo
     const protectionConfig = spawnConfig.spawnProtection;
     const spawnLocation = spawnConfig.spawn.spawnLocation;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    const isEnabled = (protectionConfig as any).enabled;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+    const isEnabled = protectionConfig.enabled;
 
     if (
         !isEnabled ||
@@ -109,8 +109,8 @@ function initialize(): void {
     const spawnConfig = getSpawnConfig();
     const { spawn, spawnProtection: protectionConfig } = spawnConfig;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    const isEnabled = (protectionConfig as any).enabled;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+    const isEnabled = protectionConfig.enabled;
 
     if (isEnabled === false) {
         infoLog('[SpawnProtection] Protection is disabled in the config.');
@@ -173,8 +173,8 @@ function initialize(): void {
         const currentSpawnConfig = getSpawnConfig();
         const protection = currentSpawnConfig.spawnProtection;
 
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        const isEnabledNow = (protection as any).enabled;
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+        const isEnabledNow = protection.enabled;
 
         if (isEnabledNow === false) return;
 

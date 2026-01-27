@@ -76,8 +76,8 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
     }
 
     const pData = isConsole ? undefined : getPlayer(executor.id);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    const userPermissionLevel = isConsole ? 0 : ((pData as any)?.permissionLevel ?? 1024);
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    const userPermissionLevel = isConsole ? 0 : (pData?.permissionLevel ?? 1024);
 
     if (cmd === undefined) {
          const message = `§cUnknown command: '${commandName}'.`;
@@ -149,8 +149,8 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
         if (
             cmds.some(
                 (c) =>
-                    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-                    userPermissionLevel <= (c.permissionLevel ?? 1024) && ((c as any).hidden ?? false) === false
+                    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                    userPermissionLevel <= (c.permissionLevel ?? 1024) && (c.hidden ?? false) === false
             )
         ) {
             visibleCategories.push(cat);
@@ -172,8 +172,8 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
     for (const categoryName of sortedCats) {
         const commands = allCategories.get(categoryName) ?? [];
         const visibleCmds = commands
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && ((c as any).hidden ?? false) === false)
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+            .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && (c.hidden ?? false) === false)
             .toSorted((a, b) => a.name.localeCompare(b.name));
 
         if (visibleCmds.length > 0) {
@@ -203,8 +203,8 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
         if (
             cmds.some(
                 (c) =>
-                    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-                    userPermissionLevel <= (c.permissionLevel ?? 1024) && ((c as any).hidden ?? false) === false
+                    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                    userPermissionLevel <= (c.permissionLevel ?? 1024) && (c.hidden ?? false) === false
             )
         ) {
             visibleCategories.push(cat);
@@ -238,8 +238,8 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
 async function showUICategory(player: mc.Player, category: string, userPermissionLevel: number) {
     const cmds = getCategorizedCommands().get(category) ?? [];
     const visibleCmds = cmds
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && ((c as any).hidden ?? false) === false)
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && (c.hidden ?? false) === false)
         .toSorted((a, b) => a.name.localeCompare(b.name));
 
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
