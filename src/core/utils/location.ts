@@ -3,12 +3,17 @@
  * @param location The location object.
  * @returns A formatted string (e.g., "X: 10.50, Y: 64.00, Z: -12.25 in Overworld").
  */
-export function formatLocation(location: {
-    x: number;
-    y: number;
-    z: number;
-    dimensionId?: string;
-} | null | undefined): string {
+export function formatLocation(
+    location:
+        | {
+              x: number;
+              y: number;
+              z: number;
+              dimensionId?: string;
+          }
+        | null
+        | undefined
+): string {
     if (location === null || location === undefined) {
         return 'an unknown location';
     }

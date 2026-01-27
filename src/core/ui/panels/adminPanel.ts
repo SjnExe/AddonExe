@@ -156,7 +156,7 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextCreatePanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'floatingTextListPanel');
-            const [id, text] = (values as string[]);
+            const [id, text] = values as string[];
             if (!isNonEmptyString(id) || id.includes(' ')) {
                 player.sendMessage('§4Invalid ID.');
                 return showPanel(player, 'floatingTextCreatePanel');

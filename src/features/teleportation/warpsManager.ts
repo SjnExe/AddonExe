@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { HomeLocation } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import { isDefined } from '@lib/guards.js';
 
 const WARPS_PROPERTY_ID = 'exe:warps';
 const storage = new StorageManager(WARPS_PROPERTY_ID);
@@ -17,7 +18,7 @@ interface ActionResult {
  */
 function getWarps(): Record<string, HomeLocation> {
     const warps = storage.load<Record<string, HomeLocation>>();
-    return warps || {};
+    return warps ?? {};
 }
 
 /**
@@ -39,7 +40,7 @@ export function setWarp(warpName: string, location: mc.Vector3, dimensionId: str
     const warps = getWarps();
     const lowerCaseWarpName = warpName.toLowerCase();
 
-    if (warps[lowerCaseWarpName]) {
+    if (isDefined(warps[lowerCaseWarpName])) {
         return { success: false, message: `A warp named '${warpName}' already exists.` };
     }
     if (warpName.length > 20) {
@@ -76,7 +77,7 @@ export function deleteWarp(warpName: string): ActionResult {
     const warps = getWarps();
     const lowerCaseWarpName = warpName.toLowerCase();
 
-    if (!warps[lowerCaseWarpName]) {
+    if (!isDefined(warps[lowerCaseWarpName])) {
         return { success: false, message: `Warp '${warpName}' does not exist.` };
     }
 

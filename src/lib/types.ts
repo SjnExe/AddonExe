@@ -1,9 +1,9 @@
-import type { Opaque, JsonValue } from 'type-fest';
+
 
 /**
  * Re-export useful type-fest types.
  */
-export type { Opaque, JsonValue };
+
 
 /**
  * Represents a value that may be null or undefined.
@@ -19,3 +19,5 @@ export type Primitive = string | number | boolean | bigint | symbol | undefined 
  * Helper to enforce that a type contains specific keys.
  */
 export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
+export {type JsonValue, type Opaque} from 'type-fest';

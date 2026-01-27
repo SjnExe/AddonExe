@@ -78,7 +78,7 @@ export default tseslint.config(
             'minecraft-linting': minecraftLinting,
             import: importPlugin,
             'unused-imports': unusedImports,
-            promise: promisePlugin,
+            promise: promisePlugin
         },
         settings: {
             'import/resolver': {
@@ -147,7 +147,7 @@ export default tseslint.config(
             // NEW STRICT RULES
             '@typescript-eslint/no-unnecessary-condition': 'error',
             '@typescript-eslint/strict-boolean-expressions': 'error',
-            '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+            '@typescript-eslint/no-unnecessary-type-assertion': 'error'
         }
     },
 

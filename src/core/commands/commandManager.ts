@@ -158,10 +158,7 @@ class CommandManager {
                     // Register all aliases as separate slash commands
                     if (command.aliases) {
                         for (const alias of command.aliases) {
-                            if (
-                                command.disabledSlashAliases &&
-                                command.disabledSlashAliases.includes(alias)
-                            ) {
+                            if (command.disabledSlashAliases && command.disabledSlashAliases.includes(alias)) {
                                 continue; // Skip slash command registration for this alias
                             }
                             this._registerSlashCommand(customCommandRegistry, command, alias);
