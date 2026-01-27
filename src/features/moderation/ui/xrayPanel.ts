@@ -5,6 +5,7 @@ import { getXrayConfig, saveXrayConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export class XrayPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -73,7 +74,7 @@ export class XrayPanelHandler implements IPanelHandler {
 
             for (const key of paginated) {
                 const ore = config.monitoredOreTypes[key];
-                if (!ore) continue;
+                if (!isDefined(ore)) continue;
                 items.push({
                     id: key,
                     text: `${ore.oreName}\n${ore.enabled ? '§2[Enabled]' : '§4[Disabled]'}`,
@@ -107,10 +108,10 @@ export class XrayPanelHandler implements IPanelHandler {
             const key = panelId.replace('editXrayOrePanel_', '');
             const config = getXrayConfig();
             const ore = config.monitoredOreTypes[key];
-            if (!ore) return undefined;
+            if (!isDefined(ore)) return undefined;
 
             // Simplify: Only edit first block definition for now in UI
-            const block = ore.blocks[0] || { blockId: '', dimensionId: 'minecraft:overworld', minY: -64, maxY: 320 };
+            const block = ore.blocks[0] ?? { blockId: '', dimensionId: 'minecraft:overworld', minY: -64, maxY: 320 };
 
             return new ModalFormData()
                 .title(`Edit ${ore.oreName}`)
@@ -137,7 +138,7 @@ export class XrayPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!isDefined(item)) return;
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, { ...context, page: 1 });
                 }
@@ -155,9 +156,9 @@ export class XrayPanelHandler implements IPanelHandler {
 
         if (panelId === 'addXrayOrePanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'xrayOresPanel');
-            if (!values) return showPanel(player, 'xrayOresPanel');
+            if (!isDefined(values)) return showPanel(player, 'xrayOresPanel');
             const [id, name, blockId, dimId, minY, maxY] = values as string[];
-            if (id && name && blockId && minY && maxY) {
+            if (isNonEmptyString(id) && isNonEmptyString(name) && isNonEmptyString(blockId) && isNonEmptyString(minY) && isNonEmptyString(maxY)) {
                 const config = getXrayConfig();
                 config.monitoredOreTypes[id] = {
                     enabled: true,
@@ -165,7 +166,7 @@ export class XrayPanelHandler implements IPanelHandler {
                     blocks: [
                         {
                             blockId,
-                            dimensionId: dimId || 'minecraft:overworld',
+                            dimensionId: isNonEmptyString(dimId) ? dimId : 'minecraft:overworld',
                             minY: Number.parseInt(minY) || -64,
                             maxY: Number.parseInt(maxY) || 320
                         }
@@ -180,7 +181,7 @@ export class XrayPanelHandler implements IPanelHandler {
         if (panelId.startsWith('editXrayOrePanel_')) {
             const key = panelId.replace('editXrayOrePanel_', '');
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'xrayOresPanel');
-            if (values) {
+            if (isDefined(values)) {
                 const [enabled, name, blockId, dimId, minY, maxY] = values as [
                     boolean,
                     string,
@@ -190,7 +191,7 @@ export class XrayPanelHandler implements IPanelHandler {
                     string
                 ];
                 const config = getXrayConfig();
-                if (config.monitoredOreTypes[key]) {
+                if (isDefined(config.monitoredOreTypes[key])) {
                     config.monitoredOreTypes[key].enabled = enabled;
                     config.monitoredOreTypes[key].oreName = name;
                     config.monitoredOreTypes[key].blocks[0] = {

@@ -1,5 +1,6 @@
 import { getConfig } from '@core/configManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 export interface ChatLog {
@@ -17,12 +18,12 @@ let isDirty = false;
 
 function getTodayDateString(): string {
     const now = new Date();
-    return now.toISOString().split('T')[0] || ''; // YYYY-MM-DD
+    return now.toISOString().split('T')[0] ?? ''; // YYYY-MM-DD
 }
 
 export function initializeChatLogger() {
     const loadedDates = indexStorage.load<string[]>();
-    availableDates = loadedDates || [];
+    availableDates = loadedDates ?? [];
     today = getTodayDateString();
 
     loadTodayLogs();
@@ -49,7 +50,7 @@ export function initializeChatLogger() {
 function loadTodayLogs() {
     const storage = new StorageManager(`exe:logs:chat:${today}`);
     const logs = storage.load<ChatLog[]>();
-    currentDayLogs = logs || [];
+    currentDayLogs = logs ?? [];
 
     if (!availableDates.includes(today)) {
         availableDates.push(today);
@@ -66,14 +67,14 @@ function saveChatLogs() {
 
 export function addChatLog(playerName: string, message: string, rank?: string) {
     const config = getConfig();
-    if (!config.chat?.loggingEnabled) return;
+    if (!config.chat.loggingEnabled) return;
 
     const log: ChatLog = {
         timestamp: Date.now(),
         playerName,
         message
     };
-    if (rank) log.rank = rank;
+    if (isNonEmptyString(rank)) log.rank = rank;
     currentDayLogs.push(log);
     isDirty = true;
 }
@@ -82,21 +83,21 @@ export function addChatLog(playerName: string, message: string, rank?: string) {
  * Gets chat logs for a specific date. Defaults to today.
  */
 export function getChatLogs(date?: string): ChatLog[] {
-    if (!date || date === today) {
+    if (!isNonEmptyString(date) || date === today) {
         return [...currentDayLogs];
     }
     const storage = new StorageManager(`exe:logs:chat:${date}`);
-    return storage.load<ChatLog[]>() || [];
+    return storage.load<ChatLog[]>() ?? [];
 }
 
 export function getAvailableDates(): string[] {
-    const dates = indexStorage.load<string[]>() || [];
+    const dates = indexStorage.load<string[]>() ?? [];
     return [...dates].toSorted().toReversed(); // Newest first
 }
 
 function pruneOldLogs() {
     const config = getConfig();
-    const expirationDays = config.chat?.logExpirationDays ?? 7;
+    const expirationDays = config.chat.logExpirationDays;
     // Limit is days * milliseconds per day
     const limit = Math.max(1, expirationDays) * 24 * 60 * 60 * 1000;
     const now = Date.now();

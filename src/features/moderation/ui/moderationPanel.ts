@@ -7,6 +7,7 @@ import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions } from '@ui/panelRegistry.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as punishmentManager from '../punishmentManager.js';
 import * as reportManager from '../reportManager.js';
 
@@ -57,7 +58,7 @@ export class ModerationPanelHandler implements IPanelHandler {
 
         if (panelId === 'moderationPanel') {
             const def = panelDefinitions[panelId];
-            if (def) {
+            if (isDefined(def)) {
                 const staticItems = getStaticMenuItems(def, 1); // Admin only
                 items.push(...staticItems);
             }
@@ -89,7 +90,7 @@ export class ModerationPanelHandler implements IPanelHandler {
             addBack('reportListPanel');
             // Static items from registry
             const def = panelDefinitions[panelId];
-            if (def) {
+            if (isDefined(def)) {
                 const staticItems = getStaticMenuItems(def, 2);
                 items.push(...staticItems.filter((i) => i.id !== '__back__')); // AddBack handled manually
             }
@@ -104,7 +105,7 @@ export class ModerationPanelHandler implements IPanelHandler {
         if (panelId === 'reportActionsPanel') {
             const reportId = context.selectedItemId as string;
             const targetReport = reportManager.getAllReports().find((r) => r.id === reportId);
-            if (targetReport) {
+            if (isDefined(targetReport)) {
                 return [
                     `§8Report ID: §6${String(targetReport.id)}`,
                     `§8Reported Player: §6${targetReport.reportedPlayerName}`,
@@ -131,7 +132,7 @@ export class ModerationPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!isDefined(item)) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {
@@ -161,7 +162,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                     if (res.canceled) return showPanel(player, panelId, context);
                     const [name] = res.formValues as [string];
                     const targetId = getPlayerIdByName(name);
-                    if (targetId) {
+                    if (isNonEmptyString(targetId)) {
                         punishmentManager.removePunishment(targetId, 'ban');
                         player.sendMessage(`§2Unbanned ${name}.`);
                     } else {
@@ -178,7 +179,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                     if (res.canceled) return showPanel(player, panelId, context);
                     const [name] = res.formValues as [string];
                     const targetId = getPlayerIdByName(name);
-                    if (targetId) {
+                    if (isNonEmptyString(targetId)) {
                         punishmentManager.removePunishment(targetId, 'mute');
                         player.sendMessage(`§2Unmuted ${name}.`);
                     } else {
@@ -190,7 +191,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                 // Report Actions
                 if (item.actionValue === 'assignReport') {
                     const reportId = context.selectedItemId as string;
-                    if (reportId) {
+                    if (isNonEmptyString(reportId)) {
                         reportManager.assignReport(reportId, player.id);
                         player.sendMessage('§2Report assigned to you.');
                     }
@@ -198,7 +199,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                 }
                 if (item.actionValue === 'resolveReport') {
                     const reportId = context.selectedItemId as string;
-                    if (reportId) {
+                    if (isNonEmptyString(reportId)) {
                         reportManager.resolveReport(reportId);
                         player.sendMessage('§2Report marked as resolved.');
                     }
@@ -206,7 +207,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                 }
                 if (item.actionValue === 'clearReport') {
                     const reportId = context.selectedItemId as string;
-                    if (reportId) {
+                    if (isNonEmptyString(reportId)) {
                         reportManager.clearReport(reportId);
                         player.sendMessage('§2Report cleared.');
                     }

@@ -172,29 +172,32 @@ export class ShopUserPanelHandler implements IPanelHandler {
                     .toSorted()
                     .map((name) => {
                         const sub = category.subCategories[name];
-                        if (!isDefined(sub)) return;
-                        return {
+                        if (!isDefined(sub)) return undefined;
+                        // Use a clear type assertion or construct properly
+                        const entry: ShopCategoryEntry = {
                             id: name,
                             name,
                             icon: sub.icon,
-                            type: 'subCategory' as const
+                            type: 'subCategory'
                         };
+                        return entry;
                     })
                     .filter((x): x is ShopCategoryEntry => isDefined(x));
 
                 const shopItems: ShopEntry[] = Object.keys(category.items)
                     .map((id) => {
                         const item = category.items[id];
-                        if (!isDefined(item)) return;
-                        return {
+                        if (!isDefined(item)) return undefined;
+                        const entry: ShopItemEntry = {
                             id,
                             icon: item.icon,
                             buyPrice: item.buyPrice,
                             sellPrice: item.sellPrice,
                             displayName: item.displayName,
                             permissionLevel: item.permissionLevel,
-                            type: 'item' as const
-                        } as ShopItemEntry;
+                            type: 'item'
+                        };
+                        return entry;
                     })
                     .filter((x): x is ShopItemEntry => isDefined(x));
 
@@ -243,16 +246,17 @@ export class ShopUserPanelHandler implements IPanelHandler {
                 const shopItems = Object.keys(subCategory.items)
                     .map((id) => {
                         const item = subCategory.items[id];
-                        if (!isDefined(item)) return;
-                        return {
+                        if (!isDefined(item)) return undefined;
+                        const entry: ShopItemEntry = {
                             id,
                             icon: item.icon,
                             buyPrice: item.buyPrice,
                             sellPrice: item.sellPrice,
                             displayName: item.displayName,
                             permissionLevel: item.permissionLevel,
-                            type: 'item' as const
-                        } as ShopItemEntry;
+                            type: 'item'
+                        };
+                        return entry;
                     })
                     .filter((x): x is ShopItemEntry => isDefined(x));
 

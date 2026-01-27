@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import { isDefined } from '@lib/guards.js';
 
 const storage = new StorageManager('exe:reports');
 
@@ -27,7 +28,7 @@ let needsSave = false;
 export function loadReports() {
     debugLog('[ReportManager] Loading reports...');
     const loaded = storage.load<Report[]>();
-    if (loaded) {
+    if (isDefined(loaded)) {
         reports = loaded;
         debugLog(`[ReportManager] Loaded ${reports.length} reports.`);
     }
@@ -97,7 +98,7 @@ export function getAllReports(): Report[] {
  */
 export function assignReport(reportId: string, adminId: string) {
     const report = reports.find((r) => r.id === reportId);
-    if (report) {
+    if (isDefined(report)) {
         report.status = 'assigned';
         report.assignedAdminId = adminId;
         needsSave = true;
@@ -111,7 +112,7 @@ export function assignReport(reportId: string, adminId: string) {
  */
 export function resolveReport(reportId: string) {
     const report = reports.find((r) => r.id === reportId);
-    if (report) {
+    if (isDefined(report)) {
         report.status = 'resolved';
         needsSave = true;
         saveReports({ force: true });
@@ -147,7 +148,7 @@ export function clearAllReports() {
  */
 export function clearOldResolvedReports() {
     const config = getConfig();
-    const lifetimeDays = config.reports?.resolvedReportLifetimeDays;
+    const lifetimeDays = config.reports.resolvedReportLifetimeDays;
 
     if (typeof lifetimeDays !== 'number' || lifetimeDays <= 0) {
         return; // Feature is disabled or misconfigured

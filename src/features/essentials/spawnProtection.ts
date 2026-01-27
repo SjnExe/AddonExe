@@ -5,6 +5,7 @@ import { getConfig } from '@core/configManager.js';
 import { getSpawnConfig } from '@core/configurations.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
 import { getPlayerRank } from '@core/rankManager.js';
+import { isDefined } from '@lib/guards.js';
 
 type EventHandler = (arg: unknown) => void;
 
@@ -64,13 +65,13 @@ function isWithinSpawnProtection(location: mc.Vector3, dimensionId: string): boo
     const protectionConfig = spawnConfig.spawnProtection;
     const spawnLocation = spawnConfig.spawn.spawnLocation;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-    const isEnabled = protectionConfig.enabled;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    const isEnabled = Boolean((protectionConfig as any).enabled);
 
     if (
         !isEnabled ||
-        !spawnLocation ||
-        !spawnLocation.dimensionId ||
+        !isDefined(spawnLocation) ||
+        !isDefined(spawnLocation.dimensionId) ||
         typeof spawnLocation.x !== 'number' ||
         typeof spawnLocation.y !== 'number' ||
         typeof spawnLocation.z !== 'number'
@@ -109,16 +110,16 @@ function initialize(): void {
     const spawnConfig = getSpawnConfig();
     const { spawn, spawnProtection: protectionConfig } = spawnConfig;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-    const isEnabled = protectionConfig.enabled;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    const isEnabled = Boolean((protectionConfig as any).enabled);
 
-    if (isEnabled === false) {
+    if (!isEnabled) {
         infoLog('[SpawnProtection] Protection is disabled in the config.');
         return;
     }
 
     const spawnLocation = spawn.spawnLocation;
-    if (!spawnLocation || typeof spawnLocation.x !== 'number') {
+    if (!isDefined(spawnLocation) || typeof spawnLocation.x !== 'number') {
         infoLog('[SpawnProtection] Spawn protection is enabled, but no spawn location is set.');
     } else {
         infoLog(`[SpawnProtection] Protection ENABLED. Radius: ${protectionConfig.protectionRadius}`);
@@ -173,10 +174,10 @@ function initialize(): void {
         const currentSpawnConfig = getSpawnConfig();
         const protection = currentSpawnConfig.spawnProtection;
 
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
-        const isEnabledNow = protection.enabled;
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        const isEnabledNow = Boolean((protection as any).enabled);
 
-        if (isEnabledNow === false) return;
+        if (!isEnabledNow) return;
 
         mc.system.runJob(checkSpawnProtectionGenerator(protection));
     }, 40);

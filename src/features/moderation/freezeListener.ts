@@ -1,4 +1,5 @@
 import { frozenTag } from '@core/constants.js';
+import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 export function initializeFreezeListener() {
@@ -44,7 +45,7 @@ export function initializeFreezeListener() {
             if (msg.startsWith('!') || msg.startsWith('?') || msg.startsWith('/')) {
                 // Check multiple prefixes
                 const part = msg.split(' ')[0];
-                if (!part) return;
+                if (!isNonEmptyString(part)) return;
                 const cmd = part.toLowerCase();
                 // Allow /msg, /tell, /w for communication with staff
                 if (cmd.includes('msg') || cmd.includes('tell') || cmd.includes('w')) {
