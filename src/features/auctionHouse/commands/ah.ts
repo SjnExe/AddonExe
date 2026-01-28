@@ -67,14 +67,17 @@ const mainCommand: CustomCommand = {
 
             const serialized = serializeItem(item);
 
+            // Optimistically remove item to prevent dupes if createListing lags/fails partially
+            inventory.container.setItem(executor.selectedSlotIndex, undefined);
+
             // Create Listing
             const result = createListing(executor, serialized, price, isBid, config.defaultDurationSeconds);
 
             if (result.success) {
-                // Remove item
-                inventory.container.setItem(executor.selectedSlotIndex, undefined);
                 sendMessage(result.message, executor);
             } else {
+                // Restore item on failure
+                inventory.container.setItem(executor.selectedSlotIndex, item);
                 sendMessage(result.message, executor);
             }
             return;
