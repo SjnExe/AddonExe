@@ -10,13 +10,13 @@ import * as rulesManager from '@core/rulesManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
 import { formatCurrency } from '@core/utils.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '@features/moderation/commands/ban.js';
 import { freezePlayer, unfreezePlayer } from '@features/moderation/commands/freeze.js';
 import { kickPlayer } from '@features/moderation/commands/kick.js';
 import { mutePlayer, unmutePlayer } from '@features/moderation/commands/mute.js';
 import * as reportManager from '@features/moderation/reportManager.js';
 import * as tpaManager from '@features/teleportation/tpaManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { UIContext } from './panelRegistry.js';
 
 interface ReportContext {

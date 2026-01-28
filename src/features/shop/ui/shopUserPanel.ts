@@ -127,7 +127,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                         const item = sub.items[itemId];
                         if (!isDefined(item)) continue;
                         const master = allItems[itemId] ?? {};
-                    const dName = item.displayName ?? master.displayName ?? itemId;
+                        const dName = item.displayName ?? master.displayName ?? itemId;
                         if (dName.toLowerCase().includes(query) || itemId.toLowerCase().includes(query)) {
                             results.push({
                                 id: itemId,

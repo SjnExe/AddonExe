@@ -1,13 +1,10 @@
 import * as mc from '@minecraft/server';
 
+import { initializeXrayDetection } from '@features/anticheat/xrayDetection.js';
 import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
 import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
-import { initializeXrayDetection } from '@features/anticheat/xrayDetection.js';
 import { isNonEmptyString } from '@lib/guards.js';
-import {
-    getConfig,
-    initializeConfigManager
-} from './configManager.js';
+import { getConfig, initializeConfigManager } from './configManager.js';
 import {
     loadAuctionHouseConfig,
     loadDailyRewardsConfig,
@@ -22,13 +19,13 @@ import {
     loadXrayConfig
 } from './configurations.js';
 import { dataManager, loadPersistentData } from './dataManager.js';
-import { cleanupLeaderboardManager } from './leaderboardManager.js';
-import { cleanupPlayerDataManager } from './playerDataManager.js';
 import { cleanupEventManager, initializeEventManager } from './events/eventManager.js';
 import { initializeFeatureDependencies } from './featureDependencies.js';
 import { cleanup as cleanupFloatingText } from './floatingTextManager.js';
+import { cleanupLeaderboardManager } from './leaderboardManager.js';
 import { errorLog, infoLog, setLogLevel } from './logger.js';
 import { initializeMigration } from './migrationManager.js';
+import { cleanupPlayerDataManager } from './playerDataManager.js';
 import * as rankManager from './rankManager.js';
 import * as sidebarManager from './sidebarManager.js';
 import { cleanupTimers, startSystemTimers } from './timerManager.js';
@@ -144,7 +141,7 @@ mc.system.runTimeout(() => {
             errorLog('[AddonExe] A critical error occurred during addon initialization:');
             if (error instanceof Error) {
                 errorLog(`Message: ${error.message}`);
-                if (error.stack) errorLog(`Stack: ${error.stack}`);
+                if (error.stack !== undefined) errorLog(`Stack: ${error.stack}`);
             } else {
                 errorLog(`Error: ${String(error)}`);
             }

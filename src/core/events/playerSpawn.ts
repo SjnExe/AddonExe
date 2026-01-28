@@ -45,17 +45,17 @@ export function handlePlayerJoin(player: mc.Player) {
     const config = getConfig();
 
     // Custom Join Message (since RP hides vanilla)
-    const joinLeaveConfig = config.playerInfo?.customJoinLeave;
-    if (joinLeaveConfig?.enabled && !player.hasTag(vanishedTag)) {
+    const joinLeaveConfig = config.playerInfo.customJoinLeave;
+    if (joinLeaveConfig.enabled && !player.hasTag(vanishedTag)) {
         const msg = formatString(joinLeaveConfig.joinMessage, { playerName: player.name });
         mc.world.sendMessage(msg);
     }
-    if (config.playerInfo?.enableWelcomer && config.playerInfo?.welcomeMessage) {
+    if (config.playerInfo.enableWelcomer && config.playerInfo.welcomeMessage) {
         const welcomeMsg = formatString(config.playerInfo.welcomeMessage, {
             playerName: player.name,
             serverName: config.serverName || 'Server',
-            discordLink: config.serverInfo?.discordLink || '',
-            websiteLink: config.serverInfo?.websiteLink || ''
+            discordLink: config.serverInfo.discordLink || '',
+            websiteLink: config.serverInfo.websiteLink || ''
         });
 
         sendMessage(welcomeMsg, player);
@@ -69,7 +69,7 @@ export function handlePlayerJoin(player: mc.Player) {
 
     // Starter Kit Logic
     const kitsConfig = getKitsConfig();
-    if (kitsConfig.starterKit?.enabled && !pData.starterKitClaimed) {
+    if (kitsConfig.starterKit.enabled && !pData.starterKitClaimed) {
         // Only give to strictly new players (joined within last minute)
         // If older, we mark as claimed to prevent future issues.
         if (pData.totalPlayTime < 60_000) {

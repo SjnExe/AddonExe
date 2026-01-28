@@ -8,12 +8,12 @@ import { getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { showAuctionHouse } from '@features/auctionHouse/ui/auctionPanel.js';
 import * as punishmentManager from '@features/moderation/punishmentManager.js';
 import * as reportManager from '@features/moderation/reportManager.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import * as tpaManager from '@features/teleportation/tpaManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import { UIContext } from './panelRegistry.js';
 import { MainConfig } from './types.js';
@@ -128,7 +128,9 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             const team = teamManager.getTeamByPlayer(player.id);
             if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.kickMember(team.id, context.selectedItemId);
-                player.sendMessage(isNonEmptyString(res.message) ? res.message : (res.success ? '§2Success' : '§cFailed'));
+                player.sendMessage(
+                    isNonEmptyString(res.message) ? res.message : res.success ? '§2Success' : '§cFailed'
+                );
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
@@ -136,7 +138,9 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             const team = teamManager.getTeamByPlayer(player.id);
             if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.promoteMember(team.id, context.selectedItemId);
-                player.sendMessage(isNonEmptyString(res.message) ? res.message : (res.success ? '§2Success' : '§cFailed'));
+                player.sendMessage(
+                    isNonEmptyString(res.message) ? res.message : res.success ? '§2Success' : '§cFailed'
+                );
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
@@ -144,7 +148,9 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             const team = teamManager.getTeamByPlayer(player.id);
             if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.demoteMember(team.id, context.selectedItemId);
-                player.sendMessage(isNonEmptyString(res.message) ? res.message : (res.success ? '§2Success' : '§cFailed'));
+                player.sendMessage(
+                    isNonEmptyString(res.message) ? res.message : res.success ? '§2Success' : '§cFailed'
+                );
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
@@ -152,7 +158,9 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             const team = teamManager.getTeamByPlayer(player.id);
             if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.transferOwnership(team.id, context.selectedItemId);
-                player.sendMessage(isNonEmptyString(res.message) ? res.message : (res.success ? '§2Success' : '§cFailed'));
+                player.sendMessage(
+                    isNonEmptyString(res.message) ? res.message : res.success ? '§2Success' : '§cFailed'
+                );
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
@@ -180,7 +188,8 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
         .textField('Reason', 'Enter reason for kick', { defaultValue: 'Kicked by admin' });
 
     const res = await utils.uiWait(player, form);
-    if (isDefined(res) && res.canceled) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+    if (isDefined(res) && res.canceled)
+        return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
     if (!isDefined(values)) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
@@ -425,7 +434,8 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
         .textField('Reason', 'Why are you reporting this player?');
 
     const res = await utils.uiWait(player, form);
-    if (isDefined(res) && res.canceled) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+    if (isDefined(res) && res.canceled)
+        return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
     if (!isDefined(values)) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
@@ -493,8 +503,7 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
     if (
         ((isDefined(config.modules) && isDefined(config.modules.bounties)
             ? config.modules.bounties.announce
-            : undefined) ??
-            true) === true
+            : undefined) ?? true) === true
     ) {
         mc.world.sendMessage(
             `§6[Bounty] §r${player.name} has placed a ${utils.formatCurrency(amount)} bounty on ${isDefined(targetData) ? targetData.name : 'Unknown'}!`

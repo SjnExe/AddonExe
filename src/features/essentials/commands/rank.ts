@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import * as mc from '@minecraft/server';
 
 import { errorLog } from '@core/logger.js';
 import { updateAllPlayerRanks } from '@core/main.js';
 import { sendMessage } from '@core/messaging.js';
-import { findVisiblePlayerByName } from '@core/playerDataManager.js';
-import { getPlayer } from '@core/playerDataManager.js';
+import { findVisiblePlayerByName, getPlayer } from '@core/playerDataManager.js';
 import * as rankManager from '@core/rankManager.js';
 import { rankDefinitions } from '@core/ranksConfig.default.js';
 import { playSound } from '@core/utils.js';
@@ -84,12 +82,10 @@ const command: CustomCommand = {
         // If console, we can't use findVisiblePlayerByName directly as it requires an observer.
         // Let's implement a simple lookup for console.
 
-        let finalTarget: mc.Player | undefined;
-        if (executor instanceof mc.Player) {
-             finalTarget = findVisiblePlayerByName(targetName, executor);
-        } else {
-             finalTarget = mc.world.getAllPlayers().find(p => p.name.toLowerCase() === targetName.toLowerCase());
-        }
+        const finalTarget =
+            executor instanceof mc.Player
+                ? findVisiblePlayerByName(targetName, executor)
+                : mc.world.getAllPlayers().find((p) => p.name.toLowerCase() === targetName.toLowerCase());
 
         if (!finalTarget) {
             sendExecutorMessage(`§cPlayer "${targetName}" not found.`);

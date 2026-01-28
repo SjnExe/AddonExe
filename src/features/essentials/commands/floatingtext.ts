@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
@@ -36,7 +35,7 @@ const command: CustomCommand = {
                     return;
                 }
                 // Convert \n to real newlines
-                const formattedText = text.replace(/\\n/g, '\n');
+                const formattedText = text.replaceAll(String.raw`\n`, '\n');
                 floatingTextManager.createText(executor, id, formattedText);
                 break;
             }

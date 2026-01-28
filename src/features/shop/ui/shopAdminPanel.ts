@@ -365,7 +365,11 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         }
         if (panelId === 'editCategoryPanel') {
             let targetName = context.categoryName as string;
-            if (!isNonEmptyString(targetName) && isString(context.id) && context.id.startsWith('shopAdminCategoryActionPanel_')) {
+            if (
+                !isNonEmptyString(targetName) &&
+                isString(context.id) &&
+                context.id.startsWith('shopAdminCategoryActionPanel_')
+            ) {
                 targetName = context.id.replace('shopAdminCategoryActionPanel_', '');
             }
             const shopConfig = getShopConfig();
@@ -431,7 +435,9 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 .textField('Display Name', 'Name', {
                     defaultValue: isNonEmptyString(shopItem.displayName) ? shopItem.displayName : ''
                 })
-                .textField('Minecraft ID', 'ID', { defaultValue: isNonEmptyString(shopItem.itemId) ? shopItem.itemId : '' })
+                .textField('Minecraft ID', 'ID', {
+                    defaultValue: isNonEmptyString(shopItem.itemId) ? shopItem.itemId : ''
+                })
                 .textField('Icon', 'Icon', { defaultValue: isNonEmptyString(shopItem.icon) ? shopItem.icon : '' })
                 .textField('Buy Price', 'Price', { defaultValue: String(shopItem.buyPrice) })
                 .textField('Sell Price', 'Price', { defaultValue: String(shopItem.sellPrice) })
@@ -483,7 +489,11 @@ export class ShopAdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'editCategoryPanel') {
             let targetName = context.categoryName as string;
-            if (!isNonEmptyString(targetName) && isString(context.id) && context.id.startsWith('shopAdminCategoryActionPanel_')) {
+            if (
+                !isNonEmptyString(targetName) &&
+                isString(context.id) &&
+                context.id.startsWith('shopAdminCategoryActionPanel_')
+            ) {
                 targetName = context.id.replace('shopAdminCategoryActionPanel_', '');
             }
             if ((response as ModalFormResponse).canceled)
@@ -507,7 +517,8 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 return showPanel(player, `shopAdminSubCategoryActionPanel_${targetName}`, context);
 
             const values = formValues as string[] | undefined;
-            if (!isDefined(values)) return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
+            if (!isDefined(values))
+                return showPanel(player, `shopAdminCategoryPanel_${categoryName}`, { ...context, page: 1 });
             const newName = values[0];
             const newIcon = values[1];
             if (isNonEmptyString(newName)) {
@@ -538,7 +549,12 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             const sellPrice = Number.parseInt(isNonEmptyString(sellPriceStr) ? sellPriceStr : '-1', 10);
             const permissionLevel = Number.parseInt(isNonEmptyString(permLevelStr) ? permLevelStr : '1024', 10);
 
-            if (isNonEmptyString(customId) && isNonEmptyString(displayName) && isNonEmptyString(mcId) && !Number.isNaN(buyPrice)) {
+            if (
+                isNonEmptyString(customId) &&
+                isNonEmptyString(displayName) &&
+                isNonEmptyString(mcId) &&
+                !Number.isNaN(buyPrice)
+            ) {
                 shopAdminManager.addCustomItemToConfig(customId, {
                     itemId: mcId,
                     icon: icon ?? '',

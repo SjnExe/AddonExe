@@ -40,8 +40,7 @@ const invseeCommand: CustomCommand = {
         }
 
         executor.sendMessage(`§eInventory of ${targetPlayer.name}:`);
-        const inventory = (targetPlayer.getComponent('inventory'))
-            ?.container;
+        const inventory = targetPlayer.getComponent('inventory')?.container;
         const equipment = targetPlayer.getComponent('equippable');
 
         if (!isDefined(inventory)) {
@@ -203,9 +202,8 @@ const copyinvCommand: CustomCommand = {
             return;
         }
 
-        const targetInv = (targetPlayer.getComponent('inventory'))
-            ?.container;
-        const myInv = (executor.getComponent('inventory'))?.container;
+        const targetInv = targetPlayer.getComponent('inventory')?.container;
+        const myInv = executor.getComponent('inventory')?.container;
 
         if (!isDefined(targetInv) || !isDefined(myInv)) {
             executor.sendMessage('§cCould not access inventory.');

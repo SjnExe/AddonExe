@@ -30,7 +30,7 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
 
     // Handle circular references for objects and arrays.
     // Cast a to object because map uses object keys
-    const aObj = a as object;
+    const aObj = a;
     if (map.has(aObj) && map.get(aObj) === b) {
         return true;
     }
@@ -126,7 +126,7 @@ export function getValueFromPath(obj: unknown, path: string): unknown {
     let current = obj;
     for (const key of path.split('.')) {
         if (isDefined(current) && isObject(current) && key in current) {
-            current = (current as Record<string, unknown>)[key];
+            current = current[key];
         } else {
             return undefined;
         }
