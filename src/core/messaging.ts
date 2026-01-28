@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined } from '@lib/guards.js';
 import { warnLog } from './logger.js';
 
 /**
@@ -21,7 +22,7 @@ export function sendMessage(
     try {
         if (target === 'all') {
             mc.world.sendMessage(finalMessage);
-        } else if (target && typeof target.sendMessage === 'function') {
+        } else if (isDefined(target) && typeof target.sendMessage === 'function') {
             target.sendMessage(finalMessage);
         } else {
             warnLog(`[sendMessage] Invalid target provided.`);

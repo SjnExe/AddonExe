@@ -63,7 +63,7 @@ function saveTexts() {
     }
 }
 
-function initialize() {
+export function initialize() {
     loadTexts();
     spawnAllTexts();
     runExpirationLoop();
@@ -347,15 +347,15 @@ async function findEntityWithRetries(
     return undefined;
 }
 
-function getAllTexts(): FloatingTextConfig[] {
+export function getAllTexts(): FloatingTextConfig[] {
     return [...floatingTexts.values()];
 }
 
-function getTextById(id: string): FloatingTextConfig | undefined {
+export function getTextById(id: string): FloatingTextConfig | undefined {
     return floatingTexts.get(id);
 }
 
-function updateText(id: string, updates: Partial<FloatingTextConfig>) {
+export function updateText(id: string, updates: Partial<FloatingTextConfig>) {
     const oldConfig = getTextById(id);
     if (!oldConfig) {
         errorLog(`[FloatingText] updateText failed: Could not find config for ID: ${id}`);
@@ -457,7 +457,7 @@ function updateText(id: string, updates: Partial<FloatingTextConfig>) {
     });
 }
 
-function createText(player: mc.Player, id: string, text: string): boolean {
+export function createText(player: mc.Player, id: string, text: string): boolean {
     if (floatingTexts.has(id)) {
         player.sendMessage(`§cFloating text with ID "${id}" already exists.`);
         return false;
@@ -482,7 +482,7 @@ function createText(player: mc.Player, id: string, text: string): boolean {
     return true;
 }
 
-function despawnText(id: string) {
+export function despawnText(id: string) {
     if (pendingDespawns.has(id)) {
         const runId = pendingDespawns.get(id);
         if (runId !== undefined) {
@@ -558,7 +558,7 @@ function despawnText(id: string) {
     }
 }
 
-function respawnText(id: string) {
+export function respawnText(id: string) {
     if (pendingDespawns.has(id)) {
         const runId = pendingDespawns.get(id);
         if (runId !== undefined) {
@@ -580,7 +580,7 @@ function respawnText(id: string) {
     }
 }
 
-function deleteText(player: mc.Player | undefined, id: string) {
+export function deleteText(player: mc.Player | undefined, id: string) {
     if (!floatingTexts.has(id)) {
         if (isDefined(player)) {
             player.sendMessage(`§cFloating text with ID "${id}" not found.`);
@@ -597,7 +597,7 @@ function deleteText(player: mc.Player | undefined, id: string) {
     }
 }
 
-function listTexts(player: mc.Player) {
+export function listTexts(player: mc.Player) {
     if (floatingTexts.size === 0) {
         player.sendMessage('§eThere are no floating texts.');
         return;
@@ -609,7 +609,7 @@ function listTexts(player: mc.Player) {
     }
 }
 
-function teleportToText(player: mc.Player, id: string) {
+export function teleportToText(player: mc.Player, id: string) {
     const textConfig = floatingTexts.get(id);
     if (!isDefined(textConfig)) {
         player.sendMessage(`§cFloating text with ID "${id}" not found.`);
@@ -620,7 +620,7 @@ function teleportToText(player: mc.Player, id: string) {
     player.sendMessage(`§aTeleported to floating text with ID "${id}".`);
 }
 
-function cleanup() {
+export function cleanup() {
     debugLog('[FloatingText] Cleaning up timers and intervals...');
 
     if (isDefined(expirationIntervalId)) {
@@ -646,17 +646,3 @@ function cleanup() {
 
     debugLog('[FloatingText] Cleanup complete.');
 }
-
-export const floatingTextManager = {
-    initialize,
-    cleanup,
-    createText,
-    deleteText,
-    listTexts,
-    teleportToText,
-    getAllTexts,
-    getTextById,
-    updateText,
-    despawnText,
-    respawnText
-};

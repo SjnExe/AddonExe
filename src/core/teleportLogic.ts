@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { isDefined, isNumber } from '@lib/guards.js';
 import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
-import { isDefined, isNumber } from '@lib/guards.js';
 import { errorLog } from './logger.js';
 import { setActionBarOverride } from './sidebarManager.js';
 import { playSound } from './utils/sound.js';
@@ -65,7 +66,7 @@ export function startTeleportWarmup(
 
     intervalId = mc.system.runInterval(() => {
         try {
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
             if (!(player as any).isValid()) {
                 cancel();
                 return;

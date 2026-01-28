@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -93,15 +94,13 @@ export class RankPanelHandler implements IPanelHandler {
                     .textField('Display Name', '', { defaultValue: rank.name })
                     .textField('Permission Level', '', { defaultValue: String(rank.permissionLevel) })
                     .textField('Prefix', '', {
-                        defaultValue:
-                            (isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined) ?? ''
+                        defaultValue: rank.chatFormatting?.prefixText ?? ''
                     })
                     .textField('Name Color', '', {
-                        defaultValue: (isDefined(rank.chatFormatting) ? rank.chatFormatting.nameColor : undefined) ?? ''
+                        defaultValue: rank.chatFormatting?.nameColor ?? ''
                     })
                     .textField('Chat Color', '', {
-                        defaultValue:
-                            (isDefined(rank.chatFormatting) ? rank.chatFormatting.messageColor : undefined) ?? ''
+                        defaultValue: rank.chatFormatting?.messageColor ?? ''
                     })
                     .toggle('Is Locked (Prevent Deletion)', { defaultValue: rank.locked === true })
             );
@@ -160,14 +159,12 @@ export class RankPanelHandler implements IPanelHandler {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'rankManagementPanel');
             const rankId = context.id as string;
             const rawValues = (values as (string | boolean | undefined)[]) ?? [];
-            const [name, permStr, prefix, nameColor, messageColor, locked] = rawValues as [
-                string | undefined,
-                string | undefined,
-                string | undefined,
-                string | undefined,
-                string | undefined,
-                boolean | undefined
-            ];
+            const name = rawValues[0] as string | undefined;
+            const permStr = rawValues[1] as string | undefined;
+            const prefix = rawValues[2] as string | undefined;
+            const nameColor = rawValues[3] as string | undefined;
+            const messageColor = rawValues[4] as string | undefined;
+            const locked = rawValues[5] as boolean | undefined;
 
             const config = getRanksConfig();
             const rankIndex = config.rankDefinitions.findIndex((r) => r.id === rankId);
@@ -190,24 +187,13 @@ export class RankPanelHandler implements IPanelHandler {
                     ? Number.parseInt(permStr) || 1024
                     : existingRank.permissionLevel,
                 chatFormatting: {
-                    prefixText:
-                        isNonEmptyString(prefix)
-                            ? prefix
-                            : (isDefined(existingRank.chatFormatting)
-                                ? existingRank.chatFormatting.prefixText
-                                : undefined) ?? '',
-                    nameColor:
-                        isNonEmptyString(nameColor)
-                            ? nameColor
-                            : (isDefined(existingRank.chatFormatting)
-                                ? existingRank.chatFormatting.nameColor
-                                : undefined) ?? '§r',
-                    messageColor:
-                        isNonEmptyString(messageColor)
-                            ? messageColor
-                            : (isDefined(existingRank.chatFormatting)
-                                ? existingRank.chatFormatting.messageColor
-                                : undefined) ?? '§r'
+                    prefixText: isNonEmptyString(prefix) ? prefix : (existingRank.chatFormatting?.prefixText ?? ''),
+                    nameColor: isNonEmptyString(nameColor)
+                        ? nameColor
+                        : (existingRank.chatFormatting?.nameColor ?? '§r'),
+                    messageColor: isNonEmptyString(messageColor)
+                        ? messageColor
+                        : (existingRank.chatFormatting?.messageColor ?? '§r')
                 },
                 locked: (locked ?? existingRank.locked) === true
             };

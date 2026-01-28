@@ -3,6 +3,7 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { formatCurrency, formatTime, uiWait } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import {
     AuctionListing,
     buyItem,
@@ -57,17 +58,17 @@ export async function showAuctionHouse(
         }
     }
 
-    const title = searchQuery
+    const title = isNonEmptyString(searchQuery)
         ? `AH Search: "${searchQuery}" (${page}/${totalPages})`
         : `Auction House (${page}/${totalPages})`;
 
     const form = new ActionFormData()
         .title(title)
-        .body(`Total Items: ${totalListings}${searchQuery ? ` matching "${searchQuery}"` : ''}`);
+        .body(`Total Items: ${totalListings}${isNonEmptyString(searchQuery) ? ` matching "${searchQuery}"` : ''}`);
 
     form.button('§eCollection Bin / Mailbox', 'textures/items/minecart_chest');
     form.button('§bYour Listings', 'textures/ui/recipe_book_icon');
-    form.button(searchQuery ? '§cClear Search' : '§6Search/Filter', 'textures/ui/magnifying_glass');
+    form.button(isNonEmptyString(searchQuery) ? '§cClear Search' : '§6Search/Filter', 'textures/ui/magnifying_glass');
     form.button(`§dSort: ${sortLabel}`, 'textures/items/hopper');
 
     if (page > 1) form.button('§c< Previous Page');
@@ -75,11 +76,11 @@ export async function showAuctionHouse(
 
     // List Items
     for (const listing of listings) {
-        let label = `§f${listing.item.nameTag || listing.item.typeId.replace('minecraft:', '')}`;
+        let label = `§f${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId.replace('minecraft:', '')}`;
         label += `\n§7x${listing.item.amount} `;
 
         label += listing.isBid
-            ? `§eBid: ${formatCurrency(listing.bidPrice || listing.price)}`
+            ? `§eBid: ${formatCurrency(listing.bidPrice ?? listing.price)}`
             : `§a${formatCurrency(listing.price)}`;
         label += ` §8By: ${listing.sellerName}`;
 
@@ -87,7 +88,7 @@ export async function showAuctionHouse(
     }
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) return;
+    if (!isDefined(response) || response.canceled) return;
     const actionResponse = response as ActionFormResponse;
     if (actionResponse.selection === undefined) return;
 
@@ -104,7 +105,9 @@ export async function showAuctionHouse(
         return;
     }
     if (selection === 2) {
-        await (searchQuery ? showAuctionHouse(player, 1, undefined, sort) : showSearchUI(player, sort));
+        await (isNonEmptyString(searchQuery)
+            ? showAuctionHouse(player, 1, undefined, sort)
+            : showSearchUI(player, sort));
         return;
     }
     if (selection === 3) {
@@ -140,7 +143,7 @@ export async function showAuctionHouse(
 
 async function showListingDetail(player: mc.Player, listing: AuctionListing): Promise<void> {
     const item = listing.item;
-    let details = `§eItem: §f${item.nameTag || item.typeId}\n`;
+    let details = `§eItem: §f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId}\n`;
     details += `§eAmount: §f${item.amount}\n`;
     details += `§eSeller: §f${listing.sellerName}\n`;
     details += `§eExpires in: §f${formatTime((listing.startTime + listing.duration * 1000 - Date.now()) / 1000)}\n`;
@@ -162,7 +165,7 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing): Pr
         form.button('§cCancel Listing (Return to Bin)');
     } else {
         if (listing.isBid) {
-            const currentBid = listing.bidPrice || listing.price;
+            const currentBid = listing.bidPrice ?? listing.price;
             form.button(`§6Place Bid (Min: ${formatCurrency(currentBid + 1)})`);
         } else {
             form.button(`§aBuy Now for ${formatCurrency(listing.price)}`);
@@ -171,7 +174,7 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing): Pr
     form.button('§cBack');
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) return;
+    if (!isDefined(response) || response.canceled) return;
     const actionResponse = response as ActionFormResponse;
     if (actionResponse.selection === undefined) return;
 
@@ -193,7 +196,7 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing): Pr
 }
 
 async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<void> {
-    const currentBid = listing.bidPrice || listing.price;
+    const currentBid = listing.bidPrice ?? listing.price;
     const minBid = currentBid + 1;
 
     const form = new ModalFormData()
@@ -201,7 +204,7 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
         .textField(`Enter bid amount (Min: ${minBid})`, minBid.toString());
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) return;
+    if (!isDefined(response) || response.canceled) return;
 
     const modalResponse = response as ModalFormResponse;
     if (!modalResponse.formValues) return;
@@ -224,7 +227,7 @@ async function showSearchUI(player: mc.Player, currentSort: SortOption): Promise
         .textField('Search Query (Item/Seller)', 'Diamond Sword');
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) return;
+    if (!isDefined(response) || response.canceled) return;
 
     const modalResponse = response as ModalFormResponse;
     if (!modalResponse.formValues) return;
@@ -242,7 +245,7 @@ async function showSortUI(player: mc.Player, searchQuery: string | undefined, cu
     form.button('Seller Name', currentSort === SortOption.SellerAsc ? 'textures/ui/check' : undefined);
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) return showAuctionHouse(player, 1, searchQuery, currentSort);
+    if (!isDefined(response) || response.canceled) return showAuctionHouse(player, 1, searchQuery, currentSort);
     const selection = (response as ActionFormResponse).selection;
 
     let newSort = SortOption.Newest;
@@ -261,16 +264,16 @@ async function showYourListings(player: mc.Player): Promise<void> {
     form.button('§c< Back to AH');
 
     for (const listing of listings) {
-        let label = `§f${listing.item.nameTag || listing.item.typeId.replace('minecraft:', '')}`;
+        let label = `§f${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId.replace('minecraft:', '')}`;
         label += `\n§a${formatCurrency(listing.price)}`;
-        if (listing.isBid && listing.bidPrice) {
+        if (listing.isBid && isDefined(listing.bidPrice)) {
             label += ` §eCurrent Bid: ${formatCurrency(listing.bidPrice)}`;
         }
         form.button(label);
     }
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) return;
+    if (!isDefined(response) || response.canceled) return;
     const selection = (response as ActionFormResponse).selection;
     if (selection === undefined) return;
 
@@ -287,7 +290,7 @@ async function showYourListings(player: mc.Player): Promise<void> {
 
 async function showMailboxUI(player: mc.Player): Promise<void> {
     const pData = getOrCreatePlayer(player);
-    const mailbox = pData.mailbox || [];
+    const mailbox = pData.mailbox;
 
     const form = new ActionFormData().title('Collection Bin').body(`You have ${mailbox.length} items to claim.`);
 
@@ -295,11 +298,13 @@ async function showMailboxUI(player: mc.Player): Promise<void> {
     form.button('§aClaim All Items', 'textures/ui/realms_green_check');
 
     for (const item of mailbox) {
-        form.button(`§f${item.nameTag || item.typeId.replace('minecraft:', '')}\n§7x${item.amount}`);
+        form.button(
+            `§f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '')}\n§7x${item.amount}`
+        );
     }
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) {
+    if (!isDefined(response) || response.canceled) {
         await showAuctionHouse(player);
         return;
     }

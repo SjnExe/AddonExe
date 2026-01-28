@@ -4,6 +4,7 @@ import { getDailyRewardsConfig } from '@core/configurations.js';
 import { errorLog } from '@core/logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
 import { formatDuration } from '@core/utils.js';
+import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
 export interface ClaimResult {
     success: boolean;
@@ -44,54 +45,44 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
     }
 
     // Determine Reward
-    // 1-based index in config, so map appropriately
-    // Logic: If rewards go up to Day 7, Day 8 loops to Day 1? Or we check if explicit day exists?
-    // Let's cycle based on the number of defined rewards.
-    // If we have rewards for Day 1, 2, 7.
-    // Length is not sufficient if days are sparse.
-    // Assuming config.rewards is sorted or we find by .day
-
     const rewardCount = config.rewards.length;
     if (rewardCount === 0) {
         return { success: false, message: '§cNo rewards configured.' };
     }
 
     // Effective day for reward lookup (1-based cycle)
-    // (streak - 1) % count + 1
     const cycleDay = ((streak - 1) % rewardCount) + 1;
 
-    // Find matching reward definition (allowing for sparse arrays or explicit days if user configured oddly)
-    // We try to find match for cycleDay. If not found, find match for streak (one-time rewards?).
-    // Simplest: Find reward where r.day == cycleDay.
+    // Find matching reward definition
     const reward = config.rewards.find((r) => r.day === cycleDay) || config.rewards[0]; // Fallback to first
 
-    if (!reward) {
+    if (!isDefined(reward)) {
         return { success: false, message: '§cConfiguration error: No reward found.' };
     }
 
     // Grant Reward
     try {
-        if (reward.money && reward.money > 0) {
+        if (isNumber(reward.money) && reward.money > 0) {
             incrementPlayerBalance(player.id, reward.money);
         }
 
-        if (reward.xp && reward.xp > 0) {
+        if (isNumber(reward.xp) && reward.xp > 0) {
             player.addLevels(reward.xp);
         }
 
-        if (reward.command) {
+        if (isNonEmptyString(reward.command)) {
             // Execute as server
             const cmd = reward.command.replaceAll('{player}', `"${player.name}"`);
             player.dimension.runCommand(cmd);
         }
 
-        if (reward.items && reward.items.length > 0) {
+        if (isDefined(reward.items) && reward.items.length > 0) {
             const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
-            if (inventory && inventory.container) {
+            if (isDefined(inventory) && isDefined(inventory.container)) {
                 for (const itemDef of reward.items) {
                     try {
                         const itemStack = new mc.ItemStack(itemDef.typeId, itemDef.amount);
-                        if (itemDef.name) itemStack.nameTag = itemDef.name;
+                        if (isNonEmptyString(itemDef.name)) itemStack.nameTag = itemDef.name;
                         const leftovers = inventory.container.addItem(itemStack);
                         if (leftovers) {
                             player.dimension.spawnItem(leftovers, player.location);

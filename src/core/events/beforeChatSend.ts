@@ -8,6 +8,7 @@ import { addChatLog } from '@features/moderation/chatLogManager.js';
 import { getPunishment } from '@features/moderation/punishmentManager.js';
 import { isTeamChatEnabled } from '@features/teams/commands/team.js';
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
+import { isNonEmptyString } from '@lib/guards.js';
 
 export const eventName = 'chatSend';
 
@@ -41,7 +42,7 @@ function handleChatSend(event: mc.ChatSendBeforeEvent) {
                 const member = mc.world.getAllPlayers().find((p) => p.id === memberId);
                 if (member) member.sendMessage(teamMsg);
             }
-            if (config.chat?.logToConsole) {
+            if (config.chat.logToConsole) {
                 infoLog(`[TeamChat] [${team.name}] <${sender.name}> ${sanitizedMessage}`);
             }
         } else {
@@ -51,7 +52,7 @@ function handleChatSend(event: mc.ChatSendBeforeEvent) {
     }
 
     // Console Logging
-    if (config.chat?.logToConsole) {
+    if (config.chat.logToConsole) {
         infoLog(`[Chat] <${sender.name}> ${sanitizedMessage}`);
     }
 
@@ -72,8 +73,8 @@ function handleChatSend(event: mc.ChatSendBeforeEvent) {
     event.cancel = true;
 
     const fmt = rank.chatFormatting;
-    const prefix = fmt?.prefixText ? `§6[§r${fmt.prefixText}§6]§r ` : '';
-    const nameColor = fmt?.nameColor || '§r';
+    const prefix = isNonEmptyString(fmt?.prefixText) ? `§6[§r${fmt.prefixText}§6]§r ` : '';
+    const nameColor = fmt?.nameColor ?? '§r';
 
     // Final Format: Prefix Name[Team]: Message
     const finalMessage = `${prefix}${nameColor}${sender.name}§r${teamSuffix}§r: ${sanitizedMessage}`;

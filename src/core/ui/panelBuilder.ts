@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { getOrCreatePlayer, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { panelRouter } from './PanelRouter.js';
 import { panelDefinitions } from './panelRegistry.js';
 import { MainConfig, PanelDefinition, PanelItem, UIContext } from './types.js';
@@ -59,11 +59,11 @@ export async function buildPanelForm(
         // 1. Check Panel Router (Modular System)
         const handler = panelRouter.getHandler(panelId);
         if (isDefined(handler)) {
-            if (isDefined(handler.buildModal)) {
+            if (handler.buildModal !== undefined) {
                 const modal = await handler.buildModal(player, panelId, context);
-                if (isDefined(modal)) return modal;
+                if (isDefined(modal)) return modal as ModalFormData;
             }
-            if (isDefined(handler.getItems)) {
+            if (handler.getItems !== undefined) {
                 const items = await handler.getItems(player, panelId, context);
                 if (isDefined(items)) {
                     return buildActionFormFromItems(player, panelId, context, items);
@@ -87,7 +87,7 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
 
     // Delegation: Get title from handler
     const handler = panelRouter.getHandler(panelId);
-    if (isDefined(handler) && isDefined(handler.getTitle)) {
+    if (isDefined(handler) && handler.getTitle !== undefined) {
         try {
             const dynamicTitle = await handler.getTitle(player, panelId, context);
             if (isNonEmptyString(dynamicTitle)) {
@@ -114,7 +114,7 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
     form.title(title);
 
     // Delegation: Get body from handler
-    if (isDefined(handler) && isDefined(handler.getBody)) {
+    if (isDefined(handler) && handler.getBody !== undefined) {
         try {
             const bodyText = await handler.getBody(player, panelId, context);
             if (isNonEmptyString(bodyText)) {

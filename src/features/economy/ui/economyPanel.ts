@@ -5,12 +5,12 @@ import { getEconomyConfig, saveEconomyConfig } from '@core/configurations.js';
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
 import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export class EconomyPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -85,7 +85,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             }
 
             const config = getEconomyConfig();
-            const mobMoney = config.mobMoney ?? {};
+            const mobMoney = config.mobMoney;
             const mobs = Object.keys(mobMoney).toSorted();
 
             const paginated = getPaginatedItems(mobs, (context.page as number) || 1);
@@ -193,7 +193,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                 saveEconomyConfig(config);
                 player.sendMessage(`§2Updated ${mobId} to ${formatCurrency(amount)}`);
             }
-            return showPanel(player, 'editMobDropPanel', { ...context, id: mobId ?? '' });
+            return showPanel(player, 'editMobDropPanel', { ...context, id: mobId });
         }
 
         if (typeof selection === 'number') {

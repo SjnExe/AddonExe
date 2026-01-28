@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
+import { isNumber } from '@lib/guards.js';
 
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
@@ -32,7 +34,7 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
         if (lastHit) {
             const config = getConfig(); // Need main config for timeout
             // Default 15s if not found
-            const creditTimeout = config.bounties?.bountyCreditTimeoutSeconds ?? 15;
+            const creditTimeout = config.bounties.bountyCreditTimeoutSeconds ?? 15;
             if ((Date.now() - lastHit.timestamp) / 1000 <= creditTimeout) {
                 killer = getPlayerFromCache(lastHit.attackerId);
             }
@@ -64,11 +66,11 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     if (deadEntity.typeId === 'minecraft:player') {
         const victim = deadEntity as mc.Player;
 
-        if (handlePvPDeath(victim, killer)) {
+        if (handlePvPDeath(victim, killer) === true) {
             return;
         }
 
-        if (economyConfig.steal && economyConfig.steal.enabled) {
+        if (economyConfig.steal?.enabled) {
             const { percent, sameTeamImmunity } = economyConfig.steal;
 
             if (sameTeamImmunity) {
@@ -96,14 +98,10 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
         return;
     }
 
-    if (!economyConfig || !economyConfig.mobMoney) {
-        return;
-    }
-
     const mobId = deadEntity.typeId;
     const reward = economyConfig.mobMoney[mobId];
 
-    if (reward && reward !== 0) {
+    if (isNumber(reward) && reward !== 0) {
         incrementPlayerBalance(killer.id, reward);
         if (reward > 0) {
             infoLog(`Gave ${killer.name} ${formatCurrency(reward)} for killing a ${mobId}.`);

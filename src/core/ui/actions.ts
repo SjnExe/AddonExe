@@ -3,7 +3,7 @@ import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import * as bountyManager from '@core/bountyManager.js';
 import * as configManager from '@core/configManager.js';
-import { floatingTextManager } from '@core/floatingTextManager.js';
+import * as floatingTextManager from '@core/floatingTextManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';

@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { floatingTextManager } from '@core/floatingTextManager.js';
+import * as floatingTextManager from '@core/floatingTextManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatLocation } from '@core/utils.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
@@ -135,11 +135,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     .textField('Update Interval', '0 to disable', { defaultValue: String(updateInterval) })
                     .toggle('Expiration', { defaultValue: isNumber(expiresAt) })
                     .textField('Expiration (mins)', 'mins', {
-                        defaultValue:
-                            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-                            isNumber(expiresAt)
-                                ? String(Math.round((expiresAt - Date.now()) / 60_000))
-                                : '0'
+                        defaultValue: isNumber(expiresAt) ? String(Math.round((expiresAt - Date.now()) / 60_000)) : '0'
                     })
             );
         }
@@ -157,7 +153,10 @@ export class AdminPanelHandler implements IPanelHandler {
 
         if (panelId === 'floatingTextCreatePanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'floatingTextListPanel');
-            const [id, text] = values as string[];
+            const rawValues = (values ?? []) as (string | undefined)[];
+            const id = rawValues[0];
+            const text = rawValues[1];
+
             if (!isNonEmptyString(id) || id.includes(' ')) {
                 player.sendMessage('§4Invalid ID.');
                 return showPanel(player, 'floatingTextCreatePanel');
@@ -171,11 +170,20 @@ export class AdminPanelHandler implements IPanelHandler {
         if (panelId === 'floatingTextEditPanel') {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'floatingTextActionPanel', context);
             const id = context.id as string;
-            const rawValues = values as [string, string, string, string, number, string, boolean, string];
-            const [textContent, x, y, z, dimensionIndex, updateIntervalStr, useExpiration, expirationMinutes] =
-                rawValues;
+            const rawValues = values ?? [];
+
+            const textContent = rawValues[0] as string;
+            const x = rawValues[1] as string;
+            const y = rawValues[2] as string;
+            const z = rawValues[3] as string;
+            const dimensionIndex = rawValues[4] as number;
+            const updateIntervalStr = rawValues[5] as string;
+            const useExpiration = rawValues[6] as boolean;
+            const expirationMinutes = rawValues[7] as string;
+
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
-            const selectedDimension = (isDefined(dimensionIndex) ? dimensionIds[dimensionIndex] : undefined) ?? 'minecraft:overworld';
+            const selectedDimension =
+                (isDefined(dimensionIndex) ? dimensionIds[dimensionIndex] : undefined) ?? 'minecraft:overworld';
 
             const updatedConfig = {
                 text: textContent,

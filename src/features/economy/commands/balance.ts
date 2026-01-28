@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
@@ -6,6 +7,7 @@ import { getLeaderboard } from '@core/leaderboardManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/playerDataManager.js';
 import { formatCurrency, resolveTarget } from '@core/utils.js';
+import { isNonEmptyString } from '@lib/guards.js';
 
 const balanceCommand: CustomCommand = {
     name: 'balance',
@@ -23,7 +25,7 @@ const balanceCommand: CustomCommand = {
 
         const targetStr = args.targets as string | undefined;
 
-        if (!targetStr) {
+        if (!isNonEmptyString(targetStr)) {
             // Self check
             if (executor instanceof mc.Player) {
                 const pData = getOrCreatePlayer(executor);
@@ -68,10 +70,11 @@ const oBalanceCommand: CustomCommand = {
         }
 
         const targetName = args.target as string;
-        if (!targetName) return sendMessage('§cPlease specify a player name.', executor);
+        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
 
         const targetId = getPlayerIdByName(targetName);
-        if (!targetId) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+
+        if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
 
         const displayName = getPlayerNameById(targetId) || targetName;
         const pData = loadPlayerData(targetId);
@@ -97,7 +100,7 @@ const baltopCommand: CustomCommand = {
         }
 
         const leaderboard = getLeaderboard();
-        const displayLimit = config.economy.baltopLimit ?? 10;
+        const displayLimit = config.economy.baltopLimit;
         const topPlayers = leaderboard.slice(0, displayLimit);
 
         if (topPlayers.length === 0) return sendMessage('§cThe leaderboard is currently empty.', executor);
@@ -112,7 +115,7 @@ const baltopCommand: CustomCommand = {
         let message = '§l§b--- Top Balances ---\n';
         for (const [index, entry] of topPlayers.entries()) {
             const rank = index + 1;
-            const color = rankColors[rank] || defaultColor;
+            const color = isNonEmptyString(rankColors[rank]) ? rankColors[rank] : defaultColor;
             message += `${color}#${rank}§r ${entry.name}: §a${formatCurrency(entry.balance)}\n`;
         }
 

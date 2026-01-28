@@ -1,3 +1,4 @@
+import { handlePlayerJoin } from '@core/events/playerSpawn.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import * as mc from '@minecraft/server';
 
@@ -84,4 +85,18 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
     });
 
     return visibleMatches;
+}
+
+/**
+ * Re-runs the join logic for all currently online players.
+ * This is useful after a script reload to ensure players are properly initialized.
+ */
+export function reinitializeOnlinePlayers() {
+    for (const player of mc.world.getAllPlayers()) {
+        try {
+            handlePlayerJoin(player);
+        } catch {
+            // Ignore errors for individual players
+        }
+    }
 }

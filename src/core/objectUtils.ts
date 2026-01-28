@@ -5,6 +5,8 @@
  * @param map Used internally to handle circular references.
  * @returns True if the values are deeply equal.
  */
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
+
 export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, unknown>()): boolean {
     // Strict equality check for primitives and same object reference.
     if (a === b) {
@@ -28,7 +30,7 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
 
     // Handle circular references for objects and arrays.
     // Cast a to object because map uses object keys
-    const aObj = a;
+    const aObj = a as object;
     if (map.has(aObj) && map.get(aObj) === b) {
         return true;
     }
@@ -108,7 +110,7 @@ export function deepMerge(target: unknown, source: unknown): unknown {
  * @returns True if the value is an object.
  */
 export function isObject(item: unknown): item is Record<string, unknown> {
-    return !!item && typeof item === 'object' && !Array.isArray(item);
+    return item !== null && typeof item === 'object' && !Array.isArray(item);
 }
 
 /**
@@ -123,7 +125,7 @@ export function getValueFromPath(obj: unknown, path: string): unknown {
     }
     let current = obj;
     for (const key of path.split('.')) {
-        if (current && typeof current === 'object' && key in current) {
+        if (isDefined(current) && isObject(current) && key in current) {
             current = (current as Record<string, unknown>)[key];
         } else {
             return undefined;
@@ -142,12 +144,12 @@ export function getValueFromPath(obj: unknown, path: string): unknown {
 export function setValueByPath(obj: unknown, path: string, value: unknown): void {
     const keys = path.split('.');
     const lastKey = keys.pop();
-    if (!lastKey || !isObject(obj)) {
+    if (!isNonEmptyString(lastKey) || !isObject(obj)) {
         return;
     }
     let lastObj = obj;
     for (const key of keys) {
-        if (!lastObj[key]) {
+        if (!isDefined(lastObj[key])) {
             lastObj[key] = {};
         }
         lastObj = lastObj[key] as Record<string, unknown>;
@@ -398,7 +400,7 @@ export function mergeRanks(
     // Optimization: Create a map for O(1) lookups instead of O(N) findIndex
     const fileRankIndexMap = new Map<unknown, number>();
     for (const [index, r] of newFileRanks.entries()) {
-        if (r && r['id']) fileRankIndexMap.set(r['id'], index);
+        if (isDefined(r) && isDefined(r['id'])) fileRankIndexMap.set(r['id'], index);
     }
 
     return finalRanks.toSorted((a, b) => {

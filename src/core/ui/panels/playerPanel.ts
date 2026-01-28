@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -10,7 +11,6 @@ import {
     loadPlayerData,
     PlayerData
 } from '@core/playerDataManager.js';
-import * as rankManager from '@core/rankManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
@@ -22,26 +22,26 @@ import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtil
 export class PlayerPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
         return (
-            panelId === 'playerListPanel' ||
             panelId === 'playerManagementPanel' ||
-            panelId === 'playerSearchPanel' ||
+            panelId === 'playerListPanel' ||
             panelId === 'playerActionsPanel' ||
-            panelId === 'myStatsPanel'
+            panelId === 'myStatsPanel' ||
+            panelId === 'playerSearchPanel'
         );
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         const items: PanelItem[] = [];
-        const pData: PlayerData = getOrCreatePlayer(player);
+        const pData = getOrCreatePlayer(player);
         const permissionLevel = pData.permissionLevel;
         const page = (context.page as number) || 1;
 
-        if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
+        if (panelId === 'playerManagementPanel' || panelId === 'playerListPanel') {
             if (panelId === 'playerListPanel') addBackButton(items, 'gameplayPanel');
             else addBackButton(items, 'adminPanel');
 
             items.push({
-                id: 'searchPlayer',
+                id: 'search',
                 text: '§l§2Search',
                 icon: 'textures/ui/magnifyingGlass',
                 permissionLevel: 1024,
@@ -60,6 +60,7 @@ export class PlayerPanelHandler implements IPanelHandler {
 
             const paginated = getPaginatedItems(playerEntries, page);
             const { getTeamByPlayer } = await import('@features/teams/teamManager.js');
+            const { getRankById, getPlayerRank } = await import('@core/rankManager.js');
             const config = getConfig();
 
             for (const entry of paginated) {
@@ -67,11 +68,12 @@ export class PlayerPanelHandler implements IPanelHandler {
                 const targetP = mc.world.getAllPlayers().find((p) => p.id === entry.id);
 
                 const rank = isDefined(targetP)
-                    ? rankManager.getPlayerRank(targetP, config)
-                    : rankManager.getRankById((loadPlayerData(entry.id) ?? { rankId: '' }).rankId);
+                    ? getPlayerRank(targetP, config)
+                    : getRankById((loadPlayerData(entry.id) ?? { rankId: '' }).rankId);
                 const team = getTeamByPlayer(entry.id);
                 // Null-safe access to rank and team
-                const prefixText = isDefined(rank) && isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined;
+                const prefixText =
+                    isDefined(rank) && isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined;
                 const prefix = isNonEmptyString(prefixText) ? `§6[§r${prefixText}§6]§r ` : '';
                 const teamSuffix = isDefined(team) ? `\n§6[§r${team.name}§6]` : '';
 
@@ -143,8 +145,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                 string,
                 { enabled?: boolean } | undefined
             >;
-            const cmdSettings = settings[commandName];
-            if (isDefined(cmdSettings) && cmdSettings.enabled === false) {
+            if (settings[commandName]?.enabled === false) {
                 continue;
             }
 
@@ -176,7 +177,9 @@ export class PlayerPanelHandler implements IPanelHandler {
 
         if (panelId === 'playerActionsPanel' && isDefined(context.targetPlayerId)) {
             const targetId = String(context.targetPlayerId);
-            const pData = (isDefined(context.targetData) ? (context.targetData as PlayerData) : undefined) ?? loadPlayerData(targetId);
+            const pData =
+                (isDefined(context.targetData) ? (context.targetData as PlayerData) : undefined) ??
+                loadPlayerData(targetId);
             if (isDefined(pData)) {
                 const { getRankById } = await import('@core/rankManager.js');
                 const { getBounty } = await import('@core/bountyManager.js');

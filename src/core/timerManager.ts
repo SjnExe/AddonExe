@@ -113,3 +113,8 @@ export function cleanupTimers(): void {
 
     debugLog('[TimerManager] All tracked timers and jobs have been cleared.');
 }
+
+export function startSystemTimers() {
+    // This function is a placeholder for any global timers that need to start.
+    // Currently no global timers are managed here directly (they are started by modules).
+}

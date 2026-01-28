@@ -98,7 +98,7 @@ export default function createConfigManager<T>(
                             userSavedConfig.rankDefinitions as Record<string, unknown>[],
                             (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] })
                                 .rankDefinitions,
-                            (lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]) ?? []
+                            lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]
                         );
                         currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
 
@@ -109,7 +109,7 @@ export default function createConfigManager<T>(
                         currentConfig = mergeObjectMaps(
                             userSavedConfig,
                             newDefaultConfig as unknown as Record<string, unknown>,
-                            lastLoadedConfigForMerge ?? {}
+                            lastLoadedConfigForMerge
                         ) as unknown as T;
 
                         break;

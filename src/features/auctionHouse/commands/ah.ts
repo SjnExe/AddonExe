@@ -5,6 +5,7 @@ import { getAuctionHouseConfig } from '@core/configurations.js';
 import { serializeItem } from '@core/itemSerializer.js';
 import { sendMessage } from '@core/messaging.js';
 import { parseCurrency } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import { createListing } from '../auctionManager.js';
 import { showAuctionHouse } from '../ui/auctionPanel.js';
@@ -31,13 +32,13 @@ const mainCommand: CustomCommand = {
 
         const sub = args.subcommand?.toLowerCase();
 
-        if (!sub) {
+        if (!isNonEmptyString(sub)) {
             await showAuctionHouse(executor);
             return;
         }
 
         if (sub === 'sell') {
-            if (!args.price) {
+            if (!isNonEmptyString(args.price)) {
                 sendMessage('§cUsage: /ah sell <price> [bin/bid]', executor);
                 return;
             }
@@ -50,10 +51,10 @@ const mainCommand: CustomCommand = {
             const isBid = args.type?.toLowerCase() === 'bid';
 
             const inventory = executor.getComponent('inventory') as mc.EntityInventoryComponent;
-            if (!inventory || !inventory.container) return;
+            if (!isDefined(inventory) || !isDefined(inventory.container)) return;
 
             const item = inventory.container.getItem(executor.selectedSlotIndex);
-            if (!item) {
+            if (!isDefined(item)) {
                 sendMessage('§cYou are not holding an item.', executor);
                 return;
             }
@@ -89,7 +90,9 @@ const mainCommand: CustomCommand = {
 
         if (sub === 'search') {
             // Arg 2 is mapped to 'price' in definition, but here acts as query
-            await (args.price ? showAuctionHouse(executor, 1, args.price) : showAuctionHouse(executor));
+            await (isNonEmptyString(args.price)
+                ? showAuctionHouse(executor, 1, args.price)
+                : showAuctionHouse(executor));
             return;
         }
 

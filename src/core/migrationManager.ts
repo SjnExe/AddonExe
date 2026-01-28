@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isNonEmptyString } from '@lib/guards.js';
 import { debugLog, errorLog, infoLog } from './logger.js';
 
 /**
@@ -85,7 +86,7 @@ function migrateToV2(): void {
 
     try {
         const ranksDataStr = mc.world.getDynamicProperty(ranksConfigKey) as string | undefined;
-        if (!ranksDataStr) {
+        if (!isNonEmptyString(ranksDataStr)) {
             infoLog('[MigrationManager] No saved rank data found to migrate.');
             return;
         }
@@ -100,7 +101,7 @@ function migrateToV2(): void {
             return;
         }
 
-        if (ranksData && Array.isArray(ranksData.rankDefinitions)) {
+        if (Array.isArray(ranksData.rankDefinitions)) {
             let modified = false;
             for (const rank of ranksData.rankDefinitions) {
                 if (rank.id === 'moderator' && rank.permissionLevel === 2) {
@@ -132,7 +133,7 @@ function migrateToV1(): void {
 
     try {
         const ranksDataStr = mc.world.getDynamicProperty(ranksConfigKey) as string | undefined;
-        if (!ranksDataStr) {
+        if (!isNonEmptyString(ranksDataStr)) {
             infoLog('[MigrationManager] No saved rank data found to migrate.');
             return;
         }
@@ -145,10 +146,10 @@ function migrateToV1(): void {
             return;
         }
 
-        if (ranksData && Array.isArray(ranksData.rankDefinitions)) {
+        if (Array.isArray(ranksData.rankDefinitions)) {
             let modified = false;
             for (const rank of ranksData.rankDefinitions) {
-                if (rank.chatFormatting?.prefixText) {
+                if (isNonEmptyString(rank.chatFormatting?.prefixText)) {
                     const oldPrefix = rank.chatFormatting.prefixText;
                     const newPrefix = cleanRankName(oldPrefix);
                     if (oldPrefix !== newPrefix) {
@@ -156,7 +157,7 @@ function migrateToV1(): void {
                         modified = true;
                     }
                 }
-                if (rank.nametagPrefix) {
+                if (isNonEmptyString(rank.nametagPrefix)) {
                     const oldTag = rank.nametagPrefix;
                     const newTag = cleanRankName(oldTag);
                     if (oldTag !== newTag) {
