@@ -249,7 +249,9 @@ export class FriendPanelHandler implements IPanelHandler {
                     // We need target player object
                     const targetPlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
                     if (targetPlayer) {
-                        player.runCommand(`tpa "${targetPlayer.name}"`);
+                        // Sanitize name to prevent command injection
+                        const safeName = targetPlayer.name.replaceAll('"', '');
+                        player.runCommand(`tpa "${safeName}"`);
                     } else {
                         player.sendMessage('§cPlayer is offline.');
                     }
