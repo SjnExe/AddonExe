@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import * as mc from '@minecraft/server';
 
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
@@ -37,13 +37,14 @@ export function forceUpdate() {
 function updateSidebars() {
     const config = getSidebarConfig();
 
-    if (config.enabled !== true) {
+    if ((config.enabled as boolean | undefined) !== true) {
         return;
     }
 
     for (const player of mc.world.getAllPlayers()) {
         try {
-            if (!player.isValid()) continue;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            if (typeof player.isValid === 'function' && !((player as any).isValid() as boolean)) continue;
 
             const pData = getPlayer(player.id);
             if (!isDefined(pData)) continue;
@@ -66,7 +67,7 @@ function updateSidebars() {
             const body = lines.join('\n');
             player.onScreenDisplay.setActionBar(title + '\n' + body);
         } catch (error) {
-            debugLog(`Error updating sidebar for ${player.name}: ${error}`);
+            debugLog(`Error updating sidebar for ${player.name}: ${String(error)}`);
         }
     }
 }
@@ -116,11 +117,7 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
                 .replace('{streak}', streak.toString())
                 .replace('{playtime}', playtime);
 
-            if (team) {
-                processed = processed.replace('{team}', team.name);
-            } else {
-                processed = processed.replace('{team}', 'None');
-            }
+            processed = team ? processed.replace('{team}', team.name) : processed.replace('{team}', 'None');
         }
     }
 

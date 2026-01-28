@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor } from '@commands/commandManager.js';

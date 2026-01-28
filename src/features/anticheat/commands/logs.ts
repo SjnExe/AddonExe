@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unnecessary-type-assertion */
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -50,12 +50,13 @@ async function showPunishmentFilter(player: mc.Player) {
     if (!isDefined(res) || res.canceled) return showLogsMenu(player);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!isDefined(values)) return;
+    if (!values) return;
 
-    const nameQuery = (values[0] as string | undefined) ?? '';
-    const typeIndex = values[1] as number;
+    const nameQuery = (values![0] as string | undefined) ?? '';
+    const typeIndex = values![1] as number;
     const types = ['All', 'Ban', 'Mute', 'Kick', 'Warn'];
-    const typeFilter = types[typeIndex] === 'All' ? undefined : types[typeIndex].toLowerCase();
+    const selectedType = types[typeIndex];
+    const typeFilter = selectedType === 'All' || selectedType === undefined ? undefined : selectedType.toLowerCase();
 
     await showPunishmentLogs(player, 1, nameQuery, typeFilter);
 }
@@ -142,9 +143,9 @@ async function showFlagFilter(player: mc.Player) {
     if (!isDefined(res) || res.canceled) return showLogsMenu(player);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!isDefined(values)) return;
+    if (!values) return;
 
-    const nameQuery = (values[0] as string | undefined) ?? '';
+    const nameQuery = (values![0] as string | undefined) ?? '';
 
     await showFlagLogs(player, 1, nameQuery);
 }
@@ -239,12 +240,12 @@ export async function showChatFilter(player: mc.Player) {
     if (!isDefined(res) || res.canceled) return showLogsMenu(player);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!isDefined(values)) return;
-    const dateIndex = values[0] as number;
+    if (!values) return;
+    const dateIndex = values![0] as number;
 
-    const nameQuery = (values[1] as string | undefined) ?? '';
+    const nameQuery = (values![1] as string | undefined) ?? '';
 
-    const keywordQuery = (values[2] as string | undefined) ?? '';
+    const keywordQuery = (values![2] as string | undefined) ?? '';
     const date = dates[dateIndex];
     if (!isNonEmptyString(date)) return;
 
@@ -340,10 +341,10 @@ async function showLogSettings(player: mc.Player) {
     if (!isDefined(res) || res.canceled) return showLogsMenu(player);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!isDefined(values)) return;
+    if (!values) return;
 
-    const enabled = values[0] as boolean;
-    const daysStr = values[1] as string;
+    const enabled = values![0] as boolean;
+    const daysStr = values![1] as string;
     let days = Number.parseInt(daysStr, 10);
     if (Number.isNaN(days) || days < 1) days = 1;
 

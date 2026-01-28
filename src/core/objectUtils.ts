@@ -30,7 +30,7 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
 
     // Handle circular references for objects and arrays.
     // Cast a to object because map uses object keys
-    const aObj = a as object;
+    const aObj = a;
     if (map.has(aObj) && map.get(aObj) === b) {
         return true;
     }
@@ -65,7 +65,8 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
     for (const key of keysA) {
         if (
             !Object.prototype.hasOwnProperty.call(b, key) ||
-            !isDeepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], map)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            !isDeepEqual((a as any)[key], (b as any)[key], map)
         ) {
             return false;
         }
@@ -126,7 +127,7 @@ export function getValueFromPath(obj: unknown, path: string): unknown {
     let current = obj;
     for (const key of path.split('.')) {
         if (isDefined(current) && isObject(current) && key in current) {
-            current = (current as Record<string, unknown>)[key];
+            current = (current)[key];
         } else {
             return undefined;
         }
