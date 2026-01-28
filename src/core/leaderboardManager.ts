@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { getConfig } from './configManager.js';
 import { debugLog, errorLog } from './logger.js';
 import { clearTrackedInterval, setTrackedInterval } from './timerManager.js';
@@ -34,7 +35,7 @@ function saveLeaderboardIfDirty() {
 export function initializeLeaderboard() {
     try {
         const dataString = mc.world.getDynamicProperty(leaderboardKey) as string | undefined;
-        if (dataString && typeof dataString === 'string') {
+        if (isNonEmptyString(dataString)) {
             leaderboardCache = JSON.parse(dataString) as LeaderboardEntry[];
             debugLog(`[LeaderboardManager] Loaded ${leaderboardCache.length} players into leaderboard cache.`);
         } else {
@@ -52,7 +53,7 @@ export function initializeLeaderboard() {
 
 export function updateAndSaveLeaderboard(playerId: string, name: string, balance: number) {
     const config = getConfig();
-    const cacheSize = (config.economy.baltopLimit ?? 10) + 5;
+    const cacheSize = ((isDefined(config.economy) ? config.economy.baltopLimit : undefined) ?? 10) + 5;
     const lowestBalanceOnBoard = leaderboardCache.length < cacheSize ? 0 : (leaderboardCache.at(-1)?.balance ?? 0);
     const existingIndex = leaderboardCache.findIndex((p) => p.playerId === playerId);
     const playerIsOnBoard = existingIndex !== -1;
@@ -64,7 +65,7 @@ export function updateAndSaveLeaderboard(playerId: string, name: string, balance
 
     if (playerIsOnBoard) {
         const existingEntry = leaderboardCache[existingIndex];
-        if (existingEntry && existingEntry.balance === balance) {
+        if (isDefined(existingEntry) && existingEntry.balance === balance) {
             return;
         } // No change in value
         leaderboardCache.splice(existingIndex, 1);
@@ -82,7 +83,7 @@ export function updateAndSaveLeaderboard(playerId: string, name: string, balance
 }
 
 export function cleanupLeaderboardManager() {
-    if (saveIntervalId !== undefined) {
+    if (isNumber(saveIntervalId)) {
         clearTrackedInterval(saveIntervalId);
         saveIntervalId = undefined;
     }

@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { config as Config } from '../config.default.js';
 
+import { isDefined } from '@lib/guards.js';
 import { getRanksConfig } from './configurations.js';
 import { debugLog, errorLog } from './logger.js';
 import { RankDefinition } from './ranksConfig.default.js';
@@ -18,7 +19,7 @@ const conditionEvaluators: Record<string, ConditionEvaluator> = {
      * Checks if the player's name is in the owner list.
      */
     isOwner: (player, _value, config: typeof Config) => {
-        const ownerNames = (config.ownerPlayerNames || []).map((name: string) => name.trim().toLowerCase());
+        const ownerNames = (config.ownerPlayerNames ?? []).map((name: string) => name.trim().toLowerCase());
         const playerName = player.name.trim().toLowerCase();
         return ownerNames.includes(playerName);
     },
@@ -78,7 +79,7 @@ export function getPlayerRank(player: mc.Player, config: typeof Config): RankDef
 
     // Fallback to the configured default rank if no conditions are met
     const defaultRank = getRankById(config.playerDefaults.rankId);
-    if (defaultRank) {
+    if (isDefined(defaultRank)) {
         return defaultRank;
     }
 
@@ -117,11 +118,11 @@ export function getAllRanks(): RankDefinition[] {
  */
 export function updatePlayerNameTag(player: mc.Player, config: typeof Config) {
     const rank = getPlayerRank(player, config);
-    const rankPrefix = rank.chatFormatting?.prefixText ?? '';
-    const { nameTagStyle = 'above' } = config.ranks || {};
+    const rankPrefix = (isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined) ?? '';
+    const nameTagStyle = (isDefined(config.ranks) ? config.ranks.nameTagStyle : undefined) ?? 'above';
 
     // Hardcoded brackets: §e[§r PREFIX §e]§r
-    const finalPrefix = rankPrefix ? `§e[§r${rankPrefix}§e]§r` : '';
+    const finalPrefix = rankPrefix === '' ? '' : `§e[§r${rankPrefix}§e]§r`;
 
     let newNameTag: string;
 

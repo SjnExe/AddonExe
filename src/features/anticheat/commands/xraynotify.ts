@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined } from '@lib/guards.js';
 import { getXrayConfig, saveXrayConfig } from '@core/configurations.js';
 import { infoLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
@@ -19,7 +20,7 @@ const command: CustomCommand = {
     execute: (executor) => {
         if (executor instanceof mc.Player) {
             const pData = getOrCreatePlayer(executor);
-            if (!pData) {
+            if (!isDefined(pData)) {
                 sendMessage('Could not retrieve your player data.', executor);
                 return;
             }
@@ -38,7 +39,7 @@ const command: CustomCommand = {
         } else {
             // Console execution
             const xrayConfig = getXrayConfig();
-            if (!xrayConfig) {
+            if (!isDefined(xrayConfig)) {
                 infoLog('X-ray config not found, cannot toggle console notifications.');
                 return;
             }

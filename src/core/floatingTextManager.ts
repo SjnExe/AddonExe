@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { debugLog, errorLog } from './logger.js';
 import { isDeepEqual } from './objectUtils.js';
 import * as sidebarManager from './sidebarManager.js';
@@ -32,7 +33,7 @@ const lastResolvedText = new Map<string, string>();
 function loadTexts() {
     try {
         const dataString = mc.world.getDynamicProperty(floatingTextDataKey);
-        if (dataString && typeof dataString === 'string') {
+        if (isNonEmptyString(dataString)) {
             const parsedData = JSON.parse(dataString) as unknown as [string, FloatingTextConfig][];
             floatingTexts = new Map(parsedData);
             debugLog(`[FloatingText] Loaded ${floatingTexts.size} floating texts.`);
@@ -81,9 +82,9 @@ function* updateLoopJob() {
     // 1. Identify texts needing update
     let checkCount = 0;
     for (const textConfig of floatingTexts.values()) {
-        if (!textConfig.updateInterval || textConfig.updateInterval <= 0) continue;
+        if (!isNumber(textConfig.updateInterval) || textConfig.updateInterval <= 0) continue;
 
-        const lastTick = lastUpdateTick.get(textConfig.id) || 0;
+        const lastTick = lastUpdateTick.get(textConfig.id) ?? 0;
         if (now - lastTick < textConfig.updateInterval) continue;
 
         lastUpdateTick.set(textConfig.id, now);
@@ -107,7 +108,8 @@ function* updateLoopJob() {
             // Batch query once per dimension
             const allEntities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of allEntities) {
-                if (!entity.isValid) continue;
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                if (!(entity as any).isValid()) continue;
                 for (const tag of entity.getTags()) {
                     if (tag.startsWith('ft_')) {
                         const id = tag.slice(3);
@@ -125,7 +127,12 @@ function* updateLoopJob() {
                     lastResolvedText.set(textConfig.id, resolved);
                     const entity = entitiesMap.get(textConfig.id);
 
-                    if (entity && entity.isValid) {
+                    if (
+                        isDefined(entity) &&
+                        typeof entity.isValid === 'function' &&
+                        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                        (entity as any).isValid()
+                    ) {
                         entity.nameTag = resolved.replaceAll(String.raw`\n`, '\n');
                     }
                 }
@@ -143,7 +150,7 @@ function* updateLoopJob() {
 function runExpirationLoop() {
     const now = Date.now();
     for (const textConfig of floatingTexts.values()) {
-        if (textConfig.expiresAt && now >= textConfig.expiresAt) {
+        if (isNumber(textConfig.expiresAt) && now >= textConfig.expiresAt) {
             void deleteText(undefined, textConfig.id);
         }
     }
@@ -154,7 +161,7 @@ function runRetrySpawnLoop() {
     if (unloadedChunkQueue.size > 0) {
         for (const textId of unloadedChunkQueue) {
             const textConfig = floatingTexts.get(textId);
-            if (textConfig) {
+            if (isDefined(textConfig)) {
                 spawnText(textConfig);
             } else {
                 unloadedChunkQueue.delete(textId);
@@ -174,7 +181,8 @@ function pruneOrphanedTexts() {
             const dimension = mc.world.getDimension(dimId);
             const entities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of entities) {
-                if (!entity.isValid) continue;
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                if (!(entity as any).isValid()) continue;
                 let isTracked = false;
                 for (const tag of entity.getTags()) {
                     if (tag.startsWith('ft_')) {
@@ -219,7 +227,8 @@ function spawnAllTexts() {
             // Batch query all floating texts in this dimension
             const entities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of entities) {
-                if (!entity.isValid) continue;
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                if (!(entity as any).isValid()) continue;
                 for (const tag of entity.getTags()) {
                     if (tag.startsWith('ft_')) {
                         const id = tag.slice(3);
@@ -235,7 +244,12 @@ function spawnAllTexts() {
         for (const textConfig of texts) {
             if (dimensionValid) {
                 const entity = entityMap.get(textConfig.id);
-                if (entity) {
+                if (
+                    isDefined(entity) &&
+                    typeof entity.isValid === 'function' &&
+                    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                    (entity as any).isValid()
+                ) {
                     const isCorrectLocation =
                         Math.abs(entity.location.x - textConfig.location.x) < 0.1 &&
                         Math.abs(entity.location.y - textConfig.location.y) < 0.1 &&
@@ -265,7 +279,8 @@ function spawnText(textConfig: FloatingTextConfig) {
             });
 
             for (const entity of entities) {
-                if (!entity.isValid) continue;
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                if (!(entity as any).isValid()) continue;
                 entity.remove();
                 removedViaApi = true;
             }
@@ -318,7 +333,12 @@ async function findEntityWithRetries(
     for (let i = 0; i < maxRetries; i++) {
         const entities = dimension.getEntities(query);
         const entity = entities.length > 0 ? entities[0] : undefined;
-        if (entity && entity.isValid) {
+        if (
+            isDefined(entity) &&
+            typeof entity.isValid === 'function' &&
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            (entity as any).isValid()
+        ) {
             return entity;
         }
         await new Promise<void>((resolve) => mc.system.runTimeout(resolve, delayBetweenRetries));
@@ -388,7 +408,7 @@ function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                 };
                 const entity = await findEntityWithRetries(dimension, query);
 
-                if (!entity) {
+                if (!isDefined(entity)) {
                     // Entity missing, respawn at new location
                     debugLog(`[FloatingText] Entity not found for ID: ${id}. Respawning.`);
                     despawnText(id);
@@ -488,7 +508,12 @@ function despawnText(id: string) {
         // Iterate and remove all matches, just in case duplication occurred
         let found = false;
         for (const entity of entities) {
-            if (entity && entity.isValid) {
+            if (
+                isDefined(entity) &&
+                typeof entity.isValid === 'function' &&
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                (entity as any).isValid()
+            ) {
                 entity.remove();
                 found = true;
             }
@@ -543,8 +568,8 @@ function respawnText(id: string) {
     }
 
     const textConfig = getTextById(id);
-    if (textConfig) {
-        if (textConfig.expiresAt) {
+    if (isDefined(textConfig)) {
+        if (isDefined(textConfig.expiresAt)) {
             textConfig.expiresAt = undefined;
             saveTexts();
         }
@@ -557,7 +582,7 @@ function respawnText(id: string) {
 
 function deleteText(player: mc.Player | undefined, id: string) {
     if (!floatingTexts.has(id)) {
-        if (player) {
+        if (isDefined(player)) {
             player.sendMessage(`§cFloating text with ID "${id}" not found.`);
         }
         return;
@@ -567,7 +592,7 @@ function deleteText(player: mc.Player | undefined, id: string) {
     floatingTexts.delete(id);
     saveTexts();
 
-    if (player) {
+    if (isDefined(player)) {
         player.sendMessage(`§aSuccessfully deleted floating text with ID "${id}".`);
     }
 }
@@ -586,7 +611,7 @@ function listTexts(player: mc.Player) {
 
 function teleportToText(player: mc.Player, id: string) {
     const textConfig = floatingTexts.get(id);
-    if (!textConfig) {
+    if (!isDefined(textConfig)) {
         player.sendMessage(`§cFloating text with ID "${id}" not found.`);
         return;
     }
@@ -598,15 +623,15 @@ function teleportToText(player: mc.Player, id: string) {
 function cleanup() {
     debugLog('[FloatingText] Cleaning up timers and intervals...');
 
-    if (expirationIntervalId) {
+    if (isDefined(expirationIntervalId)) {
         mc.system.clearRun(expirationIntervalId);
         expirationIntervalId = undefined;
     }
-    if (retrySpawnIntervalId) {
+    if (isDefined(retrySpawnIntervalId)) {
         mc.system.clearRun(retrySpawnIntervalId);
         retrySpawnIntervalId = undefined;
     }
-    if (updateLoopId) {
+    if (isDefined(updateLoopId)) {
         mc.system.clearRun(updateLoopId);
         updateLoopId = undefined;
     }

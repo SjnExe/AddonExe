@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
 import { debugLog, errorLog } from './logger.js';
 import { buildPanelForm } from './ui/panelBuilder.js';
@@ -27,17 +28,17 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
         debugLog(`[UIManager] Showing panel '${panelId}' to ${player.name} with context: ${JSON.stringify(context)}`);
 
         const form = await buildPanelForm(player, panelId, context);
-        if (!form) {
+        if (!isDefined(form)) {
             debugLog(`[UIManager] buildPanelForm returned undefined for panel '${panelId}'. Aborting.`);
             return;
         }
 
         const response = await utils.uiWait(player, form);
-        if (!response || response.canceled) {
+        if (!isDefined(response) || response.canceled) {
             debugLog(`[UIManager] Panel '${panelId}' was canceled by ${player.name}.`);
             // Show the parent panel if the user cancels and a parent is defined
             const panelDef = panelDefinitions[panelId];
-            if (panelDef?.parentPanelId) {
+            if (isDefined(panelDef) && isNonEmptyString(panelDef.parentPanelId)) {
                 return showPanel(player, panelDef.parentPanelId, context);
             }
             return;

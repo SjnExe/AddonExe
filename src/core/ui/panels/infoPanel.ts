@@ -56,8 +56,8 @@ export class InfoPanelHandler implements IPanelHandler {
             addBackButton(items, 'infoPanel');
             const config = getConfig() as unknown as MainConfig;
             // Explicitly cast to ensure type safety in tests
-            const serverInfo = config.serverInfo as ServerInfo | undefined;
-            const links = serverInfo?.helpfulLinks ?? [];
+            const serverInfo = isDefined(config.serverInfo) ? (config.serverInfo as ServerInfo) : undefined;
+            const links = (isDefined(serverInfo) ? serverInfo.helpfulLinks : undefined) ?? [];
 
             for (const [idx, link] of links.entries()) {
                 if (!isDefined(link)) continue;
@@ -169,8 +169,8 @@ export class InfoPanelHandler implements IPanelHandler {
     getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined | void> {
         if (panelId === 'rulesPanel') {
             const config = getConfig() as unknown as MainConfig;
-            const serverInfo = config.serverInfo as ServerInfo | undefined;
-            const rules = serverInfo?.rules ?? [];
+            const serverInfo = isDefined(config.serverInfo) ? (config.serverInfo as ServerInfo) : undefined;
+            const rules = (isDefined(serverInfo) ? serverInfo.rules : undefined) ?? [];
             return Promise.resolve(rules.join('\n\n'));
         }
         if (panelId === 'helpfulLinksPanel') {
@@ -264,8 +264,8 @@ export class InfoPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'printLink') {
                     const config = getConfig() as unknown as MainConfig;
-                    const serverInfo = config.serverInfo as ServerInfo | undefined;
-                    const links = serverInfo?.helpfulLinks ?? [];
+                    const serverInfo = isDefined(config.serverInfo) ? (config.serverInfo as ServerInfo) : undefined;
+                    const links = (isDefined(serverInfo) ? serverInfo.helpfulLinks : undefined) ?? [];
                     const index = Number.parseInt(item.id.split('_')[1] ?? '0');
                     const link = links[index];
 

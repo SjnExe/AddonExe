@@ -84,7 +84,7 @@ export class RankPanelHandler implements IPanelHandler {
 
         if (panelId === 'editRankPanel') {
             const rankId = context.id as string;
-            const rank = rankManager.getRankById(rankId);
+            const rank = isNonEmptyString(rankId) ? rankManager.getRankById(rankId) : undefined;
             if (!isDefined(rank)) return Promise.resolve();
 
             return Promise.resolve(
@@ -92,10 +92,18 @@ export class RankPanelHandler implements IPanelHandler {
                     .title(`Edit Rank: ${rank.name}`)
                     .textField('Display Name', '', { defaultValue: rank.name })
                     .textField('Permission Level', '', { defaultValue: String(rank.permissionLevel) })
-                    .textField('Prefix', '', { defaultValue: rank.chatFormatting?.prefixText || '' })
-                    .textField('Name Color', '', { defaultValue: rank.chatFormatting?.nameColor || '' })
-                    .textField('Chat Color', '', { defaultValue: rank.chatFormatting?.messageColor || '' })
-                    .toggle('Is Locked (Prevent Deletion)', { defaultValue: Boolean(rank.locked) })
+                    .textField('Prefix', '', {
+                        defaultValue:
+                            (isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined) ?? ''
+                    })
+                    .textField('Name Color', '', {
+                        defaultValue: (isDefined(rank.chatFormatting) ? rank.chatFormatting.nameColor : undefined) ?? ''
+                    })
+                    .textField('Chat Color', '', {
+                        defaultValue:
+                            (isDefined(rank.chatFormatting) ? rank.chatFormatting.messageColor : undefined) ?? ''
+                    })
+                    .toggle('Is Locked (Prevent Deletion)', { defaultValue: rank.locked === true })
             );
         }
 
@@ -177,16 +185,31 @@ export class RankPanelHandler implements IPanelHandler {
 
             const updatedRank: RankDefinition = {
                 ...existingRank,
-                name: name || existingRank.name,
+                name: isNonEmptyString(name) ? name : existingRank.name,
                 permissionLevel: isNonEmptyString(permStr)
                     ? Number.parseInt(permStr) || 1024
                     : existingRank.permissionLevel,
                 chatFormatting: {
-                    prefixText: prefix || existingRank.chatFormatting?.prefixText || '',
-                    nameColor: nameColor || existingRank.chatFormatting?.nameColor || '§r',
-                    messageColor: messageColor || existingRank.chatFormatting?.messageColor || '§r'
+                    prefixText:
+                        isNonEmptyString(prefix)
+                            ? prefix
+                            : (isDefined(existingRank.chatFormatting)
+                                ? existingRank.chatFormatting.prefixText
+                                : undefined) ?? '',
+                    nameColor:
+                        isNonEmptyString(nameColor)
+                            ? nameColor
+                            : (isDefined(existingRank.chatFormatting)
+                                ? existingRank.chatFormatting.nameColor
+                                : undefined) ?? '§r',
+                    messageColor:
+                        isNonEmptyString(messageColor)
+                            ? messageColor
+                            : (isDefined(existingRank.chatFormatting)
+                                ? existingRank.chatFormatting.messageColor
+                                : undefined) ?? '§r'
                 },
-                locked: (locked ?? existingRank.locked) || false
+                locked: (locked ?? existingRank.locked) === true
             };
 
             const newConfig = { ...config };
@@ -201,7 +224,7 @@ export class RankPanelHandler implements IPanelHandler {
             const items = await this.getItems(player, panelId, context);
             if (selection >= 0 && selection < items.length) {
                 const item = items[selection];
-                if (!item) return;
+                if (!isDefined(item)) return;
 
                 if (item.actionType === 'openPanel') {
                     return showPanel(player, item.actionValue, {

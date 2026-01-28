@@ -1,3 +1,4 @@
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getRanksConfig, saveRanksConfig } from './configurations.js';
 import { RankDefinition } from './ranksConfig.default.js';
 
@@ -22,7 +23,7 @@ export function getRankById(rankId: string): RankDefinition | undefined {
  */
 export function addRank(rankData: RankDefinition): { success: boolean; message: string } {
     const ranksConfig = getRanksConfig();
-    if (getRankById(rankData.id)) {
+    if (isDefined(getRankById(rankData.id))) {
         return { success: false, message: `Rank with ID '${rankData.id}' already exists.` };
     }
     ranksConfig.rankDefinitions.push(rankData);
@@ -46,14 +47,14 @@ export function updateRank(
     }
 
     const originalRank = ranksConfig.rankDefinitions[rankIndex];
-    if (!originalRank) {
+    if (!isDefined(originalRank)) {
         return { success: false, message: `Rank with ID '${rankId}' not found.` };
     }
 
     // Check for critical immutable properties on locked ranks
     if (
         originalRank.locked && // We prevent changing the ID of locked ranks to avoid breaking internal references (like code that checks for 'admin' rank)
-        updatedData.id !== undefined &&
+        isDefined(updatedData.id) &&
         updatedData.id !== originalRank.id
     ) {
         return { success: false, message: 'Cannot change the ID of a locked rank.' };
@@ -63,19 +64,23 @@ export function updateRank(
     // We allow changing Name, Prefix, etc.
 
     // Ensure the ID is not changed if a new ID is passed in updatedData that already exists (and isn't the current one)
-    if (updatedData.id !== undefined && updatedData.id !== rankId && getRankById(updatedData.id)) {
+    if (
+        isDefined(updatedData.id) &&
+        updatedData.id !== rankId &&
+        isDefined(getRankById(updatedData.id))
+    ) {
         return { success: false, message: `Cannot rename rank ID to '${updatedData.id}' as it already exists.` };
     }
 
-    let message = `Rank '${updatedData.name || originalRank.name}' updated successfully.`;
+    let message = `Rank '${updatedData.name ?? originalRank.name}' updated successfully.`;
 
     // Add a warning if the rank ID (tag) is changed on a non-locked rank.
-    if (updatedData.id && updatedData.id !== rankId) {
+    if (isNonEmptyString(updatedData.id) && updatedData.id !== rankId) {
         message += `\n§eWARNING:§r The rank ID (tag) was changed from '${rankId}' to '${updatedData.id}'. Players with the old rank tag will need to be updated manually.`;
     }
 
     const currentRank = ranksConfig.rankDefinitions[rankIndex];
-    if (currentRank) {
+    if (isDefined(currentRank)) {
         ranksConfig.rankDefinitions[rankIndex] = { ...currentRank, ...updatedData };
     }
     saveRanksConfig(ranksConfig);
@@ -94,7 +99,7 @@ export function deleteRank(rankId: string): { success: boolean; message: string 
     }
 
     const rank = ranksConfig.rankDefinitions[rankIndex];
-    if (!rank) {
+    if (!isDefined(rank)) {
         return { success: false, message: `Rank with ID '${rankId}' not found.` };
     }
 

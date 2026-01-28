@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
+import { isDefined } from '@lib/guards.js';
 import { errorLog } from '@core/logger.js';
 
 import { AnticheatConfig, getAnticheatConfig } from './anticheatConfigLoader.js';
@@ -29,7 +30,7 @@ export function startMovementCheckLoop() {
         if (isChecking) return;
         try {
             const config = getAnticheatConfig();
-            if (!config.enabled) return;
+            if (config.enabled !== true) return;
 
             mc.system.runJob(checkPlayersGenerator(config));
         } catch (error) {
@@ -44,7 +45,8 @@ function* checkPlayersGenerator(config: AnticheatConfig) {
         const players = mc.world.getAllPlayers();
         for (const player of players) {
             // Process one player per tick/slice
-            if (player.isValid) {
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            if ((player as any).isValid()) {
                 // Run checks
                 if (config.movementCheck.enabled) {
                     checkMovement(player, config.movementCheck);
@@ -78,14 +80,14 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     }
 
     let state = movementStates.get(player.id);
-    if (!state) {
+    if (!isDefined(state)) {
         state = { violationLevel: 0 };
         movementStates.set(player.id, state);
     }
 
     // Use native velocity API for robust speed check
     const velocity = player.getVelocity();
-    if (!velocity) return;
+    if (!isDefined(velocity)) return;
 
     // Convert blocks/tick to blocks/second (approximate)
     // We strictly check HORIZONTAL speed to avoid flagging falling players
@@ -104,7 +106,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     } else {
         // Check for Speed Effect
         const speedEffect = player.getEffect(MinecraftEffectTypes.Speed);
-        if (speedEffect) {
+        if (isDefined(speedEffect)) {
             // Speed 1 = +20%, Speed 2 = +40%
             const amplifier = speedEffect.amplifier + 1;
             limit *= 1 + 0.2 * amplifier;
@@ -127,8 +129,8 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
             });
 
             if (
-                (blockBelow && ICE_BLOCKS.has(blockBelow.typeId)) ||
-                (blockBelow2 && ICE_BLOCKS.has(blockBelow2.typeId))
+                (isDefined(blockBelow) && ICE_BLOCKS.has(blockBelow.typeId)) ||
+                (isDefined(blockBelow2) && ICE_BLOCKS.has(blockBelow2.typeId))
             ) {
                 limit = config.maxSpeedIce;
             }
@@ -181,7 +183,7 @@ function checkWorldBorder(
     let radius = config.overworldRadius;
     let center = config.center;
 
-    if (!center) {
+    if (!isDefined(center)) {
         // Default to world spawn if not configured
         const spawn = mc.world.getDefaultSpawnLocation();
         center = { x: spawn.x, z: spawn.z };

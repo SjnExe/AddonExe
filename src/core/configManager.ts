@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined } from '@lib/guards.js';
 import { loadConfig as asyncLoadConfig } from './configLoader.js';
 import createConfigManager, { ConfigManager } from './configManagerFactory.js';
 import { deepClone } from './objectUtils.js';
@@ -14,7 +15,7 @@ export function onConfigUpdated(callback: (config: typeof Config) => void) {
 }
 
 function notifyCallbacks() {
-    if (mainConfigManager) {
+    if (isDefined(mainConfigManager)) {
         const config = mainConfigManager.get();
         for (const cb of updateCallbacks) cb(config);
     }
@@ -28,27 +29,27 @@ export async function initializeConfigManager(isMigration: boolean) {
 }
 
 export const getConfig = () => {
-    if (!mainConfigManager) {
+    if (!isDefined(mainConfigManager)) {
         throw new Error('[ConfigManager] Config manager not initialized.');
     }
     return mainConfigManager.get();
 };
 
 export const updateConfig = (key: string, value: unknown) => {
-    if (mainConfigManager) {
+    if (isDefined(mainConfigManager)) {
         mainConfigManager.update(key, value);
         notifyCallbacks();
     }
 };
 
 export const reloadConfig = () => {
-    if (mainConfigManager) {
+    if (isDefined(mainConfigManager)) {
         mainConfigManager.reload();
     }
 };
 
 export const updateMultipleConfig = (updates: Record<string, unknown>) => {
-    if (mainConfigManager) {
+    if (isDefined(mainConfigManager)) {
         mainConfigManager.updateMultiple(updates);
         notifyCallbacks();
     }
@@ -69,11 +70,11 @@ export async function resetConfigSection(
 
         for (const key in configResetCallbacks) {
             const cb = configResetCallbacks[key];
-            if (cb) cb(player);
+            if (isDefined(cb)) cb(player);
         }
         for (const key in configResetRegistry) {
             const entry = configResetRegistry[key];
-            if (entry && entry.postResetCallback) {
+            if (isDefined(entry) && isDefined(entry.postResetCallback)) {
                 entry.postResetCallback(player);
             }
         }
@@ -84,9 +85,9 @@ export async function resetConfigSection(
         };
     }
 
-    if (configResetRegistry[sectionKey]) {
+    if (isDefined(configResetRegistry[sectionKey])) {
         await configResetRegistry[sectionKey].reset();
-        if (configResetRegistry[sectionKey].postResetCallback) {
+        if (isDefined(configResetRegistry[sectionKey].postResetCallback)) {
             configResetRegistry[sectionKey].postResetCallback(player);
         }
         return { success: true, message: `${configResetRegistry[sectionKey].message} and reloaded.` };
@@ -98,7 +99,7 @@ export async function resetConfigSection(
         if (Object.prototype.hasOwnProperty.call(configRecord, sectionKey)) {
             updateConfig(sectionKey, deepClone(configRecord[sectionKey]));
 
-            if (configResetCallbacks[sectionKey]) {
+            if (isDefined(configResetCallbacks[sectionKey])) {
                 configResetCallbacks[sectionKey](player);
                 return {
                     success: true,

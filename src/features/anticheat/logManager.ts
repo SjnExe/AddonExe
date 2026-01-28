@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isNonEmptyString } from '@lib/guards.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 
 const flagStorage = new StorageManager('exe:logs:flags');
@@ -26,8 +27,8 @@ let flagLogs: FlagLog[] = [];
 let punishLogs: PunishmentLog[] = [];
 
 export function initializeLogManager() {
-    flagLogs = flagStorage.load<FlagLog[]>() || [];
-    punishLogs = punishStorage.load<PunishmentLog[]>() || [];
+    flagLogs = flagStorage.load<FlagLog[]>() ?? [];
+    punishLogs = punishStorage.load<PunishmentLog[]>() ?? [];
 
     // Prune old logs (7 days default)
     const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
@@ -52,7 +53,7 @@ export function addPunishmentLog(
     duration?: string
 ) {
     const log: PunishmentLog = { timestamp: Date.now(), playerName, type, reason, adminName };
-    if (duration) log.duration = duration;
+    if (isNonEmptyString(duration)) log.duration = duration;
     punishLogs.push(log);
 }
 

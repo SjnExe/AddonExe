@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined, isNumber } from '@lib/guards.js';
 import { getConfig } from './configManager.js';
 import { debugLog, errorLog } from './logger.js';
 
@@ -78,7 +79,7 @@ function getCooldownKey(playerId: string, identifier: string): string {
 export function setCooldown(player: mc.Player, commandName: string) {
     const config = getConfig();
     const commandConfig = (config as unknown as Record<string, { cooldownSeconds?: number }>)[commandName];
-    if (!commandConfig || !commandConfig.cooldownSeconds) {
+    if (!isDefined(commandConfig) || !isNumber(commandConfig.cooldownSeconds)) {
         return;
     }
 
@@ -113,7 +114,7 @@ export function getCooldown(playerId: string, identifier: string): number {
     const key = getCooldownKey(playerId, identifier);
     const expiry = cooldowns.get(key);
 
-    if (!expiry) {
+    if (!isNumber(expiry)) {
         return 0;
     }
 

@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { errorLog } from './logger.js';
 
 export interface SerializedEnchantment {
@@ -37,18 +38,18 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
         amount: itemStack.amount
     };
 
-    if (itemStack.nameTag) {
+    if (isNonEmptyString(itemStack.nameTag)) {
         serialized.nameTag = itemStack.nameTag;
     }
 
     const lore = itemStack.getLore();
-    if (lore && lore.length > 0) {
+    if (isDefined(lore) && lore.length > 0) {
         serialized.lore = lore;
     }
 
     // Durability
     const durability = itemStack.getComponent('minecraft:durability') as mc.ItemDurabilityComponent;
-    if (durability) {
+    if (isDefined(durability)) {
         serialized.durability = {
             damage: durability.damage,
             max: durability.maxDurability
@@ -57,7 +58,7 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
 
     // Enchantments
     const enchantable = itemStack.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
-    if (enchantable) {
+    if (isDefined(enchantable)) {
         const enchants = enchantable.getEnchantments();
         if (enchants.length > 0) {
             serialized.enchantments = enchants.map((e) => ({
@@ -69,7 +70,7 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
 
     // Keep on Death
     const keepOnDeath = itemStack.getComponent('minecraft:keep_on_death');
-    if (keepOnDeath) {
+    if (isDefined(keepOnDeath)) {
         serialized.keepOnDeath = true;
     }
 
@@ -79,7 +80,7 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     // As of latest beta, ItemLockComponent has 'mode'.
     try {
         const lock = itemStack.getComponent('minecraft:item_lock') as unknown as ItemLockComponent;
-        if (lock && lock.mode) {
+        if (isDefined(lock) && isDefined(lock.mode)) {
             serialized.lockMode = String(lock.mode);
         }
     } catch {
@@ -88,12 +89,12 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
 
     // Can Destroy / Can Place On
     const canDestroy = itemStack.getCanDestroy();
-    if (canDestroy && canDestroy.length > 0) {
+    if (isDefined(canDestroy) && canDestroy.length > 0) {
         serialized.canDestroy = canDestroy;
     }
 
     const canPlaceOn = itemStack.getCanPlaceOn();
-    if (canPlaceOn && canPlaceOn.length > 0) {
+    if (isDefined(canPlaceOn) && canPlaceOn.length > 0) {
         serialized.canPlaceOn = canPlaceOn;
     }
 
@@ -106,25 +107,25 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
 export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined {
     try {
         const itemType = mc.ItemTypes.get(data.typeId);
-        if (!itemType) {
+        if (!isDefined(itemType)) {
             errorLog(`[ItemSerializer] Unknown item type: ${data.typeId}`);
             return undefined;
         }
 
         const itemStack = new mc.ItemStack(itemType, data.amount);
 
-        if (data.nameTag) {
+        if (isNonEmptyString(data.nameTag)) {
             itemStack.nameTag = data.nameTag;
         }
 
-        if (data.lore) {
+        if (isDefined(data.lore)) {
             itemStack.setLore(data.lore);
         }
 
         // Durability
-        if (data.durability) {
+        if (isDefined(data.durability)) {
             const durability = itemStack.getComponent('minecraft:durability') as mc.ItemDurabilityComponent;
-            if (durability) {
+            if (isDefined(durability)) {
                 // Validate bounds
                 const safeDamage = Math.max(0, Math.min(data.durability.damage, durability.maxDurability));
                 durability.damage = safeDamage;
@@ -132,12 +133,12 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined 
         }
 
         // Enchantments
-        if (data.enchantments) {
+        if (isDefined(data.enchantments)) {
             const enchantable = itemStack.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
-            if (enchantable) {
+            if (isDefined(enchantable)) {
                 for (const enc of data.enchantments) {
                     const type = mc.EnchantmentTypes.get(enc.id);
-                    if (type) {
+                    if (isDefined(type)) {
                         try {
                             enchantable.addEnchantment({ type, level: enc.level });
                         } catch {
@@ -150,7 +151,7 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined 
         }
 
         // Keep on Death
-        if (data.keepOnDeath) {
+        if (data.keepOnDeath === true) {
             // Cannot ADD component if not present?
             // Usually components are inherent or toggled.
             // keep_on_death is often addable via creating stack? No.
@@ -165,10 +166,10 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined 
         }
 
         // Lock Mode
-        if (data.lockMode) {
+        if (isNonEmptyString(data.lockMode)) {
             try {
                 const lock = itemStack.getComponent('minecraft:item_lock') as unknown as ItemLockComponent;
-                if (lock) {
+                if (isDefined(lock)) {
                     lock.mode = data.lockMode;
                 }
             } catch {
@@ -177,10 +178,10 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined 
         }
 
         // Can Destroy / Can Place On
-        if (data.canDestroy) {
+        if (isDefined(data.canDestroy)) {
             itemStack.setCanDestroy(data.canDestroy);
         }
-        if (data.canPlaceOn) {
+        if (isDefined(data.canPlaceOn)) {
             itemStack.setCanPlaceOn(data.canPlaceOn);
         }
 

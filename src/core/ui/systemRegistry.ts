@@ -1,3 +1,4 @@
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { configPanelSchema } from './configPanelRegistry.js';
 
 export interface SystemDefinition {
@@ -24,7 +25,7 @@ export interface SystemDefinition {
 let cachedSystemRegistry: SystemDefinition[] | undefined;
 
 export function getSystemRegistry(): SystemDefinition[] {
-    if (cachedSystemRegistry) {
+    if (isDefined(cachedSystemRegistry)) {
         return cachedSystemRegistry;
     }
 
@@ -40,7 +41,7 @@ export function getSystemRegistry(): SystemDefinition[] {
                     configPanelId: `config_${schema.id}`,
                     isSimpleConfig: true
                 };
-                if (schema.category && schema.category.length > 0) def.category = schema.category;
+                if (isNonEmptyString(schema.category)) def.category = schema.category;
                 if (schema.hidden === true) def.hidden = schema.hidden;
                 return def;
             }),

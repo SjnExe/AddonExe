@@ -1,3 +1,4 @@
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getConfig, updateMultipleConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 
@@ -12,7 +13,7 @@ export interface HelpfulLink {
  */
 export function getHelpfulLinks(): HelpfulLink[] {
     const config = getConfig();
-    return config.serverInfo.helpfulLinks || [];
+    return (isDefined(config.serverInfo) ? config.serverInfo.helpfulLinks : undefined) ?? [];
 }
 
 /**
@@ -30,7 +31,7 @@ function saveHelpfulLinks(links: HelpfulLink[]) {
  * @param url The URL of the new link.
  */
 export function addHelpfulLink(title: string, url: string) {
-    if (!title || !url) {
+    if (!isNonEmptyString(title) || !isNonEmptyString(url)) {
         return;
     }
     const links = getHelpfulLinks();
@@ -47,11 +48,11 @@ export function addHelpfulLink(title: string, url: string) {
  */
 export function editHelpfulLink(index: number, newTitle: string, newUrl: string) {
     const links = getHelpfulLinks();
-    if (index < 0 || index >= links.length || !newTitle || !newUrl) {
+    if (index < 0 || index >= links.length || !isNonEmptyString(newTitle) || !isNonEmptyString(newUrl)) {
         return;
     }
     const oldLink = links[index];
-    if (!oldLink) {
+    if (!isDefined(oldLink)) {
         return;
     }
     links[index] = { title: newTitle, url: newUrl };
@@ -70,7 +71,7 @@ export function deleteHelpfulLink(index: number) {
     }
     const deletedLink = links.splice(index, 1);
     const link = deletedLink[0];
-    if (!link) {
+    if (!isDefined(link)) {
         return;
     }
     saveHelpfulLinks(links);
@@ -94,18 +95,18 @@ export function moveHelpfulLink(index: number, direction: 'up' | 'down') {
         } // Can't move up if already at the top
         const prev = links[index - 1];
         const curr = links[index];
-        if (prev && curr) {
+        if (isDefined(prev) && isDefined(curr)) {
             links[index - 1] = curr;
             links[index] = prev;
             debugLog(`[HelpfulLinksManager] Moved link up at index ${index}`);
         }
-    } else if (direction === 'down') {
+    } else {
         if (index === links.length - 1) {
             return;
         } // Can't move down if already at the bottom
         const next = links[index + 1];
         const curr = links[index];
-        if (next && curr) {
+        if (isDefined(next) && isDefined(curr)) {
             links[index + 1] = curr;
             links[index] = next;
             debugLog(`[HelpfulLinksManager] Moved link down at index ${index}`);

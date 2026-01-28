@@ -5,6 +5,7 @@ import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
 import { addSentryBreadcrumb } from '@core/diagnostics.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
 import { findVisiblePlayerByName, getPlayer } from '@core/playerDataManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 // --- Type Definitions ---
 
@@ -148,17 +149,20 @@ class CommandManager {
             ({ customCommandRegistry }: { customCommandRegistry: mc.CustomCommandRegistry }) => {
                 infoLog('[CommandManager] Startup event received. Registering slash commands...');
                 for (const command of this.commands.values()) {
-                    if (command.disableSlashCommand) {
+                    if (command.disableSlashCommand === true) {
                         continue;
                     }
 
                     // Register the primary command name
-                    this._registerSlashCommand(customCommandRegistry, command, command.slashName || command.name);
+                    this._registerSlashCommand(customCommandRegistry, command, command.slashName ?? command.name);
 
                     // Register all aliases as separate slash commands
-                    if (command.aliases) {
+                    if (isDefined(command.aliases)) {
                         for (const alias of command.aliases) {
-                            if (command.disabledSlashAliases && command.disabledSlashAliases.includes(alias)) {
+                            if (
+                                isDefined(command.disabledSlashAliases) &&
+                                command.disabledSlashAliases.includes(alias)
+                            ) {
                                 continue; // Skip slash command registration for this alias
                             }
                             this._registerSlashCommand(customCommandRegistry, command, alias);
@@ -177,7 +181,7 @@ class CommandManager {
         const command: CustomCommand = { permissionLevel: 0, ...commandOptions };
         this.commands.set(command.name.toLowerCase(), command);
 
-        if (command.aliases) {
+        if (isDefined(command.aliases)) {
             for (const alias of command.aliases) {
                 this.aliases.set(alias.toLowerCase(), command.name.toLowerCase());
             }
@@ -199,10 +203,9 @@ class CommandManager {
      */
     getEffectivePermissionLevel(command: CustomCommand): number {
         const config = getConfig() as Config;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        if (!config) return command.permissionLevel ?? 0;
-        const commandSettings = config.commandSettings?.[command.name];
-        if (commandSettings !== undefined && commandSettings.permissionLevel !== undefined) {
+        if (!isDefined(config)) return command.permissionLevel ?? 0;
+        const commandSettings = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
+        if (isDefined(commandSettings) && isDefined(commandSettings.permissionLevel)) {
             return commandSettings.permissionLevel;
         }
         return command.permissionLevel ?? 0;
@@ -215,10 +218,9 @@ class CommandManager {
      */
     isCommandEnabled(command: CustomCommand): boolean {
         const config = getConfig() as Config;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        if (!config) return true;
-        const commandSettings = config.commandSettings?.[command.name];
-        if (commandSettings !== undefined && commandSettings.enabled === false) {
+        if (!isDefined(config)) return true;
+        const commandSettings = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
+        if (isDefined(commandSettings) && commandSettings.enabled === false) {
             return false;
         }
         return true;
@@ -238,17 +240,16 @@ class CommandManager {
         const executorName = isPlayerCheck ? executor.name : 'Console';
         addSentryBreadcrumb(`Executing command '/${command.name}' by ${executorName}`, 'command', 'info');
 
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        if (!config) {
+        if (!isDefined(config)) {
             if ('sendMessage' in executor) {
                 executor.sendMessage('§cServer is starting up. Please wait...');
             }
             return;
         }
 
-        const commandSettings = config.commandSettings?.[command.name];
+        const commandSettings = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
 
-        if (commandSettings?.enabled === false) {
+        if (isDefined(commandSettings) && commandSettings.enabled === false) {
             if ('sendMessage' in executor) {
                 executor.sendMessage('§cThis command is currently disabled.');
             }
@@ -259,7 +260,7 @@ class CommandManager {
 
         // --- Console Execution ---
         if (!isPlayer) {
-            if (!command.allowConsole) {
+            if (command.allowConsole !== true) {
                 executor.sendMessage(`[CommandManager] Command '${command.name}' cannot be run from the console.`);
                 return;
             }
@@ -288,8 +289,8 @@ class CommandManager {
         const player = executor;
 
         // Cooldown Check
-        if (command.hasCooldown) {
-            const cooldownId = command.cooldownId || command.name;
+        if (command.hasCooldown === true) {
+            const cooldownId = command.cooldownId ?? command.name;
             const remainingCooldown = getCooldown(player.id, cooldownId);
             if (remainingCooldown > 0) {
                 player.sendMessage(`§cYou must wait ${remainingCooldown} more second(s) to use this command.`);
@@ -301,7 +302,7 @@ class CommandManager {
         const pData = getPlayer(player.id);
         const requiredPermissionLevel = this.getEffectivePermissionLevel(command);
 
-        if (!pData || pData.permissionLevel > requiredPermissionLevel) {
+        if (!isDefined(pData) || pData.permissionLevel > requiredPermissionLevel) {
             player.sendMessage('§cYou do not have permission to use this command.');
             return;
         }
@@ -321,10 +322,10 @@ class CommandManager {
                 }
 
                 // Set Cooldown
-                if (command.hasCooldown) {
-                    const cooldownId = command.cooldownId || command.name;
-                    const cmdConfig = config.commandSettings?.[command.name];
-                    const duration = cmdConfig?.cooldownSeconds ?? command.defaultCooldown ?? 0;
+                if (command.hasCooldown === true) {
+                    const cooldownId = command.cooldownId ?? command.name;
+                    const cmdConfig = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
+                    const duration = (isDefined(cmdConfig) ? cmdConfig.cooldownSeconds : undefined) ?? command.defaultCooldown ?? 0;
                     if (duration > 0) {
                         setCooldownCustom(player.id, cooldownId, duration);
                     }
@@ -351,7 +352,7 @@ class CommandManager {
                 return `[${p.name}]`;
             } else {
                 const options = typeof p.enumOptions === 'function' ? p.enumOptions() : p.enumOptions;
-                if (options !== undefined && options.length <= 4) {
+                if (isDefined(options) && options.length <= 4) {
                     return `<${options.join('|')}>`;
                 }
                 return `<${p.name}>`;
@@ -407,10 +408,10 @@ class CommandManager {
                       };
 
             // Prepare arguments
-            const allParams = command.parameters || [];
+            const allParams = command.parameters ?? [];
             const parsedArgs: Record<string, unknown> = {};
             for (const [i, param] of allParams.entries()) {
-                if (rawArgs[i] !== undefined && param) {
+                if (isDefined(rawArgs[i]) && isDefined(param)) {
                     let value = rawArgs[i];
                     // Filter vanished players for slash commands
                     if (
@@ -420,10 +421,10 @@ class CommandManager {
                     ) {
                         const executorData = getPlayer(executor.id);
                         // Level 2 (Mod) and below can see vanished players
-                        if (executorData && executorData.permissionLevel > 2) {
+                        if (isDefined(executorData) && executorData.permissionLevel > 2) {
                             value = (value as mc.Player[]).filter((target) => {
                                 const targetData = getPlayer(target.id);
-                                return !targetData?.isVanished;
+                                return !(isDefined(targetData) && targetData.isVanished);
                             });
                         }
                     }
@@ -466,12 +467,14 @@ class CommandManager {
         nameOverride: string,
         registry: mc.CustomCommandRegistry
     ): mc.CustomCommand {
-        const slashCommandName = nameOverride || command.slashName || command.name;
-        const mandatoryParameters = (command.parameters || [])
-            .filter((p) => !p.optional)
+        const slashCommandName = isNonEmptyString(nameOverride)
+            ? nameOverride
+            : (command.slashName ?? command.name);
+        const mandatoryParameters = (command.parameters ?? [])
+            .filter((p) => p.optional !== true)
             .map((p) => this.formatParameter(p, slashCommandName, registry));
-        const optionalParameters = (command.parameters || [])
-            .filter((p) => p.optional)
+        const optionalParameters = (command.parameters ?? [])
+            .filter((p) => p.optional === true)
             .map((p) => this.formatParameter(p, slashCommandName, registry));
 
         return {
@@ -497,11 +500,11 @@ class CommandManager {
         registry: mc.CustomCommandRegistry
     ): mc.CustomCommandParameter {
         // --- Enum Handling ---
-        if (param.enumOptions && registry) {
+        if (isDefined(param.enumOptions) && isDefined(registry)) {
             const options = typeof param.enumOptions === 'function' ? param.enumOptions() : param.enumOptions;
 
             if (Array.isArray(options) && options.length > 0) {
-                const safeCmdName = (commandName || 'cmd').replaceAll(/[^a-zA-Z0-9_]/g, '');
+                const safeCmdName = (isNonEmptyString(commandName) ? commandName : 'cmd').replaceAll(/[^a-zA-Z0-9_]/g, '');
                 const safeParamName = param.name.replaceAll(/[^a-zA-Z0-9_]/g, '');
                 const enumName = `${this.prefix}:${safeCmdName}_${safeParamName}`;
 
@@ -543,7 +546,7 @@ class CommandManager {
                 ? paramTypeMap[param.type.toLowerCase()]
                 : (param.type as mc.CustomCommandParamType);
 
-        if (!type) {
+        if (!isDefined(type)) {
             errorLog(
                 `[CommandManager] Unknown parameter type '${String(param.type)}' for parameter '${param.name}'. Defaulting to String.`
             );
@@ -580,13 +583,13 @@ class CommandManager {
      */
     handleChatCommand(eventData: mc.ChatSendBeforeEvent): boolean {
         const config = getConfig() as Config;
-        if (!config) return false;
+        if (!isDefined(config)) return false;
         const { sender: player, message } = eventData;
         const prefix = config.commandPrefix;
 
         if (message.length > 1024) return false; // Safety limit for command parsing
 
-        if (!prefix || !message.startsWith(prefix)) {
+        if (!isNonEmptyString(prefix) || !message.startsWith(prefix)) {
             return false;
         }
 
@@ -595,7 +598,7 @@ class CommandManager {
 
         // Using a regex to split by spaces while respecting quoted strings.
         const commandString = message.slice(prefix.length).trim();
-        const rawArgs = commandString.match(/"[^"]*"|'[^']*'|\S+/g) || [];
+        const rawArgs = commandString.match(/"[^"]*"|'[^']*'|\S+/g) ?? [];
         if (rawArgs.length === 0) {
             return true;
         }
@@ -606,34 +609,34 @@ class CommandManager {
                 : arg
         );
         const rawCommandName = cleanedArgs.shift();
-        if (!rawCommandName) {
+        if (!isNonEmptyString(rawCommandName)) {
             return true;
         }
         let commandName = rawCommandName.toLowerCase();
 
         // Resolve alias to primary command name
-        commandName = this.aliases.get(commandName) || commandName;
+        commandName = this.aliases.get(commandName) ?? commandName;
         const command = this.commands.get(commandName);
 
-        if (!command) {
+        if (!isDefined(command)) {
             player.sendMessage(`§cUnknown command: ${commandName}`);
             return true;
         }
 
-        const commandSettings = config.commandSettings?.[command.name];
-        if (commandSettings?.enabled === false) {
+        const commandSettings = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
+        if (isDefined(commandSettings) && commandSettings.enabled === false) {
             player.sendMessage('§cThis command is currently disabled.');
             return true;
         }
 
         // --- Argument Parsing ---
         const parsedArgs: Record<string, unknown> = {};
-        const paramDefs = command.parameters || [];
+        const paramDefs = command.parameters ?? [];
         let currentArgIndex = 0;
 
         for (const paramDef of paramDefs) {
             if (currentArgIndex >= cleanedArgs.length) {
-                if (!paramDef.optional) {
+                if (paramDef.optional !== true) {
                     const usage = this.getUsageString(command);
                     player.sendMessage(`§cMissing required argument: ${paramDef.name}.\n${usage}`);
                     return true; // Stop execution
@@ -642,7 +645,7 @@ class CommandManager {
             }
 
             const rawValue = cleanedArgs[currentArgIndex];
-            if (rawValue === undefined) break; // Should not happen due to length check
+            if (!isDefined(rawValue)) break; // Should not happen due to length check
 
             // Use string for unknown types in chat parsing
             // This logic assumes paramDef.type is one of the string keys.
@@ -710,7 +713,7 @@ class CommandManager {
                 case 'player':
                 case 'target': {
                     const p = findVisiblePlayerByName(rawValue, player);
-                    parsedArgs[paramDef.name] = p ? [p] : [];
+                    parsedArgs[paramDef.name] = isDefined(p) ? [p] : [];
                     currentArgIndex++;
                     break;
                 }
@@ -718,7 +721,7 @@ class CommandManager {
                 default: {
                     const options =
                         typeof paramDef.enumOptions === 'function' ? paramDef.enumOptions() : paramDef.enumOptions;
-                    if (options && options.length > 0) {
+                    if (isDefined(options) && options.length > 0) {
                         if (!options.includes(rawValue)) {
                             player.sendMessage(
                                 `§cInvalid option '${rawValue}' for parameter '${paramDef.name}'. Valid options: ${options.join(', ')}`

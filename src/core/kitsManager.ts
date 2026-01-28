@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { getConfig } from './configManager.js';
 import { getKitsConfig } from './configurations.js';
 import { Kit } from './kitAdminManager.js';
@@ -28,7 +29,7 @@ interface KitResult {
 export function getKit(kitName: string): Kit | undefined {
     const kitsConfig = getKitsConfig();
     const defs = kitsConfig.kitDefinitions;
-    if (!defs) {
+    if (!isDefined(defs)) {
         return undefined;
     }
     return (defs as Record<string, Kit>)[kitName.toLowerCase()];
@@ -42,12 +43,15 @@ export function getKit(kitName: string): Kit | undefined {
 export function listKits(player: mc.Player): KitInfo[] {
     const mainConfig = getConfig();
     const kitsConfig = getKitsConfig();
-    if (!mainConfig.kits.enabled || !kitsConfig.kitDefinitions) {
+    if (
+        (isDefined(mainConfig.kits) ? mainConfig.kits.enabled : undefined) !== true ||
+        !isDefined(kitsConfig.kitDefinitions)
+    ) {
         return [];
     }
 
     const pData = getOrCreatePlayer(player);
-    if (!pData) {
+    if (!isDefined(pData)) {
         return [];
     }
 
@@ -55,22 +59,22 @@ export function listKits(player: mc.Player): KitInfo[] {
     return Object.keys(kitDefs)
         .filter((kitName) => {
             const kit = kitDefs[kitName];
-            if (!kit || !kit.enabled) {
+            if (!isDefined(kit) || kit.enabled !== true) {
                 return false;
             }
-            const requiredPermission = kit.permissionLevel ?? 1024;
+            const requiredPermission = (isDefined(kit) ? kit.permissionLevel : undefined) ?? 1024;
             return pData.permissionLevel <= requiredPermission;
         })
         .map((kitName) => {
             const kit = kitDefs[kitName];
-            if (!kit) {
+            if (!isDefined(kit)) {
                 // Should be unreachable due to filter, but TS checks
                 return { name: kitName, icon: '', price: 0, cooldown: 0 };
             }
             return {
                 name: kitName,
-                icon: kit.icon || 'textures/ui/gift_square',
-                price: kit.price || 0,
+                icon: isNonEmptyString(kit.icon) ? kit.icon : 'textures/ui/gift_square',
+                price: (isDefined(kit) ? kit.price : undefined) ?? 0,
                 cooldown: getKitCooldown(player, kitName)
             };
         });
@@ -84,12 +88,12 @@ export function listKits(player: mc.Player): KitInfo[] {
  */
 export function getKitCooldown(player: mc.Player, kitName: string): number {
     const pData = getOrCreatePlayer(player);
-    if (!pData) {
+    if (!isDefined(pData)) {
         return 0;
     }
 
     const cooldownExpiry = pData.kitCooldowns[kitName.toLowerCase()];
-    if (!cooldownExpiry) {
+    if (!isNumber(cooldownExpiry)) {
         return 0;
     }
 
@@ -109,28 +113,28 @@ export function getKitCooldown(player: mc.Player, kitName: string): number {
  */
 export function giveKit(player: mc.Player, kitName: string): KitResult {
     const mainConfig = getConfig();
-    if (!mainConfig.kits.enabled) {
+    if ((isDefined(mainConfig.kits) ? mainConfig.kits.enabled : undefined) !== true) {
         return { success: false, message: 'The kit system is currently disabled.' };
     }
 
     const lowerCaseKitName = kitName.toLowerCase();
     const kit = getKit(lowerCaseKitName);
 
-    if (!kit) {
+    if (!isDefined(kit)) {
         return { success: false, message: `Kit '${kitName}' does not exist.` };
     }
 
-    if (!kit.enabled) {
+    if (kit.enabled !== true) {
         return { success: false, message: `Kit '${kitName}' is currently disabled.` };
     }
 
     const pData = getOrCreatePlayer(player);
-    if (!pData) {
+    if (!isDefined(pData)) {
         return { success: false, message: 'Could not find your player data.' };
     }
 
     // Check permissions
-    const requiredPermission = kit.permissionLevel ?? 1024;
+    const requiredPermission = (isDefined(kit) ? kit.permissionLevel : undefined) ?? 1024;
     if (pData.permissionLevel > requiredPermission) {
         return { success: false, message: 'You do not have permission to claim this kit.' };
     }
@@ -144,12 +148,12 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     }
 
     // Check for price
-    if (kit.price && kit.price > 0 && pData.balance < kit.price) {
+    if (isDefined(kit.price) && kit.price > 0 && pData.balance < kit.price) {
         return { success: false, message: `You cannot afford this kit. It costs $${kit.price}.` };
     }
 
     const inventoryComp = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
-    if (!inventoryComp || !inventoryComp.container) {
+    if (!isDefined(inventoryComp) || !isDefined(inventoryComp.container)) {
         return { success: false, message: 'Could not access inventory.' };
     }
     const inventory = inventoryComp.container;
@@ -159,7 +163,7 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     }
 
     // All checks passed, now charge the player
-    if (kit.price && kit.price > 0) {
+    if (isDefined(kit.price) && kit.price > 0) {
         incrementPlayerBalance(player.id, -kit.price);
     }
 
@@ -188,25 +192,25 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
  */
 export function giveKitItems(player: mc.Player, items: ItemInfo[]): void {
     const inventoryComp = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
-    if (!inventoryComp || !inventoryComp.container) {
+    if (!isDefined(inventoryComp) || !isDefined(inventoryComp.container)) {
         throw new Error('Could not access player inventory.');
     }
     const inventory = inventoryComp.container;
 
     for (const itemInfo of items) {
         const itemStack = new mc.ItemStack(itemInfo.typeId, itemInfo.amount);
-        if (itemInfo.nameTag) {
+        if (isNonEmptyString(itemInfo.nameTag)) {
             itemStack.nameTag = itemInfo.nameTag;
         }
-        if (itemInfo.lore) {
+        if (isDefined(itemInfo.lore)) {
             itemStack.setLore(itemInfo.lore);
         }
-        if (itemInfo.enchantments) {
+        if (isDefined(itemInfo.enchantments)) {
             const enchantComp = itemStack.getComponent('enchantable') as mc.ItemEnchantableComponent;
-            if (enchantComp) {
+            if (isDefined(enchantComp)) {
                 for (const ench of itemInfo.enchantments) {
                     const type = mc.EnchantmentTypes.get(ench.id);
-                    if (type) {
+                    if (isDefined(type)) {
                         try {
                             enchantComp.addEnchantment({ type, level: ench.level });
                         } catch {
@@ -217,7 +221,7 @@ export function giveKitItems(player: mc.Player, items: ItemInfo[]): void {
             }
         }
         const leftovers = inventory.addItem(itemStack);
-        if (leftovers) {
+        if (isDefined(leftovers)) {
             player.dimension.spawnItem(leftovers, player.location);
             player.sendMessage('§eYour inventory is full. Some items were dropped on the ground.');
         }

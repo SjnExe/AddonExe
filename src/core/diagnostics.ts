@@ -1,6 +1,7 @@
 import { sentry, SentryEventLevel } from '@minecraft/diagnostics';
 import * as mc from '@minecraft/server';
 
+import { isDefined, isNumber } from '@lib/guards.js';
 import type { config as Config } from '../config.default.js';
 import {
     debugLog,
@@ -78,7 +79,7 @@ export function setSentryDebug(enabled: boolean, minutes: number = 5) {
         }
 
         // Schedule disable
-        if (debugTimeout) mc.system.clearRun(debugTimeout);
+        if (isDefined(debugTimeout)) mc.system.clearRun(debugTimeout);
         debugTimeout = mc.system.runTimeout(
             () => {
                 setSentryDebug(false);
@@ -93,13 +94,13 @@ export function setSentryDebug(enabled: boolean, minutes: number = 5) {
 
         // Restore log level if we changed it
         const originalLevel = mc.world.getDynamicProperty(ORIGINAL_LOG_LEVEL_PROP);
-        if (typeof originalLevel === 'number') {
+        if (isNumber(originalLevel)) {
             setLogLevel(originalLevel);
             mc.world.setDynamicProperty(ORIGINAL_LOG_LEVEL_PROP, undefined);
             debugLog('[Diagnostics] Log level restored.');
         }
 
-        if (debugTimeout) {
+        if (isDefined(debugTimeout)) {
             mc.system.clearRun(debugTimeout);
             debugTimeout = undefined;
         }
@@ -109,7 +110,7 @@ export function setSentryDebug(enabled: boolean, minutes: number = 5) {
 
 function restoreDebugState() {
     const expiry = mc.world.getDynamicProperty(DEBUG_EXPIRY_PROP) as number | undefined;
-    if (expiry && expiry > Date.now()) {
+    if (isNumber(expiry) && expiry > Date.now()) {
         const remainingMs = expiry - Date.now();
         const remainingTicks = Math.ceil((remainingMs / 1000) * 20);
 
@@ -117,7 +118,7 @@ function restoreDebugState() {
 
         // Ensure log level is still DEBUG if we expect it to be
         const originalLevel = mc.world.getDynamicProperty(ORIGINAL_LOG_LEVEL_PROP);
-        if (typeof originalLevel === 'number' && getLogLevel() < LogLevels.DEBUG) {
+        if (isNumber(originalLevel) && getLogLevel() < LogLevels.DEBUG) {
             setLogLevel(LogLevels.DEBUG);
         }
 
@@ -126,7 +127,7 @@ function restoreDebugState() {
         }, remainingTicks);
 
         debugLog(`[Diagnostics] Restored Sentry debug mode. Expires in ${(remainingMs / 60_000).toFixed(1)} mins.`);
-    } else if (expiry) {
+    } else if (isNumber(expiry)) {
         // Expired while offline
         setSentryDebug(false);
     }
@@ -134,7 +135,7 @@ function restoreDebugState() {
 
 export function configureDiagnostics(config: typeof Config) {
     try {
-        if (config.version) {
+        if (isDefined(config.version)) {
             sentry.addTag('release', config.version.join('.'));
         }
         sentry.addTag('environment', config.isNightly ? 'nightly' : 'production');

@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getKitsConfig, saveKitsConfig } from './configurations.js';
 import { Kit } from './kitAdminManager.js';
 import { debugLog, errorLog } from './logger.js';
@@ -35,7 +36,7 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
     const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
-    if (!kit) {
+    if (!isDefined(kit)) {
         return { success: false, message: `Kit '${kitName}' not found.` };
     }
 
@@ -78,15 +79,15 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
  * Preserves Name, Lore, and Enchantments.
  */
 export function addItemFromHandToKit(kitName: string, player: mc.Player): ActionResult {
-    const inventory = (player.getComponent('inventory') as mc.EntityInventoryComponent)?.container;
-    if (!inventory) return { success: false, message: 'Could not access inventory.' };
+    const inventory = (player.getComponent('inventory') as mc.EntityInventoryComponent).container;
+    if (!isDefined(inventory)) return { success: false, message: 'Could not access inventory.' };
 
     const item = inventory.getItem(player.selectedSlotIndex);
-    if (!item) return { success: false, message: 'You are not holding an item.' };
+    if (!isDefined(item)) return { success: false, message: 'You are not holding an item.' };
 
     const enchantments: EnchantmentInfo[] = [];
     const enchantComp = item.getComponent('enchantable') as mc.ItemEnchantableComponent;
-    if (enchantComp) {
+    if (isDefined(enchantComp)) {
         const enchants = enchantComp.getEnchantments();
         for (const ench of enchants) {
             enchantments.push({ id: ench.type.id, level: ench.level });
@@ -97,7 +98,7 @@ export function addItemFromHandToKit(kitName: string, player: mc.Player): Action
         typeId: item.typeId,
         amount: item.amount,
         lore: item.getLore(),
-        ...(item.nameTag ? { nameTag: item.nameTag } : {}),
+        ...(isNonEmptyString(item.nameTag) ? { nameTag: item.nameTag } : {}),
         ...(enchantments.length > 0 ? { enchantments } : {})
     };
 
@@ -115,7 +116,7 @@ export function removeItemFromKit(kitName: string, itemIndex: number): ActionRes
     const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
-    if (!kit) {
+    if (!isDefined(kit)) {
         return { success: false, message: `Kit '${kitName}' not found.` };
     }
 
@@ -141,7 +142,7 @@ export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo:
     const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
-    if (!kit) {
+    if (!isDefined(kit)) {
         return { success: false, message: `Kit '${kitName}' not found.` };
     }
 

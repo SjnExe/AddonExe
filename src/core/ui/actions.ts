@@ -8,6 +8,7 @@ import { getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { showAuctionHouse } from '@features/auctionHouse/ui/auctionPanel.js';
 import * as punishmentManager from '@features/moderation/punishmentManager.js';
 import * as reportManager from '@features/moderation/reportManager.js';
@@ -85,14 +86,14 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             return showAuctionHouse(player);
         }
         case 'unblockPlayer': {
-            if (context.selectedItemId) {
+            if (isNonEmptyString(context.selectedItemId)) {
                 tpaManager.unblockPlayer(player, context.selectedItemId);
             }
             return showPanel(player, 'tpaBlockListPanel', context);
         }
         case 'respawnText': {
             try {
-                if (context.id) {
+                if (isNonEmptyString(context.id)) {
                     floatingTextManager.respawnText(context.id);
                     player.sendMessage(`§2Respawned text: ${context.id}`);
                 }
@@ -103,7 +104,7 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
         }
         case 'despawnText': {
             try {
-                if (context.id) {
+                if (isNonEmptyString(context.id)) {
                     floatingTextManager.despawnText(context.id);
                     player.sendMessage(`§2Despawned text: ${context.id}`);
                 }
@@ -114,7 +115,7 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
         }
         case 'deleteText': {
             try {
-                if (context.id) {
+                if (isNonEmptyString(context.id)) {
                     floatingTextManager.deleteText(player, context.id);
                 }
             } catch (error) {
@@ -125,33 +126,33 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
         }
         case 'kickTeamMember': {
             const team = teamManager.getTeamByPlayer(player.id);
-            if (team && context.selectedItemId) {
+            if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.kickMember(team.id, context.selectedItemId);
-                player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
+                player.sendMessage(isNonEmptyString(res.message) ? res.message : (res.success ? '§2Success' : '§cFailed'));
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
         case 'promoteTeamMember': {
             const team = teamManager.getTeamByPlayer(player.id);
-            if (team && context.selectedItemId) {
+            if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.promoteMember(team.id, context.selectedItemId);
-                player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
+                player.sendMessage(isNonEmptyString(res.message) ? res.message : (res.success ? '§2Success' : '§cFailed'));
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
         case 'demoteTeamMember': {
             const team = teamManager.getTeamByPlayer(player.id);
-            if (team && context.selectedItemId) {
+            if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.demoteMember(team.id, context.selectedItemId);
-                player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
+                player.sendMessage(isNonEmptyString(res.message) ? res.message : (res.success ? '§2Success' : '§cFailed'));
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
         case 'transferTeamOwnership': {
             const team = teamManager.getTeamByPlayer(player.id);
-            if (team && context.selectedItemId) {
+            if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.transferOwnership(team.id, context.selectedItemId);
-                player.sendMessage(res.message || (res.success ? '§2Success' : '§cFailed'));
+                player.sendMessage(isNonEmptyString(res.message) ? res.message : (res.success ? '§2Success' : '§cFailed'));
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
@@ -163,13 +164,13 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
 
 async function kickPlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
-    if (!targetId) return;
+    if (!isNonEmptyString(targetId)) return;
     const target = getPlayerFromCache(targetId);
 
     // We can't kick offline players easily via command unless we use their name,
     // but the API requires an online player reference or a name selector.
     // If offline, we can't really kick them (they are already gone).
-    if (!target) {
+    if (!isDefined(target)) {
         player.sendMessage('§4Player is offline or not found.');
         return showPanel(player, 'playerActionsPanel', context);
     }
@@ -179,10 +180,10 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
         .textField('Reason', 'Enter reason for kick', { defaultValue: 'Kicked by admin' });
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+    if (isDefined(res) && res.canceled) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+    if (!isDefined(values)) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
     const [reason] = values as [string];
     const safeReason = utils.sanitizeString(reason, true).replaceAll('"', "'");
 
@@ -199,9 +200,9 @@ async function kickPlayer(player: mc.Player, context: UIContext) {
 
 async function mutePlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
-    if (!targetId) return;
+    if (!isNonEmptyString(targetId)) return;
     const targetData = getPlayer(targetId);
-    if (!targetData) {
+    if (!isDefined(targetData)) {
         player.sendMessage('§4Player data not found.');
         return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
     }
@@ -212,10 +213,10 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
         .textField('Reason', 'Enter reason', { defaultValue: 'Misconduct' });
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, 'playerActionsPanel', context);
+    if (isDefined(res) && res.canceled) return showPanel(player, 'playerActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, 'playerActionsPanel', context);
+    if (!isDefined(values)) return showPanel(player, 'playerActionsPanel', context);
 
     const [durationStr, reasonRaw] = values as [string, string];
     const reason = utils.sanitizeString(reasonRaw, true);
@@ -248,10 +249,10 @@ async function mutePlayer(player: mc.Player, context: UIContext) {
 
 async function unmutePlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
-    if (!targetId) return;
+    if (!isNonEmptyString(targetId)) return;
 
     const punishment = punishmentManager.getPunishment(targetId, 'mute');
-    if (!punishment) {
+    if (!isDefined(punishment)) {
         player.sendMessage('§4Player is not muted.');
         return showPanel(player, 'playerActionsPanel', context);
     }
@@ -260,7 +261,7 @@ async function unmutePlayer(player: mc.Player, context: UIContext) {
     player.sendMessage(`§2Unmuted player.`);
 
     const target = getPlayerFromCache(targetId);
-    if (target) {
+    if (isDefined(target)) {
         target.sendMessage('§2You have been unmuted.');
     }
     return showPanel(player, 'playerActionsPanel', context);
@@ -268,9 +269,9 @@ async function unmutePlayer(player: mc.Player, context: UIContext) {
 
 async function banPlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
-    if (!targetId) return;
+    if (!isNonEmptyString(targetId)) return;
     const targetData = getPlayer(targetId);
-    if (!targetData) {
+    if (!isDefined(targetData)) {
         player.sendMessage('§4Player data not found.');
         return showPanel(player, 'playerActionsPanel', context);
     }
@@ -281,10 +282,10 @@ async function banPlayer(player: mc.Player, context: UIContext) {
         .textField('Reason', 'Enter reason', { defaultValue: 'Violation of rules' });
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, 'playerActionsPanel', context);
+    if (isDefined(res) && res.canceled) return showPanel(player, 'playerActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, 'playerActionsPanel', context);
+    if (!isDefined(values)) return showPanel(player, 'playerActionsPanel', context);
 
     const [durationStr, reasonRaw] = values as [string, string];
     const reason = utils.sanitizeString(reasonRaw, true).replaceAll('"', "'");
@@ -313,7 +314,7 @@ async function banPlayer(player: mc.Player, context: UIContext) {
     );
 
     const target = getPlayerFromCache(targetId);
-    if (target) {
+    if (isDefined(target)) {
         // Kick immediately
         try {
             player.dimension.runCommand(
@@ -329,10 +330,10 @@ async function banPlayer(player: mc.Player, context: UIContext) {
 
 async function freezePlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
-    if (!targetId) return;
+    if (!isNonEmptyString(targetId)) return;
     const target = getPlayerFromCache(targetId);
 
-    if (!target) {
+    if (!isDefined(target)) {
         player.sendMessage('§4Player is offline.');
         return showPanel(player, 'playerActionsPanel', context);
     }
@@ -346,10 +347,10 @@ async function freezePlayer(player: mc.Player, context: UIContext) {
 
 async function unfreezePlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
-    if (!targetId) return;
+    if (!isNonEmptyString(targetId)) return;
     const target = getPlayerFromCache(targetId);
 
-    if (!target) {
+    if (!isDefined(target)) {
         player.sendMessage('§4Player is offline.');
         return showPanel(player, 'playerActionsPanel', context);
     }
@@ -362,20 +363,20 @@ async function unfreezePlayer(player: mc.Player, context: UIContext) {
 
 async function tpaPlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
-    if (!targetId) return;
+    if (!isNonEmptyString(targetId)) return;
 
     // Visibility Check
     const targetData = getPlayer(targetId);
-    if (targetData && targetData.isVanished) {
+    if (isDefined(targetData) && targetData.isVanished) {
         const observerData = getPlayer(player.id);
-        if (!observerData || observerData.permissionLevel > 2) {
+        if (!isDefined(observerData) || observerData.permissionLevel > 2) {
             player.sendMessage('§4Player is offline.');
             return showPanel(player, 'playerActionsPanel', context);
         }
     }
 
     const target = getPlayerFromCache(targetId);
-    if (!target) {
+    if (!isDefined(target)) {
         player.sendMessage('§4Player is offline.');
         return showPanel(player, 'playerActionsPanel', context);
     }
@@ -387,20 +388,20 @@ async function tpaPlayer(player: mc.Player, context: UIContext) {
 
 async function tpaherePlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
-    if (!targetId) return;
+    if (!isNonEmptyString(targetId)) return;
 
     // Visibility Check
     const targetData = getPlayer(targetId);
-    if (targetData && targetData.isVanished) {
+    if (isDefined(targetData) && targetData.isVanished) {
         const observerData = getPlayer(player.id);
-        if (!observerData || observerData.permissionLevel > 2) {
+        if (!isDefined(observerData) || observerData.permissionLevel > 2) {
             player.sendMessage('§4Player is offline.');
             return showPanel(player, 'playerActionsPanel', context);
         }
     }
 
     const target = getPlayerFromCache(targetId);
-    if (!target) {
+    if (!isDefined(target)) {
         player.sendMessage('§4Player is offline.');
         return showPanel(player, 'playerActionsPanel', context);
     }
@@ -412,9 +413,9 @@ async function tpaherePlayer(player: mc.Player, context: UIContext) {
 
 async function reportPlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
-    if (!targetId) return;
+    if (!isNonEmptyString(targetId)) return;
     const targetData = getPlayer(targetId);
-    if (!targetData) {
+    if (!isDefined(targetData)) {
         player.sendMessage('§4Player data not found.');
         return showPanel(player, 'playerActionsPanel', context);
     }
@@ -424,13 +425,13 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
         .textField('Reason', 'Why are you reporting this player?');
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+    if (isDefined(res) && res.canceled) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+    if (!isDefined(values)) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
     const [reasonRaw] = values as [string];
-    if (!reasonRaw) {
+    if (!isNonEmptyString(reasonRaw)) {
         player.sendMessage('§4Reason is required.');
         return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
     }
@@ -443,22 +444,22 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
 
 async function bountyPlayer(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
-    if (!targetId) return;
+    if (!isNonEmptyString(targetId)) return;
     const targetData = getPlayer(targetId);
 
     // Check if player has enough money
     const myData = getPlayer(player.id);
-    if (!myData) return showPanel(player, 'bountyActionsPanel', context);
+    if (!isDefined(myData)) return showPanel(player, 'bountyActionsPanel', context);
 
     const form = new ModalFormData()
-        .title(`Set Bounty: ${targetData?.name}`)
+        .title(`Set Bounty: ${isDefined(targetData) ? targetData.name : 'Unknown'}`)
         .textField('Amount', 'Enter bounty amount (e.g. 100, 2.5k)');
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, 'bountyActionsPanel', context);
+    if (isDefined(res) && res.canceled) return showPanel(player, 'bountyActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, 'bountyActionsPanel', context);
+    if (!isDefined(values)) return showPanel(player, 'bountyActionsPanel', context);
 
     const [amountStr] = values as [string];
     const amount = utils.parseCurrency(amountStr);
@@ -489,9 +490,14 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
     // Announce?
     // Using simple boolean check directly as modules type is dynamic
     const config = configManager.getConfig() as unknown as MainConfig;
-    if (config.modules?.bounties?.announce ?? true) {
+    if (
+        ((isDefined(config.modules) && isDefined(config.modules.bounties)
+            ? config.modules.bounties.announce
+            : undefined) ??
+            true) === true
+    ) {
         mc.world.sendMessage(
-            `§6[Bounty] §r${player.name} has placed a ${utils.formatCurrency(amount)} bounty on ${targetData?.name}!`
+            `§6[Bounty] §r${player.name} has placed a ${utils.formatCurrency(amount)} bounty on ${isDefined(targetData) ? targetData.name : 'Unknown'}!`
         );
     }
     return showPanel(player, 'playerActionsPanel', context);
@@ -499,10 +505,10 @@ async function bountyPlayer(player: mc.Player, context: UIContext) {
 
 async function removePlayerBounty(player: mc.Player, context: UIContext) {
     const targetId = context.targetPlayerId as string;
-    if (!targetId) return;
+    if (!isNonEmptyString(targetId)) return;
     const targetBounty = bountyManager.getBounty(targetId);
 
-    if (!targetBounty) {
+    if (!isDefined(targetBounty)) {
         player.sendMessage('§4Target has no bounty.');
         return showPanel(player, 'bountyActionsPanel', context);
     }
@@ -512,10 +518,10 @@ async function removePlayerBounty(player: mc.Player, context: UIContext) {
         .textField(`Current Bounty: ${utils.formatCurrency(targetBounty.amount)}`, 'Amount to pay off');
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, 'bountyActionsPanel', context);
+    if (isDefined(res) && res.canceled) return showPanel(player, 'bountyActionsPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, 'bountyActionsPanel', context);
+    if (!isDefined(values)) return showPanel(player, 'bountyActionsPanel', context);
 
     const [amountStr] = values as [string];
     const amount = utils.parseCurrency(amountStr);
@@ -539,7 +545,7 @@ async function removePlayerBounty(player: mc.Player, context: UIContext) {
     }
 
     const myData = getPlayer(player.id);
-    if (!myData || myData.balance < amount) {
+    if (!isDefined(myData) || myData.balance < amount) {
         player.sendMessage(`§4Insufficient funds.`);
         return showPanel(player, 'bountyActionsPanel', context);
     }
@@ -552,7 +558,7 @@ async function removePlayerBounty(player: mc.Player, context: UIContext) {
 
 async function assignReport(player: mc.Player, context: UIContext) {
     const report = context.targetReport as reportManager.Report;
-    if (!report) return;
+    if (!isDefined(report)) return;
 
     reportManager.assignReport(report.id, player.id);
     player.sendMessage('§2Report assigned to you.');
@@ -562,7 +568,7 @@ async function assignReport(player: mc.Player, context: UIContext) {
 
 async function resolveReport(player: mc.Player, context: UIContext) {
     const report = context.targetReport as reportManager.Report;
-    if (!report) return;
+    if (!isDefined(report)) return;
 
     reportManager.resolveReport(report.id);
     player.sendMessage('§2Report marked as resolved.');
@@ -572,7 +578,7 @@ async function resolveReport(player: mc.Player, context: UIContext) {
 
 async function clearReport(player: mc.Player, context: UIContext) {
     const report = context.targetReport as reportManager.Report;
-    if (!report) return;
+    if (!isDefined(report)) return;
 
     reportManager.clearReport(report.id);
     player.sendMessage('§2Report cleared.');
@@ -585,10 +591,10 @@ async function showUnbanForm(player: mc.Player, context: UIContext) {
         .textField('Player Name (exact)', 'Enter the name of the banned player');
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, 'moderationPanel', context);
+    if (isDefined(res) && res.canceled) return showPanel(player, 'moderationPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, 'moderationPanel', context);
+    if (!isDefined(values)) return showPanel(player, 'moderationPanel', context);
 
     const [name] = values as [string];
     // We need to find ID by name. punishmentManager uses IDs.
@@ -596,7 +602,7 @@ async function showUnbanForm(player: mc.Player, context: UIContext) {
     const { getPlayerIdByName } = await import('@core/playerDataManager.js');
     const targetId = getPlayerIdByName(name);
 
-    if (!targetId) {
+    if (!isNonEmptyString(targetId)) {
         player.sendMessage('§4Player not found in database.');
         return showPanel(player, 'moderationPanel', context);
     }
@@ -612,16 +618,16 @@ async function showUnmuteForm(player: mc.Player, context: UIContext) {
         .textField('Player Name (exact)', 'Enter the name of the muted player');
 
     const res = await utils.uiWait(player, form);
-    if (res.canceled) return showPanel(player, 'moderationPanel', context);
+    if (isDefined(res) && res.canceled) return showPanel(player, 'moderationPanel', context);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return showPanel(player, 'moderationPanel', context);
+    if (!isDefined(values)) return showPanel(player, 'moderationPanel', context);
 
     const [name] = values as [string];
     const { getPlayerIdByName } = await import('@core/playerDataManager.js');
     const targetId = getPlayerIdByName(name);
 
-    if (!targetId) {
+    if (!isNonEmptyString(targetId)) {
         player.sendMessage('§4Player not found in database.');
         return showPanel(player, 'moderationPanel', context);
     }
