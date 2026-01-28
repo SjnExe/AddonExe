@@ -89,7 +89,8 @@ export function checkItem(
     updateItem: (item?: mc.ItemStack) => void
 ) {
     const bannedItems = config.bannedItems;
-    const MAX_ENCHANT_LEVEL = config.maxEnchantLevel || 5;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const MAX_ENCHANT_LEVEL = config.maxEnchantLevel ?? 5;
     let modified = false;
 
     // Check Stack Size
@@ -103,7 +104,7 @@ export function checkItem(
 
     // Check Enchants
     const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
-    if (isDefined(enchantable) && isDefined(enchantable.getEnchantments)) {
+    if (isDefined(enchantable) && 'getEnchantments' in enchantable) {
         // getEnchantments() returns readonly array
         const enchants = enchantable.getEnchantments();
         for (const enchant of enchants) {
