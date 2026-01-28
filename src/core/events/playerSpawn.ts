@@ -5,14 +5,28 @@ import { getConfig } from '../configManager.js';
 import { getKitsConfig } from '../configurations.js';
 import { frozenTag, vanishedTag } from '../constants.js';
 import { getKit, giveKitItems } from '../kitsManager.js';
-import { debugLog } from '../logger.js';
+import { debugLog, infoLog } from '../logger.js';
 import { sendMessage } from '../messaging.js';
 import { getOrCreatePlayer, updatePlayerData } from '../playerDataManager.js';
-import { updatePlayerNameTag } from '../rankManager.js';
+import { getPlayerRank, updatePlayerNameTag } from '../rankManager.js';
 import { formatLocation, formatString } from '../utils.js';
 
 export function handlePlayerJoin(player: mc.Player) {
     const pData = getOrCreatePlayer(player);
+    const config = getConfig();
+
+    // Sync Rank from Manager to PlayerData
+    // This ensures that if a player is Owner in config or has a rank tag,
+    // their internal permission data is updated immediately.
+    const calculatedRank = getPlayerRank(player, config);
+    if (pData.rankId !== calculatedRank.id || pData.permissionLevel !== calculatedRank.permissionLevel) {
+        infoLog(`[Add-on] Syncing rank for ${player.name}: ${pData.rankId} -> ${calculatedRank.id}`);
+        updatePlayerData(player.id, (d) => {
+            d.rankId = calculatedRank.id;
+            d.permissionLevel = calculatedRank.permissionLevel;
+        });
+    }
+
     // Sync vanish state from tag
     if (player.hasTag(vanishedTag)) {
         updatePlayerData(player.id, (d) => {
@@ -41,8 +55,6 @@ export function handlePlayerJoin(player: mc.Player) {
         player.addEffect('weakness', 20_000_000, { amplifier: 255, showParticles: false });
         sendMessage('§cYou are currently frozen.', player);
     }
-
-    const config = getConfig();
 
     // Custom Join Message (since RP hides vanilla)
     const joinLeaveConfig = config.playerInfo.customJoinLeave;
