@@ -79,9 +79,7 @@ function updateSidebars() {
  * @returns The text with placeholders replaced.
  */
 export function resolveGlobalPlaceholders(text: string, player?: mc.Player): string {
-    let processed = text
-        .replace('{online}', mc.world.getAllPlayers().length.toString())
-        .replace('{max_online}', '20'); // Bedrock cap usually 20-40 depending on host
+    let processed = text.replace('{online}', mc.world.getAllPlayers().length.toString()).replace('{max_online}', '20'); // Bedrock cap usually 20-40 depending on host
 
     // Leaderboard Placeholders
     const leaderboard = getLeaderboard();

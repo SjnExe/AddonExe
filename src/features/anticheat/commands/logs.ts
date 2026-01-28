@@ -5,8 +5,8 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { uiWait } from '@core/utils.js';
-import { getFlagLogs, getPunishmentLogs, FlagLog, PunishmentLog } from '@features/anticheat/logManager.js';
-import { getAvailableDates, getChatLogs, ChatLog } from '@features/moderation/chatLogManager.js';
+import { FlagLog, getFlagLogs, getPunishmentLogs, PunishmentLog } from '@features/anticheat/logManager.js';
+import { ChatLog, getAvailableDates, getChatLogs } from '@features/moderation/chatLogManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 const logsCommand: CustomCommand = {
