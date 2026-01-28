@@ -81,29 +81,29 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
     const effectivePermissionLevel = isConsole ? 0 : userPermissionLevel;
 
     if (!isDefined(cmd)) {
-         const message = `§cUnknown command: '${commandName}'.`;
-         if (executor instanceof mc.Player) {
-             sendMessage(message, executor);
-         } else {
-             executor.sendMessage(message);
-         }
-         return;
+        const message = `§cUnknown command: '${commandName}'.`;
+        if (executor instanceof mc.Player) {
+            sendMessage(message, executor);
+        } else {
+            executor.sendMessage(message);
+        }
+        return;
     }
 
-    if ((isConsole && (cmd.allowConsole ?? false) === false)) {
-         const message = `§cCommand '${commandName}' cannot be run from console.`;
-         executor.sendMessage(message);
-         return;
+    if (isConsole && (cmd.allowConsole ?? false) === false) {
+        const message = `§cCommand '${commandName}' cannot be run from console.`;
+        executor.sendMessage(message);
+        return;
     }
 
     if (effectivePermissionLevel > (cmd.permissionLevel ?? 1024)) {
-         const message = `§cYou do not have permission to view command: '${commandName}'.`;
-         if (executor instanceof mc.Player) {
-             sendMessage(message, executor);
-         } else {
-             executor.sendMessage(message);
-         }
-         return;
+        const message = `§cYou do not have permission to view command: '${commandName}'.`;
+        if (executor instanceof mc.Player) {
+            sendMessage(message, executor);
+        } else {
+            executor.sendMessage(message);
+        }
+        return;
     }
 
     const slashCommand = cmd.slashName ?? cmd.name;
@@ -147,13 +147,7 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
 
     // Filter categories: Only show if category contains at least one visible command
     for (const [cat, cmds] of allCategories) {
-        if (
-            cmds.some(
-                (c) =>
-                    userPermissionLevel <= (c.permissionLevel ?? 1024) &&
-                    (c.hidden !== true)
-            )
-        ) {
+        if (cmds.some((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true)) {
             visibleCategories.push(cat);
         }
     }
@@ -173,7 +167,7 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
     for (const categoryName of sortedCats) {
         const commands = allCategories.get(categoryName) ?? [];
         const visibleCmds = commands
-            .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && (c.hidden !== true))
+            .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true)
             .toSorted((a, b) => a.name.localeCompare(b.name));
 
         if (visibleCmds.length > 0) {
@@ -200,13 +194,7 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
     const visibleCategories: string[] = [];
 
     for (const [cat, cmds] of allCategories) {
-        if (
-            cmds.some(
-                (c) =>
-                    userPermissionLevel <= (c.permissionLevel ?? 1024) &&
-                    (c.hidden !== true)
-            )
-        ) {
+        if (cmds.some((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true)) {
             visibleCategories.push(cat);
         }
     }
@@ -238,7 +226,7 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
 async function showUICategory(player: mc.Player, category: string, userPermissionLevel: number) {
     const cmds = getCategorizedCommands().get(category) ?? [];
     const visibleCmds = cmds
-        .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && (c.hidden !== true))
+        .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true)
         .toSorted((a, b) => a.name.localeCompare(b.name));
 
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);

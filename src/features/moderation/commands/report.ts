@@ -4,8 +4,8 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { playSound } from '@core/utils.js';
-import { handleUIAction } from '@ui/actions.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { handleUIAction } from '@ui/actions.js';
 
 import * as reportManager from '../reportManager.js';
 

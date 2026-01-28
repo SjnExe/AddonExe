@@ -3,12 +3,12 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 
 import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
+import { isNonEmptyString } from '@lib/guards.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
 import { addBackButton } from '@ui/uiUtils.js';
 import { acceptFriendRequest, removeFriend, sendFriendRequest } from '../friendManager.js';
-import { isNonEmptyString } from '@lib/guards.js';
 
 export class FriendPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

@@ -126,7 +126,7 @@ export function getValueFromPath(obj: unknown, path: string): unknown {
     let current = obj;
     for (const key of path.split('.')) {
         if (isDefined(current) && isObject(current) && key in current) {
-            current = (current)[key];
+            current = current[key];
         } else {
             return undefined;
         }
