@@ -24,9 +24,7 @@ export class TeamPanelHandler implements IPanelHandler {
 
         if (panelId === 'teamManagePanel') {
             const { teamId } = context;
-            const team = isDefined(teamId)
-                ? teamManager.getTeam(Number(teamId))
-                : teamManager.getTeamByPlayer(player.id);
+            const team = isDefined(teamId) ? teamManager.getTeam(Number(teamId)) : teamManager.getTeamByPlayer(player.id);
             return isDefined(team) ? `Manage ${team.name}` : 'Manage Team';
         }
         return undefined;
@@ -441,7 +439,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 if (!isDefined(team)) {
                     // Search by name
                     const allTeams = teamManager.getAllTeams();
-                    team = allTeams.find((t) => t.name.toLowerCase() === query.toLowerCase());
+                    team = allTeams.find((t) => t.name.toLowerCase() === (query).toLowerCase());
                 }
 
                 if (isDefined(team)) {
@@ -499,11 +497,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 }
             });
 
-            if (
-                isDefined(team) &&
-                (team.ownerId === player.id || team.admins.includes(player.id)) &&
-                values.length > 1
-            ) {
+            if (isDefined(team) && (team.ownerId === player.id || team.admins.includes(player.id)) && values.length > 1) {
                 const isOpen = values[1] as boolean;
                 teamManager.updateTeamSetting(team.id, 'open', isOpen);
 
@@ -612,9 +606,7 @@ export class TeamPanelHandler implements IPanelHandler {
 
                 if (item.actionValue === 'deleteTeam') {
                     const { teamId } = context;
-                    const team = isDefined(teamId)
-                        ? teamManager.getTeam(Number(teamId))
-                        : teamManager.getTeamByPlayer(player.id);
+                    const team = isDefined(teamId) ? teamManager.getTeam(Number(teamId)) : teamManager.getTeamByPlayer(player.id);
 
                     if (isDefined(team)) {
                         await showConfirmationDialog(player, {

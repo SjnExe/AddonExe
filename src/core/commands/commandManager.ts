@@ -324,11 +324,8 @@ class CommandManager {
                 // Set Cooldown
                 if (command.hasCooldown === true) {
                     const cooldownId = command.cooldownId ?? command.name;
-                    const cmdConfig = isDefined(config.commandSettings)
-                        ? config.commandSettings[command.name]
-                        : undefined;
-                    const duration =
-                        (isDefined(cmdConfig) ? cmdConfig.cooldownSeconds : undefined) ?? command.defaultCooldown ?? 0;
+                    const cmdConfig = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
+                    const duration = (isDefined(cmdConfig) ? cmdConfig.cooldownSeconds : undefined) ?? command.defaultCooldown ?? 0;
                     if (duration > 0) {
                         setCooldownCustom(player.id, cooldownId, duration);
                     }
@@ -470,7 +467,9 @@ class CommandManager {
         nameOverride: string,
         registry: mc.CustomCommandRegistry
     ): mc.CustomCommand {
-        const slashCommandName = isNonEmptyString(nameOverride) ? nameOverride : (command.slashName ?? command.name);
+        const slashCommandName = isNonEmptyString(nameOverride)
+            ? nameOverride
+            : (command.slashName ?? command.name);
         const mandatoryParameters = (command.parameters ?? [])
             .filter((p) => p.optional !== true)
             .map((p) => this.formatParameter(p, slashCommandName, registry));
@@ -505,10 +504,7 @@ class CommandManager {
             const options = typeof param.enumOptions === 'function' ? param.enumOptions() : param.enumOptions;
 
             if (Array.isArray(options) && options.length > 0) {
-                const safeCmdName = (isNonEmptyString(commandName) ? commandName : 'cmd').replaceAll(
-                    /[^a-zA-Z0-9_]/g,
-                    ''
-                );
+                const safeCmdName = (isNonEmptyString(commandName) ? commandName : 'cmd').replaceAll(/[^a-zA-Z0-9_]/g, '');
                 const safeParamName = param.name.replaceAll(/[^a-zA-Z0-9_]/g, '');
                 const enumName = `${this.prefix}:${safeCmdName}_${safeParamName}`;
 

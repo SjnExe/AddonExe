@@ -10,7 +10,9 @@ import { isDefined } from '@lib/guards.js';
  * @param reason The reason for saving ('death' or 'teleport'). Defaults to 'teleport'.
  */
 export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport' = 'teleport') {
+
     if (!isDefined(player)) return;
+
 
     if (typeof player.isValid === 'function') {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unsafe-member-access
@@ -27,6 +29,7 @@ export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport'
 
     // Use optional chaining and defaults
     const backConfig = config.back as { saveOnDeath?: boolean; saveOnTeleport?: boolean } | undefined;
+
 
     if (reason === 'death' && backConfig?.saveOnDeath !== true) return;
 

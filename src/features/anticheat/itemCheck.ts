@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { errorLog } from '@core/logger.js';
 import { isDefined } from '@lib/guards.js';
+import { errorLog } from '@core/logger.js';
 
 import { AnticheatConfig, getAnticheatConfig } from './anticheatConfigLoader.js';
 import { flag } from './flagManager.js';

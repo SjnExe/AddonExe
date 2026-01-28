@@ -16,10 +16,7 @@ export class Dimension {
 }
 
 export class BlockVolume {
-    constructor(
-        public from: { x: number; y: number; z: number },
-        public to: { x: number; y: number; z: number }
-    ) {}
+    constructor(public from: {x:number,y:number,z:number}, public to: {x:number,y:number,z:number}) {}
 }
 
 export const world = {

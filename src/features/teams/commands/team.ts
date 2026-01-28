@@ -72,7 +72,7 @@ const hqCommand: CustomCommand = {
 
         try {
             const dimension = mc.world.getDimension(dimensionId);
-            startTeleportWarmup(
+             startTeleportWarmup(
                 executor,
                 teamConfig.teleportWarmupSeconds,
                 () => {
@@ -86,7 +86,7 @@ const hqCommand: CustomCommand = {
                 'team home'
             );
         } catch {
-            executor.sendMessage('§cError: Team home dimension is invalid or unloaded.');
+             executor.sendMessage('§cError: Team home dimension is invalid or unloaded.');
         }
     }
 };

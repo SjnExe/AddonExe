@@ -3,9 +3,9 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 
 import { getXrayConfig, saveXrayConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export class XrayPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -158,13 +158,7 @@ export class XrayPanelHandler implements IPanelHandler {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'xrayOresPanel');
             if (!isDefined(values)) return showPanel(player, 'xrayOresPanel');
             const [id, name, blockId, dimId, minY, maxY] = values as string[];
-            if (
-                isNonEmptyString(id) &&
-                isNonEmptyString(name) &&
-                isNonEmptyString(blockId) &&
-                isNonEmptyString(minY) &&
-                isNonEmptyString(maxY)
-            ) {
+            if (isNonEmptyString(id) && isNonEmptyString(name) && isNonEmptyString(blockId) && isNonEmptyString(minY) && isNonEmptyString(maxY)) {
                 const config = getXrayConfig();
                 config.monitoredOreTypes[id] = {
                     enabled: true,

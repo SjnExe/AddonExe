@@ -99,6 +99,7 @@ const muteCommand: CustomCommand = {
         }
 
         if (isDefined(duration) && parseDuration(duration) === 0) {
+
             reason = `${duration}${isDefined(reason) ? ' ' + reason : ''}`;
             duration = undefined;
         }

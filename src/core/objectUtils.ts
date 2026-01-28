@@ -65,8 +65,7 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
     for (const key of keysA) {
         if (
             !Object.prototype.hasOwnProperty.call(b, key) ||
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            !isDeepEqual((a as any)[key], (b as any)[key], map)
+            !isDeepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], map)
         ) {
             return false;
         }
@@ -127,7 +126,7 @@ export function getValueFromPath(obj: unknown, path: string): unknown {
     let current = obj;
     for (const key of path.split('.')) {
         if (isDefined(current) && isObject(current) && key in current) {
-            current = current[key];
+            current = (current)[key];
         } else {
             return undefined;
         }

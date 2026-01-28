@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { uiWait } from '@core/utils.js';
-import { FlagLog, getFlagLogs, getPunishmentLogs, PunishmentLog } from '@features/anticheat/logManager.js';
-import { ChatLog, getAvailableDates, getChatLogs } from '@features/moderation/chatLogManager.js';
+import { getFlagLogs, getPunishmentLogs, FlagLog, PunishmentLog } from '@features/anticheat/logManager.js';
+import { getAvailableDates, getChatLogs, ChatLog } from '@features/moderation/chatLogManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 const logsCommand: CustomCommand = {
@@ -52,8 +52,12 @@ async function showPunishmentFilter(player: mc.Player) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return;
 
-    const nameQuery = (values![0] as string | undefined) ?? '';
-    const typeIndex = values![1] as number;
+    const nameVal = values[0];
+    const nameQuery = (typeof nameVal === 'string' ? nameVal : undefined) ?? '';
+    const typeIndex = values[1];
+
+    if (typeof typeIndex !== 'number') return;
+
     const types = ['All', 'Ban', 'Mute', 'Kick', 'Warn'];
     const selectedType = types[typeIndex];
     const typeFilter = selectedType === 'All' || selectedType === undefined ? undefined : selectedType.toLowerCase();
@@ -145,7 +149,8 @@ async function showFlagFilter(player: mc.Player) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return;
 
-    const nameQuery = (values![0] as string | undefined) ?? '';
+    const nameVal = values[0];
+    const nameQuery = (typeof nameVal === 'string' ? nameVal : undefined) ?? '';
 
     await showFlagLogs(player, 1, nameQuery);
 }
@@ -241,11 +246,16 @@ export async function showChatFilter(player: mc.Player) {
 
     const values = (res as ModalFormResponse).formValues;
     if (!values) return;
-    const dateIndex = values![0] as number;
 
-    const nameQuery = (values![1] as string | undefined) ?? '';
+    const dateIndex = values[0];
+    const nameVal = values[1];
+    const keywordVal = values[2];
 
-    const keywordQuery = (values![2] as string | undefined) ?? '';
+    if (typeof dateIndex !== 'number') return;
+
+    const nameQuery = (typeof nameVal === 'string' ? nameVal : undefined) ?? '';
+    const keywordQuery = (typeof keywordVal === 'string' ? keywordVal : undefined) ?? '';
+
     const date = dates[dateIndex];
     if (!isNonEmptyString(date)) return;
 
@@ -343,8 +353,10 @@ async function showLogSettings(player: mc.Player) {
     const values = (res as ModalFormResponse).formValues;
     if (!values) return;
 
-    const enabled = values![0] as boolean;
-    const daysStr = values![1] as string;
+    const enabled = values[0];
+    const daysStr = values[1];
+
+    if (typeof enabled !== 'boolean' || typeof daysStr !== 'string') return;
     let days = Number.parseInt(daysStr, 10);
     if (Number.isNaN(days) || days < 1) days = 1;
 

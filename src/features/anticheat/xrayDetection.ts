@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined } from '@lib/guards.js';
 import { getXrayConfig } from '@core/configurations.js';
 import { warnLog } from '@core/logger.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
 import { formatString } from '@core/utils.js';
 import { MonitoredOreType } from '@core/xrayConfig.default.js';
-import { isDefined } from '@lib/guards.js';
 
 interface AlertData {
     count: number;
@@ -82,10 +82,7 @@ function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Ve
     const onlinePlayers = getAllPlayersFromCache();
     for (const onlinePlayer of onlinePlayers) {
         const pData = getOrCreatePlayer(onlinePlayer);
-        const requiredLevel =
-            (isDefined(xrayConfig.notifications.alertPermissionLevel)
-                ? xrayConfig.notifications.alertPermissionLevel
-                : undefined) ?? 2;
+        const requiredLevel = (isDefined(xrayConfig.notifications.alertPermissionLevel) ? xrayConfig.notifications.alertPermissionLevel : undefined) ?? 2;
 
         if (isDefined(pData) && pData.permissionLevel <= requiredLevel && pData.xrayNotificationsEnabled === true) {
             try {

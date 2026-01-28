@@ -114,8 +114,7 @@ const oPayCommand: CustomCommand = {
         if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
 
         const sourceData = getPlayer(executor.id);
-        if (!isDefined(sourceData) || sourceData.balance < amount)
-            return sendMessage('§cInsufficient funds.', executor);
+        if (!isDefined(sourceData) || sourceData.balance < amount) return sendMessage('§cInsufficient funds.', executor);
 
         // Confirmation logic supports offline ID too
         if (amount > config.economy.paymentConfirmationThreshold) {

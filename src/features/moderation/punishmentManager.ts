@@ -231,8 +231,11 @@ export function removePunishment(playerId: string, type: PunishmentType) {
 export function initializePunishmentManager() {
     // Periodically clear expired punishments and save to the world
     const config = getConfig();
-    mc.system.runInterval(() => {
-        clearExpiredPunishments();
-        savePunishments();
-    }, config.data.autoSaveIntervalSeconds * 20);
+    mc.system.runInterval(
+        () => {
+            clearExpiredPunishments();
+            savePunishments();
+        },
+        (config.data.autoSaveIntervalSeconds) * 20
+    );
 }

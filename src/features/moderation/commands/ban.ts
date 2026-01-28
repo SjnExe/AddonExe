@@ -38,7 +38,7 @@ export function banPlayer(
 
     const durationString = isDefined(duration) ? duration : 'perm';
     const durationMs = isDefined(duration) ? parseDuration(duration) : Infinity;
-    const expires = durationMs === Infinity ? Infinity : Date.now() + durationMs;
+    const expires = durationMs === Infinity ? Infinity : Date.now() + (durationMs);
     const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
 
     addPunishment(
@@ -111,6 +111,7 @@ const banCommand: CustomCommand = {
         }
 
         if (isDefined(duration) && parseDuration(duration) === 0) {
+
             reason = `${duration}${isDefined(reason) ? ' ' + reason : ''}`;
             duration = undefined;
         }
@@ -205,7 +206,7 @@ export function offlineBanPlayer(
 
     const durationString = isDefined(duration) ? duration : 'perm';
     const durationMs = isDefined(duration) ? parseDuration(duration) : Infinity;
-    const expires = durationMs === Infinity ? Infinity : Date.now() + durationMs;
+    const expires = durationMs === Infinity ? Infinity : Date.now() + (durationMs);
     const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
 
     addPunishment(
@@ -274,6 +275,7 @@ const offlineBanCommand: CustomCommand = {
         const correctTargetName = isDefined(targetData) ? targetData.name : targetName;
 
         if (isDefined(duration) && parseDuration(duration) === 0) {
+
             reason = `${duration}${isDefined(reason) ? ' ' + reason : ''}`;
             duration = undefined;
         }
