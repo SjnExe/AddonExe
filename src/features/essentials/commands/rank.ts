@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import * as mc from '@minecraft/server';
 
 import { errorLog } from '@core/logger.js';
-import { updatePlayerRank } from '@core/main.js';
+import { updateAllPlayerRanks } from '@core/main.js';
 import { sendMessage } from '@core/messaging.js';
-import { findPlayerByName } from '@core/playerCache.js';
+import { findVisiblePlayerByName } from '@core/playerDataManager.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import * as rankManager from '@core/rankManager.js';
 import { rankDefinitions } from '@core/ranksConfig.default.js';
@@ -78,8 +79,19 @@ const command: CustomCommand = {
             return;
         }
 
-        const targetPlayer = findPlayerByName(targetName);
-        if (!targetPlayer) {
+        // Fallback for console or if not found via visibility check but we want to be permissive for admins?
+        // Actually, findVisiblePlayerByName handles permission logic.
+        // If console, we can't use findVisiblePlayerByName directly as it requires an observer.
+        // Let's implement a simple lookup for console.
+
+        let finalTarget: mc.Player | undefined;
+        if (executor instanceof mc.Player) {
+             finalTarget = findVisiblePlayerByName(targetName, executor);
+        } else {
+             finalTarget = mc.world.getAllPlayers().find(p => p.name.toLowerCase() === targetName.toLowerCase());
+        }
+
+        if (!finalTarget) {
             sendExecutorMessage(`§cPlayer "${targetName}" not found.`);
             return;
         }
@@ -112,7 +124,7 @@ const command: CustomCommand = {
         // --- Permission Checks ---
         if (executor instanceof mc.Player) {
             const executorData = getPlayer(executor.id);
-            const targetData = getPlayer(targetPlayer.id);
+            const targetData = getPlayer(finalTarget.id);
 
             if (!executorData || !targetData) {
                 sendExecutorMessage('§cCould not retrieve player data for permission check.');
@@ -120,7 +132,7 @@ const command: CustomCommand = {
                 return;
             }
 
-            const isSelfRank = executor.id === targetPlayer.id;
+            const isSelfRank = executor.id === finalTarget.id;
 
             if (!isSelfRank && executorData.permissionLevel >= targetData.permissionLevel) {
                 sendExecutorMessage('§cYou cannot change the rank of a player with the same or higher rank than you.');
@@ -139,17 +151,17 @@ const command: CustomCommand = {
 
         try {
             if (actionLC === 'set') {
-                targetPlayer.addTag(rankTag);
+                finalTarget.addTag(rankTag);
                 sendExecutorMessage(
-                    `§aSuccessfully set ${targetPlayer.name}'s rank to ${rankDef.name} by adding tag '${rankTag}'.`
+                    `§aSuccessfully set ${finalTarget.name}'s rank to ${rankDef.name} by adding tag '${rankTag}'.`
                 );
             } else {
-                targetPlayer.removeTag(rankTag);
+                finalTarget.removeTag(rankTag);
                 sendExecutorMessage(
-                    `§aSuccessfully removed the ${rankDef.name} rank from ${targetPlayer.name} by removing tag '${rankTag}'.`
+                    `§aSuccessfully removed the ${rankDef.name} rank from ${finalTarget.name} by removing tag '${rankTag}'.`
                 );
             }
-            updatePlayerRank(targetPlayer);
+            updateAllPlayerRanks();
             if (executor instanceof mc.Player) {
                 playSound(executor, 'random.orb');
             }

@@ -239,7 +239,7 @@ export function handlePvPDeath(victim: mc.Player, killer: mc.Player): boolean {
         const victimData = getPlayer(victim.id);
         if (!victimData) return true; // Victim data gone, can't proceed
 
-        const stealPercent = config.defaultWinPercent ?? 100;
+        const stealPercent = config.defaultWinPercent;
         let winnings = Math.floor(victimData.balance * (stealPercent / 100));
 
         if (winnings > 0) {

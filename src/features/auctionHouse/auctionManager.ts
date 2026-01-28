@@ -6,6 +6,7 @@ import { debugLog, errorLog } from '@core/logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { formatCurrency } from '@core/utils.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export interface AuctionListing {
     id: string; // Unique ID (UUID)
@@ -160,7 +161,7 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
     const inventory = buyer.getComponent('inventory') as mc.EntityInventoryComponent;
     let itemGiven = false;
 
-    if (inventory && inventory.container && inventory.container.emptySlotsCount > 0) {
+    if (isDefined(inventory) && isDefined(inventory.container) && inventory.container.emptySlotsCount > 0) {
         const itemStack = deserializeItem(listing.item);
         if (itemStack) {
             const leftovers = inventory.container.addItem(itemStack);
@@ -170,7 +171,9 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
                 addItemToMailbox(buyer.id, sLeftover);
                 buyer.sendMessage(`§aPurchased! §eSome items didn't fit and were sent to your Collection Bin.`);
             } else {
-                buyer.sendMessage(`§aYou purchased ${listing.item.nameTag || listing.item.typeId}!`);
+                buyer.sendMessage(
+                    `§aYou purchased ${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId}!`
+                );
             }
             itemGiven = true;
         } else {
@@ -205,12 +208,12 @@ export function placeBid(bidder: mc.Player, listingId: string, amount: number): 
 
     const bidderData = getOrCreatePlayer(bidder);
 
-    const minBid = listing.bidPrice || listing.price; // Must exceed current bid? Or match start price?
+    const minBid = listing.bidPrice ?? listing.price; // Must exceed current bid? Or match start price?
     // If no bids, amount >= price.
     // If bids, amount > bidPrice.
 
     let required = minBid;
-    if (listing.highestBidderId) {
+    if (isNonEmptyString(listing.highestBidderId)) {
         required = minBid + 1; // Min increment 1? Or 5%?
     }
 
@@ -223,7 +226,7 @@ export function placeBid(bidder: mc.Player, listingId: string, amount: number): 
     }
 
     // Return money to previous bidder
-    if (listing.highestBidderId && listing.bidPrice) {
+    if (isNonEmptyString(listing.highestBidderId) && isDefined(listing.bidPrice)) {
         sendMoneyToPlayer(listing.highestBidderId, listing.bidPrice);
         // Notify previous bidder if online?
         // We can't easily notify offline.
@@ -254,7 +257,6 @@ function* checkExpiredAuctionsJob() {
     const entries = [...activeListings.entries()];
 
     for (const [i, entry] of entries.entries()) {
-        if (!entry) continue;
         const [id, listing] = entry;
 
         // Ensure listing still exists (Race Condition Check)
@@ -264,7 +266,7 @@ function* checkExpiredAuctionsJob() {
         if (now >= expiry) {
             expired.push(id);
 
-            if (listing.isBid && listing.highestBidderId && listing.bidPrice) {
+            if (listing.isBid && isNonEmptyString(listing.highestBidderId) && isDefined(listing.bidPrice)) {
                 // Auction Won!
                 // Give Item to Winner
                 addItemToMailbox(listing.highestBidderId, listing.item);
@@ -304,7 +306,7 @@ function sendMoneyToPlayer(playerId: string, amount: number) {
 }
 
 function addItemToMailbox(playerId: string, item: SerializedItem) {
-    if (!item) return;
+    if (!isDefined(item)) return;
     updatePlayerData(playerId, (d) => {
         d.mailbox.push(item);
     });
@@ -320,12 +322,13 @@ export function claimMailbox(player: mc.Player): { success: boolean; message: st
     const pData = getOrCreatePlayer(player);
     const mailbox = pData.mailbox;
 
-    if (!mailbox || mailbox.length === 0) {
+    if (mailbox.length === 0) {
         return { success: false, message: '§cYour Collection Bin is empty.' };
     }
 
     const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
-    if (!inventory || !inventory.container) return { success: false, message: '§cInventory error.' };
+    if (!isDefined(inventory) || !isDefined(inventory.container))
+        return { success: false, message: '§cInventory error.' };
 
     let claimed = 0;
     const remainingItems: SerializedItem[] = [];
@@ -365,19 +368,20 @@ export function claimMailboxItem(player: mc.Player, index: number): { success: b
     const pData = getOrCreatePlayer(player);
     const mailbox = pData.mailbox;
 
-    if (!mailbox || index < 0 || index >= mailbox.length) {
+    if (index < 0 || index >= mailbox.length) {
         return { success: false, message: '§cItem not found.' };
     }
 
     const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
-    if (!inventory || !inventory.container) return { success: false, message: '§cInventory error.' };
+    if (!isDefined(inventory) || !isDefined(inventory.container))
+        return { success: false, message: '§cInventory error.' };
 
     if (inventory.container.emptySlotsCount === 0) {
         return { success: false, message: '§cInventory full.' };
     }
 
     const sItem = mailbox[index];
-    if (!sItem) return { success: false, message: '§cItem not found.' };
+    if (!isDefined(sItem)) return { success: false, message: '§cItem not found.' };
 
     const stack = deserializeItem(sItem);
 
@@ -412,16 +416,16 @@ export function getListings(
 ): AuctionListing[] {
     let all = [...activeListings.values()];
 
-    if (sellerId) {
+    if (isNonEmptyString(sellerId)) {
         all = all.filter((l) => l.sellerId === sellerId);
     }
 
-    if (searchQuery) {
+    if (isNonEmptyString(searchQuery)) {
         const query = searchQuery.toLowerCase();
         all = all.filter(
             (l) =>
                 l.item.typeId.toLowerCase().includes(query) ||
-                (l.item.nameTag && l.item.nameTag.toLowerCase().includes(query)) ||
+                (isNonEmptyString(l.item.nameTag) && l.item.nameTag.toLowerCase().includes(query)) ||
                 l.sellerName.toLowerCase().includes(query)
         );
     }
@@ -455,15 +459,15 @@ export function getListings(
 }
 
 export function getListingsCount(searchQuery?: string, sellerId?: string): number {
-    if (!searchQuery && !sellerId) return activeListings.size;
-    const query = searchQuery ? searchQuery.toLowerCase() : '';
+    if (!isNonEmptyString(searchQuery) && !isNonEmptyString(sellerId)) return activeListings.size;
+    const query = isNonEmptyString(searchQuery) ? searchQuery.toLowerCase() : '';
     let count = 0;
     for (const l of activeListings.values()) {
-        if (sellerId && l.sellerId !== sellerId) continue;
+        if (isNonEmptyString(sellerId) && l.sellerId !== sellerId) continue;
         if (
             query &&
             !l.item.typeId.toLowerCase().includes(query) &&
-            (!l.item.nameTag || !l.item.nameTag.toLowerCase().includes(query)) &&
+            (!isNonEmptyString(l.item.nameTag) || !l.item.nameTag.toLowerCase().includes(query)) &&
             !l.sellerName.toLowerCase().includes(query)
         ) {
             continue;
@@ -485,7 +489,7 @@ export function cancelListing(player: mc.Player, listingId: string): { success: 
         }
     }
 
-    if (listing.isBid && listing.highestBidderId) {
+    if (listing.isBid && isNonEmptyString(listing.highestBidderId)) {
         return { success: false, message: '§cCannot cancel an auction with active bids.' };
     }
 

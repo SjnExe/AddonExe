@@ -1,21 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { uiWait } from '@core/utils.js';
-import { getAvailableDates, getChatLogs } from '@features/moderation/chatLogManager.js';
-import { getFlagLogs, getPunishmentLogs } from '../logManager.js';
+import { getFlagLogs, getPunishmentLogs, FlagLog, PunishmentLog } from '@features/anticheat/logManager.js';
+import { getAvailableDates, getChatLogs, ChatLog } from '@features/moderation/chatLogManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 const logsCommand: CustomCommand = {
     name: 'logs',
-    aliases: ['aclogs', 'history'],
-    description: 'View logs (Punishments, Anti-Cheat, Chat).',
+    description: 'View punishment, anticheat, and chat logs.',
     category: 'Moderation',
-    permissionLevel: 2,
-    allowConsole: false,
+    permissionLevel: 1, // Admin only
     execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
         await showLogsMenu(executor);
@@ -25,41 +23,19 @@ const logsCommand: CustomCommand = {
 async function showLogsMenu(player: mc.Player) {
     const form = new ActionFormData()
         .title('Logs Menu')
-        .button('Punishment Logs', 'textures/ui/icon_book_writable')
-        .button('Flag Logs', 'textures/ui/icon_book_writable')
+        .button('Punishment Logs', 'textures/ui/hammer_l')
+        .button('Anti-Cheat Flags', 'textures/items/diamond_sword')
         .button('Chat Logs', 'textures/ui/chat_icon')
-        .button('Settings', 'textures/ui/settings_glyph_color_2x')
-        .button('Close');
+        .button('Settings', 'textures/ui/settings_glyph');
 
     const response = await uiWait(player, form);
     if (!isDefined(response) || response.canceled) return;
 
     const selection = (response as ActionFormResponse).selection;
-    if (!isDefined(selection)) return;
-
-    switch (selection) {
-        case 0: {
-            await showPunishmentFilter(player);
-
-            break;
-        }
-        case 1: {
-            await showFlagFilter(player);
-
-            break;
-        }
-        case 2: {
-            await showChatFilter(player);
-
-            break;
-        }
-        case 3: {
-            await showLogSettings(player);
-
-            break;
-        }
-        // No default
-    }
+    if (selection === 0) await showPunishmentFilter(player);
+    if (selection === 1) await showFlagFilter(player);
+    if (selection === 2) await showChatFilter(player);
+    if (selection === 3) await showLogSettings(player);
 }
 
 // --- Punishments ---
@@ -68,7 +44,7 @@ async function showPunishmentFilter(player: mc.Player) {
     const modal = new ModalFormData()
         .title('Filter Punishments')
         .textField('Player Name (Optional)', 'Search...')
-        .dropdown('Type', ['All', 'Ban', 'Mute', 'Warn', 'Kick'], { defaultValueIndex: 0 });
+        .dropdown('Type', ['All', 'Ban', 'Mute', 'Kick', 'Warn'], { defaultValueIndex: 0 });
 
     const res = await uiWait(player, modal);
     if (!isDefined(res) || res.canceled) return showLogsMenu(player);
@@ -76,17 +52,16 @@ async function showPunishmentFilter(player: mc.Player) {
     const values = (res as ModalFormResponse).formValues;
     if (!isDefined(values)) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const nameQuery = (values[0] as string | undefined) ?? '';
     const typeIndex = values[1] as number;
-    const types = [undefined, 'ban', 'mute', 'warn', 'kick'];
-    const typeFilter = types[typeIndex];
+    const types = ['All', 'Ban', 'Mute', 'Kick', 'Warn'];
+    const typeFilter = types[typeIndex] === 'All' ? undefined : types[typeIndex].toLowerCase();
 
     await showPunishmentLogs(player, 1, nameQuery, typeFilter);
 }
 
 async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: string, typeFilter?: string) {
-    let logs = getPunishmentLogs().toSorted((a, b) => b.timestamp - a.timestamp);
+    let logs = getPunishmentLogs().toSorted((a: PunishmentLog, b: PunishmentLog) => b.timestamp - a.timestamp);
 
     // Filtering
     if (isNonEmptyString(nameQuery)) {
@@ -129,6 +104,7 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
 
     if (selection < slice.length) {
         const log = slice[selection];
+
         if (!isDefined(log)) return;
         const detail = `Player: ${log.playerName}\nType: ${log.type}\nReason: ${log.reason}\nAdmin: ${log.adminName}\nDate: ${new Date(log.timestamp).toLocaleString()}\nDuration: ${(isNonEmptyString(log.duration) ? log.duration : undefined) ?? 'N/A'}`;
         const detailForm = new ActionFormData().title('Log Detail').body(detail).button('Back');
@@ -167,14 +143,14 @@ async function showFlagFilter(player: mc.Player) {
 
     const values = (res as ModalFormResponse).formValues;
     if (!isDefined(values)) return;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     const nameQuery = (values[0] as string | undefined) ?? '';
 
     await showFlagLogs(player, 1, nameQuery);
 }
 
 async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string) {
-    let logs = getFlagLogs().toSorted((a, b) => b.timestamp - a.timestamp);
+    let logs = getFlagLogs().toSorted((a: FlagLog, b: FlagLog) => b.timestamp - a.timestamp);
 
     if (isNonEmptyString(nameQuery)) {
         const q = nameQuery.toLowerCase();
@@ -213,6 +189,7 @@ async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string)
 
     if (selection < slice.length) {
         const log = slice[selection];
+
         if (!isDefined(log)) return;
         const detail = `Player: ${log.playerName}\nCheck: ${log.checkName}\nVL: ${log.vl}\nDetails: ${log.details}\nTime: ${new Date(log.timestamp).toLocaleString()}`;
         const detailForm = new ActionFormData().title('Flag Detail').body(detail).button('Back');
@@ -264,9 +241,9 @@ export async function showChatFilter(player: mc.Player) {
     const values = (res as ModalFormResponse).formValues;
     if (!isDefined(values)) return;
     const dateIndex = values[0] as number;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     const nameQuery = (values[1] as string | undefined) ?? '';
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     const keywordQuery = (values[2] as string | undefined) ?? '';
     const date = dates[dateIndex];
     if (!isNonEmptyString(date)) return;
@@ -275,7 +252,7 @@ export async function showChatFilter(player: mc.Player) {
 }
 
 async function showChatLogs(player: mc.Player, page: number, date: string, nameQuery?: string, keyword?: string) {
-    let logs = getChatLogs(date).toSorted((a, b) => b.timestamp - a.timestamp);
+    let logs = getChatLogs(date).toSorted((a: ChatLog, b: ChatLog) => b.timestamp - a.timestamp);
 
     if (isNonEmptyString(nameQuery)) {
         const q = nameQuery.toLowerCase();
@@ -319,6 +296,7 @@ async function showChatLogs(player: mc.Player, page: number, date: string, nameQ
 
     if (selection < slice.length) {
         const log = slice[selection];
+
         if (!isDefined(log)) return;
         const detail = `Player: ${log.playerName}\nRank: ${(isNonEmptyString(log.rank) ? log.rank : undefined) ?? 'Default'}\nTime: ${new Date(log.timestamp).toLocaleString()}\n\nMessage:\n${log.message}`;
         const detailForm = new ActionFormData().title('Chat Detail').body(detail).button('Back');
@@ -349,13 +327,13 @@ async function showChatLogs(player: mc.Player, page: number, date: string, nameQ
 
 async function showLogSettings(player: mc.Player) {
     const config = getConfig();
-    const chatConfig = isDefined(config.chat) ? config.chat : {};
+    const chatConfig = config.chat;
 
     const modal = new ModalFormData()
         .title('Log Settings')
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+
         .toggle('Enable Chat Logging', { defaultValue: chatConfig.loggingEnabled ?? true })
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
+
         .textField('Chat Log Expiration (Days)', '7', { defaultValue: String(chatConfig.logExpirationDays ?? 7) });
 
     const res = await uiWait(player, modal);

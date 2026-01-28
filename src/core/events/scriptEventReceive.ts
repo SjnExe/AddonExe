@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor } from '@commands/commandManager.js';
 
+import { isNonEmptyString } from '@lib/guards.js';
 import { getConfig, updateConfig } from '../configManager.js';
 import { errorLog, infoLog, warnLog } from '../logger.js';
 import { updateAllPlayerRanks } from '../main.js';
@@ -20,9 +21,6 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
     }
 
     const config = getConfig(); // Config should be loaded by the time this event fires for custom events.
-    if (!config) {
-        return;
-    }
 
     switch (id) {
         case 'exe:restart': {
@@ -41,7 +39,7 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
         }
 
         case 'exe:toggle_chat_log': {
-            const chatConfig = config.chat || { logToConsole: false };
+            const chatConfig = config.chat;
             const newValue = !chatConfig.logToConsole;
             chatConfig.logToConsole = newValue;
             updateConfig('chat', chatConfig);
@@ -66,7 +64,7 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
                 }
 
                 const adminTagCondition = adminRank.conditions.find((c) => c.type === 'hasTag');
-                if (!adminTagCondition || !adminTagCondition.value || typeof adminTagCondition.value !== 'string') {
+                if (!adminTagCondition || !isNonEmptyString(adminTagCondition.value)) {
                     errorLog('[AddonExe] Could not grant admin rank because it lacks a valid "hasTag" condition.');
                     sourceEntity.sendMessage('§cError: The admin rank is not configured with a valid tag.');
                     return;

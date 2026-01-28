@@ -1,0 +1,112 @@
+
+> app@0.7.0 lint:fix
+> eslint . --fix && npm run check-types
+
+
+/app/src/core/events/entityDie.ts
+  47:31  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/events/entityHurt.ts
+  11:15  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  28:17  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/events/playerLeave.ts
+  16:24  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/events/playerSpawn.ts
+  48:46  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  49:24  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  53:26  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  53:63  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  57:43  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  58:43  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  72:30  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  95:13  error  Unsafe call of a type that could not be resolved   @typescript-eslint/no-unsafe-call
+
+/app/src/core/main.ts
+   26:61  error  Unable to resolve path to module './eventManager.js'                                               import/no-unresolved
+   34:43  error  Unable to resolve path to module './spawnProtection.js'                                            import/no-unresolved
+   35:50  error  Unable to resolve path to module './systemTimers.js'                                               import/no-unresolved
+   38:34  error  Unable to resolve path to module '@features/announcer/announcer.js'                                import/no-unresolved
+   72:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   73:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   74:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   75:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   76:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   77:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   78:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   79:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   80:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   81:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   82:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   87:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   91:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+   91:17  error  Unsafe member access .initializeDataManager on a type that cannot be resolved                      @typescript-eslint/no-unsafe-member-access
+   92:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  101:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  102:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  103:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  105:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  107:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  114:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  119:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  128:9   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  134:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  135:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  137:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  138:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  139:5   error  Unsafe call of a type that could not be resolved                                                   @typescript-eslint/no-unsafe-call
+  151:21  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/mobDeathEvents.ts
+  36:35  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  72:32  error  Unnecessary optional chain on a non-nullish value                                                   @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/playerDataManager.ts
+  206:16  error  Unnecessary conditional, value is always truthy                                                     @typescript-eslint/no-unnecessary-condition
+  275:45  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  632:17  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  633:17  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  645:17  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  646:17  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  738:17  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  824:13  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/restartManager.ts
+  36:30  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  37:22  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  56:17  error  Unsafe call of a type that could not be resolved                                                    @typescript-eslint/no-unsafe-call
+  90:29  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/rulesManager.ts
+  10:12  error  Unnecessary conditional, value is always truthy                                        @typescript-eslint/no-unnecessary-condition
+  10:12  error  Unexpected object value in conditional. The condition is always true                   @typescript-eslint/strict-boolean-expressions
+  94:16  error  Unnecessary conditional, comparison is always true, since `"down" === "down"` is true  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/sidebarManager.ts
+  75:17  error  This `if` statement can be replaced by a ternary expression  unicorn/prefer-ternary
+
+/app/src/core/teleportLogic.ts
+  56:13  error  Unsafe call of a type that could not be resolved  @typescript-eslint/no-unsafe-call
+  77:17  error  Unsafe call of a type that could not be resolved  @typescript-eslint/no-unsafe-call
+  87:17  error  Unsafe call of a type that could not be resolved  @typescript-eslint/no-unsafe-call
+  92:17  error  Unsafe call of a type that could not be resolved  @typescript-eslint/no-unsafe-call
+
+/app/src/core/ui/panels/infoPanel.ts
+  205:29  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  215:35  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/ui/panels/rankPanel.ts
+  122:32  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  160:32  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/ui/panels/sidebarPanel.ts
+  174:13  error  Unsafe call of a type that could not be resolved  @typescript-eslint/no-unsafe-call
+
+/app/src/features/economy/commands/balance.ts
+  77:29  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+
+/app/src/features/essentials/commands/rank.ts
+  152:13  error  Unsafe call of a type that could not be resolved  @typescript-eslint/no-unsafe-call
+
+✖ 74 problems (74 errors, 0 warnings)

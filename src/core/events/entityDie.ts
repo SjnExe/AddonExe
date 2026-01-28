@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 
 import * as teamManager from '@features/teams/teamManager.js';
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
+import { isDefined } from '@lib/guards.js';
 import * as bountyManager from '../bountyManager.js';
 import { getConfig } from '../configManager.js';
 import * as lastHitManager from '../lastHitManager.js';
@@ -25,16 +27,14 @@ function handleEntityDie(event: mc.EntityDieAfterEvent) {
         saveLastLocation(deadPlayer, 'death');
 
         if (config.playerInfo.enableDeathCoords) {
-            const pData = getOrCreatePlayer(deadPlayer);
-            if (pData) {
-                const deathLocation = {
-                    x: deadPlayer.location.x,
-                    y: deadPlayer.location.y,
-                    z: deadPlayer.location.z,
-                    dimensionId: deadPlayer.dimension.id
-                };
-                setPlayerLastDeathLocation(deadPlayer.id, deathLocation);
-            }
+            getOrCreatePlayer(deadPlayer);
+            const deathLocation = {
+                x: deadPlayer.location.x,
+                y: deadPlayer.location.y,
+                z: deadPlayer.location.z,
+                dimensionId: deadPlayer.dimension.id
+            };
+            setPlayerLastDeathLocation(deadPlayer.id, deathLocation);
         }
 
         const lastHit = lastHitManager.getLastHit(deadPlayer.id);
@@ -45,7 +45,7 @@ function handleEntityDie(event: mc.EntityDieAfterEvent) {
         lastHitManager.clearLastHit(deadPlayer.id);
 
         const timeSinceHit = (Date.now() - lastHit.timestamp) / 1000;
-        const creditTimeout = config.bounties?.bountyCreditTimeoutSeconds ?? 15;
+        const creditTimeout = config.bounties.bountyCreditTimeoutSeconds ?? 15;
 
         if (timeSinceHit > creditTimeout) {
             debugLog(`[BountyClaim] Kill credit for ${deadPlayer.name} expired. Time since last hit: ${timeSinceHit}s`);
@@ -60,7 +60,7 @@ function handleEntityDie(event: mc.EntityDieAfterEvent) {
                 const killerTeamId = teamManager.getPlayerTeamId(killer.id);
                 const victimTeamId = teamManager.getPlayerTeamId(deadPlayer.id);
 
-                if (killerTeamId && victimTeamId && killerTeamId === victimTeamId) {
+                if (isDefined(killerTeamId) && isDefined(victimTeamId) && killerTeamId === victimTeamId) {
                     killer.sendMessage('§cYou cannot claim bounties on teammates!');
                     return;
                 }

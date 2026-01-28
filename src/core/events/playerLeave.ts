@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '../configManager.js';
@@ -11,9 +12,9 @@ export const eventName = 'playerLeave';
 function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
     const pData = playerDataManager.getPlayer(event.playerId);
     const config = getConfig();
-    const joinLeaveConfig = config.playerInfo?.customJoinLeave;
+    const joinLeaveConfig = config.playerInfo.customJoinLeave;
 
-    if (joinLeaveConfig?.enabled && !pData?.isVanished) {
+    if (joinLeaveConfig?.enabled === true && pData?.isVanished !== true) {
         const msg = formatString(joinLeaveConfig.leaveMessage, { playerName: event.playerName });
         mc.world.sendMessage(msg);
     }

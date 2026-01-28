@@ -8,10 +8,8 @@ export const eventName = 'itemUse';
 function handleItemUse(event: mc.ItemUseAfterEvent) {
     const { source: player, itemStack } = event;
     if (itemStack.typeId === 'exe:panel') {
-        const pData = playerDataManager.getOrCreatePlayer(player);
-        if (pData) {
-            void showPanel(player, 'mainPanel');
-        }
+        playerDataManager.getOrCreatePlayer(player);
+        void showPanel(player, 'mainPanel');
     }
 }
 

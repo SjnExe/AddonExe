@@ -53,7 +53,7 @@ export function updateRank(
 
     // Check for critical immutable properties on locked ranks
     if (
-        originalRank.locked && // We prevent changing the ID of locked ranks to avoid breaking internal references (like code that checks for 'admin' rank)
+        originalRank.locked === true && // We prevent changing the ID of locked ranks to avoid breaking internal references (like code that checks for 'admin' rank)
         isDefined(updatedData.id) &&
         updatedData.id !== originalRank.id
     ) {
@@ -64,11 +64,7 @@ export function updateRank(
     // We allow changing Name, Prefix, etc.
 
     // Ensure the ID is not changed if a new ID is passed in updatedData that already exists (and isn't the current one)
-    if (
-        isDefined(updatedData.id) &&
-        updatedData.id !== rankId &&
-        isDefined(getRankById(updatedData.id))
-    ) {
+    if (isDefined(updatedData.id) && updatedData.id !== rankId && isDefined(getRankById(updatedData.id))) {
         return { success: false, message: `Cannot rename rank ID to '${updatedData.id}' as it already exists.` };
     }
 
@@ -104,7 +100,7 @@ export function deleteRank(rankId: string): { success: boolean; message: string 
     }
 
     // We strictly prevent deleting "locked" ranks (default system ranks) to ensure the system always has its base structure.
-    if (rank.locked) {
+    if (rank.locked === true) {
         return { success: false, message: `Cannot delete locked rank '${rank.name}'.` };
     }
 

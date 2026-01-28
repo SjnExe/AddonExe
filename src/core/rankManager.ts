@@ -19,7 +19,7 @@ const conditionEvaluators: Record<string, ConditionEvaluator> = {
      * Checks if the player's name is in the owner list.
      */
     isOwner: (player, _value, config: typeof Config) => {
-        const ownerNames = (config.ownerPlayerNames ?? []).map((name: string) => name.trim().toLowerCase());
+        const ownerNames = config.ownerPlayerNames.map((name: string) => name.trim().toLowerCase());
         const playerName = player.name.trim().toLowerCase();
         return ownerNames.includes(playerName);
     },

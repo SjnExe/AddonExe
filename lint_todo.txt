@@ -1,0 +1,283 @@
+
+> app@0.7.0 lint:fix
+> eslint . --fix && npm run check-types
+
+
+/app/src/core/configManagerFactory.ts
+  101:30  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  112:29  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/events/beforeChatSend.ts
+  44:28  error  Unnecessary optional chain on a non-nullish value                                                  @typescript-eslint/no-unnecessary-condition
+  54:20  error  Unnecessary optional chain on a non-nullish value                                                  @typescript-eslint/no-unnecessary-condition
+  75:20  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+  76:23  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/events/entityDie.ts
+  29:17  error  Unnecessary conditional, value is always truthy                                                       @typescript-eslint/no-unnecessary-condition
+  29:17  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  48:31  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined    @typescript-eslint/no-unnecessary-condition
+  48:46  error  Unnecessary optional chain on a non-nullish value                                                     @typescript-eslint/no-unnecessary-condition
+  63:21  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+  63:37  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/events/entityHurt.ts
+  11:15  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  28:17  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/events/itemUse.ts
+  12:13  error  Unnecessary conditional, value is always truthy                       @typescript-eslint/no-unnecessary-condition
+  12:13  error  Unexpected object value in conditional. The condition is always true  @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/events/playerDimensionChange.ts
+  28:29  error  Unnecessary optional chain on a non-nullish value                     @typescript-eslint/no-unnecessary-condition
+  30:13  error  Unexpected object value in conditional. The condition is always true  @typescript-eslint/strict-boolean-expressions
+  30:13  error  Unnecessary conditional, value is always truthy                       @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/events/playerLeave.ts
+  14:46  error  Unnecessary optional chain on a non-nullish value                                            @typescript-eslint/no-unnecessary-condition
+  16:24  error  Unnecessary optional chain on a non-nullish value                                            @typescript-eslint/no-unnecessary-condition
+  16:38  error  Unexpected nullable boolean value in conditional. Please handle the nullish case explicitly  @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/events/playerSpawn.ts
+  48:46  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  49:24  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  53:26  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  53:63  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  57:43  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  58:43  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+  72:30  error  Unnecessary optional chain on a non-nullish value  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/events/scriptEventReceive.ts
+  23:9   error  Unnecessary conditional, value is always falsy                                              @typescript-eslint/no-unnecessary-condition
+  23:10  error  Unexpected object value in conditional. The condition is always true                        @typescript-eslint/strict-boolean-expressions
+  44:32  error  Unnecessary conditional, value is always truthy                                             @typescript-eslint/no-unnecessary-condition
+  44:32  error  Unexpected object value in conditional. The condition is always true                        @typescript-eslint/strict-boolean-expressions
+  69:44  error  Unexpected any value in conditional. An explicit comparison or type conversion is required  @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/main.ts
+   71:9   error  Unnecessary conditional, value is always falsy                                                     @typescript-eslint/no-unnecessary-condition
+   71:10  error  Unexpected object value in conditional. The condition is always true                               @typescript-eslint/strict-boolean-expressions
+   76:9   error  Unnecessary conditional, value is always falsy                                                     @typescript-eslint/no-unnecessary-condition
+   76:10  error  Unexpected object value in conditional. The condition is always true                               @typescript-eslint/strict-boolean-expressions
+  151:30  error  Unnecessary optional chain on a non-nullish value                                                  @typescript-eslint/no-unnecessary-condition
+  166:9   error  Unnecessary conditional, value is always falsy                                                     @typescript-eslint/no-unnecessary-condition
+  166:10  error  Unexpected object value in conditional. The condition is always true                               @typescript-eslint/strict-boolean-expressions
+  166:31  error  Unnecessary conditional, value is always falsy                                                     @typescript-eslint/no-unnecessary-condition
+  166:32  error  Unexpected object value in conditional. The condition is always true                               @typescript-eslint/strict-boolean-expressions
+  193:9   error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+  275:21  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/messaging.ts
+  24:20  error  Unexpected object value in conditional. The condition is always true  @typescript-eslint/strict-boolean-expressions
+  24:20  error  Unnecessary conditional, value is always truthy                       @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/migrationManager.ts
+   88:14  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+  103:13  error  Unexpected object value in conditional. The condition is always true                               @typescript-eslint/strict-boolean-expressions
+  103:13  error  Unnecessary conditional, value is always truthy                                                    @typescript-eslint/no-unnecessary-condition
+  135:14  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+  148:13  error  Unexpected object value in conditional. The condition is always true                               @typescript-eslint/strict-boolean-expressions
+  148:13  error  Unnecessary conditional, value is always truthy                                                    @typescript-eslint/no-unnecessary-condition
+  151:21  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+  159:21  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/mobDeathEvents.ts
+   35:35  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined    @typescript-eslint/no-unnecessary-condition
+   35:50  error  Unnecessary optional chain on a non-nullish value                                                     @typescript-eslint/no-unnecessary-condition
+   71:13  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+   71:13  error  Unnecessary conditional, value is always truthy                                                       @typescript-eslint/no-unnecessary-condition
+   99:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+   99:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+   99:27  error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+   99:28  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  106:9   error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/objectUtils.ts
+  111:14  error  Unexpected any value in conditional. An explicit comparison or type conversion is required         @typescript-eslint/strict-boolean-expressions
+  126:13  error  Unexpected any value in conditional. An explicit comparison or type conversion is required         @typescript-eslint/strict-boolean-expressions
+  145:10  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+  150:14  error  Unexpected any value in conditional. An explicit comparison or type conversion is required         @typescript-eslint/strict-boolean-expressions
+  401:13  error  Unexpected object value in conditional. The condition is always true                               @typescript-eslint/strict-boolean-expressions
+  401:13  error  Unnecessary conditional, value is always truthy                                                    @typescript-eslint/no-unnecessary-condition
+  401:18  error  Unexpected any value in conditional. An explicit comparison or type conversion is required         @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/playerDataManager.ts
+  206:16  error  Unnecessary conditional, value is always truthy                                                     @typescript-eslint/no-unnecessary-condition
+  275:45  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  568:18  error  Unexpected value in conditional. A boolean expression is required                                   @typescript-eslint/strict-boolean-expressions
+  632:17  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  633:17  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  645:17  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  646:17  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  738:17  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  824:13  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/pvpManager.ts
+  242:30  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/rankDb.ts
+   56:9  error  Unexpected nullable boolean value in conditional. Please handle the nullish case explicitly  @typescript-eslint/strict-boolean-expressions
+  107:9  error  Unexpected nullable boolean value in conditional. Please handle the nullish case explicitly  @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/rankManager.ts
+  22:29  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/restartManager.ts
+  27:9   error  Unnecessary conditional, value is always falsy                                                      @typescript-eslint/no-unnecessary-condition
+  27:10  error  Unexpected object value in conditional. The condition is always true                                @typescript-eslint/strict-boolean-expressions
+  41:30  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  41:44  error  Unnecessary optional chain on a non-nullish value                                                   @typescript-eslint/no-unnecessary-condition
+  42:22  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  42:36  error  Unnecessary optional chain on a non-nullish value                                                   @typescript-eslint/no-unnecessary-condition
+  95:29  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  95:35  error  Unnecessary optional chain on a non-nullish value                                                   @typescript-eslint/no-unnecessary-condition
+  95:44  error  Unnecessary optional chain on a non-nullish value                                                   @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/rulesManager.ts
+  10:12  error  Unnecessary conditional, value is always truthy                                        @typescript-eslint/no-unnecessary-condition
+  10:12  error  Unexpected object value in conditional. The condition is always true                   @typescript-eslint/strict-boolean-expressions
+  94:16  error  Unnecessary conditional, comparison is always true, since `"down" === "down"` is true  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/sidebarManager.ts
+  152:38  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined    @typescript-eslint/no-unnecessary-condition
+  152:48  error  Unnecessary optional chain on a non-nullish value                                                     @typescript-eslint/no-unnecessary-condition
+  166:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  166:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  200:39  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined    @typescript-eslint/no-unnecessary-condition
+  258:17  error  Unnecessary conditional, the types have no overlap                                                    @typescript-eslint/no-unnecessary-condition
+  313:21  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+
+/app/src/core/ui/panelBuilder.ts
+   62:27  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value.
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+   66:27  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value.
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+   90:41  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value.
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  117:41  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value.
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+
+/app/src/core/ui/panels/adminPanel.ts
+  136:45  error  Unsafe assignment of an error typed value         @typescript-eslint/no-unsafe-assignment
+  136:59  error  Unsafe call of a type that could not be resolved  @typescript-eslint/no-unsafe-call
+  140:29  error  Unsafe call of a type that could not be resolved  @typescript-eslint/no-unsafe-call
+
+/app/src/core/ui/panels/infoPanel.ts
+  205:29  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  215:35  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/ui/panels/playerPanel.ts
+  214:29  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/core/ui/panels/rankPanel.ts
+  124:32  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  162:32  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+/app/src/features/anticheat/commands/logs.ts
+  253:57  error  Unnecessary conditional, the types have no overlap  @typescript-eslint/no-unnecessary-condition
+  357:42  error  Unsafe assignment of an error typed value           @typescript-eslint/no-unsafe-assignment
+
+/app/src/features/auctionHouse/auctionManager.ts
+  163:9   error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  163:9   error  Unnecessary conditional, value is always truthy                                                       @typescript-eslint/no-unnecessary-condition
+  163:22  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  163:22  error  Unnecessary conditional, value is always truthy                                                       @typescript-eslint/no-unnecessary-condition
+  173:54  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  208:20  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+  213:9   error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  226:9   error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  226:36  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+  257:13  error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  257:14  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  267:34  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  267:61  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+  307:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  307:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  323:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  323:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  328:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  328:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  328:23  error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  328:24  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  368:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  368:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  373:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  373:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  373:23  error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  373:24  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  415:9   error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  419:9   error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  424:18  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  458:10  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  458:26  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  459:19  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  462:13  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  466:15  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  488:26  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+
+/app/src/features/auctionHouse/commands/ah.ts
+  34:14  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+  40:18  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+  53:17  error  Unnecessary conditional, value is always falsy                                                     @typescript-eslint/no-unnecessary-condition
+  53:18  error  Unexpected object value in conditional. The condition is always true                               @typescript-eslint/strict-boolean-expressions
+  53:31  error  Unnecessary conditional, value is always falsy                                                     @typescript-eslint/no-unnecessary-condition
+  53:32  error  Unexpected object value in conditional. The condition is always true                               @typescript-eslint/strict-boolean-expressions
+  92:20  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly  @typescript-eslint/strict-boolean-expressions
+
+/app/src/features/auctionHouse/ui/auctionPanel.ts
+   60:19  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+   66:47  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+   70:17  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+   78:26  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+   82:40  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+   90:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+   90:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  107:16  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  143:32  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  165:32  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+  174:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  174:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  196:24  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+  204:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  204:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  227:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  227:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  245:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  245:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  264:26  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  266:30  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+  273:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  273:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  290:21  error  Unnecessary conditional, value is always truthy                                                       @typescript-eslint/no-unnecessary-condition
+  290:21  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  298:26  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  302:9   error  Unnecessary conditional, value is always falsy                                                        @typescript-eslint/no-unnecessary-condition
+  302:10  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+
+/app/src/features/dailyRewards/dailyRewardsManager.ts
+  74:13  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+  78:13  error  Unexpected nullable number value in conditional. Please handle the nullish/zero/NaN cases explicitly  @typescript-eslint/strict-boolean-expressions
+  82:13  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+  90:17  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  90:17  error  Unnecessary conditional, value is always truthy                                                       @typescript-eslint/no-unnecessary-condition
+  90:30  error  Unnecessary conditional, value is always truthy                                                       @typescript-eslint/no-unnecessary-condition
+  90:30  error  Unexpected object value in conditional. The condition is always true                                  @typescript-eslint/strict-boolean-expressions
+  94:29  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly     @typescript-eslint/strict-boolean-expressions
+
+/app/src/features/economy/commands/balance.ts
+   26:14  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly   @typescript-eslint/strict-boolean-expressions
+   74:14  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly   @typescript-eslint/strict-boolean-expressions
+   76:29  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly   @typescript-eslint/strict-boolean-expressions
+  100:30  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  115:27  error  Unexpected nullable string value in conditional. Please handle the nullish/empty cases explicitly   @typescript-eslint/strict-boolean-expressions
+
+/app/src/features/economy/ui/economyPanel.ts
+   88:30  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+  196:76  error  Unnecessary conditional, expected left-hand side of `??` operator to be possibly null or undefined  @typescript-eslint/no-unnecessary-condition
+
+✖ 203 problems (203 errors, 0 warnings)

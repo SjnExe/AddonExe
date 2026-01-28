@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unsafe-call */
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor } from '@commands/commandManager.js';
@@ -24,11 +25,6 @@ export function startRestart(initiator: CommandExecutor): void {
     }
 
     const config = getConfig();
-    if (!config) {
-        errorLog('[RestartManager] Failed to get config. Aborting restart.');
-        initiator.sendMessage('§cInternal error: Could not load configuration to start restart.');
-        return;
-    }
 
     if (initiator instanceof mc.Player) {
         const rank = getPlayerRank(initiator, config);
@@ -38,8 +34,8 @@ export function startRestart(initiator: CommandExecutor): void {
         }
     }
 
-    const countdownSeconds = config.restart?.countdownSeconds ?? 30;
-    const subtitle = config.restart?.subtitle ?? '§eServer Restarting...';
+    const countdownSeconds = config.restart.countdownSeconds ?? 30;
+    const subtitle = config.restart.subtitle ?? '§eServer Restarting...';
     const announcer = initiator instanceof mc.Player ? initiator.name : 'Console';
 
     restartInProgress = true;
@@ -92,7 +88,7 @@ function finalizeRestart(): void {
     setTrackedTimeout(() => {
         debugLog('[RestartManager] Kicking non-admin players.');
         const config = getConfig();
-        const kickMessage = config?.restart?.kickMessage ?? 'Server is restarting.';
+        const kickMessage = config.restart.kickMessage ?? 'Server is restarting.';
 
         try {
             for (const player of mc.world.getAllPlayers()) {

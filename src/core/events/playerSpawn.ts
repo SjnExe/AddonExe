@@ -6,9 +6,9 @@ import { getKitsConfig } from '../configurations.js';
 import { frozenTag, vanishedTag } from '../constants.js';
 import { getKit, giveKitItems } from '../kitsManager.js';
 import { debugLog } from '../logger.js';
-import { updatePlayerRank } from '../main.js';
 import { sendMessage } from '../messaging.js';
 import { getOrCreatePlayer, updatePlayerData } from '../playerDataManager.js';
+import { updatePlayerNameTag } from '../rankManager.js';
 import { formatLocation, formatString } from '../utils.js';
 
 export function handlePlayerJoin(player: mc.Player) {
@@ -92,7 +92,7 @@ export function handlePlayerJoin(player: mc.Player) {
 
     mc.system.runTimeout(() => {
         try {
-            updatePlayerRank(player);
+            updatePlayerNameTag(player, getConfig());
         } catch {
             // This can sometimes fail if the player object isn't fully ready.
         }

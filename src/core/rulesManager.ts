@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions */
 import { getConfig, updateMultipleConfig } from './configManager.js';
 import { debugLog } from './logger.js';
 

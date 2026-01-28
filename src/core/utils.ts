@@ -7,3 +7,5 @@ export * from './utils/sanitization.js';
 export * from './utils/sound.js';
 export * from './utils/time.js';
 export * from './utils/ui.js';
+// Explicitly re-export reinitializeOnlinePlayers if it's not being picked up by *
+export { reinitializeOnlinePlayers } from './utils/player.js';

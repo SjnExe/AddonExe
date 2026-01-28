@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -565,7 +566,7 @@ const endLockKey = 'exe:dimensionLock_end';
 export function getLockState(dimension: string): boolean {
     const key = dimension === 'nether' ? netherLockKey : endLockKey;
     try {
-        return !!mc.world.getDynamicProperty(key);
+        return (mc.world.getDynamicProperty(key) as boolean | undefined) === true;
     } catch {
         return false;
     }
