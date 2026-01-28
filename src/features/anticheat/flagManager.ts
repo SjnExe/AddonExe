@@ -73,9 +73,10 @@ export function flag(player: mc.Player, checkName: string, message: string) {
 
     // Notify
     if (checkConfig.notifyStaff === true) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         notifyAdmins(player, checkName, data.vl, message, checkConfig.notifyPermissionLevel ?? 2);
 
-        if (config.consoleNotifications) {
+        if (config.consoleNotifications === true) {
             warnLog(`§c[AC] §e${player.name} §7failed §b${checkName} §7(VL: ${data.vl}): §f${message}`);
         }
     }

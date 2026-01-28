@@ -76,7 +76,8 @@ async function showPunishmentFilter(player: mc.Player) {
     const values = (res as ModalFormResponse).formValues;
     if (!isDefined(values)) return;
 
-    const nameQuery = (values[0] as string) ?? '';
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const nameQuery = (values[0] as string | undefined) ?? '';
     const typeIndex = values[1] as number;
     const types = [undefined, 'ban', 'mute', 'warn', 'kick'];
     const typeFilter = types[typeIndex];
@@ -166,7 +167,8 @@ async function showFlagFilter(player: mc.Player) {
 
     const values = (res as ModalFormResponse).formValues;
     if (!isDefined(values)) return;
-    const nameQuery = (values[0] as string) ?? '';
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const nameQuery = (values[0] as string | undefined) ?? '';
 
     await showFlagLogs(player, 1, nameQuery);
 }
@@ -262,8 +264,10 @@ export async function showChatFilter(player: mc.Player) {
     const values = (res as ModalFormResponse).formValues;
     if (!isDefined(values)) return;
     const dateIndex = values[0] as number;
-    const nameQuery = (values[1] as string) ?? '';
-    const keywordQuery = (values[2] as string) ?? '';
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const nameQuery = (values[1] as string | undefined) ?? '';
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const keywordQuery = (values[2] as string | undefined) ?? '';
     const date = dates[dateIndex];
     if (!isNonEmptyString(date)) return;
 
@@ -349,7 +353,9 @@ async function showLogSettings(player: mc.Player) {
 
     const modal = new ModalFormData()
         .title('Log Settings')
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         .toggle('Enable Chat Logging', { defaultValue: chatConfig.loggingEnabled ?? true })
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
         .textField('Chat Log Expiration (Days)', '7', { defaultValue: String(chatConfig.logExpirationDays ?? 7) });
 
     const res = await uiWait(player, modal);

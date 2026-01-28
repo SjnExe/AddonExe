@@ -25,7 +25,7 @@ const command: CustomCommand = {
                 return;
             }
 
-            const newStatus = !pData.xrayNotificationsEnabled;
+            const newStatus = pData.xrayNotificationsEnabled !== true;
             setPlayerXrayNotifications(executor.id, newStatus);
 
             const statusMessage = `§aX-ray notifications have been ${newStatus ? '§2enabled' : '§cdisabled'}§a.`;
@@ -43,7 +43,7 @@ const command: CustomCommand = {
                 infoLog('X-ray config not found, cannot toggle console notifications.');
                 return;
             }
-            const newStatus = !xrayConfig.notifications.logToConsole;
+            const newStatus = xrayConfig.notifications.logToConsole !== true;
             xrayConfig.notifications.logToConsole = newStatus;
             saveXrayConfig(xrayConfig); // This saves the entire xrayConfig object
             infoLog(`X-ray console notifications have been ${newStatus ? 'enabled' : 'disabled'}.`);

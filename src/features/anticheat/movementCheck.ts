@@ -48,13 +48,13 @@ function* checkPlayersGenerator(config: AnticheatConfig) {
             // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             if ((player as any).isValid()) {
                 // Run checks
-                if (config.movementCheck.enabled) {
+                if (config.movementCheck.enabled === true) {
                     checkMovement(player, config.movementCheck);
                 }
-                if (config.worldBorder.enabled) {
+                if (config.worldBorder.enabled === true) {
                     checkWorldBorder(player, config.worldBorder);
                 }
-                if (config.antiNetherRoof.enabled) {
+                if (config.antiNetherRoof.enabled === true) {
                     checkNetherRoof(player, config.antiNetherRoof);
                 }
             }

@@ -160,12 +160,13 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
 
     // 2. Gamemode Checks
     const gamemode = player.getGameMode();
-    if (settings.ignoreCreative && gamemode === mc.GameMode.Creative) return;
-    if (settings.ignoreSpectator && gamemode === mc.GameMode.Spectator) return;
+    if (settings.ignoreCreative === true && gamemode === mc.GameMode.Creative) return;
+    if (settings.ignoreSpectator === true && gamemode === mc.GameMode.Spectator) return;
 
     // 3. Admin Bypass Check
-    if (settings.adminBypass) {
+    if (settings.adminBypass === true) {
         const pData = getPlayer(player.id);
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         const bypassLevel = settings.bypassPermissionLevel ?? 1;
         if (isDefined(pData) && pData.permissionLevel <= bypassLevel) return;
     }
