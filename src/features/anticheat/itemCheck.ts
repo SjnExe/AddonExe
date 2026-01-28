@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isDefined } from '@lib/guards.js';
 import { errorLog } from '@core/logger.js';
 
 import { AnticheatConfig, getAnticheatConfig } from './anticheatConfigLoader.js';
@@ -12,7 +13,7 @@ export function startItemCheckLoop() {
         if (isChecking) return;
         try {
             const config = getAnticheatConfig();
-            if (!config.enabled || !config.itemCheck.enabled) return;
+            if (config.enabled !== true || config.itemCheck.enabled !== true) return;
 
             mc.system.runJob(checkInventoryGenerator(config));
         } catch (error) {
@@ -26,7 +27,8 @@ function* checkInventoryGenerator(config: AnticheatConfig) {
     try {
         const players = mc.world.getAllPlayers();
         for (const player of players) {
-            if (player.isValid) {
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            if ((player as any).isValid()) {
                 checkPlayerInventory(player, config.itemCheck);
             }
             yield;
@@ -50,11 +52,11 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig)
 
     // Check Main Inventory
     const inventory = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
-    if (inventory && inventory.container) {
+    if (isDefined(inventory) && isDefined(inventory.container)) {
         const container = inventory.container;
         for (let i = 0; i < container.size; i++) {
             const item = container.getItem(i);
-            if (item) {
+            if (isDefined(item)) {
                 checkItem(item, player, config, (newItem) => container.setItem(i, newItem));
             }
         }
@@ -62,7 +64,7 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig)
 
     // Check Equipment (Armor + Offhand)
     const equippable = player.getComponent('minecraft:equippable') as mc.EntityEquippableComponent;
-    if (equippable) {
+    if (isDefined(equippable)) {
         const slots = [
             mc.EquipmentSlot.Head,
             mc.EquipmentSlot.Chest,
@@ -73,7 +75,7 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig)
 
         for (const slot of slots) {
             const item = equippable.getEquipment(slot);
-            if (item) {
+            if (isDefined(item)) {
                 checkItem(item, player, config, (newItem) => equippable.setEquipment(slot, newItem));
             }
         }
@@ -93,7 +95,7 @@ export function checkItem(
     // Check Stack Size
     if (item.amount > item.maxAmount) {
         flag(player, 'itemCheck', `Illegal Stack: ${item.typeId} x${item.amount} (Max: ${item.maxAmount})`);
-        if (config.removeIllegalItems) {
+        if (config.removeIllegalItems === true) {
             item.amount = item.maxAmount;
             modified = true;
         }
@@ -101,7 +103,7 @@ export function checkItem(
 
     // Check Enchants
     const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
-    if (enchantable && enchantable.getEnchantments) {
+    if (isDefined(enchantable) && isDefined(enchantable.getEnchantments)) {
         // getEnchantments() returns readonly array
         const enchants = enchantable.getEnchantments();
         for (const enchant of enchants) {
@@ -109,13 +111,13 @@ export function checkItem(
             // Allow whichever is higher: Config limit or Vanilla limit.
             const allowed = Math.max(MAX_ENCHANT_LEVEL, vanillaMax);
 
-            if (enchant.level > allowed && config.illegalEnchantments) {
+            if (enchant.level > allowed && config.illegalEnchantments === true) {
                 flag(
                     player,
                     'itemCheck',
                     `Illegal Enchant: ${enchant.type.id} Level ${enchant.level} (Max: ${allowed})`
                 );
-                if (config.removeIllegalItems) {
+                if (config.removeIllegalItems === true) {
                     updateItem(); // Remove item
                     return; // Stop checking this item
                 }
@@ -126,7 +128,7 @@ export function checkItem(
     // Check Banned ID
     if (bannedItems.includes(item.typeId)) {
         flag(player, 'itemCheck', `Banned Item: ${item.typeId}`);
-        if (config.removeIllegalItems) {
+        if (config.removeIllegalItems === true) {
             updateItem();
             return;
         }

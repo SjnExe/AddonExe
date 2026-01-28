@@ -3,6 +3,7 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { uiWait } from '@core/utils.js';
 import { getAvailableDates, getChatLogs } from '@features/moderation/chatLogManager.js';
@@ -31,10 +32,10 @@ async function showLogsMenu(player: mc.Player) {
         .button('Close');
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) return;
+    if (!isDefined(response) || response.canceled) return;
 
     const selection = (response as ActionFormResponse).selection;
-    if (selection === undefined) return;
+    if (!isDefined(selection)) return;
 
     switch (selection) {
         case 0: {
@@ -70,12 +71,12 @@ async function showPunishmentFilter(player: mc.Player) {
         .dropdown('Type', ['All', 'Ban', 'Mute', 'Warn', 'Kick'], { defaultValueIndex: 0 });
 
     const res = await uiWait(player, modal);
-    if (!res || res.canceled) return showLogsMenu(player);
+    if (!isDefined(res) || res.canceled) return showLogsMenu(player);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return;
+    if (!isDefined(values)) return;
 
-    const nameQuery = (values[0] as string) || '';
+    const nameQuery = (values[0] as string) ?? '';
     const typeIndex = values[1] as number;
     const types = [undefined, 'ban', 'mute', 'warn', 'kick'];
     const typeFilter = types[typeIndex];
@@ -87,11 +88,11 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
     let logs = getPunishmentLogs().toSorted((a, b) => b.timestamp - a.timestamp);
 
     // Filtering
-    if (nameQuery) {
+    if (isNonEmptyString(nameQuery)) {
         const q = nameQuery.toLowerCase();
         logs = logs.filter((l) => l.playerName.toLowerCase().includes(q));
     }
-    if (typeFilter) {
+    if (isNonEmptyString(typeFilter)) {
         logs = logs.filter((l) => l.type.toLowerCase() === typeFilter);
     }
 
@@ -116,10 +117,10 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
     form.button('Back to Filter');
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) return showLogsMenu(player);
+    if (!isDefined(response) || response.canceled) return showLogsMenu(player);
 
     const selection = (response as ActionFormResponse).selection;
-    if (selection === undefined) return;
+    if (!isDefined(selection)) return;
 
     const hasPrev = page > 1;
     const hasNext = page < maxPage;
@@ -127,8 +128,8 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
 
     if (selection < slice.length) {
         const log = slice[selection];
-        if (!log) return;
-        const detail = `Player: ${log.playerName}\nType: ${log.type}\nReason: ${log.reason}\nAdmin: ${log.adminName}\nDate: ${new Date(log.timestamp).toLocaleString()}\nDuration: ${log.duration || 'N/A'}`;
+        if (!isDefined(log)) return;
+        const detail = `Player: ${log.playerName}\nType: ${log.type}\nReason: ${log.reason}\nAdmin: ${log.adminName}\nDate: ${new Date(log.timestamp).toLocaleString()}\nDuration: ${(isNonEmptyString(log.duration) ? log.duration : undefined) ?? 'N/A'}`;
         const detailForm = new ActionFormData().title('Log Detail').body(detail).button('Back');
         await uiWait(player, detailForm);
         await showPunishmentLogs(player, page, nameQuery, typeFilter);
@@ -161,11 +162,11 @@ async function showFlagFilter(player: mc.Player) {
     const modal = new ModalFormData().title('Filter Flags').textField('Player Name (Optional)', 'Search...');
 
     const res = await uiWait(player, modal);
-    if (!res || res.canceled) return showLogsMenu(player);
+    if (!isDefined(res) || res.canceled) return showLogsMenu(player);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return;
-    const nameQuery = (values[0] as string) || '';
+    if (!isDefined(values)) return;
+    const nameQuery = (values[0] as string) ?? '';
 
     await showFlagLogs(player, 1, nameQuery);
 }
@@ -173,7 +174,7 @@ async function showFlagFilter(player: mc.Player) {
 async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string) {
     let logs = getFlagLogs().toSorted((a, b) => b.timestamp - a.timestamp);
 
-    if (nameQuery) {
+    if (isNonEmptyString(nameQuery)) {
         const q = nameQuery.toLowerCase();
         logs = logs.filter((l) => l.playerName.toLowerCase().includes(q));
     }
@@ -199,10 +200,10 @@ async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string)
     form.button('Back to Filter');
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) return showLogsMenu(player);
+    if (!isDefined(response) || response.canceled) return showLogsMenu(player);
 
     const selection = (response as ActionFormResponse).selection;
-    if (selection === undefined) return;
+    if (!isDefined(selection)) return;
 
     const hasPrev = page > 1;
     const hasNext = page < maxPage;
@@ -210,7 +211,7 @@ async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string)
 
     if (selection < slice.length) {
         const log = slice[selection];
-        if (!log) return;
+        if (!isDefined(log)) return;
         const detail = `Player: ${log.playerName}\nCheck: ${log.checkName}\nVL: ${log.vl}\nDetails: ${log.details}\nTime: ${new Date(log.timestamp).toLocaleString()}`;
         const detailForm = new ActionFormData().title('Flag Detail').body(detail).button('Back');
         await uiWait(player, detailForm);
@@ -256,15 +257,15 @@ export async function showChatFilter(player: mc.Player) {
         .textField('Keyword (Optional)', 'Search message...');
 
     const res = await uiWait(player, modal);
-    if (!res || res.canceled) return showLogsMenu(player);
+    if (!isDefined(res) || res.canceled) return showLogsMenu(player);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return;
+    if (!isDefined(values)) return;
     const dateIndex = values[0] as number;
-    const nameQuery = (values[1] as string) || '';
-    const keywordQuery = (values[2] as string) || '';
+    const nameQuery = (values[1] as string) ?? '';
+    const keywordQuery = (values[2] as string) ?? '';
     const date = dates[dateIndex];
-    if (!date) return;
+    if (!isNonEmptyString(date)) return;
 
     await showChatLogs(player, 1, date, nameQuery, keywordQuery);
 }
@@ -272,11 +273,11 @@ export async function showChatFilter(player: mc.Player) {
 async function showChatLogs(player: mc.Player, page: number, date: string, nameQuery?: string, keyword?: string) {
     let logs = getChatLogs(date).toSorted((a, b) => b.timestamp - a.timestamp);
 
-    if (nameQuery) {
+    if (isNonEmptyString(nameQuery)) {
         const q = nameQuery.toLowerCase();
         logs = logs.filter((l) => l.playerName.toLowerCase().includes(q));
     }
-    if (keyword) {
+    if (isNonEmptyString(keyword)) {
         const k = keyword.toLowerCase();
         logs = logs.filter((l) => l.message.toLowerCase().includes(k));
     }
@@ -303,10 +304,10 @@ async function showChatLogs(player: mc.Player, page: number, date: string, nameQ
     form.button('Back to Filter');
 
     const response = await uiWait(player, form);
-    if (!response || response.canceled) return showLogsMenu(player);
+    if (!isDefined(response) || response.canceled) return showLogsMenu(player);
 
     const selection = (response as ActionFormResponse).selection;
-    if (selection === undefined) return;
+    if (!isDefined(selection)) return;
 
     const hasPrev = page > 1;
     const hasNext = page < maxPage;
@@ -314,8 +315,8 @@ async function showChatLogs(player: mc.Player, page: number, date: string, nameQ
 
     if (selection < slice.length) {
         const log = slice[selection];
-        if (!log) return;
-        const detail = `Player: ${log.playerName}\nRank: ${log.rank || 'Default'}\nTime: ${new Date(log.timestamp).toLocaleString()}\n\nMessage:\n${log.message}`;
+        if (!isDefined(log)) return;
+        const detail = `Player: ${log.playerName}\nRank: ${(isNonEmptyString(log.rank) ? log.rank : undefined) ?? 'Default'}\nTime: ${new Date(log.timestamp).toLocaleString()}\n\nMessage:\n${log.message}`;
         const detailForm = new ActionFormData().title('Chat Detail').body(detail).button('Back');
         await uiWait(player, detailForm);
         await showChatLogs(player, page, date, nameQuery, keyword);
@@ -344,7 +345,7 @@ async function showChatLogs(player: mc.Player, page: number, date: string, nameQ
 
 async function showLogSettings(player: mc.Player) {
     const config = getConfig();
-    const chatConfig = config.chat || {};
+    const chatConfig = isDefined(config.chat) ? config.chat : {};
 
     const modal = new ModalFormData()
         .title('Log Settings')
@@ -352,10 +353,10 @@ async function showLogSettings(player: mc.Player) {
         .textField('Chat Log Expiration (Days)', '7', { defaultValue: String(chatConfig.logExpirationDays ?? 7) });
 
     const res = await uiWait(player, modal);
-    if (!res || res.canceled) return showLogsMenu(player);
+    if (!isDefined(res) || res.canceled) return showLogsMenu(player);
 
     const values = (res as ModalFormResponse).formValues;
-    if (!values) return;
+    if (!isDefined(values)) return;
 
     const enabled = values[0] as boolean;
     const daysStr = values[1] as string;
