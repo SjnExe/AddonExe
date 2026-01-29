@@ -3,7 +3,12 @@ import * as mc from '@minecraft/server';
 import { getAuctionHouseConfig } from '@core/configurations.js';
 import { deserializeItem, SerializedItem, serializeItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog } from '@core/logger.js';
-import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
+import {
+    getOrCreatePlayer,
+    incrementPlayerBalance,
+    savePlayerData,
+    updatePlayerData
+} from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { formatCurrency } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -98,6 +103,7 @@ export function createListing(
             };
         }
         incrementPlayerBalance(player.id, -config.listingFee);
+        savePlayerData(player.id);
     }
 
     const listing: AuctionListing = {
@@ -138,6 +144,7 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
 
     // Process Payment
     incrementPlayerBalance(buyer.id, -listing.price);
+    savePlayerData(buyer.id);
 
     // Send Money to Seller (Minus Tax)
     const tax = listing.price * config.taxRate;
@@ -151,6 +158,7 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
 
     // We need a safe transfer function.
     sendMoneyToPlayer(listing.sellerId, payout);
+    savePlayerData(listing.sellerId);
 
     // Give Item to Buyer
     // We return serialized item to caller or handle deserialization here?
@@ -228,12 +236,14 @@ export function placeBid(bidder: mc.Player, listingId: string, amount: number): 
     // Return money to previous bidder
     if (isNonEmptyString(listing.highestBidderId) && isDefined(listing.bidPrice)) {
         sendMoneyToPlayer(listing.highestBidderId, listing.bidPrice);
+        savePlayerData(listing.highestBidderId);
         // Notify previous bidder if online?
         // We can't easily notify offline.
     }
 
     // Take money from new bidder
     incrementPlayerBalance(bidder.id, -amount);
+    savePlayerData(bidder.id);
 
     // Update Listing
     listing.bidPrice = amount;
@@ -270,17 +280,20 @@ function* checkExpiredAuctionsJob() {
                 // Auction Won!
                 // Give Item to Winner
                 addItemToMailbox(listing.highestBidderId, listing.item);
+                savePlayerData(listing.highestBidderId);
 
                 // Give Money to Seller
                 const config = getAuctionHouseConfig();
                 const tax = listing.bidPrice * config.taxRate;
                 sendMoneyToPlayer(listing.sellerId, listing.bidPrice - tax);
+                savePlayerData(listing.sellerId);
 
                 debugLog(`[AH] Auction ${id} won by ${listing.highestBidderName} for ${listing.bidPrice}`);
             } else {
                 // Expired (No Bids or BIN expired)
                 // Return Item to Seller
                 addItemToMailbox(listing.sellerId, listing.item);
+                savePlayerData(listing.sellerId);
                 debugLog(`[AH] Listing ${id} expired. Returned to seller.`);
             }
         }

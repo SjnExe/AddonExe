@@ -44,7 +44,7 @@ describe('ItemCheck', () => {
                         ]
                     };
                 }
-                return undefined;
+                return;
             })
         } as unknown as mc.ItemStack;
 
@@ -77,7 +77,7 @@ describe('ItemCheck', () => {
                         ]
                     };
                 }
-                return undefined;
+                return;
             })
         } as unknown as mc.ItemStack;
 

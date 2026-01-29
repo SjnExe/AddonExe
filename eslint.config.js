@@ -30,7 +30,7 @@ export default tseslint.config(
             'packs/behavior/scripts/',
             'OldAntiCheatsBP/',
             'OldAntiCheatsRP/',
-            'src/**/__tests__/',
+            // 'src/**/__tests__/', // Removed to enable linting for tests
             'eslint.config.js',
             'package.json'
         ]
@@ -48,9 +48,10 @@ export default tseslint.config(
         }
     },
 
-    // TS Configuration (Type-Checked)
+    // TS Configuration (Type-Checked) - Main Source
     {
         files: ['src/**/*.ts'],
+        ignores: ['src/**/__tests__/**'], // Ignore tests in main config
         extends: [...tseslint.configs.recommendedTypeChecked],
         languageOptions: {
             ecmaVersion: 'latest',
@@ -148,6 +149,48 @@ export default tseslint.config(
             '@typescript-eslint/no-unnecessary-condition': 'error',
             '@typescript-eslint/strict-boolean-expressions': 'error',
             '@typescript-eslint/no-unnecessary-type-assertion': 'error'
+        }
+    },
+
+    // TS Configuration (Test Files)
+    {
+        files: ['src/**/__tests__/**/*.ts'],
+        extends: [...tseslint.configs.recommendedTypeChecked],
+        languageOptions: {
+            ecmaVersion: 'latest',
+            sourceType: 'module',
+            parserOptions: {
+                project: './tsconfig.test.json',
+                tsconfigRootDir: __dirname
+            },
+            globals: {
+                ...globals.node,
+                jest: 'readonly'
+            }
+        },
+        plugins: {
+            import: importPlugin
+        },
+        settings: {
+            'import/resolver': {
+                typescript: {
+                    project: './tsconfig.test.json'
+                }
+            }
+        },
+        rules: {
+            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-unsafe-assignment': 'off',
+            '@typescript-eslint/no-unsafe-call': 'off',
+            '@typescript-eslint/no-unsafe-member-access': 'off',
+            '@typescript-eslint/no-unsafe-return': 'off',
+            '@typescript-eslint/no-unsafe-argument': 'off',
+            '@typescript-eslint/unbound-method': 'off',
+            '@typescript-eslint/require-await': 'off',
+            '@typescript-eslint/no-floating-promises': 'off',
+            'no-console': 'off',
+            'import/no-unresolved': 'off',
+            'unicorn/no-useless-undefined': 'off'
         }
     },
 

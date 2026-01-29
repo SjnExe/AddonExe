@@ -2,7 +2,12 @@ import * as mc from '@minecraft/server';
 
 import { getDailyRewardsConfig } from '@core/configurations.js';
 import { errorLog } from '@core/logger.js';
-import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
+import {
+    getOrCreatePlayer,
+    incrementPlayerBalance,
+    savePlayerData,
+    updatePlayerData
+} from '@core/playerDataManager.js';
 import { formatDuration } from '@core/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
@@ -62,8 +67,16 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
 
     // Grant Reward
     try {
+        // Update Data first to prevent claim loop on crash
+        updatePlayerData(player.id, (d) => {
+            d.lastDailyClaim = now;
+            d.dailyStreak = streak;
+        });
+        savePlayerData(player.id);
+
         if (isNumber(reward.money) && reward.money > 0) {
             incrementPlayerBalance(player.id, reward.money);
+            savePlayerData(player.id);
         }
 
         if (isNumber(reward.xp) && reward.xp > 0) {
@@ -95,12 +108,6 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
                 }
             }
         }
-
-        // Update Data
-        updatePlayerData(player.id, (d) => {
-            d.lastDailyClaim = now;
-            d.dailyStreak = streak;
-        });
 
         return {
             success: true,

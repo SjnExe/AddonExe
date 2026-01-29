@@ -66,25 +66,30 @@ export class TicTacToeGame implements IGame {
         const mySymbol = isP1 ? 'X' : 'O';
         const isMyTurn = match.turn === mySymbol;
 
-        // Render the board as text
-        const boardVisual = this.renderBoard(match.board);
-
+        // Title with Magic Prefix for Resource Pack override
         const form = new ActionFormData()
-            .title('Tic Tac Toe')
+            .title('§t§t§tTic Tac Toe')
             .body(
-                (isNonEmptyString(match.winner)
-                    ? `Game Over! ${match.winner === 'Draw' ? "It's a Draw!" : match.winner === mySymbol ? '§2You Won!' : '§4You Lost!'}`
-                    : `Turn: ${match.turn} (${isMyTurn ? '§l§2YOU§r' : 'Opponent'})`) +
-                    `\n\n${boardVisual}\n\nSelect a cell to move:`
+                isNonEmptyString(match.winner)
+                    ? `§lGame Over!§r\n${match.winner === 'Draw' ? "It's a Draw!" : match.winner === mySymbol ? '§aYou Won!' : '§cYou Lost!'}`
+                    : `Turn: ${match.turn} (${isMyTurn ? '§aYou' : 'Opponent'})`
             );
 
-        // Buttons 1-9
+        // Buttons 1-9 (Grid Cells)
         for (let i = 0; i < 9; i++) {
             const cell = match.board[i];
-            const label = isDefined(cell) ? (cell === 'X' ? '§cX' : '§aO') : `§7${i + 1}`;
+            // Use colored symbols for the grid
+            const label = isDefined(cell) ? (cell === 'X' ? '§cX' : '§aO') : '';
             form.button(label);
         }
 
+        // Extra buttons (Refresh/Exit) - These will appear AFTER the grid in the collection
+        // The Resource Pack grid must handle exactly 9 items or we need to handle overflow.
+        // If I add more buttons, they might break the grid or appear below it depending on RP.
+        // For safety, let's keep it to 9 for the grid view, and rely on closing the form to exit?
+        // Or we use a specific "Exit" button that the RP places below.
+
+        // Let's add them. The RP `tic_tac_toe.json` needs to handle them.
         form.button('Refresh / Exit');
 
         if (match.p2Id === 'AI' && !isDefined(match.winner)) {
@@ -135,18 +140,6 @@ export class TicTacToeGame implements IGame {
             this.cleanupMatch(match); // End bot match to invite friend
             await inviteFriendToGame(player, 'ticTacToe');
         }
-    }
-
-    private renderBoard(board: (string | null)[]): string {
-        const sym = (i: number) => {
-            const val = board[i];
-            if (val === 'X') return '§c❌§r';
-            if (val === 'O') return '§a⭕§r';
-            return '§8⬜§r';
-        };
-
-        // Centered ASCII-ish grid
-        return `   ${sym(0)} ${sym(1)} ${sym(2)}\n   ${sym(3)} ${sym(4)} ${sym(5)}\n   ${sym(6)} ${sym(7)} ${sym(8)}`;
     }
 
     private checkWin(match: Match) {

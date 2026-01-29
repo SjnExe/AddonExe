@@ -11,7 +11,7 @@ jest.unstable_mockModule('../configManager.js', () => ({
         economy: {
             enabled: true,
             minBalance: -1000,
-            maxBalance: 1000000,
+            maxBalance: 1_000_000,
             paymentConfirmationThreshold: 1000,
             paymentConfirmationTimeout: 30
         },
@@ -28,7 +28,7 @@ jest.unstable_mockModule('../configurations.js', () => ({
         enabled: true,
         startingBalance: 0,
         minBalance: -1000,
-        maxBalance: 1000000
+        maxBalance: 1_000_000
     })
 }));
 
@@ -65,18 +65,18 @@ const {
     transfer
 } = await import('../playerDataManager.js');
 
-describe('Economy System', () => {
-    // Helper to mock a player
-    const mockPlayer = (id: string, name: string) =>
-        ({
-            id,
-            name,
-            isValid: () => true,
-            sendMessage: jest.fn(),
-            getGameMode: jest.fn(),
-            getComponent: jest.fn()
-        }) as unknown as mc.Player;
+// Helper to mock a player
+const mockPlayer = (id: string, name: string) =>
+    ({
+        id,
+        name,
+        isValid: () => true,
+        sendMessage: jest.fn(),
+        getGameMode: jest.fn(),
+        getComponent: jest.fn()
+    }) as unknown as mc.Player;
 
+describe('Economy System', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         cleanupPlayerDataManager();
@@ -145,7 +145,7 @@ describe('Economy System', () => {
                 const k = key as string;
                 // key format: exe:player.p2
                 if (k.includes('p2')) return { balance: 100, name: 'PlayerTwo' };
-                return undefined;
+                return;
             });
 
             const result = transfer('p1', 'p2', 200);
@@ -163,14 +163,14 @@ describe('Economy System', () => {
 
             getOrCreatePlayer(p1);
             getOrCreatePlayer(p2);
-            incrementPlayerBalance('p1', 1000000);
-            incrementPlayerBalance('p2', 999900);
+            incrementPlayerBalance('p1', 1_000_000);
+            incrementPlayerBalance('p2', 999_900);
 
             const result = transfer('p1', 'p2', 200);
 
             expect(result.success).toBe(false);
-            expect(getBalance('p1')).toBe(1000000);
-            expect(getBalance('p2')).toBe(999900);
+            expect(getBalance('p1')).toBe(1_000_000);
+            expect(getBalance('p2')).toBe(999_900);
         });
     });
 
