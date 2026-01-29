@@ -259,11 +259,12 @@ export function loadNameIdMap() {
 /**
  * Saves a single player's data to a unique dynamic property.
  * @param playerId The ID of the player to save.
+ * @returns True if successful, false otherwise.
  */
-export function savePlayerData(playerId: string) {
+export function savePlayerData(playerId: string): boolean {
     if (!activePlayerData.has(playerId)) {
         errorLog(`[PlayerDataManager] Attempted to save data for non-cached player: ${playerId}`);
-        return;
+        return false;
     }
     try {
         const playerData = activePlayerData.get(playerId);
@@ -281,11 +282,13 @@ export function savePlayerData(playerId: string) {
             const storage = new StorageManager(`${playerPropertyPrefix}${playerId}`);
             storage.save(playerData);
             playerData.needsSave = false;
+            return true;
         }
     } catch (error: unknown) {
         const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[PlayerDataManager] Failed to save data for player ${playerId}: ${stack}`);
     }
+    return false;
 }
 
 /**
@@ -366,6 +369,11 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
         killStreak: 0,
         totalPlayTime: 0,
         sidebarVisible: true,
+        mailbox: [],
+        lastDailyClaim: 0,
+        dailyStreak: 0,
+        starterKitClaimed: false,
+        isVanished: false,
         friends: [],
         friendRequests: [],
         friendSettings: { autoTpAccept: false }
@@ -760,12 +768,17 @@ export function transfer(
         updateAndSaveLeaderboard(sourcePlayerId, sourceData.name, sourceData.balance);
         sourceData.needsSave = true;
 
+        // Force Save Source (Transaction Safety)
+        savePlayerData(sourcePlayerId);
+
         // Apply Target
         targetData.balance = newTargetBal;
         updateAndSaveLeaderboard(targetPlayerId, targetData.name, targetData.balance);
 
         if (targetIsCached) {
             targetData.needsSave = true;
+            // Force save target for consistency
+            savePlayerData(targetPlayerId);
         } else {
             savePlayerData(targetPlayerId);
             activePlayerData.delete(targetPlayerId);
