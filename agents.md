@@ -6,7 +6,38 @@ Welcome, AI Assistant (Jules)! This document provides specific guidelines and ti
 
 Your primary goal is to assist users by completing coding tasks, such as solving bugs, implementing features, writing tests, and updating documentation, all while maintaining code quality, consistency, and adhering to project conventions.
 
-## 2. Understanding the Codebase
+## 2. Environment Setup
+
+If you need to initialize or reset the environment, use the following commands. These handle dependencies, system tools, and repository state.
+
+```bash
+# Clean up existing tools
+sudo apt remove -y openjdk-21-jdk openjdk-21-jre maven gradle chromium-chromedriver golang-go rustc cargo cmake ninja-build gcc clang docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin pipx
+pip uninstall -y poetry uv black mypy pytest ruff conan
+sudo npm uninstall -g yarn pnpm || true
+rm -rf ~/.nvm ~/.pyenv
+
+# Clean up apt
+sudo apt autoremove --purge "openjdk*" -y
+sudo apt autoremove -y
+sudo apt clean
+sudo apt update
+sudo apt full-upgrade -y
+
+# Setup Node.js 22.x
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Setup Repository
+git fetch origin exe:Dev
+git checkout Dev
+npm install
+sudo npm install -g npm@latest
+
+git restore package-lock.json
+```
+
+## 3. Understanding the Codebase
 
 Before implementing changes, strive to understand the relevant parts of the codebase. Key architectural information can be found in `Docs/Development/README.md`. Pay attention to:
 
@@ -31,32 +62,20 @@ Before implementing changes, strive to understand the relevant parts of the code
     - An exception is when interacting with native Minecraft APIs that require `snake_case` identifiers. In those cases, the required style must be used.
     - For full details, always refer to the latest `Docs/Development/CodingStyle.md` and `Docs/Development/StandardizationGuidelines.md`.
 
-## 3. Workflow and Task Management
+## 4. Workflow and Task Management
 
-This project uses a simple task management system in the `Docs/Development/tasks/` directory.
+- **Chat-First Workflow:** The primary mode of operation is through the chat session. Tasks, plans, and execution happen dynamically here.
+- **Large Tasks:** For large-scale projects requiring multiple sessions or batched work, we utilize the `Dev/tasks/` directory.
+    - Break down big features into sub-tasks in `Dev/tasks/`.
+    - Use separate Jules sessions to tackle these batches.
 
-- **Before Starting New Work:**
-    - Review `Docs/Development/tasks/ongoing.md` to see if any tasks are in progress.
-    - Review `Docs/Development/tasks/todo.md` for planned tasks.
-- **Working on a Task:**
-    - If continuing a previous task, ensure `Docs/Development/tasks/ongoing.md` reflects this.
-    - When starting a new task (usually from `Docs/Development/tasks/todo.md` or a new user request):
-        - **Update `Docs/Development/tasks/ongoing.md`**: Describe the task you are about to work on, including its objectives and your name/session identifier.
-        - If the task was from `Docs/Development/tasks/todo.md`, remove it from there.
-- **Completing a Task:**
-    - Upon successful completion and submission of all changes for a task:
-        - **Update `Docs/Development/tasks/completed.md`**: Add a summary of the completed task, including the work done and a reference to the submission (e.g., branch name or commit message theme).
-        - **Clear/Update `Docs/Development/tasks/ongoing.md`**: If no immediate follow-up task, clear it to indicate no task is ongoing. If starting another task, update it for the new task.
-- **Identifying New Work:**
-    - If you identify potential future work, bugs, or ideas during your session, add them as new items to `Docs/Development/tasks/todo.md` with a suggested priority if possible.
-
-## 4. Documentation Responsibilities
+## 5. Documentation Responsibilities
 
 - **Update Root `README.md`**: If you add significant new user-facing features or make major changes to the addon's functionality or setup, you **must** also update the main project `README.md` (located in the repository root) to reflect these changes. This keeps the primary user documentation current.
 - **Update `Docs/` Folder**: For substantial feature changes or additions, relevant files in the `Docs/` folder (e.g., `FeaturesOverview.md`, `ConfigurationGuide.md`, `Commands.md`) should also be updated.
 - **JSDoc/TSDoc Comments**: Adhere to the JSDoc/TSDoc standards outlined in `Docs/Development/StandardizationGuidelines.md`. Add comments for new functions (especially exported ones) and complex logic. Ensure types are accurate (now enforced by TypeScript).
 
-## 5. Code Style and Quality
+## 6. Code Style and Quality
 
 - **Adherence to Guidelines:** Strictly follow `Docs/Development/CodingStyle.md` and `Docs/Development/StandardizationGuidelines.md`.
 - **TypeScript:** All Behavior Pack scripts are written in TypeScript (or JavaScript migrating to TypeScript) in the `src/` directory.
@@ -72,14 +91,14 @@ This project uses a simple task management system in the `Docs/Development/tasks
     - **Check Console:** Always read errors and warnings directly from the terminal/console output.
     - **Fixing Workflow:** When fixing issues, run the command (e.g., `npm run lint`), check the console for remaining errors, fix them, and repeat.
 
-## 6. Planning and Communication
+## 7. Planning and Communication
 
 - **Use `set_plan()`:** Always articulate your plan using the `set_plan` tool before starting significant code changes.
 - **Be Clear:** Make your plan steps clear and actionable.
 - **Ask Questions:** If the user's request is ambiguous or if you encounter significant issues, use `request_user_input`.
 - **Report Progress:** Use `plan_step_complete()` after each step.
 
-## 7. Specific Technical Constraints & Patterns
+## 8. Specific Technical Constraints & Patterns
 
 The following patterns must be verified and adhered to when working on the codebase:
 

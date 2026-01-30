@@ -23,7 +23,10 @@
         "validate:report": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE -o validation_report",
         "project-info": "npx mct info",
         "fix-project": "npx mct fix",
-        "prepare": "husky && node scripts/generate-manifests.js"
+        "prepare": "npx simple-git-hooks && node scripts/generate-manifests.js"
+    },
+    "simple-git-hooks": {
+        "pre-commit": "npx lint-staged"
     },
     "repository": {
         "type": "git",
@@ -70,12 +73,12 @@
         "eslint-plugin-unused-imports": "latest",
         "glob": "latest",
         "globals": "latest",
-        "husky": "latest",
         "jest": "latest",
         "lint-staged": "latest",
         "prettier": "latest",
         "prettier-plugin-organize-imports": "latest",
         "rimraf": "latest",
+        "simple-git-hooks": "^2.13.1",
         "ts-jest": "latest",
         "ts-node": "latest",
         "tsc-alias": "latest",
