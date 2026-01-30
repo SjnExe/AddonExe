@@ -41,7 +41,7 @@ Designed to be robust, highly configurable, and packed with features to ensure f
 - **Highly Customizable:** Fine-tune almost every aspect, from feature toggles to command permissions, to perfectly suit your server's needs.
 - **Active Development:** Continuously updated with new features, improvements, and compatibility for the latest Minecraft versions.
 - **Open & Documented:** With clear documentation and an open codebase, understand how it works and even contribute!
-- **Enhanced Stability:** Includes robust error handling and a watchdog to prevent script-related server crashes, ensuring a more stable experience.
+- **Enhanced Stability & Safety:** Includes robust error handling, transaction safety logic to prevent economy exploits, and a watchdog to prevent script-related server crashes.
 
 ---
 
@@ -69,6 +69,7 @@ This addon is packed with features to keep your server clean:
     - **Economy & Bounties:** A simple economy system with player balances, payment commands, and a full bounty system.
     - **In-Game Shop:** A fully-featured, GUI-based shop where players can buy and sell items. Admins can configure all items and prices from an in-game panel.
     - **Homes:** Allows players to set and teleport to their own personal "homes".
+    - **Mini-Games:** Includes built-in games like Tic Tac Toe (with a custom 3x3 Grid UI) and more to come.
     - **Random Teleport (RTP):** A command for players to teleport to a random, safe location in the world.
     - **Kits:** A system for players to claim predefined kits of items with cooldowns.
 
@@ -164,7 +165,7 @@ All detailed information has been moved to our `Docs` folder for clarity:
 
 This addon is designed to be as lightweight as possible. However, performance can be influenced by the number of checks enabled, their sensitivity, and the server's player count. We recommend starting with default configurations and adjusting based on your server's needs.
 
-For developers, the addon includes a basic performance profiling feature that can be enabled in `config.js` to help identify potential bottlenecks. For more details, see the [**Developer README**](Docs/Development/README.md).
+For developers, the addon includes a basic performance profiling feature that can be enabled in `config.js` to help identify potential bottlenecks. For more details, see the [**Developer README**](Dev/README.md).
 
 ---
 
@@ -179,14 +180,14 @@ Contributions are highly welcome and appreciated! Help us make this addon even b
 **Crediting:** Please note that contributions are generally not credited directly in the codebase. Significant contributions will be acknowledged in the project's changelog or a dedicated contributors file.
 
 - **Fork & Branch:** Create your own fork and make changes in a dedicated branch.
-- **Code Style:** Follow our 📄 [**Coding Style Guide**](Docs/Development/CodingStyle.md).
+- **Code Style:** Follow our 📄 [**Coding Style Guide**](Dev/CodingStyle.md).
 - **Test Thoroughly:** Ensure your changes are stable and don't introduce new issues.
 - **Document Changes:** Update relevant documentation in the `Docs` folder if you add or modify features.
 - **Pull Request:** Submit your changes for review. Explain what you've changed and why.
 
 Looking for a place to start? Check out our [**issues tab**](https://github.com/SjnExe/AddonExe/issues) – we often tag issues that are great for new contributors.
 
-➡️ For more on development processes, see our [**Developer README**](Docs/Development/README.md).
+➡️ For more on development processes, see our [**Developer README**](Dev/README.md).
 
 ---
 
