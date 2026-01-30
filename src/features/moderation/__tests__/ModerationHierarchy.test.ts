@@ -133,8 +133,8 @@ describe('Moderation Hierarchy', () => {
     });
 
     describe('Inventory Commands', () => {
-        const ecwipe = (inventoryCommands).find((c) => c.name === 'ecwipe')!;
-        const copyinv = (inventoryCommands).find((c) => c.name === 'copyinv')!;
+        const ecwipe = inventoryCommands.find((c) => c.name === 'ecwipe')!;
+        const copyinv = inventoryCommands.find((c) => c.name === 'copyinv')!;
 
         it('ecwipe should fail if executor rank is lower', () => {
             setupRanks(2, 1);

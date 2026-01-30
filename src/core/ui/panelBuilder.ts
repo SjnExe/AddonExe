@@ -52,9 +52,9 @@ export async function buildPanelForm(
 
         const panelDef = panelDefinitions[panelId];
         if (panelDef && typeof panelDef.permissionLevel === 'number' && permissionLevel > panelDef.permissionLevel) {
-                // Access Denied
-                return undefined;
-            }
+            // Access Denied
+            return undefined;
+        }
 
         // 1. Check Panel Router (Modular System)
         const handler = panelRouter.getHandler(panelId);
