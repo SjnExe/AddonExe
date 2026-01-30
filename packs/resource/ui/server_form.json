@@ -25,7 +25,9 @@
                                             "anchor_from": "center",
                                             "anchor_to": "center",
                                             "size": ["100%", "100%"],
-                                            "controls": [{ "ttt_screen@addonexe_ttt.grid_screen": {} }]
+                                            "controls": [
+                                                { "ttt_screen@addonexe_ttt.grid_screen": {} }
+                                            ]
                                         }
                                     }
                                 ],
@@ -116,11 +118,7 @@
                     "type": "label",
                     "text": "#button_text",
                     "bindings": [
-                        {
-                            "binding_name": "#button_text",
-                            "binding_type": "collection",
-                            "binding_collection_name": "form_buttons"
-                        }
+                        { "binding_name": "#button_text", "binding_type": "collection", "binding_collection_name": "form_buttons" }
                     ]
                 }
             }
