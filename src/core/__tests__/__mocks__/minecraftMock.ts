@@ -1,5 +1,3 @@
-/* eslint-disable unicorn/consistent-function-scoping */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { jest } from '@jest/globals';
 
 // --- @minecraft/server Mocks ---
@@ -145,7 +143,7 @@ interface Control {
 export class ModalFormData {
     private _controls: Control[] = [];
 
-    title(_: string) {
+    title(_text: string) {
         return this;
     }
     textField(label: string, placeholder: string, defaultValue?: string) {
@@ -164,7 +162,7 @@ export class ModalFormData {
         this._controls.push({ type: 'slider', label, min, max, step, defaultValue });
         return this;
     }
-    submitButton(_: string) {
+    submitButton(_text: string) {
         return this;
     }
 
@@ -185,10 +183,10 @@ export class ModalFormData {
 export class ActionFormData {
     private _buttons: { text: string; iconPath?: string | undefined }[] = [];
 
-    title(_: string) {
+    title(_text: string) {
         return this;
     }
-    body(_: string) {
+    body(_text: string) {
         return this;
     }
     button(text: string, iconPath?: string) {

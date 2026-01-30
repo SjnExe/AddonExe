@@ -3,7 +3,6 @@ import {
     getPlayerIdByName,
     getPlayerNameById,
     loadPlayerData,
-    savePlayerData,
     updatePlayerData
 } from '@core/playerDataManager.js';
 import { uiWait } from '@core/utils.js';
@@ -59,8 +58,6 @@ export function sendFriendRequest(sender: mc.Player, targetName: string): string
             timestamp: Date.now()
         });
     });
-    // Force save target data to persist request
-    savePlayerData(targetId);
 
     const targetPlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
     if (isDefined(targetPlayer)) {
@@ -97,28 +94,15 @@ export function acceptFriendRequest(player: mc.Player, senderName: string): stri
             data.friendRequests.splice(requestIndex, 1);
         }
     });
-    savePlayerData(player.id);
 
-    // Need to load other player data if offline
-    let targetIsOnline = false;
-    const senderPlayer = mc.world.getAllPlayers().find((p) => p.id === newFriendId);
-    if (isDefined(senderPlayer)) targetIsOnline = true;
-
-    // We can use updatePlayerData which handles loading/unloading
     updatePlayerData(newFriendId, (data) => {
         if (!isDefined(data.friends)) data.friends = [];
         if (!data.friends.includes(player.id)) {
             data.friends.push(player.id);
         }
     });
-    // Explicit save is handled by updatePlayerData for offline players,
-    // but for online players (targetIsOnline) we need to save?
-    // updatePlayerData sets needsSave=true for cached players.
-    // To be safe against crashes, we force save.
-    if (targetIsOnline) {
-        savePlayerData(newFriendId);
-    }
 
+    const senderPlayer = mc.world.getAllPlayers().find((p) => p.id === newFriendId);
     if (isDefined(senderPlayer)) {
         senderPlayer.sendMessage(`§a${player.name} accepted your friend request!`);
     }
@@ -154,16 +138,9 @@ export function removeFriend(player: mc.Player, targetName: string): string {
     updatePlayerData(player.id, (data) => {
         data.friends = data.friends?.filter((id) => id !== friendIdToRemove) ?? [];
     });
-    savePlayerData(player.id);
-
     updatePlayerData(friendIdToRemove, (data) => {
         data.friends = data.friends?.filter((id) => id !== player.id) ?? [];
     });
-    // Check if target online for save
-    const targetIsOnline = mc.world.getAllPlayers().some((p) => p.id === friendIdToRemove);
-    if (targetIsOnline) {
-        savePlayerData(friendIdToRemove);
-    }
 
     return `§aRemoved ${friendName} from friends.`;
 }

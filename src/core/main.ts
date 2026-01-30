@@ -47,7 +47,7 @@ export async function initializeAddon() {
 
     let isMigration = true;
     if (isNonEmptyString(lastVersionStr)) {
-        const lastVersion = lastVersionStr.split('.').map(Number);
+        const lastVersion = lastVersionStr.split(',').map(Number);
         // Only trigger migration if Major or Minor versions differ.
         // Array format is [Major, Minor, Patch]
         if (

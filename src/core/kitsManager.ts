@@ -6,12 +6,7 @@ import { getKitsConfig } from './configurations.js';
 import { Kit } from './kitAdminManager.js';
 import { ItemInfo } from './kitItemsManager.js';
 import { errorLog } from './logger.js';
-import {
-    getOrCreatePlayer,
-    incrementPlayerBalance,
-    savePlayerData,
-    setKitCooldown
-} from './playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance, setKitCooldown } from './playerDataManager.js';
 import { formatCooldown } from './utils.js';
 
 interface KitInfo {
@@ -170,7 +165,6 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     // All checks passed, now charge the player
     if (isDefined(kit.price) && kit.price > 0) {
         incrementPlayerBalance(player.id, -kit.price);
-        savePlayerData(player.id);
     }
 
     try {
@@ -180,7 +174,6 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
         const now = Date.now();
         const newCooldown = now + kit.cooldownSeconds * 1000;
         setKitCooldown(player.id, lowerCaseKitName, newCooldown);
-        savePlayerData(player.id);
 
         return { success: true, message: `You have received the '${kitName}' kit.` };
     } catch (error: unknown) {

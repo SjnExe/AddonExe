@@ -1,33 +1,29 @@
 {
     "namespace": "addonexe_ttt",
     "grid_screen": {
-        "type": "stack_panel",
-        "orientation": "vertical",
-        "size": ["100%", "100%"],
+        "type": "input_panel",
         "controls": [
             {
-                "header": {
-                    "type": "label",
-                    "text": "#content_text",
-                    "size": ["100%", "30%"],
-                    "text_alignment": "center",
-                    "bindings": [{ "binding_name": "#content_text" }]
-                }
-            },
-            {
-                "grid_panel": {
-                    "type": "panel",
-                    "size": ["100%", "70%"],
+                "main_stack": {
+                    "type": "stack_panel",
+                    "orientation": "vertical",
+                    "size": ["100%", "100%"],
                     "controls": [
+                        {
+                            "header": {
+                                "type": "label",
+                                "text": "Tic Tac Toe",
+                                "size": ["100%", 20],
+                                "text_alignment": "center"
+                            }
+                        },
                         {
                             "game_grid": {
                                 "type": "grid",
                                 "grid_dimensions": [3, 3],
                                 "size": [150, 150],
                                 "grid_item_template": "addonexe_ttt.grid_button",
-                                "collection_name": "form_buttons",
-                                "anchor_from": "center",
-                                "anchor_to": "center"
+                                "collection_name": "ttt_cells"
                             }
                         }
                     ]
@@ -47,7 +43,7 @@
                         {
                             "binding_name": "#button_text",
                             "binding_type": "collection",
-                            "binding_collection_name": "form_buttons"
+                            "binding_collection_name": "ttt_cells"
                         }
                     ]
                 }
@@ -56,7 +52,7 @@
         "button_mappings": [
             {
                 "from_button_id": "button.menu_select",
-                "to_button_id": "button.form_button_click",
+                "to_button_id": "button.click_cell",
                 "mapping_type": "pressed"
             }
         ]

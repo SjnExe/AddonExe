@@ -59,8 +59,6 @@ export interface PanelDefinition {
     items: PanelItem[];
     /** Optional: Minimum permission level to view this panel. */
     permissionLevel?: number;
-    /** Optional: Static body text for the panel. */
-    body?: string;
 }
 
 export interface UIContext extends Record<string, unknown> {

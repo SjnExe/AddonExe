@@ -46,19 +46,8 @@ const { freezePlayer } = await import('../commands/freeze.js');
 const { default: warnCommand } = await import('../commands/warn.js');
 const { default: inventoryCommands } = await import('../commands/inventory.js');
 
+import { CustomCommand } from '@core/commands/commandManager.js';
 import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
-
-const setupRanks = (executorLevel: number, targetLevel: number) => {
-    mockGetPlayer.mockImplementation(((id: string) => {
-        if (id === 'executorId') return { permissionLevel: executorLevel, name: 'Executor' };
-        if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
-        return;
-    }) as unknown as typeof mockGetPlayer);
-    mockLoadPlayerData.mockImplementation(((id: string) => {
-        if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
-        return;
-    }) as unknown as typeof mockLoadPlayerData);
-};
 
 describe('Moderation Hierarchy', () => {
     // Use the mock class to satisfy instanceof checks
@@ -98,6 +87,18 @@ describe('Moderation Hierarchy', () => {
         mockLoadPlayerData.mockReset();
     });
 
+    const setupRanks = (executorLevel: number, targetLevel: number) => {
+        mockGetPlayer.mockImplementation(((id: string) => {
+            if (id === 'executorId') return { permissionLevel: executorLevel, name: 'Executor' };
+            if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
+            return undefined;
+        }) as unknown as typeof mockGetPlayer);
+        mockLoadPlayerData.mockImplementation(((id: string) => {
+            if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
+            return undefined;
+        }) as unknown as typeof mockLoadPlayerData);
+    };
+
     describe('Warn Command', () => {
         it('should fail if executor rank is lower (higher number) than target', () => {
             setupRanks(2, 1);
@@ -133,8 +134,8 @@ describe('Moderation Hierarchy', () => {
     });
 
     describe('Inventory Commands', () => {
-        const ecwipe = (inventoryCommands).find((c) => c.name === 'ecwipe')!;
-        const copyinv = (inventoryCommands).find((c) => c.name === 'copyinv')!;
+        const ecwipe = (inventoryCommands as CustomCommand[]).find((c) => c.name === 'ecwipe')!;
+        const copyinv = (inventoryCommands as CustomCommand[]).find((c) => c.name === 'copyinv')!;
 
         it('ecwipe should fail if executor rank is lower', () => {
             setupRanks(2, 1);

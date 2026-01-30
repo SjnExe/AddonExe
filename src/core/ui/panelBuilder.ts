@@ -46,15 +46,15 @@ export async function buildPanelForm(
     context: UIContext
 ): Promise<ActionFormData | ModalFormData | undefined> {
     try {
-        const config = getConfig();
-        const rank = getPlayerRank(player, config);
-        const permissionLevel = rank.permissionLevel;
-
         const panelDef = panelDefinitions[panelId];
-        if (panelDef && typeof panelDef.permissionLevel === 'number' && permissionLevel > panelDef.permissionLevel) {
+        if (panelDef && typeof panelDef.permissionLevel === 'number') {
+            const config = getConfig();
+            const rank = getPlayerRank(player, config);
+            if (rank.permissionLevel > panelDef.permissionLevel) {
                 // Access Denied
                 return undefined;
             }
+        }
 
         // 1. Check Panel Router (Modular System)
         const handler = panelRouter.getHandler(panelId);
@@ -68,14 +68,6 @@ export async function buildPanelForm(
                 if (isDefined(items)) {
                     return buildActionFormFromItems(player, panelId, context, items);
                 }
-            }
-        }
-
-        // 2. Fallback: Static Definition
-        if (isDefined(panelDef)) {
-            const items = getStaticMenuItems(panelDef, permissionLevel);
-            if (items.length > 0 || isDefined(panelDef.parentPanelId)) {
-                return buildActionFormFromItems(player, panelId, context, items);
             }
         }
 
@@ -131,9 +123,6 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
         } catch (error) {
             errorLog(`[UIManager] Error getting body for panel ${panelId}`, error);
         }
-    } else if (isDefined(panelDef) && isDefined(panelDef.body)) {
-        // Fallback to static body
-        form.body(panelDef.body);
     }
 
     for (const item of items) {
