@@ -124,10 +124,11 @@ export class RockPaperScissorsGame implements IGame {
             const p1 = match.p1Choice;
             const p2 = match.p2Choice;
 
-            let winner: 'p1' | 'p2' | 'draw' = 'draw';
+            let winner: 'p1' | 'p2' | 'draw';
 
-            if (p1 === p2) winner = 'draw';
-            else if (
+            if (p1 === p2) {
+                winner = 'draw';
+            } else if (
                 (p1 === 'Rock' && p2 === 'Scissors') ||
                 (p1 === 'Paper' && p2 === 'Rock') ||
                 (p1 === 'Scissors' && p2 === 'Paper')

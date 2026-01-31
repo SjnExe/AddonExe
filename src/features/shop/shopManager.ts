@@ -314,7 +314,7 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
         if (isDefined(item) && isValidSellItem(item, shopItem)) {
             if (item.amount <= remaining) {
                 remaining -= item.amount;
-                inventory.setItem(i, undefined);
+                inventory.setItem(i);
             } else {
                 item.amount -= remaining;
                 remaining = 0;

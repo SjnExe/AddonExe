@@ -92,7 +92,7 @@ export function getChatLogs(date?: string): ChatLog[] {
 
 export function getAvailableDates(): string[] {
     const dates = indexStorage.load<string[]>() ?? [];
-    return [...dates].toSorted().toReversed(); // Newest first
+    return [...dates].toSorted((a, b) => a.localeCompare(b)).toReversed(); // Newest first
 }
 
 function pruneOldLogs() {

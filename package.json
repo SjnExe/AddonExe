@@ -69,6 +69,7 @@
         "eslint-plugin-jsonc": "latest",
         "eslint-plugin-minecraft-linting": "latest",
         "eslint-plugin-promise": "latest",
+        "eslint-plugin-sonarjs": "^3.0.6",
         "eslint-plugin-unicorn": "latest",
         "eslint-plugin-unused-imports": "latest",
         "glob": "latest",

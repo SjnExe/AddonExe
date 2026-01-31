@@ -255,7 +255,7 @@ export function deleteTeam(teamId: number): boolean {
 
     activeTeams.delete(teamId);
     // Clean up storage
-    mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`, undefined); // undefined or undefined deletes property
+    mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`);
     saveAllTeamIds();
 
     return true;
@@ -276,7 +276,7 @@ export function getPlayerTeamId(playerId: string): number | undefined {
 
 export function getTeamByPlayer(playerId: string): TeamData | undefined {
     const teamId = getPlayerTeamId(playerId);
-    return isDefined(teamId) ? activeTeams.get(teamId) || undefined : undefined;
+    return isDefined(teamId) ? activeTeams.get(teamId) : undefined;
 }
 
 /**

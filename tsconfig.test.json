@@ -1,9 +1,10 @@
 {
     "extends": "./tsconfig.json",
-    "include": ["src/**/*", "src/**/__tests__/**/*"],
-    "exclude": ["node_modules"],
     "compilerOptions": {
+        "outDir": "./dist/tests",
+        "types": ["jest", "node"],
         "noEmit": true,
-        "types": ["jest", "node"]
-    }
+        "moduleResolution": "Node16"
+    },
+    "include": ["src/**/__tests__/*.ts", "src/**/__mocks__/*.ts"]
 }
