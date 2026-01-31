@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
         "target": "ES2023",
-        "module": "ES2022",
-        "moduleResolution": "node",
+        "module": "Node16",
+        "moduleResolution": "Node16",
         "strict": true,
         "noUncheckedIndexedAccess": true,
         "noImplicitReturns": true,
@@ -12,7 +12,7 @@
         "exactOptionalPropertyTypes": true,
         "noImplicitOverride": true,
         "allowJs": true,
-        "checkJs": false,
+        "checkJs": true,
         "outDir": "./packs/behavior/scripts",
         "rootDir": "./src",
         "forceConsistentCasingInFileNames": true,

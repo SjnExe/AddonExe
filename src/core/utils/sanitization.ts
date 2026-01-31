@@ -10,12 +10,13 @@ export function sanitizeString(input: string, allowColors = false): string {
 
     // Remove color codes if not allowed
     if (!allowColors) {
+        // eslint-disable-next-line sonarjs/no-control-regex
         result = result.replaceAll(/§[0-9a-fklmnor]/g, '');
     }
 
     // Remove non-printable characters (basic control chars, keeping newlines/returns)
-    // Using new RegExp to avoid no-control-regex lint error while maintaining functionality
-    result = result.replaceAll(new RegExp(String.raw`[\x00-\x09\x0B\x0C\x0E-\x1F]`, 'g'), '');
+    // eslint-disable-next-line sonarjs/no-control-regex
+    result = result.replaceAll(/[\x00-\x09\x0B\x0C\x0E-\x1F]/g, '');
 
     return result.trim();
 }

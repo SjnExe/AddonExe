@@ -26,9 +26,9 @@ export async function showAuctionHouse(
 ): Promise<void> {
     const totalListings = getListingsCount(searchQuery);
     const totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE) || 1;
-    page = Math.max(1, Math.min(page, totalPages));
+    const clampedPage = Math.max(1, Math.min(page, totalPages));
 
-    const listings = getListings(page, LISTINGS_PER_PAGE, searchQuery, sort);
+    const listings = getListings(clampedPage, LISTINGS_PER_PAGE, searchQuery, sort);
 
     let sortLabel = 'Newest';
     switch (sort) {
@@ -48,10 +48,6 @@ export async function showAuctionHouse(
             sortLabel = 'Seller (A-Z)';
             break;
         }
-        case SortOption.Newest: {
-            sortLabel = 'Newest';
-            break;
-        }
         default: {
             sortLabel = 'Newest';
             break;
@@ -59,8 +55,8 @@ export async function showAuctionHouse(
     }
 
     const title = isNonEmptyString(searchQuery)
-        ? `AH Search: "${searchQuery}" (${page}/${totalPages})`
-        : `Auction House (${page}/${totalPages})`;
+        ? `AH Search: "${searchQuery}" (${clampedPage}/${totalPages})`
+        : `Auction House (${clampedPage}/${totalPages})`;
 
     const form = new ActionFormData()
         .title(title)
@@ -71,8 +67,8 @@ export async function showAuctionHouse(
     form.button(isNonEmptyString(searchQuery) ? '§cClear Search' : '§6Search/Filter', 'textures/ui/magnifying_glass');
     form.button(`§dSort: ${sortLabel}`, 'textures/items/hopper');
 
-    if (page > 1) form.button('§c< Previous Page');
-    if (page < totalPages) form.button('§aNext Page >');
+    if (clampedPage > 1) form.button('§c< Previous Page');
+    if (clampedPage < totalPages) form.button('§aNext Page >');
 
     // List Items
     for (const listing of listings) {
@@ -116,16 +112,16 @@ export async function showAuctionHouse(
     }
     offset = 4;
 
-    if (page > 1) {
+    if (clampedPage > 1) {
         if (selection === offset) {
-            await showAuctionHouse(player, page - 1, searchQuery, sort);
+            await showAuctionHouse(player, clampedPage - 1, searchQuery, sort);
             return;
         }
         offset++;
     }
-    if (page < totalPages) {
+    if (clampedPage < totalPages) {
         if (selection === offset) {
-            await showAuctionHouse(player, page + 1, searchQuery, sort);
+            await showAuctionHouse(player, clampedPage + 1, searchQuery, sort);
             return;
         }
         offset++;

@@ -6,6 +6,7 @@ import importPlugin from 'eslint-plugin-import';
 import jsonc from 'eslint-plugin-jsonc';
 import minecraftLinting from 'eslint-plugin-minecraft-linting';
 import promisePlugin from 'eslint-plugin-promise';
+import sonarjs from 'eslint-plugin-sonarjs';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
@@ -37,6 +38,20 @@ export default tseslint.config(
     },
     // Base JS configuration
     eslint.configs.recommended,
+
+    // SonarJS Configuration
+    sonarjs.configs.recommended,
+    {
+        rules: {
+            // Disable rules that conflict with strict TS or are too noisy for this project
+            'sonarjs/no-duplicate-string': 'off', // Common in Minecraft commands/IDs
+            'sonarjs/cognitive-complexity': ['warn', 25], // Allow slightly higher complexity
+            'sonarjs/no-nested-template-literals': 'off',
+            'sonarjs/todo-tag': 'warn',
+            'sonarjs/fixme-tag': 'warn',
+            'sonarjs/pseudo-random': 'off' // Safe for Minecraft game mechanics
+        }
+    },
 
     // Unicorn Configuration
     eslintPluginUnicorn.configs['flat/recommended'],
