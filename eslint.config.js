@@ -28,7 +28,7 @@ export default tseslint.config(
             '.github/',
             'Docs/Development/',
             'Docs/',
-            'packs/behavior/scripts/',
+            '**/packs/behavior/scripts/**',
             'OldAntiCheatsBP/',
             'OldAntiCheatsRP/',
             // 'src/**/__tests__/', // Removed to enable linting for tests

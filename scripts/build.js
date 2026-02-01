@@ -11,6 +11,7 @@ const __dirname = path.dirname(__filename);
 const entryPoint = path.join(__dirname, '../src/core/main.ts');
 const outfile = path.join(__dirname, '../packs/behavior/scripts/main.js');
 const scriptsDir = path.join(__dirname, '../packs/behavior/scripts');
+const tsconfigPath = path.join(__dirname, '../tsconfig.json');
 
 const isWatch = process.argv.includes('--watch');
 const isMinify = process.argv.includes('--minify');
@@ -108,44 +109,6 @@ const external = [
     ...configsToCompile.map((c) => `./${c.dest}`)
 ];
 
-// Simple path alias plugin for esbuild
-const pathAliasPlugin = {
-    name: 'path-alias',
-    setup(build) {
-        const aliases = {
-            '@core': path.join(srcDir, 'core'),
-            '@features': path.join(srcDir, 'features'),
-            '@ui': path.join(srcDir, 'core/ui'),
-            '@commands': path.join(srcDir, 'core/commands'),
-            '@lib': path.join(srcDir, 'lib')
-        };
-
-        const keys = Object.keys(aliases);
-
-        build.onResolve({ filter: new RegExp(`^(${keys.join('|')})`) }, (args) => {
-            for (const key of keys) {
-                if (args.path.startsWith(key)) {
-                    const remainder = args.path.slice(key.length);
-                    // Handle @lib/guards.js -> /src/lib/guards.ts or .js
-                    // Since we are compiling, we want to point to the source file
-                    let targetPath = path.join(aliases[key], remainder);
-
-                    // If it ends in .js, try to find the .ts source
-                    if (targetPath.endsWith('.js')) {
-                        const tsPath = targetPath.replace(/\.js$/, '.ts');
-                        if (fs.existsSync(tsPath)) {
-                            targetPath = tsPath;
-                        }
-                    }
-
-                    return { path: targetPath };
-                }
-            }
-            return null;
-        });
-    }
-};
-
 async function compileConfig(configEntry) {
     const defaultSrcPath = path.join(__dirname, configEntry.src);
     let sourcePathToUse = defaultSrcPath;
@@ -168,7 +131,7 @@ async function compileConfig(configEntry) {
             outfile: destPath,
             bundle: false, // Do not bundle configs
             format: 'esm',
-            target: 'es2020',
+            target: 'es2022',
             sourcemap: false
         });
         console.log(`Compiled config: ${configEntry.dest} (from ${path.basename(sourcePathToUse)})`);
@@ -197,13 +160,13 @@ async function build() {
             outfile: outfile,
             bundle: true,
             format: 'esm',
-            target: 'es2020',
+            target: 'es2022',
             external: external,
             sourcemap: true,
             minify: isMinify,
             treeShaking: true,
             logLevel: 'info',
-            plugins: [pathAliasPlugin]
+            tsconfig: tsconfigPath
         });
 
         if (isWatch) {
