@@ -91,7 +91,12 @@ function* updateLoopJob() {
     let checkCount = 0;
     for (const textConfig of dynamicTexts.values()) {
         const lastTick = lastUpdateTick.get(textConfig.id) ?? 0;
-        if (now - lastTick < textConfig.updateInterval) continue;
+        if (
+            !isDefined(textConfig.updateInterval) ||
+            now - lastTick < textConfig.updateInterval
+        ) {
+            continue;
+        }
 
         lastUpdateTick.set(textConfig.id, now);
 
