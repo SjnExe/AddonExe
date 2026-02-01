@@ -11,11 +11,10 @@ export function formatString(template: string, context: Record<string, string | 
     // Replace \n with actual newlines first
     let message = template.replaceAll(String.raw`\n`, '\n');
 
-    // Replace placeholders
+    // Replace placeholders using replaceAll without RegExp overhead
     for (const key in context) {
         if (Object.prototype.hasOwnProperty.call(context, key)) {
-            const placeholder = new RegExp(`{${key}}`, 'g');
-            message = message.replace(placeholder, String(context[key]));
+            message = message.replaceAll(`{${key}}`, String(context[key]));
         }
     }
     return message;

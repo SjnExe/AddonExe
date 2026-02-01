@@ -1,10 +1,11 @@
+const durationRegex = /^(\d+)([smhdw])$/;
+
 /**
  * Parses a duration string (e.g., "10m", "2h", "7d") and returns the duration in milliseconds.
  * @param durationString The duration string to parse.
  * @returns The duration in milliseconds, or 0 if the format is invalid.
  */
 export function parseDuration(durationString: string): number {
-    const durationRegex = /^(\d+)([smhdw])$/;
     const match = durationRegex.exec(durationString.toLowerCase());
 
     if (!match) {

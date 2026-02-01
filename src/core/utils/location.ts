@@ -1,3 +1,5 @@
+const locationRegex = /^([\d.-]+), ([\d.-]+), ([\d.-]+)$/;
+
 /**
  * Formats a location object into a human-readable string.
  * @param location The location object.
@@ -36,8 +38,7 @@ export function parseLocation(locationStr: string): { x: number; y: number; z: n
     if (!locationStr || locationStr.length === 0) {
         return undefined;
     }
-    const regex = /^([\d.-]+), ([\d.-]+), ([\d.-]+)$/;
-    const match = regex.exec(locationStr);
+    const match = locationRegex.exec(locationStr);
     if (!match) {
         return undefined;
     }
