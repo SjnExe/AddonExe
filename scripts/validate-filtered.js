@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+// eslint-disable-next-line sonarjs/os-command
 const child = spawn(npmCommand, ['run', 'validate'], { shell: true, stdio: ['ignore', 'pipe', 'pipe'] });
 
 let buffer = '';

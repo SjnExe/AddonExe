@@ -52,11 +52,11 @@ const setupRanks = (executorLevel: number, targetLevel: number) => {
     mockGetPlayer.mockImplementation(((id: string) => {
         if (id === 'executorId') return { permissionLevel: executorLevel, name: 'Executor' };
         if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
-        return;
+        return undefined;
     }) as unknown as typeof mockGetPlayer);
     mockLoadPlayerData.mockImplementation(((id: string) => {
         if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
-        return;
+        return undefined;
     }) as unknown as typeof mockLoadPlayerData);
 };
 

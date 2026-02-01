@@ -575,11 +575,7 @@ export class TeamPanelHandler implements IPanelHandler {
             }
         });
 
-        if (
-            isDefined(team) &&
-            (team.ownerId === player.id || team.admins.includes(player.id)) &&
-            values.length > 1
-        ) {
+        if (isDefined(team) && (team.ownerId === player.id || team.admins.includes(player.id)) && values.length > 1) {
             const isOpen = values[1] as boolean;
             teamManager.updateTeamSetting(team.id, 'open', isOpen);
 

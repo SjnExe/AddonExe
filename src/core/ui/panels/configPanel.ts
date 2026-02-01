@@ -83,7 +83,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     icon: sys.icon,
                     permissionLevel: 1,
                     actionType: 'openPanel',
-                    actionValue: sys.id.startsWith('config_') ? sys.id : sys.id
+                    actionValue: sys.id
                 });
             }
             addPaginationItems(items, (context.page as number) || 1, systems.length);

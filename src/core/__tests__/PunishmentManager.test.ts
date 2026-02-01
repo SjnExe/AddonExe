@@ -86,7 +86,7 @@ describe('PunishmentManager', () => {
             if (key === 'exe:punishments') {
                 return JSON.stringify(legacyData);
             }
-            return;
+            return undefined;
         });
 
         loadPunishments();

@@ -161,11 +161,7 @@ const ecwipeCommand: CustomCommand = {
             ? `§aSuccessfully wiped Ender Chest of ${targetNameResolved}.`
             : `§cFailed to wipe some slots (Player might be dead or offline).`;
 
-        if (executor instanceof mc.Player) {
-            executor.sendMessage(msg);
-        } else {
-            executor.sendMessage(msg);
-        }
+        executor.sendMessage(msg);
     }
 };
 

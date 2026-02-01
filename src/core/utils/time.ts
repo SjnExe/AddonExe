@@ -5,7 +5,7 @@
  */
 export function parseDuration(durationString: string): number {
     const durationRegex = /^(\d+)([smhdw])$/;
-    const match = durationString.toLowerCase().match(durationRegex);
+    const match = durationRegex.exec(durationString.toLowerCase());
 
     if (!match) {
         return 0;

@@ -27,7 +27,6 @@ export function restartAutoSave() {
     if (autoSaveIntervalSeconds > 0) {
         const intervalTicks = autoSaveIntervalSeconds * 20; // 20 ticks/sec
         autoSaveIntervalId = setTrackedInterval(() => {
-            // debugLog('[DataManager] Auto-save triggered by interval.');
             const wasAnythingSaved = saveAllData({ log: false }); // Don't spam logs for auto-saves
             if (wasAnythingSaved) {
                 debugLog('[Auto-Save] Server data has been saved.');

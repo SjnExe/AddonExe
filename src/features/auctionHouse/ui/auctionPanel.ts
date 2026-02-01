@@ -30,7 +30,7 @@ export async function showAuctionHouse(
 
     const listings = getListings(clampedPage, LISTINGS_PER_PAGE, searchQuery, sort);
 
-    let sortLabel = 'Newest';
+    let sortLabel: string;
     switch (sort) {
         case SortOption.PriceAsc: {
             sortLabel = 'Price (Low)';
@@ -46,6 +46,10 @@ export async function showAuctionHouse(
         }
         case SortOption.SellerAsc: {
             sortLabel = 'Seller (A-Z)';
+            break;
+        }
+        case SortOption.Newest: {
+            sortLabel = 'Newest';
             break;
         }
         default: {

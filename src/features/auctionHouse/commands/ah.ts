@@ -68,7 +68,7 @@ const mainCommand: CustomCommand = {
             const serialized = serializeItem(item);
 
             // Optimistically remove item to prevent dupes if createListing lags/fails partially
-            inventory.container.setItem(executor.selectedSlotIndex, undefined);
+            inventory.container.setItem(executor.selectedSlotIndex);
 
             // Create Listing
             const result = createListing(executor, serialized, price, isBid, config.defaultDurationSeconds);
@@ -93,9 +93,12 @@ const mainCommand: CustomCommand = {
 
         if (sub === 'search') {
             // Arg 2 is mapped to 'price' in definition, but here acts as query
-            await (isNonEmptyString(args.price)
-                ? showAuctionHouse(executor, 1, args.price)
-                : showAuctionHouse(executor));
+            // eslint-disable-next-line unicorn/prefer-ternary
+            if (isNonEmptyString(args.price)) {
+                await showAuctionHouse(executor, 1, args.price);
+            } else {
+                await showAuctionHouse(executor);
+            }
             return;
         }
 

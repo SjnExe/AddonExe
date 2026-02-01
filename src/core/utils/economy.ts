@@ -57,7 +57,7 @@ export function parseCurrency(input: string | number): number {
 
     const normalized = input.trim().toLowerCase();
     const regex = /^([\d.]+)([kmbt]?)$/;
-    const match = normalized.match(regex);
+    const match = regex.exec(normalized);
 
     if (!match) {
         return Number.NaN;

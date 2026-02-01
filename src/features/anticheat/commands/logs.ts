@@ -233,11 +233,9 @@ export async function showChatFilter(player: mc.Player) {
         return showLogsMenu(player);
     }
 
-    const validDates = dates.filter((d): d is string => d !== undefined);
-
     const modal = new ModalFormData()
         .title('Filter Chat')
-        .dropdown('Date', validDates, { defaultValueIndex: 0 })
+        .dropdown('Date', dates, { defaultValueIndex: 0 })
         .textField('Player Name (Optional)', 'Search...')
         .textField('Keyword (Optional)', 'Search message...');
 
