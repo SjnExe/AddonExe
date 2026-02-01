@@ -28,7 +28,7 @@ export function addSentryBreadcrumb(
     level: 'info' | 'error' | 'debug' | 'warning' | 'fatal' = 'info'
 ) {
     try {
-        let sentryLevel = SentryEventLevel.info;
+        let sentryLevel: SentryEventLevel;
         switch (level) {
             case 'error': {
                 sentryLevel = SentryEventLevel.error;
@@ -61,51 +61,54 @@ export function addSentryBreadcrumb(
     }
 }
 
-export function setSentryDebug(enabled: boolean, minutes: number = 5) {
-    if (enabled) {
-        isSentryDebugMode = true;
-        const expiry = Date.now() + minutes * 60 * 1000;
-        mc.world.setDynamicProperty(DEBUG_EXPIRY_PROP, expiry);
+export function enableSentryDebug(minutes: number = 5) {
+    isSentryDebugMode = true;
+    const expiry = Date.now() + minutes * 60 * 1000;
+    mc.world.setDynamicProperty(DEBUG_EXPIRY_PROP, expiry);
 
-        // Check if we need to upgrade log level
-        const currentLevel = getLogLevel();
-        if (currentLevel < LogLevels.DEBUG) {
-            mc.world.setDynamicProperty(ORIGINAL_LOG_LEVEL_PROP, currentLevel);
-            setLogLevel(LogLevels.DEBUG);
-            debugLog('[Diagnostics] Log level temporarily raised to DEBUG for Sentry debugging.');
-        } else {
-            // Already debug or higher, don't mess with it, but clear any old restore point
-            mc.world.setDynamicProperty(ORIGINAL_LOG_LEVEL_PROP, undefined);
-        }
-
-        // Schedule disable
-        if (isDefined(debugTimeout)) mc.system.clearRun(debugTimeout);
-        debugTimeout = mc.system.runTimeout(
-            () => {
-                setSentryDebug(false);
-            },
-            minutes * 60 * 20
-        );
-
-        debugLog(`[Diagnostics] Sentry debug mode ENABLED for ${minutes} minutes.`);
+    // Check if we need to upgrade log level
+    const currentLevel = getLogLevel();
+    if (currentLevel < LogLevels.DEBUG) {
+        mc.world.setDynamicProperty(ORIGINAL_LOG_LEVEL_PROP, currentLevel);
+        setLogLevel(LogLevels.DEBUG);
+        debugLog('[Diagnostics] Log level temporarily raised to DEBUG for Sentry debugging.');
     } else {
-        isSentryDebugMode = false;
-        mc.world.setDynamicProperty(DEBUG_EXPIRY_PROP, undefined);
-
-        // Restore log level if we changed it
-        const originalLevel = mc.world.getDynamicProperty(ORIGINAL_LOG_LEVEL_PROP);
-        if (isNumber(originalLevel)) {
-            setLogLevel(originalLevel);
-            mc.world.setDynamicProperty(ORIGINAL_LOG_LEVEL_PROP, undefined);
-            debugLog('[Diagnostics] Log level restored.');
-        }
-
-        if (isDefined(debugTimeout)) {
-            mc.system.clearRun(debugTimeout);
-            debugTimeout = undefined;
-        }
-        debugLog('[Diagnostics] Sentry debug mode DISABLED.');
+        // Already debug or higher, don't mess with it, but clear any old restore point
+        // eslint-disable-next-line sonarjs/no-undefined-argument
+        mc.world.setDynamicProperty(ORIGINAL_LOG_LEVEL_PROP, undefined);
     }
+
+    // Schedule disable
+    if (isDefined(debugTimeout)) mc.system.clearRun(debugTimeout);
+    debugTimeout = mc.system.runTimeout(
+        () => {
+            disableSentryDebug();
+        },
+        minutes * 60 * 20
+    );
+
+    debugLog(`[Diagnostics] Sentry debug mode ENABLED for ${minutes} minutes.`);
+}
+
+export function disableSentryDebug() {
+    isSentryDebugMode = false;
+    // eslint-disable-next-line sonarjs/no-undefined-argument
+    mc.world.setDynamicProperty(DEBUG_EXPIRY_PROP, undefined);
+
+    // Restore log level if we changed it
+    const originalLevel = mc.world.getDynamicProperty(ORIGINAL_LOG_LEVEL_PROP);
+    if (isNumber(originalLevel)) {
+        setLogLevel(originalLevel);
+        // eslint-disable-next-line sonarjs/no-undefined-argument
+        mc.world.setDynamicProperty(ORIGINAL_LOG_LEVEL_PROP, undefined);
+        debugLog('[Diagnostics] Log level restored.');
+    }
+
+    if (isDefined(debugTimeout)) {
+        mc.system.clearRun(debugTimeout);
+        debugTimeout = undefined;
+    }
+    debugLog('[Diagnostics] Sentry debug mode DISABLED.');
 }
 
 function restoreDebugState() {
@@ -123,13 +126,13 @@ function restoreDebugState() {
         }
 
         debugTimeout = mc.system.runTimeout(() => {
-            setSentryDebug(false);
+            disableSentryDebug();
         }, remainingTicks);
 
         debugLog(`[Diagnostics] Restored Sentry debug mode. Expires in ${(remainingMs / 60_000).toFixed(1)} mins.`);
     } else if (isNumber(expiry)) {
         // Expired while offline
-        setSentryDebug(false);
+        disableSentryDebug();
     }
 }
 

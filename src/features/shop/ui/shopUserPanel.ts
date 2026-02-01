@@ -8,7 +8,7 @@ import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { IPanelHandler, PanelItem, ShopItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 import * as shopManager from '../shopManager.js';
-import { ensureItemsConfig, getAllItems } from '../shopUtils.js';
+import { ensureItemsConfig, getAllItems, Item } from '../shopUtils.js';
 
 interface ShopCategoryEntry {
     type: 'subCategory';
@@ -153,12 +153,11 @@ export class ShopUserPanelHandler implements IPanelHandler {
         itemId: string,
         item: ShopItem,
         query: string,
-        allItems: Record<string, ShopItem>
+        allItems: Record<string, Item>
     ): void {
-        const master = allItems[itemId] ?? {};
+        const master: Item = allItems[itemId] ?? {};
         // Ensure string safety before calling string methods
-        // Use type assertion to force string context for safety
-        const displayNameRaw = (item.displayName ?? master.displayName ?? itemId) as string;
+        const displayNameRaw = item.displayName ?? master.displayName ?? itemId;
         const displayName = String(displayNameRaw);
         const itemIdStr = String(itemId);
 

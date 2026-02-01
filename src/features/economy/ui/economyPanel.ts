@@ -86,7 +86,7 @@ export class EconomyPanelHandler implements IPanelHandler {
 
             const config = getEconomyConfig();
             const mobMoney = config.mobMoney;
-            const mobs = Object.keys(mobMoney).toSorted();
+            const mobs = Object.keys(mobMoney).toSorted((a, b) => a.localeCompare(b));
 
             const paginated = getPaginatedItems(mobs, (context.page as number) || 1);
 

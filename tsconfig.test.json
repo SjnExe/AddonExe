@@ -4,7 +4,10 @@
         "outDir": "./dist/tests",
         "types": ["jest", "node"],
         "noEmit": true,
-        "moduleResolution": "Node16"
+        "module": "Node16",
+        "moduleResolution": "Node16",
+        "target": "ES2022"
     },
-    "include": ["src/**/__tests__/*.ts", "src/**/__mocks__/*.ts"]
+    "include": ["src/**/__tests__/**/*.ts", "src/**/__mocks__/**/*.ts"],
+    "exclude": ["node_modules"]
 }

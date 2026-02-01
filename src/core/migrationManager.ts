@@ -192,5 +192,8 @@ export function cleanRankName(name: string): string {
     }
     // Remove §0, [, ]
     // Also remove the hardcoded space if present at the end often used in old config '... ] '
-    return name.replaceAll('§0', '').replaceAll(/\[|\]/g, '').trim();
+    return name
+        .replaceAll('§0', '')
+        .replaceAll(/[[]\]]/g, '')
+        .trim();
 }

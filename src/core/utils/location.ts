@@ -36,7 +36,8 @@ export function parseLocation(locationStr: string): { x: number; y: number; z: n
     if (!locationStr || locationStr.length === 0) {
         return undefined;
     }
-    const match = locationStr.match(/^([\d.-]+), ([\d.-]+), ([\d.-]+)$/);
+    const regex = /^([\d.-]+), ([\d.-]+), ([\d.-]+)$/;
+    const match = regex.exec(locationStr);
     if (!match) {
         return undefined;
     }

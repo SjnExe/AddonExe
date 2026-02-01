@@ -159,7 +159,7 @@ export class KitPanelHandler implements IPanelHandler {
             if (kit) {
                 const paginated = getPaginatedItems(kit.items, (context.page as number) || 1);
                 for (const [idx, item] of paginated.entries()) {
-                    const realIdx = ((context.page as number) || 1 - 1) * itemsPerPage + idx;
+                    const realIdx = (((context.page as number) || 1) - 1) * itemsPerPage + idx;
                     items.push({
                         id: String(realIdx),
                         text: `${realIdx + 1}. ${item.typeId.replace('minecraft:', '')} x${item.amount}`,

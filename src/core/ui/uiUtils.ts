@@ -209,7 +209,7 @@ export function getVisibleCategories(pData: PlayerData): SystemItem[] {
         if (sys.category !== undefined && sys.category.length > 0) categories.add(sys.category);
     }
 
-    const sortedCategories = [...categories].toSorted();
+    const sortedCategories = [...categories].toSorted((a, b) => a.localeCompare(b));
 
     // Add "Reset" category if Owner
     if (pData.permissionLevel === 0) {

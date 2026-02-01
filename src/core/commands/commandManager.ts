@@ -505,11 +505,8 @@ class CommandManager {
             const options = typeof param.enumOptions === 'function' ? param.enumOptions() : param.enumOptions;
 
             if (Array.isArray(options) && options.length > 0) {
-                const safeCmdName = (isNonEmptyString(commandName) ? commandName : 'cmd').replaceAll(
-                    /[^a-zA-Z0-9_]/g,
-                    ''
-                );
-                const safeParamName = param.name.replaceAll(/[^a-zA-Z0-9_]/g, '');
+                const safeCmdName = (isNonEmptyString(commandName) ? commandName : 'cmd').replaceAll(/\W/g, '');
+                const safeParamName = param.name.replaceAll(/\W/g, '');
                 const enumName = `${this.prefix}:${safeCmdName}_${safeParamName}`;
 
                 try {
@@ -673,7 +670,7 @@ class CommandManager {
                     }
                     case mc.CustomCommandParamType.String: {
                         {
-                            typeKey = 'string';
+                            // typeKey is already 'string'
                             // No default
                         }
                         break;

@@ -170,12 +170,13 @@ export class ModalFormData {
 
     show = jest.fn().mockImplementation(async () => {
         return {
-            formValues: this._controls.map((c) => {
+            // eslint-disable-next-line sonarjs/function-return-type
+            formValues: this._controls.map((c): string | number | boolean | undefined => {
                 if (c.type === 'toggle') return c.defaultValue ?? false;
                 if (c.type === 'textField') return c.defaultValue ?? '';
                 if (c.type === 'dropdown') return c.defaultValueIndex ?? 0;
                 if (c.type === 'slider') return c.defaultValue ?? c.min;
-                return null;
+                return undefined;
             }),
             canceled: false
         };

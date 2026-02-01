@@ -20,6 +20,8 @@ export interface FloatingTextConfig {
 
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map<string, FloatingTextConfig>();
+const dynamicTexts = new Map<string, FloatingTextConfig>();
+
 const pendingDespawns = new Map<string, number>();
 const unloadedChunkQueue = new Set<string>();
 const lastUpdateTick = new Map<string, number>();
@@ -36,6 +38,12 @@ function loadTexts() {
         if (isNonEmptyString(dataString)) {
             const parsedData = JSON.parse(dataString) as unknown as [string, FloatingTextConfig][];
             floatingTexts = new Map(parsedData);
+            dynamicTexts.clear();
+            for (const text of floatingTexts.values()) {
+                if (isNumber(text.updateInterval) && text.updateInterval > 0) {
+                    dynamicTexts.set(text.id, text);
+                }
+            }
             debugLog(`[FloatingText] Loaded ${floatingTexts.size} floating texts.`);
         } else {
             debugLog('[FloatingText] No floating text data found. Starting fresh.');
@@ -81,11 +89,11 @@ function* updateLoopJob() {
 
     // 1. Identify texts needing update
     let checkCount = 0;
-    for (const textConfig of floatingTexts.values()) {
-        if (!isNumber(textConfig.updateInterval) || textConfig.updateInterval <= 0) continue;
-
+    for (const textConfig of dynamicTexts.values()) {
         const lastTick = lastUpdateTick.get(textConfig.id) ?? 0;
-        if (now - lastTick < textConfig.updateInterval) continue;
+        if (!isDefined(textConfig.updateInterval) || now - lastTick < textConfig.updateInterval) {
+            continue;
+        }
 
         lastUpdateTick.set(textConfig.id, now);
 
@@ -151,7 +159,7 @@ function runExpirationLoop() {
     const now = Date.now();
     for (const textConfig of floatingTexts.values()) {
         if (isNumber(textConfig.expiresAt) && now >= textConfig.expiresAt) {
-            void deleteText(undefined, textConfig.id);
+            deleteText(undefined, textConfig.id);
         }
     }
     expirationIntervalId = mc.system.runTimeout(runExpirationLoop, 200); // Check every 10 seconds
@@ -395,6 +403,11 @@ export function updateText(id: string, updates: Partial<FloatingTextConfig>) {
     }
 
     floatingTexts.set(id, newConfig);
+    if (isNumber(newConfig.updateInterval) && newConfig.updateInterval > 0) {
+        dynamicTexts.set(id, newConfig);
+    } else {
+        dynamicTexts.delete(id);
+    }
     saveTexts();
     debugLog(`[FloatingText] Saved updated config for ID: ${id}`);
 
@@ -476,6 +489,7 @@ export function createText(player: mc.Player, id: string, text: string): boolean
     };
 
     floatingTexts.set(id, newTextConfig);
+    // newTextConfig has no updateInterval by default (undefined), so no need to add to dynamicTexts
     saveTexts();
     spawnText(newTextConfig);
     player.sendMessage(`§aSuccessfully created floating text with ID "${id}".`);
@@ -574,9 +588,11 @@ export function respawnText(id: string) {
             saveTexts();
         }
         despawnText(id);
-        mc.system.runTimeout(() => {
+        const runId = mc.system.runTimeout(() => {
+            pendingDespawns.delete(id);
             spawnText(textConfig);
         }, 20);
+        pendingDespawns.set(id, runId);
     }
 }
 
@@ -590,6 +606,7 @@ export function deleteText(player: mc.Player | undefined, id: string) {
 
     despawnText(id);
     floatingTexts.delete(id);
+    dynamicTexts.delete(id);
     saveTexts();
 
     if (isDefined(player)) {
@@ -642,6 +659,7 @@ export function cleanup() {
     pendingDespawns.clear();
     unloadedChunkQueue.clear();
     floatingTexts.clear();
+    dynamicTexts.clear();
     lastUpdateTick.clear();
 
     debugLog('[FloatingText] Cleanup complete.');

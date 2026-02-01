@@ -145,7 +145,7 @@ describe('Economy System', () => {
                 const k = key as string;
                 // key format: exe:player.p2
                 if (k.includes('p2')) return { balance: 100, name: 'PlayerTwo' };
-                return;
+                return undefined;
             });
 
             const result = transfer('p1', 'p2', 200);

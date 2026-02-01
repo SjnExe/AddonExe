@@ -155,7 +155,6 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     const FLAGGING_THRESHOLD = 20;
 
     if (state.violationLevel > FLAGGING_THRESHOLD) {
-        // console.log('Flagging player:', player.name, state.violationLevel);
         flag(
             player,
             'movementCheck',

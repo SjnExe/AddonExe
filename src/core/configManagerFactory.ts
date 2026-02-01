@@ -132,11 +132,7 @@ export default function createConfigManager<T>(
             currentConfig = newDefaultConfig;
             lastLoadedConfig = newDefaultConfig;
             // Use infoLog instead of errorLog for initial setup to avoid confusing users
-            if (name === 'Main') {
-                debugLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
-            } else {
-                debugLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
-            }
+            debugLog(`[${name}ConfigManager] No saved config found. Initializing with default values.`);
             saveLastLoadedConfig();
         }
 

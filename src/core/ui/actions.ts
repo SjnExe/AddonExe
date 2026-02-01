@@ -128,9 +128,11 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             const team = teamManager.getTeamByPlayer(player.id);
             if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.kickMember(team.id, context.selectedItemId);
-                player.sendMessage(
-                    isNonEmptyString(res.message) ? res.message : res.success ? '§2Success' : '§cFailed'
-                );
+                let msg = res.message;
+                if (!isNonEmptyString(msg)) {
+                    msg = res.success ? '§2Success' : '§cFailed';
+                }
+                player.sendMessage(msg);
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
@@ -138,9 +140,11 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             const team = teamManager.getTeamByPlayer(player.id);
             if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.promoteMember(team.id, context.selectedItemId);
-                player.sendMessage(
-                    isNonEmptyString(res.message) ? res.message : res.success ? '§2Success' : '§cFailed'
-                );
+                let msg = res.message;
+                if (!isNonEmptyString(msg)) {
+                    msg = res.success ? '§2Success' : '§cFailed';
+                }
+                player.sendMessage(msg);
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
@@ -148,9 +152,11 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             const team = teamManager.getTeamByPlayer(player.id);
             if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.demoteMember(team.id, context.selectedItemId);
-                player.sendMessage(
-                    isNonEmptyString(res.message) ? res.message : res.success ? '§2Success' : '§cFailed'
-                );
+                let msg = res.message;
+                if (!isNonEmptyString(msg)) {
+                    msg = res.success ? '§2Success' : '§cFailed';
+                }
+                player.sendMessage(msg);
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
@@ -158,9 +164,11 @@ export async function handleUIAction(player: mc.Player, actionName: string, cont
             const team = teamManager.getTeamByPlayer(player.id);
             if (isDefined(team) && isNonEmptyString(context.selectedItemId)) {
                 const res = teamManager.transferOwnership(team.id, context.selectedItemId);
-                player.sendMessage(
-                    isNonEmptyString(res.message) ? res.message : res.success ? '§2Success' : '§cFailed'
-                );
+                let msg = res.message;
+                if (!isNonEmptyString(msg)) {
+                    msg = res.success ? '§2Success' : '§cFailed';
+                }
+                player.sendMessage(msg);
             }
             return showPanel(player, 'teamMembersPanel', context);
         }
@@ -449,7 +457,6 @@ async function reportPlayer(player: mc.Player, context: UIContext) {
 
     reportManager.createReport(player, targetId, targetData.name, reason);
     player.sendMessage('§2Report sent successfully. Admins have been notified.');
-    return;
 }
 
 async function bountyPlayer(player: mc.Player, context: UIContext) {

@@ -79,11 +79,7 @@ const clearReportsCommand: CustomCommand = {
     allowConsole: true,
     execute: (executor: CommandExecutor) => {
         reportManager.clearAllReports();
-        if (executor instanceof mc.Player) {
-            executor.sendMessage('§aAll reports have been cleared.');
-        } else {
-            executor.sendMessage('§aAll reports have been cleared.');
-        }
+        executor.sendMessage('§aAll reports have been cleared.');
     }
 };
 

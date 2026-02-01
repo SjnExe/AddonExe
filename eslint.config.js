@@ -232,7 +232,9 @@ export default tseslint.config(
     ...jsonc.configs['flat/recommended-with-jsonc'],
     {
         files: ['**/*.json'],
-        rules: {}
+        rules: {
+            'sonarjs/no-empty-test-file': 'off'
+        }
     },
 
     // Prettier

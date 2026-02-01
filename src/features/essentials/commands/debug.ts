@@ -3,7 +3,7 @@ import { system } from '@minecraft/server';
 
 import { getAllBounties } from '@core/bountyManager.js';
 import { getConfig, updateConfig } from '@core/configManager.js';
-import { setSentryDebug } from '@core/diagnostics.js';
+import { enableSentryDebug } from '@core/diagnostics.js';
 import { debugLog, LogLevels, setLogLevel } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getAllPlayerData } from '@core/playerDataManager.js';
@@ -101,7 +101,7 @@ const debugCommand: CustomCommand = {
             const minutes = (args.value as number) || 5;
             const clampedMinutes = Math.min(Math.max(minutes, 1), 60);
 
-            setSentryDebug(true, clampedMinutes);
+            enableSentryDebug(clampedMinutes);
             executor.sendMessage(`§aSentry Debug Mode ENABLED for ${clampedMinutes} minutes.`);
             return;
         }

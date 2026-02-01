@@ -49,14 +49,12 @@ async function main() {
                             .filter((v) => v.includes('beta') && v.endsWith('-stable') && !v.includes('preview'))
                             .toSorted((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-                        let newVersion;
-                        if (candidates.length > 0) {
-                            // Pick the last one (which is the latest due to numeric sort)
-                            newVersion = candidates.at(-1);
-                        } else {
+                        if (candidates.length === 0) {
                             // No matching stable beta found, preserve existing version
                             return;
                         }
+                        // Pick the last one (which is the latest due to numeric sort)
+                        const newVersion = candidates.at(-1);
 
                         return { pkg, newVersion };
                     } catch (error) {
@@ -118,10 +116,8 @@ async function main() {
                     console.error(
                         `${colors.yellow}Warning: Failed to fetch latest version for manifest dependency ${dep.module_name}: ${error.message}${colors.reset}`
                     );
-                    return;
                 }
             }
-            return;
         });
 
         const manifestResults = await Promise.allSettled(manifestPromises);

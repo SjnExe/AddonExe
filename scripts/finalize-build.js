@@ -14,8 +14,8 @@ if (!fs.existsSync(SCRIPTS_DIR)) {
 function findFiles(dir, filter) {
     const results = [];
     const list = fs.readdirSync(dir);
-    for (let file of list) {
-        file = path.join(dir, file);
+    for (const fileName of list) {
+        const file = path.join(dir, fileName);
         const stat = fs.statSync(file);
         if (stat && stat.isDirectory()) {
             results.push(...findFiles(file, filter));
