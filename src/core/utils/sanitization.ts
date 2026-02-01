@@ -10,7 +10,6 @@ export function sanitizeString(input: string, allowColors = false): string {
 
     // Remove color codes if not allowed
     if (!allowColors) {
-
         result = result.replaceAll(/§[0-9a-fklmnor]/g, '');
     }
 

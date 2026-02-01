@@ -21,7 +21,7 @@ export interface FloatingTextConfig {
 const floatingTextDataKey = 'exe:floatingTextData';
 let floatingTexts = new Map<string, FloatingTextConfig>();
 const dynamicTexts = new Map<string, FloatingTextConfig>();
-// eslint-disable-next-line sonarjs/no-empty-collection
+
 const pendingDespawns = new Map<string, number>();
 const unloadedChunkQueue = new Set<string>();
 const lastUpdateTick = new Map<string, number>();
@@ -91,10 +91,7 @@ function* updateLoopJob() {
     let checkCount = 0;
     for (const textConfig of dynamicTexts.values()) {
         const lastTick = lastUpdateTick.get(textConfig.id) ?? 0;
-        if (
-            !isDefined(textConfig.updateInterval) ||
-            now - lastTick < textConfig.updateInterval
-        ) {
+        if (!isDefined(textConfig.updateInterval) || now - lastTick < textConfig.updateInterval) {
             continue;
         }
 

@@ -505,10 +505,7 @@ class CommandManager {
             const options = typeof param.enumOptions === 'function' ? param.enumOptions() : param.enumOptions;
 
             if (Array.isArray(options) && options.length > 0) {
-                const safeCmdName = (isNonEmptyString(commandName) ? commandName : 'cmd').replaceAll(
-                    /\W/g,
-                    ''
-                );
+                const safeCmdName = (isNonEmptyString(commandName) ? commandName : 'cmd').replaceAll(/\W/g, '');
                 const safeParamName = param.name.replaceAll(/\W/g, '');
                 const enumName = `${this.prefix}:${safeCmdName}_${safeParamName}`;
 
