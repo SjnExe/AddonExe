@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals';
 import * as mc from '@minecraft/server';
 
+import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
 
 // Mocks
@@ -26,6 +27,9 @@ describe('MovementCheck', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        // Initialize cache
+        (mc.world.getAllPlayers as jest.Mock).mockReturnValue([]);
+        initializePlayerCache();
 
         // Capture interval callback
         (mc.system.runInterval as jest.Mock).mockImplementation((cb) => {
@@ -59,8 +63,8 @@ describe('MovementCheck', () => {
             writable: true
         });
 
-        // Mock World Players
-        (mc.world.getAllPlayers as jest.Mock).mockReturnValue([player]);
+        // Add to cache instead of mocking getAllPlayers directly for the loop
+        addPlayerToCache(player);
 
         // Execute interval
         intervalCallback();
@@ -83,7 +87,7 @@ describe('MovementCheck', () => {
         player.getGameMode = () => mc.GameMode.Creative;
         player.getVelocity = () => ({ x: 100, y: 0, z: 0 }); // Super fast
 
-        (mc.world.getAllPlayers as jest.Mock).mockReturnValue([player]);
+        addPlayerToCache(player);
 
         intervalCallback();
         expect(mockFlag).not.toHaveBeenCalled();

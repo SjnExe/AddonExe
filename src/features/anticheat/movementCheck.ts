@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 import { errorLog } from '@core/logger.js';
+import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { isDefined } from '@lib/guards.js';
 
 import { AnticheatConfig, getAnticheatConfig } from './anticheatConfigLoader.js';
@@ -42,7 +43,8 @@ export function startMovementCheckLoop() {
 function* checkPlayersGenerator(config: AnticheatConfig) {
     isChecking = true;
     try {
-        const players = mc.world.getAllPlayers();
+        // Use cached players list to avoid expensive engine call
+        const players = getAllPlayersFromCache();
         for (const player of players) {
             // Process one player per tick/slice
             // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call

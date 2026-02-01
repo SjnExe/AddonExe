@@ -43,7 +43,6 @@ jobs:
 
             - name: Auto-fix Linting and Formatting
               run: |
-                  npm run format
                   npm run lint:fix
 
             - name: Commit changes
