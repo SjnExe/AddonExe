@@ -496,6 +496,7 @@ export function getAllKnownPlayers(): { id: string; name: string }[] {
  * @param observer The player viewing the list.
  */
 export function getVisiblePlayers(observer: mc.Player): mc.Player[] {
+    // Optimization: Use cache
     const allPlayers = getAllPlayersFromCache();
     const observerData = getPlayer(observer.id);
     const observerLevel = (isDefined(observerData) ? observerData.permissionLevel : undefined) ?? 1024;

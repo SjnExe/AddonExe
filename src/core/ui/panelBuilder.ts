@@ -3,6 +3,7 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
 import { getConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -112,7 +113,8 @@ async function buildActionFormFromItems(player: mc.Player, panelId: string, cont
     if (title.includes('{playerName}')) {
         const targetId = (context.targetPlayerId ?? context.selectedItemId) as string;
         if (isNonEmptyString(targetId)) {
-            const onlinePlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
+            // Optimization: Use cache instead of scanning world players
+            const onlinePlayer = getPlayerFromCache(targetId);
             const pData = isDefined(onlinePlayer) ? getOrCreatePlayer(onlinePlayer) : loadPlayerData(targetId);
 
             if (isDefined(pData)) title = title.replace('{playerName}', pData.name);
