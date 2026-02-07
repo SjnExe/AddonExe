@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 import { getAuctionHouseConfig } from '@core/configurations.js';
 import { deserializeItem, SerializedItem, serializeItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog } from '@core/logger.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
 import {
     getOrCreatePlayer,
     incrementPlayerBalance,
@@ -298,8 +299,8 @@ function* checkExpiredAuctionsJob() {
             }
         }
 
-        // Yield every 5 items to prevent server lag from heavy IO
-        if (i % 5 === 0) {
+        // Yield every 50 items (optimized from 5)
+        if (i % 50 === 0) {
             yield;
         }
     }
@@ -324,8 +325,8 @@ function addItemToMailbox(playerId: string, item: SerializedItem) {
         d.mailbox.push(item);
     });
 
-    // Notify if online
-    const player = mc.world.getAllPlayers().find((p) => p.id === playerId);
+    // Notify if online using cache
+    const player = getPlayerFromCache(playerId);
     if (player) {
         player.sendMessage('§eYou have new items in your Collection Bin (/ah collect).');
     }
