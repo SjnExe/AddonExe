@@ -17,7 +17,7 @@
         "rootDir": "./src",
         "forceConsistentCasingInFileNames": true,
         "esModuleInterop": true,
-        "skipLibCheck": false,
+        "skipLibCheck": true,
         "incremental": true,
         "tsBuildInfoFile": "./tsconfig.tsbuildinfo",
         "sourceMap": true,
