@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -6,68 +6,78 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const SRC_DIR = path.join(__dirname, '../src');
-// This is where index.ts lives now
-const CORE_COMMANDS_DIR = path.join(SRC_DIR, 'core/commands');
 const FEATURES_DIR = path.join(SRC_DIR, 'features');
-const INDEX_FILE = path.join(CORE_COMMANDS_DIR, 'index.ts');
+const CORE_COMMANDS_INDEX = path.join(SRC_DIR, 'core/commands/index.ts');
 
-const EXCLUSIONS = new Set(['index.ts', 'commandManager.ts']);
+const EXCLUSIONS = new Set(['index.ts']);
 
-function getCommandFiles(dir) {
-    if (!fs.existsSync(dir)) return [];
-    return fs
-        .readdirSync(dir)
-        .filter((file) => file.endsWith('.ts') && !EXCLUSIONS.has(file))
-        .map((file) => ({
-            name: file,
-            path: path.join(dir, file)
-        }));
+async function getCommandFiles(dir) {
+    try {
+        const entries = await fs.readdir(dir);
+        return entries
+            .filter((file) => file.endsWith('.ts') && !EXCLUSIONS.has(file))
+            .map((file) => file);
+    } catch {
+        return [];
+    }
 }
 
-function generate() {
+async function generate() {
     console.log('Generating command index...');
 
-    // 1. Get commands from features/**/commands
-    const featureCommands = [];
-    if (fs.existsSync(FEATURES_DIR)) {
-        const features = fs.readdirSync(FEATURES_DIR);
-        for (const feature of features) {
-            const cmdDir = path.join(FEATURES_DIR, feature, 'commands');
-            const cmds = getCommandFiles(cmdDir);
-            // Use path alias for cleaner imports
-            for (const c of cmds) {
-                featureCommands.push({
-                    ...c,
-                    relativePath: `@features/${feature}/commands/${path.basename(c.name, '.ts')}.js`
-                });
-            }
+    let featureDirs = [];
+    try {
+        const stats = await fs.stat(FEATURES_DIR);
+        if (stats.isDirectory()) {
+            featureDirs = await fs.readdir(FEATURES_DIR);
+        }
+    } catch (e) {
+        // Only warn if it's not ENOENT
+        if (e.code !== 'ENOENT') {
+            console.warn(`Error reading features directory: ${e.message}`);
         }
     }
 
-    const allCommands = [...featureCommands];
-    console.log(`Found ${allCommands.length} command files.`);
+    const commandList = [];
 
-    const imports = allCommands
-        .map((cmd) => {
-            const base = path.basename(cmd.name, '.ts');
-            const safeBase = base.replaceAll(/[^a-zA-Z0-9]/g, '');
-            // Use feature name prefix to ensure unique variable names
-            const featureMatch = cmd.relativePath.match(/features\/([^/]+)\//);
-            const featureName = featureMatch ? featureMatch[1] : 'legacy';
-            const safeFeature = featureName.replaceAll(/[^a-zA-Z0-9]/g, '');
-            const name =
-                'cmd' +
-                safeFeature.charAt(0).toUpperCase() +
-                safeFeature.slice(1) +
-                safeBase.charAt(0).toUpperCase() +
-                safeBase.slice(1);
+    // Process features in parallel
+    if (featureDirs.length > 0) {
+        await Promise.all(
+            featureDirs.map(async (feature) => {
+                const cmdDir = path.join(FEATURES_DIR, feature, 'commands');
+                const files = await getCommandFiles(cmdDir);
 
-            cmd.varName = name;
-            return `import ${name} from '${cmd.relativePath}';`;
-        })
+                for (const file of files) {
+                    const baseName = path.basename(file, '.ts');
+
+                    // Variable name: cmd<Feature><File> (e.g., cmdEconomyPay)
+                    const safeFeature = feature.replace(/[^a-zA-Z0-9]/g, '');
+                    const safeFile = baseName.replace(/[^a-zA-Z0-9]/g, '');
+
+                    const varName = `cmd${safeFeature.charAt(0).toUpperCase() + safeFeature.slice(1)}${safeFile.charAt(0).toUpperCase() + safeFile.slice(1)}`;
+
+                    // Path alias: @features/<feature>/commands/<file>.js
+                    const importPath = `@features/${feature}/commands/${baseName}.js`;
+
+                    commandList.push({
+                        varName,
+                        importPath
+                    });
+                }
+            })
+        );
+    }
+
+    // Sort for deterministic output
+    commandList.sort((a, b) => a.varName.localeCompare(b.varName));
+
+    console.log(`Found ${commandList.length} command files.`);
+
+    const imports = commandList
+        .map((cmd) => `import ${cmd.varName} from '${cmd.importPath}';`)
         .join('\n');
 
-    const list = allCommands.map((cmd) => cmd.varName).join(',\n        ');
+    const list = commandList.map((cmd) => cmd.varName).join(',\n    ');
 
     const content = `// Auto-generated by scripts/generate-command-index.js
 import { isDefined } from '@lib/guards.js';
@@ -76,24 +86,24 @@ import { commandManager } from './commandManager.js';
 ${imports}
 
 export function loadCommands() {
-    const commands = [
-        ${list}
+    const commandModules = [
+    ${list}
     ];
 
-    for (const cmdModule of commands) {
-        if (Array.isArray(cmdModule)) {
-            for (const cmd of cmdModule) {
-                commandManager.register(cmd);
+    for (const mod of commandModules) {
+        if (isDefined(mod)) {
+            if (Array.isArray(mod)) {
+                for (const cmd of mod) commandManager.register(cmd);
+            } else {
+                commandManager.register(mod);
             }
-        } else if (isDefined(cmdModule)) {
-            commandManager.register(cmdModule);
         }
     }
 }
 `;
 
-    fs.writeFileSync(INDEX_FILE, content);
-    console.log(`Command index generated at: ${INDEX_FILE}`);
+    await fs.writeFile(CORE_COMMANDS_INDEX, content);
+    console.log(`Command index generated at: ${CORE_COMMANDS_INDEX}`);
 }
 
-generate();
+generate().catch(console.error);

@@ -37,8 +37,7 @@
             "@minecraft/debug-utilities",
             "@minecraft/diagnostics",
             "@minecraft/vanilla-data",
-            "@minecraft/math",
-            "jest"
+            "@minecraft/math"
         ]
     },
     "include": ["src/**/*"],

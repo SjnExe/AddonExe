@@ -8,7 +8,6 @@ import { promisify } from 'node:util';
 const execAsync = promisify(exec);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJsonPath = path.resolve(__dirname, '../package.json');
-const manifestJsonPath = path.resolve(__dirname, '../packs/behavior/manifest.json');
 
 // Color codes for console output
 const colors = {
@@ -61,6 +60,8 @@ async function updatePackageJson(updates) {
         return false;
     }
 
+    console.log(`${colors.blue}Checking for updates for ${targets.length} packages...${colors.reset}`);
+
     const promiseResults = await Promise.allSettled(
         targets.map(async (pkg) => {
             const newVersion = await fetchPackageVersion(pkg);
@@ -97,77 +98,27 @@ async function updatePackageJson(updates) {
     return false;
 }
 
-async function updateManifest(updates) {
-    try {
-        await fs.access(manifestJsonPath, constants.F_OK);
-    } catch {
-        console.log(`${colors.yellow}Warning: manifest.json not found at ${manifestJsonPath}${colors.reset}`);
-        return false;
-    }
-
-    const manifestContent = await fs.readFile(manifestJsonPath, 'utf8');
-    const manifestJson = JSON.parse(manifestContent);
-    const manifestDeps = manifestJson.dependencies || [];
-    let manifestUpdated = false;
-
-    // Filter dependencies that are @minecraft/* and NOT 'beta'
-    const manifestPromises = manifestDeps.map(async (dep) => {
-        if (dep.module_name && dep.module_name.startsWith('@minecraft/') && dep.version !== 'beta') {
-            try {
-                const { stdout } = await execAsync(`npm view ${dep.module_name} version`);
-                const latestVersion = stdout.trim();
-                return { dep, latestVersion };
-            } catch (error) {
-                console.error(
-                    `${colors.yellow}Warning: Failed to fetch latest version for manifest dependency ${dep.module_name}: ${error.message}${colors.reset}`
-                );
-            }
-        }
-        return null;
-    });
-
-    const manifestResults = await Promise.allSettled(manifestPromises);
-
-    for (const result of manifestResults) {
-        if (result.status === 'fulfilled' && result.value) {
-            const { dep, latestVersion } = result.value;
-            if (dep.version !== latestVersion) {
-                updates.push(`[manifest.json] ${dep.module_name}: ${dep.version} -> ${latestVersion}`);
-                dep.version = latestVersion;
-                manifestUpdated = true;
-            }
-        }
-    }
-
-    if (manifestUpdated) {
-        const indentation = 4;
-        await fs.writeFile(manifestJsonPath, JSON.stringify(manifestJson, undefined, indentation) + '\n');
-        return true;
-    }
-
-    return false;
-}
-
 async function main() {
     console.log(`${colors.blue}Checking Minecraft dependencies...${colors.reset}`);
 
     const updates = [];
     const pkgUpdated = await updatePackageJson(updates);
-    const manifestUpdated = await updateManifest(updates);
 
-    if (pkgUpdated || manifestUpdated) {
+    if (pkgUpdated) {
         console.log(`${colors.green}Updated Minecraft dependencies:${colors.reset}`);
         for (const u of updates) console.log(`  ${u}`);
         console.log(
             `${colors.yellow}Dependencies updated. Please run 'npm install' again to install the new versions.${colors.reset}`
         );
+        // Exit with 1 to indicate changes were made (useful for CI/hooks)
         process.exit(1);
     } else {
         console.log(`${colors.green}All Minecraft dependencies are up to date.${colors.reset}`);
+        process.exit(0);
     }
 }
 
 main().catch((error) => {
     console.error(`${colors.red}Fatal error updating dependencies: ${error}${colors.reset}`);
-    process.exit(0);
+    process.exit(1);
 });
