@@ -1,454 +1,291 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import * as mc from '@minecraft/server';
-import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getTeamConfig } from '@core/configurations.js';
-import { getOrCreatePlayer, getPlayerIdByName, loadPlayerData, type PlayerData } from '@core/playerDataManager.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
+import { getPlayer } from '@core/playerDataManager.js';
+import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
+import { panelDefinitions } from '@core/ui/panelRegistry.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { showPanel } from '@core/uiManager.js';
-import { formatCurrency } from '@core/utils.js';
-import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
-import { showConfirmationDialog } from '@ui/components.js';
-import { PanelItem, UIContext } from '@ui/panelRegistry.js';
-import { IPanelHandler } from '@ui/types.js';
-import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
+import { getStaticMenuItems } from '@core/ui/panelBuilder.js';
 import * as teamManager from '../teamManager.js';
 
 export class TeamPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return panelId.startsWith('team') || panelId === 'memberActionPanel' || panelId === 'config_team';
+        return panelId.startsWith('team');
     }
 
-    async getTitle(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined> {
-        // Satisfy require-await
-        await Promise.resolve();
+    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[] | undefined> {
+        const team = teamManager.getTeamByPlayer(player.id);
 
-        if (panelId === 'teamManagePanel') {
-            const { teamId } = context;
-            const team = isDefined(teamId)
-                ? teamManager.getTeam(Number(teamId))
-                : teamManager.getTeamByPlayer(player.id);
-            return isDefined(team) ? `Manage ${team.name}` : 'Manage Team';
-        }
-        return undefined;
-    }
-
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
-        // Satisfy async requirement if no other await exists
-        await Promise.resolve();
-        const page = context.page ?? 1;
+        // Base items (Back button)
+        const def = panelDefinitions[panelId];
+        const baseItems = isDefined(def) ? getStaticMenuItems(def, 1024) : [];
 
         if (panelId === 'teamMainPanel') {
-            return this.getTeamMainPanelItems(player);
-        }
+            if (!isDefined(team)) {
+                return [
+                    ...baseItems,
+                    {
+                        id: 'teamCreateBtn',
+                        text: 'Create Team',
+                        icon: 'textures/ui/color_plus',
+                        actionType: 'openPanel',
+                        actionValue: 'teamCreatePanel',
+                        permissionLevel: 1024
+                    },
+                    {
+                        id: 'teamJoinBtn',
+                        text: 'Join Team',
+                        icon: 'textures/ui/magnifyingGlass',
+                        actionType: 'openPanel',
+                        actionValue: 'teamJoinPanel',
+                        permissionLevel: 1024
+                    }
+                ];
+            } else {
+                const isOwner = team.ownerId === player.id;
+                const isAdmin = isOwner || team.admins.includes(player.id);
 
-        if (panelId === 'teamBrowserPanel') {
-            return this.getTeamBrowserPanelItems(player, page);
+                const items: PanelItem[] = [
+                    ...baseItems,
+                    {
+                        id: 'teamMembersBtn',
+                        text: 'Members',
+                        icon: 'textures/ui/multiplayer',
+                        actionType: 'openPanel',
+                        actionValue: 'teamMembersPanel',
+                        permissionLevel: 1024
+                    },
+                    {
+                        id: 'teamInfoBtn',
+                        text: `§e${team.name}§r\n§7Balance: $${team.balance}`,
+                        icon: 'textures/ui/infobulb',
+                        actionType: 'functionCall',
+                        actionValue: 'noop',
+                        permissionLevel: 1024
+                    },
+                    {
+                        id: 'teamDepositBtn',
+                        text: 'Deposit',
+                        icon: 'textures/ui/gold_ingot',
+                        actionType: 'functionCall',
+                        actionValue: 'teamDeposit',
+                        permissionLevel: 1024
+                    }
+                ];
+
+                if (isDefined(team.home)) {
+                    items.push({
+                        id: 'teamTpHomeBtn',
+                        text: 'Teleport Home',
+                        icon: 'textures/ui/portal',
+                        actionType: 'functionCall',
+                        actionValue: 'teamTpHome',
+                        permissionLevel: 1024
+                    });
+                }
+
+                if (isAdmin) {
+                    items.push({
+                        id: 'teamManageBtn',
+                        text: 'Manage Team',
+                        icon: 'textures/ui/gear',
+                        actionType: 'openPanel',
+                        actionValue: 'teamManagePanel',
+                        permissionLevel: 1024
+                    });
+                }
+
+                items.push({
+                    id: 'teamLeaveBtn',
+                    text: 'Leave Team',
+                    icon: 'textures/ui/door',
+                    actionType: 'functionCall',
+                    actionValue: 'teamLeave',
+                    permissionLevel: 1024
+                });
+
+                return items;
+            }
         }
 
         if (panelId === 'teamMembersPanel') {
-            return this.getTeamMembersPanelItems(player);
+            if (!isDefined(team)) return baseItems;
+
+            const memberItems = team.members.map((memberId) => {
+                const pData = getPlayer(memberId);
+                const onlineP = getPlayerFromCache(memberId);
+                const status = isDefined(onlineP) ? '§aOnline' : '§cOffline';
+                const role =
+                    team.ownerId === memberId ? '§6Owner' : team.admins.includes(memberId) ? '§eAdmin' : '§7Member';
+
+                return {
+                    id: `member_${memberId}`,
+                    text: `${pData ? pData.name : 'Unknown'}\n${role} - ${status}`,
+                    icon: 'textures/ui/steve_head',
+                    actionType: 'openPanel',
+                    actionValue: 'teamMemberActionPanel',
+                    permissionLevel: 1024
+                } as PanelItem;
+            });
+            return [...baseItems, ...memberItems];
         }
 
-        if (panelId === 'memberActionPanel') {
-            return this.getMemberActionPanelItems(player, context);
+        if (panelId === 'teamMemberActionPanel') {
+             const targetId = context.targetPlayerId;
+             if (!isNonEmptyString(targetId) || !isDefined(team)) return baseItems;
+
+             const isMeOwner = team.ownerId === player.id;
+             const isMeAdmin = isMeOwner || team.admins.includes(player.id);
+
+             const isTargetOwner = team.ownerId === targetId;
+             const isTargetAdmin = team.admins.includes(targetId);
+
+             const items: PanelItem[] = [...baseItems];
+
+             if (isMeAdmin && !isTargetOwner && targetId !== player.id) {
+                  items.push({
+                      id: 'kickMember',
+                      text: 'Kick Member',
+                      icon: 'textures/ui/cancel',
+                      actionType: 'functionCall',
+                      actionValue: 'kickTeamMember',
+                      permissionLevel: 1024
+                  });
+             }
+
+             if (isMeOwner && targetId !== player.id) {
+                 if (!isTargetAdmin) {
+                     items.push({
+                         id: 'promoteMember',
+                         text: 'Promote to Admin',
+                         icon: 'textures/ui/up_arrow',
+                         actionType: 'functionCall',
+                         actionValue: 'promoteTeamMember',
+                         permissionLevel: 1024
+                     });
+                 } else {
+                     items.push({
+                         id: 'demoteMember',
+                         text: 'Demote Admin',
+                         icon: 'textures/ui/down_arrow',
+                         actionType: 'functionCall',
+                         actionValue: 'demoteTeamMember',
+                         permissionLevel: 1024
+                     });
+                 }
+                 items.push({
+                     id: 'transferOwnership',
+                     text: 'Transfer Ownership',
+                     icon: 'textures/ui/crown',
+                     actionType: 'functionCall',
+                     actionValue: 'transferTeamOwnership',
+                     permissionLevel: 1024
+                 });
+             }
+
+             return items;
         }
 
         if (panelId === 'teamManagePanel') {
-            return this.getTeamManagePanelItems(player, context);
-        }
-
-        if (panelId === 'teamHomePanel') {
-            return this.getTeamHomePanelItems(player);
+            if (!isDefined(team)) return baseItems;
+            return [
+                ...baseItems,
+                {
+                    id: 'teamSettingsBtn',
+                    text: 'Settings',
+                    icon: 'textures/ui/settings_glyph_color_2x',
+                    actionType: 'openPanel',
+                    actionValue: 'teamSettingsPanel',
+                    permissionLevel: 1024
+                },
+                {
+                    id: 'teamRequestsBtn',
+                    text: `Join Requests (${team.applications.length})`,
+                    icon: 'textures/ui/user_icon',
+                    actionType: 'openPanel',
+                    actionValue: 'teamRequestsPanel',
+                    permissionLevel: 1024
+                },
+                 {
+                    id: 'teamHomeManageBtn',
+                    text: 'Manage Home',
+                    icon: 'textures/ui/portal',
+                    actionType: 'openPanel',
+                    actionValue: 'teamHomePanel',
+                    permissionLevel: 1024
+                }
+            ];
         }
 
         if (panelId === 'teamRequestsPanel') {
-            return this.getTeamRequestsPanelItems(player);
+            if (!isDefined(team)) return baseItems;
+            const reqItems = team.applications.map(app => ({
+                id: `req_${app.playerId}`,
+                text: `${app.playerName}\n§7${new Date(app.timestamp).toLocaleDateString()}`,
+                icon: 'textures/ui/steve_head',
+                actionType: 'openPanel',
+                actionValue: 'teamRequestActionPanel',
+                permissionLevel: 1024
+            } as PanelItem));
+             return [...baseItems, ...reqItems];
+        }
+
+        if (panelId === 'teamRequestActionPanel') {
+            return [
+                ...baseItems,
+                { id: 'accept', text: 'Accept', icon: 'textures/ui/check', actionType: 'functionCall', actionValue: 'acceptTeamRequest', permissionLevel: 1024 },
+                { id: 'deny', text: 'Deny', icon: 'textures/ui/cancel', actionType: 'functionCall', actionValue: 'denyTeamRequest', permissionLevel: 1024 }
+            ];
+        }
+
+        if (panelId === 'teamHomePanel') {
+             if (!isDefined(team)) return baseItems;
+             return [
+                 ...baseItems,
+                 { id: 'setHome', text: 'Set Home (Here)', icon: 'textures/ui/op', actionType: 'functionCall', actionValue: 'setTeamHome', permissionLevel: 1024 },
+                 { id: 'delHome', text: 'Delete Home', icon: 'textures/ui/trash', actionType: 'functionCall', actionValue: 'deleteTeamHome', permissionLevel: 1024 },
+                 { id: 'tpHome', text: 'Teleport Home', icon: 'textures/ui/portal', actionType: 'functionCall', actionValue: 'teamTpHome', permissionLevel: 1024 }
+             ];
         }
 
         if (panelId === 'teamInvitesPanel') {
-            return this.getTeamInvitesPanelItems(player);
-        }
+            const pData = getPlayer(player.id);
+            if (!isDefined(pData) || !isDefined(pData.pendingInvites)) return baseItems;
 
-        return [];
-    }
-
-    private getTeamMainPanelItems(player: mc.Player): PanelItem[] {
-        const items: PanelItem[] = [];
-        addBackButton(items, 'mainPanel');
-        const team = teamManager.getTeamByPlayer(player.id);
-        const teamConfig = getTeamConfig();
-
-        if (isDefined(team)) {
-            const isOwnerOrAdmin = team.ownerId === player.id || team.admins.includes(player.id);
-            items.push({
-                id: 'teamMembersPanel',
-                text: '§l§3Team Members',
-                icon: 'textures/ui/icon_multiplayer',
-                permissionLevel: 1024,
+            const inviteItems = pData.pendingInvites.map(inv => ({
+                id: `inv_${inv.teamId}`,
+                text: inv.teamName,
+                icon: 'textures/ui/mail_icon',
                 actionType: 'openPanel',
-                actionValue: 'teamMembersPanel'
-            });
-            if (isOwnerOrAdmin) {
-                items.push({
-                    id: 'teamManagePanel',
-                    text: '§l§4Manage Team',
-                    icon: 'textures/ui/op',
-                    permissionLevel: 1024,
-                    actionType: 'openPanel',
-                    actionValue: 'teamManagePanel'
-                });
-            }
-            items.push(
-                {
-                    id: 'teamSettingsPanel',
-                    text: '§l§6Team Settings',
-                    icon: 'textures/ui/icon_setting',
-                    permissionLevel: 1024,
-                    actionType: 'openPanel',
-                    actionValue: 'teamSettingsPanel'
-                },
-                {
-                    id: 'leaveTeam',
-                    text: '§4Leave Team',
-                    icon: 'textures/ui/cancel',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'leaveTeam'
-                }
-            );
-        } else {
-            items.push(
-                {
-                    id: 'createTeam',
-                    text: `§l§2Create Team\n§r§6Cost: ${formatCurrency(teamConfig.creationCost)}`,
-                    icon: 'textures/ui/color_plus',
-                    permissionLevel: 1024,
-                    actionType: 'openPanel',
-                    actionValue: 'teamCreatePanel'
-                },
-                {
-                    id: 'joinTeam',
-                    text: '§l§9Join Team',
-                    icon: 'textures/ui/world_glyph_color',
-                    permissionLevel: 1024,
-                    actionType: 'openPanel',
-                    actionValue: 'teamBrowserPanel'
-                }
-            );
+                actionValue: 'teamInviteActionPanel',
+                permissionLevel: 1024
+            } as PanelItem));
+            return [...baseItems, ...inviteItems];
         }
-        return items;
-    }
 
-    private getTeamBrowserPanelItems(player: mc.Player, page: number): PanelItem[] {
-        const items: PanelItem[] = [];
-        addBackButton(items, 'teamMainPanel');
-        const pData: PlayerData = getOrCreatePlayer(player);
-        const permissionLevel = pData.permissionLevel;
-        let teams = teamManager.getAllTeams();
-
-        if (permissionLevel >= 1024) {
-            teams = teams.filter((t) => t.open !== false);
+        if (panelId === 'teamInviteActionPanel') {
+             return [
+                 ...baseItems,
+                 { id: 'accept', text: 'Accept', icon: 'textures/ui/check', actionType: 'functionCall', actionValue: 'acceptTeamInvite', permissionLevel: 1024 },
+                 { id: 'deny', text: 'Deny', icon: 'textures/ui/cancel', actionType: 'functionCall', actionValue: 'denyTeamInvite', permissionLevel: 1024 }
+             ];
         }
-        teams.sort((a, b) => b.members.length - a.members.length);
-        const paginated = getPaginatedItems(teams, page);
 
-        for (const team of paginated) {
-            const ownerData = loadPlayerData(team.ownerId);
-            items.push({
-                id: String(team.id),
-                text: `${team.name} §8(ID: ${team.id})\n§rOwner: ${isDefined(ownerData) ? ownerData.name : 'Unknown'} | Members: ${team.members.length}`,
-                permissionLevel: 1024,
+        if (panelId === 'teamBrowserPanel') {
+            const allTeams = teamManager.getAllTeams().filter(t => t.open);
+            const browserItems = allTeams.slice(0, 50).map(t => ({
+                id: `team_${t.id}`,
+                text: `${t.name}\n§7Members: ${t.members.length}`,
+                icon: 'textures/ui/world_glyph_color',
                 actionType: 'functionCall',
-                actionValue: 'applyToTeam'
-            });
-        }
-        addPaginationItems(items, page, teams.length);
-        return items;
-    }
-
-    private getTeamMembersPanelItems(player: mc.Player): PanelItem[] {
-        const items: PanelItem[] = [];
-        addBackButton(items, 'teamMainPanel');
-        const team = teamManager.getTeamByPlayer(player.id);
-        if (isDefined(team)) {
-            for (const memberId of team.members) {
-                const memData = loadPlayerData(memberId);
-                const onlineP = mc.world.getAllPlayers().find((p) => p.id === memberId);
-                const status = isDefined(onlineP) ? '§2(Online)' : '§8(Offline)';
-                let role = 'Member';
-                if (team.ownerId === memberId) role = '§4Owner';
-                else if (team.admins.includes(memberId)) role = '§2Admin';
-
-                items.push({
-                    id: memberId,
-                    text: `${role} §r${isDefined(memData) ? memData.name : 'Unknown'}\n${status}`,
-                    icon: 'textures/ui/icon_steve',
-                    permissionLevel: 1024,
-                    actionType: 'openPanel',
-                    actionValue: 'memberActionPanel'
-                });
-            }
-        }
-        return items;
-    }
-
-    private getMemberActionPanelItems(player: mc.Player, context: UIContext): PanelItem[] {
-        const items: PanelItem[] = [];
-        addBackButton(items, 'teamMembersPanel');
-        const memberId = context.selectedItemId;
-        if (!isNonEmptyString(memberId)) return items;
-
-        const team = teamManager.getTeamByPlayer(player.id);
-        const targetTeam = teamManager.getTeamByPlayer(memberId);
-
-        if (isDefined(team) && isDefined(targetTeam) && team.id === targetTeam.id) {
-            const isOwner = team.ownerId === player.id;
-            const isAdmin = team.admins.includes(player.id);
-            const targetIsOwner = team.ownerId === memberId;
-            const targetIsAdmin = team.admins.includes(memberId);
-
-            if ((isOwner || isAdmin) && !targetIsOwner) {
-                items.push({
-                    id: 'kick',
-                    text: '§4Kick Member',
-                    icon: 'textures/ui/cancel',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'kickTeamMember'
-                });
-            }
-            if (isOwner) {
-                if (targetIsAdmin) {
-                    items.push({
-                        id: 'demote',
-                        text: 'Demote to Member',
-                        icon: 'textures/ui/arrow_down_icon',
-                        permissionLevel: 1024,
-                        actionType: 'functionCall',
-                        actionValue: 'demoteTeamMember'
-                    });
-                } else {
-                    items.push({
-                        id: 'promote',
-                        text: 'Promote to Admin',
-                        icon: 'textures/ui/arrow_up_icon',
-                        permissionLevel: 1024,
-                        actionType: 'functionCall',
-                        actionValue: 'promoteTeamMember'
-                    });
-                }
-                items.push({
-                    id: 'transfer',
-                    text: 'Transfer Ownership',
-                    icon: 'textures/ui/op',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'transferTeamOwnership'
-                });
-            }
-        }
-        return items;
-    }
-
-    private getTeamManagePanelItems(player: mc.Player, context: UIContext): PanelItem[] {
-        const items: PanelItem[] = [];
-        addBackButton(items, 'teamMainPanel');
-        const { teamId } = context;
-        const pData: PlayerData = getOrCreatePlayer(player);
-        const permissionLevel = pData.permissionLevel;
-        const team =
-            isDefined(teamId) && permissionLevel < 1024
-                ? teamManager.getTeam(Number(teamId))
-                : teamManager.getTeamByPlayer(player.id);
-
-        if (isDefined(team)) {
-            const isOwner = team.ownerId === player.id;
-            const isAdmin = team.admins.includes(player.id);
-            const isServerAdmin = permissionLevel < 1024;
-
-            if (isOwner || isAdmin || isServerAdmin) {
-                items.push(
-                    {
-                        id: 'invitePlayer',
-                        text: '§l§2Invite Player',
-                        icon: 'textures/ui/color_plus',
-                        permissionLevel: 1024,
-                        actionType: 'openPanel',
-                        actionValue: 'teamInviteSearchPanel'
-                    },
-                    {
-                        id: 'joinRequests',
-                        text: `§l§6Join Requests §r(${team.applications.length})`,
-                        icon: 'textures/ui/mail_icon',
-                        permissionLevel: 1024,
-                        actionType: 'openPanel',
-                        actionValue: 'teamRequestsPanel'
-                    },
-                    {
-                        id: 'manageMembers',
-                        text: '§l§3Manage Members',
-                        icon: 'textures/ui/icon_multiplayer',
-                        permissionLevel: 1024,
-                        actionType: 'openPanel',
-                        actionValue: 'teamMembersPanel'
-                    }
-                );
-            }
-            if (isOwner || isAdmin) {
-                items.push({
-                    id: 'teamHome',
-                    text: '§l§5Team Home',
-                    icon: 'textures/ui/icon_recipe_nature',
-                    permissionLevel: 1024,
-                    actionType: 'openPanel',
-                    actionValue: 'teamHomePanel'
-                });
-            }
-            if (isOwner || isServerAdmin) {
-                items.push({
-                    id: 'deleteTeam',
-                    text: '§l§4Delete Team',
-                    icon: 'textures/ui/trash',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'deleteTeam'
-                });
-            }
-        }
-        return items;
-    }
-
-    private getTeamHomePanelItems(player: mc.Player): PanelItem[] {
-        const items: PanelItem[] = [];
-        addBackButton(items, 'teamManagePanel');
-        const team = teamManager.getTeamByPlayer(player.id);
-        if (isDefined(team)) {
-            if (isDefined(team.home)) {
-                items.push({
-                    id: 'teleportHome',
-                    text: '§l§2Teleport',
-                    icon: 'textures/items/ender_pearl',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'teleportHome'
-                });
-            }
-            const canManage = team.ownerId === player.id || team.admins.includes(player.id);
-            if (canManage) {
-                items.push({
-                    id: 'setHome',
-                    text: '§l§6Update Location',
-                    icon: 'textures/ui/icon_recipe_nature',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'setHome'
-                });
-                if (isDefined(team.home)) {
-                    items.push({
-                        id: 'deleteHome',
-                        text: '§l§4Delete Home',
-                        icon: 'textures/ui/trash',
-                        permissionLevel: 1024,
-                        actionType: 'functionCall',
-                        actionValue: 'deleteHome'
-                    });
-                }
-            }
-        }
-        return items;
-    }
-
-    private getTeamRequestsPanelItems(player: mc.Player): PanelItem[] {
-        const items: PanelItem[] = [];
-        addBackButton(items, 'teamManagePanel');
-        const team = teamManager.getTeamByPlayer(player.id);
-        if (isDefined(team) && team.applications.length > 0) {
-            for (const app of team.applications) {
-                items.push({
-                    id: app.playerId,
-                    text: app.playerName,
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'manageRequest'
-                });
-            }
-        }
-        return items;
-    }
-
-    private getTeamInvitesPanelItems(player: mc.Player): PanelItem[] {
-        const items: PanelItem[] = [];
-        addBackButton(items, 'teamMainPanel');
-        const pData: PlayerData = getOrCreatePlayer(player);
-        const invites = pData.pendingInvites;
-        if (invites.length > 0) {
-            for (const invite of invites) {
-                const date = new Date(invite.timestamp).toLocaleDateString();
-                items.push({
-                    id: String(invite.teamId),
-                    text: `${invite.teamName}\n§8Received: ${date}`,
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'manageInvite'
-                });
-            }
-            items.push({
-                id: 'denyAll',
-                text: '§4Deny All Invites',
-                icon: 'textures/ui/cancel',
-                permissionLevel: 1024,
-                actionType: 'functionCall',
-                actionValue: 'denyAllInvites'
-            });
-        }
-        return items;
-    }
-
-    async buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
-        // Satisfy async requirement
-        await Promise.resolve();
-
-        if (panelId === 'teamCreatePanel') {
-            const teamConfig = getTeamConfig();
-            return new ModalFormData()
-                .title('Create Team')
-                .textField(
-                    'Team Name',
-                    `Enter name (${String(teamConfig.nameMinLength)}-${String(teamConfig.nameMaxLength)} chars)`
-                );
-        }
-
-        if (panelId === 'teamSearchPanel') {
-            return new ModalFormData().title('Search Team').textField('Team Name or ID', 'Enter Name or ID');
-        }
-
-        if (panelId === 'teamInviteSearchPanel') {
-            return new ModalFormData().title('Invite Player').textField('Player Name', 'Enter exact name');
-        }
-
-        if (panelId === 'teamSettingsPanel') {
-            const pData = getOrCreatePlayer(player);
-            const team = teamManager.getTeamByPlayer(player.id);
-            if (!isDefined(team)) return undefined;
-            const canManage = team.ownerId === player.id || team.admins.includes(player.id);
-            const form = new ModalFormData().title('Team Settings');
-            form.toggle('Auto-Accept Team Teleport', { defaultValue: pData.teamSettings.autoTpAccept });
-            if (canManage) {
-                form.toggle('Allow Join Requests', { defaultValue: team.open });
-            }
-            return form;
-        }
-
-        // Config Panel for Teams (Admin)
-        if (panelId === 'config_team') {
-            const config = getTeamConfig();
-            return new ModalFormData()
-                .title('Team Configuration')
-                .toggle('Enabled', { defaultValue: config.enabled })
-                .textField('Max Members', '10', { defaultValue: String(config.maxMembers) })
-                .textField('Creation Cost', '500', { defaultValue: String(config.creationCost) })
-                .textField('Min Name Length', '3', { defaultValue: String(config.nameMinLength) })
-                .textField('Max Name Length', '16', { defaultValue: String(config.nameMaxLength) });
+                actionValue: 'applyToTeam',
+                permissionLevel: 1024
+            } as PanelItem));
+            return [...baseItems, ...browserItems];
         }
 
         return undefined;
@@ -457,275 +294,214 @@ export class TeamPanelHandler implements IPanelHandler {
     async handleResponse(
         player: mc.Player,
         panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
+        response: ActionFormResponse,
         context: UIContext
     ): Promise<void> {
-        const selection = (response as ActionFormResponse).selection;
+        if (response.canceled || response.selection === undefined) return;
 
+        let items = await this.getItems(player, panelId, context);
+        if (!isDefined(items)) {
+             const def = panelDefinitions[panelId];
+             if (isDefined(def)) {
+                items = getStaticMenuItems(def, 1024);
+             } else {
+                 return;
+             }
+        }
+
+        const selectedItem = items[response.selection];
+        if (!isDefined(selectedItem)) return;
+
+        if (selectedItem.id === '__back__') {
+            // Handled automatically via openPanel usually
+        }
+
+        if (selectedItem.actionType === 'openPanel') {
+            const newContext = { ...context };
+            if (panelId === 'teamMembersPanel' && selectedItem.id.startsWith('member_')) {
+                newContext.targetPlayerId = selectedItem.id.replace('member_', '');
+                newContext.selectedItemId = newContext.targetPlayerId;
+            }
+            if (panelId === 'teamRequestsPanel' && selectedItem.id.startsWith('req_')) {
+                newContext.targetPlayerId = selectedItem.id.replace('req_', '');
+                newContext.selectedItemId = newContext.targetPlayerId;
+            }
+            if (panelId === 'teamInvitesPanel' && selectedItem.id.startsWith('inv_')) {
+                newContext.selectedItemId = selectedItem.id.replace('inv_', '');
+            }
+
+            return showPanel(player, selectedItem.actionValue, newContext);
+        } else if (selectedItem.actionType === 'functionCall') {
+             if (selectedItem.actionValue === 'noop') return;
+
+             switch(selectedItem.actionValue) {
+                 case 'teamLeave': {
+                     const res = teamManager.leaveTeam(player);
+                     player.sendMessage(res.message ?? (res.success ? 'Success' : 'Failed'));
+                     return showPanel(player, 'teamMainPanel', context);
+                 }
+                 case 'teamTpHome': {
+                     teamManager.teleportToTeamHome(player);
+                     return;
+                 }
+                 case 'setTeamHome': {
+                     const team = teamManager.getTeamByPlayer(player.id);
+                     if (team) {
+                         const res = teamManager.setTeamHome(team.id, player.location, player.dimension.id);
+                         player.sendMessage(res.message ?? 'Done');
+                     }
+                     return showPanel(player, 'teamHomePanel', context);
+                 }
+                 case 'deleteTeamHome': {
+                     const team = teamManager.getTeamByPlayer(player.id);
+                     if (team) {
+                         const res = teamManager.deleteTeamHome(team.id);
+                         player.sendMessage(res.message ?? 'Done');
+                     }
+                     return showPanel(player, 'teamHomePanel', context);
+                 }
+                 case 'acceptTeamRequest': {
+                     const team = teamManager.getTeamByPlayer(player.id);
+                     if (team && context.targetPlayerId) {
+                         const res = teamManager.acceptApplication(team.id, context.targetPlayerId);
+                         player.sendMessage(res.message ?? 'Done');
+                     }
+                     return showPanel(player, 'teamRequestsPanel', context);
+                 }
+                 case 'denyTeamRequest': {
+                     const team = teamManager.getTeamByPlayer(player.id);
+                     if (team && context.targetPlayerId) {
+                         const res = teamManager.denyApplication(team.id, context.targetPlayerId);
+                         player.sendMessage(res.message ?? 'Done');
+                     }
+                     return showPanel(player, 'teamRequestsPanel', context);
+                 }
+                 case 'acceptTeamInvite': {
+                     if (context.selectedItemId) {
+                         const teamId = parseInt(context.selectedItemId);
+                         const res = teamManager.acceptInvite(player, teamId);
+                         player.sendMessage(res.message ?? 'Done');
+                     }
+                     return showPanel(player, 'teamMainPanel', context);
+                 }
+                 case 'denyTeamInvite': {
+                     if (context.selectedItemId) {
+                         const teamId = parseInt(context.selectedItemId);
+                         const res = teamManager.denyInvite(player.id, teamId);
+                         player.sendMessage(res.message ?? 'Done');
+                     }
+                     return showPanel(player, 'teamInvitesPanel', context);
+                 }
+                 case 'applyToTeam': {
+                     if (selectedItem.id.startsWith('team_')) {
+                         const teamId = parseInt(selectedItem.id.replace('team_', ''));
+                         const res = teamManager.applyToTeam(player, teamId);
+                         player.sendMessage(res.message ?? 'Done');
+                     }
+                     return showPanel(player, 'teamBrowserPanel', context);
+                 }
+                 case 'teamDeposit': {
+                     return this.handleDeposit(player, context);
+                 }
+                 default:
+                     return handleUIAction(player, selectedItem.actionValue, context);
+             }
+        }
+    }
+
+    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ActionFormData | ModalFormData | undefined | void> {
         if (panelId === 'teamCreatePanel') {
-            return this.handleTeamCreateResponse(player, response);
-        }
+            const form = new ModalFormData()
+                .title('Create Team')
+                .textField('Team Name', 'Enter team name');
 
-        if (panelId === 'teamSearchPanel') {
-            return this.handleTeamSearchResponse(player, response);
-        }
+            const res = await showModal(player, form);
+            if (res.canceled) {
+                await showPanel(player, 'teamMainPanel', context);
+                return;
+            }
 
-        if (panelId === 'teamInviteSearchPanel') {
-            return this.handleTeamInviteSearchResponse(player, response, context);
+            const [name] = res.formValues as [string];
+            if (!isNonEmptyString(name)) {
+                player.sendMessage('§cName required.');
+                await showPanel(player, 'teamCreatePanel', context);
+                return;
+            }
+
+            const result = teamManager.createTeam(player, name);
+            player.sendMessage(result.message ?? 'Done');
+            if (result.success) {
+                await showPanel(player, 'teamMainPanel', context);
+            } else {
+                await showPanel(player, 'teamCreatePanel', context);
+            }
+            return;
         }
 
         if (panelId === 'teamSettingsPanel') {
-            return this.handleTeamSettingsResponse(player, response);
-        }
+            const team = teamManager.getTeamByPlayer(player.id);
+            if (!team) return undefined;
 
-        if (panelId === 'config_team') {
-            return this.handleConfigTeamResponse(player, response, context);
-        }
+            const form = new ModalFormData()
+                .title('Team Settings')
+                .toggle('Open to Requests', team.open ? { defaultValue: true } : { defaultValue: false });
 
-        if (isNumber(selection)) {
-            return this.handleActionSelection(player, panelId, selection, context);
-        }
-    }
-
-    private async handleTeamCreateResponse(player: mc.Player, response: ModalFormResponse): Promise<void> {
-        if (response.canceled) {
-            return showPanel(player, 'teamMainPanel');
-        }
-        const values = response.formValues;
-        const [teamName] = values as string[];
-        if (isNonEmptyString(teamName) && teamName.trim().length > 0) {
-            const result = teamManager.createTeam(player, teamName.trim());
-            player.sendMessage(result.message ?? '');
-        } else {
-            player.sendMessage('§4Invalid team name.');
-        }
-        return showPanel(player, 'teamMainPanel');
-    }
-
-    private async handleTeamSearchResponse(player: mc.Player, response: ModalFormResponse): Promise<void> {
-        if (response.canceled) return showPanel(player, 'teamJoinPanel');
-        const values = response.formValues;
-        const [query] = values as string[];
-        if (isNonEmptyString(query)) {
-            let team = teamManager.getTeam(Number(query));
-            if (!isDefined(team)) {
-                // Search by name
-                const allTeams = teamManager.getAllTeams();
-                team = allTeams.find((t) => t.name.toLowerCase() === query.toLowerCase());
+            const res = await showModal(player, form);
+            if (res.canceled) {
+                await showPanel(player, 'teamManagePanel', context);
+                return;
             }
 
-            if (isDefined(team)) {
-                player.sendMessage(`§aFound team: ${team.name}`);
-                // Trigger apply directly or show info?
-                // Showing apply dialog via function call
-                const result = teamManager.applyToTeam(player, team.id);
-                player.sendMessage(result.message ?? '');
-            } else {
-                player.sendMessage('§cTeam not found.');
-            }
+            const [isOpen] = res.formValues as [boolean];
+            teamManager.setTeamOpenStatus(team.id, isOpen);
+            await showPanel(player, 'teamManagePanel', context);
+            return;
         }
-        return showPanel(player, 'teamJoinPanel');
+
+        if (panelId === 'teamSearchPanel') {
+            const form = new ModalFormData()
+                .title('Search Team')
+                .textField('Team Name (exact)', 'Name');
+
+            const res = await showModal(player, form);
+            if (res.canceled) {
+                await showPanel(player, 'teamJoinPanel', context);
+                return;
+            }
+
+            // Search logic ignored for now
+            player.sendMessage('Search not implemented yet, showing browser.');
+            await showPanel(player, 'teamBrowserPanel', context);
+            return;
+        }
+
+        return undefined;
     }
 
-    private async handleTeamInviteSearchResponse(
-        player: mc.Player,
-        response: ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
-        if (response.canceled) return showPanel(player, 'teamManagePanel', context);
-        const values = response.formValues;
-        const [name] = values as string[];
-        if (isNonEmptyString(name)) {
-            const targetId = getPlayerIdByName(name);
-            if (isDefined(targetId)) {
-                let teamId = isDefined(context.teamId) ? Number(context.teamId) : undefined;
-                if (!isDefined(teamId)) {
-                    const team = teamManager.getTeamByPlayer(player.id);
-                    if (isDefined(team) && (team.ownerId === player.id || team.admins.includes(player.id))) {
-                        teamId = team.id;
-                    }
-                }
-
-                if (isDefined(teamId)) {
-                    const result = teamManager.invitePlayer(teamId, targetId);
-                    player.sendMessage(result.message ?? '');
-                } else {
-                    player.sendMessage('§cTeam not found or you do not have permission.');
-                }
-            } else {
-                player.sendMessage('§cPlayer not found.');
-            }
-        }
-        return showPanel(player, 'teamManagePanel', context);
-    }
-
-    private async handleTeamSettingsResponse(player: mc.Player, response: ModalFormResponse): Promise<void> {
-        if (response.canceled) return showPanel(player, 'teamMainPanel');
-        const values = response.formValues;
-        if (!isDefined(values)) return;
-
+    async handleDeposit(player: mc.Player, context: UIContext) {
         const team = teamManager.getTeamByPlayer(player.id);
-        const autoTp = values[0] as boolean;
-        const { updatePlayerData } = await import('@core/playerDataManager.js');
-        updatePlayerData(player.id, (data) => {
-            if (isDefined(data.teamSettings)) {
-                data.teamSettings.autoTpAccept = autoTp;
-            } else {
-                data.teamSettings = { autoTpAccept: autoTp };
-            }
-        });
+        if (!team) return;
 
-        if (isDefined(team) && (team.ownerId === player.id || team.admins.includes(player.id)) && values.length > 1) {
-            const isOpen = values[1] as boolean;
-            teamManager.updateTeamSetting(team.id, 'open', isOpen);
+        const form = new ModalFormData()
+            .title('Deposit Money')
+            .textField('Amount', '1000');
 
-            player.sendMessage(`§aTeam settings updated.`);
+        const res = await showModal(player, form);
+        if (res.canceled) {
+            await showPanel(player, 'teamMainPanel', context);
+            return;
         }
-        return showPanel(player, 'teamMainPanel');
+
+        const [amountStr] = res.formValues as [string];
+        const amount = parseFloat(amountStr);
+        // Implement deposit logic here or in manager
+        player.sendMessage(`Deposit logic for ${amount} pending implementation.`);
+        await showPanel(player, 'teamMainPanel', context);
     }
+}
 
-    private async handleConfigTeamResponse(
-        player: mc.Player,
-        response: ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
-        if (response.canceled) return showPanel(player, 'configCategoryPanel', context);
-        const values = response.formValues;
-        if (!isDefined(values)) return;
-
-        const config = getTeamConfig();
-        const newConfig = {
-            ...config,
-            enabled: values[0] as boolean,
-            maxMembers: Number(values[1]),
-            creationCost: Number(values[2]),
-            nameMinLength: Number(values[3]),
-            nameMaxLength: Number(values[4])
-        };
-
-        const { saveTeamConfig } = await import('@core/configurations.js');
-        saveTeamConfig(newConfig);
-        player.sendMessage('§aTeam configuration saved.');
-        return showPanel(player, 'configCategoryPanel', context);
-    }
-
-    private async handleActionSelection(
-        player: mc.Player,
-        panelId: string,
-        selection: number,
-        context: UIContext
-    ): Promise<void> {
-        const items = await this.getItems(player, panelId, context);
-        if (selection >= 0 && selection < items.length) {
-            const item = items[selection];
-            if (!isDefined(item)) return;
-
-            // --- Generic Handlers ---
-            if (item.actionType === 'openPanel') {
-                return showPanel(player, item.actionValue, {
-                    ...context,
-                    page: 1,
-                    selectedItemId: item.id,
-                    id: item.id
-                });
-            }
-
-            if (item.actionValue === 'prevPage') {
-                const currentPage = context.page ?? 1;
-                return showPanel(player, panelId, {
-                    ...context,
-                    page: Math.max(1, currentPage - 1)
-                });
-            }
-            if (item.actionValue === 'nextPage') {
-                const currentPage = context.page ?? 1;
-                return showPanel(player, panelId, { ...context, page: currentPage + 1 });
-            }
-
-            // --- Custom Handlers ---
-
-            if (item.actionValue === 'leaveTeam') {
-                await showConfirmationDialog(player, {
-                    title: 'Leave Team',
-                    body: 'Are you sure you want to leave your team?',
-                    confirmButtonText: '§4Leave',
-                    cancelButtonText: 'Cancel',
-                    onConfirm: () => {
-                        const result = teamManager.leaveTeam(player);
-                        player.sendMessage(result.message ?? '');
-                        return showPanel(player, 'teamMainPanel');
-                    },
-                    onCancel: () => showPanel(player, 'teamMainPanel')
-                });
-                return; // Handled
-            }
-
-            if (item.actionValue === 'applyToTeam') {
-                const teamId = Number(item.id);
-                const result = teamManager.applyToTeam(player, teamId);
-                player.sendMessage(result.message ?? '');
-                return showPanel(player, panelId, context);
-            }
-
-            if (item.actionValue === 'manageRequest') {
-                const requestingPlayerId = item.id;
-                const team = teamManager.getTeamByPlayer(player.id);
-                if (!isDefined(team)) return;
-
-                // Show dialog to accept or deny
-                await showConfirmationDialog(player, {
-                    title: 'Manage Request',
-                    body: `Do you want to accept ${item.text} into the team?`,
-                    confirmButtonText: '§2Accept',
-                    cancelButtonText: '§4Deny',
-                    onConfirm: () => {
-                        const res = teamManager.acceptApplication(team.id, requestingPlayerId);
-                        player.sendMessage(res.message ?? '');
-                        return showPanel(player, 'teamManagePanel');
-                    },
-                    onCancel: () => {
-                        const res = teamManager.denyApplication(team.id, requestingPlayerId);
-                        player.sendMessage(res.message ?? '');
-                        return showPanel(player, 'teamManagePanel');
-                    }
-                });
-                return;
-            }
-
-            if (item.actionValue === 'deleteTeam') {
-                const { teamId } = context;
-                const team = isDefined(teamId)
-                    ? teamManager.getTeam(Number(teamId))
-                    : teamManager.getTeamByPlayer(player.id);
-
-                if (isDefined(team)) {
-                    await showConfirmationDialog(player, {
-                        title: 'Delete Team',
-                        body: `Are you sure you want to delete ${team.name}?`,
-                        confirmButtonText: '§4Delete',
-                        cancelButtonText: 'Cancel',
-                        onConfirm: () => {
-                            const success = teamManager.deleteTeam(team.id);
-                            if (success) {
-                                player.sendMessage('§aTeam deleted.');
-                            } else {
-                                player.sendMessage('§cFailed to delete team.');
-                            }
-                            return showPanel(player, 'teamMainPanel');
-                        },
-                        onCancel: () => showPanel(player, 'teamManagePanel', context)
-                    });
-                }
-                return;
-            }
-
-            // --- Generic Function Call Fallback ---
-            // item.actionType must be 'functionCall' here as 'openPanel' was handled above
-            await handleUIAction(player, item.actionValue, {
-                ...context,
-                selectedItemId: item.id,
-                id: item.id
-            });
-        }
-    }
+async function showModal(player: mc.Player, form: ModalFormData): Promise<ModalFormResponse> {
+    const { uiWait } = await import('@core/utils.js');
+    const res = await uiWait(player, form);
+    return res as ModalFormResponse;
 }

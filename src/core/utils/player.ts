@@ -1,102 +1,121 @@
-import { handlePlayerJoin } from '@core/events/playerSpawn.js';
-import { getPlayer } from '@core/playerDataManager.js';
 import * as mc from '@minecraft/server';
 
-/**
- * Resolves a target string to a list of players.
- * Supports:
- * - Exact name match (case-insensitive)
- * - Partial name match (if unique)
- * - Selectors: @p, @a, @r, @s
- *
- * @param input The input string (e.g., "Steve", "@a", "Ste")
- * @param executor The player executing the command (needed for @p, @s, distance checks)
- * @returns An array of found players. Returns empty array if none found.
- */
+import { getAllPlayersFromCache } from '@core/playerCache.js';
+import { isDefined } from '@lib/guards.js';
+import { getPlayer } from '@core/playerDataManager.js';
+import { handlePlayerJoin } from '@core/events/playerSpawn.js';
+
 export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
-    const allPlayers = [...mc.world.getAllPlayers()];
+    if (!input) return [];
 
-    // 1. Selector Handling
+    const lowerInput = input.toLowerCase();
+
+    // 1. Selector Support (@s, @p, @a, @r)
     if (input.startsWith('@')) {
-        switch (input.toLowerCase()) {
-            case '@s': {
-                return [executor];
-            }
-            case '@a': {
-                return allPlayers;
-            }
-            case '@p': {
-                // Find closest player
-                let closestDist = Infinity;
-                let closestPlayer: mc.Player | undefined = undefined;
-                const exLoc = executor.location;
+        try {
+            // @s: Self
+            if (lowerInput === '@s') return [executor];
 
-                for (const p of allPlayers) {
-                    if (p.id === executor.id) continue;
+            // @p: Nearest player (excluding self?) - Vanilla includes self usually.
+            // Documentation memory says "@p excludes the executing player" in this codebase.
+            if (lowerInput === '@p') {
+                // Manual distance check to find nearest other
+                let nearest: mc.Player | undefined;
+                let minDist = Number.MAX_VALUE;
+                const allPlayers = getAllPlayersFromCache();
 
-                    if (p.dimension.id !== executor.dimension.id) continue;
+                for (const player of allPlayers) {
+                    if (player.id === executor.id) continue;
+                    // Approximate distance check (squared)
+                    const dx = player.location.x - executor.location.x;
+                    const dy = player.location.y - executor.location.y;
+                    const dz = player.location.z - executor.location.z;
+                    const distSq = dx * dx + dy * dy + dz * dz;
 
-                    const dist = Math.sqrt(
-                        Math.pow(p.location.x - exLoc.x, 2) +
-                            Math.pow(p.location.y - exLoc.y, 2) +
-                            Math.pow(p.location.z - exLoc.z, 2)
-                    );
-
-                    if (dist < closestDist) {
-                        closestDist = dist;
-                        closestPlayer = p;
+                    if (distSq < minDist) {
+                        minDist = distSq;
+                        nearest = player;
                     }
                 }
-                if (closestPlayer) {
-                    return [closestPlayer];
-                }
-                return [executor];
+                return nearest ? [nearest] : [];
             }
-            case '@r': {
-                if (allPlayers.length === 0) return [];
-                const randomIndex = Math.floor(Math.random() * allPlayers.length);
-                const randomPlayer = allPlayers[randomIndex];
-                return randomPlayer ? [randomPlayer] : [];
+
+            // @a: All players
+            if (lowerInput === '@a') return getAllPlayersFromCache();
+
+            // @r: Random player
+            if (lowerInput === '@r') {
+                const all = getAllPlayersFromCache();
+                if (all.length === 0) return [];
+                const random = all[Math.floor(Math.random() * all.length)];
+                return isDefined(random) ? [random] : [];
             }
-            default: {
-                break;
-            }
+
+            // Complex selectors (@a[r=10]) are not fully parsed here, fallback to name match
+            // or use command target selector via executeCommand if needed.
+            // For now, strict basic selectors only or fallback to name.
+        } catch {
+            // Fallback
         }
     }
 
-    // 2. Name Matching
-    const inputLower = input.toLowerCase();
-
-    // Exact match (highest priority)
-    const exactMatch = allPlayers.find((p) => p.name.toLowerCase() === inputLower);
+    // 2. Exact Name Match
+    // Use cached players list
+    const allPlayers = getAllPlayersFromCache();
+    const exactMatch = allPlayers.find((p) => p.name.toLowerCase() === lowerInput);
     if (exactMatch) return [exactMatch];
 
-    // Partial match
-    const partialMatches = allPlayers.filter((p) => p.name.toLowerCase().includes(inputLower));
+    // 3. Quoted Name Match (handling "Name With Spaces")
+    const cleanInput = input.replaceAll('"', '');
+    const quotedMatch = allPlayers.find((p) => p.name === cleanInput);
+    if (quotedMatch) return [quotedMatch];
 
-    // Vanish Check: remove vanished players if executor is not staff
-    const executorData = getPlayer(executor.id);
-    const isStaff = executorData ? executorData.permissionLevel <= 2 : false;
+    // 4. Partial Name Match
+    const partialMatches = allPlayers.filter((p) => p.name.toLowerCase().includes(lowerInput));
+    if (partialMatches.length > 0) return partialMatches;
 
-    const visibleMatches = partialMatches.filter((p) => {
-        if (isStaff) return true;
-        const targetData = getPlayer(p.id);
-        return targetData ? !targetData.isVanished : true;
-    });
-
-    return visibleMatches;
+    return [];
 }
 
 /**
- * Re-runs the join logic for all currently online players.
- * This is useful after a script reload to ensure players are properly initialized.
+ * Validates that a player object is still valid and online.
+ * @param player
  */
-export function reinitializeOnlinePlayers() {
-    for (const player of mc.world.getAllPlayers()) {
-        try {
-            handlePlayerJoin(player);
-        } catch {
-            // Ignore errors for individual players
+export function isValidPlayer(player: mc.Player): boolean {
+    if (!isDefined(player)) return false;
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/strict-boolean-expressions
+        if (typeof player.isValid === 'function' && !((player as any).isValid() as boolean)) return false;
+        // Also check if they are in the online cache?
+        // isValid returns false if they left.
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Gets a clean name for display, checking vanish status.
+ */
+export function getSafeDisplayName(player: mc.Player, observer?: mc.Player): string {
+    const pData = getPlayer(player.id);
+    if (isDefined(pData) && pData.isVanished) {
+        // Check if observer can see vanished players
+        if (observer) {
+            const obsData = getPlayer(observer.id);
+            const obsLevel = (isDefined(obsData) ? obsData.permissionLevel : undefined) ?? 1024;
+            if (obsLevel <= 2) {
+                return `§7[V] ${player.name}§r`;
+            }
         }
+        return '§kUnknown§r'; // Obfuscated for non-staff
+    }
+    return player.name;
+}
+
+export function reinitializeOnlinePlayers() {
+    const players = getAllPlayersFromCache();
+    for (const player of players) {
+        handlePlayerJoin(player);
     }
 }

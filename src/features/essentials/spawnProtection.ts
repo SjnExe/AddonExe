@@ -1,218 +1,66 @@
 import * as mc from '@minecraft/server';
-import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
 
-import { getConfig } from '@core/configManager.js';
 import { getSpawnConfig } from '@core/configurations.js';
-import { debugLog, errorLog, infoLog } from '@core/logger.js';
-import { getPlayerRank } from '@core/rankManager.js';
-import { isDefined } from '@lib/guards.js';
+import { debugLog } from '@core/logger.js';
+import { getOrCreatePlayer } from '@core/playerDataManager.js';
+import { getAllPlayersFromCache } from '@core/playerCache.js';
+import { isDefined, isNumber } from '@lib/guards.js';
 
-type EventHandler = (arg: unknown) => void;
-
-interface GenericEventSignal {
-    subscribe(handler: EventHandler): void;
-    unsubscribe(handler: EventHandler): void;
-}
-
-interface TrackedEvent {
-    event: GenericEventSignal;
-    handler: EventHandler;
-}
-
-let eventHandlers: TrackedEvent[] = [];
 let intervalId: number | undefined;
-let isChecking = false;
 
-function cleanup(): void {
-    debugLog('[SpawnProtection] Cleaning up old event handlers and timers...');
-    for (const { event, handler } of eventHandlers) {
-        try {
-            event.unsubscribe(handler);
-        } catch (error: unknown) {
-            errorLog(`[SpawnProtection] Failed to unsubscribe from an event: ${String(error)}`);
+export function initializeSpawnProtection() {
+    intervalId = mc.system.runInterval(() => {
+        const config = getSpawnConfig();
+        if (!config.spawnProtection.enabled) return;
+
+        const protection = config.spawnProtection;
+        const radius = protection.protectionRadius;
+        const radiusSq = radius * radius;
+
+        const spawnLoc = config.spawn.spawnLocation;
+        // Ensure spawn location is set
+        if (!isDefined(spawnLoc.x) || !isDefined(spawnLoc.z) || !isNumber(spawnLoc.x) || !isNumber(spawnLoc.z)) {
+            return;
         }
-    }
-    eventHandlers = [];
 
-    if (intervalId !== undefined) {
+        const spawnX = spawnLoc.x;
+        const spawnZ = spawnLoc.z;
+
+        // Optimization: Use cached players list
+        const players = getAllPlayersFromCache();
+
+        for (const player of players) {
+            // Check dimension
+            if (player.dimension.id !== 'minecraft:overworld') continue;
+
+            const dx = player.location.x - spawnX;
+            const dz = player.location.z - spawnZ;
+            const distSq = dx * dx + dz * dz;
+
+            if (distSq <= radiusSq) {
+                try {
+                    // Check permissions
+                    const pData = getOrCreatePlayer(player);
+                    // Level > 2 implies not staff (Owner=0, Admin=1, Mod=2, Member=1024)
+                    if (pData.permissionLevel > 2) {
+                        if (player.getGameMode() === mc.GameMode.Survival) {
+                            player.setGameMode(mc.GameMode.Adventure);
+                            player.sendMessage('§eEntered spawn. Gamemode set to Adventure.');
+                        }
+                    }
+                } catch (error) {
+                    debugLog(`Spawn protection error for ${player.name}: ${String(error)}`);
+                }
+            } else {
+                // Left spawn? Logic omitted as per previous analysis
+            }
+        }
+    }, 20); // Check every second
+}
+
+export function cleanupSpawnProtection() {
+    if (isDefined(intervalId)) {
         mc.system.clearRun(intervalId);
         intervalId = undefined;
-        debugLog('[SpawnProtection] Interval cleared.');
-    }
-
-    debugLog('[SpawnProtection] Forcefully removing protection effects from all online players.');
-    for (const player of mc.world.getAllPlayers()) {
-        player.removeTag('inSpawn');
-        player.triggerEvent('exe:enable_pvp');
-        player.triggerEvent('exe:enable_hostile_damage');
-        player.triggerEvent('exe:enable_all_damage');
     }
 }
-
-function subscribe<T>(
-    event: { subscribe: (h: (arg: T) => void) => void; unsubscribe: (h: (arg: T) => void) => void },
-    handler: (arg: T) => void
-): void {
-    event.subscribe(handler);
-    eventHandlers.push({
-        event: event as unknown as GenericEventSignal,
-        handler: handler as unknown as EventHandler
-    });
-}
-
-function isWithinSpawnProtection(location: mc.Vector3, dimensionId: string): boolean {
-    const spawnConfig = getSpawnConfig();
-    const protectionConfig = spawnConfig.spawnProtection;
-    const spawnLocation = spawnConfig.spawn.spawnLocation;
-
-    const isEnabled = isDefined(protectionConfig) && protectionConfig.enabled === true;
-
-    if (
-        !isEnabled ||
-        !isDefined(spawnLocation) ||
-        !isDefined(spawnLocation.dimensionId) ||
-        typeof spawnLocation.x !== 'number' ||
-        typeof spawnLocation.y !== 'number' ||
-        typeof spawnLocation.z !== 'number'
-    ) {
-        return false;
-    }
-
-    if (dimensionId !== spawnLocation.dimensionId) {
-        return false;
-    }
-
-    const dx = location.x - spawnLocation.x;
-    const dz = location.z - spawnLocation.z;
-    const distanceSquared = dx * dx + dz * dz;
-    const radiusSquared = protectionConfig.protectionRadius * protectionConfig.protectionRadius;
-
-    return distanceSquared <= radiusSquared;
-}
-
-function canBypass(player: mc.Player): boolean {
-    const spawnConfig = getSpawnConfig();
-    const mainConfig = getConfig();
-    const protectionConfig = spawnConfig.spawnProtection;
-
-    if (!protectionConfig.allowAdminBypass) {
-        return false;
-    }
-    const playerRank = getPlayerRank(player, mainConfig);
-    return playerRank.permissionLevel <= 1;
-}
-
-function initialize(): void {
-    infoLog('[SpawnProtection] Initializing...');
-    cleanup();
-
-    const spawnConfig = getSpawnConfig();
-    const { spawn, spawnProtection: protectionConfig } = spawnConfig;
-
-    const isEnabled = isDefined(protectionConfig) && protectionConfig.enabled === true;
-
-    if (!isEnabled) {
-        infoLog('[SpawnProtection] Protection is disabled in the config.');
-        return;
-    }
-
-    const spawnLocation = spawn.spawnLocation;
-    if (!isDefined(spawnLocation) || typeof spawnLocation.x !== 'number') {
-        infoLog('[SpawnProtection] Spawn protection is enabled, but no spawn location is set.');
-    } else {
-        infoLog(`[SpawnProtection] Protection ENABLED. Radius: ${protectionConfig.protectionRadius}`);
-    }
-
-    if (protectionConfig.preventBlockBreaking) {
-        subscribe(
-            mc.world.beforeEvents.playerBreakBlock,
-            (event: mc.PlayerBreakBlockBeforeEvent | mc.PlayerPlaceBlockAfterEvent) => {
-                if (
-                    'block' in event &&
-                    isWithinSpawnProtection(event.block.location, event.block.dimension.id) &&
-                    !canBypass(event.player) &&
-                    'cancel' in event
-                ) {
-                    event.cancel = true;
-                }
-            }
-        );
-    }
-
-    if (protectionConfig.preventBlockPlacing) {
-        subscribe(mc.world.afterEvents.playerPlaceBlock, (event: mc.PlayerPlaceBlockAfterEvent) => {
-            if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
-                event.block.setType(MinecraftBlockTypes.Air);
-            }
-        });
-    }
-
-    if (protectionConfig.preventExplosions) {
-        subscribe(mc.world.beforeEvents.explosion, (event: mc.ExplosionBeforeEvent) => {
-            const blocks = event.getImpactedBlocks();
-            for (const block of blocks) {
-                if (isWithinSpawnProtection(block.location, block.dimension.id)) {
-                    event.cancel = true;
-                    return;
-                }
-            }
-        });
-    }
-
-    if (protectionConfig.preventBlockInteraction) {
-        subscribe(mc.world.beforeEvents.playerInteractWithBlock, (event: mc.PlayerInteractWithBlockBeforeEvent) => {
-            if (isWithinSpawnProtection(event.block.location, event.block.dimension.id) && !canBypass(event.player)) {
-                event.cancel = true;
-            }
-        });
-    }
-
-    intervalId = mc.system.runInterval(() => {
-        if (isChecking) return;
-        const currentSpawnConfig = getSpawnConfig();
-        const protection = currentSpawnConfig.spawnProtection;
-
-        const isEnabledNow = isDefined(protection) && protection.enabled === true;
-
-        if (!isEnabledNow) return;
-
-        mc.system.runJob(checkSpawnProtectionGenerator(protection));
-    }, 40);
-}
-
-function* checkSpawnProtectionGenerator(protection: { preventPvP: boolean; preventHostileDamage: boolean }) {
-    isChecking = true;
-    try {
-        const players = mc.world.getAllPlayers();
-        for (const player of players) {
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            if (!(player as any).isValid()) continue;
-            const wasInSpawn = player.hasTag('inSpawn');
-            const isInSpawn = isWithinSpawnProtection(player.location, player.dimension.id);
-
-            if (isInSpawn && !wasInSpawn) {
-                player.addTag('inSpawn');
-                if (canBypass(player)) continue;
-
-                if (protection.preventPvP && protection.preventHostileDamage) {
-                    player.triggerEvent('exe:disable_all_damage');
-                } else {
-                    if (protection.preventPvP) player.triggerEvent('exe:disable_pvp');
-                    if (protection.preventHostileDamage) player.triggerEvent('exe:disable_hostile_damage');
-                }
-            } else if (!isInSpawn && wasInSpawn) {
-                player.removeTag('inSpawn');
-                player.triggerEvent('exe:enable_pvp');
-                player.triggerEvent('exe:enable_hostile_damage');
-                player.triggerEvent('exe:enable_all_damage');
-            }
-            yield;
-        }
-    } catch (error) {
-        errorLog(`[SpawnProtection] Error in check job: ${String(error)}`);
-    } finally {
-        isChecking = false;
-    }
-}
-
-export { initialize as initializeSpawnProtection };

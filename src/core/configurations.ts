@@ -14,6 +14,7 @@ import type { dailyRewardsConfig } from '@features/dailyRewards/dailyRewardsConf
 import type { economyConfig } from '@features/economy/economyConfig.js';
 import type { gamesConfig } from '@features/games/gamesConfig.default.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
+import type { friendConfig } from '@features/social/friendConfig.js';
 import type { teamConfig } from '@features/teams/teamConfig.js';
 import type { kitsConfig } from '../features/kits/kitsConfig.default.js';
 import type ranksConfig from './ranksConfig.default.js';
@@ -28,6 +29,7 @@ export type RanksConfig = typeof ranksConfig;
 export type EconomyConfig = typeof economyConfig;
 export type XrayConfig = typeof xrayConfig;
 export type TeamConfig = typeof teamConfig;
+export type FriendConfig = typeof friendConfig;
 export type SidebarConfig = typeof sidebarConfig;
 export type AuctionHouseConfig = typeof auctionHouseConfig;
 export type DailyRewardsConfig = typeof dailyRewardsConfig;
@@ -40,6 +42,7 @@ let kitsConfigManager: ConfigManager<KitsConfig>,
     economyConfigManager: ConfigManager<EconomyConfig>,
     xrayConfigManager: ConfigManager<XrayConfig>,
     teamConfigManager: ConfigManager<TeamConfig>,
+    friendConfigManager: ConfigManager<FriendConfig>,
     sidebarConfigManager: ConfigManager<SidebarConfig>,
     auctionHouseConfigManager: ConfigManager<AuctionHouseConfig>,
     dailyRewardsConfigManager: ConfigManager<DailyRewardsConfig>,
@@ -118,6 +121,15 @@ export const getTeamConfig = (): TeamConfig => teamConfigManager.get();
 export const saveTeamConfig = (config: TeamConfig) => teamConfigManager.set(config);
 export const resetTeamConfig = () => teamConfigManager.reset();
 
+export const loadFriendConfig = async (isMigration: boolean) => {
+    const defaultConfig = await asyncLoadConfig<FriendConfig>('./features/social/friendConfig.js');
+    friendConfigManager = createConfigManager('exe:friendConfig:current', defaultConfig, 'Friends');
+    friendConfigManager.load(isMigration);
+};
+export const getFriendConfig = (): FriendConfig => friendConfigManager.get();
+export const saveFriendConfig = (config: FriendConfig) => friendConfigManager.set(config);
+export const resetFriendConfig = () => friendConfigManager.reset();
+
 export const loadSidebarConfig = async (isMigration: boolean) => {
     const defaultConfig = await asyncLoadConfig<SidebarConfig>('./core/sidebarConfig.js');
     sidebarConfigManager = createConfigManager('exe:sidebarConfig:current', defaultConfig, 'Sidebar');
@@ -164,6 +176,10 @@ export const configResetRegistry: Record<string, ResetRegistryEntry> = {
     team: {
         reset: resetTeamConfig,
         message: "The 'team' configuration section has been reset to default."
+    },
+    friend: {
+        reset: resetFriendConfig,
+        message: "The 'friend' configuration section has been reset to default."
     },
     xray: {
         reset: resetXrayConfig,
