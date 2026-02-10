@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -17,6 +17,7 @@ export class TeamPanelHandler implements IPanelHandler {
         return panelId.startsWith('team');
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[] | undefined> {
         const team = teamManager.getTeamByPlayer(player.id);
 
@@ -25,27 +26,7 @@ export class TeamPanelHandler implements IPanelHandler {
         const baseItems = isDefined(def) ? getStaticMenuItems(def, 1024) : [];
 
         if (panelId === 'teamMainPanel') {
-            if (!isDefined(team)) {
-                return [
-                    ...baseItems,
-                    {
-                        id: 'teamCreateBtn',
-                        text: 'Create Team',
-                        icon: 'textures/ui/color_plus',
-                        actionType: 'openPanel',
-                        actionValue: 'teamCreatePanel',
-                        permissionLevel: 1024
-                    },
-                    {
-                        id: 'teamJoinBtn',
-                        text: 'Join Team',
-                        icon: 'textures/ui/magnifyingGlass',
-                        actionType: 'openPanel',
-                        actionValue: 'teamJoinPanel',
-                        permissionLevel: 1024
-                    }
-                ];
-            } else {
+            if (isDefined(team)) {
                 const isOwner = team.ownerId === player.id;
                 const isAdmin = isOwner || team.admins.includes(player.id);
 
@@ -109,6 +90,26 @@ export class TeamPanelHandler implements IPanelHandler {
                 });
 
                 return items;
+            } else {
+                return [
+                    ...baseItems,
+                    {
+                        id: 'teamCreateBtn',
+                        text: 'Create Team',
+                        icon: 'textures/ui/color_plus',
+                        actionType: 'openPanel',
+                        actionValue: 'teamCreatePanel',
+                        permissionLevel: 1024
+                    },
+                    {
+                        id: 'teamJoinBtn',
+                        text: 'Join Team',
+                        icon: 'textures/ui/magnifyingGlass',
+                        actionType: 'openPanel',
+                        actionValue: 'teamJoinPanel',
+                        permissionLevel: 1024
+                    }
+                ];
             }
         }
 
@@ -158,22 +159,22 @@ export class TeamPanelHandler implements IPanelHandler {
              }
 
              if (isMeOwner && targetId !== player.id) {
-                 if (!isTargetAdmin) {
-                     items.push({
-                         id: 'promoteMember',
-                         text: 'Promote to Admin',
-                         icon: 'textures/ui/up_arrow',
-                         actionType: 'functionCall',
-                         actionValue: 'promoteTeamMember',
-                         permissionLevel: 1024
-                     });
-                 } else {
+                 if (isTargetAdmin) {
                      items.push({
                          id: 'demoteMember',
                          text: 'Demote Admin',
                          icon: 'textures/ui/down_arrow',
                          actionType: 'functionCall',
                          actionValue: 'demoteTeamMember',
+                         permissionLevel: 1024
+                     });
+                 } else {
+                     items.push({
+                         id: 'promoteMember',
+                         text: 'Promote to Admin',
+                         icon: 'textures/ui/up_arrow',
+                         actionType: 'functionCall',
+                         actionValue: 'promoteTeamMember',
                          permissionLevel: 1024
                      });
                  }
@@ -378,7 +379,7 @@ export class TeamPanelHandler implements IPanelHandler {
                  }
                  case 'acceptTeamInvite': {
                      if (context.selectedItemId) {
-                         const teamId = parseInt(context.selectedItemId);
+                         const teamId = Number.parseInt(context.selectedItemId);
                          const res = teamManager.acceptInvite(player, teamId);
                          player.sendMessage(res.message ?? 'Done');
                      }
@@ -386,7 +387,7 @@ export class TeamPanelHandler implements IPanelHandler {
                  }
                  case 'denyTeamInvite': {
                      if (context.selectedItemId) {
-                         const teamId = parseInt(context.selectedItemId);
+                         const teamId = Number.parseInt(context.selectedItemId);
                          const res = teamManager.denyInvite(player.id, teamId);
                          player.sendMessage(res.message ?? 'Done');
                      }
@@ -394,7 +395,7 @@ export class TeamPanelHandler implements IPanelHandler {
                  }
                  case 'applyToTeam': {
                      if (selectedItem.id.startsWith('team_')) {
-                         const teamId = parseInt(selectedItem.id.replace('team_', ''));
+                         const teamId = Number.parseInt(selectedItem.id.replace('team_', ''));
                          const res = teamManager.applyToTeam(player, teamId);
                          player.sendMessage(res.message ?? 'Done');
                      }
@@ -403,8 +404,9 @@ export class TeamPanelHandler implements IPanelHandler {
                  case 'teamDeposit': {
                      return this.handleDeposit(player, context);
                  }
-                 default:
+                 default: {
                      return handleUIAction(player, selectedItem.actionValue, context);
+                 }
              }
         }
     }
@@ -430,11 +432,7 @@ export class TeamPanelHandler implements IPanelHandler {
 
             const result = teamManager.createTeam(player, name);
             player.sendMessage(result.message ?? 'Done');
-            if (result.success) {
-                await showPanel(player, 'teamMainPanel', context);
-            } else {
-                await showPanel(player, 'teamCreatePanel', context);
-            }
+            await (result.success ? showPanel(player, 'teamMainPanel', context) : showPanel(player, 'teamCreatePanel', context));
             return;
         }
 
@@ -493,7 +491,7 @@ export class TeamPanelHandler implements IPanelHandler {
         }
 
         const [amountStr] = res.formValues as [string];
-        const amount = parseFloat(amountStr);
+        const amount = Number.parseFloat(amountStr);
         // Implement deposit logic here or in manager
         player.sendMessage(`Deposit logic for ${amount} pending implementation.`);
         await showPanel(player, 'teamMainPanel', context);

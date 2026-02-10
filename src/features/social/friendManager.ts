@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import * as mc from '@minecraft/server';
 
 import { getFriendConfig } from '@core/configurations.js';

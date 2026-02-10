@@ -42,12 +42,10 @@ export function initializeSpawnProtection() {
                     // Check permissions
                     const pData = getOrCreatePlayer(player);
                     // Level > 2 implies not staff (Owner=0, Admin=1, Mod=2, Member=1024)
-                    if (pData.permissionLevel > 2) {
-                        if (player.getGameMode() === mc.GameMode.Survival) {
+                    if (pData.permissionLevel > 2 && player.getGameMode() === mc.GameMode.Survival) {
                             player.setGameMode(mc.GameMode.Adventure);
                             player.sendMessage('§eEntered spawn. Gamemode set to Adventure.');
                         }
-                    }
                 } catch (error) {
                     debugLog(`Spawn protection error for ${player.name}: ${String(error)}`);
                 }

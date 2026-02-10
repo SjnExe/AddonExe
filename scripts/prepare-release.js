@@ -35,15 +35,15 @@ async function copyIcon() {
     try {
         await fs.copyFile(iconPath, bpPath);
         console.log(`Copied icon to ${bpPath}`);
-    } catch (e) {
-        console.error(`Failed to copy icon to BP: ${e.message}`);
+    } catch (error) {
+        console.error(`Failed to copy icon to BP: ${error.message}`);
     }
 
     try {
         await fs.copyFile(iconPath, rpPath);
         console.log(`Copied icon to ${rpPath}`);
-    } catch (e) {
-         console.error(`Failed to copy icon to RP: ${e.message}`);
+    } catch (error) {
+         console.error(`Failed to copy icon to RP: ${error.message}`);
     }
 }
 
@@ -120,7 +120,7 @@ async function main() {
     console.log('--- Release Preparation Complete ---');
 }
 
-main().catch(err => {
-    console.error(err);
+main().catch(error => {
+    console.error(error);
     process.exit(1);
 });

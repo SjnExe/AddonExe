@@ -78,7 +78,7 @@ async function generateManifests() {
     let buildNumber = 0;
     const buildNumIndex = args.indexOf('--build-number');
     if (buildNumIndex !== -1 && buildNumIndex + 1 < args.length) {
-        buildNumber = parseInt(args[buildNumIndex + 1], 10);
+        buildNumber = Number.parseInt(args[buildNumIndex + 1], 10);
     }
 
     const pkg = await getPackageJson();

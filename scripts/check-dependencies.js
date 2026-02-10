@@ -73,14 +73,13 @@ async function main() {
     const packageKeySet = new Set(minecraftPackageKeys);
 
     for (const pkg of minecraftPackageKeys) {
-        if (runtimeModules.has(pkg)) {
-             // If it's a runtime module in package.json, it should generally be in manifest
+        if (runtimeModules.has(pkg) && // If it's a runtime module in package.json, it should generally be in manifest
              // UNLESS it is strictly a dev dependency (types) and not used in runtime code.
              // But detecting usage is hard.
              // We'll relax the check: if it is in package.json but not manifest, warn but don't fail?
              // Or fail if it's critical like @minecraft/server.
 
-             if (!manifestModuleSet.has(pkg)) {
+             !manifestModuleSet.has(pkg)) {
                  // Special exemptions
                  if (pkg === '@minecraft/common' || pkg === '@minecraft/debug-utilities') {
                      // Often used for types or debug only
@@ -88,7 +87,6 @@ async function main() {
                  }
                  errors.push(`Package '${pkg}' is in package.json but missing from manifest.json dependencies.`);
              }
-        }
     }
 
     for (const pkg of minecraftManifestModules) {

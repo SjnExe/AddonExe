@@ -31,10 +31,10 @@ async function generate() {
         if (stats.isDirectory()) {
             featureDirs = await fs.readdir(FEATURES_DIR);
         }
-    } catch (e) {
+    } catch (error) {
         // Only warn if it's not ENOENT
-        if (e.code !== 'ENOENT') {
-            console.warn(`Error reading features directory: ${e.message}`);
+        if (error.code !== 'ENOENT') {
+            console.warn(`Error reading features directory: ${error.message}`);
         }
     }
 
@@ -51,8 +51,8 @@ async function generate() {
                     const baseName = path.basename(file, '.ts');
 
                     // Variable name: cmd<Feature><File> (e.g., cmdEconomyPay)
-                    const safeFeature = feature.replace(/[^a-zA-Z0-9]/g, '');
-                    const safeFile = baseName.replace(/[^a-zA-Z0-9]/g, '');
+                    const safeFeature = feature.replaceAll(/[^a-zA-Z0-9]/g, '');
+                    const safeFile = baseName.replaceAll(/[^a-zA-Z0-9]/g, '');
 
                     const varName = `cmd${safeFeature.charAt(0).toUpperCase() + safeFeature.slice(1)}${safeFile.charAt(0).toUpperCase() + safeFile.slice(1)}`;
 

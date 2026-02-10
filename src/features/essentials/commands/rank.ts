@@ -1,12 +1,8 @@
-import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
-import { getPlayer, getPlayerIdByName } from '@core/playerDataManager.js';
-import { getPlayerRank, getRankById } from '@core/rankManager.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { isNonEmptyString } from '@lib/guards.js';
 
 const rankCommand: CustomCommand = {
     name: 'rank',

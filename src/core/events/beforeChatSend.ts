@@ -2,8 +2,8 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
-import { getPlayer, getPlayerIdByName } from '@core/playerDataManager.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { getPlayer } from '@core/playerDataManager.js';
+import { isDefined } from '@lib/guards.js';
 
 /**
  * Handles chat messages before they are sent.
@@ -34,7 +34,7 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
                 const name = word.slice(1);
                 // Optimization: Use cached lookup
                 // Try exact match first
-                let target = getPlayerFromCache(name); // ID unlikely
+                const target = getPlayerFromCache(name); // ID unlikely
                 if (!target) {
                     // Search by name
                     // We can't use getAllPlayersFromCache().find() efficiently if we iterate all words.

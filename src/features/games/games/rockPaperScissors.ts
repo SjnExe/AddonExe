@@ -1,4 +1,4 @@
-import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
 import { uiWait } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';

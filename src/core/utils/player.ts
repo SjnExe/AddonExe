@@ -84,7 +84,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
 export function isValidPlayer(player: mc.Player): boolean {
     if (!isDefined(player)) return false;
     try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/strict-boolean-expressions
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         if (typeof player.isValid === 'function' && !((player as any).isValid() as boolean)) return false;
         // Also check if they are in the online cache?
         // isValid returns false if they left.
