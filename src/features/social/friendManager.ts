@@ -1,4 +1,3 @@
-
 import * as mc from '@minecraft/server';
 
 import { getFriendConfig } from '@core/configurations.js';
@@ -53,11 +52,12 @@ export function sendFriendRequest(sender: mc.Player, targetName: string): { succ
     const targetId = targetPlayer.id;
     const targetData = getOrCreatePlayer(targetPlayer);
 
-    if (pData.friends?.includes(targetId)) {
+    // Strict boolean check for optional chaining
+    if (pData.friends && pData.friends.includes(targetId)) {
         return { success: false, message: '§cYou are already friends.' };
     }
 
-    if (targetData.friendRequests?.some((req) => req.senderId === sender.id)) {
+    if (targetData.friendRequests && targetData.friendRequests.some((req) => req.senderId === sender.id)) {
         return { success: false, message: '§cYou already sent a request to this player.' };
     }
 
@@ -148,6 +148,7 @@ export function removeFriend(player: mc.Player, friendId: string): { success: bo
     return { success: true, message: '§aFriend removed.' };
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function inviteFriendToGame(player: mc.Player, _gameId: string) {
     const pData = getOrCreatePlayer(player);
     const friends = pData.friends ?? [];

@@ -12,50 +12,42 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
 
     // 1. Selector Support (@s, @p, @a, @r)
     if (input.startsWith('@')) {
-        try {
-            // @s: Self
-            if (lowerInput === '@s') return [executor];
+        // @s: Self
+        if (lowerInput === '@s') return [executor];
 
-            // @p: Nearest player (excluding self?) - Vanilla includes self usually.
-            // Documentation memory says "@p excludes the executing player" in this codebase.
-            if (lowerInput === '@p') {
-                // Manual distance check to find nearest other
-                let nearest: mc.Player | undefined;
-                let minDist = Number.MAX_VALUE;
-                const allPlayers = getAllPlayersFromCache();
+        // @p: Nearest player (excluding self?) - Vanilla includes self usually.
+        // Documentation memory says "@p excludes the executing player" in this codebase.
+        if (lowerInput === '@p') {
+            // Manual distance check to find nearest other
+            let nearest: mc.Player | undefined;
+            let minDist = Number.MAX_VALUE;
+            const allPlayers = getAllPlayersFromCache();
 
-                for (const player of allPlayers) {
-                    if (player.id === executor.id) continue;
-                    // Approximate distance check (squared)
-                    const dx = player.location.x - executor.location.x;
-                    const dy = player.location.y - executor.location.y;
-                    const dz = player.location.z - executor.location.z;
-                    const distSq = dx * dx + dy * dy + dz * dz;
+            for (const player of allPlayers) {
+                if (player.id === executor.id) continue;
+                // Approximate distance check (squared)
+                const dx = player.location.x - executor.location.x;
+                const dy = player.location.y - executor.location.y;
+                const dz = player.location.z - executor.location.z;
+                const distSq = dx * dx + dy * dy + dz * dz;
 
-                    if (distSq < minDist) {
-                        minDist = distSq;
-                        nearest = player;
-                    }
+                if (distSq < minDist) {
+                    minDist = distSq;
+                    nearest = player;
                 }
-                return nearest ? [nearest] : [];
             }
+            return nearest ? [nearest] : [];
+        }
 
-            // @a: All players
-            if (lowerInput === '@a') return getAllPlayersFromCache();
+        // @a: All players
+        if (lowerInput === '@a') return getAllPlayersFromCache();
 
-            // @r: Random player
-            if (lowerInput === '@r') {
-                const all = getAllPlayersFromCache();
-                if (all.length === 0) return [];
-                const random = all[Math.floor(Math.random() * all.length)];
-                return isDefined(random) ? [random] : [];
-            }
-
-            // Complex selectors (@a[r=10]) are not fully parsed here, fallback to name match
-            // or use command target selector via executeCommand if needed.
-            // For now, strict basic selectors only or fallback to name.
-        } catch {
-            // Fallback
+        // @r: Random player
+        if (lowerInput === '@r') {
+            const all = getAllPlayersFromCache();
+            if (all.length === 0) return [];
+            const random = all[Math.floor(Math.random() * all.length)];
+            return isDefined(random) ? [random] : [];
         }
     }
 
@@ -86,8 +78,7 @@ export function isValidPlayer(player: mc.Player): boolean {
     try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         if (typeof player.isValid === 'function' && !((player as any).isValid() as boolean)) return false;
-        // Also check if they are in the online cache?
-        // isValid returns false if they left.
+
         return true;
     } catch {
         return false;

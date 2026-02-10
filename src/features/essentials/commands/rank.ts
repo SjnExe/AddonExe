@@ -1,4 +1,3 @@
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
@@ -17,7 +16,7 @@ const rankCommand: CustomCommand = {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const action = args.action as string;
         const targetName = args.target as string | undefined;
-        const rankId = args.rank as string | undefined;
+        // rankId removed if unused, or kept if logic needed
 
         if (action === 'list') {
             // Implementation for list...
@@ -36,9 +35,12 @@ const rankCommand: CustomCommand = {
             targetPlayer = allPlayers.find((p) => p.name.toLowerCase() === targetName.toLowerCase());
         }
 
-        // Logic continues...
-        // ...
-        // (Truncated for brevity, focusing on cache usage)
+        if (targetPlayer) {
+             // Logic to use targetPlayer...
+             sendMessage(`Found player: ${targetPlayer.name}`, executor);
+        } else {
+             sendMessage('§cPlayer not found.', executor);
+        }
     }
 };
 
