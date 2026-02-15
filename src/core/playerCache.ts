@@ -3,6 +3,8 @@ import * as mc from '@minecraft/server';
 const playerCache = new Map<string, mc.Player>();
 
 export function initializePlayerCache(): void {
+    // Clear cache first to ensure no stale data on re-init
+    playerCache.clear();
     for (const player of mc.world.getAllPlayers()) {
         playerCache.set(player.id, player);
     }
@@ -32,6 +34,10 @@ export function removePlayerFromCache(playerId: string): void {
 
 export function getAllPlayersFromCache(): mc.Player[] {
     return [...playerCache.values()];
+}
+
+export function getPlayerCount(): number {
+    return playerCache.size;
 }
 
 export function findPlayerByName(name: string): mc.Player | undefined {

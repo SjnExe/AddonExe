@@ -6,7 +6,8 @@
         "noEmit": true,
         "module": "Node16",
         "moduleResolution": "Node16",
-        "target": "ES2022"
+        "target": "ES2023",
+        "isolatedModules": true
     },
     "include": ["src/**/__tests__/**/*.ts", "src/**/__mocks__/**/*.ts"],
     "exclude": ["node_modules"]

@@ -1,271 +1,164 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
-import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse, ModalFormData } from '@minecraft/server-ui';
 
+import { getVisiblePlayers, loadPlayerData } from '@core/playerDataManager.js';
+import { getPlayerRank } from '@core/rankManager.js';
 import { getConfig } from '@core/configManager.js';
-import {
-    getAllKnownPlayers,
-    getOrCreatePlayer,
-    getPlayerIdByName,
-    getVisiblePlayers,
-    loadPlayerData,
-    PlayerData
-} from '@core/playerDataManager.js';
+import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
+import { panelDefinitions } from '@core/ui/panelRegistry.js';
+import { isDefined } from '@lib/guards.js';
+import { formatCurrency } from '@core/utils/economy.js';
+import { getStaticMenuItems } from '@core/ui/panelBuilder.js';
 import { showPanel } from '@core/uiManager.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
-import { getStaticMenuItems } from '@ui/panelBuilder.js';
-import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
-import { IPanelHandler } from '@ui/types.js';
-import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 
 export class PlayerPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'playerManagementPanel' ||
-            panelId === 'playerListPanel' ||
-            panelId === 'playerActionsPanel' ||
-            panelId === 'myStatsPanel' ||
-            panelId === 'playerSearchPanel'
-        );
+        return panelId.startsWith('player') || panelId === 'myStatsPanel';
     }
 
-    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
-        const items: PanelItem[] = [];
-        const pData = getOrCreatePlayer(player);
-        const permissionLevel = pData.permissionLevel;
-        const page = (context.page as number) || 1;
-
-        if (panelId === 'playerManagementPanel' || panelId === 'playerListPanel') {
-            if (panelId === 'playerListPanel') addBackButton(items, 'gameplayPanel');
-            else addBackButton(items, 'adminPanel');
-
-            items.push({
-                id: 'search',
-                text: '§l§2Search',
-                icon: 'textures/ui/magnifyingGlass',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'playerSearchPanel'
-            });
-
-            const isOnlineList = panelId === 'playerListPanel';
-            let playerEntries: { name: string; id: string }[] = [];
-
-            playerEntries = isOnlineList
-                ? getVisiblePlayers(player).map((p) => ({ name: p.name, id: p.id }))
-                : getAllKnownPlayers();
-
-            playerEntries.sort((a, b) => a.name.localeCompare(b.name));
-
-            const paginated = getPaginatedItems(playerEntries, page);
-            const { getTeamByPlayer } = await import('@features/teams/teamManager.js');
-            const { getRankById, getPlayerRank } = await import('@core/rankManager.js');
-            const config = getConfig();
-
-            for (const entry of paginated) {
-                if (!isDefined(entry)) continue;
-                const targetP = mc.world.getAllPlayers().find((p) => p.id === entry.id);
-
-                const rank = isDefined(targetP)
-                    ? getPlayerRank(targetP, config)
-                    : getRankById((loadPlayerData(entry.id) ?? { rankId: '' }).rankId);
-                const team = getTeamByPlayer(entry.id);
-                // Null-safe access to rank and team
-                const prefixText =
-                    isDefined(rank) && isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined;
-                const prefix = isNonEmptyString(prefixText) ? `§6[§r${prefixText}§6]§r ` : '';
-                const teamSuffix = isDefined(team) ? `\n§6[§r${team.name}§6]` : '';
-
-                items.push({
-                    id: entry.id,
-                    text: `${prefix}${entry.name}${teamSuffix}`,
-                    permissionLevel: 1024,
-                    actionType: 'openPanel',
-                    actionValue: 'playerActionsPanel'
-                });
-            }
-            addPaginationItems(items, page, playerEntries.length);
-            return items;
-        }
-
-        if (panelId === 'playerActionsPanel') {
-            const fromPanel = context.fromPanel as string;
-            if (isNonEmptyString(fromPanel)) addBackButton(items, fromPanel);
-            else addBackButton(items, 'mainPanel');
-
-            const visible = this.getVisiblePlayerActionItems(context, permissionLevel, player.id);
-            items.push(...visible);
-            return items;
-        }
-
-        if (panelId === 'myStatsPanel') {
-            addBackButton(items, 'gameplayPanel');
-            return items; // Body only
-        }
-
-        return items;
-    }
-
-    private getVisiblePlayerActionItems(context: UIContext, permissionLevel: number, viewerId?: string): PanelItem[] {
-        const panelDef = panelDefinitions.playerActionsPanel;
-        if (!isDefined(panelDef)) return [];
+    async getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[] | undefined> {
         const config = getConfig();
-        const menuItems = getStaticMenuItems(panelDef, permissionLevel);
-        const visibleItems: PanelItem[] = [];
+        const rank = getPlayerRank(player, config);
+        const def = panelDefinitions[panelId];
+        const baseItems = isDefined(def) ? getStaticMenuItems(def, rank.permissionLevel) : [];
 
-        const targetId = context.targetPlayerId as string;
-        const isSelf = isDefined(viewerId) && targetId === viewerId;
-        const selfDisabledActions = new Set([
-            'kick',
-            'ban',
-            'mute',
-            'unmute',
-            'freeze',
-            'unfreeze',
-            'tpa',
-            'tpahere',
-            'report'
-        ]);
-        const adminActions = new Set(['kick', 'ban', 'mute', 'unmute', 'freeze', 'unfreeze']);
-
-        for (const item of menuItems) {
-            if (item.id === '__back__') continue;
-
-            // Filter out admin actions if coming from the Gameplay Player List
-            if (context.fromPanel === 'playerListPanel' && adminActions.has(item.id)) {
-                continue;
-            }
-
-            if (isSelf === true && selfDisabledActions.has(item.id)) {
-                continue;
-            }
-            const commandName = item.id;
-            const settings = (isDefined(config.commandSettings) ? config.commandSettings : {}) as Record<
-                string,
-                { enabled?: boolean } | undefined
-            >;
-            if (settings[commandName]?.enabled === false) {
-                continue;
-            }
-
-            visibleItems.push(item);
+        if (panelId === 'playerListPanel') {
+            const players = getVisiblePlayers(player);
+            const playerItems: PanelItem[] = players.map((p) => {
+                return {
+                    id: `player_${p.id}`,
+                    text: p.name, // Use name for now, rank prefix handled elsewhere if needed
+                    icon: 'textures/ui/steve_head',
+                    actionType: 'openPanel',
+                    actionValue: 'playerActionsPanel',
+                    permissionLevel: 1024
+                };
+            });
+            // Append player items to static items (which includes back button at start)
+            return [...baseItems, ...playerItems];
         }
-        return visibleItems;
-    }
 
-    async getBody(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined | void> {
         if (panelId === 'myStatsPanel') {
-            const pData = getOrCreatePlayer(player);
-            const { getTeamByPlayer } = await import('@features/teams/teamManager.js');
-            const team = getTeamByPlayer(player.id);
-            const teamName = isDefined(team) ? `§3${team.name}` : '§8None';
-            const { getPlayerRank } = await import('@core/rankManager.js');
-            const rank = getPlayerRank(player, getConfig());
-            const { getBounty } = await import('@core/bountyManager.js');
-            const pBounty = getBounty(player.id);
-            const bounty = (isDefined(pBounty) ? pBounty.amount : undefined) ?? 0;
-            const { formatCurrency } = await import('@core/utils.js');
+            const data = loadPlayerData(player.id);
+            if (!data) return baseItems;
 
-            return [
-                `§8Rank: §r${(isDefined(rank.chatFormatting) ? rank.chatFormatting.nameColor : undefined) ?? '§8'}${rank.name}`,
-                `§8Team: ${teamName}`,
-                `§8Balance: §2${formatCurrency(pData.balance)}`,
-                `§8Bounty on you: §6${formatCurrency(bounty)}`
-            ].join('\n');
+            const stats: PanelItem[] = [
+                {
+                    id: 'stat_money',
+                    text: `§2Balance: §r${formatCurrency(data.balance ?? 0)}`,
+                    icon: 'textures/items/emerald',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'noop'
+                },
+                 {
+                    id: 'stat_rank',
+                    text: `§6Rank: §r${data.rankId ?? 'member'}`,
+                    icon: 'textures/ui/icon_rank',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'noop'
+                },
+                 {
+                    id: 'stat_playtime',
+                     text: `§3Playtime: §r${formatDuration(data.totalPlayTime ?? 0)}`,
+                     icon: 'textures/items/clock_item',
+                     permissionLevel: 1024,
+                     actionType: 'functionCall',
+                     actionValue: 'noop'
+                 },
+                 {
+                    id: 'stat_kills',
+                    text: `§cKills: §r${data.kills ?? 0}`,
+                    icon: 'textures/items/iron_sword',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'noop'
+                },
+                {
+                    id: 'stat_deaths',
+                    text: `§4Deaths: §r${data.deaths ?? 0}`,
+                    icon: 'textures/ui/skull_face',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'noop'
+                }
+            ];
+            return [...baseItems, ...stats];
         }
 
-        if (panelId === 'playerActionsPanel' && isDefined(context.targetPlayerId)) {
-            const targetId = String(context.targetPlayerId);
-            const pData =
-                (isDefined(context.targetData) ? (context.targetData as PlayerData) : undefined) ??
-                loadPlayerData(targetId);
-            if (isDefined(pData)) {
-                const { getRankById } = await import('@core/rankManager.js');
-                const { getBounty } = await import('@core/bountyManager.js');
-                const { formatCurrency } = await import('@core/utils.js');
-                const rank = getRankById(pData.rankId);
-                const bounty = (isDefined(getBounty(targetId)) ? getBounty(targetId)!.amount : undefined) ?? 0;
-                return [
-                    `§8Rank: §r${(isDefined(rank) && isDefined(rank.chatFormatting) ? rank.chatFormatting.nameColor : undefined) ?? '§8'}${(isDefined(rank) ? rank.name : undefined) ?? 'Unknown'}`,
-                    `§8Balance: §2${formatCurrency(pData.balance)}`,
-                    `§8Bounty: §6${formatCurrency(bounty)}`
-                ].join('\n');
-            }
-        }
+        // Return undefined for panels handled by static logic or other means
+        // But for 'playerActionsPanel', getItems should probably return static items?
+        // Actually, if we return undefined, panelBuilder falls back to static items.
+        // But since we implement handleResponse, we need to be consistent.
+        // Let's rely on fallback if not handled here.
         return undefined;
-    }
-
-    buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined | void> {
-        if (panelId === 'playerSearchPanel') {
-            return Promise.resolve(new ModalFormData().title('Search Player').textField('Name', 'Enter exact name'));
-        }
-        return Promise.resolve();
     }
 
     async handleResponse(
         player: mc.Player,
         panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
+        response: ActionFormResponse,
         context: UIContext
     ): Promise<void> {
-        const selection = (response as ActionFormResponse).selection;
-        const values = (response as ModalFormResponse).formValues;
+        if (response.canceled || response.selection === undefined) return;
 
-        if (panelId === 'playerSearchPanel') {
-            if ((response as ModalFormResponse).canceled) return showPanel(player, 'playerListPanel');
-            const [name] = (values as [string | undefined]) ?? [];
-            const targetId = isNonEmptyString(name) ? getPlayerIdByName(name) : undefined;
-            if (isNonEmptyString(targetId)) {
-                return showPanel(player, 'playerActionsPanel', { ...context, selectedItemId: targetId, id: targetId });
+        // Re-generate items to match selection index
+        // Use getItems first
+        let items = await this.getItems(player, panelId, context);
+
+        // If getItems returned undefined, use static items (fallback logic from panelBuilder)
+        if (!isDefined(items)) {
+            const def = panelDefinitions[panelId];
+            if (isDefined(def)) {
+                const config = getConfig();
+                const rank = getPlayerRank(player, config);
+                items = getStaticMenuItems(def, rank.permissionLevel);
             } else {
-                player.sendMessage('§cPlayer not found.');
-                return showPanel(player, 'playerListPanel');
-            }
-        }
-
-        if (typeof selection === 'number') {
-            const items = await this.getItems(player, panelId, context);
-            if (selection >= 0 && selection < items.length) {
-                const item = items[selection];
-                if (!isDefined(item)) return;
-
-                if (item.actionType === 'openPanel') {
-                    const nextContext: UIContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
-                    if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
-                        nextContext.fromPanel = panelId;
-                        nextContext.targetPlayerId = item.id;
-
-                        // Intercept Report Flow
-                        if (context.action === 'report') {
-                            await handleUIAction(player, 'reportPlayer', {
-                                ...context,
-                                targetPlayerId: item.id,
-                                returnPanel: 'playerListPanel'
-                            });
-                            return;
-                        }
-                    }
-                    return showPanel(player, item.actionValue, nextContext);
-                }
-
-                if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, {
-                        ...context,
-                        page: Math.max(1, ((context.page as number) || 1) - 1)
-                    });
-                }
-                if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
-                }
-
-                await handleUIAction(player, item.actionValue, {
-                    ...context,
-                    selectedItemId: item.id,
-                    targetPlayerId: context.targetPlayerId ?? item.id
-                });
                 return;
             }
         }
+
+        const selectedItem = items[response.selection];
+        if (!isDefined(selectedItem)) return;
+
+        if (selectedItem.id === '__back__') {
+             // Handled by actionValue usually
+        }
+
+        if (selectedItem.actionType === 'openPanel') {
+            const newContext = { ...context };
+            // Pass target player ID if selecting a player
+            if (selectedItem.id.startsWith('player_')) {
+                const targetId = selectedItem.id.replace('player_', '');
+                newContext.targetPlayerId = targetId;
+                newContext.customTitle = selectedItem.text; // Use player name as title for actions panel
+            }
+            return showPanel(player, selectedItem.actionValue, newContext);
+        } else if (selectedItem.actionType === 'functionCall') {
+            if (selectedItem.actionValue === 'noop') return;
+            return handleUIAction(player, selectedItem.actionValue, context);
+        }
     }
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async buildModal(
+        _player: mc.Player,
+        _panelId: string,
+        _context: UIContext
+    ): Promise<ActionFormData | ModalFormData | undefined> {
+        // No modals handled here currently
+        return undefined;
+    }
+}
+
+function formatDuration(ms: number): string {
+    const seconds = Math.floor(ms / 1000);
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m ${s}s`;
 }

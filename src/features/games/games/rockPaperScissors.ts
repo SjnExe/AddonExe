@@ -1,21 +1,20 @@
-import { getGamesConfig } from '@core/configurations.js';
-import { incrementPlayerBalance } from '@core/playerDataManager.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
 import { uiWait } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 import { IGame } from '../types.js';
 
-type Choice = 'Rock' | 'Paper' | 'Scissors';
-
 interface Match {
     p1Id: string;
     p1Name: string;
     p2Id: string;
     p2Name: string;
-    p1Choice: Choice | null;
-    p2Choice: Choice | null;
     isAI: boolean;
+    state: 'waiting' | 'done';
+    p1Move?: 'rock' | 'paper' | 'scissors';
+    p2Move?: 'rock' | 'paper' | 'scissors';
+    winner?: string | 'Draw';
 }
 
 export class RockPaperScissorsGame implements IGame {
@@ -44,20 +43,17 @@ export class RockPaperScissorsGame implements IGame {
         const match: Match = {
             p1Id: p1.id,
             p1Name: p1.name,
-            p2Id: p2Id,
-            p2Name: p2Name,
-            p1Choice: null,
-            p2Choice: null,
-            isAI
+            p2Id,
+            p2Name,
+            isAI,
+            state: 'waiting'
         };
 
         this.matches.set(p1.id, match);
         if (!isAI) this.matches.set(p2Id, match);
 
         void this.openUI(p1);
-        if (!isAI && isDefined(opponent)) {
-            void this.openUI(opponent);
-        }
+        if (opponent) void this.openUI(opponent);
     }
 
     stop() {
@@ -69,110 +65,100 @@ export class RockPaperScissorsGame implements IGame {
         if (!isDefined(match)) return;
 
         const isP1 = player.id === match.p1Id;
-        const myChoice = isP1 ? match.p1Choice : match.p2Choice;
-        const opponentChoice = isP1 ? match.p2Choice : match.p1Choice;
-        const opponentName = isP1 ? match.p2Name : match.p1Name;
+        const myMove = isP1 ? match.p1Move : match.p2Move;
+        const oppMove = isP1 ? match.p2Move : match.p1Move;
 
-        const form = new ActionFormData()
-            .title(`RPS vs ${opponentName}`)
-            .body(
-                `Your opponent is ${isDefined(opponentChoice) ? '§aREADY' : '§eTHINKING'}...\n\n` +
-                    (isDefined(myChoice) ? `You picked: §b${myChoice}§r` : 'Choose your move:')
-            );
+        // If waiting for opponent
+        if (match.state === 'waiting') {
+            if (isDefined(myMove)) {
+                const form = new ActionFormData()
+                    .title('Rock Paper Scissors')
+                    .body(`§eWaiting for ${isP1 ? match.p2Name : match.p1Name} to choose...`)
+                    .button('Refresh');
 
-        if (isDefined(myChoice)) {
-            form.button('Refresh / Wait Result');
-        } else {
-            form.button('Rock', 'textures/items/coal');
-            form.button('Paper', 'textures/items/paper');
-            form.button('Scissors', 'textures/items/shears');
-        }
-
-        const res = await uiWait(player, form);
-        if (!isDefined(res) || res.canceled) return;
-        const response = res as ActionFormResponse;
-
-        if (isDefined(response.selection)) {
-            if (isDefined(myChoice)) {
-                // Refresh
-                this.checkResult(match);
-                void this.openUI(player);
-            } else {
-                const choices: Choice[] = ['Rock', 'Paper', 'Scissors'];
-                const picked = choices[response.selection];
-                if (isDefined(picked)) {
-                    if (isP1) match.p1Choice = picked;
-                    else match.p2Choice = picked;
-
-                    if (match.isAI) {
-                        const randomChoice = choices[Math.floor(Math.random() * 3)];
-                        if (isDefined(randomChoice)) {
-                            match.p2Choice = randomChoice;
-                        }
-                    }
-
-                    this.checkResult(match);
-                    void this.openUI(player); // Re-open to show result
+                const res = await uiWait(player, form);
+                if (res && !res.canceled) {
+                    void this.openUI(player);
                 }
-            }
-        }
-    }
-
-    private checkResult(match: Match) {
-        if (isDefined(match.p1Choice) && isDefined(match.p2Choice)) {
-            // Both picked
-            const p1 = match.p1Choice;
-            const p2 = match.p2Choice;
-
-            let winner: 'p1' | 'p2' | 'draw';
-
-            if (p1 === p2) {
-                winner = 'draw';
-            } else if (
-                (p1 === 'Rock' && p2 === 'Scissors') ||
-                (p1 === 'Paper' && p2 === 'Rock') ||
-                (p1 === 'Scissors' && p2 === 'Paper')
-            ) {
-                winner = 'p1';
-            } else {
-                winner = 'p2';
+                return;
             }
 
-            this.announceWinner(match, winner);
+            const form = new ActionFormData()
+                .title('Rock Paper Scissors')
+                .body('Choose your move!')
+                .button('Rock', 'textures/items/coal')
+                .button('Paper', 'textures/items/paper')
+                .button('Scissors', 'textures/items/shears');
+
+            const res = await uiWait(player, form);
+            if (!isDefined(res) || res.canceled) return;
+            const response = res as ActionFormResponse;
+
+            const moves = ['rock', 'paper', 'scissors'] as const;
+            if (isDefined(response.selection)) {
+                const move = moves[response.selection];
+                if (isP1) match.p1Move = move;
+                else match.p2Move = move;
+
+                if (match.isAI) {
+                    match.p2Move = moves[Math.floor(Math.random() * 3)];
+                }
+
+                this.checkMatchState(match);
+                void this.openUI(player);
+            }
+        } else {
+            // Game Over
+            const winnerText =
+                match.winner === 'Draw'
+                    ? "It's a Draw!"
+                    : match.winner === player.id
+                      ? '§aYou Won!'
+                      : '§cYou Lost!';
+
+            const oppMoveText = oppMove
+                ? oppMove.charAt(0).toUpperCase() + oppMove.slice(1)
+                : 'Unknown';
+
+            const form = new ActionFormData()
+                .title('Game Over')
+                .body(`${winnerText}\n\nYou chose: ${myMove}\nOpponent chose: ${oppMoveText}`)
+                .button('Close');
+
+            await uiWait(player, form);
             this.cleanupMatch(match);
         }
     }
 
-    private announceWinner(match: Match, winner: 'p1' | 'p2' | 'draw') {
-        const p1 = mc.world.getAllPlayers().find((p) => p.id === match.p1Id);
-        const p2 = match.isAI ? null : mc.world.getAllPlayers().find((p) => p.id === match.p2Id);
+    private checkMatchState(match: Match) {
+        if (match.p1Move && match.p2Move) {
+            match.state = 'done';
+            match.winner = this.determineWinner(match);
 
-        const gamesConfig = getGamesConfig();
-        const rpsConfig = gamesConfig.rockPaperScissors;
-        const reward = rpsConfig.rewards.money;
-        const p1Msg = `§e${match.p1Name}§r chose §b${match.p1Choice}§r`;
-        const p2Msg = `§e${match.p2Name}§r chose §b${match.p2Choice}§r`;
+            // Re-open UI for both players to show result
+            // Optimization: Use cache instead of getAllPlayers
+            const p1 = getPlayerFromCache(match.p1Id);
+            if (p1) void this.openUI(p1);
 
-        const resultMsg = `\n${p1Msg}\n${p2Msg}\n\n`;
-
-        if (winner === 'draw') {
-            if (isDefined(p1)) p1.sendMessage(`§eIt's a Draw!${resultMsg}`);
-            if (isDefined(p2)) p2.sendMessage(`§eIt's a Draw!${resultMsg}`);
-        } else if (winner === 'p1') {
-            if (isDefined(p1)) {
-                p1.sendMessage(`§aYou Won!${resultMsg}`);
-                incrementPlayerBalance(p1.id, reward);
-                p1.sendMessage(`§a+${reward}`);
-            }
-            if (isDefined(p2)) p2.sendMessage(`§cYou Lost!${resultMsg}`);
-        } else {
-            if (isDefined(p1)) p1.sendMessage(`§cYou Lost!${resultMsg}`);
-            if (isDefined(p2)) {
-                p2.sendMessage(`§aYou Won!${resultMsg}`);
-                incrementPlayerBalance(p2.id, reward);
-                p2.sendMessage(`§a+${reward}`);
+            if (!match.isAI) {
+                const p2 = getPlayerFromCache(match.p2Id);
+                if (p2) void this.openUI(p2);
             }
         }
+    }
+
+    private determineWinner(match: Match): string | 'Draw' {
+        const { p1Move, p2Move } = match;
+        if (p1Move === p2Move) return 'Draw';
+
+        if (
+            (p1Move === 'rock' && p2Move === 'scissors') ||
+            (p1Move === 'paper' && p2Move === 'rock') ||
+            (p1Move === 'scissors' && p2Move === 'paper')
+        ) {
+            return match.p1Id;
+        }
+        return match.p2Id;
     }
 
     private cleanupMatch(match: Match) {

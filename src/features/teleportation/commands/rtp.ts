@@ -179,6 +179,16 @@ function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): n
     return undefined;
 }
 
+const UNSAFE_GROUND_BLOCKS = new Set<string>([
+    MinecraftBlockTypes.Lava,
+    MinecraftBlockTypes.FlowingLava,
+    MinecraftBlockTypes.Fire,
+    MinecraftBlockTypes.Magma,
+    MinecraftBlockTypes.Cactus,
+    MinecraftBlockTypes.Water,
+    MinecraftBlockTypes.FlowingWater
+]);
+
 function isLocationSafe(dimension: mc.Dimension, location: mc.Vector3): boolean {
     const { x, y, z } = location;
     const groundBlock = dimension.getBlock({ x: Math.floor(x), y: y - 1, z: Math.floor(z) });
@@ -186,16 +196,7 @@ function isLocationSafe(dimension: mc.Dimension, location: mc.Vector3): boolean 
         return false;
     }
 
-    const unsafeGroundBlocks: string[] = [
-        MinecraftBlockTypes.Lava,
-        MinecraftBlockTypes.FlowingLava,
-        MinecraftBlockTypes.Fire,
-        MinecraftBlockTypes.Magma,
-        MinecraftBlockTypes.Cactus,
-        MinecraftBlockTypes.Water,
-        MinecraftBlockTypes.FlowingWater
-    ];
-    if (unsafeGroundBlocks.includes(groundBlock.typeId)) {
+    if (UNSAFE_GROUND_BLOCKS.has(groundBlock.typeId)) {
         return false;
     }
     if (groundBlock.typeId.includes('leaves')) {

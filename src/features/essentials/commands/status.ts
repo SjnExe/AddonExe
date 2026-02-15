@@ -1,28 +1,19 @@
 import * as mc from '@minecraft/server';
 
-import { sendMessage } from '@core/messaging.js';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { sendMessage } from '@core/messaging.js';
+import { getPlayerCount } from '@core/playerCache.js';
 
 const statusCommand: CustomCommand = {
     name: 'status',
-    description: 'Displays the current server status.',
-    category: 'General',
+    description: 'Shows server status.',
+    category: 'Essentials',
     permissionLevel: 1024,
-    allowConsole: true,
     execute: (executor: CommandExecutor) => {
-        const onlinePlayers = mc.world.getAllPlayers().length;
-        const statusText = [
-            '§l§b--- Server Status ---§r',
-            `§eOnline Players: §f${onlinePlayers}`,
-            `§eCurrent Tick: §f${mc.system.currentTick}`
-        ].join('\n');
+        const playerCount = getPlayerCount();
+        const tick = mc.system.currentTick;
 
-        if (executor instanceof mc.Player) {
-            sendMessage(statusText, executor, { raw: true });
-        } else {
-            executor.sendMessage(statusText);
-        }
+        sendMessage(`§aServer Status:\n§7Players: §f${playerCount}\n§7Tick: §f${tick}`, executor);
     }
 };
 

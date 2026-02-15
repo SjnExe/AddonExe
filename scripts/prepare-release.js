@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const VERSION_STRING = process.env.VERSION_STRING;
@@ -11,38 +11,53 @@ if (!VERSION_STRING || !VERSION_ARRAY_STRING) {
 }
 
 // We now modify the source files directly in the checked-out repo before building.
-const baseDir = '.';
+const baseDir = process.cwd();
 
 // Function to copy the master icon to packs
-function copyIcon() {
+async function copyIcon() {
     const iconPath = path.join(baseDir, 'assets/pack_icon.png');
-    if (!fs.existsSync(iconPath)) {
+    try {
+        await fs.access(iconPath);
+    } catch {
         console.warn('Warning: assets/pack_icon.png not found. Skipping icon copy.');
         return;
     }
+
     const bpPath = path.join(baseDir, 'packs/behavior/pack_icon.png');
     const rpPath = path.join(baseDir, 'packs/resource/pack_icon.png');
 
-    // Ensure directories exist (though they should)
-    if (fs.existsSync(path.dirname(bpPath))) {
-        fs.copyFileSync(iconPath, bpPath);
+    // Ensure directories exist
+    // The packs folder structure should exist due to clean script or repo structure
+    // But let's be safe (clean script removes 'packs/behavior/scripts' but 'packs/behavior' remains?)
+    // 'clean' script: "rimraf packs/behavior/scripts"
+    // So 'packs/behavior' exists.
+
+    try {
+        await fs.copyFile(iconPath, bpPath);
         console.log(`Copied icon to ${bpPath}`);
+    } catch (error) {
+        console.error(`Failed to copy icon to BP: ${error.message}`);
     }
-    if (fs.existsSync(path.dirname(rpPath))) {
-        fs.copyFileSync(iconPath, rpPath);
+
+    try {
+        await fs.copyFile(iconPath, rpPath);
         console.log(`Copied icon to ${rpPath}`);
+    } catch (error) {
+         console.error(`Failed to copy icon to RP: ${error.message}`);
     }
 }
 
 // Function to update config.ts (Source)
-function updateConfig(filePath) {
+async function updateConfig(filePath) {
     const fullPath = path.join(baseDir, filePath);
-    if (!fs.existsSync(fullPath)) {
+    try {
+        await fs.access(fullPath);
+    } catch {
         console.error(`Error: File not found: ${fullPath}`);
         process.exit(1);
     }
 
-    let content = fs.readFileSync(fullPath, 'utf8');
+    let content = await fs.readFile(fullPath, 'utf8');
 
     // Update version
     // Regex matches: version: [1, 0, 0] (with flexible whitespace)
@@ -65,28 +80,47 @@ function updateConfig(filePath) {
         content = content.replaceAll(/isNightly:\s*false/g, 'isNightly: true');
     }
 
-    fs.writeFileSync(fullPath, content);
+    await fs.writeFile(fullPath, content);
     console.log(`Updated ${filePath}`);
 }
 
-console.log('--- Starting Release Preparation ---');
-console.log(`Version: ${VERSION_STRING}`);
-console.log(`Version Array: ${VERSION_ARRAY_STRING}`);
-console.log(`Is Beta: ${IS_BETA_RELEASE}`);
+async function main() {
+    console.log('--- Starting Release Preparation ---');
+    console.log(`Version: ${VERSION_STRING}`);
+    console.log(`Version Array: ${VERSION_ARRAY_STRING}`);
+    console.log(`Is Beta: ${IS_BETA_RELEASE}`);
 
-copyIcon();
+    await copyIcon();
 
-// Manifest updates are handled by scripts/set-version.js during the build process.
-// We removed updateManifest() from here to avoid race conditions/ordering issues in CI.
+    // Manifest updates are handled by scripts/generate-manifests.js during the build process.
 
-// Update the TypeScript source config
-// Priority: src/config.ts (User Custom) -> src/config.default.ts (Repo Default)
-if (fs.existsSync(path.join(baseDir, 'src/config.ts'))) {
-    updateConfig('src/config.ts');
-} else if (fs.existsSync(path.join(baseDir, 'src/config.default.ts'))) {
-    updateConfig('src/config.default.ts');
-} else {
-    console.warn('Warning: Neither src/config.ts nor src/config.default.ts found. Config version update skipped.');
+    // Update the TypeScript source config
+    // Priority: src/config.ts (User Custom) -> src/config.default.ts (Repo Default)
+    const customConfigPath = path.join(baseDir, 'src/config.ts');
+    const defaultConfigPath = path.join(baseDir, 'src/config.default.ts');
+
+    let configExists = false;
+    try {
+        await fs.access(customConfigPath);
+        configExists = true;
+        await updateConfig('src/config.ts');
+    } catch {
+        // Custom config not found, check default
+    }
+
+    if (!configExists) {
+        try {
+            await fs.access(defaultConfigPath);
+            await updateConfig('src/config.default.ts');
+        } catch {
+            console.warn('Warning: Neither src/config.ts nor src/config.default.ts found. Config version update skipped.');
+        }
+    }
+
+    console.log('--- Release Preparation Complete ---');
 }
 
-console.log('--- Release Preparation Complete ---');
+main().catch(error => {
+    console.error(error);
+    process.exit(1);
+});

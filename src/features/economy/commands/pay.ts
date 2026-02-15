@@ -4,6 +4,7 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { economyDisabled } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
 import {
     clearPendingPayment,
     createPendingPayment,
@@ -154,8 +155,8 @@ const payConfirmCommand: CustomCommand = {
 
         const { targetPlayerId, amount } = pendingPayment;
 
-        // Try to find online player for notification
-        const targetPlayer = [...mc.world.getPlayers()].find((p) => p.id === targetPlayerId);
+        // Try to find online player for notification using cache
+        const targetPlayer = getPlayerFromCache(targetPlayerId);
         const targetName = targetPlayer ? targetPlayer.name : (getPlayerNameById(targetPlayerId) ?? 'Unknown');
 
         const result = transfer(executor.id, targetPlayerId, amount);

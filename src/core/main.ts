@@ -60,6 +60,8 @@ export async function initializeAddon() {
         }
     }
 
+    // Parallel Initialization of core configurations and feature modules
+    // This reduces startup time by loading independent configs concurrently.
     await initializeConfigManager(isMigration);
     await Promise.all([
         loadKitsConfig(isMigration),

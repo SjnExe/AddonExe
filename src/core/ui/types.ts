@@ -75,7 +75,7 @@ export interface IPanelHandler {
     /** Returns true if this handler manages the given panelId */
     canHandle(panelId: string): boolean;
     /** Returns the items for a HEADLESS panel (buttons list). Returns undefined/empty if not applicable. */
-    getItems?(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]>;
+    getItems?(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[] | undefined>;
     /** Handles the result (button click or modal submit) */
     handleResponse?(
         player: mc.Player,

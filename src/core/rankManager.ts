@@ -9,6 +9,9 @@ import { RankDefinition } from './ranksConfig.default.js';
 
 let sortedRanks: RankDefinition[] = [];
 
+// Cache for player ranks: Map<playerId, { rank: RankDefinition, tick: number }>
+const rankCache = new Map<string, { rank: RankDefinition; tick: number }>();
+
 type ConditionEvaluator = (player: mc.Player, value: unknown, config: typeof Config) => boolean;
 
 /**
@@ -44,6 +47,8 @@ const conditionEvaluators: Record<string, ConditionEvaluator> = {
 export function reloadRanks() {
     const allRanks = getRanksConfig().rankDefinitions;
     sortedRanks = [...allRanks].toSorted((a, b) => a.permissionLevel - b.permissionLevel);
+    // Clear cache on reload
+    rankCache.clear();
     debugLog(`[RankManager] Reloaded and sorted ${sortedRanks.length} ranks.`);
 }
 
@@ -53,15 +58,30 @@ export function reloadRanks() {
  */
 export function initialize() {
     reloadRanks();
+    // Clear cache on player leave to prevent memory leaks
+    mc.world.afterEvents.playerLeave.subscribe((event) => {
+        rankCache.delete(event.playerId);
+    });
     debugLog(`[RankManager] Initialized ${sortedRanks.length} ranks.`);
 }
 
 /**
  * Gets the rank for a given player by evaluating conditions.
+ * Uses a tick-based cache to prevent redundant recalculations in the same tick.
  * @param player
  * @param config The addon's configuration object.
  */
 export function getPlayerRank(player: mc.Player, config: typeof Config): RankDefinition {
+    const currentTick = mc.system.currentTick;
+    const cached = rankCache.get(player.id);
+
+    // Return cached rank if valid for this tick (or last few ticks? lets stick to strict 1 tick for consistency first, or maybe 5 ticks for perf)
+    // Actually, tags *can* change mid-tick via commands, but very unlikely to matter for UI rendering.
+    // Let's cache for 20 ticks (1 second) to match sidebar update rate and general UI responsiveness.
+    if (cached && currentTick - cached.tick < 20) {
+        return cached.rank;
+    }
+
     for (const rank of sortedRanks) {
         let allConditionsMet = true;
         for (const condition of rank.conditions) {
@@ -73,6 +93,7 @@ export function getPlayerRank(player: mc.Player, config: typeof Config): RankDef
         }
 
         if (allConditionsMet) {
+            rankCache.set(player.id, { rank, tick: currentTick });
             return rank;
         }
     }
@@ -80,6 +101,7 @@ export function getPlayerRank(player: mc.Player, config: typeof Config): RankDef
     // Fallback to the configured default rank if no conditions are met
     const defaultRank = getRankById(config.playerDefaults.rankId);
     if (isDefined(defaultRank)) {
+        rankCache.set(player.id, { rank: defaultRank, tick: currentTick });
         return defaultRank;
     }
 
@@ -87,13 +109,15 @@ export function getPlayerRank(player: mc.Player, config: typeof Config): RankDef
     errorLog(
         `[RankManager] CRITICAL: The configured default rank with id "${config.playerDefaults.rankId}" was not found. Please check your configuration.`
     );
-    return {
+    const fallback: RankDefinition = {
         id: 'fallback',
         name: 'Fallback',
         permissionLevel: 1024,
         conditions: [{ type: 'default' }],
         chatFormatting: { prefixText: '', nameColor: '§7', messageColor: '§r' }
     };
+    rankCache.set(player.id, { rank: fallback, tick: currentTick });
+    return fallback;
 }
 
 /**
@@ -117,6 +141,9 @@ export function getAllRanks(): RankDefinition[] {
  * @param config The addon's configuration object.
  */
 export function updatePlayerNameTag(player: mc.Player, config: typeof Config) {
+    // Invalidate cache to force fresh calculation when explicitly updating nametags
+    rankCache.delete(player.id);
+
     const rank = getPlayerRank(player, config);
     const rankPrefix = (isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined) ?? '';
     const nameTagStyle = (isDefined(config.ranks) ? config.ranks.nameTagStyle : undefined) ?? 'above';

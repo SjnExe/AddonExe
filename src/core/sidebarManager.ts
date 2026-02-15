@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import * as mc from '@minecraft/server';
 
+import { getAllPlayersFromCache, getPlayerCount } from '@core/playerCache.js';
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 import { getConfig } from './configManager.js';
@@ -41,7 +42,10 @@ function updateSidebars() {
         return;
     }
 
-    for (const player of mc.world.getAllPlayers()) {
+    // Use cached players to avoid engine overhead
+    const players = getAllPlayersFromCache();
+
+    for (const player of players) {
         try {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
             if (typeof player.isValid === 'function' && !((player as any).isValid() as boolean)) continue;
@@ -79,18 +83,22 @@ function updateSidebars() {
  * @returns The text with placeholders replaced.
  */
 export function resolveGlobalPlaceholders(text: string, player?: mc.Player): string {
-    let processed = text.replace('{online}', mc.world.getAllPlayers().length.toString()).replace('{max_online}', '20'); // Bedrock cap usually 20-40 depending on host
+    // Optimization: Use cached player count
+    let processed = text.replace('{online}', getPlayerCount().toString()).replace('{max_online}', '20');
 
     // Leaderboard Placeholders
-    const leaderboard = getLeaderboard();
-    processed = processed.replaceAll(/\{top_money_(\d+)\}/g, (_match, indexStr) => {
-        const i = Number.parseInt(indexStr) - 1;
-        if (isNumber(i) && i >= 0 && i < leaderboard.length) {
-            const entry = leaderboard[i];
-            return isDefined(entry) ? `${entry.name}: ${formatCurrency(entry.balance)}` : '---';
-        }
-        return '---';
-    });
+    // Check if the text actually contains leaderboard placeholders before fetching
+    if (processed.includes('{top_money_')) {
+        const leaderboard = getLeaderboard();
+        processed = processed.replaceAll(/\{top_money_(\d+)\}/g, (_match, indexStr) => {
+            const i = Number.parseInt(indexStr) - 1;
+            if (isNumber(i) && i >= 0 && i < leaderboard.length) {
+                const entry = leaderboard[i];
+                return isDefined(entry) ? `${entry.name}: ${formatCurrency(entry.balance)}` : '---';
+            }
+            return '---';
+        });
+    }
 
     if (player) {
         const pData = getPlayer(player.id);

@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { getTeamConfig } from '@core/configurations.js';
 import { debugLog, errorLog } from '@core/logger.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
 import {
     getOrCreatePlayer,
     getPlayer,
@@ -14,6 +14,7 @@ import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 import { TeamPanelHandler } from './ui/teamPanel.js';
+import { getTeamConfig } from '@core/configurations.js';
 
 const teamPropertyPrefix = 'exe:team.';
 const nextTeamIdKey = 'exe:nextTeamId';
@@ -90,9 +91,6 @@ export function initialize() {
                 nextTeamId = maxId + 1;
                 saveNextTeamId();
             }
-        } else {
-            // No teams loaded, but maybe nextTeamId stored is outdated?
-            // Rely on stored nextTeamId
         }
 
         // Run loading job
@@ -203,8 +201,6 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
 
     // Ensure ID uniqueness (Race Condition Fix)
     if (activeTeams.has(newTeamId)) {
-        // This should not happen due to initialize logic, but as a fallback:
-        // Find the actual max ID again
         let maxId = 0;
         for (const id of activeTeams.keys()) {
             if (id > maxId) maxId = id;
@@ -247,7 +243,8 @@ export function deleteTeam(teamId: number): boolean {
     // Remove all members
     for (const memberId of team.members) {
         setPlayerTeam(memberId, undefined);
-        const p = mc.world.getAllPlayers().find((pl) => pl.id === memberId);
+        // Optimization: Use cached lookup
+        const p = getPlayerFromCache(memberId);
         if (isDefined(p)) {
             p.sendMessage('§cYour team has been deleted by the owner.');
         }
@@ -404,8 +401,8 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
         success = true;
         msg = '§aInvite sent successfully.';
 
-        // Notify target if online
-        const targetPlayer = mc.world.getAllPlayers().find((p) => p.id === targetId);
+        // Notify target if online using cache
+        const targetPlayer = getPlayerFromCache(targetId);
         if (isDefined(targetPlayer)) {
             targetPlayer.sendMessage(
                 `§aYou have been invited to join team §e${team.name}§a.\nType §e/team join§a or use the menu to accept.`
