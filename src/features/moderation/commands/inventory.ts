@@ -6,6 +6,45 @@ import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataMa
 import { resolveTarget } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 
+function inspectArmor(equipment: mc.EntityEquippableComponent): string {
+    let output = '';
+    const armorSlots = [
+        mc.EquipmentSlot.Head,
+        mc.EquipmentSlot.Chest,
+        mc.EquipmentSlot.Legs,
+        mc.EquipmentSlot.Feet,
+        mc.EquipmentSlot.Offhand
+    ];
+    const armorNames = ['Head', 'Chest', 'Legs', 'Feet', 'Offhand'];
+
+    output += '§6[Armor & Offhand]§r\n';
+    for (const [index, slot] of armorSlots.entries()) {
+        const item = equipment.getEquipment(slot);
+        if (isDefined(item)) {
+            const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '');
+            output += ` §7${armorNames[index]}: §f${name} §7x${item.amount}\n`;
+        }
+    }
+    return output;
+}
+
+function inspectInventory(inventory: mc.Container): string {
+    let output = '';
+    output += '§6[Inventory]§r\n';
+    const hotbarSize = 9;
+
+    for (let i = 0; i < inventory.size; i++) {
+        const item = inventory.getItem(i);
+        if (isDefined(item)) {
+            const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '');
+            const isHotbar = i < hotbarSize;
+            const prefix = isHotbar ? '§e' : '§7';
+            output += ` ${prefix}[${i}] §f${name} §7x${item.amount}\n`;
+        }
+    }
+    return output;
+}
+
 const invseeCommand: CustomCommand = {
     name: 'invsee',
     description: 'View the inventory of another player.',
@@ -49,46 +88,12 @@ const invseeCommand: CustomCommand = {
         }
 
         let output = '';
-        let hasItems = false;
-
-        // Armor
-        const armorSlots = [
-            mc.EquipmentSlot.Head,
-            mc.EquipmentSlot.Chest,
-            mc.EquipmentSlot.Legs,
-            mc.EquipmentSlot.Feet,
-            mc.EquipmentSlot.Offhand
-        ];
-        const armorNames = ['Head', 'Chest', 'Legs', 'Feet', 'Offhand'];
-
         if (isDefined(equipment)) {
-            output += '§6[Armor & Offhand]§r\n';
-            for (const [index, slot] of armorSlots.entries()) {
-                const item = equipment.getEquipment(slot);
-                if (isDefined(item)) {
-                    hasItems = true;
-                    const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '');
-                    output += ` §7${armorNames[index]}: §f${name} §7x${item.amount}\n`;
-                }
-            }
+            output += inspectArmor(equipment);
         }
+        output += inspectInventory(inventory);
 
-        // Inventory
-        output += '§6[Inventory]§r\n';
-        const hotbarSize = 9;
-
-        for (let i = 0; i < inventory.size; i++) {
-            const item = inventory.getItem(i);
-            if (isDefined(item)) {
-                hasItems = true;
-                const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '');
-                const isHotbar = i < hotbarSize;
-                const prefix = isHotbar ? '§e' : '§7';
-                output += ` ${prefix}[${i}] §f${name} §7x${item.amount}\n`;
-            }
-        }
-
-        if (hasItems) {
+        if (output.trim().length > 0) {
             executor.sendMessage(output.trim());
         } else {
             executor.sendMessage('§7Inventory is empty.');

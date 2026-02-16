@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { getAllPlayersFromCache } from '@core/playerCache.js';
-import { isDefined } from '@lib/guards.js';
-import { getPlayer } from '@core/playerDataManager.js';
 import { handlePlayerJoin } from '@core/events/playerSpawn.js';
+import { getAllPlayersFromCache } from '@core/playerCache.js';
+import { getPlayer } from '@core/playerDataManager.js';
+import { isDefined } from '@lib/guards.js';
 
 export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
     if (!input) return [];
@@ -76,8 +76,10 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
 export function isValidPlayer(player: mc.Player): boolean {
     if (!isDefined(player)) return false;
     try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        if (typeof player.isValid === 'function' && !((player as any).isValid() as boolean)) return false;
+        if (typeof player.isValid === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            return (player as any).isValid() as boolean;
+        }
 
         return true;
     } catch {

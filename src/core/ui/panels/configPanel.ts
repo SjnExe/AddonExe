@@ -37,119 +37,137 @@ export class ConfigPanelHandler implements IPanelHandler {
     }
 
     getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
-        const items: PanelItem[] = [];
         const pData: PlayerData = getOrCreatePlayer(player);
-        const permissionLevel = pData.permissionLevel;
 
         if (panelId === 'configCategoryPanel') {
-            addBackButton(items, 'adminPanel');
-            const categories = getVisibleCategories(pData);
-            const paginated = getPaginatedItems(categories, (context.page as number) || 1);
-            for (const cat of paginated) {
-                if (!isDefined(cat)) continue;
-                items.push({
-                    id: cat.id,
-                    text: cat.title,
-                    icon: cat.icon,
-                    permissionLevel: 1,
-                    actionType: 'openPanel',
-                    actionValue: `configSubCategoryPanel_${cat.id}`
-                });
-            }
-            if (permissionLevel === 0) {
-                items.push({
-                    id: 'resetSettings',
-                    text: '§l§cReset Settings§r',
-                    icon: 'textures/ui/wysiwyg_reset',
-                    permissionLevel: 0,
-                    actionType: 'openPanel',
-                    actionValue: 'configResetPanel'
-                });
-            }
-            addPaginationItems(items, (context.page as number) || 1, categories.length);
-            return Promise.resolve(items);
+            return Promise.resolve(this.getCategoryPanelItems(pData, context));
         }
 
         if (panelId.startsWith('configSubCategoryPanel_')) {
             const category = panelId.replace('configSubCategoryPanel_', '');
-            addBackButton(items, 'configCategoryPanel');
-            const systems = getSystemsByCategory(pData, category);
-            const paginated = getPaginatedItems(systems, (context.page as number) || 1);
-            for (const sys of paginated) {
-                if (!isDefined(sys)) continue;
-                items.push({
-                    id: sys.id,
-                    text: sys.title,
-                    icon: sys.icon,
-                    permissionLevel: 1,
-                    actionType: 'openPanel',
-                    actionValue: sys.id
-                });
-            }
-            addPaginationItems(items, (context.page as number) || 1, systems.length);
-            return Promise.resolve(items);
+            return Promise.resolve(this.getSubCategoryPanelItems(pData, category, context));
         }
 
         if (panelId === 'configResetPanel') {
-            addBackButton(items, 'configCategoryPanel');
-            const categories = getVisibleCategories(pData);
-            const paginated = getPaginatedItems(categories, (context.page as number) || 1);
-            for (const cat of paginated) {
-                if (!isDefined(cat)) continue;
-                items.push({
-                    id: cat.id,
-                    text: `Reset ${cat.title}`,
-                    icon: cat.icon,
-                    permissionLevel: 0,
-                    actionType: 'openPanel',
-                    actionValue: `configResetCategoryPanel_${cat.id}`
-                });
-            }
-            if (((context.page as number) || 1) >= Math.ceil(categories.length / itemsPerPage)) {
-                items.push({
-                    id: 'resetAll',
-                    text: '§l§4Reset All Systems',
-                    icon: 'textures/ui/trash',
-                    permissionLevel: 0,
-                    actionType: 'functionCall',
-                    actionValue: 'resetAllConfig'
-                });
-            }
-            addPaginationItems(items, (context.page as number) || 1, categories.length);
-            return Promise.resolve(items);
+            return Promise.resolve(this.getResetPanelItems(pData, context));
         }
 
         if (panelId.startsWith('configResetCategoryPanel_')) {
             const category = panelId.replace('configResetCategoryPanel_', '');
-            addBackButton(items, 'configResetPanel');
-            const systems = getSystemsByCategory(pData, category);
-            const paginated = getPaginatedItems(systems, (context.page as number) || 1);
+            return Promise.resolve(this.getResetCategoryPanelItems(pData, category, context));
+        }
 
+        return Promise.resolve([]);
+    }
+
+    private getCategoryPanelItems(pData: PlayerData, context: UIContext): PanelItem[] {
+        const items: PanelItem[] = [];
+        addBackButton(items, 'adminPanel');
+        const categories = getVisibleCategories(pData);
+        const paginated = getPaginatedItems(categories, (context.page as number) || 1);
+        for (const cat of paginated) {
+            if (!isDefined(cat)) continue;
             items.push({
-                id: 'resetCategory',
-                text: `§l§4Reset All ${category}§r`,
+                id: cat.id,
+                text: cat.title,
+                icon: cat.icon,
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: `configSubCategoryPanel_${cat.id}`
+            });
+        }
+        if (pData.permissionLevel === 0) {
+            items.push({
+                id: 'resetSettings',
+                text: '§l§cReset Settings§r',
+                icon: 'textures/ui/wysiwyg_reset',
+                permissionLevel: 0,
+                actionType: 'openPanel',
+                actionValue: 'configResetPanel'
+            });
+        }
+        addPaginationItems(items, (context.page as number) || 1, categories.length);
+        return items;
+    }
+
+    private getSubCategoryPanelItems(pData: PlayerData, category: string, context: UIContext): PanelItem[] {
+        const items: PanelItem[] = [];
+        addBackButton(items, 'configCategoryPanel');
+        const systems = getSystemsByCategory(pData, category);
+        const paginated = getPaginatedItems(systems, (context.page as number) || 1);
+        for (const sys of paginated) {
+            if (!isDefined(sys)) continue;
+            items.push({
+                id: sys.id,
+                text: sys.title,
+                icon: sys.icon,
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: sys.id
+            });
+        }
+        addPaginationItems(items, (context.page as number) || 1, systems.length);
+        return items;
+    }
+
+    private getResetPanelItems(pData: PlayerData, context: UIContext): PanelItem[] {
+        const items: PanelItem[] = [];
+        addBackButton(items, 'configCategoryPanel');
+        const categories = getVisibleCategories(pData);
+        const paginated = getPaginatedItems(categories, (context.page as number) || 1);
+        for (const cat of paginated) {
+            if (!isDefined(cat)) continue;
+            items.push({
+                id: cat.id,
+                text: `Reset ${cat.title}`,
+                icon: cat.icon,
+                permissionLevel: 0,
+                actionType: 'openPanel',
+                actionValue: `configResetCategoryPanel_${cat.id}`
+            });
+        }
+        if (((context.page as number) || 1) >= Math.ceil(categories.length / itemsPerPage)) {
+            items.push({
+                id: 'resetAll',
+                text: '§l§4Reset All Systems',
                 icon: 'textures/ui/trash',
                 permissionLevel: 0,
                 actionType: 'functionCall',
-                actionValue: `resetCategory_${category}`
+                actionValue: 'resetAllConfig'
             });
-
-            for (const sys of paginated) {
-                if (!isDefined(sys)) continue;
-                items.push({
-                    id: sys.id,
-                    text: `§4Reset ${sys.title}`,
-                    icon: sys.icon,
-                    permissionLevel: 0,
-                    actionType: 'functionCall',
-                    actionValue: `resetSystem_${sys.id}`
-                });
-            }
-            addPaginationItems(items, (context.page as number) || 1, systems.length);
-            return Promise.resolve(items);
         }
+        addPaginationItems(items, (context.page as number) || 1, categories.length);
+        return items;
+    }
 
-        return Promise.resolve(items);
+    private getResetCategoryPanelItems(pData: PlayerData, category: string, context: UIContext): PanelItem[] {
+        const items: PanelItem[] = [];
+        addBackButton(items, 'configResetPanel');
+        const systems = getSystemsByCategory(pData, category);
+        const paginated = getPaginatedItems(systems, (context.page as number) || 1);
+
+        items.push({
+            id: 'resetCategory',
+            text: `§l§4Reset All ${category}§r`,
+            icon: 'textures/ui/trash',
+            permissionLevel: 0,
+            actionType: 'functionCall',
+            actionValue: `resetCategory_${category}`
+        });
+
+        for (const sys of paginated) {
+            if (!isDefined(sys)) continue;
+            items.push({
+                id: sys.id,
+                text: `§4Reset ${sys.title}`,
+                icon: sys.icon,
+                permissionLevel: 0,
+                actionType: 'functionCall',
+                actionValue: `resetSystem_${sys.id}`
+            });
+        }
+        addPaginationItems(items, (context.page as number) || 1, systems.length);
+        return items;
     }
 
     buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined | void> {
@@ -217,200 +235,251 @@ export class ConfigPanelHandler implements IPanelHandler {
         context: UIContext
     ): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
-        const values = (response as ModalFormResponse).formValues;
-        const pData = getOrCreatePlayer(player);
 
         if (typeof selection === 'number') {
-            const items = await this.getItems(player, panelId, context);
-            if (selection >= 0 && selection < items.length) {
-                const item = items[selection];
-                if (!isDefined(item)) return;
-                if (item.actionType === 'openPanel') {
-                    // Title Fix for SubCategories
-                    if (item.actionValue.startsWith('configSubCategoryPanel_')) {
-                        const catId = item.actionValue.replace('configSubCategoryPanel_', '');
-                        const title = catId.charAt(0).toUpperCase() + catId.slice(1) + ' Configuration';
-                        return showPanel(player, item.actionValue, { ...context, page: 1, customTitle: title });
-                    }
-                    return showPanel(player, item.actionValue, { ...context, page: 1 });
-                }
-                if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, {
-                        ...context,
-                        page: Math.max(1, ((context.page as number) || 1) - 1)
-                    });
-                }
-                if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
-                }
-
-                // --- Reset Actions ---
-                if (item.actionValue === 'resetAllConfig') {
-                    await showConfirmationDialog(player, {
-                        title: 'Confirm Reset All',
-                        body: 'This action cannot be undone. Are you sure you want to reset ALL system configurations to their default values?',
-                        confirmButtonText: '§4Yes, Reset All',
-                        cancelButtonText: '§2No, Cancel',
-                        onConfirm: async () => {
-                            const finalConfirmForm = new ModalFormData()
-                                .title('Final Confirmation')
-                                .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', {
-                                    defaultValue: ''
-                                });
-                            const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
-                            if (finalConfirmResponse.canceled) return showPanel(player, panelId, context);
-                            const confirmModal = finalConfirmResponse as ModalFormResponse;
-                            const confirmationValue =
-                                isDefined(confirmModal.formValues) && isDefined(confirmModal.formValues[0])
-                                    ? String(confirmModal.formValues[0])
-                                    : '';
-                            if (confirmationValue.trim().toLowerCase() !== 'confirm') {
-                                player.sendMessage('§4Final confirmation failed. Reset canceled.');
-                                return showPanel(player, panelId, context);
-                            }
-                            const result = await resetConfigSection('all', player);
-                            if (result.success) {
-                                player.sendMessage(`§2${result.message}`);
-                                refreshXrayCache();
-                            } else {
-                                player.sendMessage('§4Failed to reset all configurations. Please check the console.');
-                                errorLog(`[UIManager] Failed to reset all: ${result.message}`);
-                            }
-                            return showPanel(player, panelId, { ...context, page: 1 });
-                        },
-                        onCancel: () => showPanel(player, panelId, context)
-                    });
-                    return;
-                }
-
-                if (item.actionValue.startsWith('resetCategory_')) {
-                    const category = item.actionValue.replace('resetCategory_', '');
-                    // Removed dynamic import of getSystemsByCategory as it caused shadowing
-                    const systems = getSystemsByCategory(pData, category);
-
-                    await showConfirmationDialog(player, {
-                        title: `Reset ${category}`,
-                        body: `Are you sure you want to reset all systems in the ${category} category?`,
-                        confirmButtonText: '§4Yes, Reset Category',
-                        cancelButtonText: '§2No, Cancel',
-                        onConfirm: async () => {
-                            let successCount = 0;
-                            for (const sys of systems) {
-                                const res = await resetConfigSection(sys.id, player);
-                                if (res.success) successCount++;
-                            }
-                            player.sendMessage(`§2Reset ${successCount} systems in ${category}.`);
-                            if (category === 'Moderation') refreshXrayCache();
-                            return showPanel(player, panelId, context);
-                        },
-                        onCancel: () => showPanel(player, panelId, context)
-                    });
-                    return;
-                }
-
-                if (item.actionValue.startsWith('resetSystem_')) {
-                    const sysId = item.actionValue.replace('resetSystem_', '');
-                    await showConfirmationDialog(player, {
-                        title: `Reset System`,
-                        body: `Reset this system to defaults?`,
-                        confirmButtonText: '§4Yes, Reset',
-                        cancelButtonText: '§2No, Cancel',
-                        onConfirm: async () => {
-                            const result = await resetConfigSection(sysId, player);
-                            if (result.success) {
-                                player.sendMessage(`§2${result.message}`);
-                                if (sysId === 'xray') refreshXrayCache();
-                            } else {
-                                player.sendMessage('§4Failed to reset.');
-                            }
-                            return showPanel(player, panelId, context);
-                        },
-                        onCancel: () => showPanel(player, panelId, context)
-                    });
-                    return;
-                }
-
-                // Removed redundant functionCall check
-                await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id });
-                return;
-            }
+            await this.handleSelection(player, panelId, selection, context);
+            return;
         }
 
         // Modal Handling
         if (panelId.startsWith('config_')) {
-            const categoryId = panelId.replace('config_', '');
-            const category = configPanelSchema.find((c) => c.id === categoryId);
+            await this.handleConfigModalSave(player, panelId, response as ModalFormResponse, context);
+        }
+    }
 
-            if ((response as ModalFormResponse).canceled) {
-                if (isDefined(category) && isNonEmptyString(category.category)) {
-                    return showPanel(player, `configSubCategoryPanel_${category.category}`, { ...context, page: 1 });
+    private async handleSelection(
+        player: mc.Player,
+        panelId: string,
+        selection: number,
+        context: UIContext
+    ): Promise<void> {
+        const items = await this.getItems(player, panelId, context);
+        if (selection >= 0 && selection < items.length) {
+            const item = items[selection];
+            if (!isDefined(item)) return;
+
+            if (item.actionType === 'openPanel') {
+                // Title Fix for SubCategories
+                if (item.actionValue.startsWith('configSubCategoryPanel_')) {
+                    const catId = item.actionValue.replace('configSubCategoryPanel_', '');
+                    const title = catId.charAt(0).toUpperCase() + catId.slice(1) + ' Configuration';
+                    return showPanel(player, item.actionValue, { ...context, page: 1, customTitle: title });
                 }
-                return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
+                return showPanel(player, item.actionValue, { ...context, page: 1 });
+            }
+            if (item.actionValue === 'prevPage') {
+                return showPanel(player, panelId, {
+                    ...context,
+                    page: Math.max(1, ((context.page as number) || 1) - 1)
+                });
+            }
+            if (item.actionValue === 'nextPage') {
+                return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
             }
 
-            if (isDefined(category) && isDefined(values)) {
-                const updates: Record<string, unknown> = {};
-
-                // Filter settings to match buildModal logic
-                const validSettings = category.settings.filter((s) =>
-                    ['toggle', 'textField', 'dropdown'].includes(s.type)
-                );
-
-                for (const [index, setting] of validSettings.entries()) {
-                    let value = values[index];
-                    if (setting.type === 'dropdown') {
-                        const options = setting.options ?? [];
-                        const selectedIndex = value as number;
-                        value = setting.key === 'logLevel' ? selectedIndex : options[selectedIndex];
-                    } else if (setting.type === 'textField') {
-                        const strVal = value as string;
-                        const current = getValueFromPath(getConfig(), setting.key);
-                        if (typeof current === 'number') {
-                            if (!Number.isNaN(Number(strVal)) && isNonEmptyString(strVal) && strVal.trim() !== '') {
-                                value = Number(strVal);
-                            } else {
-                                // Skip update if input is invalid for a number field
-                                continue;
-                            }
-                        }
-                    }
-                    updates[setting.key] = value;
-                }
-
-                const configSource = isNonEmptyString(category.configSource) ? category.configSource : 'main';
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-                const handlers = uiConfigHandlers as any;
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                const handler = handlers[configSource] as
-                    | { get: () => unknown; save: (cfg: unknown) => void }
-                    | undefined;
-
-                if (isDefined(handler)) {
-                    if (configSource === 'main') {
-                        handler.save(updates);
-                    } else {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const currentConfig = handler.get() as Record<string, any>;
-                        for (const key in updates) {
-                            setValueByPath(currentConfig, key, updates[key]);
-                        }
-                        handler.save(currentConfig);
-                    }
-                    player.sendMessage('§2Configuration saved.');
-
-                    if (categoryId === 'data') {
-                        await import('@core/dataManager.js').then(({ restartAutoSave }) => restartAutoSave());
-                    }
-
-                    if (configSource === 'xray') {
-                        refreshXrayCache();
-                    }
-                }
+            if (
+                item.actionValue === 'resetAllConfig' ||
+                item.actionValue.startsWith('resetCategory_') ||
+                item.actionValue.startsWith('resetSystem_')
+            ) {
+                await this.handleResetAction(player, item.actionValue, panelId, context);
+                return;
             }
+
+            // Removed redundant functionCall check
+            await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id });
+        }
+    }
+
+    private async handleResetAction(
+        player: mc.Player,
+        actionValue: string,
+        panelId: string,
+        context: UIContext
+    ): Promise<void> {
+        if (actionValue === 'resetAllConfig') {
+            await this.handleResetAll(player, panelId, context);
+            return;
+        }
+
+        if (actionValue.startsWith('resetCategory_')) {
+            const category = actionValue.replace('resetCategory_', '');
+            await this.handleResetCategory(player, category, panelId, context);
+            return;
+        }
+
+        if (actionValue.startsWith('resetSystem_')) {
+            const sysId = actionValue.replace('resetSystem_', '');
+            await this.handleResetSystem(player, sysId, panelId, context);
+        }
+    }
+
+    private async handleResetAll(player: mc.Player, panelId: string, context: UIContext): Promise<void> {
+        await showConfirmationDialog(player, {
+            title: 'Confirm Reset All',
+            body: 'This action cannot be undone. Are you sure you want to reset ALL system configurations to their default values?',
+            confirmButtonText: '§4Yes, Reset All',
+            cancelButtonText: '§2No, Cancel',
+            onConfirm: async () => {
+                const finalConfirmForm = new ModalFormData()
+                    .title('Final Confirmation')
+                    .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', {
+                        defaultValue: ''
+                    });
+                const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
+                if (finalConfirmResponse.canceled) return showPanel(player, panelId, context);
+                const confirmModal = finalConfirmResponse as ModalFormResponse;
+                const confirmationValue =
+                    isDefined(confirmModal.formValues) && isDefined(confirmModal.formValues[0])
+                        ? String(confirmModal.formValues[0])
+                        : '';
+                if (confirmationValue.trim().toLowerCase() !== 'confirm') {
+                    player.sendMessage('§4Final confirmation failed. Reset canceled.');
+                    return showPanel(player, panelId, context);
+                }
+                const result = await resetConfigSection('all', player);
+                if (result.success) {
+                    player.sendMessage(`§2${result.message}`);
+                    refreshXrayCache();
+                } else {
+                    player.sendMessage('§4Failed to reset all configurations. Please check the console.');
+                    errorLog(`[UIManager] Failed to reset all: ${result.message}`);
+                }
+                return showPanel(player, panelId, { ...context, page: 1 });
+            },
+            onCancel: () => showPanel(player, panelId, context)
+        });
+    }
+
+    private async handleResetCategory(
+        player: mc.Player,
+        category: string,
+        panelId: string,
+        context: UIContext
+    ): Promise<void> {
+        const pData = getOrCreatePlayer(player);
+        // Removed dynamic import of getSystemsByCategory as it caused shadowing
+        const systems = getSystemsByCategory(pData, category);
+
+        await showConfirmationDialog(player, {
+            title: `Reset ${category}`,
+            body: `Are you sure you want to reset all systems in the ${category} category?`,
+            confirmButtonText: '§4Yes, Reset Category',
+            cancelButtonText: '§2No, Cancel',
+            onConfirm: async () => {
+                let successCount = 0;
+                for (const sys of systems) {
+                    const res = await resetConfigSection(sys.id, player);
+                    if (res.success) successCount++;
+                }
+                player.sendMessage(`§2Reset ${successCount} systems in ${category}.`);
+                if (category === 'Moderation') refreshXrayCache();
+                return showPanel(player, panelId, context);
+            },
+            onCancel: () => showPanel(player, panelId, context)
+        });
+    }
+
+    private async handleResetSystem(
+        player: mc.Player,
+        sysId: string,
+        panelId: string,
+        context: UIContext
+    ): Promise<void> {
+        await showConfirmationDialog(player, {
+            title: `Reset System`,
+            body: `Reset this system to defaults?`,
+            confirmButtonText: '§4Yes, Reset',
+            cancelButtonText: '§2No, Cancel',
+            onConfirm: async () => {
+                const result = await resetConfigSection(sysId, player);
+                if (result.success) {
+                    player.sendMessage(`§2${result.message}`);
+                    if (sysId === 'xray') refreshXrayCache();
+                } else {
+                    player.sendMessage('§4Failed to reset.');
+                }
+                return showPanel(player, panelId, context);
+            },
+            onCancel: () => showPanel(player, panelId, context)
+        });
+    }
+
+    private async handleConfigModalSave(
+        player: mc.Player,
+        panelId: string,
+        response: ModalFormResponse,
+        context: UIContext
+    ): Promise<void> {
+        const categoryId = panelId.replace('config_', '');
+        const category = configPanelSchema.find((c) => c.id === categoryId);
+        const values = response.formValues;
+
+        if (response.canceled) {
             if (isDefined(category) && isNonEmptyString(category.category)) {
                 return showPanel(player, `configSubCategoryPanel_${category.category}`, { ...context, page: 1 });
             }
             return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
         }
+
+        if (isDefined(category) && isDefined(values)) {
+            const updates: Record<string, unknown> = {};
+
+            // Filter settings to match buildModal logic
+            const validSettings = category.settings.filter((s) => ['toggle', 'textField', 'dropdown'].includes(s.type));
+
+            for (const [index, setting] of validSettings.entries()) {
+                let value = values[index];
+                if (setting.type === 'dropdown') {
+                    const options = setting.options ?? [];
+                    const selectedIndex = value as number;
+                    value = setting.key === 'logLevel' ? selectedIndex : options[selectedIndex];
+                } else if (setting.type === 'textField') {
+                    const strVal = value as string;
+                    const current = getValueFromPath(getConfig(), setting.key);
+                    if (typeof current === 'number') {
+                        if (!Number.isNaN(Number(strVal)) && isNonEmptyString(strVal) && strVal.trim() !== '') {
+                            value = Number(strVal);
+                        } else {
+                            // Skip update if input is invalid for a number field
+                            continue;
+                        }
+                    }
+                }
+                updates[setting.key] = value;
+            }
+
+            const configSource = isNonEmptyString(category.configSource) ? category.configSource : 'main';
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+            const handlers = uiConfigHandlers as any;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            const handler = handlers[configSource] as { get: () => unknown; save: (cfg: unknown) => void } | undefined;
+
+            if (isDefined(handler)) {
+                if (configSource === 'main') {
+                    handler.save(updates);
+                } else {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const currentConfig = handler.get() as Record<string, any>;
+                    for (const key in updates) {
+                        setValueByPath(currentConfig, key, updates[key]);
+                    }
+                    handler.save(currentConfig);
+                }
+                player.sendMessage('§2Configuration saved.');
+
+                if (categoryId === 'data') {
+                    await import('@core/dataManager.js').then(({ restartAutoSave }) => restartAutoSave());
+                }
+
+                if (configSource === 'xray') {
+                    refreshXrayCache();
+                }
+            }
+        }
+        if (isDefined(category) && isNonEmptyString(category.category)) {
+            return showPanel(player, `configSubCategoryPanel_${category.category}`, { ...context, page: 1 });
+        }
+        return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
     }
 }

@@ -85,6 +85,66 @@ interface SetSpawnArgs {
     z?: number;
 }
 
+function sendSetSpawnMessage(executor: CommandExecutor, message: string) {
+    if (executor instanceof mc.Player) {
+        sendMessage(message, executor);
+    } else {
+        executor.sendMessage(message);
+    }
+}
+
+function resolveSetSpawnLocation(executor: CommandExecutor, args: SetSpawnArgs): SpawnLocation | undefined {
+    const { x, y, z } = args;
+    if (x !== undefined && y !== undefined && z !== undefined) {
+        return {
+            x: Math.round(x * 100) / 100,
+            y: Math.round(y * 100) / 100,
+            z: Math.round(z * 100) / 100,
+            dimensionId: executor instanceof mc.Player ? executor.dimension.id : MinecraftDimensionTypes.Overworld
+        };
+    }
+
+    if (executor instanceof mc.Player) {
+        return {
+            x: Math.round(executor.location.x * 100) / 100,
+            y: Math.round(executor.location.y * 100) / 100,
+            z: Math.round(executor.location.z * 100) / 100,
+            dimensionId: executor.dimension.id
+        };
+    }
+
+    sendSetSpawnMessage(
+        executor,
+        '§cYou must specify X, Y, and Z coordinates when running this command from the console.'
+    );
+    return undefined;
+}
+
+function syncWorldSpawn(executor: CommandExecutor, location: SpawnLocation) {
+    try {
+        const spawnPos = { x: location.x!, y: location.y!, z: location.z! };
+        mc.world.setDefaultSpawnLocation(spawnPos);
+        sendSetSpawnMessage(executor, '§aWorld spawn point updated successfully.');
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[/setspawn] Failed to set default world spawn: ${error.stack}`);
+        }
+        sendSetSpawnMessage(executor, '§cError: Could not set the world spawn point. Check server logs for details.');
+    }
+}
+
+function updateSpawnRadius(executor: CommandExecutor, radius: number) {
+    try {
+        mc.world.gameRules.spawnRadius = radius;
+        sendSetSpawnMessage(executor, `§aWorld spawn radius set to ${radius}.`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${error.stack}`);
+        }
+        sendSetSpawnMessage(executor, '§cError: Could not set the spawn radius. Check server logs for details.');
+    }
+}
+
 const setSpawnCommand: CustomCommand = {
     name: 'setspawn',
     aliases: ['setworldspawn', 'spawnset'],
@@ -98,113 +158,34 @@ const setSpawnCommand: CustomCommand = {
         { name: 'z', type: 'float', optional: true }
     ],
     execute: (executor: CommandExecutor, args: SetSpawnArgs) => {
-        let location: SpawnLocation;
-        const { x, y, z } = args;
-
-        if (x !== undefined && y !== undefined && z !== undefined) {
-            location = {
-                x: Math.round(x * 100) / 100,
-                y: Math.round(y * 100) / 100,
-                z: Math.round(z * 100) / 100,
-                dimensionId: executor instanceof mc.Player ? executor.dimension.id : MinecraftDimensionTypes.Overworld
-            };
-        } else {
-            if (!(executor instanceof mc.Player)) {
-                if (executor instanceof mc.Player) {
-                    sendMessage(
-                        '§cYou must specify X, Y, and Z coordinates when running this command from the console.',
-                        executor
-                    );
-                } else {
-                    executor.sendMessage(
-                        '§cYou must specify X, Y, and Z coordinates when running this command from the console.'
-                    );
-                }
-                return;
-            }
-            location = {
-                x: Math.round(executor.location.x * 100) / 100,
-                y: Math.round(executor.location.y * 100) / 100,
-                z: Math.round(executor.location.z * 100) / 100,
-                dimensionId: executor.dimension.id
-            };
-        }
+        const location = resolveSetSpawnLocation(executor, args);
+        if (!location) return;
 
         try {
             const spawnConfig = getSpawnConfig();
             spawnConfig.spawn.spawnLocation = location;
             saveSpawnConfig(spawnConfig);
-            const locationString = `§aAddon spawn point set to: §fX: ${location.x!.toFixed(2)}, Y: ${location.y!.toFixed(2)}, Z: ${location.z!.toFixed(2)} in ${location.dimensionId.replace('minecraft:', '')}`;
 
-            if (executor instanceof mc.Player) {
-                sendMessage(locationString, executor);
-                initializeSpawnProtection();
-                sendMessage('§aSpawn protection system has been updated.', executor);
-            } else {
-                executor.sendMessage(locationString);
-                initializeSpawnProtection();
-                executor.sendMessage('§aSpawn protection system has been updated.');
-            }
+            const dimName = location.dimensionId.replace('minecraft:', '');
+            const locationString = `§aAddon spawn point set to: §fX: ${location.x!.toFixed(2)}, Y: ${location.y!.toFixed(2)}, Z: ${location.z!.toFixed(2)} in ${dimName}`;
+            sendSetSpawnMessage(executor, locationString);
+
+            initializeSpawnProtection();
+            sendSetSpawnMessage(executor, '§aSpawn protection system has been updated.');
 
             if (
                 location.dimensionId === (MinecraftDimensionTypes.Overworld as string) &&
                 spawnConfig.spawn.syncWorldSpawn
             ) {
-                try {
-                    const spawnPos = { x: location.x!, y: location.y!, z: location.z! };
-                    mc.world.setDefaultSpawnLocation(spawnPos);
-                    if (executor instanceof mc.Player) {
-                        sendMessage('§aWorld spawn point updated successfully.', executor);
-                    } else {
-                        executor.sendMessage('§aWorld spawn point updated successfully.');
-                    }
-                } catch (error: unknown) {
-                    if (error instanceof Error) {
-                        errorLog(`[/setspawn] Failed to set default world spawn: ${error.stack}`);
-                    }
-                    if (executor instanceof mc.Player) {
-                        sendMessage(
-                            '§cError: Could not set the world spawn point. Check server logs for details.',
-                            executor
-                        );
-                    } else {
-                        executor.sendMessage(
-                            '§cError: Could not set the world spawn point. Check server logs for details.'
-                        );
-                    }
-                }
-                try {
-                    const radius = spawnConfig.spawn.worldSpawnRadius;
-                    mc.world.gameRules.spawnRadius = radius;
-                    if (executor instanceof mc.Player) {
-                        sendMessage(`§aWorld spawn radius set to ${radius}.`, executor);
-                    } else {
-                        executor.sendMessage(`§aWorld spawn radius set to ${radius}.`);
-                    }
-                } catch (error: unknown) {
-                    if (error instanceof Error) {
-                        errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${error.stack}`);
-                    }
-                    if (executor instanceof mc.Player) {
-                        sendMessage(
-                            '§cError: Could not set the spawn radius. Check server logs for details.',
-                            executor
-                        );
-                    } else {
-                        executor.sendMessage('§cError: Could not set the spawn radius. Check server logs for details.');
-                    }
-                }
+                syncWorldSpawn(executor, location);
+                updateSpawnRadius(executor, spawnConfig.spawn.worldSpawnRadius);
             }
 
             if (executor instanceof mc.Player) {
                 playSound(executor, 'random.orb');
             }
         } catch (error: unknown) {
-            if (executor instanceof mc.Player) {
-                sendMessage('§cAn unexpected error occurred while setting the spawn.', executor);
-            } else {
-                executor.sendMessage('§cAn unexpected error occurred while setting the spawn.');
-            }
+            sendSetSpawnMessage(executor, '§cAn unexpected error occurred while setting the spawn.');
             if (error instanceof Error) {
                 errorLog(`[/setspawn] General error: ${error.stack}`);
             }

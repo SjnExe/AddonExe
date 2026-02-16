@@ -46,74 +46,84 @@ export class SidebarPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'sidebarLinesPanel' || panelId === 'actionBarLinesPanel') {
-            addBackButton(items, 'sidebarMainPanel');
-            const isSidebar = panelId === 'sidebarLinesPanel';
-            items.push({
-                id: 'addLine',
-                text: '§l§2+ Add Line',
-                icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: isSidebar ? 'sidebarLineAddPanel' : 'actionBarLineAddPanel'
-            });
-
-            const config = getSidebarConfig();
-            const lines = isSidebar ? config.sidebarLines : config.actionBarLines;
-
-            for (const [idx, line] of lines.entries()) {
-                if (!isDefined(line)) continue;
-                items.push({
-                    id: String(idx),
-                    text: `${idx + 1}. ${line}`,
-                    permissionLevel: 1,
-                    actionType: 'openPanel',
-                    actionValue: isSidebar ? 'sidebarLineActionPanel' : 'actionBarLineActionPanel'
-                });
-            }
-            return Promise.resolve(items);
+            return Promise.resolve(this.getLinesPanelItems(panelId));
         }
 
         if (panelId === 'sidebarLineActionPanel' || panelId === 'actionBarLineActionPanel') {
-            const isSidebar = panelId === 'sidebarLineActionPanel';
-            addBackButton(items, isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel');
-            items.push(
-                {
-                    id: 'edit',
-                    text: 'Edit',
-                    icon: 'textures/ui/icon_setting',
-                    permissionLevel: 1,
-                    actionType: 'functionCall',
-                    actionValue: 'editLine'
-                },
-                {
-                    id: 'moveUp',
-                    text: 'Move Up',
-                    icon: 'textures/gui/controls/up',
-                    permissionLevel: 1,
-                    actionType: 'functionCall',
-                    actionValue: 'moveUp'
-                },
-                {
-                    id: 'moveDown',
-                    text: 'Move Down',
-                    icon: 'textures/gui/controls/down',
-                    permissionLevel: 1,
-                    actionType: 'functionCall',
-                    actionValue: 'moveDown'
-                },
-                {
-                    id: 'delete',
-                    text: 'Delete',
-                    icon: 'textures/ui/trash',
-                    permissionLevel: 1,
-                    actionType: 'functionCall',
-                    actionValue: 'deleteLine'
-                }
-            );
-            return Promise.resolve(items);
+            return Promise.resolve(this.getLineActionPanelItems(panelId));
         }
 
         return Promise.resolve(items);
+    }
+
+    private getLinesPanelItems(panelId: string): PanelItem[] {
+        const items: PanelItem[] = [];
+        addBackButton(items, 'sidebarMainPanel');
+        const isSidebar = panelId === 'sidebarLinesPanel';
+        items.push({
+            id: 'addLine',
+            text: '§l§2+ Add Line',
+            icon: 'textures/ui/color_plus',
+            permissionLevel: 1,
+            actionType: 'openPanel',
+            actionValue: isSidebar ? 'sidebarLineAddPanel' : 'actionBarLineAddPanel'
+        });
+
+        const config = getSidebarConfig();
+        const lines = isSidebar ? config.sidebarLines : config.actionBarLines;
+
+        for (const [idx, line] of lines.entries()) {
+            if (!isDefined(line)) continue;
+            items.push({
+                id: String(idx),
+                text: `${idx + 1}. ${line}`,
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: isSidebar ? 'sidebarLineActionPanel' : 'actionBarLineActionPanel'
+            });
+        }
+        return items;
+    }
+
+    private getLineActionPanelItems(panelId: string): PanelItem[] {
+        const items: PanelItem[] = [];
+        const isSidebar = panelId === 'sidebarLineActionPanel';
+        addBackButton(items, isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel');
+        items.push(
+            {
+                id: 'edit',
+                text: 'Edit',
+                icon: 'textures/ui/icon_setting',
+                permissionLevel: 1,
+                actionType: 'functionCall',
+                actionValue: 'editLine'
+            },
+            {
+                id: 'moveUp',
+                text: 'Move Up',
+                icon: 'textures/gui/controls/up',
+                permissionLevel: 1,
+                actionType: 'functionCall',
+                actionValue: 'moveUp'
+            },
+            {
+                id: 'moveDown',
+                text: 'Move Down',
+                icon: 'textures/gui/controls/down',
+                permissionLevel: 1,
+                actionType: 'functionCall',
+                actionValue: 'moveDown'
+            },
+            {
+                id: 'delete',
+                text: 'Delete',
+                icon: 'textures/ui/trash',
+                permissionLevel: 1,
+                actionType: 'functionCall',
+                actionValue: 'deleteLine'
+            }
+        );
+        return items;
     }
 
     buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined | void> {
@@ -156,98 +166,128 @@ export class SidebarPanelHandler implements IPanelHandler {
         context: UIContext
     ): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
-        const values = (response as ModalFormResponse).formValues;
-
-        const isSidebar = panelId.startsWith('sidebar');
-        const listPanelId = isSidebar || panelId === 'sidebarLinesPanel' ? 'sidebarLinesPanel' : 'actionBarLinesPanel';
-        const config = getSidebarConfig();
-        const lines: string[] =
-            isSidebar || panelId === 'sidebarLinesPanel'
-                ? [...(isDefined(config.sidebarLines) ? config.sidebarLines : [])]
-                : [...(isDefined(config.actionBarLines) ? config.actionBarLines : [])];
-
-        // Helper to save
-        const save = (msg: string) => {
-            if (isSidebar || panelId === 'sidebarLinesPanel') config.sidebarLines = lines;
-            else config.actionBarLines = lines;
-            saveSidebarConfig(config);
-            forceUpdate();
-            player.sendMessage(msg);
-        };
 
         if (panelId === 'sidebarLineAddPanel' || panelId === 'actionBarLineAddPanel') {
-            if ((response as ModalFormResponse).canceled) return showPanel(player, listPanelId);
-            const [newLine] = (isDefined(values) ? values : []) as [string | undefined];
-            if (isNonEmptyString(newLine)) {
-                lines.push(newLine);
-                save('§aLine added.');
-            }
-            return showPanel(player, listPanelId);
+            await this.handleLineAdd(player, panelId, response as ModalFormResponse);
+            return;
         }
 
         if (panelId === 'sidebarLineEditPanel' || panelId === 'actionBarLineEditPanel') {
-            if ((response as ModalFormResponse).canceled) return showPanel(player, listPanelId);
-            const valuesArray = (isDefined(values) ? values : []) as (string | undefined)[];
-            const newLine = valuesArray[0];
-            const index = context.lineIndex as number;
-            if (isNonEmptyString(newLine)) {
-                lines[index] = newLine;
-                save('§aLine updated.');
-            }
-            return showPanel(player, listPanelId);
+            await this.handleLineEdit(player, panelId, response as ModalFormResponse, context);
+            return;
         }
 
         if (typeof selection === 'number') {
-            const items = await this.getItems(player, panelId, context);
-            if (selection >= 0 && selection < items.length) {
-                const item = items[selection];
-                if (!item) return; // Check if item exists first
+            await this.handleSelection(player, panelId, selection, context);
+        }
+    }
 
-                // The logic below assumes item exists
-                if (item.actionType === 'openPanel') {
-                    // Inject lineIndex if needed
-                    let nextContext: UIContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
-                    if (
-                        item.actionValue === 'sidebarLineActionPanel' ||
-                        item.actionValue === 'actionBarLineActionPanel'
-                    ) {
-                        nextContext = { ...nextContext, lineIndex: Number(item.id) };
-                    }
-                    return showPanel(player, item.actionValue, nextContext);
+    private saveLines(player: mc.Player, lines: string[], isSidebar: boolean, msg: string) {
+        const config = getSidebarConfig();
+        if (isSidebar) config.sidebarLines = lines;
+        else config.actionBarLines = lines;
+        saveSidebarConfig(config);
+        forceUpdate();
+        player.sendMessage(msg);
+    }
+
+    private async handleLineAdd(player: mc.Player, panelId: string, response: ModalFormResponse): Promise<void> {
+        const isSidebar = panelId.startsWith('sidebar');
+        const listPanelId = isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel';
+
+        if (response.canceled) return showPanel(player, listPanelId);
+
+        const values = response.formValues;
+        const [newLine] = (isDefined(values) ? values : []) as [string | undefined];
+
+        if (isNonEmptyString(newLine)) {
+            const config = getSidebarConfig();
+            const lines = isSidebar ? [...config.sidebarLines] : [...config.actionBarLines];
+            lines.push(newLine);
+            this.saveLines(player, lines, isSidebar, '§aLine added.');
+        }
+        return showPanel(player, listPanelId);
+    }
+
+    private async handleLineEdit(
+        player: mc.Player,
+        panelId: string,
+        response: ModalFormResponse,
+        context: UIContext
+    ): Promise<void> {
+        const isSidebar = panelId.startsWith('sidebar');
+        const listPanelId = isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel';
+
+        if (response.canceled) return showPanel(player, listPanelId);
+
+        const values = response.formValues;
+        const valuesArray = (isDefined(values) ? values : []) as (string | undefined)[];
+        const newLine = valuesArray[0];
+        const index = context.lineIndex as number;
+
+        if (isNonEmptyString(newLine)) {
+            const config = getSidebarConfig();
+            const lines = isSidebar ? [...config.sidebarLines] : [...config.actionBarLines];
+            lines[index] = newLine;
+            this.saveLines(player, lines, isSidebar, '§aLine updated.');
+        }
+        return showPanel(player, listPanelId);
+    }
+
+    private async handleSelection(
+        player: mc.Player,
+        panelId: string,
+        selection: number,
+        context: UIContext
+    ): Promise<void> {
+        const items = await this.getItems(player, panelId, context);
+        if (selection >= 0 && selection < items.length) {
+            const item = items[selection];
+            if (!isDefined(item)) return;
+
+            if (item.actionType === 'openPanel') {
+                let nextContext: UIContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
+                if (item.actionValue === 'sidebarLineActionPanel' || item.actionValue === 'actionBarLineActionPanel') {
+                    nextContext = { ...nextContext, lineIndex: Number(item.id) };
                 }
+                return showPanel(player, item.actionValue, nextContext);
+            }
 
-                const index = context.lineIndex as number;
+            const index = context.lineIndex as number;
+            const isSidebar = panelId.startsWith('sidebar');
+            const listPanelId = isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel';
+            const config = getSidebarConfig();
+            const lines = isSidebar ? [...config.sidebarLines] : [...config.actionBarLines];
 
-                if (item.actionValue === 'editLine') {
-                    const target = isSidebar ? 'sidebarLineEditPanel' : 'actionBarLineEditPanel';
-                    return showPanel(player, target, { ...context, lineIndex: index });
+            if (item.actionValue === 'editLine') {
+                const target = isSidebar ? 'sidebarLineEditPanel' : 'actionBarLineEditPanel';
+                return showPanel(player, target, { ...context, lineIndex: index });
+            }
+
+            if (item.actionValue === 'deleteLine') {
+                lines.splice(index, 1);
+                this.saveLines(player, lines, isSidebar, '§cLine deleted.');
+                return showPanel(player, listPanelId);
+            }
+
+            if (item.actionValue === 'moveUp') {
+                if (index > 0) {
+                    const temp = lines[index - 1] ?? '';
+                    lines[index - 1] = lines[index] ?? '';
+                    lines[index] = temp;
+                    this.saveLines(player, lines, isSidebar, '§aMoved up.');
                 }
+                return showPanel(player, listPanelId);
+            }
 
-                if (item.actionValue === 'deleteLine') {
-                    lines.splice(index, 1);
-                    save('§cLine deleted.');
-                    return showPanel(player, listPanelId);
+            if (item.actionValue === 'moveDown') {
+                if (index < lines.length - 1) {
+                    const temp = lines[index + 1] ?? '';
+                    lines[index + 1] = lines[index] ?? '';
+                    lines[index] = temp;
+                    this.saveLines(player, lines, isSidebar, '§aMoved down.');
                 }
-
-                if (item.actionValue === 'moveUp') {
-                    if (index > 0) {
-                        const temp = lines[index - 1] ?? '';
-                        lines[index - 1] = lines[index] ?? '';
-                        lines[index] = temp;
-                        save('§aMoved up.');
-                    }
-                    return showPanel(player, listPanelId);
-                }
-
-                if (item.actionValue === 'moveDown') {
-                    if (index < lines.length - 1) {
-                        const temp = lines[index + 1] ?? '';
-                        lines[index + 1] = lines[index] ?? '';
-                        lines[index] = temp;
-                        save('§aMoved down.');
-                    }
-                    return showPanel(player, listPanelId);
-                }
+                return showPanel(player, listPanelId);
             }
         }
     }

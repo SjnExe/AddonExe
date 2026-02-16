@@ -129,91 +129,123 @@ export class ModerationPanelHandler implements IPanelHandler {
         const selection = (response as ActionFormResponse).selection;
 
         if (typeof selection === 'number') {
-            const items = await this.getItems(player, panelId, context);
-            if (selection >= 0 && selection < items.length) {
-                const item = items[selection];
-                if (!isDefined(item)) return;
+            await this.handleSelection(player, panelId, selection, context);
+        }
+    }
 
-                if (item.actionType === 'openPanel') {
-                    return showPanel(player, item.actionValue, {
-                        ...context,
-                        page: 1,
-                        selectedItemId: item.id,
-                        id: item.id
-                    });
-                }
+    private async handleSelection(
+        player: mc.Player,
+        panelId: string,
+        selection: number,
+        context: UIContext
+    ): Promise<void> {
+        const items = await this.getItems(player, panelId, context);
+        if (selection >= 0 && selection < items.length) {
+            const item = items[selection];
+            if (!isDefined(item)) return;
 
-                if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, {
-                        ...context,
-                        page: Math.max(1, (context.page as number) || 1) - 1
-                    });
-                }
-                if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
-                }
+            if (item.actionType === 'openPanel') {
+                return showPanel(player, item.actionValue, {
+                    ...context,
+                    page: 1,
+                    selectedItemId: item.id,
+                    id: item.id
+                });
+            }
 
-                // Moderation Actions
-                if (item.actionValue === 'showUnbanForm') {
-                    const form = new ModalFormData()
-                        .title('Unban Player')
-                        .textField('Player Name (exact)', 'Enter the name of the banned player');
-                    const res = await form.show(player);
-                    if (res.canceled) return showPanel(player, panelId, context);
-                    const [name] = res.formValues as [string];
-                    const targetId = getPlayerIdByName(name);
-                    if (isNonEmptyString(targetId)) {
-                        punishmentManager.removePunishment(targetId, 'ban');
-                        player.sendMessage(`§2Unbanned ${name}.`);
-                    } else {
-                        player.sendMessage('§4Player not found in database.');
-                    }
-                    return showPanel(player, panelId, context);
-                }
+            if (item.actionValue === 'prevPage') {
+                return showPanel(player, panelId, {
+                    ...context,
+                    page: Math.max(1, (context.page as number) || 1) - 1
+                });
+            }
+            if (item.actionValue === 'nextPage') {
+                return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
+            }
 
-                if (item.actionValue === 'showUnmuteForm') {
-                    const form = new ModalFormData()
-                        .title('Unmute Player')
-                        .textField('Player Name (exact)', 'Enter the name of the muted player');
-                    const res = await form.show(player);
-                    if (res.canceled) return showPanel(player, panelId, context);
-                    const [name] = res.formValues as [string];
-                    const targetId = getPlayerIdByName(name);
-                    if (isNonEmptyString(targetId)) {
-                        punishmentManager.removePunishment(targetId, 'mute');
-                        player.sendMessage(`§2Unmuted ${name}.`);
-                    } else {
-                        player.sendMessage('§4Player not found in database.');
-                    }
-                    return showPanel(player, panelId, context);
-                }
+            if (item.actionValue === 'showUnbanForm') {
+                await this.handleUnbanForm(player, panelId, context);
+                return;
+            }
 
-                // Report Actions
-                if (item.actionValue === 'assignReport') {
-                    const reportId = context.selectedItemId as string;
-                    if (isNonEmptyString(reportId)) {
-                        reportManager.assignReport(reportId, player.id);
-                        player.sendMessage('§2Report assigned to you.');
-                    }
-                    return showPanel(player, panelId, context);
-                }
-                if (item.actionValue === 'resolveReport') {
-                    const reportId = context.selectedItemId as string;
-                    if (isNonEmptyString(reportId)) {
-                        reportManager.resolveReport(reportId);
-                        player.sendMessage('§2Report marked as resolved.');
-                    }
-                    return showPanel(player, 'reportListPanel', context);
-                }
-                if (item.actionValue === 'clearReport') {
-                    const reportId = context.selectedItemId as string;
-                    if (isNonEmptyString(reportId)) {
-                        reportManager.clearReport(reportId);
-                        player.sendMessage('§2Report cleared.');
-                    }
-                    return showPanel(player, 'reportListPanel', context);
-                }
+            if (item.actionValue === 'showUnmuteForm') {
+                await this.handleUnmuteForm(player, panelId, context);
+                return;
+            }
+
+            if (item.actionValue === 'assignReport') {
+                await this.handleAssignReport(player, panelId, context);
+                return;
+            }
+            if (item.actionValue === 'resolveReport') {
+                await this.handleResolveReport(player, context);
+                return;
+            }
+            if (item.actionValue === 'clearReport') {
+                await this.handleClearReport(player, context);
+                return;
             }
         }
+    }
+
+    private async handleUnbanForm(player: mc.Player, panelId: string, context: UIContext): Promise<void> {
+        const form = new ModalFormData()
+            .title('Unban Player')
+            .textField('Player Name (exact)', 'Enter the name of the banned player');
+        const res = await form.show(player);
+        if (res.canceled) return showPanel(player, panelId, context);
+        const [name] = res.formValues as [string];
+        const targetId = getPlayerIdByName(name);
+        if (isNonEmptyString(targetId)) {
+            punishmentManager.removePunishment(targetId, 'ban');
+            player.sendMessage(`§2Unbanned ${name}.`);
+        } else {
+            player.sendMessage('§4Player not found in database.');
+        }
+        return showPanel(player, panelId, context);
+    }
+
+    private async handleUnmuteForm(player: mc.Player, panelId: string, context: UIContext): Promise<void> {
+        const form = new ModalFormData()
+            .title('Unmute Player')
+            .textField('Player Name (exact)', 'Enter the name of the muted player');
+        const res = await form.show(player);
+        if (res.canceled) return showPanel(player, panelId, context);
+        const [name] = res.formValues as [string];
+        const targetId = getPlayerIdByName(name);
+        if (isNonEmptyString(targetId)) {
+            punishmentManager.removePunishment(targetId, 'mute');
+            player.sendMessage(`§2Unmuted ${name}.`);
+        } else {
+            player.sendMessage('§4Player not found in database.');
+        }
+        return showPanel(player, panelId, context);
+    }
+
+    private async handleAssignReport(player: mc.Player, panelId: string, context: UIContext): Promise<void> {
+        const reportId = context.selectedItemId as string;
+        if (isNonEmptyString(reportId)) {
+            reportManager.assignReport(reportId, player.id);
+            player.sendMessage('§2Report assigned to you.');
+        }
+        return showPanel(player, panelId, context);
+    }
+
+    private async handleResolveReport(player: mc.Player, context: UIContext): Promise<void> {
+        const reportId = context.selectedItemId as string;
+        if (isNonEmptyString(reportId)) {
+            reportManager.resolveReport(reportId);
+            player.sendMessage('§2Report marked as resolved.');
+        }
+        return showPanel(player, 'reportListPanel', context);
+    }
+
+    private async handleClearReport(player: mc.Player, context: UIContext): Promise<void> {
+        const reportId = context.selectedItemId as string;
+        if (isNonEmptyString(reportId)) {
+            reportManager.clearReport(reportId);
+            player.sendMessage('§2Report cleared.');
+        }
+        return showPanel(player, 'reportListPanel', context);
     }
 }

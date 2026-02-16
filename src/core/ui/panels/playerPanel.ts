@@ -1,15 +1,15 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData } from '@minecraft/server-ui';
 
+import { getConfig } from '@core/configManager.js';
 import { getVisiblePlayers, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
-import { getConfig } from '@core/configManager.js';
-import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
-import { panelDefinitions } from '@core/ui/panelRegistry.js';
-import { isDefined } from '@lib/guards.js';
-import { formatCurrency } from '@core/utils/economy.js';
 import { getStaticMenuItems } from '@core/ui/panelBuilder.js';
+import { panelDefinitions } from '@core/ui/panelRegistry.js';
+import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
 import { showPanel } from '@core/uiManager.js';
+import { formatCurrency } from '@core/utils/economy.js';
+import { isDefined } from '@lib/guards.js';
 import { handleUIAction } from '@ui/actions.js';
 
 export class PlayerPanelHandler implements IPanelHandler {
@@ -17,7 +17,7 @@ export class PlayerPanelHandler implements IPanelHandler {
         return panelId.startsWith('player') || panelId === 'myStatsPanel';
     }
 
-    async getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[] | undefined> {
+    getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[] | undefined> {
         const config = getConfig();
         const rank = getPlayerRank(player, config);
         const def = panelDefinitions[panelId];
@@ -36,41 +36,41 @@ export class PlayerPanelHandler implements IPanelHandler {
                 };
             });
             // Append player items to static items (which includes back button at start)
-            return [...baseItems, ...playerItems];
+            return Promise.resolve([...baseItems, ...playerItems]);
         }
 
         if (panelId === 'myStatsPanel') {
             const data = loadPlayerData(player.id);
-            if (!data) return baseItems;
+            if (!data) return Promise.resolve(baseItems);
 
             const stats: PanelItem[] = [
                 {
                     id: 'stat_money',
-                    text: `§2Balance: §r${formatCurrency(data.balance ?? 0)}`,
+                    text: `§2Balance: §r${formatCurrency(data.balance)}`,
                     icon: 'textures/items/emerald',
                     permissionLevel: 1024,
                     actionType: 'functionCall',
                     actionValue: 'noop'
                 },
-                 {
+                {
                     id: 'stat_rank',
-                    text: `§6Rank: §r${data.rankId ?? 'member'}`,
+                    text: `§6Rank: §r${data.rankId}`,
                     icon: 'textures/ui/icon_rank',
                     permissionLevel: 1024,
                     actionType: 'functionCall',
                     actionValue: 'noop'
                 },
-                 {
+                {
                     id: 'stat_playtime',
-                     text: `§3Playtime: §r${formatDuration(data.totalPlayTime ?? 0)}`,
-                     icon: 'textures/items/clock_item',
-                     permissionLevel: 1024,
-                     actionType: 'functionCall',
-                     actionValue: 'noop'
-                 },
-                 {
+                    text: `§3Playtime: §r${formatDuration(data.totalPlayTime)}`,
+                    icon: 'textures/items/clock_item',
+                    permissionLevel: 1024,
+                    actionType: 'functionCall',
+                    actionValue: 'noop'
+                },
+                {
                     id: 'stat_kills',
-                    text: `§cKills: §r${data.kills ?? 0}`,
+                    text: `§cKills: §r${data.kills}`,
                     icon: 'textures/items/iron_sword',
                     permissionLevel: 1024,
                     actionType: 'functionCall',
@@ -78,14 +78,14 @@ export class PlayerPanelHandler implements IPanelHandler {
                 },
                 {
                     id: 'stat_deaths',
-                    text: `§4Deaths: §r${data.deaths ?? 0}`,
+                    text: `§4Deaths: §r${data.deaths}`,
                     icon: 'textures/ui/skull_face',
                     permissionLevel: 1024,
                     actionType: 'functionCall',
                     actionValue: 'noop'
                 }
             ];
-            return [...baseItems, ...stats];
+            return Promise.resolve([...baseItems, ...stats]);
         }
 
         // Return undefined for panels handled by static logic or other means
@@ -93,7 +93,8 @@ export class PlayerPanelHandler implements IPanelHandler {
         // Actually, if we return undefined, panelBuilder falls back to static items.
         // But since we implement handleResponse, we need to be consistent.
         // Let's rely on fallback if not handled here.
-        return undefined;
+        // eslint-disable-next-line unicorn/no-useless-undefined
+        return Promise.resolve(undefined);
     }
 
     async handleResponse(
@@ -124,7 +125,7 @@ export class PlayerPanelHandler implements IPanelHandler {
         if (!isDefined(selectedItem)) return;
 
         if (selectedItem.id === '__back__') {
-             // Handled by actionValue usually
+            // Handled by actionValue usually
         }
 
         if (selectedItem.actionType === 'openPanel') {
@@ -136,7 +137,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                 newContext.customTitle = selectedItem.text; // Use player name as title for actions panel
             }
             return showPanel(player, selectedItem.actionValue, newContext);
-        } else if (selectedItem.actionType === 'functionCall') {
+        } else {
             if (selectedItem.actionValue === 'noop') return;
             return handleUIAction(player, selectedItem.actionValue, context);
         }

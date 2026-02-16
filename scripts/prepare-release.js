@@ -43,7 +43,7 @@ async function copyIcon() {
         await fs.copyFile(iconPath, rpPath);
         console.log(`Copied icon to ${rpPath}`);
     } catch (error) {
-         console.error(`Failed to copy icon to RP: ${error.message}`);
+        console.error(`Failed to copy icon to RP: ${error.message}`);
     }
 }
 
@@ -113,14 +113,16 @@ async function main() {
             await fs.access(defaultConfigPath);
             await updateConfig('src/config.default.ts');
         } catch {
-            console.warn('Warning: Neither src/config.ts nor src/config.default.ts found. Config version update skipped.');
+            console.warn(
+                'Warning: Neither src/config.ts nor src/config.default.ts found. Config version update skipped.'
+            );
         }
     }
 
     console.log('--- Release Preparation Complete ---');
 }
 
-main().catch(error => {
+main().catch((error) => {
     console.error(error);
     process.exit(1);
 });

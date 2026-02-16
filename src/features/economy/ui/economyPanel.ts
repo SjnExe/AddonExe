@@ -64,9 +64,6 @@ export class EconomyPanelHandler implements IPanelHandler {
         };
 
         if (panelId === 'economyPanel') {
-            // economyPanel has a parent in registry, so getStaticMenuItems handles back button?
-            // Actually configCategoryPanel is dynamic.
-            // Let's rely on getStaticMenuItems or add it if missing.
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
                 const staticItems = getStaticMenuItems(def, pData.permissionLevel);
@@ -77,7 +74,6 @@ export class EconomyPanelHandler implements IPanelHandler {
 
         if (panelId === 'mobDropsSystemPanel') {
             addBack('economyPanel');
-            // Static items first (Add Button)
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
                 const staticItems = getStaticMenuItems(def, pData.permissionLevel);
@@ -96,7 +92,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                 items.push({
                     id: mobId,
                     text: `${mobId}\n${color}${formatCurrency(amount)}`,
-                    icon: 'textures/ui/egg_icon', // Placeholder icon
+                    icon: 'textures/ui/egg_icon',
                     permissionLevel: 1,
                     actionType: 'openPanel',
                     actionValue: 'editMobDropPanel'
@@ -144,7 +140,6 @@ export class EconomyPanelHandler implements IPanelHandler {
                 .textField('Reward Amount', 'Negative for penalty', { defaultValue: '0' });
         }
         if (panelId === 'editMobValue') {
-            // Helper modal for editing, technically handled by handleResponse functionCall usually, but can use here
             const config = getEconomyConfig();
             const mobId = context.selectedItemId as string;
             const currentVal = config.mobMoney[mobId] ?? 0;
@@ -162,91 +157,114 @@ export class EconomyPanelHandler implements IPanelHandler {
         context: UIContext
     ): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
-        const values = (response as ModalFormResponse).formValues;
 
         if (panelId === 'addMobDropPanel') {
-            if ((response as ModalFormResponse).canceled) return showPanel(player, 'mobDropsSystemPanel', context);
-            const [mobId, amountStr] = values as [string, string];
-            const amount = Number.parseInt(amountStr);
-
-            if (isNonEmptyString(mobId) && !Number.isNaN(amount)) {
-                const config = getEconomyConfig();
-                config.mobMoney[mobId] = amount;
-                saveEconomyConfig(config);
-                player.sendMessage(`§2Added ${mobId} with reward ${formatCurrency(amount)}`);
-            } else {
-                player.sendMessage('§cInvalid input.');
-            }
-            return showPanel(player, 'mobDropsSystemPanel', { ...context, page: 1 });
+            await this.handleAddMobDrop(player, response as ModalFormResponse, context);
+            return;
         }
 
         if (panelId === 'editMobValue') {
-            if ((response as ModalFormResponse).canceled)
-                return showPanel(player, 'editMobDropPanel', { ...context, id: context.selectedItemId ?? '' });
-            const [amountStr] = values as [string];
-            const amount = Number.parseInt(amountStr);
-            const mobId = context.selectedItemId as string;
-
-            if (!Number.isNaN(amount) && isNonEmptyString(mobId)) {
-                const config = getEconomyConfig();
-                config.mobMoney[mobId] = amount;
-                saveEconomyConfig(config);
-                player.sendMessage(`§2Updated ${mobId} to ${formatCurrency(amount)}`);
-            }
-            return showPanel(player, 'editMobDropPanel', { ...context, id: mobId });
+            await this.handleEditMobValue(player, response as ModalFormResponse, context);
+            return;
         }
 
         if (typeof selection === 'number') {
-            const items = await this.getItems(player, panelId, context);
-            if (selection >= 0 && selection < items.length) {
-                const item = items[selection];
-                if (!isDefined(item)) return;
+            await this.handleSelection(player, panelId, selection, context);
+        }
+    }
 
-                if (item.actionType === 'openPanel') {
-                    return showPanel(player, item.actionValue, {
-                        ...context,
-                        page: 1,
-                        selectedItemId: item.id,
-                        id: item.id
-                    });
-                }
-                if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, {
-                        ...context,
-                        page: Math.max(1, ((context.page as number) || 1) - 1)
-                    });
-                }
-                if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
-                }
+    private async handleAddMobDrop(player: mc.Player, response: ModalFormResponse, context: UIContext): Promise<void> {
+        const values = response.formValues;
+        if (response.canceled) return showPanel(player, 'mobDropsSystemPanel', context);
+        const [mobId, amountStr] = values as [string, string];
+        const amount = Number.parseInt(amountStr);
 
-                if (item.actionValue === 'editMobValue') {
-                    // Open a modal
-                    const modal = await this.buildModal(player, 'editMobValue', context);
-                    if (isDefined(modal)) {
-                        const res = await modal.show(player);
-                        return this.handleResponse(player, 'editMobValue', res, context);
-                    }
-                }
+        if (isNonEmptyString(mobId) && !Number.isNaN(amount)) {
+            const config = getEconomyConfig();
+            config.mobMoney[mobId] = amount;
+            saveEconomyConfig(config);
+            player.sendMessage(`§2Added ${mobId} with reward ${formatCurrency(amount)}`);
+        } else {
+            player.sendMessage('§cInvalid input.');
+        }
+        return showPanel(player, 'mobDropsSystemPanel', { ...context, page: 1 });
+    }
 
-                if (item.actionValue === 'deleteMobDrop') {
-                    const mobId = context.selectedItemId as string;
-                    await showConfirmationDialog(player, {
-                        title: 'Delete Drop?',
-                        body: `Remove reward for ${mobId}?`,
-                        confirmButtonText: '§cDelete',
-                        cancelButtonText: 'Cancel',
-                        onConfirm: () => {
-                            const config = getEconomyConfig();
-                            delete config.mobMoney[mobId];
-                            saveEconomyConfig(config);
-                            player.sendMessage(`§2Removed ${mobId}`);
-                            return showPanel(player, 'mobDropsSystemPanel', context);
-                        },
-                        onCancel: () => showPanel(player, 'editMobDropPanel', context)
-                    });
-                    return;
+    private async handleEditMobValue(
+        player: mc.Player,
+        response: ModalFormResponse,
+        context: UIContext
+    ): Promise<void> {
+        const values = response.formValues;
+        if (response.canceled)
+            return showPanel(player, 'editMobDropPanel', { ...context, id: context.selectedItemId ?? '' });
+        const [amountStr] = values as [string];
+        const amount = Number.parseInt(amountStr);
+        const mobId = context.selectedItemId as string;
+
+        if (!Number.isNaN(amount) && isNonEmptyString(mobId)) {
+            const config = getEconomyConfig();
+            config.mobMoney[mobId] = amount;
+            saveEconomyConfig(config);
+            player.sendMessage(`§2Updated ${mobId} to ${formatCurrency(amount)}`);
+        }
+        return showPanel(player, 'editMobDropPanel', { ...context, id: mobId });
+    }
+
+    private async handleSelection(
+        player: mc.Player,
+        panelId: string,
+        selection: number,
+        context: UIContext
+    ): Promise<void> {
+        const items = await this.getItems(player, panelId, context);
+        if (selection >= 0 && selection < items.length) {
+            const item = items[selection];
+            if (!isDefined(item)) return;
+
+            if (item.actionType === 'openPanel') {
+                return showPanel(player, item.actionValue, {
+                    ...context,
+                    page: 1,
+                    selectedItemId: item.id,
+                    id: item.id
+                });
+            }
+            if (item.actionValue === 'prevPage') {
+                return showPanel(player, panelId, {
+                    ...context,
+                    page: Math.max(1, ((context.page as number) || 1) - 1)
+                });
+            }
+            if (item.actionValue === 'nextPage') {
+                return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
+            }
+
+            if (item.actionValue === 'editMobValue') {
+                const modal = await this.buildModal(player, 'editMobValue', context);
+                if (isDefined(modal)) {
+                    const res = await modal.show(player);
+                    return this.handleResponse(player, 'editMobValue', res, context);
                 }
+            }
+
+            if (item.actionValue === 'deleteMobDrop') {
+                const mobId = context.selectedItemId as string;
+                await showConfirmationDialog(player, {
+                    title: 'Delete Drop?',
+                    body: `Remove reward for ${mobId}?`,
+                    confirmButtonText: '§cDelete',
+                    cancelButtonText: 'Cancel',
+                    onConfirm: () => {
+                        const config = getEconomyConfig();
+                        delete config.mobMoney[mobId];
+                        saveEconomyConfig(config);
+                        player.sendMessage(`§2Removed ${mobId}`);
+                        return showPanel(player, 'mobDropsSystemPanel', context);
+                    },
+                    onCancel: () => showPanel(player, 'editMobDropPanel', context)
+                });
+                return;
             }
         }
     }
