@@ -13,95 +13,90 @@ export async function showVoteMenu(player: mc.Player) {
     const rank = getPlayerRank(player, config);
     const isAdmin = rank.permissionLevel <= 1;
 
-    if (isDefined(activeVote)) {
-        // Show Vote UI
-        const hasVoted = activeVote.votedPlayerIds.includes(player.id);
-        let body = `§e${activeVote.question}\n§7Created by ${activeVote.creatorName}`;
+    await (isDefined(activeVote) ? handleActiveVote(player, activeVote, isAdmin) : handleNoActiveVote(player, isAdmin));
+}
 
-        if (hasVoted) {
-            body += `\n\n§aYou have already voted.`;
-            // Show results preview? Or just "Close"
-            // Let's show current standings
-            let results = '\n§lCurrent Standings:§r\n';
-            for (const opt of activeVote.options) {
-                results += `${opt.text}: ${opt.count}\n`;
-            }
-            body += results;
+async function handleActiveVote(player: mc.Player, activeVote: ReturnType<typeof getActiveVote>, isAdmin: boolean) {
+    if (!activeVote) return; // Should be handled by caller check
+
+    const hasVoted = activeVote.votedPlayerIds.includes(player.id);
+    let body = `§e${activeVote.question}\n§7Created by ${activeVote.creatorName}`;
+
+    if (hasVoted) {
+        body += `\n\n§aYou have already voted.`;
+        let results = '\n§lCurrent Standings:§r\n';
+        for (const opt of activeVote.options) {
+            results += `${opt.text}: ${opt.count}\n`;
         }
+        body += results;
+    }
 
-        const form = new ActionFormData().title('Current Vote').body(body);
+    const form = new ActionFormData().title('Current Vote').body(body);
 
-        if (hasVoted) {
-            form.button('§cClose');
-        } else {
-            for (const opt of activeVote.options) {
-                form.button(opt.text);
-            }
+    if (hasVoted) {
+        form.button('§cClose');
+    } else {
+        for (const opt of activeVote.options) {
+            form.button(opt.text);
         }
+    }
 
-        if (isAdmin) {
-            form.button('§4End Vote Early');
-        }
+    if (isAdmin) {
+        form.button('§4End Vote Early');
+    }
 
-        const response = await uiWait(player, form);
-        if (!isDefined(response) || response.canceled) return;
-        const actionResponse = response as ActionFormResponse;
-        if (!isDefined(actionResponse.selection)) return;
+    const response = await uiWait(player, form);
+    if (!isDefined(response) || response.canceled) return;
+    const actionResponse = response as ActionFormResponse;
+    if (!isDefined(actionResponse.selection)) return;
 
-        if (hasVoted) {
-            if (isAdmin && actionResponse.selection === 1) {
-                // 0 is Close, 1 is End (if added)
-                endVote();
-                player.sendMessage('§cVote ended manually.');
-            }
-            return;
-        }
-
-        // Voting logic
-        // If isAdmin, the "End Vote" button is the LAST button.
-        // options.length buttons.
-        // indices 0 to length-1 are options.
-        // index length is "End Vote".
-
-        const selection = actionResponse.selection;
-        if (isAdmin && selection === activeVote.options.length) {
+    if (hasVoted) {
+        if (isAdmin && actionResponse.selection === 1) {
             endVote();
             player.sendMessage('§cVote ended manually.');
-            return;
         }
+        return;
+    }
 
-        if (selection < activeVote.options.length) {
-            const selectedOption = activeVote.options[selection];
-            if (isDefined(selectedOption)) {
-                const res = castVote(player, selectedOption.id);
-                player.sendMessage(res.message);
-            }
+    const selection = actionResponse.selection;
+    if (isAdmin && selection === activeVote.options.length) {
+        endVote();
+        player.sendMessage('§cVote ended manually.');
+        return;
+    }
+
+    if (selection < activeVote.options.length) {
+        const selectedOption = activeVote.options[selection];
+        if (isDefined(selectedOption)) {
+            const res = castVote(player, selectedOption.id);
+            player.sendMessage(res.message);
         }
+    }
+}
+
+async function handleNoActiveVote(player: mc.Player, isAdmin: boolean) {
+    const lastVote = getLastVote();
+    let body = 'There is currently no active vote.';
+
+    if (isDefined(lastVote)) {
+        body += `\n\n§7Last Vote: ${lastVote.question}\nStatus: Ended`;
+    }
+
+    const form = new ActionFormData().title('Voting').body(body);
+
+    if (isAdmin) {
+        form.button('§aCreate New Vote');
     } else {
-        // No active vote
-        const lastVote = getLastVote();
-        let body = 'There is currently no active vote.';
+        form.button('§cClose');
+    }
 
-        if (isDefined(lastVote)) {
-            body += `\n\n§7Last Vote: ${lastVote.question}\nStatus: Ended`;
-        }
+    const response = await uiWait(player, form);
+    if (!isDefined(response) || response.canceled) return;
+    const actionResponse = response as ActionFormResponse;
+    if (!isDefined(actionResponse.selection)) return;
 
-        const form = new ActionFormData().title('Voting').body(body);
-
-        if (isAdmin) {
-            form.button('§aCreate New Vote');
-        } else {
-            form.button('§cClose');
-        }
-
-        const response = await uiWait(player, form);
-        if (!isDefined(response) || response.canceled) return;
-        const actionResponse = response as ActionFormResponse;
-        if (!isDefined(actionResponse.selection)) return;
-
-        if (isAdmin && actionResponse.selection === 0) {
-            await showCreateVoteUI(player);
-        }
+    if (isAdmin && actionResponse.selection === 0) {
+        await showCreateVoteUI(player);
     }
 }
 

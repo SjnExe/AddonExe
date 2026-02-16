@@ -118,6 +118,7 @@ export interface ShopItem {
 export interface MainConfig {
     shop: ShopConfig;
     kits: { enabled: boolean };
+    chat: { enabled: boolean; allowMentions: boolean };
     modules?: {
         bounties?: {
             announce?: boolean;

@@ -276,29 +276,7 @@ export function deleteSubCategory(categoryName: string, subCategoryName: string)
     return { success: true, message: `Successfully deleted subcategory '${subCategoryName}'.` };
 }
 
-/**
- * Adds an item from a player's hand to the shop.
- * Generates a unique ID and adds it to both the master item config and the shop config.
- * @param itemStack The item stack from the player's hand.
- * @param categoryName The category to add the item to.
- * @param subCategoryName The subcategory to add the item to (optional).
- * @param buyPrice The buying price of the item.
- * @param sellPrice The selling price of the item.
- * @returns The result of the operation.
- */
-
-export function addShopItemFromHand(
-    itemStack: mc.ItemStack,
-    categoryName: string,
-    subCategoryName: string | undefined,
-    buyPrice: number,
-    sellPrice: number
-): ActionResult {
-    if (!isDefined(itemStack)) {
-        return { success: false, message: "You aren't holding anything." };
-    }
-
-    // 1. Generate a truly unique ID by checking both the base config and the live shop config.
+function generateUniqueItemId(baseId: string): string {
     const allExistingIds = new Set(Object.keys(items));
     const shopConfig = getShopConfig();
     if (isDefined(shopConfig) && isDefined(shopConfig.categories)) {
@@ -320,15 +298,16 @@ export function addShopItemFromHand(
         }
     }
 
-    const baseId = itemStack.typeId.replace('minecraft:', '');
     let i = 1;
     let newId = `${baseId}_${i}`;
     while (allExistingIds.has(newId)) {
         i++;
         newId = `${baseId}_${i}`;
     }
+    return newId;
+}
 
-    // 2. Determine the best icon and display name
+function resolveItemMetadata(itemStack: mc.ItemStack): { icon: string; displayName: string } {
     let displayName = itemStack.nameTag;
     let icon;
 
@@ -339,18 +318,43 @@ export function addShopItemFromHand(
     if (isDefined(existingItem)) {
         icon = existingItem.icon;
         displayName = isNonEmptyString(displayName) ? displayName : existingItem.displayName;
-        debugLog(`[ShopAdminManager] Found existing item for ${itemStack.typeId} in master config.`);
     }
 
     // Priority 2: Use auto-resolution for icon
     if (!isNonEmptyString(icon)) {
         icon = resolveIcon(itemStack.typeId);
-        debugLog(`[ShopAdminManager] Resolved icon for ${itemStack.typeId}: ${icon}`);
     }
     if (!isNonEmptyString(displayName)) {
         displayName = generateDisplayName(itemStack.typeId);
-        debugLog(`[ShopAdminManager] Generated display name for ${itemStack.typeId}.`);
     }
+
+    return { icon: icon || '', displayName: displayName || '' };
+}
+
+/**
+ * Adds an item from a player's hand to the shop.
+ * Generates a unique ID and adds it to both the master item config and the shop config.
+ * @param itemStack The item stack from the player's hand.
+ * @param categoryName The category to add the item to.
+ * @param subCategoryName The subcategory to add the item to (optional).
+ * @param buyPrice The buying price of the item.
+ * @param sellPrice The selling price of the item.
+ * @returns The result of the operation.
+ */
+export function addShopItemFromHand(
+    itemStack: mc.ItemStack,
+    categoryName: string,
+    subCategoryName: string | undefined,
+    buyPrice: number,
+    sellPrice: number
+): ActionResult {
+    if (!isDefined(itemStack)) {
+        return { success: false, message: "You aren't holding anything." };
+    }
+
+    const baseId = itemStack.typeId.replace('minecraft:', '');
+    const newId = generateUniqueItemId(baseId);
+    const { icon, displayName } = resolveItemMetadata(itemStack);
 
     // 3. Add to master item list (in memory)
     const newItemConfig = {

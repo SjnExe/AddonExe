@@ -44,8 +44,8 @@ function parseVersion(versionString) {
     if (!versionString) return [0, 0, 1];
     const parts = versionString.split('.').map(Number);
     if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) {
-         console.warn(`Invalid version format: ${versionString}. Defaulting to 0.0.1`);
-         return [0, 0, 1];
+        console.warn(`Invalid version format: ${versionString}. Defaulting to 0.0.1`);
+        return [0, 0, 1];
     }
     return parts;
 }
@@ -140,7 +140,7 @@ async function generateManifests() {
             description: `§aThe core behavior pack for ${CONFIG.name}. Version §uv${versionString}§r`,
             uuid: UUIDS.bp.header,
             version: versionParts,
-            min_engine_version: CONFIG.minEngineVersion,
+            min_engine_version: CONFIG.minEngineVersion
         },
         modules: [
             {
@@ -168,7 +168,7 @@ async function generateManifests() {
             description: `§bThe resource pack for ${CONFIG.name}. Version §uv${versionString}§r`,
             uuid: UUIDS.rp.header,
             version: versionParts,
-            min_engine_version: CONFIG.minEngineVersion,
+            min_engine_version: CONFIG.minEngineVersion
         },
         modules: [
             {

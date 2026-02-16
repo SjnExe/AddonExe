@@ -36,10 +36,10 @@ const rankCommand: CustomCommand = {
         }
 
         if (targetPlayer) {
-             // Logic to use targetPlayer...
-             sendMessage(`Found player: ${targetPlayer.name}`, executor);
+            // Logic to use targetPlayer...
+            sendMessage(`Found player: ${targetPlayer.name}`, executor);
         } else {
-             sendMessage('§cPlayer not found.', executor);
+            sendMessage('§cPlayer not found.', executor);
         }
     }
 };

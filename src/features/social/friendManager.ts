@@ -5,6 +5,7 @@ import { getPlayerFromCache } from '@core/playerCache.js';
 import {
     getOrCreatePlayer,
     getPlayer,
+    getPlayerNameById,
     getVisiblePlayers,
     updatePlayerData
 } from '@core/playerDataManager.js';
@@ -148,6 +149,15 @@ export function removeFriend(player: mc.Player, friendId: string): { success: bo
     return { success: true, message: '§aFriend removed.' };
 }
 
+export function listFriends(player: mc.Player): string {
+    const pData = getPlayer(player.id);
+    if (!isDefined(pData) || !isDefined(pData.friends) || pData.friends.length === 0) {
+        return '§cYou have no friends.';
+    }
+    const names = pData.friends.map((fid) => getPlayerNameById(fid) ?? fid);
+    return `§aFriends: §r${names.join(', ')}`;
+}
+
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function inviteFriendToGame(player: mc.Player, _gameId: string) {
     const pData = getOrCreatePlayer(player);
@@ -167,7 +177,6 @@ export async function inviteFriendToGame(player: mc.Player, _gameId: string) {
 
     if (onlineFriends.length === 0) {
         player.sendMessage('§cNone of your friends are online.');
-        return;
     }
 
     // Show UI to pick friend

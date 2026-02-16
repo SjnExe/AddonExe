@@ -5,6 +5,8 @@ import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 import { IGame } from '../types.js';
 
+type RPSMove = 'rock' | 'paper' | 'scissors';
+
 interface Match {
     p1Id: string;
     p1Name: string;
@@ -12,9 +14,9 @@ interface Match {
     p2Name: string;
     isAI: boolean;
     state: 'waiting' | 'done';
-    p1Move?: 'rock' | 'paper' | 'scissors';
-    p2Move?: 'rock' | 'paper' | 'scissors';
-    winner?: string | 'Draw';
+    p1Move?: RPSMove;
+    p2Move?: RPSMove;
+    winner?: string;
 }
 
 export class RockPaperScissorsGame implements IGame {
@@ -77,7 +79,7 @@ export class RockPaperScissorsGame implements IGame {
                     .button('Refresh');
 
                 const res = await uiWait(player, form);
-                if (res && !res.canceled) {
+                if (!res.canceled) {
                     void this.openUI(player);
                 }
                 return;
@@ -91,17 +93,17 @@ export class RockPaperScissorsGame implements IGame {
                 .button('Scissors', 'textures/items/shears');
 
             const res = await uiWait(player, form);
-            if (!isDefined(res) || res.canceled) return;
+            if (res.canceled) return;
             const response = res as ActionFormResponse;
 
             const moves = ['rock', 'paper', 'scissors'] as const;
             if (isDefined(response.selection)) {
-                const move = moves[response.selection];
+                const move = moves[response.selection] as RPSMove;
                 if (isP1) match.p1Move = move;
                 else match.p2Move = move;
 
                 if (match.isAI) {
-                    match.p2Move = moves[Math.floor(Math.random() * 3)];
+                    match.p2Move = moves[Math.floor(Math.random() * 3)] as RPSMove;
                 }
 
                 this.checkMatchState(match);
@@ -109,16 +111,16 @@ export class RockPaperScissorsGame implements IGame {
             }
         } else {
             // Game Over
-            const winnerText =
-                match.winner === 'Draw'
-                    ? "It's a Draw!"
-                    : match.winner === player.id
-                      ? '§aYou Won!'
-                      : '§cYou Lost!';
+            let winnerText: string;
+            if (match.winner === 'Draw') {
+                winnerText = "It's a Draw!";
+            } else if (match.winner === player.id) {
+                winnerText = '§aYou Won!';
+            } else {
+                winnerText = '§cYou Lost!';
+            }
 
-            const oppMoveText = oppMove
-                ? oppMove.charAt(0).toUpperCase() + oppMove.slice(1)
-                : 'Unknown';
+            const oppMoveText = oppMove ? oppMove.charAt(0).toUpperCase() + oppMove.slice(1) : 'Unknown';
 
             const form = new ActionFormData()
                 .title('Game Over')
@@ -147,7 +149,7 @@ export class RockPaperScissorsGame implements IGame {
         }
     }
 
-    private determineWinner(match: Match): string | 'Draw' {
+    private determineWinner(match: Match): string {
         const { p1Move, p2Move } = match;
         if (p1Move === p2Move) return 'Draw';
 

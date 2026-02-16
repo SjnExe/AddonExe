@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { getTeamConfig } from '@core/configurations.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import {
@@ -14,7 +15,6 @@ import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 import { TeamPanelHandler } from './ui/teamPanel.js';
-import { getTeamConfig } from '@core/configurations.js';
 
 const teamPropertyPrefix = 'exe:team.';
 const nextTeamIdKey = 'exe:nextTeamId';

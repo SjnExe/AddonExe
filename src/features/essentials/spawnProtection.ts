@@ -2,8 +2,8 @@ import * as mc from '@minecraft/server';
 
 import { getSpawnConfig } from '@core/configurations.js';
 import { debugLog } from '@core/logger.js';
-import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
+import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 
 let intervalId: number | undefined;
@@ -43,9 +43,9 @@ export function initializeSpawnProtection() {
                     const pData = getOrCreatePlayer(player);
                     // Level > 2 implies not staff (Owner=0, Admin=1, Mod=2, Member=1024)
                     if (pData.permissionLevel > 2 && player.getGameMode() === mc.GameMode.Survival) {
-                            player.setGameMode(mc.GameMode.Adventure);
-                            player.sendMessage('§eEntered spawn. Gamemode set to Adventure.');
-                        }
+                        player.setGameMode(mc.GameMode.Adventure);
+                        player.sendMessage('§eEntered spawn. Gamemode set to Adventure.');
+                    }
                 } catch (error) {
                     debugLog(`Spawn protection error for ${player.name}: ${String(error)}`);
                 }

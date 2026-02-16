@@ -22,10 +22,6 @@ export class RankPanelHandler implements IPanelHandler {
 
         if (panelId === 'rankManagementPanel') {
             addBackButton(items, 'configCategoryPanel');
-            // Static items (Create, Settings) are already in panelRegistry.ts,
-            // but we need to list the dynamic ranks.
-            // Wait, panelBuilder combines static and dynamic.
-            // We just return dynamic here.
 
             items.push(
                 {
@@ -116,112 +112,131 @@ export class RankPanelHandler implements IPanelHandler {
         context: UIContext
     ): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
-        const values = (response as ModalFormResponse).formValues;
 
         if (panelId === 'addRankPanel') {
-            if ((response as ModalFormResponse).canceled) return showPanel(player, 'rankManagementPanel');
-            const rawValues = (values as (string | undefined)[]) ?? [];
-            const [id, name, permStr, prefix, nameColor, messageColor] = rawValues;
-
-            if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isNonEmptyString(permStr)) {
-                player.sendMessage('§cInvalid input.');
-                return showPanel(player, 'rankManagementPanel');
-            }
-
-            const config = getRanksConfig();
-            if (config.rankDefinitions.some((r) => r.id === id)) {
-                player.sendMessage('§cRank ID already exists.');
-                return showPanel(player, 'rankManagementPanel');
-            }
-
-            const newRank: RankDefinition = {
-                id: id,
-                name: name,
-                permissionLevel: Number.parseInt(permStr) || 1024,
-                chatFormatting: {
-                    prefixText: prefix ?? '',
-                    nameColor: nameColor ?? '§r',
-                    messageColor: messageColor ?? '§r'
-                },
-                conditions: [],
-                locked: false
-            } satisfies RankDefinition;
-
-            const newConfig = { ...config };
-            newConfig.rankDefinitions.push(newRank);
-            saveRanksConfig(newConfig);
-
-            player.sendMessage(`§aRank ${name} created.`);
-            return showPanel(player, 'rankManagementPanel');
+            await this.handleAddRankResponse(player, response as ModalFormResponse);
+            return;
         }
 
         if (panelId === 'editRankPanel') {
-            if ((response as ModalFormResponse).canceled) return showPanel(player, 'rankManagementPanel');
-            const rankId = context.id as string;
-            const rawValues = (values as (string | boolean | undefined)[]) ?? [];
-            const name = rawValues[0] as string | undefined;
-            const permStr = rawValues[1] as string | undefined;
-            const prefix = rawValues[2] as string | undefined;
-            const nameColor = rawValues[3] as string | undefined;
-            const messageColor = rawValues[4] as string | undefined;
-            const locked = rawValues[5] as boolean | undefined;
-
-            const config = getRanksConfig();
-            const rankIndex = config.rankDefinitions.findIndex((r) => r.id === rankId);
-
-            if (rankIndex === -1) {
-                player.sendMessage('§cRank not found.');
-                return showPanel(player, 'rankManagementPanel');
-            }
-
-            // Cannot edit locked ranks fully?
-            // We allow editing logic, but maybe not deletion if locked.
-
-            const existingRank = config.rankDefinitions[rankIndex];
-            if (!isDefined(existingRank)) return showPanel(player, 'rankManagementPanel');
-
-            const updatedRank: RankDefinition = {
-                ...existingRank,
-                name: isNonEmptyString(name) ? name : existingRank.name,
-                permissionLevel: isNonEmptyString(permStr)
-                    ? Number.parseInt(permStr) || 1024
-                    : existingRank.permissionLevel,
-                chatFormatting: {
-                    prefixText: isNonEmptyString(prefix) ? prefix : (existingRank.chatFormatting?.prefixText ?? ''),
-                    nameColor: isNonEmptyString(nameColor)
-                        ? nameColor
-                        : (existingRank.chatFormatting?.nameColor ?? '§r'),
-                    messageColor: isNonEmptyString(messageColor)
-                        ? messageColor
-                        : (existingRank.chatFormatting?.messageColor ?? '§r')
-                },
-                locked: (locked ?? existingRank.locked) === true
-            };
-
-            const newConfig = { ...config };
-            newConfig.rankDefinitions[rankIndex] = updatedRank;
-            saveRanksConfig(newConfig);
-
-            player.sendMessage(`§aRank ${name} updated.`);
-            return showPanel(player, 'rankManagementPanel');
+            await this.handleEditRankResponse(player, response as ModalFormResponse, context);
+            return;
         }
 
         if (typeof selection === 'number') {
-            const items = await this.getItems(player, panelId, context);
-            if (selection >= 0 && selection < items.length) {
-                const item = items[selection];
-                if (!isDefined(item)) return;
+            await this.handleSelection(player, panelId, selection, context);
+        }
+    }
 
-                if (item.actionType === 'openPanel') {
-                    return showPanel(player, item.actionValue, {
-                        ...context,
-                        id: item.id,
-                        selectedItemId: item.id
-                    });
-                }
+    private async handleAddRankResponse(player: mc.Player, response: ModalFormResponse): Promise<void> {
+        const values = response.formValues;
+        if (response.canceled) return showPanel(player, 'rankManagementPanel');
+        const rawValues = (values as (string | undefined)[]) ?? [];
+        const [id, name, permStr, prefix, nameColor, messageColor] = rawValues;
 
-                await handleUIAction(player, item.actionValue, context);
+        if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isNonEmptyString(permStr)) {
+            player.sendMessage('§cInvalid input.');
+            return showPanel(player, 'rankManagementPanel');
+        }
+
+        const config = getRanksConfig();
+        if (config.rankDefinitions.some((r) => r.id === id)) {
+            player.sendMessage('§cRank ID already exists.');
+            return showPanel(player, 'rankManagementPanel');
+        }
+
+        const newRank: RankDefinition = {
+            id: id,
+            name: name,
+            permissionLevel: Number.parseInt(permStr) || 1024,
+            chatFormatting: {
+                prefixText: prefix ?? '',
+                nameColor: nameColor ?? '§r',
+                messageColor: messageColor ?? '§r'
+            },
+            conditions: [],
+            locked: false
+        } satisfies RankDefinition;
+
+        const newConfig = { ...config };
+        newConfig.rankDefinitions.push(newRank);
+        saveRanksConfig(newConfig);
+
+        player.sendMessage(`§aRank ${name} created.`);
+        return showPanel(player, 'rankManagementPanel');
+    }
+
+    private async handleEditRankResponse(
+        player: mc.Player,
+        response: ModalFormResponse,
+        context: UIContext
+    ): Promise<void> {
+        const values = response.formValues;
+        if (response.canceled) return showPanel(player, 'rankManagementPanel');
+        const rankId = context.id as string;
+        const rawValues = (values as (string | boolean | undefined)[]) ?? [];
+        const name = rawValues[0] as string | undefined;
+        const permStr = rawValues[1] as string | undefined;
+        const prefix = rawValues[2] as string | undefined;
+        const nameColor = rawValues[3] as string | undefined;
+        const messageColor = rawValues[4] as string | undefined;
+        const locked = rawValues[5] as boolean | undefined;
+
+        const config = getRanksConfig();
+        const rankIndex = config.rankDefinitions.findIndex((r) => r.id === rankId);
+
+        if (rankIndex === -1) {
+            player.sendMessage('§cRank not found.');
+            return showPanel(player, 'rankManagementPanel');
+        }
+
+        const existingRank = config.rankDefinitions[rankIndex];
+        if (!isDefined(existingRank)) return showPanel(player, 'rankManagementPanel');
+
+        const updatedRank: RankDefinition = {
+            ...existingRank,
+            name: isNonEmptyString(name) ? name : existingRank.name,
+            permissionLevel: isNonEmptyString(permStr)
+                ? Number.parseInt(permStr) || 1024
+                : existingRank.permissionLevel,
+            chatFormatting: {
+                prefixText: isNonEmptyString(prefix) ? prefix : (existingRank.chatFormatting?.prefixText ?? ''),
+                nameColor: isNonEmptyString(nameColor) ? nameColor : (existingRank.chatFormatting?.nameColor ?? '§r'),
+                messageColor: isNonEmptyString(messageColor)
+                    ? messageColor
+                    : (existingRank.chatFormatting?.messageColor ?? '§r')
+            },
+            locked: (locked ?? existingRank.locked) === true
+        };
+
+        const newConfig = { ...config };
+        newConfig.rankDefinitions[rankIndex] = updatedRank;
+        saveRanksConfig(newConfig);
+
+        player.sendMessage(`§aRank ${name} updated.`);
+        return showPanel(player, 'rankManagementPanel');
+    }
+
+    private async handleSelection(
+        player: mc.Player,
+        panelId: string,
+        selection: number,
+        context: UIContext
+    ): Promise<void> {
+        const items = await this.getItems(player, panelId, context);
+        if (selection >= 0 && selection < items.length) {
+            const item = items[selection];
+            if (!isDefined(item)) return;
+
+            if (item.actionType === 'openPanel') {
+                return showPanel(player, item.actionValue, {
+                    ...context,
+                    id: item.id,
+                    selectedItemId: item.id
+                });
             }
+
+            await handleUIAction(player, item.actionValue, context);
         }
     }
 }

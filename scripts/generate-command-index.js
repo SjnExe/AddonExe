@@ -14,9 +14,7 @@ const EXCLUSIONS = new Set(['index.ts']);
 async function getCommandFiles(dir) {
     try {
         const entries = await fs.readdir(dir);
-        return entries
-            .filter((file) => file.endsWith('.ts') && !EXCLUSIONS.has(file))
-            .map((file) => file);
+        return entries.filter((file) => file.endsWith('.ts') && !EXCLUSIONS.has(file)).map((file) => file);
     } catch {
         return [];
     }
@@ -73,9 +71,7 @@ async function generate() {
 
     console.log(`Found ${commandList.length} command files.`);
 
-    const imports = commandList
-        .map((cmd) => `import ${cmd.varName} from '${cmd.importPath}';`)
-        .join('\n');
+    const imports = commandList.map((cmd) => `import ${cmd.varName} from '${cmd.importPath}';`).join('\n');
 
     const list = commandList.map((cmd) => cmd.varName).join(',\n    ');
 

@@ -37,6 +37,91 @@ const rtpCommand: CustomCommand = {
     }
 };
 
+async function createTickingArea(dimension: mc.Dimension, name: string, x: number, z: number): Promise<void> {
+    try {
+        dimension.runCommand(`tickingarea add circle ${x} 0 ${z} 1 ${name}`);
+        // Allow time for command to register
+        await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 60));
+    } catch {
+        // Ignore error
+    }
+}
+
+async function ensureChunkLoaded(dimension: mc.Dimension, x: number, z: number): Promise<boolean> {
+    let chunkLoaded = false;
+    let waitAttempts = 0;
+    const maxWaitAttempts = 10;
+
+    while (!chunkLoaded && waitAttempts < maxWaitAttempts) {
+        try {
+            dimension.getBlock({ x, y: 300, z });
+            chunkLoaded = true;
+        } catch {
+            waitAttempts++;
+            await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 10));
+        }
+    }
+    return chunkLoaded;
+}
+
+function initiateTeleport(player: mc.Player, location: mc.Vector3, tickingAreaName: string, warmupSeconds: number) {
+    const teleportLogic = () => {
+        try {
+            saveLastLocation(player);
+            player.teleport(location);
+            sendMessage('§aYou have been teleported to a random location!', player);
+            setCooldown(player, 'rtp');
+        } catch (error: unknown) {
+            const stack = error instanceof Error ? error.stack : String(error);
+            sendMessage('§cFailed to teleport to the location. Please try again.', player);
+            errorLog(`[/rtp] Failed to teleport: ${stack}`);
+        }
+    };
+
+    sendMessage(`§aSafe location found! Please do not move. Teleportation sequence will begin in 5 seconds.`, player);
+
+    mc.system.runTimeout(() => {
+        if (!player.isValid) {
+            safeRemoveTickingArea(player.dimension, tickingAreaName);
+            return;
+        }
+        startTeleportWarmup(
+            player,
+            warmupSeconds,
+            () => {
+                teleportLogic();
+                safeRemoveTickingArea(player.dimension, tickingAreaName);
+            },
+            'a random location',
+            () => {
+                safeRemoveTickingArea(player.dimension, tickingAreaName);
+            }
+        );
+    }, 100);
+}
+
+function findSafeSpotInArea(
+    dimension: mc.Dimension,
+    centerX: number,
+    centerZ: number,
+    radius: number
+): mc.Vector3 | undefined {
+    const locationAttempts = 5;
+    for (let j = 0; j < locationAttempts; j++) {
+        const x = centerX + Math.floor(Math.random() * (radius * 2) - radius);
+        const z = centerZ + Math.floor(Math.random() * (radius * 2) - radius);
+        const y = findHighestSolidBlock(dimension, x, z);
+
+        if (y !== undefined) {
+            const potentialLoc = { x: x + 0.5, y: y + 1, z: z + 0.5 };
+            if (isLocationSafe(dimension, potentialLoc)) {
+                return potentialLoc;
+            }
+        }
+    }
+    return undefined;
+}
+
 async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, maxRange: number) {
     sendMessage('§aSearching for a safe random location...', player);
     const searchAttempts = 10;
@@ -54,24 +139,9 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
         let keepTickingArea = false;
 
         try {
-            player.dimension.runCommand(`tickingarea add circle ${centerX} 0 ${centerZ} 1 ${tickingAreaName}`);
+            await createTickingArea(player.dimension, tickingAreaName, centerX, centerZ);
 
-            let chunkLoaded = false;
-            let waitAttempts = 0;
-            const maxWaitAttempts = 10;
-
-            await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 60));
-
-            while (!chunkLoaded && waitAttempts < maxWaitAttempts) {
-                try {
-                    player.dimension.getBlock({ x: centerX, y: 300, z: centerZ });
-                    chunkLoaded = true;
-                } catch {
-                    waitAttempts++;
-                    await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 10));
-                }
-            }
-
+            const chunkLoaded = await ensureChunkLoaded(player.dimension, centerX, centerZ);
             if (!chunkLoaded) {
                 safeRemoveTickingArea(player.dimension, tickingAreaName);
                 continue;
@@ -79,58 +149,13 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
 
             sendMessage(`§7Searching... Attempt ${i + 1}/${searchAttempts}`, player);
 
-            const locationAttempts = 5;
-            for (let j = 0; j < locationAttempts; j++) {
-                const x = centerX + Math.floor(Math.random() * (searchRadius * 2) - searchRadius);
-                const z = centerZ + Math.floor(Math.random() * (searchRadius * 2) - searchRadius);
-                const y = findHighestSolidBlock(player.dimension, x, z);
+            const safeLoc = findSafeSpotInArea(player.dimension, centerX, centerZ, searchRadius);
 
-                if (y !== undefined) {
-                    const potentialLoc = { x: x + 0.5, y: y + 1, z: z + 0.5 };
-                    if (isLocationSafe(player.dimension, potentialLoc)) {
-                        const warmupSeconds = getConfig().rtp.teleportWarmupSeconds;
-
-                        const teleportLogic = () => {
-                            try {
-                                saveLastLocation(player);
-                                player.teleport(potentialLoc);
-                                sendMessage('§aYou have been teleported to a random location!', player);
-                                setCooldown(player, 'rtp');
-                            } catch (error: unknown) {
-                                const stack = error instanceof Error ? error.stack : String(error);
-                                sendMessage('§cFailed to teleport to the location. Please try again.', player);
-                                errorLog(`[/rtp] Failed to teleport: ${stack}`);
-                            }
-                        };
-
-                        sendMessage(
-                            `§aSafe location found! Please do not move. Teleportation sequence will begin in 5 seconds.`,
-                            player
-                        );
-
-                        mc.system.runTimeout(() => {
-                            if (!player.isValid) {
-                                safeRemoveTickingArea(player.dimension, tickingAreaName);
-                                return;
-                            }
-                            startTeleportWarmup(
-                                player,
-                                warmupSeconds,
-                                () => {
-                                    teleportLogic();
-                                    safeRemoveTickingArea(player.dimension, tickingAreaName);
-                                },
-                                'a random location',
-                                () => {
-                                    safeRemoveTickingArea(player.dimension, tickingAreaName);
-                                }
-                            );
-                        }, 100);
-
-                        keepTickingArea = true;
-                        return;
-                    }
-                }
+            if (safeLoc) {
+                const warmupSeconds = getConfig().rtp.teleportWarmupSeconds;
+                initiateTeleport(player, safeLoc, tickingAreaName, warmupSeconds);
+                keepTickingArea = true;
+                return;
             }
         } catch (error: unknown) {
             debugLog(`[RTP] Search attempt ${i + 1} error: ${String(error)}`);

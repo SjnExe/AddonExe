@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { errorLog } from '@core/logger.js';
+import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { isDefined } from '@lib/guards.js';
 
 import { AnticheatConfig, getAnticheatConfig } from './anticheatConfigLoader.js';

@@ -204,141 +204,179 @@ export class KitPanelHandler implements IPanelHandler {
         context: UIContext
     ): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
-        const values = (response as ModalFormResponse).formValues;
 
         if (typeof selection === 'number') {
-            const items = await this.getItems(player, panelId, context);
-            if (selection >= 0 && selection < items.length) {
-                const item = items[selection];
-                if (!item) return;
-
-                if (item.actionType === 'openPanel') {
-                    return showPanel(player, item.actionValue, {
-                        ...context,
-                        page: 1,
-                        selectedItemId: item.id,
-                        id: item.id
-                    });
-                }
-                if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, {
-                        ...context,
-                        page: Math.max(1, (context.page as number) || 1) - 1
-                    });
-                }
-                if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
-                }
-
-                if (item.actionValue === 'toggleKits') {
-                    const config = getConfig();
-                    const newStatus = !config.kits.enabled;
-                    updateMultipleConfig({ 'kits.enabled': newStatus });
-                    player.sendMessage(`§2Kit system ${newStatus ? 'enabled' : 'disabled'}.`);
-                    return showPanel(player, panelId, context);
-                }
-
-                if (item.actionValue === 'createKit') {
-                    const form = new ModalFormData().title('Create Kit').textField('Kit Name', 'Enter unique name');
-                    const res = await form.show(player);
-                    if (!res.canceled && res.formValues) {
-                        const name = res.formValues[0] as string;
-                        if (name) {
-                            kitAdminManager.createKit(name);
-                            player.sendMessage('§2Kit created.');
-                        }
-                    }
-                    return showPanel(player, panelId, context);
-                }
-
-                if (item.actionValue === 'deleteKit') {
-                    const kitName = panelId.replace('kitActionMenu_', '');
-                    kitAdminManager.deleteKit(kitName);
-                    player.sendMessage('§2Kit deleted.');
-                    return showPanel(player, 'kitManagementPanel', context);
-                }
-
-                if (item.actionValue === 'addKitItemHand') {
-                    const kitName = panelId.replace('kitItemsPanel_', '');
-                    const result = kitItemsManager.addItemFromHandToKit(kitName, player);
-                    player.sendMessage(result.message);
-                    return showPanel(player, panelId, context);
-                }
-
-                if (item.actionValue === 'addKitItem') {
-                    const kitName = panelId.replace('kitItemsPanel_', '');
-                    const form = new ModalFormData()
-                        .title('Add Item')
-                        .textField('Item ID', 'minecraft:stone')
-                        .textField('Amount', '1', { defaultValue: '1' });
-                    const res = await form.show(player);
-                    if (!res.canceled && res.formValues) {
-                        const [typeId, amountStr] = res.formValues as [string, string];
-                        const amount = Number.parseInt(amountStr);
-                        if (typeId && !Number.isNaN(amount)) {
-                            const result = kitItemsManager.addItemToKit(kitName, { typeId, amount });
-                            player.sendMessage(result.message);
-                        }
-                    }
-                    return showPanel(player, panelId, context);
-                }
-
-                if (item.actionValue === 'manageKitItem') {
-                    const kitName = panelId.replace('kitItemsPanel_', '');
-                    const itemIndex = Number(item.id);
-                    const form = new ActionFormData()
-                        .title('Manage Item')
-                        .button('Delete Item', 'textures/ui/trash')
-                        .button('Cancel', 'textures/ui/cancel');
-                    const res = await form.show(player);
-                    if (!res.canceled && res.selection === 0) {
-                        const result = kitItemsManager.removeItemFromKit(kitName, itemIndex);
-                        player.sendMessage(result.message);
-                    }
-                    return showPanel(player, panelId, context);
-                }
-            }
+            await this.handleSelection(player, panelId, selection, context);
+            return;
         }
 
         // Modal Handling for Settings
         if (panelId.startsWith('kitSettingsPanel_')) {
-            const kitName = panelId.replace('kitSettingsPanel_', '');
-            if ((response as ModalFormResponse).canceled) return showPanel(player, `kitActionMenu_${kitName}`, context);
-
-            if (values) {
-                const [enabled, name, desc, icon, cooldownStr, permStr, priceStr] = values as [
-                    boolean,
-                    string,
-                    string,
-                    string,
-                    string,
-                    string,
-                    string
-                ];
-                const cooldown = Number.parseInt(cooldownStr) || 0;
-                const perm = Number.parseInt(permStr) || 1024;
-                const price = Number.parseInt(priceStr) || 0;
-
-                kitAdminManager.updateKitSettings(kitName, {
-                    enabled,
-                    description: desc,
-                    icon,
-                    cooldownSeconds: cooldown,
-                    permissionLevel: perm,
-                    price
-                });
-
-                if (name !== kitName && name) {
-                    const res = kitAdminManager.renameKit(kitName, name);
-                    player.sendMessage(res.message);
-                    if (res.success) {
-                        return showPanel(player, `kitActionMenu_${name}`, context);
-                    }
-                } else {
-                    player.sendMessage('§2Kit settings updated.');
-                }
-            }
-            return showPanel(player, `kitActionMenu_${kitName}`, context);
+            await this.handleKitSettings(player, panelId, response as ModalFormResponse, context);
         }
+    }
+
+    private async handleSelection(
+        player: mc.Player,
+        panelId: string,
+        selection: number,
+        context: UIContext
+    ): Promise<void> {
+        const items = await this.getItems(player, panelId, context);
+        if (selection >= 0 && selection < items.length) {
+            const item = items[selection];
+            if (!item) return;
+
+            if (item.actionType === 'openPanel') {
+                return showPanel(player, item.actionValue, {
+                    ...context,
+                    page: 1,
+                    selectedItemId: item.id,
+                    id: item.id
+                });
+            }
+            if (item.actionValue === 'prevPage') {
+                return showPanel(player, panelId, {
+                    ...context,
+                    page: Math.max(1, (context.page as number) || 1) - 1
+                });
+            }
+            if (item.actionValue === 'nextPage') {
+                return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
+            }
+
+            if (item.actionValue === 'toggleKits') {
+                const config = getConfig();
+                const newStatus = !config.kits.enabled;
+                updateMultipleConfig({ 'kits.enabled': newStatus });
+                player.sendMessage(`§2Kit system ${newStatus ? 'enabled' : 'disabled'}.`);
+                return showPanel(player, panelId, context);
+            }
+
+            if (item.actionValue === 'createKit') {
+                await this.handleCreateKit(player, panelId, context);
+                return;
+            }
+
+            if (item.actionValue === 'deleteKit') {
+                const kitName = panelId.replace('kitActionMenu_', '');
+                kitAdminManager.deleteKit(kitName);
+                player.sendMessage('§2Kit deleted.');
+                return showPanel(player, 'kitManagementPanel', context);
+            }
+
+            if (item.actionValue === 'addKitItemHand') {
+                const kitName = panelId.replace('kitItemsPanel_', '');
+                const result = kitItemsManager.addItemFromHandToKit(kitName, player);
+                player.sendMessage(result.message);
+                return showPanel(player, panelId, context);
+            }
+
+            if (item.actionValue === 'addKitItem') {
+                await this.handleAddKitItem(player, panelId, context);
+                return;
+            }
+
+            if (item.actionValue === 'manageKitItem') {
+                await this.handleManageKitItem(player, panelId, item.id, context);
+                return;
+            }
+        }
+    }
+
+    private async handleCreateKit(player: mc.Player, panelId: string, context: UIContext): Promise<void> {
+        const form = new ModalFormData().title('Create Kit').textField('Kit Name', 'Enter unique name');
+        const res = await form.show(player);
+        if (!res.canceled && res.formValues) {
+            const name = res.formValues[0] as string;
+            if (name) {
+                kitAdminManager.createKit(name);
+                player.sendMessage('§2Kit created.');
+            }
+        }
+        return showPanel(player, panelId, context);
+    }
+
+    private async handleAddKitItem(player: mc.Player, panelId: string, context: UIContext): Promise<void> {
+        const kitName = panelId.replace('kitItemsPanel_', '');
+        const form = new ModalFormData()
+            .title('Add Item')
+            .textField('Item ID', 'minecraft:stone')
+            .textField('Amount', '1', { defaultValue: '1' });
+        const res = await form.show(player);
+        if (!res.canceled && res.formValues) {
+            const [typeId, amountStr] = res.formValues as [string, string];
+            const amount = Number.parseInt(amountStr);
+            if (typeId && !Number.isNaN(amount)) {
+                const result = kitItemsManager.addItemToKit(kitName, { typeId, amount });
+                player.sendMessage(result.message);
+            }
+        }
+        return showPanel(player, panelId, context);
+    }
+
+    private async handleManageKitItem(
+        player: mc.Player,
+        panelId: string,
+        itemId: string,
+        context: UIContext
+    ): Promise<void> {
+        const kitName = panelId.replace('kitItemsPanel_', '');
+        const itemIndex = Number(itemId);
+        const form = new ActionFormData()
+            .title('Manage Item')
+            .button('Delete Item', 'textures/ui/trash')
+            .button('Cancel', 'textures/ui/cancel');
+        const res = await form.show(player);
+        if (!res.canceled && res.selection === 0) {
+            const result = kitItemsManager.removeItemFromKit(kitName, itemIndex);
+            player.sendMessage(result.message);
+        }
+        return showPanel(player, panelId, context);
+    }
+
+    private async handleKitSettings(
+        player: mc.Player,
+        panelId: string,
+        response: ModalFormResponse,
+        context: UIContext
+    ): Promise<void> {
+        const kitName = panelId.replace('kitSettingsPanel_', '');
+        if (response.canceled) return showPanel(player, `kitActionMenu_${kitName}`, context);
+
+        if (response.formValues) {
+            const [enabled, name, desc, icon, cooldownStr, permStr, priceStr] = response.formValues as [
+                boolean,
+                string,
+                string,
+                string,
+                string,
+                string,
+                string
+            ];
+            const cooldown = Number.parseInt(cooldownStr) || 0;
+            const perm = Number.parseInt(permStr) || 1024;
+            const price = Number.parseInt(priceStr) || 0;
+
+            kitAdminManager.updateKitSettings(kitName, {
+                enabled,
+                description: desc,
+                icon,
+                cooldownSeconds: cooldown,
+                permissionLevel: perm,
+                price
+            });
+
+            if (name !== kitName && name) {
+                const res = kitAdminManager.renameKit(kitName, name);
+                player.sendMessage(res.message);
+                if (res.success) {
+                    return showPanel(player, `kitActionMenu_${name}`, context);
+                }
+            } else {
+                player.sendMessage('§2Kit settings updated.');
+            }
+        }
+        return showPanel(player, `kitActionMenu_${kitName}`, context);
     }
 }
