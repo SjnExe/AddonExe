@@ -28,10 +28,6 @@ jest.unstable_mockModule('../logger.js', () => ({
     infoLog: jest.fn()
 }));
 
-jest.unstable_mockModule('../diagnostics.js', () => ({
-    addSentryBreadcrumb: jest.fn()
-}));
-
 const { commandManager } = await import('../commands/commandManager.js');
 
 describe('CommandManager', () => {

@@ -211,20 +211,3 @@ export class MessageFormData {
         return { selection: 0, canceled: false };
     });
 }
-
-// --- @minecraft/diagnostics Mocks ---
-
-export const sentry = {
-    addBreadcrumb: jest.fn(),
-    addTag: jest.fn(),
-    init: jest.fn(),
-    captureException: jest.fn()
-};
-
-export enum SentryEventLevel {
-    info = 'info',
-    warning = 'warning',
-    error = 'error',
-    fatal = 'fatal',
-    debug = 'debug'
-}

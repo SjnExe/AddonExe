@@ -35,7 +35,6 @@
             "@minecraft/server-ui",
             "@minecraft/server-gametest",
             "@minecraft/debug-utilities",
-            "@minecraft/diagnostics",
             "@minecraft/vanilla-data",
             "@minecraft/math"
         ]

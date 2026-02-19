@@ -2,7 +2,6 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
-import { addSentryBreadcrumb } from '@core/diagnostics.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
 import { findVisiblePlayerByName, getPlayer } from '@core/playerDataManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -235,10 +234,6 @@ class CommandManager {
      */
     private _executeCommand(executor: CommandExecutor, command: CustomCommand, args: Record<string, unknown>) {
         const config = getConfig() as Config;
-
-        const isPlayerCheck = 'id' in executor;
-        const executorName = isPlayerCheck ? executor.name : 'Console';
-        addSentryBreadcrumb(`Executing command '/${command.name}' by ${executorName}`, 'command', 'info');
 
         if (!isDefined(config)) {
             if ('sendMessage' in executor) {
