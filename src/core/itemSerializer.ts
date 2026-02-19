@@ -104,6 +104,7 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
 /**
  * Deserializes a SerializedItem back into an ItemStack.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined {
     try {
         const itemType = mc.ItemTypes.get(data.typeId);

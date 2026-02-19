@@ -332,6 +332,7 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
  * @param lastLoadedRanks The ranks from the config file as of the last load.
  * @returns The merged list of ranks.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function mergeRanks(
     currentUserRanks: Record<string, unknown>[],
     newFileRanks: Record<string, unknown>[],

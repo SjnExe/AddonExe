@@ -20,6 +20,7 @@ import {
 import { handlePvPDeath } from './pvpManager.js';
 import { formatCurrency } from './utils.js';
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     const { deadEntity, damageSource } = event;
     const { damagingEntity } = damageSource;

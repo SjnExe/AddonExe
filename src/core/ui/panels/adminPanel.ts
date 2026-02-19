@@ -142,6 +142,7 @@ export class AdminPanelHandler implements IPanelHandler {
         return Promise.resolve();
     }
 
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     async handleResponse(
         player: mc.Player,
         panelId: string,

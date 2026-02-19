@@ -17,6 +17,7 @@ const rulesCommand: CustomCommand = {
     permissionLevel: 1024,
     allowConsole: true,
     parameters: [{ name: 'ruleNumber', type: 'int', optional: true }],
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     execute: (executor: CommandExecutor, args: RulesCommandArgs) => {
         const config = getConfig();
         const rules = config.serverInfo.rules;
