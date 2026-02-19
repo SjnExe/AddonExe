@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { initializeXrayDetection } from '@features/anticheat/xrayDetection.js';
 import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
-import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
+import { cleanupSpawnProtection, initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import { getConfig, initializeConfigManager } from './configManager.js';
 import {
@@ -126,6 +126,7 @@ export function updateAllPlayerRanks() {
 
 function cleanupAddon() {
     infoLog('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
+    cleanupSpawnProtection();
     cleanupFloatingText();
     cleanupPlayerDataManager();
     sidebarManager.cleanup();

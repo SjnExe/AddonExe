@@ -1,59 +1,84 @@
 import { frozenTag } from '@core/constants.js';
+import { registerEvent } from '@core/events/eventManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 export function initializeFreezeListener() {
     // Block Item Use
-    mc.world.beforeEvents.itemUse.subscribe((event) => {
-        if (event.source.hasTag(frozenTag)) {
-            event.cancel = true;
-        }
-    });
+    registerEvent(
+        mc.world.beforeEvents.itemUse,
+        (event) => {
+            if (event.source.hasTag(frozenTag)) {
+                event.cancel = true;
+            }
+        },
+        'freezeItemUse'
+    );
 
     // Block Block Breaking
-    mc.world.beforeEvents.playerBreakBlock.subscribe((event) => {
-        if (event.player.hasTag(frozenTag)) {
-            event.cancel = true;
-        }
-    });
+    registerEvent(
+        mc.world.beforeEvents.playerBreakBlock,
+        (event) => {
+            if (event.player.hasTag(frozenTag)) {
+                event.cancel = true;
+            }
+        },
+        'freezeBlockBreak'
+    );
 
     // Block Block Placing
-    mc.world.beforeEvents.playerPlaceBlock.subscribe((event) => {
-        if (event.player.hasTag(frozenTag)) {
-            event.cancel = true;
-        }
-    });
+    registerEvent(
+        mc.world.beforeEvents.playerPlaceBlock,
+        (event) => {
+            if (event.player.hasTag(frozenTag)) {
+                event.cancel = true;
+            }
+        },
+        'freezeBlockPlace'
+    );
 
     // Block Interaction with Entities
-    mc.world.beforeEvents.playerInteractWithEntity.subscribe((event) => {
-        if (event.player.hasTag(frozenTag)) {
-            event.cancel = true;
-        }
-    });
+    registerEvent(
+        mc.world.beforeEvents.playerInteractWithEntity,
+        (event) => {
+            if (event.player.hasTag(frozenTag)) {
+                event.cancel = true;
+            }
+        },
+        'freezeInteractEntity'
+    );
 
     // Block Interaction with Blocks
-    mc.world.beforeEvents.playerInteractWithBlock.subscribe((event) => {
-        if (event.player.hasTag(frozenTag)) {
-            event.cancel = true;
-        }
-    });
+    registerEvent(
+        mc.world.beforeEvents.playerInteractWithBlock,
+        (event) => {
+            if (event.player.hasTag(frozenTag)) {
+                event.cancel = true;
+            }
+        },
+        'freezeInteractBlock'
+    );
 
     // Block Chat Commands (except allowed)
-    mc.world.beforeEvents.chatSend.subscribe((event) => {
-        if (event.sender.hasTag(frozenTag)) {
-            const msg = event.message.trim();
-            if (msg.startsWith('!') || msg.startsWith('?') || msg.startsWith('/')) {
-                // Check multiple prefixes
-                const part = msg.split(' ')[0];
-                if (!isNonEmptyString(part)) return;
-                const cmd = part.toLowerCase();
-                // Allow /msg, /tell, /w for communication with staff
-                if (cmd.includes('msg') || cmd.includes('tell') || cmd.includes('w')) {
-                    return;
+    registerEvent(
+        mc.world.beforeEvents.chatSend,
+        (event) => {
+            if (event.sender.hasTag(frozenTag)) {
+                const msg = event.message.trim();
+                if (msg.startsWith('!') || msg.startsWith('?') || msg.startsWith('/')) {
+                    // Check multiple prefixes
+                    const part = msg.split(' ')[0];
+                    if (!isNonEmptyString(part)) return;
+                    const cmd = part.toLowerCase();
+                    // Allow /msg, /tell, /w for communication with staff
+                    if (cmd.includes('msg') || cmd.includes('tell') || cmd.includes('w')) {
+                        return;
+                    }
+                    event.cancel = true;
+                    event.sender.sendMessage('§cYou cannot use commands while frozen (except /msg).');
                 }
-                event.cancel = true;
-                event.sender.sendMessage('§cYou cannot use commands while frozen (except /msg).');
             }
-        }
-    });
+        },
+        'freezeChat'
+    );
 }

@@ -111,8 +111,7 @@ async function generateManifests() {
         '@minecraft/server',
         '@minecraft/server-ui',
         '@minecraft/server-gametest',
-        '@minecraft/debug-utilities',
-        '@minecraft/diagnostics'
+        '@minecraft/debug-utilities'
     ];
 
     const dependencies = [];

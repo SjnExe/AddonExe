@@ -118,3 +118,14 @@ export function startSystemTimers() {
     // This function is a placeholder for any global timers that need to start.
     // Currently no global timers are managed here directly (they are started by modules).
 }
+
+/**
+ * Returns statistics about active tracked timers.
+ */
+export function getTimerStats(): { intervals: number; timeouts: number; jobs: number } {
+    return {
+        intervals: intervalIds.size,
+        timeouts: timeoutIds.size,
+        jobs: jobIds.size
+    };
+}

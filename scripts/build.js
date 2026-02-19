@@ -104,7 +104,6 @@ const external = [
     '@minecraft/server-ui',
     '@minecraft/server-gametest',
     '@minecraft/debug-utilities',
-    '@minecraft/diagnostics',
     '@minecraft/common',
     ...configsToCompile.map((c) => `./${c.dest}`)
 ];
