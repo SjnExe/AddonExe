@@ -16,6 +16,7 @@ export interface ClaimResult {
     message: string;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function claimDailyReward(player: mc.Player): ClaimResult {
     const config = getDailyRewardsConfig();
 

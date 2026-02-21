@@ -1,9 +1,11 @@
 import * as mc from '@minecraft/server';
 
 import { getXrayConfig } from '@core/configurations.js';
+import { registerEvent } from '@core/events/eventManager.js';
 import { warnLog } from '@core/logger.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
+import { setTrackedTimeout } from '@core/timerManager.js';
 import { formatString } from '@core/utils.js';
 import { MonitoredOreType } from '@core/xrayConfig.default.js';
 import { isDefined } from '@lib/guards.js';
@@ -135,7 +137,7 @@ function bufferAlert(player: mc.Player, oreType: MonitoredOreType, block: mc.Blo
         existingData.count++;
         existingData.blockLocation = { ...block.location };
     } else {
-        const timerId = mc.system.runTimeout(() => {
+        const timerId = setTrackedTimeout(() => {
             flushAlert(player.id, oreKey);
         }, bufferTime);
         playerBuffer.set(oreKey, {
@@ -188,5 +190,5 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
 
 export function initializeXrayDetection(): void {
     refreshXrayCache(); // Build initial cache
-    mc.world.afterEvents.playerBreakBlock.subscribe(handleBlockBreak);
+    registerEvent(mc.world.afterEvents.playerBreakBlock, handleBlockBreak, 'xrayDetection');
 }

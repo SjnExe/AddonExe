@@ -12,7 +12,7 @@ type LogLevelKey = keyof typeof LogLevels;
 // Default log level
 let currentLogLevel: number = LogLevels.INFO;
 
-// External error handler (e.g., Sentry)
+// External error handler
 let externalErrorHandler: ((error: unknown, context?: string) => void) | undefined;
 // External debug handler
 let externalDebugHandler: ((message: string) => void) | undefined;

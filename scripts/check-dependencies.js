@@ -54,7 +54,6 @@ async function main() {
         '@minecraft/server-admin',
         '@minecraft/server-editor',
         '@minecraft/debug-utilities',
-        '@minecraft/diagnostics',
         '@minecraft/common', // Often dev-only, but check logic below
         '@minecraft/gameplay-utilities' // Deprecated/merged but listed just in case
     ]);

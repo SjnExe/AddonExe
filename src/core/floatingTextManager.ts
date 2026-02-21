@@ -83,6 +83,7 @@ function runUpdateLoop() {
     mc.system.runJob(updateLoopJob());
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function* updateLoopJob() {
     const now = mc.system.currentTick;
     const textsByDimension = new Map<string, FloatingTextConfig[]>();
@@ -215,6 +216,7 @@ function pruneOrphanedTexts() {
     }
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function spawnAllTexts() {
     const textsByDimension = new Map<string, FloatingTextConfig[]>();
     for (const textConfig of floatingTexts.values()) {

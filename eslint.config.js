@@ -110,7 +110,6 @@ export default tseslint.config(
                 '@minecraft/server-ui',
                 '@minecraft/server-gametest',
                 '@minecraft/common',
-                '@minecraft/diagnostics',
                 '@minecraft/debug-utilities',
                 '@minecraft/gameplay-utilities',
                 '@minecraft/math',

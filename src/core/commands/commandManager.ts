@@ -2,7 +2,6 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
-import { addSentryBreadcrumb } from '@core/diagnostics.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
 import { findVisiblePlayerByName, getPlayer } from '@core/playerDataManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -236,10 +235,6 @@ class CommandManager {
     private _executeCommand(executor: CommandExecutor, command: CustomCommand, args: Record<string, unknown>) {
         const config = getConfig() as Config;
 
-        const isPlayerCheck = 'id' in executor;
-        const executorName = isPlayerCheck ? executor.name : 'Console';
-        addSentryBreadcrumb(`Executing command '/${command.name}' by ${executorName}`, 'command', 'info');
-
         if (!isDefined(config)) {
             if ('sendMessage' in executor) {
                 executor.sendMessage('§cServer is starting up. Please wait...');
@@ -256,38 +251,48 @@ class CommandManager {
             return;
         }
 
-        const isPlayer = 'id' in executor; // Check if it's a player or console object
+        const isPlayer = 'id' in executor;
 
-        // --- Console Execution ---
-        if (!isPlayer) {
-            if (command.allowConsole !== true) {
-                executor.sendMessage(`[CommandManager] Command '${command.name}' cannot be run from the console.`);
-                return;
-            }
-            mc.system.run(() => {
-                try {
-                    const result = command.execute(executor, args);
-                    if (result instanceof Promise) {
-                        void result.catch((error: unknown) => {
-                            const stack = error instanceof Error ? error.stack : String(error);
-                            executor.sendMessage(
-                                `[CommandManager] Error executing async console command '${command.name}': ${stack}`
-                            );
-                        });
-                    }
-                } catch (error: unknown) {
-                    const stack = error instanceof Error ? error.stack : String(error);
-                    executor.sendMessage(
-                        `[CommandManager] Error executing console command '${command.name}': ${stack}`
-                    );
-                }
-            });
+        if (isPlayer) {
+            this._executePlayerCommand(executor, command, args, config);
+        } else {
+            this._executeConsoleCommand(executor, command, args);
+        }
+    }
+
+    private _executeConsoleCommand(
+        executor: { isConsole: true; sendMessage: (message: string | mc.RawMessage) => void },
+        command: CustomCommand,
+        args: Record<string, unknown>
+    ) {
+        if (command.allowConsole !== true) {
+            executor.sendMessage(`[CommandManager] Command '${command.name}' cannot be run from the console.`);
             return;
         }
+        mc.system.run(() => {
+            try {
+                const result = command.execute(executor, args);
+                if (result instanceof Promise) {
+                    void result.catch((error: unknown) => {
+                        const stack = error instanceof Error ? error.stack : String(error);
+                        executor.sendMessage(
+                            `[CommandManager] Error executing async console command '${command.name}': ${stack}`
+                        );
+                    });
+                }
+            } catch (error: unknown) {
+                const stack = error instanceof Error ? error.stack : String(error);
+                executor.sendMessage(`[CommandManager] Error executing console command '${command.name}': ${stack}`);
+            }
+        });
+    }
 
-        // --- Player Execution ---
-        const player = executor;
-
+    private _executePlayerCommand(
+        player: mc.Player,
+        command: CustomCommand,
+        args: Record<string, unknown>,
+        config: Config
+    ) {
         // Cooldown Check
         if (command.hasCooldown === true) {
             const cooldownId = command.cooldownId ?? command.name;
@@ -582,6 +587,7 @@ class CommandManager {
      * @param {mc.ChatSendBeforeEvent} eventData The chat event data.
      * @returns {boolean} `true` if the message was a command, otherwise `false`.
      */
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     handleChatCommand(eventData: mc.ChatSendBeforeEvent): boolean {
         const config = getConfig() as Config;
         if (!isDefined(config)) return false;

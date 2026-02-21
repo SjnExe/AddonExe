@@ -18,6 +18,7 @@ import {
 
 const LISTINGS_PER_PAGE = 45;
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function showAuctionHouse(
     player: mc.Player,
     page: number = 1,

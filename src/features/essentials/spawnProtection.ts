@@ -4,12 +4,13 @@ import { getSpawnConfig } from '@core/configurations.js';
 import { debugLog } from '@core/logger.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 
 let intervalId: number | undefined;
 
 export function initializeSpawnProtection() {
-    intervalId = mc.system.runInterval(() => {
+    intervalId = setTrackedInterval(() => {
         const config = getSpawnConfig();
         if (!config.spawnProtection.enabled) return;
 
@@ -58,7 +59,7 @@ export function initializeSpawnProtection() {
 
 export function cleanupSpawnProtection() {
     if (isDefined(intervalId)) {
-        mc.system.clearRun(intervalId);
+        clearTrackedInterval(intervalId);
         intervalId = undefined;
     }
 }

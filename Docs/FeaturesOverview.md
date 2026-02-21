@@ -161,9 +161,4 @@ This document provides a detailed breakdown of the features available in AddonEx
 - **Description:** The addon's resource pack automatically hides the world seed from the in-game settings menu.
 - **Purpose:** Prevents players from using the world seed in third-party tools to find ore locations or structures.
 
-### C. System Diagnostics (Sentry)
-
-- **Error Reporting:** Built-in integration with Sentry to capture and report critical errors.
-- **Context:** Reports include breadcrumbs (command usage, UI interactions) and tags (addon version, environment) to help developers and admins debug issues effectively.
-
 This overview covers the primary features. For specific configuration options and command usage, please refer to the linked detailed documentation within the `Docs` folder.

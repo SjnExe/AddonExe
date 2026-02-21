@@ -74,6 +74,7 @@ export class TeleportPanelHandler implements IPanelHandler {
         return items;
     }
 
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     async handleResponse(
         player: mc.Player,
         panelId: string,

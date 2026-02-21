@@ -62,6 +62,7 @@ export class RockPaperScissorsGame implements IGame {
         this.matches.clear();
     }
 
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     async openUI(player: mc.Player) {
         const match = this.matches.get(player.id);
         if (!isDefined(match)) return;

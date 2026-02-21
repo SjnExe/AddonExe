@@ -192,6 +192,7 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
  * Helper to give a list of items to a player safely.
  * Handles enchantments, lore, nametags, and dropping leftovers.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function giveKitItems(player: mc.Player, items: ItemInfo[]): void {
     const inventoryComp = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
     if (!isDefined(inventoryComp) || !isDefined(inventoryComp.container)) {

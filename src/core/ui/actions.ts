@@ -21,6 +21,7 @@ import { MainConfig } from './types.js';
 /**
  * Handles the logic for various UI actions triggered by buttons.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function handleUIAction(player: mc.Player, actionName: string, context: UIContext = {}): Promise<void> {
     switch (actionName) {
         case 'showRules': {

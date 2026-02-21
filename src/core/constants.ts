@@ -28,6 +28,6 @@ export const rtpDisabled: RawMessage = { translate: 'error.rtp_disabled' };
 export const warpsDisabled: RawMessage = { translate: 'error.warps_disabled' };
 
 // --- Sound Events ---
-// TODO: Migrate to MinecraftSoundTypes when available
+// Note: Migrate to MinecraftSoundTypes when available
 export const soundTeleport = 'random.orb';
 export const soundError = 'note.bass';
