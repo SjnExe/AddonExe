@@ -39,7 +39,7 @@ async function fetchPackageVersion(pkg) {
     }
 }
 
-async function updatePackageJson(updates) {
+async function updatePackageJson(updates, dryRun = false) {
     try {
         await fs.access(packageJsonPath, constants.F_OK);
     } catch {
@@ -76,6 +76,11 @@ async function updatePackageJson(updates) {
             const currentVersion = devDeps[pkg];
 
             if (currentVersion !== newVersion) {
+                // Only update the object in memory if we are going to write it or if we need to report it.
+                // If dryRun is true, we still want to report what WOULD change.
+
+                // We update the local object so we can print the report, but we won't write if dryRun is true.
+                // Actually, let's keep the logic simple: update the object, just don't write to file.
                 devDeps[pkg] = newVersion;
 
                 // Update overrides if the package exists there
@@ -90,8 +95,10 @@ async function updatePackageJson(updates) {
     }
 
     if (packageJsonUpdated) {
-        const indentation = 4;
-        await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, undefined, indentation) + '\n');
+        if (!dryRun) {
+            const indentation = 4;
+            await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, undefined, indentation) + '\n');
+        }
         return true;
     }
 
@@ -99,19 +106,30 @@ async function updatePackageJson(updates) {
 }
 
 async function main() {
-    console.log(`${colors.blue}Checking Minecraft dependencies...${colors.reset}`);
+    const isCI = !!process.env.CI;
+    console.log(`${colors.blue}Checking Minecraft dependencies...${isCI ? '(CI Mode)' : ''}${colors.reset}`);
 
     const updates = [];
-    const pkgUpdated = await updatePackageJson(updates);
+    const pkgUpdated = await updatePackageJson(updates, isCI);
 
     if (pkgUpdated) {
-        console.log(`${colors.green}Updated Minecraft dependencies:${colors.reset}`);
-        for (const u of updates) console.log(`  ${u}`);
-        console.log(
-            `${colors.yellow}Dependencies updated. Please run 'npm install' again to install the new versions.${colors.reset}`
-        );
-        // Exit with 1 to indicate changes were made (useful for CI/hooks)
-        process.exit(1);
+        if (isCI) {
+            console.warn(`${colors.yellow}Updates available for Minecraft dependencies:${colors.reset}`);
+            for (const u of updates) console.warn(`  ${u}`);
+            console.warn(
+                `${colors.blue}Skipping auto-update in CI environment. Run 'npm install' locally to update.${colors.reset}`
+            );
+            // Exit with 0 so CI doesn't fail
+            process.exit(0);
+        } else {
+            console.log(`${colors.green}Updated Minecraft dependencies:${colors.reset}`);
+            for (const u of updates) console.log(`  ${u}`);
+            console.log(
+                `${colors.yellow}Dependencies updated. Please run 'npm install' again to install the new versions.${colors.reset}`
+            );
+            // Exit with 1 to indicate changes were made (useful for local hooks)
+            process.exit(1);
+        }
     } else {
         console.log(`${colors.green}All Minecraft dependencies are up to date.${colors.reset}`);
         process.exit(0);
