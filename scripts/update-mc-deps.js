@@ -116,9 +116,7 @@ async function main() {
         if (isCI) {
             console.warn(`${colors.yellow}Updates available for Minecraft dependencies:${colors.reset}`);
             for (const u of updates) console.warn(`  ${u}`);
-            console.warn(
-                `${colors.blue}Skipping auto-update in CI environment. Run 'npm install' locally to update.${colors.reset}`
-            );
+            console.warn(`${colors.blue}Skipping auto-update in CI environment. Run 'npm install' locally to update.${colors.reset}`);
             // Exit with 0 so CI doesn't fail
             process.exit(0);
         } else {

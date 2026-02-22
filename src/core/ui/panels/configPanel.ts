@@ -25,6 +25,15 @@ import {
     configHandlers as uiConfigHandlers
 } from '@ui/uiUtils.js';
 
+interface ConfigSetting {
+    key: string;
+    type: string;
+    label: string;
+    description?: string;
+    options?: string[];
+    [key: string]: unknown;
+}
+
 export class ConfigPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
         return (
@@ -171,61 +180,65 @@ export class ConfigPanelHandler implements IPanelHandler {
     }
 
     buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined | void> {
-        if (panelId.startsWith('config_')) {
-            const categoryId = panelId.replace('config_', '');
-            const category = configPanelSchema.find((c) => c.id === categoryId);
-            if (!isDefined(category)) return Promise.resolve();
-            const form = new ModalFormData().title(category.title);
-            const configSource = isNonEmptyString(category.configSource) ? category.configSource : 'main';
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-            const handlers = uiConfigHandlers as any;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            const handler = handlers[configSource] as { get: () => unknown; save: (cfg: unknown) => void } | undefined;
+        if (!panelId.startsWith('config_')) return Promise.resolve();
 
-            if (!isDefined(handler)) return Promise.resolve();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const config = handler.get() as Record<string, any>;
+        const categoryId = panelId.replace('config_', '');
+        const category = configPanelSchema.find((c) => c.id === categoryId);
+        if (!isDefined(category)) return Promise.resolve();
 
-            // Filter settings to ensure consistent index mapping
-            const validSettings = category.settings.filter((s) => ['toggle', 'textField', 'dropdown'].includes(s.type));
+        const form = new ModalFormData().title(category.title);
+        const configSource = isNonEmptyString(category.configSource) ? category.configSource : 'main';
 
-            for (const setting of validSettings) {
-                const currentValue = getValueFromPath(config, setting.key);
-                switch (setting.type) {
-                    case 'toggle': {
-                        form.toggle(setting.label, { defaultValue: Boolean(currentValue) });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+        const handlers = uiConfigHandlers as any;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const handler = handlers[configSource] as { get: () => unknown; save: (cfg: unknown) => void } | undefined;
 
-                        break;
-                    }
-                    case 'textField': {
-                        const val = currentValue ?? '';
-                        const strVal =
-                            typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
-                        form.textField(
-                            setting.label,
-                            isNonEmptyString(setting.description) ? setting.description : '',
-                            { defaultValue: strVal }
-                        );
+        if (!isDefined(handler)) return Promise.resolve();
 
-                        break;
-                    }
-                    case 'dropdown': {
-                        let index = -1;
-                        const options = setting.options ?? [];
-                        index =
-                            setting.key === 'logLevel' && typeof currentValue === 'number'
-                                ? currentValue
-                                : options.indexOf(currentValue as string);
-                        form.dropdown(setting.label, options, { defaultValueIndex: Math.max(0, index) });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const config = handler.get() as Record<string, any>;
 
-                        break;
-                    }
-                    // No default
+        // Cast settings to ConfigSetting array to avoid any errors
+        const settings = category.settings as unknown as ConfigSetting[];
+        this.addFormFields(form, settings, config);
+
+        return Promise.resolve(form);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private addFormFields(form: ModalFormData, settings: ConfigSetting[], config: Record<string, any>) {
+        // Filter settings to ensure consistent index mapping
+        const validSettings = settings.filter((s) => ['toggle', 'textField', 'dropdown'].includes(s.type));
+
+        for (const setting of validSettings) {
+            const currentValue = getValueFromPath(config, setting.key);
+            switch (setting.type) {
+                case 'toggle': {
+                    form.toggle(setting.label, { defaultValue: Boolean(currentValue) });
+                    break;
+                }
+                case 'textField': {
+                    const val = currentValue ?? '';
+                    const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
+                    form.textField(
+                        setting.label,
+                        isNonEmptyString(setting.description) ? setting.description : '',
+                        { defaultValue: strVal }
+                    );
+                    break;
+                }
+                case 'dropdown': {
+                    let index = -1;
+                    const options = setting.options ?? [];
+                    index = setting.key === 'logLevel' && typeof currentValue === 'number'
+                        ? currentValue
+                        : options.indexOf(currentValue as string);
+                    form.dropdown(setting.label, options, { defaultValueIndex: Math.max(0, index) });
+                    break;
                 }
             }
-            return Promise.resolve(form);
         }
-        return Promise.resolve();
     }
 
     async handleResponse(
@@ -423,31 +436,8 @@ export class ConfigPanelHandler implements IPanelHandler {
         }
 
         if (isDefined(category) && isDefined(values)) {
-            const updates: Record<string, unknown> = {};
-
-            // Filter settings to match buildModal logic
-            const validSettings = category.settings.filter((s) => ['toggle', 'textField', 'dropdown'].includes(s.type));
-
-            for (const [index, setting] of validSettings.entries()) {
-                let value = values[index];
-                if (setting.type === 'dropdown') {
-                    const options = setting.options ?? [];
-                    const selectedIndex = value as number;
-                    value = setting.key === 'logLevel' ? selectedIndex : options[selectedIndex];
-                } else if (setting.type === 'textField') {
-                    const strVal = value as string;
-                    const current = getValueFromPath(getConfig(), setting.key);
-                    if (typeof current === 'number') {
-                        if (!Number.isNaN(Number(strVal)) && isNonEmptyString(strVal) && strVal.trim() !== '') {
-                            value = Number(strVal);
-                        } else {
-                            // Skip update if input is invalid for a number field
-                            continue;
-                        }
-                    }
-                }
-                updates[setting.key] = value;
-            }
+            // Cast settings to ConfigSetting[] to match the type
+            const updates = this.processFormValues(category.settings as unknown as ConfigSetting[], values);
 
             const configSource = isNonEmptyString(category.configSource) ? category.configSource : 'main';
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
@@ -456,16 +446,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             const handler = handlers[configSource] as { get: () => unknown; save: (cfg: unknown) => void } | undefined;
 
             if (isDefined(handler)) {
-                if (configSource === 'main') {
-                    handler.save(updates);
-                } else {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const currentConfig = handler.get() as Record<string, any>;
-                    for (const key in updates) {
-                        setValueByPath(currentConfig, key, updates[key]);
-                    }
-                    handler.save(currentConfig);
-                }
+                this.saveConfigUpdates(handler, configSource, updates);
                 player.sendMessage('§2Configuration saved.');
 
                 if (categoryId === 'data') {
@@ -481,5 +462,49 @@ export class ConfigPanelHandler implements IPanelHandler {
             return showPanel(player, `configSubCategoryPanel_${category.category}`, { ...context, page: 1 });
         }
         return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
+    }
+
+    private processFormValues(settings: ConfigSetting[], values: unknown[]): Record<string, unknown> {
+        const updates: Record<string, unknown> = {};
+        // Filter settings to match buildModal logic
+        const validSettings = settings.filter((s) => ['toggle', 'textField', 'dropdown'].includes(s.type));
+
+        for (const [index, setting] of validSettings.entries()) {
+            let value = values[index];
+            if (setting.type === 'dropdown') {
+                const options = setting.options ?? [];
+                const selectedIndex = value as number;
+                value = setting.key === 'logLevel' ? selectedIndex : options[selectedIndex];
+            } else if (setting.type === 'textField') {
+                const strVal = value as string;
+                const current = getValueFromPath(getConfig(), setting.key);
+                if (typeof current === 'number') {
+                    if (!Number.isNaN(Number(strVal)) && isNonEmptyString(strVal) && strVal.trim() !== '') {
+                        value = Number(strVal);
+                    } else {
+                        // Skip update if input is invalid for a number field
+                        continue;
+                    }
+                }
+            }
+            updates[setting.key] = value;
+        }
+        return updates;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private saveConfigUpdates(handler: any, configSource: string, updates: Record<string, unknown>) {
+        if (configSource === 'main') {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            handler.save(updates);
+        } else {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            const currentConfig = handler.get() as Record<string, any>;
+            for (const key in updates) {
+                setValueByPath(currentConfig, key, updates[key]);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            handler.save(currentConfig);
+        }
     }
 }

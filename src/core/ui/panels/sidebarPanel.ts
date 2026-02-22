@@ -241,54 +241,54 @@ export class SidebarPanelHandler implements IPanelHandler {
         context: UIContext
     ): Promise<void> {
         const items = await this.getItems(player, panelId, context);
-        if (selection >= 0 && selection < items.length) {
-            const item = items[selection];
-            if (!isDefined(item)) return;
+        if (selection < 0 || selection >= items.length) return;
 
-            if (item.actionType === 'openPanel') {
-                let nextContext: UIContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
-                if (item.actionValue === 'sidebarLineActionPanel' || item.actionValue === 'actionBarLineActionPanel') {
-                    nextContext = { ...nextContext, lineIndex: Number(item.id) };
-                }
-                return showPanel(player, item.actionValue, nextContext);
+        const item = items[selection];
+        if (!isDefined(item)) return;
+
+        if (item.actionType === 'openPanel') {
+            let nextContext: UIContext = { ...context, page: 1, selectedItemId: item.id, id: item.id };
+            if (item.actionValue === 'sidebarLineActionPanel' || item.actionValue === 'actionBarLineActionPanel') {
+                nextContext = { ...nextContext, lineIndex: Number(item.id) };
             }
+            return showPanel(player, item.actionValue, nextContext);
+        }
 
-            const index = context.lineIndex as number;
-            const isSidebar = panelId.startsWith('sidebar');
-            const listPanelId = isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel';
-            const config = getSidebarConfig();
-            const lines = isSidebar ? [...config.sidebarLines] : [...config.actionBarLines];
+        await this.handleLineAction(player, panelId, item.actionValue, context);
+    }
 
-            if (item.actionValue === 'editLine') {
-                const target = isSidebar ? 'sidebarLineEditPanel' : 'actionBarLineEditPanel';
-                return showPanel(player, target, { ...context, lineIndex: index });
-            }
+    private async handleLineAction(player: mc.Player, panelId: string, actionValue: string, context: UIContext): Promise<void> {
+        const index = context.lineIndex as number;
+        const isSidebar = panelId.startsWith('sidebar');
+        const listPanelId = isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel';
+        const config = getSidebarConfig();
+        const lines = isSidebar ? [...config.sidebarLines] : [...config.actionBarLines];
 
-            if (item.actionValue === 'deleteLine') {
-                lines.splice(index, 1);
-                this.saveLines(player, lines, isSidebar, '§cLine deleted.');
-                return showPanel(player, listPanelId);
-            }
+        if (actionValue === 'editLine') {
+            const target = isSidebar ? 'sidebarLineEditPanel' : 'actionBarLineEditPanel';
+            return showPanel(player, target, { ...context, lineIndex: index });
+        }
 
-            if (item.actionValue === 'moveUp') {
-                if (index > 0) {
-                    const temp = lines[index - 1] ?? '';
-                    lines[index - 1] = lines[index] ?? '';
-                    lines[index] = temp;
-                    this.saveLines(player, lines, isSidebar, '§aMoved up.');
-                }
-                return showPanel(player, listPanelId);
-            }
+        if (actionValue === 'deleteLine') {
+            lines.splice(index, 1);
+            this.saveLines(player, lines, isSidebar, '§cLine deleted.');
+            return showPanel(player, listPanelId);
+        }
 
-            if (item.actionValue === 'moveDown') {
-                if (index < lines.length - 1) {
-                    const temp = lines[index + 1] ?? '';
-                    lines[index + 1] = lines[index] ?? '';
-                    lines[index] = temp;
-                    this.saveLines(player, lines, isSidebar, '§aMoved down.');
-                }
-                return showPanel(player, listPanelId);
-            }
+        if (actionValue === 'moveUp' && index > 0) {
+            const temp = lines[index - 1] ?? '';
+            lines[index - 1] = lines[index] ?? '';
+            lines[index] = temp;
+            this.saveLines(player, lines, isSidebar, '§aMoved up.');
+            return showPanel(player, listPanelId);
+        }
+
+        if (actionValue === 'moveDown' && index < lines.length - 1) {
+            const temp = lines[index + 1] ?? '';
+            lines[index + 1] = lines[index] ?? '';
+            lines[index] = temp;
+            this.saveLines(player, lines, isSidebar, '§aMoved down.');
+            return showPanel(player, listPanelId);
         }
     }
 }

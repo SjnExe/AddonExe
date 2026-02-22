@@ -59,9 +59,9 @@ interface HelpConfig {
 }
 
 /**
- * Displays detailed help for a specific command.
+ * Helper to resolve the command object and check basic permissions/console usage.
  */
-function showSpecificHelp(executor: CommandExecutor, commandName: string) {
+function resolveCommandForHelp(executor: CommandExecutor, commandName: string): { cmd: CustomCommand | undefined; error?: string } {
     const isConsole = !(executor instanceof mc.Player);
     const realCommandName = commandManager.aliases.get(commandName) ?? commandName;
     let cmd = commandManager.commands.get(realCommandName);
@@ -76,35 +76,41 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
         }
     }
 
+    if (!isDefined(cmd)) {
+        return { cmd: undefined, error: `§cUnknown command: '${commandName}'.` };
+    }
+
+    if (isConsole && (cmd.allowConsole ?? false) === false) {
+        return { cmd: undefined, error: `§cCommand '${commandName}' cannot be run from console.` };
+    }
+
     const pData = isConsole ? undefined : getPlayer(executor.id);
     const userPermissionLevel = isDefined(pData) ? pData.permissionLevel : 1024;
     const effectivePermissionLevel = isConsole ? 0 : userPermissionLevel;
 
-    if (!isDefined(cmd)) {
-        const message = `§cUnknown command: '${commandName}'.`;
-        if (executor instanceof mc.Player) {
-            sendMessage(message, executor);
-        } else {
-            executor.sendMessage(message);
-        }
-        return;
-    }
-
-    if (isConsole && (cmd.allowConsole ?? false) === false) {
-        const message = `§cCommand '${commandName}' cannot be run from console.`;
-        executor.sendMessage(message);
-        return;
-    }
-
     if (effectivePermissionLevel > (cmd.permissionLevel ?? 1024)) {
-        const message = `§cYou do not have permission to view command: '${commandName}'.`;
+        return { cmd: undefined, error: `§cYou do not have permission to view command: '${commandName}'.` };
+    }
+
+    return { cmd };
+}
+
+/**
+ * Displays detailed help for a specific command.
+ */
+function showSpecificHelp(executor: CommandExecutor, commandName: string) {
+    const { cmd, error } = resolveCommandForHelp(executor, commandName);
+
+    if (isDefined(error)) {
         if (executor instanceof mc.Player) {
-            sendMessage(message, executor);
+            sendMessage(error, executor);
         } else {
-            executor.sendMessage(message);
+            executor.sendMessage(error);
         }
         return;
     }
+
+    if (!isDefined(cmd)) return;
 
     const slashCommand = cmd.slashName ?? cmd.name;
 

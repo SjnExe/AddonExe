@@ -91,6 +91,33 @@ function findShopItem(itemId: string): ItemInfo | undefined {
 }
 
 /**
+ * Calculates the actual available space in an inventory for a specific item stack.
+ * @param inventory The inventory container.
+ * @param itemStackTemplate The template item stack to check space for.
+ * @returns The total count of items that can be added.
+ */
+function calculateInventorySpace(inventory: mc.Container, itemStackTemplate: mc.ItemStack): number {
+    let spaceFound = 0;
+    const maxStackSize = itemStackTemplate.maxAmount;
+
+    if (maxStackSize > 1) {
+        // Item is stackable
+        for (let i = 0; i < inventory.size; i++) {
+            const item = inventory.getItem(i);
+            if (!isDefined(item)) {
+                spaceFound += maxStackSize;
+            } else if (item.isStackableWith(itemStackTemplate)) {
+                spaceFound += maxStackSize - item.amount;
+            }
+        }
+    } else {
+        // Item is not stackable
+        spaceFound = inventory.emptySlotsCount;
+    }
+    return spaceFound;
+}
+
+/**
  * Handles a player's request to buy an item from the shop.
  * @param player The player buying the item.
  * @param itemId The ID of the item from itemsConfig.js.
@@ -150,23 +177,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     }
 
     // 1. Calculate true available space in inventory
-    let spaceFound = 0;
-    const maxStackSize = itemStackTemplate.maxAmount;
-
-    if (maxStackSize > 1) {
-        // Item is stackable
-        for (let i = 0; i < inventory.size; i++) {
-            const item = inventory.getItem(i);
-            if (!isDefined(item)) {
-                spaceFound += maxStackSize;
-            } else if (item.isStackableWith(itemStackTemplate)) {
-                spaceFound += maxStackSize - item.amount;
-            }
-        }
-    } else {
-        // Item is not stackable
-        spaceFound = inventory.emptySlotsCount;
-    }
+    const spaceFound = calculateInventorySpace(inventory, itemStackTemplate);
 
     // 2. Validate and adjust quantity based on space
     if (spaceFound === 0) {
