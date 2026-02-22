@@ -29,9 +29,13 @@ import { cleanupPlayerDataManager } from './playerDataManager.js';
 import * as rankManager from './rankManager.js';
 import * as sidebarManager from './sidebarManager.js';
 import { cleanupTimers, startSystemTimers } from './timerManager.js';
+import { loadCommands } from '@core/commands/index.js';
 import { reinitializeOnlinePlayers } from './utils.js';
 
 const VERSION = '0.7.0'; // Current Addon Version
+
+// Load Commands immediately to register slash commands during startup
+loadCommands();
 
 /**
  * Initializes the addon.
