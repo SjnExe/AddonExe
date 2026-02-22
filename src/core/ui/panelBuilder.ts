@@ -88,7 +88,7 @@ export async function buildPanelForm(
 }
 
 // Helper to build form from items (used by handlers via buildPanelForm)
-// eslint-disable-next-line sonarjs/cognitive-complexity
+
 async function buildActionFormFromItems(player: mc.Player, panelId: string, context: UIContext, items: PanelItem[]) {
     const form = new ActionFormData();
 

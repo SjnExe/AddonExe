@@ -61,7 +61,10 @@ interface HelpConfig {
 /**
  * Helper to resolve the command object and check basic permissions/console usage.
  */
-function resolveCommandForHelp(executor: CommandExecutor, commandName: string): { cmd: CustomCommand | undefined; error?: string } {
+function resolveCommandForHelp(
+    executor: CommandExecutor,
+    commandName: string
+): { cmd: CustomCommand | undefined; error?: string } {
     const isConsole = !(executor instanceof mc.Player);
     const realCommandName = commandManager.aliases.get(commandName) ?? commandName;
     let cmd = commandManager.commands.get(realCommandName);

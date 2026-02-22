@@ -220,20 +220,20 @@ export class ConfigPanelHandler implements IPanelHandler {
                 }
                 case 'textField': {
                     const val = currentValue ?? '';
-                    const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
-                    form.textField(
-                        setting.label,
-                        isNonEmptyString(setting.description) ? setting.description : '',
-                        { defaultValue: strVal }
-                    );
+                    const strVal =
+                        typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
+                    form.textField(setting.label, isNonEmptyString(setting.description) ? setting.description : '', {
+                        defaultValue: strVal
+                    });
                     break;
                 }
                 case 'dropdown': {
                     let index = -1;
                     const options = setting.options ?? [];
-                    index = setting.key === 'logLevel' && typeof currentValue === 'number'
-                        ? currentValue
-                        : options.indexOf(currentValue as string);
+                    index =
+                        setting.key === 'logLevel' && typeof currentValue === 'number'
+                            ? currentValue
+                            : options.indexOf(currentValue as string);
                     form.dropdown(setting.label, options, { defaultValueIndex: Math.max(0, index) });
                     break;
                 }

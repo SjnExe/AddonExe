@@ -125,7 +125,6 @@ export class XrayPanelHandler implements IPanelHandler {
         return undefined;
     }
 
-    // eslint-disable-next-line sonarjs/cognitive-complexity
     async handleResponse(
         player: mc.Player,
         panelId: string,

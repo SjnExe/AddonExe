@@ -189,7 +189,11 @@ export class TeamPanelHandler implements IPanelHandler {
         return undefined;
     }
 
-    private getTeamMainPanelItems(player: mc.Player, team: teamManager.TeamData | undefined, baseItems: PanelItem[]): PanelItem[] {
+    private getTeamMainPanelItems(
+        player: mc.Player,
+        team: teamManager.TeamData | undefined,
+        baseItems: PanelItem[]
+    ): PanelItem[] {
         if (!isDefined(team)) {
             return [
                 ...baseItems,
@@ -304,7 +308,12 @@ export class TeamPanelHandler implements IPanelHandler {
         return [...baseItems, ...memberItems];
     }
 
-    private getTeamMemberActionPanelItems(player: mc.Player, team: teamManager.TeamData | undefined, context: UIContext, baseItems: PanelItem[]): PanelItem[] {
+    private getTeamMemberActionPanelItems(
+        player: mc.Player,
+        team: teamManager.TeamData | undefined,
+        context: UIContext,
+        baseItems: PanelItem[]
+    ): PanelItem[] {
         const targetId = context.targetPlayerId;
         if (!isNonEmptyString(targetId) || !isDefined(team)) return baseItems;
 
@@ -405,7 +414,12 @@ export class TeamPanelHandler implements IPanelHandler {
         }
     }
 
-    private async handleTeamAction(player: mc.Player, actionValue: string, context: UIContext, selectedItemId?: string): Promise<void> {
+    private async handleTeamAction(
+        player: mc.Player,
+        actionValue: string,
+        context: UIContext,
+        selectedItemId?: string
+    ): Promise<void> {
         if (actionValue === 'noop') return;
 
         switch (actionValue) {

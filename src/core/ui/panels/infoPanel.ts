@@ -249,7 +249,6 @@ export class InfoPanelHandler implements IPanelHandler {
         }
     }
 
-    // eslint-disable-next-line sonarjs/cognitive-complexity
     private async handleSelection(
         player: mc.Player,
         panelId: string,

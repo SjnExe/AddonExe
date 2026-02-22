@@ -587,7 +587,7 @@ class CommandManager {
      * @param {mc.ChatSendBeforeEvent} eventData The chat event data.
      * @returns {boolean} `true` if the message was a command, otherwise `false`.
      */
-    // eslint-disable-next-line sonarjs/cognitive-complexity
+
     handleChatCommand(eventData: mc.ChatSendBeforeEvent): boolean {
         const config = getConfig() as Config;
         if (!isDefined(config)) return false;

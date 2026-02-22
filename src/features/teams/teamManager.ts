@@ -3,12 +3,7 @@ import * as mc from '@minecraft/server';
 import { getTeamConfig } from '@core/configurations.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
-import {
-    getOrCreatePlayer,
-    getPlayer,
-    incrementPlayerBalance,
-    updatePlayerData
-} from '@core/playerDataManager.js';
+import { getOrCreatePlayer, getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';

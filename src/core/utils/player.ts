@@ -5,7 +5,6 @@ import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { isDefined } from '@lib/guards.js';
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
 export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
     if (!input) return [];
 

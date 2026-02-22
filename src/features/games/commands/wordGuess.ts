@@ -15,7 +15,7 @@ const wordGuessCommand: CustomCommand = {
         { name: 'word', type: 'string', optional: true },
         { name: 'reward', type: 'int', optional: true }
     ],
-    // eslint-disable-next-line sonarjs/cognitive-complexity
+
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const gamesConfig = getGamesConfig();
         if (!gamesConfig.enabled) {

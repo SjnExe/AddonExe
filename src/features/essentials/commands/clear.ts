@@ -19,7 +19,7 @@ const clearCommand: CustomCommand = {
     permissionLevel: 2,
     allowConsole: true,
     parameters: [{ name: 'target', type: 'player', optional: true }],
-    // eslint-disable-next-line sonarjs/cognitive-complexity
+
     execute: (executor: CommandExecutor, args: ClearCommandArgs) => {
         let targetPlayer: mc.Player;
         const targetPlayers = args.target;

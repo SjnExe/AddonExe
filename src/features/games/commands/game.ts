@@ -14,7 +14,7 @@ const gameCommand: CustomCommand = {
         { name: 'gameId', type: 'string', enumOptions: ['wordGuess', 'diceRoll', 'ticTacToe'] },
         { name: 'arg1', type: 'string', optional: true } // Custom word
     ],
-    // eslint-disable-next-line sonarjs/cognitive-complexity
+
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const action = args.action as string;
         const gameId = args.gameId as string;

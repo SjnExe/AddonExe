@@ -257,7 +257,12 @@ export class SidebarPanelHandler implements IPanelHandler {
         await this.handleLineAction(player, panelId, item.actionValue, context);
     }
 
-    private async handleLineAction(player: mc.Player, panelId: string, actionValue: string, context: UIContext): Promise<void> {
+    private async handleLineAction(
+        player: mc.Player,
+        panelId: string,
+        actionValue: string,
+        context: UIContext
+    ): Promise<void> {
         const index = context.lineIndex as number;
         const isSidebar = panelId.startsWith('sidebar');
         const listPanelId = isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel';
