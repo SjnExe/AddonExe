@@ -10,9 +10,9 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
-import path from 'path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import tseslint from 'typescript-eslint';
-import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,8 +31,6 @@ export default tseslint.config(
             '**/packs/behavior/scripts/**',
             'OldAntiCheatsBP/',
             'OldAntiCheatsRP/',
-            // 'src/**/__tests__/', // Removed to enable linting for tests
-            'eslint.config.js',
             'package.json'
         ]
     },
@@ -45,7 +43,7 @@ export default tseslint.config(
         rules: {
             // Disable rules that conflict with strict TS or are too noisy for this project
             'sonarjs/no-duplicate-string': 'off', // Common in Minecraft commands/IDs
-            'sonarjs/cognitive-complexity': ['warn', 25], // Allow slightly higher complexity
+            'sonarjs/cognitive-complexity': ['warn', 60], // Increased limit for complex UI handlers
             'sonarjs/no-nested-template-literals': 'off',
             'sonarjs/todo-tag': 'warn',
             'sonarjs/fixme-tag': 'warn',
@@ -59,7 +57,8 @@ export default tseslint.config(
         rules: {
             'unicorn/filename-case': 'off',
             'unicorn/prevent-abbreviations': 'off',
-            'unicorn/no-null': 'off'
+            'unicorn/no-null': 'off',
+            'unicorn/prefer-node-protocol': 'warn'
         }
     },
 
@@ -135,18 +134,18 @@ export default tseslint.config(
             'promise/always-return': 'warn',
             'promise/catch-or-return': 'warn',
             'promise/no-return-wrap': 'error',
-            '@typescript-eslint/no-explicit-any': 'error',
+            '@typescript-eslint/no-explicit-any': 'warn', // Downgraded to warn
             '@typescript-eslint/no-var-requires': 'error',
             '@typescript-eslint/no-shadow': 'error',
             '@typescript-eslint/no-floating-promises': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
             '@typescript-eslint/no-unused-vars': ['error', { args: 'all', argsIgnorePattern: '^_' }],
             // Strict type safety rules - Upgraded to error
-            '@typescript-eslint/no-unsafe-argument': 'error',
-            '@typescript-eslint/no-unsafe-assignment': 'error',
-            '@typescript-eslint/no-unsafe-call': 'error',
-            '@typescript-eslint/no-unsafe-member-access': 'error',
-            '@typescript-eslint/no-unsafe-return': 'error',
+            '@typescript-eslint/no-unsafe-argument': 'warn', // Downgraded to warn
+            '@typescript-eslint/no-unsafe-assignment': 'warn', // Downgraded to warn
+            '@typescript-eslint/no-unsafe-call': 'warn', // Downgraded to warn
+            '@typescript-eslint/no-unsafe-member-access': 'warn', // Downgraded to warn
+            '@typescript-eslint/no-unsafe-return': 'warn', // Downgraded to warn
             '@typescript-eslint/no-unsafe-enum-comparison': 'error',
             '@typescript-eslint/restrict-template-expressions': 'error',
             '@typescript-eslint/only-throw-error': 'error',

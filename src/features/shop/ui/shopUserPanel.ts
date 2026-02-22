@@ -8,6 +8,7 @@ import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { IPanelHandler, PanelItem, ShopItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 import * as shopManager from '../shopManager.js';
+import { ShopCategory } from '../shopConfig.js';
 import { ensureItemsConfig, getAllItems, Item } from '../shopUtils.js';
 
 interface ShopCategoryEntry {
@@ -174,6 +175,43 @@ export class ShopUserPanelHandler implements IPanelHandler {
         }
     }
 
+    private generateCategoryEntries(category: ShopCategory): ShopEntry[] {
+        const allEntries: ShopEntry[] = [];
+
+        // Add Subcategories
+        const subCatNames = Object.keys(category.subCategories).toSorted((a, b) => a.localeCompare(b));
+        for (const name of subCatNames) {
+            const sub = category.subCategories[name];
+            if (isDefined(sub)) {
+                allEntries.push({
+                    id: name,
+                    name,
+                    icon: sub.icon,
+                    type: 'subCategory'
+                });
+            }
+        }
+
+        // Add Items
+        const itemIds = Object.keys(category.items);
+        for (const id of itemIds) {
+            const item = category.items[id];
+            if (isDefined(item)) {
+                const entry: ShopItemEntry = {
+                    id,
+                    buyPrice: item.buyPrice,
+                    sellPrice: item.sellPrice,
+                    permissionLevel: item.permissionLevel,
+                    type: 'item'
+                };
+                if (isDefined(item.icon)) entry.icon = item.icon;
+                if (isDefined(item.displayName)) entry.displayName = item.displayName;
+                allEntries.push(entry);
+            }
+        }
+        return allEntries;
+    }
+
     private getCategoryPanelItems(context: UIContext, page: number): PanelItem[] {
         const items: PanelItem[] = [];
         const categoryName = context.categoryName as string;
@@ -182,40 +220,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         const category = shopConfig.categories[categoryName];
 
         if (isDefined(category)) {
-            const allEntries: ShopEntry[] = [];
-
-            // Add Subcategories
-            const subCatNames = Object.keys(category.subCategories).toSorted((a, b) => a.localeCompare(b));
-            for (const name of subCatNames) {
-                const sub = category.subCategories[name];
-                if (isDefined(sub)) {
-                    allEntries.push({
-                        id: name,
-                        name,
-                        icon: sub.icon,
-                        type: 'subCategory'
-                    });
-                }
-            }
-
-            // Add Items
-            const itemIds = Object.keys(category.items);
-            for (const id of itemIds) {
-                const item = category.items[id];
-                if (isDefined(item)) {
-                    const entry: ShopItemEntry = {
-                        id,
-                        buyPrice: item.buyPrice,
-                        sellPrice: item.sellPrice,
-                        permissionLevel: item.permissionLevel,
-                        type: 'item'
-                    };
-                    if (isDefined(item.icon)) entry.icon = item.icon;
-                    if (isDefined(item.displayName)) entry.displayName = item.displayName;
-                    allEntries.push(entry);
-                }
-            }
-
+            const allEntries = this.generateCategoryEntries(category);
             const paginated = getPaginatedItems(allEntries, page);
 
             for (const entry of paginated) {
@@ -454,37 +459,37 @@ export class ShopUserPanelHandler implements IPanelHandler {
         context: UIContext
     ): Promise<void> {
         const items = await this.getItems(player, panelId, context);
-        if (selection >= 0 && selection < items.length) {
-            const item = items[selection];
-            if (!isDefined(item)) return;
+        if (selection < 0 || selection >= items.length) return;
 
-            if (item.actionType === 'openPanel') {
-                return showPanel(player, item.actionValue, {
-                    ...context,
-                    page: 1,
-                    selectedItemId: item.id,
-                    id: item.id
-                });
-            }
+        const item = items[selection];
+        if (!isDefined(item)) return;
 
-            if (item.actionValue === 'prevPage') {
-                const currentPage = isNumber(context.page) ? context.page : 1;
-                return showPanel(player, panelId, {
-                    ...context,
-                    page: Math.max(1, currentPage - 1)
-                });
-            }
-            if (item.actionValue === 'nextPage') {
-                const currentPage = isNumber(context.page) ? context.page : 1;
-                return showPanel(player, panelId, { ...context, page: currentPage + 1 });
-            }
+        if (item.actionType === 'openPanel') {
+            return showPanel(player, item.actionValue, {
+                ...context,
+                page: 1,
+                selectedItemId: item.id,
+                id: item.id
+            });
+        }
 
-            if (item.actionValue === 'buyOrSell') {
-                return showPanel(player, 'buyOrSellPanel', {
-                    ...context,
-                    selectedItemId: item.id
-                });
-            }
+        if (item.actionValue === 'prevPage') {
+            const currentPage = isNumber(context.page) ? context.page : 1;
+            return showPanel(player, panelId, {
+                ...context,
+                page: Math.max(1, currentPage - 1)
+            });
+        }
+        if (item.actionValue === 'nextPage') {
+            const currentPage = isNumber(context.page) ? context.page : 1;
+            return showPanel(player, panelId, { ...context, page: currentPage + 1 });
+        }
+
+        if (item.actionValue === 'buyOrSell') {
+            return showPanel(player, 'buyOrSellPanel', {
+                ...context,
+                selectedItemId: item.id
+            });
         }
     }
 }

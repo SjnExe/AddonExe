@@ -6,7 +6,6 @@ import { getPlayerFromCache } from '@core/playerCache.js';
 import {
     getOrCreatePlayer,
     getPlayer,
-    HomeLocation,
     incrementPlayerBalance,
     updatePlayerData
 } from '@core/playerDataManager.js';
@@ -14,29 +13,14 @@ import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { panelRouter } from '@ui/PanelRouter.js';
+import { TeamData } from './teamTypes.js';
 import { TeamPanelHandler } from './ui/teamPanel.js';
 
 const teamPropertyPrefix = 'exe:team.';
 const nextTeamIdKey = 'exe:nextTeamId';
 
-export interface TeamApplication {
-    playerId: string;
-    playerName: string;
-    timestamp: number;
-}
-
-export interface TeamData {
-    id: number;
-    name: string;
-    ownerId: string;
-    admins: string[];
-    members: string[]; // Includes owner and admins
-    createdDate: number;
-    home: HomeLocation | undefined;
-    applications: TeamApplication[];
-    balance: number;
-    open: boolean;
-}
+// Re-export types for backward compatibility if needed, but prefer importing from teamTypes.ts
+export type { TeamApplication, TeamData } from './teamTypes.js';
 
 interface ActionResult {
     success: boolean;

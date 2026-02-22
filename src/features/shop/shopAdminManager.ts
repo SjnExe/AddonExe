@@ -486,6 +486,23 @@ export function removeItem(categoryName: string, subCategoryName: string | undef
     return { success: true, message: `Successfully removed item '${itemId}'.` };
 }
 
+function updateMasterItemList(itemId: string, newData: UpdateItemData) {
+    const itemsRecord = items as Record<string, ItemData>;
+    if (isDefined(itemsRecord[itemId])) {
+        itemsRecord[itemId].displayName = newData.displayName;
+        itemsRecord[itemId].itemId = newData.minecraftId;
+        itemsRecord[itemId].icon = newData.icon;
+    } else {
+        addCustomItemToConfig(itemId, {
+            displayName: newData.displayName,
+            itemId: newData.minecraftId,
+            icon: newData.icon,
+            buyPrice: newData.buyPrice,
+            sellPrice: newData.sellPrice
+        });
+    }
+}
+
 /**
  * Updates a shop item's details in both the shop config and the master item list.
  * @param categoryName The category of the item.
@@ -501,21 +518,7 @@ export function updateShopItem(
     newData: UpdateItemData
 ): ActionResult {
     // 1. Update the master item list (items.js)
-    const itemsRecord = items as Record<string, ItemData>;
-    if (isDefined(itemsRecord[itemId])) {
-        itemsRecord[itemId].displayName = newData.displayName;
-        itemsRecord[itemId].itemId = newData.minecraftId;
-        itemsRecord[itemId].icon = newData.icon;
-    } else {
-        // This case should ideally not happen if the item was added correctly
-        addCustomItemToConfig(itemId, {
-            displayName: newData.displayName,
-            itemId: newData.minecraftId,
-            icon: newData.icon,
-            buyPrice: newData.buyPrice,
-            sellPrice: newData.sellPrice
-        });
-    }
+    updateMasterItemList(itemId, newData);
 
     // 2. Update the shop-specific configuration (shop.json)
     const shopConfig = getShopConfig();

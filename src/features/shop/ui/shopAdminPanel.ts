@@ -9,6 +9,7 @@ import { showConfirmationDialog } from '@ui/components.js';
 import { IPanelHandler, MainConfig, PanelItem, ShopItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 import * as shopAdminManager from '../shopAdminManager.js';
+import { ShopCategory } from '../shopConfig.js';
 import { ensureItemsConfig, getAllItems } from '../shopUtils.js';
 
 interface ShopCategoryEntry {
@@ -147,6 +148,35 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         return items;
     }
 
+    private generateShopEntries(category: ShopCategory): ShopEntry[] {
+        const subCategories = Object.keys(category.subCategories).toSorted((a, b) => a.localeCompare(b));
+        const shopItems = Object.keys(category.items);
+
+        return [
+            ...subCategories.map((n): ShopEntry => {
+                const sub = category.subCategories[n];
+                return {
+                    id: n,
+                    name: n,
+                    type: 'subCategory',
+                    icon: sub?.icon ?? ''
+                };
+            }),
+            ...shopItems.map((n): ShopEntry => {
+                const item = category.items[n];
+                return {
+                    id: n,
+                    type: 'item',
+                    ...(isNonEmptyString(item?.icon) ? { icon: item.icon } : {}),
+                    ...(isNonEmptyString(item?.displayName) ? { displayName: item.displayName } : {}),
+                    buyPrice: item?.buyPrice ?? -1,
+                    sellPrice: item?.sellPrice ?? -1,
+                    permissionLevel: item?.permissionLevel ?? 1024
+                };
+            })
+        ];
+    }
+
     private getCategoryPanel(context: UIContext, page: number): PanelItem[] {
         const items: PanelItem[] = [];
         const categoryName = context.categoryName as string;
@@ -181,33 +211,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const shopConfig = getShopConfig();
         const category = shopConfig.categories[categoryName];
         if (isDefined(category)) {
-            const subCategories = Object.keys(category.subCategories).toSorted((a, b) => a.localeCompare(b));
-            const shopItems = Object.keys(category.items);
-
-            const allEntries: ShopEntry[] = [
-                ...subCategories.map((n) => {
-                    const sub = category.subCategories[n];
-                    return {
-                        id: n,
-                        name: n,
-                        type: 'subCategory' as const,
-                        icon: sub?.icon ?? ''
-                    };
-                }),
-                ...shopItems.map((n) => {
-                    const item = category.items[n];
-                    return {
-                        id: n,
-                        type: 'item' as const,
-                        ...(isNonEmptyString(item?.icon) ? { icon: item.icon } : {}),
-                        ...(isNonEmptyString(item?.displayName) ? { displayName: item.displayName } : {}),
-                        buyPrice: item?.buyPrice ?? -1,
-                        sellPrice: item?.sellPrice ?? -1,
-                        permissionLevel: item?.permissionLevel ?? 1024
-                    };
-                })
-            ];
-
+            const allEntries = this.generateShopEntries(category);
             const paginated = getPaginatedItems(allEntries, page);
             const allItems = getAllItems();
 
@@ -767,50 +771,59 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         context: UIContext
     ): Promise<void> {
         const items = await this.getItems(player, panelId, context);
-        if (selection >= 0 && selection < items.length) {
-            const item = items[selection];
-            if (!isDefined(item)) return;
+        if (selection < 0 || selection >= items.length) return;
 
-            if (item.actionType === 'openPanel') {
-                return showPanel(player, item.actionValue, {
-                    ...context,
-                    page: 1,
-                    selectedItemId: item.id,
-                    id: item.id
-                });
-            }
+        const item = items[selection];
+        if (!isDefined(item)) return;
 
-            if (item.actionValue === 'prevPage') {
-                const currentPage = isNumber(context.page) ? context.page : 1;
-                return showPanel(player, panelId, {
-                    ...context,
-                    page: Math.max(1, currentPage - 1)
-                });
-            }
-            if (item.actionValue === 'nextPage') {
-                const currentPage = isNumber(context.page) ? context.page : 1;
-                return showPanel(player, panelId, { ...context, page: currentPage + 1 });
-            }
+        if (item.actionType === 'openPanel') {
+            return showPanel(player, item.actionValue, {
+                ...context,
+                page: 1,
+                selectedItemId: item.id,
+                id: item.id
+            });
+        }
 
-            if (item.actionValue === 'toggleShop') {
-                const mainConfig = getConfig() as unknown as MainConfig;
-                const newStatus = !mainConfig.shop.enabled;
-                updateMultipleConfig({ 'shop.enabled': newStatus });
-                player.sendMessage(`§2Shop system has been ${newStatus ? 'enabled' : 'disabled'}.`);
-                return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
-            }
+        await this.handleStaticAction(player, panelId, item, context);
+    }
 
-            if (item.actionValue === 'deleteCategory') {
-                return this.handleDeleteCategory(player, panelId, context);
-            }
+    private async handleStaticAction(
+        player: mc.Player,
+        panelId: string,
+        item: PanelItem,
+        context: UIContext
+    ): Promise<void> {
+        if (item.actionValue === 'prevPage') {
+            const currentPage = isNumber(context.page) ? context.page : 1;
+            return showPanel(player, panelId, {
+                ...context,
+                page: Math.max(1, currentPage - 1)
+            });
+        }
+        if (item.actionValue === 'nextPage') {
+            const currentPage = isNumber(context.page) ? context.page : 1;
+            return showPanel(player, panelId, { ...context, page: currentPage + 1 });
+        }
 
-            if (item.actionValue === 'deleteSubCategory') {
-                return this.handleDeleteSubCategory(player, panelId, context);
-            }
+        if (item.actionValue === 'toggleShop') {
+            const mainConfig = getConfig() as unknown as MainConfig;
+            const newStatus = !mainConfig.shop.enabled;
+            updateMultipleConfig({ 'shop.enabled': newStatus });
+            player.sendMessage(`§2Shop system has been ${newStatus ? 'enabled' : 'disabled'}.`);
+            return showPanel(player, 'shopManagementPanel', { ...context, page: 1 });
+        }
 
-            if (item.actionValue === 'editItem') {
-                return this.handleEditItemAction(player, panelId, item, context);
-            }
+        if (item.actionValue === 'deleteCategory') {
+            return this.handleDeleteCategory(player, panelId, context);
+        }
+
+        if (item.actionValue === 'deleteSubCategory') {
+            return this.handleDeleteSubCategory(player, panelId, context);
+        }
+
+        if (item.actionValue === 'editItem') {
+            return this.handleEditItemAction(player, panelId, item, context);
         }
     }
 
