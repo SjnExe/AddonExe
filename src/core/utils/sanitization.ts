@@ -14,7 +14,7 @@ export function sanitizeString(input: string, allowColors = false): string {
     }
 
     // Remove non-printable characters (basic control chars, keeping newlines/returns)
-    // eslint-disable-next-line no-control-regex, sonarjs/no-control-regex
+    // eslint-disable-next-line no-control-regex
     result = result.replaceAll(/[\u0000-\u0009\u000B\u000C\u000E-\u001F]/g, '');
 
     return result.trim();

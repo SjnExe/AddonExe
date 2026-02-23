@@ -31,7 +31,6 @@ export class StorageManager {
             // Cleanup old chunks if size shrank
             let nextIndex = chunks;
             while (mc.world.getDynamicProperty(`${this.dbName}:${nextIndex}`) !== undefined) {
-                // eslint-disable-next-line sonarjs/no-undefined-argument
                 mc.world.setDynamicProperty(`${this.dbName}:${nextIndex}`, undefined); // Delete
                 nextIndex++;
             }
@@ -64,7 +63,6 @@ export class StorageManager {
             // Cleanup old chunks
             let nextIndex = chunks;
             while (mc.world.getDynamicProperty(`${this.dbName}:${nextIndex}`) !== undefined) {
-                // eslint-disable-next-line sonarjs/no-undefined-argument
                 mc.world.setDynamicProperty(`${this.dbName}:${nextIndex}`, undefined); // Delete
                 nextIndex++;
                 if (nextIndex % 5 === 0) yield;
@@ -118,13 +116,10 @@ export class StorageManager {
             const chunks = typeof meta === 'number' ? meta : 0;
 
             for (let i = 0; i < chunks; i++) {
-                // eslint-disable-next-line sonarjs/no-undefined-argument
                 mc.world.setDynamicProperty(`${this.dbName}:${i}`, undefined);
             }
-            // eslint-disable-next-line sonarjs/no-undefined-argument
             mc.world.setDynamicProperty(`${this.dbName}:meta`, undefined);
             // Try legacy clean up too
-            // eslint-disable-next-line sonarjs/no-undefined-argument
             mc.world.setDynamicProperty(this.dbName, undefined);
         } catch (error) {
             errorLog(`[StorageManager] Failed to delete ${this.dbName}`, error);

@@ -15,6 +15,7 @@
 /staging/
 /packs/behavior/pack_icon.png
 /packs/resource/pack_icon.png
+/out
 
 # misc
 .DS_Store
