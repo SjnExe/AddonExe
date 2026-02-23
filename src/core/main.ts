@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { loadCommands } from '@core/commands/index.js';
 import { initializeXrayDetection } from '@features/anticheat/xrayDetection.js';
 import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
 import { cleanupSpawnProtection, initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
@@ -32,6 +33,9 @@ import { cleanupTimers, startSystemTimers } from './timerManager.js';
 import { reinitializeOnlinePlayers } from './utils.js';
 
 const VERSION = '0.7.0'; // Current Addon Version
+
+// Load Commands immediately to register slash commands during startup
+loadCommands();
 
 /**
  * Initializes the addon.

@@ -2,6 +2,11 @@
     "namespace": "server_form",
     "long_form": {
         "type": "panel",
+        "bindings": [
+            { "binding_name": "#title_text" },
+            { "binding_name": "#content_text" },
+            { "binding_name": "#form_button_length" }
+        ],
         "controls": [
             {
                 "client_content": {
@@ -19,8 +24,7 @@
                                 "controls": [
                                     {
                                         "grid_view": {
-                                            "type": "custom",
-                                            "renderer": "ui_scene_renderer",
+                                            "type": "panel",
                                             "layer": 1,
                                             "anchor_from": "center",
                                             "anchor_to": "center",
@@ -29,7 +33,7 @@
                                         }
                                     }
                                 ],
-                                "visible": "(($title_text - '§t§t§t') = 'Tic Tac Toe')"
+                                "visible": "($title_text = '§t§t§tTic Tac Toe')"
                             }
                         },
                         {
@@ -99,7 +103,7 @@
                                         }
                                     }
                                 ],
-                                "visible": "(not (($title_text - '§t§t§t') = 'Tic Tac Toe'))"
+                                "visible": "(not ($title_text = '§t§t§tTic Tac Toe'))"
                             }
                         }
                     ]

@@ -15,7 +15,8 @@ jest.unstable_mockModule('../configManager.js', () => ({
     updateMultipleConfig: jest.fn(),
     resetConfigSection: jest.fn(),
     onConfigUpdated: jest.fn(),
-    initializeConfigManager: jest.fn()
+    initializeConfigManager: jest.fn(),
+    reloadConfig: jest.fn()
 }));
 
 // Mock feature managers if needed by panels
