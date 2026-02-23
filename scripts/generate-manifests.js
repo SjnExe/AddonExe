@@ -58,6 +58,7 @@ function parseVersion(versionString) {
 function extractModuleVersion(npmVersion) {
     if (!npmVersion) return '1.0.0';
     if (npmVersion === 'latest') return 'beta';
+    if (npmVersion === 'beta') return 'beta';
 
     // Strip range characters like ^, ~, >=
     const cleanVersion = npmVersion.replace(/^[^\d]*/, '');

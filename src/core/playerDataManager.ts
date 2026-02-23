@@ -173,7 +173,7 @@ function saveShardedMap(map: Map<string, string>, prefix: string) {
     // Cleanup stale shards if the map shrank
     let nextIndex = totalShards;
     while (mc.world.getDynamicProperty(`${prefix}${nextIndex}`) !== undefined) {
-        // eslint-disable-next-line sonarjs/no-undefined-argument
+        //
         mc.world.setDynamicProperty(`${prefix}${nextIndex}`, undefined);
         nextIndex++;
     }
@@ -193,7 +193,7 @@ function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix
             const entries = JSON.parse(legacyData) as [string, string][];
             for (const [k, v] of entries) map.set(k, v);
             // Delete legacy key immediately to mark migration complete
-            // eslint-disable-next-line sonarjs/no-undefined-argument
+            //
             mc.world.setDynamicProperty(legacyKey, undefined);
             migrated = true;
         } catch (error) {
