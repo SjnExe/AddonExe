@@ -144,10 +144,7 @@ async function generateManifests() {
         });
 
     const resolvedModules = await Promise.all(modulePromises);
-    dependencies.push(...resolvedModules);
-
-    // Always add RP dependency
-    dependencies.push({
+    dependencies.push(...resolvedModules, {
         uuid: UUIDS.rp.header,
         version: versionParts
     });
