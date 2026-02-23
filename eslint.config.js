@@ -215,8 +215,7 @@ export default tseslint.config(
     ...jsonc.configs['flat/recommended-with-jsonc'],
     {
         files: ['**/*.json'],
-        rules: {
-        }
+        rules: {}
     },
 
     // Prettier
