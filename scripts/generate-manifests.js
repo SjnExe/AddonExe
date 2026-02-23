@@ -64,17 +64,13 @@ async function fetchLatestVersion(pkgName) {
         const { stdout } = await execAsync(`npm view ${pkgName} version`);
         return stdout.trim();
     } catch (error) {
-        console.warn(`Failed to fetch version for ${pkgName}, defaulting to 1.0.0-beta. Error: ${error.message}`);
-        return '1.0.0-beta';
+        console.warn(`Failed to fetch version for ${pkgName}, defaulting to 1.0.0. Error: ${error.message}`);
+        return '1.0.0';
     }
 }
 
 /**
  * Resolves the module version from the NPM version string.
- * e.g., "2.5.0-beta.1.21.132-stable" -> "2.5.0-beta"
- *       "1.0.0" -> "1.0.0"
- *       "latest" -> fetches from npm
- *       "beta" -> "beta"
  */
 async function resolveModuleVersion(pkgName, npmVersion) {
     if (!npmVersion) return '1.0.0';
@@ -82,23 +78,12 @@ async function resolveModuleVersion(pkgName, npmVersion) {
     if (npmVersion === 'beta') return 'beta';
 
     if (npmVersion === 'latest') {
-        const fullVersion = await fetchLatestVersion(pkgName);
-        return extractVersionCore(fullVersion);
+        const version = await fetchLatestVersion(pkgName);
+        return version;
     }
 
-    return extractVersionCore(npmVersion);
-}
-
-function extractVersionCore(versionStr) {
-    // Strip range characters like ^, ~, >=
-    const cleanVersion = versionStr.replace(/^[^\d]*/, '');
-
-    // Regex to capture x.y.z(-tag)?
-    const match = cleanVersion.match(/^(\d+\.\d+\.\d+(?:-(?:beta|rc|preview))?)/);
-    if (match) {
-        return match[1];
-    }
-    return cleanVersion;
+    // Strip range characters like ^, ~, >= if explicit version provided
+    return npmVersion.replace(/^[^\d]*/, '');
 }
 
 async function generateManifests() {
