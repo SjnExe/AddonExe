@@ -1,7 +1,10 @@
+import { exec } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
+const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -51,17 +54,44 @@ function parseVersion(versionString) {
 }
 
 /**
- * Extracts the module version from the NPM version string.
+ * Fetches the latest stable version of a package from npm.
+ * @param {string} pkgName The name of the package.
+ * @returns {Promise<string>} The latest version.
+ */
+async function fetchLatestVersion(pkgName) {
+    try {
+        console.log(`Fetching latest version for ${pkgName}...`);
+        const { stdout } = await execAsync(`npm view ${pkgName} version`);
+        return stdout.trim();
+    } catch (error) {
+        console.warn(`Failed to fetch version for ${pkgName}, defaulting to 1.0.0-beta. Error: ${error.message}`);
+        return '1.0.0-beta';
+    }
+}
+
+/**
+ * Resolves the module version from the NPM version string.
  * e.g., "2.5.0-beta.1.21.132-stable" -> "2.5.0-beta"
  *       "1.0.0" -> "1.0.0"
+ *       "latest" -> fetches from npm
+ *       "beta" -> "beta"
  */
-function extractModuleVersion(npmVersion) {
+async function resolveModuleVersion(pkgName, npmVersion) {
     if (!npmVersion) return '1.0.0';
-    if (npmVersion === 'latest') return 'beta';
+
     if (npmVersion === 'beta') return 'beta';
 
+    if (npmVersion === 'latest') {
+        const fullVersion = await fetchLatestVersion(pkgName);
+        return extractVersionCore(fullVersion);
+    }
+
+    return extractVersionCore(npmVersion);
+}
+
+function extractVersionCore(versionStr) {
     // Strip range characters like ^, ~, >=
-    const cleanVersion = npmVersion.replace(/^[^\d]*/, '');
+    const cleanVersion = versionStr.replace(/^[^\d]*/, '');
 
     // Regex to capture x.y.z(-tag)?
     const match = cleanVersion.match(/^(\d+\.\d+\.\d+(?:-(?:beta|rc|preview))?)/);
@@ -117,14 +147,19 @@ async function generateManifests() {
 
     const dependencies = [];
 
-    for (const mod of modulesToInclude) {
-        if (devDeps[mod]) {
-            dependencies.push({
+    // Process modules in parallel to speed up npm fetches
+    const modulePromises = modulesToInclude
+        .filter((mod) => devDeps[mod])
+        .map(async (mod) => {
+            const version = await resolveModuleVersion(mod, devDeps[mod]);
+            return {
                 module_name: mod,
-                version: extractModuleVersion(devDeps[mod])
-            });
-        }
-    }
+                version: version
+            };
+        });
+
+    const resolvedModules = await Promise.all(modulePromises);
+    dependencies.push(...resolvedModules);
 
     // Always add RP dependency
     dependencies.push({
