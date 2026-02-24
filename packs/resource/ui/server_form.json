@@ -11,6 +11,7 @@
             {
                 "client_content": {
                     "type": "panel",
+                    "bindings": [{ "binding_name": "#title_text" }],
                     "controls": [
                         {
                             "tic_tac_toe_override": {
