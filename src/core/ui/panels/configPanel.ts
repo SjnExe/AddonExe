@@ -10,7 +10,6 @@ import { getOrCreatePlayer, type PlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { handleUIAction } from '@ui/actions.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
@@ -300,7 +299,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             }
 
             // Removed redundant functionCall check
-            await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id });
+            player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
         }
     }
 

@@ -5,7 +5,6 @@ import { getConfig } from '@core/configManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { isDefined } from '@lib/guards.js';
-import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
@@ -47,7 +46,7 @@ export class GeneralPanelHandler implements IPanelHandler {
             if (item.actionType === 'openPanel') {
                 return showPanel(player, item.actionValue, { ...context, page: 1 });
             }
-            return handleUIAction(player, item.actionValue, context);
+            player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
         }
     }
 }

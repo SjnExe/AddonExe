@@ -3,9 +3,9 @@ import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
-import { playSound } from '@core/utils.js';
+import { playSound, sanitizeString, uiWait } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { handleUIAction } from '@ui/actions.js';
+import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import * as reportManager from '../reportManager.js';
 
@@ -50,11 +50,24 @@ const reportCommand: CustomCommand = {
             executor.sendMessage('§aReport submitted. Thank you for your help.');
             playSound(executor, 'random.orb');
         } else {
-            await handleUIAction(executor, 'reportPlayer', {
-                targetPlayerId: targetId,
-                targetPlayerName: correctTargetName,
-                returnPanel: undefined // Close, don't return to list
-            });
+            const form = new ModalFormData()
+                .title(`Report ${correctTargetName}`)
+                .textField('Reason', 'Why are you reporting this player?');
+
+            const res = await uiWait(executor, form);
+            if (isDefined(res) && !res.canceled) {
+                const values = (res as ModalFormResponse).formValues;
+                if (isDefined(values)) {
+                    const [reasonRaw] = values as [string];
+                    if (isNonEmptyString(reasonRaw)) {
+                        const reason = sanitizeString(reasonRaw, true);
+                        reportManager.createReport(executor, targetId, correctTargetName, reason);
+                        executor.sendMessage('§2Report sent successfully. Admins have been notified.');
+                        return;
+                    }
+                }
+            }
+            executor.sendMessage('§4Reason is required to submit a report.');
         }
     }
 };

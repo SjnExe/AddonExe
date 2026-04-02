@@ -5,7 +5,6 @@ import * as floatingTextManager from '@core/floatingTextManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatLocation } from '@core/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
-import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
@@ -230,7 +229,49 @@ export class AdminPanelHandler implements IPanelHandler {
                     actionContext.id = context.id as string;
                 }
 
-                await handleUIAction(player, item.actionValue, actionContext);
+                if (item.actionValue === 'showRules') {
+                    return showPanel(player, 'rulesManagementPanel', actionContext);
+                }
+                if (item.actionValue === 'showHelpfulLinks') {
+                    return showPanel(player, 'helpfulLinksManagementPanel', actionContext);
+                }
+                if (item.actionValue === 'respawnText') {
+                    const { respawnText } = await import('@core/floatingTextManager.js');
+                    if (isNonEmptyString(actionContext.id)) {
+                        try {
+                            respawnText(actionContext.id);
+                            player.sendMessage(`§2Respawned text: ${actionContext.id}`);
+                        } catch (error) {
+                            player.sendMessage(`§4Error respawning text: ${String(error)}`);
+                        }
+                    }
+                    return showPanel(player, 'floatingTextActionPanel', actionContext);
+                }
+                if (item.actionValue === 'despawnText') {
+                    const { despawnText } = await import('@core/floatingTextManager.js');
+                    if (isNonEmptyString(actionContext.id)) {
+                        try {
+                            despawnText(actionContext.id);
+                            player.sendMessage(`§2Despawned text: ${actionContext.id}`);
+                        } catch (error) {
+                            player.sendMessage(`§4Error despawning text: ${String(error)}`);
+                        }
+                    }
+                    return showPanel(player, 'floatingTextActionPanel', actionContext);
+                }
+                if (item.actionValue === 'deleteText') {
+                    const { deleteText } = await import('@core/floatingTextManager.js');
+                    if (isNonEmptyString(actionContext.id)) {
+                        try {
+                            deleteText(player, actionContext.id);
+                        } catch (error) {
+                            player.sendMessage(`§4Error deleting text: ${String(error)}`);
+                        }
+                    }
+                    return showPanel(player, 'floatingTextListPanel', actionContext);
+                }
+
+                player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
                 return;
             }
         }

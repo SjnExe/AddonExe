@@ -8,7 +8,6 @@ import { getOrCreatePlayer, type PlayerData } from '@core/playerDataManager.js';
 import * as rulesManager from '@core/rulesManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { handleUIAction } from '@ui/actions.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler, MainConfig } from '@ui/types.js';
@@ -309,7 +308,7 @@ export class InfoPanelHandler implements IPanelHandler {
                 return showPanel(player, panelId, context);
             }
 
-            await handleUIAction(player, item.actionValue, { ...context, selectedItemId: item.id });
+            player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
         }
     }
 }
