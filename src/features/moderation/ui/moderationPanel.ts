@@ -185,7 +185,282 @@ export class ModerationPanelHandler implements IPanelHandler {
                 await this.handleClearReport(player, context);
                 return;
             }
+
+            if (item.actionValue === 'kickPlayer') {
+                await this.handleKickPlayer(player, context);
+                return;
+            }
+            if (item.actionValue === 'mutePlayer') {
+                await this.handleMutePlayer(player, context);
+                return;
+            }
+            if (item.actionValue === 'unmutePlayer') {
+                await this.handleUnmutePlayer(player, context);
+                return;
+            }
+            if (item.actionValue === 'banPlayer') {
+                await this.handleBanPlayer(player, context);
+                return;
+            }
+            if (item.actionValue === 'freezePlayer') {
+                await this.handleFreezePlayer(player, context);
+                return;
+            }
+            if (item.actionValue === 'unfreezePlayer') {
+                await this.handleUnfreezePlayer(player, context);
+                return;
+            }
+            if (item.actionValue === 'reportPlayer') {
+                await this.handleReportPlayer(player, context);
+                return;
+            }
         }
+    }
+
+    private async handleKickPlayer(player: mc.Player, context: UIContext): Promise<void> {
+        const targetId = context.targetPlayerId as string;
+        if (!isNonEmptyString(targetId)) return;
+
+        const { getPlayerFromCache } = await import('@core/playerCache.js');
+        const { sanitizeString, uiWait } = await import('@core/utils.js');
+        const target = getPlayerFromCache(targetId);
+
+        if (!isDefined(target)) {
+            player.sendMessage('§4Player is offline or not found.');
+            return showPanel(player, 'playerActionsPanel', context);
+        }
+
+        const form = new ModalFormData()
+            .title(`Kick ${target.name}`)
+            .textField('Reason', 'Enter reason for kick', { defaultValue: 'Kicked by admin' });
+
+        const res = await uiWait(player, form);
+        if (isDefined(res) && res.canceled)
+            return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+
+        const values = (res as import('@minecraft/server-ui').ModalFormResponse).formValues;
+        if (!isDefined(values))
+            return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+        const [reason] = values as [string];
+        const safeReason = sanitizeString(reason, true).replaceAll('"', "'");
+
+        try {
+            player.dimension.runCommand(`kick "${target.name}" ${safeReason}`);
+            player.sendMessage(`§2Kicked ${target.name}.`);
+        } catch (error) {
+            player.sendMessage(`§4Failed to kick player: ${String(error)}`);
+        }
+        return showPanel(player, 'playerActionsPanel', context);
+    }
+
+    private async handleMutePlayer(player: mc.Player, context: UIContext): Promise<void> {
+        const targetId = context.targetPlayerId as string;
+        if (!isNonEmptyString(targetId)) return;
+
+        const { getPlayer } = await import('@core/playerDataManager.js');
+        const { sanitizeString, uiWait } = await import('@core/utils.js');
+        const { getPlayerFromCache } = await import('@core/playerCache.js');
+        const targetData = getPlayer(targetId);
+        if (!isDefined(targetData)) {
+            player.sendMessage('§4Player data not found.');
+            return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+        }
+
+        const form = new ModalFormData()
+            .title(`Mute ${targetData.name}`)
+            .textField('Duration (minutes)', 'e.g., 60', { defaultValue: '60' })
+            .textField('Reason', 'Enter reason', { defaultValue: 'Misconduct' });
+
+        const res = await uiWait(player, form);
+        if (isDefined(res) && res.canceled) return showPanel(player, 'playerActionsPanel', context);
+
+        const values = (res as import('@minecraft/server-ui').ModalFormResponse).formValues;
+        if (!isDefined(values)) return showPanel(player, 'playerActionsPanel', context);
+
+        const [durationStr, reasonRaw] = values as [string, string];
+        const reason = sanitizeString(reasonRaw, true);
+        const durationMins = Number.parseInt(durationStr);
+
+        if (Number.isNaN(durationMins) || durationMins <= 0) {
+            player.sendMessage('§4Invalid duration.');
+            return showPanel(player, 'playerActionsPanel', context);
+        }
+
+        const expires = Date.now() + durationMins * 60 * 1000;
+        punishmentManager.addPunishment(
+            targetId,
+            targetData.name,
+            {
+                type: 'mute',
+                expires,
+                reason
+            },
+            player.name
+        );
+
+        player.sendMessage(`§2Muted ${targetData.name} for ${durationMins} minutes.`);
+        const target = getPlayerFromCache(targetId);
+        if (target) {
+            target.sendMessage(`§4You have been muted for ${durationMins} minutes. Reason: ${reason}`);
+        }
+        return showPanel(player, 'playerActionsPanel', context);
+    }
+
+    private async handleUnmutePlayer(player: mc.Player, context: UIContext): Promise<void> {
+        const targetId = context.targetPlayerId as string;
+        if (!isNonEmptyString(targetId)) return;
+
+        const { getPlayerFromCache } = await import('@core/playerCache.js');
+
+        const punishment = punishmentManager.getPunishment(targetId, 'mute');
+        if (!isDefined(punishment)) {
+            player.sendMessage('§4Player is not muted.');
+            return showPanel(player, 'playerActionsPanel', context);
+        }
+
+        punishmentManager.removePunishment(targetId, 'mute');
+        player.sendMessage(`§2Unmuted player.`);
+
+        const target = getPlayerFromCache(targetId);
+        if (isDefined(target)) {
+            target.sendMessage('§2You have been unmuted.');
+        }
+        return showPanel(player, 'playerActionsPanel', context);
+    }
+
+    private async handleBanPlayer(player: mc.Player, context: UIContext): Promise<void> {
+        const targetId = context.targetPlayerId as string;
+        if (!isNonEmptyString(targetId)) return;
+
+        const { getPlayer } = await import('@core/playerDataManager.js');
+        const { getPlayerFromCache } = await import('@core/playerCache.js');
+        const { sanitizeString, uiWait } = await import('@core/utils.js');
+        const targetData = getPlayer(targetId);
+
+        if (!isDefined(targetData)) {
+            player.sendMessage('§4Player data not found.');
+            return showPanel(player, 'playerActionsPanel', context);
+        }
+
+        const form = new ModalFormData()
+            .title(`Ban ${targetData.name}`)
+            .textField('Duration (hours, 0 = permanent)', 'e.g., 24', { defaultValue: '0' })
+            .textField('Reason', 'Enter reason', { defaultValue: 'Violation of rules' });
+
+        const res = await uiWait(player, form);
+        if (isDefined(res) && res.canceled) return showPanel(player, 'playerActionsPanel', context);
+
+        const values = (res as import('@minecraft/server-ui').ModalFormResponse).formValues;
+        if (!isDefined(values)) return showPanel(player, 'playerActionsPanel', context);
+
+        const [durationStr, reasonRaw] = values as [string, string];
+        const reason = sanitizeString(reasonRaw, true).replaceAll('"', "'");
+        const durationHours = Number.parseInt(durationStr);
+
+        if (Number.isNaN(durationHours) || durationHours < 0) {
+            player.sendMessage('§4Invalid duration.');
+            return showPanel(player, 'playerActionsPanel', context);
+        }
+
+        const expires =
+            durationHours === 0
+                ? Date.now() + 100 * 365 * 24 * 60 * 60 * 1000
+                : Date.now() + durationHours * 60 * 60 * 1000;
+
+        punishmentManager.addPunishment(
+            targetId,
+            targetData.name,
+            {
+                type: 'ban',
+                expires,
+                reason
+            },
+            player.name
+        );
+
+        const target = getPlayerFromCache(targetId);
+        if (isDefined(target)) {
+            try {
+                player.dimension.runCommand(
+                    `kick "${target.name}" §4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`
+                );
+            } catch {
+                // Ignore if kick fails
+            }
+        }
+        player.sendMessage(`§2Banned ${targetData.name}.`);
+        return showPanel(player, 'playerActionsPanel', context);
+    }
+
+    private async handleFreezePlayer(player: mc.Player, context: UIContext): Promise<void> {
+        const targetId = context.targetPlayerId as string;
+        if (!isNonEmptyString(targetId)) return;
+
+        const { getPlayerFromCache } = await import('@core/playerCache.js');
+        const target = getPlayerFromCache(targetId);
+
+        if (!isDefined(target)) {
+            player.sendMessage('§4Player is offline.');
+            return showPanel(player, 'playerActionsPanel', context);
+        }
+
+        target.addTag('frozen');
+        target.sendMessage('§4You have been frozen by a moderator.');
+        player.sendMessage(`§2Frozen ${target.name}.`);
+        return showPanel(player, 'playerActionsPanel', context);
+    }
+
+    private async handleUnfreezePlayer(player: mc.Player, context: UIContext): Promise<void> {
+        const targetId = context.targetPlayerId as string;
+        if (!isNonEmptyString(targetId)) return;
+
+        const { getPlayerFromCache } = await import('@core/playerCache.js');
+        const target = getPlayerFromCache(targetId);
+
+        if (!isDefined(target)) {
+            player.sendMessage('§4Player is offline.');
+            return showPanel(player, 'playerActionsPanel', context);
+        }
+
+        target.removeTag('frozen');
+        target.sendMessage('§2You have been unfrozen.');
+        player.sendMessage(`§2Unfrozen ${target.name}.`);
+        return showPanel(player, 'playerActionsPanel', context);
+    }
+
+    private async handleReportPlayer(player: mc.Player, context: UIContext): Promise<void> {
+        const targetId = context.targetPlayerId as string;
+        if (!isNonEmptyString(targetId)) return;
+
+        const { getPlayer } = await import('@core/playerDataManager.js');
+        const { sanitizeString, uiWait } = await import('@core/utils.js');
+        const targetData = getPlayer(targetId);
+        if (!isDefined(targetData)) {
+            player.sendMessage('§4Player data not found.');
+            return showPanel(player, 'playerActionsPanel', context);
+        }
+
+        const form = new ModalFormData()
+            .title(`Report ${targetData.name}`)
+            .textField('Reason', 'Why are you reporting this player?');
+
+        const res = await uiWait(player, form);
+        if (isDefined(res) && res.canceled)
+            return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+
+        const values = (res as import('@minecraft/server-ui').ModalFormResponse).formValues;
+        if (!isDefined(values))
+            return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+
+        const [reasonRaw] = values as [string];
+        if (!isNonEmptyString(reasonRaw)) {
+            player.sendMessage('§4Reason is required.');
+            return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+        }
+        const reason = sanitizeString(reasonRaw, true);
+
+        reportManager.createReport(player, targetId, targetData.name, reason);
+        player.sendMessage('§2Report sent successfully. Admins have been notified.');
     }
 
     private async handleUnbanForm(player: mc.Player, panelId: string, context: UIContext): Promise<void> {

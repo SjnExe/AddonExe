@@ -1,140 +1,58 @@
 {
     "namespace": "server_form",
-    "long_form": {
+    "long_form_panel": {
         "type": "panel",
-        "bindings": [
-            { "binding_name": "#title_text" },
-            { "binding_name": "#content_text" },
-            { "binding_name": "#form_button_length" }
-        ],
+        "bindings": [{ "binding_name": "#title_text" }],
         "controls": [
             {
-                "client_content": {
+                "tic_tac_toe_override": {
                     "type": "panel",
-                    "bindings": [{ "binding_name": "#title_text" }],
-                    "controls": [
-                        {
-                            "tic_tac_toe_override": {
-                                "type": "panel",
-                                "bindings": [
-                                    {
-                                        "binding_name": "#title_text",
-                                        "binding_name_override": "#title"
-                                    }
-                                ],
-                                "controls": [
-                                    {
-                                        "grid_view": {
-                                            "type": "panel",
-                                            "layer": 1,
-                                            "anchor_from": "center",
-                                            "anchor_to": "center",
-                                            "size": ["100%", "100%"],
-                                            "controls": [{ "ttt_screen@addonexe_ttt.grid_screen": {} }]
-                                        }
-                                    }
-                                ],
-                                "visible": "($title_text = '§t§t§tTic Tac Toe')"
-                            }
-                        },
-                        {
-                            "default_view": {
-                                "type": "stack_panel",
-                                "orientation": "vertical",
-                                "anchor_from": "top_middle",
-                                "anchor_to": "top_middle",
-                                "size": ["100%", "100%"],
-                                "controls": [
-                                    {
-                                        "title_panel": {
-                                            "type": "panel",
-                                            "size": ["100%", 30],
-                                            "controls": [
-                                                {
-                                                    "title": {
-                                                        "type": "label",
-                                                        "text": "#title_text",
-                                                        "bindings": [{ "binding_name": "#title_text" }]
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "content_scroll": {
-                                            "type": "scroll_view",
-                                            "size": ["100%", "100%c"],
-                                            "controls": [
-                                                {
-                                                    "content_stack": {
-                                                        "type": "stack_panel",
-                                                        "orientation": "vertical",
-                                                        "size": ["100%", "100%c"],
-                                                        "controls": [
-                                                            {
-                                                                "body_text": {
-                                                                    "type": "label",
-                                                                    "text": "#content_text",
-                                                                    "size": ["100%", "default"],
-                                                                    "bindings": [{ "binding_name": "#content_text" }]
-                                                                }
-                                                            },
-                                                            {
-                                                                "button_list_panel": {
-                                                                    "type": "stack_panel",
-                                                                    "orientation": "vertical",
-                                                                    "size": ["100%", "100%c"],
-                                                                    "factory": {
-                                                                        "name": "buttons",
-                                                                        "control_name": "server_form.form_button"
-                                                                    },
-                                                                    "collection_name": "form_buttons",
-                                                                    "bindings": [
-                                                                        {
-                                                                            "binding_name": "#form_button_length",
-                                                                            "binding_name_override": "#collection_length"
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            }
-                                                        ]
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                ],
-                                "visible": "(not ($title_text = '§t§t§tTic Tac Toe'))"
-                            }
-                        }
-                    ]
-                }
-            }
-        ]
-    },
-    "form_button": {
-        "type": "button",
-        "size": ["100%", 30],
-        "controls": [
-            {
-                "label": {
-                    "type": "label",
-                    "text": "#button_text",
                     "bindings": [
                         {
-                            "binding_name": "#button_text",
-                            "binding_type": "collection",
-                            "binding_collection_name": "form_buttons"
+                            "binding_name": "#title_text",
+                            "binding_name_override": "#title"
                         }
-                    ]
+                    ],
+                    "controls": [
+                        {
+                            "grid_view": {
+                                "type": "panel",
+                                "layer": 1,
+                                "anchor_from": "center",
+                                "anchor_to": "center",
+                                "size": ["100%", "100%"],
+                                "controls": [{ "ttt_screen@addonexe_ttt.grid_screen": {} }]
+                            }
+                        }
+                    ],
+                    "visible": "($title_text = '§t§t§tTic Tac Toe')"
                 }
-            }
-        ],
-        "button_mappings": [
+            },
             {
-                "from_button_id": "button.menu_select",
-                "to_button_id": "button.form_button_click",
-                "mapping_type": "pressed"
+                "default_view": {
+                    "type": "stack_panel",
+                    "size": ["100%", "100%"],
+                    "orientation": "vertical",
+                    "layer": 1,
+                    "anchor_from": "top_left",
+                    "anchor_to": "top_left",
+                    "controls": [
+                        {
+                            "scrolling_panel@common.scrolling_panel": {
+                                "anchor_to": "top_left",
+                                "anchor_from": "top_left",
+                                "$show_background": false,
+                                "size": ["100%", "100%"],
+                                "$scrolling_content": "server_form.long_form_scrolling_content",
+                                "$scroll_size": [5, "100% - 4px"],
+                                "$scrolling_pane_size": ["100% - 4px", "100% - 2px"],
+                                "$scrolling_pane_offset": [2, 0],
+                                "$scroll_bar_right_padding_size": [0, 0]
+                            }
+                        }
+                    ],
+                    "visible": "(not ($title_text = '§t§t§tTic Tac Toe'))"
+                }
             }
         ]
     }
