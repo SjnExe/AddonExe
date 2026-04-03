@@ -10,7 +10,6 @@ import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { isDefined } from '@lib/guards.js';
-import { handleUIAction } from '@ui/actions.js';
 
 export class PlayerPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -139,7 +138,7 @@ export class PlayerPanelHandler implements IPanelHandler {
             return showPanel(player, selectedItem.actionValue, newContext);
         } else {
             if (selectedItem.actionValue === 'noop') return;
-            return handleUIAction(player, selectedItem.actionValue, context);
+            player.sendMessage(`§cAction ${selectedItem.actionValue} not mapped.`);
         }
     }
 

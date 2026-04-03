@@ -7,7 +7,6 @@ import * as rankManager from '@core/rankManager.js';
 import { RankDefinition } from '@core/ranksConfig.default.js';
 import { showPanel } from '@core/uiManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { handleUIAction } from '@ui/actions.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
 import { addBackButton } from '@ui/uiUtils.js';
@@ -236,7 +235,7 @@ export class RankPanelHandler implements IPanelHandler {
                 });
             }
 
-            await handleUIAction(player, item.actionValue, context);
+            player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
         }
     }
 }

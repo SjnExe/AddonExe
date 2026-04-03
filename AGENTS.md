@@ -11,28 +11,9 @@ Your primary goal is to assist users by completing coding tasks, such as solving
 If you need to initialize or reset the environment, use the following commands. These handle dependencies, system tools, and repository state.
 
 ```bash
-# Clean up existing tools
-sudo apt remove -y openjdk-21-jdk openjdk-21-jre maven gradle chromium-chromedriver golang-go rustc cargo cmake ninja-build gcc clang docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin pipx
-pip uninstall -y poetry uv black mypy pytest ruff conan
-sudo npm uninstall -g yarn pnpm || true
-rm -rf ~/.nvm ~/.pyenv
-
-# Clean up apt
-sudo apt autoremove --purge "openjdk*" -y
-sudo apt autoremove -y
-sudo apt clean
-sudo apt update
-sudo apt full-upgrade -y
-
-# Setup Node.js 22.x
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# Setup Repository
 git fetch origin exe:Dev
 git checkout Dev
 npm install
-sudo npm install -g npm@latest
 
 git restore package-lock.json
 ```

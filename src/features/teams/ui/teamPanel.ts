@@ -8,7 +8,6 @@ import { panelDefinitions } from '@core/ui/panelRegistry.js';
 import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
 import { showPanel } from '@core/uiManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { handleUIAction } from '@ui/actions.js';
 import * as teamManager from '../teamManager.js';
 
 export class TeamPanelHandler implements IPanelHandler {
@@ -515,7 +514,8 @@ export class TeamPanelHandler implements IPanelHandler {
                 return this.handleDeposit(player, context);
             }
             default: {
-                return handleUIAction(player, actionValue, context);
+                player.sendMessage(`§cAction ${actionValue} not mapped.`);
+                return;
             }
         }
     }
