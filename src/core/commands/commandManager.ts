@@ -440,7 +440,7 @@ class CommandManager {
                 }
             }
             this._executeCommand(executor, command, parsedArgs);
-            // eslint-disable-next-line unicorn/no-useless-undefined
+
             return undefined;
         };
 

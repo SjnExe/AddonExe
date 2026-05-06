@@ -92,7 +92,7 @@ export class PlayerPanelHandler implements IPanelHandler {
         // Actually, if we return undefined, panelBuilder falls back to static items.
         // But since we implement handleResponse, we need to be consistent.
         // Let's rely on fallback if not handled here.
-        // eslint-disable-next-line unicorn/no-useless-undefined
+
         return Promise.resolve(undefined);
     }
 
