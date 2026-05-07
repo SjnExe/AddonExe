@@ -45,23 +45,13 @@ export async function initializeAddon() {
     infoLog('[AddonExe] Initializing...');
 
     // Version Check & Migration Flag
-    const newVersion = VERSION.split('.').map(Number);
     const newVersionStr = VERSION;
     const lastVersionStr = mc.world.getDynamicProperty('exe:lastVersion') as string | undefined;
 
     let isMigration = true;
     if (isNonEmptyString(lastVersionStr)) {
-        const lastVersion = lastVersionStr.split('.').map(Number);
-        // Only trigger migration if Major or Minor versions differ.
-        // Array format is [Major, Minor, Patch]
-        if (
-            lastVersion.length >= 2 &&
-            newVersion.length >= 2 &&
-            lastVersion[0] === newVersion[0] &&
-            lastVersion[1] === newVersion[1]
-        ) {
-            isMigration = false;
-        }
+        // Trigger migration if the version string changes at all (Major, Minor, or Patch)
+        isMigration = lastVersionStr !== newVersionStr;
     }
 
     // Parallel Initialization of core configurations and feature modules
@@ -104,10 +94,6 @@ export async function initializeAddon() {
     restartAnnouncer();
 
     reinitializeOnlinePlayers();
-
-    if (config.isNightly) {
-        infoLog('[AddonExe] Nightly build detected.');
-    }
 
     startSystemTimers();
     infoLog('[AddonExe] Addon initialized successfully.');
