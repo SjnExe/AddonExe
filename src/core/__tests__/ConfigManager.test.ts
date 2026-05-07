@@ -1,34 +1,34 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
-const mockConfigLoader = jest.fn<any>();
+const mockConfigLoader = vi.fn<any>();
 const mockConfigManagerInstance = {
-    load: jest.fn(),
-    get: jest.fn(),
-    update: jest.fn(),
-    updateMultiple: jest.fn(),
-    reload: jest.fn(),
-    reset: jest.fn(),
-    set: jest.fn(),
-    save: jest.fn()
+    load: vi.fn(),
+    get: vi.fn(),
+    update: vi.fn(),
+    updateMultiple: vi.fn(),
+    reload: vi.fn(),
+    reset: vi.fn(),
+    set: vi.fn(),
+    save: vi.fn()
 };
-const mockFactory = jest.fn(() => mockConfigManagerInstance);
+const mockFactory = vi.fn(() => mockConfigManagerInstance);
 
-jest.unstable_mockModule('../configLoader.js', () => ({
+vi.mock('../configLoader.js', () => ({
     loadConfig: mockConfigLoader
 }));
 
-jest.unstable_mockModule('../configManagerFactory.js', () => ({
+vi.mock('../configManagerFactory.js', () => ({
     default: mockFactory
 }));
 
-jest.unstable_mockModule('../logger.js', () => ({
-    debugLog: jest.fn(),
-    errorLog: jest.fn(),
-    infoLog: jest.fn()
+vi.mock('../logger.js', () => ({
+    debugLog: vi.fn(),
+    errorLog: vi.fn(),
+    infoLog: vi.fn()
 }));
 
 // Mock `configurations.ts` to prevent dynamic import issues in resetConfigSection
-jest.unstable_mockModule('../configurations.js', () => ({
+vi.mock('../configurations.js', () => ({
     configResetRegistry: {},
     configResetCallbacks: {}
 }));
@@ -37,7 +37,7 @@ const { initializeConfigManager, getConfig, updateConfig, onConfigUpdated } = aw
 
 describe('ConfigManager', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     it('initializeConfigManager should load config and create manager', async () => {
@@ -60,7 +60,7 @@ describe('ConfigManager', () => {
     });
 
     it('updateConfig should update manager and notify listeners', () => {
-        const callback = jest.fn();
+        const callback = vi.fn();
         onConfigUpdated(callback);
 
         const mockConfig = { updated: true };

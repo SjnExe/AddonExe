@@ -1,13 +1,13 @@
 version: 2
 updates:
-  - package-ecosystem: 'github-actions'
-    directory: '/'
-    schedule:
-      interval: 'daily'
-    labels:
-      - 'dependencies'
-      - 'actions'
-    groups:
-      all-actions:
-        patterns:
-          - '*'
+    - package-ecosystem: 'github-actions'
+      directory: '/'
+      schedule:
+          interval: 'daily'
+      labels:
+          - 'dependencies'
+          - 'actions'
+      groups:
+          all-actions:
+              patterns:
+                  - '*'

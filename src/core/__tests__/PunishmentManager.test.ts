@@ -1,5 +1,5 @@
-import { jest } from '@jest/globals';
 import * as mc from '@minecraft/server';
+import { vi } from 'vitest';
 import {
     addPunishment,
     getPunishment,
@@ -8,25 +8,25 @@ import {
 } from '../../features/moderation/punishmentManager.js';
 
 // Mock dependencies
-jest.mock('../configManager.js', () => ({
+vi.mock('../configManager.js', () => ({
     getConfig: () => ({ data: { autoSaveIntervalSeconds: 30 } })
 }));
 
-jest.mock('../logger.js', () => ({
-    debugLog: jest.fn(),
-    errorLog: jest.fn(),
-    infoLog: jest.fn()
+vi.mock('../logger.js', () => ({
+    debugLog: vi.fn(),
+    errorLog: vi.fn(),
+    infoLog: vi.fn()
 }));
 
-jest.mock('../../features/anticheat/logManager.js', () => ({
-    addPunishmentLog: jest.fn()
+vi.mock('../../features/anticheat/logManager.js', () => ({
+    addPunishmentLog: vi.fn()
 }));
 
 describe('PunishmentManager', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         // Reset storage mock
-        (mc.world.getDynamicProperty as jest.Mock).mockReturnValue(undefined);
+        (mc.world.getDynamicProperty as any).mockReturnValue(undefined);
         loadPunishments();
     });
 
@@ -82,7 +82,7 @@ describe('PunishmentManager', () => {
         // StorageManager(key) -> load() -> getDynamicProperty(key).
         // It returns parsed JSON.
 
-        (mc.world.getDynamicProperty as jest.Mock).mockImplementation((key) => {
+        (mc.world.getDynamicProperty as any).mockImplementation((key) => {
             if (key === 'exe:punishments') {
                 return JSON.stringify(legacyData);
             }

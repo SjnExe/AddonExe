@@ -1,41 +1,41 @@
-import { jest } from '@jest/globals';
 import * as mc from '@minecraft/server';
+import { vi } from 'vitest';
 
 // --- Mocks ---
-const mockGetPlayer = jest.fn();
-const mockLoadPlayerData = jest.fn();
+const mockGetPlayer = vi.fn();
+const mockLoadPlayerData = vi.fn();
 
-jest.unstable_mockModule('@core/playerDataManager.js', () => ({
+vi.mock('@core/playerDataManager.js', () => ({
     getPlayer: mockGetPlayer,
     loadPlayerData: mockLoadPlayerData,
-    getOrCreatePlayer: jest.fn(),
-    getPlayerIdByName: jest.fn(() => 'targetId')
+    getOrCreatePlayer: vi.fn(),
+    getPlayerIdByName: vi.fn(() => 'targetId')
 }));
 
-jest.unstable_mockModule('@core/messaging.js', () => ({
+vi.mock('@core/messaging.js', () => ({
     sendMessage: (msg: string, target: any) => {
         if (target && target.sendMessage) target.sendMessage(msg);
     }
 }));
 
-jest.unstable_mockModule('@core/utils.js', () => ({
-    playSound: jest.fn(),
-    resolveTarget: jest.fn((name) => {
-        if (name === 'target') return [{ name: 'Target', id: 'targetId', getComponent: jest.fn() }];
+vi.mock('@core/utils.js', () => ({
+    playSound: vi.fn(),
+    resolveTarget: vi.fn((name) => {
+        if (name === 'target') return [{ name: 'Target', id: 'targetId', getComponent: vi.fn() }];
         return [];
     })
 }));
 
-jest.unstable_mockModule('@core/logger.js', () => ({
-    errorLog: jest.fn(),
-    warnLog: jest.fn()
+vi.mock('@core/logger.js', () => ({
+    errorLog: vi.fn(),
+    warnLog: vi.fn()
 }));
 
-jest.unstable_mockModule('@features/anticheat/logManager.js', () => ({
-    addPunishmentLog: jest.fn()
+vi.mock('@features/anticheat/logManager.js', () => ({
+    addPunishmentLog: vi.fn()
 }));
 
-jest.unstable_mockModule('@core/constants.js', () => ({
+vi.mock('@core/constants.js', () => ({
     frozenTag: 'frozen',
     soundError: 'error',
     soundTeleport: 'teleport'
@@ -65,35 +65,35 @@ describe('Moderation Hierarchy', () => {
     const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
 
     const executor = new PlayerMock('executorId', 'Executor');
-    executor.sendMessage = jest.fn();
+    executor.sendMessage = vi.fn();
     Object.defineProperty(executor, 'isValid', {
         value: true,
         writable: true
     });
 
     const target = new PlayerMock('targetId', 'Target');
-    target.sendMessage = jest.fn();
-    target.hasTag = jest.fn(() => false);
-    target.addTag = jest.fn() as unknown as (tag: string) => boolean;
-    target.removeTag = jest.fn() as unknown as (tag: string) => boolean;
-    target.addEffect = jest.fn() as unknown as (
+    target.sendMessage = vi.fn();
+    target.hasTag = vi.fn(() => false);
+    target.addTag = vi.fn() as unknown as (tag: string) => boolean;
+    target.removeTag = vi.fn() as unknown as (tag: string) => boolean;
+    target.addEffect = vi.fn() as unknown as (
         effectType: string | mc.EffectType,
         duration: number,
         options?: mc.EntityEffectOptions
     ) => mc.Effect | undefined;
-    target.removeEffect = jest.fn() as unknown as (effectType: string | mc.EffectType) => boolean;
+    target.removeEffect = vi.fn() as unknown as (effectType: string | mc.EffectType) => boolean;
 
     Object.defineProperty(target, 'dimension', {
-        value: { runCommand: jest.fn() },
+        value: { runCommand: vi.fn() },
         writable: true
     });
 
-    target.getComponent = jest.fn() as unknown as <T extends string>(
+    target.getComponent = vi.fn() as unknown as <T extends string>(
         componentId: T
     ) => mc.EntityComponentReturnType<T> | undefined;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         mockGetPlayer.mockReset();
         mockLoadPlayerData.mockReset();
     });

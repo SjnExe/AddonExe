@@ -1,22 +1,22 @@
-import { jest } from '@jest/globals';
 import * as mc from '@minecraft/server';
+import { vi } from 'vitest';
 
 import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
 
 // Mocks
-const mockFlag = jest.fn();
-const mockGetConfig = jest.fn();
+const mockFlag = vi.fn();
+const mockGetConfig = vi.fn();
 
-jest.unstable_mockModule('../flagManager.js', () => ({
+vi.mock('../flagManager.js', () => ({
     flag: mockFlag
 }));
 
-jest.unstable_mockModule('@core/logger.js', () => ({
-    errorLog: jest.fn()
+vi.mock('@core/logger.js', () => ({
+    errorLog: vi.fn()
 }));
 
-jest.unstable_mockModule('../anticheatConfigLoader.js', () => ({
+vi.mock('../anticheatConfigLoader.js', () => ({
     getAnticheatConfig: mockGetConfig
 }));
 
@@ -26,13 +26,13 @@ describe('MovementCheck', () => {
     let intervalCallback: () => void;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         // Initialize cache
-        (mc.world.getAllPlayers as jest.Mock).mockReturnValue([]);
+        (mc.world.getAllPlayers as any).mockReturnValue([]);
         initializePlayerCache();
 
         // Capture interval callback
-        (mc.system.runInterval as jest.Mock).mockImplementation((cb) => {
+        (mc.system.runInterval as any).mockImplementation((cb) => {
             intervalCallback = cb as () => void;
             return 1;
         });

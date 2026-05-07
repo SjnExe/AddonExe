@@ -1,36 +1,38 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 // Mocks
-const mockIncrementPlayerBalance = jest.fn();
-const mockGetPlayer = jest.fn();
-const mockLoadPlayerData = jest.fn();
+const mockIncrementPlayerBalance = vi.fn();
+const mockGetPlayer = vi.fn();
+const mockLoadPlayerData = vi.fn();
 
-jest.unstable_mockModule('../playerDataManager.js', () => ({
+vi.mock('../playerDataManager.js', () => ({
     incrementPlayerBalance: mockIncrementPlayerBalance,
     getPlayer: mockGetPlayer,
     loadPlayerData: mockLoadPlayerData
 }));
 
-const mockStorageSave = jest.fn();
-const mockStorageLoad = jest.fn();
+const mockStorageSave = vi.fn();
+const mockStorageLoad = vi.fn();
 
-jest.unstable_mockModule('../storage/StorageManager.js', () => ({
-    StorageManager: jest.fn().mockImplementation(() => ({
-        save: mockStorageSave,
-        load: mockStorageLoad
-    }))
+vi.mock('../storage/StorageManager.js', () => ({
+    StorageManager: vi.fn(function () {
+        return {
+            save: mockStorageSave,
+            load: mockStorageLoad
+        };
+    })
 }));
 
-jest.unstable_mockModule('../logger.js', () => ({
-    debugLog: jest.fn(),
-    errorLog: jest.fn()
+vi.mock('../logger.js', () => ({
+    debugLog: vi.fn(),
+    errorLog: vi.fn()
 }));
 
 const { placeBounty, getBounty } = await import('../bountyManager.js');
 
 describe('BountyManager', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         mockStorageLoad.mockReturnValue([]);
     });
 

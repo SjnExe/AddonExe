@@ -1,6 +1,5 @@
-
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 // --- @minecraft/server Mocks ---
 
@@ -9,12 +8,12 @@ export class Dimension {
     constructor(id: string) {
         this.id = id;
     }
-    runCommand = jest.fn();
-    spawnEntity = jest.fn();
-    getEntities = jest.fn(() => []);
-    getTopmostBlock = jest.fn();
-    getBlock = jest.fn();
-    playSound = jest.fn();
+    runCommand = vi.fn();
+    spawnEntity = vi.fn();
+    getEntities = vi.fn(() => []);
+    getTopmostBlock = vi.fn();
+    getBlock = vi.fn();
+    playSound = vi.fn();
 }
 
 export class BlockVolume {
@@ -25,35 +24,35 @@ export class BlockVolume {
 }
 
 export const world = {
-    getDynamicProperty: jest.fn(),
-    setDynamicProperty: jest.fn(),
-    getDimension: jest.fn((dim: string) => new Dimension(dim)),
-    getAllPlayers: jest.fn(() => []),
+    getDynamicProperty: vi.fn(),
+    setDynamicProperty: vi.fn(),
+    getDimension: vi.fn((dim: string) => new Dimension(dim)),
+    getAllPlayers: vi.fn(() => []),
     afterEvents: {
-        playerSpawn: { subscribe: jest.fn() },
-        playerLeave: { subscribe: jest.fn() },
-        entityDie: { subscribe: jest.fn() },
-        chatSend: { subscribe: jest.fn() }
+        playerSpawn: { subscribe: vi.fn() },
+        playerLeave: { subscribe: vi.fn() },
+        entityDie: { subscribe: vi.fn() },
+        chatSend: { subscribe: vi.fn() }
     },
     beforeEvents: {
-        chatSend: { subscribe: jest.fn() },
-        playerInteractWithEntity: { subscribe: jest.fn() },
-        playerInteractWithBlock: { subscribe: jest.fn() }
+        chatSend: { subscribe: vi.fn() },
+        playerInteractWithEntity: { subscribe: vi.fn() },
+        playerInteractWithBlock: { subscribe: vi.fn() }
     },
-    sendMessage: jest.fn()
+    sendMessage: vi.fn()
 };
 
 export const system = {
-    run: jest.fn((callback: () => void) => {
+    run: vi.fn((callback: () => void) => {
         callback();
         return 0;
     }),
-    runInterval: jest.fn(() => 1),
-    runTimeout: jest.fn((cb: () => void) => {
+    runInterval: vi.fn(() => 1),
+    runTimeout: vi.fn((cb: () => void) => {
         cb();
         return 1;
     }), // Run immediately for tests
-    runJob: jest.fn((generator: Generator) => {
+    runJob: vi.fn((generator: Generator) => {
         // Execute generator fully for tests
         let result = generator.next();
         while (!result.done) {
@@ -61,12 +60,12 @@ export const system = {
         }
         return 0;
     }),
-    clearRun: jest.fn(),
+    clearRun: vi.fn(),
     currentTick: 0,
     beforeEvents: {
-        startup: { subscribe: jest.fn() },
-        shutdown: { subscribe: jest.fn() },
-        watchdogTerminate: { subscribe: jest.fn() }
+        startup: { subscribe: vi.fn() },
+        shutdown: { subscribe: vi.fn() },
+        watchdogTerminate: { subscribe: vi.fn() }
     }
 };
 
@@ -96,14 +95,14 @@ export class Player {
         return this.tags.delete(tag);
     }
 
-    sendMessage = jest.fn();
-    runCommand = jest.fn();
-    playSound = jest.fn();
-    getDynamicProperty = jest.fn();
-    setDynamicProperty = jest.fn();
-    isValid = jest.fn().mockReturnValue(true);
-    triggerEvent = jest.fn();
-    getComponent = jest.fn();
+    sendMessage = vi.fn();
+    runCommand = vi.fn();
+    playSound = vi.fn();
+    getDynamicProperty = vi.fn();
+    setDynamicProperty = vi.fn();
+    isValid = vi.fn().mockReturnValue(true);
+    triggerEvent = vi.fn();
+    getComponent = vi.fn();
 }
 
 export enum CustomCommandParamType {
@@ -168,7 +167,7 @@ export class ModalFormData {
         return this;
     }
 
-    show = jest.fn().mockImplementation(async () => {
+    show = vi.fn().mockImplementation(async () => {
         return {
             formValues: this._controls.map((c): string | number | boolean | undefined => {
                 if (c.type === 'toggle') return c.defaultValue ?? false;
@@ -196,17 +195,17 @@ export class ActionFormData {
         return this;
     }
 
-    show = jest.fn().mockImplementation(async () => {
+    show = vi.fn().mockImplementation(async () => {
         return { selection: 0, canceled: false };
     });
 }
 
 export class MessageFormData {
-    title = jest.fn().mockReturnThis();
-    body = jest.fn().mockReturnThis();
-    button1 = jest.fn().mockReturnThis();
-    button2 = jest.fn().mockReturnThis();
-    show = jest.fn().mockImplementation(async () => {
+    title = vi.fn().mockReturnThis();
+    body = vi.fn().mockReturnThis();
+    button1 = vi.fn().mockReturnThis();
+    button2 = vi.fn().mockReturnThis();
+    show = vi.fn().mockImplementation(async () => {
         return { selection: 0, canceled: false };
     });
 }

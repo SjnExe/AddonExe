@@ -1,31 +1,31 @@
-import { jest } from '@jest/globals';
 import * as mc from '@minecraft/server';
+import { vi } from 'vitest';
 
 // Mocks
-const mockGetConfig = jest.fn();
-const mockGetPlayer = jest.fn();
-const mockGetCooldown = jest.fn();
-const mockSetCooldownCustom = jest.fn();
-const mockFindVisiblePlayerByName = jest.fn();
+const mockGetConfig = vi.fn();
+const mockGetPlayer = vi.fn();
+const mockGetCooldown = vi.fn();
+const mockSetCooldownCustom = vi.fn();
+const mockFindVisiblePlayerByName = vi.fn();
 
-jest.unstable_mockModule('../configManager.js', () => ({
+vi.mock('../configManager.js', () => ({
     getConfig: mockGetConfig
 }));
 
-jest.unstable_mockModule('../cooldownManager.js', () => ({
+vi.mock('../cooldownManager.js', () => ({
     getCooldown: mockGetCooldown,
     setCooldownCustom: mockSetCooldownCustom
 }));
 
-jest.unstable_mockModule('../playerDataManager.js', () => ({
+vi.mock('../playerDataManager.js', () => ({
     getPlayer: mockGetPlayer,
     findVisiblePlayerByName: mockFindVisiblePlayerByName
 }));
 
-jest.unstable_mockModule('../logger.js', () => ({
-    debugLog: jest.fn(),
-    errorLog: jest.fn(),
-    infoLog: jest.fn()
+vi.mock('../logger.js', () => ({
+    debugLog: vi.fn(),
+    errorLog: vi.fn(),
+    infoLog: vi.fn()
 }));
 
 const { commandManager } = await import('../commands/commandManager.js');
@@ -35,10 +35,10 @@ describe('CommandManager', () => {
     // or just assume the mock matches the Player interface locally.
     const player = new (mc.Player as unknown as new (id: string, name: string) => mc.Player)('p1', 'TestPlayer');
     // Ensure the mock function is properly typed or cast if needed
-    (player.sendMessage as unknown as jest.Mock).mockImplementation(() => {});
+    (player.sendMessage as unknown as any).mockImplementation(() => {});
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         commandManager.commands.clear();
         commandManager.aliases.clear();
 
@@ -67,7 +67,7 @@ describe('CommandManager', () => {
             name: 'testint',
             description: '',
             parameters: [{ name: 'val', type: 'int' }],
-            execute: jest.fn()
+            execute: vi.fn()
         };
         // Cast cmd to CustomCommand if available, or unknown -> any if we can't import the type easily
         // But better to use explicit CustomCommand type if possible.
@@ -86,7 +86,7 @@ describe('CommandManager', () => {
     });
 
     it('should execute if params valid', () => {
-        const execute = jest.fn();
+        const execute = vi.fn();
         const cmd = {
             name: 'testint',
             description: '',

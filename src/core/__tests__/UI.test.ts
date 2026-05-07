@@ -1,26 +1,26 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 import { panelDefinitions } from '../ui/panelRegistry.js';
 import { panelRouter } from '../ui/PanelRouter.js';
 
 // Mock Config
-jest.unstable_mockModule('../configManager.js', () => ({
-    getConfig: jest.fn().mockReturnValue({
+vi.mock('../configManager.js', () => ({
+    getConfig: vi.fn().mockReturnValue({
         // Minimal config
         commandSettings: {},
         bounties: { enabled: true },
         tpa: { enabled: true },
         economy: { enabled: true }
     }),
-    updateConfig: jest.fn(),
-    updateMultipleConfig: jest.fn(),
-    resetConfigSection: jest.fn(),
-    onConfigUpdated: jest.fn(),
-    initializeConfigManager: jest.fn(),
-    reloadConfig: jest.fn()
+    updateConfig: vi.fn(),
+    updateMultipleConfig: vi.fn(),
+    resetConfigSection: vi.fn(),
+    onConfigUpdated: vi.fn(),
+    initializeConfigManager: vi.fn(),
+    reloadConfig: vi.fn()
 }));
 
 // Mock feature managers if needed by panels
-jest.unstable_mockModule('../bountyManager.js', () => ({
+vi.mock('../bountyManager.js', () => ({
     bountyManager: { getBounties: () => [] }
 }));
 

@@ -141,7 +141,15 @@ export default tseslint.config(
             },
             globals: {
                 ...globals.node,
-                jest: 'readonly'
+                vi: 'readonly',
+                describe: 'readonly',
+                it: 'readonly',
+                expect: 'readonly',
+                test: 'readonly',
+                beforeEach: 'readonly',
+                afterEach: 'readonly',
+                beforeAll: 'readonly',
+                afterAll: 'readonly'
             }
         },
         plugins: {

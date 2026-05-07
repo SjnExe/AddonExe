@@ -1,41 +1,41 @@
-import { jest } from '@jest/globals';
 import * as mc from '@minecraft/server';
+import { vi } from 'vitest';
 
 // Mocks
-const mockGetConfig = jest.fn();
-const mockGetOrCreatePlayer = jest.fn();
-const mockIncrementPlayerBalance = jest.fn();
-const mockSendMessage = jest.fn();
-const mockStartTeleportWarmup = jest.fn();
+const mockGetConfig = vi.fn();
+const mockGetOrCreatePlayer = vi.fn();
+const mockIncrementPlayerBalance = vi.fn();
+const mockSendMessage = vi.fn();
+const mockStartTeleportWarmup = vi.fn();
 
-jest.unstable_mockModule('@core/configManager.js', () => ({
+vi.mock('@core/configManager.js', () => ({
     getConfig: mockGetConfig
 }));
 
-jest.unstable_mockModule('@core/playerDataManager.js', () => ({
+vi.mock('@core/playerDataManager.js', () => ({
     getOrCreatePlayer: mockGetOrCreatePlayer,
     incrementPlayerBalance: mockIncrementPlayerBalance
 }));
 
-jest.unstable_mockModule('@core/messaging.js', () => ({
+vi.mock('@core/messaging.js', () => ({
     sendMessage: mockSendMessage
 }));
 
-jest.unstable_mockModule('@core/teleportLogic.js', () => ({
+vi.mock('@core/teleportLogic.js', () => ({
     startTeleportWarmup: mockStartTeleportWarmup
 }));
 
-jest.unstable_mockModule('@core/utils.js', () => ({
+vi.mock('@core/utils.js', () => ({
     formatCurrency: (val: number) => `$${val}`,
-    playSound: jest.fn()
+    playSound: vi.fn()
 }));
 
-jest.unstable_mockModule('@core/cooldownManager.js', () => ({
-    setCooldown: jest.fn()
+vi.mock('@core/cooldownManager.js', () => ({
+    setCooldown: vi.fn()
 }));
 
-jest.unstable_mockModule('@core/logger.js', () => ({
-    errorLog: jest.fn()
+vi.mock('@core/logger.js', () => ({
+    errorLog: vi.fn()
 }));
 
 import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
@@ -47,18 +47,18 @@ const backCommand = backCommands[0]!;
 describe('Back Command', () => {
     const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
     const player = new PlayerMock('p1', 'TestPlayer');
-    player.sendMessage = jest.fn();
+    player.sendMessage = vi.fn();
     Object.defineProperty(player, 'isValid', {
         value: true,
         writable: true
     });
-    player.teleport = jest.fn();
+    player.teleport = vi.fn();
 
     const dimension = { id: 'minecraft:overworld' };
-    (mc.world.getDimension as jest.Mock).mockReturnValue(dimension);
+    (mc.world.getDimension as any).mockReturnValue(dimension);
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         mockGetConfig.mockReturnValue({
             back: { enabled: true, cost: 100, teleportWarmupSeconds: 5 }
         });
