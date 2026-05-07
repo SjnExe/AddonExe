@@ -148,32 +148,36 @@ jobs:
 
             - name: Publish Nightly Release
               if: steps.build_type.outputs.type == 'nightly'
-              uses: softprops/action-gh-release@v2
-              with:
-                  name: Nightly Build (Latest Dev)
-                  tag_name: nightly
-                  prerelease: true
-                  make_latest: false
-                  body: |
-                      **Latest Nightly Build**
-                      Version: `${{ env.VERSION_STRING }}`
-                      Commit: `${{ github.sha }}`
-                      Date: `${{ env.BUILD_DATE }}`
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  # Create note text
+                  cat <<EOF > release_notes.md
+                  **Latest Nightly Build**
+                  Version: \`${{ env.VERSION_STRING }}\`
+                  Commit: \`${{ github.sha }}\`
+                  Date: \`${{ env.BUILD_DATE }}\`
 
-                      *This is an automated development build. It may contain bugs.*
-                  files: |
-                      AddonExe.Nightly.${{ env.ARCHIVE_VERSION }}.mcaddon
-                      AddonExe_BP.Nightly.${{ env.ARCHIVE_VERSION }}.mcpack
+                  *This is an automated development build. It may contain bugs.*
+                  EOF
+
+                  # Use gh release create
+                  gh release create nightly \
+                      --title "Nightly Build (Latest Dev)" \
+                      --prerelease \
+                      --notes-file release_notes.md \
+                      AddonExe.Nightly.${{ env.ARCHIVE_VERSION }}.mcaddon \
+                      AddonExe_BP.Nightly.${{ env.ARCHIVE_VERSION }}.mcpack \
                       AddonExe_RP.Nightly.${{ env.ARCHIVE_VERSION }}.mcpack
 
             - name: Publish Stable Release
               if: steps.build_type.outputs.type == 'stable'
-              uses: softprops/action-gh-release@v2
-              with:
-                  files: |
-                      AddonExe.Release.${{ env.ARCHIVE_VERSION }}.mcaddon
-                      AddonExe_BP.Release.${{ env.ARCHIVE_VERSION }}.mcpack
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  # Use gh release create
+                  gh release create ${{ env.ARCHIVE_VERSION }} \
+                      --generate-notes \
+                      AddonExe.Release.${{ env.ARCHIVE_VERSION }}.mcaddon \
+                      AddonExe_BP.Release.${{ env.ARCHIVE_VERSION }}.mcpack \
                       AddonExe_RP.Release.${{ env.ARCHIVE_VERSION }}.mcpack
-                  generate_release_notes: true
-                  draft: false
-                  prerelease: false
