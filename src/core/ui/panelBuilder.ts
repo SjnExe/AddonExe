@@ -1,0 +1,147 @@
+import * as mc from '@minecraft/server';
+import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
+
+import { getConfig } from '@core/configManager.js';
+import { errorLog } from '@core/logger.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
+import { getOrCreatePlayer, loadPlayerData } from '@core/playerDataManager.js';
+import { getPlayerRank } from '@core/rankManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { panelRouter } from './PanelRouter.js';
+import { panelDefinitions } from './panelRegistry.js';
+import { MainConfig, PanelDefinition, PanelItem, UIContext } from './types.js';
+
+export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: number): PanelItem[] {
+    const config = getConfig() as unknown as MainConfig;
+    const items = (isDefined(panelDef.items) ? panelDef.items : [])
+        .filter((item: PanelItem) => {
+            if (
+                item.actionValue === 'shopMainPanel' &&
+                (isDefined(config.shop) ? config.shop.enabled : undefined) !== true
+            ) {
+                return false;
+            }
+            return permissionLevel <= item.permissionLevel;
+        })
+        .toSorted((a: PanelItem, b: PanelItem) => (a.sortId ?? 0) - (b.sortId ?? 0));
+
+    // Create a copy to avoid mutating the registry
+    const resultItems: PanelItem[] = items.map((i) => ({ ...i }));
+
+    if (isNonEmptyString(panelDef.parentPanelId)) {
+        resultItems.unshift({
+            id: '__back__',
+            text: '§l§8< Back',
+            icon: 'textures/gui/controls/left.png',
+            permissionLevel: 1024,
+            actionType: 'openPanel',
+            actionValue: panelDef.parentPanelId
+        });
+    }
+    return resultItems;
+}
+
+export async function buildPanelForm(
+    player: mc.Player,
+    panelId: string,
+    context: UIContext
+): Promise<ActionFormData | ModalFormData | undefined> {
+    try {
+        const config = getConfig();
+        const rank = getPlayerRank(player, config);
+        const permissionLevel = rank.permissionLevel;
+
+        const panelDef = panelDefinitions[panelId];
+        if (panelDef && typeof panelDef.permissionLevel === 'number' && permissionLevel > panelDef.permissionLevel) {
+            // Access Denied
+            return undefined;
+        }
+
+        // 1. Check Panel Router (Modular System)
+        const handler = panelRouter.getHandler(panelId);
+        if (isDefined(handler)) {
+            if (handler.buildModal !== undefined) {
+                const modal = await handler.buildModal(player, panelId, context);
+                if (isDefined(modal)) return modal as ModalFormData;
+            }
+            if (handler.getItems !== undefined) {
+                const items = await handler.getItems(player, panelId, context);
+                if (isDefined(items)) {
+                    return buildActionFormFromItems(player, panelId, context, items);
+                }
+            }
+        }
+
+        // 2. Fallback: Static Definition
+        if (isDefined(panelDef)) {
+            const items = getStaticMenuItems(panelDef, permissionLevel);
+            if (items.length > 0 || isDefined(panelDef.parentPanelId)) {
+                return buildActionFormFromItems(player, panelId, context, items);
+            }
+        }
+
+        return undefined;
+    } catch (error) {
+        errorLog(`[UIManager] Error building panel ${panelId}`, error);
+        return undefined;
+    }
+}
+
+// Helper to build form from items (used by handlers via buildPanelForm)
+
+async function buildActionFormFromItems(player: mc.Player, panelId: string, context: UIContext, items: PanelItem[]) {
+    const form = new ActionFormData();
+
+    const panelDef = panelDefinitions[panelId];
+    let title = panelDef ? panelDef.title : panelId;
+
+    // Delegation: Get title from handler
+    const handler = panelRouter.getHandler(panelId);
+    if (isDefined(handler) && handler.getTitle !== undefined) {
+        try {
+            const dynamicTitle = await handler.getTitle(player, panelId, context);
+            if (isNonEmptyString(dynamicTitle)) {
+                title = dynamicTitle;
+            }
+        } catch (error) {
+            errorLog(`[UIManager] Error getting title for panel ${panelId}`, error);
+        }
+    }
+
+    if (isNonEmptyString(context.customTitle)) title = context.customTitle;
+
+    // Resolve placeholders in title
+    if (title.includes('{playerName}')) {
+        const targetId = (context.targetPlayerId ?? context.selectedItemId) as string;
+        if (isNonEmptyString(targetId)) {
+            // Optimization: Use cache instead of scanning world players
+            const onlinePlayer = getPlayerFromCache(targetId);
+            const pData = isDefined(onlinePlayer) ? getOrCreatePlayer(onlinePlayer) : loadPlayerData(targetId);
+
+            if (isDefined(pData)) title = title.replace('{playerName}', pData.name);
+        }
+    }
+
+    form.title(title);
+
+    // Delegation: Get body from handler
+    if (isDefined(handler) && handler.getBody !== undefined) {
+        try {
+            const bodyText = await handler.getBody(player, panelId, context);
+            if (isNonEmptyString(bodyText)) {
+                form.body(bodyText);
+            }
+        } catch (error) {
+            errorLog(`[UIManager] Error getting body for panel ${panelId}`, error);
+        }
+    } else if (isDefined(panelDef) && isDefined(panelDef.body)) {
+        // Fallback to static body
+        form.body(panelDef.body);
+    }
+
+    for (const item of items) {
+        form.button(item.text, item.icon);
+    }
+
+    return form;
+}

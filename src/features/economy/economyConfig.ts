@@ -1,0 +1,105 @@
+export interface EconomyConfig {
+    currencySymbol: string;
+    startingBalance: number;
+    minBalance: number;
+    maxBalance: number;
+    logToConsole: boolean;
+    mobMoney: Record<string, number>;
+    steal: {
+        enabled: boolean;
+        percent: number;
+        sameTeamImmunity: boolean;
+    };
+    pvp: {
+        enabled: boolean;
+        defaultWinPercent: number;
+        requestTimeout: number;
+        duelTimeout: number;
+        maxConcurrentDuels: number;
+    };
+}
+
+export const economyConfig: EconomyConfig = {
+    currencySymbol: '$',
+    startingBalance: 100,
+    minBalance: -1_000_000,
+    maxBalance: 1_000_000_000,
+    logToConsole: false,
+    mobMoney: {
+        // Low reward for common/farmable mobs
+        'minecraft:zombie': 2,
+        'minecraft:skeleton': 2,
+        'minecraft:creeper': 3,
+        'minecraft:spider': 2,
+        'minecraft:cave_spider': 3,
+        'minecraft:silverfish': 1,
+        'minecraft:endermite': 1,
+        'minecraft:zombie_villager': 2,
+        'minecraft:drowned': 3,
+        'minecraft:husk': 2,
+        'minecraft:stray': 2,
+        'minecraft:phantom': 5,
+        'minecraft:blaze': 2,
+        'minecraft:magma_cube': 1,
+        'minecraft:slime': 1,
+        'minecraft:ghast': 10,
+        'minecraft:zoglin': 1,
+        'minecraft:hoglin': 3,
+        'minecraft:piglin_brute': 15,
+        'minecraft:witch': 5,
+        'minecraft:enderman': 5,
+        'minecraft:wither_skeleton': 5,
+        'minecraft:shulker': 10,
+        'minecraft:vindicator': 10,
+        'minecraft:evoker': 15,
+        'minecraft:ravager': 50,
+
+        // High reward for bosses
+        'minecraft:wither': 300,
+        'minecraft:ender_dragon': 500,
+        'minecraft:warden': 500,
+        'minecraft:elder_guardian': 100,
+
+        // Penalty for killing friendly/passive mobs
+        'minecraft:villager': -100,
+        'minecraft:wandering_trader': -50,
+        'minecraft:iron_golem': 0,
+        'minecraft:snow_golem': -20,
+        'minecraft:wolf': -50,
+        'minecraft:cat': -50,
+        'minecraft:ocelot': -50,
+        'minecraft:panda': -50,
+        'minecraft:horse': -20,
+        'minecraft:donkey': -20,
+        'minecraft:mule': -20,
+        'minecraft:llama': -20,
+        'minecraft:camel': -20,
+        'minecraft:dolphin': -50,
+        'minecraft:polar_bear': -30,
+        'minecraft:turtle': -50,
+        'minecraft:parrot': -50,
+        'minecraft:allay': -100,
+        'minecraft:axolotl': -50,
+        'minecraft:bee': -20,
+        'minecraft:fox': -20,
+        'minecraft:frog': -20,
+        'minecraft:goat': -20,
+        'minecraft:sniffer': -100,
+        'minecraft:strider': -20,
+        'minecraft:tadpole': -5
+    },
+    steal: {
+        enabled: true,
+        percent: 5,
+        sameTeamImmunity: true
+    },
+    pvp: {
+        enabled: true,
+        defaultWinPercent: 100,
+        requestTimeout: 60,
+        duelTimeout: 300,
+        maxConcurrentDuels: 1
+    }
+};
+
+export default economyConfig;

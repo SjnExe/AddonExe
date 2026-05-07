@@ -1,0 +1,44 @@
+{
+    "compilerOptions": {
+        "target": "ES2023",
+        "module": "Node16",
+        "moduleResolution": "Node16",
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "exactOptionalPropertyTypes": false,
+        "noImplicitOverride": true,
+        "allowJs": true,
+        "checkJs": true,
+        "outDir": "./packs/behavior/scripts",
+        "rootDir": "./src",
+        "forceConsistentCasingInFileNames": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "incremental": true,
+        "tsBuildInfoFile": "./tsconfig.tsbuildinfo",
+        "sourceMap": true,
+        "baseUrl": "./src",
+        "paths": {
+            "@core/*": ["./core/*"],
+            "@features/*": ["./features/*"],
+            "@ui/*": ["./core/ui/*"],
+            "@commands/*": ["./core/commands/*"],
+            "@lib/*": ["./lib/*"]
+        },
+        "types": [
+            "node",
+            "@minecraft/server",
+            "@minecraft/server-ui",
+            "@minecraft/server-gametest",
+            "@minecraft/debug-utilities",
+            "@minecraft/vanilla-data",
+            "@minecraft/math"
+        ]
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "src/**/__tests__"]
+}

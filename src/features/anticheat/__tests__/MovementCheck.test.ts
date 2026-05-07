@@ -1,0 +1,95 @@
+import * as mc from '@minecraft/server';
+import { vi } from 'vitest';
+
+import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
+import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
+
+// Mocks
+const mockFlag = vi.fn();
+const mockGetConfig = vi.fn();
+
+vi.mock('../flagManager.js', () => ({
+    flag: mockFlag
+}));
+
+vi.mock('@core/logger.js', () => ({
+    errorLog: vi.fn()
+}));
+
+vi.mock('../anticheatConfigLoader.js', () => ({
+    getAnticheatConfig: mockGetConfig
+}));
+
+const { startMovementCheckLoop } = await import('../movementCheck.js');
+
+describe('MovementCheck', () => {
+    let intervalCallback: () => void;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        // Initialize cache
+        (mc.world.getAllPlayers as any).mockReturnValue([]);
+        initializePlayerCache();
+
+        // Capture interval callback
+        (mc.system.runInterval as any).mockImplementation((cb) => {
+            intervalCallback = cb as () => void;
+            return 1;
+        });
+
+        // Config Mock
+        mockGetConfig.mockReturnValue({
+            enabled: true,
+            movementCheck: { enabled: true, maxSpeed: 10, maxSpeedIce: 15, maxSpeedElytra: 30 },
+            worldBorder: { enabled: false },
+            antiNetherRoof: { enabled: false }
+        });
+    });
+
+    it('should flag player exceeding speed limit', () => {
+        startMovementCheckLoop();
+
+        const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+        const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+        const player = new PlayerMock('p1', 'Speedy');
+        // player.isValid() is mocked in class
+        player.getGameMode = () => mc.GameMode.Survival;
+        player.getVelocity = () => ({ x: 1, y: 0, z: 0 }); // 20 blocks/sec (1 * 20)
+        player.getEffect = () => undefined;
+
+        Object.defineProperty(player, 'dimension', {
+            value: new DimensionMock('overworld'),
+            writable: true
+        });
+
+        // Add to cache instead of mocking getAllPlayers directly for the loop
+        addPlayerToCache(player);
+
+        // Execute interval
+        intervalCallback();
+
+        // 20 bps > 10 bps limit.
+        // Violation level increases by 10 per check.
+        // Threshold is 20. So 3 checks needed.
+        intervalCallback();
+        intervalCallback();
+
+        expect(mockFlag).toHaveBeenCalledWith(player, 'movementCheck', expect.stringContaining('Speed'));
+    });
+
+    it('should not flag creative players', () => {
+        startMovementCheckLoop();
+
+        const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+
+        const player = new PlayerMock('p2', 'Creative');
+        player.getGameMode = () => mc.GameMode.Creative;
+        player.getVelocity = () => ({ x: 100, y: 0, z: 0 }); // Super fast
+
+        addPlayerToCache(player);
+
+        intervalCallback();
+        expect(mockFlag).not.toHaveBeenCalled();
+    });
+});

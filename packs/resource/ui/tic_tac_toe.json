@@ -1,0 +1,64 @@
+{
+    "namespace": "addonexe_ttt",
+    "grid_screen": {
+        "type": "stack_panel",
+        "orientation": "vertical",
+        "size": ["100%", "100%"],
+        "controls": [
+            {
+                "header": {
+                    "type": "label",
+                    "text": "#content_text",
+                    "size": ["100%", "30%"],
+                    "text_alignment": "center",
+                    "bindings": [{ "binding_name": "#content_text" }]
+                }
+            },
+            {
+                "grid_panel": {
+                    "type": "panel",
+                    "size": ["100%", "70%"],
+                    "controls": [
+                        {
+                            "game_grid": {
+                                "type": "grid",
+                                "grid_dimensions": [3, 3],
+                                "size": [150, 150],
+                                "grid_item_template": "addonexe_ttt.grid_button",
+                                "collection_name": "form_buttons",
+                                "anchor_from": "center",
+                                "anchor_to": "center"
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "grid_button": {
+        "type": "button",
+        "size": [48, 48],
+        "controls": [
+            {
+                "label": {
+                    "type": "label",
+                    "text": "#button_text",
+                    "bindings": [
+                        {
+                            "binding_name": "#button_text",
+                            "binding_type": "collection",
+                            "binding_collection_name": "form_buttons"
+                        }
+                    ]
+                }
+            }
+        ],
+        "button_mappings": [
+            {
+                "from_button_id": "button.menu_select",
+                "to_button_id": "button.form_button_click",
+                "mapping_type": "pressed"
+            }
+        ]
+    }
+}
