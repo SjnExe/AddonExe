@@ -200,19 +200,12 @@ export class InfoPanelHandler implements IPanelHandler {
             return Promise.resolve(new ModalFormData().title('Add Rule').textField('Rule Content', 'Enter rule text'));
         }
         if (panelId === 'addHelpfulLinkPanel') {
-            return Promise.resolve(
-                new ModalFormData().title('Add Link').textField('Title', 'Link Title').textField('URL', 'https://...')
-            );
+            return Promise.resolve(new ModalFormData().title('Add Link').textField('Title', 'Link Title').textField('URL', 'https://...'));
         }
         return Promise.resolve();
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         if (panelId === 'addRulePanel' || panelId === 'addHelpfulLinkPanel') {
             await this.handleModalResponse(player, panelId, response as ModalFormResponse);
             return;
@@ -248,12 +241,7 @@ export class InfoPanelHandler implements IPanelHandler {
         }
     }
 
-    private async handleSelection(
-        player: mc.Player,
-        panelId: string,
-        selection: number,
-        context: UIContext
-    ): Promise<void> {
+    private async handleSelection(player: mc.Player, panelId: string, selection: number, context: UIContext): Promise<void> {
         const items = await this.getItems(player, panelId, context);
         if (selection >= 0 && selection < items.length) {
             const item = items[selection];

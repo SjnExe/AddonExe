@@ -9,12 +9,7 @@ import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 export class XrayPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'xrayOresPanel' ||
-            panelId === 'addXrayOrePanel' ||
-            panelId === 'editXrayOrePanel' ||
-            panelId.startsWith('editXrayOrePanel_')
-        );
+        return panelId === 'xrayOresPanel' || panelId === 'addXrayOrePanel' || panelId === 'editXrayOrePanel' || panelId.startsWith('editXrayOrePanel_');
     }
 
     async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
@@ -125,12 +120,7 @@ export class XrayPanelHandler implements IPanelHandler {
         return undefined;
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
         const values = (response as ModalFormResponse).formValues;
 
@@ -158,13 +148,7 @@ export class XrayPanelHandler implements IPanelHandler {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'xrayOresPanel');
             if (!isDefined(values)) return showPanel(player, 'xrayOresPanel');
             const [id, name, blockId, dimId, minY, maxY] = values as string[];
-            if (
-                isNonEmptyString(id) &&
-                isNonEmptyString(name) &&
-                isNonEmptyString(blockId) &&
-                isNonEmptyString(minY) &&
-                isNonEmptyString(maxY)
-            ) {
+            if (isNonEmptyString(id) && isNonEmptyString(name) && isNonEmptyString(blockId) && isNonEmptyString(minY) && isNonEmptyString(maxY)) {
                 const config = getXrayConfig();
                 config.monitoredOreTypes[id] = {
                     enabled: true,
@@ -188,14 +172,7 @@ export class XrayPanelHandler implements IPanelHandler {
             const key = panelId.replace('editXrayOrePanel_', '');
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'xrayOresPanel');
             if (isDefined(values)) {
-                const [enabled, name, blockId, dimId, minY, maxY] = values as [
-                    boolean,
-                    string,
-                    string,
-                    string,
-                    string,
-                    string
-                ];
+                const [enabled, name, blockId, dimId, minY, maxY] = values as [boolean, string, string, string, string, string];
                 const config = getXrayConfig();
                 if (isDefined(config.monitoredOreTypes[key])) {
                     config.monitoredOreTypes[key].enabled = enabled;

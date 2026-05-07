@@ -90,9 +90,7 @@ const sellHandCommand: CustomCommand = {
         }
 
         if (item.maxAmount === 1) {
-            return executor.sendMessage(
-                '§cYou cannot use /sellhand for unstackable items. Please use the shop UI instead.'
-            );
+            return executor.sendMessage('§cYou cannot use /sellhand for unstackable items. Please use the shop UI instead.');
         }
 
         const itemTypeId = item.typeId;
@@ -139,12 +137,7 @@ const addShopCommand: CustomCommand = {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
 
-        const {
-            category,
-            buyPrice: buyPriceStr,
-            sellPrice: sellPriceStr,
-            subCategory
-        } = args as unknown as AddShopCommandArgs;
+        const { category, buyPrice: buyPriceStr, sellPrice: sellPriceStr, subCategory } = args as unknown as AddShopCommandArgs;
 
         if (!isNonEmptyString(buyPriceStr) || !isNonEmptyString(sellPriceStr)) {
             return executor.sendMessage('§cPlease specify buy and sell prices.');
@@ -158,13 +151,8 @@ const addShopCommand: CustomCommand = {
         }
 
         // Validate max 2 decimal places
-        if (
-            Math.abs(buyPrice - Number.parseFloat(buyPrice.toFixed(2))) > 0.001 ||
-            Math.abs(sellPrice - Number.parseFloat(sellPrice.toFixed(2))) > 0.001
-        ) {
-            return executor.sendMessage(
-                '§cInvalid precision. Prices can only have up to 2 decimal places (e.g. 10.55).'
-            );
+        if (Math.abs(buyPrice - Number.parseFloat(buyPrice.toFixed(2))) > 0.001 || Math.abs(sellPrice - Number.parseFloat(sellPrice.toFixed(2))) > 0.001) {
+            return executor.sendMessage('§cInvalid precision. Prices can only have up to 2 decimal places (e.g. 10.55).');
         }
 
         const equipment = executor.getComponent('minecraft:equippable');
@@ -177,13 +165,7 @@ const addShopCommand: CustomCommand = {
             return executor.sendMessage("§cYou aren't holding anything.");
         }
 
-        const result = shopAdminManager.addShopItemFromHand(
-            item,
-            category,
-            isNonEmptyString(subCategory) ? subCategory : undefined,
-            buyPrice,
-            sellPrice
-        );
+        const result = shopAdminManager.addShopItemFromHand(item, category, isNonEmptyString(subCategory) ? subCategory : undefined, buyPrice, sellPrice);
 
         executor.sendMessage(result.message);
 

@@ -135,11 +135,7 @@ export function removeBounty(playerId: string) {
 /**
  * Places a bounty on a player, handling money deduction safely.
  */
-export function placeBounty(
-    sourcePlayerId: string,
-    targetPlayerId: string,
-    amount: number
-): { success: boolean; message: string } {
+export function placeBounty(sourcePlayerId: string, targetPlayerId: string, amount: number): { success: boolean; message: string } {
     if (amount <= 0) return { success: false, message: 'Invalid amount.' };
 
     const pData = playerDataManager.getPlayer(sourcePlayerId);

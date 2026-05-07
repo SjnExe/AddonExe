@@ -84,10 +84,7 @@ const mainCommand: CustomCommand = {
         }
 
         if (sub === 'help') {
-            sendMessage(
-                '§eAuction House Commands:\n§f/ah - Open Menu\n/ah sell <price> [bin/bid] - Sell held item',
-                executor
-            );
+            sendMessage('§eAuction House Commands:\n§f/ah - Open Menu\n/ah sell <price> [bin/bid] - Sell held item', executor);
             return;
         }
 

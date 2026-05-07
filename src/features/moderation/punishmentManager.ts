@@ -138,9 +138,7 @@ export function addPunishment(playerId: string, playerName: string, punishment: 
     punishments.set(playerId, record);
     needsSave = true;
     savePunishments(); // Save immediately for critical actions
-    debugLog(
-        `[PunishmentManager] Added ${punishment.type} for player ${playerName} (${playerId}). Expires: ${new Date(punishment.expires).toLocaleString()}`
-    );
+    debugLog(`[PunishmentManager] Added ${punishment.type} for player ${playerName} (${playerId}). Expires: ${new Date(punishment.expires).toLocaleString()}`);
     const durationStr = punishment.expires === Infinity ? 'Permanent' : new Date(punishment.expires).toLocaleString();
     addPunishmentLog(playerName, punishment.type, punishment.reason, adminName, durationStr);
 }
@@ -181,10 +179,7 @@ export function checkAndKickBannedPlayer(player: mc.Player): boolean {
     if (isDefined(punishment)) {
         const banReason = isNonEmptyString(punishment.reason) ? punishment.reason : 'You are banned.';
         // Use a slight delay to ensure the kick command processes after join
-        mc.system.runTimeout(
-            () => mc.world.getDimension('overworld').runCommand(`kick "${player.name}" ${banReason}`),
-            5
-        );
+        mc.system.runTimeout(() => mc.world.getDimension('overworld').runCommand(`kick "${player.name}" ${banReason}`), 5);
         return true;
     }
     return false;

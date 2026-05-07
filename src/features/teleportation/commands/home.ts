@@ -125,10 +125,7 @@ const homesCommand: CustomCommand = {
         const maxHomes = config.homes.maxHomes;
 
         if (homeCount === 0) {
-            sendMessage(
-                `§aYou have no homes set. Use §e/sethome <name>§a to set one. (${homeCount}/${maxHomes})`,
-                executor
-            );
+            sendMessage(`§aYou have no homes set. Use §e/sethome <name>§a to set one. (${homeCount}/${maxHomes})`, executor);
         } else {
             sendMessage(`§aYour homes (${homeCount}/${maxHomes}): §e${homeList.join(', ')}`, executor);
         }

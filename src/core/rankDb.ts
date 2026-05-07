@@ -36,10 +36,7 @@ export function addRank(rankData: RankDefinition): { success: boolean; message: 
  * @param rankId The ID of the rank to update.
  * @param updatedData
  */
-export function updateRank(
-    rankId: string,
-    updatedData: Partial<RankDefinition>
-): { success: boolean; message: string } {
+export function updateRank(rankId: string, updatedData: Partial<RankDefinition>): { success: boolean; message: string } {
     const ranksConfig = getRanksConfig();
     const rankIndex = ranksConfig.rankDefinitions.findIndex((r: RankDefinition) => r.id === rankId);
     if (rankIndex === -1) {

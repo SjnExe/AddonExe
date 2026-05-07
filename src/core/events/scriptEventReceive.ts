@@ -56,9 +56,7 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
             if (sourceEntity instanceof mc.Player) {
                 const adminRank = rankManager.getRankById('admin');
                 if (!adminRank) {
-                    errorLog(
-                        '[AddonExe] Could not grant admin rank because the "admin" rank definition was not found.'
-                    );
+                    errorLog('[AddonExe] Could not grant admin rank because the "admin" rank definition was not found.');
                     sourceEntity.sendMessage('§cError: The admin rank is not configured.');
                     return;
                 }

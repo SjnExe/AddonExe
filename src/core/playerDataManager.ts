@@ -247,9 +247,7 @@ export function loadNameIdMap() {
             saveNameIdMap();
         }
 
-        debugLog(
-            `[PlayerDataManager] Loaded maps. Name->ID: ${playerNameIdMap.size}, ID->Name: ${playerIdNameMap.size}`
-        );
+        debugLog(`[PlayerDataManager] Loaded maps. Name->ID: ${playerNameIdMap.size}, ID->Name: ${playerIdNameMap.size}`);
     } catch (error: unknown) {
         const stack = error instanceof Error ? error.stack : String(error);
         errorLog(`[PlayerDataManager] Failed to load name-to-ID map: ${stack}`);
@@ -664,9 +662,7 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
         // Strict 2-decimal precision
         pData.balance = Number.parseFloat(clampedBalance.toFixed(2));
         // Log transaction regardless of debug level
-        infoLog(
-            `[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`
-        );
+        infoLog(`[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`);
         updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
     });
 }
@@ -711,11 +707,7 @@ export function getBalance(playerId: string): number | undefined {
     return (isDefined(pData) ? pData.balance : undefined) ?? undefined;
 }
 
-export function transfer(
-    sourcePlayerId: string,
-    targetPlayerId: string,
-    amount: number
-): { success: boolean; message: string } {
+export function transfer(sourcePlayerId: string, targetPlayerId: string, amount: number): { success: boolean; message: string } {
     if (amount <= 0) {
         return { success: false, message: 'Transfer amount must be positive.' };
     }
@@ -786,9 +778,7 @@ export function transfer(
             debugLog(`[Economy] Unloaded offline target ${targetPlayerId} after transfer.`);
         }
 
-        infoLog(
-            `[Economy] Transfer: ${sourceData.name} -> ${targetData.name} ($${amount}). New Bals: ${newSourceBal} / ${newTargetBal}`
-        );
+        infoLog(`[Economy] Transfer: ${sourceData.name} -> ${targetData.name} ($${amount}). New Bals: ${newSourceBal} / ${newTargetBal}`);
 
         return { success: true, message: 'Transfer successful.' };
     } catch (error) {

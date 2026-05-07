@@ -100,12 +100,7 @@ function initiateTeleport(player: mc.Player, location: mc.Vector3, tickingAreaNa
     }, 100);
 }
 
-function findSafeSpotInArea(
-    dimension: mc.Dimension,
-    centerX: number,
-    centerZ: number,
-    radius: number
-): mc.Vector3 | undefined {
+function findSafeSpotInArea(dimension: mc.Dimension, centerX: number, centerZ: number, radius: number): mc.Vector3 | undefined {
     const locationAttempts = 5;
     for (let j = 0; j < locationAttempts; j++) {
         const x = centerX + Math.floor(Math.random() * (radius * 2) - radius);
@@ -128,12 +123,8 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
     const searchRadius = 16;
 
     for (let i = 0; i < searchAttempts; i++) {
-        const centerX = Math.floor(
-            player.location.x + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1)
-        );
-        const centerZ = Math.floor(
-            player.location.z + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1)
-        );
+        const centerX = Math.floor(player.location.x + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
+        const centerZ = Math.floor(player.location.z + (Math.random() * (maxRange - minRange) + minRange) * (Math.random() < 0.5 ? 1 : -1));
 
         const tickingAreaName = `rtp_${player.id}`;
         let keepTickingArea = false;
@@ -168,10 +159,7 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
         await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 20));
     }
 
-    sendMessage(
-        '§cCould not find a safe location after multiple attempts. Please try again or try walking a bit further.',
-        player
-    );
+    sendMessage('§cCould not find a safe location after multiple attempts. Please try again or try walking a bit further.', player);
 }
 
 function safeRemoveTickingArea(dimension: mc.Dimension, name: string) {

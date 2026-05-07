@@ -1,11 +1,6 @@
 import * as mc from '@minecraft/server';
 import { vi } from 'vitest';
-import {
-    addPunishment,
-    getPunishment,
-    loadPunishments,
-    removePunishment
-} from '../../features/moderation/punishmentManager.js';
+import { addPunishment, getPunishment, loadPunishments, removePunishment } from '../../features/moderation/punishmentManager.js';
 
 // Mock dependencies
 vi.mock('../configManager.js', () => ({

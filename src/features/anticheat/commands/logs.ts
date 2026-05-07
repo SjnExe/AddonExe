@@ -41,10 +41,7 @@ async function showLogsMenu(player: mc.Player) {
 // --- Punishments ---
 
 async function showPunishmentFilter(player: mc.Player) {
-    const modal = new ModalFormData()
-        .title('Filter Punishments')
-        .textField('Player Name (Optional)', 'Search...')
-        .dropdown('Type', ['All', 'Ban', 'Mute', 'Kick', 'Warn'], { defaultValueIndex: 0 });
+    const modal = new ModalFormData().title('Filter Punishments').textField('Player Name (Optional)', 'Search...').dropdown('Type', ['All', 'Ban', 'Mute', 'Kick', 'Warn'], { defaultValueIndex: 0 });
 
     const res = await uiWait(player, modal);
     if (!isDefined(res) || res.canceled) return showLogsMenu(player);

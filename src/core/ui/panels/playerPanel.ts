@@ -96,12 +96,7 @@ export class PlayerPanelHandler implements IPanelHandler {
         return Promise.resolve(undefined);
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse, context: UIContext): Promise<void> {
         if (response.canceled || response.selection === undefined) return;
 
         // Re-generate items to match selection index
@@ -143,11 +138,7 @@ export class PlayerPanelHandler implements IPanelHandler {
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
-    async buildModal(
-        _player: mc.Player,
-        _panelId: string,
-        _context: UIContext
-    ): Promise<ActionFormData | ModalFormData | undefined> {
+    async buildModal(_player: mc.Player, _panelId: string, _context: UIContext): Promise<ActionFormData | ModalFormData | undefined> {
         // No modals handled here currently
         return undefined;
     }

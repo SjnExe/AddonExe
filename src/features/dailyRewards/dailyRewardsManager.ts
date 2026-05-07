@@ -2,12 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getDailyRewardsConfig } from '@core/configurations.js';
 import { errorLog } from '@core/logger.js';
-import {
-    getOrCreatePlayer,
-    incrementPlayerBalance,
-    savePlayerData,
-    updatePlayerData
-} from '@core/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData, updatePlayerData } from '@core/playerDataManager.js';
 import { formatDuration } from '@core/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 

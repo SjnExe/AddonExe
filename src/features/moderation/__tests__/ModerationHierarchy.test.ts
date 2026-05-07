@@ -76,11 +76,7 @@ describe('Moderation Hierarchy', () => {
     target.hasTag = vi.fn(() => false);
     target.addTag = vi.fn() as unknown as (tag: string) => boolean;
     target.removeTag = vi.fn() as unknown as (tag: string) => boolean;
-    target.addEffect = vi.fn() as unknown as (
-        effectType: string | mc.EffectType,
-        duration: number,
-        options?: mc.EntityEffectOptions
-    ) => mc.Effect | undefined;
+    target.addEffect = vi.fn() as unknown as (effectType: string | mc.EffectType, duration: number, options?: mc.EntityEffectOptions) => mc.Effect | undefined;
     target.removeEffect = vi.fn() as unknown as (effectType: string | mc.EffectType) => boolean;
 
     Object.defineProperty(target, 'dimension', {
@@ -88,9 +84,7 @@ describe('Moderation Hierarchy', () => {
         writable: true
     });
 
-    target.getComponent = vi.fn() as unknown as <T extends string>(
-        componentId: T
-    ) => mc.EntityComponentReturnType<T> | undefined;
+    target.getComponent = vi.fn() as unknown as <T extends string>(componentId: T) => mc.EntityComponentReturnType<T> | undefined;
 
     beforeEach(() => {
         vi.clearAllMocks();

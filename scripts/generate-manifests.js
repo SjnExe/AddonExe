@@ -123,12 +123,7 @@ async function generateManifests() {
     // Dynamic Dependency Resolution
     const devDeps = pkg.devDependencies || {};
     // Only include specific runtime modules
-    const modulesToInclude = [
-        '@minecraft/server',
-        '@minecraft/server-ui',
-        '@minecraft/server-gametest',
-        '@minecraft/debug-utilities'
-    ];
+    const modulesToInclude = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities'];
 
     const dependencies = [];
 

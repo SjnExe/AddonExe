@@ -50,9 +50,7 @@ const reportCommand: CustomCommand = {
             executor.sendMessage('§aReport submitted. Thank you for your help.');
             playSound(executor, 'random.orb');
         } else {
-            const form = new ModalFormData()
-                .title(`Report ${correctTargetName}`)
-                .textField('Reason', 'Why are you reporting this player?');
+            const form = new ModalFormData().title(`Report ${correctTargetName}`).textField('Reason', 'Why are you reporting this player?');
 
             const res = await uiWait(executor, form);
             if (isDefined(res) && !res.canceled) {

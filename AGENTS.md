@@ -11,11 +11,7 @@ Your primary goal is to assist users by completing coding tasks, such as solving
 If you need to initialize or reset the environment, use the following commands. These handle dependencies, system tools, and repository state.
 
 ```bash
-git fetch origin exe:Dev
-git checkout Dev
 npm install
-
-git restore package-lock.json
 ```
 
 ## 3. Understanding the Codebase

@@ -10,12 +10,7 @@ import { isDefined } from '@lib/guards.js';
 
 import { addPunishment, removePunishment } from '../punishmentManager.js';
 
-export function mutePlayer(
-    executor: CommandExecutor,
-    targetPlayer: mc.Player,
-    duration: string | undefined,
-    reason: string
-) {
+export function mutePlayer(executor: CommandExecutor, targetPlayer: mc.Player, duration: string | undefined, reason: string) {
     if (executor instanceof mc.Player) {
         if (executor.id === targetPlayer.id) {
             sendMessage('§cYou cannot mute yourself.', executor);

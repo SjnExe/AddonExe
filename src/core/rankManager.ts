@@ -106,9 +106,7 @@ export function getPlayerRank(player: mc.Player, config: typeof Config): RankDef
     }
 
     // If the configured default rank doesn't exist, log an error and return a minimal, safe fallback.
-    errorLog(
-        `[RankManager] CRITICAL: The configured default rank with id "${config.playerDefaults.rankId}" was not found. Please check your configuration.`
-    );
+    errorLog(`[RankManager] CRITICAL: The configured default rank with id "${config.playerDefaults.rankId}" was not found. Please check your configuration.`);
     const fallback: RankDefinition = {
         id: 'fallback',
         name: 'Fallback',

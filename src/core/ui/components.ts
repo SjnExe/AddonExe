@@ -15,17 +15,7 @@ export interface ConfirmationDialogOptions {
  * @param {mc.Player} player The player to show the dialog to.
  * @param {ConfirmationDialogOptions} options
  */
-export async function showConfirmationDialog(
-    player: mc.Player,
-    {
-        title,
-        body,
-        onConfirm,
-        onCancel,
-        confirmButtonText = '§aConfirm',
-        cancelButtonText = '§cCancel'
-    }: ConfirmationDialogOptions
-) {
+export async function showConfirmationDialog(player: mc.Player, { title, body, onConfirm, onCancel, confirmButtonText = '§aConfirm', cancelButtonText = '§cCancel' }: ConfirmationDialogOptions) {
     const form = new MessageFormData().title(title).body(body).button1(confirmButtonText).button2(cancelButtonText);
 
     try {

@@ -58,10 +58,7 @@ const clearCommand: CustomCommand = {
                 return;
             }
             if (executorData.permissionLevel >= targetData.permissionLevel && executor.id !== targetPlayer.id) {
-                sendMessage(
-                    '§cYou cannot clear the inventory of a player with the same or higher rank than you.',
-                    executor
-                );
+                sendMessage('§cYou cannot clear the inventory of a player with the same or higher rank than you.', executor);
                 playSound(executor, soundError);
                 return;
             }

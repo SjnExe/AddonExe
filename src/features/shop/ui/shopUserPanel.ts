@@ -33,11 +33,7 @@ type ShopEntry = ShopCategoryEntry | ShopItemEntry;
 export class ShopUserPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
         return (
-            panelId === 'shopMainPanel' ||
-            panelId === 'shopSearchResultsPanel' ||
-            panelId.startsWith('shopCategoryPanel_') ||
-            panelId.startsWith('shopItemListPanel_') ||
-            panelId === 'buyOrSellPanel'
+            panelId === 'shopMainPanel' || panelId === 'shopSearchResultsPanel' || panelId.startsWith('shopCategoryPanel_') || panelId.startsWith('shopItemListPanel_') || panelId === 'buyOrSellPanel'
         );
     }
 
@@ -149,13 +145,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         return items;
     }
 
-    private addItemToResults(
-        results: ShopItemEntry[],
-        itemId: string,
-        item: ShopItem,
-        query: string,
-        allItems: Record<string, Item>
-    ): void {
+    private addItemToResults(results: ShopItemEntry[], itemId: string, item: ShopItem, query: string, allItems: Record<string, Item>): void {
         const master: Item = allItems[itemId] ?? {};
         // Ensure string safety before calling string methods
         const displayNameRaw = item.displayName ?? master.displayName ?? itemId;
@@ -316,9 +306,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         const subCategoryName = context.subCategoryName as string | undefined;
         const shopConfig = getShopConfig();
 
-        const shopItem = isNonEmptyString(subCategoryName)
-            ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
-            : shopConfig.categories[categoryName]?.items[itemId];
+        const shopItem = isNonEmptyString(subCategoryName) ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId] : shopConfig.categories[categoryName]?.items[itemId];
 
         if (!isDefined(shopItem)) return undefined;
 
@@ -346,12 +334,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         return modal;
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
 
         if (panelId === 'shopSearchPanel') {
@@ -367,11 +350,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         }
     }
 
-    private async handleSearchResponse(
-        player: mc.Player,
-        response: ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    private async handleSearchResponse(player: mc.Player, response: ModalFormResponse, context: UIContext): Promise<void> {
         if (response.canceled) return showPanel(player, 'shopMainPanel', context);
         const values = response.formValues as string[] | undefined;
         if (!isDefined(values)) return showPanel(player, 'shopMainPanel', context);
@@ -382,26 +361,18 @@ export class ShopUserPanelHandler implements IPanelHandler {
         return showPanel(player, 'shopMainPanel', context);
     }
 
-    private async handleBuyOrSellResponse(
-        player: mc.Player,
-        response: ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    private async handleBuyOrSellResponse(player: mc.Player, response: ModalFormResponse, context: UIContext): Promise<void> {
         const itemId = context.selectedItemId as string;
         const categoryName = context.categoryName as string;
         const subCategoryName = context.subCategoryName as string | undefined;
 
-        const parent = isNonEmptyString(subCategoryName)
-            ? `shopItemListPanel_${categoryName}_${subCategoryName}`
-            : `shopCategoryPanel_${categoryName}`;
+        const parent = isNonEmptyString(subCategoryName) ? `shopItemListPanel_${categoryName}_${subCategoryName}` : `shopCategoryPanel_${categoryName}`;
 
         if (response.canceled) return showPanel(player, parent, context);
 
         const shopConfig = getShopConfig();
 
-        const shopItem = isNonEmptyString(subCategoryName)
-            ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId]
-            : shopConfig.categories[categoryName]?.items[itemId];
+        const shopItem = isNonEmptyString(subCategoryName) ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId] : shopConfig.categories[categoryName]?.items[itemId];
 
         if (!isDefined(shopItem)) return;
 
@@ -444,20 +415,12 @@ export class ShopUserPanelHandler implements IPanelHandler {
             return showPanel(player, parent, context);
         }
 
-        const result =
-            action === 'buy'
-                ? shopManager.buyItem(player, itemId, amount)
-                : shopManager.sellItem(player, itemId, amount);
+        const result = action === 'buy' ? shopManager.buyItem(player, itemId, amount) : shopManager.sellItem(player, itemId, amount);
         player.sendMessage(result.message);
         return showPanel(player, parent, context);
     }
 
-    private async handleActionSelection(
-        player: mc.Player,
-        panelId: string,
-        selection: number,
-        context: UIContext
-    ): Promise<void> {
+    private async handleActionSelection(player: mc.Player, panelId: string, selection: number, context: UIContext): Promise<void> {
         const items = await this.getItems(player, panelId, context);
         if (selection < 0 || selection >= items.length) return;
 

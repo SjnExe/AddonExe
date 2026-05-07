@@ -32,9 +32,7 @@ export class WordGuessGame implements IGame {
         this.currentWord = isNonEmptyString(config.word) ? config.word : (randomWord ?? 'apple');
 
         const rewardMsg = isDefined(this.customReward) ? ` Reward: $${this.customReward}` : '';
-        mc.world.sendMessage(
-            `§a[WordGuess] A new game has started! Guess the ${this.currentWord.length}-letter word using /guess <word>.${rewardMsg}`
-        );
+        mc.world.sendMessage(`§a[WordGuess] A new game has started! Guess the ${this.currentWord.length}-letter word using /guess <word>.${rewardMsg}`);
     }
 
     startCustom(word: string, reward?: number) {

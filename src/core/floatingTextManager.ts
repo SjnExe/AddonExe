@@ -203,9 +203,7 @@ function pruneOrphanedTexts() {
                 }
 
                 if (!isTracked) {
-                    debugLog(
-                        `[FloatingText] Removing orphaned entity at ${entity.location.x.toFixed(1)}, ${entity.location.y.toFixed(1)}, ${entity.location.z.toFixed(1)}`
-                    );
+                    debugLog(`[FloatingText] Removing orphaned entity at ${entity.location.x.toFixed(1)}, ${entity.location.y.toFixed(1)}, ${entity.location.z.toFixed(1)}`);
                     entity.remove();
                 }
             }
@@ -304,10 +302,7 @@ function spawnText(textConfig: FloatingTextConfig) {
             }
         }
 
-        const entity = dimension.spawnEntity(
-            'exe:floating_text' as unknown as Parameters<typeof dimension.spawnEntity>[0],
-            textConfig.location
-        );
+        const entity = dimension.spawnEntity('exe:floating_text' as unknown as Parameters<typeof dimension.spawnEntity>[0], textConfig.location);
         const resolvedText = sm.resolveGlobalPlaceholders(textConfig.text);
         lastResolvedText.set(textConfig.id, resolvedText);
         entity.nameTag = resolvedText.replaceAll(String.raw`\n`, '\n');
@@ -317,9 +312,7 @@ function spawnText(textConfig: FloatingTextConfig) {
     } catch (error: unknown) {
         if (String(error).includes('LocationInUnloadedChunkError')) {
             if (!unloadedChunkQueue.has(textConfig.id)) {
-                debugLog(
-                    `[FloatingText] Failed to spawn text with ID: ${textConfig.id} because the chunk is not loaded. Adding to retry queue.`
-                );
+                debugLog(`[FloatingText] Failed to spawn text with ID: ${textConfig.id} because the chunk is not loaded. Adding to retry queue.`);
                 unloadedChunkQueue.add(textConfig.id);
             }
         } else {
@@ -332,12 +325,7 @@ function spawnText(textConfig: FloatingTextConfig) {
     }
 }
 
-async function findEntityWithRetries(
-    dimension: mc.Dimension,
-    query: mc.EntityQueryOptions,
-    maxRetries = 10,
-    delayBetweenRetries = 4
-): Promise<mc.Entity | undefined> {
+async function findEntityWithRetries(dimension: mc.Dimension, query: mc.EntityQueryOptions, maxRetries = 10, delayBetweenRetries = 4): Promise<mc.Entity | undefined> {
     for (let i = 0; i < maxRetries; i++) {
         const entities = dimension.getEntities(query);
         const entity = entities.length > 0 ? entities[0] : undefined;
@@ -380,23 +368,13 @@ export function updateText(id: string, updates: Partial<FloatingTextConfig>) {
     const dimensionChanged = oldConfig.dimension !== newConfig.dimension;
     // Check for actual position change with epsilon
     const positionChanged =
-        Math.abs(oldConfig.location.x - newConfig.location.x) > 0.001 ||
-        Math.abs(oldConfig.location.y - newConfig.location.y) > 0.001 ||
-        Math.abs(oldConfig.location.z - newConfig.location.z) > 0.001;
+        Math.abs(oldConfig.location.x - newConfig.location.x) > 0.001 || Math.abs(oldConfig.location.y - newConfig.location.y) > 0.001 || Math.abs(oldConfig.location.z - newConfig.location.z) > 0.001;
 
     const textChanged = oldConfig.text !== newConfig.text;
     const intervalChanged = oldConfig.updateInterval !== newConfig.updateInterval;
 
-    if (
-        !dimensionChanged &&
-        !positionChanged &&
-        !textChanged &&
-        !intervalChanged &&
-        isDeepEqual(oldConfig, newConfig)
-    ) {
-        debugLog(
-            `[FloatingText] updateText called for ID: ${id}, but no functional changes were detected. Only saving.`
-        );
+    if (!dimensionChanged && !positionChanged && !textChanged && !intervalChanged && isDeepEqual(oldConfig, newConfig)) {
+        debugLog(`[FloatingText] updateText called for ID: ${id}, but no functional changes were detected. Only saving.`);
         floatingTexts.set(id, newConfig);
         saveTexts();
         return;
@@ -543,15 +521,9 @@ export function despawnText(id: string) {
         // The log below helps debugging.
         if (!String(error).includes('LocationInUnloadedChunkError')) {
             if (error instanceof Error) {
-                errorLog(
-                    `[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`,
-                    error
-                );
+                errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, error);
             } else {
-                errorLog(
-                    `[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`,
-                    String(error)
-                );
+                errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, String(error));
             }
         }
     }

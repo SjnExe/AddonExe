@@ -43,10 +43,7 @@ export function getKit(kitName: string): Kit | undefined {
 export function listKits(player: mc.Player): KitInfo[] {
     const mainConfig = getConfig();
     const kitsConfig = getKitsConfig();
-    if (
-        (isDefined(mainConfig.kits) ? mainConfig.kits.enabled : undefined) !== true ||
-        !isDefined(kitsConfig.kitDefinitions)
-    ) {
+    if ((isDefined(mainConfig.kits) ? mainConfig.kits.enabled : undefined) !== true || !isDefined(kitsConfig.kitDefinitions)) {
         return [];
     }
 

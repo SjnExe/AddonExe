@@ -43,11 +43,7 @@ const spawnCommand: CustomCommand = {
             const rank = getPlayerRank(executor, config);
             if (rank.permissionLevel <= 1) {
                 // Is admin or owner
-                sendMessage(
-                    '§eAs an admin, you can set it by running §a/setspawn§e at the desired location.',
-                    executor,
-                    { raw: true }
-                );
+                sendMessage('§eAs an admin, you can set it by running §a/setspawn§e at the desired location.', executor, { raw: true });
             }
             playSound(executor, 'note.bass');
             return;
@@ -64,10 +60,7 @@ const spawnCommand: CustomCommand = {
                 playSound(executor, 'random.orb');
                 setCooldown(executor, 'spawn');
             } catch (error: unknown) {
-                sendMessage(
-                    '§cFailed to teleport to spawn. The dimension may be invalid or the location unsafe.',
-                    executor
-                );
+                sendMessage('§cFailed to teleport to spawn. The dimension may be invalid or the location unsafe.', executor);
                 if (error instanceof Error) {
                     errorLog(`[/spawn] Failed to teleport: ${error.stack}`);
                 }
@@ -113,10 +106,7 @@ function resolveSetSpawnLocation(executor: CommandExecutor, args: SetSpawnArgs):
         };
     }
 
-    sendSetSpawnMessage(
-        executor,
-        '§cYou must specify X, Y, and Z coordinates when running this command from the console.'
-    );
+    sendSetSpawnMessage(executor, '§cYou must specify X, Y, and Z coordinates when running this command from the console.');
     return undefined;
 }
 
@@ -173,10 +163,7 @@ const setSpawnCommand: CustomCommand = {
             initializeSpawnProtection();
             sendSetSpawnMessage(executor, '§aSpawn protection system has been updated.');
 
-            if (
-                location.dimensionId === (MinecraftDimensionTypes.Overworld as string) &&
-                spawnConfig.spawn.syncWorldSpawn
-            ) {
+            if (location.dimensionId === (MinecraftDimensionTypes.Overworld as string) && spawnConfig.spawn.syncWorldSpawn) {
                 syncWorldSpawn(executor, location);
                 updateSpawnRadius(executor, spawnConfig.spawn.worldSpawnRadius);
             }

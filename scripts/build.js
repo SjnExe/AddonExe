@@ -42,9 +42,7 @@ function minifyFiles(dir) {
             try {
                 const content = fs.readFileSync(filePath, 'utf8');
                 const lines = content.split('\n');
-                const minifiedLines = lines
-                    .map((line) => line.trim())
-                    .filter((line) => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
+                const minifiedLines = lines.map((line) => line.trim()).filter((line) => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
                 fs.writeFileSync(filePath, minifiedLines.join('\n'));
                 console.log(`Minified Lang: ${filePath}`);
             } catch (error) {
@@ -54,9 +52,7 @@ function minifyFiles(dir) {
             try {
                 const content = fs.readFileSync(filePath, 'utf8');
                 const lines = content.split('\n');
-                const minifiedLines = lines
-                    .map((line) => line.trim())
-                    .filter((line) => line.length > 0 && !line.startsWith('#'));
+                const minifiedLines = lines.map((line) => line.trim()).filter((line) => line.length > 0 && !line.startsWith('#'));
                 fs.writeFileSync(filePath, minifiedLines.join('\n'));
                 console.log(`Minified MCFunction: ${filePath}`);
             } catch (error) {
@@ -70,14 +66,7 @@ function minifyFiles(dir) {
 const srcDir = path.join(__dirname, '../src');
 const configFiles = globSync(['**/*Config{.ts,.default.ts}', 'config.default.ts'], {
     cwd: srcDir,
-    ignore: [
-        '**/__tests__/**',
-        '**/__mocks__/**',
-        'core/configManager*.ts',
-        'core/configurations.ts',
-        'core/configLoader.ts',
-        'features/anticheat/anticheatConfigLoader.ts'
-    ]
+    ignore: ['**/__tests__/**', '**/__mocks__/**', 'core/configManager*.ts', 'core/configurations.ts', 'core/configLoader.ts', 'features/anticheat/anticheatConfigLoader.ts']
 });
 
 const configsToCompile = configFiles.map((file) => {
@@ -99,14 +88,7 @@ const configsToCompile = configFiles.map((file) => {
 
 // Dependencies that are provided by the game engine and should NOT be bundled
 // We also exclude the config files so they can be loaded externally
-const external = [
-    '@minecraft/server',
-    '@minecraft/server-ui',
-    '@minecraft/server-gametest',
-    '@minecraft/debug-utilities',
-    '@minecraft/common',
-    ...configsToCompile.map((c) => `./${c.dest}`)
-];
+const external = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common', ...configsToCompile.map((c) => `./${c.dest}`)];
 
 async function compileConfig(configEntry) {
     const defaultSrcPath = path.join(__dirname, configEntry.src);
@@ -173,9 +155,7 @@ async function build() {
             console.log('Watching for changes...');
 
             const configPaths = configsToCompile.map((c) => path.join(__dirname, c.src));
-            const customConfigPaths = configsToCompile
-                .filter((c) => c.src.endsWith('.default.ts'))
-                .map((c) => path.join(__dirname, c.src.replace('.default.ts', '.ts')));
+            const customConfigPaths = configsToCompile.filter((c) => c.src.endsWith('.default.ts')).map((c) => path.join(__dirname, c.src.replace('.default.ts', '.ts')));
 
             const watcher = chokidar.watch([...configPaths, ...customConfigPaths], {
                 ignoreInitial: true,
@@ -186,16 +166,10 @@ async function build() {
             });
 
             watcher.on('change', async (filePath) => {
-                let configEntry = configsToCompile.find(
-                    (c) => path.resolve(__dirname, c.src) === path.resolve(filePath)
-                );
+                let configEntry = configsToCompile.find((c) => path.resolve(__dirname, c.src) === path.resolve(filePath));
 
                 if (!configEntry) {
-                    configEntry = configsToCompile.find(
-                        (c) =>
-                            c.src.endsWith('.default.ts') &&
-                            path.resolve(__dirname, c.src.replace('.default.ts', '.ts')) === path.resolve(filePath)
-                    );
+                    configEntry = configsToCompile.find((c) => c.src.endsWith('.default.ts') && path.resolve(__dirname, c.src.replace('.default.ts', '.ts')) === path.resolve(filePath));
                 }
 
                 if (configEntry) {

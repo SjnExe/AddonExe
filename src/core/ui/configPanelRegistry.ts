@@ -249,8 +249,7 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'announcements.interval',
                 label: 'Interval (seconds)',
                 type: 'textField',
-                description:
-                    'How often the message is broadcast, in seconds. A reload is required for changes to take effect.'
+                description: 'How often the message is broadcast, in seconds. A reload is required for changes to take effect.'
             }
         ]
     },

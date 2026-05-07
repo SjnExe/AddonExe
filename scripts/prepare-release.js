@@ -67,10 +67,7 @@ async function updateConfig(filePath) {
         console.log('Applying Beta Release Modifications...');
         // Update ownerPlayerNames
         // Regex matches: ownerPlayerNames: ['Your•Name•Here']
-        content = content.replaceAll(
-            /ownerPlayerNames:\s*\[\s*'Your•Name•Here'\s*\]/g,
-            "ownerPlayerNames: ['SjnTechMlmYT']"
-        );
+        content = content.replaceAll(/ownerPlayerNames:\s*\[\s*'Your•Name•Here'\s*\]/g, "ownerPlayerNames: ['SjnTechMlmYT']");
 
         // Update logLevel
         // Regex matches: logLevel: 2
@@ -110,9 +107,7 @@ async function main() {
             await fs.access(defaultConfigPath);
             await updateConfig('src/config.default.ts');
         } catch {
-            console.warn(
-                'Warning: Neither src/config.ts nor src/config.default.ts found. Config version update skipped.'
-            );
+            console.warn('Warning: Neither src/config.ts nor src/config.default.ts found. Config version update skipped.');
         }
     }
 

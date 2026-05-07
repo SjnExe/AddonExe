@@ -10,12 +10,7 @@ import { isDefined } from '@lib/guards.js';
 
 import { addPunishment, removePunishment } from '../punishmentManager.js';
 
-export function banPlayer(
-    executor: CommandExecutor,
-    targetPlayer: mc.Player,
-    duration: string | undefined,
-    reason: string
-) {
+export function banPlayer(executor: CommandExecutor, targetPlayer: mc.Player, duration: string | undefined, reason: string) {
     if (executor instanceof mc.Player && executor.id === targetPlayer.id) {
         sendMessage('§cYou cannot ban yourself.', executor);
         return;
@@ -124,14 +119,9 @@ export function unbanPlayer(executor: CommandExecutor, targetName: string) {
 
     if (!isDefined(targetId)) {
         if (executor instanceof mc.Player) {
-            sendMessage(
-                `§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`,
-                executor
-            );
+            sendMessage(`§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`, executor);
         } else {
-            executor.sendMessage(
-                `§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`
-            );
+            executor.sendMessage(`§cPlayer "${targetName}" not found in the database. Make sure the name is correct (case-insensitive).`);
         }
         return;
     }
@@ -176,13 +166,7 @@ const unbanCommand: CustomCommand = {
     }
 };
 
-export function offlineBanPlayer(
-    executor: CommandExecutor,
-    targetId: string,
-    targetName: string,
-    duration: string | undefined,
-    reason: string
-) {
+export function offlineBanPlayer(executor: CommandExecutor, targetId: string, targetName: string, duration: string | undefined, reason: string) {
     if (executor instanceof mc.Player) {
         if (executor.id === targetId) {
             sendMessage('§cYou cannot ban yourself.', executor);
@@ -229,9 +213,7 @@ export function offlineBanPlayer(
 
     try {
         const sanitizedReason = reason.replaceAll('"', String.raw`\"`).replaceAll('\n', ' ');
-        mc.world
-            .getDimension('overworld')
-            .runCommand(`kick "${targetName}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
+        mc.world.getDimension('overworld').runCommand(`kick "${targetName}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
     } catch {
         // Player is likely offline, which is fine.
     }
@@ -278,13 +260,7 @@ const offlineBanCommand: CustomCommand = {
             duration = undefined;
         }
 
-        offlineBanPlayer(
-            executor,
-            targetId,
-            correctTargetName,
-            duration,
-            isDefined(reason) ? reason : 'No reason provided.'
-        );
+        offlineBanPlayer(executor, targetId, correctTargetName, duration, isDefined(reason) ? reason : 'No reason provided.');
     }
 };
 

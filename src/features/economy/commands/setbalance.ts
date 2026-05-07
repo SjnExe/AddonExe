@@ -3,13 +3,7 @@ import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
-import {
-    getPlayerIdByName,
-    getPlayerNameById,
-    incrementPlayerBalance,
-    loadPlayerData,
-    setPlayerBalance
-} from '@core/playerDataManager.js';
+import { getPlayerIdByName, getPlayerNameById, incrementPlayerBalance, loadPlayerData, setPlayerBalance } from '@core/playerDataManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
@@ -146,10 +140,7 @@ const removeBalanceCommand: CustomCommand = {
             count++;
         }
 
-        sendMessage(
-            `§aRemoved §e${formatCurrency(amount)}§a from ${count} player(s). §cFailed for ${failCount} (insufficient funds).`,
-            executor
-        );
+        sendMessage(`§aRemoved §e${formatCurrency(amount)}§a from ${count} player(s). §cFailed for ${failCount} (insufficient funds).`, executor);
     }
 };
 
@@ -185,10 +176,7 @@ const oSetBalanceCommand: CustomCommand = {
         const displayName = getPlayerNameById(targetId) ?? targetName;
 
         setPlayerBalance(targetId, amount);
-        sendMessage(
-            `§aSuccessfully set ${displayName}'s balance to §e${formatCurrency(amount)}§a (Offline).`,
-            executor
-        );
+        sendMessage(`§aSuccessfully set ${displayName}'s balance to §e${formatCurrency(amount)}§a (Offline).`, executor);
     }
 };
 
@@ -225,10 +213,7 @@ const oAddBalanceCommand: CustomCommand = {
         const pData = loadPlayerData(targetId);
         const newBal = pData?.balance ?? 0;
 
-        sendMessage(
-            `§aAdded §e${formatCurrency(amount)}§a to ${displayName}. New Balance: §e${formatCurrency(newBal)}§a (Offline).`,
-            executor
-        );
+        sendMessage(`§aAdded §e${formatCurrency(amount)}§a to ${displayName}. New Balance: §e${formatCurrency(newBal)}§a (Offline).`, executor);
     }
 };
 
@@ -263,28 +248,15 @@ const oRemoveBalanceCommand: CustomCommand = {
 
         const pData = loadPlayerData(targetId);
         if (!isDefined(pData) || pData.balance < amount) {
-            return sendMessage(
-                `§cCannot remove. ${displayName} only has §e${formatCurrency(pData?.balance ?? 0)}§c.`,
-                executor
-            );
+            return sendMessage(`§cCannot remove. ${displayName} only has §e${formatCurrency(pData?.balance ?? 0)}§c.`, executor);
         }
 
         incrementPlayerBalance(targetId, -amount);
         const newPData = loadPlayerData(targetId);
         const newBal = newPData?.balance ?? 0;
 
-        sendMessage(
-            `§aRemoved §e${formatCurrency(amount)}§a from ${displayName}. New Balance: §e${formatCurrency(newBal)}§a (Offline).`,
-            executor
-        );
+        sendMessage(`§aRemoved §e${formatCurrency(amount)}§a from ${displayName}. New Balance: §e${formatCurrency(newBal)}§a (Offline).`, executor);
     }
 };
 
-export default [
-    setBalanceCommand,
-    addBalanceCommand,
-    removeBalanceCommand,
-    oSetBalanceCommand,
-    oAddBalanceCommand,
-    oRemoveBalanceCommand
-];
+export default [setBalanceCommand, addBalanceCommand, removeBalanceCommand, oSetBalanceCommand, oAddBalanceCommand, oRemoveBalanceCommand];

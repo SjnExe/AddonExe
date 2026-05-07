@@ -17,18 +17,7 @@ export interface CommandParameter {
     /** The name of the parameter. */
     name: string;
     /** The data type of the parameter. */
-    type:
-        | 'player'
-        | 'string'
-        | 'text'
-        | 'int'
-        | 'float'
-        | 'boolean'
-        | 'block'
-        | 'item'
-        | 'position'
-        | 'target'
-        | mc.CustomCommandParamType;
+    type: 'player' | 'string' | 'text' | 'int' | 'float' | 'boolean' | 'block' | 'item' | 'position' | 'target' | mc.CustomCommandParamType;
     /** Whether the parameter is optional. */
     optional?: boolean;
     /** A list of possible values for an enum parameter, or a function that returns them. */
@@ -144,32 +133,27 @@ class CommandManager {
 
     constructor() {
         infoLog('[CommandManager] Subscribing to startup event for slash commands.');
-        mc.system.beforeEvents.startup.subscribe(
-            ({ customCommandRegistry }: { customCommandRegistry: mc.CustomCommandRegistry }) => {
-                infoLog('[CommandManager] Startup event received. Registering slash commands...');
-                for (const command of this.commands.values()) {
-                    if (command.disableSlashCommand === true) {
-                        continue;
-                    }
+        mc.system.beforeEvents.startup.subscribe(({ customCommandRegistry }: { customCommandRegistry: mc.CustomCommandRegistry }) => {
+            infoLog('[CommandManager] Startup event received. Registering slash commands...');
+            for (const command of this.commands.values()) {
+                if (command.disableSlashCommand === true) {
+                    continue;
+                }
 
-                    // Register the primary command name
-                    this._registerSlashCommand(customCommandRegistry, command, command.slashName ?? command.name);
+                // Register the primary command name
+                this._registerSlashCommand(customCommandRegistry, command, command.slashName ?? command.name);
 
-                    // Register all aliases as separate slash commands
-                    if (isDefined(command.aliases)) {
-                        for (const alias of command.aliases) {
-                            if (
-                                isDefined(command.disabledSlashAliases) &&
-                                command.disabledSlashAliases.includes(alias)
-                            ) {
-                                continue; // Skip slash command registration for this alias
-                            }
-                            this._registerSlashCommand(customCommandRegistry, command, alias);
+                // Register all aliases as separate slash commands
+                if (isDefined(command.aliases)) {
+                    for (const alias of command.aliases) {
+                        if (isDefined(command.disabledSlashAliases) && command.disabledSlashAliases.includes(alias)) {
+                            continue; // Skip slash command registration for this alias
                         }
+                        this._registerSlashCommand(customCommandRegistry, command, alias);
                     }
                 }
             }
-        );
+        });
     }
 
     /**
@@ -260,11 +244,7 @@ class CommandManager {
         }
     }
 
-    private _executeConsoleCommand(
-        executor: { isConsole: true; sendMessage: (message: string | mc.RawMessage) => void },
-        command: CustomCommand,
-        args: Record<string, unknown>
-    ) {
+    private _executeConsoleCommand(executor: { isConsole: true; sendMessage: (message: string | mc.RawMessage) => void }, command: CustomCommand, args: Record<string, unknown>) {
         if (command.allowConsole !== true) {
             executor.sendMessage(`[CommandManager] Command '${command.name}' cannot be run from the console.`);
             return;
@@ -275,9 +255,7 @@ class CommandManager {
                 if (result instanceof Promise) {
                     void result.catch((error: unknown) => {
                         const stack = error instanceof Error ? error.stack : String(error);
-                        executor.sendMessage(
-                            `[CommandManager] Error executing async console command '${command.name}': ${stack}`
-                        );
+                        executor.sendMessage(`[CommandManager] Error executing async console command '${command.name}': ${stack}`);
                     });
                 }
             } catch (error: unknown) {
@@ -287,12 +265,7 @@ class CommandManager {
         });
     }
 
-    private _executePlayerCommand(
-        player: mc.Player,
-        command: CustomCommand,
-        args: Record<string, unknown>,
-        config: Config
-    ) {
+    private _executePlayerCommand(player: mc.Player, command: CustomCommand, args: Record<string, unknown>, config: Config) {
         // Cooldown Check
         if (command.hasCooldown === true) {
             const cooldownId = command.cooldownId ?? command.name;
@@ -319,9 +292,7 @@ class CommandManager {
                 if (result instanceof Promise) {
                     void result.catch((error: unknown) => {
                         const stack = error instanceof Error ? error.stack : String(error);
-                        errorLog(
-                            `[CommandManager] Error executing async command '${command.name}' for player '${player.name}': ${stack}`
-                        );
+                        errorLog(`[CommandManager] Error executing async command '${command.name}' for player '${player.name}': ${stack}`);
                         player.sendMessage('§cAn unexpected error occurred while running this command.');
                     });
                 }
@@ -329,20 +300,15 @@ class CommandManager {
                 // Set Cooldown
                 if (command.hasCooldown === true) {
                     const cooldownId = command.cooldownId ?? command.name;
-                    const cmdConfig = isDefined(config.commandSettings)
-                        ? config.commandSettings[command.name]
-                        : undefined;
-                    const duration =
-                        (isDefined(cmdConfig) ? cmdConfig.cooldownSeconds : undefined) ?? command.defaultCooldown ?? 0;
+                    const cmdConfig = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
+                    const duration = (isDefined(cmdConfig) ? cmdConfig.cooldownSeconds : undefined) ?? command.defaultCooldown ?? 0;
                     if (duration > 0) {
                         setCooldownCustom(player.id, cooldownId, duration);
                     }
                 }
             } catch (error: unknown) {
                 const stack = error instanceof Error ? error.stack : String(error);
-                errorLog(
-                    `[CommandManager] Error executing command '${command.name}' for player '${player.name}': ${stack}`
-                );
+                errorLog(`[CommandManager] Error executing command '${command.name}' for player '${player.name}': ${stack}`);
                 player.sendMessage('§cAn unexpected error occurred while running this command.');
             }
         });
@@ -377,12 +343,7 @@ class CommandManager {
      * @param {boolean} isRetry Whether this is a retry attempt (e.g. after collision).
      * @private
      */
-    private _registerSlashCommand(
-        customCommandRegistry: mc.CustomCommandRegistry,
-        command: CustomCommand,
-        name: string,
-        isRetry = false
-    ) {
+    private _registerSlashCommand(customCommandRegistry: mc.CustomCommandRegistry, command: CustomCommand, name: string, isRetry = false) {
         if (this.registeredSlashCommands.has(name)) {
             return;
         }
@@ -470,18 +431,10 @@ class CommandManager {
      * @returns {mc.CustomCommand} The formatted command data.
      * @private
      */
-    private prepareCommandData(
-        command: CustomCommand,
-        nameOverride: string,
-        registry: mc.CustomCommandRegistry
-    ): mc.CustomCommand {
+    private prepareCommandData(command: CustomCommand, nameOverride: string, registry: mc.CustomCommandRegistry): mc.CustomCommand {
         const slashCommandName = isNonEmptyString(nameOverride) ? nameOverride : (command.slashName ?? command.name);
-        const mandatoryParameters = (command.parameters ?? [])
-            .filter((p) => p.optional !== true)
-            .map((p) => this.formatParameter(p, slashCommandName, registry));
-        const optionalParameters = (command.parameters ?? [])
-            .filter((p) => p.optional === true)
-            .map((p) => this.formatParameter(p, slashCommandName, registry));
+        const mandatoryParameters = (command.parameters ?? []).filter((p) => p.optional !== true).map((p) => this.formatParameter(p, slashCommandName, registry));
+        const optionalParameters = (command.parameters ?? []).filter((p) => p.optional === true).map((p) => this.formatParameter(p, slashCommandName, registry));
 
         return {
             name: `${this.prefix}:${slashCommandName}`,
@@ -500,11 +453,7 @@ class CommandManager {
      * @returns {mc.CustomCommandParameter} The formatted parameter data.
      * @private
      */
-    private formatParameter(
-        param: CommandParameter,
-        commandName: string,
-        registry: mc.CustomCommandRegistry
-    ): mc.CustomCommandParameter {
+    private formatParameter(param: CommandParameter, commandName: string, registry: mc.CustomCommandRegistry): mc.CustomCommandParameter {
         // --- Enum Handling ---
         if (isDefined(param.enumOptions) && isDefined(registry)) {
             const options = typeof param.enumOptions === 'function' ? param.enumOptions() : param.enumOptions;
@@ -547,15 +496,10 @@ class CommandManager {
             target: mc.CustomCommandParamType.PlayerSelector
         };
 
-        const type =
-            typeof param.type === 'string'
-                ? paramTypeMap[param.type.toLowerCase()]
-                : (param.type as mc.CustomCommandParamType);
+        const type = typeof param.type === 'string' ? paramTypeMap[param.type.toLowerCase()] : (param.type as mc.CustomCommandParamType);
 
         if (!isDefined(type)) {
-            errorLog(
-                `[CommandManager] Unknown parameter type '${String(param.type)}' for parameter '${param.name}'. Defaulting to String.`
-            );
+            errorLog(`[CommandManager] Unknown parameter type '${String(param.type)}' for parameter '${param.name}'. Defaulting to String.`);
             return {
                 name: param.name,
                 type: mc.CustomCommandParamType.String
@@ -610,11 +554,7 @@ class CommandManager {
             return true;
         }
 
-        const cleanedArgs = rawArgs.map((arg: string) =>
-            (arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'"))
-                ? arg.slice(1, -1)
-                : arg
-        );
+        const cleanedArgs = rawArgs.map((arg: string) => ((arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'")) ? arg.slice(1, -1) : arg));
         const rawCommandName = cleanedArgs.shift();
         if (!isNonEmptyString(rawCommandName)) {
             return true;
@@ -707,9 +647,7 @@ class CommandManager {
 
                 case 'boolean': {
                     if (rawValue !== 'true' && rawValue !== 'false') {
-                        player.sendMessage(
-                            `§cInvalid boolean '${rawValue}' for parameter '${paramDef.name}'. Expected true or false.`
-                        );
+                        player.sendMessage(`§cInvalid boolean '${rawValue}' for parameter '${paramDef.name}'. Expected true or false.`);
                         return true;
                     }
                     parsedArgs[paramDef.name] = rawValue === 'true';
@@ -726,13 +664,10 @@ class CommandManager {
                 }
 
                 default: {
-                    const options =
-                        typeof paramDef.enumOptions === 'function' ? paramDef.enumOptions() : paramDef.enumOptions;
+                    const options = typeof paramDef.enumOptions === 'function' ? paramDef.enumOptions() : paramDef.enumOptions;
                     if (isDefined(options) && options.length > 0) {
                         if (!options.includes(rawValue)) {
-                            player.sendMessage(
-                                `§cInvalid option '${rawValue}' for parameter '${paramDef.name}'. Valid options: ${options.join(', ')}`
-                            );
+                            player.sendMessage(`§cInvalid option '${rawValue}' for parameter '${paramDef.name}'. Valid options: ${options.join(', ')}`);
                             return true;
                         }
                         parsedArgs[paramDef.name] = rawValue;

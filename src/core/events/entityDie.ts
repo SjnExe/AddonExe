@@ -68,9 +68,7 @@ function handleEntityDie(event: mc.EntityDieAfterEvent) {
                 incrementPlayerBalance(killer.id, bounty.amount);
                 bountyManager.removeBounty(deadPlayer.id);
 
-                mc.world.sendMessage(
-                    `§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`
-                );
+                mc.world.sendMessage(`§a${killer.name} has claimed the bounty of §e$${bounty.amount.toFixed(2)}§a on ${deadPlayer.name}!`);
                 debugLog(`[BountyClaim] ${killer.name} claimed bounty on ${deadPlayer.name} for $${bounty.amount}.`);
             }
         }

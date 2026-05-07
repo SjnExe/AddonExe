@@ -83,15 +83,7 @@ function formatError(error: unknown): string {
         return `\n  Message: ${error.message}\n  Stack: ${error.stack}`;
     }
 
-    if (
-        typeof error === 'string' ||
-        typeof error === 'number' ||
-        typeof error === 'boolean' ||
-        typeof error === 'symbol' ||
-        typeof error === 'bigint' ||
-        error === undefined ||
-        error === null
-    ) {
+    if (typeof error === 'string' || typeof error === 'number' || typeof error === 'boolean' || typeof error === 'symbol' || typeof error === 'bigint' || error === undefined || error === null) {
         return String(error);
     }
 

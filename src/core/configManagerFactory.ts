@@ -23,17 +23,10 @@ export interface ConfigManager<T = unknown> {
     reset: () => Promise<void>;
 }
 
-export default function createConfigManager<T>(
-    key: string,
-    defaultConfig: T,
-    name: string,
-    wrapperKey: string | undefined = undefined
-): ConfigManager<T> {
+export default function createConfigManager<T>(key: string, defaultConfig: T, name: string, wrapperKey: string | undefined = undefined): ConfigManager<T> {
     const lastLoadedKey = `${key}:last_loaded`;
 
-    const initialDefaultConfig = (
-        isNonEmptyString(wrapperKey) ? { [wrapperKey]: deepClone(defaultConfig) } : deepClone(defaultConfig)
-    ) as T;
+    const initialDefaultConfig = (isNonEmptyString(wrapperKey) ? { [wrapperKey]: deepClone(defaultConfig) } : deepClone(defaultConfig)) as T;
 
     // Initialize Storage Managers for sharding support
     const configStorage = new StorageManager(key);
@@ -63,11 +56,7 @@ export default function createConfigManager<T>(
             // StorageManager returns the parsed object, no need to JSON.parse
             const userSavedConfig = userSavedConfigLoaded;
 
-            if (
-                name === 'Main' &&
-                isDefined(userSavedConfig.spawnLocation) &&
-                typeof userSavedConfig.spawnLocation === 'object'
-            ) {
+            if (name === 'Main' && isDefined(userSavedConfig.spawnLocation) && typeof userSavedConfig.spawnLocation === 'object') {
                 debugLog(`[${name}ConfigManager] Migrating legacy spawnLocation to spawn.spawnLocation.`);
                 if (!isDefined(userSavedConfig.spawn)) {
                     userSavedConfig.spawn = {};
@@ -85,19 +74,14 @@ export default function createConfigManager<T>(
 
                 switch (name) {
                     case 'Main': {
-                        currentConfig = reconcileConfig(
-                            newDefaultConfig as unknown as Record<string, unknown>,
-                            lastLoadedConfigForMerge,
-                            userSavedConfig
-                        ) as unknown as T;
+                        currentConfig = reconcileConfig(newDefaultConfig as unknown as Record<string, unknown>, lastLoadedConfigForMerge, userSavedConfig) as unknown as T;
 
                         break;
                     }
                     case 'Ranks': {
                         const mergedRanks = mergeRanks(
                             userSavedConfig.rankDefinitions as Record<string, unknown>[],
-                            (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] })
-                                .rankDefinitions,
+                            (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] }).rankDefinitions,
                             lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]
                         );
                         currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
@@ -106,11 +90,7 @@ export default function createConfigManager<T>(
                     }
                     case 'Kits':
                     case 'Shop': {
-                        currentConfig = mergeObjectMaps(
-                            userSavedConfig,
-                            newDefaultConfig as unknown as Record<string, unknown>,
-                            lastLoadedConfigForMerge
-                        ) as unknown as T;
+                        currentConfig = mergeObjectMaps(userSavedConfig, newDefaultConfig as unknown as Record<string, unknown>, lastLoadedConfigForMerge) as unknown as T;
 
                         break;
                     }

@@ -27,9 +27,7 @@ async function showKitList(player: mc.Player, page: number) {
     const startIndex = (page - 1) * KITS_PER_PAGE;
     const kitsToShow = availableKits.slice(startIndex, startIndex + KITS_PER_PAGE);
 
-    const form = new ActionFormData()
-        .title(`Available Kits (Page ${page}/${totalPages})`)
-        .body('Select a kit to claim:');
+    const form = new ActionFormData().title(`Available Kits (Page ${page}/${totalPages})`).body('Select a kit to claim:');
 
     for (const kit of kitsToShow) {
         let buttonText = kit.name;

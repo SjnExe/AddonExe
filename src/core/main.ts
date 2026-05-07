@@ -138,9 +138,7 @@ mc.system.runTimeout(() => {
             } else {
                 errorLog(`Error: ${String(error)}`);
             }
-            mc.world.sendMessage(
-                '§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.'
-            );
+            mc.world.sendMessage('§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.');
         }
     })();
 }, 0);

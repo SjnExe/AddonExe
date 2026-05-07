@@ -104,12 +104,7 @@ export class RankPanelHandler implements IPanelHandler {
         return Promise.resolve();
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
 
         if (panelId === 'addRankPanel') {
@@ -165,11 +160,7 @@ export class RankPanelHandler implements IPanelHandler {
         return showPanel(player, 'rankManagementPanel');
     }
 
-    private async handleEditRankResponse(
-        player: mc.Player,
-        response: ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    private async handleEditRankResponse(player: mc.Player, response: ModalFormResponse, context: UIContext): Promise<void> {
         const values = response.formValues;
         if (response.canceled) return showPanel(player, 'rankManagementPanel');
         const rankId = context.id as string;
@@ -195,15 +186,11 @@ export class RankPanelHandler implements IPanelHandler {
         const updatedRank: RankDefinition = {
             ...existingRank,
             name: isNonEmptyString(name) ? name : existingRank.name,
-            permissionLevel: isNonEmptyString(permStr)
-                ? Number.parseInt(permStr) || 1024
-                : existingRank.permissionLevel,
+            permissionLevel: isNonEmptyString(permStr) ? Number.parseInt(permStr) || 1024 : existingRank.permissionLevel,
             chatFormatting: {
                 prefixText: isNonEmptyString(prefix) ? prefix : (existingRank.chatFormatting?.prefixText ?? ''),
                 nameColor: isNonEmptyString(nameColor) ? nameColor : (existingRank.chatFormatting?.nameColor ?? '§r'),
-                messageColor: isNonEmptyString(messageColor)
-                    ? messageColor
-                    : (existingRank.chatFormatting?.messageColor ?? '§r')
+                messageColor: isNonEmptyString(messageColor) ? messageColor : (existingRank.chatFormatting?.messageColor ?? '§r')
             },
             locked: (locked ?? existingRank.locked) === true
         };
@@ -216,12 +203,7 @@ export class RankPanelHandler implements IPanelHandler {
         return showPanel(player, 'rankManagementPanel');
     }
 
-    private async handleSelection(
-        player: mc.Player,
-        panelId: string,
-        selection: number,
-        context: UIContext
-    ): Promise<void> {
+    private async handleSelection(player: mc.Player, panelId: string, selection: number, context: UIContext): Promise<void> {
         const items = await this.getItems(player, panelId, context);
         if (selection >= 0 && selection < items.length) {
             const item = items[selection];

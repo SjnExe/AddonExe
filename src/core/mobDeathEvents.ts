@@ -9,14 +9,7 @@ import { getEconomyConfig } from './configurations.js';
 import * as lastHitManager from './lastHitManager.js';
 import { infoLog } from './logger.js';
 import { getPlayerFromCache } from './playerCache.js';
-import {
-    getPlayer,
-    incrementDeathCount,
-    incrementKillCount,
-    incrementKillStreak,
-    incrementPlayerBalance,
-    resetKillStreak
-} from './playerDataManager.js';
+import { getPlayer, incrementDeathCount, incrementKillCount, incrementKillStreak, incrementPlayerBalance, resetKillStreak } from './playerDataManager.js';
 import { handlePvPDeath } from './pvpManager.js';
 import { formatCurrency } from './utils.js';
 

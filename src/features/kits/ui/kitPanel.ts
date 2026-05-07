@@ -10,12 +10,7 @@ import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 export class KitPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'kitManagementPanel' ||
-            panelId.startsWith('kitActionMenu_') ||
-            panelId.startsWith('kitSettingsPanel_') ||
-            panelId.startsWith('kitItemsPanel_')
-        );
+        return panelId === 'kitManagementPanel' || panelId.startsWith('kitActionMenu_') || panelId.startsWith('kitSettingsPanel_') || panelId.startsWith('kitItemsPanel_');
     }
 
     async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
@@ -197,12 +192,7 @@ export class KitPanelHandler implements IPanelHandler {
         return undefined;
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
 
         if (typeof selection === 'number') {
@@ -216,12 +206,7 @@ export class KitPanelHandler implements IPanelHandler {
         }
     }
 
-    private async handleSelection(
-        player: mc.Player,
-        panelId: string,
-        selection: number,
-        context: UIContext
-    ): Promise<void> {
+    private async handleSelection(player: mc.Player, panelId: string, selection: number, context: UIContext): Promise<void> {
         const items = await this.getItems(player, panelId, context);
         if (selection >= 0 && selection < items.length) {
             const item = items[selection];
@@ -299,10 +284,7 @@ export class KitPanelHandler implements IPanelHandler {
 
     private async handleAddKitItem(player: mc.Player, panelId: string, context: UIContext): Promise<void> {
         const kitName = panelId.replace('kitItemsPanel_', '');
-        const form = new ModalFormData()
-            .title('Add Item')
-            .textField('Item ID', 'minecraft:stone')
-            .textField('Amount', '1', { defaultValue: '1' });
+        const form = new ModalFormData().title('Add Item').textField('Item ID', 'minecraft:stone').textField('Amount', '1', { defaultValue: '1' });
         const res = await form.show(player);
         if (!res.canceled && res.formValues) {
             const [typeId, amountStr] = res.formValues as [string, string];
@@ -315,18 +297,10 @@ export class KitPanelHandler implements IPanelHandler {
         return showPanel(player, panelId, context);
     }
 
-    private async handleManageKitItem(
-        player: mc.Player,
-        panelId: string,
-        itemId: string,
-        context: UIContext
-    ): Promise<void> {
+    private async handleManageKitItem(player: mc.Player, panelId: string, itemId: string, context: UIContext): Promise<void> {
         const kitName = panelId.replace('kitItemsPanel_', '');
         const itemIndex = Number(itemId);
-        const form = new ActionFormData()
-            .title('Manage Item')
-            .button('Delete Item', 'textures/ui/trash')
-            .button('Cancel', 'textures/ui/cancel');
+        const form = new ActionFormData().title('Manage Item').button('Delete Item', 'textures/ui/trash').button('Cancel', 'textures/ui/cancel');
         const res = await form.show(player);
         if (!res.canceled && res.selection === 0) {
             const result = kitItemsManager.removeItemFromKit(kitName, itemIndex);
@@ -335,25 +309,12 @@ export class KitPanelHandler implements IPanelHandler {
         return showPanel(player, panelId, context);
     }
 
-    private async handleKitSettings(
-        player: mc.Player,
-        panelId: string,
-        response: ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    private async handleKitSettings(player: mc.Player, panelId: string, response: ModalFormResponse, context: UIContext): Promise<void> {
         const kitName = panelId.replace('kitSettingsPanel_', '');
         if (response.canceled) return showPanel(player, `kitActionMenu_${kitName}`, context);
 
         if (response.formValues) {
-            const [enabled, name, desc, icon, cooldownStr, permStr, priceStr] = response.formValues as [
-                boolean,
-                string,
-                string,
-                string,
-                string,
-                string,
-                string
-            ];
+            const [enabled, name, desc, icon, cooldownStr, permStr, priceStr] = response.formValues as [boolean, string, string, string, string, string, string];
             const cooldown = Number.parseInt(cooldownStr) || 0;
             const perm = Number.parseInt(permStr) || 1024;
             const price = Number.parseInt(priceStr) || 0;

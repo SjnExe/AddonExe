@@ -4,26 +4,11 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { formatCurrency, formatTime, uiWait } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import {
-    AuctionListing,
-    buyItem,
-    cancelListing,
-    claimMailbox,
-    claimMailboxItem,
-    getListings,
-    getListingsCount,
-    placeBid,
-    SortOption
-} from '../auctionManager.js';
+import { AuctionListing, buyItem, cancelListing, claimMailbox, claimMailboxItem, getListings, getListingsCount, placeBid, SortOption } from '../auctionManager.js';
 
 const LISTINGS_PER_PAGE = 45;
 
-export async function showAuctionHouse(
-    player: mc.Player,
-    page: number = 1,
-    searchQuery?: string,
-    sort: SortOption = SortOption.Newest
-): Promise<void> {
+export async function showAuctionHouse(player: mc.Player, page: number = 1, searchQuery?: string, sort: SortOption = SortOption.Newest): Promise<void> {
     const totalListings = getListingsCount(searchQuery);
     const totalPages = Math.ceil(totalListings / LISTINGS_PER_PAGE) || 1;
     const clampedPage = Math.max(1, Math.min(page, totalPages));
@@ -58,13 +43,9 @@ export async function showAuctionHouse(
         }
     }
 
-    const title = isNonEmptyString(searchQuery)
-        ? `AH Search: "${searchQuery}" (${clampedPage}/${totalPages})`
-        : `Auction House (${clampedPage}/${totalPages})`;
+    const title = isNonEmptyString(searchQuery) ? `AH Search: "${searchQuery}" (${clampedPage}/${totalPages})` : `Auction House (${clampedPage}/${totalPages})`;
 
-    const form = new ActionFormData()
-        .title(title)
-        .body(`Total Items: ${totalListings}${isNonEmptyString(searchQuery) ? ` matching "${searchQuery}"` : ''}`);
+    const form = new ActionFormData().title(title).body(`Total Items: ${totalListings}${isNonEmptyString(searchQuery) ? ` matching "${searchQuery}"` : ''}`);
 
     form.button('§eCollection Bin / Mailbox', 'textures/items/minecart_chest');
     form.button('§bYour Listings', 'textures/ui/recipe_book_icon');
@@ -79,9 +60,7 @@ export async function showAuctionHouse(
         let label = `§f${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId.replace('minecraft:', '')}`;
         label += `\n§7x${listing.item.amount} `;
 
-        label += listing.isBid
-            ? `§eBid: ${formatCurrency(listing.bidPrice ?? listing.price)}`
-            : `§a${formatCurrency(listing.price)}`;
+        label += listing.isBid ? `§eBid: ${formatCurrency(listing.bidPrice ?? listing.price)}` : `§a${formatCurrency(listing.price)}`;
         label += ` §8By: ${listing.sellerName}`;
 
         form.button(label);
@@ -105,9 +84,7 @@ export async function showAuctionHouse(
         return;
     }
     if (selection === 2) {
-        await (isNonEmptyString(searchQuery)
-            ? showAuctionHouse(player, 1, undefined, sort)
-            : showSearchUI(player, sort));
+        await (isNonEmptyString(searchQuery) ? showAuctionHouse(player, 1, undefined, sort) : showSearchUI(player, sort));
         return;
     }
     if (selection === 3) {
@@ -199,9 +176,7 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
     const currentBid = listing.bidPrice ?? listing.price;
     const minBid = currentBid + 1;
 
-    const form = new ModalFormData()
-        .title('Place Bid')
-        .textField(`Enter bid amount (Min: ${minBid})`, minBid.toString());
+    const form = new ModalFormData().title('Place Bid').textField(`Enter bid amount (Min: ${minBid})`, minBid.toString());
 
     const response = await uiWait(player, form);
     if (!isDefined(response) || response.canceled) return;
@@ -222,9 +197,7 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
 }
 
 async function showSearchUI(player: mc.Player, currentSort: SortOption): Promise<void> {
-    const form = new ModalFormData()
-        .title('Search Auction House')
-        .textField('Search Query (Item/Seller)', 'Diamond Sword');
+    const form = new ModalFormData().title('Search Auction House').textField('Search Query (Item/Seller)', 'Diamond Sword');
 
     const response = await uiWait(player, form);
     if (!isDefined(response) || response.canceled) return;
@@ -298,9 +271,7 @@ async function showMailboxUI(player: mc.Player): Promise<void> {
     form.button('§aClaim All Items', 'textures/ui/realms_green_check');
 
     for (const item of mailbox) {
-        form.button(
-            `§f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '')}\n§7x${item.amount}`
-        );
+        form.button(`§f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '')}\n§7x${item.amount}`);
     }
 
     const response = await uiWait(player, form);

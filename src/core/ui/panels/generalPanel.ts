@@ -11,12 +11,7 @@ import { IPanelHandler } from '@ui/types.js';
 
 export class GeneralPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'mainPanel' ||
-            panelId === 'gameplayPanel' ||
-            panelId === 'bountyActionsPanel' ||
-            panelId === 'bountyListPanel'
-        );
+        return panelId === 'mainPanel' || panelId === 'gameplayPanel' || panelId === 'bountyActionsPanel' || panelId === 'bountyListPanel';
     }
 
     getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
@@ -31,12 +26,7 @@ export class GeneralPanelHandler implements IPanelHandler {
         return Promise.resolve(items);
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse, context: UIContext): Promise<void> {
         if (response.canceled || response.selection === undefined) return;
 
         const items = await this.getItems(player, panelId, context);

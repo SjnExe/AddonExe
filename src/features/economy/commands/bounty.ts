@@ -3,12 +3,7 @@ import * as mc from '@minecraft/server';
 import * as bountyManager from '@core/bountyManager.js';
 import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
-import {
-    getOrCreatePlayer,
-    getPlayerIdByName,
-    getPlayerNameById,
-    incrementPlayerBalance
-} from '@core/playerDataManager.js';
+import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { parseCurrency, resolveTarget } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
@@ -129,8 +124,7 @@ const removeBountyCommand: CustomCommand = {
 
         if (!isDefined(targetBounty)) return sendMessage('§cThis player has no bounty on them.', executor);
 
-        if (amount > targetBounty.amount)
-            return sendMessage(`§cAmount exceeds bounty ($${targetBounty.amount.toFixed(2)}).`, executor);
+        if (amount > targetBounty.amount) return sendMessage(`§cAmount exceeds bounty ($${targetBounty.amount.toFixed(2)}).`, executor);
 
         const pData = getOrCreatePlayer(executor);
         if (pData.balance < amount) return sendMessage('§cYou dont have enough money.', executor);
@@ -204,8 +198,7 @@ const oRemoveBountyCommand: CustomCommand = {
 
         const targetBounty = bountyManager.getBounty(targetId);
         if (!isDefined(targetBounty)) return sendMessage('§cThis player has no bounty on them.', executor);
-        if (amount > targetBounty.amount)
-            return sendMessage(`§cAmount exceeds bounty ($${targetBounty.amount.toFixed(2)}).`, executor);
+        if (amount > targetBounty.amount) return sendMessage(`§cAmount exceeds bounty ($${targetBounty.amount.toFixed(2)}).`, executor);
 
         const pData = getOrCreatePlayer(executor);
         if (pData.balance < amount) return sendMessage('§cYou dont have enough money.', executor);
@@ -323,11 +316,4 @@ const oListBountyCommand: CustomCommand = {
     }
 };
 
-export default [
-    bountyCommand,
-    removeBountyCommand,
-    listBountyCommand,
-    oBountyCommand,
-    oRemoveBountyCommand,
-    oListBountyCommand
-];
+export default [bountyCommand, removeBountyCommand, listBountyCommand, oBountyCommand, oRemoveBountyCommand, oListBountyCommand];
