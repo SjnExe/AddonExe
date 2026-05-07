@@ -10,7 +10,7 @@
         "build": "npm run clean && node scripts/generate-command-index.js && node scripts/generate-manifests.js && node scripts/build.js",
         "build:release": "npm run clean && node scripts/generate-command-index.js && node scripts/generate-manifests.js --release && node scripts/build.js --minify",
         "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"node scripts/build.js --watch\"",
-        "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests",
+        "test": "vitest run --passWithNoTests",
         "lint": "eslint src scripts eslint.config.js && npm run check-types",
         "lint:check": "eslint src scripts eslint.config.js && npm run check-types && prettier --check .",
         "lint:fix": "eslint src scripts eslint.config.js --fix && prettier --write . && npm run check-types",
@@ -40,11 +40,9 @@
     },
     "homepage": "https://github.com/SjnExe/AddonExe#readme",
     "devDependencies": {
-        "@babel/preset-env": "latest",
         "@eslint/eslintrc": "latest",
         "@eslint/js": "latest",
         "@minecraft/common": "latest",
-        "@minecraft/core-build-tasks": "latest",
         "@minecraft/creator-tools": "latest",
         "@minecraft/debug-utilities": "beta",
         "@minecraft/math": "latest",
@@ -52,11 +50,9 @@
         "@minecraft/server-gametest": "beta",
         "@minecraft/server-ui": "beta",
         "@minecraft/vanilla-data": "latest",
-        "@types/jest": "latest",
         "@types/node": "latest",
         "@typescript-eslint/eslint-plugin": "latest",
         "@typescript-eslint/parser": "latest",
-        "babel-jest": "latest",
         "chokidar": "latest",
         "concurrently": "latest",
         "esbuild": "latest",
@@ -68,53 +64,15 @@
         "eslint-plugin-minecraft-linting": "latest",
         "glob": "latest",
         "globals": "latest",
-        "jest": "latest",
         "lint-staged": "latest",
         "prettier": "latest",
         "prettier-plugin-organize-imports": "latest",
         "rimraf": "latest",
         "simple-git-hooks": "latest",
-        "ts-jest": "latest",
         "type-fest": "latest",
         "typescript": "latest",
-        "typescript-eslint": "latest"
-    },
-    "jest": {
-        "preset": "ts-jest/presets/default-esm",
-        "testEnvironment": "node",
-        "extensionsToTreatAsEsm": [
-            ".ts"
-        ],
-        "moduleNameMapper": {
-            "^(\\.{1,2}/.*)\\.js$": "$1",
-            "^@minecraft/server$": "<rootDir>/src/core/__tests__/__mocks__/minecraftMock.ts",
-            "^@minecraft/server-ui$": "<rootDir>/src/core/__tests__/__mocks__/minecraftMock.ts",
-            "^@minecraft/diagnostics$": "<rootDir>/src/core/__tests__/__mocks__/minecraftMock.ts",
-            "^@core/(.*)\\.js$": "<rootDir>/src/core/$1",
-            "^@features/(.*)\\.js$": "<rootDir>/src/features/$1",
-            "^@ui/(.*)\\.js$": "<rootDir>/src/core/ui/$1",
-            "^@commands/(.*)\\.js$": "<rootDir>/src/core/commands/$1",
-            "^@lib/(.*)\\.js$": "<rootDir>/src/lib/$1"
-        },
-        "transform": {
-            "^.+\\.tsx?$": [
-                "ts-jest",
-                {
-                    "useESM": true,
-                    "tsconfig": "tsconfig.test.json"
-                }
-            ],
-            "^.+\\.js$": "babel-jest"
-        },
-        "testPathIgnorePatterns": [
-            "/node_modules/",
-            "/packs/behavior/scripts/",
-            "/__mocks__/",
-            "<rootDir>/src/features/essentials/commands/test.ts"
-        ],
-        "transformIgnorePatterns": [
-            "node_modules/(?!@minecraft)"
-        ]
+        "typescript-eslint": "latest",
+        "vitest": "^4.1.5"
     },
     "lint-staged": {
         "*.{js,ts}": "eslint --fix",
