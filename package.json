@@ -75,8 +75,6 @@
         "rimraf": "latest",
         "simple-git-hooks": "latest",
         "ts-jest": "latest",
-        "ts-node": "latest",
-        "tsc-alias": "latest",
         "type-fest": "latest",
         "typescript": "latest",
         "typescript-eslint": "latest"
