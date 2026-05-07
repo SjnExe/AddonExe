@@ -90,7 +90,7 @@ The configuration system is built on four fundamental components:
 
 This process preserves user settings across updates while adding new features.
 
-1.  **Version Mismatch Detected**: The addon detects it has been updated.
+1.  **Version Mismatch Detected**: The addon detects it has been updated. This occurs *anytime* the version string changes (e.g., from `1.2.4` to `1.2.5`, or during nightly development builds), ensuring all updates trigger the merge.
 2.  **Load Configs**: It loads the user's **Current Configuration** (from before the update) and the **New Default Configuration** from the updated `.js` file.
 3.  **The Merge (`deepMerge`)**: The manager performs a standard deep merge:
     - It starts with the **New Default Configuration** as the base.

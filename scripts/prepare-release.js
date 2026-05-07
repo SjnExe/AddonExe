@@ -75,9 +75,6 @@ async function updateConfig(filePath) {
         // Update logLevel
         // Regex matches: logLevel: 2
         content = content.replaceAll(/logLevel:\s*2/g, 'logLevel: 3');
-
-        // Update isNightly
-        content = content.replaceAll(/isNightly:\s*false/g, 'isNightly: true');
     }
 
     await fs.writeFile(fullPath, content);
