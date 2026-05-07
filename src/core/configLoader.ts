@@ -13,7 +13,7 @@ import { errorLog } from './logger.js';
 export async function loadConfig<T>(modulePath: string, suppressError = false): Promise<T> {
     try {
         const module = (await import(modulePath)) as Record<string, unknown>;
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+
         if (module.default) {
             return module.default as T;
         }

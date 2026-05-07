@@ -13,7 +13,7 @@ export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport'
     if (!isDefined(player)) return;
 
     if (typeof player.isValid === 'function') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         if (!(player as any).isValid()) return;
     } else if (typeof player.isValid === 'boolean' && !player.isValid) {
         return;
@@ -22,7 +22,7 @@ export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport'
     const config = getConfig();
 
     // Check if Back system is globally enabled
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!config.back || !config.back.enabled) return;
 
     // Use optional chaining and defaults

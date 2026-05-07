@@ -93,7 +93,7 @@ const mainCommand: CustomCommand = {
 
         if (sub === 'search') {
             // Arg 2 is mapped to 'price' in definition, but here acts as query
-            // eslint-disable-next-line unicorn/prefer-ternary
+
             if (isNonEmptyString(args.price)) {
                 await showAuctionHouse(executor, 1, args.price);
             } else {

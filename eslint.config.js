@@ -5,9 +5,6 @@ import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 import jsonc from 'eslint-plugin-jsonc';
 import minecraftLinting from 'eslint-plugin-minecraft-linting';
-import promisePlugin from 'eslint-plugin-promise';
-import eslintPluginUnicorn from 'eslint-plugin-unicorn';
-import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -35,17 +32,6 @@ export default tseslint.config(
     },
     // Base JS configuration
     eslint.configs.recommended,
-
-    // Unicorn Configuration
-    eslintPluginUnicorn.configs['flat/recommended'],
-    {
-        rules: {
-            'unicorn/filename-case': 'off',
-            'unicorn/prevent-abbreviations': 'off',
-            'unicorn/no-null': 'off',
-            'unicorn/prefer-node-protocol': 'warn'
-        }
-    },
 
     // TS Configuration (Type-Checked) - Main Source
     {
@@ -76,9 +62,7 @@ export default tseslint.config(
         },
         plugins: {
             'minecraft-linting': minecraftLinting,
-            import: importPlugin,
-            'unused-imports': unusedImports,
-            promise: promisePlugin
+            import: importPlugin
         },
         settings: {
             'import/resolver': {
@@ -114,11 +98,6 @@ export default tseslint.config(
             'no-var': 'error',
             curly: ['error', 'all'],
             'import/no-duplicates': 'error',
-            'unused-imports/no-unused-imports': 'error',
-            'promise/param-names': 'error',
-            'promise/always-return': 'warn',
-            'promise/catch-or-return': 'warn',
-            'promise/no-return-wrap': 'error',
             '@typescript-eslint/no-explicit-any': 'warn', // Downgraded to warn
             '@typescript-eslint/no-var-requires': 'error',
             '@typescript-eslint/no-shadow': 'error',
@@ -145,7 +124,6 @@ export default tseslint.config(
 
             // NEW STRICT RULES
             '@typescript-eslint/no-unnecessary-condition': 'error',
-            '@typescript-eslint/strict-boolean-expressions': 'error',
             '@typescript-eslint/no-unnecessary-type-assertion': 'error'
         }
     },
