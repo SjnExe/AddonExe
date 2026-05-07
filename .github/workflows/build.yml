@@ -134,7 +134,7 @@ jobs:
 
             - name: Upload Debug Symbols (Nightly only)
               if: steps.build_type.outputs.type == 'nightly'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: debug-symbols-nightly
                   path: staging/**/*.map
@@ -148,7 +148,7 @@ jobs:
 
             - name: Publish Nightly Release
               if: steps.build_type.outputs.type == 'nightly'
-              uses: softprops/action-gh-release@v2
+              uses: softprops/action-gh-release@v3
               with:
                   name: Nightly Build (Latest Dev)
                   tag_name: nightly
@@ -168,7 +168,7 @@ jobs:
 
             - name: Publish Stable Release
               if: steps.build_type.outputs.type == 'stable'
-              uses: softprops/action-gh-release@v2
+              uses: softprops/action-gh-release@v3
               with:
                   files: |
                       AddonExe.Release.${{ env.ARCHIVE_VERSION }}.mcaddon
