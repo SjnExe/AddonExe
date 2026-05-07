@@ -14,15 +14,7 @@ import { showConfirmationDialog } from '@ui/components.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
-import {
-    addBackButton,
-    addPaginationItems,
-    getPaginatedItems,
-    getSystemsByCategory,
-    getVisibleCategories,
-    itemsPerPage,
-    configHandlers as uiConfigHandlers
-} from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems, getSystemsByCategory, getVisibleCategories, itemsPerPage, configHandlers as uiConfigHandlers } from '@ui/uiUtils.js';
 
 interface ConfigSetting {
     key: string;
@@ -219,8 +211,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 }
                 case 'textField': {
                     const val = currentValue ?? '';
-                    const strVal =
-                        typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
+                    const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
                     form.textField(setting.label, isNonEmptyString(setting.description) ? setting.description : '', {
                         defaultValue: strVal
                     });
@@ -229,10 +220,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 case 'dropdown': {
                     let index = -1;
                     const options = setting.options ?? [];
-                    index =
-                        setting.key === 'logLevel' && typeof currentValue === 'number'
-                            ? currentValue
-                            : options.indexOf(currentValue as string);
+                    index = setting.key === 'logLevel' && typeof currentValue === 'number' ? currentValue : options.indexOf(currentValue as string);
                     form.dropdown(setting.label, options, { defaultValueIndex: Math.max(0, index) });
                     break;
                 }
@@ -240,12 +228,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         }
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
 
         if (typeof selection === 'number') {
@@ -259,12 +242,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         }
     }
 
-    private async handleSelection(
-        player: mc.Player,
-        panelId: string,
-        selection: number,
-        context: UIContext
-    ): Promise<void> {
+    private async handleSelection(player: mc.Player, panelId: string, selection: number, context: UIContext): Promise<void> {
         const items = await this.getItems(player, panelId, context);
         if (selection >= 0 && selection < items.length) {
             const item = items[selection];
@@ -289,11 +267,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
             }
 
-            if (
-                item.actionValue === 'resetAllConfig' ||
-                item.actionValue.startsWith('resetCategory_') ||
-                item.actionValue.startsWith('resetSystem_')
-            ) {
+            if (item.actionValue === 'resetAllConfig' || item.actionValue.startsWith('resetCategory_') || item.actionValue.startsWith('resetSystem_')) {
                 await this.handleResetAction(player, item.actionValue, panelId, context);
                 return;
             }
@@ -303,12 +277,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         }
     }
 
-    private async handleResetAction(
-        player: mc.Player,
-        actionValue: string,
-        panelId: string,
-        context: UIContext
-    ): Promise<void> {
+    private async handleResetAction(player: mc.Player, actionValue: string, panelId: string, context: UIContext): Promise<void> {
         if (actionValue === 'resetAllConfig') {
             await this.handleResetAll(player, panelId, context);
             return;
@@ -333,18 +302,13 @@ export class ConfigPanelHandler implements IPanelHandler {
             confirmButtonText: '§4Yes, Reset All',
             cancelButtonText: '§2No, Cancel',
             onConfirm: async () => {
-                const finalConfirmForm = new ModalFormData()
-                    .title('Final Confirmation')
-                    .textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', {
-                        defaultValue: ''
-                    });
+                const finalConfirmForm = new ModalFormData().title('Final Confirmation').textField('Type "confirm" to reset ALL systems.', 'Case-insensitive', {
+                    defaultValue: ''
+                });
                 const finalConfirmResponse = await utils.uiWait(player, finalConfirmForm);
                 if (finalConfirmResponse.canceled) return showPanel(player, panelId, context);
                 const confirmModal = finalConfirmResponse as ModalFormResponse;
-                const confirmationValue =
-                    isDefined(confirmModal.formValues) && isDefined(confirmModal.formValues[0])
-                        ? String(confirmModal.formValues[0])
-                        : '';
+                const confirmationValue = isDefined(confirmModal.formValues) && isDefined(confirmModal.formValues[0]) ? String(confirmModal.formValues[0]) : '';
                 if (confirmationValue.trim().toLowerCase() !== 'confirm') {
                     player.sendMessage('§4Final confirmation failed. Reset canceled.');
                     return showPanel(player, panelId, context);
@@ -363,12 +327,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         });
     }
 
-    private async handleResetCategory(
-        player: mc.Player,
-        category: string,
-        panelId: string,
-        context: UIContext
-    ): Promise<void> {
+    private async handleResetCategory(player: mc.Player, category: string, panelId: string, context: UIContext): Promise<void> {
         const pData = getOrCreatePlayer(player);
         // Removed dynamic import of getSystemsByCategory as it caused shadowing
         const systems = getSystemsByCategory(pData, category);
@@ -392,12 +351,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         });
     }
 
-    private async handleResetSystem(
-        player: mc.Player,
-        sysId: string,
-        panelId: string,
-        context: UIContext
-    ): Promise<void> {
+    private async handleResetSystem(player: mc.Player, sysId: string, panelId: string, context: UIContext): Promise<void> {
         await showConfirmationDialog(player, {
             title: `Reset System`,
             body: `Reset this system to defaults?`,
@@ -417,12 +371,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         });
     }
 
-    private async handleConfigModalSave(
-        player: mc.Player,
-        panelId: string,
-        response: ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    private async handleConfigModalSave(player: mc.Player, panelId: string, response: ModalFormResponse, context: UIContext): Promise<void> {
         const categoryId = panelId.replace('config_', '');
         const category = configPanelSchema.find((c) => c.id === categoryId);
         const values = response.formValues;

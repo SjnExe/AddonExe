@@ -55,10 +55,7 @@ export const updateMultipleConfig = (updates: Record<string, unknown>) => {
     }
 };
 
-export async function resetConfigSection(
-    sectionKey: string,
-    player?: mc.Player
-): Promise<{ success: boolean; message: string }> {
+export async function resetConfigSection(sectionKey: string, player?: mc.Player): Promise<{ success: boolean; message: string }> {
     const { configResetRegistry, configResetCallbacks } = await import('./configurations.js');
 
     if (sectionKey === 'all') {

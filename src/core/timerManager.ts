@@ -92,9 +92,7 @@ export function clearTrackedJob(id: number): void {
  * This is crucial for handling script reloads gracefully.
  */
 export function cleanupTimers(): void {
-    debugLog(
-        `[TimerManager] Clearing ${intervalIds.size} intervals, ${timeoutIds.size} timeouts, and ${jobIds.size} jobs.`
-    );
+    debugLog(`[TimerManager] Clearing ${intervalIds.size} intervals, ${timeoutIds.size} timeouts, and ${jobIds.size} jobs.`);
 
     for (const id of intervalIds) {
         mc.system.clearRun(id);

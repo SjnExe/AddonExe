@@ -120,12 +120,7 @@ export class ModerationPanelHandler implements IPanelHandler {
         return undefined;
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
 
         if (typeof selection === 'number') {
@@ -133,12 +128,7 @@ export class ModerationPanelHandler implements IPanelHandler {
         }
     }
 
-    private async handleSelection(
-        player: mc.Player,
-        panelId: string,
-        selection: number,
-        context: UIContext
-    ): Promise<void> {
+    private async handleSelection(player: mc.Player, panelId: string, selection: number, context: UIContext): Promise<void> {
         const items = await this.getItems(player, panelId, context);
         if (selection >= 0 && selection < items.length) {
             const item = items[selection];
@@ -230,17 +220,13 @@ export class ModerationPanelHandler implements IPanelHandler {
             return showPanel(player, 'playerActionsPanel', context);
         }
 
-        const form = new ModalFormData()
-            .title(`Kick ${target.name}`)
-            .textField('Reason', 'Enter reason for kick', { defaultValue: 'Kicked by admin' });
+        const form = new ModalFormData().title(`Kick ${target.name}`).textField('Reason', 'Enter reason for kick', { defaultValue: 'Kicked by admin' });
 
         const res = await uiWait(player, form);
-        if (isDefined(res) && res.canceled)
-            return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+        if (isDefined(res) && res.canceled) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
         const values = (res as import('@minecraft/server-ui').ModalFormResponse).formValues;
-        if (!isDefined(values))
-            return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+        if (!isDefined(values)) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
         const [reason] = values as [string];
         const safeReason = sanitizeString(reason, true).replaceAll('"', "'");
 
@@ -362,10 +348,7 @@ export class ModerationPanelHandler implements IPanelHandler {
             return showPanel(player, 'playerActionsPanel', context);
         }
 
-        const expires =
-            durationHours === 0
-                ? Date.now() + 100 * 365 * 24 * 60 * 60 * 1000
-                : Date.now() + durationHours * 60 * 60 * 1000;
+        const expires = durationHours === 0 ? Date.now() + 100 * 365 * 24 * 60 * 60 * 1000 : Date.now() + durationHours * 60 * 60 * 1000;
 
         punishmentManager.addPunishment(
             targetId,
@@ -381,9 +364,7 @@ export class ModerationPanelHandler implements IPanelHandler {
         const target = getPlayerFromCache(targetId);
         if (isDefined(target)) {
             try {
-                player.dimension.runCommand(
-                    `kick "${target.name}" §4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`
-                );
+                player.dimension.runCommand(`kick "${target.name}" §4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`);
             } catch {
                 // Ignore if kick fails
             }
@@ -440,17 +421,13 @@ export class ModerationPanelHandler implements IPanelHandler {
             return showPanel(player, 'playerActionsPanel', context);
         }
 
-        const form = new ModalFormData()
-            .title(`Report ${targetData.name}`)
-            .textField('Reason', 'Why are you reporting this player?');
+        const form = new ModalFormData().title(`Report ${targetData.name}`).textField('Reason', 'Why are you reporting this player?');
 
         const res = await uiWait(player, form);
-        if (isDefined(res) && res.canceled)
-            return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+        if (isDefined(res) && res.canceled) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
         const values = (res as import('@minecraft/server-ui').ModalFormResponse).formValues;
-        if (!isDefined(values))
-            return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
+        if (!isDefined(values)) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
 
         const [reasonRaw] = values as [string];
         if (!isNonEmptyString(reasonRaw)) {
@@ -464,9 +441,7 @@ export class ModerationPanelHandler implements IPanelHandler {
     }
 
     private async handleUnbanForm(player: mc.Player, panelId: string, context: UIContext): Promise<void> {
-        const form = new ModalFormData()
-            .title('Unban Player')
-            .textField('Player Name (exact)', 'Enter the name of the banned player');
+        const form = new ModalFormData().title('Unban Player').textField('Player Name (exact)', 'Enter the name of the banned player');
         const res = await form.show(player);
         if (res.canceled) return showPanel(player, panelId, context);
         const [name] = res.formValues as [string];
@@ -481,9 +456,7 @@ export class ModerationPanelHandler implements IPanelHandler {
     }
 
     private async handleUnmuteForm(player: mc.Player, panelId: string, context: UIContext): Promise<void> {
-        const form = new ModalFormData()
-            .title('Unmute Player')
-            .textField('Player Name (exact)', 'Enter the name of the muted player');
+        const form = new ModalFormData().title('Unmute Player').textField('Player Name (exact)', 'Enter the name of the muted player');
         const res = await form.show(player);
         if (res.canceled) return showPanel(player, panelId, context);
         const [name] = res.formValues as [string];

@@ -7,13 +7,7 @@ import { setActionBarOverride } from './sidebarManager.js';
 import { playSound } from './utils/sound.js';
 import { getCountdownColor } from './utils/ui.js';
 
-export function startTeleportWarmup(
-    player: mc.Player,
-    durationSeconds: number,
-    onWarmupComplete: () => void,
-    teleportName = 'teleport',
-    onCancel?: () => void
-): void {
+export function startTeleportWarmup(player: mc.Player, durationSeconds: number, onWarmupComplete: () => void, teleportName = 'teleport', onCancel?: () => void): void {
     if (durationSeconds <= 0) {
         onWarmupComplete();
         return;
@@ -32,12 +26,7 @@ export function startTeleportWarmup(
         }
         if (isDefined(hurtListener)) {
             try {
-                if (
-                    isDefined(mc.world) &&
-                    isDefined(mc.world.afterEvents) &&
-                    isDefined(mc.world.afterEvents.entityHurt) &&
-                    typeof mc.world.afterEvents.entityHurt.unsubscribe === 'function'
-                ) {
+                if (isDefined(mc.world) && isDefined(mc.world.afterEvents) && isDefined(mc.world.afterEvents.entityHurt) && typeof mc.world.afterEvents.entityHurt.unsubscribe === 'function') {
                     mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
                 }
             } catch {

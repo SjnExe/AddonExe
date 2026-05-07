@@ -14,12 +14,7 @@ import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 export class EconomyPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'economyPanel' ||
-            panelId === 'mobDropsSystemPanel' ||
-            panelId === 'addMobDropPanel' ||
-            panelId === 'editMobDropPanel'
-        );
+        return panelId === 'economyPanel' || panelId === 'mobDropsSystemPanel' || panelId === 'addMobDropPanel' || panelId === 'editMobDropPanel';
     }
 
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
@@ -134,28 +129,18 @@ export class EconomyPanelHandler implements IPanelHandler {
     async buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined> {
         await Promise.resolve();
         if (panelId === 'addMobDropPanel') {
-            return new ModalFormData()
-                .title('Add Mob Drop')
-                .textField('Mob Identifier', 'e.g., minecraft:zombie')
-                .textField('Reward Amount', 'Negative for penalty', { defaultValue: '0' });
+            return new ModalFormData().title('Add Mob Drop').textField('Mob Identifier', 'e.g., minecraft:zombie').textField('Reward Amount', 'Negative for penalty', { defaultValue: '0' });
         }
         if (panelId === 'editMobValue') {
             const config = getEconomyConfig();
             const mobId = context.selectedItemId as string;
             const currentVal = config.mobMoney[mobId] ?? 0;
-            return new ModalFormData()
-                .title(`Edit ${mobId}`)
-                .textField('Reward Amount', 'Negative for penalty', { defaultValue: String(currentVal) });
+            return new ModalFormData().title(`Edit ${mobId}`).textField('Reward Amount', 'Negative for penalty', { defaultValue: String(currentVal) });
         }
         return undefined;
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
 
         if (panelId === 'addMobDropPanel') {
@@ -190,14 +175,9 @@ export class EconomyPanelHandler implements IPanelHandler {
         return showPanel(player, 'mobDropsSystemPanel', { ...context, page: 1 });
     }
 
-    private async handleEditMobValue(
-        player: mc.Player,
-        response: ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    private async handleEditMobValue(player: mc.Player, response: ModalFormResponse, context: UIContext): Promise<void> {
         const values = response.formValues;
-        if (response.canceled)
-            return showPanel(player, 'editMobDropPanel', { ...context, id: context.selectedItemId ?? '' });
+        if (response.canceled) return showPanel(player, 'editMobDropPanel', { ...context, id: context.selectedItemId ?? '' });
         const [amountStr] = values as [string];
         const amount = Number.parseInt(amountStr);
         const mobId = context.selectedItemId as string;
@@ -211,12 +191,7 @@ export class EconomyPanelHandler implements IPanelHandler {
         return showPanel(player, 'editMobDropPanel', { ...context, id: mobId });
     }
 
-    private async handleSelection(
-        player: mc.Player,
-        panelId: string,
-        selection: number,
-        context: UIContext
-    ): Promise<void> {
+    private async handleSelection(player: mc.Player, panelId: string, selection: number, context: UIContext): Promise<void> {
         const items = await this.getItems(player, panelId, context);
         if (selection >= 0 && selection < items.length) {
             const item = items[selection];

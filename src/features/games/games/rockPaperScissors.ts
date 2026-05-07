@@ -122,10 +122,7 @@ export class RockPaperScissorsGame implements IGame {
 
             const oppMoveText = oppMove ? oppMove.charAt(0).toUpperCase() + oppMove.slice(1) : 'Unknown';
 
-            const form = new ActionFormData()
-                .title('Game Over')
-                .body(`${winnerText}\n\nYou chose: ${myMove}\nOpponent chose: ${oppMoveText}`)
-                .button('Close');
+            const form = new ActionFormData().title('Game Over').body(`${winnerText}\n\nYou chose: ${myMove}\nOpponent chose: ${oppMoveText}`).button('Close');
 
             await uiWait(player, form);
             this.cleanupMatch(match);
@@ -153,11 +150,7 @@ export class RockPaperScissorsGame implements IGame {
         const { p1Move, p2Move } = match;
         if (p1Move === p2Move) return 'Draw';
 
-        if (
-            (p1Move === 'rock' && p2Move === 'scissors') ||
-            (p1Move === 'paper' && p2Move === 'rock') ||
-            (p1Move === 'scissors' && p2Move === 'paper')
-        ) {
+        if ((p1Move === 'rock' && p2Move === 'scissors') || (p1Move === 'paper' && p2Move === 'rock') || (p1Move === 'scissors' && p2Move === 'paper')) {
             return match.p1Id;
         }
         return match.p2Id;

@@ -70,12 +70,7 @@ export function addCategory(categoryName: string, icon: string): ActionResult {
  * @param newIcon - The new icon for the subcategory.
  * @returns The result of the operation.
  */
-export function editSubCategory(
-    categoryName: string,
-    oldSubCategoryName: string,
-    newSubCategoryName: string,
-    newIcon: string
-): ActionResult {
+export function editSubCategory(categoryName: string, oldSubCategoryName: string, newSubCategoryName: string, newIcon: string): ActionResult {
     const config = getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
@@ -101,9 +96,7 @@ export function editSubCategory(
     }
 
     saveShopConfig(config);
-    debugLog(
-        `[ShopAdminManager] Edited subcategory '${oldSubCategoryName}' to '${newSubCategoryName}' in '${categoryName}'.`
-    );
+    debugLog(`[ShopAdminManager] Edited subcategory '${oldSubCategoryName}' to '${newSubCategoryName}' in '${categoryName}'.`);
     return { success: true, message: `Successfully edited subcategory '${newSubCategoryName}'.` };
 }
 
@@ -222,11 +215,7 @@ export function addSubCategory(categoryName: string, subCategoryName: string, ic
  * @param newSubCategoryName - The new name for the subcategory.
  * @returns The result of the operation.
  */
-export function renameSubCategory(
-    categoryName: string,
-    oldSubCategoryName: string,
-    newSubCategoryName: string
-): ActionResult {
+export function renameSubCategory(categoryName: string, oldSubCategoryName: string, newSubCategoryName: string): ActionResult {
     const config = getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
@@ -247,9 +236,7 @@ export function renameSubCategory(
     delete category.subCategories[oldSubCategoryName];
 
     saveShopConfig(config);
-    debugLog(
-        `[ShopAdminManager] Renamed subcategory from '${oldSubCategoryName}' to '${newSubCategoryName}' in '${categoryName}'.`
-    );
+    debugLog(`[ShopAdminManager] Renamed subcategory from '${oldSubCategoryName}' to '${newSubCategoryName}' in '${categoryName}'.`);
     return { success: true, message: `Successfully renamed subcategory to '${newSubCategoryName}'.` };
 }
 
@@ -312,9 +299,7 @@ function resolveItemMetadata(itemStack: mc.ItemStack): { icon: string; displayNa
     let icon;
 
     // Priority 1: Check existing items config
-    const existingItem = Object.values(items as Record<string, ItemData>).find(
-        (item) => item.itemId === itemStack.typeId
-    );
+    const existingItem = Object.values(items as Record<string, ItemData>).find((item) => item.itemId === itemStack.typeId);
     if (isDefined(existingItem)) {
         icon = existingItem.icon;
         displayName = isNonEmptyString(displayName) ? displayName : existingItem.displayName;
@@ -341,13 +326,7 @@ function resolveItemMetadata(itemStack: mc.ItemStack): { icon: string; displayNa
  * @param sellPrice The selling price of the item.
  * @returns The result of the operation.
  */
-export function addShopItemFromHand(
-    itemStack: mc.ItemStack,
-    categoryName: string,
-    subCategoryName: string | undefined,
-    buyPrice: number,
-    sellPrice: number
-): ActionResult {
+export function addShopItemFromHand(itemStack: mc.ItemStack, categoryName: string, subCategoryName: string | undefined, buyPrice: number, sellPrice: number): ActionResult {
     if (!isDefined(itemStack)) {
         return { success: false, message: "You aren't holding anything." };
     }
@@ -396,12 +375,7 @@ export function addShopItemFromHand(
  * @param itemData - The data for the item (buyPrice, sellPrice, permissionLevel).
  * @returns The result of the operation.
  */
-export function setItem(
-    categoryName: string,
-    subCategoryName: string | undefined,
-    itemId: string,
-    itemData: ItemData
-): ActionResult {
+export function setItem(categoryName: string, subCategoryName: string | undefined, itemId: string, itemData: ItemData): ActionResult {
     const config = getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
@@ -511,12 +485,7 @@ function updateMasterItemList(itemId: string, newData: UpdateItemData) {
  * @param newData The new data for the item.
  * @returns The result of the operation.
  */
-export function updateShopItem(
-    categoryName: string,
-    subCategoryName: string | undefined,
-    itemId: string,
-    newData: UpdateItemData
-): ActionResult {
+export function updateShopItem(categoryName: string, subCategoryName: string | undefined, itemId: string, newData: UpdateItemData): ActionResult {
     // 1. Update the master item list (items.js)
     updateMasterItemList(itemId, newData);
 

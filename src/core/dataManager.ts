@@ -4,13 +4,7 @@ import { isDefined } from '@lib/guards.js';
 import { getConfig } from './configManager.js';
 import { initializeLeaderboard } from './leaderboardManager.js';
 import { debugLog, infoLog } from './logger.js';
-import {
-    getAllPlayerData,
-    isNameIdMapDirty,
-    loadNameIdMap,
-    saveNameIdMap,
-    savePlayerData
-} from './playerDataManager.js';
+import { getAllPlayerData, isNameIdMapDirty, loadNameIdMap, saveNameIdMap, savePlayerData } from './playerDataManager.js';
 import { clearTrackedInterval, setTrackedInterval } from './timerManager.js';
 
 let autoSaveIntervalId: number | undefined;

@@ -51,9 +51,7 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
 
         if (itemInfo.amount > maxAmount) {
             itemInfo.amount = maxAmount;
-            debugLog(
-                `[KitItemsManager] Item amount for ${itemInfo.typeId} in kit ${kitName} exceeded max stack size. Capping at ${maxAmount}.`
-            );
+            debugLog(`[KitItemsManager] Item amount for ${itemInfo.typeId} in kit ${kitName} exceeded max stack size. Capping at ${maxAmount}.`);
         }
 
         if (itemInfo.amount <= 0) {
@@ -161,9 +159,7 @@ export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo:
 
         if (newItemInfo.amount > maxAmount) {
             newItemInfo.amount = maxAmount;
-            debugLog(
-                `[KitItemsManager] Item amount for ${newItemInfo.typeId} in kit ${kitName} exceeded max stack size. Capping at ${maxAmount}.`
-            );
+            debugLog(`[KitItemsManager] Item amount for ${newItemInfo.typeId} in kit ${kitName} exceeded max stack size. Capping at ${maxAmount}.`);
         }
 
         kit.items[itemIndex] = newItemInfo;

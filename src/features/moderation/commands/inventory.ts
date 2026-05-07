@@ -8,13 +8,7 @@ import { isDefined } from '@lib/guards.js';
 
 function inspectArmor(equipment: mc.EntityEquippableComponent): string {
     let output = '';
-    const armorSlots = [
-        mc.EquipmentSlot.Head,
-        mc.EquipmentSlot.Chest,
-        mc.EquipmentSlot.Legs,
-        mc.EquipmentSlot.Feet,
-        mc.EquipmentSlot.Offhand
-    ];
+    const armorSlots = [mc.EquipmentSlot.Head, mc.EquipmentSlot.Chest, mc.EquipmentSlot.Legs, mc.EquipmentSlot.Feet, mc.EquipmentSlot.Offhand];
     const armorNames = ['Head', 'Chest', 'Legs', 'Feet', 'Offhand'];
 
     output += '§6[Armor & Offhand]§r\n';
@@ -69,11 +63,7 @@ const invseeCommand: CustomCommand = {
 
         const executorData = getPlayer(executor.id);
         const targetData = getPlayer(targetPlayer.id);
-        if (
-            isDefined(executorData) &&
-            isDefined(targetData) &&
-            executorData.permissionLevel >= targetData.permissionLevel
-        ) {
+        if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
             executor.sendMessage('§cYou cannot view the inventory of a player with the same or higher rank than you.');
             return;
         }
@@ -134,14 +124,8 @@ const ecwipeCommand: CustomCommand = {
             if (isDefined(targetId)) {
                 const executorData = getPlayer(executor.id);
                 const targetData = loadPlayerData(targetId);
-                if (
-                    isDefined(executorData) &&
-                    isDefined(targetData) &&
-                    executorData.permissionLevel >= targetData.permissionLevel
-                ) {
-                    executor.sendMessage(
-                        '§cYou cannot wipe the ender chest of a player with the same or higher rank than you.'
-                    );
+                if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
+                    executor.sendMessage('§cYou cannot wipe the ender chest of a player with the same or higher rank than you.');
                     return;
                 }
             }
@@ -162,9 +146,7 @@ const ecwipeCommand: CustomCommand = {
             success = false;
         }
 
-        const msg = success
-            ? `§aSuccessfully wiped Ender Chest of ${targetNameResolved}.`
-            : `§cFailed to wipe some slots (Player might be dead or offline).`;
+        const msg = success ? `§aSuccessfully wiped Ender Chest of ${targetNameResolved}.` : `§cFailed to wipe some slots (Player might be dead or offline).`;
 
         executor.sendMessage(msg);
     }
@@ -194,11 +176,7 @@ const copyinvCommand: CustomCommand = {
 
         const executorData = getPlayer(executor.id);
         const targetData = getPlayer(targetPlayer.id);
-        if (
-            isDefined(executorData) &&
-            isDefined(targetData) &&
-            executorData.permissionLevel >= targetData.permissionLevel
-        ) {
+        if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
             executor.sendMessage('§cYou cannot copy the inventory of a player with the same or higher rank than you.');
             return;
         }

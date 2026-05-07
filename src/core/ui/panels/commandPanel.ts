@@ -16,11 +16,7 @@ interface CmdSettings {
 
 export class CommandPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'commandSystemPanel' ||
-            panelId === 'commandSettingsPanel' ||
-            panelId.startsWith('commandSettingsPanel_')
-        );
+        return panelId === 'commandSystemPanel' || panelId === 'commandSettingsPanel' || panelId.startsWith('commandSettingsPanel_');
     }
 
     getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
@@ -81,12 +77,7 @@ export class CommandPanelHandler implements IPanelHandler {
         return Promise.resolve();
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
         const values = (response as ModalFormResponse).formValues;
 

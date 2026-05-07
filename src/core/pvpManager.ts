@@ -75,10 +75,7 @@ export function requestPvP(requester: mc.Player, target: mc.Player, amount: numb
 
     sendMessage(`§aPvP request sent to ${target.name} for ${formatCurrency(amount)}.`, requester);
     sendMessage(`§e${requester.name}§r has challenged you to a PvP duel for §6${formatCurrency(amount)}§r.`, target);
-    sendMessage(
-        `§eType §a/pvp accept§e to accept or §c/pvp deny§e to deny. Request expires in ${config.requestTimeout} seconds.`,
-        target
-    );
+    sendMessage(`§eType §a/pvp accept§e to accept or §c/pvp deny§e to deny. Request expires in ${config.requestTimeout} seconds.`, target);
 }
 
 /**
@@ -250,10 +247,7 @@ export function handlePvPDeath(victim: mc.Player, killer: mc.Player): boolean {
             }
         }
 
-        sendMessage(
-            `§6VICTORY! §aYou won the duel and took ${formatCurrency(winnings)} (${stealPercent}%) from your opponent!`,
-            killer
-        );
+        sendMessage(`§6VICTORY! §aYou won the duel and took ${formatCurrency(winnings)} (${stealPercent}%) from your opponent!`, killer);
         sendMessage(`§cDEFEAT! §7You lost the duel and ${formatCurrency(winnings)} was taken from you.`, victim);
     }
 

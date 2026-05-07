@@ -63,10 +63,7 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
     }
 
     for (const key of keysA) {
-        if (
-            !Object.prototype.hasOwnProperty.call(b, key) ||
-            !isDeepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], map)
-        ) {
+        if (!Object.prototype.hasOwnProperty.call(b, key) || !isDeepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], map)) {
             return false;
         }
     }
@@ -176,11 +173,7 @@ function isNewKey(key: string, oldDefault: Record<string, unknown>): boolean {
  */
 function reconcileNestedObject(newDefaultValue: unknown, oldDefaultValue: unknown, userSavedValue: unknown): unknown {
     const userSavedChild = isObject(userSavedValue) ? userSavedValue : {};
-    return reconcileConfig(
-        newDefaultValue as Record<string, unknown>,
-        oldDefaultValue as Record<string, unknown>,
-        userSavedChild
-    );
+    return reconcileConfig(newDefaultValue as Record<string, unknown>, oldDefaultValue as Record<string, unknown>, userSavedChild);
 }
 
 /**
@@ -213,11 +206,7 @@ function getFinalValue(newDefaultValue: unknown, userSavedValue: unknown, userHa
  * @param userSaved - The user's currently saved config object.
  * @returns The final, reconciled configuration object.
  */
-export function reconcileConfig(
-    newDefault: Record<string, unknown>,
-    oldDefault: Record<string, unknown>,
-    userSaved: Record<string, unknown> | undefined
-): Record<string, unknown> {
+export function reconcileConfig(newDefault: Record<string, unknown>, oldDefault: Record<string, unknown>, userSaved: Record<string, unknown> | undefined): Record<string, unknown> {
     const finalConfig: Record<string, unknown> = {};
 
     for (const key in newDefault) {
@@ -277,9 +266,7 @@ export function mergeWithFileChanges(
                 applyChanges(currentPath, fileValue, lastLoadedValue);
             } else if (!isDeepEqual(fileValue, lastLoadedValue)) {
                 // If values are different, the file value takes precedence.
-                debugLog(
-                    `[${configName}ConfigManager] Manual file change detected for '${currentPath}'. Applying file value.`
-                );
+                debugLog(`[${configName}ConfigManager] Manual file change detected for '${currentPath}'. Applying file value.`);
                 setValueByPath(mergedConfig, currentPath, fileValue);
             }
         }
@@ -311,9 +298,7 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
         return new RegExp(obj.source, obj.flags) as unknown as T;
     }
 
-    const result = (
-        Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj as object) as object | null)
-    ) as T;
+    const result = (Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj as object) as object | null)) as T;
 
     hash.set(obj as object, result);
 
@@ -333,11 +318,7 @@ export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
  * @returns The merged list of ranks.
  */
 
-export function mergeRanks(
-    currentUserRanks: Record<string, unknown>[],
-    newFileRanks: Record<string, unknown>[],
-    lastLoadedRanks: Record<string, unknown>[]
-): Record<string, unknown>[] {
+export function mergeRanks(currentUserRanks: Record<string, unknown>[], newFileRanks: Record<string, unknown>[], lastLoadedRanks: Record<string, unknown>[]): Record<string, unknown>[] {
     const safeUserRanks = Array.isArray(currentUserRanks) ? currentUserRanks : [];
     const safeFileRanks = Array.isArray(newFileRanks) ? newFileRanks : [];
     const safeLastRanks = Array.isArray(lastLoadedRanks) ? lastLoadedRanks : [];
@@ -425,11 +406,7 @@ export function mergeRanks(
  * @param lastLoaded The configuration object from the last time the file was loaded.
  * @returns The merged configuration object.
  */
-export function mergeObjectMaps(
-    currentUser: Record<string, unknown>,
-    newFile: Record<string, unknown>,
-    lastLoaded: Record<string, unknown>
-): Record<string, unknown> {
+export function mergeObjectMaps(currentUser: Record<string, unknown>, newFile: Record<string, unknown>, lastLoaded: Record<string, unknown>): Record<string, unknown> {
     const finalConfig = deepClone(currentUser);
     const allKeys = new Set([...Object.keys(currentUser), ...Object.keys(newFile), ...Object.keys(lastLoaded)]);
 
@@ -456,10 +433,7 @@ export function mergeObjectMaps(
 
             if (fileDidChange) {
                 // If the item is a nested object, recurse. Otherwise, just apply the file value.
-                finalConfig[key] =
-                    isObject(userValue) && isObject(fileValue) && isObject(lastValue)
-                        ? mergeObjectMaps(userValue, fileValue, lastValue)
-                        : deepClone(fileValue);
+                finalConfig[key] = isObject(userValue) && isObject(fileValue) && isObject(lastValue) ? mergeObjectMaps(userValue, fileValue, lastValue) : deepClone(fileValue);
             }
             // If fileDidChange is false, we do nothing, preserving the userValue that's already in finalConfig.
         }

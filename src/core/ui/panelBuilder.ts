@@ -15,10 +15,7 @@ export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: n
     const config = getConfig() as unknown as MainConfig;
     const items = (isDefined(panelDef.items) ? panelDef.items : [])
         .filter((item: PanelItem) => {
-            if (
-                item.actionValue === 'shopMainPanel' &&
-                (isDefined(config.shop) ? config.shop.enabled : undefined) !== true
-            ) {
+            if (item.actionValue === 'shopMainPanel' && (isDefined(config.shop) ? config.shop.enabled : undefined) !== true) {
                 return false;
             }
             return permissionLevel <= item.permissionLevel;
@@ -41,11 +38,7 @@ export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: n
     return resultItems;
 }
 
-export async function buildPanelForm(
-    player: mc.Player,
-    panelId: string,
-    context: UIContext
-): Promise<ActionFormData | ModalFormData | undefined> {
+export async function buildPanelForm(player: mc.Player, panelId: string, context: UIContext): Promise<ActionFormData | ModalFormData | undefined> {
     try {
         const config = getConfig();
         const rank = getPlayerRank(player, config);

@@ -12,13 +12,7 @@ import { addBackButton } from '@ui/uiUtils.js';
 
 export class SidebarPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'sidebarMainPanel' ||
-            panelId.startsWith('sidebarLine') ||
-            panelId.startsWith('actionBarLine') ||
-            panelId === 'actionBarLinesPanel' ||
-            panelId === 'placeholderListPanel'
-        );
+        return panelId === 'sidebarMainPanel' || panelId.startsWith('sidebarLine') || panelId.startsWith('actionBarLine') || panelId === 'actionBarLinesPanel' || panelId === 'placeholderListPanel';
     }
 
     getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined | void> {
@@ -132,11 +126,7 @@ export class SidebarPanelHandler implements IPanelHandler {
             const lines = config.sidebarLines;
             const index = (context.lineIndex as number) || 0;
             const line = lines[index] ?? '';
-            return Promise.resolve(
-                new ModalFormData()
-                    .title(`Edit Line ${index + 1}`)
-                    .textField('Content', 'Content', { defaultValue: line })
-            );
+            return Promise.resolve(new ModalFormData().title(`Edit Line ${index + 1}`).textField('Content', 'Content', { defaultValue: line }));
         }
 
         if (panelId === 'actionBarLineEditPanel') {
@@ -144,27 +134,16 @@ export class SidebarPanelHandler implements IPanelHandler {
             const lines = config.actionBarLines;
             const index = (context.lineIndex as number) || 0;
             const line = lines[index] ?? '';
-            return Promise.resolve(
-                new ModalFormData()
-                    .title(`Edit Line ${index + 1}`)
-                    .textField('Content', 'Content', { defaultValue: line })
-            );
+            return Promise.resolve(new ModalFormData().title(`Edit Line ${index + 1}`).textField('Content', 'Content', { defaultValue: line }));
         }
 
         if (panelId === 'sidebarLineAddPanel' || panelId === 'actionBarLineAddPanel') {
-            return Promise.resolve(
-                new ModalFormData().title('Add Line').textField('Content', 'Supports {money}, {name}, etc.')
-            );
+            return Promise.resolve(new ModalFormData().title('Add Line').textField('Content', 'Supports {money}, {name}, etc.'));
         }
         return Promise.resolve();
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
 
         if (panelId === 'sidebarLineAddPanel' || panelId === 'actionBarLineAddPanel') {
@@ -209,12 +188,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         return showPanel(player, listPanelId);
     }
 
-    private async handleLineEdit(
-        player: mc.Player,
-        panelId: string,
-        response: ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    private async handleLineEdit(player: mc.Player, panelId: string, response: ModalFormResponse, context: UIContext): Promise<void> {
         const isSidebar = panelId.startsWith('sidebar');
         const listPanelId = isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel';
 
@@ -234,12 +208,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         return showPanel(player, listPanelId);
     }
 
-    private async handleSelection(
-        player: mc.Player,
-        panelId: string,
-        selection: number,
-        context: UIContext
-    ): Promise<void> {
+    private async handleSelection(player: mc.Player, panelId: string, selection: number, context: UIContext): Promise<void> {
         const items = await this.getItems(player, panelId, context);
         if (selection < 0 || selection >= items.length) return;
 
@@ -257,12 +226,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         await this.handleLineAction(player, panelId, item.actionValue, context);
     }
 
-    private async handleLineAction(
-        player: mc.Player,
-        panelId: string,
-        actionValue: string,
-        context: UIContext
-    ): Promise<void> {
+    private async handleLineAction(player: mc.Player, panelId: string, actionValue: string, context: UIContext): Promise<void> {
         const index = context.lineIndex as number;
         const isSidebar = panelId.startsWith('sidebar');
         const listPanelId = isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel';

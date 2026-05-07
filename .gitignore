@@ -45,3 +45,4 @@ validation_report
 *.tsbuildinfo
 packs/behavior/manifest.json
 packs/resource/manifest.json
+package-lock.json

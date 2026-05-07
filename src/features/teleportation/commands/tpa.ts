@@ -4,24 +4,11 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { soundTeleport } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
-import {
-    addTpaBlockedPlayer,
-    getPlayerIdByName,
-    getPlayerNameById,
-    removeTpaBlockedPlayer,
-    setTpaRequestsDisabled
-} from '@core/playerDataManager.js';
+import { addTpaBlockedPlayer, getPlayerIdByName, getPlayerNameById, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '@core/playerDataManager.js';
 import { playSound, resolveTarget } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-import {
-    acceptRequest,
-    cancelRequest,
-    createRequest,
-    denyRequest,
-    getIncomingRequest,
-    getOutgoingRequest
-} from '../tpaManager.js';
+import { acceptRequest, cancelRequest, createRequest, denyRequest, getIncomingRequest, getOutgoingRequest } from '../tpaManager.js';
 
 const tpaCommand: CustomCommand = {
     name: 'tpa',
@@ -58,20 +45,13 @@ const tpaCommand: CustomCommand = {
         const targetPlayer = targets[0];
         if (!isDefined(targetPlayer)) return sendMessage('§cPlayer not found.', executor);
 
-        if (targetPlayer.id === executor.id)
-            return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
+        if (targetPlayer.id === executor.id) return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
 
         const result = createRequest(executor, targetPlayer, 'tpa');
 
         if (result.success) {
-            sendMessage(
-                `§aTPA request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`,
-                executor
-            );
-            sendMessage(
-                `§a${executor.name} has requested to teleport to you. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`,
-                targetPlayer
-            );
+            sendMessage(`§aTPA request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`, executor);
+            sendMessage(`§a${executor.name} has requested to teleport to you. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`, targetPlayer);
         } else {
             sendMessage(`§c${result.message}`, executor);
         }
@@ -112,20 +92,13 @@ const tpaHereCommand: CustomCommand = {
         const targetPlayer = targets[0];
         if (!isDefined(targetPlayer)) return sendMessage('§cPlayer not found.', executor);
 
-        if (targetPlayer.id === executor.id)
-            return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
+        if (targetPlayer.id === executor.id) return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
 
         const result = createRequest(executor, targetPlayer, 'tpahere');
 
         if (result.success) {
-            sendMessage(
-                `§aTPA Here request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`,
-                executor
-            );
-            sendMessage(
-                `§a${executor.name} has requested for you to teleport to them. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`,
-                targetPlayer
-            );
+            sendMessage(`§aTPA Here request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`, executor);
+            sendMessage(`§a${executor.name} has requested for you to teleport to them. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`, targetPlayer);
         } else {
             sendMessage(`§c${result.message}`, executor);
         }
@@ -386,15 +359,4 @@ const oTpaStartCommand: CustomCommand = {
     }
 };
 
-export default [
-    tpaCommand,
-    tpaHereCommand,
-    tpaAcceptCommand,
-    tpaDenyCommand,
-    tpaCancelCommand,
-    tpaStatusCommand,
-    tpaStopCommand,
-    tpaStartCommand,
-    oTpaStopCommand,
-    oTpaStartCommand
-];
+export default [tpaCommand, tpaHereCommand, tpaAcceptCommand, tpaDenyCommand, tpaCancelCommand, tpaStatusCommand, tpaStopCommand, tpaStartCommand, oTpaStopCommand, oTpaStartCommand];

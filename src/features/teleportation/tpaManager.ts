@@ -39,8 +39,7 @@ mc.system.runInterval(() => {
             const sourcePlayer = getPlayerFromCache(sourceId);
             const targetPlayer = getPlayerFromCache(request.targetPlayerId);
             if (isDefined(sourcePlayer)) sourcePlayer.sendMessage('§cYour TPA request has expired.');
-            if (isDefined(targetPlayer))
-                targetPlayer.sendMessage(`§cThe TPA request from ${request.sourcePlayerName} has expired.`);
+            if (isDefined(targetPlayer)) targetPlayer.sendMessage(`§cThe TPA request from ${request.sourcePlayerName} has expired.`);
         }
     }
 }, 20); // Check every second (20 ticks)
@@ -65,15 +64,10 @@ function clearRequest(request: TpaRequest | undefined) {
 }
 
 // ... (findIncomingRequest logic remains same)
-function _findIncomingRequest(
-    targetPlayerId: string,
-    sourcePlayerName?: string,
-    onlineOnly: boolean = false
-): TpaRequest | undefined {
+function _findIncomingRequest(targetPlayerId: string, sourcePlayerName?: string, onlineOnly: boolean = false): TpaRequest | undefined {
     const requests = incomingRequests.get(targetPlayerId);
     if (!isDefined(requests) || requests.length === 0) return undefined;
-    if (isNonEmptyString(sourcePlayerName))
-        return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
+    if (isNonEmptyString(sourcePlayerName)) return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
     if (onlineOnly) {
         for (let i = requests.length - 1; i >= 0; i--) {
             const req = requests[i];
@@ -85,15 +79,10 @@ function _findIncomingRequest(
 }
 
 export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, type: TpaRequestType): ActionResult {
-    if (outgoingRequests.has(sourcePlayer.id))
-        return { success: false, message: 'You already have an outgoing TPA request. Use /tpacancel to cancel it.' };
+    if (outgoingRequests.has(sourcePlayer.id)) return { success: false, message: 'You already have an outgoing TPA request. Use /tpacancel to cancel it.' };
     const targetPlayerData = getOrCreatePlayer(targetPlayer);
-    if (targetPlayerData.tpaRequestsDisabled)
-        return { success: false, message: `§c${targetPlayer.name} is not accepting TPA requests.` };
-    if (
-        isDefined(targetPlayerData.tpaBlockedPlayerIds) &&
-        targetPlayerData.tpaBlockedPlayerIds.includes(sourcePlayer.id)
-    )
+    if (targetPlayerData.tpaRequestsDisabled) return { success: false, message: `§c${targetPlayer.name} is not accepting TPA requests.` };
+    if (isDefined(targetPlayerData.tpaBlockedPlayerIds) && targetPlayerData.tpaBlockedPlayerIds.includes(sourcePlayer.id))
         return { success: false, message: `§cYou are blocked from sending TPA requests to ${targetPlayer.name}.` };
 
     const config = getConfig();
@@ -111,8 +100,7 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
 
     // Auto-Accept Check for Friends and Team
     const areFriends = isFriend(targetPlayer.id, sourcePlayer.id);
-    const inSameTeam =
-        isDefined(targetPlayerData.teamId) && targetPlayerData.teamId === getOrCreatePlayer(sourcePlayer).teamId;
+    const inSameTeam = isDefined(targetPlayerData.teamId) && targetPlayerData.teamId === getOrCreatePlayer(sourcePlayer).teamId;
 
     // Check target's settings for auto-accept
     let autoAccept = false;
@@ -159,8 +147,7 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
 export function getIncomingRequest(player: mc.Player, sourcePlayerName?: string): TpaRequest | undefined {
     const requests = incomingRequests.get(player.id);
     if (!isDefined(requests) || requests.length === 0) return undefined;
-    if (isNonEmptyString(sourcePlayerName))
-        return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
+    if (isNonEmptyString(sourcePlayerName)) return requests.find((r) => r.sourcePlayerName.toLowerCase() === sourcePlayerName.toLowerCase());
     return requests.at(-1);
 }
 
@@ -171,8 +158,7 @@ export function getOutgoingRequest(player: mc.Player): TpaRequest | undefined {
 export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
     const request = _findIncomingRequest(player.id, sourcePlayerName, true);
     if (!isDefined(request)) {
-        if (isNonEmptyString(sourcePlayerName))
-            player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
+        if (isNonEmptyString(sourcePlayerName)) player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
         else player.sendMessage('§cYou have no pending TPA requests from online players.');
         return;
     }
@@ -232,8 +218,7 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
 export function denyRequest(player: mc.Player, sourcePlayerName?: string) {
     const request = _findIncomingRequest(player.id, sourcePlayerName);
     if (!isDefined(request)) {
-        if (isNonEmptyString(sourcePlayerName))
-            player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
+        if (isNonEmptyString(sourcePlayerName)) player.sendMessage(`§cYou have no incoming TPA request from ${sourcePlayerName}.`);
         else player.sendMessage('§cYou have no pending TPA requests.');
         return;
     }

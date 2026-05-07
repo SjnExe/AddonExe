@@ -61,12 +61,7 @@ export function saveReports(options: { force?: boolean } = {}) {
  * @param reportedPlayerName The name of the player being reported.
  * @param reason The reason for the report.
  */
-export function createReport(
-    reporter: mc.Player,
-    reportedPlayerId: string,
-    reportedPlayerName: string,
-    reason: string
-) {
+export function createReport(reporter: mc.Player, reportedPlayerId: string, reportedPlayerName: string, reason: string) {
     const report: Report = {
         id: Math.random().toString(36).slice(2, 9),
         reporterId: reporter.id,

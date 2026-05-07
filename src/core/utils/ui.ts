@@ -1,13 +1,5 @@
 import * as mc from '@minecraft/server';
-import {
-    ActionFormData,
-    ActionFormResponse,
-    FormCancelationReason,
-    MessageFormData,
-    MessageFormResponse,
-    ModalFormData,
-    ModalFormResponse
-} from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse, FormCancelationReason, MessageFormData, MessageFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 /**
  * Forces the chat window to close by briefly toggling input permissions.
@@ -40,10 +32,7 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
  * @param form The form to show.
  * @returns A promise that resolves with the form response, or undefined if it times out or is cancelled for other reasons.
  */
-export async function uiWait(
-    player: mc.Player,
-    form: ActionFormData | ModalFormData | MessageFormData
-): Promise<ActionFormResponse | ModalFormResponse | MessageFormResponse> {
+export async function uiWait(player: mc.Player, form: ActionFormData | ModalFormData | MessageFormData): Promise<ActionFormResponse | ModalFormResponse | MessageFormResponse> {
     const firstAttempt = await form.show(player);
     if (firstAttempt.cancelationReason !== FormCancelationReason.UserBusy) {
         return firstAttempt;

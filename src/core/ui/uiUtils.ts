@@ -45,19 +45,7 @@ import { getSystemRegistry, SystemDefinition } from './systemRegistry.js';
 export const itemsPerPage = 8;
 
 interface ConfigHandler {
-    get: () =>
-        | typeof Config
-        | SpawnConfig
-        | EconomyConfig
-        | XrayConfig
-        | TeamConfig
-        | RanksConfig
-        | KitsConfig
-        | ShopConfig
-        | SidebarConfig
-        | AnticheatConfig
-        | AuctionHouseConfig
-        | GamesConfig;
+    get: () => typeof Config | SpawnConfig | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | KitsConfig | ShopConfig | SidebarConfig | AnticheatConfig | AuctionHouseConfig | GamesConfig;
     save: (config: unknown) => void;
 }
 

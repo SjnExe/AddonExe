@@ -67,13 +67,7 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig)
     // Check Equipment (Armor + Offhand)
     const equippable = player.getComponent('minecraft:equippable') as mc.EntityEquippableComponent;
     if (isDefined(equippable)) {
-        const slots = [
-            mc.EquipmentSlot.Head,
-            mc.EquipmentSlot.Chest,
-            mc.EquipmentSlot.Legs,
-            mc.EquipmentSlot.Feet,
-            mc.EquipmentSlot.Offhand
-        ];
+        const slots = [mc.EquipmentSlot.Head, mc.EquipmentSlot.Chest, mc.EquipmentSlot.Legs, mc.EquipmentSlot.Feet, mc.EquipmentSlot.Offhand];
 
         for (const slot of slots) {
             const item = equippable.getEquipment(slot);
@@ -84,12 +78,7 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig)
     }
 }
 
-export function checkItem(
-    item: mc.ItemStack,
-    player: mc.Player,
-    config: ItemCheckConfig,
-    updateItem: (item?: mc.ItemStack) => void
-) {
+export function checkItem(item: mc.ItemStack, player: mc.Player, config: ItemCheckConfig, updateItem: (item?: mc.ItemStack) => void) {
     const bannedItems = config.bannedItems;
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const MAX_ENCHANT_LEVEL = config.maxEnchantLevel ?? 5;
@@ -115,11 +104,7 @@ export function checkItem(
             const allowed = Math.max(MAX_ENCHANT_LEVEL, vanillaMax);
 
             if (enchant.level > allowed && config.illegalEnchantments === true) {
-                flag(
-                    player,
-                    'itemCheck',
-                    `Illegal Enchant: ${enchant.type.id} Level ${enchant.level} (Max: ${allowed})`
-                );
+                flag(player, 'itemCheck', `Illegal Enchant: ${enchant.type.id} Level ${enchant.level} (Max: ${allowed})`);
                 if (config.removeIllegalItems === true) {
                     updateItem(); // Remove item
                     return; // Stop checking this item

@@ -84,10 +84,7 @@ function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Ve
     const onlinePlayers = getAllPlayersFromCache();
     for (const onlinePlayer of onlinePlayers) {
         const pData = getOrCreatePlayer(onlinePlayer);
-        const requiredLevel =
-            (isDefined(xrayConfig.notifications.alertPermissionLevel)
-                ? xrayConfig.notifications.alertPermissionLevel
-                : undefined) ?? 2;
+        const requiredLevel = (isDefined(xrayConfig.notifications.alertPermissionLevel) ? xrayConfig.notifications.alertPermissionLevel : undefined) ?? 2;
 
         if (isDefined(pData) && pData.permissionLevel <= requiredLevel && pData.xrayNotificationsEnabled === true) {
             try {

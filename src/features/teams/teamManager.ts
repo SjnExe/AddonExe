@@ -359,9 +359,7 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
 
         // Clean expired
         const now = Date.now();
-        data.pendingInvites = data.pendingInvites.filter(
-            (inv) => now - inv.timestamp < teamConfig.requestExpirySeconds * 1000
-        );
+        data.pendingInvites = data.pendingInvites.filter((inv) => now - inv.timestamp < teamConfig.requestExpirySeconds * 1000);
 
         if (data.pendingInvites.length >= teamConfig.maxPlayerInvites) {
             msg = '§cPlayer has too many pending invites.';
@@ -383,9 +381,7 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
         // Notify target if online using cache
         const targetPlayer = getPlayerFromCache(targetId);
         if (isDefined(targetPlayer)) {
-            targetPlayer.sendMessage(
-                `§aYou have been invited to join team §e${team.name}§a.\nType §e/team join§a or use the menu to accept.`
-            );
+            targetPlayer.sendMessage(`§aYou have been invited to join team §e${team.name}§a.\nType §e/team join§a or use the menu to accept.`);
         }
     });
 

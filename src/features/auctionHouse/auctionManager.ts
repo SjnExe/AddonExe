@@ -4,12 +4,7 @@ import { getAuctionHouseConfig } from '@core/configurations.js';
 import { deserializeItem, SerializedItem, serializeItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
-import {
-    getOrCreatePlayer,
-    incrementPlayerBalance,
-    savePlayerData,
-    updatePlayerData
-} from '@core/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData, updatePlayerData } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { formatCurrency } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -75,13 +70,7 @@ function saveAuctions() {
 /**
  * Creates a new auction listing.
  */
-export function createListing(
-    player: mc.Player,
-    item: SerializedItem,
-    price: number,
-    isBid: boolean,
-    duration: number
-): { success: boolean; message: string } {
+export function createListing(player: mc.Player, item: SerializedItem, price: number, isBid: boolean, duration: number): { success: boolean; message: string } {
     const config = getAuctionHouseConfig();
 
     if (price <= 0) {
@@ -180,9 +169,7 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
                 addItemToMailbox(buyer.id, sLeftover);
                 buyer.sendMessage(`§aPurchased! §eSome items didn't fit and were sent to your Collection Bin.`);
             } else {
-                buyer.sendMessage(
-                    `§aYou purchased ${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId}!`
-                );
+                buyer.sendMessage(`§aYou purchased ${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId}!`);
             }
             itemGiven = true;
         } else {
@@ -341,8 +328,7 @@ export function claimMailbox(player: mc.Player): { success: boolean; message: st
     }
 
     const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
-    if (!isDefined(inventory) || !isDefined(inventory.container))
-        return { success: false, message: '§cInventory error.' };
+    if (!isDefined(inventory) || !isDefined(inventory.container)) return { success: false, message: '§cInventory error.' };
 
     let claimed = 0;
     const remainingItems: SerializedItem[] = [];
@@ -373,9 +359,7 @@ export function claimMailbox(player: mc.Player): { success: boolean; message: st
         d.mailbox = remainingItems;
     });
 
-    return claimed > 0
-        ? { success: true, message: `§aClaimed ${claimed} items.` }
-        : { success: false, message: '§cInventory full. Could not claim items.' };
+    return claimed > 0 ? { success: true, message: `§aClaimed ${claimed} items.` } : { success: false, message: '§cInventory full. Could not claim items.' };
 }
 
 export function claimMailboxItem(player: mc.Player, index: number): { success: boolean; message: string } {
@@ -387,8 +371,7 @@ export function claimMailboxItem(player: mc.Player, index: number): { success: b
     }
 
     const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
-    if (!isDefined(inventory) || !isDefined(inventory.container))
-        return { success: false, message: '§cInventory error.' };
+    if (!isDefined(inventory) || !isDefined(inventory.container)) return { success: false, message: '§cInventory error.' };
 
     if (inventory.container.emptySlotsCount === 0) {
         return { success: false, message: '§cInventory full.' };
@@ -421,13 +404,7 @@ export function claimMailboxItem(player: mc.Player, index: number): { success: b
     return { success: false, message: '§cError claiming item.' };
 }
 
-export function getListings(
-    page: number = 1,
-    pageSize: number = 45,
-    searchQuery?: string,
-    sort: SortOption = SortOption.Newest,
-    sellerId?: string
-): AuctionListing[] {
+export function getListings(page: number = 1, pageSize: number = 45, searchQuery?: string, sort: SortOption = SortOption.Newest, sellerId?: string): AuctionListing[] {
     let all = [...activeListings.values()];
 
     if (isNonEmptyString(sellerId)) {
@@ -437,10 +414,7 @@ export function getListings(
     if (isNonEmptyString(searchQuery)) {
         const query = searchQuery.toLowerCase();
         all = all.filter(
-            (l) =>
-                l.item.typeId.toLowerCase().includes(query) ||
-                (isNonEmptyString(l.item.nameTag) && l.item.nameTag.toLowerCase().includes(query)) ||
-                l.sellerName.toLowerCase().includes(query)
+            (l) => l.item.typeId.toLowerCase().includes(query) || (isNonEmptyString(l.item.nameTag) && l.item.nameTag.toLowerCase().includes(query)) || l.sellerName.toLowerCase().includes(query)
         );
     }
 

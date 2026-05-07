@@ -25,11 +25,7 @@ const warnCommand: CustomCommand = {
         if (executor instanceof mc.Player) {
             const executorData = getPlayer(executor.id);
             const targetData = getPlayer(target.id);
-            if (
-                isDefined(executorData) &&
-                isDefined(targetData) &&
-                executorData.permissionLevel >= targetData.permissionLevel
-            ) {
+            if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
                 return sendMessage('§cYou cannot warn a player with the same or higher rank than you.', executor);
             }
         }

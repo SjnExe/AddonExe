@@ -28,10 +28,7 @@ interface PlayerContext {
     targetPlayerName: string;
 }
 
-export const uiActionFunctions: Record<
-    string,
-    (player: mc.Player, context: UIContext, panelId: string) => void | Promise<void | boolean>
-> = {
+export const uiActionFunctions: Record<string, (player: mc.Player, context: UIContext, panelId: string) => void | Promise<void | boolean>> = {
     showRules: async (player: mc.Player) => {
         const rules = rulesManager.getRules();
         const pData = getOrCreatePlayer(player);
@@ -163,9 +160,7 @@ export const uiActionFunctions: Record<
             player.sendMessage(`§c${targetPlayerName} is not online.`);
             return;
         }
-        const form = new ModalFormData()
-            .title(`Kick ${targetPlayerName}`)
-            .textField('Reason', 'Enter reason for kicking', { defaultValue: 'No reason provided.' });
+        const form = new ModalFormData().title(`Kick ${targetPlayerName}`).textField('Reason', 'Enter reason for kicking', { defaultValue: 'No reason provided.' });
         const response = await utils.uiWait(player, form);
         if (isDefined(response) && !response.canceled) {
             const values = (response as ModalFormResponse).formValues;
@@ -299,9 +294,7 @@ export const uiActionFunctions: Record<
         const result = tpaManager.createRequest(player, targetPlayer, 'tpahere');
         if (result.success) {
             player.sendMessage(`§2TPAHere request sent to ${targetPlayerName}.`);
-            targetPlayer.sendMessage(
-                `§2${player.name} has requested for you to teleport to them. Use !tpaccept or !tpadeny.`
-            );
+            targetPlayer.sendMessage(`§2${player.name} has requested for you to teleport to them. Use !tpaccept or !tpadeny.`);
         } else {
             player.sendMessage(`§cError: ${result.message}`);
         }
@@ -318,9 +311,7 @@ export const uiActionFunctions: Record<
             const amount = Number(amountStr);
             const config = getConfig();
             if (Number.isNaN(amount) || (isDefined(config.bounties) && amount < config.bounties.minimumBounty)) {
-                player.sendMessage(
-                    `§cInvalid amount. The minimum bounty is ${formatCurrency((isDefined(config.bounties) ? config.bounties.minimumBounty : undefined) ?? 0)}.`
-                );
+                player.sendMessage(`§cInvalid amount. The minimum bounty is ${formatCurrency((isDefined(config.bounties) ? config.bounties.minimumBounty : undefined) ?? 0)}.`);
                 return;
             }
             const pData = getOrCreatePlayer(player);
@@ -332,9 +323,7 @@ export const uiActionFunctions: Record<
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, amount);
             player.sendMessage(`§2You have placed a bounty of §6${formatCurrency(amount)}§2 on ${targetPlayerName}.`);
-            mc.world.sendMessage(
-                `§cSomeone has placed a bounty of §6${formatCurrency(amount)}§c on ${targetPlayerName}!`
-            );
+            mc.world.sendMessage(`§cSomeone has placed a bounty of §6${formatCurrency(amount)}§c on ${targetPlayerName}!`);
         }
     },
 
@@ -344,9 +333,7 @@ export const uiActionFunctions: Record<
             player.sendMessage('§cYou cannot report yourself.');
             return;
         }
-        const form = new ModalFormData()
-            .title(`Report ${targetPlayerName}`)
-            .textField('Reason for report:', 'Enter the reason here');
+        const form = new ModalFormData().title(`Report ${targetPlayerName}`).textField('Reason for report:', 'Enter the reason here');
         const response = await utils.uiWait(player, form);
         if (!isDefined(response) || response.canceled) {
             player.sendMessage('§cReport canceled.');
@@ -371,12 +358,7 @@ export const uiActionFunctions: Record<
             return;
         }
 
-        const form = new ModalFormData()
-            .title(`Remove Bounty from ${targetPlayerName}`)
-            .textField(
-                `Bounty Amount: ${formatCurrency(targetBounty.amount)}\nEnter amount to remove:`,
-                'Enter amount'
-            );
+        const form = new ModalFormData().title(`Remove Bounty from ${targetPlayerName}`).textField(`Bounty Amount: ${formatCurrency(targetBounty.amount)}\nEnter amount to remove:`, 'Enter amount');
 
         const response = await utils.uiWait(player, form);
 
@@ -391,9 +373,7 @@ export const uiActionFunctions: Record<
             }
 
             if (amount > targetBounty.amount) {
-                player.sendMessage(
-                    `§cYou cannot remove more than the bounty amount (${formatCurrency(targetBounty.amount)}).`
-                );
+                player.sendMessage(`§cYou cannot remove more than the bounty amount (${formatCurrency(targetBounty.amount)}).`);
                 return;
             }
 
@@ -406,9 +386,7 @@ export const uiActionFunctions: Record<
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, -amount);
             player.sendMessage(`§2You have removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty.`);
-            mc.world.sendMessage(
-                `§2${player.name} has removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty!`
-            );
+            mc.world.sendMessage(`§2${player.name} has removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty!`);
         }
     }
 };

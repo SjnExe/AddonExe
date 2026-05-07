@@ -29,15 +29,7 @@ function getCategorizedCommands(): Map<string, CustomCommand[]> {
 }
 
 // Preferred sort order
-const CATEGORY_ORDER = [
-    'General',
-    'Transportation',
-    'Economy',
-    'Moderation',
-    'Administration',
-    'PvP',
-    'X-Ray Detection'
-];
+const CATEGORY_ORDER = ['General', 'Transportation', 'Economy', 'Moderation', 'Administration', 'PvP', 'X-Ray Detection'];
 
 function getSortedCategories(availableCategories: string[]): string[] {
     const sorted = [...availableCategories];
@@ -61,10 +53,7 @@ interface HelpConfig {
 /**
  * Helper to resolve the command object and check basic permissions/console usage.
  */
-function resolveCommandForHelp(
-    executor: CommandExecutor,
-    commandName: string
-): { cmd: CustomCommand | undefined; error?: string } {
+function resolveCommandForHelp(executor: CommandExecutor, commandName: string): { cmd: CustomCommand | undefined; error?: string } {
     const isConsole = !(executor instanceof mc.Player);
     const realCommandName = commandManager.aliases.get(commandName) ?? commandName;
     let cmd = commandManager.commands.get(realCommandName);
@@ -175,9 +164,7 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
 
     for (const categoryName of sortedCats) {
         const commands = allCategories.get(categoryName) ?? [];
-        const visibleCmds = commands
-            .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true)
-            .toSorted((a, b) => a.name.localeCompare(b.name));
+        const visibleCmds = commands.filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true).toSorted((a, b) => a.name.localeCompare(b.name));
 
         if (visibleCmds.length > 0) {
             helpMessage += `\n§l§e--- ${categoryName} ---§r`;
@@ -234,9 +221,7 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
 
 async function showUICategory(player: mc.Player, category: string, userPermissionLevel: number) {
     const cmds = getCategorizedCommands().get(category) ?? [];
-    const visibleCmds = cmds
-        .filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true)
-        .toSorted((a, b) => a.name.localeCompare(b.name));
+    const visibleCmds = cmds.filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true).toSorted((a, b) => a.name.localeCompare(b.name));
 
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
 

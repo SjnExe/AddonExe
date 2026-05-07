@@ -106,10 +106,7 @@ export class AdminPanelHandler implements IPanelHandler {
     buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined | void> {
         if (panelId === 'floatingTextCreatePanel') {
             return Promise.resolve(
-                new ModalFormData()
-                    .title('Create New Floating Text')
-                    .textField('Unique ID (no spaces)', 'e.g., "welcome_message"')
-                    .textField('Text Content', 'Enter text to display')
+                new ModalFormData().title('Create New Floating Text').textField('Unique ID (no spaces)', 'e.g., "welcome_message"').textField('Text Content', 'Enter text to display')
             );
         }
 
@@ -141,12 +138,7 @@ export class AdminPanelHandler implements IPanelHandler {
         return Promise.resolve();
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
         const values = (response as ModalFormResponse).formValues;
 
@@ -181,18 +173,14 @@ export class AdminPanelHandler implements IPanelHandler {
             const expirationMinutes = rawValues[7] as string;
 
             const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
-            const selectedDimension =
-                (isDefined(dimensionIndex) ? dimensionIds[dimensionIndex] : undefined) ?? 'minecraft:overworld';
+            const selectedDimension = (isDefined(dimensionIndex) ? dimensionIds[dimensionIndex] : undefined) ?? 'minecraft:overworld';
 
             const updatedConfig = {
                 text: textContent,
                 location: { x: Number.parseFloat(x), y: Number.parseFloat(y), z: Number.parseFloat(z) },
                 dimension: selectedDimension,
                 updateInterval: Number.parseInt(updateIntervalStr) || 0,
-                expiresAt:
-                    useExpiration === true && Number(expirationMinutes) > 0
-                        ? Date.now() + Number(expirationMinutes) * 60_000
-                        : undefined
+                expiresAt: useExpiration === true && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60_000 : undefined
             };
             floatingTextManager.updateText(id, updatedConfig);
             player.sendMessage(`§2Successfully updated floating text: ${id}`);

@@ -3,15 +3,13 @@ import { vi } from 'vitest';
 
 // Create mock functions outside
 // eslint-disable-next-line
-const { mockStorageLoad, mockStorageSave, mockLoadPlayerData, mockGetPlayer, mockIncrementPlayerBalance } = vi.hoisted(
-    () => ({
-        mockStorageLoad: vi.fn(),
-        mockStorageSave: vi.fn(),
-        mockLoadPlayerData: vi.fn(),
-        mockGetPlayer: vi.fn(),
-        mockIncrementPlayerBalance: vi.fn()
-    })
-);
+const { mockStorageLoad, mockStorageSave, mockLoadPlayerData, mockGetPlayer, mockIncrementPlayerBalance } = vi.hoisted(() => ({
+    mockStorageLoad: vi.fn(),
+    mockStorageSave: vi.fn(),
+    mockLoadPlayerData: vi.fn(),
+    mockGetPlayer: vi.fn(),
+    mockIncrementPlayerBalance: vi.fn()
+}));
 
 // Define mocks using unstable_mockModule
 vi.mock('../configManager.js', () => ({
@@ -63,15 +61,7 @@ vi.mock('../storage/StorageManager.js', () => ({
 }));
 
 // Import module under test
-const {
-    cleanupPlayerDataManager,
-    createPendingPayment,
-    getBalance,
-    getOrCreatePlayer,
-    getPendingPayment,
-    incrementPlayerBalance,
-    transfer
-} = await import('../playerDataManager.js');
+const { cleanupPlayerDataManager, createPendingPayment, getBalance, getOrCreatePlayer, getPendingPayment, incrementPlayerBalance, transfer } = await import('../playerDataManager.js');
 
 // Helper to mock a player
 const mockPlayer = (id: string, name: string) =>

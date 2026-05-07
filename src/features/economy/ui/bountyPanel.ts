@@ -86,12 +86,7 @@ export class BountyPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         const selection = (response as ActionFormResponse).selection;
 
         if (typeof selection === 'number') {
@@ -146,9 +141,7 @@ export class BountyPanelHandler implements IPanelHandler {
         const myData = getPlayer(player.id);
         if (!isDefined(myData)) return showPanel(player, 'bountyActionsPanel', context);
 
-        const form = new ModalFormData()
-            .title(`Set Bounty: ${isDefined(targetData) ? targetData.name : 'Unknown'}`)
-            .textField('Amount', 'Enter bounty amount (e.g. 100, 2.5k)');
+        const form = new ModalFormData().title(`Set Bounty: ${isDefined(targetData) ? targetData.name : 'Unknown'}`).textField('Amount', 'Enter bounty amount (e.g. 100, 2.5k)');
 
         const res = await uiWait(player, form);
         if (isDefined(res) && res.canceled === true) return showPanel(player, 'bountyActionsPanel', context);
@@ -165,9 +158,7 @@ export class BountyPanelHandler implements IPanelHandler {
         }
 
         if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) {
-            player.sendMessage(
-                '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123'
-            );
+            player.sendMessage('§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123');
             return showPanel(player, 'bountyActionsPanel', context);
         }
 
@@ -183,9 +174,7 @@ export class BountyPanelHandler implements IPanelHandler {
         const config = getConfig() as any;
         const bountiesConfig = config.modules?.bounties;
         if ((bountiesConfig?.announce ?? true) === true) {
-            mc.world.sendMessage(
-                `§6[Bounty] §r${player.name} has placed a ${formatCurrency(amount)} bounty on ${isDefined(targetData) ? targetData.name : 'Unknown'}!`
-            );
+            mc.world.sendMessage(`§6[Bounty] §r${player.name} has placed a ${formatCurrency(amount)} bounty on ${isDefined(targetData) ? targetData.name : 'Unknown'}!`);
         }
         return showPanel(player, 'playerActionsPanel', context);
     }
@@ -201,9 +190,7 @@ export class BountyPanelHandler implements IPanelHandler {
             return showPanel(player, 'bountyActionsPanel', context);
         }
 
-        const form = new ModalFormData()
-            .title('Remove Bounty')
-            .textField(`Current Bounty: ${formatCurrency(targetBounty.amount)}`, 'Amount to pay off');
+        const form = new ModalFormData().title('Remove Bounty').textField(`Current Bounty: ${formatCurrency(targetBounty.amount)}`, 'Amount to pay off');
 
         const res = await uiWait(player, form);
         if (isDefined(res) && res.canceled === true) return showPanel(player, 'bountyActionsPanel', context);
@@ -220,9 +207,7 @@ export class BountyPanelHandler implements IPanelHandler {
         }
 
         if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) {
-            player.sendMessage(
-                '§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123'
-            );
+            player.sendMessage('§cInvalid precision. You can only use up to 2 decimal places.\n§eAllowed: 10.55, 100\n§cNot Allowed: 10.555, 20.123');
             return showPanel(player, 'bountyActionsPanel', context);
         }
 

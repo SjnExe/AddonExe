@@ -113,10 +113,7 @@ export default tseslint.config(
             '@typescript-eslint/no-unsafe-enum-comparison': 'error',
             '@typescript-eslint/restrict-template-expressions': 'error',
             '@typescript-eslint/only-throw-error': 'error',
-            '@typescript-eslint/consistent-type-assertions': [
-                'error',
-                { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }
-            ],
+            '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],
             '@typescript-eslint/await-thenable': 'error',
             '@typescript-eslint/require-await': 'error',
             '@typescript-eslint/switch-exhaustiveness-check': 'error',

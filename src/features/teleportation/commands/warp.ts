@@ -96,9 +96,7 @@ const warpCommand: CustomCommand = {
         for (const warpName of warpList) {
             const location = warpsManager.getWarp(warpName);
             if (isDefined(location)) {
-                form.button(
-                    `${warpName}\n§7(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`
-                );
+                form.button(`${warpName}\n§7(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`);
             }
         }
 
@@ -161,10 +159,7 @@ const addWarpCommand: CustomCommand = {
         } else if (!hasX && !hasY && !hasZ) {
             location = executor.location;
         } else {
-            sendMessage(
-                '§cYou must provide all three coordinates (x, y, z) or none to use your current location.',
-                executor
-            );
+            sendMessage('§cYou must provide all three coordinates (x, y, z) or none to use your current location.', executor);
             return;
         }
 

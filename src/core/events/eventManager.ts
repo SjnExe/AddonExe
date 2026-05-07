@@ -19,11 +19,7 @@ const cleanupActions: (() => void)[] = [];
  * @param handler The handler function for the event.
  * @param name The name of the event for logging purposes.
  */
-export function registerEvent<T>(
-    signal: { subscribe: (handler: (arg: T) => void) => void; unsubscribe: (handler: (arg: T) => void) => void },
-    handler: (arg: T) => void,
-    name: string
-) {
+export function registerEvent<T>(signal: { subscribe: (handler: (arg: T) => void) => void; unsubscribe: (handler: (arg: T) => void) => void }, handler: (arg: T) => void, name: string) {
     try {
         signal.subscribe(handler);
         cleanupActions.push(() => {

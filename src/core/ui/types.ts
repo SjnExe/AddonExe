@@ -77,18 +77,9 @@ export interface IPanelHandler {
     /** Returns the items for a HEADLESS panel (buttons list). Returns undefined/empty if not applicable. */
     getItems?(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[] | undefined>;
     /** Handles the result (button click or modal submit) */
-    handleResponse?(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse | ModalFormResponse,
-        context: UIContext
-    ): Promise<void>;
+    handleResponse?(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void>;
     /** Optional: Builds a custom Modal form (if not using headless items) */
-    buildModal?(
-        player: mc.Player,
-        panelId: string,
-        context: UIContext
-    ): Promise<ModalFormData | ActionFormData | undefined | void>;
+    buildModal?(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | ActionFormData | undefined | void>;
     /** Optional: Returns the body text for an ActionFormData panel. */
     getBody?(player: mc.Player, panelId: string, context: UIContext): Promise<string | undefined | void>;
     /** Optional: Returns the title for an ActionFormData panel. */

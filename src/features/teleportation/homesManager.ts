@@ -1,12 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
-import {
-    deletePlayerHome as deletePlayerDataHome,
-    getOrCreatePlayer,
-    HomeLocation,
-    setPlayerHome as setPlayerDataHome
-} from '@core/playerDataManager.js';
+import { deletePlayerHome as deletePlayerDataHome, getOrCreatePlayer, HomeLocation, setPlayerHome as setPlayerDataHome } from '@core/playerDataManager.js';
 import { isDefined } from '@lib/guards.js';
 
 interface ActionResult {

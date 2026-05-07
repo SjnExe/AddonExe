@@ -58,10 +58,7 @@ const deathCoordsCommand: CustomCommand = {
             const prefix = targetId === executor.id ? '' : `§e${targetDisplayName}'s Death Coords: §r`;
             sendMessage(prefix + messageRaw, executor, { raw: true });
         } else {
-            const msg =
-                targetId === executor.id
-                    ? '§cYou have not died yet or your last death location is not available.'
-                    : `§c${targetDisplayName} has no recorded death location.`;
+            const msg = targetId === executor.id ? '§cYou have not died yet or your last death location is not available.' : `§c${targetDisplayName} has no recorded death location.`;
             sendMessage(msg, executor);
         }
     }

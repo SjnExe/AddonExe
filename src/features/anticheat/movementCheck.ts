@@ -16,13 +16,7 @@ const movementStates = new Map<string, PlayerMovementState>();
 let isChecking = false;
 
 // Slippery blocks that allow faster movement
-const ICE_BLOCKS = new Set<string>([
-    MinecraftBlockTypes.Ice,
-    MinecraftBlockTypes.PackedIce,
-    MinecraftBlockTypes.BlueIce,
-    MinecraftBlockTypes.Slime,
-    MinecraftBlockTypes.FrostedIce
-]);
+const ICE_BLOCKS = new Set<string>([MinecraftBlockTypes.Ice, MinecraftBlockTypes.PackedIce, MinecraftBlockTypes.BlueIce, MinecraftBlockTypes.Slime, MinecraftBlockTypes.FrostedIce]);
 
 export function startMovementCheckLoop() {
     // Check world border/roof/movement every few ticks
@@ -130,10 +124,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
                 z: Math.floor(currentPos.z)
             });
 
-            if (
-                (isDefined(blockBelow) && ICE_BLOCKS.has(blockBelow.typeId)) ||
-                (isDefined(blockBelow2) && ICE_BLOCKS.has(blockBelow2.typeId))
-            ) {
+            if ((isDefined(blockBelow) && ICE_BLOCKS.has(blockBelow.typeId)) || (isDefined(blockBelow2) && ICE_BLOCKS.has(blockBelow2.typeId))) {
                 limit = config.maxSpeedIce;
             }
         } catch {
@@ -157,11 +148,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     const FLAGGING_THRESHOLD = 20;
 
     if (state.violationLevel > FLAGGING_THRESHOLD) {
-        flag(
-            player,
-            'movementCheck',
-            `Speed: ${hSpeed.toFixed(1)} bps (Limit: ${limit.toFixed(1)}, VL: ${state.violationLevel.toFixed(1)})`
-        );
+        flag(player, 'movementCheck', `Speed: ${hSpeed.toFixed(1)} bps (Limit: ${limit.toFixed(1)}, VL: ${state.violationLevel.toFixed(1)})`);
         // Clamp VL to prevent infinite buildup
         state.violationLevel = Math.min(state.violationLevel, 50);
     }
@@ -250,10 +237,7 @@ function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
         } catch {
             // If kick fails, TP down
             try {
-                player.teleport(
-                    { x: player.location.x, y: 120, z: player.location.z },
-                    { dimension: player.dimension }
-                );
+                player.teleport({ x: player.location.x, y: 120, z: player.location.z }, { dimension: player.dimension });
             } catch {
                 // Ignore
             }

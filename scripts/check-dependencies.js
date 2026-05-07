@@ -17,10 +17,7 @@ async function main() {
         process.exit(0);
     }
 
-    const [packageJsonContent, manifestJsonContent] = await Promise.all([
-        fs.readFile(packageJsonPath, 'utf8'),
-        fs.readFile(manifestJsonPath, 'utf8')
-    ]);
+    const [packageJsonContent, manifestJsonContent] = await Promise.all([fs.readFile(packageJsonPath, 'utf8'), fs.readFile(manifestJsonPath, 'utf8')]);
 
     const packageJson = JSON.parse(packageJsonContent);
     const manifestJson = JSON.parse(manifestJsonContent);
@@ -39,9 +36,7 @@ async function main() {
     const minecraftPackageKeys = Object.keys(packageDeps).filter((d) => d.startsWith('@minecraft/'));
 
     // Filter manifest.json for script modules (ignore UUID dependencies)
-    const minecraftManifestModules = manifestDeps
-        .filter((d) => d.module_name && d.module_name.startsWith('@minecraft/'))
-        .map((d) => d.module_name);
+    const minecraftManifestModules = manifestDeps.filter((d) => d.module_name && d.module_name.startsWith('@minecraft/')).map((d) => d.module_name);
 
     const errors = [];
 

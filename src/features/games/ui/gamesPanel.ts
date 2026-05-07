@@ -49,12 +49,7 @@ export class GamesPanelHandler implements IPanelHandler {
         return items;
     }
 
-    async handleResponse(
-        player: mc.Player,
-        panelId: string,
-        response: ActionFormResponse,
-        context: UIContext
-    ): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse, context: UIContext): Promise<void> {
         const selection = response.selection;
         if (typeof selection === 'number') {
             const items = await this.getItems(player, panelId, context);
