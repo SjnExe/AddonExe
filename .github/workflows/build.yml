@@ -135,10 +135,10 @@ jobs:
             - name: Upload Debug Symbols (Nightly only)
               if: steps.build_type.outputs.type == 'nightly'
               uses: actions/upload-artifact@v7
-              retention-days: 7
               with:
                   name: debug-symbols-nightly
                   path: staging/**/*.map
+                  retention-days: 7
 
             - name: Clean Old Nightly Assets
               if: steps.build_type.outputs.type == 'nightly'
