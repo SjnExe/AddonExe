@@ -29,7 +29,7 @@ function* checkInventoryGenerator(config: AnticheatConfig) {
         // Optimization: Use cached players
         const players = getAllPlayersFromCache();
         for (const player of players) {
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             if ((player as any).isValid()) {
                 checkPlayerInventory(player, config.itemCheck);
             }

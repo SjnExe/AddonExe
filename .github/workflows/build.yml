@@ -1,8 +1,15 @@
-name: Dev Build (Nightly)
+name: Build
+
 on:
     push:
+        tags:
+            - 'v*'
         branches:
-            - 'Dev'
+            - main
+    workflow_dispatch:
+    pull_request:
+        branches:
+            - main
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,6 +24,8 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
 
             - name: Set up Node.js and cache npm dependencies
               uses: actions/setup-node@v6
@@ -27,10 +36,31 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            - name: Lint
+            - name: Cache TypeScript Build Info
+              uses: actions/cache@v5
+              with:
+                  path: tsconfig.tsbuildinfo
+                  key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-tsbuildinfo-
+
+            - name: Run Lint Check
               run: npm run lint
 
-            - name: Generate Dev Version
+            - name: Run Tests
+              run: npm test
+
+            - name: Determine Build Type
+              id: build_type
+              run: |
+                  if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+                      echo "type=stable" >> $GITHUB_OUTPUT
+                  else
+                      echo "type=nightly" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Generate Dev Version (Nightly only)
+              if: steps.build_type.outputs.type == 'nightly'
               shell: bash
               run: |
                   set -e
@@ -47,9 +77,6 @@ jobs:
                   # Treat all dev builds as Beta/Debug builds
                   IS_BETA="true"
 
-                  FULL_TAG_NAME="nightly"
-
-                  echo "FULL_TAG_NAME=$FULL_TAG_NAME" >> $GITHUB_ENV
                   echo "IS_BETA_RELEASE=$IS_BETA" >> $GITHUB_ENV
                   echo "VERSION_STRING=$VERSION_STR" >> $GITHUB_ENV
                   echo "VERSION_ARRAY_STRING=$VERSION_ARR_STR" >> $GITHUB_ENV
@@ -58,11 +85,8 @@ jobs:
                   BUILD_DATE=$(date -u)
                   echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
 
-                  echo "Base Version: $BASE_VER"
-                  echo "Dev Version: $VERSION_STR"
-                  echo "Dev Version Array: $VERSION_ARR_STR"
-
-            - name: Prepare Release (Update Source)
+            - name: Prepare Release Source (Nightly only)
+              if: steps.build_type.outputs.type == 'nightly'
               shell: bash
               env:
                   VERSION_STRING: ${{ env.VERSION_STRING }}
@@ -72,41 +96,28 @@ jobs:
                   set -e
                   node scripts/prepare-release.js
 
-                  echo "--- Verification (Source) ---"
-                  echo "Config Source:"
-                  if [ -f "src/config.ts" ]; then
-                    head -n 15 src/config.ts
-                  elif [ -f "src/config.default.ts" ]; then
-                    head -n 15 src/config.default.ts
-                  else
-                    echo "Error: No config file found."
-                    exit 1
-                  fi
-                  echo "--- End Verification ---"
-
-            - name: Cache TypeScript Build Info
-              uses: actions/cache@v5
-              with:
-                  path: tsconfig.tsbuildinfo
-                  key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
-                  restore-keys: |
-                      ${{ runner.os }}-tsbuildinfo-
-
             - name: Build TypeScript (Nightly)
+              if: steps.build_type.outputs.type == 'nightly'
               run: |
                   npm run clean
                   node scripts/generate-command-index.js
                   node scripts/generate-manifests.js --nightly --build-number ${{ github.run_number }}
                   node scripts/build.js
 
-            - name: Verify Build Artifacts
+            - name: Build TypeScript (Stable)
+              if: steps.build_type.outputs.type == 'stable'
               run: |
-                  echo "--- Verification (Build) ---"
-                  echo "BP Manifest:"
-                  cat packs/behavior/manifest.json
-                  echo "RP Manifest:"
-                  cat packs/resource/manifest.json
-                  echo "--- End Verification ---"
+                  npm run build:release
+
+            - name: Set Version Variable for Archive Names
+              run: |
+                  if [[ "${{ steps.build_type.outputs.type }}" == "stable" ]]; then
+                      echo "ARCHIVE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+                      echo "PREFIX=Release" >> $GITHUB_ENV
+                  else
+                      echo "ARCHIVE_VERSION=${{ env.VERSION_STRING }}" >> $GITHUB_ENV
+                      echo "PREFIX=Nightly" >> $GITHUB_ENV
+                  fi
 
             - name: Create staging directory and copy addon folders
               run: |
@@ -117,35 +128,33 @@ jobs:
 
             - name: Create Release Archives
               shell: bash
-              env:
-                  FULL_TAG_NAME: ${{ env.FULL_TAG_NAME }}
-                  VERSION_STRING: ${{ env.VERSION_STRING }}
               run: |
                   set -e
                   # Create main .mcaddon with max compression (Exclude maps)
-                  # We name the file using the Version String (e.g. 0.7.145) to make it distinct
-                  (cd staging && zip -r -9 "../AddonExe.Nightly.${VERSION_STRING}.mcaddon" ./* -x "*.map")
+                  (cd staging && zip -r -9 "../AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" ./* -x "*.map")
 
                   # Create BP .mcpack with max compression (Exclude maps)
-                  (cd staging/behavior && zip -r -9 "../../AddonExe_BP.Nightly.${VERSION_STRING}.mcpack" ./* -x "*.map")
+                  (cd staging/behavior && zip -r -9 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
 
                   # Create RP .mcpack with max compression (Exclude maps)
-                  (cd staging/resource && zip -r -9 "../../AddonExe_RP.Nightly.${VERSION_STRING}.mcpack" ./* -x "*.map")
-                  echo "Created release archives."
+                  (cd staging/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
 
-            - name: Upload Debug Symbols
+            - name: Upload Debug Symbols (Nightly only)
+              if: steps.build_type.outputs.type == 'nightly'
               uses: actions/upload-artifact@v4
               with:
                   name: debug-symbols-nightly
                   path: staging/**/*.map
 
             - name: Clean Old Nightly Assets
+              if: steps.build_type.outputs.type == 'nightly'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   gh release delete nightly --cleanup-tag --yes || true
 
             - name: Publish Nightly Release
+              if: steps.build_type.outputs.type == 'nightly'
               uses: softprops/action-gh-release@v2
               with:
                   name: Nightly Build (Latest Dev)
@@ -160,6 +169,18 @@ jobs:
 
                       *This is an automated development build. It may contain bugs.*
                   files: |
-                      ./AddonExe.Nightly.${{ env.VERSION_STRING }}.mcaddon
-                      ./AddonExe_BP.Nightly.${{ env.VERSION_STRING }}.mcpack
-                      ./AddonExe_RP.Nightly.${{ env.VERSION_STRING }}.mcpack
+                      AddonExe.Nightly.${{ env.ARCHIVE_VERSION }}.mcaddon
+                      AddonExe_BP.Nightly.${{ env.ARCHIVE_VERSION }}.mcpack
+                      AddonExe_RP.Nightly.${{ env.ARCHIVE_VERSION }}.mcpack
+
+            - name: Publish Stable Release
+              if: steps.build_type.outputs.type == 'stable'
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: |
+                      AddonExe.Release.${{ env.ARCHIVE_VERSION }}.mcaddon
+                      AddonExe_BP.Release.${{ env.ARCHIVE_VERSION }}.mcpack
+                      AddonExe_RP.Release.${{ env.ARCHIVE_VERSION }}.mcpack
+                  generate_release_notes: true
+                  draft: false
+                  prerelease: false

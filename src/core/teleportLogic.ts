@@ -66,7 +66,7 @@ export function startTeleportWarmup(
 
     intervalId = mc.system.runInterval(() => {
         try {
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
             if (!(player as any).isValid()) {
                 cancel();
                 return;
