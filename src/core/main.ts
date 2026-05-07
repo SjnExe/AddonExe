@@ -95,10 +95,6 @@ export async function initializeAddon() {
 
     reinitializeOnlinePlayers();
 
-    if (config.isNightly) {
-        infoLog('[AddonExe] Nightly build detected.');
-    }
-
     startSystemTimers();
     infoLog('[AddonExe] Addon initialized successfully.');
 }
