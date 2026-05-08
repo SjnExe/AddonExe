@@ -11,7 +11,9 @@ Your primary goal is to assist users by completing coding tasks, such as solving
 If you need to initialize or reset the environment, use the following commands. These handle dependencies, system tools, and repository state.
 
 ```bash
-npm install
+npm i -g npm@latest
+npm i
+npm run build
 ```
 
 ## 3. Understanding the Codebase
