@@ -12,7 +12,43 @@ import { errorLog } from './logger.js';
  */
 export async function loadConfig<T>(modulePath: string, suppressError = false): Promise<T> {
     try {
-        const module = (await import(modulePath)) as Record<string, unknown>;
+        // If we are in vitest context, try to resolve from .default.ts or .ts
+        let finalPath = modulePath;
+        if (typeof process !== 'undefined' && process.env.VITEST) {
+            const pathParts = modulePath.split('/');
+            const filename = pathParts.pop();
+            if (filename) {
+                const basename = filename.replace('.js', '');
+                // Build an absolute path or correct relative path to src/
+                // modulePath comes as e.g. './features/shop/shopConfig.js'
+                // But in vitest, the cwd is the project root /app, so relative paths from configLoader are tricky.
+                // We're inside /app/src/core/configLoader.ts
+                const relativeToCore = pathParts.join('/');
+                const tryTs = `${relativeToCore}/${basename}.ts`;
+                const tryDefaultTs = `${relativeToCore}/${basename}.default.ts`;
+
+                try {
+                    await import(tryTs);
+                    finalPath = tryTs;
+                } catch {
+                    try {
+                        await import(tryDefaultTs);
+                        finalPath = tryDefaultTs;
+                    } catch {
+                        // If it fails, maybe it needs a path relative to root or src
+                        try {
+                            const tryRootTs = `../${relativeToCore.replace('./', '')}/${basename}.ts`;
+                            await import(tryRootTs);
+                            finalPath = tryRootTs;
+                        } catch {
+                            finalPath = `../${relativeToCore.replace('./', '')}/${basename}.default.ts`;
+                        }
+                    }
+                }
+            }
+        }
+
+        const module = (await import(finalPath)) as Record<string, unknown>;
 
         if (module.default) {
             return module.default as T;

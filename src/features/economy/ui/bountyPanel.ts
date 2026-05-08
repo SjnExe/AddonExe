@@ -171,8 +171,8 @@ export class BountyPanelHandler implements IPanelHandler {
         bountyManager.incrementBounty(targetId, amount);
         player.sendMessage(`§2Added bounty of ${formatCurrency(amount)} to ${targetData?.name ?? 'Unknown'}.`);
 
-        const config = getConfig() as any;
-        const bountiesConfig = config.modules?.bounties;
+        const config = getConfig();
+        const bountiesConfig = (config as { modules?: { bounties?: { announce?: boolean } } }).modules?.bounties;
         if ((bountiesConfig?.announce ?? true) === true) {
             mc.world.sendMessage(`§6[Bounty] §r${player.name} has placed a ${formatCurrency(amount)} bounty on ${isDefined(targetData) ? targetData.name : 'Unknown'}!`);
         }

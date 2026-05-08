@@ -22,11 +22,8 @@ export default tseslint.config(
             '.git/',
             'packs/resource/font/',
             '.github/',
-            'Docs/Development/',
             'Docs/',
             '**/packs/behavior/scripts/**',
-            'OldAntiCheatsBP/',
-            'OldAntiCheatsRP/',
             'package.json'
         ]
     },
