@@ -181,9 +181,13 @@ async function build() {
             await ctx.rebuild();
             await ctx.dispose();
             if (isMinify) {
-                console.log('Minifying assets...');
-                const packsDir = path.join(__dirname, '../packs');
-                minifyFiles(packsDir);
+                if (process.env.CI || process.env.GITHUB_ACTIONS) {
+                    console.log('CI environment detected, minifying assets...');
+                    const packsDir = path.join(__dirname, '../packs');
+                    minifyFiles(packsDir);
+                } else {
+                    console.log('Skipping asset minification (only runs in CI to preserve local formatting).');
+                }
             }
             console.log('Build successful!');
         }
