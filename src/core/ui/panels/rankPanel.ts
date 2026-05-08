@@ -217,6 +217,13 @@ export class RankPanelHandler implements IPanelHandler {
                 });
             }
 
+            const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
+            const action = uiActionFunctions[item.actionValue];
+            if (isDefined(action)) {
+                await action(player, context, panelId);
+                return;
+            }
+
             player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
         }
     }

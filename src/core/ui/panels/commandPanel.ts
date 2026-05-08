@@ -98,6 +98,15 @@ export class CommandPanelHandler implements IPanelHandler {
                 if (item.actionValue === 'nextPage') {
                     return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
                 }
+
+                const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
+                const action = uiActionFunctions[item.actionValue];
+                if (isDefined(action)) {
+                    await action(player, context, panelId);
+                    return;
+                }
+
+                player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
             }
         }
 

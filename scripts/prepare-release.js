@@ -13,40 +13,6 @@ if (!VERSION_STRING || !VERSION_ARRAY_STRING) {
 // We now modify the source files directly in the checked-out repo before building.
 const baseDir = process.cwd();
 
-// Function to copy the master icon to packs
-async function copyIcon() {
-    const iconPath = path.join(baseDir, 'assets/pack_icon.png');
-    try {
-        await fs.access(iconPath);
-    } catch {
-        console.warn('Warning: assets/pack_icon.png not found. Skipping icon copy.');
-        return;
-    }
-
-    const bpPath = path.join(baseDir, 'packs/behavior/pack_icon.png');
-    const rpPath = path.join(baseDir, 'packs/resource/pack_icon.png');
-
-    // Ensure directories exist
-    // The packs folder structure should exist due to clean script or repo structure
-    // But let's be safe (clean script removes 'packs/behavior/scripts' but 'packs/behavior' remains?)
-    // 'clean' script: "rimraf packs/behavior/scripts"
-    // So 'packs/behavior' exists.
-
-    try {
-        await fs.copyFile(iconPath, bpPath);
-        console.log(`Copied icon to ${bpPath}`);
-    } catch (error) {
-        console.error(`Failed to copy icon to BP: ${error.message}`);
-    }
-
-    try {
-        await fs.copyFile(iconPath, rpPath);
-        console.log(`Copied icon to ${rpPath}`);
-    } catch (error) {
-        console.error(`Failed to copy icon to RP: ${error.message}`);
-    }
-}
-
 // Function to update config.ts (Source)
 async function updateConfig(filePath) {
     const fullPath = path.join(baseDir, filePath);
@@ -83,8 +49,6 @@ async function main() {
     console.log(`Version: ${VERSION_STRING}`);
     console.log(`Version Array: ${VERSION_ARRAY_STRING}`);
     console.log(`Is Beta: ${IS_BETA_RELEASE}`);
-
-    await copyIcon();
 
     // Manifest updates are handled by scripts/generate-manifests.js during the build process.
 

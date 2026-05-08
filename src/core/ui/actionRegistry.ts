@@ -10,6 +10,7 @@ import * as rulesManager from '@core/rulesManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
 import { formatCurrency } from '@core/utils.js';
+import { showAuctionHouse } from '@features/auctionHouse/ui/auctionPanel.js';
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '@features/moderation/commands/ban.js';
 import { freezePlayer, unfreezePlayer } from '@features/moderation/commands/freeze.js';
 import { kickPlayer } from '@features/moderation/commands/kick.js';
@@ -29,6 +30,10 @@ interface PlayerContext {
 }
 
 export const uiActionFunctions: Record<string, (player: mc.Player, context: UIContext, panelId: string) => void | Promise<void | boolean>> = {
+    openAuctionHouse: async (player: mc.Player) => {
+        return showAuctionHouse(player);
+    },
+
     showRules: async (player: mc.Player) => {
         const rules = rulesManager.getRules();
         const pData = getOrCreatePlayer(player);
