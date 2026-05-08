@@ -27,7 +27,9 @@ import { cleanupLeaderboardManager } from './leaderboardManager.js';
 import { errorLog, infoLog, setLogLevel } from './logger.js';
 import { initializeMigration } from './migrationManager.js';
 import { cleanupPlayerDataManager } from './playerDataManager.js';
+import { initialize as initializeUIPanels } from './ui/panels/index.js';
 import * as rankManager from './rankManager.js';
+
 import * as sidebarManager from './sidebarManager.js';
 import { cleanupTimers, startSystemTimers } from './timerManager.js';
 import { reinitializeOnlinePlayers } from './utils.js';
@@ -101,6 +103,9 @@ export async function initializeAddon() {
 
 function initializeManagers() {
     rankManager.initialize();
+    import('./ui/panels/index.js').then((m) => m.initialize()).catch(() => {});
+
+
 }
 
 /**
