@@ -223,10 +223,20 @@ export class SidebarPanelHandler implements IPanelHandler {
             return showPanel(player, item.actionValue, nextContext);
         }
 
-        await this.handleLineAction(player, panelId, item.actionValue, context);
+        const isHandled = await this.handleLineAction(player, panelId, item.actionValue, context);
+        if (isHandled) return;
+
+        const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
+        const action = uiActionFunctions[item.actionValue];
+        if (isDefined(action)) {
+            await action(player, context, panelId);
+            return;
+        }
+
+        player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
     }
 
-    private async handleLineAction(player: mc.Player, panelId: string, actionValue: string, context: UIContext): Promise<void> {
+    private async handleLineAction(player: mc.Player, panelId: string, actionValue: string, context: UIContext): Promise<boolean> {
         const index = context.lineIndex as number;
         const isSidebar = panelId.startsWith('sidebar');
         const listPanelId = isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel';
@@ -235,13 +245,15 @@ export class SidebarPanelHandler implements IPanelHandler {
 
         if (actionValue === 'editLine') {
             const target = isSidebar ? 'sidebarLineEditPanel' : 'actionBarLineEditPanel';
-            return showPanel(player, target, { ...context, lineIndex: index });
+            await showPanel(player, target, { ...context, lineIndex: index });
+            return true;
         }
 
         if (actionValue === 'deleteLine') {
             lines.splice(index, 1);
             this.saveLines(player, lines, isSidebar, '§cLine deleted.');
-            return showPanel(player, listPanelId);
+            await showPanel(player, listPanelId);
+            return true;
         }
 
         if (actionValue === 'moveUp' && index > 0) {
@@ -249,7 +261,8 @@ export class SidebarPanelHandler implements IPanelHandler {
             lines[index - 1] = lines[index] ?? '';
             lines[index] = temp;
             this.saveLines(player, lines, isSidebar, '§aMoved up.');
-            return showPanel(player, listPanelId);
+            await showPanel(player, listPanelId);
+            return true;
         }
 
         if (actionValue === 'moveDown' && index < lines.length - 1) {
@@ -257,7 +270,10 @@ export class SidebarPanelHandler implements IPanelHandler {
             lines[index + 1] = lines[index] ?? '';
             lines[index] = temp;
             this.saveLines(player, lines, isSidebar, '§aMoved down.');
-            return showPanel(player, listPanelId);
+            await showPanel(player, listPanelId);
+            return true;
         }
+
+        return false;
     }
 }

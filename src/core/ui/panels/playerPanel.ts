@@ -133,6 +133,12 @@ export class PlayerPanelHandler implements IPanelHandler {
             return showPanel(player, selectedItem.actionValue, newContext);
         } else {
             if (selectedItem.actionValue === 'noop') return;
+            const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
+            const action = uiActionFunctions[selectedItem.actionValue];
+            if (isDefined(action)) {
+                await action(player, context, panelId);
+                return;
+            }
             player.sendMessage(`§cAction ${selectedItem.actionValue} not mapped.`);
         }
     }

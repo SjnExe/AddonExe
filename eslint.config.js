@@ -15,17 +15,7 @@ const __dirname = path.dirname(__filename);
 
 export default tseslint.config(
     {
-        ignores: [
-            'node_modules/',
-            'dist/',
-            'package-lock.json',
-            '.git/',
-            'packs/resource/font/',
-            '.github/',
-            'Docs/',
-            '**/packs/behavior/scripts/**',
-            'package.json'
-        ]
+        ignores: ['node_modules/', 'dist/', 'package-lock.json', '.git/', 'packs/resource/font/', '.github/', 'Docs/', '**/packs/behavior/scripts/**', 'package.json']
     },
     // Base JS configuration
     eslint.configs.recommended,

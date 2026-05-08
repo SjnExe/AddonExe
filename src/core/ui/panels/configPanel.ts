@@ -272,6 +272,13 @@ export class ConfigPanelHandler implements IPanelHandler {
                 return;
             }
 
+            const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
+            const action = uiActionFunctions[item.actionValue];
+            if (isDefined(action)) {
+                await action(player, context, panelId);
+                return;
+            }
+
             // Removed redundant functionCall check
             player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
         }
