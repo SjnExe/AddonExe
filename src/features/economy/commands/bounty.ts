@@ -4,8 +4,9 @@ import * as bountyManager from '@core/bountyManager.js';
 import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, incrementPlayerBalance } from '@core/playerDataManager.js';
-import { parseCurrency, resolveTarget } from '@core/utils.js';
+import { resolveTarget } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { validateCurrencyAmount } from '../economyUtils.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
@@ -84,8 +85,8 @@ const bountyCommand: CustomCommand = {
         const target = targets[0];
         if (!isDefined(target)) return sendMessage('§cPlayer not found.', executor);
 
-        const amount = parseCurrency(amountStr);
-        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        const amount = validateCurrencyAmount(amountStr, true);
+        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
 
         placeBounty(executor, target.id, target.name, amount);
     }
@@ -117,8 +118,8 @@ const removeBountyCommand: CustomCommand = {
         const target = targets[0];
         if (!isDefined(target)) return sendMessage('§cPlayer not found.', executor);
 
-        const amount = parseCurrency(amountStr);
-        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        const amount = validateCurrencyAmount(amountStr, true);
+        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
 
         const targetBounty = bountyManager.getBounty(target.id);
 
@@ -156,8 +157,8 @@ const oBountyCommand: CustomCommand = {
         if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
         if (!isNonEmptyString(amountStr)) return sendMessage('§cUsage: /obounty <player> <amount>', executor);
 
-        const amount = parseCurrency(amountStr);
-        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        const amount = validateCurrencyAmount(amountStr, true);
+        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
 
         const targetId = getPlayerIdByName(targetName);
         if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
@@ -189,8 +190,8 @@ const oRemoveBountyCommand: CustomCommand = {
         if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
         if (!isNonEmptyString(amountStr)) return sendMessage('§cPlease specify an amount.', executor);
 
-        const amount = parseCurrency(amountStr);
-        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        const amount = validateCurrencyAmount(amountStr, true);
+        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
 
         const targetId = getPlayerIdByName(targetName);
         if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);

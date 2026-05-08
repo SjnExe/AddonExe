@@ -6,8 +6,9 @@ import { economyDisabled } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { clearPendingPayment, createPendingPayment, getPendingPayment, getPlayer, getPlayerIdByName, getPlayerNameById, transfer } from '@core/playerDataManager.js';
-import { formatCurrency, parseCurrency, resolveTarget } from '@core/utils.js';
+import { formatCurrency, resolveTarget } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { validateCurrencyAmount } from '../economyUtils.js';
 
 const payCommand: CustomCommand = {
     name: 'pay',
@@ -41,11 +42,8 @@ const payCommand: CustomCommand = {
         if (!isDefined(targetPlayer)) return sendMessage('§cPlayer not found.', executor);
 
         if (targetPlayer.id === executor.id) return sendMessage('§cYou cannot pay yourself.', executor);
-        if (!isNonEmptyString(amountStr)) return sendMessage('§cPlease specify an amount.', executor);
-
-        const amount = parseCurrency(amountStr);
-        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
-        if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) return sendMessage('§cInvalid precision.', executor);
+        const amount = validateCurrencyAmount(amountStr as string, true);
+        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
 
         const sourceData = getPlayer(executor.id);
         if (!isDefined(sourceData)) return sendMessage('§cCould not retrieve your data.', executor);
@@ -97,9 +95,8 @@ const oPayCommand: CustomCommand = {
 
         if (targetId === executor.id) return sendMessage('§cYou cannot pay yourself.', executor);
 
-        if (!isNonEmptyString(amountStr)) return sendMessage('§cPlease specify an amount.', executor);
-        const amount = parseCurrency(amountStr);
-        if (Number.isNaN(amount) || amount <= 0) return sendMessage('§cInvalid amount.', executor);
+        const amount = validateCurrencyAmount(amountStr as string, true);
+        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
 
         const sourceData = getPlayer(executor.id);
         if (!isDefined(sourceData) || sourceData.balance < amount) return sendMessage('§cInsufficient funds.', executor);
