@@ -138,22 +138,6 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
         unmutePlayer(player, targetName);
     },
 
-    removeBounty: (player: mc.Player, context: UIContext) => {
-        const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
-        const existingBounty = bountyManager.getBounty(targetPlayerId);
-
-        if (!isDefined(existingBounty)) {
-            player.sendMessage(`§c${targetPlayerName} does not have an active bounty.`);
-            return Promise.resolve();
-        }
-
-        bountyManager.removeBounty(targetPlayerId);
-        player.sendMessage(`§2Successfully removed the bounty from ${targetPlayerName}.`);
-        mc.world.sendMessage(`§2The bounty on ${targetPlayerName} has been removed!`);
-
-        return Promise.resolve();
-    },
-
     kickPlayer: async (player: mc.Player, context: UIContext) => {
         const { targetPlayerId, targetPlayerName } = context as unknown as PlayerContext;
         if (player.id === targetPlayerId) {
