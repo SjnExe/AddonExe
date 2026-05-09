@@ -30,6 +30,7 @@ import { cleanupPlayerDataManager } from './playerDataManager.js';
 import * as rankManager from './rankManager.js';
 import * as sidebarManager from './sidebarManager.js';
 import { cleanupTimers, startSystemTimers } from './timerManager.js';
+import { initialize as initializeUIPanels } from './ui/panels/index.js';
 import { reinitializeOnlinePlayers } from './utils.js';
 
 const VERSION = '0.7.0'; // Current Addon Version
@@ -101,6 +102,7 @@ export async function initializeAddon() {
 
 function initializeManagers() {
     rankManager.initialize();
+    initializeUIPanels();
 }
 
 /**
