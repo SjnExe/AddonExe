@@ -34,7 +34,8 @@
         "test": "vitest run --passWithNoTests",
         "validate": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE --display-only",
         "validate:report": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE -o validation_report",
-        "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"node scripts/build.js --watch\""
+        "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"node scripts/build.js --watch\"",
+        "test:duplication": "jscpd src/ --min-lines 10 --ignore 'src/**/__tests__/**'"
     },
     "simple-git-hooks": {
         "pre-commit": "npx lint-staged"
@@ -76,6 +77,7 @@
         "eslint-plugin-minecraft-linting": "latest",
         "glob": "latest",
         "globals": "latest",
+        "jscpd": "^4.1.0",
         "lint-staged": "latest",
         "prettier": "latest",
         "prettier-plugin-organize-imports": "latest",
