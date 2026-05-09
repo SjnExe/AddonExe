@@ -13,7 +13,7 @@ import { isDefined } from '@lib/guards.js';
 
 export class PlayerPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return panelId.startsWith('player') || panelId === 'myStatsPanel';
+        return panelId.startsWith('player') || panelId === 'myStatsPanel' || panelId === 'playerManagementPanel';
     }
 
     getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[] | undefined> {
@@ -22,7 +22,7 @@ export class PlayerPanelHandler implements IPanelHandler {
         const def = panelDefinitions[panelId];
         const baseItems = isDefined(def) ? getStaticMenuItems(def, rank.permissionLevel) : [];
 
-        if (panelId === 'playerListPanel') {
+        if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
             const players = getVisiblePlayers(player);
             const playerItems: PanelItem[] = players.map((p) => {
                 return {
