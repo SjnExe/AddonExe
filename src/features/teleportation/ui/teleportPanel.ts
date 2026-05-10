@@ -20,7 +20,7 @@ export class TeleportPanelHandler implements IPanelHandler {
         const pData = loadPlayerData(player.id);
 
         if (panelId === 'tpaSettingsPanel') {
-            addBackButton(items, 'gameplayPanel');
+            addBackButton(items, 'profileMainPanel');
             const config = getConfig();
             if (!config.tpa.enabled) {
                 items.push({

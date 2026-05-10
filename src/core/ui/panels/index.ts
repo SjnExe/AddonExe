@@ -1,6 +1,5 @@
 import { BountyPanelHandler } from '@features/economy/ui/bountyPanel.js';
 import { EconomyPanelHandler } from '@features/economy/ui/economyPanel.js';
-import { GamesPanelHandler } from '@features/games/ui/gamesPanel.js';
 import { KitPanelHandler } from '@features/kits/ui/kitPanel.js';
 import { ModerationPanelHandler } from '@features/moderation/ui/moderationPanel.js';
 import { XrayPanelHandler } from '@features/moderation/ui/xrayPanel.js';
@@ -33,7 +32,6 @@ export function initialize() {
     // Feature Handlers
     panelRouter.register(new BountyPanelHandler());
     panelRouter.register(new EconomyPanelHandler());
-    panelRouter.register(new GamesPanelHandler());
     panelRouter.register(new KitPanelHandler());
     panelRouter.register(new ModerationPanelHandler());
     panelRouter.register(new XrayPanelHandler());

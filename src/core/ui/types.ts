@@ -48,6 +48,8 @@ export interface PanelItem {
     actionValue: string;
     /** An optional number to control the order of items. Lower numbers appear first. */
     sortId?: number;
+    /** Optional dot-separated config path to check if a feature is enabled. */
+    requiresFeature?: string;
 }
 
 export interface PanelDefinition {

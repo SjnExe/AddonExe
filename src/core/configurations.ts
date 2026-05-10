@@ -12,7 +12,6 @@ import { reloadRanks } from './rankManager.js';
 import type { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
 import type { dailyRewardsConfig } from '@features/dailyRewards/dailyRewardsConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
-import type { gamesConfig } from '@features/games/gamesConfig.default.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
 import type { teamConfig } from '@features/teams/teamConfig.js';
@@ -33,7 +32,6 @@ export type FriendConfig = typeof friendConfig;
 export type SidebarConfig = typeof sidebarConfig;
 export type AuctionHouseConfig = typeof auctionHouseConfig;
 export type DailyRewardsConfig = typeof dailyRewardsConfig;
-export type GamesConfig = typeof gamesConfig;
 
 let kitsConfigManager: ConfigManager<KitsConfig>,
     shopConfigManager: ConfigManager<ShopConfig>,
@@ -45,8 +43,7 @@ let kitsConfigManager: ConfigManager<KitsConfig>,
     friendConfigManager: ConfigManager<FriendConfig>,
     sidebarConfigManager: ConfigManager<SidebarConfig>,
     auctionHouseConfigManager: ConfigManager<AuctionHouseConfig>,
-    dailyRewardsConfigManager: ConfigManager<DailyRewardsConfig>,
-    gamesConfigManager: ConfigManager<GamesConfig>;
+    dailyRewardsConfigManager: ConfigManager<DailyRewardsConfig>;
 
 export const loadKitsConfig = async (isMigration: boolean) => {
     // Corrected path to match the build output location relative to main.js (root of scripts/)
@@ -157,15 +154,6 @@ export const getDailyRewardsConfig = (): DailyRewardsConfig => dailyRewardsConfi
 export const saveDailyRewardsConfig = (config: DailyRewardsConfig) => dailyRewardsConfigManager.set(config);
 export const resetDailyRewardsConfig = () => dailyRewardsConfigManager.reset();
 
-export const loadGamesConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<GamesConfig>('./features/games/gamesConfig.js');
-    gamesConfigManager = createConfigManager('exe:gamesConfig:current', defaultConfig, 'Games');
-    gamesConfigManager.load(isMigration);
-};
-export const getGamesConfig = (): GamesConfig => gamesConfigManager.get();
-export const saveGamesConfig = (config: GamesConfig) => gamesConfigManager.set(config);
-export const resetGamesConfig = () => gamesConfigManager.reset();
-
 type ResetRegistryEntry = {
     reset: () => Promise<void>;
     message: string;
@@ -232,10 +220,6 @@ export const configResetRegistry: Record<string, ResetRegistryEntry> = {
     dailyRewards: {
         reset: resetDailyRewardsConfig,
         message: "The 'Daily Rewards' configuration section has been reset to default."
-    },
-    games: {
-        reset: resetGamesConfig,
-        message: "The 'Games' configuration section has been reset to default."
     }
 };
 

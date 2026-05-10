@@ -30,7 +30,7 @@ export class ModerationPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'reportListPanel') {
-            addBackButton(items, 'adminPanel');
+            addBackButton(items, 'staffDashboardPanel');
             const reports = reportManager
                 .getAllReports()
                 .filter((r) => r.status === 'open' || r.status === 'assigned')

@@ -7,6 +7,7 @@ import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { getValueFromPath } from '@core/objectUtils.js';
 import { panelRouter } from './PanelRouter.js';
 import { panelDefinitions } from './panelRegistry.js';
 import { MainConfig, PanelDefinition, PanelItem, UIContext } from './types.js';
@@ -15,7 +16,13 @@ export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: n
     const config = getConfig() as unknown as MainConfig;
     const items = (isDefined(panelDef.items) ? panelDef.items : [])
         .filter((item: PanelItem) => {
-            if (item.actionValue === 'shopMainPanel' && (isDefined(config.shop) ? config.shop.enabled : undefined) !== true) {
+            if (isNonEmptyString(item.requiresFeature)) {
+                const isEnabled = getValueFromPath(config as Record<string, unknown>, item.requiresFeature);
+                if (isEnabled !== true) {
+                    return false;
+                }
+            } else if (item.actionValue === 'shopMainPanel' && (isDefined(config.shop) ? config.shop.enabled : undefined) !== true) {
+                // Fallback for older hardcoded definition
                 return false;
             }
             return permissionLevel <= item.permissionLevel;

@@ -24,7 +24,7 @@ export class BountyPanelHandler implements IPanelHandler {
                 icon: 'textures/gui/controls/left.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
-                actionValue: 'gameplayPanel'
+                actionValue: 'economyMainPanel'
             }
         ];
 
