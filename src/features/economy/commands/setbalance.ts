@@ -43,7 +43,7 @@ function handleOnlineEconomyCommand(executor: CommandExecutor, args: Record<stri
             incrementPlayerBalance(target.id, amount as number);
             sendMessage(`§aAn administrator has added §e${formatCurrency(amount as number)}§a to your balance.`, target);
             count++;
-        } else if (action === 'remove') {
+        } else {
             const pData = loadPlayerData(target.id);
             if (!isDefined(pData) || pData.balance < (amount as number)) {
                 failCount++;
@@ -59,7 +59,7 @@ function handleOnlineEconomyCommand(executor: CommandExecutor, args: Record<stri
         sendMessage(`§aSuccessfully set balance for ${count} player(s) to §e${formatCurrency(amount as number)}§a.`, executor);
     } else if (action === 'add') {
         sendMessage(`§aSuccessfully added §e${formatCurrency(amount as number)}§a to ${count} player(s).`, executor);
-    } else if (action === 'remove') {
+    } else {
         sendMessage(`§aRemoved §e${formatCurrency(amount as number)}§a from ${count} player(s). §cFailed for ${failCount} (insufficient funds).`, executor);
     }
 }
@@ -149,7 +149,7 @@ function handleOfflineEconomyCommand(executor: CommandExecutor, args: Record<str
         const pData = loadPlayerData(targetId);
         const newBal = pData?.balance ?? 0;
         sendMessage(`§aAdded §e${formatCurrency(amount as number)}§a to ${displayName}. New Balance: §e${formatCurrency(newBal)}§a (Offline).`, executor);
-    } else if (action === 'remove') {
+    } else {
         const pData = loadPlayerData(targetId);
         if (!isDefined(pData) || pData.balance < (amount as number)) {
             return sendMessage(`§cCannot remove. ${displayName} only has §e${formatCurrency(pData?.balance ?? 0)}§c.`, executor);
