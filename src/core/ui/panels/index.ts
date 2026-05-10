@@ -17,6 +17,7 @@ import { InfoPanelHandler } from './infoPanel.js';
 import { PlayerPanelHandler } from './playerPanel.js';
 import { RankPanelHandler } from './rankPanel.js';
 import { SidebarPanelHandler } from './sidebarPanel.js';
+import { WorldProtectionPanelHandler } from '@features/essentials/ui/worldProtectionPanel.js';
 
 export function initialize() {
     // Core Handlers
@@ -40,4 +41,5 @@ export function initialize() {
     panelRouter.register(new FriendPanelHandler());
     panelRouter.register(new TeamPanelHandler());
     panelRouter.register(new TeleportPanelHandler());
+    panelRouter.register(new WorldProtectionPanelHandler());
 }

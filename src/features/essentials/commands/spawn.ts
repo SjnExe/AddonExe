@@ -123,15 +123,18 @@ function syncWorldSpawn(executor: CommandExecutor, location: SpawnLocation) {
     }
 }
 
-function updateSpawnRadius(executor: CommandExecutor, radius: number) {
+function updateSpawnRadius(executor: CommandExecutor, radius: number | string) {
     try {
-        mc.world.gameRules.spawnRadius = radius;
-        sendSetSpawnMessage(executor, `§aWorld spawn radius set to ${radius}.`);
+        const parsedRadius = typeof radius === 'string' ? parseInt(radius, 10) : radius;
+        if (!isNaN(parsedRadius) && parsedRadius >= 0) {
+            mc.world.gameRules.spawnRadius = parsedRadius;
+            sendSetSpawnMessage(executor, `§aWorld spawn radius set to ${parsedRadius}.`);
+        }
     } catch (error: unknown) {
         if (error instanceof Error) {
-            errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${error.stack}`);
+            errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${error.message}`);
         }
-        sendSetSpawnMessage(executor, '§cError: Could not set the spawn radius. Check server logs for details.');
+        // Don't error out to the user if gamerule is just locked
     }
 }
 
@@ -165,7 +168,8 @@ const setSpawnCommand: CustomCommand = {
 
             if (location.dimensionId === (MinecraftDimensionTypes.Overworld as string) && spawnConfig.spawn.syncWorldSpawn) {
                 syncWorldSpawn(executor, location);
-                updateSpawnRadius(executor, spawnConfig.spawn.worldSpawnRadius);
+                // Configuration sets it as either string or number from the textfield
+                updateSpawnRadius(executor, spawnConfig.spawn.worldSpawnRadius as number | string);
             }
 
             if (executor instanceof mc.Player) {

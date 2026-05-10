@@ -43,24 +43,31 @@ const backCommand: CustomCommand = {
             return;
         }
 
+        const cost = typeof backConfig.cost === 'string' ? parseFloat(backConfig.cost) : backConfig.cost;
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+        const economyConfig = (config as any).economy;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const isEconomyEnabled = economyConfig && economyConfig.enabled === true;
+
         // Cost Check
-        if (backConfig.cost > 0 && pData.balance < backConfig.cost) {
-            sendMessage(`§cInsufficient funds. Cost: ${formatCurrency(backConfig.cost)}`, executor);
+        if (isEconomyEnabled && cost > 0 && pData.balance < cost) {
+            sendMessage(`§cInsufficient funds. Cost: ${formatCurrency(cost)}`, executor);
             return;
         }
 
-        const warmupSeconds = backConfig.teleportWarmupSeconds;
+        const warmupSeconds = typeof backConfig.teleportWarmupSeconds === 'string' ? parseInt(backConfig.teleportWarmupSeconds, 10) : backConfig.teleportWarmupSeconds;
 
         const teleportLogic = () => {
             try {
                 // Deduct cost (Re-check funds to prevent bypass)
-                if (backConfig.cost > 0) {
+                if (isEconomyEnabled && cost > 0) {
                     const currentData = getOrCreatePlayer(executor);
-                    if (currentData.balance < backConfig.cost) {
+                    if (currentData.balance < cost) {
                         sendMessage(`§cTeleport cancelled. Insufficient funds.`, executor);
                         return;
                     }
-                    incrementPlayerBalance(executor.id, -backConfig.cost);
+                    incrementPlayerBalance(executor.id, -cost);
                 }
 
                 const dimension = mc.world.getDimension(lastLocation.dimensionId);

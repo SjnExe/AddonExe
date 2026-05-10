@@ -32,6 +32,7 @@ export type FriendConfig = typeof friendConfig;
 export type SidebarConfig = typeof sidebarConfig;
 export type AuctionHouseConfig = typeof auctionHouseConfig;
 export type DailyRewardsConfig = typeof dailyRewardsConfig;
+import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.default.js';
 
 let kitsConfigManager: ConfigManager<KitsConfig>,
     shopConfigManager: ConfigManager<ShopConfig>,
@@ -43,7 +44,17 @@ let kitsConfigManager: ConfigManager<KitsConfig>,
     friendConfigManager: ConfigManager<FriendConfig>,
     sidebarConfigManager: ConfigManager<SidebarConfig>,
     auctionHouseConfigManager: ConfigManager<AuctionHouseConfig>,
-    dailyRewardsConfigManager: ConfigManager<DailyRewardsConfig>;
+    dailyRewardsConfigManager: ConfigManager<DailyRewardsConfig>,
+    worldProtectionConfigManager: ConfigManager<WorldProtectionConfig>;
+
+export const loadWorldProtectionConfig = async (isMigration: boolean) => {
+    const defaultConfig = await asyncLoadConfig<WorldProtectionConfig>('./features/essentials/worldProtectionConfig.js');
+    worldProtectionConfigManager = createConfigManager('exe:worldProtectionConfig:current', defaultConfig, 'WorldProtection');
+    worldProtectionConfigManager.load(isMigration);
+};
+export const getWorldProtectionConfig = (): WorldProtectionConfig => worldProtectionConfigManager.get();
+export const saveWorldProtectionConfig = (config: WorldProtectionConfig) => worldProtectionConfigManager.set(config);
+export const resetWorldProtectionConfig = () => worldProtectionConfigManager.reset();
 
 export const loadKitsConfig = async (isMigration: boolean) => {
     // Corrected path to match the build output location relative to main.js (root of scripts/)
@@ -220,6 +231,10 @@ export const configResetRegistry: Record<string, ResetRegistryEntry> = {
     dailyRewards: {
         reset: resetDailyRewardsConfig,
         message: "The 'Daily Rewards' configuration section has been reset to default."
+    },
+    worldProtection: {
+        reset: resetWorldProtectionConfig,
+        message: "The 'World Protection' configuration section has been reset to default."
     }
 };
 

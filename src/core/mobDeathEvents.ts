@@ -12,6 +12,7 @@ import { getPlayerFromCache } from './playerCache.js';
 import { getPlayer, incrementDeathCount, incrementKillCount, incrementKillStreak, incrementPlayerBalance, resetKillStreak } from './playerDataManager.js';
 import { handlePvPDeath } from './pvpManager.js';
 import { formatCurrency } from './utils.js';
+import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 
 mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     const { deadEntity, damageSource } = event;
@@ -42,6 +43,8 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
             incrementDeathCount(victim.id);
         }
         resetKillStreak(victim.id);
+        // Save death location for /back
+        saveLastLocation(victim, 'death');
     }
 
     if (!killer || !killer.isValid) {

@@ -10,6 +10,14 @@ import handlePlayerDimensionChange from './playerDimensionChange.js';
 import handlePlayerLeave from './playerLeave.js';
 import { handlePlayerSpawn } from './playerSpawn.js';
 import { handleScriptEventReceive } from './scriptEventReceive.js';
+import {
+    handleBeforeEntitySpawn,
+    handleBeforeExplosion,
+    handleBeforePlayerBreakBlock,
+    handleBeforePlayerPlaceBlock,
+    handlePlayerInteractWithBlock,
+    handlePlayerInteractWithEntity
+} from './protectionEvents.js';
 
 const cleanupActions: (() => void)[] = [];
 
@@ -40,6 +48,15 @@ export function registerEvent<T>(signal: { subscribe: (handler: (arg: T) => void
 }
 
 export function initializeEventManager() {
+    // Protection Hooks
+    registerEvent(mc.world.beforeEvents.playerBreakBlock, handleBeforePlayerBreakBlock, 'beforePlayerBreakBlock');
+    registerEvent(mc.world.beforeEvents.playerPlaceBlock, handleBeforePlayerPlaceBlock, 'beforePlayerPlaceBlock');
+    registerEvent(mc.world.beforeEvents.explosion, handleBeforeExplosion, 'beforeExplosion');
+    registerEvent(mc.world.beforeEvents.playerInteractWithBlock, handlePlayerInteractWithBlock, 'playerInteractWithBlock');
+    registerEvent(mc.world.beforeEvents.playerInteractWithEntity, handlePlayerInteractWithEntity, 'playerInteractWithEntity');
+    registerEvent(mc.world.afterEvents.entitySpawn, handleBeforeEntitySpawn, 'entitySpawn');
+
+    // Other Events
     registerEvent(mc.world.beforeEvents.chatSend, handleBeforeChatSend, 'beforeChatSend');
     registerEvent(mc.world.afterEvents.playerSpawn, handlePlayerSpawn, 'playerSpawn');
     registerEvent(mc.world.afterEvents.entityHurt, handleEntityHurt, 'entityHurt');
