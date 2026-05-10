@@ -21,7 +21,7 @@ export class PlayerPanelHandler implements IPanelHandler {
         const config = getConfig();
         const rank = getPlayerRank(player, config);
         const def = panelDefinitions[panelId];
-        const baseItems = isDefined(def) ? getStaticMenuItems(def, rank.permissionLevel) : [];
+        const baseItems = isDefined(def) ? getStaticMenuItems(def, rank.permissionLevel, _context) : [];
 
         if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
             const players = getVisiblePlayers(player);
@@ -112,7 +112,7 @@ export class PlayerPanelHandler implements IPanelHandler {
             if (isDefined(def)) {
                 const config = getConfig();
                 const rank = getPlayerRank(player, config);
-                items = getStaticMenuItems(def, rank.permissionLevel);
+                items = getStaticMenuItems(def, rank.permissionLevel, context);
             } else {
                 return;
             }
@@ -123,6 +123,9 @@ export class PlayerPanelHandler implements IPanelHandler {
 
         if (selectedItem.id === '__back__') {
             // Handled by actionValue usually
+            if (isDefined(context) && isDefined(context.returnPanel)) {
+                delete context.returnPanel;
+            }
         }
 
         if (selectedItem.actionType === 'openPanel') {
@@ -132,6 +135,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                 const targetId = selectedItem.id.replace('player_', '');
                 newContext.targetPlayerId = targetId;
                 newContext.customTitle = selectedItem.text; // Use player name as title for actions panel
+                newContext.returnPanel = panelId; // Return to current panel on back/cancel
             }
             return showPanel(player, selectedItem.actionValue, newContext);
         } else {

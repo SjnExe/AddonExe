@@ -12,7 +12,7 @@ import { panelRouter } from './PanelRouter.js';
 import { panelDefinitions } from './panelRegistry.js';
 import { MainConfig, PanelDefinition, PanelItem, UIContext } from './types.js';
 
-export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: number): PanelItem[] {
+export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: number, context?: UIContext): PanelItem[] {
     const config = getConfig() as unknown as MainConfig;
     const items = (isDefined(panelDef.items) ? panelDef.items : [])
         .filter((item: PanelItem) => {
@@ -32,14 +32,14 @@ export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: n
     // Create a copy to avoid mutating the registry
     const resultItems: PanelItem[] = items.map((i) => ({ ...i }));
 
-    if (isNonEmptyString(panelDef.parentPanelId)) {
+    if (isNonEmptyString(panelDef.parentPanelId) || (isDefined(context) && isNonEmptyString(context.returnPanel))) {
         resultItems.unshift({
             id: '__back__',
             text: '§l§8< Back',
             icon: 'textures/gui/controls/left.png',
             permissionLevel: 1024,
             actionType: 'openPanel',
-            actionValue: panelDef.parentPanelId
+            actionValue: (isDefined(context) && isNonEmptyString(context.returnPanel)) ? context.returnPanel : (panelDef.parentPanelId as string)
         });
     }
     return resultItems;
@@ -74,8 +74,8 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         // 2. Fallback: Static Definition
         if (isDefined(panelDef)) {
-            const items = getStaticMenuItems(panelDef, permissionLevel);
-            if (items.length > 0 || isDefined(panelDef.parentPanelId)) {
+            const items = getStaticMenuItems(panelDef, permissionLevel, context);
+            if (items.length > 0 || isDefined(panelDef.parentPanelId) || isNonEmptyString(context.returnPanel)) {
                 return buildActionFormFromItems(player, panelId, context, items);
             }
         }
