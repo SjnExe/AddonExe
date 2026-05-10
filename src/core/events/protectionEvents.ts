@@ -2,13 +2,20 @@ import * as mc from '@minecraft/server';
 import { getProtectionFlags } from '@core/protectionService.js';
 import { isDefined } from '@lib/guards.js';
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
+import { getSpawnConfig } from '@core/configurations.js';
 
 function canBypass(player: mc.Player): boolean {
-    // Currently, admin bypass logic is not centrally configured across all features in main config,
-    // but typically Owners/Admins (level <= 1) are treated as staff. We will just check permissions.
+    // Check if admin bypass is allowed globally or in spawn configuration
+    const config = getSpawnConfig();
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (config && config.spawnProtection && !config.spawnProtection.allowAdminBypass) {
+        return false;
+    }
+
     try {
         const pData = getOrCreatePlayer(player);
-        return pData.permissionLevel <= 2; // Owner(0), Admin(1), Mod(2) bypass
+        // Owner(0), Admin(1), Mod(2) bypass
+        return pData.permissionLevel <= 2;
     } catch {
         return false;
     }

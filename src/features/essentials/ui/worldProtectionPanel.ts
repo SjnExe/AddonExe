@@ -66,13 +66,13 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
             form.dropdown('Dimension', dimensions, { defaultValueIndex: dimIndex });
 
             // Coordinates
-            form.textField('Min X', '', { defaultValue: zone?.box.min.x.toString() ?? '' });
-            form.textField('Min Y', '', { defaultValue: zone?.box.min.y.toString() ?? '-64' });
-            form.textField('Min Z', '', { defaultValue: zone?.box.min.z.toString() ?? '' });
+            form.textField('Min X', 'e.g., -100', { defaultValue: zone?.box.min.x.toString() ?? '' });
+            form.textField('Min Y', 'e.g., -64', { defaultValue: zone?.box.min.y.toString() ?? '-64' });
+            form.textField('Min Z', 'e.g., -100', { defaultValue: zone?.box.min.z.toString() ?? '' });
 
-            form.textField('Max X', '', { defaultValue: zone?.box.max.x.toString() ?? '' });
-            form.textField('Max Y', '', { defaultValue: zone?.box.max.y.toString() ?? '320' });
-            form.textField('Max Z', '', { defaultValue: zone?.box.max.z.toString() ?? '' });
+            form.textField('Max X', 'e.g., 100', { defaultValue: zone?.box.max.x.toString() ?? '' });
+            form.textField('Max Y', 'e.g., 320', { defaultValue: zone?.box.max.y.toString() ?? '320' });
+            form.textField('Max Z', 'e.g., 100', { defaultValue: zone?.box.max.z.toString() ?? '' });
 
             // Flags
             const flags = zone?.flags ?? {
