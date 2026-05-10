@@ -6,7 +6,7 @@ import * as kitAdminManager from '@core/kitAdminManager.js';
 import * as kitItemsManager from '@core/kitItemsManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 export class KitPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -17,44 +17,8 @@ export class KitPanelHandler implements IPanelHandler {
         await Promise.resolve();
         const items: PanelItem[] = [];
 
-        const addBack = (target: string) => {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: target
-            });
-        };
-
-        const addPagination = (totalItems: number) => {
-            const page = (context.page as number) || 1;
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            if (page > 1) {
-                items.push({
-                    id: '__prev__',
-                    text: '§6< Previous Page',
-                    icon: 'textures/ui/arrow_left.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'prevPage'
-                });
-            }
-            if (page < totalPages) {
-                items.push({
-                    id: '__next__',
-                    text: '§6Next Page >',
-                    icon: 'textures/ui/arrow_right.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'nextPage'
-                });
-            }
-        };
-
         if (panelId === 'kitManagementPanel') {
-            addBack('configCategoryPanel');
+            addBackButton(items, 'configCategoryPanel');
             const mainConfig = getConfig();
             const isEnabled = mainConfig.kits.enabled;
             items.push(
@@ -91,13 +55,13 @@ export class KitPanelHandler implements IPanelHandler {
                     actionValue: `kitActionMenu_${name}`
                 });
             }
-            addPagination(kitNames.length);
+            addPaginationItems(items, (context.page as number) || 1, kitNames.length);
             return items;
         }
 
         if (panelId.startsWith('kitActionMenu_')) {
             const kitName = panelId.replace('kitActionMenu_', '');
-            addBack('kitManagementPanel');
+            addBackButton(items, 'kitManagementPanel');
             items.push(
                 {
                     id: 'editSettings',
@@ -129,7 +93,7 @@ export class KitPanelHandler implements IPanelHandler {
 
         if (panelId.startsWith('kitItemsPanel_')) {
             const kitName = panelId.replace('kitItemsPanel_', '');
-            addBack(`kitActionMenu_${kitName}`);
+            addBackButton(items, `kitActionMenu_${kitName}`);
             items.push(
                 {
                     id: 'addItem',
@@ -164,7 +128,7 @@ export class KitPanelHandler implements IPanelHandler {
                         actionValue: 'manageKitItem'
                     });
                 }
-                addPagination(kit.items.length);
+                addPaginationItems(items, (context.page as number) || 1, kit.items.length);
             }
             return items;
         }

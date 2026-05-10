@@ -113,14 +113,14 @@ export function addPaginationButtons(form: ActionFormData, page: number, totalIt
 /**
  * Helper to add pagination items to a PanelItem array.
  */
-export function addPaginationItems(items: PanelItem[], page: number, totalItems: number): void {
+export function addPaginationItems(items: PanelItem[], page: number, totalItems: number, permissionLevel: number = 1024): void {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
         items.push({
             id: '__prev__',
             text: '§6< Previous Page',
             icon: 'textures/ui/arrow_left.png',
-            permissionLevel: 1024,
+            permissionLevel,
             actionType: 'functionCall',
             actionValue: 'prevPage'
         });
@@ -130,7 +130,7 @@ export function addPaginationItems(items: PanelItem[], page: number, totalItems:
             id: '__next__',
             text: '§6Next Page >',
             icon: 'textures/ui/arrow_right.png',
-            permissionLevel: 1024,
+            permissionLevel,
             actionType: 'functionCall',
             actionValue: 'nextPage'
         });
@@ -140,12 +140,12 @@ export function addPaginationItems(items: PanelItem[], page: number, totalItems:
 /**
  * Helper to add a standardized back button to a PanelItem array.
  */
-export function addBackButton(items: PanelItem[], targetPanelId: string): void {
+export function addBackButton(items: PanelItem[], targetPanelId: string, permissionLevel: number = 1024): void {
     items.push({
         id: '__back__',
         text: '§l§8< Back',
         icon: 'textures/gui/controls/left.png',
-        permissionLevel: 1024,
+        permissionLevel,
         actionType: 'openPanel',
         actionValue: targetPanelId
     });
