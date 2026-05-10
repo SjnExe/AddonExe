@@ -60,7 +60,8 @@ describe('Back Command', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockGetConfig.mockReturnValue({
-            back: { enabled: true, cost: 100, teleportWarmupSeconds: 5 }
+            back: { enabled: true, cost: 100, teleportWarmupSeconds: 5 },
+            economy: { enabled: true }
         });
         mockGetOrCreatePlayer.mockReturnValue({
             balance: 500,

@@ -17,8 +17,7 @@ import {
     loadSpawnConfig,
     loadTeamConfig,
     loadXrayConfig,
-    loadWorldProtectionConfig,
-    loadBackConfig
+    loadWorldProtectionConfig
 } from './configurations.js';
 import { dataManager, loadPersistentData } from './dataManager.js';
 import { cleanupEventManager, initializeEventManager } from './events/eventManager.js';
@@ -71,7 +70,6 @@ export async function initializeAddon() {
         loadAuctionHouseConfig(isMigration),
         loadDailyRewardsConfig(isMigration),
         loadWorldProtectionConfig(isMigration),
-        loadBackConfig(isMigration),
         import('@features/anticheat/index.js').then((m) => m.initialize(isMigration))
     ]);
 
