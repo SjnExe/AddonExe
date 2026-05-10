@@ -10,7 +10,7 @@ import { showConfirmationDialog } from '@ui/components.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
-import { getPaginatedItems, addBackButton, addPaginationItems } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 
 export class EconomyPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

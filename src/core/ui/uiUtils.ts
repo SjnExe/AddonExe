@@ -22,6 +22,7 @@ import {
 import type { PlayerData } from '@core/playerDataManager.js';
 import ranksConfig from '@core/ranksConfig.default.js';
 import { spawnConfig } from '@core/spawnConfig.default.js';
+import { showPanel } from '@core/uiManager.js';
 import { xrayConfig } from '@core/xrayConfig.default.js';
 import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
 import { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
@@ -30,7 +31,6 @@ import { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/teams/teamConfig.js';
 import * as mc from '@minecraft/server';
-import { showPanel } from '@core/uiManager.js';
 import { PanelItem, UIContext } from './types.js';
 
 type SpawnConfig = typeof spawnConfig;

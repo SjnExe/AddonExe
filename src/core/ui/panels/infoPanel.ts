@@ -11,7 +11,7 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler, MainConfig } from '@ui/types.js';
-import { addBackButton, addPaginationItems, getPaginatedItems, itemsPerPage, handleCommonSelection } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems, handleCommonSelection, itemsPerPage } from '@ui/uiUtils.js';
 
 interface ServerInfo {
     helpfulLinks?: { title: string; url: string }[];
