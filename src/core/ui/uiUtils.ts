@@ -234,7 +234,7 @@ export function getSystemsByCategory(pData: PlayerData, category: string): Syste
  */
 export function handleCommonSelection(player: mc.Player, panelId: string, item: PanelItem, context: UIContext): boolean {
     if (item.actionType === 'openPanel') {
-        showPanel(player, item.actionValue, {
+        void showPanel(player, item.actionValue, {
             ...context,
             page: 1,
             selectedItemId: item.id,
@@ -243,14 +243,14 @@ export function handleCommonSelection(player: mc.Player, panelId: string, item: 
         return true;
     }
     if (item.actionValue === 'prevPage') {
-        showPanel(player, panelId, {
+        void showPanel(player, panelId, {
             ...context,
             page: Math.max(1, (context.page as number) || 1) - 1
         });
         return true;
     }
     if (item.actionValue === 'nextPage') {
-        showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
+        void showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
         return true;
     }
     return false;
