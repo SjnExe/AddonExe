@@ -29,7 +29,9 @@ import { economyConfig } from '@features/economy/economyConfig.js';
 import { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/teams/teamConfig.js';
-import { PanelItem } from './types.js';
+import * as mc from '@minecraft/server';
+import { showPanel } from '@core/uiManager.js';
+import { PanelItem, UIContext } from './types.js';
 
 type SpawnConfig = typeof spawnConfig;
 type EconomyConfig = typeof economyConfig;
@@ -224,4 +226,32 @@ export function getSystemsByCategory(pData: PlayerData, category: string): Syste
             icon: sys.icon
         }))
         .toSorted((a, b) => a.title.replaceAll(/§./g, '').localeCompare(b.title.replaceAll(/§./g, '')));
+}
+
+/**
+ * Handles common selection actions like opening a panel or pagination.
+ * Returns true if an action was handled, false otherwise.
+ */
+export function handleCommonSelection(player: mc.Player, panelId: string, item: PanelItem, context: UIContext): boolean {
+    if (item.actionType === 'openPanel') {
+        showPanel(player, item.actionValue, {
+            ...context,
+            page: 1,
+            selectedItemId: item.id,
+            id: item.id
+        });
+        return true;
+    }
+    if (item.actionValue === 'prevPage') {
+        showPanel(player, panelId, {
+            ...context,
+            page: Math.max(1, (context.page as number) || 1) - 1
+        });
+        return true;
+    }
+    if (item.actionValue === 'nextPage') {
+        showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
+        return true;
+    }
+    return false;
 }

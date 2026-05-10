@@ -7,7 +7,7 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions } from '@ui/panelRegistry.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
-import { getPaginatedItems, addBackButton, addPaginationItems } from '@ui/uiUtils.js';
+import { getPaginatedItems, addBackButton, addPaginationItems, handleCommonSelection } from '@ui/uiUtils.js';
 import * as punishmentManager from '../punishmentManager.js';
 import * as reportManager from '../reportManager.js';
 
@@ -98,24 +98,7 @@ export class ModerationPanelHandler implements IPanelHandler {
             const item = items[selection];
             if (!isDefined(item)) return;
 
-            if (item.actionType === 'openPanel') {
-                return showPanel(player, item.actionValue, {
-                    ...context,
-                    page: 1,
-                    selectedItemId: item.id,
-                    id: item.id
-                });
-            }
-
-            if (item.actionValue === 'prevPage') {
-                return showPanel(player, panelId, {
-                    ...context,
-                    page: Math.max(1, (context.page as number) || 1) - 1
-                });
-            }
-            if (item.actionValue === 'nextPage') {
-                return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
-            }
+            if (handleCommonSelection(player, panelId, item, context)) return;
 
             if (item.actionValue === 'showUnbanForm') {
                 await this.handleUnbanForm(player, panelId, context);
