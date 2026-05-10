@@ -13,7 +13,6 @@ import { handleScriptEventReceive } from './scriptEventReceive.js';
 import {
     handleBeforeEntitySpawn,
     handleBeforeExplosion,
-    handleBeforeItemUseOn,
     handleBeforePlayerBreakBlock,
     handleBeforePlayerPlaceBlock,
     handlePlayerInteractWithBlock,
@@ -53,7 +52,6 @@ export function initializeEventManager() {
     registerEvent(mc.world.beforeEvents.playerBreakBlock, handleBeforePlayerBreakBlock, 'beforePlayerBreakBlock');
     registerEvent(mc.world.beforeEvents.playerPlaceBlock, handleBeforePlayerPlaceBlock, 'beforePlayerPlaceBlock');
     registerEvent(mc.world.beforeEvents.explosion, handleBeforeExplosion, 'beforeExplosion');
-    registerEvent((mc.world.beforeEvents as any).itemUseOn, handleBeforeItemUseOn, 'beforeItemUseOn');
     registerEvent(mc.world.beforeEvents.playerInteractWithBlock, handlePlayerInteractWithBlock, 'playerInteractWithBlock');
     registerEvent(mc.world.beforeEvents.playerInteractWithEntity, handlePlayerInteractWithEntity, 'playerInteractWithEntity');
     registerEvent(mc.world.afterEvents.entitySpawn, handleBeforeEntitySpawn, 'entitySpawn');

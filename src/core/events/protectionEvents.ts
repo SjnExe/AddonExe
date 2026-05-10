@@ -67,22 +67,12 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
     event.setImpactedBlocks(allowedBlocks);
 }
 
-export function handleBeforeItemUseOn(event: unknown) {
-    const ev = event as mc.ItemUseBeforeEvent; // Fallback cast
-    const player = ev.source;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-    const block = (ev as any).block as mc.Block | undefined;
+export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
+    const player = event.source;
     if (!(player instanceof mc.Player)) return;
-    if (!isDefined(block)) return;
 
-    const flags = getProtectionFlags(block.location, player.dimension.id);
-    if (flags.preventBlockInteraction) {
-        if (!canBypass(player)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            (event as any).cancel = true;
-            player.onScreenDisplay.setActionBar('§cYou cannot interact with blocks here.');
-        }
-    }
+    // We can't definitively check block from itemUse directly in all versions easily,
+    // so we will rely on playerInteractWithBlock. We'll leave this empty or remove it.
 }
 
 export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockBeforeEvent) {

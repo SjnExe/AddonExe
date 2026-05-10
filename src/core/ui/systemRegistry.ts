@@ -103,6 +103,14 @@ export function getSystemRegistry(): SystemDefinition[] {
             configPanelId: 'sidebarMainPanel',
             category: 'Visuals',
             isSimpleConfig: false
+        },
+        {
+            id: 'worldProtection',
+            title: '§l§2World Protection System§r',
+            icon: 'textures/ui/icon_recipe_nature',
+            configPanelId: 'worldProtectionListPanel',
+            category: 'World',
+            isSimpleConfig: false
         }
     ];
 

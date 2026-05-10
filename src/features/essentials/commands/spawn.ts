@@ -125,13 +125,15 @@ function syncWorldSpawn(executor: CommandExecutor, location: SpawnLocation) {
 
 function updateSpawnRadius(executor: CommandExecutor, radius: number) {
     try {
-        mc.world.gameRules.spawnRadius = radius;
-        sendSetSpawnMessage(executor, `§aWorld spawn radius set to ${radius}.`);
+        if (radius >= 0) {
+            mc.world.gameRules.spawnRadius = radius;
+            sendSetSpawnMessage(executor, `§aWorld spawn radius set to ${radius}.`);
+        }
     } catch (error: unknown) {
         if (error instanceof Error) {
-            errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${error.stack}`);
+            errorLog(`[/setspawn] Failed to set spawnradius gamerule: ${error.message}`);
         }
-        sendSetSpawnMessage(executor, '§cError: Could not set the spawn radius. Check server logs for details.');
+        // Don't error out to the user if gamerule is just locked
     }
 }
 

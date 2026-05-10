@@ -22,7 +22,6 @@ export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport'
     // Check if Back system is globally enabled
     const backConfig = getConfig().back as { enabled?: boolean; saveOnDeath?: boolean; saveOnTeleport?: boolean } | undefined;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!backConfig?.enabled) return;
 
     if (reason === 'death' && backConfig.saveOnDeath !== true) return;
