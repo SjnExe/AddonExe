@@ -11,7 +11,7 @@ import { IPanelHandler } from '@ui/types.js';
 
 export class GeneralPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return panelId === 'mainPanel' || panelId === 'gameplayPanel' || panelId === 'bountyActionsPanel' || panelId === 'bountyListPanel';
+        return panelId === 'mainPanel' || panelId === 'economyMainPanel' || panelId === 'socialMainPanel' || panelId === 'profileMainPanel' || panelId === 'bountyActionsPanel' || panelId === 'bountyListPanel';
     }
 
     getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {

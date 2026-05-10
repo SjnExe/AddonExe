@@ -12,13 +12,13 @@ import { addBackButton } from '@ui/uiUtils.js';
 
 export class AdminPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return panelId === 'adminPanel' || panelId.startsWith('floatingText');
+        return panelId === 'staffDashboardPanel' || panelId.startsWith('floatingText');
     }
 
     getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
         const items: PanelItem[] = [];
         // Admin Panel uses static items (delegates to sub-panels)
-        if (panelId === 'adminPanel') {
+        if (panelId === 'staffDashboardPanel') {
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
                 const staticItems = getStaticMenuItems(def, 1); // Admin
@@ -28,7 +28,7 @@ export class AdminPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'floatingTextListPanel') {
-            addBackButton(items, 'adminPanel');
+            addBackButton(items, 'staffDashboardPanel');
             items.push(
                 {
                     id: 'placeholderList',

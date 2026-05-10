@@ -62,7 +62,7 @@ export class ConfigPanelHandler implements IPanelHandler {
 
     private getCategoryPanelItems(pData: PlayerData, context: UIContext): PanelItem[] {
         const items: PanelItem[] = [];
-        addBackButton(items, 'adminPanel');
+        addBackButton(items, 'staffDashboardPanel');
         const categories = getVisibleCategories(pData);
         const paginated = getPaginatedItems(categories, (context.page as number) || 1);
         for (const cat of paginated) {

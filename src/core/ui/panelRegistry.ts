@@ -15,36 +15,54 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         parentPanelId: undefined,
         items: [
             {
-                id: 'gameplay',
-                text: '§l§6Gameplay',
-                icon: 'textures/items/diamond_sword',
+                id: 'economy',
+                text: '§l§6Economy',
+                icon: 'textures/items/emerald',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
-                actionValue: 'gameplayPanel',
+                actionValue: 'economyMainPanel',
                 sortId: 10
             },
             {
+                id: 'social',
+                text: '§l§dSocial',
+                icon: 'textures/ui/icon_multiplayer',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'socialMainPanel',
+                sortId: 15
+            },
+            {
+                id: 'profile',
+                text: '§l§3Profile',
+                icon: 'textures/ui/profile_glyph_color',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'profileMainPanel',
+                sortId: 20
+            },
+            {
                 id: 'info',
-                text: '§l§3Server Info',
+                text: '§l§bServer Info',
                 icon: 'textures/items/book_enchanted.png',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
                 actionValue: 'infoPanel',
-                sortId: 20
+                sortId: 30
             },
             {
-                id: 'admin',
-                text: '§l§4Admin Dashboard',
+                id: 'staffDashboard',
+                text: '§l§4Staff Dashboard',
                 icon: 'textures/ui/op',
-                permissionLevel: 3,
+                permissionLevel: 3, // Accessible to moderators (3) and up, items inside dictate further restrictions
                 actionType: 'openPanel',
-                actionValue: 'adminPanel',
+                actionValue: 'staffDashboardPanel',
                 sortId: 99
             }
         ]
     },
-    gameplayPanel: {
-        title: 'Gameplay',
+    economyMainPanel: {
+        title: 'Economy',
         parentPanelId: 'mainPanel',
         items: [
             {
@@ -54,6 +72,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 permissionLevel: 1024,
                 actionType: 'openPanel',
                 actionValue: 'shopMainPanel',
+                requiresFeature: 'shop.enabled',
                 sortId: 10
             },
             {
@@ -63,7 +82,32 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 permissionLevel: 1024,
                 actionType: 'functionCall',
                 actionValue: 'openAuctionHouse',
+                // Assuming auctionHouse config exists similarly. Leaving without requiresFeature for now if unknown.
                 sortId: 15
+            },
+            {
+                id: 'bountyList',
+                text: '§4Bounty List',
+                icon: 'textures/items/netherite_sword.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'bountyListPanel',
+                sortId: 30
+            }
+        ]
+    },
+    socialMainPanel: {
+        title: 'Social',
+        parentPanelId: 'mainPanel',
+        items: [
+            {
+                id: 'playerList',
+                text: '§2Player List',
+                icon: 'textures/ui/icon_steve.png',
+                permissionLevel: 1024,
+                actionType: 'openPanel',
+                actionValue: 'playerListPanel',
+                sortId: 10
             },
             {
                 id: 'team',
@@ -82,16 +126,13 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 actionType: 'openPanel',
                 actionValue: 'friendMainPanel',
                 sortId: 25
-            },
-            {
-                id: 'bountyList',
-                text: '§6Bounty List',
-                icon: 'textures/items/netherite_sword.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'bountyListPanel',
-                sortId: 30
-            },
+            }
+        ]
+    },
+    profileMainPanel: {
+        title: 'Profile',
+        parentPanelId: 'mainPanel',
+        items: [
             {
                 id: 'myStats',
                 text: '§3My Stats',
@@ -99,16 +140,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 permissionLevel: 1024,
                 actionType: 'openPanel',
                 actionValue: 'myStatsPanel',
-                sortId: 40
-            },
-            {
-                id: 'playerList',
-                text: '§2Player List',
-                icon: 'textures/ui/icon_steve.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'playerListPanel',
-                sortId: 50
+                sortId: 10
             },
             {
                 id: 'tpaSettings',
@@ -117,27 +149,13 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 permissionLevel: 1024,
                 actionType: 'openPanel',
                 actionValue: 'tpaSettingsPanel',
-                sortId: 60
-            },
-            {
-                id: 'games',
-                text: '§5Games',
-                icon: 'textures/ui/controller_glyph_color',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: 'gamesPanel',
-                sortId: 70
+                sortId: 20
             }
         ]
     },
-    gamesPanel: {
-        title: 'Games',
-        parentPanelId: 'gameplayPanel',
-        items: [] // Dynamic
-    },
     friendMainPanel: {
         title: 'Friend System',
-        parentPanelId: 'gameplayPanel',
+        parentPanelId: 'socialMainPanel',
         items: [] // Dynamic
     },
     friendAddPanel: {
@@ -162,7 +180,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     tpaSettingsPanel: {
         title: 'TPA Settings',
-        parentPanelId: 'gameplayPanel',
+        parentPanelId: 'profileMainPanel',
         items: [] // Dynamic
     },
     tpaBlockListPanel: {
@@ -194,8 +212,8 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             }
         ]
     },
-    adminPanel: {
-        title: 'Admin Dashboard',
+    staffDashboardPanel: {
+        title: 'Staff Dashboard',
         parentPanelId: 'mainPanel',
         permissionLevel: 3,
         items: [
@@ -230,7 +248,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'floatingText',
                 text: '§5Floating Text',
                 icon: 'textures/ui/text_color_paintbrush',
-                permissionLevel: 1,
+                permissionLevel: 1, // Restrict to admin
                 actionType: 'openPanel',
                 actionValue: 'floatingTextListPanel',
                 sortId: 40
@@ -239,7 +257,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'config',
                 text: '§8Config',
                 icon: 'textures/ui/settings_glyph_color_2x',
-                permissionLevel: 1,
+                permissionLevel: 1, // Restrict to admin
                 actionType: 'openPanel',
                 actionValue: 'configCategoryPanel',
                 sortId: 50
@@ -248,7 +266,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     teamMainPanel: {
         title: 'Team System',
-        parentPanelId: 'gameplayPanel',
+        parentPanelId: 'socialMainPanel',
         items: [] // Dynamic: Shows Create/Join OR Team Info
     },
     teamCreatePanel: {
@@ -328,7 +346,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     shopMainPanel: {
         title: 'Shop Categories',
-        parentPanelId: 'gameplayPanel',
+        parentPanelId: 'economyMainPanel',
         items: [] // Dynamically populated
     },
     configResetPanel: {
@@ -343,7 +361,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     reportListPanel: {
         title: 'Active Reports',
-        parentPanelId: 'adminPanel',
+        parentPanelId: 'staffDashboardPanel',
         permissionLevel: 3,
         items: [] // Dynamically populated
     },
@@ -379,17 +397,17 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     bountyListPanel: {
         title: 'Bounty List',
-        parentPanelId: 'gameplayPanel',
+        parentPanelId: 'economyMainPanel',
         items: [] // Dynamically populated
     },
     myStatsPanel: {
         title: 'Your Stats',
-        parentPanelId: 'gameplayPanel',
+        parentPanelId: 'profileMainPanel',
         items: [] // Body is dynamically generated
     },
     moderationPanel: {
         title: 'Moderation Tools',
-        parentPanelId: 'adminPanel',
+        parentPanelId: 'staffDashboardPanel',
         permissionLevel: 3,
         items: [
             {
@@ -412,7 +430,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     configCategoryPanel: {
         title: 'Configuration',
-        parentPanelId: 'adminPanel',
+        parentPanelId: 'staffDashboardPanel',
         permissionLevel: 1,
         items: [] // Dynamically populated
     },
@@ -463,7 +481,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     playerManagementPanel: {
         title: 'Player Management',
-        parentPanelId: 'adminPanel',
+        parentPanelId: 'staffDashboardPanel',
         permissionLevel: 3,
         items: [] // Dynamically populated
     },
@@ -630,7 +648,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     floatingTextListPanel: {
         title: 'Floating Text',
-        parentPanelId: 'adminPanel',
+        parentPanelId: 'staffDashboardPanel',
         items: [] // Dynamically populated
     },
     floatingTextEditPanel: {

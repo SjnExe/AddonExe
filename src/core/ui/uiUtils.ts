@@ -2,17 +2,14 @@ import { ActionFormData } from '@minecraft/server-ui';
 
 import { Config, getConfig, updateMultipleConfig } from '@core/configManager.js';
 import {
-    GamesConfig,
     getAuctionHouseConfig,
     getEconomyConfig,
-    getGamesConfig,
     getSidebarConfig,
     getSpawnConfig,
     getTeamConfig,
     getXrayConfig,
     saveAuctionHouseConfig,
     saveEconomyConfig,
-    saveGamesConfig,
     saveSidebarConfig,
     saveSpawnConfig,
     saveTeamConfig,
@@ -47,7 +44,7 @@ import { getSystemRegistry, SystemDefinition } from './systemRegistry.js';
 export const itemsPerPage = 8;
 
 interface ConfigHandler {
-    get: () => typeof Config | SpawnConfig | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | KitsConfig | ShopConfig | SidebarConfig | AnticheatConfig | AuctionHouseConfig | GamesConfig;
+    get: () => typeof Config | SpawnConfig | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | KitsConfig | ShopConfig | SidebarConfig | AnticheatConfig | AuctionHouseConfig;
     save: (config: unknown) => void;
 }
 
@@ -83,10 +80,6 @@ export const configHandlers: Record<string, ConfigHandler> = {
     auctionHouse: {
         get: getAuctionHouseConfig,
         save: (config: unknown) => saveAuctionHouseConfig(config as AuctionHouseConfig)
-    },
-    games: {
-        get: getGamesConfig,
-        save: (config: unknown) => saveGamesConfig(config as GamesConfig)
     }
 };
 
