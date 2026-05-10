@@ -37,6 +37,11 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
         if (!isDefined(response) || response.canceled) {
             debugLog(`[UIManager] Panel '${panelId}' was canceled by ${player.name}.`);
             // Show the parent panel if the user cancels and a parent is defined
+            if (isNonEmptyString(context.returnPanel)) {
+                const targetPanel = context.returnPanel;
+                delete context.returnPanel;
+                return showPanel(player, targetPanel, context);
+            }
             const panelDef = panelDefinitions[panelId];
             if (isDefined(panelDef) && isNonEmptyString(panelDef.parentPanelId)) {
                 return showPanel(player, panelDef.parentPanelId, context);

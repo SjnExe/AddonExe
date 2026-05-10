@@ -487,7 +487,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     playerListPanel: {
         title: 'Online Players',
-        parentPanelId: 'infoPanel',
+        parentPanelId: 'socialMainPanel',
         items: [] // Dynamically populated
     },
     bountyActionsPanel: {

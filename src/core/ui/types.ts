@@ -71,6 +71,7 @@ export interface UIContext extends Record<string, unknown> {
     selectedItemId?: string;
     targetPlayerId?: string;
     customTitle?: string;
+    returnPanel?: string;
 }
 
 export interface IPanelHandler {
