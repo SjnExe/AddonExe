@@ -7,7 +7,7 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions } from '@ui/panelRegistry.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems, handleCommonSelection } from '@ui/uiUtils.js';
 import * as punishmentManager from '../punishmentManager.js';
 import * as reportManager from '../reportManager.js';
 
@@ -20,42 +20,6 @@ export class ModerationPanelHandler implements IPanelHandler {
         await Promise.resolve();
         const items: PanelItem[] = [];
 
-        const addBack = (target: string) => {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: target
-            });
-        };
-
-        const addPagination = (totalItems: number) => {
-            const page = (context.page as number) || 1;
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            if (page > 1) {
-                items.push({
-                    id: '__prev__',
-                    text: '§6< Previous Page',
-                    icon: 'textures/ui/arrow_left.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'prevPage'
-                });
-            }
-            if (page < totalPages) {
-                items.push({
-                    id: '__next__',
-                    text: '§6Next Page >',
-                    icon: 'textures/ui/arrow_right.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'nextPage'
-                });
-            }
-        };
-
         if (panelId === 'moderationPanel') {
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
@@ -66,7 +30,7 @@ export class ModerationPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'reportListPanel') {
-            addBack('adminPanel');
+            addBackButton(items, 'adminPanel');
             const reports = reportManager
                 .getAllReports()
                 .filter((r) => r.status === 'open' || r.status === 'assigned')
@@ -82,12 +46,12 @@ export class ModerationPanelHandler implements IPanelHandler {
                     actionValue: 'reportActionsPanel'
                 });
             }
-            addPagination(reports.length);
+            addPaginationItems(items, (context.page as number) || 1, reports.length);
             return items;
         }
 
         if (panelId === 'reportActionsPanel') {
-            addBack('reportListPanel');
+            addBackButton(items, 'reportListPanel');
             // Static items from registry
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
@@ -134,24 +98,7 @@ export class ModerationPanelHandler implements IPanelHandler {
             const item = items[selection];
             if (!isDefined(item)) return;
 
-            if (item.actionType === 'openPanel') {
-                return showPanel(player, item.actionValue, {
-                    ...context,
-                    page: 1,
-                    selectedItemId: item.id,
-                    id: item.id
-                });
-            }
-
-            if (item.actionValue === 'prevPage') {
-                return showPanel(player, panelId, {
-                    ...context,
-                    page: Math.max(1, (context.page as number) || 1) - 1
-                });
-            }
-            if (item.actionValue === 'nextPage') {
-                return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
-            }
+            if (handleCommonSelection(player, panelId, item, context)) return;
 
             if (item.actionValue === 'showUnbanForm') {
                 await this.handleUnbanForm(player, panelId, context);

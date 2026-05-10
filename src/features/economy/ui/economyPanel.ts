@@ -10,7 +10,7 @@ import { showConfirmationDialog } from '@ui/components.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 
 export class EconomyPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -22,42 +22,6 @@ export class EconomyPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [];
         const pData = getOrCreatePlayer(player);
 
-        const addBack = (target: string) => {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
-                actionType: 'openPanel',
-                actionValue: target
-            });
-        };
-
-        const addPagination = (totalItems: number) => {
-            const page = (context.page as number) || 1;
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            if (page > 1) {
-                items.push({
-                    id: '__prev__',
-                    text: '§6< Previous Page',
-                    icon: 'textures/ui/arrow_left.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'prevPage'
-                });
-            }
-            if (page < totalPages) {
-                items.push({
-                    id: '__next__',
-                    text: '§6Next Page >',
-                    icon: 'textures/ui/arrow_right.png',
-                    permissionLevel: 1024,
-                    actionType: 'functionCall',
-                    actionValue: 'nextPage'
-                });
-            }
-        };
-
         if (panelId === 'economyPanel') {
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
@@ -68,7 +32,7 @@ export class EconomyPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'mobDropsSystemPanel') {
-            addBack('economyPanel');
+            addBackButton(items, 'economyPanel');
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
                 const staticItems = getStaticMenuItems(def, pData.permissionLevel);
@@ -93,12 +57,12 @@ export class EconomyPanelHandler implements IPanelHandler {
                     actionValue: 'editMobDropPanel'
                 });
             }
-            addPagination(mobs.length);
+            addPaginationItems(items, (context.page as number) || 1, mobs.length);
             return items;
         }
 
         if (panelId === 'editMobDropPanel') {
-            addBack('mobDropsSystemPanel');
+            addBackButton(items, 'mobDropsSystemPanel');
             const mobId = context.selectedItemId as string;
             if (!isNonEmptyString(mobId)) return items;
 

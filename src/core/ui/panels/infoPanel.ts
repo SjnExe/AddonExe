@@ -11,7 +11,7 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler, MainConfig } from '@ui/types.js';
-import { addBackButton, addPaginationItems, getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems, handleCommonSelection, itemsPerPage } from '@ui/uiUtils.js';
 
 interface ServerInfo {
     helpfulLinks?: { title: string; url: string }[];
@@ -247,23 +247,7 @@ export class InfoPanelHandler implements IPanelHandler {
             const item = items[selection];
             if (!isDefined(item)) return;
 
-            if (item.actionType === 'openPanel') {
-                return showPanel(player, item.actionValue, {
-                    ...context,
-                    page: 1,
-                    selectedItemId: item.id,
-                    id: item.id
-                });
-            }
-            if (item.actionValue === 'prevPage') {
-                return showPanel(player, panelId, {
-                    ...context,
-                    page: Math.max(1, (context.page as number) || 1) - 1
-                });
-            }
-            if (item.actionValue === 'nextPage') {
-                return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
-            }
+            if (handleCommonSelection(player, panelId, item, context)) return;
 
             if (item.actionValue === 'deleteRule') {
                 const ruleIndex = Number(context.selectedItemId);

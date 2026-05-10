@@ -5,7 +5,7 @@ import { getXrayConfig, saveXrayConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
-import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
 
 export class XrayPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -16,44 +16,8 @@ export class XrayPanelHandler implements IPanelHandler {
         await Promise.resolve();
         const items: PanelItem[] = [];
 
-        const addBack = (target: string) => {
-            items.push({
-                id: '__back__',
-                text: '§l§8< Back',
-                icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: target
-            });
-        };
-
-        const addPagination = (totalItems: number) => {
-            const page = (context.page as number) || 1;
-            const totalPages = Math.ceil(totalItems / itemsPerPage);
-            if (page > 1) {
-                items.push({
-                    id: '__prev__',
-                    text: '§6< Previous Page',
-                    icon: 'textures/ui/arrow_left.png',
-                    permissionLevel: 1,
-                    actionType: 'functionCall',
-                    actionValue: 'prevPage'
-                });
-            }
-            if (page < totalPages) {
-                items.push({
-                    id: '__next__',
-                    text: '§6Next Page >',
-                    icon: 'textures/ui/arrow_right.png',
-                    permissionLevel: 1,
-                    actionType: 'functionCall',
-                    actionValue: 'nextPage'
-                });
-            }
-        };
-
         if (panelId === 'xrayOresPanel') {
-            addBack('configCategoryPanel');
+            addBackButton(items, 'configCategoryPanel', 1);
             items.push({
                 id: 'addOre',
                 text: '§l§2+ Add Ore',
@@ -79,7 +43,7 @@ export class XrayPanelHandler implements IPanelHandler {
                     actionValue: `editXrayOrePanel_${key}`
                 });
             }
-            addPagination(oreKeys.length);
+            addPaginationItems(items, (context.page as number) || 1, oreKeys.length, 1);
             return items;
         }
 

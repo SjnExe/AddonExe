@@ -22,6 +22,7 @@ import {
 import type { PlayerData } from '@core/playerDataManager.js';
 import ranksConfig from '@core/ranksConfig.default.js';
 import { spawnConfig } from '@core/spawnConfig.default.js';
+import { showPanel } from '@core/uiManager.js';
 import { xrayConfig } from '@core/xrayConfig.default.js';
 import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
 import { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
@@ -29,7 +30,8 @@ import { economyConfig } from '@features/economy/economyConfig.js';
 import { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/teams/teamConfig.js';
-import { PanelItem } from './types.js';
+import * as mc from '@minecraft/server';
+import { PanelItem, UIContext } from './types.js';
 
 type SpawnConfig = typeof spawnConfig;
 type EconomyConfig = typeof economyConfig;
@@ -113,14 +115,14 @@ export function addPaginationButtons(form: ActionFormData, page: number, totalIt
 /**
  * Helper to add pagination items to a PanelItem array.
  */
-export function addPaginationItems(items: PanelItem[], page: number, totalItems: number): void {
+export function addPaginationItems(items: PanelItem[], page: number, totalItems: number, permissionLevel: number = 1024): void {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
         items.push({
             id: '__prev__',
             text: '§6< Previous Page',
             icon: 'textures/ui/arrow_left.png',
-            permissionLevel: 1024,
+            permissionLevel,
             actionType: 'functionCall',
             actionValue: 'prevPage'
         });
@@ -130,7 +132,7 @@ export function addPaginationItems(items: PanelItem[], page: number, totalItems:
             id: '__next__',
             text: '§6Next Page >',
             icon: 'textures/ui/arrow_right.png',
-            permissionLevel: 1024,
+            permissionLevel,
             actionType: 'functionCall',
             actionValue: 'nextPage'
         });
@@ -140,12 +142,12 @@ export function addPaginationItems(items: PanelItem[], page: number, totalItems:
 /**
  * Helper to add a standardized back button to a PanelItem array.
  */
-export function addBackButton(items: PanelItem[], targetPanelId: string): void {
+export function addBackButton(items: PanelItem[], targetPanelId: string, permissionLevel: number = 1024): void {
     items.push({
         id: '__back__',
         text: '§l§8< Back',
         icon: 'textures/gui/controls/left.png',
-        permissionLevel: 1024,
+        permissionLevel,
         actionType: 'openPanel',
         actionValue: targetPanelId
     });
@@ -224,4 +226,32 @@ export function getSystemsByCategory(pData: PlayerData, category: string): Syste
             icon: sys.icon
         }))
         .toSorted((a, b) => a.title.replaceAll(/§./g, '').localeCompare(b.title.replaceAll(/§./g, '')));
+}
+
+/**
+ * Handles common selection actions like opening a panel or pagination.
+ * Returns true if an action was handled, false otherwise.
+ */
+export function handleCommonSelection(player: mc.Player, panelId: string, item: PanelItem, context: UIContext): boolean {
+    if (item.actionType === 'openPanel') {
+        void showPanel(player, item.actionValue, {
+            ...context,
+            page: 1,
+            selectedItemId: item.id,
+            id: item.id
+        });
+        return true;
+    }
+    if (item.actionValue === 'prevPage') {
+        void showPanel(player, panelId, {
+            ...context,
+            page: Math.max(1, (context.page as number) || 1) - 1
+        });
+        return true;
+    }
+    if (item.actionValue === 'nextPage') {
+        void showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
+        return true;
+    }
+    return false;
 }
