@@ -432,7 +432,32 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         title: 'Configuration',
         parentPanelId: 'staffDashboardPanel',
         permissionLevel: 1,
+        items: [
+            {
+                id: 'worldProtection',
+                text: 'World Protection',
+                icon: 'textures/ui/icon_recipe_nature',
+                permissionLevel: 1,
+                actionType: 'openPanel',
+                actionValue: 'worldProtectionListPanel',
+                sortId: 90
+            }
+        ] // Dynamically populated with other items
+    },
+    worldProtectionListPanel: {
+        title: 'World Protection Zones',
+        parentPanelId: 'configCategoryPanel',
         items: [] // Dynamically populated
+    },
+    addWorldProtectionPanel: {
+        title: 'Add Protection Zone',
+        parentPanelId: 'worldProtectionListPanel',
+        items: [] // Modal form
+    },
+    editWorldProtectionPanel: {
+        title: 'Edit Protection Zone',
+        parentPanelId: 'worldProtectionListPanel',
+        items: [] // Modal form
     },
     kitManagementPanel: {
         title: 'Kit System',

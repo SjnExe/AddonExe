@@ -47,6 +47,7 @@ import cmdShopShop from '@features/shop/commands/shop.js';
 import cmdSocialFriend from '@features/social/commands/friend.js';
 import cmdTeamsTeam from '@features/teams/commands/team.js';
 import cmdTeleportationBack from '@features/teleportation/commands/back.js';
+import cmdTeleportationBackCommand from '@features/teleportation/commands/backCommand.js';
 import cmdTeleportationDeathcoords from '@features/teleportation/commands/deathcoords.js';
 import cmdTeleportationHome from '@features/teleportation/commands/home.js';
 import cmdTeleportationRtp from '@features/teleportation/commands/rtp.js';
@@ -102,6 +103,7 @@ export function loadCommands() {
     cmdSocialFriend,
     cmdTeamsTeam,
     cmdTeleportationBack,
+    cmdTeleportationBackCommand,
     cmdTeleportationDeathcoords,
     cmdTeleportationHome,
     cmdTeleportationRtp,

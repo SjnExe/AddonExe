@@ -1,57 +1,47 @@
-import * as mc from '@minecraft/server';
-
-import { getSpawnConfig } from '@core/configurations.js';
 import { debugLog } from '@core/logger.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
-import { getOrCreatePlayer } from '@core/playerDataManager.js';
+import { getProtectionFlags } from '@core/protectionService.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
-import { isDefined, isNumber } from '@lib/guards.js';
+import { isDefined } from '@lib/guards.js';
 
 let intervalId: number | undefined;
 
 export function initializeSpawnProtection() {
     intervalId = setTrackedInterval(() => {
-        const config = getSpawnConfig();
-        if (!config.spawnProtection.enabled) return;
+        // We now check protections dynamically using protectionService
+        // This loop applies player-specific states (PvP disabled, Hostile Damage disabled)
+        // based on the overlapping zone flags. Block events are handled via standard event hooks.
 
-        const protection = config.spawnProtection;
-        const radius = protection.protectionRadius;
-        const radiusSq = radius * radius;
-
-        const spawnLoc = config.spawn.spawnLocation;
-        // Ensure spawn location is set
-        if (!isDefined(spawnLoc.x) || !isDefined(spawnLoc.z) || !isNumber(spawnLoc.x) || !isNumber(spawnLoc.z)) {
-            return;
-        }
-
-        const spawnX = spawnLoc.x;
-        const spawnZ = spawnLoc.z;
-
-        // Optimization: Use cached players list
         const players = getAllPlayersFromCache();
 
         for (const player of players) {
-            // Check dimension
-            if (player.dimension.id !== 'minecraft:overworld') continue;
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                const isValid = typeof (player as any).isValid === 'function' ? (player as any).isValid() : (player as any).isValid;
+                if (!isValid) continue;
 
-            const dx = player.location.x - spawnX;
-            const dz = player.location.z - spawnZ;
-            const distSq = dx * dx + dz * dz;
+                const flags = getProtectionFlags(player.location, player.dimension.id);
 
-            if (distSq <= radiusSq) {
-                try {
-                    // Check permissions
-                    const pData = getOrCreatePlayer(player);
-                    // Level > 2 implies not staff (Owner=0, Admin=1, Mod=2, Member=1024)
-                    if (pData.permissionLevel > 2 && player.getGameMode() === mc.GameMode.Survival) {
-                        player.setGameMode(mc.GameMode.Adventure);
-                        player.sendMessage('§eEntered spawn. Gamemode set to Adventure.');
-                    }
-                } catch (error) {
-                    debugLog(`Spawn protection error for ${player.name}: ${String(error)}`);
+                // Process PvP protection
+                if (flags.preventPvP && !player.hasTag('exe:in_pvp_protection')) {
+                    player.addTag('exe:in_pvp_protection');
+                    player.triggerEvent('exe:disable_pvp');
+                } else if (!flags.preventPvP && player.hasTag('exe:in_pvp_protection')) {
+                    player.removeTag('exe:in_pvp_protection');
+                    player.triggerEvent('exe:enable_pvp');
                 }
-            } else {
-                // Left spawn? Logic omitted as per previous analysis
+
+                // Process Hostile Damage protection
+                if (flags.preventHostileDamage && !player.hasTag('exe:in_hostile_protection')) {
+                    player.addTag('exe:in_hostile_protection');
+                    player.triggerEvent('exe:disable_hostile_damage');
+                } else if (!flags.preventHostileDamage && player.hasTag('exe:in_hostile_protection')) {
+                    player.removeTag('exe:in_hostile_protection');
+                    player.triggerEvent('exe:enable_hostile_damage');
+                }
+
+            } catch (error) {
+                debugLog(`Protection evaluation error for ${player.name}: ${String(error)}`);
             }
         }
     }, 20); // Check every second
