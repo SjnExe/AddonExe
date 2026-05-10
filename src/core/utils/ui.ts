@@ -1,6 +1,24 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, FormCancelationReason, MessageFormData, MessageFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
+import { getConfig } from '@core/configManager.js';
+import { getPlayerRank } from '@core/rankManager.js';
+
+/**
+ * Returns an appropriate icon based on the player's permission level.
+ * @param player The player to evaluate.
+ * @returns The path to the texture icon.
+ */
+export function getPlayerIcon(player: mc.Player): string {
+    const config = getConfig();
+    const rank = getPlayerRank(player, config);
+
+    if (rank.permissionLevel < 1024) {
+        return 'textures/ui/permissions_op_crown';
+    }
+    return 'textures/ui/permissions_member_star.png';
+}
+
 /**
  * Forces the chat window to close by briefly toggling input permissions.
  * This is a known workaround for Bedrock UI behavior.

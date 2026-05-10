@@ -9,6 +9,7 @@ import { panelDefinitions } from '@core/ui/panelRegistry.js';
 import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
+import { getPlayerIcon } from '@core/utils/ui.js';
 import { isDefined } from '@lib/guards.js';
 
 export class PlayerPanelHandler implements IPanelHandler {
@@ -25,10 +26,12 @@ export class PlayerPanelHandler implements IPanelHandler {
         if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
             const players = getVisiblePlayers(player);
             const playerItems: PanelItem[] = players.map((p) => {
+                const targetRank = getPlayerRank(p, config);
+                const rankText = targetRank.chatFormatting?.prefixText ? `[${targetRank.chatFormatting.prefixText}]` : `[${targetRank.name}]`;
                 return {
                     id: `player_${p.id}`,
-                    text: p.name, // Use name for now, rank prefix handled elsewhere if needed
-                    icon: 'textures/ui/steve_head',
+                    text: `${p.name}\n§r${rankText}`,
+                    icon: getPlayerIcon(p),
                     actionType: 'openPanel',
                     actionValue: 'playerActionsPanel',
                     permissionLevel: 1024

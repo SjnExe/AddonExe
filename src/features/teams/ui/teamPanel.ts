@@ -3,10 +3,13 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
+import { getConfig } from '@core/configManager.js';
+import { getPlayerRank } from '@core/rankManager.js';
 import { getStaticMenuItems } from '@core/ui/panelBuilder.js';
 import { panelDefinitions } from '@core/ui/panelRegistry.js';
 import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
 import { showPanel } from '@core/uiManager.js';
+import { getPlayerIcon } from '@core/utils/ui.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as teamManager from '../teamManager.js';
 
@@ -68,11 +71,21 @@ export class TeamPanelHandler implements IPanelHandler {
 
         if (panelId === 'teamRequestsPanel') {
             if (!isDefined(team)) return baseItems;
+            const config = getConfig();
             const reqItems = team.applications.map((app) => {
+                const onlineP = getPlayerFromCache(app.playerId);
+                let rankText = '';
+                let icon = 'textures/ui/permissions_member_star.png';
+                if (onlineP) {
+                    const targetRank = getPlayerRank(onlineP, config);
+                    rankText = targetRank.chatFormatting?.prefixText ? `§r[${targetRank.chatFormatting.prefixText}]` : `§r[${targetRank.name}]`;
+                    icon = getPlayerIcon(onlineP);
+                }
+
                 const item: PanelItem = {
                     id: `req_${app.playerId}`,
-                    text: `${app.playerName}\n§7${new Date(app.timestamp).toLocaleDateString()}`,
-                    icon: 'textures/ui/steve_head',
+                    text: `${app.playerName} §7${new Date(app.timestamp).toLocaleDateString()}\n${rankText}`,
+                    icon: icon,
                     actionType: 'openPanel',
                     actionValue: 'teamRequestActionPanel',
                     permissionLevel: 1024
@@ -279,6 +292,7 @@ export class TeamPanelHandler implements IPanelHandler {
     private getTeamMembersPanelItems(team: teamManager.TeamData | undefined, baseItems: PanelItem[]): PanelItem[] {
         if (!isDefined(team)) return baseItems;
 
+        const config = getConfig();
         const memberItems = team.members.map((memberId) => {
             const pData = getPlayer(memberId);
             const onlineP = getPlayerFromCache(memberId);
@@ -290,10 +304,18 @@ export class TeamPanelHandler implements IPanelHandler {
                 role = '§eAdmin';
             }
 
+            let rankText = '';
+            let icon = 'textures/ui/permissions_member_star.png';
+            if (onlineP) {
+                const targetRank = getPlayerRank(onlineP, config);
+                rankText = targetRank.chatFormatting?.prefixText ? `§r[${targetRank.chatFormatting.prefixText}]` : `§r[${targetRank.name}]`;
+                icon = getPlayerIcon(onlineP);
+            }
+
             const item: PanelItem = {
                 id: `member_${memberId}`,
-                text: `${pData ? pData.name : 'Unknown'}\n${role} - ${status}`,
-                icon: 'textures/ui/steve_head',
+                text: `${pData ? pData.name : 'Unknown'} ${role} §8| ${status}\n${rankText}`,
+                icon: icon,
                 actionType: 'openPanel',
                 actionValue: 'teamMemberActionPanel',
                 permissionLevel: 1024
