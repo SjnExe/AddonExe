@@ -2,8 +2,11 @@ import * as mc from '@minecraft/server';
 
 import { commandManager } from '@core/commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
+import { rawLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
+import { getPlayerRank } from '@core/rankManager.js';
+import { stripColorCodes } from '@core/utils/formatting.js';
 
 /**
  * Handles chat messages before they are sent.
@@ -25,8 +28,28 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
         return;
     }
 
-    // Rank Formatting handled by rankManager/main config usually
-    // ...
+    // Apply Rank Formatting
+    const rank = getPlayerRank(player, config);
+    const chatFormatting = rank.chatFormatting;
+    if (chatFormatting) {
+        event.cancel = true; // Cancel default broadcast
+        const prefix = chatFormatting.prefixText ? `§e[§r${chatFormatting.prefixText}§e]§r ` : '';
+        const nameColor = chatFormatting.nameColor || '§7';
+        const msgColor = chatFormatting.messageColor || '§f';
+        const formattedMessage = `${prefix}${nameColor}${player.name}§r: ${msgColor}${event.message}§r`;
+
+        mc.world.sendMessage(formattedMessage);
+
+        // Chat to Console
+        if (config.chat.logToConsole === true) {
+            rawLog(stripColorCodes(formattedMessage));
+        }
+    } else {
+        // Fallback Chat to Console if no custom formatting
+        if (config.chat.logToConsole === true) {
+            rawLog(`[CHAT] ${player.name}: ${event.message}`);
+        }
+    }
 
     // Mentions
     if (config.chat.allowMentions === true && event.message.includes('@')) {

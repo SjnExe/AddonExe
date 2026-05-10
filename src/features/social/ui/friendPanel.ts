@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/require-await */
 import * as mc from '@minecraft/server';
 
+import { getConfig } from '@core/configManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
+import { getPlayerRank } from '@core/rankManager.js';
 import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
+import { getPlayerIcon } from '@core/utils/ui.js';
 
 export class FriendPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
@@ -44,15 +47,25 @@ export class FriendPanelHandler implements IPanelHandler {
 
         if (panelId === 'friendListPanel') {
             const friends = pData.friends ?? [];
+            const config = getConfig();
             return friends.map((fid) => {
                 const fData = getPlayer(fid);
                 // Optimization: Use cached lookup
                 const onlineP = getPlayerFromCache(fid);
                 const status = onlineP ? '§aOnline' : '§cOffline';
+
+                let rankText = '';
+                let icon = 'textures/ui/permissions_member_star.png';
+                if (onlineP) {
+                    const targetRank = getPlayerRank(onlineP, config);
+                    rankText = targetRank.chatFormatting?.prefixText ? `§r[${targetRank.chatFormatting.prefixText}]` : `§r[${targetRank.name}]`;
+                    icon = getPlayerIcon(onlineP);
+                }
+
                 return {
                     id: `friend_${fid}`,
-                    text: `${fData ? fData.name : 'Unknown'}\n${status}`,
-                    icon: 'textures/ui/steve_head',
+                    text: `${fData ? fData.name : 'Unknown'} ${status}\n${rankText}`,
+                    icon: icon,
                     actionType: 'functionCall',
                     actionValue: `manageFriend:${fid}`,
                     permissionLevel: 1024
