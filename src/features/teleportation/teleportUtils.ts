@@ -12,12 +12,7 @@ import { isDefined } from '@lib/guards.js';
 export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport' = 'teleport') {
     if (!isDefined(player)) return;
 
-    if (typeof player.isValid === 'function') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        if (!(player as any).isValid()) return;
-    } else if (typeof player.isValid === 'boolean' && !player.isValid) {
-        return;
-    }
+    if (!player.isValid) return;
 
     // Check if Back system is globally enabled
     const backConfig = getConfig().back as { enabled?: boolean; saveOnDeath?: boolean; saveOnTeleport?: boolean } | undefined;

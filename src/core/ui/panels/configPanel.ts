@@ -436,7 +436,18 @@ export class ConfigPanelHandler implements IPanelHandler {
             } else if (setting.type === 'textField') {
                 const strVal = value as string;
                 const current = getValueFromPath(config, setting.key);
-                if (typeof current === 'number' || (setting.key.includes('.x') || setting.key.includes('.y') || setting.key.includes('.z') || setting.key.includes('Radius') || setting.key.includes('Seconds') || setting.key.includes('Cost') || setting.key.includes('Length') || setting.key.includes('Percent') || setting.key.includes('Interval'))) {
+                if (
+                    typeof current === 'number' ||
+                    setting.key.includes('.x') ||
+                    setting.key.includes('.y') ||
+                    setting.key.includes('.z') ||
+                    setting.key.includes('Radius') ||
+                    setting.key.includes('Seconds') ||
+                    setting.key.includes('Cost') ||
+                    setting.key.includes('Length') ||
+                    setting.key.includes('Percent') ||
+                    setting.key.includes('Interval')
+                ) {
                     if (!Number.isNaN(Number(strVal)) && isNonEmptyString(strVal) && strVal.trim() !== '') {
                         value = Number(strVal);
                     } else if (current === undefined && strVal.trim() === '') {

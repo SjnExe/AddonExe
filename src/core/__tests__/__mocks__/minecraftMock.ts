@@ -100,7 +100,7 @@ export class Player {
     playSound = vi.fn();
     getDynamicProperty = vi.fn();
     setDynamicProperty = vi.fn();
-    isValid = vi.fn().mockReturnValue(true);
+    isValid = true;
     triggerEvent = vi.fn();
     getComponent = vi.fn();
 }

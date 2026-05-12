@@ -3,11 +3,11 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 
 import { getConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
+import { getValueFromPath } from '@core/objectUtils.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { getValueFromPath } from '@core/objectUtils.js';
 import { panelRouter } from './PanelRouter.js';
 import { panelDefinitions } from './panelRegistry.js';
 import { MainConfig, PanelDefinition, PanelItem, UIContext } from './types.js';
@@ -39,7 +39,7 @@ export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: n
             icon: 'textures/gui/controls/left.png',
             permissionLevel: 1024,
             actionType: 'openPanel',
-            actionValue: (isDefined(context) && isNonEmptyString(context.returnPanel)) ? context.returnPanel : (panelDef.parentPanelId as string)
+            actionValue: isDefined(context) && isNonEmptyString(context.returnPanel) ? context.returnPanel : (panelDef.parentPanelId as string)
         });
     }
     return resultItems;

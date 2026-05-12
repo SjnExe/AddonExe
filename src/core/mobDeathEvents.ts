@@ -4,6 +4,7 @@ import * as mc from '@minecraft/server';
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
 import { isNumber } from '@lib/guards.js';
 
+import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import { getConfig } from './configManager.js';
 import { getEconomyConfig } from './configurations.js';
 import * as lastHitManager from './lastHitManager.js';
@@ -12,7 +13,6 @@ import { getPlayerFromCache } from './playerCache.js';
 import { getPlayer, incrementDeathCount, incrementKillCount, incrementKillStreak, incrementPlayerBalance, resetKillStreak } from './playerDataManager.js';
 import { handlePvPDeath } from './pvpManager.js';
 import { formatCurrency } from './utils.js';
-import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 
 mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     const { deadEntity, damageSource } = event;

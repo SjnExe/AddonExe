@@ -2,8 +2,8 @@ import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getWorldProtectionConfig, saveWorldProtectionConfig } from '@core/configurations.js';
-import { showPanel } from '@core/uiManager.js';
 import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
+import { showPanel } from '@core/uiManager.js';
 import { WorldProtectionZone } from '../worldProtectionConfig.default.js';
 
 export class WorldProtectionPanelHandler implements IPanelHandler {
@@ -51,7 +51,7 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
             let zone: WorldProtectionZone | undefined;
             if (isEdit && context.selectedItemId) {
                 const zoneId = context.selectedItemId.replace('zone_', '');
-                zone = config.zones.find(z => z.id === zoneId);
+                zone = config.zones.find((z) => z.id === zoneId);
                 if (!zone) return Promise.resolve(undefined);
             }
 
@@ -69,8 +69,8 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
             // Ensure backwards compatibility by falling back to zone or empty
             const restoredValues = context.formValues as unknown[] | undefined;
 
-            const defPos1 = restoredValues ? (restoredValues[3] as string) : (zone ? `${zone.box.min.x} ${zone.box.min.y} ${zone.box.min.z}` : '');
-            const defPos2 = restoredValues ? (restoredValues[4] as string) : (zone ? `${zone.box.max.x} ${zone.box.max.y} ${zone.box.max.z}` : '');
+            const defPos1 = restoredValues ? (restoredValues[3] as string) : zone ? `${zone.box.min.x} ${zone.box.min.y} ${zone.box.min.z}` : '';
+            const defPos2 = restoredValues ? (restoredValues[4] as string) : zone ? `${zone.box.max.x} ${zone.box.max.y} ${zone.box.max.z}` : '';
 
             // Coordinates
             form.textField('Position 1 (x y z)', 'e.g., -100 -64 -100', { defaultValue: defPos1 });
@@ -145,7 +145,7 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
             const pos2Str = (values[4] as string).trim();
 
             const parseCoords = (str: string) => {
-                const parts = str.split(/[,\s]+/).map(p => parseFloat(p));
+                const parts = str.split(/[,\s]+/).map((p) => parseFloat(p));
                 if (parts.length >= 3 && !isNaN(parts[0]!) && !isNaN(parts[1]!) && !isNaN(parts[2]!)) {
                     return { x: parts[0]!, y: parts[1]!, z: parts[2]! };
                 }
@@ -189,10 +189,10 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
                 const oldZoneId = context.selectedItemId!.replace('zone_', '');
 
                 if (isDelete) {
-                    config.zones = config.zones.filter(z => z.id !== oldZoneId);
+                    config.zones = config.zones.filter((z) => z.id !== oldZoneId);
                     player.sendMessage(`§aDeleted protection zone: ${oldZoneId}`);
                 } else {
-                    const zoneIndex = config.zones.findIndex(z => z.id === oldZoneId);
+                    const zoneIndex = config.zones.findIndex((z) => z.id === oldZoneId);
                     if (zoneIndex > -1) {
                         config.zones[zoneIndex] = {
                             id: newId,
@@ -208,7 +208,7 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
                     }
                 }
             } else {
-                if (config.zones.some(z => z.id === newId)) {
+                if (config.zones.some((z) => z.id === newId)) {
                     player.sendMessage(`§cZone ID '${newId}' already exists.`);
                     return Promise.resolve();
                 }

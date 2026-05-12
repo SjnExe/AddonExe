@@ -47,8 +47,7 @@ function updateSidebars() {
 
     for (const player of players) {
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            if (typeof player.isValid === 'function' && !((player as any).isValid() as boolean)) continue;
+            if (!player.isValid) continue;
 
             const pData = getPlayer(player.id);
             if (!isDefined(pData)) continue;
