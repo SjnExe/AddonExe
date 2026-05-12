@@ -1,6 +1,7 @@
 {
-    "name": "app",
+    "name": "AddonExe",
     "version": "0.7.0",
+    "private": true,
     "description": "<p align=\"center\">   <!-- TODO: Add a cool project logo/banner here. Example: <img src=\"link_to_your_logo.png\" alt=\"AddonExe Logo\" width=\"200\"/> -->   <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
     "keywords": [],
     "homepage": "https://github.com/SjnExe/AddonExe#readme",
@@ -11,8 +12,8 @@
         "type": "git",
         "url": "git+https://github.com/SjnExe/AddonExe.git"
     },
-    "license": "ISC",
-    "author": "",
+    "license": "MIT",
+    "author": "SjnExe",
     "type": "module",
     "main": "index.js",
     "scripts": {
@@ -87,6 +88,6 @@
         "type-fest": "latest",
         "typescript": "latest",
         "typescript-eslint": "latest",
-        "vitest": "^4.1.5"
+        "vitest": "latest"
     }
 }

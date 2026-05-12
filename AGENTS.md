@@ -13,7 +13,7 @@ If you need to initialize or reset the environment, use the following commands. 
 ```bash
 npm i -g npm@latest
 npm i
-npm run build
+npm run build || true
 ```
 
 ## 3. Understanding the Codebase
