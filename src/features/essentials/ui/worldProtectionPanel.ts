@@ -65,14 +65,16 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
             const dimIndex = zone ? Math.max(0, dimensions.indexOf(zone.dimension)) : 0;
             form.dropdown('Dimension', dimensions, { defaultValueIndex: dimIndex });
 
-            // Coordinates
-            form.textField('Min X', 'e.g., -100', { defaultValue: zone?.box.min.x.toString() ?? '' });
-            form.textField('Min Y', 'e.g., -64', { defaultValue: zone?.box.min.y.toString() ?? '-64' });
-            form.textField('Min Z', 'e.g., -100', { defaultValue: zone?.box.min.z.toString() ?? '' });
+            // Use context.formValues to restore state on error
+            // Ensure backwards compatibility by falling back to zone or empty
+            const restoredValues = context.formValues as unknown[] | undefined;
 
-            form.textField('Max X', 'e.g., 100', { defaultValue: zone?.box.max.x.toString() ?? '' });
-            form.textField('Max Y', 'e.g., 320', { defaultValue: zone?.box.max.y.toString() ?? '320' });
-            form.textField('Max Z', 'e.g., 100', { defaultValue: zone?.box.max.z.toString() ?? '' });
+            const defPos1 = restoredValues ? (restoredValues[3] as string) : (zone ? `${zone.box.min.x} ${zone.box.min.y} ${zone.box.min.z}` : '');
+            const defPos2 = restoredValues ? (restoredValues[4] as string) : (zone ? `${zone.box.max.x} ${zone.box.max.y} ${zone.box.max.z}` : '');
+
+            // Coordinates
+            form.textField('Position 1 (x y z)', 'e.g., -100 -64 -100', { defaultValue: defPos1 });
+            form.textField('Position 2 (x y z)', 'e.g., 100 320 100', { defaultValue: defPos2 });
 
             // Flags
             const flags = zone?.flags ?? {
@@ -82,19 +84,23 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
                 preventBlockBreaking: false,
                 preventBlockPlacing: false,
                 preventExplosions: false,
-                preventBlockInteraction: false
+                preventBlockInteraction: false,
+                preventItemPickup: false,
+                preventItemDropping: false
             };
 
-            form.toggle('Prevent PvP', { defaultValue: flags.preventPvP });
-            form.toggle('Prevent Hostile Damage', { defaultValue: flags.preventHostileDamage });
-            form.toggle('Prevent Hostile Mob Spawning', { defaultValue: flags.preventHostileMobSpawning });
-            form.toggle('Prevent Block Breaking', { defaultValue: flags.preventBlockBreaking });
-            form.toggle('Prevent Block Placing', { defaultValue: flags.preventBlockPlacing });
-            form.toggle('Prevent Explosions', { defaultValue: flags.preventExplosions });
-            form.toggle('Prevent Block Interaction', { defaultValue: flags.preventBlockInteraction });
+            form.toggle('Prevent PvP', { defaultValue: restoredValues ? (restoredValues[5] as boolean) : flags.preventPvP });
+            form.toggle('Prevent Hostile Damage', { defaultValue: restoredValues ? (restoredValues[6] as boolean) : flags.preventHostileDamage });
+            form.toggle('Prevent Hostile Mob Spawning', { defaultValue: restoredValues ? (restoredValues[7] as boolean) : flags.preventHostileMobSpawning });
+            form.toggle('Prevent Block Breaking', { defaultValue: restoredValues ? (restoredValues[8] as boolean) : flags.preventBlockBreaking });
+            form.toggle('Prevent Block Placing', { defaultValue: restoredValues ? (restoredValues[9] as boolean) : flags.preventBlockPlacing });
+            form.toggle('Prevent Explosions', { defaultValue: restoredValues ? (restoredValues[10] as boolean) : flags.preventExplosions });
+            form.toggle('Prevent Block Interaction', { defaultValue: restoredValues ? (restoredValues[11] as boolean) : flags.preventBlockInteraction });
+            form.toggle('Prevent Item Pickup', { defaultValue: restoredValues ? (restoredValues[12] as boolean) : flags.preventItemPickup });
+            form.toggle('Prevent Item Dropping', { defaultValue: restoredValues ? (restoredValues[13] as boolean) : flags.preventItemDropping });
 
             if (isEdit) {
-                form.toggle('§cDelete Zone§r', { defaultValue: false });
+                form.toggle('§cDelete Zone§r', { defaultValue: restoredValues ? (restoredValues[14] as boolean) : false });
             }
 
             return Promise.resolve(form);
@@ -135,34 +141,51 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
             const dimensions = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
             const dimension = dimensions[values[2] as number] as string;
 
-            const minX = parseFloat(values[3] as string);
-            const minY = parseFloat(values[4] as string);
-            const minZ = parseFloat(values[5] as string);
+            const pos1Str = (values[3] as string).trim();
+            const pos2Str = (values[4] as string).trim();
 
-            const maxX = parseFloat(values[6] as string);
-            const maxY = parseFloat(values[7] as string);
-            const maxZ = parseFloat(values[8] as string);
+            const parseCoords = (str: string) => {
+                const parts = str.split(/[,\s]+/).map(p => parseFloat(p));
+                if (parts.length >= 3 && !isNaN(parts[0]!) && !isNaN(parts[1]!) && !isNaN(parts[2]!)) {
+                    return { x: parts[0]!, y: parts[1]!, z: parts[2]! };
+                }
+                return null;
+            };
+
+            const pos1 = parseCoords(pos1Str);
+            const pos2 = parseCoords(pos2Str);
 
             // Validation
-            if (!newId || !newName || isNaN(minX) || isNaN(minY) || isNaN(minZ) || isNaN(maxX) || isNaN(maxY) || isNaN(maxZ)) {
-                player.sendMessage('§cInvalid input. Please ensure all coordinates are numbers and ID/Name are provided.');
-                return Promise.resolve();
+            if (!newId || !newName || !pos1 || !pos2) {
+                player.sendMessage('§cInvalid input. Please ensure coordinates are formatted correctly (x y z) and ID/Name are provided.');
+                // Re-open with values preserved
+                return showPanel(player, panelId, { ...context, formValues: values });
             }
 
+            const minX = Math.min(pos1.x, pos2.x);
+            const minY = Math.min(pos1.y, pos2.y);
+            const minZ = Math.min(pos1.z, pos2.z);
+
+            const maxX = Math.max(pos1.x, pos2.x);
+            const maxY = Math.max(pos1.y, pos2.y);
+            const maxZ = Math.max(pos1.z, pos2.z);
+
             const flags = {
-                preventPvP: values[9] as boolean,
-                preventHostileDamage: values[10] as boolean,
-                preventHostileMobSpawning: values[11] as boolean,
-                preventBlockBreaking: values[12] as boolean,
-                preventBlockPlacing: values[13] as boolean,
-                preventExplosions: values[14] as boolean,
-                preventBlockInteraction: values[15] as boolean
+                preventPvP: values[5] as boolean,
+                preventHostileDamage: values[6] as boolean,
+                preventHostileMobSpawning: values[7] as boolean,
+                preventBlockBreaking: values[8] as boolean,
+                preventBlockPlacing: values[9] as boolean,
+                preventExplosions: values[10] as boolean,
+                preventBlockInteraction: values[11] as boolean,
+                preventItemPickup: values[12] as boolean,
+                preventItemDropping: values[13] as boolean
             };
 
             const config = getWorldProtectionConfig();
 
             if (isEdit) {
-                const isDelete = values[16] as boolean;
+                const isDelete = values[14] as boolean;
                 const oldZoneId = context.selectedItemId!.replace('zone_', '');
 
                 if (isDelete) {

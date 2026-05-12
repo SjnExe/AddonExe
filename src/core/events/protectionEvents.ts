@@ -29,7 +29,9 @@ export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEve
     if (flags.preventBlockBreaking) {
         if (!canBypass(player)) {
             event.cancel = true;
-            player.onScreenDisplay.setActionBar('§cYou cannot break blocks here.');
+            mc.system.run(() => {
+                player.onScreenDisplay.setActionBar('§cYou cannot break blocks here.');
+            });
         }
     }
 }
@@ -42,7 +44,9 @@ export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEve
     if (flags.preventBlockPlacing) {
         if (!canBypass(player)) {
             event.cancel = true;
-            player.onScreenDisplay.setActionBar('§cYou cannot place blocks here.');
+            mc.system.run(() => {
+                player.onScreenDisplay.setActionBar('§cYou cannot place blocks here.');
+            });
         }
     }
 }
@@ -90,7 +94,9 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
     if (flags.preventBlockInteraction) {
         if (!canBypass(player)) {
             event.cancel = true;
-            player.onScreenDisplay.setActionBar('§cYou cannot interact with blocks here.');
+            mc.system.run(() => {
+                player.onScreenDisplay.setActionBar('§cYou cannot interact with blocks here.');
+            });
         }
     }
 }
@@ -104,25 +110,72 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
     // If desired, add custom flags for entities. For now, we skip.
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function handleBeforeItemDrop(event: any) {
+    // Handling depends on the actual event structure. It's either itemDrop or playerDropItem
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const p = event.source || event.player;
+    if (!isDefined(p)) return;
+    const player = p as mc.Player;
+
+    const flags = getProtectionFlags(player.location, player.dimension.id);
+    if (flags.preventItemDropping) {
+        if (!canBypass(player)) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            event.cancel = true;
+            mc.system.run(() => {
+                player.onScreenDisplay.setActionBar('§cYou cannot drop items here.');
+            });
+        }
+    }
+}
+
+export function handleBeforeItemPickup(event: mc.EntityItemPickupBeforeEvent) {
+    const entity = event.entity;
+    if (entity.typeId !== 'minecraft:player') return;
+    const player = entity as mc.Player;
+
+    const flags = getProtectionFlags(player.location, player.dimension.id);
+    if (flags.preventItemPickup) {
+        if (!canBypass(player)) {
+            event.cancel = true;
+            mc.system.run(() => {
+                player.onScreenDisplay.setActionBar('§cYou cannot pick up items here.');
+            });
+        }
+    }
+}
+
 export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent) {
     const { entity } = event;
     if (!isDefined(entity)) return;
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        const isValid = typeof (entity as any).isValid === 'function' ? (entity as any).isValid() : (entity as any).isValid;
+        if (!isValid) return;
 
-    // If hostile spawning is prevented
-    if (entity.typeId !== 'minecraft:player') {
-        const familyTypes = entity.getComponent('minecraft:type_family');
-        if (familyTypes?.hasTypeFamily('monster')) {
-            const flags = getProtectionFlags(entity.location, entity.dimension.id);
-            if (flags.preventHostileMobSpawning) {
-                // Cannot cancel afterEvent, so we despawn
-                mc.system.run(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                    const isValid = typeof (entity as any).isValid === 'function' ? (entity as any).isValid() : (entity as any).isValid;
-                    if (isValid) {
-                        entity.remove();
-                    }
-                });
+        // If hostile spawning is prevented
+        if (entity.typeId !== 'minecraft:player') {
+            const familyTypes = entity.getComponent('minecraft:type_family');
+            if (familyTypes?.hasTypeFamily('monster')) {
+                const flags = getProtectionFlags(entity.location, entity.dimension.id);
+                if (flags.preventHostileMobSpawning) {
+                    // Cannot cancel afterEvent, so we despawn
+                    mc.system.run(() => {
+                        try {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                            const isStillValid = typeof (entity as any).isValid === 'function' ? (entity as any).isValid() : (entity as any).isValid;
+                            if (isStillValid) {
+                                entity.remove();
+                            }
+                        } catch {
+                            // ignore
+                        }
+                    });
+                }
             }
         }
+    } catch {
+        // Ignore InvalidEntityError
     }
 }

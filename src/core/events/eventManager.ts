@@ -16,7 +16,9 @@ import {
     handleBeforePlayerBreakBlock,
     handleBeforePlayerPlaceBlock,
     handlePlayerInteractWithBlock,
-    handlePlayerInteractWithEntity
+    handlePlayerInteractWithEntity,
+    handleBeforeItemDrop,
+    handleBeforeItemPickup
 } from './protectionEvents.js';
 
 const cleanupActions: (() => void)[] = [];
@@ -55,6 +57,26 @@ export function initializeEventManager() {
     registerEvent(mc.world.beforeEvents.playerInteractWithBlock, handlePlayerInteractWithBlock, 'playerInteractWithBlock');
     registerEvent(mc.world.beforeEvents.playerInteractWithEntity, handlePlayerInteractWithEntity, 'playerInteractWithEntity');
     registerEvent(mc.world.afterEvents.entitySpawn, handleBeforeEntitySpawn, 'entitySpawn');
+    // Fallback for different version if needed, or cast to any
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+    if ((mc.world.beforeEvents as any).itemDrop !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+        registerEvent((mc.world.beforeEvents as any).itemDrop, handleBeforeItemDrop, 'itemDrop');
+    } else {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+        registerEvent((mc.world.beforeEvents as any).playerDropItem, handleBeforeItemDrop, 'playerDropItem');
+    }
+
+    // playerPickUpItem doesn't always exist in beforeEvents. We will check beforeEvents, then afterEvents, but afterEvents can't cancel.
+    // However, @minecraft/server has `beforeEvents.playerInteractWithItem` and `beforeEvents.playerInteractWithBlock`.
+    // Actually, in newer @minecraft/server, it's `beforeEvents.playerPickUpItem` or `beforeEvents.itemDrop`
+
+
+    // Attempt pickup
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (mc.world.beforeEvents.entityItemPickup !== undefined) {
+        registerEvent(mc.world.beforeEvents.entityItemPickup, handleBeforeItemPickup, 'entityItemPickup');
+    }
 
     // Other Events
     registerEvent(mc.world.beforeEvents.chatSend, handleBeforeChatSend, 'beforeChatSend');
