@@ -3,7 +3,7 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 
 import { refreshXrayCache } from '@features/anticheat/xrayDetection.js';
 
-import { getConfig, resetConfigSection } from '@core/configManager.js';
+import { resetConfigSection } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { getValueFromPath, setValueByPath } from '@core/objectUtils.js';
 import { getOrCreatePlayer, type PlayerData } from '@core/playerDataManager.js';
@@ -391,9 +391,6 @@ export class ConfigPanelHandler implements IPanelHandler {
         }
 
         if (isDefined(category) && isDefined(values)) {
-            // Cast settings to ConfigSetting[] to match the type
-            const updates = this.processFormValues(category.settings as unknown as ConfigSetting[], values);
-
             const configSource = isNonEmptyString(category.configSource) ? category.configSource : 'main';
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
             const handlers = uiConfigHandlers as any;
@@ -401,6 +398,11 @@ export class ConfigPanelHandler implements IPanelHandler {
             const handler = handlers[configSource] as { get: () => unknown; save: (cfg: unknown) => void } | undefined;
 
             if (isDefined(handler)) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const config = handler.get() as Record<string, any>;
+                // Cast settings to ConfigSetting[] to match the type
+                const updates = this.processFormValues(category.settings as unknown as ConfigSetting[], values, config);
+
                 this.saveConfigUpdates(handler, configSource, updates);
                 player.sendMessage('§2Configuration saved.');
 
@@ -419,7 +421,8 @@ export class ConfigPanelHandler implements IPanelHandler {
         return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
     }
 
-    private processFormValues(settings: ConfigSetting[], values: unknown[]): Record<string, unknown> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private processFormValues(settings: ConfigSetting[], values: unknown[], config: Record<string, any>): Record<string, unknown> {
         const updates: Record<string, unknown> = {};
         // Filter settings to match buildModal logic
         const validSettings = settings.filter((s) => ['toggle', 'textField', 'dropdown'].includes(s.type));
@@ -432,12 +435,15 @@ export class ConfigPanelHandler implements IPanelHandler {
                 value = setting.key === 'logLevel' ? selectedIndex : options[selectedIndex];
             } else if (setting.type === 'textField') {
                 const strVal = value as string;
-                const current = getValueFromPath(getConfig(), setting.key);
-                if (typeof current === 'number') {
+                const current = getValueFromPath(config, setting.key);
+                if (typeof current === 'number' || (setting.key.includes('.x') || setting.key.includes('.y') || setting.key.includes('.z') || setting.key.includes('Radius') || setting.key.includes('Seconds') || setting.key.includes('Cost') || setting.key.includes('Length') || setting.key.includes('Percent') || setting.key.includes('Interval'))) {
                     if (!Number.isNaN(Number(strVal)) && isNonEmptyString(strVal) && strVal.trim() !== '') {
                         value = Number(strVal);
-                    } else {
-                        // Skip update if input is invalid for a number field
+                    } else if (current === undefined && strVal.trim() === '') {
+                        // Allow resetting to undefined
+                        value = undefined;
+                    } else if (strVal.trim() !== '') {
+                        // Skip update if input is invalid for a number field, but allow empty strings if current is undefined
                         continue;
                     }
                 }

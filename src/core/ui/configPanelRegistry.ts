@@ -351,6 +351,13 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'How long a player must stand still before teleporting to spawn.'
             },
             {
+                key: 'spawn.spawnLocation.dimensionId',
+                label: 'Spawn Dimension',
+                type: 'dropdown',
+                options: ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'],
+                description: 'The dimension where spawn is located.'
+            },
+            {
                 key: 'spawn.spawnLocation.x',
                 label: 'Spawn X Coordinate',
                 type: 'textField',
