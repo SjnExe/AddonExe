@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getWorldProtectionConfig, saveWorldProtectionConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
@@ -102,12 +102,33 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
         return Promise.resolve(undefined);
     }
 
-    handleResponse(player: mc.Player, panelId: string, response: ModalFormResponse, context: UIContext): Promise<void> {
-        if (response.canceled || !response.formValues) return Promise.resolve();
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
+        if (response.canceled) return Promise.resolve();
+
+        if (panelId === 'worldProtectionListPanel') {
+            const actionResponse = response as ActionFormResponse;
+            if (typeof actionResponse.selection === 'number') {
+                const items = await this.getItems(player, panelId, context);
+                if (items && actionResponse.selection >= 0 && actionResponse.selection < items.length) {
+                    const item = items[actionResponse.selection];
+                    if (item && item.actionType === 'openPanel') {
+                        return showPanel(player, item.actionValue, {
+                            ...context,
+                            page: 1,
+                            selectedItemId: item.id
+                        });
+                    }
+                }
+            }
+            return Promise.resolve();
+        }
+
+        const modalResponse = response as ModalFormResponse;
+        if (!modalResponse.formValues) return Promise.resolve();
 
         if (panelId === 'addWorldProtectionPanel' || panelId === 'editWorldProtectionPanel') {
             const isEdit = panelId === 'editWorldProtectionPanel';
-            const values = response.formValues;
+            const values = modalResponse.formValues;
 
             const newId = (values[0] as string).trim();
             const newName = (values[1] as string).trim();

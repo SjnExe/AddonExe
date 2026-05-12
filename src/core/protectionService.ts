@@ -1,6 +1,5 @@
 import { getSpawnConfig, getWorldProtectionConfig } from './configurations.js';
 import type { Vector3 } from '@minecraft/server';
-import { isDefined, isNumber } from '@lib/guards.js';
 
 export type ProtectionFlags = {
     preventPvP: boolean;
@@ -75,17 +74,20 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
     const spawnConfig = getSpawnConfig();
     if (spawnConfig.spawnProtection.enabled) {
         const spawnLoc = spawnConfig.spawn.spawnLocation;
+        const x = Number(spawnLoc.x);
+        const z = Number(spawnLoc.z);
+
         // Verify spawn location has coordinates
-        if (isDefined(spawnLoc.x) && isDefined(spawnLoc.z) && isNumber(spawnLoc.x) && isNumber(spawnLoc.z)) {
+        if (!isNaN(x) && !isNaN(z)) {
             // Spawn protection uses the configured dimension (or Overworld if undefined, though it defaults to Overworld)
             const spawnDimension = spawnLoc.dimensionId || 'minecraft:overworld';
             if (dimensionId === spawnDimension) {
-                const radius = spawnConfig.spawnProtection.protectionRadius;
+                const radius = Number(spawnConfig.spawnProtection.protectionRadius) || 0;
 
                 // Construct Bounding Box for Spawn Protection (infinite Y axis realistically bounded by world limits)
                 // Spawn column on X and Z axes
-                const minSpawn = { x: spawnLoc.x - radius, y: -64, z: spawnLoc.z - radius };
-                const maxSpawn = { x: spawnLoc.x + radius, y: 320, z: spawnLoc.z + radius };
+                const minSpawn = { x: x - radius, y: -64, z: z - radius };
+                const maxSpawn = { x: x + radius, y: 320, z: z + radius };
 
                 if (isWithinBox(location, minSpawn, maxSpawn)) {
                     // Combine spawn protection flags
