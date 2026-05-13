@@ -45,10 +45,9 @@ const backCommand: CustomCommand = {
 
         const cost = typeof backConfig.cost === 'string' ? parseFloat(backConfig.cost) : backConfig.cost;
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-        const economyConfig = (config as any).economy;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const isEconomyEnabled = economyConfig && economyConfig.enabled === true;
+        // Properly type the economy config check
+        const economyConfig = 'economy' in config ? (config.economy as { enabled?: boolean }) : null;
+        const isEconomyEnabled = economyConfig?.enabled === true;
 
         // Cost Check
         if (isEconomyEnabled && cost > 0 && pData.balance < cost) {
