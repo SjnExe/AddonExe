@@ -166,7 +166,7 @@ export class KitPanelHandler implements IPanelHandler {
 
         // Modal Handling for Settings
         if (panelId.startsWith('kitSettingsPanel_')) {
-            await this.handleKitSettings(player, panelId, response as ModalFormResponse, context);
+            await this.handleKitSettings(player, panelId, response, context);
         }
     }
 

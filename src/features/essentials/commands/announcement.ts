@@ -4,7 +4,7 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { isDefined } from '@lib/guards.js';
 
-let announcementIntervalId: number | undefined;
+
 
 // This command toggles the announcer or forces an announcement
 const announcementCommand: CustomCommand = {
@@ -25,6 +25,8 @@ export function broadcastAnnouncement(message: string) {
         player.sendMessage(`§d[Announcement] §r${message}`);
     }
 }
+
+let announcementIntervalId: number | undefined;
 
 export function restartAnnouncer() {
     if (isDefined(announcementIntervalId)) {

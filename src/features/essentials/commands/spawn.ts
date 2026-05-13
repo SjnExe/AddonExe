@@ -169,7 +169,7 @@ const setSpawnCommand: CustomCommand = {
             if (location.dimensionId === (MinecraftDimensionTypes.Overworld as string) && spawnConfig.spawn.syncWorldSpawn) {
                 syncWorldSpawn(executor, location);
                 // Configuration sets it as either string or number from the textfield
-                updateSpawnRadius(executor, spawnConfig.spawn.worldSpawnRadius as number | string);
+                updateSpawnRadius(executor, spawnConfig.spawn.worldSpawnRadius);
             }
 
             if (executor instanceof mc.Player) {

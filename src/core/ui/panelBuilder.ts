@@ -17,7 +17,7 @@ export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: n
     const items = (isDefined(panelDef.items) ? panelDef.items : [])
         .filter((item: PanelItem) => {
             if (isNonEmptyString(item.requiresFeature)) {
-                const isEnabled = getValueFromPath(config as Record<string, unknown>, item.requiresFeature);
+                const isEnabled = getValueFromPath(config, item.requiresFeature);
                 if (isEnabled !== true) {
                     return false;
                 }

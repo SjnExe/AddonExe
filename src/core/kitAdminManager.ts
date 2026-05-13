@@ -121,7 +121,7 @@ export function updateKitSettings(kitName: string, newSettings: KitSettings): Ac
  */
 export function getAllKits(): Record<string, Kit> {
     const config = getKitsConfig();
-    return config.kitDefinitions as Record<string, Kit>;
+    return config.kitDefinitions;
 }
 
 /**

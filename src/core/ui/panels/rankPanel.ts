@@ -108,12 +108,12 @@ export class RankPanelHandler implements IPanelHandler {
         const selection = (response as ActionFormResponse).selection;
 
         if (panelId === 'addRankPanel') {
-            await this.handleAddRankResponse(player, response as ModalFormResponse);
+            await this.handleAddRankResponse(player, response);
             return;
         }
 
         if (panelId === 'editRankPanel') {
-            await this.handleEditRankResponse(player, response as ModalFormResponse, context);
+            await this.handleEditRankResponse(player, response, context);
             return;
         }
 

@@ -70,7 +70,7 @@ const backCommand: CustomCommand = {
                 }
 
                 const dimension = mc.world.getDimension(lastLocation.dimensionId);
-                executor.teleport(lastLocation as mc.Vector3, { dimension: dimension });
+                executor.teleport(lastLocation, { dimension: dimension });
                 sendMessage('§aTeleported back to previous location.', executor);
                 playSound(executor, 'random.orb');
                 setCooldown(executor, 'back');

@@ -49,15 +49,15 @@ const { default: inventoryCommands } = await import('../commands/inventory.js');
 import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
 
 const setupRanks = (executorLevel: number, targetLevel: number) => {
-    mockGetPlayer.mockImplementation(((id: string) => {
+    mockGetPlayer.mockImplementation((id: string) => {
         if (id === 'executorId') return { permissionLevel: executorLevel, name: 'Executor' };
         if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
         return undefined;
-    }) as unknown as typeof mockGetPlayer);
-    mockLoadPlayerData.mockImplementation(((id: string) => {
+    });
+    mockLoadPlayerData.mockImplementation((id: string) => {
         if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
         return undefined;
-    }) as unknown as typeof mockLoadPlayerData);
+    });
 };
 
 describe('Moderation Hierarchy', () => {
@@ -74,17 +74,17 @@ describe('Moderation Hierarchy', () => {
     const target = new PlayerMock('targetId', 'Target');
     target.sendMessage = vi.fn();
     target.hasTag = vi.fn(() => false);
-    target.addTag = vi.fn() as unknown as (tag: string) => boolean;
-    target.removeTag = vi.fn() as unknown as (tag: string) => boolean;
-    target.addEffect = vi.fn() as unknown as (effectType: string | mc.EffectType, duration: number, options?: mc.EntityEffectOptions) => mc.Effect | undefined;
-    target.removeEffect = vi.fn() as unknown as (effectType: string | mc.EffectType) => boolean;
+    target.addTag = vi.fn();
+    target.removeTag = vi.fn();
+    target.addEffect = vi.fn();
+    target.removeEffect = vi.fn();
 
     Object.defineProperty(target, 'dimension', {
         value: { runCommand: vi.fn() },
         writable: true
     });
 
-    target.getComponent = vi.fn() as unknown as <T extends string>(componentId: T) => mc.EntityComponentReturnType<T> | undefined;
+    target.getComponent = vi.fn();
 
     beforeEach(() => {
         vi.clearAllMocks();

@@ -145,13 +145,13 @@ export default function createConfigManager<T>(key: string, defaultConfig: T, na
     }
 
     function updateConfig(path: string, value: unknown) {
-        setValueByPath(currentConfig as unknown as Record<string, unknown>, path, value);
+        setValueByPath(currentConfig, path, value);
         saveConfig();
     }
 
     function updateMultipleConfig(updates: Record<string, unknown>) {
         for (const path in updates) {
-            setValueByPath(currentConfig as unknown as Record<string, unknown>, path, updates[path]);
+            setValueByPath(currentConfig, path, updates[path]);
         }
         saveConfig();
     }

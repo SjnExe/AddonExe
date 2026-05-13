@@ -211,16 +211,15 @@ export class ConfigPanelHandler implements IPanelHandler {
                 }
                 case 'textField': {
                     const val = currentValue ?? '';
-                    const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
+                    const strVal = typeof val === 'object' ? JSON.stringify(val) : (val as unknown as string).toString();
                     form.textField(setting.label, isNonEmptyString(setting.description) ? setting.description : '', {
                         defaultValue: strVal
                     });
                     break;
                 }
                 case 'dropdown': {
-                    let index = -1;
                     const options = setting.options ?? [];
-                    index = setting.key === 'logLevel' && typeof currentValue === 'number' ? currentValue : options.indexOf(currentValue as string);
+                    const index = setting.key === 'logLevel' && typeof currentValue === 'number' ? currentValue : options.indexOf(currentValue as string);
                     form.dropdown(setting.label, options, { defaultValueIndex: Math.max(0, index) });
                     break;
                 }
@@ -238,7 +237,7 @@ export class ConfigPanelHandler implements IPanelHandler {
 
         // Modal Handling
         if (panelId.startsWith('config_')) {
-            await this.handleConfigModalSave(player, panelId, response as ModalFormResponse, context);
+            await this.handleConfigModalSave(player, panelId, response, context);
         }
     }
 
