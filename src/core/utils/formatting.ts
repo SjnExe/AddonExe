@@ -9,7 +9,7 @@
  * @param text The string to strip color codes from.
  */
 export function stripColorCodes(text: string): string {
-    return text.replace(/§[0-9a-fk-or]/ig, '');
+    return text.replace(/§[0-9a-fk-or]/gi, '');
 }
 
 export function formatString(template: string, context: Record<string, string | number | boolean>): string {

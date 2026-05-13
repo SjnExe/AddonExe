@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
+import { getConfig } from '@core/configManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
-import { getConfig } from '@core/configManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { getStaticMenuItems } from '@core/ui/panelBuilder.js';
 import { panelDefinitions } from '@core/ui/panelRegistry.js';

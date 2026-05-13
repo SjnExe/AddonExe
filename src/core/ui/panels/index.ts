@@ -1,5 +1,6 @@
 import { BountyPanelHandler } from '@features/economy/ui/bountyPanel.js';
 import { EconomyPanelHandler } from '@features/economy/ui/economyPanel.js';
+import { WorldProtectionPanelHandler } from '@features/essentials/ui/worldProtectionPanel.js';
 import { KitPanelHandler } from '@features/kits/ui/kitPanel.js';
 import { ModerationPanelHandler } from '@features/moderation/ui/moderationPanel.js';
 import { XrayPanelHandler } from '@features/moderation/ui/xrayPanel.js';
@@ -17,7 +18,6 @@ import { InfoPanelHandler } from './infoPanel.js';
 import { PlayerPanelHandler } from './playerPanel.js';
 import { RankPanelHandler } from './rankPanel.js';
 import { SidebarPanelHandler } from './sidebarPanel.js';
-import { WorldProtectionPanelHandler } from '@features/essentials/ui/worldProtectionPanel.js';
 
 export function initialize() {
     // Core Handlers

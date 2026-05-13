@@ -16,8 +16,8 @@ import {
     loadSidebarConfig,
     loadSpawnConfig,
     loadTeamConfig,
-    loadXrayConfig,
-    loadWorldProtectionConfig
+    loadWorldProtectionConfig,
+    loadXrayConfig
 } from './configurations.js';
 import { dataManager, loadPersistentData } from './dataManager.js';
 import { cleanupEventManager, initializeEventManager } from './events/eventManager.js';

@@ -1,8 +1,8 @@
-import * as mc from '@minecraft/server';
+import { getSpawnConfig } from '@core/configurations.js';
+import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { getProtectionFlags } from '@core/protectionService.js';
 import { isDefined } from '@lib/guards.js';
-import { getOrCreatePlayer } from '@core/playerDataManager.js';
-import { getSpawnConfig } from '@core/configurations.js';
+import * as mc from '@minecraft/server';
 
 function canBypass(player: mc.Player): boolean {
     // Check if admin bypass is allowed globally or in spawn configuration
@@ -150,8 +150,7 @@ export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent) {
     const { entity } = event;
     if (!isDefined(entity)) return;
     try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        const isValid = typeof (entity as any).isValid === 'function' ? (entity as any).isValid() : (entity as any).isValid;
+        const isValid = entity.isValid;
         if (!isValid) return;
 
         // If hostile spawning is prevented
@@ -163,8 +162,7 @@ export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent) {
                     // Cannot cancel afterEvent, so we despawn
                     mc.system.run(() => {
                         try {
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                            const isStillValid = typeof (entity as any).isValid === 'function' ? (entity as any).isValid() : (entity as any).isValid;
+                            const isStillValid = entity.isValid;
                             if (isStillValid) {
                                 entity.remove();
                             }

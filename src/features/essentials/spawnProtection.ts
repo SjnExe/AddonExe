@@ -16,8 +16,7 @@ export function initializeSpawnProtection() {
 
         for (const player of players) {
             try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                const isValid = typeof (player as any).isValid === 'function' ? (player as any).isValid() : (player as any).isValid;
+                const isValid = player.isValid;
                 if (!isValid) continue;
 
                 const flags = getProtectionFlags(player.location, player.dimension.id);
@@ -39,7 +38,6 @@ export function initializeSpawnProtection() {
                     player.removeTag('exe:in_hostile_protection');
                     player.triggerEvent('exe:enable_hostile_damage');
                 }
-
             } catch (error) {
                 debugLog(`Protection evaluation error for ${player.name}: ${String(error)}`);
             }

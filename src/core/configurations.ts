@@ -12,6 +12,7 @@ import { reloadRanks } from './rankManager.js';
 import type { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
 import type { dailyRewardsConfig } from '@features/dailyRewards/dailyRewardsConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
+import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.default.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
 import type { teamConfig } from '@features/teams/teamConfig.js';
@@ -32,7 +33,6 @@ export type FriendConfig = typeof friendConfig;
 export type SidebarConfig = typeof sidebarConfig;
 export type AuctionHouseConfig = typeof auctionHouseConfig;
 export type DailyRewardsConfig = typeof dailyRewardsConfig;
-import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.default.js';
 
 let kitsConfigManager: ConfigManager<KitsConfig>,
     shopConfigManager: ConfigManager<ShopConfig>,

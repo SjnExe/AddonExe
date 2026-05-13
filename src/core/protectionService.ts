@@ -1,5 +1,5 @@
-import { getSpawnConfig, getWorldProtectionConfig } from './configurations.js';
 import type { Vector3 } from '@minecraft/server';
+import { getSpawnConfig, getWorldProtectionConfig } from './configurations.js';
 
 export type ProtectionFlags = {
     preventPvP: boolean;
@@ -41,11 +41,7 @@ function isWithinBox(location: Vector3, min: Vector3, max: Vector3): boolean {
     const maxY = Math.max(min.y, max.y);
     const maxZ = Math.max(min.z, max.z);
 
-    return (
-        location.x >= minX && location.x <= maxX &&
-        location.y >= minY && location.y <= maxY &&
-        location.z >= minZ && location.z <= maxZ
-    );
+    return location.x >= minX && location.x <= maxX && location.y >= minY && location.y <= maxY && location.z >= minZ && location.z <= maxZ;
 }
 
 /**

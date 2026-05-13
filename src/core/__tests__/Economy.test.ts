@@ -68,7 +68,7 @@ const mockPlayer = (id: string, name: string) =>
     ({
         id,
         name,
-        isValid: () => true,
+        isValid: true,
         sendMessage: vi.fn(),
         getGameMode: vi.fn(),
         getComponent: vi.fn()

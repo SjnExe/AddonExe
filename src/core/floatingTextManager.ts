@@ -116,8 +116,7 @@ function* updateLoopJob() {
             // Batch query once per dimension
             const allEntities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of allEntities) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                if (!(entity as any).isValid()) continue;
+                if (!entity.isValid) continue;
                 for (const tag of entity.getTags()) {
                     if (tag.startsWith('ft_')) {
                         const id = tag.slice(3);
@@ -135,12 +134,7 @@ function* updateLoopJob() {
                     lastResolvedText.set(textConfig.id, resolved);
                     const entity = entitiesMap.get(textConfig.id);
 
-                    if (
-                        isDefined(entity) &&
-                        typeof entity.isValid === 'function' &&
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                        (entity as any).isValid()
-                    ) {
+                    if (isDefined(entity) && entity.isValid) {
                         entity.nameTag = resolved.replaceAll(String.raw`\n`, '\n');
                     }
                 }
@@ -189,8 +183,7 @@ function pruneOrphanedTexts() {
             const dimension = mc.world.getDimension(dimId);
             const entities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of entities) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                if (!(entity as any).isValid()) continue;
+                if (!entity.isValid) continue;
                 let isTracked = false;
                 for (const tag of entity.getTags()) {
                     if (tag.startsWith('ft_')) {
@@ -233,8 +226,7 @@ function spawnAllTexts() {
             // Batch query all floating texts in this dimension
             const entities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of entities) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                if (!(entity as any).isValid()) continue;
+                if (!entity.isValid) continue;
                 for (const tag of entity.getTags()) {
                     if (tag.startsWith('ft_')) {
                         const id = tag.slice(3);
@@ -250,12 +242,7 @@ function spawnAllTexts() {
         for (const textConfig of texts) {
             if (dimensionValid) {
                 const entity = entityMap.get(textConfig.id);
-                if (
-                    isDefined(entity) &&
-                    typeof entity.isValid === 'function' &&
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                    (entity as any).isValid()
-                ) {
+                if (isDefined(entity) && entity.isValid) {
                     const isCorrectLocation =
                         Math.abs(entity.location.x - textConfig.location.x) < 0.1 &&
                         Math.abs(entity.location.y - textConfig.location.y) < 0.1 &&
@@ -285,8 +272,7 @@ function spawnText(textConfig: FloatingTextConfig) {
             });
 
             for (const entity of entities) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                if (!(entity as any).isValid()) continue;
+                if (!entity.isValid) continue;
                 entity.remove();
                 removedViaApi = true;
             }
@@ -329,12 +315,7 @@ async function findEntityWithRetries(dimension: mc.Dimension, query: mc.EntityQu
     for (let i = 0; i < maxRetries; i++) {
         const entities = dimension.getEntities(query);
         const entity = entities.length > 0 ? entities[0] : undefined;
-        if (
-            isDefined(entity) &&
-            typeof entity.isValid === 'function' &&
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            (entity as any).isValid()
-        ) {
+        if (isDefined(entity) && entity.isValid) {
             return entity;
         }
         await new Promise<void>((resolve) => mc.system.runTimeout(resolve, delayBetweenRetries));
@@ -500,12 +481,7 @@ export function despawnText(id: string) {
         // Iterate and remove all matches, just in case duplication occurred
         let found = false;
         for (const entity of entities) {
-            if (
-                isDefined(entity) &&
-                typeof entity.isValid === 'function' &&
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                (entity as any).isValid()
-            ) {
+            if (isDefined(entity) && entity.isValid) {
                 entity.remove();
                 found = true;
             }

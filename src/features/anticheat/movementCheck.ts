@@ -41,8 +41,8 @@ function* checkPlayersGenerator(config: AnticheatConfig) {
         const players = getAllPlayersFromCache();
         for (const player of players) {
             // Process one player per tick/slice
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            if ((player as any).isValid()) {
+
+            if (player.isValid) {
                 // Run checks
                 if (config.movementCheck.enabled === true) {
                     checkMovement(player, config.movementCheck);

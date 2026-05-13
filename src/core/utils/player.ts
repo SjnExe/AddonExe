@@ -76,12 +76,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
 export function isValidPlayer(player: mc.Player): boolean {
     if (!isDefined(player)) return false;
     try {
-        if (typeof player.isValid === 'function') {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-            return (player as any).isValid() as boolean;
-        }
-
-        return true;
+        return player.isValid;
     } catch {
         return false;
     }
