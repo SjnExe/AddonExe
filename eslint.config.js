@@ -85,19 +85,20 @@ export default tseslint.config(
             'no-var': 'error',
             curly: ['error', 'all'],
             'import/no-duplicates': 'error',
-            '@typescript-eslint/no-explicit-any': 'warn', // Downgraded to warn
+            '@typescript-eslint/no-explicit-any': 'error', // Upgraded to error
             '@typescript-eslint/no-var-requires': 'error',
             '@typescript-eslint/no-shadow': 'error',
             '@typescript-eslint/no-floating-promises': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
             '@typescript-eslint/no-unused-vars': ['error', { args: 'all', argsIgnorePattern: '^_' }],
             // Strict type safety rules - Upgraded to error
-            '@typescript-eslint/no-unsafe-argument': 'warn', // Downgraded to warn
-            '@typescript-eslint/no-unsafe-assignment': 'warn', // Downgraded to warn
-            '@typescript-eslint/no-unsafe-call': 'warn', // Downgraded to warn
-            '@typescript-eslint/no-unsafe-member-access': 'warn', // Downgraded to warn
-            '@typescript-eslint/no-unsafe-return': 'warn', // Downgraded to warn
+            '@typescript-eslint/no-unsafe-argument': 'error', // Upgraded to error
+            '@typescript-eslint/no-unsafe-assignment': 'error', // Upgraded to error
+            '@typescript-eslint/no-unsafe-call': 'error', // Upgraded to error
+            '@typescript-eslint/no-unsafe-member-access': 'error', // Upgraded to error
+            '@typescript-eslint/no-unsafe-return': 'error', // Upgraded to error
             '@typescript-eslint/no-unsafe-enum-comparison': 'error',
+            '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': 'allow-with-description', 'ts-nocheck': true, 'ts-check': false }],
             '@typescript-eslint/restrict-template-expressions': 'error',
             '@typescript-eslint/only-throw-error': 'error',
             '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],

@@ -16,19 +16,28 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    build:
+    lint:
         runs-on: ubuntu-latest
-        timeout-minutes: 30
-        permissions:
-            contents: write
+        timeout-minutes: 10
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v6
-              with:
-                  fetch-depth: 0
-            - name: Install dependencies
-              run: npm ci
+            - uses: actions/checkout@v6
+            - run: npm ci
+            - run: npm run lint
 
+    format:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v6
+            - run: npm ci
+            - run: npm run format:check
+
+    typecheck:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v6
+            - run: npm ci
             - name: Cache TypeScript Build Info
               uses: actions/cache@v5
               with:
@@ -36,12 +45,35 @@ jobs:
                   key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
                   restore-keys: |
                       ${{ runner.os }}-tsbuildinfo-
+            - run: npm run check-types
 
-            - name: Run Lint Check
-              run: npm run lint
+    test:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v6
+            - run: npm ci
+            - run: npm test
 
-            - name: Run Tests
-              run: npm test
+    validate:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v6
+            - run: npm ci
+            - run: npm run validate
+
+    build:
+        needs: [lint, format, typecheck, test, validate]
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+            - name: Install dependencies
+              run: npm ci
 
             - name: Determine Build Type
               id: build_type
@@ -132,23 +164,70 @@ jobs:
                   # Create RP .mcpack with max compression (Exclude maps)
                   (cd staging/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
 
+            - name: Upload Build Artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: release-archives
+                  path: |
+                      AddonExe.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcaddon
+                      AddonExe_BP.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcpack
+                      AddonExe_RP.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcpack
+                  retention-days: 7
+
             - name: Upload Debug Symbols (Nightly only)
               if: steps.build_type.outputs.type == 'nightly'
-              uses: actions/upload-artifact@v7
+              uses: actions/upload-artifact@v4
               with:
                   name: debug-symbols-nightly
                   path: staging/**/*.map
                   retention-days: 7
+            - name: Create build meta file
+              run: |
+                  echo "BUILD_TYPE=${{ steps.build_type.outputs.type }}" > build_meta.env
+                  echo "ARCHIVE_VERSION=${{ env.ARCHIVE_VERSION }}" >> build_meta.env
+                  echo "VERSION_STRING=${{ env.VERSION_STRING }}" >> build_meta.env
+                  echo "BUILD_DATE=${{ env.BUILD_DATE }}" >> build_meta.env
+                  echo "PREFIX=${{ env.PREFIX }}" >> build_meta.env
+            - name: Upload build meta
+              uses: actions/upload-artifact@v4
+              with:
+                  name: build-meta
+                  path: build_meta.env
+                  retention-days: 7
+
+    release:
+        needs: [build]
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+
+            - name: Download Build Meta
+              uses: actions/download-artifact@v4
+              with:
+                  name: build-meta
+
+            - name: Download Release Archives
+              uses: actions/download-artifact@v4
+              with:
+                  name: release-archives
+
+            - name: Load Build Meta
+              run: |
+                  cat build_meta.env >> $GITHUB_ENV
 
             - name: Clean Old Nightly Assets
-              if: steps.build_type.outputs.type == 'nightly'
+              if: env.BUILD_TYPE == 'nightly'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   gh release delete nightly --cleanup-tag --yes || true
 
             - name: Publish Nightly Release
-              if: steps.build_type.outputs.type == 'nightly'
+              if: env.BUILD_TYPE == 'nightly'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
@@ -172,7 +251,7 @@ jobs:
                       AddonExe_RP.Nightly.${{ env.ARCHIVE_VERSION }}.mcpack
 
             - name: Publish Stable Release
-              if: steps.build_type.outputs.type == 'stable'
+              if: env.BUILD_TYPE == 'stable'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |

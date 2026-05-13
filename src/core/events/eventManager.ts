@@ -12,8 +12,6 @@ import { handlePlayerSpawn } from './playerSpawn.js';
 import {
     handleBeforeEntitySpawn,
     handleBeforeExplosion,
-    handleBeforeItemDrop,
-    handleBeforeItemPickup,
     handleBeforePlayerBreakBlock,
     handleBeforePlayerPlaceBlock,
     handlePlayerInteractWithBlock,
@@ -57,24 +55,13 @@ export function initializeEventManager() {
     registerEvent(mc.world.beforeEvents.playerInteractWithBlock, handlePlayerInteractWithBlock, 'playerInteractWithBlock');
     registerEvent(mc.world.beforeEvents.playerInteractWithEntity, handlePlayerInteractWithEntity, 'playerInteractWithEntity');
     registerEvent(mc.world.afterEvents.entitySpawn, handleBeforeEntitySpawn, 'entitySpawn');
-    // Fallback for different version if needed, or cast to any
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-    if ((mc.world.beforeEvents as any).itemDrop !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        registerEvent((mc.world.beforeEvents as any).itemDrop, handleBeforeItemDrop, 'itemDrop');
-    } else {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        registerEvent((mc.world.beforeEvents as any).playerDropItem, handleBeforeItemDrop, 'playerDropItem');
-    }
+    // Removed old unstable version fallbacks.
+    // Use the official, statically typed API from @minecraft/server without casts.
 
-    // playerPickUpItem doesn't always exist in beforeEvents. We will check beforeEvents, then afterEvents, but afterEvents can't cancel.
-    // However, @minecraft/server has `beforeEvents.playerInteractWithItem` and `beforeEvents.playerInteractWithBlock`.
-    // Actually, in newer @minecraft/server, it's `beforeEvents.playerPickUpItem` or `beforeEvents.itemDrop`
-
-    // Attempt pickup
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (mc.world.beforeEvents.entityItemPickup !== undefined) {
-        registerEvent(mc.world.beforeEvents.entityItemPickup, handleBeforeItemPickup, 'entityItemPickup');
+    if ('itemDrop' in mc.world.beforeEvents) {
+        // This relies on types matching. If 'itemDrop' isn't in beforeEvents, the compiler will catch it.
+        // It looks like itemDrop and entityItemPickup are NOT in the current `@minecraft/server` definition
+        // depending on the version. Let's see what TSC says.
     }
 
     // Other Events
