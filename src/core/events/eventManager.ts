@@ -10,6 +10,7 @@ import handlePlayerDimensionChange from './playerDimensionChange.js';
 import handlePlayerLeave from './playerLeave.js';
 import { handlePlayerSpawn } from './playerSpawn.js';
 import {
+    handleBeforeEntityHurt,
     handleBeforeEntitySpawn,
     handleBeforeExplosion,
     handleBeforeItemPickup,
@@ -55,6 +56,7 @@ export function initializeEventManager() {
     registerEvent(mc.world.beforeEvents.explosion, handleBeforeExplosion, 'beforeExplosion');
     registerEvent(mc.world.beforeEvents.playerInteractWithBlock, handlePlayerInteractWithBlock, 'playerInteractWithBlock');
     registerEvent(mc.world.beforeEvents.playerInteractWithEntity, handlePlayerInteractWithEntity, 'playerInteractWithEntity');
+    registerEvent(mc.world.beforeEvents.entityHurt, handleBeforeEntityHurt, 'beforeEntityHurt');
     registerEvent(mc.world.afterEvents.entitySpawn, handleBeforeEntitySpawn, 'entitySpawn');
     registerEvent(mc.world.beforeEvents.entityItemPickup, handleBeforeItemPickup, 'entityItemPickup');
     // Removed old unstable version fallbacks.

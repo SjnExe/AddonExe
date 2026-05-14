@@ -157,3 +157,51 @@ export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent) {
         // Ignore InvalidEntityError
     }
 }
+
+export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
+    const { damageSource } = event;
+    const victim = event.hurtEntity;
+    if (victim.typeId !== 'minecraft:player') return;
+
+    const player = victim as mc.Player;
+    const flags = getProtectionFlags(player.location, player.dimension.id);
+
+    if (!flags.preventPvP && !flags.preventHostileDamage) return;
+
+    const damagingEntity = damageSource.damagingEntity;
+
+    // Helper to get actual attacker (e.g., owner of projectile)
+    const projectileComponent = damagingEntity?.getComponent('minecraft:projectile');
+    const attacker = projectileComponent?.owner ?? damagingEntity;
+    const cause = damageSource.cause;
+
+    // PvP Protection
+    if (flags.preventPvP) {
+        if (attacker && attacker.typeId === 'minecraft:player' && attacker.id !== player.id) {
+            event.cancel = true;
+            return;
+        }
+    }
+
+    // Hostile Damage Protection
+    if (flags.preventHostileDamage) {
+        // Direct damage from non-player entities
+        if (attacker && attacker.typeId !== 'minecraft:player') {
+            const familyTypes = attacker.getComponent('minecraft:type_family');
+            if (familyTypes?.hasTypeFamily('monster') || familyTypes?.hasTypeFamily('mob')) {
+                event.cancel = true;
+                return;
+            } else if (!familyTypes?.hasTypeFamily('inanimate') && !familyTypes?.hasTypeFamily('player')) {
+                event.cancel = true;
+                return;
+            }
+        }
+
+        // Secondary effects from hostile mobs (Wither effect from Wither skeleton/Wither boss, Magic from Witches)
+        // Note: 'poison' is not an EntityDamageCause in this API version. Magic covers potion damage.
+        if (cause === mc.EntityDamageCause.wither || cause === mc.EntityDamageCause.magic) {
+            event.cancel = true;
+            return;
+        }
+    }
+}
