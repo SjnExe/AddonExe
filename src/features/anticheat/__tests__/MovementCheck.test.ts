@@ -32,8 +32,8 @@ describe('MovementCheck', () => {
         initializePlayerCache();
 
         // Capture interval callback
-        (mc.system.runInterval as any).mockImplementation((cb) => {
-            intervalCallback = cb as () => void;
+        (mc.system.runInterval as any).mockImplementation((cb: () => void) => {
+            intervalCallback = cb;
             return 1;
         });
 

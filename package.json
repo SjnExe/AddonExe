@@ -102,5 +102,8 @@
         "typescript": "latest",
         "typescript-eslint": "latest",
         "vitest": "latest"
+    },
+    "engines": {
+        "node": ">=24.0.0"
     }
 }
