@@ -46,12 +46,25 @@
         "*.{js,ts,json,md}": "prettier --write"
     },
     "overrides": {
+        "@isaacs/brace-expansion": "latest",
         "@minecraft/common": "latest",
         "@minecraft/debug-utilities": "beta",
         "@minecraft/server": "beta",
         "@minecraft/server-gametest": "beta",
         "@minecraft/server-ui": "beta",
-        "@minecraft/vanilla-data": "latest"
+        "@minecraft/vanilla-data": "latest",
+        "@octokit/plugin-paginate-rest": "latest",
+        "@octokit/request": "latest",
+        "@octokit/request-error": "latest",
+        "ajv": "latest",
+        "axios": "latest",
+        "brace-expansion": "latest",
+        "flatted": "latest",
+        "follow-redirects": "latest",
+        "lodash": "latest",
+        "minimatch": "latest",
+        "picomatch": "latest",
+        "yaml": "latest"
     },
     "devDependencies": {
         "@eslint/eslintrc": "latest",
