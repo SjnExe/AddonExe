@@ -67,10 +67,10 @@
         "yaml": "latest"
     },
     "devDependencies": {
-        "@eslint/eslintrc": "latest",
+        "@eslint/eslintrc": "^3.3.5",
         "@eslint/js": "latest",
         "@minecraft/common": "latest",
-        "@minecraft/creator-tools": "latest",
+        "@minecraft/creator-tools": "^0.17.0",
         "@minecraft/debug-utilities": "beta",
         "@minecraft/math": "latest",
         "@minecraft/server": "beta",
@@ -78,21 +78,21 @@
         "@minecraft/server-ui": "beta",
         "@minecraft/vanilla-data": "latest",
         "@types/node": "latest",
-        "@typescript-eslint/eslint-plugin": "latest",
+        "@typescript-eslint/eslint-plugin": "^8.59.3",
         "@typescript-eslint/parser": "latest",
         "chokidar": "latest",
         "concurrently": "latest",
         "esbuild": "latest",
-        "eslint": "latest",
+        "eslint": "^10.3.0",
         "eslint-config-prettier": "latest",
         "eslint-import-resolver-typescript": "latest",
-        "eslint-plugin-import": "latest",
+        "eslint-plugin-import": "^2.32.0",
         "eslint-plugin-jsonc": "latest",
         "eslint-plugin-minecraft-linting": "latest",
-        "glob": "latest",
+        "glob": "^13.0.6",
         "globals": "latest",
         "jscpd": "latest",
-        "lint-staged": "latest",
+        "lint-staged": "^17.0.4",
         "prettier": "latest",
         "prettier-plugin-organize-imports": "latest",
         "prettier-plugin-packagejson": "latest",
@@ -100,10 +100,10 @@
         "simple-git-hooks": "latest",
         "type-fest": "latest",
         "typescript": "latest",
-        "typescript-eslint": "latest",
+        "typescript-eslint": "^8.59.3",
         "vitest": "latest"
     },
     "engines": {
-        "node": ">=24.0.0"
+        "node": ">=20.0.0"
     }
 }
