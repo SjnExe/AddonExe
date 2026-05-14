@@ -397,37 +397,37 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'spawnProtection.preventPvP',
                 label: 'Prevent PvP',
                 type: 'toggle',
-                description: 'Prevents players from damaging other players in spawn.'
+                description: 'Prevents ONLY PLAYERS from damaging other players in spawn.'
             },
             {
                 key: 'spawnProtection.preventHostileDamage',
                 label: 'Prevent Hostile Damage',
                 type: 'toggle',
-                description: 'Prevents hostile mobs from damaging players in spawn.'
+                description: 'Prevents hostile mobs from damaging ONLY PLAYERS in spawn.'
             },
             {
                 key: 'spawnProtection.preventItemPickup',
                 label: 'Prevent Item Pickup',
                 type: 'toggle',
-                description: 'Prevents players from picking up items in spawn.'
+                description: 'Prevents ONLY PLAYERS from picking up items in spawn.'
             },
             {
                 key: 'spawnProtection.preventHostileMobSpawning',
                 label: 'Prevent Hostile Mob Spawning',
                 type: 'toggle',
-                description: 'Removes hostile mobs that spawn in the protected area.'
+                description: 'Prevents hostile mobs (NON-PLAYERS) from spawning in the protected area.'
             },
             {
                 key: 'spawnProtection.preventBlockBreaking',
                 label: 'Prevent Block Breaking',
                 type: 'toggle',
-                description: 'Prevents players from breaking blocks in spawn.'
+                description: 'Prevents ONLY PLAYERS from breaking blocks in spawn.'
             },
             {
                 key: 'spawnProtection.preventBlockPlacing',
                 label: 'Prevent Block Placing',
                 type: 'toggle',
-                description: 'Prevents players from placing blocks in spawn.'
+                description: 'Prevents ONLY PLAYERS from placing blocks in spawn.'
             },
             {
                 key: 'spawnProtection.preventExplosions',
@@ -439,7 +439,37 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'spawnProtection.preventBlockInteraction',
                 label: 'Prevent Block Interaction',
                 type: 'toggle',
-                description: 'Prevents interaction with chests, doors, etc., in spawn.'
+                description: 'Prevents ONLY PLAYERS from interacting with blocks (chests, doors, etc.) in spawn.'
+            },
+            {
+                key: 'spawnProtection.preventFallDamage',
+                label: 'Prevent Fall Damage',
+                type: 'toggle',
+                description: 'Prevents ALL ENTITIES from taking fall damage.'
+            },
+            {
+                key: 'spawnProtection.preventMagicDamage',
+                label: 'Prevent Magic Damage',
+                type: 'toggle',
+                description: 'Prevents ALL ENTITIES from taking magic/potion damage.'
+            },
+            {
+                key: 'spawnProtection.preventMobGriefing',
+                label: 'Prevent Mob Griefing',
+                type: 'toggle',
+                description: 'Prevents mobs (non-players) from breaking blocks or exploding.'
+            },
+            {
+                key: 'spawnProtection.preventEntityInteraction',
+                label: 'Prevent Entity Interaction',
+                type: 'toggle',
+                description: 'Prevents players from interacting with entities (ignores rideables/pets).'
+            },
+            {
+                key: 'spawnProtection.preventProjectileUsage',
+                label: 'Prevent Projectile Usage',
+                type: 'toggle',
+                description: 'Prevents players from shooting or using projectiles (bows, ender pearls, etc.).'
             }
         ]
     },

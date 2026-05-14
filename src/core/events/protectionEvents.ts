@@ -58,6 +58,13 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
     if (!loc) return;
     const flags = getProtectionFlags(loc, event.dimension.id);
 
+    // Prevent Mob Griefing logic (Creepers, Withers)
+    if (flags.preventMobGriefing && event.source && event.source.typeId !== 'minecraft:player') {
+        // Prevent block damage from mob explosions
+        event.setImpactedBlocks([]);
+        return;
+    }
+
     // As a fallback/more precise method, we could filter impacted blocks,
     // but beforeExplosion lets us cancel or modify impacted blocks.
     if (flags.preventExplosions) {
@@ -71,7 +78,7 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
     for (const block of impactedBlocks) {
         if (!isDefined(block)) continue;
         const blockFlags = getProtectionFlags(block.location, event.dimension.id);
-        if (!blockFlags.preventExplosions) {
+        if (!blockFlags.preventExplosions && (!blockFlags.preventMobGriefing || !event.source || event.source.typeId === 'minecraft:player')) {
             allowedBlocks.push(block);
         }
     }
@@ -82,8 +89,30 @@ export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
     const player = event.source;
     if (!(player instanceof mc.Player)) return;
 
-    // We can't definitively check block from itemUse directly in all versions easily,
-    // so we will rely on playerInteractWithBlock. We'll leave this empty or remove it.
+    const flags = getProtectionFlags(player.location, player.dimension.id);
+    if (flags.preventProjectileUsage) {
+        // Basic list of items that shoot projectiles
+        const projectileItems = [
+            'minecraft:bow',
+            'minecraft:crossbow',
+            'minecraft:snowball',
+            'minecraft:ender_pearl',
+            'minecraft:egg',
+            'minecraft:splash_potion',
+            'minecraft:lingering_potion',
+            'minecraft:experience_bottle',
+            'minecraft:trident'
+        ];
+
+        if (projectileItems.includes(event.itemStack.typeId)) {
+            if (!canBypass(player)) {
+                event.cancel = true;
+                mc.system.run(() => {
+                    player.onScreenDisplay.setActionBar('§cYou cannot use projectiles here.');
+                });
+            }
+        }
+    }
 }
 
 export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockBeforeEvent) {
@@ -105,9 +134,29 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
     const { player, target } = event;
     if (!isDefined(player) || !isDefined(target)) return;
 
-    // Entity interaction shouldn't usually trigger block interaction preventions,
-    // but armor stands and item frames might be considered blocks depending on usage.
-    // If desired, add custom flags for entities. For now, we skip.
+    const flags = getProtectionFlags(target.location, target.dimension.id);
+
+    if (flags.preventEntityInteraction) {
+        // We only want to prevent interaction with entities that are NOT meant to be ridden/pets
+        // Let's allow interaction with players, tameables (wolves, cats, parrots),
+        // rideables (horses, donkeys, mules, pigs with saddle, striders)
+
+        if (target.typeId !== 'minecraft:player') {
+            // Allow interactions if it can be tamed or ridden (pets/mounts)
+            const canRide = target.hasComponent('minecraft:rideable');
+            const canTame = target.hasComponent('minecraft:tameable');
+            const isTamed = target.hasComponent('minecraft:is_tamed'); // already tamed
+
+            if (!canRide && !canTame && !isTamed) {
+                if (!canBypass(player)) {
+                    event.cancel = true;
+                    mc.system.run(() => {
+                        player.onScreenDisplay.setActionBar('§cYou cannot interact with entities here.');
+                    });
+                }
+            }
+        }
+    }
 }
 
 export function handleBeforeItemPickup(event: mc.EntityItemPickupBeforeEvent) {
@@ -161,10 +210,25 @@ export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent) {
 export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
     const { damageSource } = event;
     const victim = event.hurtEntity;
+
+    const flags = getProtectionFlags(victim.location, victim.dimension.id);
+    const cause = damageSource.cause;
+
+    // Fall damage protection (All entities)
+    if (flags.preventFallDamage && cause === mc.EntityDamageCause.fall) {
+        event.cancel = true;
+        return;
+    }
+
+    // Magic damage protection (All entities)
+    if (flags.preventMagicDamage && (cause === mc.EntityDamageCause.magic || cause === mc.EntityDamageCause.wither)) {
+        event.cancel = true;
+        return;
+    }
+
     if (victim.typeId !== 'minecraft:player') return;
 
     const player = victim as mc.Player;
-    const flags = getProtectionFlags(player.location, player.dimension.id);
 
     if (!flags.preventPvP && !flags.preventHostileDamage) return;
 
@@ -173,7 +237,6 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
     // Helper to get actual attacker (e.g., owner of projectile)
     const projectileComponent = damagingEntity?.getComponent('minecraft:projectile');
     const attacker = projectileComponent?.owner ?? damagingEntity;
-    const cause = damageSource.cause;
 
     // PvP Protection
     if (flags.preventPvP) {
@@ -195,13 +258,6 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
                 event.cancel = true;
                 return;
             }
-        }
-
-        // Secondary effects from hostile mobs (Wither effect from Wither skeleton/Wither boss, Magic from Witches)
-        // Note: 'poison' is not an EntityDamageCause in this API version. Magic covers potion damage.
-        if (cause === mc.EntityDamageCause.wither || cause === mc.EntityDamageCause.magic) {
-            event.cancel = true;
-            return;
         }
     }
 }

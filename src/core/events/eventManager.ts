@@ -14,6 +14,7 @@ import {
     handleBeforeEntitySpawn,
     handleBeforeExplosion,
     handleBeforeItemPickup,
+    handleBeforeItemUse,
     handleBeforePlayerBreakBlock,
     handleBeforePlayerPlaceBlock,
     handlePlayerInteractWithBlock,
@@ -59,6 +60,7 @@ export function initializeEventManager() {
     registerEvent(mc.world.beforeEvents.entityHurt, handleBeforeEntityHurt, 'beforeEntityHurt');
     registerEvent(mc.world.afterEvents.entitySpawn, handleBeforeEntitySpawn, 'entitySpawn');
     registerEvent(mc.world.beforeEvents.entityItemPickup, handleBeforeItemPickup, 'entityItemPickup');
+    registerEvent(mc.world.beforeEvents.itemUse, handleBeforeItemUse, 'beforeItemUse');
     // Removed old unstable version fallbacks.
     // Use the official, statically typed API from @minecraft/server without casts.
 

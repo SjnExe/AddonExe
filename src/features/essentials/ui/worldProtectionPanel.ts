@@ -85,20 +85,30 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
                 preventBlockPlacing: false,
                 preventExplosions: false,
                 preventBlockInteraction: false,
-                preventItemPickup: false
+                preventItemPickup: false,
+                preventFallDamage: false,
+                preventMagicDamage: false,
+                preventMobGriefing: false,
+                preventEntityInteraction: false,
+                preventProjectileUsage: false
             };
 
-            form.toggle('Prevent PvP', { defaultValue: restoredValues ? (restoredValues[5] as boolean) : flags.preventPvP });
-            form.toggle('Prevent Hostile Damage', { defaultValue: restoredValues ? (restoredValues[6] as boolean) : flags.preventHostileDamage });
-            form.toggle('Prevent Hostile Mob Spawning', { defaultValue: restoredValues ? (restoredValues[7] as boolean) : flags.preventHostileMobSpawning });
-            form.toggle('Prevent Block Breaking', { defaultValue: restoredValues ? (restoredValues[8] as boolean) : flags.preventBlockBreaking });
-            form.toggle('Prevent Block Placing', { defaultValue: restoredValues ? (restoredValues[9] as boolean) : flags.preventBlockPlacing });
-            form.toggle('Prevent Explosions', { defaultValue: restoredValues ? (restoredValues[10] as boolean) : flags.preventExplosions });
-            form.toggle('Prevent Block Interaction', { defaultValue: restoredValues ? (restoredValues[11] as boolean) : flags.preventBlockInteraction });
-            form.toggle('Prevent Item Pickup', { defaultValue: restoredValues ? (restoredValues[12] as boolean) : flags.preventItemPickup });
+            form.toggle('Prevent PvP (Players Only)', { defaultValue: restoredValues ? (restoredValues[5] as boolean) : flags.preventPvP });
+            form.toggle('Prevent Hostile Damage (Players Only)', { defaultValue: restoredValues ? (restoredValues[6] as boolean) : flags.preventHostileDamage });
+            form.toggle('Prevent Hostile Mob Spawning (Non-Players)', { defaultValue: restoredValues ? (restoredValues[7] as boolean) : flags.preventHostileMobSpawning });
+            form.toggle('Prevent Block Breaking (Players Only)', { defaultValue: restoredValues ? (restoredValues[8] as boolean) : flags.preventBlockBreaking });
+            form.toggle('Prevent Block Placing (Players Only)', { defaultValue: restoredValues ? (restoredValues[9] as boolean) : flags.preventBlockPlacing });
+            form.toggle('Prevent Explosions (All Entities)', { defaultValue: restoredValues ? (restoredValues[10] as boolean) : flags.preventExplosions });
+            form.toggle('Prevent Block Interaction (Players Only)', { defaultValue: restoredValues ? (restoredValues[11] as boolean) : flags.preventBlockInteraction });
+            form.toggle('Prevent Item Pickup (Players Only)', { defaultValue: restoredValues ? (restoredValues[12] as boolean) : flags.preventItemPickup });
+            form.toggle('Prevent Fall Damage (All Entities)', { defaultValue: restoredValues ? (restoredValues[13] as boolean) : flags.preventFallDamage });
+            form.toggle('Prevent Magic Damage (All Entities)', { defaultValue: restoredValues ? (restoredValues[14] as boolean) : flags.preventMagicDamage });
+            form.toggle('Prevent Mob Griefing (Non-Players)', { defaultValue: restoredValues ? (restoredValues[15] as boolean) : flags.preventMobGriefing });
+            form.toggle('Prevent Entity Interaction (Players Only)', { defaultValue: restoredValues ? (restoredValues[16] as boolean) : flags.preventEntityInteraction });
+            form.toggle('Prevent Projectile Usage (Players Only)', { defaultValue: restoredValues ? (restoredValues[17] as boolean) : flags.preventProjectileUsage });
 
             if (isEdit) {
-                form.toggle('§cDelete Zone§r', { defaultValue: restoredValues ? (restoredValues[13] as boolean) : false });
+                form.toggle('§cDelete Zone§r', { defaultValue: restoredValues ? (restoredValues[18] as boolean) : false });
             }
 
             return Promise.resolve(form);
@@ -176,13 +186,18 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
                 preventBlockPlacing: values[9] as boolean,
                 preventExplosions: values[10] as boolean,
                 preventBlockInteraction: values[11] as boolean,
-                preventItemPickup: values[12] as boolean
+                preventItemPickup: values[12] as boolean,
+                preventFallDamage: values[13] as boolean,
+                preventMagicDamage: values[14] as boolean,
+                preventMobGriefing: values[15] as boolean,
+                preventEntityInteraction: values[16] as boolean,
+                preventProjectileUsage: values[17] as boolean
             };
 
             const config = getWorldProtectionConfig();
 
             if (isEdit) {
-                const isDelete = values[13] as boolean;
+                const isDelete = values[18] as boolean;
                 const oldZoneId = context.selectedItemId!.replace('zone_', '');
 
                 if (isDelete) {
