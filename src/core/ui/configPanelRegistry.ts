@@ -412,12 +412,6 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Prevents players from picking up items in spawn.'
             },
             {
-                key: 'spawnProtection.preventItemDropping',
-                label: 'Prevent Item Dropping',
-                type: 'toggle',
-                description: 'Prevents players from dropping items in spawn.'
-            },
-            {
                 key: 'spawnProtection.preventHostileMobSpawning',
                 label: 'Prevent Hostile Mob Spawning',
                 type: 'toggle',

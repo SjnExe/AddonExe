@@ -85,8 +85,7 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
                 preventBlockPlacing: false,
                 preventExplosions: false,
                 preventBlockInteraction: false,
-                preventItemPickup: false,
-                preventItemDropping: false
+                preventItemPickup: false
             };
 
             form.toggle('Prevent PvP', { defaultValue: restoredValues ? (restoredValues[5] as boolean) : flags.preventPvP });
@@ -97,10 +96,9 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
             form.toggle('Prevent Explosions', { defaultValue: restoredValues ? (restoredValues[10] as boolean) : flags.preventExplosions });
             form.toggle('Prevent Block Interaction', { defaultValue: restoredValues ? (restoredValues[11] as boolean) : flags.preventBlockInteraction });
             form.toggle('Prevent Item Pickup', { defaultValue: restoredValues ? (restoredValues[12] as boolean) : flags.preventItemPickup });
-            form.toggle('Prevent Item Dropping', { defaultValue: restoredValues ? (restoredValues[13] as boolean) : flags.preventItemDropping });
 
             if (isEdit) {
-                form.toggle('§cDelete Zone§r', { defaultValue: restoredValues ? (restoredValues[14] as boolean) : false });
+                form.toggle('§cDelete Zone§r', { defaultValue: restoredValues ? (restoredValues[13] as boolean) : false });
             }
 
             return Promise.resolve(form);
@@ -178,14 +176,13 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
                 preventBlockPlacing: values[9] as boolean,
                 preventExplosions: values[10] as boolean,
                 preventBlockInteraction: values[11] as boolean,
-                preventItemPickup: values[12] as boolean,
-                preventItemDropping: values[13] as boolean
+                preventItemPickup: values[12] as boolean
             };
 
             const config = getWorldProtectionConfig();
 
             if (isEdit) {
-                const isDelete = values[14] as boolean;
+                const isDelete = values[13] as boolean;
                 const oldZoneId = context.selectedItemId!.replace('zone_', '');
 
                 if (isDelete) {

@@ -10,7 +10,6 @@ export type ProtectionFlags = {
     preventExplosions: boolean;
     preventBlockInteraction: boolean;
     preventItemPickup: boolean;
-    preventItemDropping: boolean;
 };
 
 const defaultFlags: ProtectionFlags = {
@@ -21,8 +20,7 @@ const defaultFlags: ProtectionFlags = {
     preventBlockPlacing: false,
     preventExplosions: false,
     preventBlockInteraction: false,
-    preventItemPickup: false,
-    preventItemDropping: false
+    preventItemPickup: false
 };
 
 /**
@@ -67,7 +65,6 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
                 activeFlags.preventExplosions = activeFlags.preventExplosions || zone.flags.preventExplosions;
                 activeFlags.preventBlockInteraction = activeFlags.preventBlockInteraction || zone.flags.preventBlockInteraction;
                 activeFlags.preventItemPickup = activeFlags.preventItemPickup || zone.flags.preventItemPickup;
-                activeFlags.preventItemDropping = activeFlags.preventItemDropping || zone.flags.preventItemDropping;
             }
         }
     }
@@ -101,7 +98,6 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
                     activeFlags.preventExplosions = activeFlags.preventExplosions || spawnConfig.spawnProtection.preventExplosions;
                     activeFlags.preventBlockInteraction = activeFlags.preventBlockInteraction || spawnConfig.spawnProtection.preventBlockInteraction;
                     activeFlags.preventItemPickup = activeFlags.preventItemPickup || spawnConfig.spawnProtection.preventItemPickup;
-                    activeFlags.preventItemDropping = activeFlags.preventItemDropping || spawnConfig.spawnProtection.preventItemDropping;
                 }
             }
         }

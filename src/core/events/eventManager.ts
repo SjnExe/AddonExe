@@ -12,6 +12,7 @@ import { handlePlayerSpawn } from './playerSpawn.js';
 import {
     handleBeforeEntitySpawn,
     handleBeforeExplosion,
+    handleBeforeItemPickup,
     handleBeforePlayerBreakBlock,
     handleBeforePlayerPlaceBlock,
     handlePlayerInteractWithBlock,
@@ -55,14 +56,9 @@ export function initializeEventManager() {
     registerEvent(mc.world.beforeEvents.playerInteractWithBlock, handlePlayerInteractWithBlock, 'playerInteractWithBlock');
     registerEvent(mc.world.beforeEvents.playerInteractWithEntity, handlePlayerInteractWithEntity, 'playerInteractWithEntity');
     registerEvent(mc.world.afterEvents.entitySpawn, handleBeforeEntitySpawn, 'entitySpawn');
+    registerEvent(mc.world.beforeEvents.entityItemPickup, handleBeforeItemPickup, 'entityItemPickup');
     // Removed old unstable version fallbacks.
     // Use the official, statically typed API from @minecraft/server without casts.
-
-    if ('itemDrop' in mc.world.beforeEvents) {
-        // This relies on types matching. If 'itemDrop' isn't in beforeEvents, the compiler will catch it.
-        // It looks like itemDrop and entityItemPickup are NOT in the current `@minecraft/server` definition
-        // depending on the version. Let's see what TSC says.
-    }
 
     // Other Events
     registerEvent(mc.world.beforeEvents.chatSend, handleBeforeChatSend, 'beforeChatSend');
