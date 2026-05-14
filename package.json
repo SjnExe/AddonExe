@@ -102,5 +102,5 @@
         "typescript": "latest",
         "typescript-eslint": "latest",
         "vitest": "latest"
-    },
+    }
 }
