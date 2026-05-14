@@ -110,26 +110,6 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
     // If desired, add custom flags for entities. For now, we skip.
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function handleBeforeItemDrop(event: any) {
-    // Handling depends on the actual event structure. It's either itemDrop or playerDropItem
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const p = event.source || event.player;
-    if (!isDefined(p)) return;
-    const player = p as mc.Player;
-
-    const flags = getProtectionFlags(player.location, player.dimension.id);
-    if (flags.preventItemDropping) {
-        if (!canBypass(player)) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            event.cancel = true;
-            mc.system.run(() => {
-                player.onScreenDisplay.setActionBar('§cYou cannot drop items here.');
-            });
-        }
-    }
-}
-
 export function handleBeforeItemPickup(event: mc.EntityItemPickupBeforeEvent) {
     const entity = event.entity;
     if (entity.typeId !== 'minecraft:player') return;

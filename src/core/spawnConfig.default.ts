@@ -26,8 +26,7 @@ export const spawnConfig = {
         preventBlockPlacing: true,
         preventExplosions: true,
         preventBlockInteraction: true,
-        preventItemPickup: true,
-        preventItemDropping: true
+        preventItemPickup: true
     }
 };
 

@@ -15,7 +15,6 @@ export type WorldProtectionZone = {
         preventExplosions: boolean;
         preventBlockInteraction: boolean;
         preventItemPickup: boolean;
-        preventItemDropping: boolean;
     };
 };
 
