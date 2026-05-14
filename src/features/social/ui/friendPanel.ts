@@ -5,7 +5,7 @@ import { getConfig } from '@core/configManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
-import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
+import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 
 export class FriendPanelHandler implements IPanelHandler {

@@ -4,7 +4,7 @@ import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { addPunishmentLog } from '../anticheat/logManager.js';
+import { addPunishmentLog } from '@features/anticheat/logManager.js';
 
 const storage = new StorageManager('exe:punishments');
 

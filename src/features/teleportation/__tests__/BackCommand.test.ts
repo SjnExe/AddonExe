@@ -38,7 +38,7 @@ vi.mock('@core/logger.js', () => ({
     errorLog: vi.fn()
 }));
 
-import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
+import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 
 // Import command
 const { default: backCommands } = await import('../commands/back.js');

@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 import { vi } from 'vitest';
 
-import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
+import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 
 // Mocks
 const mockFlag = vi.fn();

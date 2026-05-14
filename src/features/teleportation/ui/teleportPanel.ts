@@ -7,7 +7,7 @@ import { showPanel } from '@core/uiManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { addBackButton } from '@ui/uiUtils.js';
-import * as tpaManager from '../tpaManager.js';
+import * as tpaManager from '@features/teleportation/tpaManager.js';
 
 export class TeleportPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { config as Config } from '../config.default.js';
+import { config as Config } from '@core/config.default.js';
 
 import { isDefined } from '@lib/guards.js';
 import { getRanksConfig } from './configurations.js';

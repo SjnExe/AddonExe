@@ -2,9 +2,9 @@ import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getWorldProtectionConfig, saveWorldProtectionConfig } from '@core/configurations.js';
-import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
+import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { showPanel } from '@core/uiManager.js';
-import { WorldProtectionZone } from '../worldProtectionConfig.default.js';
+import { WorldProtectionZone } from '@features/essentials/worldProtectionConfig.default.js';
 
 export class WorldProtectionPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

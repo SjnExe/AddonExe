@@ -10,8 +10,8 @@ import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { uiWait } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-import * as homesManager from '../homesManager.js';
-import { saveLastLocation } from '../teleportUtils.js';
+import * as homesManager from '@features/teleportation/homesManager.js';
+import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 
 interface HomeCommandArgs {
     homeName?: string;

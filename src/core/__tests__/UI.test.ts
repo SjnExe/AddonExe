@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
-import { panelDefinitions } from '../ui/panelRegistry.js';
-import { panelRouter } from '../ui/PanelRouter.js';
+import { panelDefinitions } from '@ui/panelRegistry.js';
+import { panelRouter } from '@ui/PanelRouter.js';
 
 // Mock Config
 vi.mock('../configManager.js', () => ({

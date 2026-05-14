@@ -7,8 +7,8 @@ import { showPanel } from '@core/uiManager.js';
 import { parseCurrency } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-import * as shopAdminManager from '../shopAdminManager.js';
-import * as shopManager from '../shopManager.js';
+import * as shopAdminManager from '@features/shop/shopAdminManager.js';
+import * as shopManager from '@features/shop/shopManager.js';
 
 const shopCommand: CustomCommand = {
     name: 'shop',

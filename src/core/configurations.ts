@@ -16,7 +16,7 @@ import type { WorldProtectionConfig } from '@features/essentials/worldProtection
 import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
 import type { teamConfig } from '@features/teams/teamConfig.js';
-import type { kitsConfig } from '../features/kits/kitsConfig.default.js';
+import type { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import type ranksConfig from './ranksConfig.default.js';
 import type { config as sidebarConfig } from './sidebarConfig.default.js';
 import type { spawnConfig } from './spawnConfig.default.js';

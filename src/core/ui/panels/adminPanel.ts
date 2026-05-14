@@ -259,7 +259,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     return showPanel(player, 'floatingTextListPanel', actionContext);
                 }
 
-                const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
+                const { uiActionFunctions } = await import('@ui/actionRegistry.js');
                 const action = uiActionFunctions[item.actionValue];
                 if (isDefined(action)) {
                     await action(player, context, panelId);

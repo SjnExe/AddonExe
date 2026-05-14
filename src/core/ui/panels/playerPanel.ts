@@ -4,9 +4,9 @@ import { ActionFormData, ActionFormResponse, ModalFormData } from '@minecraft/se
 import { getConfig } from '@core/configManager.js';
 import { getVisiblePlayers, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
-import { getStaticMenuItems } from '@core/ui/panelBuilder.js';
-import { panelDefinitions } from '@core/ui/panelRegistry.js';
-import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
+import { getStaticMenuItems } from '@ui/panelBuilder.js';
+import { panelDefinitions } from '@ui/panelRegistry.js';
+import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
@@ -140,7 +140,7 @@ export class PlayerPanelHandler implements IPanelHandler {
             return showPanel(player, selectedItem.actionValue, newContext);
         } else {
             if (selectedItem.actionValue === 'noop') return;
-            const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
+            const { uiActionFunctions } = await import('@ui/actionRegistry.js');
             const action = uiActionFunctions[selectedItem.actionValue];
             if (isDefined(action)) {
                 await action(player, context, panelId);

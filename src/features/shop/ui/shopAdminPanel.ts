@@ -8,9 +8,9 @@ import { isDefined, isNonEmptyString, isNumber, isString } from '@lib/guards.js'
 import { showConfirmationDialog } from '@ui/components.js';
 import { IPanelHandler, MainConfig, PanelItem, ShopItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
-import * as shopAdminManager from '../shopAdminManager.js';
-import { ShopCategory } from '../shopConfig.js';
-import { ensureItemsConfig, getAllItems } from '../shopUtils.js';
+import * as shopAdminManager from '@features/shop/shopAdminManager.js';
+import { ShopCategory } from '@features/shop/shopConfig.js';
+import { ensureItemsConfig, getAllItems } from '@features/shop/shopUtils.js';
 
 interface ShopCategoryEntry {
     type: 'subCategory';

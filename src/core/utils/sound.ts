@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
-import { getConfig } from '../configManager.js';
-import { errorLog } from '../logger.js';
+import { getConfig } from '@core/configManager.js';
+import { errorLog } from '@core/logger.js';
 
 interface SoundEventConfig {
     soundEvents?: {

@@ -76,7 +76,8 @@ export class ConfigPanelHandler implements IPanelHandler {
                 actionValue: `configSubCategoryPanel_${cat.id}`
             });
         }
-        if (pData.permissionLevel === 0) {
+        const totalPages = Math.ceil(categories.length / itemsPerPage);
+        if (pData.permissionLevel === 0 && ((context.page as number) || 1) >= totalPages) {
             items.push({
                 id: 'resetSettings',
                 text: '§l§cReset Settings§r',
@@ -272,7 +273,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 return;
             }
 
-            const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
+            const { uiActionFunctions } = await import('@ui/actionRegistry.js');
             const action = uiActionFunctions[item.actionValue];
             if (isDefined(action)) {
                 await action(player, context, panelId);

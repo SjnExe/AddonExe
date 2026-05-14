@@ -43,7 +43,7 @@ export class GeneralPanelHandler implements IPanelHandler {
             if (item.actionType === 'openPanel') {
                 return showPanel(player, item.actionValue, { ...context, page: 1 });
             }
-            const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
+            const { uiActionFunctions } = await import('@ui/actionRegistry.js');
             const action = uiActionFunctions[item.actionValue];
             if (isDefined(action)) {
                 await action(player, context, panelId);

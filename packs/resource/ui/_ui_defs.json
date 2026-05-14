@@ -1,3 +1,1 @@
-{
-    "ui_defs": ["ui/hud_screen.json", "ui/loading_messages.json", "ui/pause_screen.json", "ui/scoreboards.json"]
-}
+{"ui_defs":["ui/hud_screen.json","ui/loading_messages.json","ui/pause_screen.json","ui/scoreboards.json"]}

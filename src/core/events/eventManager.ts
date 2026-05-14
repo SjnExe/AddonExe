@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { errorLog } from '../logger.js';
+import { errorLog } from '@core/logger.js';
 
 import handleBeforeChatSend from './beforeChatSend.js';
 import handleEntityDie from './entityDie.js';

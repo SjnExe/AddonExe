@@ -6,8 +6,8 @@ import { sendMessage } from '@core/messaging.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-import { showVoteMenu } from '../ui/votePanel.js';
-import { endVote, getActiveVote } from '../voteManager.js';
+import { showVoteMenu } from '@features/voting/ui/votePanel.js';
+import { endVote, getActiveVote } from '@features/voting/voteManager.js';
 
 const voteCommand: CustomCommand = {
     name: 'vote',

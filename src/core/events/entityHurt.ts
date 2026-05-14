@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 
-import * as lastHitManager from '../lastHitManager.js';
+import * as lastHitManager from '@core/lastHitManager.js';
 
 export const eventName = 'entityHurt';
 
