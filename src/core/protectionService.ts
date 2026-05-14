@@ -10,6 +10,11 @@ export type ProtectionFlags = {
     preventExplosions: boolean;
     preventBlockInteraction: boolean;
     preventItemPickup: boolean;
+    preventFallDamage: boolean;
+    preventMagicDamage: boolean;
+    preventMobGriefing: boolean;
+    preventEntityInteraction: boolean;
+    preventProjectileUsage: boolean;
 };
 
 const defaultFlags: ProtectionFlags = {
@@ -20,7 +25,12 @@ const defaultFlags: ProtectionFlags = {
     preventBlockPlacing: false,
     preventExplosions: false,
     preventBlockInteraction: false,
-    preventItemPickup: false
+    preventItemPickup: false,
+    preventFallDamage: false,
+    preventMagicDamage: false,
+    preventMobGriefing: false,
+    preventEntityInteraction: false,
+    preventProjectileUsage: false
 };
 
 /**
@@ -65,6 +75,11 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
                 activeFlags.preventExplosions = activeFlags.preventExplosions || zone.flags.preventExplosions;
                 activeFlags.preventBlockInteraction = activeFlags.preventBlockInteraction || zone.flags.preventBlockInteraction;
                 activeFlags.preventItemPickup = activeFlags.preventItemPickup || zone.flags.preventItemPickup;
+                activeFlags.preventFallDamage = activeFlags.preventFallDamage || zone.flags.preventFallDamage;
+                activeFlags.preventMagicDamage = activeFlags.preventMagicDamage || zone.flags.preventMagicDamage;
+                activeFlags.preventMobGriefing = activeFlags.preventMobGriefing || zone.flags.preventMobGriefing;
+                activeFlags.preventEntityInteraction = activeFlags.preventEntityInteraction || zone.flags.preventEntityInteraction;
+                activeFlags.preventProjectileUsage = activeFlags.preventProjectileUsage || zone.flags.preventProjectileUsage;
             }
         }
     }
@@ -98,6 +113,11 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
                     activeFlags.preventExplosions = activeFlags.preventExplosions || spawnConfig.spawnProtection.preventExplosions;
                     activeFlags.preventBlockInteraction = activeFlags.preventBlockInteraction || spawnConfig.spawnProtection.preventBlockInteraction;
                     activeFlags.preventItemPickup = activeFlags.preventItemPickup || spawnConfig.spawnProtection.preventItemPickup;
+                    activeFlags.preventFallDamage = activeFlags.preventFallDamage || spawnConfig.spawnProtection.preventFallDamage;
+                    activeFlags.preventMagicDamage = activeFlags.preventMagicDamage || spawnConfig.spawnProtection.preventMagicDamage;
+                    activeFlags.preventMobGriefing = activeFlags.preventMobGriefing || spawnConfig.spawnProtection.preventMobGriefing;
+                    activeFlags.preventEntityInteraction = activeFlags.preventEntityInteraction || spawnConfig.spawnProtection.preventEntityInteraction;
+                    activeFlags.preventProjectileUsage = activeFlags.preventProjectileUsage || spawnConfig.spawnProtection.preventProjectileUsage;
                 }
             }
         }
