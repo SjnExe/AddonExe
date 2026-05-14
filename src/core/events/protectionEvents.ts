@@ -192,15 +192,16 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
                 event.cancel = true;
                 return;
             } else if (!familyTypes?.hasTypeFamily('inanimate') && !familyTypes?.hasTypeFamily('player')) {
-                 event.cancel = true;
-                 return;
+                event.cancel = true;
+                return;
             }
         }
 
-        // Secondary effects from hostile mobs (Wither effect from Wither skeleton/Wither boss, Magic/Poison from Witches)
-        if (cause === mc.EntityDamageCause.wither || cause === mc.EntityDamageCause.magic || cause === mc.EntityDamageCause.poison) {
-             event.cancel = true;
-             return;
+        // Secondary effects from hostile mobs (Wither effect from Wither skeleton/Wither boss, Magic from Witches)
+        // Note: 'poison' is not an EntityDamageCause in this API version. Magic covers potion damage.
+        if (cause === mc.EntityDamageCause.wither || cause === mc.EntityDamageCause.magic) {
+            event.cancel = true;
+            return;
         }
     }
 }
