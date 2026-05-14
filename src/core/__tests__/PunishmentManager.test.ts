@@ -77,7 +77,7 @@ describe('PunishmentManager', () => {
         // StorageManager(key) -> load() -> getDynamicProperty(key).
         // It returns parsed JSON.
 
-        (mc.world.getDynamicProperty as any).mockImplementation((key) => {
+        (mc.world.getDynamicProperty as any).mockImplementation((key: string) => {
             if (key === 'exe:punishments') {
                 return JSON.stringify(legacyData);
             }
