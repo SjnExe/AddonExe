@@ -126,7 +126,7 @@ jobs:
                   npm run clean
                   node scripts/generate-command-index.js
                   node scripts/generate-manifests.js --nightly --build-number ${{ github.run_number }}
-                  node scripts/build.js
+                  npm run build
 
             - name: Build TypeScript (Stable)
               if: steps.build_type.outputs.type == 'stable'
@@ -147,8 +147,8 @@ jobs:
               run: |
                   set -e
                   mkdir staging
-                  cp -r packs/behavior staging/
-                  cp -r packs/resource staging/
+                  cp -r build/behavior staging/
+                  cp -r build/resource staging/
 
             - name: Create Release Archives
               shell: bash
