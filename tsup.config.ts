@@ -121,7 +121,7 @@ export default defineConfig((options) => {
             target: 'es2022',
             bundle: true,
             minify: options.minify,
-            sourcemap: !!options.watch, // Disable sourcemaps outside watch mode to pass validation
+            sourcemap: false,
             clean: false, // Handled by npm run clean
             treeshake: true,
             external: external,
