@@ -6,14 +6,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const packageJsonPath = path.join(__dirname, '../package.json');
-const manifestJsonPath = path.join(__dirname, '../packs/behavior/manifest.json');
+const manifestJsonPath = path.join(__dirname, '../build/behavior/manifest.json');
 
 async function main() {
     try {
         await Promise.all([fs.access(packageJsonPath), fs.access(manifestJsonPath)]);
     } catch {
         // If manifest doesn't exist yet (e.g. pre-build), skip check or warn
-        console.warn('Could not find package.json or packs/behavior/manifest.json. Skipping dependency check.');
+        console.warn('Could not find package.json or build/behavior/manifest.json. Skipping dependency check.');
         process.exit(0);
     }
 
@@ -28,8 +28,6 @@ async function main() {
     };
 
     // Extract module dependencies from manifest
-    // Manifest dependencies is an array of objects: { "module_name": "@minecraft/server", "version": "..." }
-    // Or for UUID dependencies: { "uuid": "...", "version": "..." }
     const manifestDeps = manifestJson.dependencies || [];
 
     // Filter package.json for @minecraft/* packages
@@ -53,29 +51,12 @@ async function main() {
         '@minecraft/gameplay-utilities' // Deprecated/merged but listed just in case
     ]);
 
-    // Modules that are typically used only for development/types and might NOT be in manifest at runtime
-    // However, if code imports them, they MUST be in manifest.
-    // Usually @minecraft/common contains shared types/utils that might be bundled or used in tests only.
-    // If they are imported in runtime code, they need to be in manifest.
-    // For safety, let's assume if it's in dependencies (not devDependencies), it should be in manifest.
-    // But here we merged deps and devDeps.
-    // Let's check imports in built files? Too complex.
-    // Sticking to basic parity check for core modules.
-
     // Optimization: Use Sets for O(1) checks
     const manifestModuleSet = new Set(minecraftManifestModules);
     const packageKeySet = new Set(minecraftPackageKeys);
 
     for (const pkg of minecraftPackageKeys) {
-        if (
-            runtimeModules.has(pkg) && // If it's a runtime module in package.json, it should generally be in manifest
-            // UNLESS it is strictly a dev dependency (types) and not used in runtime code.
-            // But detecting usage is hard.
-            // We'll relax the check: if it is in package.json but not manifest, warn but don't fail?
-            // Or fail if it's critical like @minecraft/server.
-
-            !manifestModuleSet.has(pkg)
-        ) {
+        if (runtimeModules.has(pkg) && !manifestModuleSet.has(pkg)) {
             // Special exemptions
             if (pkg === '@minecraft/common' || pkg === '@minecraft/debug-utilities') {
                 // Often used for types or debug only

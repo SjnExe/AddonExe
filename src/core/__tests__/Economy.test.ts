@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 import { vi } from 'vitest';
 
 // Create mock functions outside
-// eslint-disable-next-line
+
 const { mockStorageLoad, mockStorageSave } = vi.hoisted(() => ({
     mockStorageLoad: vi.fn(),
     mockStorageSave: vi.fn(),

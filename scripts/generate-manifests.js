@@ -10,8 +10,17 @@ const __dirname = path.dirname(__filename);
 
 // Paths
 const packageJsonPath = path.join(__dirname, '../package.json');
-const behaviorManifestPath = path.join(__dirname, '../packs/behavior/manifest.json');
-const resourceManifestPath = path.join(__dirname, '../packs/resource/manifest.json');
+const behaviorManifestPath = path.join(__dirname, '../build/behavior/manifest.json');
+const resourceManifestPath = path.join(__dirname, '../build/resource/manifest.json');
+
+// Ensure build directories exist
+async function ensureDir(dir) {
+    try {
+        await fs.mkdir(dir, { recursive: true });
+    } catch {
+        // Ignore if exists
+    }
+}
 
 // UUIDs (Static)
 const UUIDS = {
@@ -63,7 +72,7 @@ async function fetchLatestVersion(pkgName) {
         console.log(`Fetching latest version for ${pkgName}...`);
         const { stdout } = await execAsync(`npm view ${pkgName} version`);
         return stdout.trim();
-    } catch (error) {
+    } catch {
         console.warn(`Failed to fetch version for ${pkgName}, defaulting to 1.0.0. Error: ${error.message}`);
         return '1.0.0';
     }
@@ -204,9 +213,11 @@ async function generateManifests() {
     };
 
     // Write Files
+    await ensureDir(path.dirname(behaviorManifestPath));
     await fs.writeFile(behaviorManifestPath, JSON.stringify(bpManifest, null, 4));
     console.log(`Generated: ${behaviorManifestPath}`);
 
+    await ensureDir(path.dirname(resourceManifestPath));
     await fs.writeFile(resourceManifestPath, JSON.stringify(rpManifest, null, 4));
     console.log(`Generated: ${resourceManifestPath}`);
 }

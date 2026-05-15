@@ -17,11 +17,11 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "build": "npm run clean && node scripts/generate-command-index.js && node scripts/generate-manifests.js && node scripts/build.js",
-        "build:release": "npm run clean && node scripts/generate-command-index.js && node scripts/generate-manifests.js --release && node scripts/build.js --minify",
+        "build": "npm run clean && node scripts/generate-command-index.js && node scripts/generate-manifests.js && tsup",
+        "build:release": "npm run clean && node scripts/generate-command-index.js && node scripts/generate-manifests.js --release && tsup --minify",
         "check-deps": "node scripts/check-dependencies.js",
         "check-types": "tsc --noEmit",
-        "clean": "rimraf packs/behavior/scripts",
+        "clean": "rimraf build",
         "fix-project": "npx mct fix",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
@@ -36,7 +36,7 @@
         "test:duplication": "jscpd src/ --min-lines 5 --min-tokens 40 --max-lines 1000 --ignore 'src/**/__tests__/**'",
         "validate": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE --display-only",
         "validate:report": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,CHKMANIF,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE -o validation_report",
-        "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"node scripts/build.js --watch\""
+        "watch": "node scripts/generate-command-index.js && concurrently \"tsc -w\" \"tsup --watch\""
     },
     "simple-git-hooks": {
         "pre-commit": "npx lint-staged"
