@@ -3,13 +3,13 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 
 import { getPlayerIdByName } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
+import * as punishmentManager from '@features/moderation/punishmentManager.js';
+import * as reportManager from '@features/moderation/reportManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions } from '@ui/panelRegistry.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems, handleCommonSelection } from '@ui/uiUtils.js';
-import * as punishmentManager from '@features/moderation/punishmentManager.js';
-import * as reportManager from '@features/moderation/reportManager.js';
 
 export class ModerationPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

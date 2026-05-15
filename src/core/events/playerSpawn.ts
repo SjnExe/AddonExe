@@ -1,6 +1,5 @@
 import * as mc from '@minecraft/server';
 
-import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
 import { getConfig } from '@core/configManager.js';
 import { getKitsConfig } from '@core/configurations.js';
 import { frozenTag, vanishedTag } from '@core/constants.js';
@@ -10,6 +9,7 @@ import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank, updatePlayerNameTag } from '@core/rankManager.js';
 import { formatLocation, formatString } from '@core/utils.js';
+import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
 
 export function handlePlayerJoin(player: mc.Player) {
     const pData = getOrCreatePlayer(player);

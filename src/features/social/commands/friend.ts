@@ -1,7 +1,7 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { showPanel } from '@core/uiManager.js';
-import * as mc from '@minecraft/server';
 import { acceptFriendRequest, listFriends, removeFriend, sendFriendRequest } from '@features/social/friendManager.js';
+import * as mc from '@minecraft/server';
 
 const friendCommand: CustomCommand = {
     name: 'friend',

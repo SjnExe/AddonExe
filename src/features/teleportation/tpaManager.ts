@@ -5,8 +5,8 @@ import { setCooldown } from '@core/cooldownManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { isFriend } from '@features/social/friendManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import { findSafeLocation, saveLastLocation } from './teleportUtils.js';
 

@@ -2,12 +2,12 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor } from '@commands/commandManager.js';
 
-import { isNonEmptyString } from '@lib/guards.js';
 import { getConfig, updateConfig } from '@core/configManager.js';
 import { errorLog, infoLog, warnLog } from '@core/logger.js';
 import { updateAllPlayerRanks } from '@core/main.js';
 import * as rankManager from '@core/rankManager.js';
 import { startRestart } from '@core/restartManager.js';
+import { isNonEmptyString } from '@lib/guards.js';
 
 export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfterEvent) {
     const { id, sourceEntity } = event;

@@ -28,11 +28,14 @@ function minifyFiles(dir) {
                     const minified = JSON.stringify(json);
                     fs.writeFileSync(filePath, minified);
                     console.log(`Minified JSON: ${filePath}`);
-                } catch (e) {
-                     // Fallback: just strip raw whitespace and newlines if it fails to parse (due to formatting codes)
-                     const fallbackMinified = jsonWithoutComments.replace(/\n/g, '').replace(/\r/g, '').replace(/\s{2,}/g, ' ');
-                     fs.writeFileSync(filePath, fallbackMinified);
-                     console.log(`Minified JSON (Fallback): ${filePath}`);
+                } catch {
+                    // Fallback: just strip raw whitespace and newlines if it fails to parse (due to formatting codes)
+                    const fallbackMinified = jsonWithoutComments
+                        .replace(/\n/g, '')
+                        .replace(/\r/g, '')
+                        .replace(/\s{2,}/g, ' ');
+                    fs.writeFileSync(filePath, fallbackMinified);
+                    console.log(`Minified JSON (Fallback): ${filePath}`);
                 }
             } catch (error) {
                 console.warn(`Skipped minification for ${filePath}: ${error.message}`);

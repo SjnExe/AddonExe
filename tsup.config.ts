@@ -1,7 +1,7 @@
-import { defineConfig } from 'tsup';
 import { globSync } from 'glob';
 import fs from 'node:fs';
 import path from 'node:path';
+import { defineConfig } from 'tsup';
 
 const srcDir = path.join(__dirname, 'src');
 const configFiles = globSync(['**/*Config{.ts,.default.ts}', 'config.default.ts'], {
@@ -43,14 +43,7 @@ export default defineConfig([
         clean: false,
         minify: process.argv.includes('--minify'),
         sourcemap: true,
-        external: [
-            '@minecraft/server',
-            '@minecraft/server-ui',
-            '@minecraft/server-gametest',
-            '@minecraft/debug-utilities',
-            '@minecraft/common',
-            ...externalConfigs
-        ],
+        external: ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common', ...externalConfigs],
         noExternal: ['@minecraft/vanilla-data', '@minecraft/math']
     },
     {

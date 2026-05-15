@@ -1,15 +1,14 @@
-
 import * as mc from '@minecraft/server';
 
-import * as teamManager from '@features/teams/teamManager.js';
-import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
-import { isDefined } from '@lib/guards.js';
 import * as bountyManager from '@core/bountyManager.js';
 import { getConfig } from '@core/configManager.js';
 import * as lastHitManager from '@core/lastHitManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import * as playerCache from '@core/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance, setPlayerLastDeathLocation } from '@core/playerDataManager.js';
+import * as teamManager from '@features/teams/teamManager.js';
+import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
+import { isDefined } from '@lib/guards.js';
 
 export const eventName = 'entityDie';
 
@@ -45,7 +44,7 @@ function handleEntityDie(event: mc.EntityDieAfterEvent) {
         lastHitManager.clearLastHit(deadPlayer.id);
 
         const timeSinceHit = (Date.now() - lastHit.timestamp) / 1000;
-        const creditTimeout = config.bounties.bountyCreditTimeoutSeconds ?? 15;
+        const creditTimeout = config.bounties.bountyCreditTimeoutSeconds;
 
         if (timeSinceHit > creditTimeout) {
             debugLog(`[BountyClaim] Kill credit for ${deadPlayer.name} expired. Time since last hit: ${timeSinceHit}s`);

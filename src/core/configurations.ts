@@ -13,10 +13,10 @@ import type { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConf
 import type { dailyRewardsConfig } from '@features/dailyRewards/dailyRewardsConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
 import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.default.js';
+import type { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
 import type { teamConfig } from '@features/teams/teamConfig.js';
-import type { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import type ranksConfig from './ranksConfig.default.js';
 import type { config as sidebarConfig } from './sidebarConfig.default.js';
 import type { spawnConfig } from './spawnConfig.default.js';

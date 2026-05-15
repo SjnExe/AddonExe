@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { config as Config } from '@core/config.default.js';
+import { config as Config } from '../config.default.js';
 
 import { isDefined } from '@lib/guards.js';
 import { getRanksConfig } from './configurations.js';
@@ -143,8 +143,8 @@ export function updatePlayerNameTag(player: mc.Player, config: typeof Config) {
     rankCache.delete(player.id);
 
     const rank = getPlayerRank(player, config);
-    const rankPrefix = (isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined) ?? '';
-    const nameTagStyle = (isDefined(config.ranks) ? config.ranks.nameTagStyle : undefined) ?? 'above';
+    const rankPrefix = rank.chatFormatting?.prefixText || '';
+    const nameTagStyle = config.ranks.nameTagStyle || 'above';
 
     // Hardcoded brackets: §e[§r PREFIX §e]§r
     const finalPrefix = rankPrefix === '' ? '' : `§e[§r${rankPrefix}§e]§r`;

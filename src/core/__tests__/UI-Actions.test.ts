@@ -1,6 +1,6 @@
-import { vi } from 'vitest';
 import { uiActionFunctions } from '@ui/actionRegistry.js';
 import { panelDefinitions } from '@ui/panelRegistry.js';
+import { vi } from 'vitest';
 
 vi.mock('../configManager.js', () => ({
     getConfig: vi.fn().mockReturnValue({}),

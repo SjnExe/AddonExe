@@ -4,13 +4,13 @@ import { ActionFormData, ActionFormResponse, ModalFormData } from '@minecraft/se
 import { getConfig } from '@core/configManager.js';
 import { getVisiblePlayers, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
-import { getStaticMenuItems } from '@ui/panelBuilder.js';
-import { panelDefinitions } from '@ui/panelRegistry.js';
-import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import { isDefined } from '@lib/guards.js';
+import { getStaticMenuItems } from '@ui/panelBuilder.js';
+import { panelDefinitions } from '@ui/panelRegistry.js';
+import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 
 export class PlayerPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

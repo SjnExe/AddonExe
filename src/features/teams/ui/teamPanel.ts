@@ -5,13 +5,13 @@ import { getConfig } from '@core/configManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
+import { showPanel } from '@core/uiManager.js';
+import { getPlayerIcon } from '@core/utils/ui.js';
+import * as teamManager from '@features/teams/teamManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions } from '@ui/panelRegistry.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
-import { showPanel } from '@core/uiManager.js';
-import { getPlayerIcon } from '@core/utils/ui.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import * as teamManager from '@features/teams/teamManager.js';
 
 export class TeamPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

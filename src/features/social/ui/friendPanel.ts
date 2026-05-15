@@ -5,8 +5,8 @@ import { getConfig } from '@core/configManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
-import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
+import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 
 export class FriendPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
