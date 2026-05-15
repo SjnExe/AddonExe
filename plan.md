@@ -5,15 +5,17 @@ This document outlines the step-by-step plan to complete the codebase refactorin
 Please mark the checkboxes as `[x]` when you complete each task. Whenever a session is finished and you perform a handover, please update the "Session Handover Context" at the bottom of this file.
 
 ## Context & User Answers
-* **`scripts/generate-command-index.js`:** We will KEEP this script as it avoids the need to manually import every single command file into a central registry. We will improve its integration into the build setup (e.g., as a pre-build step before tsup runs).
-* **`packs/` Directory:** Everything inside `packs/` is considered source code. There are no pre-generated files we need to exclude when migrating assets to the new `build/` output directory.
-* **UI Layout Logic:** The "Reset Settings" section should appear on the **very last page** of the paginated list in the configuration panel, nowhere else.
-* **`tsup` Configuration:** The `*Config.ts` files will be specified as multiple entry points in `tsup` to ensure they are compiled but not bundled with the main script.
+
+- **`scripts/generate-command-index.js`:** We will KEEP this script as it avoids the need to manually import every single command file into a central registry. We will improve its integration into the build setup (e.g., as a pre-build step before tsup runs).
+- **`packs/` Directory:** Everything inside `packs/` is considered source code. There are no pre-generated files we need to exclude when migrating assets to the new `build/` output directory.
+- **UI Layout Logic:** The "Reset Settings" section should appear on the **very last page** of the paginated list in the configuration panel, nowhere else.
+- **`tsup` Configuration:** The `*Config.ts` files will be specified as multiple entry points in `tsup` to ensure they are compiled but not bundled with the main script.
 
 ---
 
 ## Session 1: Codebase Refactoring (Aliases & Types)
-*Goal: Enforce a cleaner monorepo-style architecture within the `src/` directory.*
+
+_Goal: Enforce a cleaner monorepo-style architecture within the `src/` directory._
 
 - [ ] **Create Shared Types Folder:** Create a dedicated `src/types/` directory for global/shared TypeScript interfaces.
 - [ ] **Config Update:** Update `tsconfig.json` to include a `@types/*` alias pointing to `./src/types/*`.
@@ -23,7 +25,8 @@ Please mark the checkboxes as `[x]` when you complete each task. Whenever a sess
 ---
 
 ## Session 2: UI Layout Logic (Reset Config Placement)
-*Goal: Fix the layout issue in the configuration panel.*
+
+_Goal: Fix the layout issue in the configuration panel._
 
 - [ ] **Modify Panel Logic:** Edit `src/core/ui/panels/configPanel.ts`.
 - [ ] **Programmatic Placement:** Force the "Reset Settings" button/section to be the absolute last element in the configuration list.
@@ -32,14 +35,15 @@ Please mark the checkboxes as `[x]` when you complete each task. Whenever a sess
 ---
 
 ## Session 3: Build System Migration (Asset Management & TypeScript Compilation)
-*Goal: Replace custom esbuild logic with `tsup` and migrate output to the `build/` directory.*
-*(Note: These tasks are grouped because replacing `build.js` requires the new asset manager and tsup config to be ready simultaneously.)*
+
+_Goal: Replace custom esbuild logic with `tsup` and migrate output to the `build/` directory._
+_(Note: These tasks are grouped because replacing `build.js` requires the new asset manager and tsup config to be ready simultaneously.)_
 
 - [ ] **Asset Management Script:** Create `scripts/build-assets.js`. It must copy all non-script assets (JSON, .lang, .mcfunction, etc.) from `packs/` to `build/` (mirroring `build/behavior/` and `build/resource/`). It should include logic to minify these files if it detects a CI environment.
 - [ ] **Manifest Generation:** Update `scripts/generate-manifests.js` to output the generated `manifest.json` files directly into `build/behavior/` and `build/resource/`.
 - [ ] **tsup Configuration:** Create a `tsup.config.ts` file:
     - Compile main entry points in `src/` to `build/behavior/scripts/`.
-    - Configure `*Config.ts` files as separate entry points so they are compiled but *not bundled* into the main script.
+    - Configure `*Config.ts` files as separate entry points so they are compiled but _not bundled_ into the main script.
     - Handle cleaning the `build/` directory before building.
 - [ ] **Package.json Scripts Update:** Update `package.json`:
     - Remove references to `scripts/build.js` and delete the old file.
@@ -51,7 +55,8 @@ Please mark the checkboxes as `[x]` when you complete each task. Whenever a sess
 ---
 
 ## Session 4: Validation Tools, CI/CD Pipelines & Final Verification
-*Goal: Point all tools to the new `build/` directory and verify the entire system.*
+
+_Goal: Point all tools to the new `build/` directory and verify the entire system._
 
 - [ ] **Validation Tools:** Update `package.json` scripts for Minecraft Creator Tools (`mct validate`) to look at the `build/` directory instead of the root or `packs/` (e.g., using `-i build`).
 - [ ] **GitHub Actions Update:** Modify `.github/workflows/build.yml` so that it copies the final assets from the `build/` directory to the staging directory for deployment/packaging instead of `packs/`.
@@ -64,7 +69,8 @@ Please mark the checkboxes as `[x]` when you complete each task. Whenever a sess
 ---
 
 ## Session Handover Context
-*(Update this section whenever you perform a handover to keep track of state and any important discoveries)*
+
+_(Update this section whenever you perform a handover to keep track of state and any important discoveries)_
 
 - **Current Status:** Initial plan created.
 - **Completed Sessions:** None.
