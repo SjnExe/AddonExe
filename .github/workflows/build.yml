@@ -61,7 +61,7 @@ jobs:
         steps:
             - uses: actions/checkout@v6
             - run: npm ci
-            - run: npm run validate
+            - run: npm run build && npm run validate
 
     build:
         runs-on: ubuntu-latest
