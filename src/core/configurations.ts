@@ -3,24 +3,24 @@ import * as mc from '@minecraft/server';
 import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
 import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
 
-import { loadConfig as asyncLoadConfig } from './configLoader.js';
-import { getConfig } from './configManager.js';
-import createConfigManager, { ConfigManager } from './configManagerFactory.js';
-import { setLockState } from './playerDataManager.js';
-import { reloadRanks } from './rankManager.js';
+import { loadConfig as asyncLoadConfig } from '@core/configLoader.js';
+import { getConfig } from '@core/configManager.js';
+import createConfigManager, { ConfigManager } from '@core/configManagerFactory.js';
+import { setLockState } from '@core/playerDataManager.js';
+import { reloadRanks } from '@core/rankManager.js';
 
+import type ranksConfig from '@core/ranksConfig.default.js';
+import type { config as sidebarConfig } from '@core/sidebarConfig.default.js';
+import type { spawnConfig } from '@core/spawnConfig.default.js';
+import type { xrayConfig } from '@core/xrayConfig.default.js';
 import type { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
 import type { dailyRewardsConfig } from '@features/dailyRewards/dailyRewardsConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
 import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.default.js';
+import type { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
 import type { teamConfig } from '@features/teams/teamConfig.js';
-import type { kitsConfig } from '../features/kits/kitsConfig.default.js';
-import type ranksConfig from './ranksConfig.default.js';
-import type { config as sidebarConfig } from './sidebarConfig.default.js';
-import type { spawnConfig } from './spawnConfig.default.js';
-import type { xrayConfig } from './xrayConfig.default.js';
 
 export type KitsConfig = typeof kitsConfig;
 export type ShopConfig = typeof shopConfig;

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { getConfig, updateMultipleConfig } from './configManager.js';
-import { debugLog } from './logger.js';
+import { getConfig, updateMultipleConfig } from '@core/configManager.js';
+import { debugLog } from '@core/logger.js';
 
 /**
  * Gets the current list of rules from the main configuration.

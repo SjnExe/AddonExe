@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { getEconomyConfig } from './configurations.js';
-import { sendMessage } from './messaging.js';
-import { getPlayerFromCache } from './playerCache.js';
-import { getPlayer, incrementPlayerBalance } from './playerDataManager.js';
-import { formatCurrency } from './utils.js';
+import { getEconomyConfig } from '@core/configurations.js';
+import { sendMessage } from '@core/messaging.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
+import { getPlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
+import { formatCurrency } from '@core/utils.js';
 
 // --- Interfaces --- //
 

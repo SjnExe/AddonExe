@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { debugLog } from './logger.js';
+import { debugLog } from '@core/logger.js';
 
 /**
  * A manager to track and clear system timers (run and runInterval)

@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
+import { UIContext } from '@ui/panelRegistry.js';
+import { PlayerPanelHandler } from '@ui/panels/playerPanel.js';
 import { vi } from 'vitest';
-import { UIContext } from '../ui/panelRegistry.js';
-import { PlayerPanelHandler } from '../ui/panels/playerPanel.js';
 
 vi.mock('../configManager.js', () => ({
     getConfig: vi.fn().mockReturnValue({})

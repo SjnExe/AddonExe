@@ -1,6 +1,6 @@
+import { getRanksConfig, saveRanksConfig } from '@core/configurations.js';
+import { RankDefinition } from '@core/ranksConfig.default.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { getRanksConfig, saveRanksConfig } from './configurations.js';
-import { RankDefinition } from './ranksConfig.default.js';
 
 /**
  * Gets all ranks from the config.

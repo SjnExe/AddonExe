@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '../configManager.js';
-import { debugLog } from '../logger.js';
-import * as playerCache from '../playerCache.js';
-import * as playerDataManager from '../playerDataManager.js';
-import { formatString } from '../utils.js';
+import { getConfig } from '@core/configManager.js';
+import { debugLog } from '@core/logger.js';
+import * as playerCache from '@core/playerCache.js';
+import * as playerDataManager from '@core/playerDataManager.js';
+import { formatString } from '@core/utils.js';
 
 export const eventName = 'playerLeave';
 

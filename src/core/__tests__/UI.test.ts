@@ -1,6 +1,6 @@
+import { panelDefinitions } from '@ui/panelRegistry.js';
+import { panelRouter } from '@ui/PanelRouter.js';
 import { vi } from 'vitest';
-import { panelDefinitions } from '../ui/panelRegistry.js';
-import { panelRouter } from '../ui/PanelRouter.js';
 
 // Mock Config
 vi.mock('../configManager.js', () => ({
@@ -25,7 +25,7 @@ vi.mock('../bountyManager.js', () => ({
 }));
 
 // Import panels (trigger registration)
-const { initialize } = await import('../ui/panels/index.js');
+const { initialize } = await import('@ui/panels/index.js');
 initialize();
 
 describe('UI Integrity Check', () => {

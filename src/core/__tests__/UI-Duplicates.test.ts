@@ -1,4 +1,4 @@
-import { panelDefinitions } from '../ui/panelRegistry.js';
+import { panelDefinitions } from '@ui/panelRegistry.js';
 
 describe('UI Duplicates Integrity', () => {
     it('should not have duplicate button IDs within the same panel', () => {
