@@ -17,8 +17,8 @@ Please mark the checkboxes as `[x]` when you complete each task. Whenever a sess
 
 _Goal: Set up the types folder and configuration._
 
-- [ ] **Create Shared Types Folder:** Create a dedicated `src/types/` directory for global/shared TypeScript interfaces.
-- [ ] **Config Update:** Update `tsconfig.json` to include a `@types/*` alias pointing to `./src/types/*`.
+- [x] **Create Shared Types Folder:** Create a dedicated `src/types/` directory for global/shared TypeScript interfaces.
+- [x] **Config Update:** Update `tsconfig.json` to include a `@types/*` alias pointing to `./src/types/*`.
 
 ---
 
@@ -95,6 +95,6 @@ _Goal: Point all tools to the new `build/` directory and verify the entire syste
 
 _(Update this section whenever you perform a handover to keep track of state and any important discoveries)_
 
-- **Current Status:** Initial plan created.
-- **Completed Sessions:** None.
-- **Next Steps:** Begin Session 1a (Types and Configuration Setup).
+- **Current Status:** Session 1a completed. Created shared types folder and updated tsconfig.json.
+- **Completed Sessions:** Session 1a.
+- **Next Steps:** Begin Session 1b (Core Absolute Aliases Refactoring).

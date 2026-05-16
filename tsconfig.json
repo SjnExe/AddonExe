@@ -27,7 +27,8 @@
             "@features/*": ["./features/*"],
             "@ui/*": ["./core/ui/*"],
             "@commands/*": ["./core/commands/*"],
-            "@lib/*": ["./lib/*"]
+            "@lib/*": ["./lib/*"],
+            "@shared-types/*": ["./types/*"]
         },
         "types": ["node", "@minecraft/server", "@minecraft/server-ui", "@minecraft/server-gametest", "@minecraft/debug-utilities", "@minecraft/vanilla-data", "@minecraft/math"]
     },
