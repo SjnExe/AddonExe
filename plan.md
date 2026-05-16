@@ -13,13 +13,36 @@ Please mark the checkboxes as `[x]` when you complete each task. Whenever a sess
 
 ---
 
-## Session 1: Codebase Refactoring (Aliases & Types)
+## Session 1a: Types and Configuration Setup
 
-_Goal: Enforce a cleaner monorepo-style architecture within the `src/` directory._
+_Goal: Set up the types folder and configuration._
 
 - [ ] **Create Shared Types Folder:** Create a dedicated `src/types/` directory for global/shared TypeScript interfaces.
 - [ ] **Config Update:** Update `tsconfig.json` to include a `@types/*` alias pointing to `./src/types/*`.
-- [ ] **Enforce Absolute Aliases:** Scan the entire `src/` directory. Replace all relative imports (e.g., `import { x } from "../../core/x"`) with absolute aliases defined in `tsconfig.json` (e.g., `@core/`, `@features/`, `@ui/`, `@lib/`, `@types/`).
+
+---
+
+## Session 1b: Core Absolute Aliases Refactoring
+
+_Goal: Enforce absolute aliases within the core directory._
+
+- [ ] **Enforce Absolute Aliases in `src/core/`:** Scan the `src/core/` directory and replace all relative imports with absolute aliases defined in `tsconfig.json`.
+
+---
+
+## Session 1c: Features Absolute Aliases Refactoring
+
+_Goal: Enforce absolute aliases within the features directory._
+
+- [ ] **Enforce Absolute Aliases in `src/features/`:** Scan the `src/features/` directory and replace all relative imports with absolute aliases defined in `tsconfig.json`.
+
+---
+
+## Session 1d: Other Directories Refactoring & Strictness Check
+
+_Goal: Enforce absolute aliases in remaining directories and verify strictness._
+
+- [ ] **Enforce Absolute Aliases in other directories:** Scan remaining directories (e.g., `src/lib/`, root `src/` files) and replace all relative imports with absolute aliases.
 - [ ] **Strictness Check:** Ensure no relative paths remain that cross the boundaries between `core/`, `features/`, `ui/`, etc.
 
 ---
@@ -74,4 +97,4 @@ _(Update this section whenever you perform a handover to keep track of state and
 
 - **Current Status:** Initial plan created.
 - **Completed Sessions:** None.
-- **Next Steps:** Begin Session 1 (Codebase Refactoring & Types).
+- **Next Steps:** Begin Session 1a (Types and Configuration Setup).
