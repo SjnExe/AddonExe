@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
 import { isDefined } from '@lib/guards.js';
-import { loadConfig as asyncLoadConfig } from './configLoader.js';
-import createConfigManager, { ConfigManager } from './configManagerFactory.js';
-import { deepClone } from './objectUtils.js';
+import { loadConfig as asyncLoadConfig } from '@core/configLoader.js';
+import createConfigManager, { ConfigManager } from '@core/configManagerFactory.js';
+import { deepClone } from '@core/objectUtils.js';
 
 import type { config as Config } from '../config.default.js';
 
@@ -56,7 +56,7 @@ export const updateMultipleConfig = (updates: Record<string, unknown>) => {
 };
 
 export async function resetConfigSection(sectionKey: string, player?: mc.Player): Promise<{ success: boolean; message: string }> {
-    const { configResetRegistry, configResetCallbacks } = await import('./configurations.js');
+    const { configResetRegistry, configResetCallbacks } = await import('@core/configurations.js');
 
     if (sectionKey === 'all') {
         const resetPromises = [mainConfigManager.reset()];

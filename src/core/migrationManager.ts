@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { isNonEmptyString } from '@lib/guards.js';
-import { debugLog, errorLog, infoLog } from './logger.js';
+import { debugLog, errorLog, infoLog } from '@core/logger.js';
 
 /**
  * The current data version of the addon.

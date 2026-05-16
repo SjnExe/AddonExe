@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 import { vi } from 'vitest';
 
 // Create mock functions outside
-// eslint-disable-next-line
+
 const { mockStorageLoad, mockStorageSave } = vi.hoisted(() => ({
     mockStorageLoad: vi.fn(),
     mockStorageSave: vi.fn(),
@@ -61,7 +61,7 @@ vi.mock('../storage/StorageManager.js', () => ({
 }));
 
 // Import module under test
-const { cleanupPlayerDataManager, createPendingPayment, getBalance, getOrCreatePlayer, getPendingPayment, incrementPlayerBalance, transfer } = await import('../playerDataManager.js');
+const { cleanupPlayerDataManager, createPendingPayment, getBalance, getOrCreatePlayer, getPendingPayment, incrementPlayerBalance, transfer } = await import('@core/playerDataManager.js');
 
 // Helper to mock a player
 const mockPlayer = (id: string, name: string) =>

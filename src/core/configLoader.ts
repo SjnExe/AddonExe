@@ -1,4 +1,4 @@
-import { errorLog } from './logger.js';
+import { errorLog } from '@core/logger.js';
 
 /**
  * Dynamically loads a configuration module.

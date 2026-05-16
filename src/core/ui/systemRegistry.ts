@@ -1,5 +1,5 @@
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { configPanelSchema } from './configPanelRegistry.js';
+import { configPanelSchema } from '@ui/configPanelRegistry.js';
 
 export interface SystemDefinition {
     /** Unique identifier for the system (used for reset logic). */

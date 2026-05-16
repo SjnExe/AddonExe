@@ -1,14 +1,14 @@
 import * as mc from '@minecraft/server';
 
-import { errorLog } from '../logger.js';
+import { errorLog } from '@core/logger.js';
 
-import handleBeforeChatSend from './beforeChatSend.js';
-import handleEntityDie from './entityDie.js';
-import handleEntityHurt from './entityHurt.js';
-import handleItemUse from './itemUse.js';
-import handlePlayerDimensionChange from './playerDimensionChange.js';
-import handlePlayerLeave from './playerLeave.js';
-import { handlePlayerSpawn } from './playerSpawn.js';
+import handleBeforeChatSend from '@core/events/beforeChatSend.js';
+import handleEntityDie from '@core/events/entityDie.js';
+import handleEntityHurt from '@core/events/entityHurt.js';
+import handleItemUse from '@core/events/itemUse.js';
+import handlePlayerDimensionChange from '@core/events/playerDimensionChange.js';
+import handlePlayerLeave from '@core/events/playerLeave.js';
+import { handlePlayerSpawn } from '@core/events/playerSpawn.js';
 import {
     handleBeforeEntityHurt,
     handleBeforeEntitySpawn,
@@ -19,8 +19,8 @@ import {
     handleBeforePlayerPlaceBlock,
     handlePlayerInteractWithBlock,
     handlePlayerInteractWithEntity
-} from './protectionEvents.js';
-import { handleScriptEventReceive } from './scriptEventReceive.js';
+} from '@core/events/protectionEvents.js';
+import { handleScriptEventReceive } from '@core/events/scriptEventReceive.js';
 
 const cleanupActions: (() => void)[] = [];
 

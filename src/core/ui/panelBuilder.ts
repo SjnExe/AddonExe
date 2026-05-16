@@ -8,9 +8,9 @@ import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { panelRouter } from './PanelRouter.js';
-import { panelDefinitions } from './panelRegistry.js';
-import { MainConfig, PanelDefinition, PanelItem, UIContext } from './types.js';
+import { panelRouter } from '@ui/PanelRouter.js';
+import { panelDefinitions } from '@ui/panelRegistry.js';
+import { MainConfig, PanelDefinition, PanelItem, UIContext } from '@ui/types.js';
 
 export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: number, context?: UIContext): PanelItem[] {
     const config = getConfig() as unknown as MainConfig;

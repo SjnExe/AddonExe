@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
 import { isDefined } from '@lib/guards.js';
-import { getConfig } from './configManager.js';
-import { initializeLeaderboard } from './leaderboardManager.js';
-import { debugLog, infoLog } from './logger.js';
-import { getAllPlayerData, isNameIdMapDirty, loadNameIdMap, saveNameIdMap, savePlayerData } from './playerDataManager.js';
-import { clearTrackedInterval, setTrackedInterval } from './timerManager.js';
+import { getConfig } from '@core/configManager.js';
+import { initializeLeaderboard } from '@core/leaderboardManager.js';
+import { debugLog, infoLog } from '@core/logger.js';
+import { getAllPlayerData, isNameIdMapDirty, loadNameIdMap, saveNameIdMap, savePlayerData } from '@core/playerDataManager.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
 
 let autoSaveIntervalId: number | undefined;
 

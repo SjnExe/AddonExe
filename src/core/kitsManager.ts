@@ -1,13 +1,13 @@
 import * as mc from '@minecraft/server';
 
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
-import { getConfig } from './configManager.js';
-import { getKitsConfig } from './configurations.js';
-import { Kit } from './kitAdminManager.js';
-import { ItemInfo } from './kitItemsManager.js';
-import { errorLog } from './logger.js';
-import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData, setKitCooldown } from './playerDataManager.js';
-import { formatCooldown } from './utils.js';
+import { getConfig } from '@core/configManager.js';
+import { getKitsConfig } from '@core/configurations.js';
+import { Kit } from '@core/kitAdminManager.js';
+import { ItemInfo } from '@core/kitItemsManager.js';
+import { errorLog } from '@core/logger.js';
+import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData, setKitCooldown } from '@core/playerDataManager.js';
+import { formatCooldown } from '@core/utils.js';
 
 interface KitInfo {
     name: string;

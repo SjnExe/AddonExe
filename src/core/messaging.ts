@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { isDefined } from '@lib/guards.js';
-import { warnLog } from './logger.js';
+import { warnLog } from '@core/logger.js';
 
 /**
  * Sends a consistently formatted message to a player or the entire world.

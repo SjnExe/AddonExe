@@ -1,4 +1,4 @@
-import { IPanelHandler } from './types.js';
+import { IPanelHandler } from '@ui/types.js';
 
 class PanelRouter {
     private readonly handlers: IPanelHandler[] = [];

@@ -1,4 +1,4 @@
-import { getEconomyConfig } from '../configurations.js';
+import { getEconomyConfig } from '@core/configurations.js';
 
 interface EconomyConfig {
     currencySymbol?: string;

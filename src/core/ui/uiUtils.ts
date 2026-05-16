@@ -28,7 +28,7 @@ import { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/teams/teamConfig.js';
 import * as mc from '@minecraft/server';
-import { PanelItem, UIContext } from './types.js';
+import { PanelItem, UIContext } from '@ui/types.js';
 
 type SpawnConfig = typeof spawnConfig;
 type EconomyConfig = typeof economyConfig;
@@ -39,7 +39,7 @@ type KitsConfig = typeof kitsConfig;
 type ShopConfig = typeof shopConfig;
 type AuctionHouseConfig = typeof auctionHouseConfig;
 
-import { getSystemRegistry, SystemDefinition } from './systemRegistry.js';
+import { getSystemRegistry, SystemDefinition } from '@ui/systemRegistry.js';
 
 export const itemsPerPage = 8;
 

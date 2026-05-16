@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor } from '@commands/commandManager.js';
-import { getAllPlayersFromCache } from './playerCache.js';
+import { getAllPlayersFromCache } from '@core/playerCache.js';
 
 export function startRestart(_initiator?: CommandExecutor | mc.Entity) {
     const players = getAllPlayersFromCache();

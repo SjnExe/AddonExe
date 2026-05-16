@@ -5,14 +5,14 @@ import { getTeamByPlayer } from '@features/teams/teamManager.js';
 import { isNumber } from '@lib/guards.js';
 
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
-import { getConfig } from './configManager.js';
-import { getEconomyConfig } from './configurations.js';
-import * as lastHitManager from './lastHitManager.js';
-import { infoLog } from './logger.js';
-import { getPlayerFromCache } from './playerCache.js';
-import { getPlayer, incrementDeathCount, incrementKillCount, incrementKillStreak, incrementPlayerBalance, resetKillStreak } from './playerDataManager.js';
-import { handlePvPDeath } from './pvpManager.js';
-import { formatCurrency } from './utils.js';
+import { getConfig } from '@core/configManager.js';
+import { getEconomyConfig } from '@core/configurations.js';
+import * as lastHitManager from '@core/lastHitManager.js';
+import { infoLog } from '@core/logger.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
+import { getPlayer, incrementDeathCount, incrementKillCount, incrementKillStreak, incrementPlayerBalance, resetKillStreak } from '@core/playerDataManager.js';
+import { handlePvPDeath } from '@core/pvpManager.js';
+import { formatCurrency } from '@core/utils.js';
 
 mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     const { deadEntity, damageSource } = event;

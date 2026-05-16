@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { errorLog } from './logger.js';
+import { errorLog } from '@core/logger.js';
 
 export interface SerializedEnchantment {
     id: string;

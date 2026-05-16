@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
 import { isDefined, isNumber } from '@lib/guards.js';
-import { getConfig } from './configManager.js';
-import { debugLog, errorLog } from './logger.js';
+import { getConfig } from '@core/configManager.js';
+import { debugLog, errorLog } from '@core/logger.js';
 
 const cooldownDbKey = 'exe:cooldowns';
 const saveIntervalTicks = 6000; // Every 5 minutes

@@ -26,7 +26,7 @@ _Goal: Set up the types folder and configuration._
 
 _Goal: Enforce absolute aliases within the core directory._
 
-- [ ] **Enforce Absolute Aliases in `src/core/`:** Scan the `src/core/` directory and replace all relative imports with absolute aliases defined in `tsconfig.json`.
+- [x] **Enforce Absolute Aliases in `src/core/`:** Scan the `src/core/` directory and replace all relative imports with absolute aliases defined in `tsconfig.json`.
 
 ---
 
@@ -95,6 +95,6 @@ _Goal: Point all tools to the new `build/` directory and verify the entire syste
 
 _(Update this section whenever you perform a handover to keep track of state and any important discoveries)_
 
-- **Current Status:** Session 1a completed. Created shared types folder and updated tsconfig.json.
-- **Completed Sessions:** Session 1a.
-- **Next Steps:** Begin Session 1b (Core Absolute Aliases Refactoring).
+- **Current Status:** Session 1b completed. All relative imports in `src/core` have been refactored to absolute aliases using `@core`, `@ui`, `@commands`, `@features`, etc. as defined in `tsconfig.json`.
+- **Completed Sessions:** Session 1a, Session 1b.
+- **Next Steps:** Begin Session 1c (Features Absolute Aliases Refactoring).

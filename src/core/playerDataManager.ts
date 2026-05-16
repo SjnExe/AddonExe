@@ -2,14 +2,14 @@
 import * as mc from '@minecraft/server';
 
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { getConfig } from './configManager.js';
-import { getEconomyConfig } from './configurations.js';
-import { SerializedItem } from './itemSerializer.js';
-import { updateAndSaveLeaderboard } from './leaderboardManager.js';
-import { debugLog, errorLog, infoLog } from './logger.js';
-import { getAllPlayersFromCache, getPlayerFromCache } from './playerCache.js';
-import { StorageManager } from './storage/StorageManager.js';
-import { formatCurrency } from './utils/economy.js';
+import { getConfig } from '@core/configManager.js';
+import { getEconomyConfig } from '@core/configurations.js';
+import { SerializedItem } from '@core/itemSerializer.js';
+import { updateAndSaveLeaderboard } from '@core/leaderboardManager.js';
+import { debugLog, errorLog, infoLog } from '@core/logger.js';
+import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
+import { StorageManager } from '@core/storage/StorageManager.js';
+import { formatCurrency } from '@core/utils/economy.js';
 
 const playerPropertyPrefix = 'exe:player.';
 // Legacy keys (kept for migration)
