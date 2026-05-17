@@ -126,7 +126,8 @@ jobs:
                   npm run clean
                   node scripts/generate-command-index.js
                   node scripts/generate-manifests.js --nightly --build-number ${{ github.run_number }}
-                  node scripts/build.js
+                  node scripts/build-assets.js
+                  npx tsup
 
             - name: Build TypeScript (Stable)
               if: steps.build_type.outputs.type == 'stable'

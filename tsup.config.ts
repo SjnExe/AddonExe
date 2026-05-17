@@ -1,5 +1,5 @@
-import { defineConfig } from 'tsup';
 import { globSync } from 'glob';
+import { defineConfig } from 'tsup';
 
 // Find all config files
 const configFiles = globSync('src/**/*Config{.ts,.default.ts}', {
@@ -23,7 +23,7 @@ export default defineConfig({
         '@minecraft/server-gametest',
         '@minecraft/debug-utilities',
         '@minecraft/common',
-        ...configFiles.map(file => {
+        ...configFiles.map((file) => {
             let relativePath = file.replace('src/', './').replace('.ts', '.js');
             if (relativePath.endsWith('.default.js')) {
                 relativePath = relativePath.replace('.default.js', '.js');
@@ -36,7 +36,7 @@ export default defineConfig({
     },
     outExtension({ format }) {
         return {
-            js: '.js',
+            js: '.js'
         };
     },
     async onSuccess() {
