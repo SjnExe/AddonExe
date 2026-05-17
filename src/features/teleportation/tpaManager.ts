@@ -5,10 +5,10 @@ import { setCooldown } from '@core/cooldownManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
+import { isFriend } from '@features/social/friendManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { isFriend } from '../social/friendManager.js';
 
-import { findSafeLocation, saveLastLocation } from './teleportUtils.js';
+import { findSafeLocation, saveLastLocation } from '@features/teleportation/teleportUtils.js';
 
 type TpaRequestType = 'tpa' | 'tpahere';
 

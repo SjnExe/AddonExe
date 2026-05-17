@@ -6,7 +6,7 @@ import { debugLog } from '@core/logger.js';
 import { generateDisplayName, resolveIcon, sanitizeString, validateInput } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-import { ShopCategory, ShopSubCategory } from './shopConfig.js';
+import { ShopCategory, ShopSubCategory } from '@features/shop/shopConfig.js';
 
 interface ActionResult {
     success: boolean;

@@ -1,3 +1,3 @@
-export * from './guards.js';
-export * from './result.js';
-export * from './types.js';
+export * from '@lib/guards.js';
+export * from '@lib/result.js';
+export * from '@lib/types.js';

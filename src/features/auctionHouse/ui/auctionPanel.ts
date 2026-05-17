@@ -3,8 +3,8 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { formatCurrency, formatTime, uiWait } from '@core/utils.js';
+import { AuctionListing, buyItem, cancelListing, claimMailbox, claimMailboxItem, getListings, getListingsCount, placeBid, SortOption } from '@features/auctionHouse/auctionManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { AuctionListing, buyItem, cancelListing, claimMailbox, claimMailboxItem, getListings, getListingsCount, placeBid, SortOption } from '../auctionManager.js';
 
 const LISTINGS_PER_PAGE = 45;
 

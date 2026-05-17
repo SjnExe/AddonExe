@@ -1,4 +1,4 @@
-import type { Nullable } from './types.js';
+import type { Nullable } from '@lib/types.js';
 
 /**
  * Checks if a value is defined (not null and not undefined).

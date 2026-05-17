@@ -6,9 +6,9 @@ import { StorageManager } from '@core/storage/StorageManager.js';
 import { formatString } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 
-import { BaseCheckConfig } from './anticheatConfig.js';
-import { getAnticheatConfig } from './anticheatConfigLoader.js';
-import { addFlagLog } from './logManager.js';
+import { BaseCheckConfig } from '@features/anticheat/anticheatConfig.js';
+import { getAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
+import { addFlagLog } from '@features/anticheat/logManager.js';
 
 const storage = new StorageManager('exe:flags');
 

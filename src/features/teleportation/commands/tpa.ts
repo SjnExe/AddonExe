@@ -8,7 +8,7 @@ import { addTpaBlockedPlayer, getPlayerIdByName, getPlayerNameById, removeTpaBlo
 import { playSound, resolveTarget } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-import { acceptRequest, cancelRequest, createRequest, denyRequest, getIncomingRequest, getOutgoingRequest } from '../tpaManager.js';
+import { acceptRequest, cancelRequest, createRequest, denyRequest, getIncomingRequest, getOutgoingRequest } from '@features/teleportation/tpaManager.js';
 
 function handleTpaRequest(executor: mc.Player, args: Record<string, unknown>, type: 'tpa' | 'tpahere'): void {
     const config = getConfig();

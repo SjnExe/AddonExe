@@ -8,7 +8,7 @@ import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataMa
 import { parseDuration, playSound } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 
-import { addPunishment, removePunishment } from '../punishmentManager.js';
+import { addPunishment, removePunishment } from '@features/moderation/punishmentManager.js';
 
 export function mutePlayer(executor: CommandExecutor, targetPlayer: mc.Player, duration: string | undefined, reason: string) {
     if (executor instanceof mc.Player) {

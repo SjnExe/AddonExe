@@ -46,7 +46,7 @@ const { freezePlayer } = await import('../commands/freeze.js');
 const { default: warnCommand } = await import('../commands/warn.js');
 const { default: inventoryCommands } = await import('../commands/inventory.js');
 
-import { MockConstructable } from '../../../core/__tests__/__mocks__/utils.js';
+import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 
 const setupRanks = (executorLevel: number, targetLevel: number) => {
     mockGetPlayer.mockImplementation(((id: string) => {
