@@ -4,10 +4,10 @@ import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
 import { getConfig } from '@core/configManager.js';
 import { loadPlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
+import * as tpaManager from '@features/teleportation/tpaManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { addBackButton } from '@ui/uiUtils.js';
-import * as tpaManager from '@features/teleportation/tpaManager.js';
 
 export class TeleportPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

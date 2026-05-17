@@ -3,8 +3,8 @@ import * as mc from '@minecraft/server';
 import { CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
-import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
+import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
 const command: CustomCommand = {
     name: 'tp',

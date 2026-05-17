@@ -10,8 +10,8 @@ import { panelDefinitions } from '@core/ui/panelRegistry.js';
 import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
 import { showPanel } from '@core/uiManager.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as teamManager from '@features/teams/teamManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export class TeamPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
