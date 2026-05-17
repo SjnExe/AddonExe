@@ -8,8 +8,8 @@ import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions } from '@ui/panelRegistry.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems, handleCommonSelection } from '@ui/uiUtils.js';
-import * as punishmentManager from '../punishmentManager.js';
-import * as reportManager from '../reportManager.js';
+import * as punishmentManager from '@features/moderation/punishmentManager.js';
+import * as reportManager from '@features/moderation/reportManager.js';
 
 export class ModerationPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

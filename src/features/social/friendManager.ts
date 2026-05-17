@@ -5,7 +5,7 @@ import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer, getPlayerNameById, getVisiblePlayers, updatePlayerData } from '@core/playerDataManager.js';
 import { isDefined } from '@lib/guards.js';
 import { panelRouter } from '@ui/PanelRouter.js';
-import { FriendPanelHandler } from './ui/friendPanel.js';
+import { FriendPanelHandler } from '@features/social/ui/friendPanel.js';
 
 export interface FriendInvite {
     senderId: string;

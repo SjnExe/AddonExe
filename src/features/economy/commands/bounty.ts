@@ -6,7 +6,7 @@ import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { resolveTarget } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { validateCurrencyAmount } from '../economyUtils.js';
+import { validateCurrencyAmount } from '@features/economy/economyUtils.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 

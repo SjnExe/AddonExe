@@ -5,8 +5,8 @@ import { getPlayer } from '@core/playerDataManager.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { isDefined } from '@lib/guards.js';
 
-import { teamConfig } from '../teamConfig.js';
-import { getTeamByPlayer } from '../teamManager.js';
+import { teamConfig } from '@features/teams/teamConfig.js';
+import { getTeamByPlayer } from '@features/teams/teamManager.js';
 
 const teamChatActive = new Map<string, boolean>();
 

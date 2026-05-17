@@ -7,7 +7,7 @@ import { playSound, sanitizeString, uiWait } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as reportManager from '../reportManager.js';
+import * as reportManager from '@features/moderation/reportManager.js';
 
 const reportCommand: CustomCommand = {
     name: 'report',

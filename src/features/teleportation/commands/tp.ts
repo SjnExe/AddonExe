@@ -4,7 +4,7 @@ import { CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
-import { saveLastLocation } from '../teleportUtils.js';
+import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 
 const command: CustomCommand = {
     name: 'tp',

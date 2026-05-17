@@ -10,8 +10,8 @@ import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { uiWait } from '@core/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
-import { saveLastLocation } from '../teleportUtils.js';
-import * as warpsManager from '../warpsManager.js';
+import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
+import * as warpsManager from '@features/teleportation/warpsManager.js';
 
 interface WarpCommandArgs {
     warpName?: string;

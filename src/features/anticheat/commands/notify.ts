@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 import { getPlayer } from '@core/playerDataManager.js';
-import { getAnticheatConfig, saveAnticheatConfig } from '../anticheatConfigLoader.js';
+import { getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
 
 const notifyCommand: CustomCommand = {
     name: 'notify',

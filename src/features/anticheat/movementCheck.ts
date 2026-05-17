@@ -5,8 +5,8 @@ import { errorLog } from '@core/logger.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { isDefined } from '@lib/guards.js';
 
-import { AnticheatConfig, getAnticheatConfig } from './anticheatConfigLoader.js';
-import { flag } from './flagManager.js';
+import { AnticheatConfig, getAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
+import { flag } from '@features/anticheat/flagManager.js';
 
 interface PlayerMovementState {
     violationLevel: number; // Token bucket

@@ -4,7 +4,7 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 import { getWorldProtectionConfig, saveWorldProtectionConfig } from '@core/configurations.js';
 import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
 import { showPanel } from '@core/uiManager.js';
-import { WorldProtectionZone } from '../worldProtectionConfig.default.js';
+import { WorldProtectionZone } from '@features/essentials/worldProtectionConfig.default.js';
 
 export class WorldProtectionPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {

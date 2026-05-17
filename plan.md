@@ -34,7 +34,7 @@ _Goal: Enforce absolute aliases within the core directory._
 
 _Goal: Enforce absolute aliases within the features directory._
 
-- [ ] **Enforce Absolute Aliases in `src/features/`:** Scan the `src/features/` directory and replace all relative imports with absolute aliases defined in `tsconfig.json`.
+- [x] **Enforce Absolute Aliases in `src/features/`:** Scan the `src/features/` directory and replace all relative imports with absolute aliases defined in `tsconfig.json`.
 
 ---
 
@@ -42,8 +42,8 @@ _Goal: Enforce absolute aliases within the features directory._
 
 _Goal: Enforce absolute aliases in remaining directories and verify strictness._
 
-- [ ] **Enforce Absolute Aliases in other directories:** Scan remaining directories (e.g., `src/lib/`, root `src/` files) and replace all relative imports with absolute aliases.
-- [ ] **Strictness Check:** Ensure no relative paths remain that cross the boundaries between `core/`, `features/`, `ui/`, etc.
+- [x] **Enforce Absolute Aliases in other directories:** Scan remaining directories (e.g., `src/lib/`, root `src/` files) and replace all relative imports with absolute aliases.
+- [x] **Strictness Check:** Ensure no relative paths remain that cross the boundaries between `core/`, `features/`, `ui/`, etc.
 
 ---
 
@@ -95,6 +95,6 @@ _Goal: Point all tools to the new `build/` directory and verify the entire syste
 
 _(Update this section whenever you perform a handover to keep track of state and any important discoveries)_
 
-- **Current Status:** Session 1b completed. All absolute aliases in `src/core/` were converted and tests passed (after leaving `src/core/ui/panels/index.ts` with local imports to avoid circular dependencies that crash Vite tests).
-- **Completed Sessions:** Session 1a, Session 1b.
-- **Next Steps:** Begin Session 1c (Features Absolute Aliases Refactoring).
+- **Current Status:** Session 1 completed. All absolute aliases in `src/features/` and remaining directories were converted, tested and passing.
+- **Completed Sessions:** Session 1a, Session 1b, Session 1c, Session 1d.
+- **Next Steps:** Proceed to session 2.

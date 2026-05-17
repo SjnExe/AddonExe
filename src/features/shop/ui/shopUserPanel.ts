@@ -7,9 +7,9 @@ import { formatCurrency, parseCurrency } from '@core/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { IPanelHandler, PanelItem, ShopItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
-import { ShopCategory } from '../shopConfig.js';
-import * as shopManager from '../shopManager.js';
-import { ensureItemsConfig, getAllItems, Item } from '../shopUtils.js';
+import { ShopCategory } from '@features/shop/shopConfig.js';
+import * as shopManager from '@features/shop/shopManager.js';
+import { ensureItemsConfig, getAllItems, Item } from '@features/shop/shopUtils.js';
 
 interface ShopCategoryEntry {
     type: 'subCategory';

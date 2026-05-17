@@ -1,6 +1,6 @@
 import createConfigManager from '@core/configManagerFactory.js';
 
-import { anticheatConfig } from './anticheatConfig.js';
+import { anticheatConfig } from '@features/anticheat/anticheatConfig.js';
 
 export type AnticheatConfig = typeof anticheatConfig;
 

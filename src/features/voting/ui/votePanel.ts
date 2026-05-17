@@ -5,7 +5,7 @@ import { getConfig } from '@core/configManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { uiWait } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { castVote, createVote, endVote, getActiveVote, getLastVote } from '../voteManager.js';
+import { castVote, createVote, endVote, getActiveVote, getLastVote } from '@features/voting/voteManager.js';
 
 export async function showVoteMenu(player: mc.Player) {
     const activeVote = getActiveVote();
