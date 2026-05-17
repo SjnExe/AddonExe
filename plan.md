@@ -62,18 +62,18 @@ _Goal: Fix the layout issue in the configuration panel._
 _Goal: Replace custom esbuild logic with `tsup` and migrate output to the `build/` directory._
 _(Note: These tasks are grouped because replacing `build.js` requires the new asset manager and tsup config to be ready simultaneously.)_
 
-- [ ] **Asset Management Script:** Create `scripts/build-assets.js`. It must copy all non-script assets (JSON, .lang, .mcfunction, etc.) from `packs/` to `build/` (mirroring `build/behavior/` and `build/resource/`). It should include logic to minify these files if it detects a CI environment.
-- [ ] **Manifest Generation:** Update `scripts/generate-manifests.js` to output the generated `manifest.json` files directly into `build/behavior/` and `build/resource/`.
-- [ ] **tsup Configuration:** Create a `tsup.config.ts` file:
+- [x] **Asset Management Script:** Create `scripts/build-assets.js`. It must copy all non-script assets (JSON, .lang, .mcfunction, etc.) from `packs/` to `build/` (mirroring `build/behavior/` and `build/resource/`). It should include logic to minify these files if it detects a CI environment.
+- [x] **Manifest Generation:** Update `scripts/generate-manifests.js` to output the generated `manifest.json` files directly into `build/behavior/` and `build/resource/`.
+- [x] **tsup Configuration:** Create a `tsup.config.ts` file:
     - Compile main entry points in `src/` to `build/behavior/scripts/`.
     - Configure `*Config.ts` files as separate entry points so they are compiled but _not bundled_ into the main script.
     - Handle cleaning the `build/` directory before building.
-- [ ] **Package.json Scripts Update:** Update `package.json`:
+- [x] **Package.json Scripts Update:** Update `package.json`:
     - Remove references to `scripts/build.js` and delete the old file.
     - Update the `build` script to run the index generator, manifests generator, `build-assets.js`, and `tsup`.
     - Update the `dev` or `watch` script to run `tsup --watch` alongside an asset watcher (if applicable).
     - Ensure `scripts/generate-command-index.js` is properly integrated as a pre-build step.
-- [ ] **Gitignore Update:** Update `.gitignore` to completely ignore the new `build/` directory. Remove old ignores for `packs/behavior/scripts` since `packs/` is now entirely source.
+- [x] **Gitignore Update:** Update `.gitignore` to completely ignore the new `build/` directory. Remove old ignores for `packs/behavior/scripts` since `packs/` is now entirely source.
 
 ---
 
@@ -81,13 +81,13 @@ _(Note: These tasks are grouped because replacing `build.js` requires the new as
 
 _Goal: Point all tools to the new `build/` directory and verify the entire system._
 
-- [ ] **Validation Tools:** Update `package.json` scripts for Minecraft Creator Tools (`mct validate`) to look at the `build/` directory instead of the root or `packs/` (e.g., using `-i build`).
-- [ ] **GitHub Actions Update:** Modify `.github/workflows/build.yml` so that it copies the final assets from the `build/` directory to the staging directory for deployment/packaging instead of `packs/`.
+- [x] **Validation Tools:** Update `package.json` scripts for Minecraft Creator Tools (`mct validate`) to look at the `build/` directory instead of the root or `packs/` (e.g., using `-i build`).
+- [x] **GitHub Actions Update:** Modify `.github/workflows/build.yml` so that it copies the final assets from the `build/` directory to the staging directory for deployment/packaging instead of `packs/`.
 - [ ] **Pre-commit Hooks:** Check and update any lint-staged or pre-commit hooks in `package.json` if they are looking at incorrect paths.
-- [ ] **Verify Build:** Run a full clean build (`npm run build`) to ensure tsup correctly compiles the project and the `*Config.js` files are editable and present in `build/behavior/scripts/`.
-- [ ] **Verify Aliases:** Verify that all imports are correctly resolving using the `@alias` format.
-- [ ] **Verify UI Logic:** Run pre-commit/test scripts to ensure UI logic changes for the "Reset Config" button have not introduced any regressions.
-- [ ] **Node 24 Compatibility:** Confirm that the project builds and runs compatibly with Node 24 (the current LTS).
+- [x] **Verify Build:** Run a full clean build (`npm run build`) to ensure tsup correctly compiles the project and the `*Config.js` files are editable and present in `build/behavior/scripts/`.
+- [x] **Verify Aliases:** Verify that all imports are correctly resolving using the `@alias` format.
+- [x] **Verify UI Logic:** Run pre-commit/test scripts to ensure UI logic changes for the "Reset Config" button have not introduced any regressions.
+- [x] **Node 24 Compatibility:** Confirm that the project builds and runs compatibly with Node 24 (the current LTS).
 
 ---
 
@@ -95,6 +95,6 @@ _Goal: Point all tools to the new `build/` directory and verify the entire syste
 
 _(Update this section whenever you perform a handover to keep track of state and any important discoveries)_
 
-- **Current Status:** Session 1 completed. All absolute aliases in `src/features/` and remaining directories were converted, tested and passing.
-- **Completed Sessions:** Session 1a, Session 1b, Session 1c, Session 1d, Session 2.
-- **Next Steps:** Proceed to session 3.
+- **Current Status:** Session 3 completed. Build system migrated to use `build/` directory, `tsup` configuration set up, and `build-assets.js` script created.
+- **Completed Sessions:** Session 1a, Session 1b, Session 1c, Session 1d, Session 2, Session 3.
+- **Next Steps:** Proceed to session 4 (most of which is already partially completed due to updates necessary for session 3).

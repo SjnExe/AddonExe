@@ -11,7 +11,6 @@
 # production
 /build
 /dist
-/packs/behavior/scripts/
 /staging/
 /out
 
@@ -41,6 +40,4 @@ validation_report
 
 # TypeScript
 *.tsbuildinfo
-packs/behavior/manifest.json
-packs/resource/manifest.json
 package-lock.json

@@ -147,8 +147,8 @@ jobs:
               run: |
                   set -e
                   mkdir staging
-                  cp -r packs/behavior staging/
-                  cp -r packs/resource staging/
+                  cp -r build/behavior staging/
+                  cp -r build/resource staging/
 
             - name: Create Release Archives
               shell: bash

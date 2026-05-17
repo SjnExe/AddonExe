@@ -10,8 +10,8 @@ const __dirname = path.dirname(__filename);
 
 // Paths
 const packageJsonPath = path.join(__dirname, '../package.json');
-const behaviorManifestPath = path.join(__dirname, '../packs/behavior/manifest.json');
-const resourceManifestPath = path.join(__dirname, '../packs/resource/manifest.json');
+const behaviorManifestPath = path.join(__dirname, '../build/behavior/manifest.json');
+const resourceManifestPath = path.join(__dirname, '../build/resource/manifest.json');
 
 // UUIDs (Static)
 const UUIDS = {
@@ -202,6 +202,10 @@ async function generateManifests() {
             url: 'https://github.com/SjnExe/AddonExe'
         }
     };
+
+    // Ensure directories exist
+    await fs.mkdir(path.dirname(behaviorManifestPath), { recursive: true });
+    await fs.mkdir(path.dirname(resourceManifestPath), { recursive: true });
 
     // Write Files
     await fs.writeFile(behaviorManifestPath, JSON.stringify(bpManifest, null, 4));
