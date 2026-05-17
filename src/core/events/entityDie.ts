@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 
+import * as bountyManager from '@core/bountyManager.js';
+import { getConfig } from '@core/configManager.js';
+import * as lastHitManager from '@core/lastHitManager.js';
+import { debugLog, errorLog } from '@core/logger.js';
+import * as playerCache from '@core/playerCache.js';
+import { getOrCreatePlayer, incrementPlayerBalance, setPlayerLastDeathLocation } from '@core/playerDataManager.js';
 import * as teamManager from '@features/teams/teamManager.js';
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 import { isDefined } from '@lib/guards.js';
-import * as bountyManager from '../bountyManager.js';
-import { getConfig } from '../configManager.js';
-import * as lastHitManager from '../lastHitManager.js';
-import { debugLog, errorLog } from '../logger.js';
-import * as playerCache from '../playerCache.js';
-import { getOrCreatePlayer, incrementPlayerBalance, setPlayerLastDeathLocation } from '../playerDataManager.js';
 
 export const eventName = 'entityDie';
 

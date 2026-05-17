@@ -3,9 +3,9 @@
  * It is used by the uiManager and its sub-modules to dynamically generate UI forms.
  */
 
-import { PanelDefinition } from './types.js';
+import { PanelDefinition } from '@ui/types.js';
 
-export * from './types.js';
+export * from '@ui/types.js';
 
 // --- PANEL REGISTRIES ---
 
@@ -872,4 +872,4 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     }
 };
 
-export { configPanelSchema } from './configPanelRegistry.js';
+export { configPanelSchema } from '@ui/configPanelRegistry.js';

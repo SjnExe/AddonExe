@@ -1,10 +1,10 @@
+import { errorLog } from '@core/logger.js';
+import { setActionBarOverride } from '@core/sidebarManager.js';
+import { playSound } from '@core/utils/sound.js';
+import { getCountdownColor } from '@core/utils/ui.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
-import { errorLog } from './logger.js';
-import { setActionBarOverride } from './sidebarManager.js';
-import { playSound } from './utils/sound.js';
-import { getCountdownColor } from './utils/ui.js';
 
 export function startTeleportWarmup(player: mc.Player, durationSeconds: number, onWarmupComplete: () => void, teleportName = 'teleport', onCancel?: () => void): void {
     if (durationSeconds <= 0) {

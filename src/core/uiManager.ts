@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 
 import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
+import { debugLog, errorLog } from '@core/logger.js';
+import * as utils from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { debugLog, errorLog } from './logger.js';
-import { buildPanelForm } from './ui/panelBuilder.js';
-import { handleFormResponse } from './ui/panelHandlers.js';
-import { panelDefinitions, UIContext } from './ui/panelRegistry.js';
-import * as utils from './utils.js';
+import { buildPanelForm } from '@ui/panelBuilder.js';
+import { handleFormResponse } from '@ui/panelHandlers.js';
+import { panelDefinitions, UIContext } from '@ui/panelRegistry.js';
 
 /**
  * Main entry point for showing a UI panel to a player.

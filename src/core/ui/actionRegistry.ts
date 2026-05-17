@@ -18,7 +18,7 @@ import { mutePlayer, unmutePlayer } from '@features/moderation/commands/mute.js'
 import * as reportManager from '@features/moderation/reportManager.js';
 import * as tpaManager from '@features/teleportation/tpaManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { UIContext } from './panelRegistry.js';
+import { UIContext } from '@ui/panelRegistry.js';
 
 interface ReportContext {
     targetReport: { id: string };

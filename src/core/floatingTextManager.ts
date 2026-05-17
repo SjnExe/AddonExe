@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
+import { debugLog, errorLog } from '@core/logger.js';
+import { isDeepEqual } from '@core/objectUtils.js';
+import * as sidebarManager from '@core/sidebarManager.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
-import { debugLog, errorLog } from './logger.js';
-import { isDeepEqual } from './objectUtils.js';
-import * as sidebarManager from './sidebarManager.js';
 
 // Workaround for strange TS Boolean type inference on resolveGlobalPlaceholders
 const sm = sidebarManager as { resolveGlobalPlaceholders: (t: string) => string };

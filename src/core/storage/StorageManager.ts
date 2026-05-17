@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { errorLog } from '../logger.js';
+import { errorLog } from '@core/logger.js';
 
 const CHUNK_SIZE = 30_000; // Safe limit below 32kb
 

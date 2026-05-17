@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
-import { config as Config } from '../config.default.js';
+import { config as Config } from '@core/../config.default.js';
 
+import { getRanksConfig } from '@core/configurations.js';
+import { debugLog, errorLog } from '@core/logger.js';
+import { RankDefinition } from '@core/ranksConfig.default.js';
 import { isDefined } from '@lib/guards.js';
-import { getRanksConfig } from './configurations.js';
-import { debugLog, errorLog } from './logger.js';
-import { RankDefinition } from './ranksConfig.default.js';
 
 let sortedRanks: RankDefinition[] = [];
 

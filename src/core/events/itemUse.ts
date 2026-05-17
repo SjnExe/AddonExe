@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import * as playerDataManager from '../playerDataManager.js';
-import { showPanel } from '../uiManager.js';
+import * as playerDataManager from '@core/playerDataManager.js';
+import { showPanel } from '@ui/../uiManager.js';
 
 export const eventName = 'itemUse';
 

@@ -28,7 +28,7 @@ vi.mock('../logger.js', () => ({
     infoLog: vi.fn()
 }));
 
-const { commandManager } = await import('../commands/commandManager.js');
+const { commandManager } = await import('@commands/commandManager.js');
 
 describe('CommandManager', () => {
     // Explicitly cast to unknown then Player to avoid type mismatches if strict compliance is enforced,

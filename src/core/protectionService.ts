@@ -1,5 +1,5 @@
+import { getSpawnConfig, getWorldProtectionConfig } from '@core/configurations.js';
 import type { Vector3 } from '@minecraft/server';
-import { getSpawnConfig, getWorldProtectionConfig } from './configurations.js';
 
 export type ProtectionFlags = {
     preventPvP: boolean;

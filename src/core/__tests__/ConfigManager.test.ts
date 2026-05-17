@@ -33,7 +33,7 @@ vi.mock('../configurations.js', () => ({
     configResetCallbacks: {}
 }));
 
-const { initializeConfigManager, getConfig, updateConfig, onConfigUpdated } = await import('../configManager.js');
+const { initializeConfigManager, getConfig, updateConfig, onConfigUpdated } = await import('@core/configManager.js');
 
 describe('ConfigManager', () => {
     beforeEach(() => {

@@ -1,6 +1,6 @@
+import { getConfig, onConfigUpdated, updateConfig } from '@core/configManager.js';
+import { debugLog } from '@core/logger.js';
 import { isDefined } from '@lib/guards.js';
-import { getConfig, onConfigUpdated, updateConfig } from './configManager.js';
-import { debugLog } from './logger.js';
 
 function checkDependencies(config: unknown) {
     // Define dependencies: Feature -> Dependency

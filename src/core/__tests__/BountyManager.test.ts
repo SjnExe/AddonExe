@@ -28,7 +28,7 @@ vi.mock('../logger.js', () => ({
     errorLog: vi.fn()
 }));
 
-const { placeBounty, getBounty } = await import('../bountyManager.js');
+const { placeBounty, getBounty } = await import('@core/bountyManager.js');
 
 describe('BountyManager', () => {
     beforeEach(() => {

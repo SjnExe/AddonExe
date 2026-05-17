@@ -1,4 +1,4 @@
-import { panelDefinitions } from '../ui/panelRegistry.js';
+import { panelDefinitions } from '@ui/panelRegistry.js';
 
 describe('UI Permissions Integrity', () => {
     it('should have appropriate permission levels for potentially destructive or admin actions', () => {
