@@ -56,11 +56,17 @@ jobs:
             - run: npm test
 
     validate:
+        needs: build
         runs-on: ubuntu-latest
         timeout-minutes: 10
         steps:
             - uses: actions/checkout@v6
             - run: npm ci
+            - name: Download compiled build artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: build-dir
+                  path: build/
             - run: npm run validate
 
     build:
@@ -163,6 +169,13 @@ jobs:
 
                   # Create RP .mcpack with max compression (Exclude maps)
                   (cd staging/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
+
+            - name: Upload Raw Build Directory
+              uses: actions/upload-artifact@v4
+              with:
+                  name: build-dir
+                  path: build/
+                  retention-days: 1
 
             - name: Upload Build Artifacts
               uses: actions/upload-artifact@v7

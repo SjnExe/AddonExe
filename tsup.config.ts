@@ -41,7 +41,9 @@ export default defineConfig({
     },
     async onSuccess() {
         // We need to rename the generated `.default.js` files to `.js`
-        const { renameSync, existsSync } = await import('fs');
+        // However, if the user has defined a custom configuration file (e.g. config.ts),
+        // we should not overwrite it with the default one.
+        const { renameSync, existsSync, rmSync } = await import('fs');
         const { join } = await import('path');
         const { globSync } = await import('glob');
 
@@ -51,11 +53,21 @@ export default defineConfig({
         for (const file of generatedFiles) {
             const oldPath = join(outDir, file);
             const newPath = oldPath.replace('.default.js', '.js');
-            renameSync(oldPath, newPath);
 
-            // Also rename maps if they exist
-            if (existsSync(oldPath + '.map')) {
-                renameSync(oldPath + '.map', newPath + '.map');
+            if (existsSync(newPath)) {
+                // A custom config was compiled. Delete the default one instead of overwriting.
+                rmSync(oldPath);
+                if (existsSync(oldPath + '.map')) {
+                    rmSync(oldPath + '.map');
+                }
+            } else {
+                // Rename default to standard
+                renameSync(oldPath, newPath);
+
+                // Also rename maps if they exist
+                if (existsSync(oldPath + '.map')) {
+                    renameSync(oldPath + '.map', newPath + '.map');
+                }
             }
         }
     }
