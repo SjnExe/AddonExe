@@ -14,7 +14,7 @@ import { showConfirmationDialog } from '@ui/components.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
-import { addBackButton, addPaginationItems, getPaginatedItems, getSystemsByCategory, getVisibleCategories, itemsPerPage, configHandlers as uiConfigHandlers } from '@ui/uiUtils.js';
+import { addBackButton, addPaginationItems, getPaginatedItems, getSystemsByCategory, getVisibleCategories, configHandlers as uiConfigHandlers } from '@ui/uiUtils.js';
 
 interface ConfigSetting {
     key: string;
@@ -64,28 +64,40 @@ export class ConfigPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [];
         addBackButton(items, 'staffDashboardPanel');
         const categories = getVisibleCategories(pData);
+
+        if (pData.permissionLevel === 0) {
+            categories.push({
+                id: 'resetSettings',
+                title: '§l§cReset Settings§r',
+                icon: 'textures/ui/wysiwyg_reset'
+            });
+        }
+
         const paginated = getPaginatedItems(categories, (context.page as number) || 1);
         for (const cat of paginated) {
             if (!isDefined(cat)) continue;
-            items.push({
-                id: cat.id,
-                text: cat.title,
-                icon: cat.icon,
-                permissionLevel: 1,
-                actionType: 'openPanel',
-                actionValue: `configSubCategoryPanel_${cat.id}`
-            });
+
+            if (cat.id === 'resetSettings') {
+                items.push({
+                    id: 'resetSettings',
+                    text: '§l§cReset Settings§r',
+                    icon: 'textures/ui/wysiwyg_reset',
+                    permissionLevel: 0,
+                    actionType: 'openPanel',
+                    actionValue: 'configResetPanel'
+                });
+            } else {
+                items.push({
+                    id: cat.id,
+                    text: cat.title,
+                    icon: cat.icon,
+                    permissionLevel: 1,
+                    actionType: 'openPanel',
+                    actionValue: `configSubCategoryPanel_${cat.id}`
+                });
+            }
         }
-        if (pData.permissionLevel === 0) {
-            items.push({
-                id: 'resetSettings',
-                text: '§l§cReset Settings§r',
-                icon: 'textures/ui/wysiwyg_reset',
-                permissionLevel: 0,
-                actionType: 'openPanel',
-                actionValue: 'configResetPanel'
-            });
-        }
+
         addPaginationItems(items, (context.page as number) || 1, categories.length);
         return items;
     }
@@ -114,28 +126,38 @@ export class ConfigPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [];
         addBackButton(items, 'configCategoryPanel');
         const categories = getVisibleCategories(pData);
+
+        categories.push({
+            id: 'resetAll',
+            title: '§l§4Reset All Systems',
+            icon: 'textures/ui/trash'
+        });
+
         const paginated = getPaginatedItems(categories, (context.page as number) || 1);
         for (const cat of paginated) {
             if (!isDefined(cat)) continue;
-            items.push({
-                id: cat.id,
-                text: `Reset ${cat.title}`,
-                icon: cat.icon,
-                permissionLevel: 0,
-                actionType: 'openPanel',
-                actionValue: `configResetCategoryPanel_${cat.id}`
-            });
+
+            if (cat.id === 'resetAll') {
+                items.push({
+                    id: 'resetAll',
+                    text: '§l§4Reset All Systems',
+                    icon: 'textures/ui/trash',
+                    permissionLevel: 0,
+                    actionType: 'functionCall',
+                    actionValue: 'resetAllConfig'
+                });
+            } else {
+                items.push({
+                    id: cat.id,
+                    text: `Reset ${cat.title}`,
+                    icon: cat.icon,
+                    permissionLevel: 0,
+                    actionType: 'openPanel',
+                    actionValue: `configResetCategoryPanel_${cat.id}`
+                });
+            }
         }
-        if (((context.page as number) || 1) >= Math.ceil(categories.length / itemsPerPage)) {
-            items.push({
-                id: 'resetAll',
-                text: '§l§4Reset All Systems',
-                icon: 'textures/ui/trash',
-                permissionLevel: 0,
-                actionType: 'functionCall',
-                actionValue: 'resetAllConfig'
-            });
-        }
+
         addPaginationItems(items, (context.page as number) || 1, categories.length);
         return items;
     }
