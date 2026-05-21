@@ -10,6 +10,7 @@ import { FriendPanelHandler } from '@features/social/ui/friendPanel.js';
 import { TeamPanelHandler } from '@features/teams/ui/teamPanel.js';
 import { TeleportPanelHandler } from '@features/teleportation/ui/teleportPanel.js';
 import { panelRouter } from '@ui/PanelRouter.js';
+import { SidebarPanelHandler } from '@ui/panels/sidebarPanel.js';
 import { AdminPanelHandler } from './adminPanel.js';
 import { CommandPanelHandler } from './commandPanel.js';
 import { ConfigPanelHandler } from './configPanel.js';
@@ -17,7 +18,6 @@ import { GeneralPanelHandler } from './generalPanel.js';
 import { InfoPanelHandler } from './infoPanel.js';
 import { PlayerPanelHandler } from './playerPanel.js';
 import { RankPanelHandler } from './rankPanel.js';
-import { SidebarPanelHandler } from '@ui/panels/sidebarPanel.js';
 
 export function initialize() {
     // Core Handlers

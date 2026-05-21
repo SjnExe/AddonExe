@@ -3,12 +3,12 @@ import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { getKitsConfig } from '@core/configurations.js';
 import { frozenTag, vanishedTag } from '@core/constants.js';
-import { getKit, giveKitItems } from '@features/kits/kitsManager.js';
 import { debugLog, infoLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank, updatePlayerNameTag } from '@core/rankManager.js';
 import { formatLocation, formatString } from '@core/utils.js';
+import { getKit, giveKitItems } from '@features/kits/kitsManager.js';
 import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
 
 export function handlePlayerJoin(player: mc.Player) {

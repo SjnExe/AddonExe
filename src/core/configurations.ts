@@ -10,15 +10,15 @@ import { setLockState } from '@core/playerDataManager.js';
 import { reloadRanks } from '@core/rankManager.js';
 
 import type ranksConfig from '@core/ranksConfig.default.js';
-import type { config as sidebarConfig } from '@features/sidebar/sidebarConfig.default.js';
-import type { spawnConfig } from '@features/essentials/spawnConfig.default.js';
 import type { xrayConfig } from '@features/anticheat/xrayConfig.default.js';
 import type { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
 import type { dailyRewardsConfig } from '@features/dailyRewards/dailyRewardsConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
+import type { spawnConfig } from '@features/essentials/spawnConfig.default.js';
 import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.default.js';
 import type { kitsConfig } from '@features/kits/kitsConfig.default.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
+import type { config as sidebarConfig } from '@features/sidebar/sidebarConfig.default.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
 import type { teamConfig } from '@features/teams/teamConfig.js';
 

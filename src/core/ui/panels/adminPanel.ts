@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as floatingTextManager from '@features/essentials/floatingTextManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatLocation } from '@core/utils.js';
+import * as floatingTextManager from '@features/essentials/floatingTextManager.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';

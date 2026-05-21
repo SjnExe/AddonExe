@@ -3,12 +3,12 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { getSidebarConfig } from '@core/configurations.js';
-import { getLeaderboard } from '@features/economy/leaderboardManager.js';
 import { debugLog } from '@core/logger.js';
 import { getAllPlayersFromCache, getPlayerCount } from '@core/playerCache.js';
 import { getPlayTime, getPlayer, getSidebarVisible } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { formatCurrency, formatDuration } from '@core/utils.js';
+import { getLeaderboard } from '@features/economy/leaderboardManager.js';
 import { getTeamByPlayer } from '@features/teams/teamManager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 

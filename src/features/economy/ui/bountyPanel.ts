@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as bountyManager from '@features/economy/bountyManager.js';
 import { getConfig } from '@core/configManager.js';
 import { getPlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency, parseCurrency, uiWait } from '@core/utils.js';
+import * as bountyManager from '@features/economy/bountyManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';

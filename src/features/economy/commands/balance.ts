@@ -2,10 +2,10 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { getLeaderboard } from '@features/economy/leaderboardManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/playerDataManager.js';
 import { formatCurrency, resolveTarget } from '@core/utils.js';
+import { getLeaderboard } from '@features/economy/leaderboardManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 
 const balanceCommand: CustomCommand = {

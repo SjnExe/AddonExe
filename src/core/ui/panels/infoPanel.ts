@@ -3,10 +3,10 @@ import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getConfig } from '@core/configManager.js';
-import * as helpfulLinksManager from '@features/essentials/helpfulLinksManager.js';
 import { getOrCreatePlayer, type PlayerData } from '@core/playerDataManager.js';
-import * as rulesManager from '@features/essentials/rulesManager.js';
 import { showPanel } from '@core/uiManager.js';
+import * as helpfulLinksManager from '@features/essentials/helpfulLinksManager.js';
+import * as rulesManager from '@features/essentials/rulesManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';

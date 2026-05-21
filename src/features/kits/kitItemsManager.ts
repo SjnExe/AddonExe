@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
 import { getKitsConfig, saveKitsConfig } from '@core/configurations.js';
-import { Kit } from '@features/kits/kitAdminManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
+import { Kit } from '@features/kits/kitAdminManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 const MAX_KIT_SLOTS = 36;

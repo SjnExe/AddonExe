@@ -1,16 +1,16 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as bountyManager from '@features/economy/bountyManager.js';
 import { getConfig } from '@core/configManager.js';
-import * as helpfulLinksManager from '@features/essentials/helpfulLinksManager.js';
 import * as playerCache from '@core/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
-import * as rulesManager from '@features/essentials/rulesManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
 import { formatCurrency } from '@core/utils.js';
 import { showAuctionHouse } from '@features/auctionHouse/ui/auctionPanel.js';
+import * as bountyManager from '@features/economy/bountyManager.js';
+import * as helpfulLinksManager from '@features/essentials/helpfulLinksManager.js';
+import * as rulesManager from '@features/essentials/rulesManager.js';
 import { banPlayer, offlineBanPlayer, unbanPlayer } from '@features/moderation/commands/ban.js';
 import { freezePlayer, unfreezePlayer } from '@features/moderation/commands/freeze.js';
 import { kickPlayer } from '@features/moderation/commands/kick.js';
