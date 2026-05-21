@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getKitsConfig, saveKitsConfig } from '@core/configurations.js';
-import { Kit } from '@core/kitAdminManager.js';
+import { Kit } from '@features/kits/kitAdminManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 

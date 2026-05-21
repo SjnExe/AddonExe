@@ -1,5 +1,5 @@
 import { getKitsConfig, saveKitsConfig } from '@core/configurations.js';
-import { ItemInfo } from '@core/kitItemsManager.js';
+import { ItemInfo } from '@features/kits/kitItemsManager.js';
 import { debugLog } from '@core/logger.js';
 
 export interface Kit {

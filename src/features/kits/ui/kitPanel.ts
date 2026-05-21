@@ -2,8 +2,8 @@ import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
-import * as kitAdminManager from '@core/kitAdminManager.js';
-import * as kitItemsManager from '@core/kitItemsManager.js';
+import * as kitAdminManager from '@features/kits/kitAdminManager.js';
+import * as kitItemsManager from '@features/kits/kitItemsManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';

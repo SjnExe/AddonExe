@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 
-import * as bountyManager from '@core/bountyManager.js';
+import * as bountyManager from '@features/economy/bountyManager.js';
 import { getConfig } from '@core/configManager.js';
 import * as lastHitManager from '@core/lastHitManager.js';
 import { debugLog, errorLog } from '@core/logger.js';

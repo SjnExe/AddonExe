@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as bountyManager from '@core/bountyManager.js';
+import * as bountyManager from '@features/economy/bountyManager.js';
 import { getConfig } from '@core/configManager.js';
 import { getPlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';

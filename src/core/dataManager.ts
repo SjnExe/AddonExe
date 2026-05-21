@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
-import { initializeLeaderboard } from '@core/leaderboardManager.js';
+import { initializeLeaderboard } from '@features/economy/leaderboardManager.js';
 import { debugLog, infoLog } from '@core/logger.js';
 import { getAllPlayerData, isNameIdMapDirty, loadNameIdMap, saveNameIdMap, savePlayerData } from '@core/playerDataManager.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';

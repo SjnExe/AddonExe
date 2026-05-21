@@ -17,7 +17,7 @@ import { GeneralPanelHandler } from './generalPanel.js';
 import { InfoPanelHandler } from './infoPanel.js';
 import { PlayerPanelHandler } from './playerPanel.js';
 import { RankPanelHandler } from './rankPanel.js';
-import { SidebarPanelHandler } from './sidebarPanel.js';
+import { SidebarPanelHandler } from '@ui/panels/sidebarPanel.js';
 
 export function initialize() {
     // Core Handlers

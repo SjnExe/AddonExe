@@ -1,5 +1,5 @@
 import { errorLog } from '@core/logger.js';
-import { setActionBarOverride } from '@core/sidebarManager.js';
+import { setActionBarOverride } from '@features/sidebar/sidebarManager.js';
 import { playSound } from '@core/utils/sound.js';
 import { getCountdownColor } from '@core/utils/ui.js';
 import { isDefined, isNumber } from '@lib/guards.js';

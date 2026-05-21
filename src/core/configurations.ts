@@ -10,9 +10,9 @@ import { setLockState } from '@core/playerDataManager.js';
 import { reloadRanks } from '@core/rankManager.js';
 
 import type ranksConfig from '@core/ranksConfig.default.js';
-import type { config as sidebarConfig } from '@core/sidebarConfig.default.js';
-import type { spawnConfig } from '@core/spawnConfig.default.js';
-import type { xrayConfig } from '@core/xrayConfig.default.js';
+import type { config as sidebarConfig } from '@features/sidebar/sidebarConfig.default.js';
+import type { spawnConfig } from '@features/essentials/spawnConfig.default.js';
+import type { xrayConfig } from '@features/anticheat/xrayConfig.default.js';
 import type { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
 import type { dailyRewardsConfig } from '@features/dailyRewards/dailyRewardsConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
@@ -76,7 +76,7 @@ export const saveShopConfig = (config: ShopConfig) => shopConfigManager.set(conf
 export const resetShopConfig = () => shopConfigManager.reset();
 
 export const loadSpawnConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<SpawnConfig>('./core/spawnConfig.js');
+    const defaultConfig = await asyncLoadConfig<SpawnConfig>('./features/essentials/spawnConfig.js');
     spawnConfigManager = createConfigManager('exe:spawnConfig:current', defaultConfig, 'Spawn');
     spawnConfigManager.load(isMigration);
 };
@@ -112,7 +112,7 @@ export const saveEconomyConfig = (config: EconomyConfig) => economyConfigManager
 export const resetEconomyConfig = () => economyConfigManager.reset();
 
 export const loadXrayConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<XrayConfig>('./core/xrayConfig.js');
+    const defaultConfig = await asyncLoadConfig<XrayConfig>('./features/anticheat/xrayConfig.js');
     xrayConfigManager = createConfigManager('exe:xrayConfig:current', defaultConfig, 'X-Ray');
     xrayConfigManager.load(isMigration);
 };
@@ -139,7 +139,7 @@ export const saveFriendConfig = (config: FriendConfig) => friendConfigManager.se
 export const resetFriendConfig = () => friendConfigManager.reset();
 
 export const loadSidebarConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<SidebarConfig>('./core/sidebarConfig.js');
+    const defaultConfig = await asyncLoadConfig<SidebarConfig>('./features/sidebar/sidebarConfig.js');
     sidebarConfigManager = createConfigManager('exe:sidebarConfig:current', defaultConfig, 'Sidebar');
     sidebarConfigManager.load(isMigration);
 };

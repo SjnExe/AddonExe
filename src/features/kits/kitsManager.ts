@@ -2,8 +2,8 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { getKitsConfig } from '@core/configurations.js';
-import { Kit } from '@core/kitAdminManager.js';
-import { ItemInfo } from '@core/kitItemsManager.js';
+import { Kit } from '@features/kits/kitAdminManager.js';
+import { ItemInfo } from '@features/kits/kitItemsManager.js';
 import { errorLog } from '@core/logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData, setKitCooldown } from '@core/playerDataManager.js';
 import { formatCooldown } from '@core/utils.js';

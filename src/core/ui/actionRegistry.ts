@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as bountyManager from '@core/bountyManager.js';
+import * as bountyManager from '@features/economy/bountyManager.js';
 import { getConfig } from '@core/configManager.js';
-import * as helpfulLinksManager from '@core/helpfulLinksManager.js';
+import * as helpfulLinksManager from '@features/essentials/helpfulLinksManager.js';
 import * as playerCache from '@core/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
-import * as rulesManager from '@core/rulesManager.js';
+import * as rulesManager from '@features/essentials/rulesManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
 import { formatCurrency } from '@core/utils.js';

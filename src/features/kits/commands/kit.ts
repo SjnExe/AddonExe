@@ -2,9 +2,9 @@ import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { getConfig } from '@core/configManager.js';
-import { createKit, getAllKits } from '@core/kitAdminManager.js';
-import { addItemToKit } from '@core/kitItemsManager.js';
-import * as kitsManager from '@core/kitsManager.js';
+import { createKit, getAllKits } from '@features/kits/kitAdminManager.js';
+import { addItemToKit } from '@features/kits/kitItemsManager.js';
+import * as kitsManager from '@features/kits/kitsManager.js';
 import { errorLog } from '@core/logger.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCooldown, uiWait } from '@core/utils.js';

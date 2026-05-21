@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { getSidebarConfig } from '@core/configurations.js';
-import { getLeaderboard } from '@core/leaderboardManager.js';
+import { getLeaderboard } from '@features/economy/leaderboardManager.js';
 import { debugLog } from '@core/logger.js';
 import { getAllPlayersFromCache, getPlayerCount } from '@core/playerCache.js';
 import { getPlayTime, getPlayer, getSidebarVisible } from '@core/playerDataManager.js';

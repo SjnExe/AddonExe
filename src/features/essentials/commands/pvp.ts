@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
-import { acceptPvP, denyPvP, requestPvP } from '@core/pvpManager.js';
+import { acceptPvP, denyPvP, requestPvP } from '@features/essentials/pvpManager.js';
 
 import { CustomCommand } from '@commands/commandManager.js';
 

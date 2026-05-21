@@ -18,13 +18,13 @@ import {
 import { dataManager, loadPersistentData } from '@core/dataManager.js';
 import { cleanupEventManager, initializeEventManager } from '@core/events/eventManager.js';
 import { initializeFeatureDependencies } from '@core/featureDependencies.js';
-import { cleanup as cleanupFloatingText } from '@core/floatingTextManager.js';
-import { cleanupLeaderboardManager } from '@core/leaderboardManager.js';
+import { cleanup as cleanupFloatingText } from '@features/essentials/floatingTextManager.js';
+import { cleanupLeaderboardManager } from '@features/economy/leaderboardManager.js';
 import { errorLog, infoLog, setLogLevel } from '@core/logger.js';
 import { initializeMigration } from '@core/migrationManager.js';
 import { cleanupPlayerDataManager } from '@core/playerDataManager.js';
 import * as rankManager from '@core/rankManager.js';
-import * as sidebarManager from '@core/sidebarManager.js';
+import * as sidebarManager from '@features/sidebar/sidebarManager.js';
 import { cleanupTimers, startSystemTimers } from '@core/timerManager.js';
 import { reinitializeOnlinePlayers } from '@core/utils.js';
 import { initializeXrayDetection } from '@features/anticheat/xrayDetection.js';

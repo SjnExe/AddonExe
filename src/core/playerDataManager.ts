@@ -4,7 +4,7 @@ import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { getEconomyConfig } from '@core/configurations.js';
 import { SerializedItem } from '@core/itemSerializer.js';
-import { updateAndSaveLeaderboard } from '@core/leaderboardManager.js';
+import { updateAndSaveLeaderboard } from '@features/economy/leaderboardManager.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
