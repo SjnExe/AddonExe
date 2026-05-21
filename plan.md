@@ -83,7 +83,7 @@ _Goal: Point all tools to the new `build/` directory and verify the entire syste
 
 - [x] **Validation Tools:** Update `package.json` scripts for Minecraft Creator Tools (`mct validate`) to look at the `build/` directory instead of the root or `packs/` (e.g., using `-i build`).
 - [x] **GitHub Actions Update:** Modify `.github/workflows/build.yml` so that it copies the final assets from the `build/` directory to the staging directory for deployment/packaging instead of `packs/`.
-- [ ] **Pre-commit Hooks:** Check and update any lint-staged or pre-commit hooks in `package.json` if they are looking at incorrect paths.
+- [x] **Pre-commit Hooks:** Check and update any lint-staged or pre-commit hooks in `package.json` if they are looking at incorrect paths.
 - [x] **Verify Build:** Run a full clean build (`npm run build`) to ensure tsup correctly compiles the project and the `*Config.js` files are editable and present in `build/behavior/scripts/`.
 - [x] **Verify Aliases:** Verify that all imports are correctly resolving using the `@alias` format.
 - [x] **Verify UI Logic:** Run pre-commit/test scripts to ensure UI logic changes for the "Reset Config" button have not introduced any regressions.
