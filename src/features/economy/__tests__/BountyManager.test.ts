@@ -5,7 +5,7 @@ const mockIncrementPlayerBalance = vi.fn();
 const mockGetPlayer = vi.fn();
 const mockLoadPlayerData = vi.fn();
 
-vi.mock('../playerDataManager.js', () => ({
+vi.mock('@core/playerDataManager.js', () => ({
     incrementPlayerBalance: mockIncrementPlayerBalance,
     getPlayer: mockGetPlayer,
     loadPlayerData: mockLoadPlayerData
@@ -14,7 +14,7 @@ vi.mock('../playerDataManager.js', () => ({
 const mockStorageSave = vi.fn();
 const mockStorageLoad = vi.fn();
 
-vi.mock('../storage/StorageManager.js', () => ({
+vi.mock('@core/storage/StorageManager.js', () => ({
     StorageManager: vi.fn(function () {
         return {
             save: mockStorageSave,
@@ -23,12 +23,12 @@ vi.mock('../storage/StorageManager.js', () => ({
     })
 }));
 
-vi.mock('../logger.js', () => ({
+vi.mock('@core/logger.js', () => ({
     debugLog: vi.fn(),
     errorLog: vi.fn()
 }));
 
-const { placeBounty, getBounty } = await import('@core/bountyManager.js');
+const { placeBounty, getBounty } = await import('@features/economy/bountyManager.js');
 
 describe('BountyManager', () => {
     beforeEach(() => {

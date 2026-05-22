@@ -1,6 +1,6 @@
 import { getKitsConfig, saveKitsConfig } from '@core/configurations.js';
-import { ItemInfo } from '@core/kitItemsManager.js';
 import { debugLog } from '@core/logger.js';
+import { ItemInfo } from '@features/kits/kitItemsManager.js';
 
 export interface Kit {
     enabled: boolean;

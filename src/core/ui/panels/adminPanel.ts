@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import * as floatingTextManager from '@core/floatingTextManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatLocation } from '@core/utils.js';
+import * as floatingTextManager from '@features/essentials/floatingTextManager.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
@@ -224,7 +224,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     return showPanel(player, 'helpfulLinksManagementPanel', actionContext);
                 }
                 if (item.actionValue === 'respawnText') {
-                    const { respawnText } = await import('@core/floatingTextManager.js');
+                    const { respawnText } = await import('@features/essentials/floatingTextManager.js');
                     if (isNonEmptyString(actionContext.id)) {
                         try {
                             respawnText(actionContext.id);
@@ -236,7 +236,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     return showPanel(player, 'floatingTextActionPanel', actionContext);
                 }
                 if (item.actionValue === 'despawnText') {
-                    const { despawnText } = await import('@core/floatingTextManager.js');
+                    const { despawnText } = await import('@features/essentials/floatingTextManager.js');
                     if (isNonEmptyString(actionContext.id)) {
                         try {
                             despawnText(actionContext.id);
@@ -248,7 +248,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     return showPanel(player, 'floatingTextActionPanel', actionContext);
                 }
                 if (item.actionValue === 'deleteText') {
-                    const { deleteText } = await import('@core/floatingTextManager.js');
+                    const { deleteText } = await import('@features/essentials/floatingTextManager.js');
                     if (isNonEmptyString(actionContext.id)) {
                         try {
                             deleteText(player, actionContext.id);
