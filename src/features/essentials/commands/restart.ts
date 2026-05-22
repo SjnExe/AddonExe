@@ -1,4 +1,4 @@
-import { startRestart } from '@core/restartManager.js';
+import { startRestart } from '@features/essentials/restartManager.js';
 
 import { CustomCommand } from '@commands/commandManager.js';
 

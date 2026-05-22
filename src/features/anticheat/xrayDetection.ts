@@ -7,7 +7,7 @@ import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js
 import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
 import { setTrackedTimeout } from '@core/timerManager.js';
 import { formatString } from '@core/utils.js';
-import { MonitoredOreType } from '@core/xrayConfig.default.js';
+import { MonitoredOreType } from '@features/anticheat/xrayConfig.default.js';
 import { isDefined } from '@lib/guards.js';
 
 interface AlertData {

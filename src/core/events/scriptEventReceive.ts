@@ -6,7 +6,7 @@ import { getConfig, updateConfig } from '@core/configManager.js';
 import { errorLog, infoLog, warnLog } from '@core/logger.js';
 import { updateAllPlayerRanks } from '@core/main.js';
 import * as rankManager from '@core/rankManager.js';
-import { startRestart } from '@core/restartManager.js';
+import { startRestart } from '@features/essentials/restartManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 
 export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfterEvent) {

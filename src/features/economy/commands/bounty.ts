@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import * as bountyManager from '@core/bountyManager.js';
 import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { resolveTarget } from '@core/utils.js';
+import * as bountyManager from '@features/economy/bountyManager.js';
 import { validateCurrencyAmount } from '@features/economy/economyUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 

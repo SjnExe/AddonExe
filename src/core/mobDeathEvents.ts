@@ -10,8 +10,8 @@ import * as lastHitManager from '@core/lastHitManager.js';
 import { infoLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayer, incrementDeathCount, incrementKillCount, incrementKillStreak, incrementPlayerBalance, resetKillStreak } from '@core/playerDataManager.js';
-import { handlePvPDeath } from '@core/pvpManager.js';
 import { formatCurrency } from '@core/utils.js';
+import { handlePvPDeath } from '@features/essentials/pvpManager.js';
 import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
 
 mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
