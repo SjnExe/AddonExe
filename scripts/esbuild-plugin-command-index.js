@@ -4,7 +4,7 @@ import path from 'path';
 export const generateCommandIndexPlugin = {
     name: 'generate-command-index',
     setup(build) {
-        build.onLoad({ filter: /src[\\\/]core[\\\/]commands[\\\/]index\.ts$/ }, async () => {
+        build.onLoad({ filter: /src[\\/]core[\\/]commands[\\/]index\.ts$/ }, async () => {
             console.log('Generating command index for esbuild...');
 
             const SRC_DIR = path.resolve('src');
