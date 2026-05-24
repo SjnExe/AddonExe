@@ -1,5 +1,6 @@
 import { globSync } from 'glob';
 import { defineConfig } from 'tsup';
+import { generateCommandIndexPlugin } from './scripts/esbuild-plugin-command-index.js';
 
 // Find all config files
 const configFiles = globSync('src/**/*Config{.ts,.default.ts}', {
@@ -34,6 +35,7 @@ export default defineConfig({
     esbuildOptions(options) {
         options.chunkNames = '[name]';
     },
+    esbuildPlugins: [generateCommandIndexPlugin],
     outExtension({ format }) {
         return {
             js: '.js'

@@ -13,7 +13,8 @@ This plan outlines the steps required to refactor the feature directories to sho
     - `dailyRewards` -> `daily`
       _(Note: `moderation`, `anticheat`, `economy`, and `essentials` will remain unchanged)._
 2. Standardize all usage of "teams" to "team" (singular) codebase-wide. This applies to directory names, variables, class names, interfaces, etc.
-3. Remove redundant prefixes in file names within feature directories so they don't duplicate the directory name (e.g., `src/features/shop/shopManager.ts` -> `src/features/shop/manager.ts`). **CRITICAL EXCEPTION:** Do NOT rename any `*Config.ts` or `*Config.default.ts` files (e.g. `economyConfig.ts`, `teamConfig.ts`). These must retain their specific names so they do not conflict when bundled together into the output directory.
+3. Remove redundant prefixes in file names within feature directories so they don't duplicate the directory name (e.g., `src/features/shop/shopManager.ts` -> `src/features/shop/manager.ts`).
+   **CRITICAL EXCEPTION:** Do NOT rename any `*Config.ts` or `*Config.default.ts` files (e.g. `economyConfig.ts`, `teamConfig.ts`). These must retain their specific names so they do not conflict when bundled together into the output directory.
 4. Update all relevant imports across the codebase after moving or renaming files.
 
 ---
