@@ -7,7 +7,7 @@ import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManag
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
 import { formatCurrency } from '@core/utils.js';
-import { showAuctionHouse } from '@features/auctionHouse/ui/auctionPanel.js';
+import { showAuctionHouse } from '@features/auction/ui/auctionPanel.js';
 import * as bountyManager from '@features/economy/bountyManager.js';
 import * as helpfulLinksManager from '@features/essentials/helpfulLinksManager.js';
 import * as rulesManager from '@features/essentials/rulesManager.js';
@@ -16,7 +16,7 @@ import { freezePlayer, unfreezePlayer } from '@features/moderation/commands/free
 import { kickPlayer } from '@features/moderation/commands/kick.js';
 import { mutePlayer, unmutePlayer } from '@features/moderation/commands/mute.js';
 import * as reportManager from '@features/moderation/reportManager.js';
-import * as tpaManager from '@features/teleportation/tpaManager.js';
+import * as tpaManager from '@features/teleport/tpaManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { UIContext } from '@ui/panelRegistry.js';
 

@@ -21,12 +21,12 @@ import ranksConfig from '@core/ranksConfig.default.js';
 import { showPanel } from '@core/uiManager.js';
 import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
 import { xrayConfig } from '@features/anticheat/xrayConfig.default.js';
-import { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
+import { auctionHouseConfig } from '@features/auction/auctionHouseConfig.default.js';
 import { economyConfig } from '@features/economy/economyConfig.js';
 import { spawnConfig } from '@features/essentials/spawnConfig.default.js';
-import { kitsConfig } from '@features/kits/kitsConfig.default.js';
+import { kitsConfig } from '@features/kit/kitsConfig.default.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
-import { teamConfig } from '@features/teams/teamConfig.js';
+import { teamConfig } from '@features/team/teamConfig.js';
 import * as mc from '@minecraft/server';
 import { PanelItem, UIContext } from '@ui/types.js';
 
