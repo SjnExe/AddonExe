@@ -7,8 +7,8 @@ import { sendMessage } from '@core/messaging.js';
 import { parseCurrency } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-import { createListing } from '@features/auction/auctionManager.js';
-import { showAuctionHouse } from '@features/auction/ui/auctionPanel.js';
+import { createListing } from '@features/auction/manager.js';
+import { showAuctionHouse } from '@features/auction/ui/panel.js';
 
 const mainCommand: CustomCommand = {
     name: 'ah',

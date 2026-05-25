@@ -5,8 +5,8 @@ import { getKitsConfig } from '@core/configurations.js';
 import { errorLog } from '@core/logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData, setKitCooldown } from '@core/playerDataManager.js';
 import { formatCooldown } from '@core/utils.js';
-import { Kit } from '@features/kit/kitAdminManager.js';
-import { ItemInfo } from '@features/kit/kitItemsManager.js';
+import { Kit } from '@features/kit/adminManager.js';
+import { ItemInfo } from '@features/kit/itemsManager.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
 interface KitInfo {

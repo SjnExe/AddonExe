@@ -1,7 +1,7 @@
 import { BountyPanelHandler } from '@features/economy/ui/bountyPanel.js';
-import { EconomyPanelHandler } from '@features/economy/ui/economyPanel.js';
+import { EconomyPanelHandler } from '@features/economy/ui/panel.js';
 import { WorldProtectionPanelHandler } from '@features/essentials/ui/worldProtectionPanel.js';
-import { KitPanelHandler } from '@features/kit/ui/kitPanel.js';
+import { KitPanelHandler } from '@features/kit/ui/panel.js';
 import { ModerationPanelHandler } from '@features/moderation/ui/moderationPanel.js';
 import { XrayPanelHandler } from '@features/moderation/ui/xrayPanel.js';
 import { ShopAdminPanelHandler } from '@features/shop/ui/shopAdminPanel.js';

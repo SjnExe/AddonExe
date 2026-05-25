@@ -4,7 +4,7 @@ import { errorLog } from '@core/logger.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { isDefined } from '@lib/guards.js';
 
-import { AnticheatConfig, getAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
+import { AnticheatConfig, getAnticheatConfig } from '@features/anticheat/configLoader.js';
 import { flag } from '@features/anticheat/flagManager.js';
 
 let isChecking = false;

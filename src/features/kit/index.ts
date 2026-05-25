@@ -1,4 +1,4 @@
-import { KitPanelHandler } from '@features/kit/ui/kitPanel.js';
+import { KitPanelHandler } from '@features/kit/ui/panel.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 
 export function initialize() {

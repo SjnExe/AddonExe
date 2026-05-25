@@ -3,8 +3,8 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { showPanel } from '@core/uiManager.js';
-import * as kitAdminManager from '@features/kit/kitAdminManager.js';
-import * as kitItemsManager from '@features/kit/kitItemsManager.js';
+import * as kitAdminManager from '@features/kit/adminManager.js';
+import * as kitItemsManager from '@features/kit/itemsManager.js';
 import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 

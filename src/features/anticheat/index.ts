@@ -1,4 +1,4 @@
-import { loadAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
+import { loadAnticheatConfig } from '@features/anticheat/configLoader.js';
 import { initializeFlagManager } from '@features/anticheat/flagManager.js';
 import { startItemCheckLoop } from '@features/anticheat/itemCheck.js';
 import { initializeLogManager } from '@features/anticheat/logManager.js';

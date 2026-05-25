@@ -7,7 +7,7 @@ import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManag
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
 import { formatCurrency } from '@core/utils.js';
-import { showAuctionHouse } from '@features/auction/ui/auctionPanel.js';
+import { showAuctionHouse } from '@features/auction/ui/panel.js';
 import * as bountyManager from '@features/economy/bountyManager.js';
 import * as helpfulLinksManager from '@features/essentials/helpfulLinksManager.js';
 import * as rulesManager from '@features/essentials/rulesManager.js';

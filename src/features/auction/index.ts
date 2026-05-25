@@ -1,4 +1,4 @@
-import { initializeAuctionHouse } from '@features/auction/auctionManager.js';
+import { initializeAuctionHouse } from '@features/auction/manager.js';
 
 export function initialize() {
     initializeAuctionHouse();

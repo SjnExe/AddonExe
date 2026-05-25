@@ -4,7 +4,7 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getDailyRewardsConfig } from '@core/configurations.js';
 import { sendMessage } from '@core/messaging.js';
 
-import { claimDailyReward } from '@features/daily/dailyRewardsManager.js';
+import { claimDailyReward } from '@features/daily/manager.js';
 
 const dailyCommand: CustomCommand = {
     name: 'daily',

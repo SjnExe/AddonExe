@@ -5,7 +5,7 @@ import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayerIdByName, getPlayerNameById, incrementPlayerBalance, loadPlayerData, setPlayerBalance } from '@core/playerDataManager.js';
 import { formatCurrency } from '@core/utils.js';
-import { validateCurrencyAmount } from '@features/economy/economyUtils.js';
+import { validateCurrencyAmount } from '@features/economy/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 // --- Online Commands (Selector Support) ---

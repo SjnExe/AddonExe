@@ -47,27 +47,27 @@ This plan outlines the steps required to refactor the feature directories to sho
 
 **Tasks:**
 
-- [ ] **`anticheat`**:
+- [x] **`anticheat`**:
     - Rename `anticheatConfigLoader.ts` -> `configLoader.ts`
     - Update imports.
-- [ ] **`auction`**:
+- [x] **`auction`**:
     - Rename `auctionManager.ts` -> `manager.ts`
     - Rename `ui/auctionPanel.ts` -> `ui/panel.ts`
     - Update imports.
-- [ ] **`daily`**:
+- [x] **`daily`**:
     - Rename `dailyRewardsManager.ts` -> `manager.ts`
     - Update imports.
-- [ ] **`economy`**:
+- [x] **`economy`**:
     - Rename `economyUtils.ts` -> `utils.ts`
     - Rename `ui/economyPanel.ts` -> `ui/panel.ts`
     - Update imports.
-- [ ] **`kit`**:
+- [x] **`kit`**:
     - Rename `kitAdminManager.ts` -> `adminManager.ts`
     - Rename `kitItemsManager.ts` -> `itemsManager.ts`
     - Rename `kitsManager.ts` -> `manager.ts`
     - Rename `ui/kitPanel.ts` -> `ui/panel.ts`
     - Update imports.
-- [ ] Run typescript compiler/checker to ensure imports and logic references are intact.
+- [x] Run typescript compiler/checker to ensure imports and logic references are intact.
 
 **Handover Context for Session 3:**
 

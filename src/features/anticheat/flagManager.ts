@@ -7,7 +7,7 @@ import { formatString } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 
 import { BaseCheckConfig } from '@features/anticheat/anticheatConfig.js';
-import { getAnticheatConfig } from '@features/anticheat/anticheatConfigLoader.js';
+import { getAnticheatConfig } from '@features/anticheat/configLoader.js';
 import { addFlagLog } from '@features/anticheat/logManager.js';
 
 const storage = new StorageManager('exe:flags');
