@@ -23,19 +23,19 @@ This plan outlines the steps required to refactor the feature directories to sho
 
 **Tasks:**
 
-- [ ] Rename `src/features/auctionHouse` to `src/features/auction`.
-- [ ] Rename `src/features/dailyRewards` to `src/features/daily`.
-- [ ] Rename `src/features/kits` to `src/features/kit`.
-- [ ] Rename `src/features/teams` to `src/features/team`.
-- [ ] Rename `src/features/teleportation` to `src/features/teleport`.
-- [ ] Rename `src/features/voting` to `src/features/vote`.
-- [ ] Update all import paths across `src/**/*.ts` to reflect the new directory names.
-- [ ] Globally standardize the word "teams" to "team":
+- [x] Rename `src/features/auctionHouse` to `src/features/auction`.
+- [x] Rename `src/features/dailyRewards` to `src/features/daily`.
+- [x] Rename `src/features/kits` to `src/features/kit`.
+- [x] Rename `src/features/teams` to `src/features/team`.
+- [x] Rename `src/features/teleportation` to `src/features/teleport`.
+- [x] Rename `src/features/voting` to `src/features/vote`.
+- [x] Update all import paths across `src/**/*.ts` to reflect the new directory names.
+- [x] Globally standardize the word "teams" to "team":
     - Change variables like `teamsManager` to `teamManager`.
     - Change interface names like `TeamsConfig` to `TeamConfig`.
     - Change class names like `TeamsManager` to `TeamManager`.
     - Apply this rigorously to code logic, while being careful not to break user-facing messages unless appropriate.
-- [ ] Run typescript compiler/checker (`tsc --noEmit` if available) and ensure all imports are resolved correctly without errors.
+- [x] Run typescript compiler/checker (`tsc --noEmit` if available) and ensure all imports are resolved correctly without errors.
 
 **Handover Context for Session 2:**
 

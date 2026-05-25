@@ -9,7 +9,7 @@ import { getPlayTime, getPlayer, getSidebarVisible } from '@core/playerDataManag
 import { getPlayerRank } from '@core/rankManager.js';
 import { formatCurrency, formatDuration } from '@core/utils.js';
 import { getLeaderboard } from '@features/economy/leaderboardManager.js';
-import { getTeamByPlayer } from '@features/teams/teamManager.js';
+import { getTeamByPlayer } from '@features/team/teamManager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 
 let sidebarInterval: number | undefined;

@@ -1,14 +1,14 @@
 import { BountyPanelHandler } from '@features/economy/ui/bountyPanel.js';
 import { EconomyPanelHandler } from '@features/economy/ui/economyPanel.js';
 import { WorldProtectionPanelHandler } from '@features/essentials/ui/worldProtectionPanel.js';
-import { KitPanelHandler } from '@features/kits/ui/kitPanel.js';
+import { KitPanelHandler } from '@features/kit/ui/kitPanel.js';
 import { ModerationPanelHandler } from '@features/moderation/ui/moderationPanel.js';
 import { XrayPanelHandler } from '@features/moderation/ui/xrayPanel.js';
 import { ShopAdminPanelHandler } from '@features/shop/ui/shopAdminPanel.js';
 import { ShopUserPanelHandler } from '@features/shop/ui/shopUserPanel.js';
 import { FriendPanelHandler } from '@features/social/ui/friendPanel.js';
-import { TeamPanelHandler } from '@features/teams/ui/teamPanel.js';
-import { TeleportPanelHandler } from '@features/teleportation/ui/teleportPanel.js';
+import { TeamPanelHandler } from '@features/team/ui/teamPanel.js';
+import { TeleportPanelHandler } from '@features/teleport/ui/teleportPanel.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 import { SidebarPanelHandler } from '@ui/panels/sidebarPanel.js';
 import { AdminPanelHandler } from './adminPanel.js';

@@ -11,16 +11,16 @@ import { reloadRanks } from '@core/rankManager.js';
 
 import type ranksConfig from '@core/ranksConfig.default.js';
 import type { xrayConfig } from '@features/anticheat/xrayConfig.default.js';
-import type { auctionHouseConfig } from '@features/auctionHouse/auctionHouseConfig.default.js';
-import type { dailyRewardsConfig } from '@features/dailyRewards/dailyRewardsConfig.default.js';
+import type { auctionHouseConfig } from '@features/auction/auctionHouseConfig.default.js';
+import type { dailyRewardsConfig } from '@features/daily/dailyRewardsConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
 import type { spawnConfig } from '@features/essentials/spawnConfig.default.js';
 import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.default.js';
-import type { kitsConfig } from '@features/kits/kitsConfig.default.js';
+import type { kitsConfig } from '@features/kit/kitsConfig.default.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { config as sidebarConfig } from '@features/sidebar/sidebarConfig.default.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
-import type { teamConfig } from '@features/teams/teamConfig.js';
+import type { teamConfig } from '@features/team/teamConfig.js';
 
 export type KitsConfig = typeof kitsConfig;
 export type ShopConfig = typeof shopConfig;
@@ -58,7 +58,7 @@ export const resetWorldProtectionConfig = () => worldProtectionConfigManager.res
 
 export const loadKitsConfig = async (isMigration: boolean) => {
     // Corrected path to match the build output location relative to main.js (root of scripts/)
-    const defaultConfig = await asyncLoadConfig<KitsConfig>('./features/kits/kitsConfig.js');
+    const defaultConfig = await asyncLoadConfig<KitsConfig>('./features/kit/kitsConfig.js');
     kitsConfigManager = createConfigManager('exe:kitsConfig:current', defaultConfig, 'Kits');
     kitsConfigManager.load(isMigration);
 };
@@ -121,8 +121,8 @@ export const saveXrayConfig = (config: XrayConfig) => xrayConfigManager.set(conf
 export const resetXrayConfig = () => xrayConfigManager.reset();
 
 export const loadTeamConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<TeamConfig>('./features/teams/teamConfig.js');
-    teamConfigManager = createConfigManager('exe:teamConfig:current', defaultConfig, 'Teams');
+    const defaultConfig = await asyncLoadConfig<TeamConfig>('./features/team/teamConfig.js');
+    teamConfigManager = createConfigManager('exe:teamConfig:current', defaultConfig, 'Team');
     teamConfigManager.load(isMigration);
 };
 export const getTeamConfig = (): TeamConfig => teamConfigManager.get();
@@ -148,7 +148,7 @@ export const saveSidebarConfig = (config: SidebarConfig) => sidebarConfigManager
 export const resetSidebarConfig = () => sidebarConfigManager.reset();
 
 export const loadAuctionHouseConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<AuctionHouseConfig>('./features/auctionHouse/auctionHouseConfig.js');
+    const defaultConfig = await asyncLoadConfig<AuctionHouseConfig>('./features/auction/auctionHouseConfig.js');
     auctionHouseConfigManager = createConfigManager('exe:auctionHouseConfig:current', defaultConfig, 'AuctionHouse');
     auctionHouseConfigManager.load(isMigration);
 };
@@ -157,7 +157,7 @@ export const saveAuctionHouseConfig = (config: AuctionHouseConfig) => auctionHou
 export const resetAuctionHouseConfig = () => auctionHouseConfigManager.reset();
 
 export const loadDailyRewardsConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<DailyRewardsConfig>('./features/dailyRewards/dailyRewardsConfig.js');
+    const defaultConfig = await asyncLoadConfig<DailyRewardsConfig>('./features/daily/dailyRewardsConfig.js');
     dailyRewardsConfigManager = createConfigManager('exe:dailyRewardsConfig:current', defaultConfig, 'DailyRewards');
     dailyRewardsConfigManager.load(isMigration);
 };
