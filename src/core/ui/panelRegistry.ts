@@ -295,8 +295,8 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 actionValue: 'teamSearchPanel'
             },
             {
-                id: 'browseTeams',
-                text: 'Browse Teams',
+                id: 'browseTeam',
+                text: 'Browse Team',
                 icon: 'textures/ui/world_glyph_color',
                 permissionLevel: 1024,
                 actionType: 'openPanel',
@@ -315,7 +315,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [] // Modal
     },
     teamBrowserPanel: {
-        title: 'Browse Teams',
+        title: 'Browse Team',
         parentPanelId: 'teamJoinPanel',
         items: [] // Dynamic
     },
@@ -334,7 +334,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         parentPanelId: 'teamManagePanel',
         items: [] // Dynamic
     },
-    teamSettingsPanel: {
+    teamSettingPanel: {
         title: 'Team Settings',
         parentPanelId: 'teamMainPanel',
         items: [] // Modal

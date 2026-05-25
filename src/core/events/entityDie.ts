@@ -7,8 +7,8 @@ import { debugLog, errorLog } from '@core/logger.js';
 import * as playerCache from '@core/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance, setPlayerLastDeathLocation } from '@core/playerDataManager.js';
 import * as bountyManager from '@features/economy/bountyManager.js';
-import * as teamManager from '@features/teams/teamManager.js';
-import { saveLastLocation } from '@features/teleportation/teleportUtils.js';
+import * as teamManager from '@features/team/teamManager.js';
+import { saveLastLocation } from '@features/teleport/teleportUtils.js';
 import { isDefined } from '@lib/guards.js';
 
 export const eventName = 'entityDie';
