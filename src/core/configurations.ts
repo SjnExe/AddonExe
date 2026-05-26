@@ -48,8 +48,8 @@ let kitsConfigManager: ConfigManager<KitsConfig>,
     worldProtectionConfigManager: ConfigManager<WorldProtectionConfig>;
 
 export const loadWorldProtectionConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<WorldProtectionConfig>('./features/essentials/worldProtectionConfig.js');
-    worldProtectionConfigManager = createConfigManager('exe:worldProtectionConfig:current', defaultConfig, 'WorldProtection');
+    const { worldProtectionConfig } = await import('@features/essentials/worldProtectionConfig.default.js');
+    worldProtectionConfigManager = createConfigManager('exe:worldProtectionConfig:current', worldProtectionConfig, 'WorldProtection');
     worldProtectionConfigManager.load(isMigration);
 };
 export const getWorldProtectionConfig = (): WorldProtectionConfig => worldProtectionConfigManager.get();
@@ -76,8 +76,8 @@ export const saveShopConfig = (config: ShopConfig) => shopConfigManager.set(conf
 export const resetShopConfig = () => shopConfigManager.reset();
 
 export const loadSpawnConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<SpawnConfig>('./features/essentials/spawnConfig.js');
-    spawnConfigManager = createConfigManager('exe:spawnConfig:current', defaultConfig, 'Spawn');
+    const { spawnConfig } = await import('@features/essentials/spawnConfig.default.js');
+    spawnConfigManager = createConfigManager('exe:spawnConfig:current', spawnConfig, 'Spawn');
     spawnConfigManager.load(isMigration);
 };
 export const getSpawnConfig = (): SpawnConfig => spawnConfigManager.get();
