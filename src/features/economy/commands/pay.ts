@@ -7,7 +7,7 @@ import { sendMessage } from '@core/messaging.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { clearPendingPayment, createPendingPayment, getPendingPayment, getPlayer, getPlayerIdByName, getPlayerNameById, transfer } from '@core/playerDataManager.js';
 import { formatCurrency, resolveTarget } from '@core/utils.js';
-import { validateCurrencyAmount } from '@features/economy/economyUtils.js';
+import { validateCurrencyAmount } from '@features/economy/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 const payCommand: CustomCommand = {

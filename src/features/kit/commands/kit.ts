@@ -5,9 +5,9 @@ import { getConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCooldown, uiWait } from '@core/utils.js';
-import { createKit, getAllKits } from '@features/kit/kitAdminManager.js';
-import { addItemToKit } from '@features/kit/kitItemsManager.js';
-import * as kitsManager from '@features/kit/kitsManager.js';
+import { createKit, getAllKits } from '@features/kit/adminManager.js';
+import { addItemToKit } from '@features/kit/itemsManager.js';
+import * as kitsManager from '@features/kit/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';

@@ -13,7 +13,7 @@ vi.mock('@core/logger.js', () => ({
     errorLog: vi.fn()
 }));
 
-vi.mock('../anticheatConfigLoader.js', () => ({
+vi.mock('../configLoader.js', () => ({
     getAnticheatConfig: vi.fn()
 }));
 
