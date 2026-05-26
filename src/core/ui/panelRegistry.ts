@@ -441,8 +441,52 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 actionType: 'openPanel',
                 actionValue: 'worldProtectionListPanel',
                 sortId: 90
+            },
+            {
+                id: 'configTransfer',
+                text: 'Export/Import Configs',
+                icon: 'textures/ui/refresh',
+                permissionLevel: 0, // Only highest permission level
+                actionType: 'openPanel',
+                actionValue: 'configTransferPanel',
+                sortId: 100
             }
         ] // Dynamically populated with other items
+    },
+    configTransferPanel: {
+        title: 'Configuration Transfer',
+        parentPanelId: 'configCategoryPanel',
+        permissionLevel: 0,
+        items: [
+            {
+                id: 'exportConfig',
+                text: 'Export Configurations',
+                icon: 'textures/ui/arrow_right',
+                permissionLevel: 0,
+                actionType: 'openPanel',
+                actionValue: 'configExportPanel'
+            },
+            {
+                id: 'importConfig',
+                text: 'Import Configurations',
+                icon: 'textures/ui/arrow_left',
+                permissionLevel: 0,
+                actionType: 'openPanel',
+                actionValue: 'configImportPanel'
+            }
+        ]
+    },
+    configExportPanel: {
+        title: 'Export Config',
+        parentPanelId: 'configTransferPanel',
+        permissionLevel: 0,
+        items: [] // Modal
+    },
+    configImportPanel: {
+        title: 'Import Config',
+        parentPanelId: 'configTransferPanel',
+        permissionLevel: 0,
+        items: [] // Modal
     },
     worldProtectionListPanel: {
         title: 'World Protection Zones',

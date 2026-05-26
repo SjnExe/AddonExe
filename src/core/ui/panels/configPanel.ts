@@ -32,7 +32,10 @@ export class ConfigPanelHandler implements IPanelHandler {
             panelId.startsWith('configSubCategoryPanel_') ||
             panelId === 'configResetPanel' ||
             panelId.startsWith('configResetCategoryPanel_') ||
-            panelId.startsWith('config_')
+            panelId.startsWith('config_') ||
+            panelId === 'configTransferPanel' ||
+            panelId === 'configExportPanel' ||
+            panelId === 'configImportPanel'
         );
     }
 
@@ -57,7 +60,33 @@ export class ConfigPanelHandler implements IPanelHandler {
             return Promise.resolve(this.getResetCategoryPanelItems(pData, category, context));
         }
 
+        if (panelId === 'configTransferPanel') {
+            return Promise.resolve(this.getTransferPanelItems(pData, context));
+        }
+
         return Promise.resolve([]);
+    }
+
+    private getTransferPanelItems(_pData: PlayerData, _context: UIContext): PanelItem[] {
+        const items: PanelItem[] = [];
+        addBackButton(items, 'configCategoryPanel');
+        items.push({
+            id: 'exportConfig',
+            text: 'Export Configurations',
+            icon: 'textures/ui/arrow_right',
+            permissionLevel: 0,
+            actionType: 'openPanel',
+            actionValue: 'configExportPanel'
+        });
+        items.push({
+            id: 'importConfig',
+            text: 'Import Configurations',
+            icon: 'textures/ui/arrow_left',
+            permissionLevel: 0,
+            actionType: 'openPanel',
+            actionValue: 'configImportPanel'
+        });
+        return items;
     }
 
     private getCategoryPanelItems(pData: PlayerData, context: UIContext): PanelItem[] {
@@ -193,6 +222,10 @@ export class ConfigPanelHandler implements IPanelHandler {
     }
 
     buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined | void> {
+        if (panelId === 'configExportPanel' || panelId === 'configImportPanel') {
+            return this.buildTransferModal(panelId);
+        }
+
         if (!panelId.startsWith('config_')) return Promise.resolve();
 
         const categoryId = panelId.replace('config_', '');
@@ -215,6 +248,23 @@ export class ConfigPanelHandler implements IPanelHandler {
         // Cast settings to ConfigSetting array to avoid any errors
         const settings = category.settings as unknown as ConfigSetting[];
         this.addFormFields(form, settings, config);
+
+        return Promise.resolve(form);
+    }
+
+    private buildTransferModal(panelId: string): Promise<ModalFormData> {
+        const form = new ModalFormData();
+        const systemOptions = ['All Systems', ...Object.keys(uiConfigHandlers)];
+
+        if (panelId === 'configExportPanel') {
+            form.title('Export Configuration');
+            form.dropdown('Select System to Export', systemOptions, { defaultValueIndex: 0 });
+            form.textField('Action Information', 'The exported JSON data will appear in a new window after you submit.', { defaultValue: 'Submit to generate and receive export data.' });
+        } else {
+            form.title('Import Configuration');
+            form.dropdown('Select Target System', systemOptions, { defaultValueIndex: 0 });
+            form.textField('Paste JSON Config Data', 'Paste the condensed JSON text here');
+        }
 
         return Promise.resolve(form);
     }
@@ -261,6 +311,15 @@ export class ConfigPanelHandler implements IPanelHandler {
         // Modal Handling
         if (panelId.startsWith('config_')) {
             await this.handleConfigModalSave(player, panelId, response as ModalFormResponse, context);
+            return;
+        }
+
+        if (panelId === 'configExportPanel') {
+            return this.handleExportConfig(player, response as ModalFormResponse, context);
+        }
+
+        if (panelId === 'configImportPanel') {
+            return this.handleImportConfig(player, response as ModalFormResponse, context);
         }
     }
 
@@ -441,6 +500,110 @@ export class ConfigPanelHandler implements IPanelHandler {
             return showPanel(player, `configSubCategoryPanel_${category.category}`, { ...context, page: 1 });
         }
         return showPanel(player, 'configCategoryPanel', { ...context, page: 1 });
+    }
+
+    private handleExportConfig(player: mc.Player, response: ModalFormResponse, context: UIContext): Promise<void> | void {
+        if (response.canceled) return showPanel(player, 'configTransferPanel', context);
+
+        const values = response.formValues;
+        if (!isDefined(values) || !isDefined(values[0])) return showPanel(player, 'configTransferPanel', context);
+
+        const systemOptions = ['All Systems', ...Object.keys(uiConfigHandlers)];
+        const selectedIndex = values[0] as number;
+        const selectedSystem = systemOptions[selectedIndex];
+
+        let exportData: unknown;
+
+        if (selectedSystem === 'All Systems') {
+            const allData: Record<string, unknown> = {};
+            for (const [key, handler] of Object.entries(uiConfigHandlers)) {
+                allData[key] = handler.get();
+            }
+            exportData = allData;
+        } else if (isDefined(selectedSystem) && isDefined(uiConfigHandlers[selectedSystem])) {
+            exportData = uiConfigHandlers[selectedSystem].get();
+        } else {
+            player.sendMessage('§4Invalid system selected.');
+            return showPanel(player, 'configTransferPanel', context);
+        }
+
+        try {
+            const jsonString = JSON.stringify(exportData);
+            // Instead of putting it in chat, open a new read-only modal with the data
+            const form = new ModalFormData();
+            form.title('Exported Data');
+            form.textField('Copy the data below:', 'JSON Data', { defaultValue: jsonString });
+
+            void utils.uiWait(player, form).then(() => {
+                void showPanel(player, 'configTransferPanel', context);
+            });
+        } catch (error) {
+            player.sendMessage(`§4Failed to generate export data. Check console for errors.`);
+            errorLog(`[UIManager] Failed to export config: ${String(error)}`);
+            return showPanel(player, 'configTransferPanel', context);
+        }
+    }
+
+    private handleImportConfig(player: mc.Player, response: ModalFormResponse, context: UIContext): Promise<void> | void {
+        if (response.canceled) return showPanel(player, 'configTransferPanel', context);
+
+        const values = response.formValues;
+        if (!isDefined(values) || !isDefined(values[0]) || !isDefined(values[1])) {
+            return showPanel(player, 'configTransferPanel', context);
+        }
+
+        const systemOptions = ['All Systems', ...Object.keys(uiConfigHandlers)];
+        const selectedIndex = values[0] as number;
+        const selectedSystem = systemOptions[selectedIndex];
+        const jsonString = values[1] as string;
+
+        if (!isNonEmptyString(jsonString) || jsonString.trim() === '') {
+            player.sendMessage('§4You must provide JSON data to import.');
+            return showPanel(player, 'configTransferPanel', context);
+        }
+
+        let importData: unknown;
+        try {
+            importData = JSON.parse(jsonString);
+        } catch {
+            player.sendMessage('§4Invalid JSON format. Please ensure you copied the entire exported string correctly.');
+            return showPanel(player, 'configTransferPanel', context);
+        }
+
+        try {
+            if (selectedSystem === 'All Systems') {
+                const parsedData = importData as Record<string, unknown>;
+                for (const [key, handler] of Object.entries(uiConfigHandlers)) {
+                    if (isDefined(parsedData[key])) {
+                        handler.save(parsedData[key]);
+                    }
+                }
+                player.sendMessage('§aSuccessfully imported All Systems configurations.');
+            } else if (isDefined(selectedSystem) && isDefined(uiConfigHandlers[selectedSystem])) {
+
+                uiConfigHandlers[selectedSystem].save(importData);
+                player.sendMessage(`§aSuccessfully imported configuration for ${selectedSystem}.`);
+            } else {
+                player.sendMessage('§4Invalid system selected.');
+                return showPanel(player, 'configTransferPanel', context);
+            }
+
+            // Trigger reloads where necessary
+            if (selectedSystem === 'All Systems' || selectedSystem === 'xray') {
+                refreshXrayCache();
+            }
+            if (selectedSystem === 'All Systems' || selectedSystem === 'ranks') {
+                void import('@core/rankManager.js').then(({ reloadRanks }) => reloadRanks());
+            }
+            if (selectedSystem === 'All Systems' || selectedSystem === 'spawn') {
+                void import('@features/essentials/spawnProtection.js').then(({ initializeSpawnProtection }) => initializeSpawnProtection());
+            }
+        } catch (error) {
+            player.sendMessage(`§4Failed to apply imported configuration. Check console for errors.`);
+            errorLog(`[UIManager] Failed to import config: ${String(error)}`);
+        }
+
+        return showPanel(player, 'configTransferPanel', context);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
