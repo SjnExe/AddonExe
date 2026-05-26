@@ -3,7 +3,7 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 
 import { getSidebarConfig, saveSidebarConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
-import { forceUpdate } from '@features/sidebar/sidebarManager.js';
+import { forceUpdate } from '@features/sidebar/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';

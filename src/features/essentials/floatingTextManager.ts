@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog } from '@core/logger.js';
 import { isDeepEqual } from '@core/objectUtils.js';
-import * as sidebarManager from '@features/sidebar/sidebarManager.js';
+import * as sidebarManager from '@features/sidebar/manager.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
 // Workaround for strange TS Boolean type inference on resolveGlobalPlaceholders

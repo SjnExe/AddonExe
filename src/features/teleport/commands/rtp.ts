@@ -8,7 +8,7 @@ import { debugLog, errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 
-import { saveLastLocation } from '@features/teleport/teleportUtils.js';
+import { saveLastLocation } from '@features/teleport/utils.js';
 
 const rtpCommand: CustomCommand = {
     name: 'rtp',

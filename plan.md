@@ -79,36 +79,36 @@ This plan outlines the steps required to refactor the feature directories to sho
 
 **Tasks:**
 
-- [ ] **`shop`**:
+- [x] **`shop`**:
     - Rename `shopAdminManager.ts` -> `adminManager.ts`
     - Rename `shopManager.ts` -> `manager.ts`
     - Rename `shopUtils.ts` -> `utils.ts`
     - Rename `ui/shopAdminPanel.ts` -> `ui/adminPanel.ts`
     - Rename `ui/shopUserPanel.ts` -> `ui/userPanel.ts`
     - Update imports.
-- [ ] **`moderation`**:
+- [x] **`moderation`**:
     - Rename `ui/moderationPanel.ts` -> `ui/panel.ts`
     - Update imports.
-- [ ] **`sidebar`**:
+- [x] **`sidebar`**:
     - Rename `sidebarManager.ts` -> `manager.ts`
     - Update imports.
-- [ ] **`social`**:
+- [x] **`social`**:
     - Since the directory is `social` and files are `friend*`, there is no direct directory-name duplication. Review if any `social` prefixed files exist and rename them if necessary.
-- [ ] **`team`**:
+- [x] **`team`**:
     - Rename `teamManager.ts` -> `manager.ts`
     - Rename `teamTypes.ts` -> `types.ts`
     - Rename `ui/teamPanel.ts` -> `ui/panel.ts`
     - Update imports.
-- [ ] **`teleport`**:
+- [x] **`teleport`**:
     - Rename `teleportUtils.ts` -> `utils.ts`
     - Rename `ui/teleportPanel.ts` -> `ui/panel.ts`
     - Update imports.
-- [ ] **`vote`**:
+- [x] **`vote`**:
     - Rename `voteManager.ts` -> `manager.ts`
     - Rename `ui/votePanel.ts` -> `ui/panel.ts`
     - Update imports.
-- [ ] Perform a final codebase-wide sweep with the typescript compiler/checker (`tsc --noEmit`).
-- [ ] Run tests (if applicable) and manually review core features to guarantee everything is correctly linked.
+- [x] Perform a final codebase-wide sweep with the typescript compiler/checker (`tsc --noEmit`).
+- [x] Run tests (if applicable) and manually review core features to guarantee everything is correctly linked.
 
 **Handover Context (Final):**
 

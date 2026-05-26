@@ -29,7 +29,7 @@ import { cleanupLeaderboardManager } from '@features/economy/leaderboardManager.
 import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
 import { cleanup as cleanupFloatingText } from '@features/essentials/floatingTextManager.js';
 import { cleanupSpawnProtection, initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
-import * as sidebarManager from '@features/sidebar/sidebarManager.js';
+import * as sidebarManager from '@features/sidebar/manager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import { initialize as initializeUIPanels } from '@ui/panels/index.js';
 

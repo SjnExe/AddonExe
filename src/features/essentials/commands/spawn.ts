@@ -9,7 +9,7 @@ import { sendMessage } from '@core/messaging.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { playSound } from '@core/utils.js';
-import { saveLastLocation } from '@features/teleport/teleportUtils.js';
+import { saveLastLocation } from '@features/teleport/utils.js';
 
 import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
 

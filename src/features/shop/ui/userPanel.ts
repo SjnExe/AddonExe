@@ -4,9 +4,9 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 import { getShopConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
+import * as shopManager from '@features/shop/manager.js';
 import { ShopCategory } from '@features/shop/shopConfig.js';
-import * as shopManager from '@features/shop/shopManager.js';
-import { ensureItemsConfig, getAllItems, Item } from '@features/shop/shopUtils.js';
+import { ensureItemsConfig, getAllItems, Item } from '@features/shop/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import { IPanelHandler, PanelItem, ShopItem, UIContext } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';

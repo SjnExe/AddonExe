@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 
-import { getTeamByPlayer } from '@features/team/teamManager.js';
+import { getTeamByPlayer } from '@features/team/manager.js';
 import { isNumber } from '@lib/guards.js';
 
 import { getConfig } from '@core/configManager.js';
@@ -12,7 +12,7 @@ import { getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayer, incrementDeathCount, incrementKillCount, incrementKillStreak, incrementPlayerBalance, resetKillStreak } from '@core/playerDataManager.js';
 import { formatCurrency } from '@core/utils.js';
 import { handlePvPDeath } from '@features/essentials/pvpManager.js';
-import { saveLastLocation } from '@features/teleport/teleportUtils.js';
+import { saveLastLocation } from '@features/teleport/utils.js';
 
 mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     const { deadEntity, damageSource } = event;

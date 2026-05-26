@@ -1,4 +1,4 @@
-import { initializeVoting } from '@features/vote/voteManager.js';
+import { initializeVoting } from '@features/vote/manager.js';
 
 export function initialize() {
     initializeVoting();

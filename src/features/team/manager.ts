@@ -5,9 +5,9 @@ import { debugLog, errorLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
-import { TeamData } from '@features/team/teamTypes.js';
-import { TeamPanelHandler } from '@features/team/ui/teamPanel.js';
-import { saveLastLocation } from '@features/teleport/teleportUtils.js';
+import { TeamData } from '@features/team/types.js';
+import { TeamPanelHandler } from '@features/team/ui/panel.js';
+import { saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 
@@ -15,7 +15,7 @@ const teamPropertyPrefix = 'exe:team.';
 const nextTeamIdKey = 'exe:nextTeamId';
 
 // Re-export types for backward compatibility if needed, but prefer importing from teamTypes.ts
-export type { TeamApplication, TeamData } from '@features/team/teamTypes.js';
+export type { TeamApplication, TeamData } from '@features/team/types.js';
 
 interface ActionResult {
     success: boolean;

@@ -4,9 +4,9 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { getShopConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
-import * as shopAdminManager from '@features/shop/shopAdminManager.js';
+import * as shopAdminManager from '@features/shop/adminManager.js';
 import { ShopCategory } from '@features/shop/shopConfig.js';
-import { ensureItemsConfig, getAllItems } from '@features/shop/shopUtils.js';
+import { ensureItemsConfig, getAllItems } from '@features/shop/utils.js';
 import { isDefined, isNonEmptyString, isNumber, isString } from '@lib/guards.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { IPanelHandler, MainConfig, PanelItem, ShopItem, UIContext } from '@ui/types.js';

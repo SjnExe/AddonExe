@@ -11,7 +11,7 @@ import { uiWait } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import * as homesManager from '@features/teleport/homesManager.js';
-import { saveLastLocation } from '@features/teleport/teleportUtils.js';
+import { saveLastLocation } from '@features/teleport/utils.js';
 
 interface HomeCommandArgs {
     homeName?: string;

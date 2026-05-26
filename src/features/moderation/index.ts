@@ -1,5 +1,5 @@
 import { initializeFreezeListener } from '@features/moderation/freezeListener.js';
-import { ModerationPanelHandler } from '@features/moderation/ui/moderationPanel.js';
+import { ModerationPanelHandler } from '@features/moderation/ui/panel.js';
 import { XrayPanelHandler } from '@features/moderation/ui/xrayPanel.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 
