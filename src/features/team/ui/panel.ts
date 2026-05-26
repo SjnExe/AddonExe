@@ -10,7 +10,7 @@ import { panelDefinitions } from '@core/ui/panelRegistry.js';
 import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
 import { showPanel } from '@core/uiManager.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
-import * as teamManager from '@features/team/teamManager.js';
+import * as teamManager from '@features/team/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export class TeamPanelHandler implements IPanelHandler {

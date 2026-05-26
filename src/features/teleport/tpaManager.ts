@@ -8,7 +8,7 @@ import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { isFriend } from '@features/social/friendManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-import { findSafeLocation, saveLastLocation } from '@features/teleport/teleportUtils.js';
+import { findSafeLocation, saveLastLocation } from '@features/teleport/utils.js';
 
 type TpaRequestType = 'tpa' | 'tpahere';
 
