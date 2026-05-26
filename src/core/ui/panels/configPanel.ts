@@ -580,7 +580,6 @@ export class ConfigPanelHandler implements IPanelHandler {
                 }
                 player.sendMessage('§aSuccessfully imported All Systems configurations.');
             } else if (isDefined(selectedSystem) && isDefined(uiConfigHandlers[selectedSystem])) {
-
                 uiConfigHandlers[selectedSystem].save(importData);
                 player.sendMessage(`§aSuccessfully imported configuration for ${selectedSystem}.`);
             } else {
