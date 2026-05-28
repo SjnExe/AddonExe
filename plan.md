@@ -47,6 +47,7 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 ## Session 3: Command & UI Panel Restructuring
 - [ ] **Universal Script Event Listener:** Create a universal listener (e.g., `src/core/events/scriptEventReceive.ts`) to act as a router for `/scriptevent` commands. Implement an action handler system so new capabilities can be easily added.
 - [ ] **Rank Action Handlers:** Implement specific handlers within the universal script event listener for adding and removing ranks (e.g., parsing a payload to assign a rank to the target player).
+- [ ] **Update `.mcfunction` Files:** Modify `packs/behavior/functions/admin.mcfunction` (and any related function files like `setup.mcfunction` or `owner.mcfunction`) to replace old tag commands (`/tag @s add admin`) with the new `/scriptevent` command (e.g., `/scriptevent myaddon:action {"action":"add_rank","rank":"admin"}`) so that `/function admin` properly assigns the admin rank using the new system.
 - [ ] **Targeting Hierarchy Enforcement:** Implement a utility function to compare two players' highest priorities. Apply this check to all moderation commands and UI actions (kick, ban, mute, freeze) to prevent lower-priority staff from targeting higher-priority staff.
 - [ ] **Update UI Schema & Interfaces:** Refactor `PanelItem` in `src/core/ui/types.ts` to replace `permissionLevel?: number` with `permission?: string`.
 - [ ] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels.
