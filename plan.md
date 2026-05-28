@@ -12,8 +12,9 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 * **Calculated Node Map Engine:** To ensure O(1) runtime lookups, permissions are compiled into a flat map cache when a player joins or ranks change. This dictionary MUST be initialized with `Object.create(null)` to eliminate prototype chain overhead in the Bedrock V8 engine.
 * **Wildcard Support:** The `hasPermission()` check must support wildcards (`*`, `cmd.*`). For maximum speed, it should check exact matches first, then fall back to checking segment wildcards directly against the flat map.
 * **In-Game Editing Cache Invalidations:** When an admin edits a rank in-game via the UI, the engine must quickly recalculate that specific rank's map and instantly re-merge it for any online players holding that rank.
-* **Hardcoded Fallbacks:** The `Owner` rank inherently bypasses all permission checks. The `Admin` rank has a hardcoded, uneditable set of core permissions to prevent accidental lockouts.
+* **Hardcoded Fallbacks:** The `Owner` rank inherently bypasses all permission checks (has the literal `*` wildcard internally). The `Admin` rank has a hardcoded, uneditable set of core permissions to prevent accidental lockouts.
 * **Universal Vanilla Command Integration (/scriptevent):** We are NOT doing tag syncing. To allow vanilla command blocks and `/function` to interact with the addon (including giving ranks), we will set up a universal `/scriptevent` listener (e.g., `src/core/events/scriptEventReceive.ts`). This listener will act as a router for various addon commands (e.g., listening for `/scriptevent myaddon:action {"action": "add_rank", "rank": "admin"}` targeted at a player, or a similar structured payload).
+* **Clear Node Naming Conventions:** The `Owner` rank has `*` internally which grants all permissions. However, "Owner-only" features must have explicitly named nodes (e.g., `ui.panel.owner` or `cmd.op`) instead of checking for `*`. This allows server owners to selectively grant those specific capabilities to an `Admin` via the config without making them a full `Owner`.
 
 ### 2. Codebase Clean Slate (No Data Migration)
 * **Strip All Legacy Migrations:** Because this is effectively a V1 release, ALL legacy data migration code across the entire codebase (for all features, not just ranks) must be deleted.
@@ -27,18 +28,18 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 ## Session 1: Schema & Global Migration Cleanup
 - [ ] **Define New Rank Schema:** Refactor `src/core/ranksConfig.default.ts` to replace `permissionLevel` with `priority` (lower number = higher priority). Add `groups` (array of strings), `allow` (array of node strings), and `deny` (array of node strings). Ensure every rank inherits a global `default` group. Include standard properties like `chatFormatting` and `nametagPrefix`.
-- [ ] **Define Permission Groups Schema:** Create a structure (e.g., in `ranksConfig.default.ts` or a new config) to define what nodes belong to which `groups` (bundles of predefined permissions).
-- [ ] **Update Player Data Model:** Modify `PlayerData` in `src/core/playerDataManager.ts` to support multiple ranks natively (e.g., replace `rankId: string` and `permissionLevel: number` with `ranks: string[]`).
+- [ ] **Define Permission Groups Schema:** Create a structure (e.g., in `ranksConfig.default.ts` or a new config) to define what nodes belong to which `groups` (bundles of predefined permissions). Standardize permission node strings (e.g. `cmd.kick`, `ui.panel.admin`, `ui.panel.owner`).
+- [ ] **Update Player Data Model:** Modify `PlayerData` in `src/core/playerDataManager.ts` to support multiple ranks natively (e.g., replace `rankId: string` and `permissionLevel: number` with `ranks: string[]`). Update creation functions to default to `['member']`.
 - [ ] **Strip Legacy Migrations:**
     - Clean up `src/core/migrationManager.ts`. Remove all legacy version migration logic (`migrateToV1`, `migrateToV2`) and leave only the core version-checking skeleton.
-    - Search for and remove any other legacy data migration code across the entire codebase.
+    - Search for and remove any other legacy data migration code across the entire codebase (e.g., legacy single-prop code in `playerDataManager.ts`).
 
 ## Session 2: Core Permission Engine & Cache System
 - [ ] **Create Permission Engine Module:** Create a new module (e.g., `src/core/permissionEngine.ts` or refactor `rankManager.ts`).
 - [ ] **Implement Per-Rank Caching:** Pre-calculate flattened permission node maps per rank. This map MUST be initialized with `Object.create(null)` for O(1) lookups.
 - [ ] **Implement Player Node Map Merge:** Calculate a player's final node map by merging their pre-calculated rank maps based on priority (highest priority rank dictates conflicts).
 - [ ] **Implement `hasPermission(player, node)`:**
-    - Hardcode bypass for the `Owner` rank.
+    - Hardcode bypass for the `Owner` rank (treat as if they have `*`).
     - Support wildcards (`*`, `cmd.*`). First check for exact match, then segments.
 - [ ] **Cache Invalidation & Re-merge:** Ensure the engine recalculates specific rank maps and immediately re-merges for online players when an admin edits a rank in-game via the UI.
 - [ ] **Hardcoded Fallbacks:** Hardcode core permissions for the `Admin` rank to prevent accidental lockouts.
@@ -50,7 +51,7 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 - [ ] **Update `.mcfunction` Files:** Modify `packs/behavior/functions/admin.mcfunction` (and any related function files like `setup.mcfunction` or `owner.mcfunction`) to replace old tag commands (`/tag @s add admin`) with the new `/scriptevent` command (e.g., `/scriptevent myaddon:action {"action":"add_rank","rank":"admin"}`) so that `/function admin` properly assigns the admin rank using the new system.
 - [ ] **Targeting Hierarchy Enforcement:** Implement a utility function to compare two players' highest priorities. Apply this check to all moderation commands and UI actions (kick, ban, mute, freeze) to prevent lower-priority staff from targeting higher-priority staff.
 - [ ] **Update UI Schema & Interfaces:** Refactor `PanelItem` in `src/core/ui/types.ts` to replace `permissionLevel?: number` with `permission?: string`.
-- [ ] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels.
+- [ ] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels. Convert old level checks to explicit node names (e.g. `ui.panel.owner` instead of level `0`).
 - [ ] **Dynamic UI Visibility Filtering:** Update the UI builders (`src/core/ui/panelBuilder.ts` or similar) to show or hide buttons/sections based on dynamic runtime evaluations of `hasPermission()` instead of integer logic.
 - [ ] **Command Permission Verification:** Ensure all slash commands (`src/core/commands/` and `src/features/*/commands/`) check against the new string-based node system instead of `permissionLevel`.
 
