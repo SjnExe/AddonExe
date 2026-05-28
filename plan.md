@@ -19,6 +19,7 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 ### 2. Codebase Clean Slate (No Data Migration)
 * **Strip All Legacy Migrations:** Because this is effectively a V1 release, ALL legacy data migration code across the entire codebase (for all features, not just ranks) must be deleted.
 * **Keep Base Skeleton:** Only the core version-checking loop and migration system framework should remain to handle future updates.
+* **Graceful Data Load Fallbacks:** While formal migrations are removed, `playerDataManager.ts` must safely default missing fields (like the new `ranks` array) to `['member']` when parsing legacy JSON, preventing crashes without needing explicit migration logic.
 
 ### 3. Panel & UI Restructuring
 * **Dynamic Conditional UI Elements:** The `PanelItem` interface and UI builders must be refactored to replace integer level requirements with permission strings (e.g., `permission: 'ui.panel.admin'`).
@@ -29,7 +30,7 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 ## Session 1: Schema & Global Migration Cleanup
 - [ ] **Define New Rank Schema:** Refactor `src/core/ranksConfig.default.ts` to replace `permissionLevel` with `priority` (lower number = higher priority). Add `groups` (array of strings), `allow` (array of node strings), and `deny` (array of node strings). Ensure every rank inherits a global `default` group. Include standard properties like `chatFormatting` and `nametagPrefix`.
 - [ ] **Define Permission Groups Schema:** Create a structure (e.g., in `ranksConfig.default.ts` or a new config) to define what nodes belong to which `groups` (bundles of predefined permissions). Standardize permission node strings (e.g. `cmd.kick`, `ui.panel.admin`, `ui.panel.owner`).
-- [ ] **Update Player Data Model:** Modify `PlayerData` in `src/core/playerDataManager.ts` to support multiple ranks natively (e.g., replace `rankId: string` and `permissionLevel: number` with `ranks: string[]`). Update creation functions to default to `['member']`.
+- [ ] **Update Player Data Model:** Modify `PlayerData` in `src/core/playerDataManager.ts` to support multiple ranks natively (e.g., replace `rankId: string` and `permissionLevel: number` with `ranks: string[]`). Update creation and load functions to gracefully default to `['member']`.
 - [ ] **Strip Legacy Migrations:**
     - Clean up `src/core/migrationManager.ts`. Remove all legacy version migration logic (`migrateToV1`, `migrateToV2`) and leave only the core version-checking skeleton.
     - Search for and remove any other legacy data migration code across the entire codebase (e.g., legacy single-prop code in `playerDataManager.ts`).
@@ -47,12 +48,13 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 ## Session 3: Command & UI Panel Restructuring
 - [ ] **Universal Script Event Listener:** Create a universal listener (e.g., `src/core/events/scriptEventReceive.ts`) to act as a router for `/scriptevent` commands. Implement an action handler system so new capabilities can be easily added.
+- [ ] **Secure the Script Event Listener:** Ensure the universal script event listener validates the `sourceType` (e.g., `MessageSourceType.Server` or `MessageSourceType.Entity`). If the source is a player, verify they have the appropriate permissions to prevent exploits.
 - [ ] **Rank Action Handlers:** Implement specific handlers within the universal script event listener for adding and removing ranks (e.g., parsing a payload to assign a rank to the target player).
 - [ ] **Update `.mcfunction` Files:** Modify `packs/behavior/functions/admin.mcfunction` (and any related function files like `setup.mcfunction` or `owner.mcfunction`) to replace old tag commands (`/tag @s add admin`) with the new `/scriptevent` command (e.g., `/scriptevent myaddon:action {"action":"add_rank","rank":"admin"}`) so that `/function admin` properly assigns the admin rank using the new system.
-- [ ] **Targeting Hierarchy Enforcement:** Implement a utility function to compare two players' highest priorities. Apply this check to all moderation commands and UI actions (kick, ban, mute, freeze) to prevent lower-priority staff from targeting higher-priority staff.
+- [ ] **Targeting Hierarchy Enforcement (Online & Offline):** Implement a utility function to compare two players' highest priorities. Apply this check to all moderation commands and UI actions (kick, ban, mute, freeze) to prevent lower-priority staff from targeting higher-priority staff. This must safely load offline player data if targeting an offline player.
 - [ ] **Update UI Schema & Interfaces:** Refactor `PanelItem` in `src/core/ui/types.ts` to replace `permissionLevel?: number` with `permission?: string`.
 - [ ] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels. Convert old level checks to explicit node names (e.g. `ui.panel.owner` instead of level `0`).
-- [ ] **Dynamic UI Visibility Filtering:** Update the UI builders (`src/core/ui/panelBuilder.ts` or similar) to show or hide buttons/sections based on dynamic runtime evaluations of `hasPermission()` instead of integer logic.
+- [ ] **Config Refactoring:** Search for and update other configuration interfaces (like `commandSettings` in `config.default.ts`) to replace `permissionLevel: number` with `permissionNode: string`.
 - [ ] **Command Permission Verification:** Ensure all slash commands (`src/core/commands/` and `src/features/*/commands/`) check against the new string-based node system instead of `permissionLevel`.
 
 ---
