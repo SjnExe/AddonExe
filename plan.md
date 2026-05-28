@@ -13,7 +13,7 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 * **Wildcard Support:** The `hasPermission()` check must support wildcards (`*`, `cmd.*`). For maximum speed, it should check exact matches first, then fall back to checking segment wildcards directly against the flat map.
 * **In-Game Editing Cache Invalidations:** When an admin edits a rank in-game via the UI, the engine must quickly recalculate that specific rank's map and instantly re-merge it for any online players holding that rank.
 * **Hardcoded Fallbacks:** The `Owner` rank inherently bypasses all permission checks. The `Admin` rank has a hardcoded, uneditable set of core permissions to prevent accidental lockouts.
-* **Vanilla Command Integration (/scriptevent):** We are NOT doing tag syncing. To allow vanilla command blocks and `/function` to give ranks, we will set up a `/scriptevent` listener (e.g., listening for `/scriptevent myaddon:add_rank admin` targeted at a player).
+* **Universal Vanilla Command Integration (/scriptevent):** We are NOT doing tag syncing. To allow vanilla command blocks and `/function` to interact with the addon (including giving ranks), we will set up a universal `/scriptevent` listener (e.g., `src/core/events/scriptEventReceive.ts`). This listener will act as a router for various addon commands (e.g., listening for `/scriptevent myaddon:action {"action": "add_rank", "rank": "admin"}` targeted at a player, or a similar structured payload).
 
 ### 2. Codebase Clean Slate (No Data Migration)
 * **Strip All Legacy Migrations:** Because this is effectively a V1 release, ALL legacy data migration code across the entire codebase (for all features, not just ranks) must be deleted.
@@ -45,7 +45,8 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 - [ ] **Chat Prefix & Nametag Resolution:** Update `updatePlayerNameTag` (or equivalent) to dynamically resolve a player's display prefix and chat formatting based on their highest-priority rank.
 
 ## Session 3: Command & UI Panel Restructuring
-- [ ] **Vanilla Command Integration (/scriptevent):** Create a listener (e.g., in `src/core/events/scriptEventReceive.ts`) for `/scriptevent myaddon:add_rank <rank>` and `myaddon:remove_rank <rank>` to allow vanilla command blocks and `/function` to assign/revoke ranks.
+- [ ] **Universal Script Event Listener:** Create a universal listener (e.g., `src/core/events/scriptEventReceive.ts`) to act as a router for `/scriptevent` commands. Implement an action handler system so new capabilities can be easily added.
+- [ ] **Rank Action Handlers:** Implement specific handlers within the universal script event listener for adding and removing ranks (e.g., parsing a payload to assign a rank to the target player).
 - [ ] **Targeting Hierarchy Enforcement:** Implement a utility function to compare two players' highest priorities. Apply this check to all moderation commands and UI actions (kick, ban, mute, freeze) to prevent lower-priority staff from targeting higher-priority staff.
 - [ ] **Update UI Schema & Interfaces:** Refactor `PanelItem` in `src/core/ui/types.ts` to replace `permissionLevel?: number` with `permission?: string`.
 - [ ] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels.
