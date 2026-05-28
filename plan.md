@@ -26,7 +26,8 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 ---
 
 ## Session 1: Schema & Global Migration Cleanup
-- [ ] **Define New Rank Schema:** Refactor `src/core/ranksConfig.default.ts` to replace `permissionLevel` with `priority` (lower number = higher priority). Add `groups` (array of strings), `allow` (array of node strings), and `deny` (array of node strings). Ensure every rank inherits a global `default` group.
+- [ ] **Define New Rank Schema:** Refactor `src/core/ranksConfig.default.ts` to replace `permissionLevel` with `priority` (lower number = higher priority). Add `groups` (array of strings), `allow` (array of node strings), and `deny` (array of node strings). Ensure every rank inherits a global `default` group. Include standard properties like `chatFormatting` and `nametagPrefix`.
+- [ ] **Define Permission Groups Schema:** Create a structure (e.g., in `ranksConfig.default.ts` or a new config) to define what nodes belong to which `groups` (bundles of predefined permissions).
 - [ ] **Update Player Data Model:** Modify `PlayerData` in `src/core/playerDataManager.ts` to support multiple ranks natively (e.g., replace `rankId: string` and `permissionLevel: number` with `ranks: string[]`).
 - [ ] **Strip Legacy Migrations:**
     - Clean up `src/core/migrationManager.ts`. Remove all legacy version migration logic (`migrateToV1`, `migrateToV2`) and leave only the core version-checking skeleton.
@@ -41,12 +42,15 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
     - Support wildcards (`*`, `cmd.*`). First check for exact match, then segments.
 - [ ] **Cache Invalidation & Re-merge:** Ensure the engine recalculates specific rank maps and immediately re-merges for online players when an admin edits a rank in-game via the UI.
 - [ ] **Hardcoded Fallbacks:** Hardcode core permissions for the `Admin` rank to prevent accidental lockouts.
+- [ ] **Chat Prefix & Nametag Resolution:** Update `updatePlayerNameTag` (or equivalent) to dynamically resolve a player's display prefix and chat formatting based on their highest-priority rank.
 
 ## Session 3: Command & UI Panel Restructuring
 - [ ] **Vanilla Command Integration (/scriptevent):** Create a listener (e.g., in `src/core/events/scriptEventReceive.ts`) for `/scriptevent myaddon:add_rank <rank>` and `myaddon:remove_rank <rank>` to allow vanilla command blocks and `/function` to assign/revoke ranks.
+- [ ] **Targeting Hierarchy Enforcement:** Implement a utility function to compare two players' highest priorities. Apply this check to all moderation commands and UI actions (kick, ban, mute, freeze) to prevent lower-priority staff from targeting higher-priority staff.
 - [ ] **Update UI Schema & Interfaces:** Refactor `PanelItem` in `src/core/ui/types.ts` to replace `permissionLevel?: number` with `permission?: string`.
 - [ ] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels.
 - [ ] **Dynamic UI Visibility Filtering:** Update the UI builders (`src/core/ui/panelBuilder.ts` or similar) to show or hide buttons/sections based on dynamic runtime evaluations of `hasPermission()` instead of integer logic.
+- [ ] **Command Permission Verification:** Ensure all slash commands (`src/core/commands/` and `src/features/*/commands/`) check against the new string-based node system instead of `permissionLevel`.
 
 ---
 
