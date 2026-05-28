@@ -1,5 +1,30 @@
 # Rank & Permission Overhaul Plan
 
+## Context & Requirements
+
+We are replacing the current single-rank, integer-based `permissionLevel` system with a highly optimized, multi-rank string-based permission node system.
+
+### 1. Core Architecture & Optimizations (The "Calculated Node Map")
+* **Multiple Ranks via JSON:** Players can hold multiple ranks simultaneously. Ranks are stored in the player's JSON data (e.g., `pData.ranks = ['member', 'vip', 'mod']`).
+* **Rank Schema:** Ranks consist of `groups` (bundles of predefined permissions), `allow` (specific nodes), `deny` (specific overriding nodes), and a `priority` integer. Every rank inherits a global `default` group.
+* **Priority & Hierarchy:** The `priority` integer replaces the old `permissionLevel`. **Lower numbers equal higher priority.** Higher priority explicitly wins all conflicts (e.g., if a high-priority rank allows a node but a low-priority rank denies it, the allow wins). Priority also determines chat prefix (highest priority rank shown) and targeting hierarchy (prevents lower staff from acting on higher staff).
+* **Per-Rank Caching (Composition Optimization):** Since many players share the exact same combination of ranks, we will cache flattened nodes *per rank* first. To calculate a player's final node map, merge their pre-calculated rank maps based on priority.
+* **Calculated Node Map Engine:** To ensure O(1) runtime lookups, permissions are compiled into a flat map cache when a player joins or ranks change. This dictionary MUST be initialized with `Object.create(null)` to eliminate prototype chain overhead in the Bedrock V8 engine.
+* **Wildcard Support:** The `hasPermission()` check must support wildcards (`*`, `cmd.*`). For maximum speed, it should check exact matches first, then fall back to checking segment wildcards directly against the flat map.
+* **In-Game Editing Cache Invalidations:** When an admin edits a rank in-game via the UI, the engine must quickly recalculate that specific rank's map and instantly re-merge it for any online players holding that rank.
+* **Hardcoded Fallbacks:** The `Owner` rank inherently bypasses all permission checks. The `Admin` rank has a hardcoded, uneditable set of core permissions to prevent accidental lockouts.
+* **Vanilla Command Integration (/scriptevent):** We are NOT doing tag syncing. To allow vanilla command blocks and `/function` to give ranks, we will set up a `/scriptevent` listener (e.g., listening for `/scriptevent myaddon:add_rank admin` targeted at a player).
+
+### 2. Codebase Clean Slate (No Data Migration)
+* **Strip All Legacy Migrations:** Because this is effectively a V1 release, ALL legacy data migration code across the entire codebase (for all features, not just ranks) must be deleted.
+* **Keep Base Skeleton:** Only the core version-checking loop and migration system framework should remain to handle future updates.
+
+### 3. Panel & UI Restructuring
+* **Dynamic Conditional UI Elements:** The `PanelItem` interface and UI builders must be refactored to replace integer level requirements with permission strings (e.g., `permission: 'ui.panel.admin'`).
+* **Visibility Filtering:** Buttons and menu sections within the `/panel` must be dynamically shown or hidden based on runtime evaluations of `hasPermission()`.
+
+---
+
 ## Session 1: Schema & Global Migration Cleanup
 - [ ] **Define New Rank Schema:** Refactor `src/core/ranksConfig.default.ts` to replace `permissionLevel` with `priority` (lower number = higher priority). Add `groups` (array of strings), `allow` (array of node strings), and `deny` (array of node strings). Ensure every rank inherits a global `default` group.
 - [ ] **Update Player Data Model:** Modify `PlayerData` in `src/core/playerDataManager.ts` to support multiple ranks natively (e.g., replace `rankId: string` and `permissionLevel: number` with `ranks: string[]`).
