@@ -1,5 +1,5 @@
-import * as mc from '@minecraft/server';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
+import * as mc from '@minecraft/server';
 
 /**
  * The current data version of the addon.

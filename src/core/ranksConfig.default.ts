@@ -48,32 +48,9 @@ export const permissionGroups: Record<string, string[]> = {
         'cmd.vote',
         'ui.panel.member'
     ],
-    mod: [
-        'cmd.kick',
-        'cmd.mute',
-        'cmd.unmute',
-        'cmd.freeze',
-        'cmd.unfreeze',
-        'cmd.inventory',
-        'cmd.vanish',
-        'ui.panel.mod'
-    ],
-    admin: [
-        'cmd.ban',
-        'cmd.unban',
-        'cmd.tp',
-        'cmd.warp',
-        'cmd.setbalance',
-        'ui.panel.admin'
-    ],
-    owner: [
-        'cmd.op',
-        'ui.panel.owner',
-        'cmd.debug',
-        'cmd.status',
-        'cmd.fixplayer',
-        'cmd.deathcoords'
-    ]
+    mod: ['cmd.kick', 'cmd.mute', 'cmd.unmute', 'cmd.freeze', 'cmd.unfreeze', 'cmd.inventory', 'cmd.vanish', 'ui.panel.mod'],
+    admin: ['cmd.ban', 'cmd.unban', 'cmd.tp', 'cmd.warp', 'cmd.setbalance', 'ui.panel.admin'],
+    owner: ['cmd.op', 'ui.panel.owner', 'cmd.debug', 'cmd.status', 'cmd.fixplayer', 'cmd.deathcoords']
 };
 
 export const rankDefinitions: RankDefinition[] = [
