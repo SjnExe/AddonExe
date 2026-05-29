@@ -13,6 +13,7 @@ export interface RankDefinition {
     id: string;
     name: string;
     priority: number;
+    permissionLevel: number; // Temporary for transition
     locked?: boolean;
     chatFormatting?: ChatFormatting;
     nametagPrefix?: string;
@@ -80,6 +81,7 @@ export const rankDefinitions: RankDefinition[] = [
         id: 'owner',
         name: 'Owner',
         priority: 0,
+        permissionLevel: 0,
         locked: true,
         chatFormatting: {
             prefixText: '§4Owner',
@@ -96,6 +98,7 @@ export const rankDefinitions: RankDefinition[] = [
         id: 'admin',
         name: 'Admin',
         priority: 10,
+        permissionLevel: 1,
         locked: true,
         chatFormatting: {
             prefixText: '§cAdmin',
@@ -112,6 +115,7 @@ export const rankDefinitions: RankDefinition[] = [
         id: 'moderator',
         name: 'Moderator',
         priority: 30,
+        permissionLevel: 3,
         chatFormatting: {
             prefixText: '§2Mod',
             nameColor: '§a',
@@ -127,6 +131,7 @@ export const rankDefinitions: RankDefinition[] = [
         id: 'helper',
         name: 'Helper',
         priority: 50,
+        permissionLevel: 500,
         chatFormatting: {
             prefixText: '§eHelper',
             nameColor: '§e',
@@ -142,6 +147,7 @@ export const rankDefinitions: RankDefinition[] = [
         id: 'donator',
         name: 'Donator',
         priority: 850,
+        permissionLevel: 850,
         chatFormatting: {
             prefixText: '§dDonator',
             nameColor: '§d',
@@ -157,6 +163,7 @@ export const rankDefinitions: RankDefinition[] = [
         id: 'vip',
         name: 'VIP',
         priority: 800,
+        permissionLevel: 800,
         chatFormatting: {
             prefixText: '§6VIP',
             nameColor: '§6',
@@ -172,6 +179,7 @@ export const rankDefinitions: RankDefinition[] = [
         id: 'verified',
         name: 'Verified',
         priority: 700,
+        permissionLevel: 700,
         chatFormatting: {
             prefixText: '§bVerified',
             nameColor: '§b',
@@ -187,6 +195,7 @@ export const rankDefinitions: RankDefinition[] = [
         id: 'member',
         name: 'Member',
         priority: 1000,
+        permissionLevel: 1024,
         locked: true,
         chatFormatting: defaultChatFormatting,
         nametagPrefix: '§8Member',

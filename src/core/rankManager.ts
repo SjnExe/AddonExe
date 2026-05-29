@@ -110,7 +110,11 @@ export function getPlayerRank(player: mc.Player, config: typeof Config): RankDef
     const fallback: RankDefinition = {
         id: 'fallback',
         name: 'Fallback',
+        priority: 1000,
         permissionLevel: 1024,
+        groups: ['default'],
+        allow: [],
+        deny: [],
         conditions: [{ type: 'default' }],
         chatFormatting: { prefixText: '', nameColor: '§7', messageColor: '§r' }
     };

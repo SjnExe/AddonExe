@@ -43,6 +43,8 @@ export interface FriendRequest {
 export interface PlayerData {
     name: string;
     ranks: string[];
+    rankId: string;
+    permissionLevel: number;
     homes: Record<string, HomeLocation>;
     balance: number;
     kitCooldowns: Record<string, number>;
@@ -86,6 +88,8 @@ export let isNameIdMapDirty = false;
  */
 const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 'tpaBlockedPlayerIds'> = {
     ranks: ['member'],
+    rankId: 'member',
+    permissionLevel: 1024,
     balance: 0,
     xrayNotificationsEnabled: false,
     lastDeathLocation: undefined,
@@ -181,7 +185,7 @@ function saveShardedMap(map: Map<string, string>, prefix: string) {
  * Returns true if migration from legacy occurred.
  */
 function loadShardedMap(map: Map<string, string>, _legacyKey: string, shardPrefix: string): boolean {
-    let migrated = false;
+    const migrated = false;
 
     // 1. Try Legacy (Removed in V1)
 
@@ -286,7 +290,6 @@ export function loadPlayerData(playerId: string): PlayerData | undefined {
             // Merge with defaults to ensure all properties exist
             const playerData: PlayerData = {
                 name: 'Unknown', // Placeholder, will be updated by getOrCreate
-                ranks: ['member'],
                 homes: {},
                 kitCooldowns: {},
                 tpaBlockedPlayerIds: [],
@@ -332,6 +335,8 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
         name: player.name,
         ...defaultPlayerData,
         ranks: config.playerDefaults.ranks,
+        rankId: config.playerDefaults.rankId,
+        permissionLevel: config.playerDefaults.permissionLevel,
         balance: economyConfig.startingBalance,
         xrayNotificationsEnabled: config.playerDefaults.xrayNotificationsEnabled,
         homes: {},
@@ -567,6 +572,13 @@ export function setLockState(dimension: string, isLocked: boolean) {
 }
 
 // --- Data Modification Wrappers ---
+
+export function setPlayerRank(playerId: string, rankId: string, permissionLevel: number) {
+    updatePlayerData(playerId, (pData) => {
+        pData.rankId = rankId;
+        pData.permissionLevel = permissionLevel;
+    });
+}
 
 export function setPlayerRanks(playerId: string, ranks: string[]) {
     updatePlayerData(playerId, (pData) => {
