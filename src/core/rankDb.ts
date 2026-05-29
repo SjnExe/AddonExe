@@ -77,6 +77,10 @@ export function updateRank(rankId: string, updatedData: Partial<RankDefinition>)
         ranksConfig.rankDefinitions[rankIndex] = { ...currentRank, ...updatedData };
     }
     saveRanksConfig(ranksConfig);
+
+    // Trigger cache invalidation if permission engine requires it
+    import('@core/permissionEngine.js').then((m) => m.invalidateRankCache(rankId)).catch(() => {});
+
     return { success: true, message };
 }
 

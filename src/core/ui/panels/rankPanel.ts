@@ -44,13 +44,13 @@ export class RankPanelHandler implements IPanelHandler {
             );
 
             const ranks = rankManager.getAllRanks();
-            ranks.sort((a, b) => a.permissionLevel - b.permissionLevel);
+            ranks.sort((a, b) => a.priority - b.priority);
 
             for (const rank of ranks) {
                 if (!isDefined(rank)) continue;
                 items.push({
                     id: rank.id,
-                    text: `§l${rank.name}§r\nLevel: ${rank.permissionLevel}`,
+                    text: `§l${rank.name}§r\nPriority: ${rank.priority}`,
                     icon: 'textures/ui/permissions_op_crown', // Generic icon
                     permissionLevel: 1,
                     actionType: 'openPanel',
