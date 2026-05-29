@@ -142,6 +142,7 @@ export class RankPanelHandler implements IPanelHandler {
         const newRank: RankDefinition = {
             id: id,
             name: name,
+            priority: Number.parseInt(permStr) || 1024,
             permissionLevel: Number.parseInt(permStr) || 1024,
             chatFormatting: {
                 prefixText: prefix ?? '',
@@ -149,8 +150,11 @@ export class RankPanelHandler implements IPanelHandler {
                 messageColor: messageColor ?? '§r'
             },
             conditions: [],
-            locked: false
-        } satisfies RankDefinition;
+            locked: false,
+            groups: ['default'],
+            allow: [],
+            deny: []
+        };
 
         const newConfig = { ...config };
         newConfig.rankDefinitions.push(newRank);

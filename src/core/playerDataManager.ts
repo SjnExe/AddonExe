@@ -42,6 +42,7 @@ export interface FriendRequest {
 
 export interface PlayerData {
     name: string;
+    ranks: string[];
     rankId: string;
     permissionLevel: number;
     homes: Record<string, HomeLocation>;
@@ -86,6 +87,7 @@ export let isNameIdMapDirty = false;
  * Defines the default structure and values for a new player.
  */
 const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 'tpaBlockedPlayerIds'> = {
+    ranks: ['member'],
     rankId: 'member',
     permissionLevel: 1024,
     balance: 0,
@@ -182,26 +184,12 @@ function saveShardedMap(map: Map<string, string>, prefix: string) {
  * Helper to load a map from either a legacy single property or multiple shards.
  * Returns true if migration from legacy occurred.
  */
-function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix: string): boolean {
-    let migrated = false;
+function loadShardedMap(map: Map<string, string>, _legacyKey: string, shardPrefix: string): boolean {
+    const migrated = false;
 
-    // 1. Try Legacy
-    const legacyData = mc.world.getDynamicProperty(legacyKey) as string | undefined;
-    if (isNonEmptyString(legacyData)) {
-        try {
-            const entries = JSON.parse(legacyData) as [string, string][];
-            for (const [k, v] of entries) map.set(k, v);
-            // Delete legacy key immediately to mark migration complete
-            mc.world.setDynamicProperty(legacyKey, undefined);
-            migrated = true;
-        } catch (error) {
-            errorLog(`[PlayerDataManager] Failed to migrate legacy map ${legacyKey}: ${String(error)}`);
-        }
-    }
+    // 1. Try Legacy (Removed in V1)
 
-    // 2. Load Shards (If legacy didn't exist or we want to merge? Usually exclusive, but safe to check both)
-    // If we migrated, we don't need to load shards (they shouldn't exist yet, or are stale).
-    // But to be robust, we only load shards if legacy was NOT found.
+    // 2. Load Shards
     if (!migrated) {
         let i = 0;
         while (true) {
@@ -238,14 +226,8 @@ export function saveNameIdMap() {
 
 export function loadNameIdMap() {
     try {
-        const migratedName = loadShardedMap(playerNameIdMap, playerNameIdMapKey, playerNameIdMapShardPrefix);
-        const migratedId = loadShardedMap(playerIdNameMap, playerIdNameMapKey, playerIdNameMapShardPrefix);
-
-        if (migratedName || migratedId) {
-            infoLog('[PlayerDataManager] Migrated Name/ID maps to sharded storage.');
-            // Save immediately to persist the shards
-            saveNameIdMap();
-        }
+        loadShardedMap(playerNameIdMap, playerNameIdMapKey, playerNameIdMapShardPrefix);
+        loadShardedMap(playerIdNameMap, playerIdNameMapKey, playerIdNameMapShardPrefix);
 
         debugLog(`[PlayerDataManager] Loaded maps. Name->ID: ${playerNameIdMap.size}, ID->Name: ${playerIdNameMap.size}`);
     } catch (error: unknown) {
@@ -352,6 +334,7 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
     const newPlayerData: PlayerData = {
         name: player.name,
         ...defaultPlayerData,
+        ranks: config.playerDefaults.ranks,
         rankId: config.playerDefaults.rankId,
         permissionLevel: config.playerDefaults.permissionLevel,
         balance: economyConfig.startingBalance,
@@ -594,6 +577,12 @@ export function setPlayerRank(playerId: string, rankId: string, permissionLevel:
     updatePlayerData(playerId, (pData) => {
         pData.rankId = rankId;
         pData.permissionLevel = permissionLevel;
+    });
+}
+
+export function setPlayerRanks(playerId: string, ranks: string[]) {
+    updatePlayerData(playerId, (pData) => {
+        pData.ranks = ranks;
     });
 }
 

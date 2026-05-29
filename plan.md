@@ -32,10 +32,10 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 ## Session 1: Schema & Global Migration Cleanup
 
-- [ ] **Define New Rank Schema:** Refactor `src/core/ranksConfig.default.ts` to replace `permissionLevel` with `priority` (lower number = higher priority). Add `groups` (array of strings), `allow` (array of node strings), and `deny` (array of node strings). Ensure every rank inherits a global `default` group. Include standard properties like `chatFormatting` and `nametagPrefix`.
-- [ ] **Define Permission Groups Schema:** Create a structure (e.g., in `ranksConfig.default.ts` or a new config) to define what nodes belong to which `groups` (bundles of predefined permissions). Standardize permission node strings (e.g. `cmd.kick`, `ui.panel.admin`, `ui.panel.owner`).
-- [ ] **Update Player Data Model:** Modify `PlayerData` in `src/core/playerDataManager.ts` to support multiple ranks natively (e.g., replace `rankId: string` and `permissionLevel: number` with `ranks: string[]`). Update creation and load functions to gracefully default to `['member']`.
-- [ ] **Strip Legacy Migrations:**
+- [x] **Define New Rank Schema:** Refactor `src/core/ranksConfig.default.ts` to replace `permissionLevel` with `priority` (lower number = higher priority). Add `groups` (array of strings), `allow` (array of node strings), and `deny` (array of node strings). Ensure every rank inherits a global `default` group. Include standard properties like `chatFormatting` and `nametagPrefix`.
+- [x] **Define Permission Groups Schema:** Create a structure (e.g., in `ranksConfig.default.ts` or a new config) to define what nodes belong to which `groups` (bundles of predefined permissions). Standardize permission node strings (e.g. `cmd.kick`, `ui.panel.admin`, `ui.panel.owner`).
+- [x] **Update Player Data Model:** Modify `PlayerData` in `src/core/playerDataManager.ts` to support multiple ranks natively (e.g., replace `rankId: string` and `permissionLevel: number` with `ranks: string[]`). Update creation and load functions to gracefully default to `['member']`.
+- [x] **Strip Legacy Migrations:**
     - Clean up `src/core/migrationManager.ts`. Remove all legacy version migration logic (`migrateToV1`, `migrateToV2`) and leave only the core version-checking skeleton.
     - Search for and remove any other legacy data migration code across the entire codebase (e.g., legacy single-prop code in `playerDataManager.ts`).
 
@@ -71,12 +71,12 @@ _(To be updated after each session)_
 
 **Completed in Previous Session:**
 
-- None.
+- Session 1 completed: Updated Rank Schema, Player Data Model, and stripped legacy migrations.
 
 **Current State:**
 
-- Initial plan created. Codebase is ready for Session 1.
+- Session 1 completed. The codebase is currently in a transitional state and has intentional compilation errors because permissionLevel has been replaced with the ranks array. We will fix these errors when building the permission engine and refactoring the commands and UI panels in Session 2 and Session 3.
 
 **Next Session Needs to Know:**
 
-- Execute Session 1 tasks.
+- Execute Session 2 tasks to build the Permission Engine, which will start addressing the compile errors from replacing permissionLevel.
