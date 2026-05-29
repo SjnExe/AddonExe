@@ -77,7 +77,7 @@
         "@minecraft/server-gametest": "beta",
         "@minecraft/server-ui": "beta",
         "@minecraft/vanilla-data": "latest",
-        "@types/node": "^25.9.1",
+        "@types/node": "latest",
         "@typescript-eslint/eslint-plugin": "latest",
         "@typescript-eslint/parser": "latest",
         "chokidar": "latest",
@@ -100,7 +100,7 @@
         "simple-git-hooks": "latest",
         "tsup": "latest",
         "type-fest": "latest",
-        "typescript": "^5.9.3",
+        "typescript": "latest",
         "typescript-eslint": "latest",
         "vitest": "latest"
     }

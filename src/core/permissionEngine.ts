@@ -1,9 +1,9 @@
-import * as mc from '@minecraft/server';
-import { getPlayer } from '@core/playerDataManager.js';
-import { getRankById, getAllRanks } from '@core/rankManager.js';
-import { RankDefinition, permissionGroups } from '@core/ranksConfig.default.js';
 import { config } from '@core/../config.default.js';
+import { getPlayer } from '@core/playerDataManager.js';
+import { getAllRanks, getRankById } from '@core/rankManager.js';
+import { RankDefinition, permissionGroups } from '@core/ranksConfig.default.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 // Cache for flattened rank maps
 const rankCache = new Map<string, Record<string, boolean>>();
@@ -12,7 +12,7 @@ const rankCache = new Map<string, Record<string, boolean>>();
 const playerMapCache = new Map<string, { map: Record<string, boolean>; tick: number }>();
 
 export function calculateRankMap(rank: RankDefinition): Record<string, boolean> {
-    const map = Object.create(null);
+    const map: Record<string, boolean> = Object.create(null) as Record<string, boolean>;
 
     // 1. Process groups
     for (const group of rank.groups) {
@@ -60,7 +60,7 @@ function getRankMap(rankId: string): Record<string, boolean> {
 
     const rank = getRankById(rankId);
     if (!rank) {
-        return Object.create(null);
+        return Object.create(null) as Record<string, boolean>;
     }
 
     const map = calculateRankMap(rank);
@@ -82,7 +82,7 @@ export function getPlayerRanks(player: mc.Player): RankDefinition[] {
     }
 
     // Gather assigned ranks
-    const ranks = rankIds.map(id => getRankById(id)).filter(isDefined);
+    const ranks = rankIds.map((id) => getRankById(id)).filter(isDefined);
 
     // Check condition-based ranks (like isOwner, hasTag) and add them if they apply
     const allRanks = getAllRanks();
@@ -95,7 +95,7 @@ export function getPlayerRanks(player: mc.Player): RankDefinition[] {
 
     // If absolutely no rank was assigned or conditions met, explicitly grant the configured default rank
     if (ranks.length === 0) {
-        const defaultRank = getRankById(config.playerDefaults.rankId ?? 'member');
+        const defaultRank = getRankById(config.playerDefaults.rankId);
         if (defaultRank) {
             ranks.push(defaultRank);
         }
@@ -106,7 +106,7 @@ export function getPlayerRanks(player: mc.Player): RankDefinition[] {
 }
 
 function evaluateRankConditions(player: mc.Player, rank: RankDefinition, assignedRankCount: number): boolean {
-    if (!rank.conditions || rank.conditions.length === 0) return false;
+    if (rank.conditions.length === 0) return false;
 
     for (const condition of rank.conditions) {
         if (condition.type === 'isOwner') {
@@ -136,7 +136,7 @@ export function calculatePlayerMap(player: mc.Player): Record<string, boolean> {
     // Reversing ranks so higher priority (lower integer) gets merged last, overwriting lower priority maps
     const reversedRanks = [...ranks].reverse();
 
-    const playerMap = Object.create(null);
+    const playerMap: Record<string, boolean> = Object.create(null) as Record<string, boolean>;
     for (const rank of reversedRanks) {
         const rankMap = getRankMap(rank.id);
         Object.assign(playerMap, rankMap);
@@ -157,12 +157,12 @@ export function hasPermission(player: mc.Player, node: string): boolean {
     // 1. Hardcoded Fallbacks
 
     // Owner bypass
-    if (ranks.some(r => r.id === 'owner' || r.allow.includes('*'))) {
+    if (ranks.some((r) => r.id === 'owner' || r.allow.includes('*'))) {
         return true;
     }
 
     // Admin core permissions
-    if (ranks.some(r => r.id === 'admin')) {
+    if (ranks.some((r) => r.id === 'admin')) {
         const adminCorePermissions = ['cmd.ban', 'cmd.unban', 'cmd.tp', 'cmd.warp', 'cmd.setbalance', 'ui.panel.admin'];
         if (adminCorePermissions.includes(node)) {
             return true;
