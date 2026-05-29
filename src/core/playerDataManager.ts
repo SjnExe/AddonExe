@@ -42,8 +42,7 @@ export interface FriendRequest {
 
 export interface PlayerData {
     name: string;
-    rankId: string;
-    permissionLevel: number;
+    ranks: string[];
     homes: Record<string, HomeLocation>;
     balance: number;
     kitCooldowns: Record<string, number>;
@@ -86,8 +85,7 @@ export let isNameIdMapDirty = false;
  * Defines the default structure and values for a new player.
  */
 const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 'tpaBlockedPlayerIds'> = {
-    rankId: 'member',
-    permissionLevel: 1024,
+    ranks: ['member'],
     balance: 0,
     xrayNotificationsEnabled: false,
     lastDeathLocation: undefined,
@@ -182,26 +180,12 @@ function saveShardedMap(map: Map<string, string>, prefix: string) {
  * Helper to load a map from either a legacy single property or multiple shards.
  * Returns true if migration from legacy occurred.
  */
-function loadShardedMap(map: Map<string, string>, legacyKey: string, shardPrefix: string): boolean {
+function loadShardedMap(map: Map<string, string>, _legacyKey: string, shardPrefix: string): boolean {
     let migrated = false;
 
-    // 1. Try Legacy
-    const legacyData = mc.world.getDynamicProperty(legacyKey) as string | undefined;
-    if (isNonEmptyString(legacyData)) {
-        try {
-            const entries = JSON.parse(legacyData) as [string, string][];
-            for (const [k, v] of entries) map.set(k, v);
-            // Delete legacy key immediately to mark migration complete
-            mc.world.setDynamicProperty(legacyKey, undefined);
-            migrated = true;
-        } catch (error) {
-            errorLog(`[PlayerDataManager] Failed to migrate legacy map ${legacyKey}: ${String(error)}`);
-        }
-    }
+    // 1. Try Legacy (Removed in V1)
 
-    // 2. Load Shards (If legacy didn't exist or we want to merge? Usually exclusive, but safe to check both)
-    // If we migrated, we don't need to load shards (they shouldn't exist yet, or are stale).
-    // But to be robust, we only load shards if legacy was NOT found.
+    // 2. Load Shards
     if (!migrated) {
         let i = 0;
         while (true) {
@@ -238,14 +222,8 @@ export function saveNameIdMap() {
 
 export function loadNameIdMap() {
     try {
-        const migratedName = loadShardedMap(playerNameIdMap, playerNameIdMapKey, playerNameIdMapShardPrefix);
-        const migratedId = loadShardedMap(playerIdNameMap, playerIdNameMapKey, playerIdNameMapShardPrefix);
-
-        if (migratedName || migratedId) {
-            infoLog('[PlayerDataManager] Migrated Name/ID maps to sharded storage.');
-            // Save immediately to persist the shards
-            saveNameIdMap();
-        }
+        loadShardedMap(playerNameIdMap, playerNameIdMapKey, playerNameIdMapShardPrefix);
+        loadShardedMap(playerIdNameMap, playerIdNameMapKey, playerIdNameMapShardPrefix);
 
         debugLog(`[PlayerDataManager] Loaded maps. Name->ID: ${playerNameIdMap.size}, ID->Name: ${playerIdNameMap.size}`);
     } catch (error: unknown) {
@@ -308,6 +286,7 @@ export function loadPlayerData(playerId: string): PlayerData | undefined {
             // Merge with defaults to ensure all properties exist
             const playerData: PlayerData = {
                 name: 'Unknown', // Placeholder, will be updated by getOrCreate
+                ranks: ['member'],
                 homes: {},
                 kitCooldowns: {},
                 tpaBlockedPlayerIds: [],
@@ -352,8 +331,7 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
     const newPlayerData: PlayerData = {
         name: player.name,
         ...defaultPlayerData,
-        rankId: config.playerDefaults.rankId,
-        permissionLevel: config.playerDefaults.permissionLevel,
+        ranks: config.playerDefaults.ranks,
         balance: economyConfig.startingBalance,
         xrayNotificationsEnabled: config.playerDefaults.xrayNotificationsEnabled,
         homes: {},
@@ -590,10 +568,9 @@ export function setLockState(dimension: string, isLocked: boolean) {
 
 // --- Data Modification Wrappers ---
 
-export function setPlayerRank(playerId: string, rankId: string, permissionLevel: number) {
+export function setPlayerRanks(playerId: string, ranks: string[]) {
     updatePlayerData(playerId, (pData) => {
-        pData.rankId = rankId;
-        pData.permissionLevel = permissionLevel;
+        pData.ranks = ranks;
     });
 }
 

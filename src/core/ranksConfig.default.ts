@@ -12,11 +12,14 @@ export interface RankCondition {
 export interface RankDefinition {
     id: string;
     name: string;
-    permissionLevel: number;
+    priority: number;
     locked?: boolean;
     chatFormatting?: ChatFormatting;
     nametagPrefix?: string;
     conditions: RankCondition[];
+    groups: string[];
+    allow: string[];
+    deny: string[];
 }
 
 export const defaultChatFormatting: Required<ChatFormatting> = {
@@ -25,11 +28,58 @@ export const defaultChatFormatting: Required<ChatFormatting> = {
     messageColor: '§f'
 };
 
+export const permissionGroups: Record<string, string[]> = {
+    default: [
+        'cmd.help',
+        'cmd.spawn',
+        'cmd.tpa',
+        'cmd.tpahere',
+        'cmd.home',
+        'cmd.sethome',
+        'cmd.delhome',
+        'cmd.pay',
+        'cmd.balance',
+        'cmd.bounty',
+        'cmd.rtp',
+        'cmd.daily',
+        'cmd.kit',
+        'cmd.team',
+        'cmd.vote',
+        'ui.panel.member'
+    ],
+    mod: [
+        'cmd.kick',
+        'cmd.mute',
+        'cmd.unmute',
+        'cmd.freeze',
+        'cmd.unfreeze',
+        'cmd.inventory',
+        'cmd.vanish',
+        'ui.panel.mod'
+    ],
+    admin: [
+        'cmd.ban',
+        'cmd.unban',
+        'cmd.tp',
+        'cmd.warp',
+        'cmd.setbalance',
+        'ui.panel.admin'
+    ],
+    owner: [
+        'cmd.op',
+        'ui.panel.owner',
+        'cmd.debug',
+        'cmd.status',
+        'cmd.fixplayer',
+        'cmd.deathcoords'
+    ]
+};
+
 export const rankDefinitions: RankDefinition[] = [
     {
         id: 'owner',
         name: 'Owner',
-        permissionLevel: 0,
+        priority: 0,
         locked: true,
         chatFormatting: {
             prefixText: '§4Owner',
@@ -37,12 +87,15 @@ export const rankDefinitions: RankDefinition[] = [
             messageColor: '§f'
         },
         nametagPrefix: '§4Owner',
-        conditions: [{ type: 'isOwner' }]
+        conditions: [{ type: 'isOwner' }],
+        groups: ['default', 'mod', 'admin', 'owner'],
+        allow: ['*'], // Engine will handle this specifically if needed, but 'owner' bypassing is hardcoded in engine
+        deny: []
     },
     {
         id: 'admin',
         name: 'Admin',
-        permissionLevel: 1,
+        priority: 10,
         locked: true,
         chatFormatting: {
             prefixText: '§cAdmin',
@@ -50,77 +103,98 @@ export const rankDefinitions: RankDefinition[] = [
             messageColor: '§f'
         },
         nametagPrefix: '§cAdmin',
-        conditions: [{ type: 'hasTag', value: 'admin' }]
+        conditions: [{ type: 'hasTag', value: 'admin' }],
+        groups: ['default', 'mod', 'admin'],
+        allow: [],
+        deny: []
     },
     {
         id: 'moderator',
         name: 'Moderator',
-        permissionLevel: 3,
+        priority: 30,
         chatFormatting: {
             prefixText: '§2Mod',
             nameColor: '§a',
             messageColor: '§f'
         },
         nametagPrefix: '§2Mod',
-        conditions: [{ type: 'hasTag', value: 'moderator' }]
+        conditions: [{ type: 'hasTag', value: 'moderator' }],
+        groups: ['default', 'mod'],
+        allow: [],
+        deny: []
     },
     {
         id: 'helper',
         name: 'Helper',
-        permissionLevel: 500,
+        priority: 50,
         chatFormatting: {
             prefixText: '§eHelper',
             nameColor: '§e',
             messageColor: '§f'
         },
         nametagPrefix: '§eHelper',
-        conditions: [{ type: 'hasTag', value: 'helper' }]
+        conditions: [{ type: 'hasTag', value: 'helper' }],
+        groups: ['default'],
+        allow: ['cmd.kick', 'cmd.mute'], // Specific permissions just for example
+        deny: []
     },
     {
         id: 'donator',
         name: 'Donator',
-        permissionLevel: 850,
+        priority: 850,
         chatFormatting: {
             prefixText: '§dDonator',
             nameColor: '§d',
             messageColor: '§f'
         },
         nametagPrefix: '§dDonator',
-        conditions: [{ type: 'hasTag', value: 'donator' }]
+        conditions: [{ type: 'hasTag', value: 'donator' }],
+        groups: ['default'],
+        allow: [],
+        deny: []
     },
     {
         id: 'vip',
         name: 'VIP',
-        permissionLevel: 800,
+        priority: 800,
         chatFormatting: {
             prefixText: '§6VIP',
             nameColor: '§6',
             messageColor: '§f'
         },
         nametagPrefix: '§6VIP',
-        conditions: [{ type: 'hasTag', value: 'vip' }]
+        conditions: [{ type: 'hasTag', value: 'vip' }],
+        groups: ['default'],
+        allow: [],
+        deny: []
     },
     {
         id: 'verified',
         name: 'Verified',
-        permissionLevel: 700,
+        priority: 700,
         chatFormatting: {
             prefixText: '§bVerified',
             nameColor: '§b',
             messageColor: '§f'
         },
         nametagPrefix: '§bVerified',
-        conditions: [{ type: 'hasTag', value: 'verified' }]
+        conditions: [{ type: 'hasTag', value: 'verified' }],
+        groups: ['default'],
+        allow: [],
+        deny: []
     },
     {
         id: 'member',
         name: 'Member',
-        permissionLevel: 1024, // Default permission level
+        priority: 1000,
         locked: true,
         chatFormatting: defaultChatFormatting,
         nametagPrefix: '§8Member',
-        conditions: [{ type: 'default' }]
+        conditions: [{ type: 'default' }],
+        groups: ['default'],
+        allow: [],
+        deny: []
     }
 ];
 
-export default { rankDefinitions, defaultChatFormatting };
+export default { rankDefinitions, permissionGroups, defaultChatFormatting };

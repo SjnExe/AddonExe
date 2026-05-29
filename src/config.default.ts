@@ -119,8 +119,7 @@ export const config = {
 
     // --- Player Defaults ---
     playerDefaults: {
-        rankId: 'member',
-        permissionLevel: 1024,
+        ranks: ['member'],
         xrayNotificationsEnabled: false
     },
 
