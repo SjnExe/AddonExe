@@ -12,43 +12,16 @@ let sortedRanks: RankDefinition[] = [];
 // Cache for player ranks: Map<playerId, { rank: RankDefinition, tick: number }>
 const rankCache = new Map<string, { rank: RankDefinition; tick: number }>();
 
-type ConditionEvaluator = (player: mc.Player, value: unknown, config: typeof Config) => boolean;
-
-/**
- * A map of functions that evaluate rank conditions.
- */
-const conditionEvaluators: Record<string, ConditionEvaluator> = {
-    /**
-     * Checks if the player's name is in the owner list.
-     */
-    isOwner: (player, _value, config: typeof Config) => {
-        const ownerNames = config.ownerPlayerNames.map((name: string) => name.trim().toLowerCase());
-        const playerName = player.name.trim().toLowerCase();
-        return ownerNames.includes(playerName);
-    },
-    /**
-     * Checks if the player has a specific tag.
-     */
-    hasTag: (player, value) => {
-        return player.hasTag(value as string);
-    },
-    /**
-     * This is a fallback condition that always returns true.
-     */
-    default: () => {
-        return true;
-    }
-};
-
 /**
  * Reloads and sorts the ranks from the config manager cache.
  * This can be called to refresh ranks after they've been modified in the UI.
  */
 export function reloadRanks() {
     const allRanks = getRanksConfig().rankDefinitions;
-    sortedRanks = [...allRanks].toSorted((a, b) => a.permissionLevel - b.permissionLevel);
+    sortedRanks = [...allRanks].toSorted((a, b) => a.priority - b.priority);
     // Clear cache on reload
     rankCache.clear();
+    import('@core/permissionEngine.js').then((m) => m.invalidateAllRankCaches()).catch(() => {});
     debugLog(`[RankManager] Reloaded and sorted ${sortedRanks.length} ranks.`);
 }
 
@@ -65,9 +38,11 @@ export function initialize() {
     debugLog(`[RankManager] Initialized ${sortedRanks.length} ranks.`);
 }
 
+import { getPlayerRanks } from '@core/permissionEngine.js';
+
 /**
- * Gets the rank for a given player by evaluating conditions.
- * Uses a tick-based cache to prevent redundant recalculations in the same tick.
+ * Gets the highest priority rank for a given player.
+ * Uses the permission engine to fetch all active ranks and returns the one with the lowest priority number.
  * @param player
  * @param config The addon's configuration object.
  */
@@ -75,27 +50,22 @@ export function getPlayerRank(player: mc.Player, config: typeof Config): RankDef
     const currentTick = mc.system.currentTick;
     const cached = rankCache.get(player.id);
 
-    // Return cached rank if valid for this tick (or last few ticks? lets stick to strict 1 tick for consistency first, or maybe 5 ticks for perf)
-    // Actually, tags *can* change mid-tick via commands, but very unlikely to matter for UI rendering.
-    // Let's cache for 20 ticks (1 second) to match sidebar update rate and general UI responsiveness.
     if (cached && currentTick - cached.tick < 20) {
         return cached.rank;
     }
 
-    for (const rank of sortedRanks) {
-        let allConditionsMet = true;
-        for (const condition of rank.conditions) {
-            const evaluator = conditionEvaluators[condition.type];
-            if (!evaluator || !evaluator(player, condition.value, config)) {
-                allConditionsMet = false;
-                break; // Move to the next rank if any condition fails
-            }
-        }
+    const ranks = getPlayerRanks(player);
+    let highestRank: RankDefinition | undefined = undefined;
 
-        if (allConditionsMet) {
-            rankCache.set(player.id, { rank, tick: currentTick });
-            return rank;
+    for (const rank of ranks) {
+        if (!highestRank || rank.priority < highestRank.priority) {
+            highestRank = rank;
         }
+    }
+
+    if (highestRank) {
+        rankCache.set(player.id, { rank: highestRank, tick: currentTick });
+        return highestRank;
     }
 
     // Fallback to the configured default rank if no conditions are met
