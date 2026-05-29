@@ -51,13 +51,19 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 - [ ] **Hardcoded Fallbacks:** Hardcode core permissions for the `Admin` rank to prevent accidental lockouts.
 - [ ] **Chat Prefix & Nametag Resolution:** Update `updatePlayerNameTag` (or equivalent) to dynamically resolve a player's display prefix and chat formatting based on their highest-priority rank.
 
-## Session 3: Command & UI Panel Restructuring
+## Session 3: Script Events & Handlers
 
 - [ ] **Universal Script Event Listener:** Create a universal listener (e.g., `src/core/events/scriptEventReceive.ts`) to act as a router for `/scriptevent` commands. Implement an action handler system so new capabilities can be easily added.
 - [ ] **Secure the Script Event Listener:** Ensure the universal script event listener validates the `sourceType` (e.g., `MessageSourceType.Server` or `MessageSourceType.Entity`). If the source is a player, verify they have the appropriate permissions to prevent exploits.
 - [ ] **Rank Action Handlers:** Implement specific handlers within the universal script event listener for adding and removing ranks (e.g., parsing a payload to assign a rank to the target player).
+
+## Session 4: Targeting & Hierarchy
+
 - [ ] **Update `.mcfunction` Files:** Modify `packs/behavior/functions/admin.mcfunction` (and any related function files like `setup.mcfunction` or `owner.mcfunction`) to replace old tag commands (`/tag @s add admin`) with the new `/scriptevent` command (e.g., `/scriptevent myaddon:action {"action":"add_rank","rank":"admin"}`) so that `/function admin` properly assigns the admin rank using the new system.
 - [ ] **Targeting Hierarchy Enforcement (Online & Offline):** Implement a utility function to compare two players' highest priorities. Apply this check to all moderation commands and UI actions (kick, ban, mute, freeze) to prevent lower-priority staff from targeting higher-priority staff. This must safely load offline player data if targeting an offline player.
+
+## Session 5: UI & Commands
+
 - [ ] **Update UI Schema & Interfaces:** Refactor `PanelItem` in `src/core/ui/types.ts` to replace `permissionLevel?: number` with `permission?: string`.
 - [ ] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels. Convert old level checks to explicit node names (e.g. `ui.panel.owner` instead of level `0`).
 - [ ] **Config Refactoring:** Search for and update other configuration interfaces (like `commandSettings` in `config.default.ts`) to replace `permissionLevel: number` with `permissionNode: string`.
@@ -75,7 +81,7 @@ _(To be updated after each session)_
 
 **Current State:**
 
-- Session 1 completed. The codebase is currently in a transitional state and has intentional compilation errors because permissionLevel has been replaced with the ranks array. We will fix these errors when building the permission engine and refactoring the commands and UI panels in Session 2 and Session 3.
+- Session 1 completed. The codebase is currently in a transitional state and has intentional compilation errors because permissionLevel has been replaced with the ranks array. We will fix these errors when building the permission engine and refactoring the commands and UI panels in Session 2, 3, 4, and 5.
 
 **Next Session Needs to Know:**
 
