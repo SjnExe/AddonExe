@@ -41,15 +41,15 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 ## Session 2: Core Permission Engine & Cache System
 
-- [ ] **Create Permission Engine Module:** Create a new module (e.g., `src/core/permissionEngine.ts` or refactor `rankManager.ts`).
-- [ ] **Implement Per-Rank Caching:** Pre-calculate flattened permission node maps per rank. This map MUST be initialized with `Object.create(null)` for O(1) lookups.
-- [ ] **Implement Player Node Map Merge:** Calculate a player's final node map by merging their pre-calculated rank maps based on priority (highest priority rank dictates conflicts).
-- [ ] **Implement `hasPermission(player, node)`:**
+- [x] **Create Permission Engine Module:** Create a new module (e.g., `src/core/permissionEngine.ts` or refactor `rankManager.ts`).
+- [x] **Implement Per-Rank Caching:** Pre-calculate flattened permission node maps per rank. This map MUST be initialized with `Object.create(null)` for O(1) lookups.
+- [x] **Implement Player Node Map Merge:** Calculate a player's final node map by merging their pre-calculated rank maps based on priority (highest priority rank dictates conflicts).
+- [x] **Implement `hasPermission(player, node)`:**
     - Hardcode bypass for the `Owner` rank (treat as if they have `*`).
     - Support wildcards (`*`, `cmd.*`). First check for exact match, then segments.
-- [ ] **Cache Invalidation & Re-merge:** Ensure the engine recalculates specific rank maps and immediately re-merges for online players when an admin edits a rank in-game via the UI.
-- [ ] **Hardcoded Fallbacks:** Hardcode core permissions for the `Admin` rank to prevent accidental lockouts.
-- [ ] **Chat Prefix & Nametag Resolution:** Update `updatePlayerNameTag` (or equivalent) to dynamically resolve a player's display prefix and chat formatting based on their highest-priority rank.
+- [x] **Cache Invalidation & Re-merge:** Ensure the engine recalculates specific rank maps and immediately re-merges for online players when an admin edits a rank in-game via the UI.
+- [x] **Hardcoded Fallbacks:** Hardcode core permissions for the `Admin` rank to prevent accidental lockouts.
+- [x] **Chat Prefix & Nametag Resolution:** Update `updatePlayerNameTag` (or equivalent) to dynamically resolve a player's display prefix and chat formatting based on their highest-priority rank.
 
 ## Session 3: Script Events & Handlers
 
@@ -77,12 +77,12 @@ _(To be updated after each session)_
 
 **Completed in Previous Session:**
 
-- Session 1 completed: Updated Rank Schema, Player Data Model, and stripped legacy migrations.
+- Session 1 and 2 completed: Updated Rank Schema, Player Data Model, stripped legacy migrations, built Permission Engine, and implemented Per-Rank caching.
 
 **Current State:**
 
-- Session 1 completed. The codebase is currently in a transitional state and has intentional compilation errors because permissionLevel has been replaced with the ranks array. We will fix these errors when building the permission engine and refactoring the commands and UI panels in Session 2, 3, 4, and 5.
+- Session 2 completed. The codebase is still in a transitional state. We will fix remaining compile errors when refactoring the commands and UI panels in Session 3, 4, and 5.
 
 **Next Session Needs to Know:**
 
-- Execute Session 2 tasks to build the Permission Engine, which will start addressing the compile errors from replacing permissionLevel.
+- Execute Session 3 tasks to implement Script Events and Handlers.
