@@ -1,6 +1,8 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { sendMessage } from '@core/messaging.js';
+import { config } from '@core/../config.default.js';
 import { getPlayer } from '@core/playerDataManager.js';
+import { canTarget } from '@core/rankManager.js';
 import { addPunishmentLog } from '@features/anticheat/logManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -22,12 +24,8 @@ const warnCommand: CustomCommand = {
         const target = targets[0];
         if (!isDefined(target)) return sendMessage('§cPlayer not found.', executor);
 
-        if (executor instanceof mc.Player) {
-            const executorData = getPlayer(executor.id);
-            const targetData = getPlayer(target.id);
-            if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
-                return sendMessage('§cYou cannot warn a player with the same or higher rank than you.', executor);
-            }
+        if (!canTarget(executor, target.id, config)) {
+            return sendMessage('§cYou cannot warn a player with the same or higher rank than you.', executor);
         }
 
         if (!isNonEmptyString(reason)) return sendMessage('§cPlease provide a reason.', executor);

@@ -54,32 +54,9 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
             break;
         }
 
-        case 'exe:grant_admin_self': {
-            if (sourceEntity instanceof mc.Player) {
-                const adminRank = rankManager.getRankById('admin');
-                if (!adminRank) {
-                    errorLog('[AddonExe] Could not grant admin rank because the "admin" rank definition was not found.');
-                    sourceEntity.sendMessage('§cError: The admin rank is not configured.');
-                    return;
-                }
-
-                const adminTagCondition = adminRank.conditions.find((c) => c.type === 'hasTag');
-                if (!adminTagCondition || !isNonEmptyString(adminTagCondition.value)) {
-                    errorLog('[AddonExe] Could not grant admin rank because it lacks a valid "hasTag" condition.');
-                    sourceEntity.sendMessage('§cError: The admin rank is not configured with a valid tag.');
-                    return;
-                }
-
-                sourceEntity.addTag(adminTagCondition.value);
-                sourceEntity.sendMessage('§aYou have been promoted to Admin.');
-                updateAllPlayerRanks();
-            }
-            break;
-        }
-
         case 'exe:action': {
             if (event.sourceType === mc.ScriptEventSource.Entity && event.sourceEntity instanceof mc.Player) {
-                if (!hasPermission(event.sourceEntity, 'cmd.op')) {
+                if (!event.sourceEntity.isOp()) {
                     errorLog(`[AddonExe] Unauthorized script event action attempted by ${event.sourceEntity.name}.`);
                     return;
                 }

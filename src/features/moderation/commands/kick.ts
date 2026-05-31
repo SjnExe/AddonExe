@@ -1,11 +1,13 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { config } from '@core/../config.default.js';
 import { soundError, soundTeleport } from '@core/constants.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
+import { canTarget } from '@core/rankManager.js';
 import { playSound } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 
@@ -26,19 +28,14 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player | 
         return;
     }
 
-    if (executor instanceof mc.Player) {
-        const executorData = getPlayer(executor.id);
-        const targetData = getPlayer(targetPlayer.id);
-        if (!isDefined(executorData) || !isDefined(targetData)) {
-            sendMessage('§cCould not retrieve player data for permission check.', executor);
-            playSound(executor, soundError);
-            return;
-        }
-        if (executorData.permissionLevel >= targetData.permissionLevel) {
+    if (!canTarget(executor, targetPlayer.id, config)) {
+        if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot kick a player with the same or higher rank than you.', executor);
             playSound(executor, soundError);
-            return;
+        } else {
+            executor.sendMessage('§cYou cannot kick a player with the same or higher rank than you.');
         }
+        return;
     }
 
     try {

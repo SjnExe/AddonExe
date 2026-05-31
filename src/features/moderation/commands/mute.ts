@@ -2,33 +2,31 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { soundError, soundTeleport } from '@core/constants.js';
+import { config } from '@core/../config.default.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
+import { canTarget } from '@core/rankManager.js';
 import { parseDuration, playSound } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 
 import { addPunishment, removePunishment } from '@features/moderation/punishmentManager.js';
 
 export function mutePlayer(executor: CommandExecutor, targetPlayer: mc.Player, duration: string | undefined, reason: string) {
-    if (executor instanceof mc.Player) {
-        if (executor.id === targetPlayer.id) {
-            sendMessage('§cYou cannot mute yourself.', executor);
-            playSound(executor, soundError);
-            return;
-        }
-        const executorData = getPlayer(executor.id);
-        const targetData = getPlayer(targetPlayer.id);
-        if (!executorData || !targetData) {
-            sendMessage('§cCould not retrieve player data for permission check.', executor);
-            playSound(executor, soundError);
-            return;
-        }
-        if (executorData.permissionLevel >= targetData.permissionLevel) {
+    if (executor instanceof mc.Player && executor.id === targetPlayer.id) {
+        sendMessage('§cYou cannot mute yourself.', executor);
+        playSound(executor, soundError);
+        return;
+    }
+
+    if (!canTarget(executor, targetPlayer.id, config)) {
+        if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot mute a player with the same or higher rank than you.', executor);
             playSound(executor, soundError);
-            return;
+        } else {
+            executor.sendMessage('§cYou cannot mute a player with the same or higher rank than you.');
         }
+        return;
     }
     const durationString = isDefined(duration) ? duration : 'perm';
     const durationMs = isDefined(duration) ? parseDuration(duration) : Infinity;
@@ -113,21 +111,18 @@ export function unmutePlayer(executor: CommandExecutor, targetName: string) {
         }
         return;
     }
-    if (executor instanceof mc.Player) {
-        if (targetId === executor.id) {
-            sendMessage('§cYou cannot unmute yourself.', executor);
-            return;
-        }
-        const executorData = getPlayer(executor.id);
-        const targetData = loadPlayerData(targetId);
-        if (!executorData || !targetData) {
-            sendMessage('§cCould not retrieve player data for permission check.', executor);
-            return;
-        }
-        if (executorData.permissionLevel >= targetData.permissionLevel) {
+    if (executor instanceof mc.Player && targetId === executor.id) {
+        sendMessage('§cYou cannot unmute yourself.', executor);
+        return;
+    }
+
+    if (!canTarget(executor, targetId, config)) {
+        if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot unmute a player with the same or higher rank than you.', executor);
-            return;
+        } else {
+            executor.sendMessage('§cYou cannot unmute a player with the same or higher rank than you.');
         }
+        return;
     }
     removePunishment(targetId, 'mute');
 

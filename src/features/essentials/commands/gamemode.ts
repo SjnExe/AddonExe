@@ -1,8 +1,10 @@
 import * as mc from '@minecraft/server';
 
+import { config } from '@core/../config.default.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayer } from '@core/playerDataManager.js';
+import { canTarget } from '@core/rankManager.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
@@ -53,8 +55,7 @@ function setGamemode(executor: CommandExecutor, gamemode: string, targets?: mc.P
     for (const targetPlayer of targets) {
         // Permission check
         if (executor instanceof mc.Player && executor.id !== targetPlayer.id) {
-            const targetData = getPlayer(targetPlayer.id);
-            if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+            if (!canTarget(executor, targetPlayer.id, config)) {
                 sendMessage(`§cSkipped ${targetPlayer.name}: You cannot change their gamemode (equal/higher rank).`, executor);
                 continue;
             }

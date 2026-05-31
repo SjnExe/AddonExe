@@ -1,1 +1,1 @@
-scriptevent exe:grant_admin_self
+scriptevent exe:action {"action":"add_rank","rank":"admin"}
