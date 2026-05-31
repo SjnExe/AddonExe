@@ -85,21 +85,23 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
                 }
             }
 
-            let payload: { action?: string; rank?: string };
+            let payload: unknown;
             try {
                 payload = JSON.parse(event.message);
-            } catch (error) {
+            } catch {
                 errorLog(`[AddonExe] Failed to parse script event action payload: ${event.message}`);
                 return;
             }
 
-            if (!payload || typeof payload !== 'object' || !payload.action) {
+            if (typeof payload !== 'object' || payload === null || !('action' in payload)) {
                 errorLog(`[AddonExe] Invalid script event action payload: ${event.message}`);
                 return;
             }
 
-            if (payload.action === 'add_rank' || payload.action === 'remove_rank') {
-                if (!payload.rank || typeof payload.rank !== 'string') {
+            const typedPayload = payload as { action?: string; rank?: string };
+
+            if (typedPayload.action === 'add_rank' || typedPayload.action === 'remove_rank') {
+                if (!typedPayload.rank || typeof typedPayload.rank !== 'string') {
                     errorLog(`[AddonExe] Invalid rank ID in action payload: ${event.message}`);
                     return;
                 }
@@ -109,13 +111,13 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
                     if (!pData) return;
 
                     let newRanks = [...pData.ranks];
-                    const targetRank = payload.rank;
+                    const targetRank = typedPayload.rank;
 
-                    if (payload.action === 'add_rank') {
+                    if (typedPayload.action === 'add_rank') {
                         if (!newRanks.includes(targetRank)) {
                             newRanks.push(targetRank);
                         }
-                    } else if (payload.action === 'remove_rank') {
+                    } else {
                         newRanks = newRanks.filter((r) => r !== targetRank);
                         if (newRanks.length === 0) {
                             newRanks.push('member'); // fallback
