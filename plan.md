@@ -62,10 +62,13 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 - [x] **Update `.mcfunction` Files:** Modify `packs/behavior/functions/admin.mcfunction` (and any related function files like `setup.mcfunction` or `owner.mcfunction`) to replace old tag commands (`/tag @s add admin`) with the new `/scriptevent` command (e.g., `/scriptevent myaddon:action {"action":"add_rank","rank":"admin"}`) so that `/function admin` properly assigns the admin rank using the new system.
 - [x] **Targeting Hierarchy Enforcement (Online & Offline):** Implement a utility function to compare two players' highest priorities. Apply this check to all moderation commands and UI actions (kick, ban, mute, freeze) to prevent lower-priority staff from targeting higher-priority staff. This must safely load offline player data if targeting an offline player.
 
-## Session 5: UI & Commands
+## Session 5: UI Refactoring
 
 - [ ] **Update UI Schema & Interfaces:** Refactor `PanelItem` in `src/core/ui/types.ts` to replace `permissionLevel?: number` with `permission?: string`.
 - [ ] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels. Convert old level checks to explicit node names (e.g. `ui.panel.owner` instead of level `0`).
+
+## Session 6: Command Refactoring
+
 - [ ] **Config Refactoring:** Search for and update other configuration interfaces (like `commandSettings` in `config.default.ts`) to replace `permissionLevel: number` with `permissionNode: string`.
 - [ ] **Command Permission Verification:** Ensure all slash commands (`src/core/commands/` and `src/features/*/commands/`) check against the new string-based node system instead of `permissionLevel`.
 
@@ -81,8 +84,8 @@ _(To be updated after each session)_
 
 **Current State:**
 
-- Session 4 completed. CI errors related to unused `permissionLevel` variables resulting from the `canTarget` conversion have been resolved. The remaining errors and type inconsistencies trace back to interfaces currently undergoing refactor in Session 5.
+- Session 4 completed. CI errors related to unused `permissionLevel` variables resulting from the `canTarget` conversion have been resolved. The remaining errors and type inconsistencies trace back to interfaces currently undergoing refactor in Session 5 (and now Session 6).
 
 **Next Session Needs to Know:**
 
-- Execute Session 5 tasks to completely refactor UI schema and Command definitions to use the new string-based permission checks instead of `permissionLevel`.
+- Execute Session 5 tasks to completely refactor UI schema to use the new string-based permission checks instead of `permissionLevel`. Following that, Session 6 will handle the refactoring of configurations and command definitions.
