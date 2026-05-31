@@ -5,6 +5,8 @@ import { CommandExecutor } from '@commands/commandManager.js';
 import { getConfig, updateConfig } from '@core/configManager.js';
 import { errorLog, infoLog, warnLog } from '@core/logger.js';
 import { updateAllPlayerRanks } from '@core/main.js';
+import { hasPermission } from '@core/permissionEngine.js';
+import { getPlayer, setPlayerRanks } from '@core/playerDataManager.js';
 import * as rankManager from '@core/rankManager.js';
 import { startRestart } from '@features/essentials/restartManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
@@ -71,6 +73,58 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
                 sourceEntity.addTag(adminTagCondition.value);
                 sourceEntity.sendMessage('§aYou have been promoted to Admin.');
                 updateAllPlayerRanks();
+            }
+            break;
+        }
+
+        case 'exe:action': {
+            if (event.sourceType === mc.ScriptEventSource.Entity && event.sourceEntity instanceof mc.Player) {
+                if (!hasPermission(event.sourceEntity, 'cmd.op')) {
+                    errorLog(`[AddonExe] Unauthorized script event action attempted by ${event.sourceEntity.name}.`);
+                    return;
+                }
+            }
+
+            let payload: { action?: string; rank?: string };
+            try {
+                payload = JSON.parse(event.message);
+            } catch (error) {
+                errorLog(`[AddonExe] Failed to parse script event action payload: ${event.message}`);
+                return;
+            }
+
+            if (!payload || typeof payload !== 'object' || !payload.action) {
+                errorLog(`[AddonExe] Invalid script event action payload: ${event.message}`);
+                return;
+            }
+
+            if (payload.action === 'add_rank' || payload.action === 'remove_rank') {
+                if (!payload.rank || typeof payload.rank !== 'string') {
+                    errorLog(`[AddonExe] Invalid rank ID in action payload: ${event.message}`);
+                    return;
+                }
+
+                if (sourceEntity instanceof mc.Player) {
+                    const pData = getPlayer(sourceEntity.id);
+                    if (!pData) return;
+
+                    let newRanks = [...pData.ranks];
+                    const targetRank = payload.rank;
+
+                    if (payload.action === 'add_rank') {
+                        if (!newRanks.includes(targetRank)) {
+                            newRanks.push(targetRank);
+                        }
+                    } else if (payload.action === 'remove_rank') {
+                        newRanks = newRanks.filter((r) => r !== targetRank);
+                        if (newRanks.length === 0) {
+                            newRanks.push('member'); // fallback
+                        }
+                    }
+
+                    setPlayerRanks(sourceEntity.id, newRanks);
+                    rankManager.updatePlayerNameTag(sourceEntity, config);
+                }
             }
             break;
         }
