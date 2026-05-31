@@ -2,9 +2,10 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { config } from '@core/../config.default.js';
 import { errorLog, warnLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
+import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { canTarget } from '@core/rankManager.js';
 import { parseDuration, playSoundFromConfig } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';

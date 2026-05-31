@@ -9,7 +9,7 @@ const mockCanTarget = vi.fn();
 vi.mock('@core/rankManager.js', () => ({
     getPlayerRank: mockGetPlayerRank,
     canTarget: mockCanTarget,
-    getRankById: vi.fn(),
+    getRankById: vi.fn()
 }));
 
 vi.mock('@core/playerDataManager.js', () => ({

@@ -1,7 +1,6 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { sendMessage } from '@core/messaging.js';
 import { config } from '@core/../config.default.js';
-import { getPlayer } from '@core/playerDataManager.js';
+import { sendMessage } from '@core/messaging.js';
 import { canTarget } from '@core/rankManager.js';
 import { addPunishmentLog } from '@features/anticheat/logManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';

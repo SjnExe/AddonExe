@@ -4,12 +4,9 @@ import { CommandExecutor } from '@commands/commandManager.js';
 
 import { getConfig, updateConfig } from '@core/configManager.js';
 import { errorLog, infoLog, warnLog } from '@core/logger.js';
-import { updateAllPlayerRanks } from '@core/main.js';
-import { hasPermission } from '@core/permissionEngine.js';
 import { getPlayer, setPlayerRanks } from '@core/playerDataManager.js';
 import * as rankManager from '@core/rankManager.js';
 import { startRestart } from '@features/essentials/restartManager.js';
-import { isNonEmptyString } from '@lib/guards.js';
 
 export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfterEvent) {
     const { id, sourceEntity } = event;
@@ -56,8 +53,11 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
 
         case 'exe:action': {
             if (event.sourceType === mc.ScriptEventSource.Entity && event.sourceEntity instanceof mc.Player) {
-                if (!event.sourceEntity.isOp()) {
-                    errorLog(`[AddonExe] Unauthorized script event action attempted by ${event.sourceEntity.name}.`);
+                const playerEntity = event.sourceEntity;
+                const isOp = (playerEntity as unknown as { isOp?: () => boolean }).isOp?.() ?? false;
+
+                if (!isOp) {
+                    errorLog(`[AddonExe] Unauthorized script event action attempted by ${playerEntity.name}.`);
                     return;
                 }
             }

@@ -3,9 +3,8 @@ import * as mc from '@minecraft/server';
 import { config } from '@core/../config.default.js';
 import { soundError, soundTeleport } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
-import { getPlayer } from '@core/playerDataManager.js';
-import { canTarget } from '@core/rankManager.js';
 import { hasPermission } from '@core/permissionEngine.js';
+import { canTarget } from '@core/rankManager.js';
 import { playSound } from '@core/utils.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';

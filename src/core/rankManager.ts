@@ -38,9 +38,9 @@ export function initialize() {
     debugLog(`[RankManager] Initialized ${sortedRanks.length} ranks.`);
 }
 
+import { CommandExecutor } from '@commands/commandManager.js';
 import { getPlayerRanks } from '@core/permissionEngine.js';
 import { loadPlayerData } from '@core/playerDataManager.js';
-import { CommandExecutor } from '@commands/commandManager.js';
 
 /**
  * Gets the highest priority rank for a given player.
@@ -119,14 +119,14 @@ export function canTarget(executor: mc.Player | CommandExecutor, targetId: strin
     let targetRankPriority = 1000;
 
     // Check if target is online
-    const targetPlayer = mc.world.getPlayers({ name: targetId })[0] || mc.world.getAllPlayers().find(p => p.id === targetId);
+    const targetPlayer = mc.world.getPlayers({ name: targetId })[0] || mc.world.getAllPlayers().find((p) => p.id === targetId);
     if (targetPlayer) {
         const targetRank = getPlayerRank(targetPlayer, config);
         targetRankPriority = targetRank.priority;
     } else {
         // Target is offline, try to load data
         const targetData = loadPlayerData(targetId);
-        if (targetData && targetData.ranks && targetData.ranks.length > 0) {
+        if (targetData && targetData.ranks.length > 0) {
             let highestOfflinePriority = 1000;
             for (const rankId of targetData.ranks) {
                 const rank = getRankById(rankId);
@@ -203,7 +203,6 @@ export function updatePlayerNameTag(player: mc.Player, config: typeof Config) {
         newNameTag = player.name;
     }
 
-    // To prevent unnecessary updates and potential Watchdog spikes, only update if the nametag has changed.
     if (player.nameTag !== newNameTag) {
         player.nameTag = newNameTag;
     }

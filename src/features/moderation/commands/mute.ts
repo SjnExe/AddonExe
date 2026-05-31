@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { soundError, soundTeleport } from '@core/constants.js';
 import { config } from '@core/../config.default.js';
+import { soundError, soundTeleport } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
-import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
+import { getPlayerIdByName } from '@core/playerDataManager.js';
 import { canTarget } from '@core/rankManager.js';
 import { parseDuration, playSound } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
