@@ -53,9 +53,9 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 ## Session 3: Script Events & Handlers
 
-- [ ] **Universal Script Event Listener:** Create a universal listener (e.g., `src/core/events/scriptEventReceive.ts`) to act as a router for `/scriptevent` commands. Implement an action handler system so new capabilities can be easily added.
-- [ ] **Secure the Script Event Listener:** Ensure the universal script event listener validates the `sourceType` (e.g., `MessageSourceType.Server` or `MessageSourceType.Entity`). If the source is a player, verify they have the appropriate permissions to prevent exploits.
-- [ ] **Rank Action Handlers:** Implement specific handlers within the universal script event listener for adding and removing ranks (e.g., parsing a payload to assign a rank to the target player).
+- [x] **Universal Script Event Listener:** Create a universal listener (e.g., `src/core/events/scriptEventReceive.ts`) to act as a router for `/scriptevent` commands. Implement an action handler system so new capabilities can be easily added.
+- [x] **Secure the Script Event Listener:** Ensure the universal script event listener validates the `sourceType` (e.g., `MessageSourceType.Server` or `MessageSourceType.Entity`). If the source is a player, verify they have the appropriate permissions to prevent exploits.
+- [x] **Rank Action Handlers:** Implement specific handlers within the universal script event listener for adding and removing ranks (e.g., parsing a payload to assign a rank to the target player).
 
 ## Session 4: Targeting & Hierarchy
 
@@ -77,12 +77,12 @@ _(To be updated after each session)_
 
 **Completed in Previous Session:**
 
-- Session 1 and 2 completed: Updated Rank Schema, Player Data Model, stripped legacy migrations, built Permission Engine, and implemented Per-Rank caching.
+- Session 1, 2, and 3 completed: Updated Rank Schema, Player Data Model, stripped legacy migrations, built Permission Engine, implemented Per-Rank caching, and added the universal `/scriptevent` listener and rank action handlers.
 
 **Current State:**
 
-- Session 2 completed. The codebase is still in a transitional state. We will fix remaining compile errors when refactoring the commands and UI panels in Session 3, 4, and 5.
+- Session 3 completed. The codebase is still in a transitional state. We will fix remaining compile errors when refactoring the commands and UI panels in Session 4 and 5.
 
 **Next Session Needs to Know:**
 
-- Execute Session 3 tasks to implement Script Events and Handlers.
+- Execute Session 4 tasks to update Targeting & Hierarchy.
