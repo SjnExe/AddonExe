@@ -15,7 +15,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         return panelId === 'sidebarMainPanel' || panelId.startsWith('sidebarLine') || panelId.startsWith('actionBarLine') || panelId === 'actionBarLinesPanel' || panelId === 'placeholderListPanel';
     }
 
-    getBody(player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined | void> {
+    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined | void> {
         if (panelId === 'placeholderListPanel') {
             return Promise.resolve(
                 `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
@@ -120,7 +120,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         return items;
     }
 
-    buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined | void> {
+    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined | void> {
         if (panelId === 'sidebarLineEditPanel') {
             const config = getSidebarConfig();
             const lines = config.sidebarLines;

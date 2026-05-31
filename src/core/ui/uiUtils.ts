@@ -16,7 +16,8 @@ import {
     saveXrayConfig,
     SidebarConfig
 } from '@core/configurations.js';
-import type { PlayerData } from '@core/playerDataManager.js';
+
+import { hasPermission } from '@core/permissionEngine.js';
 import ranksConfig from '@core/ranksConfig.default.js';
 import { showPanel } from '@core/uiManager.js';
 import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/configLoader.js';
@@ -27,7 +28,6 @@ import { spawnConfig } from '@features/essentials/spawnConfig.default.js';
 import { kitsConfig } from '@features/kit/kitsConfig.default.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/team/teamConfig.js';
-import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 import { PanelItem, UIContext } from '@ui/types.js';
 

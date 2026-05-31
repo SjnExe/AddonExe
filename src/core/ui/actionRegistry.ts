@@ -1,3 +1,4 @@
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -36,10 +37,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
 
     showRules: async (player: mc.Player) => {
         const rules = rulesManager.getRules();
-        const pData = getOrCreatePlayer(player);
 
         const rulesForm = new ActionFormData().title('§l§6Server Rules').body(rules.join('\n'));
-        const { hasPermission } = require('@core/permissionEngine.js');
+
         const isAdmin = hasPermission(player, 'ui.panel.admin');
 
         if (isAdmin) {
@@ -61,7 +61,6 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
 
     showHelpfulLinks: async (player: mc.Player) => {
         const links = helpfulLinksManager.getHelpfulLinks();
-        const pData = getOrCreatePlayer(player);
 
         const form = new ActionFormData().title('§l§9Helpful Links');
 
@@ -72,7 +71,6 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             form.body(bodyText);
         }
 
-        const { hasPermission } = require('@core/permissionEngine.js');
         const isAdmin = hasPermission(player, 'ui.panel.admin');
 
         if (isAdmin) {

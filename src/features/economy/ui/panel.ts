@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getEconomyConfig, saveEconomyConfig } from '@core/configurations.js';
-import { getOrCreatePlayer } from '@core/playerDataManager.js';
+
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -20,7 +20,6 @@ export class EconomyPanelHandler implements IPanelHandler {
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
-        const pData = getOrCreatePlayer(player);
 
         if (panelId === 'economyPanel') {
             const def = panelDefinitions[panelId];

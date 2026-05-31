@@ -4,10 +4,10 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { getConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { getValueFromPath } from '@core/objectUtils.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, loadPlayerData } from '@core/playerDataManager.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { getPlayerRank } from '@core/rankManager.js';
+
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 import { panelDefinitions } from '@ui/panelRegistry.js';
@@ -48,7 +48,6 @@ export function getStaticMenuItems(player: mc.Player, panelDef: PanelDefinition,
 
 export async function buildPanelForm(player: mc.Player, panelId: string, context: UIContext): Promise<ActionFormData | ModalFormData | undefined> {
     try {
-        const config = getConfig();
         const panelDef = panelDefinitions[panelId];
         if (panelDef && isNonEmptyString(panelDef.permission) && !hasPermission(player, panelDef.permission)) {
             // Access Denied

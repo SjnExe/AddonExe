@@ -1,8 +1,6 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse } from '@minecraft/server-ui';
 
-import { getConfig } from '@core/configManager.js';
-import { getPlayerRank } from '@core/rankManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { isDefined } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';

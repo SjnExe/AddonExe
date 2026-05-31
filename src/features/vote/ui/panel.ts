@@ -1,8 +1,6 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getConfig } from '@core/configManager.js';
-import { getPlayerRank } from '@core/rankManager.js';
 import { uiWait } from '@core/utils.js';
 import { castVote, createVote, endVote, getActiveVote, getLastVote } from '@features/vote/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';

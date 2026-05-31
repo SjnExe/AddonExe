@@ -1,4 +1,4 @@
-import { hasPermission } from "@core/permissionEngine.js";
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -7,7 +7,6 @@ import { refreshXrayCache } from '@features/anticheat/xrayDetection.js';
 import { resetConfigSection } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { getValueFromPath, setValueByPath } from '@core/objectUtils.js';
-import { getOrCreatePlayer, type PlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -41,8 +40,6 @@ export class ConfigPanelHandler implements IPanelHandler {
     }
 
     getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
-
-
         if (panelId === 'configCategoryPanel') {
             return Promise.resolve(this.getCategoryPanelItems(player, context));
         }
@@ -68,7 +65,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         return Promise.resolve([]);
     }
 
-    private getTransferPanelItems(player: mc.Player, _context: UIContext): PanelItem[] {
+    private getTransferPanelItems(_player: mc.Player, _context: UIContext): PanelItem[] {
         const items: PanelItem[] = [];
         addBackButton(items, 'configCategoryPanel');
         items.push({

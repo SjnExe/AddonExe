@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getConfig } from '@core/configManager.js';
-import { getOrCreatePlayer, type PlayerData } from '@core/playerDataManager.js';
+
 import { showPanel } from '@core/uiManager.js';
 import * as helpfulLinksManager from '@features/essentials/helpfulLinksManager.js';
 import * as rulesManager from '@features/essentials/rulesManager.js';
@@ -32,7 +32,6 @@ export class InfoPanelHandler implements IPanelHandler {
     }
 
     getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
-        const pData = getOrCreatePlayer(player);
         const page = (context.page as number) || 1;
 
         if (panelId === 'infoPanel') {
