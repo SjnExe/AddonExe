@@ -38,7 +38,9 @@ export function initialize() {
     debugLog(`[RankManager] Initialized ${sortedRanks.length} ranks.`);
 }
 
+import { CommandExecutor } from '@commands/commandManager.js';
 import { getPlayerRanks } from '@core/permissionEngine.js';
+import { loadPlayerData } from '@core/playerDataManager.js';
 
 /**
  * Gets the highest priority rank for a given player.
@@ -90,6 +92,59 @@ export function getPlayerRank(player: mc.Player, config: typeof Config): RankDef
     };
     rankCache.set(player.id, { rank: fallback, tick: currentTick });
     return fallback;
+}
+
+/**
+ * Checks if a player or console executor can target another player based on rank priorities.
+ * Returns true if the executor's highest rank priority is mathematically lower (higher importance)
+ * than the target's highest rank priority. Console always returns true.
+ * @param executor The player or console executing the command.
+ * @param targetId The ID of the targeted player.
+ * @param config The addon's configuration object.
+ */
+export function canTarget(executor: mc.Player | CommandExecutor, targetId: string, config: typeof Config): boolean {
+    if (!(executor instanceof mc.Player)) {
+        // Console can target anyone
+        return true;
+    }
+
+    if (executor.id === targetId) {
+        // Cannot target self in most hierarchical checks
+        return false;
+    }
+
+    const executorRank = getPlayerRank(executor, config);
+
+    // Attempt to resolve target rank. Target might be offline.
+    let targetRankPriority = 1000;
+
+    // Check if target is online
+    const targetPlayer = mc.world.getPlayers({ name: targetId })[0] || mc.world.getAllPlayers().find((p) => p.id === targetId);
+    if (targetPlayer) {
+        const targetRank = getPlayerRank(targetPlayer, config);
+        targetRankPriority = targetRank.priority;
+    } else {
+        // Target is offline, try to load data
+        const targetData = loadPlayerData(targetId);
+        if (targetData && targetData.ranks.length > 0) {
+            let highestOfflinePriority = 1000;
+            for (const rankId of targetData.ranks) {
+                const rank = getRankById(rankId);
+                if (rank && rank.priority < highestOfflinePriority) {
+                    highestOfflinePriority = rank.priority;
+                }
+            }
+            targetRankPriority = highestOfflinePriority;
+        } else {
+            // Fallback for offline player with no data or ranks, assume lowest priority
+            const defaultRank = getRankById(config.playerDefaults.rankId);
+            if (defaultRank) {
+                targetRankPriority = defaultRank.priority;
+            }
+        }
+    }
+
+    return executorRank.priority < targetRankPriority;
 }
 
 /**
@@ -148,7 +203,6 @@ export function updatePlayerNameTag(player: mc.Player, config: typeof Config) {
         newNameTag = player.name;
     }
 
-    // To prevent unnecessary updates and potential Watchdog spikes, only update if the nametag has changed.
     if (player.nameTag !== newNameTag) {
         player.nameTag = newNameTag;
     }

@@ -4,12 +4,9 @@ import { CommandExecutor } from '@commands/commandManager.js';
 
 import { getConfig, updateConfig } from '@core/configManager.js';
 import { errorLog, infoLog, warnLog } from '@core/logger.js';
-import { updateAllPlayerRanks } from '@core/main.js';
-import { hasPermission } from '@core/permissionEngine.js';
 import { getPlayer, setPlayerRanks } from '@core/playerDataManager.js';
 import * as rankManager from '@core/rankManager.js';
 import { startRestart } from '@features/essentials/restartManager.js';
-import { isNonEmptyString } from '@lib/guards.js';
 
 export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfterEvent) {
     const { id, sourceEntity } = event;
@@ -54,33 +51,13 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
             break;
         }
 
-        case 'exe:grant_admin_self': {
-            if (sourceEntity instanceof mc.Player) {
-                const adminRank = rankManager.getRankById('admin');
-                if (!adminRank) {
-                    errorLog('[AddonExe] Could not grant admin rank because the "admin" rank definition was not found.');
-                    sourceEntity.sendMessage('§cError: The admin rank is not configured.');
-                    return;
-                }
-
-                const adminTagCondition = adminRank.conditions.find((c) => c.type === 'hasTag');
-                if (!adminTagCondition || !isNonEmptyString(adminTagCondition.value)) {
-                    errorLog('[AddonExe] Could not grant admin rank because it lacks a valid "hasTag" condition.');
-                    sourceEntity.sendMessage('§cError: The admin rank is not configured with a valid tag.');
-                    return;
-                }
-
-                sourceEntity.addTag(adminTagCondition.value);
-                sourceEntity.sendMessage('§aYou have been promoted to Admin.');
-                updateAllPlayerRanks();
-            }
-            break;
-        }
-
         case 'exe:action': {
             if (event.sourceType === mc.ScriptEventSource.Entity && event.sourceEntity instanceof mc.Player) {
-                if (!hasPermission(event.sourceEntity, 'cmd.op')) {
-                    errorLog(`[AddonExe] Unauthorized script event action attempted by ${event.sourceEntity.name}.`);
+                const playerEntity = event.sourceEntity;
+                const isOp = (playerEntity as unknown as { isOp?: () => boolean }).isOp?.() ?? false;
+
+                if (!isOp) {
+                    errorLog(`[AddonExe] Unauthorized script event action attempted by ${playerEntity.name}.`);
                     return;
                 }
             }

@@ -1,8 +1,10 @@
 import * as mc from '@minecraft/server';
 
+import { config } from '@core/../config.default.js';
 import { soundError, soundTeleport } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
-import { getPlayer } from '@core/playerDataManager.js';
+import { hasPermission } from '@core/permissionEngine.js';
+import { canTarget } from '@core/rankManager.js';
 import { playSound } from '@core/utils.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
@@ -43,24 +45,18 @@ const clearCommand: CustomCommand = {
         }
 
         if (executor instanceof mc.Player) {
-            const executorData = getPlayer(executor.id);
-            const targetData = getPlayer(targetPlayer.id);
+            if (executor.id !== targetPlayer.id) {
+                if (!hasPermission(executor, 'cmd.clear.others')) {
+                    sendMessage("§cYou do not have permission to clear another player's inventory.", executor);
+                    playSound(executor, soundError);
+                    return;
+                }
 
-            if (!executorData || !targetData) {
-                sendMessage('§cCould not retrieve player data for permission check.', executor);
-                playSound(executor, soundError);
-                return;
-            }
-
-            if (executorData.permissionLevel > 1 && executor.id !== targetPlayer.id) {
-                sendMessage("§cYou do not have permission to clear another player's inventory.", executor);
-                playSound(executor, soundError);
-                return;
-            }
-            if (executorData.permissionLevel >= targetData.permissionLevel && executor.id !== targetPlayer.id) {
-                sendMessage('§cYou cannot clear the inventory of a player with the same or higher rank than you.', executor);
-                playSound(executor, soundError);
-                return;
+                if (!canTarget(executor, targetPlayer.id, config)) {
+                    sendMessage('§cYou cannot clear the inventory of a player with the same or higher rank than you.', executor);
+                    playSound(executor, soundError);
+                    return;
+                }
             }
         }
 

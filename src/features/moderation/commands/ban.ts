@@ -2,9 +2,11 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { config } from '@core/../config.default.js';
 import { errorLog, warnLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
+import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
+import { canTarget } from '@core/rankManager.js';
 import { parseDuration, playSoundFromConfig } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 
@@ -16,19 +18,13 @@ export function banPlayer(executor: CommandExecutor, targetPlayer: mc.Player, du
         return;
     }
 
-    if (executor instanceof mc.Player) {
-        const executorData = getPlayer(executor.id);
-        const targetData = getPlayer(targetPlayer.id);
-
-        if (!executorData || !targetData) {
-            sendMessage('§cCould not retrieve player data for permission check.', executor);
-            return;
-        }
-
-        if (executorData.permissionLevel >= targetData.permissionLevel) {
+    if (!canTarget(executor, targetPlayer.id, config)) {
+        if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot ban a player with the same or higher rank than you.', executor);
-            return;
+        } else {
+            executor.sendMessage('§cYou cannot ban a player with the same or higher rank than you.');
         }
+        return;
     }
 
     const durationString = isDefined(duration) ? duration : 'perm';
@@ -126,22 +122,18 @@ export function unbanPlayer(executor: CommandExecutor, targetName: string) {
         return;
     }
 
-    if (executor instanceof mc.Player) {
-        if (executor.id === targetId) {
-            sendMessage('§cYou cannot unban yourself.', executor);
-            return;
-        }
-        const executorData = getPlayer(executor.id);
-        const targetData = loadPlayerData(targetId);
+    if (executor instanceof mc.Player && executor.id === targetId) {
+        sendMessage('§cYou cannot unban yourself.', executor);
+        return;
+    }
 
-        if (!executorData || !targetData) {
-            sendMessage('§cCould not retrieve player data for permission check.', executor);
-            return;
-        }
-        if (executorData.permissionLevel >= targetData.permissionLevel) {
+    if (!canTarget(executor, targetId, config)) {
+        if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot unban a player with the same or higher rank than you.', executor);
-            return;
+        } else {
+            executor.sendMessage('§cYou cannot unban a player with the same or higher rank than you.');
         }
+        return;
     }
 
     removePunishment(targetId, 'ban');
@@ -167,24 +159,18 @@ const unbanCommand: CustomCommand = {
 };
 
 export function offlineBanPlayer(executor: CommandExecutor, targetId: string, targetName: string, duration: string | undefined, reason: string) {
-    if (executor instanceof mc.Player) {
-        if (executor.id === targetId) {
-            sendMessage('§cYou cannot ban yourself.', executor);
-            return;
-        }
+    if (executor instanceof mc.Player && executor.id === targetId) {
+        sendMessage('§cYou cannot ban yourself.', executor);
+        return;
+    }
 
-        const executorData = getPlayer(executor.id);
-        const targetData = loadPlayerData(targetId);
-
-        if (!executorData || !targetData) {
-            sendMessage('§cCould not retrieve player data for permission check.', executor);
-            return;
-        }
-
-        if (executorData.permissionLevel >= targetData.permissionLevel) {
+    if (!canTarget(executor, targetId, config)) {
+        if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot ban a player with the same or higher rank than you.', executor);
-            return;
+        } else {
+            executor.sendMessage('§cYou cannot ban a player with the same or higher rank than you.');
         }
+        return;
     }
 
     const durationString = isDefined(duration) ? duration : 'perm';

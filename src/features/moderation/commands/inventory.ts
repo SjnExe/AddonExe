@@ -2,7 +2,9 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getPlayer, getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
+import { config } from '@core/../config.default.js';
+import { getPlayerIdByName } from '@core/playerDataManager.js';
+import { canTarget } from '@core/rankManager.js';
 import { resolveTarget } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 
@@ -61,9 +63,7 @@ const invseeCommand: CustomCommand = {
             return;
         }
 
-        const executorData = getPlayer(executor.id);
-        const targetData = getPlayer(targetPlayer.id);
-        if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
+        if (!canTarget(executor, targetPlayer.id, config)) {
             executor.sendMessage('§cYou cannot view the inventory of a player with the same or higher rank than you.');
             return;
         }
@@ -122,9 +122,7 @@ const ecwipeCommand: CustomCommand = {
 
             const targetId = getPlayerIdByName(targetNameResolved);
             if (isDefined(targetId)) {
-                const executorData = getPlayer(executor.id);
-                const targetData = loadPlayerData(targetId);
-                if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
+                if (!canTarget(executor, targetId, config)) {
                     executor.sendMessage('§cYou cannot wipe the ender chest of a player with the same or higher rank than you.');
                     return;
                 }
@@ -174,9 +172,7 @@ const copyinvCommand: CustomCommand = {
             return;
         }
 
-        const executorData = getPlayer(executor.id);
-        const targetData = getPlayer(targetPlayer.id);
-        if (isDefined(executorData) && isDefined(targetData) && executorData.permissionLevel >= targetData.permissionLevel) {
+        if (!canTarget(executor, targetPlayer.id, config)) {
             executor.sendMessage('§cYou cannot copy the inventory of a player with the same or higher rank than you.');
             return;
         }

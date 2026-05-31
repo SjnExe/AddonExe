@@ -2,11 +2,18 @@ import * as mc from '@minecraft/server';
 import { vi } from 'vitest';
 
 // --- Mocks ---
-const mockGetPlayer = vi.fn();
+const mockGetPlayerRank = vi.fn();
 const mockLoadPlayerData = vi.fn();
+const mockCanTarget = vi.fn();
+
+vi.mock('@core/rankManager.js', () => ({
+    getPlayerRank: mockGetPlayerRank,
+    canTarget: mockCanTarget,
+    getRankById: vi.fn()
+}));
 
 vi.mock('@core/playerDataManager.js', () => ({
-    getPlayer: mockGetPlayer,
+    getPlayer: vi.fn(),
     loadPlayerData: mockLoadPlayerData,
     getOrCreatePlayer: vi.fn(),
     getPlayerIdByName: vi.fn(() => 'targetId')
@@ -48,16 +55,8 @@ const { default: inventoryCommands } = await import('../commands/inventory.js');
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 
-const setupRanks = (executorLevel: number, targetLevel: number) => {
-    mockGetPlayer.mockImplementation(((id: string) => {
-        if (id === 'executorId') return { permissionLevel: executorLevel, name: 'Executor' };
-        if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
-        return undefined;
-    }) as unknown as typeof mockGetPlayer);
-    mockLoadPlayerData.mockImplementation(((id: string) => {
-        if (id === 'targetId') return { permissionLevel: targetLevel, name: 'Target' };
-        return undefined;
-    }) as unknown as typeof mockLoadPlayerData);
+const setupCanTarget = (can: boolean) => {
+    mockCanTarget.mockReturnValue(can);
 };
 
 describe('Moderation Hierarchy', () => {
@@ -88,39 +87,26 @@ describe('Moderation Hierarchy', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        mockGetPlayer.mockReset();
-        mockLoadPlayerData.mockReset();
+        mockCanTarget.mockReset();
     });
 
     describe('Warn Command', () => {
-        it('should fail if executor rank is lower (higher number) than target', () => {
-            setupRanks(2, 1);
+        it('should fail if canTarget returns false', () => {
+            setupCanTarget(false);
             warnCommand.execute(executor, { player: [target], reason: 'test' });
             expect(executor.sendMessage).toHaveBeenCalledWith(expect.stringContaining('cannot warn'));
         });
 
-        it('should fail if executor rank is equal to target', () => {
-            setupRanks(2, 2);
-            warnCommand.execute(executor, { player: [target], reason: 'test' });
-            expect(executor.sendMessage).toHaveBeenCalledWith(expect.stringContaining('cannot warn'));
-        });
-
-        it('should succeed if executor rank is higher', () => {
-            setupRanks(1, 2);
+        it('should succeed if canTarget returns true', () => {
+            setupCanTarget(true);
             warnCommand.execute(executor, { player: [target], reason: 'test' });
             expect(executor.sendMessage).toHaveBeenCalledWith(expect.stringContaining('Warned'));
         });
     });
 
     describe('Freeze Command', () => {
-        it('should fail if executor rank is lower', () => {
-            setupRanks(2, 1);
-            freezePlayer(executor, target);
-            expect(executor.sendMessage).toHaveBeenCalledWith(expect.stringContaining('cannot freeze'));
-        });
-
-        it('should fail if executor rank is equal', () => {
-            setupRanks(2, 2);
+        it('should fail if canTarget returns false', () => {
+            setupCanTarget(false);
             freezePlayer(executor, target);
             expect(executor.sendMessage).toHaveBeenCalledWith(expect.stringContaining('cannot freeze'));
         });
@@ -130,14 +116,14 @@ describe('Moderation Hierarchy', () => {
         const ecwipe = inventoryCommands.find((c) => c.name === 'ecwipe')!;
         const copyinv = inventoryCommands.find((c) => c.name === 'copyinv')!;
 
-        it('ecwipe should fail if executor rank is lower', () => {
-            setupRanks(2, 1);
+        it('ecwipe should fail if canTarget returns false', () => {
+            setupCanTarget(false);
             ecwipe.execute(executor, { player: 'target' });
             expect(executor.sendMessage).toHaveBeenCalledWith(expect.stringContaining('cannot wipe'));
         });
 
-        it('copyinv should fail if executor rank is lower', () => {
-            setupRanks(2, 1);
+        it('copyinv should fail if canTarget returns false', () => {
+            setupCanTarget(false);
             copyinv.execute(executor, { player: 'target' });
             expect(executor.sendMessage).toHaveBeenCalledWith(expect.stringContaining('cannot copy'));
         });

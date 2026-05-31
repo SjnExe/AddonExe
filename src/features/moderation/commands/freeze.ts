@@ -1,20 +1,21 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { config } from '@core/../config.default.js';
 import { frozenTag } from '@core/constants.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { getPlayer } from '@core/playerDataManager.js';
+import { canTarget } from '@core/rankManager.js';
 import { playSound } from '@core/utils.js';
 
 export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
-    if (executor instanceof mc.Player) {
-        const executorData = getPlayer(executor.id);
-        const targetData = getPlayer(targetPlayer.id);
-        if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+    if (!canTarget(executor, targetPlayer.id, config)) {
+        if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot freeze a player with the same or higher rank than you.', executor);
-            return;
+        } else {
+            executor.sendMessage('§cYou cannot freeze a player with the same or higher rank than you.');
         }
+        return;
     }
 
     if (targetPlayer.hasTag(frozenTag)) {
@@ -58,13 +59,13 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
 }
 
 export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
-    if (executor instanceof mc.Player) {
-        const executorData = getPlayer(executor.id);
-        const targetData = getPlayer(targetPlayer.id);
-        if (executorData && targetData && executorData.permissionLevel >= targetData.permissionLevel) {
+    if (!canTarget(executor, targetPlayer.id, config)) {
+        if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot unfreeze a player with the same or higher rank than you.', executor);
-            return;
+        } else {
+            executor.sendMessage('§cYou cannot unfreeze a player with the same or higher rank than you.');
         }
+        return;
     }
 
     if (!targetPlayer.hasTag(frozenTag)) {
