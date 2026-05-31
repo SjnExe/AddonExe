@@ -1,3 +1,4 @@
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -7,7 +8,7 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export async function showVoteMenu(player: mc.Player) {
     const activeVote = getActiveVote();
-    const { hasPermission } = require('@core/permissionEngine.js');
+
     const isAdmin = hasPermission(player, 'ui.panel.admin');
 
     await (isDefined(activeVote) ? handleActiveVote(player, activeVote, isAdmin) : handleNoActiveVote(player, isAdmin));

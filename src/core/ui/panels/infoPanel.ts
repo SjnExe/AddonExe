@@ -1,3 +1,4 @@
+import { hasPermission } from '@core/permissionEngine.js';
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
@@ -61,7 +62,7 @@ export class InfoPanelHandler implements IPanelHandler {
         if (panelId === 'ruleActionPanel') {
             const items: PanelItem[] = [];
             addBackButton(items, 'rulesManagementPanel');
-            const { hasPermission } = require('@core/permissionEngine.js');
+
             if (hasPermission(player, 'ui.panel.admin')) {
                 items.push({
                     id: 'delete',
@@ -82,7 +83,7 @@ export class InfoPanelHandler implements IPanelHandler {
         if (panelId === 'helpfulLinkActionPanel') {
             const items: PanelItem[] = [];
             addBackButton(items, 'helpfulLinksManagementPanel');
-            const { hasPermission } = require('@core/permissionEngine.js');
+
             if (hasPermission(player, 'ui.panel.admin')) {
                 items.push({
                     id: 'delete',
@@ -124,7 +125,7 @@ export class InfoPanelHandler implements IPanelHandler {
     private getRulesManagementItems(player: mc.Player, page: number): PanelItem[] {
         const items: PanelItem[] = [];
         addBackButton(items, 'infoPanel');
-        const { hasPermission } = require('@core/permissionEngine.js');
+
         if (hasPermission(player, 'ui.panel.admin')) {
             items.push({
                 id: 'addRule',
@@ -155,7 +156,7 @@ export class InfoPanelHandler implements IPanelHandler {
     private getHelpfulLinksManagementItems(player: mc.Player, page: number): PanelItem[] {
         const items: PanelItem[] = [];
         addBackButton(items, 'infoPanel');
-        const { hasPermission } = require('@core/permissionEngine.js');
+
         if (hasPermission(player, 'ui.panel.admin')) {
             items.push({
                 id: 'addLink',
