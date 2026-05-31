@@ -22,7 +22,7 @@ export class BountyPanelHandler implements IPanelHandler {
                 id: '__back__',
                 text: '§l§8< Back',
                 icon: 'textures/gui/controls/left.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'economyMainPanel'
             }
@@ -38,7 +38,7 @@ export class BountyPanelHandler implements IPanelHandler {
                 id: 'no_bounties',
                 text: '§7No active bounties',
                 icon: 'textures/ui/info_icon',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'noop' // Does nothing
             });
@@ -52,7 +52,7 @@ export class BountyPanelHandler implements IPanelHandler {
                 id: b.playerId,
                 text: `${b.name}\n${formatCurrency(b.amount)}`,
                 icon: 'textures/items/netherite_sword',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'playerActionsPanel'
             });
@@ -67,7 +67,7 @@ export class BountyPanelHandler implements IPanelHandler {
                 id: '__prev__',
                 text: '§6< Previous Page',
                 icon: 'textures/ui/arrow_left.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'prevPage'
             });
@@ -77,7 +77,7 @@ export class BountyPanelHandler implements IPanelHandler {
                 id: '__next__',
                 text: '§6Next Page >',
                 icon: 'textures/ui/arrow_right.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'nextPage'
             });

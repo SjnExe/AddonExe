@@ -18,7 +18,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'economy',
                 text: '§l§6Economy',
                 icon: 'textures/items/emerald',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'economyMainPanel',
                 sortId: 10
@@ -27,7 +27,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'social',
                 text: '§l§dSocial',
                 icon: 'textures/ui/icon_multiplayer',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'socialMainPanel',
                 sortId: 15
@@ -36,7 +36,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'profile',
                 text: '§l§3Profile',
                 icon: 'textures/ui/profile_glyph_color',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'profileMainPanel',
                 sortId: 20
@@ -45,7 +45,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'info',
                 text: '§l§bServer Info',
                 icon: 'textures/items/book_enchanted.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'infoPanel',
                 sortId: 30
@@ -54,7 +54,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'staffDashboard',
                 text: '§l§4Staff Dashboard',
                 icon: 'textures/ui/op',
-                permissionLevel: 3, // Accessible to moderators (3) and up, items inside dictate further restrictions
+                permission: 'ui.panel.mod', // Accessible to moderators (3) and up, items inside dictate further restrictions
                 actionType: 'openPanel',
                 actionValue: 'staffDashboardPanel',
                 sortId: 99
@@ -69,7 +69,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'shop',
                 text: '§2Shop',
                 icon: 'textures/ui/trade_icon',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'shopMainPanel',
                 requiresFeature: 'shop.enabled',
@@ -79,7 +79,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'auctionHouse',
                 text: '§6Auction House',
                 icon: 'textures/items/gold_ingot',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'openAuctionHouse',
                 // Assuming auctionHouse config exists similarly. Leaving without requiresFeature for now if unknown.
@@ -89,7 +89,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'bountyList',
                 text: '§4Bounty List',
                 icon: 'textures/items/netherite_sword.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'bountyListPanel',
                 sortId: 30
@@ -104,7 +104,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'playerList',
                 text: '§2Player List',
                 icon: 'textures/ui/icon_steve.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'playerListPanel',
                 sortId: 10
@@ -113,7 +113,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'team',
                 text: '§1Team',
                 icon: 'textures/ui/icon_multiplayer.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'teamMainPanel',
                 sortId: 20
@@ -122,7 +122,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'friend',
                 text: '§5Friends',
                 icon: 'textures/ui/icon_steve',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'friendMainPanel',
                 sortId: 25
@@ -137,7 +137,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'myStats',
                 text: '§3My Stats',
                 icon: 'textures/ui/profile_glyph_color.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'myStatsPanel',
                 sortId: 10
@@ -146,7 +146,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'tpaSettings',
                 text: '§5TPA Settings',
                 icon: 'textures/items/ender_pearl',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'tpaSettingsPanel',
                 sortId: 20
@@ -196,7 +196,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'rules',
                 text: '§9Rules',
                 icon: 'textures/items/book_enchanted.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'showRules',
                 sortId: 10
@@ -205,7 +205,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'helpfulLinks',
                 text: '§9Helpful Links',
                 icon: 'textures/items/chain',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'showHelpfulLinks',
                 sortId: 20
@@ -215,13 +215,13 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     staffDashboardPanel: {
         title: 'Staff Dashboard',
         parentPanelId: 'mainPanel',
-        permissionLevel: 3,
+        permission: 'ui.panel.mod',
         items: [
             {
                 id: 'reportManagement',
                 text: '§4Report Management',
                 icon: 'textures/ui/WarningGlyph',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'openPanel',
                 actionValue: 'reportListPanel',
                 sortId: 10
@@ -230,7 +230,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'playerManagement',
                 text: '§3Player Management',
                 icon: 'textures/ui/icon_multiplayer.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'openPanel',
                 actionValue: 'playerManagementPanel',
                 sortId: 20
@@ -239,7 +239,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'moderation',
                 text: '§4Moderation',
                 icon: 'textures/ui/hammer_l.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'openPanel',
                 actionValue: 'moderationPanel',
                 sortId: 30
@@ -248,7 +248,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'floatingText',
                 text: '§5Floating Text',
                 icon: 'textures/ui/text_color_paintbrush',
-                permissionLevel: 1, // Restrict to admin
+                permission: 'ui.panel.admin', // Restrict to admin
                 actionType: 'openPanel',
                 actionValue: 'floatingTextListPanel',
                 sortId: 40
@@ -257,7 +257,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'config',
                 text: '§8Config',
                 icon: 'textures/ui/settings_glyph_color_2x',
-                permissionLevel: 1, // Restrict to admin
+                permission: 'ui.panel.admin', // Restrict to admin
                 actionType: 'openPanel',
                 actionValue: 'configCategoryPanel',
                 sortId: 50
@@ -282,7 +282,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'viewInvites',
                 text: 'View Invites',
                 icon: 'textures/ui/mail_icon',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'teamInvitesPanel'
             },
@@ -290,7 +290,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'searchTeam',
                 text: 'Search Team ID',
                 icon: 'textures/ui/magnifyingGlass',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'teamSearchPanel'
             },
@@ -298,7 +298,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'browseTeam',
                 text: 'Browse Team',
                 icon: 'textures/ui/world_glyph_color',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'teamBrowserPanel'
             }
@@ -362,7 +362,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     reportListPanel: {
         title: 'Active Reports',
         parentPanelId: 'staffDashboardPanel',
-        permissionLevel: 3,
+        permission: 'ui.panel.mod',
         items: [] // Dynamically populated
     },
     reportActionsPanel: {
@@ -373,7 +373,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'assignReport',
                 text: 'Assign to Me',
                 icon: 'textures/ui/profile_glyph_color.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'functionCall',
                 actionValue: 'assignReport'
             },
@@ -381,7 +381,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'resolveReport',
                 text: 'Mark as Resolved',
                 icon: 'textures/ui/check.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'functionCall',
                 actionValue: 'resolveReport'
             },
@@ -389,7 +389,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'clearReport',
                 text: 'Clear Report',
                 icon: 'textures/ui/trash.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'functionCall',
                 actionValue: 'clearReport'
             }
@@ -408,13 +408,13 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     moderationPanel: {
         title: 'Moderation Tools',
         parentPanelId: 'staffDashboardPanel',
-        permissionLevel: 3,
+        permission: 'ui.panel.mod',
         items: [
             {
                 id: 'unbanPlayer',
                 text: 'Unban Player',
                 icon: 'textures/ui/check.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'functionCall',
                 actionValue: 'showUnbanForm'
             },
@@ -422,7 +422,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'unmutePlayer',
                 text: 'Unmute Player',
                 icon: 'textures/ui/mute_off.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'functionCall',
                 actionValue: 'showUnmuteForm'
             }
@@ -431,13 +431,13 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     configCategoryPanel: {
         title: 'Configuration',
         parentPanelId: 'staffDashboardPanel',
-        permissionLevel: 1,
+        permission: 'ui.panel.admin',
         items: [
             {
                 id: 'worldProtection',
                 text: 'World Protection',
                 icon: 'textures/ui/icon_recipe_nature',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'worldProtectionListPanel',
                 sortId: 90
@@ -446,7 +446,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'configTransfer',
                 text: 'Export/Import Configs',
                 icon: 'textures/ui/refresh',
-                permissionLevel: 0, // Only highest permission level
+                permission: 'ui.panel.owner', // Only highest permission level
                 actionType: 'openPanel',
                 actionValue: 'configTransferPanel',
                 sortId: 100
@@ -456,13 +456,13 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     configTransferPanel: {
         title: 'Configuration Transfer',
         parentPanelId: 'configCategoryPanel',
-        permissionLevel: 0,
+        permission: 'ui.panel.owner',
         items: [
             {
                 id: 'exportConfig',
                 text: 'Export Configurations',
                 icon: 'textures/ui/arrow_right',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: 'configExportPanel'
             },
@@ -470,7 +470,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'importConfig',
                 text: 'Import Configurations',
                 icon: 'textures/ui/arrow_left',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: 'configImportPanel'
             }
@@ -479,13 +479,13 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     configExportPanel: {
         title: 'Export Config',
         parentPanelId: 'configTransferPanel',
-        permissionLevel: 0,
+        permission: 'ui.panel.owner',
         items: [] // Modal
     },
     configImportPanel: {
         title: 'Import Config',
         parentPanelId: 'configTransferPanel',
-        permissionLevel: 0,
+        permission: 'ui.panel.owner',
         items: [] // Modal
     },
     worldProtectionListPanel: {
@@ -516,7 +516,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'addRank',
                 text: 'Create New Rank',
                 icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'addRankPanel',
                 sortId: 0 // Show first
@@ -525,7 +525,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'rankSettings',
                 text: 'Settings',
                 icon: 'textures/ui/settings_glyph_color_2x',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'rankSettingsPanel',
                 sortId: 1
@@ -551,7 +551,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     playerManagementPanel: {
         title: 'Player Management',
         parentPanelId: 'staffDashboardPanel',
-        permissionLevel: 3,
+        permission: 'ui.panel.mod',
         items: [] // Dynamically populated
     },
     playerListPanel: {
@@ -567,7 +567,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'setBounty',
                 text: 'Set Bounty',
                 icon: 'textures/ui/realms_green_check.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'bountyPlayer',
                 sortId: 10
@@ -576,7 +576,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'removePlayerBounty',
                 text: 'Remove Bounty',
                 icon: 'textures/ui/cancel.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'removePlayerBounty',
                 sortId: 20
@@ -592,7 +592,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'kick',
                 text: 'Kick',
                 icon: 'textures/ui/cancel.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'functionCall',
                 actionValue: 'kickPlayer'
             },
@@ -600,7 +600,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'mute',
                 text: 'Mute',
                 icon: 'textures/ui/mute_on.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'functionCall',
                 actionValue: 'mutePlayer'
             },
@@ -608,7 +608,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'unmute',
                 text: 'Unmute',
                 icon: 'textures/ui/mute_off.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'functionCall',
                 actionValue: 'unmutePlayer'
             },
@@ -616,7 +616,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'ban',
                 text: 'Ban',
                 icon: 'textures/ui/hammer_l.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'functionCall',
                 actionValue: 'banPlayer'
             },
@@ -624,7 +624,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'freeze',
                 text: 'Freeze',
                 icon: 'textures/ui/icon_lock.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'functionCall',
                 actionValue: 'freezePlayer'
             },
@@ -632,7 +632,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'unfreeze',
                 text: 'Unfreeze',
                 icon: 'textures/ui/icon_unlocked.png',
-                permissionLevel: 3,
+                permission: 'ui.panel.mod',
                 actionType: 'functionCall',
                 actionValue: 'unfreezePlayer'
             },
@@ -641,7 +641,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'tpa',
                 text: 'TPA',
                 icon: 'textures/gui/controls/jump.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'tpaPlayer',
                 sortId: 10
@@ -650,7 +650,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'tpahere',
                 text: 'TPAHere',
                 icon: 'textures/gui/controls/sneak.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'tpaherePlayer',
                 sortId: 20
@@ -659,7 +659,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'bounty',
                 text: 'Bounty',
                 icon: 'textures/items/netherite_sword.png',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'bountyActionsPanel',
                 sortId: 30
@@ -668,7 +668,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'report',
                 text: 'Report Player',
                 icon: 'textures/ui/WarningGlyph',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'reportPlayer',
                 sortId: 40
@@ -743,7 +743,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'economyGeneralSettings',
                 text: 'General Settings',
                 icon: 'textures/ui/settings_glyph_color_2x',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'config_economyGeneralSettings'
             },
@@ -751,7 +751,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'mobDropsSystemPanel',
                 text: 'Mob Drops System',
                 icon: 'textures/items/bone',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'mobDropsSystemPanel'
             },
@@ -759,7 +759,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'stealSystem',
                 text: 'Steal System',
                 icon: 'textures/items/iron_sword',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'config_stealSystem'
             },
@@ -767,7 +767,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'pvpSystem',
                 text: 'PvP System',
                 icon: 'textures/items/diamond_sword',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'config_pvpSystem'
             }
@@ -781,7 +781,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'addMobDrop',
                 text: 'Add New Mob',
                 icon: 'textures/ui/realms_green_check.png',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'addMobDropPanel'
             }
@@ -805,7 +805,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'addXrayOre',
                 text: 'Add New Ore',
                 icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'addXrayOrePanel'
             }
@@ -839,7 +839,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'generalSettings',
                 text: 'General Settings',
                 icon: 'textures/ui/settings_glyph_color_2x',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'config_sidebar'
             },
@@ -847,7 +847,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'sidebarLines',
                 text: 'Scoreboard (Global)',
                 icon: 'textures/ui/text_color_paintbrush',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'sidebarLinesPanel'
             },
@@ -855,7 +855,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'actionBarLines',
                 text: 'Action Bar (Personal)',
                 icon: 'textures/ui/text_color_paintbrush',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'actionBarLinesPanel'
             },
@@ -863,7 +863,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 id: 'placeholders',
                 text: 'Placeholder List',
                 icon: 'textures/ui/infobulb',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'placeholderListPanel'
             }

@@ -19,9 +19,8 @@ export class PlayerPanelHandler implements IPanelHandler {
 
     getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[] | undefined> {
         const config = getConfig();
-        const rank = getPlayerRank(player, config);
         const def = panelDefinitions[panelId];
-        const baseItems = isDefined(def) ? getStaticMenuItems(def, rank.permissionLevel, _context) : [];
+        const baseItems = isDefined(def) ? getStaticMenuItems(player, def, _context) : [];
 
         if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
             const players = getVisiblePlayers(player);
@@ -34,7 +33,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                     icon: getPlayerIcon(p),
                     actionType: 'openPanel',
                     actionValue: 'playerActionsPanel',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 };
             });
             // Append player items to static items (which includes back button at start)
@@ -50,7 +49,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                     id: 'stat_money',
                     text: `§2Balance: §r${formatCurrency(data.balance)}`,
                     icon: 'textures/items/emerald',
-                    permissionLevel: 1024,
+                    permission: 'ui.panel.member',
                     actionType: 'functionCall',
                     actionValue: 'noop'
                 },
@@ -58,7 +57,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                     id: 'stat_rank',
                     text: `§6Rank: §r${data.rankId}`,
                     icon: 'textures/ui/icon_rank',
-                    permissionLevel: 1024,
+                    permission: 'ui.panel.member',
                     actionType: 'functionCall',
                     actionValue: 'noop'
                 },
@@ -66,7 +65,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                     id: 'stat_playtime',
                     text: `§3Playtime: §r${formatDuration(data.totalPlayTime)}`,
                     icon: 'textures/items/clock_item',
-                    permissionLevel: 1024,
+                    permission: 'ui.panel.member',
                     actionType: 'functionCall',
                     actionValue: 'noop'
                 },
@@ -74,7 +73,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                     id: 'stat_kills',
                     text: `§cKills: §r${data.kills}`,
                     icon: 'textures/items/iron_sword',
-                    permissionLevel: 1024,
+                    permission: 'ui.panel.member',
                     actionType: 'functionCall',
                     actionValue: 'noop'
                 },
@@ -82,7 +81,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                     id: 'stat_deaths',
                     text: `§4Deaths: §r${data.deaths}`,
                     icon: 'textures/ui/skull_face',
-                    permissionLevel: 1024,
+                    permission: 'ui.panel.member',
                     actionType: 'functionCall',
                     actionValue: 'noop'
                 }
@@ -110,9 +109,7 @@ export class PlayerPanelHandler implements IPanelHandler {
         if (!isDefined(items)) {
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
-                const config = getConfig();
-                const rank = getPlayerRank(player, config);
-                items = getStaticMenuItems(def, rank.permissionLevel, context);
+                items = getStaticMenuItems(player, def, context);
             } else {
                 return;
             }

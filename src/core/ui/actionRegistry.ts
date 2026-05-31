@@ -39,8 +39,10 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
         const pData = getOrCreatePlayer(player);
 
         const rulesForm = new ActionFormData().title('§l§6Server Rules').body(rules.join('\n'));
+        const { hasPermission } = require('@core/permissionEngine.js');
+        const isAdmin = hasPermission(player, 'ui.panel.admin');
 
-        if (isDefined(pData) && pData.permissionLevel <= 1) {
+        if (isAdmin) {
             rulesForm.button('§l§4Edit Rules', 'textures/ui/icon_setting');
         }
 
@@ -52,7 +54,7 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             return;
         }
 
-        if (isDefined(pData) && pData.permissionLevel <= 1 && (response as ActionFormResponse).selection === 0) {
+        if (isAdmin && (response as ActionFormResponse).selection === 0) {
             return showPanel(player, 'rulesManagementPanel');
         }
     },
@@ -70,7 +72,10 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             form.body(bodyText);
         }
 
-        if (isDefined(pData) && pData.permissionLevel <= 1) {
+        const { hasPermission } = require('@core/permissionEngine.js');
+        const isAdmin = hasPermission(player, 'ui.panel.admin');
+
+        if (isAdmin) {
             form.button('§l§4Edit Links', 'textures/ui/icon_setting');
         }
 
@@ -82,7 +87,7 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             return;
         }
 
-        if (isDefined(pData) && pData.permissionLevel <= 1 && (response as ActionFormResponse).selection === 0) {
+        if (isAdmin && (response as ActionFormResponse).selection === 0) {
             return showPanel(player, 'helpfulLinksManagementPanel');
         }
     },

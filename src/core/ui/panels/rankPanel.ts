@@ -27,7 +27,7 @@ export class RankPanelHandler implements IPanelHandler {
                     id: 'addRank',
                     text: 'Create New Rank',
                     icon: 'textures/ui/color_plus',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: 'addRankPanel',
                     sortId: 0
@@ -36,7 +36,7 @@ export class RankPanelHandler implements IPanelHandler {
                     id: 'rankSettings',
                     text: 'Settings',
                     icon: 'textures/ui/settings_glyph_color_2x',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: 'rankSettingsPanel',
                     sortId: 1
@@ -52,7 +52,7 @@ export class RankPanelHandler implements IPanelHandler {
                     id: rank.id,
                     text: `§l${rank.name}§r\nPriority: ${rank.priority}`,
                     icon: 'textures/ui/permissions_op_crown', // Generic icon
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: 'editRankPanel'
                 });

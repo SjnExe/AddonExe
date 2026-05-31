@@ -26,7 +26,7 @@ interface ShopItemEntry {
     displayName?: string;
     buyPrice: number;
     sellPrice: number;
-    permissionLevel: number;
+    permission?: string;
 }
 
 type ShopEntry = ShopCategoryEntry | ShopItemEntry;
@@ -114,7 +114,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: 'toggleShop',
                 text: toggleText,
                 icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'functionCall',
                 actionValue: 'toggleShop'
             },
@@ -122,7 +122,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: 'addCategory',
                 text: '§l§2+ Add Category',
                 icon: 'textures/ui/color_plus',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: 'addCategoryPanel'
             }
@@ -139,7 +139,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: catName,
                 text: catName,
                 icon: cat.icon,
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: `shopAdminCategoryPanel_${catName}`
             });
@@ -171,7 +171,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                     ...(isNonEmptyString(item?.displayName) ? { displayName: item.displayName } : {}),
                     buyPrice: item?.buyPrice ?? -1,
                     sellPrice: item?.sellPrice ?? -1,
-                    permissionLevel: item?.permissionLevel ?? 1024
+                    permission: item?.permission ?? 'ui.panel.member'
                 };
             })
         ];
@@ -186,7 +186,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: 'addItem',
                 text: '§l§2+ Add Item',
                 icon: 'textures/ui/color_plus',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: `shopAddItemPanel_${categoryName}`
             },
@@ -194,7 +194,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: 'addSubCategory',
                 text: '§l§2+ Add Subcategory',
                 icon: 'textures/ui/color_plus',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: 'addSubCategoryPanel'
             },
@@ -202,7 +202,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: 'editCategory',
                 text: '§l§9* Edit Category',
                 icon: 'textures/ui/icon_setting',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: `shopAdminCategoryActionPanel_${categoryName}`
             }
@@ -224,7 +224,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                         id: entry.id,
                         text: `§6${entry.id}`,
                         icon: sub.icon,
-                        permissionLevel: 0,
+                        permission: 'ui.panel.owner',
                         actionType: 'openPanel',
                         actionValue: `shopAdminSubCategoryItemPanel_${categoryName}_${entry.id}`
                     });
@@ -237,7 +237,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                         id: entry.id,
                         text: item.displayName ?? masterItem.displayName ?? entry.id,
                         ...(isNonEmptyString(icon) ? { icon } : {}),
-                        permissionLevel: 0,
+                        permission: 'ui.panel.owner',
                         actionType: 'functionCall',
                         actionValue: 'editItem'
                     });
@@ -258,7 +258,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: 'addItem',
                 text: '§l§2+ Add Item',
                 icon: 'textures/ui/color_plus',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: `shopAddItemPanel_${categoryName}`
             },
@@ -266,7 +266,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: 'editSubCategory',
                 text: '§l§9* Edit Subcategory',
                 icon: 'textures/ui/icon_setting',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: `shopAdminSubCategoryActionPanel_${subCategoryName}`
             }
@@ -288,7 +288,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                     id: id,
                     text: item.displayName ?? masterItem.displayName ?? id,
                     ...(isNonEmptyString(icon) ? { icon } : {}),
-                    permissionLevel: 0,
+                    permission: 'ui.panel.owner',
                     actionType: 'functionCall',
                     actionValue: 'editItem'
                 });
@@ -306,7 +306,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             id: 'addCustomItem',
             text: '§l§2+ Add Custom Item',
             icon: 'textures/ui/color_plus',
-            permissionLevel: 0,
+            permission: 'ui.panel.owner',
             actionType: 'openPanel',
             actionValue: 'addCustomItemPanel'
         });
@@ -322,7 +322,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: itemId,
                 text: masterItem.displayName ?? itemId,
                 ...(isNonEmptyString(masterItem.icon) ? { icon: masterItem.icon } : {}),
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: 'addItemFromListPanel'
             });
@@ -340,7 +340,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: 'edit',
                 text: 'Edit',
                 icon: 'textures/ui/icon_setting',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: 'editCategoryPanel'
             },
@@ -348,7 +348,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: 'delete',
                 text: '§4Delete',
                 icon: 'textures/ui/trash',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'functionCall',
                 actionValue: 'deleteCategory'
             }
@@ -365,7 +365,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: 'edit',
                 text: 'Edit',
                 icon: 'textures/ui/icon_setting',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'openPanel',
                 actionValue: 'editSubCategoryPanel'
             },
@@ -373,7 +373,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 id: 'delete',
                 text: '§4Delete',
                 icon: 'textures/ui/trash',
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'functionCall',
                 actionValue: 'deleteSubCategory'
             }
@@ -485,7 +485,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             .textField('Icon', 'Icon', { defaultValue: isNonEmptyString(shopItem.icon) ? shopItem.icon : '' })
             .textField('Buy Price', 'Price', { defaultValue: String(shopItem.buyPrice) })
             .textField('Sell Price', 'Price', { defaultValue: String(shopItem.sellPrice) })
-            .textField('Permission', 'Level', { defaultValue: String(shopItem.permissionLevel) });
+            .textField('Permission Node', 'ui.panel.member', { defaultValue: shopItem.permission });
     }
 
     async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
@@ -604,7 +604,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const icon = iconStr;
         const buyPrice = Number.parseInt(isNonEmptyString(buyPriceStr) ? buyPriceStr : '-1', 10);
         const sellPrice = Number.parseInt(isNonEmptyString(sellPriceStr) ? sellPriceStr : '-1', 10);
-        const permissionLevel = Number.parseInt(isNonEmptyString(permLevelStr) ? permLevelStr : '1024', 10);
+        const permission = isNonEmptyString(permLevelStr) ? permLevelStr : 'ui.panel.member';
 
         if (isNonEmptyString(customId) && isNonEmptyString(displayName) && isNonEmptyString(mcId) && !Number.isNaN(buyPrice)) {
             shopAdminManager.addCustomItemToConfig(customId, {
@@ -617,7 +617,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             shopAdminManager.setItem(context.categoryName as string, (context.subCategoryName as string) || undefined, customId, {
                 buyPrice,
                 sellPrice,
-                permissionLevel,
+                permission,
                 icon: icon ?? '',
                 displayName,
                 itemId: customId
@@ -647,13 +647,13 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const icon = iconStr;
         const buyPrice = Number.parseInt(isNonEmptyString(buyPriceStr) ? buyPriceStr : '-1', 10);
         const sellPrice = Number.parseInt(isNonEmptyString(sellPriceStr) ? sellPriceStr : '-1', 10);
-        const permissionLevel = Number.parseInt(isNonEmptyString(permLevelStr) ? permLevelStr : '1024', 10);
+        const permission = isNonEmptyString(permLevelStr) ? permLevelStr : 'ui.panel.member';
 
         if (!Number.isNaN(buyPrice) && isDefined(masterItem)) {
             shopAdminManager.setItem(context.categoryName as string, (context.subCategoryName as string) || undefined, itemId, {
                 buyPrice,
                 sellPrice,
-                permissionLevel,
+                permission,
                 icon: icon ?? '',
                 displayName: masterItem.displayName ?? '',
                 itemId: itemId
@@ -682,12 +682,12 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const icon = vals[2] ?? undefined;
         const bPrice = vals[3] ?? undefined;
         const sPrice = vals[4] ?? undefined;
-        const pLevel = vals[5] ?? undefined;
+        const pLevel = vals[5] as string | undefined;
 
         shopAdminManager.updateShopItem(categoryName, subCategoryName ?? undefined, itemId, {
             buyPrice: isDefined(bPrice) ? Number(bPrice) : -1,
             sellPrice: isDefined(sPrice) ? Number(sPrice) : -1,
-            permissionLevel: isDefined(pLevel) ? Number(pLevel) : 1024,
+            permission: pLevel ?? 'ui.panel.member',
             icon: icon ?? '',
             minecraftId: mId ?? itemId,
             displayName: dName ?? itemId

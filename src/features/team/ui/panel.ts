@@ -24,7 +24,7 @@ export class TeamPanelHandler implements IPanelHandler {
 
         // Base items (Back button)
         const def = panelDefinitions[panelId];
-        const baseItems = isDefined(def) ? getStaticMenuItems(def, 1024) : [];
+        const baseItems = isDefined(def) ? getStaticMenuItems(player, def) : [];
 
         if (panelId === 'teamMainPanel') {
             return this.getTeamMainPanelItems(player, team, baseItems);
@@ -48,7 +48,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/settings_glyph_color_2x',
                     actionType: 'openPanel',
                     actionValue: 'teamSettingPanel',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 },
                 {
                     id: 'teamRequestsBtn',
@@ -56,7 +56,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/user_icon',
                     actionType: 'openPanel',
                     actionValue: 'teamRequestsPanel',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 },
                 {
                     id: 'teamHomeManageBtn',
@@ -64,7 +64,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/portal',
                     actionType: 'openPanel',
                     actionValue: 'teamHomePanel',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 }
             ];
         }
@@ -88,7 +88,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     icon: icon,
                     actionType: 'openPanel',
                     actionValue: 'teamRequestActionPanel',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 };
                 return item;
             });
@@ -102,7 +102,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/check',
                 actionType: 'functionCall',
                 actionValue: 'acceptTeamRequest',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             };
             const deny: PanelItem = {
                 id: 'deny',
@@ -110,7 +110,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/cancel',
                 actionType: 'functionCall',
                 actionValue: 'denyTeamRequest',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             };
             return [...baseItems, accept, deny];
         }
@@ -123,7 +123,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/op',
                 actionType: 'functionCall',
                 actionValue: 'setTeamHome',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             };
             const delHome: PanelItem = {
                 id: 'delHome',
@@ -131,7 +131,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/trash',
                 actionType: 'functionCall',
                 actionValue: 'deleteTeamHome',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             };
             const tpHome: PanelItem = {
                 id: 'tpHome',
@@ -139,7 +139,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/portal',
                 actionType: 'functionCall',
                 actionValue: 'teamTpHome',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             };
             return [...baseItems, setHome, delHome, tpHome];
         }
@@ -155,7 +155,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/mail_icon',
                     actionType: 'openPanel',
                     actionValue: 'teamInviteActionPanel',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 };
                 return item;
             });
@@ -169,7 +169,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/check',
                 actionType: 'functionCall',
                 actionValue: 'acceptTeamInvite',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             };
             const deny: PanelItem = {
                 id: 'deny',
@@ -177,7 +177,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/cancel',
                 actionType: 'functionCall',
                 actionValue: 'denyTeamInvite',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             };
             return [...baseItems, accept, deny];
         }
@@ -191,7 +191,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/world_glyph_color',
                     actionType: 'functionCall',
                     actionValue: 'applyToTeam',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 };
                 return item;
             });
@@ -211,7 +211,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/color_plus',
                     actionType: 'openPanel',
                     actionValue: 'teamCreatePanel',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 },
                 {
                     id: 'teamJoinBtn',
@@ -219,7 +219,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/magnifyingGlass',
                     actionType: 'openPanel',
                     actionValue: 'teamJoinPanel',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 }
             ];
         }
@@ -235,7 +235,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/multiplayer',
                 actionType: 'openPanel',
                 actionValue: 'teamMembersPanel',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             },
             {
                 id: 'teamInfoBtn',
@@ -243,7 +243,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/infobulb',
                 actionType: 'functionCall',
                 actionValue: 'noop',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             },
             {
                 id: 'teamDepositBtn',
@@ -251,7 +251,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/gold_ingot',
                 actionType: 'functionCall',
                 actionValue: 'teamDeposit',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             }
         ];
 
@@ -262,7 +262,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/portal',
                 actionType: 'functionCall',
                 actionValue: 'teamTpHome',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             });
         }
 
@@ -273,7 +273,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/gear',
                 actionType: 'openPanel',
                 actionValue: 'teamManagePanel',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             });
         }
 
@@ -283,7 +283,7 @@ export class TeamPanelHandler implements IPanelHandler {
             icon: 'textures/ui/door',
             actionType: 'functionCall',
             actionValue: 'teamLeave',
-            permissionLevel: 1024
+            permission: 'ui.panel.member'
         });
 
         return items;
@@ -318,7 +318,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: icon,
                 actionType: 'openPanel',
                 actionValue: 'teamMemberActionPanel',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             };
             return item;
         });
@@ -344,7 +344,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/cancel',
                 actionType: 'functionCall',
                 actionValue: 'kickTeamMember',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             });
         }
 
@@ -356,7 +356,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/down_arrow',
                     actionType: 'functionCall',
                     actionValue: 'demoteTeamMember',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 });
             } else {
                 items.push({
@@ -365,7 +365,7 @@ export class TeamPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/up_arrow',
                     actionType: 'functionCall',
                     actionValue: 'promoteTeamMember',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 });
             }
             items.push({
@@ -374,7 +374,7 @@ export class TeamPanelHandler implements IPanelHandler {
                 icon: 'textures/ui/crown',
                 actionType: 'functionCall',
                 actionValue: 'transferTeamOwnership',
-                permissionLevel: 1024
+                permission: 'ui.panel.member'
             });
         }
 
@@ -388,7 +388,7 @@ export class TeamPanelHandler implements IPanelHandler {
         if (!isDefined(items)) {
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
-                items = getStaticMenuItems(def, 1024);
+                items = getStaticMenuItems(player, def);
             } else {
                 return;
             }

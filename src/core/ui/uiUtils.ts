@@ -27,6 +27,7 @@ import { spawnConfig } from '@features/essentials/spawnConfig.default.js';
 import { kitsConfig } from '@features/kit/kitsConfig.default.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/team/teamConfig.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 import { PanelItem, UIContext } from '@ui/types.js';
 
@@ -108,14 +109,14 @@ export function addPaginationButtons(form: ActionFormData, page: number, totalIt
 /**
  * Helper to add pagination items to a PanelItem array.
  */
-export function addPaginationItems(items: PanelItem[], page: number, totalItems: number, permissionLevel: number = 1024): void {
+export function addPaginationItems(items: PanelItem[], page: number, totalItems: number, permission: string = 'ui.panel.member'): void {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
         items.push({
             id: '__prev__',
             text: '§6< Previous Page',
             icon: 'textures/ui/arrow_left.png',
-            permissionLevel,
+            permission,
             actionType: 'functionCall',
             actionValue: 'prevPage'
         });
@@ -125,7 +126,7 @@ export function addPaginationItems(items: PanelItem[], page: number, totalItems:
             id: '__next__',
             text: '§6Next Page >',
             icon: 'textures/ui/arrow_right.png',
-            permissionLevel,
+            permission,
             actionType: 'functionCall',
             actionValue: 'nextPage'
         });
@@ -135,12 +136,12 @@ export function addPaginationItems(items: PanelItem[], page: number, totalItems:
 /**
  * Helper to add a standardized back button to a PanelItem array.
  */
-export function addBackButton(items: PanelItem[], targetPanelId: string, permissionLevel: number = 1024): void {
+export function addBackButton(items: PanelItem[], targetPanelId: string, permission: string = 'ui.panel.member'): void {
     items.push({
         id: '__back__',
         text: '§l§8< Back',
         icon: 'textures/gui/controls/left.png',
-        permissionLevel,
+        permission,
         actionType: 'openPanel',
         actionValue: targetPanelId
     });
@@ -175,18 +176,18 @@ export function getAllSystems(): SystemDefinition[] {
 /**
  * Returns all visible systems for a player (permission filtered).
  */
-export function getVisibleSystems(pData: PlayerData): SystemDefinition[] {
+export function getVisibleSystems(player: mc.Player): SystemDefinition[] {
     return getSystemRegistry().filter((sys) => {
         if (sys.hidden === true) return false;
-        return pData.permissionLevel <= 1;
+        return hasPermission(player, 'ui.panel.admin');
     });
 }
 
 /**
  * Returns unique categories available to the player.
  */
-export function getVisibleCategories(pData: PlayerData): SystemItem[] {
-    const systems = getVisibleSystems(pData);
+export function getVisibleCategories(player: mc.Player): SystemItem[] {
+    const systems = getVisibleSystems(player);
     const categories = new Set<string>();
     for (const sys of systems) {
         if (sys.category !== undefined && sys.category.length > 0) categories.add(sys.category);
@@ -195,7 +196,7 @@ export function getVisibleCategories(pData: PlayerData): SystemItem[] {
     const sortedCategories = [...categories].toSorted((a, b) => a.localeCompare(b));
 
     // Add "Reset" category if Owner
-    if (pData.permissionLevel === 0) {
+    if (hasPermission(player, 'ui.panel.owner')) {
         // Reset isn't a category in systemRegistry, it's a panel.
         // We handle Reset separately in panelBuilder.
     }
@@ -210,8 +211,8 @@ export function getVisibleCategories(pData: PlayerData): SystemItem[] {
 /**
  * Returns systems belonging to a specific category.
  */
-export function getSystemsByCategory(pData: PlayerData, category: string): SystemItem[] {
-    const systems = getVisibleSystems(pData).filter((sys) => sys.category === category);
+export function getSystemsByCategory(player: mc.Player, category: string): SystemItem[] {
+    const systems = getVisibleSystems(player).filter((sys) => sys.category === category);
     return systems
         .map((sys) => ({
             id: sys.configPanelId,

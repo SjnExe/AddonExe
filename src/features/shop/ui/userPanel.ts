@@ -25,7 +25,7 @@ interface ShopItemEntry {
     displayName?: string;
     buyPrice: number;
     sellPrice: number;
-    permissionLevel: number;
+    permission?: string;
 }
 
 type ShopEntry = ShopCategoryEntry | ShopItemEntry;
@@ -78,7 +78,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
             id: 'search',
             text: '§l§6Search Item',
             icon: 'textures/ui/magnifyingGlass',
-            permissionLevel: 1024,
+            permission: 'ui.panel.member',
             actionType: 'openPanel',
             actionValue: 'shopSearchPanel'
         });
@@ -99,7 +99,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                 id: catName,
                 text: catName,
                 icon: cat.icon,
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: `shopCategoryPanel_${catName}`
             });
@@ -160,7 +160,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                 displayName,
                 buyPrice: item.buyPrice,
                 sellPrice: item.sellPrice,
-                permissionLevel: item.permissionLevel
+                permission: item.permission
             });
         }
     }
@@ -191,7 +191,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                     id,
                     buyPrice: item.buyPrice,
                     sellPrice: item.sellPrice,
-                    permissionLevel: item.permissionLevel,
+                    permission: item.permission,
                     type: 'item'
                 };
                 if (isDefined(item.icon)) entry.icon = item.icon;
@@ -220,7 +220,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                         id: entry.name,
                         text: `§6${entry.name}`,
                         icon: entry.icon,
-                        permissionLevel: 1024,
+                        permission: 'ui.panel.member',
                         actionType: 'openPanel',
                         actionValue: `shopItemListPanel_${categoryName}_${entry.name}`
                     });
@@ -253,7 +253,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                         id,
                         buyPrice: item.buyPrice,
                         sellPrice: item.sellPrice,
-                        permissionLevel: item.permissionLevel,
+                        permission: item.permission,
                         type: 'item'
                     };
                     if (isDefined(item.icon)) entry.icon = item.icon;
@@ -280,7 +280,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
             id: entry.id,
             text: `${entry.displayName}\n${priceString}`,
             icon: entry.icon ?? '',
-            permissionLevel: 1024,
+            permission: 'ui.panel.member',
             actionType: 'functionCall',
             actionValue: 'buyOrSell'
         });

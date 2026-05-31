@@ -15,13 +15,13 @@ export class AdminPanelHandler implements IPanelHandler {
         return panelId === 'staffDashboardPanel' || panelId.startsWith('floatingText');
     }
 
-    getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
+    getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
         const items: PanelItem[] = [];
         // Admin Panel uses static items (delegates to sub-panels)
         if (panelId === 'staffDashboardPanel') {
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
-                const staticItems = getStaticMenuItems(def, 1); // Admin
+                const staticItems = getStaticMenuItems(player, def);
                 items.push(...staticItems);
             }
             return Promise.resolve(items);
@@ -34,7 +34,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     id: 'placeholderList',
                     text: '§l§6View Placeholders',
                     icon: 'textures/ui/icon_sign',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: 'placeholderListPanel'
                 },
@@ -42,7 +42,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     id: 'create',
                     text: '§l§2+ Create New',
                     icon: 'textures/ui/color_plus',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: 'floatingTextCreatePanel'
                 }
@@ -53,7 +53,7 @@ export class AdminPanelHandler implements IPanelHandler {
                 items.push({
                     id: text.id,
                     text: `§6${text.id}§r\n${formatLocation(text.location)}`,
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: 'floatingTextActionPanel'
                 });
@@ -68,7 +68,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     id: 'edit',
                     text: 'Edit Settings',
                     icon: 'textures/ui/icon_setting',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: 'floatingTextEditPanel'
                 },
@@ -76,7 +76,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     id: 'respawn',
                     text: 'Respawn Entity',
                     icon: 'textures/ui/refresh_light',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'respawnText'
                 },
@@ -84,7 +84,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     id: 'despawn',
                     text: 'Despawn Entity',
                     icon: 'textures/ui/cancel',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'despawnText'
                 },
@@ -92,7 +92,7 @@ export class AdminPanelHandler implements IPanelHandler {
                     id: 'delete',
                     text: '§4Delete Text',
                     icon: 'textures/ui/trash',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'deleteText'
                 }

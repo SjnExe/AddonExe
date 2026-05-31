@@ -26,7 +26,7 @@ export class KitPanelHandler implements IPanelHandler {
                     id: 'toggleKits',
                     text: isEnabled ? '§2Kit System: ENABLED' : '§4Kit System: DISABLED',
                     icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'toggleKits'
                 },
@@ -34,7 +34,7 @@ export class KitPanelHandler implements IPanelHandler {
                     id: 'createKit',
                     text: '§l§2+ Create New Kit',
                     icon: 'textures/ui/color_plus',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'createKit'
                 }
@@ -50,7 +50,7 @@ export class KitPanelHandler implements IPanelHandler {
                     id: name,
                     text: `${name}\n${kit.enabled ? '§2[Enabled]' : '§4[Disabled]'}`,
                     icon: 'textures/ui/inventory_icon',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: `kitActionMenu_${name}`
                 });
@@ -67,7 +67,7 @@ export class KitPanelHandler implements IPanelHandler {
                     id: 'editSettings',
                     text: 'Edit Settings',
                     icon: 'textures/ui/icon_setting',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: `kitSettingsPanel_${kitName}`
                 },
@@ -75,7 +75,7 @@ export class KitPanelHandler implements IPanelHandler {
                     id: 'editItems',
                     text: 'Edit Items',
                     icon: 'textures/ui/inventory_icon',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: `kitItemsPanel_${kitName}`
                 },
@@ -83,7 +83,7 @@ export class KitPanelHandler implements IPanelHandler {
                     id: 'deleteKit',
                     text: '§4Delete Kit',
                     icon: 'textures/ui/cancel',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'deleteKit'
                 }
@@ -99,7 +99,7 @@ export class KitPanelHandler implements IPanelHandler {
                     id: 'addItem',
                     text: '§l§2+ Add New Item (Manual)',
                     icon: 'textures/ui/color_plus',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'addKitItem'
                 },
@@ -107,7 +107,7 @@ export class KitPanelHandler implements IPanelHandler {
                     id: 'addItemHand',
                     text: '§l§6+ Add Item From Hand',
                     icon: 'textures/ui/inventory_icon',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'addKitItemHand'
                 }
@@ -123,7 +123,7 @@ export class KitPanelHandler implements IPanelHandler {
                         id: String(realIdx),
                         text: `${realIdx + 1}. ${item.typeId.replace('minecraft:', '')} x${item.amount}`,
                         icon: 'textures/items/item_frame',
-                        permissionLevel: 1,
+                        permission: 'ui.panel.admin',
                         actionType: 'functionCall',
                         actionValue: 'manageKitItem'
                     });
@@ -150,7 +150,7 @@ export class KitPanelHandler implements IPanelHandler {
                 .textField('Description', 'Description', { defaultValue: kit.description || '' })
                 .textField('Icon', 'Icon', { defaultValue: kit.icon || '' })
                 .textField('Cooldown', 'Cooldown', { defaultValue: String(kit.cooldownSeconds) })
-                .textField('Permission', 'Level', { defaultValue: String(kit.permissionLevel) })
+                .textField('Permission Node', 'ui.panel.member', { defaultValue: kit.permission })
                 .textField('Price', 'Price', { defaultValue: String(kit.price || 0) });
         }
         return undefined;
@@ -280,7 +280,7 @@ export class KitPanelHandler implements IPanelHandler {
         if (response.formValues) {
             const [enabled, name, desc, icon, cooldownStr, permStr, priceStr] = response.formValues as [boolean, string, string, string, string, string, string];
             const cooldown = Number.parseInt(cooldownStr) || 0;
-            const perm = Number.parseInt(permStr) || 1024;
+            const perm = permStr || 'ui.panel.member';
             const price = Number.parseInt(priceStr) || 0;
 
             kitAdminManager.updateKitSettings(kitName, {
@@ -288,7 +288,7 @@ export class KitPanelHandler implements IPanelHandler {
                 description: desc,
                 icon,
                 cooldownSeconds: cooldown,
-                permissionLevel: perm,
+                permission: perm,
                 price
             });
 

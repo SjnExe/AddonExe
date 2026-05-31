@@ -24,7 +24,7 @@ export class FriendPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/multiplayer',
                     actionType: 'openPanel',
                     actionValue: 'friendListPanel',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 },
                 {
                     id: 'friendAddBtn',
@@ -32,7 +32,7 @@ export class FriendPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/plus',
                     actionType: 'openPanel',
                     actionValue: 'friendAddPanel',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 },
                 {
                     id: 'friendReqBtn',
@@ -40,7 +40,7 @@ export class FriendPanelHandler implements IPanelHandler {
                     icon: 'textures/ui/invite_base',
                     actionType: 'openPanel',
                     actionValue: 'friendRequestsPanel',
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 }
             ];
         }
@@ -68,7 +68,7 @@ export class FriendPanelHandler implements IPanelHandler {
                     icon: icon,
                     actionType: 'functionCall',
                     actionValue: `manageFriend:${fid}`,
-                    permissionLevel: 1024
+                    permission: 'ui.panel.member'
                 };
             });
         }

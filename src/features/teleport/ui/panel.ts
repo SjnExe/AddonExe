@@ -27,7 +27,7 @@ export class TeleportPanelHandler implements IPanelHandler {
                     id: 'tpaDisabled',
                     text: '§cSystem Globally Disabled',
                     icon: 'textures/ui/warning_alert',
-                    permissionLevel: 1024,
+                    permission: 'ui.panel.member',
                     actionType: 'functionCall',
                     actionValue: 'noop'
                 });
@@ -39,7 +39,7 @@ export class TeleportPanelHandler implements IPanelHandler {
                     id: 'toggleTpa',
                     text: isEnabled ? '§2Incoming Requests: Allowed' : '§4Incoming Requests: Blocked',
                     icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
-                    permissionLevel: 1024,
+                    permission: 'ui.panel.member',
                     actionType: 'functionCall',
                     actionValue: 'toggleTpa'
                 },
@@ -47,7 +47,7 @@ export class TeleportPanelHandler implements IPanelHandler {
                     id: 'blockList',
                     text: 'Blocked Players',
                     icon: 'textures/ui/icon_multiplayer',
-                    permissionLevel: 1024,
+                    permission: 'ui.panel.member',
                     actionType: 'openPanel',
                     actionValue: 'tpaBlockListPanel'
                 }
@@ -63,7 +63,7 @@ export class TeleportPanelHandler implements IPanelHandler {
                 items.push({
                     id: id,
                     text: name,
-                    permissionLevel: 1024,
+                    permission: 'ui.panel.member',
                     actionType: 'functionCall',
                     actionValue: 'unblockPlayer'
                 });

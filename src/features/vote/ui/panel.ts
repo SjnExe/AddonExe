@@ -9,9 +9,8 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export async function showVoteMenu(player: mc.Player) {
     const activeVote = getActiveVote();
-    const config = getConfig();
-    const rank = getPlayerRank(player, config);
-    const isAdmin = rank.permissionLevel <= 1;
+    const { hasPermission } = require('@core/permissionEngine.js');
+    const isAdmin = hasPermission(player, 'ui.panel.admin');
 
     await (isDefined(activeVote) ? handleActiveVote(player, activeVote, isAdmin) : handleNoActiveVote(player, isAdmin));
 }

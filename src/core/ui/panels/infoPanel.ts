@@ -33,14 +33,13 @@ export class InfoPanelHandler implements IPanelHandler {
 
     getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         const pData = getOrCreatePlayer(player);
-        const permissionLevel = pData.permissionLevel;
         const page = (context.page as number) || 1;
 
         if (panelId === 'infoPanel') {
             const items: PanelItem[] = [];
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
-                const staticItems = getStaticMenuItems(def, permissionLevel);
+                const staticItems = getStaticMenuItems(player, def);
                 items.push(...staticItems);
             }
             return Promise.resolve(items);
@@ -57,18 +56,19 @@ export class InfoPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'rulesManagementPanel') {
-            return Promise.resolve(this.getRulesManagementItems(pData, page));
+            return Promise.resolve(this.getRulesManagementItems(player, page));
         }
 
         if (panelId === 'ruleActionPanel') {
             const items: PanelItem[] = [];
             addBackButton(items, 'rulesManagementPanel');
-            if (permissionLevel <= 1) {
+            const { hasPermission } = require('@core/permissionEngine.js');
+            if (hasPermission(player, 'ui.panel.admin')) {
                 items.push({
                     id: 'delete',
                     text: 'Delete Rule',
                     icon: 'textures/ui/trash',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'deleteRule'
                 });
@@ -77,18 +77,19 @@ export class InfoPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'helpfulLinksManagementPanel') {
-            return Promise.resolve(this.getHelpfulLinksManagementItems(pData, page));
+            return Promise.resolve(this.getHelpfulLinksManagementItems(player, page));
         }
 
         if (panelId === 'helpfulLinkActionPanel') {
             const items: PanelItem[] = [];
             addBackButton(items, 'helpfulLinksManagementPanel');
-            if (permissionLevel <= 1) {
+            const { hasPermission } = require('@core/permissionEngine.js');
+            if (hasPermission(player, 'ui.panel.admin')) {
                 items.push({
                     id: 'delete',
                     text: 'Delete Link',
                     icon: 'textures/ui/trash',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'deleteHelpfulLink'
                 });
@@ -112,7 +113,7 @@ export class InfoPanelHandler implements IPanelHandler {
                 id: `link_${idx}`,
                 text: link.title,
                 icon: 'textures/ui/world_glyph_color_2x_black_outline',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'functionCall',
                 actionValue: 'printLink',
                 sortId: idx
@@ -121,15 +122,16 @@ export class InfoPanelHandler implements IPanelHandler {
         return items;
     }
 
-    private getRulesManagementItems(pData: PlayerData, page: number): PanelItem[] {
+    private getRulesManagementItems(player: mc.Player, page: number): PanelItem[] {
         const items: PanelItem[] = [];
         addBackButton(items, 'infoPanel');
-        if (pData.permissionLevel <= 1) {
+        const { hasPermission } = require('@core/permissionEngine.js');
+        if (hasPermission(player, 'ui.panel.admin')) {
             items.push({
                 id: 'addRule',
                 text: '§l§2+ Add Rule',
                 icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'addRulePanel'
             });
@@ -142,7 +144,7 @@ export class InfoPanelHandler implements IPanelHandler {
             items.push({
                 id: String(realIndex),
                 text: rule,
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'ruleActionPanel'
             });
@@ -151,15 +153,16 @@ export class InfoPanelHandler implements IPanelHandler {
         return items;
     }
 
-    private getHelpfulLinksManagementItems(pData: PlayerData, page: number): PanelItem[] {
+    private getHelpfulLinksManagementItems(player: mc.Player, page: number): PanelItem[] {
         const items: PanelItem[] = [];
         addBackButton(items, 'infoPanel');
-        if (pData.permissionLevel <= 1) {
+        const { hasPermission } = require('@core/permissionEngine.js');
+        if (hasPermission(player, 'ui.panel.admin')) {
             items.push({
                 id: 'addLink',
                 text: '§l§2+ Add Link',
                 icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'addHelpfulLinkPanel'
             });
@@ -173,7 +176,7 @@ export class InfoPanelHandler implements IPanelHandler {
                 id: String(realIndex),
                 text: `§l§6${link.title}§r\n§9${link.url}`,
                 icon: 'textures/items/chain',
-                permissionLevel: 1024,
+                permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'helpfulLinkActionPanel'
             });

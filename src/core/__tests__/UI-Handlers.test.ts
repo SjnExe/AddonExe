@@ -7,7 +7,7 @@ vi.mock('../configManager.js', () => ({
     getConfig: vi.fn().mockReturnValue({})
 }));
 vi.mock('../rankManager.js', () => ({
-    getPlayerRank: vi.fn().mockReturnValue({ permissionLevel: 0 })
+    getPlayerRank: vi.fn().mockReturnValue({ permission: 'ui.panel.owner' })
 }));
 vi.mock('../playerDataManager.js', () => ({
     getVisiblePlayers: vi.fn().mockReturnValue([]),
@@ -29,8 +29,8 @@ describe('UI Handlers Response Logic', () => {
 
         // Mock getItems specifically for this test
         vi.spyOn(handler, 'getItems').mockResolvedValue([
-            { id: '1', actionType: 'openPanel', actionValue: 'somePanel', permissionLevel: 1024, text: 'Test' },
-            { id: '2', actionType: 'functionCall', actionValue: 'noop', permissionLevel: 1024, text: 'Test2' }
+            { id: '1', actionType: 'openPanel', actionValue: 'somePanel', permission: 'ui.panel.member', text: 'Test' },
+            { id: '2', actionType: 'functionCall', actionValue: 'noop', permission: 'ui.panel.member', text: 'Test2' }
         ]);
 
         // ActionFormData selection 0 -> openPanel

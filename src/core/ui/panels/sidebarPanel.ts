@@ -15,11 +15,11 @@ export class SidebarPanelHandler implements IPanelHandler {
         return panelId === 'sidebarMainPanel' || panelId.startsWith('sidebarLine') || panelId.startsWith('actionBarLine') || panelId === 'actionBarLinesPanel' || panelId === 'placeholderListPanel';
     }
 
-    getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined | void> {
+    getBody(player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined | void> {
         if (panelId === 'placeholderListPanel') {
             return Promise.resolve(
                 `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
-                    `{server_name}, {tps}, {online}, {max_players}, {time}, {date}\n\n` +
+                    `{server_name}, {tps}, {online}, {maxplayers}, {time}, {date}\n\n` +
                     `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
                     `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
             );
@@ -27,13 +27,13 @@ export class SidebarPanelHandler implements IPanelHandler {
         return Promise.resolve();
     }
 
-    getItems(_player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
+    getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
         const items: PanelItem[] = [];
 
         if (panelId === 'sidebarMainPanel') {
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
-                const staticItems = getStaticMenuItems(def, 1); // Admin
+                const staticItems = getStaticMenuItems(player, def);
                 items.push(...staticItems);
             }
             return Promise.resolve(items);
@@ -58,7 +58,7 @@ export class SidebarPanelHandler implements IPanelHandler {
             id: 'addLine',
             text: '§l§2+ Add Line',
             icon: 'textures/ui/color_plus',
-            permissionLevel: 1,
+            permission: 'ui.panel.admin',
             actionType: 'openPanel',
             actionValue: isSidebar ? 'sidebarLineAddPanel' : 'actionBarLineAddPanel'
         });
@@ -71,7 +71,7 @@ export class SidebarPanelHandler implements IPanelHandler {
             items.push({
                 id: String(idx),
                 text: `${idx + 1}. ${line}`,
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: isSidebar ? 'sidebarLineActionPanel' : 'actionBarLineActionPanel'
             });
@@ -88,7 +88,7 @@ export class SidebarPanelHandler implements IPanelHandler {
                 id: 'edit',
                 text: 'Edit',
                 icon: 'textures/ui/icon_setting',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'functionCall',
                 actionValue: 'editLine'
             },
@@ -96,7 +96,7 @@ export class SidebarPanelHandler implements IPanelHandler {
                 id: 'moveUp',
                 text: 'Move Up',
                 icon: 'textures/gui/controls/up',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'functionCall',
                 actionValue: 'moveUp'
             },
@@ -104,7 +104,7 @@ export class SidebarPanelHandler implements IPanelHandler {
                 id: 'moveDown',
                 text: 'Move Down',
                 icon: 'textures/gui/controls/down',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'functionCall',
                 actionValue: 'moveDown'
             },
@@ -112,7 +112,7 @@ export class SidebarPanelHandler implements IPanelHandler {
                 id: 'delete',
                 text: 'Delete',
                 icon: 'textures/ui/trash',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'functionCall',
                 actionValue: 'deleteLine'
             }
@@ -120,7 +120,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         return items;
     }
 
-    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined | void> {
+    buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined | void> {
         if (panelId === 'sidebarLineEditPanel') {
             const config = getSidebarConfig();
             const lines = config.sidebarLines;

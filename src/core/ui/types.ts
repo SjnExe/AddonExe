@@ -40,8 +40,8 @@ export interface PanelItem {
     text: string;
     /** An optional icon texture path. */
     icon?: string;
-    /** The minimum permission level required to see this button. */
-    permissionLevel: number;
+    /** The permission node required to see this button. Defaults to 'ui.panel.member' if not specified. */
+    permission?: string;
     /** The action to perform when clicked. */
     actionType: 'openPanel' | 'functionCall';
     /** The ID of the panel to open or the function to call. */
@@ -59,8 +59,8 @@ export interface PanelDefinition {
     parentPanelId: string | undefined;
     /** The buttons to display on this panel. */
     items: PanelItem[];
-    /** Optional: Minimum permission level to view this panel. */
-    permissionLevel?: number;
+    /** Optional: Permission node required to view this panel. */
+    permission?: string;
     /** Optional: Static body text for the panel. */
     body?: string;
 }
@@ -96,14 +96,14 @@ export interface ShopListEntry {
     icon?: string;
     buyPrice?: number;
     sellPrice?: number;
-    permissionLevel?: number;
+    permission?: string;
     items?: Record<string, ShopItem>;
 }
 
 export interface ShopItem {
     buyPrice: number;
     sellPrice: number;
-    permissionLevel: number;
+    permission?: string;
     icon?: string;
     displayName?: string;
     itemId?: string; // Minecraft ID

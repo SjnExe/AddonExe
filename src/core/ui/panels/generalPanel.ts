@@ -25,9 +25,7 @@ export class GeneralPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [];
         const def = panelDefinitions[panelId];
         if (isDefined(def)) {
-            const config = getConfig();
-            const rank = getPlayerRank(player, config);
-            const staticItems = getStaticMenuItems(def, rank.permissionLevel);
+            const staticItems = getStaticMenuItems(player, def);
             items.push(...staticItems);
         }
         return Promise.resolve(items);

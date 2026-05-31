@@ -6,7 +6,7 @@ export interface Kit {
     enabled: boolean;
     description: string;
     cooldownSeconds: number;
-    permissionLevel: number;
+    permission: string;
     price: number;
     icon: string;
     items: ItemInfo[];
@@ -14,7 +14,7 @@ export interface Kit {
 
 interface KitOptions {
     cooldown?: number;
-    permissionLevel?: number;
+    permission?: string;
     price?: number;
     icon?: string;
     description?: string;
@@ -24,7 +24,7 @@ interface KitSettings {
     enabled?: boolean;
     description?: string;
     cooldownSeconds?: number;
-    permissionLevel?: number;
+    permission?: string;
     price?: number;
     icon?: string;
 }
@@ -46,7 +46,7 @@ export function createKit(kitName: string, options: KitOptions = {}): ActionResu
 
     const {
         cooldown = 3600,
-        permissionLevel = 1024, // Default to Member
+        permission = 'ui.panel.member', // Default to Member
         price = 0,
         icon = 'textures/ui/inventory_icon',
         description = 'A new custom kit.'
@@ -62,7 +62,7 @@ export function createKit(kitName: string, options: KitOptions = {}): ActionResu
         enabled: false, // Disabled by default
         description: description,
         cooldownSeconds: cooldown,
-        permissionLevel: permissionLevel,
+        permission: permission,
         price: price,
         icon: icon,
         items: []

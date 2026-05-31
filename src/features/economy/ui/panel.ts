@@ -25,7 +25,7 @@ export class EconomyPanelHandler implements IPanelHandler {
         if (panelId === 'economyPanel') {
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
-                const staticItems = getStaticMenuItems(def, pData.permissionLevel);
+                const staticItems = getStaticMenuItems(player, def);
                 items.push(...staticItems);
             }
             return items;
@@ -35,7 +35,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             addBackButton(items, 'economyPanel');
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
-                const staticItems = getStaticMenuItems(def, pData.permissionLevel);
+                const staticItems = getStaticMenuItems(player, def);
                 items.push(...staticItems);
             }
 
@@ -52,7 +52,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                     id: mobId,
                     text: `${mobId}\n${color}${formatCurrency(amount)}`,
                     icon: 'textures/ui/egg_icon',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: 'editMobDropPanel'
                 });
@@ -71,7 +71,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                     id: 'edit',
                     text: 'Edit Value',
                     icon: 'textures/ui/icon_setting',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'editMobValue'
                 },
@@ -79,7 +79,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                     id: 'delete',
                     text: '§4Delete',
                     icon: 'textures/ui/trash',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'deleteMobDrop'
                 }
