@@ -7,7 +7,7 @@ vi.mock('../configManager.js', () => ({
     getConfig: vi.fn().mockReturnValue({})
 }));
 vi.mock('../rankManager.js', () => ({
-    getPlayerRank: vi.fn().mockReturnValue({ permissionLevel: 0 })
+    getPlayerRank: vi.fn().mockReturnValue({ permission: 'ui.panel.owner' })
 }));
 vi.mock('../playerDataManager.js', () => ({
     getVisiblePlayers: vi.fn().mockReturnValue([]),

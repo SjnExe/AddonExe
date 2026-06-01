@@ -4,15 +4,16 @@ import { ActionFormData, ModalFormData } from '@minecraft/server-ui';
 import { getConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { getValueFromPath } from '@core/objectUtils.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, loadPlayerData } from '@core/playerDataManager.js';
-import { getPlayerRank } from '@core/rankManager.js';
+
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 import { panelDefinitions } from '@ui/panelRegistry.js';
 import { MainConfig, PanelDefinition, PanelItem, UIContext } from '@ui/types.js';
 
-export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: number, context?: UIContext): PanelItem[] {
+export function getStaticMenuItems(player: mc.Player, panelDef: PanelDefinition, context?: UIContext): PanelItem[] {
     const config = getConfig() as unknown as MainConfig;
     const items = (isDefined(panelDef.items) ? panelDef.items : [])
         .filter((item: PanelItem) => {
@@ -25,7 +26,7 @@ export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: n
                 // Fallback for older hardcoded definition
                 return false;
             }
-            return permissionLevel <= item.permissionLevel;
+            return hasPermission(player, item.permission ?? 'ui.panel.member');
         })
         .toSorted((a: PanelItem, b: PanelItem) => (a.sortId ?? 0) - (b.sortId ?? 0));
 
@@ -37,7 +38,7 @@ export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: n
             id: '__back__',
             text: '§l§8< Back',
             icon: 'textures/gui/controls/left.png',
-            permissionLevel: 1024,
+            permission: 'ui.panel.member',
             actionType: 'openPanel',
             actionValue: isDefined(context) && isNonEmptyString(context.returnPanel) ? context.returnPanel : (panelDef.parentPanelId as string)
         });
@@ -47,12 +48,8 @@ export function getStaticMenuItems(panelDef: PanelDefinition, permissionLevel: n
 
 export async function buildPanelForm(player: mc.Player, panelId: string, context: UIContext): Promise<ActionFormData | ModalFormData | undefined> {
     try {
-        const config = getConfig();
-        const rank = getPlayerRank(player, config);
-        const permissionLevel = rank.permissionLevel;
-
         const panelDef = panelDefinitions[panelId];
-        if (panelDef && typeof panelDef.permissionLevel === 'number' && permissionLevel > panelDef.permissionLevel) {
+        if (panelDef && isNonEmptyString(panelDef.permission) && !hasPermission(player, panelDef.permission)) {
             // Access Denied
             return undefined;
         }
@@ -74,7 +71,7 @@ export async function buildPanelForm(player: mc.Player, panelId: string, context
 
         // 2. Fallback: Static Definition
         if (isDefined(panelDef)) {
-            const items = getStaticMenuItems(panelDef, permissionLevel, context);
+            const items = getStaticMenuItems(player, panelDef, context);
             if (items.length > 0 || isDefined(panelDef.parentPanelId) || isNonEmptyString(context.returnPanel)) {
                 return buildActionFormFromItems(player, panelId, context, items);
             }

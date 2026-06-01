@@ -1,3 +1,4 @@
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -6,7 +7,6 @@ import { refreshXrayCache } from '@features/anticheat/xrayDetection.js';
 import { resetConfigSection } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
 import { getValueFromPath, setValueByPath } from '@core/objectUtils.js';
-import { getOrCreatePlayer, type PlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -40,41 +40,39 @@ export class ConfigPanelHandler implements IPanelHandler {
     }
 
     getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
-        const pData: PlayerData = getOrCreatePlayer(player);
-
         if (panelId === 'configCategoryPanel') {
-            return Promise.resolve(this.getCategoryPanelItems(pData, context));
+            return Promise.resolve(this.getCategoryPanelItems(player, context));
         }
 
         if (panelId.startsWith('configSubCategoryPanel_')) {
             const category = panelId.replace('configSubCategoryPanel_', '');
-            return Promise.resolve(this.getSubCategoryPanelItems(pData, category, context));
+            return Promise.resolve(this.getSubCategoryPanelItems(player, category, context));
         }
 
         if (panelId === 'configResetPanel') {
-            return Promise.resolve(this.getResetPanelItems(pData, context));
+            return Promise.resolve(this.getResetPanelItems(player, context));
         }
 
         if (panelId.startsWith('configResetCategoryPanel_')) {
             const category = panelId.replace('configResetCategoryPanel_', '');
-            return Promise.resolve(this.getResetCategoryPanelItems(pData, category, context));
+            return Promise.resolve(this.getResetCategoryPanelItems(player, category, context));
         }
 
         if (panelId === 'configTransferPanel') {
-            return Promise.resolve(this.getTransferPanelItems(pData, context));
+            return Promise.resolve(this.getTransferPanelItems(player, context));
         }
 
         return Promise.resolve([]);
     }
 
-    private getTransferPanelItems(_pData: PlayerData, _context: UIContext): PanelItem[] {
+    private getTransferPanelItems(_player: mc.Player, _context: UIContext): PanelItem[] {
         const items: PanelItem[] = [];
         addBackButton(items, 'configCategoryPanel');
         items.push({
             id: 'exportConfig',
             text: 'Export Configurations',
             icon: 'textures/ui/arrow_right',
-            permissionLevel: 0,
+            permission: 'ui.panel.owner',
             actionType: 'openPanel',
             actionValue: 'configExportPanel'
         });
@@ -82,19 +80,19 @@ export class ConfigPanelHandler implements IPanelHandler {
             id: 'importConfig',
             text: 'Import Configurations',
             icon: 'textures/ui/arrow_left',
-            permissionLevel: 0,
+            permission: 'ui.panel.owner',
             actionType: 'openPanel',
             actionValue: 'configImportPanel'
         });
         return items;
     }
 
-    private getCategoryPanelItems(pData: PlayerData, context: UIContext): PanelItem[] {
+    private getCategoryPanelItems(player: mc.Player, context: UIContext): PanelItem[] {
         const items: PanelItem[] = [];
         addBackButton(items, 'staffDashboardPanel');
-        const categories = getVisibleCategories(pData);
+        const categories = getVisibleCategories(player);
 
-        if (pData.permissionLevel === 0) {
+        if (hasPermission(player, 'ui.panel.owner')) {
             categories.push({
                 id: 'resetSettings',
                 title: '§l§cReset Settings§r',
@@ -111,7 +109,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     id: 'resetSettings',
                     text: '§l§cReset Settings§r',
                     icon: 'textures/ui/wysiwyg_reset',
-                    permissionLevel: 0,
+                    permission: 'ui.panel.owner',
                     actionType: 'openPanel',
                     actionValue: 'configResetPanel'
                 });
@@ -120,7 +118,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     id: cat.id,
                     text: cat.title,
                     icon: cat.icon,
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: `configSubCategoryPanel_${cat.id}`
                 });
@@ -131,10 +129,10 @@ export class ConfigPanelHandler implements IPanelHandler {
         return items;
     }
 
-    private getSubCategoryPanelItems(pData: PlayerData, category: string, context: UIContext): PanelItem[] {
+    private getSubCategoryPanelItems(player: mc.Player, category: string, context: UIContext): PanelItem[] {
         const items: PanelItem[] = [];
         addBackButton(items, 'configCategoryPanel');
-        const systems = getSystemsByCategory(pData, category);
+        const systems = getSystemsByCategory(player, category);
         const paginated = getPaginatedItems(systems, (context.page as number) || 1);
         for (const sys of paginated) {
             if (!isDefined(sys)) continue;
@@ -142,7 +140,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 id: sys.id,
                 text: sys.title,
                 icon: sys.icon,
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: sys.id
             });
@@ -151,10 +149,10 @@ export class ConfigPanelHandler implements IPanelHandler {
         return items;
     }
 
-    private getResetPanelItems(pData: PlayerData, context: UIContext): PanelItem[] {
+    private getResetPanelItems(player: mc.Player, context: UIContext): PanelItem[] {
         const items: PanelItem[] = [];
         addBackButton(items, 'configCategoryPanel');
-        const categories = getVisibleCategories(pData);
+        const categories = getVisibleCategories(player);
 
         categories.push({
             id: 'resetAll',
@@ -171,7 +169,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     id: 'resetAll',
                     text: '§l§4Reset All Systems',
                     icon: 'textures/ui/trash',
-                    permissionLevel: 0,
+                    permission: 'ui.panel.owner',
                     actionType: 'functionCall',
                     actionValue: 'resetAllConfig'
                 });
@@ -180,7 +178,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                     id: cat.id,
                     text: `Reset ${cat.title}`,
                     icon: cat.icon,
-                    permissionLevel: 0,
+                    permission: 'ui.panel.owner',
                     actionType: 'openPanel',
                     actionValue: `configResetCategoryPanel_${cat.id}`
                 });
@@ -191,17 +189,17 @@ export class ConfigPanelHandler implements IPanelHandler {
         return items;
     }
 
-    private getResetCategoryPanelItems(pData: PlayerData, category: string, context: UIContext): PanelItem[] {
+    private getResetCategoryPanelItems(player: mc.Player, category: string, context: UIContext): PanelItem[] {
         const items: PanelItem[] = [];
         addBackButton(items, 'configResetPanel');
-        const systems = getSystemsByCategory(pData, category);
+        const systems = getSystemsByCategory(player, category);
         const paginated = getPaginatedItems(systems, (context.page as number) || 1);
 
         items.push({
             id: 'resetCategory',
             text: `§l§4Reset All ${category}§r`,
             icon: 'textures/ui/trash',
-            permissionLevel: 0,
+            permission: 'ui.panel.owner',
             actionType: 'functionCall',
             actionValue: `resetCategory_${category}`
         });
@@ -212,7 +210,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 id: sys.id,
                 text: `§4Reset ${sys.title}`,
                 icon: sys.icon,
-                permissionLevel: 0,
+                permission: 'ui.panel.owner',
                 actionType: 'functionCall',
                 actionValue: `resetSystem_${sys.id}`
             });
@@ -416,9 +414,8 @@ export class ConfigPanelHandler implements IPanelHandler {
     }
 
     private async handleResetCategory(player: mc.Player, category: string, panelId: string, context: UIContext): Promise<void> {
-        const pData = getOrCreatePlayer(player);
         // Removed dynamic import of getSystemsByCategory as it caused shadowing
-        const systems = getSystemsByCategory(pData, category);
+        const systems = getSystemsByCategory(player, category);
 
         await showConfirmationDialog(player, {
             title: `Reset ${category}`,

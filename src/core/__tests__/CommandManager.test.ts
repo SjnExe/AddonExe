@@ -46,7 +46,7 @@ describe('CommandManager', () => {
             commandPrefix: '!',
             commandSettings: {}
         });
-        mockGetPlayer.mockReturnValue({ permissionLevel: 1024 });
+        mockGetPlayer.mockReturnValue({ permission: 'ui.panel.member' });
         mockGetCooldown.mockReturnValue(0);
     });
 
@@ -90,7 +90,7 @@ describe('CommandManager', () => {
         const cmd = {
             name: 'testint',
             description: '',
-            permissionLevel: 1024,
+            permission: 'ui.panel.member',
             parameters: [{ name: 'val', type: 'int' }],
             execute
         };

@@ -1,17 +1,15 @@
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
-import { getConfig } from '@core/configManager.js';
-import { getPlayerRank } from '@core/rankManager.js';
 import { uiWait } from '@core/utils.js';
 import { castVote, createVote, endVote, getActiveVote, getLastVote } from '@features/vote/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export async function showVoteMenu(player: mc.Player) {
     const activeVote = getActiveVote();
-    const config = getConfig();
-    const rank = getPlayerRank(player, config);
-    const isAdmin = rank.permissionLevel <= 1;
+
+    const isAdmin = hasPermission(player, 'ui.panel.admin');
 
     await (isDefined(activeVote) ? handleActiveVote(player, activeVote, isAdmin) : handleNoActiveVote(player, isAdmin));
 }

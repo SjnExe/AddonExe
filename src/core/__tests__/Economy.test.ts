@@ -23,7 +23,7 @@ vi.mock('../configManager.js', () => ({
         },
         playerDefaults: {
             rankId: 'member',
-            permissionLevel: 1024,
+            permission: 'ui.panel.member',
             xrayNotificationsEnabled: false
         }
     })

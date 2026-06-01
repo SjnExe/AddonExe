@@ -16,14 +16,14 @@ export class ModerationPanelHandler implements IPanelHandler {
         return panelId === 'moderationPanel' || panelId === 'reportListPanel' || panelId === 'reportActionsPanel';
     }
 
-    async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
+    async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
 
         if (panelId === 'moderationPanel') {
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
-                const staticItems = getStaticMenuItems(def, 1); // Admin only
+                const staticItems = getStaticMenuItems(player, def);
                 items.push(...staticItems);
             }
             return items;
@@ -41,7 +41,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                 items.push({
                     id: report.id,
                     text: `[${statusColor}${report.status.toUpperCase()}§r] ${report.reportedPlayerName}\n§8Reported by: ${report.reporterName}`,
-                    permissionLevel: 2,
+                    permission: 'ui.panel.mod',
                     actionType: 'openPanel',
                     actionValue: 'reportActionsPanel'
                 });
@@ -55,7 +55,7 @@ export class ModerationPanelHandler implements IPanelHandler {
             // Static items from registry
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
-                const staticItems = getStaticMenuItems(def, 2);
+                const staticItems = getStaticMenuItems(player, def);
                 items.push(...staticItems.filter((i) => i.id !== '__back__')); // AddBack handled manually
             }
             return items;

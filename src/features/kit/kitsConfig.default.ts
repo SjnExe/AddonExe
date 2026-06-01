@@ -9,7 +9,7 @@ export interface KitDefinition {
     cooldownSeconds: number;
     icon: string;
     price: number;
-    permissionLevel: number;
+    permission: string;
     items: KitItem[];
 }
 
@@ -33,7 +33,7 @@ export const kitsConfig: KitsConfig = {
             cooldownSeconds: 3600, // 1 hour
             icon: 'textures/items/stone_sword',
             price: 0,
-            permissionLevel: 1024,
+            permission: 'ui.panel.member',
             items: [
                 { typeId: 'minecraft:stone_sword', amount: 1 },
                 { typeId: 'minecraft:stone_pickaxe', amount: 1 },
@@ -48,7 +48,7 @@ export const kitsConfig: KitsConfig = {
             cooldownSeconds: 900, // 15 minutes
             icon: 'textures/items/beef_cooked',
             price: 10,
-            permissionLevel: 1024,
+            permission: 'ui.panel.member',
             items: [{ typeId: 'minecraft:cooked_beef', amount: 8 }]
         },
         warrior: {
@@ -57,7 +57,7 @@ export const kitsConfig: KitsConfig = {
             cooldownSeconds: 86_400, // 24 hours
             icon: 'textures/items/iron_sword',
             price: 100,
-            permissionLevel: 1024,
+            permission: 'ui.panel.member',
             items: [
                 { typeId: 'minecraft:iron_sword', amount: 1 },
                 { typeId: 'minecraft:iron_helmet', amount: 1 },
@@ -74,7 +74,7 @@ export const kitsConfig: KitsConfig = {
             cooldownSeconds: 86_400, // 24 hours
             icon: 'textures/items/bow_standby',
             price: 100,
-            permissionLevel: 1024,
+            permission: 'ui.panel.member',
             items: [
                 { typeId: 'minecraft:bow', amount: 1 },
                 { typeId: 'minecraft:arrow', amount: 64 },
@@ -91,7 +91,7 @@ export const kitsConfig: KitsConfig = {
             cooldownSeconds: 43_200, // 12 hours
             icon: 'textures/items/iron_pickaxe',
             price: 50,
-            permissionLevel: 1024,
+            permission: 'ui.panel.member',
             items: [
                 { typeId: 'minecraft:iron_pickaxe', amount: 1 },
                 { typeId: 'minecraft:iron_shovel', amount: 1 },
@@ -106,7 +106,7 @@ export const kitsConfig: KitsConfig = {
             cooldownSeconds: 86_400, // 24 hours
             icon: 'textures/blocks/planks_oak',
             price: 200,
-            permissionLevel: 1024,
+            permission: 'ui.panel.member',
             items: [
                 { typeId: 'minecraft:oak_log', amount: 64 },
                 { typeId: 'minecraft:oak_log', amount: 64 },

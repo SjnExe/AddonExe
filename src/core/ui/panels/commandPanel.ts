@@ -43,7 +43,7 @@ export class CommandPanelHandler implements IPanelHandler {
                     id: cmd.name,
                     text: `${color}/${cmd.name}§r\nPerm: ${perm}`,
                     icon: 'textures/ui/command_block_icon',
-                    permissionLevel: 0,
+                    permission: 'ui.panel.owner',
                     actionType: 'openPanel',
                     actionValue: `commandSettingsPanel_${cmd.name}`
                 });

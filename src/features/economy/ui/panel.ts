@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getEconomyConfig, saveEconomyConfig } from '@core/configurations.js';
-import { getOrCreatePlayer } from '@core/playerDataManager.js';
+
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -20,12 +20,11 @@ export class EconomyPanelHandler implements IPanelHandler {
     async getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         await Promise.resolve();
         const items: PanelItem[] = [];
-        const pData = getOrCreatePlayer(player);
 
         if (panelId === 'economyPanel') {
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
-                const staticItems = getStaticMenuItems(def, pData.permissionLevel);
+                const staticItems = getStaticMenuItems(player, def);
                 items.push(...staticItems);
             }
             return items;
@@ -35,7 +34,7 @@ export class EconomyPanelHandler implements IPanelHandler {
             addBackButton(items, 'economyPanel');
             const def = panelDefinitions[panelId];
             if (isDefined(def)) {
-                const staticItems = getStaticMenuItems(def, pData.permissionLevel);
+                const staticItems = getStaticMenuItems(player, def);
                 items.push(...staticItems);
             }
 
@@ -52,7 +51,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                     id: mobId,
                     text: `${mobId}\n${color}${formatCurrency(amount)}`,
                     icon: 'textures/ui/egg_icon',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: 'editMobDropPanel'
                 });
@@ -71,7 +70,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                     id: 'edit',
                     text: 'Edit Value',
                     icon: 'textures/ui/icon_setting',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'editMobValue'
                 },
@@ -79,7 +78,7 @@ export class EconomyPanelHandler implements IPanelHandler {
                     id: 'delete',
                     text: '§4Delete',
                     icon: 'textures/ui/trash',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'functionCall',
                     actionValue: 'deleteMobDrop'
                 }

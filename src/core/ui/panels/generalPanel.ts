@@ -1,8 +1,6 @@
 import * as mc from '@minecraft/server';
 import { ActionFormResponse } from '@minecraft/server-ui';
 
-import { getConfig } from '@core/configManager.js';
-import { getPlayerRank } from '@core/rankManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { isDefined } from '@lib/guards.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
@@ -25,9 +23,7 @@ export class GeneralPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [];
         const def = panelDefinitions[panelId];
         if (isDefined(def)) {
-            const config = getConfig();
-            const rank = getPlayerRank(player, config);
-            const staticItems = getStaticMenuItems(def, rank.permissionLevel);
+            const staticItems = getStaticMenuItems(player, def);
             items.push(...staticItems);
         }
         return Promise.resolve(items);

@@ -11,10 +11,9 @@ describe('UI Permissions Integrity', () => {
             // Check the panel itself
             const isPanelSensitive = sensitiveKeywords.some((kw) => panelId.toLowerCase().includes(kw));
             if (isPanelSensitive) {
-                // If it's a sensitive panel, it should ideally have a permissionLevel <= 3
-                // (Assuming levels: 1 = Owner, 2 = Admin, 3 = Mod, 4 = Builder, 1024 = Default)
-                if (def.permissionLevel === undefined || def.permissionLevel > 3) {
-                    securityFlaws.push(`Panel ${panelId} is sensitive but has high/default permissionLevel (${def.permissionLevel})`);
+                // If it's a sensitive panel, it should ideally have a permission node other than member
+                if (def.permission === undefined || def.permission === 'ui.panel.member') {
+                    securityFlaws.push(`Panel ${panelId} is sensitive but has high/default permission (${def.permission})`);
                 }
             }
 
@@ -28,8 +27,8 @@ describe('UI Permissions Integrity', () => {
                     );
 
                     if (isItemSensitive) {
-                        if (item.permissionLevel === undefined || item.permissionLevel > 3) {
-                            securityFlaws.push(`Item '${item.text}' in panel ${panelId} is sensitive but has high/default permissionLevel (${item.permissionLevel})`);
+                        if (item.permission === undefined || item.permission === 'ui.panel.member') {
+                            securityFlaws.push(`Item '${item.text}' in panel ${panelId} is sensitive but has high/default permission (${item.permission})`);
                         }
                     }
                 }

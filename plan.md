@@ -64,8 +64,8 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 ## Session 5: UI Refactoring
 
-- [ ] **Update UI Schema & Interfaces:** Refactor `PanelItem` in `src/core/ui/types.ts` to replace `permissionLevel?: number` with `permission?: string`.
-- [ ] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels. Convert old level checks to explicit node names (e.g. `ui.panel.owner` instead of level `0`).
+- [x] **Update UI Schema & Interfaces:** Refactor `PanelItem` in `src/core/ui/types.ts` to replace `permissionLevel?: number` with `permission?: string`.
+- [x] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels. Convert old level checks to explicit node names (e.g. `ui.panel.owner` instead of level `0`).
 
 ## Session 6: Command Refactoring
 
@@ -80,12 +80,12 @@ _(To be updated after each session)_
 
 **Completed in Previous Session:**
 
-- Session 1, 2, 3, and 4 completed: Updated Rank Schema, Player Data Model, stripped legacy migrations, built Permission Engine, implemented Per-Rank caching, added the universal `/scriptevent` listener and rank action handlers, and completely integrated targeting hierarchy logic (`canTarget`) to prevent lower-ranking staff from moderating higher-ranking staff across all moderation/essential commands.
+- Session 5 completed: Refactored the UI Schema and Panel Interfaces (`PanelItem`, `PanelDefinition`, `ShopListEntry`, `ShopItem`) to use `permission` string nodes instead of `permissionLevel` integers. Updated all usages in `uiUtils`, `panelBuilder`, `panelRegistry`, and all feature-specific UI Panel Handlers to evaluate permissions via the new `hasPermission` engine rather than checking raw integers.
 
 **Current State:**
 
-- Session 4 completed. CI errors related to unused `permissionLevel` variables resulting from the `canTarget` conversion have been resolved. The remaining errors and type inconsistencies trace back to interfaces currently undergoing refactor in Session 5 (and now Session 6).
+- UI Refactor is complete. All dynamic UI components now safely map interface elements using permission strings, allowing ranks to control UI visibility using specific nodes (e.g. `ui.panel.mod`).
 
 **Next Session Needs to Know:**
 
-- Execute Session 5 tasks to completely refactor UI schema to use the new string-based permission checks instead of `permissionLevel`. Following that, Session 6 will handle the refactoring of configurations and command definitions.
+- Begin Session 6: Execute Command refactoring tasks. Search the codebase to modify `commandSettings` (in config files) from using `permissionLevel: number` to `permissionNode: string`. Update slash command execution logic (`src/core/commands/` and all features) to utilize the string-based engine.

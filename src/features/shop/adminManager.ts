@@ -20,7 +20,7 @@ interface ItemData {
     displayName: string;
     buyPrice: number;
     sellPrice: number;
-    permissionLevel?: number;
+    permission?: string;
     category?: string;
 }
 
@@ -30,7 +30,7 @@ interface UpdateItemData {
     icon: string;
     buyPrice: number;
     sellPrice: number;
-    permissionLevel: number;
+    permission: string;
 }
 
 /**
@@ -350,7 +350,7 @@ export function addShopItemFromHand(itemStack: mc.ItemStack, categoryName: strin
     const shopItemData = {
         buyPrice,
         sellPrice,
-        permissionLevel: 1024, // Default to everyone
+        permission: 'ui.panel.member', // Default to everyone
         icon: icon,
         displayName: displayName,
         itemId: newId
@@ -372,7 +372,7 @@ export function addShopItemFromHand(itemStack: mc.ItemStack, categoryName: strin
  * @param categoryName - The name of the category.
  * @param subCategoryName - The name of the subcategory, or undefined for the main category.
  * @param itemId - The ID of the item to add/update.
- * @param itemData - The data for the item (buyPrice, sellPrice, permissionLevel).
+ * @param itemData - The data for the item (buyPrice, sellPrice, permission).
  * @returns The result of the operation.
  */
 export function setItem(categoryName: string, subCategoryName: string | undefined, itemId: string, itemData: ItemData): ActionResult {
@@ -395,7 +395,7 @@ export function setItem(categoryName: string, subCategoryName: string | undefine
     targetContainer.items[itemId] = {
         buyPrice: itemData.buyPrice,
         sellPrice: itemData.sellPrice,
-        permissionLevel: itemData.permissionLevel ?? 1024,
+        permission: itemData.permission ?? 'ui.panel.member',
         icon: itemData.icon,
         displayName: itemData.displayName
     };
@@ -513,7 +513,7 @@ export function updateShopItem(categoryName: string, subCategoryName: string | u
     // Update shop-specific properties
     targetContainer.items[itemId].buyPrice = newData.buyPrice;
     targetContainer.items[itemId].sellPrice = newData.sellPrice;
-    targetContainer.items[itemId].permissionLevel = newData.permissionLevel;
+    targetContainer.items[itemId].permission = newData.permission;
     // Also update denormalized data like icon and displayName for consistency
     targetContainer.items[itemId].icon = newData.icon;
     targetContainer.items[itemId].displayName = newData.displayName;

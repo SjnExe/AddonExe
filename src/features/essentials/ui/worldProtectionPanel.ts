@@ -19,7 +19,7 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
                     id: 'addZone',
                     text: 'Add New Zone',
                     icon: 'textures/ui/color_plus',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: 'addWorldProtectionPanel',
                     sortId: 0
@@ -31,7 +31,7 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
                     id: `zone_${zone.id}`,
                     text: zone.name,
                     icon: 'textures/ui/icon_recipe_nature',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: 'editWorldProtectionPanel',
                     sortId: index + 1

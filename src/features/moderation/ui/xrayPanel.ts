@@ -17,12 +17,12 @@ export class XrayPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [];
 
         if (panelId === 'xrayOresPanel') {
-            addBackButton(items, 'configCategoryPanel', 1);
+            addBackButton(items, 'configCategoryPanel', 'ui.panel.admin');
             items.push({
                 id: 'addOre',
                 text: '§l§2+ Add Ore',
                 icon: 'textures/ui/color_plus',
-                permissionLevel: 1,
+                permission: 'ui.panel.admin',
                 actionType: 'openPanel',
                 actionValue: 'addXrayOrePanel'
             });
@@ -38,12 +38,12 @@ export class XrayPanelHandler implements IPanelHandler {
                     id: key,
                     text: `${ore.oreName}\n${ore.enabled ? '§2[Enabled]' : '§4[Disabled]'}`,
                     icon: 'textures/blocks/diamond_ore',
-                    permissionLevel: 1,
+                    permission: 'ui.panel.admin',
                     actionType: 'openPanel',
                     actionValue: `editXrayOrePanel_${key}`
                 });
             }
-            addPaginationItems(items, (context.page as number) || 1, oreKeys.length, 1);
+            addPaginationItems(items, (context.page as number) || 1, oreKeys.length, 'ui.panel.admin');
             return items;
         }
 

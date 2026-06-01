@@ -1,3 +1,4 @@
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
@@ -59,8 +60,8 @@ export function listKits(player: mc.Player): KitInfo[] {
             if (!isDefined(kit) || kit.enabled !== true) {
                 return false;
             }
-            const requiredPermission = (isDefined(kit) ? kit.permissionLevel : undefined) ?? 1024;
-            return pData.permissionLevel <= requiredPermission;
+
+            return hasPermission(player, kit.permission);
         })
         .map((kitName) => {
             const kit = kitDefs[kitName];
@@ -131,8 +132,8 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     }
 
     // Check permissions
-    const requiredPermission = (isDefined(kit) ? kit.permissionLevel : undefined) ?? 1024;
-    if (pData.permissionLevel > requiredPermission) {
+
+    if (!hasPermission(player, kit.permission)) {
         return { success: false, message: 'You do not have permission to claim this kit.' };
     }
 
