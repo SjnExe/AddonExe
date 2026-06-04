@@ -67,10 +67,20 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 - [x] **Update UI Schema & Interfaces:** Refactor `PanelItem` in `src/core/ui/types.ts` to replace `permissionLevel?: number` with `permission?: string`.
 - [x] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels. Convert old level checks to explicit node names (e.g. `ui.panel.owner` instead of level `0`).
 
-## Session 6: Command Refactoring
+## Session 6: Command Infrastructure & Config Refactoring
 
 - [ ] **Config Refactoring:** Search for and update other configuration interfaces (like `commandSettings` in `config.default.ts`) to replace `permissionLevel: number` with `permissionNode: string`.
-- [ ] **Command Permission Verification:** Ensure all slash commands (`src/core/commands/` and `src/features/*/commands/`) check against the new string-based node system instead of `permissionLevel`.
+- [ ] **Command Registration Engine:** Update `src/core/commands/commandManager.ts` (and any related interface) to expect `permissionNode` instead of `permissionLevel`. Update the execution logic to use `hasPermission()`.
+
+## Session 7: Major Feature Commands Refactoring
+
+- [ ] **Essentials Commands:** Update all slash commands in `src/features/essentials/commands/` (e.g., help, panel, rank) to check against the new string-based node system instead of `permissionLevel`.
+- [ ] **Moderation Commands:** Update all slash commands in `src/features/moderation/commands/` (e.g., ban, kick, mute, freeze) to use the new permission system.
+- [ ] **Economy Commands:** Update all slash commands in `src/features/economy/commands/`.
+
+## Session 8: Remaining Feature Commands Refactoring
+
+- [ ] **Other Features:** Update all remaining slash commands (`anticheat`, `auction`, `daily`, `kit`, `shop`, `social`, `team`, `teleport`, `vote`) to check against the new string-based node system instead of `permissionLevel`.
 
 ---
 
@@ -88,4 +98,4 @@ _(To be updated after each session)_
 
 **Next Session Needs to Know:**
 
-- Begin Session 6: Execute Command refactoring tasks. Search the codebase to modify `commandSettings` (in config files) from using `permissionLevel: number` to `permissionNode: string`. Update slash command execution logic (`src/core/commands/` and all features) to utilize the string-based engine.
+- Begin Session 6: Update `commandSettings` in config files to replace `permissionLevel: number` with `permissionNode: string`. Update `commandManager.ts` to expect `permissionNode` and use the `hasPermission()` engine. (Actual command feature files will be refactored in Session 7 and 8).
