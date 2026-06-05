@@ -4,9 +4,9 @@ import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 import { getConfig } from '@core/configManager.js';
 import { noPermission } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { uiWait } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { hasPermission } from '@core/permissionEngine.js';
 
 import { CommandExecutor, commandManager, CustomCommand } from '@commands/commandManager.js';
 
@@ -78,7 +78,7 @@ function resolveCommandForHelp(executor: CommandExecutor, commandName: string): 
 
     const requiredPermissionNode = commandManager.getEffectivePermissionNode(cmd);
 
-    if (!isConsole && !hasPermission(executor as mc.Player, requiredPermissionNode)) {
+    if (!isConsole && !hasPermission(executor, requiredPermissionNode)) {
         return { cmd: undefined, error: `§cYou do not have permission to view command: '${commandName}'.` };
     }
 
@@ -147,7 +147,7 @@ function showChatHelp(executor: CommandExecutor) {
         if (
             cmds.some((c) => {
                 const reqNode = commandManager.getEffectivePermissionNode(c);
-                return (isConsole || hasPermission(executor as mc.Player, reqNode)) && c.hidden !== true;
+                return (isConsole || hasPermission(executor, reqNode)) && c.hidden !== true;
             })
         ) {
             visibleCategories.push(cat);
@@ -171,7 +171,7 @@ function showChatHelp(executor: CommandExecutor) {
         const visibleCmds = commands
             .filter((c) => {
                 const reqNode = commandManager.getEffectivePermissionNode(c);
-                return (isConsole || hasPermission(executor as mc.Player, reqNode)) && c.hidden !== true;
+                return (isConsole || hasPermission(executor, reqNode)) && c.hidden !== true;
             })
             .toSorted((a, b) => a.name.localeCompare(b.name));
 

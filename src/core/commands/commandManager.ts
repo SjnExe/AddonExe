@@ -389,7 +389,7 @@ class CommandManager {
                         'id' in executor // Only filter if executor is a player
                     ) {
                         // Use permission node to see vanished players
-                        if (!hasPermission(executor as mc.Player, 'cmd.vanish.see')) {
+                        if (!hasPermission(executor, 'cmd.vanish.see')) {
                             value = (value as mc.Player[]).filter((target) => {
                                 const targetData = getPlayer(target.id);
                                 return !(isDefined(targetData) && targetData.isVanished);
