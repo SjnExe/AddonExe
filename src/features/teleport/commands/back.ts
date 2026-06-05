@@ -20,7 +20,7 @@ const backCommand: CustomCommand = {
     name: 'back',
     description: 'Teleports you to your previous location (before death or teleport).',
     category: 'Transportation',
-    permissionLevel: 1024,
+
     hasCooldown: true,
     cooldownId: 'back',
     execute: (executor: CommandExecutor) => {

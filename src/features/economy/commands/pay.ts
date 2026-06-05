@@ -15,7 +15,7 @@ const payCommand: CustomCommand = {
     aliases: ['givemoney', 'transfer'],
     description: 'Pays another player from your balance.',
     category: 'Economy',
-    permissionLevel: 1024,
+
     hasCooldown: true,
     defaultCooldown: 5,
     parameters: [
@@ -71,7 +71,7 @@ const oPayCommand: CustomCommand = {
     aliases: ['offlinepay'],
     description: 'Pays an offline player.',
     category: 'Economy',
-    permissionLevel: 1024,
+
     hasCooldown: true,
     hidden: true,
     parameters: [
@@ -122,7 +122,7 @@ const payConfirmCommand: CustomCommand = {
     aliases: ['confirmpay'],
     description: 'Confirms a pending payment.',
     category: 'Economy',
-    permissionLevel: 1024,
+
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
 

@@ -69,7 +69,7 @@ const setBalanceCommand: CustomCommand = {
     aliases: ['setbal', 'setmoney'],
     description: "Sets a player's (or players') balance to a specific amount.",
     category: 'Economy',
-    permissionLevel: 1,
+
     allowConsole: true,
     hidden: true,
     parameters: [
@@ -86,7 +86,7 @@ const addBalanceCommand: CustomCommand = {
     aliases: ['addbal', '+bal'],
     description: "Adds a specific amount to a player's (or players') balance.",
     category: 'Economy',
-    permissionLevel: 1,
+
     allowConsole: true,
     hidden: true,
     parameters: [
@@ -103,7 +103,7 @@ const removeBalanceCommand: CustomCommand = {
     aliases: ['removebal', '-bal', 'rembal'],
     description: "Removes a specific amount from a player's (or players') balance.",
     category: 'Economy',
-    permissionLevel: 1,
+
     allowConsole: true,
     hidden: true,
     parameters: [
@@ -167,7 +167,7 @@ const oSetBalanceCommand: CustomCommand = {
     aliases: ['osetbal', 'offlinesetbalance'],
     description: "Sets an offline player's balance.",
     category: 'Economy',
-    permissionLevel: 1,
+
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string', description: "The player's name." },
@@ -183,7 +183,7 @@ const oAddBalanceCommand: CustomCommand = {
     aliases: ['oaddbal', 'offlineaddbalance'],
     description: "Adds amount to an offline player's balance.",
     category: 'Economy',
-    permissionLevel: 1,
+
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string' },
@@ -199,7 +199,7 @@ const oRemoveBalanceCommand: CustomCommand = {
     aliases: ['oremovebal', 'offlineremovebalance'],
     description: "Removes amount from an offline player's balance.",
     category: 'Economy',
-    permissionLevel: 1,
+
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string' },

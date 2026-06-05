@@ -15,7 +15,7 @@ const rtpCommand: CustomCommand = {
     aliases: ['randomtp'],
     description: 'Teleports you to a random safe location in the world.',
     category: 'Transportation',
-    permissionLevel: 1024,
+
     hasCooldown: true,
     execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {

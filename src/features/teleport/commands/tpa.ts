@@ -79,7 +79,7 @@ const tpaCommand: CustomCommand = {
     description: 'Sends a request to teleport to another player.',
     category: 'Transportation',
     aliases: ['tprequest', 'asktp', 'requesttp'],
-    permissionLevel: 1024,
+
     hasCooldown: true,
     // Note: Using string type instead of 'player' to support non-op players (selector expansion requires permissions).
     // Dynamic suggestions for online players are not possible with static enums for string types.
@@ -96,7 +96,7 @@ const tpaHereCommand: CustomCommand = {
     description: 'Requests another player to teleport to you.',
     category: 'Transportation',
     aliases: ['tphere', 'tprequesthere'],
-    permissionLevel: 1024,
+
     hasCooldown: true,
     cooldownId: 'tpa',
     // Note: Using string type instead of 'player' to support non-op players.
@@ -113,7 +113,7 @@ const tpaAcceptCommand: CustomCommand = {
     aliases: ['tpyes', 'tpac'],
     description: 'Accepts an incoming TPA request.',
     category: 'Transportation',
-    permissionLevel: 1024,
+
     parameters: [{ name: 'player', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (executor instanceof mc.Player) {
@@ -127,7 +127,7 @@ const tpaDenyCommand: CustomCommand = {
     aliases: ['tpno', 'tpdeny'],
     description: 'Denies an incoming TPA request.',
     category: 'Transportation',
-    permissionLevel: 1024,
+
     parameters: [{ name: 'player', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (executor instanceof mc.Player) {
@@ -140,7 +140,7 @@ const tpaCancelCommand: CustomCommand = {
     name: 'tpacancel',
     description: 'Cancels your outgoing TPA request.',
     category: 'Transportation',
-    permissionLevel: 1024,
+
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
         const config = getConfig();
@@ -157,7 +157,7 @@ const tpaStatusCommand: CustomCommand = {
     name: 'tpastatus',
     description: 'Checks the status of your outgoing and incoming TPA requests.',
     category: 'Transportation',
-    permissionLevel: 1024,
+
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
 
@@ -203,7 +203,7 @@ const tpaStopCommand: CustomCommand = {
     aliases: ['tpstop', 'tpablock', 'tpblock'],
     description: 'Disables TPA requests or blocks specific players.',
     category: 'Transportation',
-    permissionLevel: 1024,
+
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
@@ -236,7 +236,7 @@ const tpaStartCommand: CustomCommand = {
     aliases: ['tpstart', 'tpaunblock', 'tpunblock'],
     description: 'Enables TPA requests or unblocks specific players.',
     category: 'Transportation',
-    permissionLevel: 1024,
+
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) return;
@@ -295,7 +295,7 @@ const oTpaStopCommand: CustomCommand = {
     aliases: ['offlinetpastop', 'otpablock'],
     description: 'Blocks an offline player from sending TPA requests.',
     category: 'Transportation',
-    permissionLevel: 1024,
+
     hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -310,7 +310,7 @@ const oTpaStartCommand: CustomCommand = {
     aliases: ['offlinetpastart', 'otpaunblock'],
     description: 'Unblocks an offline player from sending TPA requests.',
     category: 'Transportation',
-    permissionLevel: 1024,
+
     hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {

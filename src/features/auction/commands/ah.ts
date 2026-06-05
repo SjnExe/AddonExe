@@ -15,7 +15,7 @@ const mainCommand: CustomCommand = {
     aliases: ['auction'],
     description: 'Auction House commands.',
     category: 'Economy',
-    permissionLevel: 1024,
+
     parameters: [
         { name: 'subcommand', type: 'string', optional: true, enumOptions: ['sell', 'help', 'search'] },
         { name: 'price', type: 'string', optional: true },

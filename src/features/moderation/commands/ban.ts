@@ -71,7 +71,7 @@ const banCommand: CustomCommand = {
     name: 'ban',
     description: 'Bans a player for a specified duration with a reason.',
     category: 'Moderation',
-    permissionLevel: 2,
+
     allowConsole: true,
     hidden: true,
     parameters: [
@@ -150,7 +150,7 @@ const unbanCommand: CustomCommand = {
     aliases: ['pardon'],
     description: 'Unbans a player.',
     category: 'Moderation',
-    permissionLevel: 2,
+
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -216,7 +216,7 @@ const offlineBanCommand: CustomCommand = {
     aliases: ['oban'],
     description: 'Bans a player who is currently offline.',
     category: 'Moderation',
-    permissionLevel: 2,
+
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string' },

@@ -4,9 +4,9 @@ import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 import { getConfig } from '@core/configManager.js';
 import { noPermission } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
-import { getPlayer } from '@core/playerDataManager.js';
 import { uiWait } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { hasPermission } from '@core/permissionEngine.js';
 
 import { CommandExecutor, commandManager, CustomCommand } from '@commands/commandManager.js';
 
@@ -76,11 +76,9 @@ function resolveCommandForHelp(executor: CommandExecutor, commandName: string): 
         return { cmd: undefined, error: `§cCommand '${commandName}' cannot be run from console.` };
     }
 
-    const pData = isConsole ? undefined : getPlayer(executor.id);
-    const userPermissionLevel = isDefined(pData) ? pData.permissionLevel : 1024;
-    const effectivePermissionLevel = isConsole ? 0 : userPermissionLevel;
+    const requiredPermissionNode = commandManager.getEffectivePermissionNode(cmd);
 
-    if (effectivePermissionLevel > (cmd.permissionLevel ?? 1024)) {
+    if (!isConsole && !hasPermission(executor as mc.Player, requiredPermissionNode)) {
         return { cmd: undefined, error: `§cYou do not have permission to view command: '${commandName}'.` };
     }
 
@@ -139,13 +137,19 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
 /**
  * Displays the chat-based categorized help.
  */
-function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
+function showChatHelp(executor: CommandExecutor) {
     const allCategories = getCategorizedCommands();
     const visibleCategories: string[] = [];
+    const isConsole = !('id' in executor);
 
     // Filter categories: Only show if category contains at least one visible command
     for (const [cat, cmds] of allCategories) {
-        if (cmds.some((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true)) {
+        if (
+            cmds.some((c) => {
+                const reqNode = commandManager.getEffectivePermissionNode(c);
+                return (isConsole || hasPermission(executor as mc.Player, reqNode)) && c.hidden !== true;
+            })
+        ) {
             visibleCategories.push(cat);
         }
     }
@@ -164,7 +168,12 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
 
     for (const categoryName of sortedCats) {
         const commands = allCategories.get(categoryName) ?? [];
-        const visibleCmds = commands.filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true).toSorted((a, b) => a.name.localeCompare(b.name));
+        const visibleCmds = commands
+            .filter((c) => {
+                const reqNode = commandManager.getEffectivePermissionNode(c);
+                return (isConsole || hasPermission(executor as mc.Player, reqNode)) && c.hidden !== true;
+            })
+            .toSorted((a, b) => a.name.localeCompare(b.name));
 
         if (visibleCmds.length > 0) {
             helpMessage += `\n§l§e--- ${categoryName} ---§r`;
@@ -185,12 +194,17 @@ function showChatHelp(executor: CommandExecutor, userPermissionLevel: number) {
 /**
  * Displays the UI-based categorized help.
  */
-async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
+async function showUIHelp(player: mc.Player) {
     const allCategories = getCategorizedCommands();
     const visibleCategories: string[] = [];
 
     for (const [cat, cmds] of allCategories) {
-        if (cmds.some((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true)) {
+        if (
+            cmds.some((c) => {
+                const reqNode = commandManager.getEffectivePermissionNode(c);
+                return hasPermission(player, reqNode) && c.hidden !== true;
+            })
+        ) {
             visibleCategories.push(cat);
         }
     }
@@ -212,16 +226,21 @@ async function showUIHelp(player: mc.Player, userPermissionLevel: number) {
 
         const selectedCat = sortedCats[response.selection];
         if (selectedCat !== undefined) {
-            await showUICategory(player, selectedCat, userPermissionLevel);
+            await showUICategory(player, selectedCat);
         }
     } catch {
         // Ignore UI errors
     }
 }
 
-async function showUICategory(player: mc.Player, category: string, userPermissionLevel: number) {
+async function showUICategory(player: mc.Player, category: string) {
     const cmds = getCategorizedCommands().get(category) ?? [];
-    const visibleCmds = cmds.filter((c) => userPermissionLevel <= (c.permissionLevel ?? 1024) && c.hidden !== true).toSorted((a, b) => a.name.localeCompare(b.name));
+    const visibleCmds = cmds
+        .filter((c) => {
+            const reqNode = commandManager.getEffectivePermissionNode(c);
+            return hasPermission(player, reqNode) && c.hidden !== true;
+        })
+        .toSorted((a, b) => a.name.localeCompare(b.name));
 
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
 
@@ -233,7 +252,7 @@ async function showUICategory(player: mc.Player, category: string, userPermissio
         if (response.canceled || response.selection === undefined) return;
 
         if (response.selection === 0) {
-            return showUIHelp(player, userPermissionLevel);
+            return showUIHelp(player);
         }
 
         const selectedCmd = visibleCmds[response.selection - 1];
@@ -255,29 +274,19 @@ const helpCommand: CustomCommand = {
     aliases: ['?', 'h', 'cmds', 'commands'],
     description: 'Displays a list of available commands or help for a specific command.',
     category: 'General',
-    permissionLevel: 1024,
+
     allowConsole: true,
     parameters: [{ name: 'command', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: HelpCommandArgs) => {
-        let userPermissionLevel = 1024;
-        if (executor instanceof mc.Player) {
-            const pData = getPlayer(executor.id);
-            if (isDefined(pData)) {
-                userPermissionLevel = pData.permissionLevel;
-            }
-        } else {
-            userPermissionLevel = 0;
-        }
-
         const topic = isNonEmptyString(args.command) ? String(args.command).toLowerCase() : undefined;
 
         // Handle Mode Switching Override
         if (topic === 'ui' && executor instanceof mc.Player) {
-            showUIHelp(executor, userPermissionLevel).catch(() => {});
+            showUIHelp(executor).catch(() => {});
             return;
         }
         if (topic === 'chat') {
-            showChatHelp(executor, userPermissionLevel);
+            showChatHelp(executor);
             return;
         }
 
@@ -291,9 +300,9 @@ const helpCommand: CustomCommand = {
         const defaultMode = (isDefined(config.helpSystem) ? config.helpSystem.defaultMode : undefined) ?? 'chat';
 
         if (defaultMode === 'ui' && executor instanceof mc.Player) {
-            showUIHelp(executor, userPermissionLevel).catch(() => {});
+            showUIHelp(executor).catch(() => {});
         } else {
-            showChatHelp(executor, userPermissionLevel);
+            showChatHelp(executor);
         }
     }
 };

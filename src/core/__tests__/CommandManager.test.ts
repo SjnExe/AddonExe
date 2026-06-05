@@ -28,6 +28,10 @@ vi.mock('../logger.js', () => ({
     infoLog: vi.fn()
 }));
 
+vi.mock('../permissionEngine.js', () => ({
+    hasPermission: vi.fn().mockReturnValue(true)
+}));
+
 const { commandManager } = await import('@commands/commandManager.js');
 
 describe('CommandManager', () => {

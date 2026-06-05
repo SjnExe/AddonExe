@@ -9,7 +9,7 @@ const notifyCommand: CustomCommand = {
     name: 'notify',
     description: 'Toggle anti-cheat notifications.',
     category: 'Moderation',
-    permissionLevel: 2, // Mod
+
     execute: (executor: CommandExecutor) => {
         if (executor instanceof mc.Player) {
             const pData = getPlayer(executor.id);

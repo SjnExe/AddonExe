@@ -27,7 +27,7 @@ const spawnCommand: CustomCommand = {
     aliases: ['lobby', 'hub'],
     description: 'Teleports you to the server spawn point.',
     category: 'Transportation',
-    permissionLevel: 1024,
+
     hasCooldown: true,
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
@@ -143,7 +143,7 @@ const setSpawnCommand: CustomCommand = {
     aliases: ['setworldspawn', 'spawnset'],
     description: "Sets the server's spawn location to your current position or specified coordinates.",
     category: 'Transportation',
-    permissionLevel: 1, // Admins only
+
     allowConsole: true,
     parameters: [
         { name: 'x', type: 'float', optional: true },

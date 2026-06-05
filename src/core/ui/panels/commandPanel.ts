@@ -10,7 +10,7 @@ import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtil
 
 interface CmdSettings {
     enabled?: boolean;
-    permissionLevel?: number;
+    permissionNode?: string;
     cooldownSeconds?: number;
 }
 
@@ -37,11 +37,10 @@ export class CommandPanelHandler implements IPanelHandler {
                 const cmdSettings = settings[cmd.name] ?? {};
                 const isEnabled = cmdSettings.enabled !== false;
                 const color = isEnabled ? '§2' : '§4';
-                const perm = cmdSettings.permissionLevel ?? cmd.permissionLevel ?? 0;
 
                 items.push({
                     id: cmd.name,
-                    text: `${color}/${cmd.name}§r\nPerm: ${perm}`,
+                    text: `${color}/${cmd.name}§r`,
                     icon: 'textures/ui/command_block_icon',
                     permission: 'ui.panel.owner',
                     actionType: 'openPanel',
@@ -63,14 +62,12 @@ export class CommandPanelHandler implements IPanelHandler {
             const command = commandManager.commands.get(cmdName);
 
             const isEnabled = cmdSettings.enabled !== false;
-            const perm = cmdSettings.permissionLevel ?? command?.permissionLevel ?? 0;
             const cooldown = cmdSettings.cooldownSeconds ?? command?.defaultCooldown ?? 0;
 
             return Promise.resolve(
                 new ModalFormData()
                     .title(`Edit /${cmdName}`)
                     .toggle('Enabled', { defaultValue: isEnabled })
-                    .textField('Permission Level', '0=Owner, 1=Admin...', { defaultValue: String(perm) })
                     .textField('Cooldown (seconds)', '0 to disable', { defaultValue: String(cooldown) })
             );
         }
@@ -115,13 +112,11 @@ export class CommandPanelHandler implements IPanelHandler {
             if ((response as ModalFormResponse).canceled) return showPanel(player, 'commandSystemPanel', context);
 
             if (values) {
-                const [enabled, permStr, cooldownStr] = values as [boolean, string, string];
-                const perm = Number.parseInt(permStr) || 0;
+                const [enabled, cooldownStr] = values as [boolean, string];
                 const cooldown = Number.parseInt(cooldownStr) || 0;
 
                 const updates: Record<string, unknown> = {
                     [`commandSettings.${cmdName}.enabled`]: enabled,
-                    [`commandSettings.${cmdName}.permissionLevel`]: perm,
                     [`commandSettings.${cmdName}.cooldownSeconds`]: cooldown
                 };
 

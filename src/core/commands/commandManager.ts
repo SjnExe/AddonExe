@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { findVisiblePlayerByName, getPlayer } from '@core/playerDataManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
@@ -46,8 +47,8 @@ export interface CustomCommand {
     description: string;
     /** The UI category for the command. */
     category?: string;
-    /** The required permission level to execute the command. Defaults to 0 (Owner). */
-    permissionLevel?: number;
+    /** The required permission node to execute the command. Defaults to `cmd.${name}`. */
+    permissionNode?: string;
     /** An array of alternative names for the command. */
     aliases?: string[];
     /** An array of parameters the command accepts. */
@@ -75,7 +76,7 @@ export interface CustomCommand {
 interface CommandSettings {
     [key: string]: {
         enabled?: boolean;
-        permissionLevel?: number;
+        permissionNode?: string;
         cooldownSeconds?: number;
     };
 }
@@ -161,7 +162,7 @@ class CommandManager {
      * @param {CustomCommand} commandOptions
      */
     register(commandOptions: CustomCommand) {
-        const command: CustomCommand = { permissionLevel: 0, ...commandOptions };
+        const command: CustomCommand = { permissionNode: `cmd.${commandOptions.name.toLowerCase()}`, ...commandOptions };
         this.commands.set(command.name.toLowerCase(), command);
 
         if (isDefined(command.aliases)) {
@@ -180,18 +181,18 @@ class CommandManager {
     }
 
     /**
-     * Gets the effective permission level for a command, considering config overrides.
+     * Gets the effective permission node for a command, considering config overrides.
      * @param {CustomCommand} command The command to check.
-     * @returns {number} The effective permission level.
+     * @returns {string} The effective permission node.
      */
-    getEffectivePermissionLevel(command: CustomCommand): number {
+    getEffectivePermissionNode(command: CustomCommand): string {
         const config = getConfig() as Config;
-        if (!isDefined(config)) return command.permissionLevel ?? 0;
+        if (!isDefined(config)) return command.permissionNode ?? `cmd.${command.name.toLowerCase()}`;
         const commandSettings = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
-        if (isDefined(commandSettings) && isDefined(commandSettings.permissionLevel)) {
-            return commandSettings.permissionLevel;
+        if (isDefined(commandSettings) && isDefined(commandSettings.permissionNode)) {
+            return commandSettings.permissionNode;
         }
-        return command.permissionLevel ?? 0;
+        return command.permissionNode ?? `cmd.${command.name.toLowerCase()}`;
     }
 
     /**
@@ -277,10 +278,9 @@ class CommandManager {
         }
 
         // Permission Check
-        const pData = getPlayer(player.id);
-        const requiredPermissionLevel = this.getEffectivePermissionLevel(command);
+        const requiredPermissionNode = this.getEffectivePermissionNode(command);
 
-        if (!isDefined(pData) || pData.permissionLevel > requiredPermissionLevel) {
+        if (!hasPermission(player, requiredPermissionNode)) {
             player.sendMessage('§cYou do not have permission to use this command.');
             return;
         }
@@ -388,9 +388,8 @@ class CommandManager {
                         Array.isArray(value) &&
                         'id' in executor // Only filter if executor is a player
                     ) {
-                        const executorData = getPlayer(executor.id);
-                        // Level 2 (Mod) and below can see vanished players
-                        if (isDefined(executorData) && executorData.permissionLevel > 2) {
+                        // Use permission node to see vanished players
+                        if (!hasPermission(executor as mc.Player, 'cmd.vanish.see')) {
                             value = (value as mc.Player[]).filter((target) => {
                                 const targetData = getPlayer(target.id);
                                 return !(isDefined(targetData) && targetData.isVanished);
@@ -439,7 +438,7 @@ class CommandManager {
         return {
             name: `${this.prefix}:${slashCommandName}`,
             description: command.description,
-            permissionLevel: this.translatePermissionLevel(command.permissionLevel),
+            permissionLevel: this.translatePermissionLevel(command.permissionNode),
             mandatoryParameters,
             optionalParameters
         };
@@ -513,12 +512,12 @@ class CommandManager {
     }
 
     /**
-     * Translates the numeric permission level to the API's enum.
-     * @param {number | undefined} level The numeric permission level.
+     * Translates the custom permission node to the API's enum.
+     * @param {string | undefined} node The custom permission node.
      * @returns {mc.CommandPermissionLevel} The corresponding enum value.
      * @private
      */
-    private translatePermissionLevel(_level?: number): mc.CommandPermissionLevel {
+    private translatePermissionLevel(_node?: string): mc.CommandPermissionLevel {
         // We will handle all permission checks with our custom rank system.
         // Registering all commands with 'Any' allows our more granular check to be the single source of truth.
         return mc.CommandPermissionLevel.Any;

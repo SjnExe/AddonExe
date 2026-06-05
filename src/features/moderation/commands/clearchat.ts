@@ -10,7 +10,7 @@ const clearchatCommand: CustomCommand = {
     aliases: ['cc'],
     description: 'Clears the chat for all players.',
     category: 'Moderation',
-    permissionLevel: 2,
+
     allowConsole: true,
     execute: (executor: CommandExecutor) => {
         try {

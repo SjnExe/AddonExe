@@ -7,7 +7,7 @@ const rankCommand: CustomCommand = {
     name: 'rank',
     description: 'Manage player ranks.',
     category: 'Essentials',
-    permissionLevel: 1, // Admin
+
     parameters: [
         { name: 'action', type: 'string', enumOptions: ['set', 'get', 'list'] },
         { name: 'target', type: 'string', optional: true },

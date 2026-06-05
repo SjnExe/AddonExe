@@ -118,7 +118,7 @@ export interface MainConfig {
             announce?: boolean;
         };
     };
-    commandSettings?: Record<string, { enabled?: boolean; permissionLevel?: number; cooldownSeconds?: number }>;
+    commandSettings?: Record<string, { enabled?: boolean; permissionNode?: string; cooldownSeconds?: number }>;
     [key: string]: unknown;
 }
 
