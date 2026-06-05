@@ -69,18 +69,57 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 ## Session 6: Command Infrastructure & Config Refactoring
 
-- [ ] **Config Refactoring:** Search for and update other configuration interfaces (like `commandSettings` in `config.default.ts`) to replace `permissionLevel: number` with `permissionNode: string`.
-- [ ] **Command Registration Engine:** Update `src/core/commands/commandManager.ts` (and any related interface) to expect `permissionNode` instead of `permissionLevel`. Update the execution logic to use `hasPermission()`.
+**Goal:** Migrate from integer-based permission levels to string-based permission nodes and remove centralized command settings.
 
-## Session 7: Major Feature Commands Refactoring
+- [ ] **Remove `commandSettings`:**
+    - Delete `commandSettings` entirely from `config.default.ts`, `config.schema.ts`, and the `Config` interface. Command toggles and cooldowns will no longer be centralized.
+- [ ] **Remove Command Panel UI:**
+    - Delete `src/core/ui/panels/commandPanel.ts`. The `/panel` UI will no longer have a "Commands" section at all.
+    - Remove `commandSystemPanel` and related config bindings from `src/core/ui/panelRegistry.ts` and `src/core/ui/systemRegistry.ts`.
+- [ ] **Update `CustomCommand` Interface:**
+    - In `src/core/commands/commandManager.ts`, replace `permissionLevel?: number` with `permissionNode: string` (This is REQUIRED, no fallbacks).
+    - Remove `cooldown` and `enabled` properties from the interface, as these will be handled by feature-specific systems later.
+- [ ] **Update Execution Logic (`commandManager.ts`):**
+    - Remove all logic checking `config.commandSettings` (enabled, cooldown, permissionLevel).
+    - Update command execution to explicitly use: `hasPermission(player, command.permissionNode)`.
+- [ ] **Fix Compilation (Find-and-Replace):**
+    - Run a global regex/replace across `src/features/**/commands/*.ts`.
+    - Replace `permissionLevel: <number>` with an explicitly defined `permissionNode: 'cmd.<commandName>'` (e.g., `cmd.reset` for owner commands, `cmd.tp` for teleport). The node must be short and understandable.
+    - CRITICAL: Because `cooldown` and `enabled` are being removed from the `CustomCommand` interface, you must ALSO remove any `cooldown` or `enabled` fields from the command definitions in these files during the find-and-replace so the codebase compiles.
+- [ ] **Wrap Up (When Session 6 is eventually executed):**
+    - Run `npm run format`.
+    - Run `npx tsc --noEmit` to verify type safety.
+    - Call `pre_commit_instructions`.
 
-- [ ] **Essentials Commands:** Update all slash commands in `src/features/essentials/commands/` (e.g., help, panel, rank) to check against the new string-based node system instead of `permissionLevel`.
-- [ ] **Moderation Commands:** Update all slash commands in `src/features/moderation/commands/` (e.g., ban, kick, mute, freeze) to use the new permission system.
-- [ ] **Economy Commands:** Update all slash commands in `src/features/economy/commands/`.
+## Sessions 7 & 8: Feature Systems Refactoring
 
-## Session 8: Remaining Feature Commands Refactoring
+**Goal:** Delegate toggles, cooldowns, and feature-specific logic to their respective systems (Shop, TPA, Spawn, Kits, etc.).
 
-- [ ] **Other Features:** Update all remaining slash commands (`anticheat`, `auction`, `daily`, `kit`, `shop`, `social`, `team`, `teleport`, `vote`) to check against the new string-based node system instead of `permissionLevel`.
+- [ ] **System-Specific Enable/Disable:**
+    - If a system (e.g., Shop) is disabled, all related UI, commands, and logic are disabled _only for the public_.
+    - **Crucial:** Staff/Admin configurations must not be soft-locked. Owner/Admin facing tools remain functional even if the public system is disabled.
+- [ ] **System-Specific Cooldowns:**
+    - Most commands do _not_ need a specific cooldown. Move general anti-spam global cooldowns to an Anti-Cheat or Chat system.
+    - Move specific cooldown logic out of the command manager. `/spawn` cooldown belongs in the Spawn system; `/tpa` cooldown belongs in the TPA system. (Note: `/setspawn` does not get the spawn cooldown, only the anti-spam one).
+- [ ] **Kits System Updates:**
+    - Needs node-based exclusivity (tie specific kits to ranks/nodes).
+    - Add custom prices (0 or positive integers) per kit.
+    - Add specific cooldowns per kit (not just a global kit system cooldown).
+
+## Future Session: Rank & Permission Security Engine
+
+**Goal:** Fix security flaws in the Rank Editing UI using a Priority-Based Hierarchy Enforcement.
+
+- [ ] **Priority Numbers:** `0` = Owner, `1` = Admin, `2+` = Mods/Members. `1024` = Default Member rank. Lower number = higher authority.
+- [ ] **Hierarchy Enforcement:**
+    - **Editing Ranks:** An editor can only create or edit a rank with a priority _strictly greater_ than their own. (e.g., Admin [Priority 1] can only edit/create ranks at Priority 2 or higher. They cannot grant Owner [0] or Admin [1] powers).
+    - **Editing Players:** An Admin cannot edit the rank assignment of a player whose highest rank priority is `<= ` the Admin's highest rank priority.
+- [ ] **Permission Delegation (Option A Logic):**
+    - When adding permission nodes via the UI, an editor can _only_ grant nodes they already possess.
+    - _Edge Cases to Handle:_ Wildcard expansion (if Admin has `ui.*` but not explicitly `ui.shop`, they can still grant it), and arrays of denied permissions must be strictly respected.
+- [ ] **Immutable Core Ranks:**
+    - **Owner Rank (0):** Possesses the `*` wildcard permission. Core properties (ID, priority, permissions) are completely locked. Not even the Owner can edit them (to prevent accidental breakage). The Owner _can_ edit cosmetic properties (prefix, nametag, chat colors).
+    - **Member Rank (1024):** Default rank given to everyone at all times. Contains default permissions. Needs to be partially locked.
 
 ---
 
