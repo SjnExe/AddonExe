@@ -67,31 +67,41 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 - [x] **Update UI Schema & Interfaces:** Refactor `PanelItem` in `src/core/ui/types.ts` to replace `permissionLevel?: number` with `permission?: string`.
 - [x] **Refactor Panel Definitions:** Update `src/core/ui/panelRegistry.ts` (and any other panel definition files) to use permission strings instead of integer levels. Convert old level checks to explicit node names (e.g. `ui.panel.owner` instead of level `0`).
 
-## Session 6: Command Infrastructure & Config Refactoring
+## Session 6: Config and UI Cleanup
 
-**Goal:** Migrate from integer-based permission levels to string-based permission nodes and remove centralized command settings.
+**Goal:** Remove centralized command settings and command panel UI.
 
 - [ ] **Remove `commandSettings`:**
     - Delete `commandSettings` entirely from `config.default.ts`, `config.schema.ts`, and the `Config` interface. Command toggles and cooldowns will no longer be centralized.
 - [ ] **Remove Command Panel UI:**
     - Delete `src/core/ui/panels/commandPanel.ts`. The `/panel` UI will no longer have a "Commands" section at all.
     - Remove `commandSystemPanel` and related config bindings from `src/core/ui/panelRegistry.ts` and `src/core/ui/systemRegistry.ts`.
+
+## Session 7: Command Manager Core Refactoring
+
+**Goal:** Update `CustomCommand` interface and execution logic.
+
 - [ ] **Update `CustomCommand` Interface:**
     - In `src/core/commands/commandManager.ts`, replace `permissionLevel?: number` with `permissionNode: string` (This is REQUIRED, no fallbacks).
     - Remove `cooldown` and `enabled` properties from the interface, as these will be handled by feature-specific systems later.
 - [ ] **Update Execution Logic (`commandManager.ts`):**
     - Remove all logic checking `config.commandSettings` (enabled, cooldown, permissionLevel).
     - Update command execution to explicitly use: `hasPermission(player, command.permissionNode)`.
+
+## Session 8: Feature Commands Refactoring
+
+**Goal:** Migrate from integer-based permission levels to string-based permission nodes for all feature commands.
+
 - [ ] **Fix Compilation (Find-and-Replace):**
     - Run a global regex/replace across `src/features/**/commands/*.ts`.
     - Replace `permissionLevel: <number>` with an explicitly defined `permissionNode: 'cmd.<commandName>'` (e.g., `cmd.reset` for owner commands, `cmd.tp` for teleport). The node must be short and understandable.
     - CRITICAL: Because `cooldown` and `enabled` are being removed from the `CustomCommand` interface, you must ALSO remove any `cooldown` or `enabled` fields from the command definitions in these files during the find-and-replace so the codebase compiles.
-- [ ] **Wrap Up (When Session 6 is eventually executed):**
+- [ ] **Wrap Up (When Session 8 is eventually executed):**
     - Run `npm run format`.
     - Run `npx tsc --noEmit` to verify type safety.
     - Call `pre_commit_instructions`.
 
-## Sessions 7 & 8: Feature Systems Refactoring
+## Sessions 9 & 10: Feature Systems Refactoring
 
 **Goal:** Delegate toggles, cooldowns, and feature-specific logic to their respective systems (Shop, TPA, Spawn, Kits, etc.).
 
@@ -106,7 +116,7 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
     - Add custom prices (0 or positive integers) per kit.
     - Add specific cooldowns per kit (not just a global kit system cooldown).
 
-## Future Session: Rank & Permission Security Engine
+## Future Sessions: Rank & Permission Security Engine
 
 **Goal:** Fix security flaws in the Rank Editing UI using a Priority-Based Hierarchy Enforcement.
 
@@ -137,4 +147,4 @@ _(To be updated after each session)_
 
 **Next Session Needs to Know:**
 
-- Begin Session 6: Update `commandSettings` in config files to replace `permissionLevel: number` with `permissionNode: string`. Update `commandManager.ts` to expect `permissionNode` and use the `hasPermission()` engine. (Actual command feature files will be refactored in Session 7 and 8).
+- Begin Session 6: Update `config.default.ts` to remove `commandSettings` and update `src/core/ui/panels/commandPanel.ts` to remove command panel UI.
