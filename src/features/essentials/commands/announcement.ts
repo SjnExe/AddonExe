@@ -11,7 +11,7 @@ const announcementCommand: CustomCommand = {
     name: 'announce',
     description: 'Broadcasts an announcement to all players.',
     category: 'Essentials',
-    permissionLevel: 2,
+    permissionNode: 'cmd.announce',
     parameters: [{ name: 'message', type: 'text' }],
     execute: (_executor: CommandExecutor, args: Record<string, unknown>) => {
         const message = args.message as string;

@@ -14,7 +14,7 @@ const shopCommand: CustomCommand = {
     name: 'shop',
     description: 'Opens the server shop.',
     category: 'Economy',
-    permissionLevel: 1024,
+    permissionNode: 'cmd.shop',
     allowConsole: false,
     execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
@@ -32,7 +32,7 @@ const buyCommand: CustomCommand = {
     name: 'buy',
     description: 'Opens the shop to buy items.',
     category: 'Economy',
-    permissionLevel: 1024,
+    permissionNode: 'cmd.buy',
     allowConsole: false,
     execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
@@ -50,7 +50,7 @@ const sellCommand: CustomCommand = {
     name: 'sell',
     description: 'Opens the shop to sell items.',
     category: 'Economy',
-    permissionLevel: 1024,
+    permissionNode: 'cmd.sell',
     allowConsole: false,
     execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
@@ -69,7 +69,7 @@ const sellHandCommand: CustomCommand = {
     description: 'Sells the item currently in your main hand.',
     category: 'Economy',
     aliases: ['sh'],
-    permissionLevel: 1024,
+    permissionNode: 'cmd.sellhand',
     allowConsole: false,
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
@@ -119,7 +119,7 @@ const addShopCommand: CustomCommand = {
     name: 'addshop',
     description: 'Adds the item in your hand to a shop category.',
     category: 'Economy',
-    permissionLevel: 1, // Admins only
+    permissionNode: 'cmd.addshop', // Admins only
     allowConsole: false,
     parameters: [
         { name: 'category', type: 'string' },

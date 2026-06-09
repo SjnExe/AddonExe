@@ -13,7 +13,7 @@ const voteCommand: CustomCommand = {
     name: 'vote',
     description: 'Participate in server votes or create one.',
     category: 'General',
-    permissionLevel: 1024,
+    permissionNode: 'cmd.vote',
     parameters: [{ name: 'subcommand', type: 'string', optional: true }],
     execute: async (executor: CommandExecutor, args: { subcommand?: string }) => {
         if (!(executor instanceof mc.Player)) return;

@@ -13,9 +13,7 @@ const reportCommand: CustomCommand = {
     name: 'report',
     description: 'Reports a player. Usage: /report [target] [reason]',
     category: 'Moderation',
-    permissionLevel: 1024,
-    hasCooldown: true,
-    defaultCooldown: 60,
+    permissionNode: 'cmd.report',
     parameters: [
         { name: 'target', type: 'string', optional: true },
         { name: 'message', type: 'text', optional: true }
@@ -74,7 +72,7 @@ const reportsCommand: CustomCommand = {
     name: 'reports',
     description: 'Views the list of active reports.',
     category: 'Moderation',
-    permissionLevel: 2,
+    permissionNode: 'cmd.reports',
     execute: async (executor: CommandExecutor) => {
         if (executor instanceof mc.Player) {
             await showPanel(executor, 'reportListPanel');
@@ -86,7 +84,7 @@ const clearReportsCommand: CustomCommand = {
     name: 'clearreports',
     description: 'Clears all active reports.',
     category: 'Moderation',
-    permissionLevel: 2,
+    permissionNode: 'cmd.clearreports',
     allowConsole: true,
     execute: (executor: CommandExecutor) => {
         reportManager.clearAllReports();

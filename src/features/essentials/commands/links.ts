@@ -10,7 +10,7 @@ const linksCommand: CustomCommand = {
     aliases: ['link', 'websites'],
     description: 'Displays helpful server links.',
     category: 'General',
-    permissionLevel: 1024,
+    permissionNode: 'cmd.links',
     allowConsole: true,
     execute: (executor: CommandExecutor) => {
         const config = getConfig();

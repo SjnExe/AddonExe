@@ -10,7 +10,7 @@ const warnCommand: CustomCommand = {
     name: 'warn',
     description: 'Warns a player for misconduct.',
     category: 'Moderation',
-    permissionLevel: 2, // Moderator
+    permissionNode: 'cmd.warn', // Moderator
     parameters: [
         { name: 'player', type: 'player' },
         { name: 'reason', type: 'string' }

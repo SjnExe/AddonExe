@@ -28,6 +28,10 @@ vi.mock('../logger.js', () => ({
     infoLog: vi.fn()
 }));
 
+vi.mock('../permissionEngine.js', () => ({
+    hasPermission: vi.fn().mockReturnValue(true)
+}));
+
 const { commandManager } = await import('@commands/commandManager.js');
 
 describe('CommandManager', () => {
@@ -89,7 +93,7 @@ describe('CommandManager', () => {
         const cmd = {
             name: 'testint',
             description: '',
-            permission: 'ui.panel.member',
+            permissionNode: 'cmd.testint',
             parameters: [{ name: 'val', type: 'int' }],
             execute
         };
