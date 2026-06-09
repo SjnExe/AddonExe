@@ -6,7 +6,6 @@ import { vi } from 'vitest';
 vi.mock('../configManager.js', () => ({
     getConfig: vi.fn().mockReturnValue({
         // Minimal config
-        commandSettings: {},
         bounties: { enabled: true },
         tpa: { enabled: true },
         economy: { enabled: true }
