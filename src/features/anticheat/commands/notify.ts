@@ -1,3 +1,4 @@
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
@@ -13,7 +14,7 @@ const notifyCommand: CustomCommand = {
     execute: (executor: CommandExecutor) => {
         if (executor instanceof mc.Player) {
             const pData = getPlayer(executor.id);
-            if (!pData || pData.permissionLevel > 2) {
+            if (!pData || !hasPermission(executor, 'cmd.notify')) {
                 executor.sendMessage('§cYou do not have permission to use this command.');
                 return;
             }

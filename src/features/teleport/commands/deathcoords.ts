@@ -1,3 +1,4 @@
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
@@ -32,7 +33,7 @@ const deathCoordsCommand: CustomCommand = {
         if (isNonEmptyString(targetName)) {
             // Check permission
             const executorData = getPlayer(executor.id);
-            if (!isDefined(executorData) || executorData.permissionLevel > 2) {
+            if (!isDefined(executorData) || !hasPermission(executor, 'cmd.deathcoords.others')) {
                 return sendMessage("§cYou do not have permission to view other players' death coordinates.", executor);
             }
 
