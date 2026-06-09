@@ -1,12 +1,11 @@
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
-import { getConfig } from '@core/configManager.js';
 import { getSpawnConfig, saveSpawnConfig } from '@core/configurations.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { getPlayerRank } from '@core/rankManager.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { playSound } from '@core/utils.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
@@ -33,14 +32,12 @@ const spawnCommand: CustomCommand = {
             return;
         }
 
-        const config = getConfig();
         const spawnConfig = getSpawnConfig();
         const spawnLocation = spawnConfig.spawn.spawnLocation as SpawnLocation | undefined;
 
         if (!spawnLocation || typeof spawnLocation.x !== 'number') {
             sendMessage('§cThe server spawn point has not been set.', executor);
-            const rank = getPlayerRank(executor, config);
-            if (rank.permissionLevel <= 1) {
+            if (hasPermission(executor, 'cmd.setspawn')) {
                 // Is admin or owner
                 sendMessage('§eAs an admin, you can set it by running §a/setspawn§e at the desired location.', executor, { raw: true });
             }

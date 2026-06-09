@@ -139,12 +139,12 @@ _(To be updated after each session)_
 
 **Completed in Previous Session:**
 
-- Session 7 completed: Updated `CustomCommand` interface in `src/core/commands/commandManager.ts` to use `permissionNode` instead of `permissionLevel` and removed `hasCooldown`, `defaultCooldown`, `cooldownId` and `enabled` properties. Updated `commandManager.ts` logic to use `hasPermission`.
+- Session 8 completed: Fixed compilation errors, removed `enabled` and `cooldown` from commands definitions in `src/features/**/commands/*.ts`, updated logic to use `hasPermission` over `permissionLevel` checks, and verified the output with `tsc --noEmit` and `npm run format`.
 
 **Current State:**
 
-- Centralized command toggles and cooldowns have been removed. The command system panel UI has also been removed. The codebase is ready for the next phase of migrating `CustomCommand` interface.
+- The `CustomCommand` interface changes are fully implemented and the command commands across the feature modules compile. Feature-specific logic refactoring (toggles, cooldowns) is up next in Sessions 9 & 10.
 
 **Next Session Needs to Know:**
 
-- Begin Session 8: Feature Commands Refactoring. Migrate from integer-based permission levels to string-based permission nodes for all feature commands.
+- Begin Sessions 9 & 10: Delegate toggles, cooldowns, and feature-specific logic to their respective systems (Shop, TPA, Spawn, Kits, etc.).

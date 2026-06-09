@@ -1,9 +1,8 @@
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
-import { getPlayerRank } from '@core/rankManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import { endVote, getActiveVote } from '@features/vote/manager.js';
@@ -25,9 +24,7 @@ const voteCommand: CustomCommand = {
             return;
         }
 
-        const config = getConfig();
-        const rank = getPlayerRank(executor, config);
-        const isAdmin = rank.permissionLevel <= 1;
+        const isAdmin = hasPermission(executor, 'cmd.vote.admin');
 
         if (sub === 'end') {
             if (!isAdmin) {
