@@ -71,9 +71,9 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 **Goal:** Remove centralized command settings and command panel UI.
 
-- [ ] **Remove `commandSettings`:**
+- [x] **Remove `commandSettings`:**
     - Delete `commandSettings` entirely from `config.default.ts`, `config.schema.ts`, and the `Config` interface. Command toggles and cooldowns will no longer be centralized.
-- [ ] **Remove Command Panel UI:**
+- [x] **Remove Command Panel UI:**
     - Delete `src/core/ui/panels/commandPanel.ts`. The `/panel` UI will no longer have a "Commands" section at all.
     - Remove `commandSystemPanel` and related config bindings from `src/core/ui/panelRegistry.ts` and `src/core/ui/systemRegistry.ts`.
 
@@ -139,12 +139,12 @@ _(To be updated after each session)_
 
 **Completed in Previous Session:**
 
-- Session 5 completed: Refactored the UI Schema and Panel Interfaces (`PanelItem`, `PanelDefinition`, `ShopListEntry`, `ShopItem`) to use `permission` string nodes instead of `permissionLevel` integers. Updated all usages in `uiUtils`, `panelBuilder`, `panelRegistry`, and all feature-specific UI Panel Handlers to evaluate permissions via the new `hasPermission` engine rather than checking raw integers.
+- Session 6 completed: Removed centralized command settings and command panel UI. Deleted `commandSettings` entirely from `config.default.ts`, `config.js` and the `Config` interface in `commandManager.ts` and `types.ts`. Deleted `src/core/ui/panels/commandPanel.ts` and removed related config bindings from `src/core/ui/panelRegistry.ts` and `src/core/ui/systemRegistry.ts`. Updated `commandManager.ts` to not check for the configuration file options that were removed.
 
 **Current State:**
 
-- UI Refactor is complete. All dynamic UI components now safely map interface elements using permission strings, allowing ranks to control UI visibility using specific nodes (e.g. `ui.panel.mod`).
+- Centralized command toggles and cooldowns have been removed. The command system panel UI has also been removed. The codebase is ready for the next phase of migrating `CustomCommand` interface.
 
 **Next Session Needs to Know:**
 
-- Begin Session 6: Update `config.default.ts` to remove `commandSettings` and update `src/core/ui/panels/commandPanel.ts` to remove command panel UI.
+- Begin Session 7: Command Manager Core Refactoring. Update `CustomCommand` interface in `src/core/commands/commandManager.ts` to replace `permissionLevel?: number` with `permissionNode: string` and remove `cooldown` and `enabled` properties. Update execution logic in `commandManager.ts` to check using `hasPermission(player, command.permissionNode)`.

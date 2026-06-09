@@ -72,16 +72,7 @@ export interface CustomCommand {
     hidden?: boolean;
 }
 
-interface CommandSettings {
-    [key: string]: {
-        enabled?: boolean;
-        permissionLevel?: number;
-        cooldownSeconds?: number;
-    };
-}
-
 interface Config {
-    commandSettings: CommandSettings;
     commandPrefix: string;
 }
 
@@ -180,36 +171,6 @@ class CommandManager {
     }
 
     /**
-     * Gets the effective permission level for a command, considering config overrides.
-     * @param {CustomCommand} command The command to check.
-     * @returns {number} The effective permission level.
-     */
-    getEffectivePermissionLevel(command: CustomCommand): number {
-        const config = getConfig() as Config;
-        if (!isDefined(config)) return command.permissionLevel ?? 0;
-        const commandSettings = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
-        if (isDefined(commandSettings) && isDefined(commandSettings.permissionLevel)) {
-            return commandSettings.permissionLevel;
-        }
-        return command.permissionLevel ?? 0;
-    }
-
-    /**
-     * Checks if a command is effectively enabled, considering config overrides.
-     * @param {CustomCommand} command The command to check.
-     * @returns {boolean} True if the command is enabled.
-     */
-    isCommandEnabled(command: CustomCommand): boolean {
-        const config = getConfig() as Config;
-        if (!isDefined(config)) return true;
-        const commandSettings = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
-        if (isDefined(commandSettings) && commandSettings.enabled === false) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
      * The core command execution logic, shared by slash and chat commands.
      * @param {CommandExecutor} executor The player or a console identifier.
      * @param {CustomCommand} command The command to execute.
@@ -226,19 +187,10 @@ class CommandManager {
             return;
         }
 
-        const commandSettings = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
-
-        if (isDefined(commandSettings) && commandSettings.enabled === false) {
-            if ('sendMessage' in executor) {
-                executor.sendMessage('§cThis command is currently disabled.');
-            }
-            return;
-        }
-
         const isPlayer = 'id' in executor;
 
         if (isPlayer) {
-            this._executePlayerCommand(executor, command, args, config);
+            this._executePlayerCommand(executor, command, args);
         } else {
             this._executeConsoleCommand(executor, command, args);
         }
@@ -265,7 +217,7 @@ class CommandManager {
         });
     }
 
-    private _executePlayerCommand(player: mc.Player, command: CustomCommand, args: Record<string, unknown>, config: Config) {
+    private _executePlayerCommand(player: mc.Player, command: CustomCommand, args: Record<string, unknown>) {
         // Cooldown Check
         if (command.hasCooldown === true) {
             const cooldownId = command.cooldownId ?? command.name;
@@ -278,7 +230,7 @@ class CommandManager {
 
         // Permission Check
         const pData = getPlayer(player.id);
-        const requiredPermissionLevel = this.getEffectivePermissionLevel(command);
+        const requiredPermissionLevel = command.permissionLevel ?? 0;
 
         if (!isDefined(pData) || pData.permissionLevel > requiredPermissionLevel) {
             player.sendMessage('§cYou do not have permission to use this command.');
@@ -300,8 +252,7 @@ class CommandManager {
                 // Set Cooldown
                 if (command.hasCooldown === true) {
                     const cooldownId = command.cooldownId ?? command.name;
-                    const cmdConfig = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
-                    const duration = (isDefined(cmdConfig) ? cmdConfig.cooldownSeconds : undefined) ?? command.defaultCooldown ?? 0;
+                    const duration = command.defaultCooldown ?? 0;
                     if (duration > 0) {
                         setCooldownCustom(player.id, cooldownId, duration);
                     }
@@ -567,12 +518,6 @@ class CommandManager {
 
         if (!isDefined(command)) {
             player.sendMessage(`§cUnknown command: ${commandName}`);
-            return true;
-        }
-
-        const commandSettings = isDefined(config.commandSettings) ? config.commandSettings[command.name] : undefined;
-        if (isDefined(commandSettings) && commandSettings.enabled === false) {
-            player.sendMessage('§cThis command is currently disabled.');
             return true;
         }
 

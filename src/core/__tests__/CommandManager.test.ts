@@ -43,8 +43,7 @@ describe('CommandManager', () => {
         commandManager.aliases.clear();
 
         mockGetConfig.mockReturnValue({
-            commandPrefix: '!',
-            commandSettings: {}
+            commandPrefix: '!'
         });
         mockGetPlayer.mockReturnValue({ permission: 'ui.panel.member' });
         mockGetCooldown.mockReturnValue(0);

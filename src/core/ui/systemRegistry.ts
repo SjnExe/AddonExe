@@ -72,14 +72,6 @@ export function getSystemRegistry(): SystemDefinition[] {
             isSimpleConfig: false
         },
         {
-            id: 'commands',
-            title: '§l§dCommand System§r',
-            icon: 'textures/blocks/command_block',
-            configPanelId: 'commandSystemPanel',
-            category: 'System',
-            isSimpleConfig: false
-        },
-        {
             id: 'economy',
             title: '§l§6Economy System§r',
             icon: 'textures/ui/Scaffolding',

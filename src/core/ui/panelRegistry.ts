@@ -821,16 +821,6 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         parentPanelId: 'xrayOresPanel',
         items: [] // Modal form
     },
-    commandSystemPanel: {
-        title: 'Command System',
-        parentPanelId: 'configCategoryPanel',
-        items: [] // Dynamically populated
-    },
-    commandSettingsPanel: {
-        title: '{commandName} Settings', // Dynamic title
-        parentPanelId: 'commandSystemPanel',
-        items: [] // Modal form, no items needed
-    },
     sidebarMainPanel: {
         title: 'Sidebar System',
         parentPanelId: 'configCategoryPanel',
