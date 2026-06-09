@@ -11,7 +11,7 @@ const dailyCommand: CustomCommand = {
     aliases: ['reward'],
     description: 'Claim your daily reward.',
     category: 'Economy',
-    permissionLevel: 1024,
+    permissionNode: 'cmd.daily',
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
 

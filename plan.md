@@ -81,10 +81,10 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 **Goal:** Update `CustomCommand` interface and execution logic.
 
-- [ ] **Update `CustomCommand` Interface:**
+- [x] **Update `CustomCommand` Interface:**
     - In `src/core/commands/commandManager.ts`, replace `permissionLevel?: number` with `permissionNode: string` (This is REQUIRED, no fallbacks).
     - Remove `cooldown` and `enabled` properties from the interface, as these will be handled by feature-specific systems later.
-- [ ] **Update Execution Logic (`commandManager.ts`):**
+- [x] **Update Execution Logic (`commandManager.ts`):**
     - Remove all logic checking `config.commandSettings` (enabled, cooldown, permissionLevel).
     - Update command execution to explicitly use: `hasPermission(player, command.permissionNode)`.
 
@@ -92,11 +92,11 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 **Goal:** Migrate from integer-based permission levels to string-based permission nodes for all feature commands.
 
-- [ ] **Fix Compilation (Find-and-Replace):**
+- [x] **Fix Compilation (Find-and-Replace):**
     - Run a global regex/replace across `src/features/**/commands/*.ts`.
     - Replace `permissionLevel: <number>` with an explicitly defined `permissionNode: 'cmd.<commandName>'` (e.g., `cmd.reset` for owner commands, `cmd.tp` for teleport). The node must be short and understandable.
     - CRITICAL: Because `cooldown` and `enabled` are being removed from the `CustomCommand` interface, you must ALSO remove any `cooldown` or `enabled` fields from the command definitions in these files during the find-and-replace so the codebase compiles.
-- [ ] **Wrap Up (When Session 8 is eventually executed):**
+- [x] **Wrap Up (When Session 8 is eventually executed):**
     - Run `npm run format`.
     - Run `npx tsc --noEmit` to verify type safety.
     - Call `pre_commit_instructions`.
@@ -139,7 +139,7 @@ _(To be updated after each session)_
 
 **Completed in Previous Session:**
 
-- Session 6 completed: Removed centralized command settings and command panel UI. Deleted `commandSettings` entirely from `config.default.ts`, `config.js` and the `Config` interface in `commandManager.ts` and `types.ts`. Deleted `src/core/ui/panels/commandPanel.ts` and removed related config bindings from `src/core/ui/panelRegistry.ts` and `src/core/ui/systemRegistry.ts`. Updated `commandManager.ts` to not check for the configuration file options that were removed.
+- Session 7 completed: Updated `CustomCommand` interface in `src/core/commands/commandManager.ts` to use `permissionNode` instead of `permissionLevel` and removed `hasCooldown`, `defaultCooldown`, `cooldownId` and `enabled` properties. Updated `commandManager.ts` logic to use `hasPermission`.
 
 **Current State:**
 
@@ -147,4 +147,4 @@ _(To be updated after each session)_
 
 **Next Session Needs to Know:**
 
-- Begin Session 7: Command Manager Core Refactoring. Update `CustomCommand` interface in `src/core/commands/commandManager.ts` to replace `permissionLevel?: number` with `permissionNode: string` and remove `cooldown` and `enabled` properties. Update execution logic in `commandManager.ts` to check using `hasPermission(player, command.permissionNode)`.
+- Begin Session 8: Feature Commands Refactoring. Migrate from integer-based permission levels to string-based permission nodes for all feature commands.

@@ -14,7 +14,7 @@ const command: CustomCommand = {
     aliases: ['xray'],
     description: 'Toggles X-ray notifications for yourself or the console.',
     category: 'Administration',
-    permissionLevel: 2, // Moderator
+    permissionNode: 'cmd.xraynotify', // Moderator
     allowConsole: true,
     parameters: [],
     execute: (executor) => {

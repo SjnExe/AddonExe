@@ -11,7 +11,7 @@ const command: CustomCommand = {
     aliases: ['teleport', 'xtp'],
     description: 'Teleports a player to another player or to coordinates.',
     category: 'Moderation',
-    permissionLevel: 1, // Admins only
+    permissionNode: 'cmd.tp', // Admins only
     allowConsole: false, // This command is complex and safer for players only
     parameters: [
         { name: 'arg1', type: 'string', description: 'Target player or destination player/X-coordinate.' },

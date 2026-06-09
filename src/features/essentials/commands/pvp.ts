@@ -10,7 +10,7 @@ const command: CustomCommand = {
     name: 'pvp',
     description: 'Challenge a player to a PvP duel with an optional wager.',
     category: 'PvP',
-    permissionLevel: 1024, // Everyone
+    permissionNode: 'cmd.pvp', // Everyone
     allowConsole: false,
     parameters: [
         { name: 'target', type: 'string', description: 'The player to challenge, or "accept"/"deny".' },

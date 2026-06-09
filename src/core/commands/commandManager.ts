@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
-import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { findVisiblePlayerByName, getPlayer } from '@core/playerDataManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
@@ -47,7 +47,7 @@ export interface CustomCommand {
     /** The UI category for the command. */
     category?: string;
     /** The required permission level to execute the command. Defaults to 0 (Owner). */
-    permissionLevel?: number;
+    permissionNode: string;
     /** An array of alternative names for the command. */
     aliases?: string[];
     /** An array of parameters the command accepts. */
@@ -56,12 +56,6 @@ export interface CustomCommand {
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => void | Promise<void>;
     /** Whether the command can be run from the server console. Defaults to false. */
     allowConsole?: boolean;
-    /** Whether the command has a cooldown. */
-    hasCooldown?: boolean;
-    /** A unique identifier for the command's cooldown. Defaults to the command name. */
-    cooldownId?: string;
-    /** Default cooldown duration in seconds. */
-    defaultCooldown?: number;
     /** If true, the command will not be registered as a slash command. */
     disableSlashCommand?: boolean;
     /** A list of aliases that should not be registered as slash commands. */
@@ -152,7 +146,7 @@ class CommandManager {
      * @param {CustomCommand} commandOptions
      */
     register(commandOptions: CustomCommand) {
-        const command: CustomCommand = { permissionLevel: 0, ...commandOptions };
+        const command: CustomCommand = { ...commandOptions };
         this.commands.set(command.name.toLowerCase(), command);
 
         if (isDefined(command.aliases)) {
@@ -218,21 +212,8 @@ class CommandManager {
     }
 
     private _executePlayerCommand(player: mc.Player, command: CustomCommand, args: Record<string, unknown>) {
-        // Cooldown Check
-        if (command.hasCooldown === true) {
-            const cooldownId = command.cooldownId ?? command.name;
-            const remainingCooldown = getCooldown(player.id, cooldownId);
-            if (remainingCooldown > 0) {
-                player.sendMessage(`§cYou must wait ${remainingCooldown} more second(s) to use this command.`);
-                return;
-            }
-        }
-
         // Permission Check
-        const pData = getPlayer(player.id);
-        const requiredPermissionLevel = command.permissionLevel ?? 0;
-
-        if (!isDefined(pData) || pData.permissionLevel > requiredPermissionLevel) {
+        if (!hasPermission(player, command.permissionNode)) {
             player.sendMessage('§cYou do not have permission to use this command.');
             return;
         }
@@ -247,15 +228,6 @@ class CommandManager {
                         errorLog(`[CommandManager] Error executing async command '${command.name}' for player '${player.name}': ${stack}`);
                         player.sendMessage('§cAn unexpected error occurred while running this command.');
                     });
-                }
-
-                // Set Cooldown
-                if (command.hasCooldown === true) {
-                    const cooldownId = command.cooldownId ?? command.name;
-                    const duration = command.defaultCooldown ?? 0;
-                    if (duration > 0) {
-                        setCooldownCustom(player.id, cooldownId, duration);
-                    }
                 }
             } catch (error: unknown) {
                 const stack = error instanceof Error ? error.stack : String(error);
@@ -390,7 +362,7 @@ class CommandManager {
         return {
             name: `${this.prefix}:${slashCommandName}`,
             description: command.description,
-            permissionLevel: this.translatePermissionLevel(command.permissionLevel),
+            permissionLevel: mc.CommandPermissionLevel.Any,
             mandatoryParameters,
             optionalParameters
         };
@@ -461,18 +433,6 @@ class CommandManager {
             name: param.name,
             type: type
         };
-    }
-
-    /**
-     * Translates the numeric permission level to the API's enum.
-     * @param {number | undefined} level The numeric permission level.
-     * @returns {mc.CommandPermissionLevel} The corresponding enum value.
-     * @private
-     */
-    private translatePermissionLevel(_level?: number): mc.CommandPermissionLevel {
-        // We will handle all permission checks with our custom rank system.
-        // Registering all commands with 'Any' allows our more granular check to be the single source of truth.
-        return mc.CommandPermissionLevel.Any;
     }
 
     // --- Chat Command Management ---

@@ -71,7 +71,7 @@ const kickCommand: CustomCommand = {
     description: 'Kicks a player from the server.',
     category: 'Moderation',
     aliases: ['boot'],
-    permissionLevel: 2,
+    permissionNode: 'cmd.kick',
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'string' },

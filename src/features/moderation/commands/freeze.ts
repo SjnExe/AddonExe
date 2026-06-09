@@ -114,7 +114,7 @@ const freezeCommand: CustomCommand = {
     name: 'freeze',
     description: 'Freezes a player, preventing them from moving or looking around.',
     category: 'Moderation',
-    permissionLevel: 2,
+    permissionNode: 'cmd.freeze',
     allowConsole: true,
     parameters: [{ name: 'target', type: 'player' }],
     execute: (executor: CommandExecutor, args: FreezeCommandArgs) => {
@@ -145,7 +145,7 @@ const unfreezeCommand: CustomCommand = {
     name: 'unfreeze',
     description: 'Unfreezes a player, allowing them to move and look around again.',
     category: 'Moderation',
-    permissionLevel: 2,
+    permissionNode: 'cmd.unfreeze',
     allowConsole: true,
     parameters: [{ name: 'target', type: 'player' }],
     execute: (executor: CommandExecutor, args: FreezeCommandArgs) => {

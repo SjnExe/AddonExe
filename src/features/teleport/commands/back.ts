@@ -20,9 +20,7 @@ const backCommand: CustomCommand = {
     name: 'back',
     description: 'Teleports you to your previous location (before death or teleport).',
     category: 'Transportation',
-    permissionLevel: 1024,
-    hasCooldown: true,
-    cooldownId: 'back',
+    permissionNode: 'cmd.back',
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
 

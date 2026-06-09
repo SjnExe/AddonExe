@@ -67,7 +67,7 @@ const bountyCommand: CustomCommand = {
     description: 'Place a bounty on a player.',
     category: 'Economy',
     aliases: ['setbounty', 'addbounty', '+bounty', 'abounty'],
-    permissionLevel: 1024,
+    permissionNode: 'cmd.bounty',
     parameters: [
         { name: 'target', type: 'string' },
         { name: 'amount', type: 'string' }
@@ -97,7 +97,7 @@ const removeBountyCommand: CustomCommand = {
     aliases: ['rbounty', 'delbounty', '-bounty'],
     description: 'Removes a bounty from a player using your money.',
     category: 'Economy',
-    permissionLevel: 1024,
+    permissionNode: 'cmd.removebounty',
     parameters: [
         { name: 'target', type: 'string' },
         { name: 'amount', type: 'string' }
@@ -125,14 +125,14 @@ const removeBountyCommand: CustomCommand = {
 
         if (!isDefined(targetBounty)) return sendMessage('§cThis player has no bounty on them.', executor);
 
-        if (amount > targetBounty.amount) return sendMessage(`§cAmount exceeds bounty ($${targetBounty.amount.toFixed(2)}).`, executor);
+        if (amount > targetBounty.amount) return sendMessage(`§cAmount exceeds bounty (${targetBounty.amount.toFixed(2)}).`, executor);
 
         const pData = getOrCreatePlayer(executor);
         if (pData.balance < amount) return sendMessage('§cYou dont have enough money.', executor);
 
         incrementPlayerBalance(executor.id, -amount);
         bountyManager.incrementBounty(target.id, -amount);
-        sendMessage(`§aYou have removed $${amount.toFixed(2)} from ${target.name}'s bounty.`, executor);
+        sendMessage(`§aYou have removed ${amount.toFixed(2)} from ${target.name}'s bounty.`, executor);
     }
 };
 
@@ -143,7 +143,7 @@ const oBountyCommand: CustomCommand = {
     aliases: ['offlinebounty'],
     description: 'Place a bounty on an offline player.',
     category: 'Economy',
-    permissionLevel: 1024,
+    permissionNode: 'cmd.obounty',
     hidden: true,
     parameters: [
         { name: 'target', type: 'string' },
@@ -173,7 +173,7 @@ const oRemoveBountyCommand: CustomCommand = {
     aliases: ['offlineremovebounty'],
     description: 'Removes a bounty from an offline player.',
     category: 'Economy',
-    permissionLevel: 1024,
+    permissionNode: 'cmd.oremovebounty',
     hidden: true,
     parameters: [
         { name: 'target', type: 'string' },
@@ -199,14 +199,14 @@ const oRemoveBountyCommand: CustomCommand = {
 
         const targetBounty = bountyManager.getBounty(targetId);
         if (!isDefined(targetBounty)) return sendMessage('§cThis player has no bounty on them.', executor);
-        if (amount > targetBounty.amount) return sendMessage(`§cAmount exceeds bounty ($${targetBounty.amount.toFixed(2)}).`, executor);
+        if (amount > targetBounty.amount) return sendMessage(`§cAmount exceeds bounty (${targetBounty.amount.toFixed(2)}).`, executor);
 
         const pData = getOrCreatePlayer(executor);
         if (pData.balance < amount) return sendMessage('§cYou dont have enough money.', executor);
 
         incrementPlayerBalance(executor.id, -amount);
         bountyManager.incrementBounty(targetId, -amount);
-        sendMessage(`§aYou have removed $${amount.toFixed(2)} from ${displayName}'s bounty.`, executor);
+        sendMessage(`§aYou have removed ${amount.toFixed(2)} from ${displayName}'s bounty.`, executor);
     }
 };
 
@@ -221,7 +221,7 @@ function handleListAllBounties(executor: CommandExecutor) {
     } else {
         for (const bounty of allBounties) {
             if (isDefined(bounty)) {
-                message += `§e${bounty.name}§r: $${bounty.amount.toFixed(2)}\n`;
+                message += `§e${bounty.name}§r: ${bounty.amount.toFixed(2)}\n`;
             }
         }
     }
@@ -258,7 +258,7 @@ function handleSingleBountyCheck(executor: CommandExecutor, targetName: string) 
         sendExecutorMessage(executor, `§aThere is no bounty on ${targetDisplayName}.`);
         return;
     }
-    sendExecutorMessage(executor, `§aBounty on ${targetDisplayName}: §e$${bounty.amount.toFixed(2)}`);
+    sendExecutorMessage(executor, `§aBounty on ${targetDisplayName}: §e${bounty.amount.toFixed(2)}`);
 }
 
 const listBountyCommand: CustomCommand = {
@@ -266,7 +266,7 @@ const listBountyCommand: CustomCommand = {
     aliases: ['lbounty', 'bounties', 'bountylist', 'showbounties', 'hitlist'],
     description: "Lists all active bounties or a specific player's bounty.",
     category: 'Economy',
-    permissionLevel: 1024,
+    permissionNode: 'cmd.listbounty',
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -287,7 +287,7 @@ const oListBountyCommand: CustomCommand = {
     aliases: ['offlinelistbounty'],
     description: "Checks an offline player's bounty.",
     category: 'Economy',
-    permissionLevel: 1024,
+    permissionNode: 'cmd.olistbounty',
     allowConsole: true,
     hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
