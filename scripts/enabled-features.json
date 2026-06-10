@@ -1,15 +1,1 @@
-[
-  "anticheat",
-  "economy",
-  "auction",
-  "daily",
-  "essentials",
-  "kit",
-  "moderation",
-  "shop",
-  "sidebar",
-  "social",
-  "team",
-  "teleport",
-  "vote"
-]
+["anticheat", "economy", "auction", "daily", "essentials", "kit", "moderation", "shop", "sidebar", "social", "team", "teleport", "vote"]
