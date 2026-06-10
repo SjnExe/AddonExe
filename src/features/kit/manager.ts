@@ -2,13 +2,12 @@ import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
-import { getKitsConfig } from '@core/configurations.js';
 import { errorLog } from '@core/logger.js';
-import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData, setKitCooldown } from '@core/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData } from '@core/playerDataManager.js';
 import { formatCooldown } from '@core/utils.js';
 import { Kit } from '@features/kit/adminManager.js';
 import { ItemInfo } from '@features/kit/itemsManager.js';
-import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 interface KitInfo {
     name: string;
@@ -28,8 +27,8 @@ interface KitResult {
  * @returns The kit definition or undefined.
  */
 export function getKit(kitName: string): Kit | undefined {
-    const kitsConfig = getKitsConfig();
-    const defs = kitsConfig.kitDefinitions;
+    const config = getConfig();
+    const defs = config.kits.kitDefinitions;
     if (!isDefined(defs)) {
         return undefined;
     }
@@ -42,9 +41,8 @@ export function getKit(kitName: string): Kit | undefined {
  * @returns An array of kit information objects.
  */
 export function listKits(player: mc.Player): KitInfo[] {
-    const mainConfig = getConfig();
-    const kitsConfig = getKitsConfig();
-    if ((isDefined(mainConfig.kits) ? mainConfig.kits.enabled : undefined) !== true || !isDefined(kitsConfig.kitDefinitions)) {
+    const config = getConfig();
+    if ((isDefined(config.kits) ? config.kits.enabled : undefined) !== true || !isDefined(config.kits.kitDefinitions)) {
         return [];
     }
 
@@ -53,7 +51,7 @@ export function listKits(player: mc.Player): KitInfo[] {
         return [];
     }
 
-    const kitDefs = kitsConfig.kitDefinitions as Record<string, Kit>;
+    const kitDefs = config.kits.kitDefinitions as Record<string, Kit>;
     return Object.keys(kitDefs)
         .filter((kitName) => {
             const kit = kitDefs[kitName];
@@ -84,23 +82,10 @@ export function listKits(player: mc.Player): KitInfo[] {
  * @param kitName The name of the kit.
  * @returns The remaining cooldown in seconds, or 0 if available.
  */
+import { getCooldown, setCooldown } from '@core/cooldownManager.js';
+
 export function getKitCooldown(player: mc.Player, kitName: string): number {
-    const pData = getOrCreatePlayer(player);
-    if (!isDefined(pData)) {
-        return 0;
-    }
-
-    const cooldownExpiry = pData.kitCooldowns[kitName.toLowerCase()];
-    if (!isNumber(cooldownExpiry)) {
-        return 0;
-    }
-
-    const now = Date.now();
-    if (now >= cooldownExpiry) {
-        return 0; // Cooldown has expired
-    }
-
-    return Math.ceil((cooldownExpiry - now) / 1000); // Return remaining seconds
+    return getCooldown(player.id, `kit_${kitName.toLowerCase()}`);
 }
 
 /**
@@ -110,8 +95,8 @@ export function getKitCooldown(player: mc.Player, kitName: string): number {
  * @returns The result of the operation.
  */
 export function giveKit(player: mc.Player, kitName: string): KitResult {
-    const mainConfig = getConfig();
-    if ((isDefined(mainConfig.kits) ? mainConfig.kits.enabled : undefined) !== true) {
+    const config = getConfig();
+    if ((isDefined(config.kits) ? config.kits.enabled : undefined) !== true) {
         return { success: false, message: 'The kit system is currently disabled.' };
     }
 
@@ -170,10 +155,7 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
         giveKitItems(player, kit.items);
 
         // Set the new cooldown
-        const now = Date.now();
-        const newCooldown = now + kit.cooldownSeconds * 1000;
-        setKitCooldown(player.id, lowerCaseKitName, newCooldown);
-        savePlayerData(player.id);
+        setCooldown(player.id, `kit_${lowerCaseKitName}`, kit.cooldownSeconds);
 
         return { success: true, message: `You have received the '${kitName}' kit.` };
     } catch (error: unknown) {

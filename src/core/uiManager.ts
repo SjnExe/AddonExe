@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { getCooldown, setCooldownCustom } from '@core/cooldownManager.js';
+import { getCooldown, setCooldown } from '@core/cooldownManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import * as utils from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -23,7 +23,7 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
         if (cooldown > 0) {
             return;
         }
-        setCooldownCustom(player.id, 'ui_spam', 0.5); // 0.5s global UI cooldown
+        setCooldown(player.id, 'ui_spam', 0.5); // 0.5s global UI cooldown
 
         debugLog(`[UIManager] Showing panel '${panelId}' to ${player.name} with context: ${JSON.stringify(context)}`);
 

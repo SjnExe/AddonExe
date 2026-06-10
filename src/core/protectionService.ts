@@ -1,4 +1,5 @@
-import { getSpawnConfig, getWorldProtectionConfig } from '@core/configurations.js';
+import { getConfig } from '@core/configManager.js';
+import { getWorldProtectionConfig } from '@core/configurations.js';
 import type { Vector3 } from '@minecraft/server';
 
 export type ProtectionFlags = {
@@ -85,7 +86,7 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
     }
 
     // 2. Check Spawn Protection Zone
-    const spawnConfig = getSpawnConfig();
+    const spawnConfig = getConfig();
     if (spawnConfig.spawnProtection.enabled) {
         const spawnLoc = spawnConfig.spawn.spawnLocation;
         const x = Number(spawnLoc.x);

@@ -49,7 +49,7 @@ const homeCommand: CustomCommand = {
                     if (isDefined(dimension)) {
                         executor.teleport(homeLocation, { dimension });
                         sendMessage(`§aTeleported to home '${homeName}'.`, executor);
-                        setCooldown(executor, 'homes');
+                        setCooldown(executor.id, 'homes', config.homes.cooldownSeconds);
                     } else {
                         sendMessage(`§cError: Dimension '${homeLocation.dimensionId}' not found.`, executor);
                     }

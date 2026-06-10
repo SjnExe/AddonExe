@@ -202,7 +202,7 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
             freshTarget.sendMessage(`§aTeleported to ${freshSource.name}.`);
             freshSource.sendMessage(`§a${freshTarget.name} has been teleported to you.`);
         }
-        setCooldown(freshSource, 'tpa');
+        setCooldown(freshSource.id, 'tpa', config.tpa.cooldownSeconds);
         clearRequest(request);
     };
 

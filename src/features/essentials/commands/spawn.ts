@@ -2,7 +2,7 @@ import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
-import { getSpawnConfig, saveSpawnConfig } from '@core/configurations.js';
+import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
@@ -32,8 +32,8 @@ const spawnCommand: CustomCommand = {
             return;
         }
 
-        const spawnConfig = getSpawnConfig();
-        const spawnLocation = spawnConfig.spawn.spawnLocation as SpawnLocation | undefined;
+        const config = getConfig();
+        const spawnLocation = config.spawn.spawnLocation as SpawnLocation | undefined;
 
         if (!spawnLocation || typeof spawnLocation.x !== 'number') {
             sendMessage('§cThe server spawn point has not been set.', executor);
@@ -45,7 +45,7 @@ const spawnCommand: CustomCommand = {
             return;
         }
 
-        const warmupSeconds = spawnConfig.spawn.teleportWarmupSeconds;
+        const warmupSeconds = config.spawn.teleportWarmupSeconds;
 
         const teleportLogic = () => {
             try {
@@ -54,7 +54,7 @@ const spawnCommand: CustomCommand = {
                 executor.teleport(spawnLocation as mc.Vector3, { dimension: dimension });
                 sendMessage('§aTeleporting you to spawn...', executor);
                 playSound(executor, 'random.orb');
-                setCooldown(executor, 'spawn');
+                setCooldown(executor.id, 'spawn', config.spawn.cooldownSeconds);
             } catch (error: unknown) {
                 sendMessage('§cFailed to teleport to spawn. The dimension may be invalid or the location unsafe.', executor);
                 if (error instanceof Error) {
@@ -151,9 +151,10 @@ const setSpawnCommand: CustomCommand = {
         if (!location) return;
 
         try {
-            const spawnConfig = getSpawnConfig();
-            spawnConfig.spawn.spawnLocation = location;
-            saveSpawnConfig(spawnConfig);
+            const config = getConfig();
+            updateMultipleConfig({
+                'spawn.spawnLocation': location
+            });
 
             const dimName = location.dimensionId.replace('minecraft:', '');
             const locationString = `§aAddon spawn point set to: §fX: ${location.x!.toFixed(2)}, Y: ${location.y!.toFixed(2)}, Z: ${location.z!.toFixed(2)} in ${dimName}`;
@@ -162,10 +163,10 @@ const setSpawnCommand: CustomCommand = {
             initializeSpawnProtection();
             sendSetSpawnMessage(executor, '§aSpawn protection system has been updated.');
 
-            if (location.dimensionId === (MinecraftDimensionTypes.Overworld as string) && spawnConfig.spawn.syncWorldSpawn) {
+            if (location.dimensionId === (MinecraftDimensionTypes.Overworld as string) && config.spawn.syncWorldSpawn) {
                 syncWorldSpawn(executor, location);
                 // Configuration sets it as either string or number from the textfield
-                updateSpawnRadius(executor, spawnConfig.spawn.worldSpawnRadius as number | string);
+                updateSpawnRadius(executor, config.spawn.worldSpawnRadius as number | string);
             }
 
             if (executor instanceof mc.Player) {

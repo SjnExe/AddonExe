@@ -14,7 +14,7 @@ vi.mock('../configManager.js', () => ({
 
 vi.mock('../cooldownManager.js', () => ({
     getCooldown: mockGetCooldown,
-    setCooldownCustom: mockSetCooldownCustom
+    setCooldown: mockSetCooldownCustom
 }));
 
 vi.mock('../playerDataManager.js', () => ({

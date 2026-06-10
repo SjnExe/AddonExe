@@ -105,13 +105,13 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 **Goal:** Delegate toggles, cooldowns, and feature-specific logic to their respective systems (Shop, TPA, Spawn, Kits, etc.).
 
-- [ ] **System-Specific Enable/Disable:**
+- [x] **System-Specific Enable/Disable:**
     - If a system (e.g., Shop) is disabled, all related UI, commands, and logic are disabled _only for the public_.
     - **Crucial:** Staff/Admin configurations must not be soft-locked. Owner/Admin facing tools remain functional even if the public system is disabled.
-- [ ] **System-Specific Cooldowns:**
+- [x] **System-Specific Cooldowns:**
     - Most commands do _not_ need a specific cooldown. Move general anti-spam global cooldowns to an Anti-Cheat or Chat system.
     - Move specific cooldown logic out of the command manager. `/spawn` cooldown belongs in the Spawn system; `/tpa` cooldown belongs in the TPA system. (Note: `/setspawn` does not get the spawn cooldown, only the anti-spam one).
-- [ ] **Kits System Updates:**
+- [x] **Kits System Updates:**
     - Needs node-based exclusivity (tie specific kits to ranks/nodes).
     - Add custom prices (0 or positive integers) per kit.
     - Add specific cooldowns per kit (not just a global kit system cooldown).
@@ -143,8 +143,8 @@ _(To be updated after each session)_
 
 **Current State:**
 
-- The `CustomCommand` interface changes are fully implemented and the command commands across the feature modules compile. Feature-specific logic refactoring (toggles, cooldowns) is up next in Sessions 9 & 10.
+- Session 9 & 10 completed: Delegated toggles, cooldowns, and feature-specific logic to their respective systems (TPA, Spawn, Kits). Cleaned up CooldownManager. Consolidate spawn, spawnProtection, and kits configs into the main `config.default.ts`. All compilation and formatting tests passed.
 
 **Next Session Needs to Know:**
 
-- Begin Sessions 9 & 10: Delegate toggles, cooldowns, and feature-specific logic to their respective systems (Shop, TPA, Spawn, Kits, etc.).
+- Begin Future Sessions: Rank & Permission Security Engine. Fix security flaws in the Rank Editing UI using a Priority-Based Hierarchy Enforcement.

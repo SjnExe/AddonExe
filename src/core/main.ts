@@ -6,11 +6,9 @@ import {
     loadAuctionHouseConfig,
     loadDailyRewardsConfig,
     loadEconomyConfig,
-    loadKitsConfig,
     loadRanksConfig,
     loadShopConfig,
     loadSidebarConfig,
-    loadSpawnConfig,
     loadTeamConfig,
     loadWorldProtectionConfig,
     loadXrayConfig
@@ -59,10 +57,8 @@ export async function initializeAddon() {
     // This reduces startup time by loading independent configs concurrently.
     await initializeConfigManager(isMigration);
     await Promise.all([
-        loadKitsConfig(isMigration),
         loadShopConfig(isMigration),
         loadRanksConfig(isMigration),
-        loadSpawnConfig(isMigration),
         loadEconomyConfig(isMigration),
         loadTeamConfig(isMigration),
         loadSidebarConfig(isMigration),

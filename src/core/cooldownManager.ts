@@ -1,8 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
-import { isDefined, isNumber } from '@lib/guards.js';
+import { isNumber } from '@lib/guards.js';
 
 const cooldownDbKey = 'exe:cooldowns';
 const saveIntervalTicks = 6000; // Every 5 minutes
@@ -72,28 +71,12 @@ function getCooldownKey(playerId: string, identifier: string): string {
 }
 
 /**
- * Sets a cooldown for a player for a specific command defined in the config.
- * @param player
- * @param commandName The name of the command (must have a section in config.js).
- */
-export function setCooldown(player: mc.Player, commandName: string) {
-    const config = getConfig();
-    const commandConfig = (config as unknown as Record<string, { cooldownSeconds?: number }>)[commandName];
-    if (!isDefined(commandConfig) || !isNumber(commandConfig.cooldownSeconds)) {
-        return;
-    }
-
-    const cooldownSeconds = commandConfig.cooldownSeconds;
-    setCooldownCustom(player.id, commandName, cooldownSeconds);
-}
-
-/**
- * Sets a custom cooldown for a player for a specific identifier.
+ * Sets a cooldown for a player for a specific identifier.
  * @param playerId
  * @param identifier A unique name for the cooldown (e.g., a command name).
  * @param durationSeconds The length of the cooldown in seconds.
  */
-export function setCooldownCustom(playerId: string, identifier: string, durationSeconds: number) {
+export function setCooldown(playerId: string, identifier: string, durationSeconds: number) {
     if (durationSeconds <= 0) {
         return;
     }
