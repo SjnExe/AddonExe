@@ -75,6 +75,8 @@ export class RankPanelHandler implements IPanelHandler {
                     .textField('Prefix', 'e.g. §6VIP', { defaultValue: '' })
                     .textField('Name Color', 'e.g. §e', { defaultValue: '§r' })
                     .textField('Chat Color', 'e.g. §f', { defaultValue: '§r' })
+                    .textField('Allow Nodes (comma separated)', 'e.g. cmd.tp', { defaultValue: '' })
+                    .textField('Deny Nodes (comma separated)', '', { defaultValue: '' })
             );
         }
 
@@ -98,6 +100,8 @@ export class RankPanelHandler implements IPanelHandler {
                         defaultValue: rank.chatFormatting?.messageColor ?? ''
                     })
                     .toggle('Is Locked (Prevent Deletion)', { defaultValue: rank.locked === true })
+                    .textField('Allow Nodes (comma separated)', 'e.g. cmd.tp', { defaultValue: rank.allow.join(', ') })
+                    .textField('Deny Nodes (comma separated)', '', { defaultValue: rank.deny.join(', ') })
             );
         }
 
@@ -126,7 +130,7 @@ export class RankPanelHandler implements IPanelHandler {
         const values = response.formValues;
         if (response.canceled) return showPanel(player, 'rankManagementPanel');
         const rawValues = (values as (string | undefined)[]) ?? [];
-        const [id, name, permStr, prefix, nameColor, messageColor] = rawValues;
+        const [id, name, permStr, prefix, nameColor, messageColor, allowNodesStr, denyNodesStr] = rawValues;
 
         if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isNonEmptyString(permStr)) {
             player.sendMessage('§cInvalid input.');
@@ -139,11 +143,38 @@ export class RankPanelHandler implements IPanelHandler {
             return showPanel(player, 'rankManagementPanel');
         }
 
+        const { getPlayerRank } = await import('@core/rankManager.js');
+        const { getConfig } = await import('@core/configManager.js');
+        const editorPriority = getPlayerRank(player, getConfig()).priority;
+        const parsedPriority = Number.parseInt(permStr, 10);
+        const newPriority = Number.isNaN(parsedPriority) ? 1024 : parsedPriority;
+
+        if (newPriority <= editorPriority) {
+            player.sendMessage('§cYou cannot create a rank with a priority equal to or higher than your own.');
+            return showPanel(player, 'rankManagementPanel');
+        }
+
+        const allowNodes = (allowNodesStr ?? '')
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n !== '');
+
+        const denyNodes = (denyNodesStr ?? '')
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n !== '');
+
+        const { canGrantPermissions } = await import('@core/permissionEngine.js');
+        if (!canGrantPermissions(player, [...allowNodes, ...denyNodes])) {
+            player.sendMessage('§cYou cannot grant or deny permissions you do not possess.');
+            return showPanel(player, 'rankManagementPanel');
+        }
+
         const newRank: RankDefinition = {
             id: id,
             name: name,
-            priority: Number.parseInt(permStr) || 1024,
-            permissionLevel: Number.parseInt(permStr) || 1024,
+            priority: newPriority,
+            permissionLevel: newPriority,
             chatFormatting: {
                 prefixText: prefix ?? '',
                 nameColor: nameColor ?? '§r',
@@ -152,8 +183,8 @@ export class RankPanelHandler implements IPanelHandler {
             conditions: [],
             locked: false,
             groups: ['default'],
-            allow: [],
-            deny: []
+            allow: allowNodes,
+            deny: denyNodes
         };
 
         const newConfig = { ...config };
@@ -175,6 +206,8 @@ export class RankPanelHandler implements IPanelHandler {
         const nameColor = rawValues[3] as string | undefined;
         const messageColor = rawValues[4] as string | undefined;
         const locked = rawValues[5] as boolean | undefined;
+        const allowNodesStr = rawValues[6] as string | undefined;
+        const denyNodesStr = rawValues[7] as string | undefined;
 
         const config = getRanksConfig();
         const rankIndex = config.rankDefinitions.findIndex((r) => r.id === rankId);
@@ -187,21 +220,64 @@ export class RankPanelHandler implements IPanelHandler {
         const existingRank = config.rankDefinitions[rankIndex];
         if (!isDefined(existingRank)) return showPanel(player, 'rankManagementPanel');
 
+        const { getPlayerRank } = await import('@core/rankManager.js');
+        const { getConfig } = await import('@core/configManager.js');
+        const editorPriority = getPlayerRank(player, getConfig()).priority;
+
+        if (existingRank.priority < editorPriority) {
+            player.sendMessage('§cYou cannot edit a rank with a priority higher than your own.');
+            return showPanel(player, 'rankManagementPanel');
+        }
+
+        const parsedPriority = Number.parseInt(permStr ?? '', 10);
+        const newPriority = Number.isNaN(parsedPriority) ? existingRank.permissionLevel : parsedPriority;
+
+        if (newPriority < editorPriority) {
+            player.sendMessage('§cYou cannot assign a priority higher than your own.');
+            return showPanel(player, 'rankManagementPanel');
+        }
+
+        const allowNodes = (allowNodesStr ?? '')
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n !== '');
+
+        const denyNodes = (denyNodesStr ?? '')
+            .split(',')
+            .map((n) => n.trim())
+            .filter((n) => n !== '');
+
+        const newAllowNodes = allowNodes.filter((n) => !existingRank.allow.includes(n));
+        const newDenyNodes = denyNodes.filter((n) => !existingRank.deny.includes(n));
+
+        const { canGrantPermissions } = await import('@core/permissionEngine.js');
+        if (!canGrantPermissions(player, [...newAllowNodes, ...newDenyNodes])) {
+            player.sendMessage('§cYou cannot grant or deny permissions you do not possess.');
+            return showPanel(player, 'rankManagementPanel');
+        }
+
         const updatedRank: RankDefinition = {
             ...existingRank,
             name: isNonEmptyString(name) ? name : existingRank.name,
-            permissionLevel: isNonEmptyString(permStr) ? Number.parseInt(permStr) || 1024 : existingRank.permissionLevel,
+            priority: newPriority,
+            permissionLevel: newPriority,
             chatFormatting: {
                 prefixText: isNonEmptyString(prefix) ? prefix : (existingRank.chatFormatting?.prefixText ?? ''),
                 nameColor: isNonEmptyString(nameColor) ? nameColor : (existingRank.chatFormatting?.nameColor ?? '§r'),
                 messageColor: isNonEmptyString(messageColor) ? messageColor : (existingRank.chatFormatting?.messageColor ?? '§r')
             },
-            locked: (locked ?? existingRank.locked) === true
+            locked: (locked ?? existingRank.locked) === true,
+            allow: allowNodes,
+            deny: denyNodes
         };
 
-        const newConfig = { ...config };
-        newConfig.rankDefinitions[rankIndex] = updatedRank;
-        saveRanksConfig(newConfig);
+        const { updateRank } = await import('@core/rankDb.js');
+        const updateResult = updateRank(rankId, updatedRank);
+
+        if (!updateResult.success) {
+            player.sendMessage(`§c${updateResult.message}`);
+            return showPanel(player, 'rankManagementPanel');
+        }
 
         player.sendMessage(`§aRank ${name} updated.`);
         return showPanel(player, 'rankManagementPanel');
