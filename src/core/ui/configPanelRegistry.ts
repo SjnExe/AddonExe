@@ -323,7 +323,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'spawn',
         title: '§l§eSpawn System§r',
         icon: 'textures/blocks/beacon',
-        configSource: 'spawn',
+        configSource: 'main',
         category: 'World',
         settings: [
             {

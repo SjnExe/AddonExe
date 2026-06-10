@@ -69,7 +69,8 @@ function initiateTeleport(player: mc.Player, location: mc.Vector3, tickingAreaNa
             saveLastLocation(player);
             player.teleport(location);
             sendMessage('§aYou have been teleported to a random location!', player);
-            setCooldown(player, 'rtp');
+            const config = getConfig();
+            setCooldown(player.id, 'rtp', config.rtp.cooldownSeconds);
         } catch (error: unknown) {
             const stack = error instanceof Error ? error.stack : String(error);
             sendMessage('§cFailed to teleport to the location. Please try again.', player);

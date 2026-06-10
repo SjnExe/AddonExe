@@ -62,7 +62,7 @@ const warpCommand: CustomCommand = {
                     if (isDefined(dimension)) {
                         executor.teleport(warpLocation, { dimension });
                         sendMessage(`§aTeleported to warp '${warpName}'.`, executor);
-                        setCooldown(executor, 'warp');
+                        setCooldown(executor.id, 'warp', config.warps.cooldownSeconds);
                     } else {
                         sendMessage(`§cError: Dimension '${warpLocation.dimensionId}' not found.`, executor);
                     }

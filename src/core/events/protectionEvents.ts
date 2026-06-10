@@ -1,4 +1,4 @@
-import { getSpawnConfig } from '@core/configurations.js';
+import { getConfig } from '@core/configManager.js';
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { getProtectionFlags } from '@core/protectionService.js';
 import { isDefined } from '@lib/guards.js';
@@ -6,7 +6,7 @@ import * as mc from '@minecraft/server';
 
 function canBypass(player: mc.Player): boolean {
     // Check if admin bypass is allowed globally or in spawn configuration
-    const config = getSpawnConfig();
+    const config = getConfig();
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (config && config.spawnProtection && !config.spawnProtection.allowAdminBypass) {
         return false;

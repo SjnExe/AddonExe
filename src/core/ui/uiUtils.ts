@@ -5,13 +5,11 @@ import {
     getAuctionHouseConfig,
     getEconomyConfig,
     getSidebarConfig,
-    getSpawnConfig,
     getTeamConfig,
     getXrayConfig,
     saveAuctionHouseConfig,
     saveEconomyConfig,
     saveSidebarConfig,
-    saveSpawnConfig,
     saveTeamConfig,
     saveXrayConfig,
     SidebarConfig
@@ -24,19 +22,15 @@ import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@featu
 import { xrayConfig } from '@features/anticheat/xrayConfig.default.js';
 import { auctionHouseConfig } from '@features/auction/auctionHouseConfig.default.js';
 import { economyConfig } from '@features/economy/economyConfig.js';
-import { spawnConfig } from '@features/essentials/spawnConfig.default.js';
-import { kitsConfig } from '@features/kit/kitsConfig.default.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/team/teamConfig.js';
 import * as mc from '@minecraft/server';
 import { PanelItem, UIContext } from '@ui/types.js';
 
-type SpawnConfig = typeof spawnConfig;
 type EconomyConfig = typeof economyConfig;
 type XrayConfig = typeof xrayConfig;
 type TeamConfig = typeof teamConfig;
 type RanksConfig = typeof ranksConfig;
-type KitsConfig = typeof kitsConfig;
 type ShopConfig = typeof shopConfig;
 type AuctionHouseConfig = typeof auctionHouseConfig;
 
@@ -45,7 +39,7 @@ import { getSystemRegistry, SystemDefinition } from '@ui/systemRegistry.js';
 export const itemsPerPage = 8;
 
 interface ConfigHandler {
-    get: () => typeof Config | SpawnConfig | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | KitsConfig | ShopConfig | SidebarConfig | AnticheatConfig | AuctionHouseConfig;
+    get: () => typeof Config | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | ShopConfig | SidebarConfig | AnticheatConfig | AuctionHouseConfig;
     save: (config: unknown) => void;
 }
 
@@ -53,10 +47,6 @@ export const configHandlers: Record<string, ConfigHandler> = {
     main: {
         get: getConfig,
         save: (updates: unknown) => updateMultipleConfig(updates as Record<string, unknown>)
-    },
-    spawn: {
-        get: getSpawnConfig,
-        save: (config: unknown) => saveSpawnConfig(config as SpawnConfig)
     },
     economy: {
         get: getEconomyConfig,

@@ -1,4 +1,4 @@
-import { getKitsConfig, saveKitsConfig } from '@core/configurations.js';
+import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { debugLog } from '@core/logger.js';
 import { ItemInfo } from '@features/kit/itemsManager.js';
 
@@ -41,7 +41,7 @@ interface ActionResult {
  * @returns The result of the operation.
  */
 export function createKit(kitName: string, options: KitOptions = {}): ActionResult {
-    const config = getKitsConfig();
+    const config = getConfig();
     const lowerCaseKitName = kitName.toLowerCase();
 
     const {
@@ -52,7 +52,7 @@ export function createKit(kitName: string, options: KitOptions = {}): ActionResu
         description = 'A new custom kit.'
     } = options;
 
-    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
+    const kitDefinitions = config.kits.kitDefinitions as Record<string, Kit>;
 
     if (kitDefinitions[lowerCaseKitName]) {
         return { success: false, message: `A kit with the name '${kitName}' already exists.` };
@@ -68,7 +68,9 @@ export function createKit(kitName: string, options: KitOptions = {}): ActionResu
         items: []
     };
 
-    saveKitsConfig(config);
+    updateMultipleConfig({
+        'kits.kitDefinitions': kitDefinitions
+    });
     debugLog(`[KitAdminManager] Created new kit: ${lowerCaseKitName}`);
     return { success: true, message: `Successfully created kit '${kitName}'.` };
 }
@@ -79,15 +81,17 @@ export function createKit(kitName: string, options: KitOptions = {}): ActionResu
  * @returns The result of the operation.
  */
 export function deleteKit(kitName: string): ActionResult {
-    const config = getKitsConfig();
-    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
+    const config = getConfig();
+    const kitDefinitions = config.kits.kitDefinitions as Record<string, Kit>;
 
     if (!kitDefinitions[kitName]) {
         return { success: false, message: `Kit '${kitName}' not found.` };
     }
 
     delete kitDefinitions[kitName];
-    saveKitsConfig(config);
+    updateMultipleConfig({
+        'kits.kitDefinitions': kitDefinitions
+    });
     debugLog(`[KitAdminManager] Deleted kit: ${kitName}`);
     return { success: true, message: `Successfully deleted kit '${kitName}'.` };
 }
@@ -99,8 +103,8 @@ export function deleteKit(kitName: string): ActionResult {
  * @returns The result of the operation.
  */
 export function updateKitSettings(kitName: string, newSettings: KitSettings): ActionResult {
-    const config = getKitsConfig();
-    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
+    const config = getConfig();
+    const kitDefinitions = config.kits.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
     if (!kit) {
@@ -110,7 +114,9 @@ export function updateKitSettings(kitName: string, newSettings: KitSettings): Ac
     // Update the kit object with the new settings
     Object.assign(kit, newSettings);
 
-    saveKitsConfig(config);
+    updateMultipleConfig({
+        'kits.kitDefinitions': kitDefinitions
+    });
     debugLog(`[KitAdminManager] Updated settings for kit: ${kitName}`);
     return { success: true, message: `Successfully updated settings for kit '${kitName}'.` };
 }
@@ -120,8 +126,8 @@ export function updateKitSettings(kitName: string, newSettings: KitSettings): Ac
  * @returns The kit definitions object.
  */
 export function getAllKits(): Record<string, Kit> {
-    const config = getKitsConfig();
-    return config.kitDefinitions as Record<string, Kit>;
+    const config = getConfig();
+    return config.kits.kitDefinitions as Record<string, Kit>;
 }
 
 /**
@@ -131,8 +137,8 @@ export function getAllKits(): Record<string, Kit> {
  * @returns The result of the operation.
  */
 export function renameKit(oldName: string, newName: string): ActionResult {
-    const config = getKitsConfig();
-    const allKits = config.kitDefinitions as Record<string, Kit>;
+    const config = getConfig();
+    const allKits = config.kits.kitDefinitions as Record<string, Kit>;
 
     if (!allKits[oldName]) {
         return { success: false, message: `Kit '${oldName}' not found.` };
@@ -147,7 +153,9 @@ export function renameKit(oldName: string, newName: string): ActionResult {
     // Delete the old kit
     delete allKits[oldName];
 
-    saveKitsConfig(config);
+    updateMultipleConfig({
+        'kits.kitDefinitions': allKits
+    });
     debugLog(`[KitAdminManager] Renamed kit from '${oldName}' to '${newName}'.`);
     return { success: true, message: `Successfully renamed kit to '${newName}'.` };
 }

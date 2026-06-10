@@ -1,7 +1,6 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
-import { getKitsConfig } from '@core/configurations.js';
 import { frozenTag, vanishedTag } from '@core/constants.js';
 import { debugLog, infoLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
@@ -80,12 +79,11 @@ export function handlePlayerJoin(player: mc.Player) {
     }
 
     // Starter Kit Logic
-    const kitsConfig = getKitsConfig();
-    if (kitsConfig.starterKit.enabled && !pData.starterKitClaimed) {
+    if (config.kits.starterKit.enabled && !pData.starterKitClaimed) {
         // Only give to strictly new players (joined within last minute)
         // If older, we mark as claimed to prevent future issues.
         if (pData.totalPlayTime < 60_000) {
-            const kitName = kitsConfig.starterKit.kitName;
+            const kitName = config.kits.starterKit.kitName;
             const kit = getKit(kitName);
             if (kit) {
                 try {

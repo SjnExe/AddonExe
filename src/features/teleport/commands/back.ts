@@ -71,7 +71,7 @@ const backCommand: CustomCommand = {
                 executor.teleport(lastLocation as mc.Vector3, { dimension: dimension });
                 sendMessage('§aTeleported back to previous location.', executor);
                 playSound(executor, 'random.orb');
-                setCooldown(executor, 'back');
+                setCooldown(executor.id, 'back', backConfig.cooldownSeconds);
             } catch (error: unknown) {
                 sendMessage('§cFailed to teleport back. Dimension might be unloaded.', executor);
                 if (error instanceof Error) {

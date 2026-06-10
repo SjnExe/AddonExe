@@ -14,17 +14,13 @@ import type { xrayConfig } from '@features/anticheat/xrayConfig.default.js';
 import type { auctionHouseConfig } from '@features/auction/auctionHouseConfig.default.js';
 import type { dailyRewardsConfig } from '@features/daily/dailyRewardsConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
-import type { spawnConfig } from '@features/essentials/spawnConfig.default.js';
 import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.default.js';
-import type { kitsConfig } from '@features/kit/kitsConfig.default.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { config as sidebarConfig } from '@features/sidebar/sidebarConfig.default.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
 import type { teamConfig } from '@features/team/teamConfig.js';
 
-export type KitsConfig = typeof kitsConfig;
 export type ShopConfig = typeof shopConfig;
-export type SpawnConfig = typeof spawnConfig;
 export type RanksConfig = typeof ranksConfig;
 export type EconomyConfig = typeof economyConfig;
 export type XrayConfig = typeof xrayConfig;
@@ -34,9 +30,7 @@ export type SidebarConfig = typeof sidebarConfig;
 export type AuctionHouseConfig = typeof auctionHouseConfig;
 export type DailyRewardsConfig = typeof dailyRewardsConfig;
 
-let kitsConfigManager: ConfigManager<KitsConfig>,
-    shopConfigManager: ConfigManager<ShopConfig>,
-    spawnConfigManager: ConfigManager<SpawnConfig>,
+let shopConfigManager: ConfigManager<ShopConfig>,
     ranksConfigManager: ConfigManager<RanksConfig>,
     economyConfigManager: ConfigManager<EconomyConfig>,
     xrayConfigManager: ConfigManager<XrayConfig>,
@@ -56,16 +50,6 @@ export const getWorldProtectionConfig = (): WorldProtectionConfig => worldProtec
 export const saveWorldProtectionConfig = (config: WorldProtectionConfig) => worldProtectionConfigManager.set(config);
 export const resetWorldProtectionConfig = () => worldProtectionConfigManager.reset();
 
-export const loadKitsConfig = async (isMigration: boolean) => {
-    // Corrected path to match the build output location relative to main.js (root of scripts/)
-    const defaultConfig = await asyncLoadConfig<KitsConfig>('./features/kit/kitsConfig.js');
-    kitsConfigManager = createConfigManager('exe:kitsConfig:current', defaultConfig, 'Kits');
-    kitsConfigManager.load(isMigration);
-};
-export const getKitsConfig = (): KitsConfig => kitsConfigManager.get();
-export const saveKitsConfig = (config: KitsConfig) => kitsConfigManager.set(config);
-export const resetKitsConfig = () => kitsConfigManager.reset();
-
 export const loadShopConfig = async (isMigration: boolean) => {
     const defaultConfig = await asyncLoadConfig<ShopConfig>('./features/shop/shopConfig.js');
     shopConfigManager = createConfigManager('exe:shopConfig:current', defaultConfig, 'Shop');
@@ -74,24 +58,6 @@ export const loadShopConfig = async (isMigration: boolean) => {
 export const getShopConfig = (): ShopConfig => shopConfigManager.get();
 export const saveShopConfig = (config: ShopConfig) => shopConfigManager.set(config);
 export const resetShopConfig = () => shopConfigManager.reset();
-
-export const loadSpawnConfig = async (isMigration: boolean) => {
-    const { spawnConfig } = await import('@features/essentials/spawnConfig.default.js');
-    spawnConfigManager = createConfigManager('exe:spawnConfig:current', spawnConfig, 'Spawn');
-    spawnConfigManager.load(isMigration);
-};
-export const getSpawnConfig = (): SpawnConfig => spawnConfigManager.get();
-export const saveSpawnConfig = (config: SpawnConfig) => {
-    spawnConfigManager.set(config);
-    if (config.spawn.worldSpawnRadius >= 0) {
-        try {
-            mc.world.gameRules.spawnRadius = config.spawn.worldSpawnRadius;
-        } catch {
-            // Ignore error if gamerule cannot be set
-        }
-    }
-};
-export const resetSpawnConfig = () => spawnConfigManager.reset();
 
 export const loadRanksConfig = async (isMigration: boolean) => {
     const defaultConfig = await asyncLoadConfig<RanksConfig>('./core/ranksConfig.js');
@@ -192,23 +158,9 @@ export const configResetRegistry: Record<string, ResetRegistryEntry> = {
         reset: resetEconomyConfig,
         message: "The 'economy' configuration section has been reset to default."
     },
-    kits: {
-        reset: resetKitsConfig,
-        message: "The 'kits' configuration section has been reset to default."
-    },
     shop: {
         reset: resetShopConfig,
         message: "The 'shop' configuration section has been reset to default."
-    },
-    spawn: {
-        reset: resetSpawnConfig,
-        message: "The 'spawn' configuration section has been reset to default.",
-        postResetCallback: (player) => {
-            initializeSpawnProtection();
-            if (player) {
-                player.sendMessage('§aSpawn protection system has been updated based on new settings.');
-            }
-        }
     },
     ranks: {
         reset: resetRanksConfig,
@@ -251,6 +203,12 @@ export const configResetCallbacks: Record<string, (player?: mc.Player) => void> 
         setLockState('end', !!config.dimensionLock.endLock);
         if (player) {
             player.sendMessage('§aLive dimension lock states have been updated to match config.');
+        }
+    },
+    spawn: (player) => {
+        initializeSpawnProtection();
+        if (player) {
+            player.sendMessage('§aSpawn protection system has been updated based on new settings.');
         }
     }
 };

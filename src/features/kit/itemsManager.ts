@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { getKitsConfig, saveKitsConfig } from '@core/configurations.js';
+import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { Kit } from '@features/kit/adminManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -32,8 +32,8 @@ interface ActionResult {
  * @returns The result of the operation.
  */
 export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult {
-    const config = getKitsConfig();
-    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
+    const config = getConfig();
+    const kitDefinitions = config.kits.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
     if (!isDefined(kit)) {
@@ -59,7 +59,9 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
         }
 
         kit.items.push(itemInfo);
-        saveKitsConfig(config);
+        updateMultipleConfig({
+            'kits.kitDefinitions': kitDefinitions
+        });
         debugLog(`[KitItemsManager] Added item ${itemInfo.typeId} x${itemInfo.amount} to kit ${kitName}`);
         return { success: true, message: 'Item added successfully.' };
     } catch (error: unknown) {
@@ -110,8 +112,8 @@ export function addItemFromHandToKit(kitName: string, player: mc.Player): Action
  * @returns The result of the operation.
  */
 export function removeItemFromKit(kitName: string, itemIndex: number): ActionResult {
-    const config = getKitsConfig();
-    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
+    const config = getConfig();
+    const kitDefinitions = config.kits.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
     if (!isDefined(kit)) {
@@ -123,7 +125,9 @@ export function removeItemFromKit(kitName: string, itemIndex: number): ActionRes
     }
 
     kit.items.splice(itemIndex, 1);
-    saveKitsConfig(config);
+    updateMultipleConfig({
+        'kits.kitDefinitions': kitDefinitions
+    });
     debugLog(`[KitItemsManager] Removed item at index ${itemIndex} from kit ${kitName}`);
     return { success: true, message: 'Item removed successfully.' };
 }
@@ -136,8 +140,8 @@ export function removeItemFromKit(kitName: string, itemIndex: number): ActionRes
  * @returns The result of the operation.
  */
 export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo: ItemInfo): ActionResult {
-    const config = getKitsConfig();
-    const kitDefinitions = config.kitDefinitions as Record<string, Kit>;
+    const config = getConfig();
+    const kitDefinitions = config.kits.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
     if (!isDefined(kit)) {
@@ -163,7 +167,9 @@ export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo:
         }
 
         kit.items[itemIndex] = newItemInfo;
-        saveKitsConfig(config);
+        updateMultipleConfig({
+            'kits.kitDefinitions': kitDefinitions
+        });
         debugLog(`[KitItemsManager] Updated item at index ${itemIndex} in kit ${kitName}`);
         return { success: true, message: 'Item updated successfully.' };
     } catch (error: unknown) {
