@@ -13,14 +13,11 @@ export const generateCommandIndexPlugin = {
 
             let featureDirs = [];
             try {
-                const stats = await fs.stat(FEATURES_DIR);
-                if (stats.isDirectory()) {
-                    featureDirs = await fs.readdir(FEATURES_DIR);
-                }
+                const enabledFeaturesPath = path.resolve('scripts/enabled-features.json');
+                const content = await fs.readFile(enabledFeaturesPath, 'utf8');
+                featureDirs = JSON.parse(content);
             } catch (error) {
-                if (error.code !== 'ENOENT') {
-                    console.warn(`Error reading features directory: ${error.message}`);
-                }
+                console.warn(`Error reading enabled-features.json: ${error.message}. Make sure generate-feature-registry.js ran before build.`);
             }
 
             const commandList = [];

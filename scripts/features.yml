@@ -1,0 +1,67 @@
+features:
+    - id: anticheat
+      name: Anti-Cheat
+      status: prod
+      dependencies: []
+
+    - id: auction
+      name: Auction House
+      status: prod
+      dependencies:
+          - economy
+
+    - id: daily
+      name: Daily Rewards
+      status: prod
+      dependencies: []
+
+    - id: economy
+      name: Economy
+      status: prod
+      dependencies: []
+
+    - id: essentials
+      name: Essentials
+      status: prod
+      dependencies: []
+
+    - id: kit
+      name: Kits
+      status: prod
+      dependencies: []
+
+    - id: moderation
+      name: Moderation
+      status: prod
+      dependencies: []
+
+    - id: shop
+      name: Shop
+      status: prod
+      dependencies:
+          - economy
+
+    - id: sidebar
+      name: Sidebar
+      status: prod
+      dependencies: []
+
+    - id: social
+      name: Social
+      status: prod
+      dependencies: []
+
+    - id: team
+      name: Teams
+      status: prod
+      dependencies: []
+
+    - id: teleport
+      name: Teleport
+      status: prod
+      dependencies: []
+
+    - id: vote
+      name: Voting
+      status: prod
+      dependencies: []
