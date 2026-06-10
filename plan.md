@@ -120,14 +120,14 @@ We are replacing the current single-rank, integer-based `permissionLevel` system
 
 **Goal:** Fix security flaws in the Rank Editing UI using a Priority-Based Hierarchy Enforcement.
 
-- [ ] **Priority Numbers:** `0` = Owner, `1` = Admin, `2+` = Mods/Members. `1024` = Default Member rank. Lower number = higher authority.
-- [ ] **Hierarchy Enforcement:**
+- [x] **Priority Numbers:** `0` = Owner, `1` = Admin, `2+` = Mods/Members. `1024` = Default Member rank. Lower number = higher authority.
+- [x] **Hierarchy Enforcement:**
     - **Editing Ranks:** An editor can only create or edit a rank with a priority _strictly greater_ than their own. (e.g., Admin [Priority 1] can only edit/create ranks at Priority 2 or higher. They cannot grant Owner [0] or Admin [1] powers).
     - **Editing Players:** An Admin cannot edit the rank assignment of a player whose highest rank priority is `<= ` the Admin's highest rank priority.
-- [ ] **Permission Delegation (Option A Logic):**
+- [x] **Permission Delegation (Option A Logic):**
     - When adding permission nodes via the UI, an editor can _only_ grant nodes they already possess.
     - _Edge Cases to Handle:_ Wildcard expansion (if Admin has `ui.*` but not explicitly `ui.shop`, they can still grant it), and arrays of denied permissions must be strictly respected.
-- [ ] **Immutable Core Ranks:**
+- [x] **Immutable Core Ranks:**
     - **Owner Rank (0):** Possesses the `*` wildcard permission. Core properties (ID, priority, permissions) are completely locked. Not even the Owner can edit them (to prevent accidental breakage). The Owner _can_ edit cosmetic properties (prefix, nametag, chat colors).
     - **Member Rank (1024):** Default rank given to everyone at all times. Contains default permissions. Needs to be partially locked.
 
@@ -139,12 +139,12 @@ _(To be updated after each session)_
 
 **Completed in Previous Session:**
 
-- Session 8 completed: Fixed compilation errors, removed `enabled` and `cooldown` from commands definitions in `src/features/**/commands/*.ts`, updated logic to use `hasPermission` over `permissionLevel` checks, and verified the output with `tsc --noEmit` and `npm run format`.
+- Future Sessions: Rank & Permission Security Engine completed: Fixed security flaws in the Rank Editing UI. Included rank checking to verify users could not elevate a lower rank's priority to their own rank's priority or above. Implemented allow/deny arrays functionality. Implemented checking when giving permission to a node. Updated rank functionality to not update key parameters when modifying the `owner` rank and `member` rank.
 
 **Current State:**
 
-- Session 9 & 10 completed: Delegated toggles, cooldowns, and feature-specific logic to their respective systems (TPA, Spawn, Kits). Cleaned up CooldownManager. Consolidate spawn, spawnProtection, and kits configs into the main `config.default.ts`. All compilation and formatting tests passed.
+- Future Sessions: Rank & Permission Security Engine fully implemented and passed testing.
 
 **Next Session Needs to Know:**
 
-- Begin Future Sessions: Rank & Permission Security Engine. Fix security flaws in the Rank Editing UI using a Priority-Based Hierarchy Enforcement.
+- Nothing is needed to be handed over currently.
