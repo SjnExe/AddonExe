@@ -196,3 +196,12 @@ export function hasPermission(player: mc.Player, node: string): boolean {
 
     return false;
 }
+
+export function canGrantPermissions(editor: mc.Player, nodes: string[]): boolean {
+    for (const node of nodes) {
+        if (!hasPermission(editor, node)) {
+            return false;
+        }
+    }
+    return true;
+}

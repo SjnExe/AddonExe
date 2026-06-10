@@ -74,7 +74,27 @@ export function updateRank(rankId: string, updatedData: Partial<RankDefinition>)
 
     const currentRank = ranksConfig.rankDefinitions[rankIndex];
     if (isDefined(currentRank)) {
-        ranksConfig.rankDefinitions[rankIndex] = { ...currentRank, ...updatedData };
+        let finalRank = { ...currentRank, ...updatedData };
+        if (rankId === 'owner') {
+            finalRank = {
+                ...finalRank,
+                id: currentRank.id,
+                priority: currentRank.priority,
+                permissionLevel: currentRank.permissionLevel,
+                allow: currentRank.allow,
+                deny: currentRank.deny,
+                groups: currentRank.groups,
+                conditions: currentRank.conditions
+            };
+        } else if (rankId === 'member') {
+            finalRank = {
+                ...finalRank,
+                id: currentRank.id,
+                priority: currentRank.priority,
+                permissionLevel: currentRank.permissionLevel
+            };
+        }
+        ranksConfig.rankDefinitions[rankIndex] = finalRank;
     }
     saveRanksConfig(ranksConfig);
 
