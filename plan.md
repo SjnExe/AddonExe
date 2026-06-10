@@ -15,6 +15,7 @@ To manage this large undertaking, the tasks are broken down into logical session
 - [ ] Create `features.yml` in the `scripts/` directory to define metadata for each feature.
     - Structure should include: `id`, `name`, `status` (`prod` | `dev`), `dependencies` (array of feature IDs), and an optional `subfeatures` array or mapping for fine-grained control (e.g., specific mini-games within a `games` feature).
     - _Note:_ The registry generator must be able to topologically sort the features based on dependencies to ensure they are initialized in the correct order.
+- [ ] Refactor the existing `scripts/esbuild-plugin-command-index.js` (which currently loops over all folders in `src/features`) to rely on the new `features.yml` so only enabled features have their commands registered.
 - [ ] Update `tsup.config.ts` (or add a custom script) to read the feature manifest and the build flags (e.g., `--release`, `--nightly`).
 - [ ] Create a script (e.g., `scripts/generate-feature-registry.js`) that runs _before_ the build step.
     - This script should generate a `src/core/featureRegistry.ts` file containing a dynamic array of imports for the _enabled_ features based on the build target.
@@ -44,8 +45,8 @@ To manage this large undertaking, the tasks are broken down into logical session
     - Move feature-specific commands out of `src/core/commands/` (if any exist there) into their respective feature folders (e.g., `src/features/economy/commands/`).
     - Update the Command Manager in `src/core/` so that features can register their commands dynamically during their `index.ts` initialization.
 - [ ] **UI Panels:**
-    - Move feature-specific UI definitions out of `src/core/ui/panels/` and into `src/features/<feature_name>/ui/`.
-    - Refactor the UI registry (`src/core/ui/panels/panelRegistry.ts` or similar) to allow features to register their buttons/panels dynamically.
+    - `src/core/ui/panels/index.ts` currently hardcodes imports for every feature's UI (e.g. `BountyPanelHandler`, `ShopAdminPanelHandler`).
+    - Refactor this so `src/core/ui/panels/index.ts` only registers core panels, and let each feature register its own panels dynamically during its bootstrap phase.
 
 ---
 
@@ -53,7 +54,7 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 **Goal:** Move configuration files and data schemas associated with specific features into their respective folders.
 
-- [ ] Move feature-specific default configuration files (e.g., `economyConfig.default.ts`) from `src/core/` into `src/features/<feature_name>/`.
+- [ ] Move any remaining feature-specific default configuration files (e.g., `itemsConfig.default.ts`, `ranksConfig.default.ts`) into their appropriate homes, ensuring the build scripts still pick them up.
 - [ ] Update `tsup.config.ts` if necessary to ensure it still finds and builds these config files correctly in their new locations.
 - [ ] Refactor `src/core/configManager.ts` and `src/core/configurations.ts` to dynamically load feature configs instead of hardcoding them, or have features register their own configs during initialization.
 - [ ] Move any feature-specific data managers or storage logic into the respective feature folders.
@@ -65,6 +66,7 @@ To manage this large undertaking, the tasks are broken down into logical session
 **Goal:** Audit the existing features to ensure they are truly independent and rely on the new service architecture.
 
 - [ ] Review features like `economy`, `shop`, `anticheat`, `teleport`, etc.
+- [ ] Review `src/core/featureDependencies.ts` (which currently toggles config flags based on dependencies) to ensure it works with the new decoupled system or is replaced entirely by the build-time dependency checker.
 - [ ] Ensure that if a feature is marked as "nightly" and excluded, the rest of the application compiles and runs without throwing "module not found" errors.
 - [ ] Replace any remaining direct cross-feature imports with the Service Locator or Event Bus.
 - [ ] Run standard tests and manual testing to verify everything functions as expected.
