@@ -10,10 +10,11 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 ## 🛠️ Session 1: Build System & Feature Manifest (The Foundation)
 
-**Goal:** Establish the build-time mechanism to filter features based on their release status (Nightly vs. Production) and dynamically generate a feature registry.
+**Goal:** Establish the build-time mechanism to filter features based on their release status (e.g., `prod` vs `dev`) and dynamically generate a feature registry.
 
-- [ ] Create `features.yaml` (or `features.json`) in the project root to define metadata for each feature.
-    - Structure should include: `id`, `name`, `status` (`production` | `nightly`), `dependencies` (array of feature IDs).
+- [ ] Create `features.yml` in the `scripts/` directory to define metadata for each feature.
+    - Structure should include: `id`, `name`, `status` (`prod` | `dev`), `dependencies` (array of feature IDs), and an optional `subfeatures` array or mapping for fine-grained control (e.g., specific mini-games within a `games` feature).
+    - _Note:_ The registry generator must be able to topologically sort the features based on dependencies to ensure they are initialized in the correct order.
 - [ ] Update `tsup.config.ts` (or add a custom script) to read the feature manifest and the build flags (e.g., `--release`, `--nightly`).
 - [ ] Create a script (e.g., `scripts/generate-feature-registry.js`) that runs _before_ the build step.
     - This script should generate a `src/core/featureRegistry.ts` file containing a dynamic array of imports for the _enabled_ features based on the build target.
@@ -76,4 +77,4 @@ _This section is to be updated by Jules at the end of every session._
 
 **Current Status:** Planning phase completed. `plan.md` created.
 **Next Step:** A new Jules session should begin **Session 1: Build System & Feature Manifest**.
-**Notes:** The user wants a strict build-time separation. Unfinished features should physically not be in the output code for production releases. Pay close attention to dependency validation during the build step.
+**Notes:** The user wants a strict build-time separation. Unfinished features should physically not be in the output code for `prod` releases. Pay close attention to dependency validation during the build step.
