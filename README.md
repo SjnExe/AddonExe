@@ -5,9 +5,9 @@
 <div align="center">
 
 [![Latest Release](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSjnExe%2FAddonExe%2Fmain%2Fpackage.json&query=%24.version&prefix=v&label=latest%20version&style=for-the-badge&color=blue)](https://github.com/SjnExe/AddonExe/releases/latest)
-[![GitHub All Releases](https://img.shields.io/github/downloads/SjnExe/AddonExe/total?style=for-the-badge)](https://github.com/SjnExe/AddonExe/releases/latest)
+[![GitHub All Releases](https://custom-icon-badges.demolab.com/github/downloads/SjnExe/AddonExe/total?style=for-the-badge&logo=github)](https://github.com/SjnExe/AddonExe/releases/latest)
 ![Minecraft BE Version](https://img.shields.io/badge/Minecraft_BE-26.20.0%2B-brightgreen?style=for-the-badge&logo=minecraft)
-[![GitHub Issues](https://img.shields.io/github/issues-raw/SjnExe/AddonExe?style=for-the-badge&logo=github)](https://github.com/SjnExe/AddonExe/issues)
+[![GitHub Issues](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Fsearch%2Fissues%3Fq%3Drepo%3ASjnExe%2FAddonExe%2Bis%3Aissue%2Bis%3Aopen&query=%24.total_count&label=issues&style=for-the-badge&logo=github&color=blue)](https://github.com/SjnExe/AddonExe/issues)
 [![Status: Stable Release](https://img.shields.io/badge/Status-Stable%20Release-green?style=for-the-badge)](https://github.com/SjnExe/AddonExe/releases/latest)
 [![Discord Server](https://img.shields.io/discord/633296555650318346?style=for-the-badge&logo=discord&logoColor=white&label=Discord&color=7289DA)](https://discord.gg/SMUHUnGyyz)
 
