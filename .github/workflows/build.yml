@@ -79,26 +79,6 @@ jobs:
             - run: npm ci
             - run: npm test
 
-    validate:
-        needs: build
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        steps:
-            - uses: actions/checkout@v6
-            - name: Setup Node.js
-              uses: actions/setup-node@v6
-              with:
-                  node-version: 'current'
-                  cache: 'npm'
-            - run: npm install -g npm@latest
-            - run: npm ci
-            - name: Download compiled build artifacts
-              uses: actions/download-artifact@v8
-              with:
-                  name: build-dir
-                  path: build/
-            - run: npm run validate
-
     build:
         runs-on: ubuntu-latest
         timeout-minutes: 30
@@ -243,9 +223,11 @@ jobs:
                   name: build-meta
                   path: build_meta.env
                   retention-days: 7
+            - name: Validate build
+              run: npm run validate
 
     release:
-        needs: [build, lint, format, typecheck, test, validate]
+        needs: [build, lint, format, typecheck, test]
         runs-on: ubuntu-latest
         timeout-minutes: 10
         permissions:
