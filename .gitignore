@@ -13,6 +13,8 @@
 /dist
 /staging/
 /out
+*.mcpack
+*.mcaddon
 
 # misc
 .DS_Store
