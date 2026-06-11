@@ -22,8 +22,8 @@ async function main() {
         return { id, ...config };
     });
 
-    // 2. Filter features based on the 'enabled' flag and 'dev' status in release mode
-    let enabledFeatures = features.filter((f) => f.enabled !== false);
+    // 2. Filter out 'dev' status features in release mode
+    let enabledFeatures = features;
     if (isRelease) {
         enabledFeatures = enabledFeatures.filter((f) => f.status !== 'dev');
     }

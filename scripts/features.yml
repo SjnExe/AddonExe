@@ -1,80 +1,67 @@
 features:
     anticheat:
         name: Anti-Cheat
-        enabled: true
         status: prod
         dependencies: []
 
     auction:
         name: Auction House
-        enabled: true
         status: dev
         dependencies:
             - economy
 
     daily:
         name: Daily Rewards
-        enabled: true
         status: prod
         dependencies: []
 
     economy:
         name: Economy
-        enabled: true
         status: prod
         dependencies: []
 
     essentials:
         name: Essentials
-        enabled: true
         status: prod
         dependencies: []
 
     kit:
         name: Kits
-        enabled: true
         status: prod
         dependencies: []
 
     moderation:
         name: Moderation
-        enabled: true
         status: prod
         dependencies: []
 
     shop:
         name: Shop
-        enabled: true
         status: prod
         dependencies:
             - economy
 
     sidebar:
         name: Sidebar
-        enabled: true
         status: dev
         dependencies: []
 
     social:
         name: Social
-        enabled: true
         status: prod
         dependencies: []
 
     team:
         name: Teams
-        enabled: true
         status: dev
         dependencies: []
 
     teleport:
         name: Teleport
-        enabled: true
         status: prod
         dependencies: []
 
     vote:
         name: Voting
-        enabled: true
         status: prod
         dependencies: []
