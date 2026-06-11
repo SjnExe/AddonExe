@@ -8,7 +8,7 @@ features:
     auction:
         name: Auction House
         enabled: true
-        status: prod
+        status: dev
         dependencies:
             - economy
 
@@ -52,7 +52,7 @@ features:
     sidebar:
         name: Sidebar
         enabled: true
-        status: prod
+        status: dev
         dependencies: []
 
     social:
@@ -64,7 +64,7 @@ features:
     team:
         name: Teams
         enabled: true
-        status: prod
+        status: dev
         dependencies: []
 
     teleport:

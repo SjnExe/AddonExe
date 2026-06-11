@@ -1,3 +1,5 @@
+import { initializeSidebar } from '@features/sidebar/manager.js';
+
 export function initialize() {
-    // Empty index for now
+    initializeSidebar();
 }
