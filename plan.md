@@ -77,6 +77,6 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 _This section is to be updated by Jules at the end of every session._
 
-**Current Status:** Session 1 completed. The build system has been updated to dynamically read from `features.yml` and output a build-time manifest filtering out `dev` features when passed the `--release` flag.
+**Current Status:** Session 1 completed. The build system has been updated to use a dictionary-based `features.yml` acting as the single source of truth, supporting `enabled` flags and `subfeatures`. The runtime loader ensures topological dependency initialization.
 **Next Step:** A new Jules session should begin **Session 2: Core Refactoring - Service Locator / Event Bus**.
 **Notes:** We need to decouple features so they don't break the build when other features they depend on are excluded. We must use an Event Bus / Service Locator to accomplish this in the next session.

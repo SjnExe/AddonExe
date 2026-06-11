@@ -7,7 +7,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const FEATURES_YML = path.join(__dirname, 'features.yml');
-const ENABLED_FEATURES_JSON = path.join(__dirname, 'enabled-features.json');
 const REGISTRY_TS = path.join(__dirname, '../src/core/featureRegistry.ts');
 
 async function main() {
@@ -17,12 +16,16 @@ async function main() {
     // 1. Read and parse features.yml
     const fileContent = await fs.readFile(FEATURES_YML, 'utf8');
     const data = yaml.parse(fileContent);
-    const features = data.features || [];
 
-    // 2. Filter out 'dev' features if in release mode
-    let enabledFeatures = features;
+    // Convert object to array for easier processing, attaching the key as 'id'
+    const features = Object.entries(data.features || {}).map(([id, config]) => {
+        return { id, ...config };
+    });
+
+    // 2. Filter features based on the 'enabled' flag and 'dev' status in release mode
+    let enabledFeatures = features.filter((f) => f.enabled !== false);
     if (isRelease) {
-        enabledFeatures = features.filter((f) => f.status !== 'dev');
+        enabledFeatures = enabledFeatures.filter((f) => f.status !== 'dev');
     }
 
     // Map for quick lookup
@@ -68,23 +71,22 @@ async function main() {
         }
     }
 
-    // 5. Generate enabled-features.json
-    const enabledFeatureIds = sortedFeatures.map((f) => f.id);
-    await fs.writeFile(ENABLED_FEATURES_JSON, JSON.stringify(enabledFeatureIds, null, 2));
-    console.log(`Generated: ${ENABLED_FEATURES_JSON}`);
-
-    // 6. Generate src/core/featureRegistry.ts
+    // 4. Generate src/core/featureRegistry.ts
     // Use dynamic imports that can be awaited to initialize each module.
     // Assuming each feature module has an `initialize(isMigration: boolean)` exported function.
     let registryTsContent = `// Auto-generated file. Do not edit directly.\n\n`;
 
     registryTsContent += `export interface FeatureModule {\n`;
-    registryTsContent += `    initialize?: (isMigration: boolean) => void | Promise<void>;\n`;
+    registryTsContent += `    initialize?: (isMigration: boolean, subfeatures?: Record<string, boolean>) => void | Promise<void>;\n`;
     registryTsContent += `}\n\n`;
 
     registryTsContent += `export const featureRegistry = [\n`;
     for (const feature of sortedFeatures) {
-        registryTsContent += `    { id: '${feature.id}', load: () => import('@features/${feature.id}/index.js') as Promise<FeatureModule> },\n`;
+        let subfeaturesStr = 'undefined';
+        if (feature.subfeatures) {
+            subfeaturesStr = JSON.stringify(feature.subfeatures);
+        }
+        registryTsContent += `    { id: '${feature.id}', load: () => import('@features/${feature.id}/index.js') as Promise<FeatureModule>, subfeatures: ${subfeaturesStr} },\n`;
     }
     registryTsContent += `];\n`;
 

@@ -1,67 +1,80 @@
 features:
-    - id: anticheat
-      name: Anti-Cheat
-      status: prod
-      dependencies: []
+    anticheat:
+        name: Anti-Cheat
+        enabled: true
+        status: prod
+        dependencies: []
 
-    - id: auction
-      name: Auction House
-      status: prod
-      dependencies:
-          - economy
+    auction:
+        name: Auction House
+        enabled: true
+        status: prod
+        dependencies:
+            - economy
 
-    - id: daily
-      name: Daily Rewards
-      status: prod
-      dependencies: []
+    daily:
+        name: Daily Rewards
+        enabled: true
+        status: prod
+        dependencies: []
 
-    - id: economy
-      name: Economy
-      status: prod
-      dependencies: []
+    economy:
+        name: Economy
+        enabled: true
+        status: prod
+        dependencies: []
 
-    - id: essentials
-      name: Essentials
-      status: prod
-      dependencies: []
+    essentials:
+        name: Essentials
+        enabled: true
+        status: prod
+        dependencies: []
 
-    - id: kit
-      name: Kits
-      status: prod
-      dependencies: []
+    kit:
+        name: Kits
+        enabled: true
+        status: prod
+        dependencies: []
 
-    - id: moderation
-      name: Moderation
-      status: prod
-      dependencies: []
+    moderation:
+        name: Moderation
+        enabled: true
+        status: prod
+        dependencies: []
 
-    - id: shop
-      name: Shop
-      status: prod
-      dependencies:
-          - economy
+    shop:
+        name: Shop
+        enabled: true
+        status: prod
+        dependencies:
+            - economy
 
-    - id: sidebar
-      name: Sidebar
-      status: prod
-      dependencies: []
+    sidebar:
+        name: Sidebar
+        enabled: true
+        status: prod
+        dependencies: []
 
-    - id: social
-      name: Social
-      status: prod
-      dependencies: []
+    social:
+        name: Social
+        enabled: true
+        status: prod
+        dependencies: []
 
-    - id: team
-      name: Teams
-      status: prod
-      dependencies: []
+    team:
+        name: Teams
+        enabled: true
+        status: prod
+        dependencies: []
 
-    - id: teleport
-      name: Teleport
-      status: prod
-      dependencies: []
+    teleport:
+        name: Teleport
+        enabled: true
+        status: prod
+        dependencies: []
 
-    - id: vote
-      name: Voting
-      status: prod
-      dependencies: []
+    vote:
+        name: Voting
+        enabled: true
+        status: prod
+        dependencies: []
