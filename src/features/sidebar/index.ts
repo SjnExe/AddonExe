@@ -1,5 +1,7 @@
+import { loadSidebarConfig } from '@core/configurations.js';
 import { initializeSidebar } from '@features/sidebar/manager.js';
 
-export function initialize() {
+export async function initialize(isMigration: boolean) {
+    await loadSidebarConfig(isMigration);
     initializeSidebar();
 }

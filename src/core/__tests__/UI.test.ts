@@ -26,6 +26,23 @@ vi.mock('../bountyManager.js', () => ({
 // Import panels (trigger registration)
 const { initialize } = await import('@ui/panels/index.js');
 initialize();
+const { initialize: initSocial } = await import('@features/social/index.js');
+const { initialize: initTeam } = await import('@features/team/index.js');
+const { initialize: initShop } = await import('@features/shop/index.js');
+const { initialize: initMod } = await import('@features/moderation/index.js');
+const { initialize: initEss } = await import('@features/essentials/index.js');
+const { initialize: initKit } = await import('@features/kit/index.js');
+const { initialize: initEcon } = await import('@features/economy/index.js');
+const { initialize: initTeleport } = await import('@features/teleport/index.js');
+
+await initSocial(false);
+await initTeam(false);
+await initShop(false);
+await initMod(false);
+await initEss(false);
+await initKit();
+await initEcon(false);
+await initTeleport();
 
 describe('UI Integrity Check', () => {
     it('should have a registered handler for every panel in registry', () => {

@@ -20,7 +20,7 @@ export async function ensureItemsConfig() {
             // Load from user config, fallback to default structure handled by logic if needed
             // But usually configLoader handles defaults if file missing.
             // Here we assume itemsConfig.js exists or we get empty.
-            allItems = await loadConfig<Record<string, Item>>('./core/itemsConfig.js');
+            allItems = await loadConfig<Record<string, Item>>('./features/shop/itemsConfig.js');
         } catch {
             // Ignore error, allItems remains empty
         }

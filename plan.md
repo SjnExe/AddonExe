@@ -41,10 +41,10 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 **Goal:** Start moving feature-specific code out of `src/core/` and into `src/features/<feature_name>/`.
 
-- [ ] **Commands:**
+- [x] **Commands:**
     - Move feature-specific commands out of `src/core/commands/` (if any exist there) into their respective feature folders (e.g., `src/features/economy/commands/`).
     - Update the Command Manager in `src/core/` so that features can register their commands dynamically during their `index.ts` initialization.
-- [ ] **UI Panels:**
+- [x] **UI Panels:**
     - `src/core/ui/panels/index.ts` currently hardcodes imports for every feature's UI (e.g. `BountyPanelHandler`, `ShopAdminPanelHandler`).
     - Refactor this so `src/core/ui/panels/index.ts` only registers core panels, and let each feature register its own panels dynamically during its bootstrap phase.
 
@@ -54,9 +54,9 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 **Goal:** Move configuration files and data schemas associated with specific features into their respective folders.
 
-- [ ] Move any remaining feature-specific default configuration files (e.g., `itemsConfig.default.ts`, `ranksConfig.default.ts`) into their appropriate homes, ensuring the build scripts still pick them up.
-- [ ] Update `tsup.config.ts` if necessary to ensure it still finds and builds these config files correctly in their new locations.
-- [ ] Refactor `src/core/configManager.ts` and `src/core/configurations.ts` to dynamically load feature configs instead of hardcoding them, or have features register their own configs during initialization.
+- [x] Move any remaining feature-specific default configuration files (e.g., `itemsConfig.default.ts`, `ranksConfig.default.ts`) into their appropriate homes, ensuring the build scripts still pick them up.
+- [x] Update `tsup.config.ts` if necessary to ensure it still finds and builds these config files correctly in their new locations.
+- [x] Refactor `src/core/configManager.ts` and `src/core/configurations.ts` to dynamically load feature configs instead of hardcoding them, or have features register their own configs during initialization.
 - [ ] Move any feature-specific data managers or storage logic into the respective feature folders.
 
 ---
@@ -77,6 +77,6 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 _This section is to be updated by Jules at the end of every session._
 
-**Current Status:** Session 2 started. The build system has been updated, and an Event Bus and Service Locator have been added to decouple cross-feature interactions. `featureDependencies.ts` hardcoded dependency configuration logic was removed since it should be handled through `features.yml`.
-**Next Step:** A new Jules session should begin ensuring that core systems (Commands, UI Builder, Data Storage) expose standard registration APIs and moving towards Session 3.
-**Notes:** Core systems (Commands, UI Builder, Data Storage) need to expose standard registration APIs for features hooking into them.
+**Current Status:** Session 3 and 4 completed. UI Panels and configurations loading have been refactored to allow features to dynamically register and load their own panels and configurations. `itemsConfig.default.ts` has been moved to its proper place inside the shop feature.
+**Next Step:** A new Jules session should begin to examine data storage managers logic into the respective feature folders.
+**Notes:** Session 5 has to ensure full cross-feature independence. `tsup.config.ts` config files matcher pattern automatically detects config files correctly without changes needed.

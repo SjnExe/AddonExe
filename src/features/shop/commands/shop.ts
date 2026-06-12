@@ -2,10 +2,10 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { items as allItems } from '@core/itemsConfig.default.js';
 import { showPanel } from '@core/uiManager.js';
 import { parseCurrency } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { items as allItems } from '../itemsConfig.default.js';
 
 import * as shopAdminManager from '@features/shop/adminManager.js';
 import * as shopManager from '@features/shop/manager.js';

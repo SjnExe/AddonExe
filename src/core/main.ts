@@ -2,17 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { loadCommands } from '@core/commands/index.js';
 import { getConfig, initializeConfigManager } from '@core/configManager.js';
-import {
-    loadAuctionHouseConfig,
-    loadDailyRewardsConfig,
-    loadEconomyConfig,
-    loadRanksConfig,
-    loadShopConfig,
-    loadSidebarConfig,
-    loadTeamConfig,
-    loadWorldProtectionConfig,
-    loadXrayConfig
-} from '@core/configurations.js';
+import { loadRanksConfig } from '@core/configurations.js';
 import { dataManager, loadPersistentData } from '@core/dataManager.js';
 import { cleanupEventManager, initializeEventManager } from '@core/events/eventManager.js';
 import { errorLog, infoLog, setLogLevel } from '@core/logger.js';
@@ -58,17 +48,7 @@ export async function initializeAddon() {
 
     const { featureRegistry } = await import('@core/featureRegistry.js');
 
-    await Promise.all([
-        loadShopConfig(isMigration),
-        loadRanksConfig(isMigration),
-        loadEconomyConfig(isMigration),
-        loadTeamConfig(isMigration),
-        loadSidebarConfig(isMigration),
-        loadXrayConfig(isMigration),
-        loadAuctionHouseConfig(isMigration),
-        loadDailyRewardsConfig(isMigration),
-        loadWorldProtectionConfig(isMigration)
-    ]);
+    await Promise.all([loadRanksConfig(isMigration)]);
 
     // Initialize sequentially to respect the topological sort order
     for (const feature of featureRegistry) {
