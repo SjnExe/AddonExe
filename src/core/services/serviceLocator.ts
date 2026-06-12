@@ -1,7 +1,7 @@
 type ServiceName = string;
 
 class ServiceLocator {
-    private services = new Map<ServiceName, any>();
+    private readonly services = new Map<ServiceName, unknown>();
 
     registerService<T>(name: ServiceName, service: T): void {
         if (this.services.has(name)) {

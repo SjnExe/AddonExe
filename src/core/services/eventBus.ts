@@ -1,8 +1,10 @@
+import { errorLog } from '@core/logger.js';
+
 type EventName = string;
-type EventHandler = (...args: any[]) => void;
+type EventHandler = (...args: unknown[]) => void;
 
 class EventBus {
-    private listeners = new Map<EventName, Set<EventHandler>>();
+    private readonly listeners = new Map<EventName, Set<EventHandler>>();
 
     on(event: EventName, handler: EventHandler): void {
         if (!this.listeners.has(event)) {
@@ -18,14 +20,14 @@ class EventBus {
         }
     }
 
-    emit(event: EventName, ...args: any[]): void {
+    emit(event: EventName, ...args: unknown[]): void {
         const eventListeners = this.listeners.get(event);
         if (eventListeners) {
             for (const handler of eventListeners) {
                 try {
                     handler(...args);
                 } catch (error) {
-                    console.error(`[EventBus] Error in event handler for '${event}':`, error);
+                    errorLog(`[EventBus] Error in event handler for '${event}':`, error);
                 }
             }
         }
