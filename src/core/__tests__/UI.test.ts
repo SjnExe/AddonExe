@@ -38,11 +38,11 @@ const { initialize: initTeleport } = await import('@features/teleport/index.js')
 await initSocial(false);
 await initTeam(false);
 await initShop(false);
-await initMod(false);
+initMod();
 await initEss(false);
-await initKit();
+initKit();
 await initEcon(false);
-await initTeleport();
+initTeleport();
 
 describe('UI Integrity Check', () => {
     it('should have a registered handler for every panel in registry', () => {

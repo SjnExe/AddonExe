@@ -55,7 +55,10 @@ export async function initializeAddon() {
         try {
             const module = await feature.load();
             if (module.initialize) {
-                await module.initialize(isMigration, feature.subfeatures);
+                const initResult = module.initialize(isMigration, feature.subfeatures);
+                if (initResult instanceof Promise) {
+                    await initResult;
+                }
             }
         } catch (error) {
             errorLog(`[FeatureRegistry] Failed to initialize feature '${feature.id}': ${String(error)}`);
