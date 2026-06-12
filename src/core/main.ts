@@ -56,6 +56,9 @@ export async function initializeAddon() {
     // Parallel Initialization of core configurations and feature modules
     // This reduces startup time by loading independent configs concurrently.
     await initializeConfigManager(isMigration);
+
+    const { featureRegistry } = await import('@core/featureRegistry.js');
+
     await Promise.all([
         loadShopConfig(isMigration),
         loadRanksConfig(isMigration),
@@ -65,9 +68,20 @@ export async function initializeAddon() {
         loadXrayConfig(isMigration),
         loadAuctionHouseConfig(isMigration),
         loadDailyRewardsConfig(isMigration),
-        loadWorldProtectionConfig(isMigration),
-        import('@features/anticheat/index.js').then((m) => m.initialize(isMigration))
+        loadWorldProtectionConfig(isMigration)
     ]);
+
+    // Initialize sequentially to respect the topological sort order
+    for (const feature of featureRegistry) {
+        try {
+            const module = await feature.load();
+            if (module.initialize) {
+                await module.initialize(isMigration, feature.subfeatures);
+            }
+        } catch (error) {
+            errorLog(`[FeatureRegistry] Failed to initialize feature '${feature.id}': ${String(error)}`);
+        }
+    }
 
     const config = getConfig();
     setLogLevel(config.logLevel);

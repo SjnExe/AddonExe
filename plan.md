@@ -12,16 +12,16 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 **Goal:** Establish the build-time mechanism to filter features based on their release status (e.g., `prod` vs `dev`) and dynamically generate a feature registry.
 
-- [ ] Create `features.yml` in the `scripts/` directory to define metadata for each feature.
+- [x] Create `features.yml` in the `scripts/` directory to define metadata for each feature.
     - Structure should include: `id`, `name`, `status` (`prod` | `dev`), `dependencies` (array of feature IDs), and an optional `subfeatures` array or mapping for fine-grained control (e.g., specific mini-games within a `games` feature).
     - _Note:_ The registry generator must be able to topologically sort the features based on dependencies to ensure they are initialized in the correct order.
-- [ ] Refactor the existing `scripts/esbuild-plugin-command-index.js` (which currently loops over all folders in `src/features`) to rely on the new `features.yml` so only enabled features have their commands registered.
-- [ ] Update `tsup.config.ts` (or add a custom script) to read the feature manifest and the build flags (e.g., `--release`, `--nightly`).
-- [ ] Create a script (e.g., `scripts/generate-feature-registry.js`) that runs _before_ the build step.
+- [x] Refactor the existing `scripts/esbuild-plugin-command-index.js` (which currently loops over all folders in `src/features`) to rely on the new `features.yml` so only enabled features have their commands registered.
+- [x] Update `tsup.config.ts` (or add a custom script) to read the feature manifest and the build flags (e.g., `--release`, `--nightly`).
+- [x] Create a script (e.g., `scripts/generate-feature-registry.js`) that runs _before_ the build step.
     - This script should generate a `src/core/featureRegistry.ts` file containing a dynamic array of imports for the _enabled_ features based on the build target.
     - It must also validate dependencies: If Feature A depends on Feature B, and Feature B is excluded, the script should fail the build or output a severe warning.
-- [ ] Update `package.json` scripts to trigger this registry generation step during `build` and `watch`.
-- [ ] Refactor `src/core/main.ts` to iterate over `src/core/featureRegistry.ts` to initialize the available features, replacing hardcoded imports.
+- [x] Update `package.json` scripts to trigger this registry generation step during `build` and `watch`.
+- [x] Refactor `src/core/main.ts` to iterate over `src/core/featureRegistry.ts` to initialize the available features, replacing hardcoded imports.
 
 ---
 
@@ -77,6 +77,6 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 _This section is to be updated by Jules at the end of every session._
 
-**Current Status:** Planning phase completed. `plan.md` created.
-**Next Step:** A new Jules session should begin **Session 1: Build System & Feature Manifest**.
-**Notes:** The user wants a strict build-time separation. Unfinished features should physically not be in the output code for `prod` releases. Pay close attention to dependency validation during the build step.
+**Current Status:** Session 1 completed. The build system has been updated to use a dictionary-based `features.yml` acting as the single source of truth, supporting `status` (prod/dev) filters and injecting optional `subfeatures` configurations. Runtime enablement toggles are left to the addon's internal config logic. The runtime loader ensures topological dependency initialization.
+**Next Step:** A new Jules session should begin **Session 2: Core Refactoring - Service Locator / Event Bus**.
+**Notes:** We need to decouple features so they don't break the build when other features they depend on are excluded. We must use an Event Bus / Service Locator to accomplish this in the next session.

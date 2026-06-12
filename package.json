@@ -17,8 +17,8 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "build": "npm run clean && node scripts/generate-manifests.js && node scripts/build-assets.js && tsup",
-        "build:release": "npm run clean && node scripts/generate-manifests.js --release && node scripts/build-assets.js --minify && tsup --minify",
+        "build": "npm run clean && node scripts/generate-feature-registry.js && node scripts/generate-manifests.js && node scripts/build-assets.js && tsup",
+        "build:release": "npm run clean && node scripts/generate-feature-registry.js --release && node scripts/generate-manifests.js --release && node scripts/build-assets.js --minify && tsup --minify",
         "check-deps": "node scripts/check-dependencies.js",
         "check-types": "tsc --noEmit",
         "clean": "rimraf build",
@@ -36,7 +36,7 @@
         "test:duplication": "jscpd src/ --min-lines 5 --min-tokens 40 --max-lines 1000 --ignore 'src/**/__tests__/**'",
         "validate": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build --display-only",
         "validate:report": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
-        "watch": "concurrently \"tsc -w\" \"node scripts/build-assets.js --watch\" \"tsup --watch\""
+        "watch": "node scripts/generate-feature-registry.js && concurrently \"tsc -w\" \"node scripts/build-assets.js --watch\" \"tsup --watch\""
     },
     "simple-git-hooks": {
         "pre-commit": "npx lint-staged"
