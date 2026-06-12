@@ -15,7 +15,6 @@ import {
 } from '@core/configurations.js';
 import { dataManager, loadPersistentData } from '@core/dataManager.js';
 import { cleanupEventManager, initializeEventManager } from '@core/events/eventManager.js';
-import { initializeFeatureDependencies } from '@core/featureDependencies.js';
 import { errorLog, infoLog, setLogLevel } from '@core/logger.js';
 import { initializeMigration } from '@core/migrationManager.js';
 import { cleanupPlayerDataManager } from '@core/playerDataManager.js';
@@ -96,7 +95,6 @@ export async function initializeAddon() {
     const { initializePlayerCache } = await import('@core/playerCache.js');
     initializePlayerCache();
 
-    initializeFeatureDependencies();
     initializeManagers();
 
     initializeEventManager();

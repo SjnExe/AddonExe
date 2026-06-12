@@ -29,10 +29,10 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 **Goal:** Since features will be dynamically included/excluded, hardcoded imports between features (e.g., Economy importing from Moderation) will break the build if a feature is missing. We need a way to decouple them.
 
-- [ ] Implement a lightweight Service Locator or Event Bus pattern in `src/core/`.
+- [x] Implement a lightweight Service Locator or Event Bus pattern in `src/core/`.
     - **Service Locator:** Allow features to register their public API (e.g., `registerService('economy', economyApi)`). Other features can safely check if a service exists before using it.
     - **Event Bus:** Allow features to emit and listen to custom events without direct imports.
-- [ ] Review `src/core/featureDependencies.ts` and migrate any hardcoded feature-to-feature dependencies to use the new Service Locator/Event Bus.
+- [x] Review `src/core/featureDependencies.ts` and migrate any hardcoded feature-to-feature dependencies to use the new Service Locator/Event Bus.
 - [ ] Ensure that core systems (Commands, UI Builder, Data Storage) expose a standard registration API that features can hook into during their initialization phase.
 
 ---
@@ -77,6 +77,6 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 _This section is to be updated by Jules at the end of every session._
 
-**Current Status:** Session 1 completed. The build system has been updated to use a dictionary-based `features.yml` acting as the single source of truth, supporting `status` (prod/dev) filters and injecting optional `subfeatures` configurations. Runtime enablement toggles are left to the addon's internal config logic. The runtime loader ensures topological dependency initialization.
-**Next Step:** A new Jules session should begin **Session 2: Core Refactoring - Service Locator / Event Bus**.
-**Notes:** We need to decouple features so they don't break the build when other features they depend on are excluded. We must use an Event Bus / Service Locator to accomplish this in the next session.
+**Current Status:** Session 2 started. The build system has been updated, and an Event Bus and Service Locator have been added to decouple cross-feature interactions. `featureDependencies.ts` hardcoded dependency configuration logic was removed since it should be handled through `features.yml`.
+**Next Step:** A new Jules session should begin ensuring that core systems (Commands, UI Builder, Data Storage) expose standard registration APIs and moving towards Session 3.
+**Notes:** Core systems (Commands, UI Builder, Data Storage) need to expose standard registration APIs for features hooking into them.
