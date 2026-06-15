@@ -41,10 +41,10 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 **Goal:** Start moving feature-specific code out of `src/core/` and into `src/features/<feature_name>/`.
 
-- [ ] **Commands:**
+- [x] **Commands:**
     - Move feature-specific commands out of `src/core/commands/` (if any exist there) into their respective feature folders (e.g., `src/features/economy/commands/`).
     - Update the Command Manager in `src/core/` so that features can register their commands dynamically during their `index.ts` initialization.
-- [ ] **UI Panels:**
+- [x] **UI Panels:**
     - `src/core/ui/panels/index.ts` currently hardcodes imports for every feature's UI (e.g. `BountyPanelHandler`, `ShopAdminPanelHandler`).
     - Refactor this so `src/core/ui/panels/index.ts` only registers core panels, and let each feature register its own panels dynamically during its bootstrap phase.
 
@@ -77,6 +77,8 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 _This section is to be updated by Jules at the end of every session._
 
-**Current Status:** Session 2 started. The build system has been updated, and an Event Bus and Service Locator have been added to decouple cross-feature interactions. `featureDependencies.ts` hardcoded dependency configuration logic was removed since it should be handled through `features.yml`.
-**Next Step:** A new Jules session should begin ensuring that core systems (Commands, UI Builder, Data Storage) expose standard registration APIs and moving towards Session 3.
-**Notes:** Core systems (Commands, UI Builder, Data Storage) need to expose standard registration APIs for features hooking into them.
+**Current Status:** Session 3 completed. Feature-specific commands were already located in their respective folders, and dynamic command registration via the esbuild plugin effectively meets the architectural goals without modifying `index.ts` initialize phases (since Bedrock slash commands require top-level synchronous registration before the startup tick). Hardcoded UI feature panel registrations in `src/core/ui/panels/index.ts` were removed and features now register their own UI panels dynamically during bootstrap (`initialize()`). Tests were updated and verified.
+**Next Step:** A new Jules session should begin working on Session 4 (Feature Relocation - Data & Configs).
+**Notes:**
+- Commands correctly rely on the build-time static aggregation (esbuild plugin) to bypass Bedrock's synchronous restriction on slash command registration.
+- Any future panels should be registered within their respective feature's `index.ts` file via `panelRouter.register()`.
