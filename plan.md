@@ -80,5 +80,6 @@ _This section is to be updated by Jules at the end of every session._
 **Current Status:** Started Session 4. Moved `itemsConfig.default.ts` and `ranksConfig.default.ts` to their appropriate feature folders and updated imports. Build tool globs picked up the updated configs.
 **Next Step:** A new Jules session should begin working on the next parts of Session 4.
 **Notes:**
+
 - Ranks config was moved to `features/ranks`.
 - Shop items config was moved to `features/shop`.
