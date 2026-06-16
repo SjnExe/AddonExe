@@ -1,5 +1,5 @@
 import { getRanksConfig, saveRanksConfig } from '@core/configurations.js';
-import { RankDefinition } from '@core/ranksConfig.default.js';
+import { RankDefinition } from '@features/ranks/ranksConfig.default.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 /**

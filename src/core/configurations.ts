@@ -9,12 +9,12 @@ import createConfigManager, { ConfigManager } from '@core/configManagerFactory.j
 import { setLockState } from '@core/playerDataManager.js';
 import { reloadRanks } from '@core/rankManager.js';
 
-import type ranksConfig from '@core/ranksConfig.default.js';
 import type { xrayConfig } from '@features/anticheat/xrayConfig.default.js';
 import type { auctionHouseConfig } from '@features/auction/auctionHouseConfig.default.js';
 import type { dailyRewardsConfig } from '@features/daily/dailyRewardsConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
 import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.default.js';
+import type ranksConfig from '@features/ranks/ranksConfig.default.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { config as sidebarConfig } from '@features/sidebar/sidebarConfig.default.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
@@ -60,7 +60,7 @@ export const saveShopConfig = (config: ShopConfig) => shopConfigManager.set(conf
 export const resetShopConfig = () => shopConfigManager.reset();
 
 export const loadRanksConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<RanksConfig>('./core/ranksConfig.js');
+    const defaultConfig = await asyncLoadConfig<RanksConfig>('./features/ranks/ranksConfig.js');
     ranksConfigManager = createConfigManager('exe:ranksConfig', defaultConfig, 'Ranks');
     ranksConfigManager.load(isMigration);
 };

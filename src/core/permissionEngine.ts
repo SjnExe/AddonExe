@@ -1,7 +1,7 @@
 import { config } from '@core/../config.default.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { getAllRanks, getRankById } from '@core/rankManager.js';
-import { RankDefinition, permissionGroups } from '@core/ranksConfig.default.js';
+import { RankDefinition, permissionGroups } from '@features/ranks/ranksConfig.default.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 

@@ -4,7 +4,7 @@ import { config as Config } from '@core/../config.default.js';
 
 import { getRanksConfig } from '@core/configurations.js';
 import { debugLog, errorLog } from '@core/logger.js';
-import { RankDefinition } from '@core/ranksConfig.default.js';
+import { RankDefinition } from '@features/ranks/ranksConfig.default.js';
 import { isDefined } from '@lib/guards.js';
 
 let sortedRanks: RankDefinition[] = [];

@@ -54,8 +54,8 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 **Goal:** Move configuration files and data schemas associated with specific features into their respective folders.
 
-- [ ] Move any remaining feature-specific default configuration files (e.g., `itemsConfig.default.ts`, `ranksConfig.default.ts`) into their appropriate homes, ensuring the build scripts still pick them up.
-- [ ] Update `tsup.config.ts` if necessary to ensure it still finds and builds these config files correctly in their new locations.
+- [x] Move any remaining feature-specific default configuration files (e.g., `itemsConfig.default.ts`, `ranksConfig.default.ts`) into their appropriate homes, ensuring the build scripts still pick them up.
+- [x] Update `tsup.config.ts` if necessary to ensure it still finds and builds these config files correctly in their new locations.
 - [ ] Refactor `src/core/configManager.ts` and `src/core/configurations.ts` to dynamically load feature configs instead of hardcoding them, or have features register their own configs during initialization.
 - [ ] Move any feature-specific data managers or storage logic into the respective feature folders.
 
@@ -77,9 +77,9 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 _This section is to be updated by Jules at the end of every session._
 
-**Current Status:** Session 3 completed. Feature-specific commands were already located in their respective folders, and dynamic command registration via the esbuild plugin effectively meets the architectural goals without modifying `index.ts` initialize phases (since Bedrock slash commands require top-level synchronous registration before the startup tick). Hardcoded UI feature panel registrations in `src/core/ui/panels/index.ts` were removed and features now register their own UI panels dynamically during bootstrap (`initialize()`). Tests were updated and verified.
-**Next Step:** A new Jules session should begin working on Session 4 (Feature Relocation - Data & Configs).
+**Current Status:** Started Session 4. Moved `itemsConfig.default.ts` and `ranksConfig.default.ts` to their appropriate feature folders and updated imports. Build tool globs picked up the updated configs.
+**Next Step:** A new Jules session should begin working on the next parts of Session 4.
 **Notes:**
 
-- Commands correctly rely on the build-time static aggregation (esbuild plugin) to bypass Bedrock's synchronous restriction on slash command registration.
-- Any future panels should be registered within their respective feature's `index.ts` file via `panelRouter.register()`.
+- Ranks config was moved to `features/ranks`.
+- Shop items config was moved to `features/shop`.
