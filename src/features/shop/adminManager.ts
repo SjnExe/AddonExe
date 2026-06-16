@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
 import { getShopConfig, saveShopConfig } from '@core/configurations.js';
-import { items } from '@core/itemsConfig.default.js';
 import { debugLog } from '@core/logger.js';
 import { generateDisplayName, resolveIcon, sanitizeString, validateInput } from '@core/utils.js';
+import { items } from '@features/shop/itemsConfig.default.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import { ShopCategory, ShopSubCategory } from '@features/shop/shopConfig.js';

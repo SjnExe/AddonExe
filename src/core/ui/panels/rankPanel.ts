@@ -4,8 +4,8 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 
 import { getRanksConfig, saveRanksConfig } from '@core/configurations.js';
 import * as rankManager from '@core/rankManager.js';
-import { RankDefinition } from '@core/ranksConfig.default.js';
 import { showPanel } from '@core/uiManager.js';
+import { RankDefinition } from '@features/ranks/ranksConfig.default.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
