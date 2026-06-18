@@ -1,13 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
-import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
-
 import { loadConfig as asyncLoadConfig } from '@core/configLoader.js';
-import { getConfig } from '@core/configManager.js';
 import createConfigManager, { ConfigManager } from '@core/configManagerFactory.js';
-import { setLockState } from '@core/playerDataManager.js';
-import { reloadRanks } from '@core/rankManager.js';
 
 import type { xrayConfig } from '@features/anticheat/xrayConfig.default.js';
 import type { auctionHouseConfig } from '@features/auction/auctionHouseConfig.default.js';
@@ -131,87 +125,23 @@ export const getDailyRewardsConfig = (): DailyRewardsConfig => dailyRewardsConfi
 export const saveDailyRewardsConfig = (config: DailyRewardsConfig) => dailyRewardsConfigManager.set(config);
 export const resetDailyRewardsConfig = () => dailyRewardsConfigManager.reset();
 
-type ResetRegistryEntry = {
+export type ResetRegistryEntry = {
     reset: () => Promise<void>;
     message: string;
     postResetCallback?: (player?: mc.Player) => void;
 };
 
-export const configResetRegistry: Record<string, ResetRegistryEntry> = {
-    team: {
-        reset: resetTeamConfig,
-        message: "The 'team' configuration section has been reset to default."
-    },
-    friend: {
-        reset: resetFriendConfig,
-        message: "The 'friend' configuration section has been reset to default."
-    },
-    xray: {
-        reset: resetXrayConfig,
-        message: "The 'X-ray' configuration section has been reset to default."
-    },
-    xrayOres: {
-        reset: resetXrayConfig,
-        message: "The 'X-ray' configuration section has been reset to default."
-    },
-    economy: {
-        reset: resetEconomyConfig,
-        message: "The 'economy' configuration section has been reset to default."
-    },
-    shop: {
-        reset: resetShopConfig,
-        message: "The 'shop' configuration section has been reset to default."
-    },
-    ranks: {
-        reset: resetRanksConfig,
-        message: "The 'ranks' configuration section has been reset to default.",
-        postResetCallback: (player) => {
-            reloadRanks();
-            if (player) {
-                player.sendMessage('§aRanks have been reloaded with new settings.');
-            }
-        }
-    },
-    sidebar: {
-        reset: resetSidebarConfig,
-        message: "The 'sidebar' configuration section has been reset to default."
-    },
-    auctionHouse: {
-        reset: resetAuctionHouseConfig,
-        message: "The 'Auction House' configuration section has been reset to default."
-    },
-    dailyRewards: {
-        reset: resetDailyRewardsConfig,
-        message: "The 'Daily Rewards' configuration section has been reset to default."
-    },
-    worldProtection: {
-        reset: resetWorldProtectionConfig,
-        message: "The 'World Protection' configuration section has been reset to default."
-    }
-};
+export const configResetRegistry: Record<string, ResetRegistryEntry> = {};
 
-export const configResetCallbacks: Record<string, (player?: mc.Player) => void> = {
-    announcements: (player) => {
-        restartAnnouncer();
-        if (player) {
-            player.sendMessage('§aAnnouncement system has been updated with new settings.');
-        }
-    },
-    dimensionLock: (player) => {
-        const config = getConfig();
-        setLockState('nether', !!config.dimensionLock.netherLock);
-        setLockState('end', !!config.dimensionLock.endLock);
-        if (player) {
-            player.sendMessage('§aLive dimension lock states have been updated to match config.');
-        }
-    },
-    spawn: (player) => {
-        initializeSpawnProtection();
-        if (player) {
-            player.sendMessage('§aSpawn protection system has been updated based on new settings.');
-        }
-    }
-};
+export const configResetCallbacks: Record<string, (player?: mc.Player) => void> = {};
+
+export function registerConfigReset(key: string, entry: ResetRegistryEntry) {
+    configResetRegistry[key] = entry;
+}
+
+export function registerConfigResetCallback(key: string, callback: (player?: mc.Player) => void) {
+    configResetCallbacks[key] = callback;
+}
 
 export async function reloadAllConfigs() {
     // This function is a placeholder for potential future use.
