@@ -8,6 +8,8 @@ import { initializeLeaderboard } from '@features/economy/leaderboardManager.js';
 import { isDefined } from '@lib/guards.js';
 
 let autoSaveIntervalId: number | undefined;
+const loadDataHandlers: Array<() => void> = [];
+const saveDataHandlers: Array<() => void> = [];
 
 export function restartAutoSave() {
     if (autoSaveIntervalId !== undefined) {
@@ -71,6 +73,9 @@ export function saveAllData(options: { log?: boolean } = {}): boolean {
     }
 
     // Reports are saved immediately by the reportManager, so they are not needed here.
+    for (const handler of saveDataHandlers) {
+        handler();
+    }
 
     if (log && anythingWasSaved) {
         debugLog('[DataManager] Data sync complete.');
@@ -97,10 +102,23 @@ export function initializeDataManager() {
 export function loadPersistentData() {
     loadNameIdMap();
     initializeLeaderboard();
+    for (const handler of loadDataHandlers) {
+        handler();
+    }
+}
+
+export function registerDataLoader(handler: () => void) {
+    loadDataHandlers.push(handler);
+}
+
+export function registerDataSaver(handler: () => void) {
+    saveDataHandlers.push(handler);
 }
 
 export const dataManager = {
     initializeDataManager,
     restartAutoSave,
-    saveAllData
+    saveAllData,
+    registerDataLoader,
+    registerDataSaver
 };

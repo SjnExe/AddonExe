@@ -33,7 +33,7 @@ To manage this large undertaking, the tasks are broken down into logical session
     - **Service Locator:** Allow features to register their public API (e.g., `registerService('economy', economyApi)`). Other features can safely check if a service exists before using it.
     - **Event Bus:** Allow features to emit and listen to custom events without direct imports.
 - [x] Review `src/core/featureDependencies.ts` and migrate any hardcoded feature-to-feature dependencies to use the new Service Locator/Event Bus.
-- [ ] Ensure that core systems (Commands, UI Builder, Data Storage) expose a standard registration API that features can hook into during their initialization phase.
+- [x] Ensure that core systems (Commands, UI Builder, Data Storage) expose a standard registration API that features can hook into during their initialization phase.
 
 ---
 
@@ -56,8 +56,8 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 - [x] Move any remaining feature-specific default configuration files (e.g., `itemsConfig.default.ts`, `ranksConfig.default.ts`) into their appropriate homes, ensuring the build scripts still pick them up.
 - [x] Update `tsup.config.ts` if necessary to ensure it still finds and builds these config files correctly in their new locations.
-- [ ] Refactor `src/core/configManager.ts` and `src/core/configurations.ts` to dynamically load feature configs instead of hardcoding them, or have features register their own configs during initialization.
-- [ ] Move any feature-specific data managers or storage logic into the respective feature folders.
+- [x] Refactor `src/core/configManager.ts` and `src/core/configurations.ts` to dynamically load feature configs instead of hardcoding them, or have features register their own configs during initialization.
+- [x] Move any feature-specific data managers or storage logic into the respective feature folders.
 
 ---
 
@@ -77,9 +77,8 @@ To manage this large undertaking, the tasks are broken down into logical session
 
 _This section is to be updated by Jules at the end of every session._
 
-**Current Status:** Started Session 4. Moved `itemsConfig.default.ts` and `ranksConfig.default.ts` to their appropriate feature folders and updated imports. Build tool globs picked up the updated configs.
-**Next Step:** A new Jules session should begin working on the next parts of Session 4.
+**Current Status:** Completed Session 2 and Session 4. Core systems expose standard registration APIs and feature configs are dynamically loaded and registered during initialization phase.
+**Next Step:** A new Jules session should begin working on Session 5 to ensure feature independence and clean up direct imports.
 **Notes:**
 
-- Ranks config was moved to `features/ranks`.
-- Shop items config was moved to `features/shop`.
+- Features like auction, economy, daily rewards, social, etc., dynamically register configs to `configurations.ts` now.
