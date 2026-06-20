@@ -6,13 +6,18 @@ import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
+import { serviceLocator } from '@core/services/serviceLocator.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { playSound } from '@core/utils.js';
-import { saveLastLocation } from '@features/teleport/utils.js';
 
 import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+
+interface TeleportUtilsService {
+    saveLastLocation: (player: mc.Player, reason?: 'death' | 'teleport') => void;
+    findSafeLocation: (dimension: mc.Dimension, location: mc.Vector3) => mc.Vector3 | undefined;
+}
 
 interface SpawnLocation {
     x: number | undefined;
@@ -50,7 +55,10 @@ const spawnCommand: CustomCommand = {
         const teleportLogic = () => {
             try {
                 const dimension = mc.world.getDimension(spawnLocation.dimensionId);
-                saveLastLocation(executor);
+                const teleportUtils = serviceLocator.getService<TeleportUtilsService>('teleport.utils');
+                if (teleportUtils) {
+                    teleportUtils.saveLastLocation(executor);
+                }
                 executor.teleport(spawnLocation as mc.Vector3, { dimension: dimension });
                 sendMessage('§aTeleporting you to spawn...', executor);
                 playSound(executor, 'random.orb');

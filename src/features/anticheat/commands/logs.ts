@@ -4,10 +4,22 @@ import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } 
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
+import { serviceLocator } from '@core/services/serviceLocator.js';
 import { uiWait } from '@core/utils.js';
 import { FlagLog, getFlagLogs, getPunishmentLogs, PunishmentLog } from '@features/anticheat/logManager.js';
-import { ChatLog, getAvailableDates, getChatLogs } from '@features/moderation/chatLogManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+
+interface ChatLog {
+    timestamp: number;
+    playerName: string;
+    message: string;
+    rank?: string;
+}
+
+interface ChatLogService {
+    getAvailableDates: () => string[];
+    getChatLogs: (date?: string) => ChatLog[];
+}
 
 const logsCommand: CustomCommand = {
     name: 'logs',
@@ -224,7 +236,13 @@ async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string)
 // --- Chat ---
 
 export async function showChatFilter(player: mc.Player) {
-    const dates = getAvailableDates();
+    const chatLogService = serviceLocator.getService<ChatLogService>('moderation.chatLogs');
+    if (!chatLogService) {
+        player.sendMessage('§cChat logging service is not available.');
+        return showLogsMenu(player);
+    }
+
+    const dates = chatLogService.getAvailableDates();
     if (dates.length === 0) {
         player.sendMessage('§cNo chat logs available.');
         return showLogsMenu(player);
@@ -258,7 +276,10 @@ export async function showChatFilter(player: mc.Player) {
 }
 
 async function showChatLogs(player: mc.Player, page: number, date: string, nameQuery?: string, keyword?: string) {
-    let logs = getChatLogs(date).toSorted((a: ChatLog, b: ChatLog) => b.timestamp - a.timestamp);
+    const chatLogService = serviceLocator.getService<ChatLogService>('moderation.chatLogs');
+    if (!chatLogService) return showLogsMenu(player);
+
+    let logs = chatLogService.getChatLogs(date).toSorted((a: ChatLog, b: ChatLog) => b.timestamp - a.timestamp);
 
     if (isNonEmptyString(nameQuery)) {
         const q = nameQuery.toLowerCase();

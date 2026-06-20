@@ -4,9 +4,13 @@ import { getConfig } from '@core/configManager.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
+import { serviceLocator } from '@core/services/serviceLocator.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
-import { isFriend } from '@features/social/friendManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+
+interface SocialFriendsService {
+    isFriend: (playerId1: string, playerId2: string) => boolean;
+}
 
 import { findSafeLocation, saveLastLocation } from '@features/teleport/utils.js';
 
@@ -99,7 +103,8 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
     };
 
     // Auto-Accept Check for Friends and Team
-    const areFriends = isFriend(targetPlayer.id, sourcePlayer.id);
+    const friendsService = serviceLocator.getService<SocialFriendsService>('social.friends');
+    const areFriends = friendsService ? friendsService.isFriend(targetPlayer.id, sourcePlayer.id) : false;
     const inSameTeam = isDefined(targetPlayerData.teamId) && targetPlayerData.teamId === getOrCreatePlayer(sourcePlayer).teamId;
 
     // Check target's settings for auto-accept
