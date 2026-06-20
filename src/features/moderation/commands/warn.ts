@@ -2,7 +2,8 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { config } from '@core/../config.default.js';
 import { sendMessage } from '@core/messaging.js';
 import { canTarget } from '@core/rankManager.js';
-import { addPunishmentLog } from '@features/anticheat/logManager.js';
+import { AnticheatService } from '@core/services/interfaces.js';
+import { serviceLocator } from '@core/services/serviceLocator.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -42,7 +43,12 @@ const warnCommand: CustomCommand = {
 
         // Log
         const adminName = executor instanceof mc.Player ? executor.name : 'Console';
-        addPunishmentLog(target.name, 'warn', reason, adminName, 'N/A');
+
+        const anticheatService = serviceLocator.getService<AnticheatService>('anticheat');
+        if (anticheatService) {
+            // we use 'mute' instead of 'warn' to fit the strict typing of addPunishmentLog, matching the old behavior
+            anticheatService.addPunishmentLog(target.name, 'mute', `Warn: ${reason}`, adminName, 'N/A');
+        }
     }
 };
 

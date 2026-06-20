@@ -2,8 +2,9 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
+import { AnticheatService } from '@core/services/interfaces.js';
+import { serviceLocator } from '@core/services/serviceLocator.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
-import { addPunishmentLog } from '@features/anticheat/logManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 const storage = new StorageManager('exe:punishments');
@@ -140,7 +141,11 @@ export function addPunishment(playerId: string, playerName: string, punishment: 
     savePunishments(); // Save immediately for critical actions
     debugLog(`[PunishmentManager] Added ${punishment.type} for player ${playerName} (${playerId}). Expires: ${new Date(punishment.expires).toLocaleString()}`);
     const durationStr = punishment.expires === Infinity ? 'Permanent' : new Date(punishment.expires).toLocaleString();
-    addPunishmentLog(playerName, punishment.type, punishment.reason, adminName, durationStr);
+
+    const anticheatService = serviceLocator.getService<AnticheatService>('anticheat');
+    if (anticheatService) {
+        anticheatService.addPunishmentLog(playerName, punishment.type, punishment.reason, adminName, durationStr);
+    }
 }
 
 /**

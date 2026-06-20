@@ -37,13 +37,13 @@ const { initialize: initSocial } = await import('@features/social/index.js');
 const { initialize: initTeam } = await import('@features/team/index.js');
 const { initialize: initTeleport } = await import('@features/teleport/index.js');
 
-initEconomy();
-initEssentials();
-initKit();
+await initEconomy(false);
+await initEssentials(false);
+await initKit(false);
 initModeration();
-initShop();
-initSocial();
-initTeam();
+await initShop(false);
+await initSocial(false);
+await initTeam(false);
 initTeleport();
 
 describe('UI Integrity Check', () => {

@@ -4,10 +4,11 @@ import { getTeamConfig } from '@core/configurations.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
+import { TeleportService } from '@core/services/interfaces.js';
+import { serviceLocator } from '@core/services/serviceLocator.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { TeamData } from '@features/team/types.js';
 import { TeamPanelHandler } from '@features/team/ui/panel.js';
-import { saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 
@@ -592,7 +593,10 @@ export function teleportToTeamHome(player: mc.Player): void {
         () => {
             try {
                 const dim = mc.world.getDimension(dimensionId);
-                saveLastLocation(player);
+                const teleportService = serviceLocator.getService<TeleportService>('teleport');
+                if (teleportService) {
+                    teleportService.saveLastLocation(player);
+                }
                 player.teleport({ x, y, z }, { dimension: dim });
                 player.sendMessage('§aTeleported to team home!');
             } catch {

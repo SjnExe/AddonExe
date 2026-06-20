@@ -7,9 +7,9 @@ import { debugLog } from '@core/logger.js';
 import { getAllPlayersFromCache, getPlayerCount } from '@core/playerCache.js';
 import { getPlayTime, getPlayer, getSidebarVisible } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
+import { EconomyService, TeamService } from '@core/services/interfaces.js';
+import { serviceLocator } from '@core/services/serviceLocator.js';
 import { formatCurrency, formatDuration } from '@core/utils.js';
-import { getLeaderboard } from '@features/economy/leaderboardManager.js';
-import { getTeamByPlayer } from '@features/team/manager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 
 let sidebarInterval: number | undefined;
@@ -88,15 +88,21 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
     // Leaderboard Placeholders
     // Check if the text actually contains leaderboard placeholders before fetching
     if (processed.includes('{top_money_')) {
-        const leaderboard = getLeaderboard();
-        processed = processed.replaceAll(/\{top_money_(\d+)\}/g, (_match, indexStr) => {
-            const i = Number.parseInt(indexStr) - 1;
-            if (isNumber(i) && i >= 0 && i < leaderboard.length) {
-                const entry = leaderboard[i];
-                return isDefined(entry) ? `${entry.name}: ${formatCurrency(entry.balance)}` : '---';
-            }
-            return '---';
-        });
+        const economyService = serviceLocator.getService<EconomyService>('economy');
+        if (economyService) {
+            const leaderboard = economyService.getLeaderboard();
+            processed = processed.replaceAll(/\{top_money_(\d+)\}/g, (_match, indexStr) => {
+                const i = Number.parseInt(indexStr) - 1;
+                if (isNumber(i) && i >= 0 && i < leaderboard.length) {
+                    const entry = leaderboard[i];
+                    return isDefined(entry) ? `${entry.name}: ${formatCurrency(entry.balance)}` : '---';
+                }
+                return '---';
+            });
+        } else {
+            // If economy is disabled, replace placeholders with '---'
+            processed = processed.replaceAll(/\{top_money_(\d+)\}/g, '---');
+        }
     }
 
     if (player) {
@@ -104,7 +110,14 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
         if (isDefined(pData)) {
             const mainConfig = getConfig();
             const rank = getPlayerRank(player, mainConfig);
-            const team = getTeamByPlayer(player.id);
+            let teamName = 'None';
+            const teamService = serviceLocator.getService<TeamService>('team');
+            if (teamService) {
+                const team = teamService.getTeamByPlayer(player.id);
+                if (team) {
+                    teamName = team.name;
+                }
+            }
             const balance = pData.balance;
             const kills = pData.kills || 0;
             const deaths = pData.deaths || 0;
@@ -122,7 +135,7 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
                 .replace('{streak}', streak.toString())
                 .replace('{playtime}', playtime);
 
-            processed = team ? processed.replace('{team}', team.name) : processed.replace('{team}', 'None');
+            processed = processed.replace('{team}', teamName);
         }
     }
 
