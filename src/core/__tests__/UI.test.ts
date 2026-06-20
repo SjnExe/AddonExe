@@ -37,14 +37,15 @@ const { initialize: initSocial } = await import('@features/social/index.js');
 const { initialize: initTeam } = await import('@features/team/index.js');
 const { initialize: initTeleport } = await import('@features/teleport/index.js');
 
-initEconomy();
-initEssentials();
-initKit();
-initModeration();
-initShop();
-initSocial();
-initTeam();
-initTeleport();
+// Initialize with wait for async modules (some config loaders are async)
+await initEconomy(false);
+await initEssentials(false);
+await initKit(false);
+await initModeration();
+await initShop(false);
+await initSocial(false);
+await initTeam(false);
+await initTeleport();
 
 describe('UI Integrity Check', () => {
     it('should have a registered handler for every panel in registry', () => {

@@ -2,9 +2,13 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { config } from '@core/../config.default.js';
 import { sendMessage } from '@core/messaging.js';
 import { canTarget } from '@core/rankManager.js';
-import { addPunishmentLog } from '@features/anticheat/logManager.js';
+import { serviceLocator } from '@core/services/serviceLocator.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
+
+interface AnticheatLogsService {
+    addPunishmentLog: (playerName: string, type: string, reason: string, adminName: string, duration?: string) => void;
+}
 
 const warnCommand: CustomCommand = {
     name: 'warn',
@@ -42,7 +46,10 @@ const warnCommand: CustomCommand = {
 
         // Log
         const adminName = executor instanceof mc.Player ? executor.name : 'Console';
-        addPunishmentLog(target.name, 'warn', reason, adminName, 'N/A');
+        const logService = serviceLocator.getService<AnticheatLogsService>('anticheat.logs');
+        if (logService) {
+            logService.addPunishmentLog(target.name, 'warn', reason, adminName, 'N/A');
+        }
     }
 };
 

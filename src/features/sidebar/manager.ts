@@ -7,10 +7,26 @@ import { debugLog } from '@core/logger.js';
 import { getAllPlayersFromCache, getPlayerCount } from '@core/playerCache.js';
 import { getPlayTime, getPlayer, getSidebarVisible } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
+import { serviceLocator } from '@core/services/serviceLocator.js';
 import { formatCurrency, formatDuration } from '@core/utils.js';
-import { getLeaderboard } from '@features/economy/leaderboardManager.js';
-import { getTeamByPlayer } from '@features/team/manager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
+
+interface LeaderboardEntry {
+    name: string;
+    balance: number;
+}
+
+interface EconomyLeaderboardService {
+    getLeaderboard: () => LeaderboardEntry[];
+}
+
+interface TeamData {
+    name: string;
+}
+
+interface TeamManagerService {
+    getTeamByPlayer: (playerId: string) => TeamData | undefined;
+}
 
 let sidebarInterval: number | undefined;
 
@@ -88,7 +104,8 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
     // Leaderboard Placeholders
     // Check if the text actually contains leaderboard placeholders before fetching
     if (processed.includes('{top_money_')) {
-        const leaderboard = getLeaderboard();
+        const leaderboardService = serviceLocator.getService<EconomyLeaderboardService>('economy.leaderboard');
+        const leaderboard = leaderboardService ? leaderboardService.getLeaderboard() : [];
         processed = processed.replaceAll(/\{top_money_(\d+)\}/g, (_match, indexStr) => {
             const i = Number.parseInt(indexStr) - 1;
             if (isNumber(i) && i >= 0 && i < leaderboard.length) {
@@ -104,7 +121,8 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
         if (isDefined(pData)) {
             const mainConfig = getConfig();
             const rank = getPlayerRank(player, mainConfig);
-            const team = getTeamByPlayer(player.id);
+            const teamManagerService = serviceLocator.getService<TeamManagerService>('team.manager');
+            const team = teamManagerService ? teamManagerService.getTeamByPlayer(player.id) : undefined;
             const balance = pData.balance;
             const kills = pData.kills || 0;
             const deaths = pData.deaths || 0;

@@ -2,11 +2,12 @@ import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog } from '@core/logger.js';
 import { isDeepEqual } from '@core/objectUtils.js';
-import * as sidebarManager from '@features/sidebar/manager.js';
+import { serviceLocator } from '@core/services/serviceLocator.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
-// Workaround for strange TS Boolean type inference on resolveGlobalPlaceholders
-const sm = sidebarManager as { resolveGlobalPlaceholders: (t: string) => string };
+interface SidebarService {
+    resolveGlobalPlaceholders: (text: string, player?: mc.Player) => string;
+}
 
 export interface FloatingTextConfig {
     id: string;
@@ -127,7 +128,8 @@ function* updateLoopJob() {
             yield;
 
             for (const textConfig of texts) {
-                const resolved = sm.resolveGlobalPlaceholders(textConfig.text);
+                const sidebarService = serviceLocator.getService<SidebarService>('sidebar.utils');
+                const resolved = sidebarService ? sidebarService.resolveGlobalPlaceholders(textConfig.text) : textConfig.text;
                 const last = lastResolvedText.get(textConfig.id);
 
                 if (resolved !== last) {
@@ -289,7 +291,8 @@ function spawnText(textConfig: FloatingTextConfig) {
         }
 
         const entity = dimension.spawnEntity('exe:floating_text' as unknown as Parameters<typeof dimension.spawnEntity>[0], textConfig.location);
-        const resolvedText = sm.resolveGlobalPlaceholders(textConfig.text);
+        const sidebarService = serviceLocator.getService<SidebarService>('sidebar.utils');
+        const resolvedText = sidebarService ? sidebarService.resolveGlobalPlaceholders(textConfig.text) : textConfig.text;
         lastResolvedText.set(textConfig.id, resolvedText);
         entity.nameTag = resolvedText.replaceAll(String.raw`\n`, '\n');
         entity.addTag(`ft_${textConfig.id}`);
@@ -412,7 +415,8 @@ export function updateText(id: string, updates: Partial<FloatingTextConfig>) {
                 }
 
                 if (textChanged || intervalChanged) {
-                    const resolved = sm.resolveGlobalPlaceholders(newConfig.text);
+                    const sidebarService = serviceLocator.getService<SidebarService>('sidebar.utils');
+                    const resolved = sidebarService ? sidebarService.resolveGlobalPlaceholders(newConfig.text) : newConfig.text;
                     lastResolvedText.set(id, resolved);
                     entity.nameTag = resolved.replaceAll(String.raw`\n`, '\n');
                 }
