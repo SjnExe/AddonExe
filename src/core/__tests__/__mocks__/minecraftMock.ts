@@ -37,7 +37,10 @@ export const world = {
     beforeEvents: {
         chatSend: { subscribe: vi.fn() },
         playerInteractWithEntity: { subscribe: vi.fn() },
-        playerInteractWithBlock: { subscribe: vi.fn() }
+        playerInteractWithBlock: { subscribe: vi.fn() },
+        itemUse: { subscribe: vi.fn() },
+        playerBreakBlock: { subscribe: vi.fn() },
+        playerPlaceBlock: { subscribe: vi.fn() }
     },
     sendMessage: vi.fn()
 };

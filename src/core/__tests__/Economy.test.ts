@@ -5,10 +5,7 @@ import { vi } from 'vitest';
 
 const { mockStorageLoad, mockStorageSave } = vi.hoisted(() => ({
     mockStorageLoad: vi.fn(),
-    mockStorageSave: vi.fn(),
-    mockLoadPlayerData: vi.fn(),
-    mockGetPlayer: vi.fn(),
-    mockIncrementPlayerBalance: vi.fn()
+    mockStorageSave: vi.fn()
 }));
 
 // Define mocks using unstable_mockModule
