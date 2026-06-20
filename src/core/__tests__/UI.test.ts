@@ -40,12 +40,12 @@ const { initialize: initTeleport } = await import('@features/teleport/index.js')
 // Initialize with wait for async modules (some config loaders are async)
 await initEconomy(false);
 await initEssentials(false);
-await initKit(false);
-await initModeration();
+initKit();
+initModeration();
 await initShop(false);
 await initSocial(false);
 await initTeam(false);
-await initTeleport();
+initTeleport();
 
 describe('UI Integrity Check', () => {
     it('should have a registered handler for every panel in registry', () => {
