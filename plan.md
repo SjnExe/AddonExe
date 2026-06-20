@@ -80,5 +80,6 @@ _This section is to be updated by Jules at the end of every session._
 **Current Status:** Completed Session 5. Major decoupling is complete; all direct cross-feature imports have been replaced by the `serviceLocator` via interface definitions in `src/core/services/interfaces.ts`. The codebase compiles completely without static inter-feature dependencies.
 **Next Step:** The foundational modularization is largely done. The team can now proceed to ship or disable features at build-time using `features.yml` with confidence that the module tree is clean.
 **Notes:**
+
 - A generic `interfaces.ts` file now lives in `src/core/services/` containing the API contracts for the decoupleable services. Features register themselves on boot via their `index.ts`.
 - The UI Test was tweaked slightly because `initShop` and other modular init methods are now async to allow decoupled async dependencies, which required an `await` within the test runner.

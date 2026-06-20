@@ -39,7 +39,7 @@ const { initialize: initTeleport } = await import('@features/teleport/index.js')
 
 await initEconomy(false);
 await initEssentials(false);
-await initKit(false);
+initKit();
 initModeration();
 await initShop(false);
 await initSocial(false);
