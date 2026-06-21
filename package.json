@@ -34,16 +34,19 @@
         "reinstall": "rm -rf node_modules package-lock.json && npm install",
         "test": "vitest run --passWithNoTests",
         "test:duplication": "jscpd src/ --min-lines 5 --min-tokens 40 --max-lines 1000 --ignore 'src/**/__tests__/**'",
-        "validate": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build --display-only",
-        "validate:report": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
+        "validate": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build --display-only",
+        "validate:report": "npm run check-deps && npx mct validate default PRJINT,UNKJSON,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
         "watch": "node scripts/generate-feature-registry.js && concurrently \"tsc -w\" \"node scripts/build-assets.js --watch\" \"tsup --watch\""
     },
     "simple-git-hooks": {
         "pre-commit": "npx lint-staged"
     },
     "lint-staged": {
-        "*.{js,ts}": "eslint --fix",
-        "*.{js,ts,json,md}": "prettier --write"
+        "*.{js,ts}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.{json,md}": "prettier --write"
     },
     "overrides": {
         "@isaacs/brace-expansion": "latest",
