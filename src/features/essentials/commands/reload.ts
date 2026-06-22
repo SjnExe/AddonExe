@@ -1,7 +1,7 @@
 import { reloadConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
-import { updateAllPlayerRanks } from '../../../main.js';
 import { sendMessage } from '@core/messaging.js';
+import { updateAllPlayerRanks } from '../../../main.js';
 
 import { CustomCommand } from '@commands/commandManager.js';
 
