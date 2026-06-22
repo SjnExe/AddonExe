@@ -13,7 +13,7 @@ export default defineConfig({
     entry: ['src/core/main.ts', ...configFiles],
     outDir: 'build/behavior/scripts',
     format: ['esm'],
-    target: 'es2022',
+    target: 'es2023',
     bundle: true,
     splitting: false,
     clean: false, // We clean it with rimraf beforehand

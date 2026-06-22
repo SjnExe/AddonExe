@@ -42,8 +42,11 @@
         "pre-commit": "npx lint-staged"
     },
     "lint-staged": {
-        "*.{js,ts}": "eslint --fix",
-        "*.{js,ts,json,md}": "prettier --write"
+        "*.{js,ts}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.{json,md}": "prettier --write"
     },
     "overrides": {
         "@isaacs/brace-expansion": "latest",
