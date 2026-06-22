@@ -10,7 +10,7 @@ const configFiles = globSync('src/**/*Config{.ts,.default.ts}', {
 configFiles.push('src/config.default.ts');
 
 export default defineConfig({
-    entry: ['src/core/main.ts', ...configFiles],
+    entry: ['src/main.ts', ...configFiles],
     outDir: 'build/behavior/scripts',
     format: ['esm'],
     target: 'es2023',
