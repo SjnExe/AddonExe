@@ -65,3 +65,7 @@ features:
         name: Voting
         status: prod
         dependencies: []
+    ranks:
+        name: Ranks
+        status: prod
+        dependencies: []
