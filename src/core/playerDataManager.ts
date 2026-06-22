@@ -762,6 +762,10 @@ export function transfer(sourcePlayerId: string, targetPlayerId: string, amount:
             // Force save target for consistency
             savePlayerData(targetPlayerId);
         } else {
+            // Because target is offline, they are not cached.
+            // In savePlayerData, it checks if `activePlayerData.has(playerId)`.
+            // So we need to put it in the cache briefly to save it.
+            activePlayerData.set(targetPlayerId, targetData);
             savePlayerData(targetPlayerId);
             activePlayerData.delete(targetPlayerId);
             debugLog(`[Economy] Unloaded offline target ${targetPlayerId} after transfer.`);
