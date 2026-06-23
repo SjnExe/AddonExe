@@ -88,14 +88,19 @@ export class WordlePanelHandler implements IPanelHandler {
     }
 
     async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
-        if (response.canceled) return;
+        if (response.canceled) {
+            if (panelId === 'wordleSinglePlayerPanel') {
+                 // Return to menu on cancel
+                 await showPanel(player, 'wordleMainPanel', context);
+            }
+            return;
+        }
 
         if (panelId === 'wordleSinglePlayerPanel') {
             const res = response as ModalFormResponse;
 
             // Notice we removed the toggle, so to return to menu they can just close the modal.
-            // If they close the modal, res.canceled is true, and we abort.
-            // A dedicated "Return to Menu" button makes sense on an ActionForm, but on ModalForm it is just "Submit" or "Cancel".
+            // If they close the modal, res.canceled is true, and we abort but show the main menu.
 
             if (res.formValues && typeof res.formValues[0] === 'string' && res.formValues[0].trim() !== '') {
                 const guess = res.formValues[0].trim();
