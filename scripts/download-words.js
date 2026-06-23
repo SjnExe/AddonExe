@@ -1,5 +1,4 @@
 import fs from 'fs/promises';
-import path from 'path';
 
 async function main() {
     const url = 'https://raw.githubusercontent.com/first20hours/google-10000-english/master/google-10000-english-no-swears.txt';
@@ -7,9 +6,9 @@ async function main() {
     const text = await response.text();
     const allWords = text.split('\n');
 
-    const words4 = allWords.filter(w => w.length === 4);
-    const words5 = allWords.filter(w => w.length === 5);
-    const words6 = allWords.filter(w => w.length === 6);
+    const words4 = allWords.filter((w) => w.length === 4);
+    const words5 = allWords.filter((w) => w.length === 5);
+    const words6 = allWords.filter((w) => w.length === 6);
 
     // Compress using simple chunking (join with no delimiter since they are fixed length)
     const compressed4 = words4.join('');
