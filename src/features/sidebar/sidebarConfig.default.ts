@@ -1,5 +1,5 @@
 export const config = {
-    enabled: true,
+    enabled: false,
     opacity: 'medium',
     title: '§l§6{server_name}',
     updateInterval: 20,

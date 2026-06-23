@@ -104,7 +104,7 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     deaths: 0,
     killStreak: 0,
     totalPlayTime: 0,
-    sidebarVisible: true,
+    sidebarVisible: false,
     mailbox: [],
     lastDailyClaim: 0,
     dailyStreak: 0,
@@ -349,7 +349,7 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
         deaths: 0,
         killStreak: 0,
         totalPlayTime: 0,
-        sidebarVisible: true,
+        sidebarVisible: false,
         mailbox: [],
         lastDailyClaim: 0,
         dailyStreak: 0,
@@ -830,5 +830,5 @@ export function setSidebarVisible(playerId: string, visible: boolean) {
 
 export function getSidebarVisible(playerId: string): boolean {
     const pData = getPlayer(playerId);
-    return (isDefined(pData) ? pData.sidebarVisible : undefined) ?? true;
+    return (isDefined(pData) ? pData.sidebarVisible : undefined) ?? false;
 }
