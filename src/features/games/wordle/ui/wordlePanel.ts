@@ -11,7 +11,7 @@ export class WordlePanelHandler implements IPanelHandler {
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
-    async buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | ActionFormData | undefined> {
+    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | ActionFormData | undefined> {
         if (panelId === 'wordleSinglePlayerPanel') {
             const config = getWordleConfig();
             if (!config.singlePlayer.enabled) {
@@ -37,8 +37,7 @@ export class WordlePanelHandler implements IPanelHandler {
 
             const form = new ModalFormData()
                 .title('§l§aSingle Player Wordle')
-                .textField(`${errorMsg}§fGuess the ${game.word.length}-letter word!\n\n${history}\n\n§fType your guess:`, 'e.g. apple')
-                .toggle('§cReturn to Menu', false);
+                .textField(`${errorMsg}§fGuess the ${game.word.length}-letter word!\n\n${history}\n\n§fType your guess:`, 'e.g. apple');
 
             return form;
         }
@@ -94,11 +93,9 @@ export class WordlePanelHandler implements IPanelHandler {
         if (panelId === 'wordleSinglePlayerPanel') {
             const res = response as ModalFormResponse;
 
-            // Check if they toggled "Return to Menu"
-            if (res.formValues && res.formValues[1] === true) {
-                await showPanel(player, 'wordleMainPanel', context);
-                return;
-            }
+            // Notice we removed the toggle, so to return to menu they can just close the modal.
+            // If they close the modal, res.canceled is true, and we abort.
+            // A dedicated "Return to Menu" button makes sense on an ActionForm, but on ModalForm it is just "Submit" or "Cancel".
 
             if (res.formValues && typeof res.formValues[0] === 'string' && res.formValues[0].trim() !== '') {
                 const guess = res.formValues[0].trim();
