@@ -1,4 +1,10 @@
 features:
+    games:
+        name: Games
+        status: dev
+        dependencies:
+            - economy
+
     anticheat:
         name: Anti-Cheat
         status: prod

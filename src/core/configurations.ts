@@ -13,6 +13,8 @@ import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { config as sidebarConfig } from '@features/sidebar/sidebarConfig.default.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
 import type { teamConfig } from '@features/team/teamConfig.js';
+import type { GamesConfig } from '@features/games/gamesConfig.default.js';
+import type { WordleConfig } from '@features/games/wordle/wordleConfig.default.js';
 
 export type ShopConfig = typeof shopConfig;
 export type RanksConfig = typeof ranksConfig;
@@ -23,6 +25,8 @@ export type FriendConfig = typeof friendConfig;
 export type SidebarConfig = typeof sidebarConfig;
 export type AuctionHouseConfig = typeof auctionHouseConfig;
 export type DailyRewardsConfig = typeof dailyRewardsConfig;
+export type GamesConfigType = GamesConfig;
+export type WordleConfigType = WordleConfig;
 
 let shopConfigManager: ConfigManager<ShopConfig>,
     ranksConfigManager: ConfigManager<RanksConfig>,
@@ -33,7 +37,9 @@ let shopConfigManager: ConfigManager<ShopConfig>,
     sidebarConfigManager: ConfigManager<SidebarConfig>,
     auctionHouseConfigManager: ConfigManager<AuctionHouseConfig>,
     dailyRewardsConfigManager: ConfigManager<DailyRewardsConfig>,
-    worldProtectionConfigManager: ConfigManager<WorldProtectionConfig>;
+    worldProtectionConfigManager: ConfigManager<WorldProtectionConfig>,
+    gamesConfigManager: ConfigManager<GamesConfig>,
+    wordleConfigManager: ConfigManager<WordleConfig>;
 
 export const loadWorldProtectionConfig = async (isMigration: boolean) => {
     const { worldProtectionConfig } = await import('@features/essentials/worldProtectionConfig.default.js');
@@ -124,6 +130,25 @@ export const loadDailyRewardsConfig = async (isMigration: boolean) => {
 export const getDailyRewardsConfig = (): DailyRewardsConfig => dailyRewardsConfigManager.get();
 export const saveDailyRewardsConfig = (config: DailyRewardsConfig) => dailyRewardsConfigManager.set(config);
 export const resetDailyRewardsConfig = () => dailyRewardsConfigManager.reset();
+
+export const loadGamesConfig = async (isMigration: boolean) => {
+    const { gamesConfig } = await import('@features/games/gamesConfig.default.js');
+    gamesConfigManager = createConfigManager('exe:gamesConfig:current', gamesConfig, 'Games');
+    gamesConfigManager.load(isMigration);
+};
+export const getGamesConfig = (): GamesConfig => gamesConfigManager.get();
+export const saveGamesConfig = (config: GamesConfig) => gamesConfigManager.set(config);
+export const resetGamesConfig = () => gamesConfigManager.reset();
+
+export const loadWordleConfig = async (isMigration: boolean) => {
+    const { wordleConfig } = await import('@features/games/wordle/wordleConfig.default.js');
+    wordleConfigManager = createConfigManager('exe:wordleConfig:current', wordleConfig, 'Wordle');
+    wordleConfigManager.load(isMigration);
+};
+export const getWordleConfig = (): WordleConfig => wordleConfigManager.get();
+export const saveWordleConfig = (config: WordleConfig) => wordleConfigManager.set(config);
+export const resetWordleConfig = () => wordleConfigManager.reset();
+
 
 export type ResetRegistryEntry = {
     reset: () => Promise<void>;
