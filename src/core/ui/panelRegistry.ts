@@ -17,7 +17,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             {
                 id: 'games',
                 text: '§l§aGames',
-                icon: 'textures/ui/controller_icon',
+                icon: 'textures/ui/controller_glyph_color',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'gamesMainPanel',
@@ -920,7 +920,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             {
                 id: 'wordle',
                 text: '§l§2Wordle',
-                icon: 'textures/ui/icon_recipe_item',
+                icon: 'textures/ui/recipe_book_icon',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'wordleMainPanel',
