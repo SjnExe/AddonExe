@@ -1,19 +1,16 @@
+import { getWordleConfig } from '@core/configurations.js';
+import { showPanel } from '@core/uiManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
-import { getPlayerActiveGame, getStaffHostedGame, submitGuess, formatGuess, createSinglePlayerGame, createStaffHostedGame, endStaffHostedGame } from '../wordleManager.js';
-import { getWordleConfig } from '@core/configurations.js';
 import { IPanelHandler, UIContext } from '@ui/types.js';
-import { showPanel } from '@core/uiManager.js';
+import { createSinglePlayerGame, createStaffHostedGame, endStaffHostedGame, formatGuess, getPlayerActiveGame, getStaffHostedGame, submitGuess } from '../wordleManager.js';
 
 export class WordlePanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'wordleSinglePlayerPanel' ||
-            panelId === 'wordleMultiplayerPanel' ||
-            panelId === 'wordleStaffGamePanel'
-        );
+        return panelId === 'wordleSinglePlayerPanel' || panelId === 'wordleMultiplayerPanel' || panelId === 'wordleStaffGamePanel';
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     async buildModal(player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | ActionFormData | undefined> {
         if (panelId === 'wordleSinglePlayerPanel') {
             const config = getWordleConfig();
@@ -34,8 +31,10 @@ export class WordlePanelHandler implements IPanelHandler {
 
             const form = new ActionFormData()
                 .title('§l§aSingle Player Wordle')
-                .body(`§7Guess the ${game.word.length}-letter word!\n\n` +
-                      (game.guesses.length > 0 ? game.guesses.map((g: string) => formatGuess(g, evaluatePattern(g, game!.word))).join('\n') : 'No guesses yet.'));
+                .body(
+                    `§7Guess the ${game.word.length}-letter word!\n\n` +
+                        (game.guesses.length > 0 ? game.guesses.map((g: string) => formatGuess(g, evaluatePattern(g, game.word))).join('\n') : 'No guesses yet.')
+                );
 
             form.button('§2Make a Guess\n§r§7Click to type');
             form.button('§8Back\n§r§7Return to Menu');
@@ -49,7 +48,7 @@ export class WordlePanelHandler implements IPanelHandler {
                 return;
             }
 
-            let game = getStaffHostedGame();
+            const game = getStaffHostedGame();
             const form = new ActionFormData()
                 .title('§l§cStaff Hosted Game Control')
                 .body(game ? `§7Game Active! Pool Prize: §6$${game.poolPrize}\n§7Guesses: ${game.guesses.length}` : '§7No active staff game.');
@@ -64,10 +63,7 @@ export class WordlePanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'wordleMultiplayerPanel') {
-            const form = new ActionFormData()
-                .title('§l§eMultiplayer Wordle')
-                .body('§7Coming soon in a future update!')
-                .button('§8Back\n§r§7Return to Menu');
+            const form = new ActionFormData().title('§l§eMultiplayer Wordle').body('§7Coming soon in a future update!').button('§8Back\n§r§7Return to Menu');
             return form;
         }
         return undefined;
@@ -79,11 +75,10 @@ export class WordlePanelHandler implements IPanelHandler {
         if (panelId === 'wordleSinglePlayerPanel') {
             const res = response as ActionFormResponse;
             if (res.selection === 0) {
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 mc.system.run(async () => {
                     // Open text input modal
-                    const modal = new ModalFormData()
-                        .title('Make a Guess')
-                        .textField('Type your guess:', 'e.g. apple');
+                    const modal = new ModalFormData().title('Make a Guess').textField('Type your guess:', 'e.g. apple');
                     const modalRes = await modal.show(player);
                     if (!modalRes.canceled && modalRes.formValues && typeof modalRes.formValues[0] === 'string') {
                         const guess = modalRes.formValues[0];
@@ -103,11 +98,11 @@ export class WordlePanelHandler implements IPanelHandler {
                     }
                     // Reopen the panel to show results
                     mc.system.runTimeout(() => {
-                        showPanel(player, 'wordleSinglePlayerPanel', context);
+                        showPanel(player, 'wordleSinglePlayerPanel', context).catch(() => {});
                     }, 1);
                 });
             } else if (res.selection === 1) {
-                showPanel(player, 'wordleMainPanel', context);
+                await showPanel(player, 'wordleMainPanel', context);
             }
         } else if (panelId === 'wordleStaffGamePanel') {
             const res = response as ActionFormResponse;
@@ -116,18 +111,16 @@ export class WordlePanelHandler implements IPanelHandler {
                 if (game) {
                     endStaffHostedGame();
                     player.sendMessage('§aStaff game ended.');
-                    showPanel(player, 'wordleStaffGamePanel', context);
+                    await showPanel(player, 'wordleStaffGamePanel', context);
                 } else {
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     mc.system.run(async () => {
                         // Quick start for now. Custom word selection can be a modal.
-                        const modal = new ModalFormData()
-                            .title('Start Staff Game')
-                            .textField('Custom word (leave empty for random 5-letter):', 'word')
-                            .textField('Pool Prize:', '0');
+                        const modal = new ModalFormData().title('Start Staff Game').textField('Custom word (leave empty for random 5-letter):', 'word').textField('Pool Prize:', '0');
                         const modalRes = await modal.show(player);
                         if (!modalRes.canceled && modalRes.formValues) {
                             let word = typeof modalRes.formValues[0] === 'string' ? modalRes.formValues[0] : '';
-                            let poolStr = typeof modalRes.formValues[1] === 'string' ? modalRes.formValues[1] : '0';
+                            const poolStr = typeof modalRes.formValues[1] === 'string' ? modalRes.formValues[1] : '0';
                             let poolPrize = parseInt(poolStr, 10);
                             if (isNaN(poolPrize)) poolPrize = 0;
 
@@ -140,15 +133,15 @@ export class WordlePanelHandler implements IPanelHandler {
                             player.sendMessage('§aStaff game started!');
                         }
                         mc.system.runTimeout(() => {
-                            showPanel(player, 'wordleStaffGamePanel', context);
+                            showPanel(player, 'wordleStaffGamePanel', context).catch(() => {});
                         }, 1);
                     });
                 }
             } else if (res.selection === 1) {
-                showPanel(player, 'wordleMainPanel', context);
+                await showPanel(player, 'wordleMainPanel', context);
             }
         } else if (panelId === 'wordleMultiplayerPanel') {
-            showPanel(player, 'wordleMainPanel', context);
+            await showPanel(player, 'wordleMainPanel', context);
         }
     }
 }
@@ -156,16 +149,16 @@ export class WordlePanelHandler implements IPanelHandler {
 // Utility for formatting since we can't easily re-evaluate without the game state
 function evaluatePattern(guess: string, answer: string): string {
     // In-file implementation to avoid require
-    guess = guess?.toLowerCase() ?? '';
-    answer = answer?.toLowerCase() ?? '';
+    guess = guess.toLowerCase();
+    answer = answer.toLowerCase();
 
-    let pattern = new Array(guess.length).fill('-');
-    let answerChars = answer.split('');
+    const pattern = new Array(guess.length).fill('-');
+    const answerChars: (string | null)[] = answer.split('');
 
     for (let i = 0; i < guess.length; i++) {
         if (guess[i] === answer[i]) {
             pattern[i] = 'g';
-            answerChars[i] = null as any;
+            answerChars[i] = null;
         }
     }
 
@@ -174,7 +167,7 @@ function evaluatePattern(guess: string, answer: string): string {
             const charIndex = answerChars.indexOf(guess[i] as string);
             if (charIndex !== -1) {
                 pattern[i] = 'y';
-                answerChars[charIndex] = null as any;
+                answerChars[charIndex] = null;
             }
         }
     }

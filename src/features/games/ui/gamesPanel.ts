@@ -1,17 +1,14 @@
-import * as mc from '@minecraft/server';
-import { ActionFormResponse } from '@minecraft/server-ui';
 import { showPanel } from '@core/uiManager.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { ActionFormResponse } from '@minecraft/server-ui';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
 
 export class GamesPanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return (
-            panelId === 'gamesMainPanel' ||
-            panelId === 'wordleMainPanel'
-        );
+        return panelId === 'gamesMainPanel' || panelId === 'wordleMainPanel';
     }
 
     getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {

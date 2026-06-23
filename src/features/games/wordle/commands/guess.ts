@@ -1,13 +1,13 @@
-import { commandManager, CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getStaffHostedGame, submitGuess } from '../wordleManager.js';
+import { CommandExecutor, commandManager, CustomCommand } from '@commands/commandManager.js';
 import { getWordleConfig } from '@core/configurations.js';
 import { getBalance, incrementPlayerBalance } from '@core/playerDataManager.js';
 import * as mc from '@minecraft/server';
+import { getStaffHostedGame, submitGuess } from '../wordleManager.js';
 
 const pendingConfirmations = new Map<string, string>(); // playerId -> gameId
 
 export function registerGuessCommand() {
-    commandManager.register({
+    const cmd: CustomCommand = {
         name: 'guess',
         aliases: ['gs'],
         description: 'Guess the word for the global staff-hosted Wordle game.',
@@ -92,5 +92,6 @@ export function registerGuessCommand() {
                 }
             }
         }
-    } as CustomCommand);
+    };
+    commandManager.register(cmd);
 }

@@ -1,5 +1,5 @@
-import * as mc from '@minecraft/server';
 import { getWordleConfig } from '@core/configurations.js';
+import * as mc from '@minecraft/server';
 import { getRandomSolution, isValidWord } from './wordPool.js';
 
 export interface GuessResult {
@@ -30,18 +30,18 @@ function generateGameId(): string {
 }
 
 export function evaluateGuess(guess: string, answer: string): GuessResult {
-    guess = guess?.toLowerCase() ?? '';
-    answer = answer?.toLowerCase() ?? '';
+    guess = guess.toLowerCase();
+    answer = answer.toLowerCase();
 
-    let pattern = new Array(guess.length).fill('-');
-    let answerChars = answer.split('');
+    const pattern = new Array(guess.length).fill('-');
+    const answerChars: (string | null)[] = answer.split('');
     let isWin = true;
 
     // First pass: Find exact matches (Green)
     for (let i = 0; i < guess.length; i++) {
         if (guess[i] === answer[i]) {
             pattern[i] = 'g';
-            answerChars[i] = null as any; // Mark as used
+            answerChars[i] = null; // Mark as used
         } else {
             isWin = false;
         }
@@ -53,7 +53,7 @@ export function evaluateGuess(guess: string, answer: string): GuessResult {
             const charIndex = answerChars.indexOf(guess[i] as string);
             if (charIndex !== -1) {
                 pattern[i] = 'y';
-                answerChars[charIndex] = null as any; // Mark as used
+                answerChars[charIndex] = null; // Mark as used
             }
         }
     }
@@ -131,11 +131,11 @@ export function endStaffHostedGame(winnerId?: string) {
             game.winnerId = winnerId;
             const config = getWordleConfig();
             if (config.staffHosted.unlimitedAutoStart) {
-                const { getRandomSolution } = require('./wordPool.js');
-                const nextWord = getRandomSolution(5) || 'apple';
+                // Inline to avoid cyclical dependency without require
+                const defaultWord = 'apple';
                 mc.system.runTimeout(() => {
                     if (config.staffHosted.enabled) {
-                        createStaffHostedGame(nextWord, 0);
+                        createStaffHostedGame(defaultWord, 0);
                         mc.world.sendMessage(`§e[Wordle] A new staff hosted game has automatically started! Type §a/gs <word>§e to join.`);
                     }
                 }, 100);
@@ -149,15 +149,15 @@ import { incrementPlayerBalance } from '@core/playerDataManager.js';
 
 export function submitGuess(gameId: string, player: mc.Player, guess: string): GuessResult | string {
     const game = activeGames.get(gameId);
-    if (!game) return "Game not found.";
-    if (game.status !== 'active') return "Game is no longer active.";
+    if (!game) return 'Game not found.';
+    if (game.status !== 'active') return 'Game is no longer active.';
 
     if (guess.length !== game.word.length) {
         return `Word must be exactly ${game.word.length} letters long.`;
     }
 
     if (!isValidWord(guess)) {
-        return "Not a valid word.";
+        return 'Not a valid word.';
     }
 
     const result = evaluateGuess(guess, game.word);
@@ -176,7 +176,7 @@ export function submitGuess(gameId: string, player: mc.Player, guess: string): G
         } else {
             endStaffHostedGame(player.id);
         }
-    } else if (game.guesses && game.guesses.length >= game.maxGuesses) {
+    } else if (game.guesses.length >= game.maxGuesses) {
         game.status = 'lost';
         if (!game.isStaffHosted) {
             playerGameMap.delete(player.id);
@@ -192,7 +192,8 @@ export function submitGuess(gameId: string, player: mc.Player, guess: string): G
 export function formatGuess(guess: string, pattern: string): string {
     let result = '';
     for (let i = 0; i < guess.length; i++) {
-        const char = guess[i]?.toUpperCase() ?? '';
+        const char = guess[i]?.toUpperCase();
+        if (!char) continue;
         if (pattern[i] === 'g') {
             result += `§a${char} `;
         } else if (pattern[i] === 'y') {

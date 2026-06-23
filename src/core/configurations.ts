@@ -8,13 +8,13 @@ import type { auctionHouseConfig } from '@features/auction/auctionHouseConfig.de
 import type { dailyRewardsConfig } from '@features/daily/dailyRewardsConfig.default.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
 import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.default.js';
+import type { GamesConfig } from '@features/games/gamesConfig.default.js';
+import type { WordleConfig } from '@features/games/wordle/wordleConfig.default.js';
 import type ranksConfig from '@features/ranks/ranksConfig.default.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
 import type { config as sidebarConfig } from '@features/sidebar/sidebarConfig.default.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
 import type { teamConfig } from '@features/team/teamConfig.js';
-import type { GamesConfig } from '@features/games/gamesConfig.default.js';
-import type { WordleConfig } from '@features/games/wordle/wordleConfig.default.js';
 
 export type ShopConfig = typeof shopConfig;
 export type RanksConfig = typeof ranksConfig;
@@ -148,7 +148,6 @@ export const loadWordleConfig = async (isMigration: boolean) => {
 export const getWordleConfig = (): WordleConfig => wordleConfigManager.get();
 export const saveWordleConfig = (config: WordleConfig) => wordleConfigManager.set(config);
 export const resetWordleConfig = () => wordleConfigManager.reset();
-
 
 export type ResetRegistryEntry = {
     reset: () => Promise<void>;
