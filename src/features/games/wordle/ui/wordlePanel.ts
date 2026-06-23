@@ -7,7 +7,7 @@ import { createSinglePlayerGame, createStaffHostedGame, endStaffHostedGame, form
 
 export class WordlePanelHandler implements IPanelHandler {
     canHandle(panelId: string): boolean {
-        return panelId === 'wordleSinglePlayerPanel' || panelId === 'wordleMultiplayerPanel' || panelId === 'wordleStaffGamePanel';
+        return panelId === 'wordleSinglePlayerPanel' || panelId === 'wordleMultiplayerPanel' || panelId === 'wordleStaffGamePanel' || panelId === 'wordleSinglePlayerResultPanel';
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -29,15 +29,34 @@ export class WordlePanelHandler implements IPanelHandler {
                 return;
             }
 
-            const form = new ActionFormData()
-                .title('§l§aSingle Player Wordle')
-                .body(
-                    `§7Guess the ${game.word.length}-letter word!\n\n` +
-                        (game.guesses.length > 0 ? game.guesses.map((g: string) => formatGuess(g, evaluatePattern(g, game.word))).join('\n') : 'No guesses yet.')
-                );
+            // Instead of ActionForm, return a ModalForm combining history and input
+            const history = game.guesses.length > 0 ? game.guesses.map((g: string) => formatGuess(g, evaluatePattern(g, game.word))).join('\n') : '§fNo guesses yet.';
+            // Use type assertion on context to avoid no-unsafe-member-access
+            const errorVal = (context as Record<string, unknown>).error;
+            const errorMsg = typeof errorVal === 'string' ? `§c${errorVal}\n\n` : '';
 
-            form.button('§2Make a Guess\n§r§7Click to type');
-            form.button('§8Back\n§r§7Return to Menu');
+            const form = new ModalFormData()
+                .title('§l§aSingle Player Wordle')
+                .textField(`${errorMsg}§fGuess the ${game.word.length}-letter word!\n\n${history}\n\n§fType your guess:`, 'e.g. apple')
+                .toggle('§cReturn to Menu', false);
+
+            return form;
+        }
+
+        if (panelId === 'wordleSinglePlayerResultPanel') {
+            const safeContext = context as Record<string, unknown>;
+            const isWin = safeContext.win === true;
+            const word = typeof safeContext.word === 'string' ? safeContext.word : '';
+            const guesses = Array.isArray(safeContext.guesses) ? (safeContext.guesses as string[]) : [];
+
+            const history = guesses.map((g: string) => formatGuess(g, evaluatePattern(g, word))).join('\n');
+            const resultMsg = isWin ? '§aCongratulations! You guessed the word!' : `§cGame Over! The word was §f${word}`;
+
+            const form = new ActionFormData()
+                .title(isWin ? '§l§aYou Won!' : '§l§cYou Lost!')
+                .body(`${resultMsg}\n\n${history}`)
+                .button('§2Play Again\n§r§fStart a new game')
+                .button('§cReturn to Menu\n§r§fBack to games');
             return form;
         }
 
@@ -54,16 +73,16 @@ export class WordlePanelHandler implements IPanelHandler {
                 .body(game ? `§7Game Active! Pool Prize: §6$${game.poolPrize}\n§7Guesses: ${game.guesses.length}` : '§7No active staff game.');
 
             if (game) {
-                form.button('§4End Game\n§r§7Force end the active game');
+                form.button('§4End Game\n§r§fForce end the active game');
             } else {
-                form.button('§2Start Game\n§r§7Start a new global game');
+                form.button('§2Start Game\n§r§fStart a new global game');
             }
-            form.button('§8Back\n§r§7Return to Menu');
+            form.button('§cBack\n§r§fReturn to Menu');
             return form;
         }
 
         if (panelId === 'wordleMultiplayerPanel') {
-            const form = new ActionFormData().title('§l§eMultiplayer Wordle').body('§7Coming soon in a future update!').button('§8Back\n§r§7Return to Menu');
+            const form = new ActionFormData().title('§l§eMultiplayer Wordle').body('§7Coming soon in a future update!').button('§cBack\n§r§fReturn to Menu');
             return form;
         }
         return undefined;
@@ -73,35 +92,47 @@ export class WordlePanelHandler implements IPanelHandler {
         if (response.canceled) return;
 
         if (panelId === 'wordleSinglePlayerPanel') {
-            const res = response as ActionFormResponse;
-            if (res.selection === 0) {
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                mc.system.run(async () => {
-                    // Open text input modal
-                    const modal = new ModalFormData().title('Make a Guess').textField('Type your guess:', 'e.g. apple');
-                    const modalRes = await modal.show(player);
-                    if (!modalRes.canceled && modalRes.formValues && typeof modalRes.formValues[0] === 'string') {
-                        const guess = modalRes.formValues[0];
-                        const game = getPlayerActiveGame(player);
-                        if (game) {
-                            const result = submitGuess(game.id, player, guess);
-                            if (typeof result === 'string') {
-                                player.sendMessage(`§c${result}`);
-                            } else {
-                                if (result.isWin) {
-                                    player.sendMessage('§aCongratulations! You guessed the word!');
-                                } else if (getPlayerActiveGame(player) === undefined) {
-                                    player.sendMessage(`§cGame over! The word was: §f${game.word}`);
-                                }
-                            }
+            const res = response as ModalFormResponse;
+
+            // Check if they toggled "Return to Menu"
+            if (res.formValues && res.formValues[1] === true) {
+                await showPanel(player, 'wordleMainPanel', context);
+                return;
+            }
+
+            if (res.formValues && typeof res.formValues[0] === 'string' && res.formValues[0].trim() !== '') {
+                const guess = res.formValues[0].trim();
+                const game = getPlayerActiveGame(player);
+                if (game) {
+                    const result = submitGuess(game.id, player, guess);
+                    if (typeof result === 'string') {
+                        // Pass error back to UI
+                        (context as Record<string, unknown>).error = result;
+                        await showPanel(player, 'wordleSinglePlayerPanel', context);
+                        return;
+                    } else {
+                        // Clear error on success
+                        (context as Record<string, unknown>).error = undefined;
+                        if (result.isWin) {
+                            await showPanel(player, 'wordleSinglePlayerResultPanel', { ...context, win: true, word: game.word, guesses: game.guesses });
+                            return;
+                        } else if (getPlayerActiveGame(player) === undefined) {
+                            await showPanel(player, 'wordleSinglePlayerResultPanel', { ...context, win: false, word: game.word, guesses: game.guesses });
+                            return;
                         }
                     }
-                    // Reopen the panel to show results
-                    mc.system.runTimeout(() => {
-                        showPanel(player, 'wordleSinglePlayerPanel', context).catch(() => {});
-                    }, 1);
-                });
-            } else if (res.selection === 1) {
+                }
+            }
+
+            // Reopen if just clicked submit without guessing or continuing game
+            await showPanel(player, 'wordleSinglePlayerPanel', context);
+        } else if (panelId === 'wordleSinglePlayerResultPanel') {
+            const res = response as ActionFormResponse;
+            if (res.selection === 0) {
+                // Play again
+                await showPanel(player, 'wordleSinglePlayerPanel', context);
+            } else {
+                // Return to menu
                 await showPanel(player, 'wordleMainPanel', context);
             }
         } else if (panelId === 'wordleStaffGamePanel') {

@@ -19,5 +19,5 @@ export const featureRegistry = [
     { id: 'team', load: () => import('@features/team/index.js') as Promise<FeatureModule>, subfeatures: undefined },
     { id: 'teleport', load: () => import('@features/teleport/index.js') as Promise<FeatureModule>, subfeatures: undefined },
     { id: 'vote', load: () => import('@features/vote/index.js') as Promise<FeatureModule>, subfeatures: undefined },
-    { id: 'ranks', load: () => import('@features/ranks/index.js') as Promise<FeatureModule>, subfeatures: undefined }
+    { id: 'ranks', load: () => import('@features/ranks/index.js') as Promise<FeatureModule>, subfeatures: undefined },
 ];

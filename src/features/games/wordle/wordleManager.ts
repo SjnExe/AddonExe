@@ -199,7 +199,7 @@ export function formatGuess(guess: string, pattern: string): string {
         } else if (pattern[i] === 'y') {
             result += `§e${char} `;
         } else {
-            result += `§7${char} `;
+            result += `§f${char} `; // Changed from §7 to §f for visibility
         }
     }
     return result.trim();
