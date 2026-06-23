@@ -15,6 +15,15 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         parentPanelId: undefined,
         items: [
             {
+                id: 'games',
+                text: '§l§aGames',
+                icon: 'textures/ui/controller_icon',
+                permission: 'ui.panel.member',
+                actionType: 'openPanel',
+                actionValue: 'gamesMainPanel',
+                sortId: 5
+            },
+            {
                 id: 'economy',
                 text: '§l§6Economy',
                 icon: 'textures/items/emerald',
@@ -903,6 +912,69 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         title: 'Placeholder List',
         parentPanelId: undefined, // Dynamic
         items: [] // Body text
+    },
+    gamesMainPanel: {
+        title: 'Games',
+        parentPanelId: 'mainPanel',
+        items: [
+            {
+                id: 'wordle',
+                text: '§l§2Wordle',
+                icon: 'textures/ui/icon_recipe_item',
+                permission: 'ui.panel.member',
+                actionType: 'openPanel',
+                actionValue: 'wordleMainPanel',
+                sortId: 10
+            }
+        ]
+    },
+    wordleMainPanel: {
+        title: 'Wordle Menu',
+        parentPanelId: 'gamesMainPanel',
+        items: [
+            {
+                id: 'singlePlayer',
+                text: '§l§aSingle Player',
+                icon: 'textures/ui/icon_steve',
+                permission: 'ui.panel.member',
+                actionType: 'openPanel',
+                actionValue: 'wordleSinglePlayerPanel',
+                sortId: 10
+            },
+            {
+                id: 'multiplayer',
+                text: '§l§eMultiplayer',
+                icon: 'textures/ui/icon_multiplayer',
+                permission: 'ui.panel.member',
+                actionType: 'openPanel',
+                actionValue: 'wordleMultiplayerPanel',
+                sortId: 20
+            },
+            {
+                id: 'staffGame',
+                text: '§l§cStaff Hosted Game',
+                icon: 'textures/ui/op',
+                permission: 'ui.panel.mod',
+                actionType: 'openPanel',
+                actionValue: 'wordleStaffGamePanel',
+                sortId: 30
+            }
+        ]
+    },
+    wordleSinglePlayerPanel: {
+        title: 'Single Player Wordle',
+        parentPanelId: 'wordleMainPanel',
+        items: [] // Handled by custom builder
+    },
+    wordleMultiplayerPanel: {
+        title: 'Multiplayer Wordle',
+        parentPanelId: 'wordleMainPanel',
+        items: [] // Handled by custom builder
+    },
+    wordleStaffGamePanel: {
+        title: 'Staff Hosted Wordle',
+        parentPanelId: 'wordleMainPanel',
+        items: [] // Handled by custom builder
     }
 };
 

@@ -103,6 +103,22 @@ export function getSystemRegistry(): SystemDefinition[] {
             configPanelId: 'worldProtectionListPanel',
             category: 'World',
             isSimpleConfig: false
+        },
+        {
+            id: 'games',
+            title: '§l§aGames System§r',
+            icon: 'textures/ui/controller_icon',
+            configPanelId: 'config_games',
+            category: 'Games',
+            isSimpleConfig: true
+        },
+        {
+            id: 'wordle',
+            title: '§l§2Wordle Config§r',
+            icon: 'textures/ui/icon_recipe_item',
+            configPanelId: 'config_wordle',
+            category: 'Games',
+            isSimpleConfig: true
         }
     ];
 

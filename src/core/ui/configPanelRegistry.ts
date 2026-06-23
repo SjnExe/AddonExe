@@ -955,5 +955,59 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Detects speed and fly hacks (experimental).'
             }
         ]
+    },
+    {
+        id: 'games',
+        title: '§l§aGames Settings§r',
+        icon: 'textures/ui/controller_icon',
+        configSource: 'games',
+        category: 'Games',
+        settings: [
+            {
+                key: 'enabled',
+                label: 'Enable Games System',
+                type: 'toggle',
+                description: 'Master switch for all games.'
+            }
+        ]
+    },
+    {
+        id: 'wordle',
+        title: '§l§2Wordle Settings§r',
+        icon: 'textures/ui/icon_recipe_item',
+        configSource: 'wordle',
+        category: 'Games',
+        settings: [
+            {
+                key: 'enabled',
+                label: 'Enable Wordle',
+                type: 'toggle',
+                description: 'Enable or disable the Wordle game.'
+            },
+            {
+                key: 'singlePlayer.enabled',
+                label: 'Enable Single Player',
+                type: 'toggle',
+                description: 'Enable or disable single player Wordle.'
+            },
+            {
+                key: 'multiplayer.enabled',
+                label: 'Enable Multiplayer',
+                type: 'toggle',
+                description: 'Enable or disable multiplayer Wordle.'
+            },
+            {
+                key: 'staffHosted.enabled',
+                label: 'Enable Staff Hosted Game',
+                type: 'toggle',
+                description: 'Enable or disable staff hosted Wordle games.'
+            },
+            {
+                key: 'staffHosted.taxRatePercentage',
+                label: 'Staff Hosted Tax %',
+                type: 'textField',
+                description: 'Tax percentage for staff hosted prize pools.'
+            }
+        ]
     }
 ];

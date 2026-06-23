@@ -36,9 +36,11 @@ const { initialize: initShop } = await import('@features/shop/index.js');
 const { initialize: initSocial } = await import('@features/social/index.js');
 const { initialize: initTeam } = await import('@features/team/index.js');
 const { initialize: initTeleport } = await import('@features/teleport/index.js');
+const { initialize: initGames } = await import('@features/games/index.js');
 
 // Initialize with wait for async modules (some config loaders are async)
 await initEconomy(false);
+await initGames(false);
 await initEssentials(false);
 initKit();
 initModeration();

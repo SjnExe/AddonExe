@@ -5,8 +5,9 @@ export interface FeatureModule {
 }
 
 export const featureRegistry = [
-    { id: 'anticheat', load: () => import('@features/anticheat/index.js') as Promise<FeatureModule>, subfeatures: undefined },
     { id: 'economy', load: () => import('@features/economy/index.js') as Promise<FeatureModule>, subfeatures: undefined },
+    { id: 'games', load: () => import('@features/games/index.js') as Promise<FeatureModule>, subfeatures: undefined },
+    { id: 'anticheat', load: () => import('@features/anticheat/index.js') as Promise<FeatureModule>, subfeatures: undefined },
     { id: 'auction', load: () => import('@features/auction/index.js') as Promise<FeatureModule>, subfeatures: undefined },
     { id: 'daily', load: () => import('@features/daily/index.js') as Promise<FeatureModule>, subfeatures: undefined },
     { id: 'essentials', load: () => import('@features/essentials/index.js') as Promise<FeatureModule>, subfeatures: undefined },
@@ -18,5 +19,5 @@ export const featureRegistry = [
     { id: 'team', load: () => import('@features/team/index.js') as Promise<FeatureModule>, subfeatures: undefined },
     { id: 'teleport', load: () => import('@features/teleport/index.js') as Promise<FeatureModule>, subfeatures: undefined },
     { id: 'vote', load: () => import('@features/vote/index.js') as Promise<FeatureModule>, subfeatures: undefined },
-    { id: 'ranks', load: () => import('@features/ranks/index.js') as Promise<FeatureModule>, subfeatures: undefined }
+    { id: 'ranks', load: () => import('@features/ranks/index.js') as Promise<FeatureModule>, subfeatures: undefined },
 ];
