@@ -17,53 +17,58 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
 
     let sortLabel: string;
     switch (sort) {
-        case SortOption.PriceAsc: {
+        case SortOption.PriceAsc:
             sortLabel = 'Price (Low)';
             break;
-        }
-        case SortOption.PriceDesc: {
+        case SortOption.PriceDesc:
             sortLabel = 'Price (High)';
             break;
-        }
-        case SortOption.Oldest: {
+        case SortOption.Oldest:
             sortLabel = 'Oldest';
             break;
-        }
-        case SortOption.SellerAsc: {
+        case SortOption.SellerAsc:
             sortLabel = 'Seller (A-Z)';
             break;
-        }
-        case SortOption.Newest: {
+        case SortOption.Newest:
+        default:
             sortLabel = 'Newest';
             break;
-        }
-        default: {
-            sortLabel = 'Newest';
-            break;
-        }
     }
 
     const title = isNonEmptyString(searchQuery) ? `AH Search: "${searchQuery}" (${clampedPage}/${totalPages})` : `Auction House (${clampedPage}/${totalPages})`;
 
     const form = new ActionFormData().title(title).body(`Total Items: ${totalListings}${isNonEmptyString(searchQuery) ? ` matching "${searchQuery}"` : ''}`);
 
-    form.button('§eCollection Bin / Mailbox', 'textures/items/minecart_chest');
-    form.button('§bYour Listings', 'textures/ui/recipe_book_icon');
-    form.button(isNonEmptyString(searchQuery) ? '§cClear Search' : '§6Search/Filter', 'textures/ui/magnifying_glass');
-    form.button(`§dSort: ${sortLabel}`, 'textures/items/hopper');
+    const buttons: { label: string; icon?: string; action: () => Promise<void> }[] = [];
 
-    if (clampedPage > 1) form.button('§c< Previous Page');
-    if (clampedPage < totalPages) form.button('§aNext Page >');
+    buttons.push({ label: '§eCollection Bin / Mailbox', icon: 'textures/items/minecart_chest', action: () => showMailboxUI(player) });
+    buttons.push({ label: '§bYour Listings', icon: 'textures/ui/recipe_book_icon', action: () => showYourListings(player) });
+    buttons.push({
+        label: isNonEmptyString(searchQuery) ? '§cClear Search' : '§6Search/Filter',
+        icon: 'textures/ui/magnifying_glass',
+        action: () => (isNonEmptyString(searchQuery) ? showAuctionHouse(player, 1, undefined, sort) : showSearchUI(player, sort))
+    });
+    buttons.push({ label: `§dSort: ${sortLabel}`, icon: 'textures/items/hopper', action: () => showSortUI(player, searchQuery, sort) });
 
-    // List Items
+    if (clampedPage > 1) {
+        buttons.push({ label: '§c< Previous Page', action: () => showAuctionHouse(player, clampedPage - 1, searchQuery, sort) });
+    }
+    if (clampedPage < totalPages) {
+        buttons.push({ label: '§aNext Page >', action: () => showAuctionHouse(player, clampedPage + 1, searchQuery, sort) });
+    }
+
     for (const listing of listings) {
         let label = `§f${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId.replace('minecraft:', '')}`;
-        label += `\n§7x${listing.item.amount} `;
-
+        label += `
+§7x${listing.item.amount} `;
         label += listing.isBid ? `§eBid: ${formatCurrency(listing.bidPrice ?? listing.price)}` : `§a${formatCurrency(listing.price)}`;
         label += ` §8By: ${listing.sellerName}`;
 
-        form.button(label);
+        buttons.push({ label, action: () => showListingDetail(player, listing) });
+    }
+
+    for (const btn of buttons) {
+        form.button(btn.label, btn.icon);
     }
 
     const response = await uiWait(player, form);
@@ -71,50 +76,9 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
     const actionResponse = response as ActionFormResponse;
     if (actionResponse.selection === undefined) return;
 
-    const selection = actionResponse.selection;
-    let offset = 0;
-
-    // Static buttons
-    if (selection === 0) {
-        await showMailboxUI(player);
-        return;
-    }
-    if (selection === 1) {
-        await showYourListings(player);
-        return;
-    }
-    if (selection === 2) {
-        await (isNonEmptyString(searchQuery) ? showAuctionHouse(player, 1, undefined, sort) : showSearchUI(player, sort));
-        return;
-    }
-    if (selection === 3) {
-        await showSortUI(player, searchQuery, sort);
-        return;
-    }
-    offset = 4;
-
-    if (clampedPage > 1) {
-        if (selection === offset) {
-            await showAuctionHouse(player, clampedPage - 1, searchQuery, sort);
-            return;
-        }
-        offset++;
-    }
-    if (clampedPage < totalPages) {
-        if (selection === offset) {
-            await showAuctionHouse(player, clampedPage + 1, searchQuery, sort);
-            return;
-        }
-        offset++;
-    }
-
-    // Listing Selected
-    const listingIndex = selection - offset;
-    if (listingIndex >= 0 && listingIndex < listings.length) {
-        const listing = listings[listingIndex];
-        if (listing) {
-            await showListingDetail(player, listing);
-        }
+    const selectedAction = buttons[actionResponse.selection];
+    if (selectedAction) {
+        await selectedAction.action();
     }
 }
 
@@ -234,15 +198,21 @@ async function showYourListings(player: mc.Player): Promise<void> {
     const listings = getListings(1, 1000, undefined, SortOption.Newest, player.id);
     const form = new ActionFormData().title('Your Listings').body(`You have ${listings.length} active listings.`);
 
-    form.button('§c< Back to AH');
+    const buttons: { label: string; action: () => Promise<void> }[] = [];
+    buttons.push({ label: '§c< Back to AH', action: () => showAuctionHouse(player) });
 
     for (const listing of listings) {
         let label = `§f${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId.replace('minecraft:', '')}`;
-        label += `\n§a${formatCurrency(listing.price)}`;
+        label += `
+§a${formatCurrency(listing.price)}`;
         if (listing.isBid && isDefined(listing.bidPrice)) {
             label += ` §eCurrent Bid: ${formatCurrency(listing.bidPrice)}`;
         }
-        form.button(label);
+        buttons.push({ label, action: () => showListingDetail(player, listing) });
+    }
+
+    for (const btn of buttons) {
+        form.button(btn.label);
     }
 
     const response = await uiWait(player, form);
@@ -250,14 +220,9 @@ async function showYourListings(player: mc.Player): Promise<void> {
     const selection = (response as ActionFormResponse).selection;
     if (selection === undefined) return;
 
-    if (selection === 0) {
-        await showAuctionHouse(player);
-        return;
-    }
-
-    const listing = listings[selection - 1];
-    if (listing) {
-        await showListingDetail(player, listing);
+    const selectedAction = buttons[selection];
+    if (selectedAction) {
+        await selectedAction.action();
     }
 }
 
@@ -267,11 +232,28 @@ async function showMailboxUI(player: mc.Player): Promise<void> {
 
     const form = new ActionFormData().title('Collection Bin').body(`You have ${mailbox.length} items to claim.`);
 
-    form.button('§c< Back');
-    form.button('§aClaim All Items', 'textures/ui/realms_green_check');
+    const buttons: { label: string; icon?: string; action: () => Promise<void> }[] = [];
+    buttons.push({ label: '§c< Back', action: () => showAuctionHouse(player) });
+    buttons.push({ label: '§aClaim All Items', icon: 'textures/ui/realms_green_check', action: () => claimMailboxUI(player) });
 
-    for (const item of mailbox) {
-        form.button(`§f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '')}\n§7x${item.amount}`);
+    for (let i = 0; i < mailbox.length; i++) {
+        const item = mailbox[i];
+        if (!isDefined(item)) continue;
+        const label = `§f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '')}
+§7x${item.amount}`;
+        const itemIndex = i;
+        buttons.push({
+            label,
+            action: async () => {
+                const res = claimMailboxItem(player, itemIndex);
+                player.sendMessage(res.message);
+                await showMailboxUI(player); // Refresh
+            }
+        });
+    }
+
+    for (const btn of buttons) {
+        form.button(btn.label, btn.icon);
     }
 
     const response = await uiWait(player, form);
@@ -282,20 +264,9 @@ async function showMailboxUI(player: mc.Player): Promise<void> {
     const selection = (response as ActionFormResponse).selection;
     if (selection === undefined) return;
 
-    if (selection === 0) {
-        await showAuctionHouse(player);
-        return;
-    }
-    if (selection === 1) {
-        await claimMailboxUI(player);
-        return;
-    }
-
-    const itemIndex = selection - 2;
-    if (itemIndex >= 0 && itemIndex < mailbox.length) {
-        const res = claimMailboxItem(player, itemIndex);
-        player.sendMessage(res.message);
-        await showMailboxUI(player); // Refresh
+    const selectedAction = buttons[selection];
+    if (selectedAction) {
+        await selectedAction.action();
     }
 }
 
