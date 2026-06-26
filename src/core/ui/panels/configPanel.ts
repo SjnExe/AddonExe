@@ -92,40 +92,33 @@ export class ConfigPanelHandler implements IPanelHandler {
         addBackButton(items, 'staffDashboardPanel');
         const categories = getVisibleCategories(player);
 
-        if (hasPermission(player, 'ui.panel.owner')) {
-            categories.push({
-                id: 'resetSettings',
-                title: '§l§cReset Settings§r',
-                icon: 'textures/ui/wysiwyg_reset'
-            });
-        }
-
         const paginated = getPaginatedItems(categories, (context.page as number) || 1);
         for (const cat of paginated) {
             if (!isDefined(cat)) continue;
 
-            if (cat.id === 'resetSettings') {
-                items.push({
-                    id: 'resetSettings',
-                    text: '§l§cReset Settings§r',
-                    icon: 'textures/ui/wysiwyg_reset',
-                    permission: 'ui.panel.owner',
-                    actionType: 'openPanel',
-                    actionValue: 'configResetPanel'
-                });
-            } else {
-                items.push({
-                    id: cat.id,
-                    text: cat.title,
-                    icon: cat.icon,
-                    permission: 'ui.panel.admin',
-                    actionType: 'openPanel',
-                    actionValue: `configSubCategoryPanel_${cat.id}`
-                });
-            }
+            items.push({
+                id: cat.id,
+                text: cat.title,
+                icon: cat.icon,
+                permission: 'ui.panel.admin',
+                actionType: 'openPanel',
+                actionValue: `configSubCategoryPanel_${cat.id}`
+            });
         }
 
-        addPaginationItems(items, (context.page as number) || 1, categories.length);
+        addPaginationItems(items, (context.page as number) || 1, categories.length, 'ui.panel.admin');
+
+        if (hasPermission(player, 'ui.panel.owner')) {
+            items.push({
+                id: 'resetSettings',
+                text: '§l§cReset Settings§r',
+                icon: 'textures/ui/wysiwyg_reset',
+                permission: 'ui.panel.owner',
+                actionType: 'openPanel',
+                actionValue: 'configResetPanel'
+            });
+        }
+
         return items;
     }
 
@@ -145,7 +138,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 actionValue: sys.id
             });
         }
-        addPaginationItems(items, (context.page as number) || 1, systems.length);
+        addPaginationItems(items, (context.page as number) || 1, systems.length, 'ui.panel.admin');
         return items;
     }
 
@@ -185,7 +178,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             }
         }
 
-        addPaginationItems(items, (context.page as number) || 1, categories.length);
+        addPaginationItems(items, (context.page as number) || 1, categories.length, 'ui.panel.admin');
         return items;
     }
 
@@ -215,7 +208,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 actionValue: `resetSystem_${sys.id}`
             });
         }
-        addPaginationItems(items, (context.page as number) || 1, systems.length);
+        addPaginationItems(items, (context.page as number) || 1, systems.length, 'ui.panel.admin');
         return items;
     }
 

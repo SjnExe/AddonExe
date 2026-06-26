@@ -35,9 +35,7 @@ export class WordlePanelHandler implements IPanelHandler {
             const errorVal = (context as Record<string, unknown>).error;
             const errorMsg = typeof errorVal === 'string' ? `§c${errorVal}\n\n` : '';
 
-            const form = new ModalFormData()
-                .title('§l§aSingle Player Wordle')
-                .textField(`${errorMsg}§fGuess the ${game.word.length}-letter word!\n\n${history}\n\n§fType your guess:`, 'e.g. apple');
+            const form = new ModalFormData().title('§l§aSingle Player Wordle').textField(`${errorMsg}§fGuess the ${game.word.length}-letter word!\n\n${history}\n\n§fType your guess:`, 'e.g. apple');
 
             return form;
         }
@@ -90,8 +88,8 @@ export class WordlePanelHandler implements IPanelHandler {
     async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         if (response.canceled) {
             if (panelId === 'wordleSinglePlayerPanel') {
-                 // Return to menu on cancel
-                 await showPanel(player, 'wordleMainPanel', context);
+                // Return to menu on cancel
+                await showPanel(player, 'wordleMainPanel', context);
             }
             return;
         }
