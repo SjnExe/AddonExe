@@ -2,7 +2,7 @@
     "name": "AddonExe",
     "version": "0.7.0",
     "private": true,
-    "description": "<p align=\"center\">   <!-- TODO: Add a cool project logo/banner here. Example: <img src=\"link_to_your_logo.png\" alt=\"AddonExe Logo\" width=\"200\"/> -->   <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
+    "description": "<p align=\"center\"> <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
     "keywords": [],
     "homepage": "https://github.com/SjnExe/AddonExe#readme",
     "bugs": {

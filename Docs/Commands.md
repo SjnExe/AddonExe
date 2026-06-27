@@ -38,6 +38,12 @@ Commands available to all players by default.
 
 ### General
 
+- **/team**
+    - Opens the team panel.
+    - _Chat Alias: `!team`_
+- **/teamchat [message]**
+    - Toggles or sends a message in team chat.
+    - _Chat Alias: `!tc`_
 - **/xhelp [command]**
     - Shows a list of available commands or help for a specific command.
     - _Chat Alias: `!help`_
