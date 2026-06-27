@@ -133,7 +133,18 @@ This document provides a detailed breakdown of the features available in AddonEx
 - **Server Rules Display:** Players can view server rules using the `/rules` command. The rules are defined as an array of strings in the configuration.
 - _Key Configs: `config.js` (under the `playerInfo` and `serverInfo` sections)_
 
-### I. Customizable Sound Events
+### I. Team System
+
+- **Description:** A comprehensive team system that allows players to form groups, chat privately, manage a shared balance, and set a team home.
+- **Commands:** `/team` opens the main team UI, `/teamchat` (`/tc`) allows for private team communication.
+- **Features:**
+    - Team creation (costs a configurable amount of money).
+    - Team members can deposit money into the team's shared balance.
+    - Admins/Owners can set a team home (`/setteamhome` via UI), teleport to it, or delete it.
+    - Support for joining through invites and join requests, which can be managed from the UI.
+    - Search for a specific team or browse available teams.
+
+### J. Customizable Sound Events
 
 - Customize sounds for specific in-game events to provide auditory feedback to players and admins.
 - Events include:

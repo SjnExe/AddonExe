@@ -579,6 +579,28 @@ export function updateTeamSetting(teamId: number, setting: string, value: boolea
     return { success: false, message: 'Unknown setting.' };
 }
 
+export function depositToTeam(player: mc.Player, amount: number): ActionResult {
+    if (Number.isNaN(amount) || amount <= 0) {
+        return { success: false, message: '§cInvalid amount.' };
+    }
+
+    const team = getTeamByPlayer(player.id);
+    if (!isDefined(team)) {
+        return { success: false, message: '§cYou are not in a team.' };
+    }
+
+    const pData = getPlayer(player.id);
+    if (!isDefined(pData) || pData.balance < amount) {
+        return { success: false, message: '§cInsufficient funds.' };
+    }
+
+    incrementPlayerBalance(player.id, -amount);
+    team.balance += amount;
+    saveTeam(team.id);
+
+    return { success: true, message: `§aDeposited $${amount} to the team.` };
+}
+
 export function teleportToTeamHome(player: mc.Player): void {
     const team = getTeamByPlayer(player.id);
     if (!isDefined(team) || !isDefined(team.home)) {

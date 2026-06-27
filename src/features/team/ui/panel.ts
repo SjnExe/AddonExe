@@ -573,9 +573,25 @@ export class TeamPanelHandler implements IPanelHandler {
                 return;
             }
 
-            // Search logic ignored for now
-            player.sendMessage('Search not implemented yet, showing browser.');
-            await showPanel(player, 'teamBrowserPanel', context);
+            const [teamName] = res.formValues as [string];
+            if (!isNonEmptyString(teamName)) {
+                player.sendMessage('§cTeam name required.');
+                await showPanel(player, 'teamSearchPanel', context);
+                return;
+            }
+
+            const allTeams = teamManager.getAllTeam();
+            const foundTeam = allTeams.find((t) => t.name.toLowerCase() === teamName.toLowerCase());
+
+            if (!foundTeam) {
+                player.sendMessage('§cTeam not found.');
+                await showPanel(player, 'teamBrowserPanel', context);
+                return;
+            }
+
+            const applyRes = teamManager.applyToTeam(player, foundTeam.id);
+            player.sendMessage(applyRes.message ?? (applyRes.success ? '§aApplication sent.' : '§cFailed to apply.'));
+            await showPanel(player, 'teamMainPanel', context);
             return;
         }
 
@@ -596,8 +612,15 @@ export class TeamPanelHandler implements IPanelHandler {
 
         const [amountStr] = res.formValues as [string];
         const amount = Number.parseFloat(amountStr);
-        // Implement deposit logic here or in manager
-        player.sendMessage(`Deposit logic for ${amount} pending implementation.`);
+
+        if (Number.isNaN(amount) || amount <= 0) {
+            player.sendMessage('§cInvalid amount.');
+            await showPanel(player, 'teamMainPanel', context);
+            return;
+        }
+
+        const depositRes = teamManager.depositToTeam(player, amount);
+        player.sendMessage(depositRes.message ?? (depositRes.success ? '§aDeposit successful.' : '§cDeposit failed.'));
         await showPanel(player, 'teamMainPanel', context);
     }
 }
