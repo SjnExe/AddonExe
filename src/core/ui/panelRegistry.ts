@@ -15,31 +15,68 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         parentPanelId: undefined,
         items: [
             {
+                id: 'shop',
+                text: '§l§2Shop',
+                icon: 'textures/ui/trade_icon',
+                permission: 'ui.panel.member',
+                actionType: 'openPanel',
+                actionValue: 'shopMainPanel',
+                requiresFeature: 'shop.enabled',
+                sortId: 5
+            },
+            {
+                id: 'auctionHouse',
+                text: '§l§6Auction House',
+                icon: 'textures/items/gold_ingot',
+                permission: 'ui.panel.member',
+                actionType: 'functionCall',
+                actionValue: 'openAuctionHouse',
+                sortId: 10
+            },
+            {
                 id: 'games',
                 text: '§l§aGames',
                 icon: 'textures/ui/controller_icon',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'gamesMainPanel',
-                sortId: 5
-            },
-            {
-                id: 'economy',
-                text: '§l§6Economy',
-                icon: 'textures/items/emerald',
-                permission: 'ui.panel.member',
-                actionType: 'openPanel',
-                actionValue: 'economyMainPanel',
-                sortId: 10
-            },
-            {
-                id: 'social',
-                text: '§l§dSocial',
-                icon: 'textures/ui/icon_multiplayer',
-                permission: 'ui.panel.member',
-                actionType: 'openPanel',
-                actionValue: 'socialMainPanel',
                 sortId: 15
+            },
+            {
+                id: 'playerList',
+                text: '§l§3Player List',
+                icon: 'textures/ui/icon_steve.png',
+                permission: 'ui.panel.member',
+                actionType: 'openPanel',
+                actionValue: 'playerListPanel',
+                sortId: 20
+            },
+            {
+                id: 'team',
+                text: '§l§1Team',
+                icon: 'textures/ui/icon_multiplayer.png',
+                permission: 'ui.panel.member',
+                actionType: 'openPanel',
+                actionValue: 'teamMainPanel',
+                sortId: 25
+            },
+            {
+                id: 'friend',
+                text: '§l§5Friends',
+                icon: 'textures/ui/icon_steve',
+                permission: 'ui.panel.member',
+                actionType: 'openPanel',
+                actionValue: 'friendMainPanel',
+                sortId: 30
+            },
+            {
+                id: 'bountyList',
+                text: '§l§4Bounty List',
+                icon: 'textures/items/netherite_sword.png',
+                permission: 'ui.panel.member',
+                actionType: 'openPanel',
+                actionValue: 'bountyListPanel',
+                sortId: 35
             },
             {
                 id: 'profile',
@@ -48,7 +85,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'profileMainPanel',
-                sortId: 20
+                sortId: 40
             },
             {
                 id: 'info',
@@ -57,87 +94,20 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'infoPanel',
-                sortId: 30
+                sortId: 45
             },
             {
                 id: 'staffDashboard',
                 text: '§l§4Staff Dashboard',
                 icon: 'textures/ui/op',
-                permission: 'ui.panel.mod', // Accessible to moderators (3) and up, items inside dictate further restrictions
+                permission: 'ui.panel.mod',
                 actionType: 'openPanel',
                 actionValue: 'staffDashboardPanel',
                 sortId: 99
             }
         ]
     },
-    economyMainPanel: {
-        title: 'Economy',
-        parentPanelId: 'mainPanel',
-        items: [
-            {
-                id: 'shop',
-                text: '§2Shop',
-                icon: 'textures/ui/trade_icon',
-                permission: 'ui.panel.member',
-                actionType: 'openPanel',
-                actionValue: 'shopMainPanel',
-                requiresFeature: 'shop.enabled',
-                sortId: 10
-            },
-            {
-                id: 'auctionHouse',
-                text: '§6Auction House',
-                icon: 'textures/items/gold_ingot',
-                permission: 'ui.panel.member',
-                actionType: 'functionCall',
-                actionValue: 'openAuctionHouse',
-                // Assuming auctionHouse config exists similarly. Leaving without requiresFeature for now if unknown.
-                sortId: 15
-            },
-            {
-                id: 'bountyList',
-                text: '§4Bounty List',
-                icon: 'textures/items/netherite_sword.png',
-                permission: 'ui.panel.member',
-                actionType: 'openPanel',
-                actionValue: 'bountyListPanel',
-                sortId: 30
-            }
-        ]
-    },
-    socialMainPanel: {
-        title: 'Social',
-        parentPanelId: 'mainPanel',
-        items: [
-            {
-                id: 'playerList',
-                text: '§2Player List',
-                icon: 'textures/ui/icon_steve.png',
-                permission: 'ui.panel.member',
-                actionType: 'openPanel',
-                actionValue: 'playerListPanel',
-                sortId: 10
-            },
-            {
-                id: 'team',
-                text: '§1Team',
-                icon: 'textures/ui/icon_multiplayer.png',
-                permission: 'ui.panel.member',
-                actionType: 'openPanel',
-                actionValue: 'teamMainPanel',
-                sortId: 20
-            },
-            {
-                id: 'friend',
-                text: '§5Friends',
-                icon: 'textures/ui/icon_steve',
-                permission: 'ui.panel.member',
-                actionType: 'openPanel',
-                actionValue: 'friendMainPanel',
-                sortId: 25
-            }
-        ]
-    },
+
     profileMainPanel: {
         title: 'Profile',
         parentPanelId: 'mainPanel',
@@ -164,7 +134,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     friendMainPanel: {
         title: 'Friend System',
-        parentPanelId: 'socialMainPanel',
+        parentPanelId: 'mainPanel',
         items: [] // Dynamic
     },
     friendAddPanel: {
@@ -275,7 +245,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     teamMainPanel: {
         title: 'Team System',
-        parentPanelId: 'socialMainPanel',
+        parentPanelId: 'mainPanel',
         items: [] // Dynamic: Shows Create/Join OR Team Info
     },
     teamCreatePanel: {
@@ -355,7 +325,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     shopMainPanel: {
         title: 'Shop Categories',
-        parentPanelId: 'economyMainPanel',
+        parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     configResetPanel: {
@@ -406,7 +376,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     bountyListPanel: {
         title: 'Bounty List',
-        parentPanelId: 'economyMainPanel',
+        parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     myStatsPanel: {
@@ -565,7 +535,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     },
     playerListPanel: {
         title: 'Online Players',
-        parentPanelId: 'socialMainPanel',
+        parentPanelId: 'mainPanel',
         items: [] // Dynamically populated
     },
     bountyActionsPanel: {
