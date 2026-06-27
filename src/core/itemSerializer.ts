@@ -24,10 +24,6 @@ export interface SerializedItem {
     canPlaceOn?: string[];
 }
 
-interface ItemLockComponent extends mc.ItemComponent {
-    mode: string;
-}
-
 /**
  * Serializes an ItemStack into a JSON-compatible object.
  * Warning: Does not support container contents (Shulker Boxes).
@@ -69,8 +65,7 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     }
 
     // Keep on Death
-    const keepOnDeath = itemStack.getComponent('minecraft:keep_on_death');
-    if (isDefined(keepOnDeath)) {
+    if (itemStack.keepOnDeath) {
         serialized.keepOnDeath = true;
     }
 
@@ -79,9 +74,8 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     // We check existence.
     // As of latest beta, ItemLockComponent has 'mode'.
     try {
-        const lock = itemStack.getComponent('minecraft:item_lock') as unknown as ItemLockComponent;
-        if (isDefined(lock) && isDefined(lock.mode)) {
-            serialized.lockMode = String(lock.mode);
+        if (isDefined(itemStack.lockMode)) {
+            serialized.lockMode = itemStack.lockMode;
         }
     } catch {
         // Ignore if not supported
@@ -153,26 +147,13 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined 
 
         // Keep on Death
         if (data.keepOnDeath === true) {
-            // Cannot ADD component if not present?
-            // Usually components are inherent or toggled.
-            // keep_on_death is often addable via creating stack? No.
-            // It's a component.
-            // If the item supports it, we might be able to set it?
-            // Actually, dynamic components like 'keep_on_death' can be added via /give json, but API?
-            // itemStack.getComponent('minecraft:keep_on_death') returns it.
-            // Does it have setter?
-            // Usually no.
-            // So we might lose this property if the base type doesn't have it.
-            // BUT, if we can't set it, we ignore it.
+            itemStack.keepOnDeath = true;
         }
 
         // Lock Mode
         if (isNonEmptyString(data.lockMode)) {
             try {
-                const lock = itemStack.getComponent('minecraft:item_lock') as unknown as ItemLockComponent;
-                if (isDefined(lock)) {
-                    lock.mode = data.lockMode;
-                }
+                itemStack.lockMode = data.lockMode as mc.ItemLockMode;
             } catch {
                 // Ignore
             }

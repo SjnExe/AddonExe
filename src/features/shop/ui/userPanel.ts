@@ -141,7 +141,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
             if (!isDefined(entry)) continue;
             this.addShopItemToPanel(items, entry);
         }
-        addPaginationItems(items, page, results.length);
+        addPaginationItems(items, page, results.length, 'ui.panel.member');
         return items;
     }
 
@@ -228,7 +228,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                     this.addShopItemToPanel(items, entry);
                 }
             }
-            addPaginationItems(items, page, allEntries.length);
+            addPaginationItems(items, page, allEntries.length, 'ui.panel.member');
         }
         return items;
     }
@@ -267,7 +267,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                 if (!isDefined(entry)) continue;
                 this.addShopItemToPanel(items, entry);
             }
-            addPaginationItems(items, page, shopItems.length);
+            addPaginationItems(items, page, shopItems.length, 'ui.panel.member');
         }
         return items;
     }
