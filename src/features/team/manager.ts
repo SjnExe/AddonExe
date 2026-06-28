@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { getConfig } from '@core/configManager.js';
 import { getTeamConfig } from '@core/configurations.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
@@ -160,13 +161,23 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
     if (isDefined(pData.teamId)) {
         return { success: false, message: '§cYou are already in a team.' };
     }
-    if (pData.balance < teamConfig.creationCost) {
-        return { success: false, message: `§cInsufficient funds. Cost: ${teamConfig.creationCost}` };
-    }
 
     const cost = teamConfig.creationCost;
-    // Deduct money first
-    incrementPlayerBalance(player.id, -cost);
+    let economyEnabled = false;
+    try {
+        const mainConfig = getConfig() as Record<string, unknown>;
+        economyEnabled = (mainConfig.economy as { enabled?: boolean }).enabled === true;
+    } catch {
+        // Fallback
+    }
+
+    if (economyEnabled && cost > 0) {
+        if (pData.balance < cost) {
+            return { success: false, message: `§cInsufficient funds. Cost: ${cost}` };
+        }
+        // Deduct money first
+        incrementPlayerBalance(player.id, -cost);
+    }
 
     let newTeamId = nextTeamId++;
     const newTeam: TeamData = {
@@ -203,7 +214,9 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         setPlayerTeam(player.id, newTeamId);
     } catch (error) {
         // Rollback
-        incrementPlayerBalance(player.id, cost);
+        if (economyEnabled && cost > 0) {
+            incrementPlayerBalance(player.id, cost);
+        }
         activeTeam.delete(newTeamId);
         errorLog(`[TeamManager] Failed to create team, rolled back. Error: ${String(error)}`);
         return { success: false, message: '§cFailed to create team due to storage error. Funds refunded.' };
@@ -221,6 +234,21 @@ export function deleteTeam(teamId: number): boolean {
     const team = activeTeam.get(teamId);
     if (!isDefined(team)) {
         return false;
+    }
+
+    const teamConfig = getTeamConfig();
+    const cost = teamConfig.creationCost;
+    let economyEnabled = false;
+    try {
+        const mainConfig = getConfig() as Record<string, unknown>;
+        economyEnabled = (mainConfig.economy as { enabled?: boolean }).enabled === true;
+    } catch {
+        // Fallback
+    }
+
+    if (economyEnabled && cost > 0 && isDefined(team.ownerId)) {
+        // Refund if applicable
+        incrementPlayerBalance(team.ownerId, cost);
     }
 
     // Remove all members

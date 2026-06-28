@@ -131,7 +131,15 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     }
 
     // Check for price
-    if (isDefined(kit.price) && kit.price > 0 && pData.balance < kit.price) {
+    let isEconomyEnabled = false;
+    try {
+        const mainConfig = getConfig() as Record<string, unknown>;
+        isEconomyEnabled = (mainConfig.economy as { enabled?: boolean }).enabled === true;
+    } catch {
+        // Fallback
+    }
+
+    if (isEconomyEnabled && isDefined(kit.price) && kit.price > 0 && pData.balance < kit.price) {
         return { success: false, message: `You cannot afford this kit. It costs $${kit.price}.` };
     }
 
@@ -146,7 +154,7 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     }
 
     // All checks passed, now charge the player
-    if (isDefined(kit.price) && kit.price > 0) {
+    if (isEconomyEnabled && isDefined(kit.price) && kit.price > 0) {
         incrementPlayerBalance(player.id, -kit.price);
         savePlayerData(player.id);
     }

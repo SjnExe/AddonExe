@@ -47,9 +47,15 @@ export async function initializeAddon() {
 
     const { featureRegistry } = await import('@core/featureRegistry.js');
 
+    const { isFeatureActive } = await import('@core/featureManager.js');
+
     // Initialize sequentially to respect the topological sort order
     for (const feature of featureRegistry) {
         try {
+            if (!isFeatureActive(feature.id)) {
+                infoLog(`[FeatureRegistry] Feature '${feature.id}' is disabled by configuration or dependencies.`);
+                continue; // Do not initialize if it's not active
+            }
             const module = await feature.load();
             if (module.initialize) {
                 await module.initialize(isMigration, feature.subfeatures);

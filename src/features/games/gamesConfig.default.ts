@@ -1,5 +1,8 @@
 export const gamesConfig = {
-    enabled: true
+    enabled: true,
+    wordle: {
+        enabled: true
+    }
 };
 
 export type GamesConfig = typeof gamesConfig;

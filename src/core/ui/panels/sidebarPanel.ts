@@ -64,7 +64,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         });
 
         const config = getSidebarConfig();
-        const lines = isSidebar ? config.sidebarLines : config.actionBarLines;
+        const lines = isSidebar ? config.globalInfo.sidebarLines : config.hud.actionBarLines;
 
         for (const [idx, line] of lines.entries()) {
             if (!isDefined(line)) continue;
@@ -123,7 +123,7 @@ export class SidebarPanelHandler implements IPanelHandler {
     buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined | void> {
         if (panelId === 'sidebarLineEditPanel') {
             const config = getSidebarConfig();
-            const lines = config.sidebarLines;
+            const lines = config.globalInfo.sidebarLines;
             const index = (context.lineIndex as number) || 0;
             const line = lines[index] ?? '';
             return Promise.resolve(new ModalFormData().title(`Edit Line ${index + 1}`).textField('Content', 'Content', { defaultValue: line }));
@@ -131,7 +131,7 @@ export class SidebarPanelHandler implements IPanelHandler {
 
         if (panelId === 'actionBarLineEditPanel') {
             const config = getSidebarConfig();
-            const lines = config.actionBarLines;
+            const lines = config.hud.actionBarLines;
             const index = (context.lineIndex as number) || 0;
             const line = lines[index] ?? '';
             return Promise.resolve(new ModalFormData().title(`Edit Line ${index + 1}`).textField('Content', 'Content', { defaultValue: line }));
@@ -163,8 +163,8 @@ export class SidebarPanelHandler implements IPanelHandler {
 
     private saveLines(player: mc.Player, lines: string[], isSidebar: boolean, msg: string) {
         const config = getSidebarConfig();
-        if (isSidebar) config.sidebarLines = lines;
-        else config.actionBarLines = lines;
+        if (isSidebar) config.globalInfo.sidebarLines = lines;
+        else config.hud.actionBarLines = lines;
         saveSidebarConfig(config);
         forceUpdate();
         player.sendMessage(msg);
@@ -181,7 +181,7 @@ export class SidebarPanelHandler implements IPanelHandler {
 
         if (isNonEmptyString(newLine)) {
             const config = getSidebarConfig();
-            const lines = isSidebar ? [...config.sidebarLines] : [...config.actionBarLines];
+            const lines = isSidebar ? [...config.globalInfo.sidebarLines] : [...config.hud.actionBarLines];
             lines.push(newLine);
             this.saveLines(player, lines, isSidebar, '§aLine added.');
         }
@@ -201,7 +201,7 @@ export class SidebarPanelHandler implements IPanelHandler {
 
         if (isNonEmptyString(newLine)) {
             const config = getSidebarConfig();
-            const lines = isSidebar ? [...config.sidebarLines] : [...config.actionBarLines];
+            const lines = isSidebar ? [...config.globalInfo.sidebarLines] : [...config.hud.actionBarLines];
             lines[index] = newLine;
             this.saveLines(player, lines, isSidebar, '§aLine updated.');
         }
@@ -241,7 +241,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         const isSidebar = panelId.startsWith('sidebar');
         const listPanelId = isSidebar ? 'sidebarLinesPanel' : 'actionBarLinesPanel';
         const config = getSidebarConfig();
-        const lines = isSidebar ? [...config.sidebarLines] : [...config.actionBarLines];
+        const lines = isSidebar ? [...config.globalInfo.sidebarLines] : [...config.hud.actionBarLines];
 
         if (actionValue === 'editLine') {
             const target = isSidebar ? 'sidebarLineEditPanel' : 'actionBarLineEditPanel';

@@ -86,7 +86,11 @@ async function main() {
         if (feature.subfeatures) {
             subfeaturesStr = JSON.stringify(feature.subfeatures);
         }
-        registryTsContent += `    { id: '${feature.id}', load: () => import('@features/${feature.id}/index.js') as Promise<FeatureModule>, subfeatures: ${subfeaturesStr} },\n`;
+        let dependenciesStr = '[]';
+        if (feature.dependencies) {
+            dependenciesStr = JSON.stringify(feature.dependencies);
+        }
+        registryTsContent += `    { id: '${feature.id}', load: () => import('@features/${feature.id}/index.js') as Promise<FeatureModule>, dependencies: ${dependenciesStr}, subfeatures: ${subfeaturesStr} },\n`;
     }
     registryTsContent += `];\n`;
 

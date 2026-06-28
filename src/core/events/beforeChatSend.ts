@@ -1,6 +1,5 @@
 import * as mc from '@minecraft/server';
 
-import { commandManager } from '@core/commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { rawLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
@@ -13,8 +12,6 @@ import { stripColorCodes } from '@core/utils/formatting.js';
  * Manages chat formatting, muting, and ranks.
  */
 export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
-    if (commandManager.handleChatCommand(event)) return;
-
     const config = getConfig();
     if (config.chat.enabled !== true) return; // Vanilla chat if disabled
 
