@@ -49,12 +49,6 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'The name of the server, displayed in various messages.'
             },
             {
-                key: 'commandPrefix',
-                label: 'Command Prefix',
-                type: 'textField',
-                description: 'The prefix used for chat-based commands (e.g., !).'
-            },
-            {
                 key: 'serverInfo.discordLink',
                 label: 'Discord Link',
                 type: 'textField',
@@ -862,43 +856,49 @@ export const configPanelSchema: ConfigCategory[] = [
         settings: [
             {
                 key: 'enabled',
+                label: 'Enable Sidebar Module',
+                type: 'toggle',
+                description: 'Enables the master toggle for Sidebar module.'
+            },
+            {
+                key: 'globalInfo.enabled',
                 label: 'Enable Global Sidebar',
                 type: 'toggle',
                 description: 'Enables the Vanilla Sidebar (Scoreboard).'
             },
             {
-                key: 'title',
+                key: 'globalInfo.title',
                 label: 'Sidebar Title',
                 type: 'textField',
                 description: 'The title displayed at the top of the sidebar. Check placeholder list.'
             },
             {
-                key: 'updateInterval',
+                key: 'globalInfo.updateInterval',
                 label: 'Update Interval',
                 type: 'textField',
                 description: 'How often the sidebar updates (in ticks, 20 = 1s).'
             },
             {
-                key: 'maxPlayers',
+                key: 'globalInfo.maxPlayers',
                 label: 'Max Players (Visual)',
                 type: 'textField',
                 description: 'Value for {max_players} placeholder.'
             },
             {
-                key: 'actionBarEnabled',
+                key: 'hud.enabled',
                 label: 'Enable Personal HUD',
                 type: 'toggle',
                 description: 'Enables the Personal HUD (Right-aligned, uses Title).'
             },
             {
-                key: 'opacity',
+                key: 'globalInfo.opacity',
                 label: 'HUD Opacity',
                 type: 'dropdown',
                 options: ['high', 'medium', 'low', 'none'],
                 description: 'Transparency of the HUD background.'
             },
             {
-                key: 'actionBarInterval',
+                key: 'hud.updateInterval',
                 label: 'HUD Update Rate',
                 type: 'textField',
                 description: 'How fast the HUD updates (in ticks).'

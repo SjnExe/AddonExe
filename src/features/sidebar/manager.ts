@@ -61,6 +61,19 @@ function updateSidebars() {
     // Use cached players to avoid engine overhead
     const players = getAllPlayersFromCache();
 
+    // Only process if at least one sub-feature is enabled
+    // Support migrating from old config format
+    const c = config as Record<string, unknown>;
+    const globalInfo = c.globalInfo as { enabled?: boolean } | undefined;
+    const hud = c.hud as { enabled?: boolean } | undefined;
+
+    const globalInfoEnabled = (globalInfo ? globalInfo.enabled : c.enabled) === true;
+    const hudEnabled = (hud ? hud.enabled : c.actionBarEnabled) === true;
+
+    if (!globalInfoEnabled && !hudEnabled) {
+        return;
+    }
+
     for (const player of players) {
         try {
             if (!player.isValid) continue;
@@ -70,21 +83,46 @@ function updateSidebars() {
 
             // Check if player has disabled sidebar
             if (!getSidebarVisible(player.id)) {
-                player.onScreenDisplay.setTitle(''); // Clear
+                if (globalInfoEnabled) {
+                    player.onScreenDisplay.setTitle(''); // Clear sidebar
+                }
+                if (hudEnabled) {
+                    player.onScreenDisplay.setActionBar(''); // Clear actionbar
+                }
                 continue;
             }
 
-            const title = config.title;
-            const lines: string[] = [];
+            // Note: Currently setActionBar is used for globalInfo in the original code.
+            // If they are meant to be separate, one could use setTitle for globalInfo (scoreboard)
+            // and setActionBar for HUD. We will keep the original logic but conditionally format
+            // based on the sub-feature toggles.
 
-            for (const line of config.sidebarLines) {
-                // Use the shared placeholder resolver
-                const processedLine = resolveGlobalPlaceholders(line, player);
-                lines.push(processedLine);
+            if (globalInfoEnabled) {
+                const title = 'globalInfo' in config ? config.globalInfo.title : ((config as { title?: string }).title ?? '§l§6{server_name}');
+                const lines: string[] = [];
+
+                const sourceLines = 'globalInfo' in config ? config.globalInfo.sidebarLines : ((config as { sidebarLines?: string[] }).sidebarLines ?? []);
+                for (const line of sourceLines) {
+                    // Use the shared placeholder resolver
+                    const processedLine = resolveGlobalPlaceholders(line, player);
+                    lines.push(processedLine);
+                }
+
+                const body = lines.join('\n');
+
+                // Usually sidebar is shown with setTitle/setSubtitle, or setActionBar.
+                // Keeping original behavior:
+                player.onScreenDisplay.setActionBar(title + '\n' + body);
+            } else if (hudEnabled) {
+                // If only HUD is enabled, display HUD lines on ActionBar
+                const lines: string[] = [];
+                const sourceLines = 'hud' in config ? config.hud.actionBarLines : ((config as { actionBarLines?: string[] }).actionBarLines ?? []);
+                for (const line of sourceLines) {
+                    const processedLine = resolveGlobalPlaceholders(line, player);
+                    lines.push(processedLine);
+                }
+                player.onScreenDisplay.setActionBar(lines.join(' '));
             }
-
-            const body = lines.join('\n');
-            player.onScreenDisplay.setActionBar(title + '\n' + body);
         } catch (error) {
             debugLog(`Error updating sidebar for ${player.name}: ${String(error)}`);
         }

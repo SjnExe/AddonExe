@@ -16,9 +16,6 @@ export const frozenTag = 'frozen';
 // --- UI Form Titles ---
 export const mainPanelTitle = '§l§bAddonExe Control Panel';
 
-// --- Command Prefixes ---
-export const commandPrefix = '!'; // This will be read from config later
-
 // --- Default Messages ---
 export const noPermission: RawMessage = { translate: 'error.no_permission' };
 export const homesDisabled: RawMessage = { translate: 'error.homes_disabled' };

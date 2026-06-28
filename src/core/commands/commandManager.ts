@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
 import { hasPermission } from '@core/permissionEngine.js';
-import { findVisiblePlayerByName, getPlayer } from '@core/playerDataManager.js';
+import { getPlayer } from '@core/playerDataManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 // --- Type Definitions ---
@@ -64,10 +64,6 @@ export interface CustomCommand {
     slashName?: string;
     /** Whether to hide the command from the help menu. */
     hidden?: boolean;
-}
-
-interface Config {
-    commandPrefix: string;
 }
 
 /**
@@ -172,7 +168,12 @@ class CommandManager {
      * @private
      */
     private _executeCommand(executor: CommandExecutor, command: CustomCommand, args: Record<string, unknown>) {
-        const config = getConfig() as Config;
+        let config: unknown;
+        try {
+            config = getConfig();
+        } catch {
+            // Config not loaded
+        }
 
         if (!isDefined(config)) {
             if ('sendMessage' in executor) {
@@ -433,163 +434,6 @@ class CommandManager {
             name: param.name,
             type: type
         };
-    }
-
-    // --- Chat Command Management ---
-
-    /**
-     * Handles an incoming chat message and schedules it for execution if it's a valid command.
-     * @param {mc.ChatSendBeforeEvent} eventData The chat event data.
-     * @returns {boolean} `true` if the message was a command, otherwise `false`.
-     */
-
-    handleChatCommand(eventData: mc.ChatSendBeforeEvent): boolean {
-        const config = getConfig() as Config;
-        if (!isDefined(config)) return false;
-        const { sender: player, message } = eventData;
-        const prefix = config.commandPrefix;
-
-        if (message.length > 1024) return false; // Safety limit for command parsing
-
-        if (!isNonEmptyString(prefix) || !message.startsWith(prefix)) {
-            return false;
-        }
-
-        debugLog(`[CommandManager] Intercepted chat command: ${message}`);
-        eventData.cancel = true;
-
-        // Using a regex to split by spaces while respecting quoted strings.
-        const commandString = message.slice(prefix.length).trim();
-        const rawArgs = commandString.match(/"[^"]*"|'[^']*'|\S+/g) ?? [];
-        if (rawArgs.length === 0) {
-            return true;
-        }
-
-        const cleanedArgs = rawArgs.map((arg: string) => ((arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'")) ? arg.slice(1, -1) : arg));
-        const rawCommandName = cleanedArgs.shift();
-        if (!isNonEmptyString(rawCommandName)) {
-            return true;
-        }
-        let commandName = rawCommandName.toLowerCase();
-
-        // Resolve alias to primary command name
-        commandName = this.aliases.get(commandName) ?? commandName;
-        const command = this.commands.get(commandName);
-
-        if (!isDefined(command)) {
-            player.sendMessage(`§cUnknown command: ${commandName}`);
-            return true;
-        }
-
-        // --- Argument Parsing ---
-        const parsedArgs: Record<string, unknown> = {};
-        const paramDefs = command.parameters ?? [];
-        let currentArgIndex = 0;
-
-        for (const paramDef of paramDefs) {
-            if (currentArgIndex >= cleanedArgs.length) {
-                if (paramDef.optional !== true) {
-                    const usage = this.getUsageString(command);
-                    player.sendMessage(`§cMissing required argument: ${paramDef.name}.\n${usage}`);
-                    return true; // Stop execution
-                }
-                break; // No more args to process
-            }
-
-            const rawValue = cleanedArgs[currentArgIndex];
-            if (!isDefined(rawValue)) break; // Should not happen due to length check
-
-            // Use string for unknown types in chat parsing
-            // This logic assumes paramDef.type is one of the string keys.
-            // If it's a CustomCommandParamType enum, we need to map it back or handle it.
-            let typeKey = 'string';
-            if (typeof paramDef.type === 'string') {
-                typeKey = paramDef.type.toLowerCase();
-            } else {
-                switch (paramDef.type) {
-                    case mc.CustomCommandParamType.Integer: {
-                        typeKey = 'int';
-                        break;
-                    }
-                    case mc.CustomCommandParamType.Float: {
-                        typeKey = 'float';
-                        break;
-                    }
-                    case mc.CustomCommandParamType.Boolean: {
-                        typeKey = 'boolean';
-                        break;
-                    }
-                    case mc.CustomCommandParamType.String: {
-                        {
-                            // typeKey is already 'string'
-                            // No default
-                        }
-                        break;
-                    }
-                }
-                // ... others map to string for chat purposes usually
-            }
-
-            switch (typeKey) {
-                case 'text': {
-                    // Greedy parameter (consumes the rest)
-                    parsedArgs[paramDef.name] = cleanedArgs.slice(currentArgIndex).join(' ');
-                    currentArgIndex = cleanedArgs.length; // Mark all as consumed
-                    break;
-                }
-
-                case 'int':
-                case 'float': {
-                    const num = Number(rawValue);
-                    if (Number.isNaN(num)) {
-                        player.sendMessage(`§cInvalid number '${rawValue}' for parameter '${paramDef.name}'.`);
-                        return true;
-                    }
-                    parsedArgs[paramDef.name] = num;
-                    currentArgIndex++;
-                    break;
-                }
-
-                case 'boolean': {
-                    if (rawValue !== 'true' && rawValue !== 'false') {
-                        player.sendMessage(`§cInvalid boolean '${rawValue}' for parameter '${paramDef.name}'. Expected true or false.`);
-                        return true;
-                    }
-                    parsedArgs[paramDef.name] = rawValue === 'true';
-                    currentArgIndex++;
-                    break;
-                }
-
-                case 'player':
-                case 'target': {
-                    const p = findVisiblePlayerByName(rawValue, player);
-                    parsedArgs[paramDef.name] = isDefined(p) ? [p] : [];
-                    currentArgIndex++;
-                    break;
-                }
-
-                default: {
-                    const options = typeof paramDef.enumOptions === 'function' ? paramDef.enumOptions() : paramDef.enumOptions;
-                    if (isDefined(options) && options.length > 0) {
-                        if (!options.includes(rawValue)) {
-                            player.sendMessage(`§cInvalid option '${rawValue}' for parameter '${paramDef.name}'. Valid options: ${options.join(', ')}`);
-                            return true;
-                        }
-                        parsedArgs[paramDef.name] = rawValue;
-                        currentArgIndex++;
-                    } else {
-                        parsedArgs[paramDef.name] = rawValue;
-                        currentArgIndex++;
-                    }
-                    break;
-                }
-            }
-        }
-
-        // Defer to the centralized execution method
-        this._executeCommand(player, command, parsedArgs);
-
-        return true;
     }
 }
 
