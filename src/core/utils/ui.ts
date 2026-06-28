@@ -28,16 +28,20 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
         if (!player.isValid) return;
 
         // Toggle permissions to force close UI/Chat
-        player.dimension.runCommand(`inputpermission set "${player.name}" camera disabled`);
-        player.dimension.runCommand(`inputpermission set "${player.name}" movement disabled`);
+        // @ts-expect-error Types are not fully resolved for inputPermissions in this version
+        player.inputPermissions.setCameraEnabled(false);
+        // @ts-expect-error Types are not fully resolved for inputPermissions in this version
+        player.inputPermissions.setMovementEnabled(false);
 
         // Small delay to let client process the state change
         await new Promise<void>((resolve) => mc.system.runTimeout(() => resolve(), 2));
 
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (player.isValid) {
-            player.dimension.runCommand(`inputpermission set "${player.name}" camera enabled`);
-            player.dimension.runCommand(`inputpermission set "${player.name}" movement enabled`);
+            // @ts-expect-error Types are not fully resolved for inputPermissions in this version
+            player.inputPermissions.setCameraEnabled(true);
+            // @ts-expect-error Types are not fully resolved for inputPermissions in this version
+            player.inputPermissions.setMovementEnabled(true);
         }
     } catch {
         // Ignore errors (e.g. cheats not enabled, or permissions issue)

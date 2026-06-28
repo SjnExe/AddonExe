@@ -107,12 +107,12 @@ export class EconomyPanelHandler implements IPanelHandler {
         const selection = (response as ActionFormResponse).selection;
 
         if (panelId === 'addMobDropPanel') {
-            await this.handleAddMobDrop(player, response as ModalFormResponse, context);
+            await this.handleAddMobDrop(player, response, context);
             return;
         }
 
         if (panelId === 'editMobValue') {
-            await this.handleEditMobValue(player, response as ModalFormResponse, context);
+            await this.handleEditMobValue(player, response, context);
             return;
         }
 

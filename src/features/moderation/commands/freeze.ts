@@ -27,8 +27,10 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
         return;
     }
     try {
-        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera disabled`);
-        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement disabled`);
+        // @ts-expect-error Types are not fully resolved for inputPermissions in this version
+        targetPlayer.inputPermissions.setCameraEnabled(false);
+        // @ts-expect-error Types are not fully resolved for inputPermissions in this version
+        targetPlayer.inputPermissions.setMovementEnabled(false);
         targetPlayer.addTag(frozenTag);
 
         // Add invulnerability (Resistance 255)
@@ -77,8 +79,10 @@ export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Playe
         return;
     }
     try {
-        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera enabled`);
-        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement enabled`);
+        // @ts-expect-error Types are not fully resolved for inputPermissions in this version
+        targetPlayer.inputPermissions.setCameraEnabled(true);
+        // @ts-expect-error Types are not fully resolved for inputPermissions in this version
+        targetPlayer.inputPermissions.setMovementEnabled(true);
         targetPlayer.removeTag(frozenTag);
 
         // Remove effects

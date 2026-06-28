@@ -274,7 +274,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 }
                 case 'textField': {
                     const val = currentValue ?? '';
-                    const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val as string | number | boolean);
+                    const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
                     form.textField(setting.label, isNonEmptyString(setting.description) ? setting.description : '', {
                         defaultValue: strVal
                     });
@@ -301,16 +301,16 @@ export class ConfigPanelHandler implements IPanelHandler {
 
         // Modal Handling
         if (panelId.startsWith('config_')) {
-            await this.handleConfigModalSave(player, panelId, response as ModalFormResponse, context);
+            await this.handleConfigModalSave(player, panelId, response, context);
             return;
         }
 
         if (panelId === 'configExportPanel') {
-            return this.handleExportConfig(player, response as ModalFormResponse, context);
+            return this.handleExportConfig(player, response, context);
         }
 
         if (panelId === 'configImportPanel') {
-            return this.handleImportConfig(player, response as ModalFormResponse, context);
+            return this.handleImportConfig(player, response, context);
         }
     }
 

@@ -73,17 +73,17 @@ describe('Moderation Hierarchy', () => {
     const target = new PlayerMock('targetId', 'Target');
     target.sendMessage = vi.fn();
     target.hasTag = vi.fn(() => false);
-    target.addTag = vi.fn() as unknown as (tag: string) => boolean;
-    target.removeTag = vi.fn() as unknown as (tag: string) => boolean;
-    target.addEffect = vi.fn() as unknown as (effectType: string | mc.EffectType, duration: number, options?: mc.EntityEffectOptions) => mc.Effect | undefined;
-    target.removeEffect = vi.fn() as unknown as (effectType: string | mc.EffectType) => boolean;
+    target.addTag = vi.fn();
+    target.removeTag = vi.fn();
+    target.addEffect = vi.fn();
+    target.removeEffect = vi.fn();
 
     Object.defineProperty(target, 'dimension', {
         value: { runCommand: vi.fn() },
         writable: true
     });
 
-    target.getComponent = vi.fn() as unknown as <T extends string>(componentId: T) => mc.EntityComponentReturnType<T> | undefined;
+    target.getComponent = vi.fn();
 
     beforeEach(() => {
         vi.clearAllMocks();

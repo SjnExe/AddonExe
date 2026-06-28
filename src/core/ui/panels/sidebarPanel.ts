@@ -153,12 +153,12 @@ export class SidebarPanelHandler implements IPanelHandler {
         const selection = (response as ActionFormResponse).selection;
 
         if (panelId === 'sidebarLineAddPanel' || panelId === 'actionBarLineAddPanel') {
-            await this.handleLineAdd(player, panelId, response as ModalFormResponse);
+            await this.handleLineAdd(player, panelId, response);
             return;
         }
 
         if (panelId === 'sidebarLineEditPanel' || panelId === 'actionBarLineEditPanel') {
-            await this.handleLineEdit(player, panelId, response as ModalFormResponse, context);
+            await this.handleLineEdit(player, panelId, response, context);
             return;
         }
 

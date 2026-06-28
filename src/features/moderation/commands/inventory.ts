@@ -186,9 +186,7 @@ const copyinvCommand: CustomCommand = {
         }
 
         // Clear my inventory first
-        for (let i = 0; i < myInv.size; i++) {
-            myInv.setItem(i);
-        }
+        myInv.clearAll();
 
         // Copy items
         let copiedCount = 0;

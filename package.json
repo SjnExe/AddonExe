@@ -59,7 +59,7 @@
         "@octokit/plugin-paginate-rest": "latest",
         "@octokit/request": "latest",
         "@octokit/request-error": "latest",
-        "ajv": "latest",
+        "ajv": "6.12.6",
         "axios": "latest",
         "brace-expansion": "latest",
         "flatted": "latest",
@@ -106,5 +106,8 @@
         "typescript": "latest",
         "typescript-eslint": "latest",
         "vitest": "latest"
+    },
+    "dependencies": {
+        "react": "^19.2.7"
     }
 }
