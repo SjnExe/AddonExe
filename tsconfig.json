@@ -21,14 +21,13 @@
         "incremental": true,
         "tsBuildInfoFile": "./tsconfig.tsbuildinfo",
         "sourceMap": true,
-        "baseUrl": "./src",
         "paths": {
-            "@core/*": ["./core/*"],
-            "@features/*": ["./features/*"],
-            "@ui/*": ["./core/ui/*"],
-            "@commands/*": ["./core/commands/*"],
-            "@lib/*": ["./lib/*"],
-            "@shared-types/*": ["./types/*"]
+            "@core/*": ["./src/core/*"],
+            "@features/*": ["./src/features/*"],
+            "@ui/*": ["./src/core/ui/*"],
+            "@commands/*": ["./src/core/commands/*"],
+            "@lib/*": ["./src/lib/*"],
+            "@shared-types/*": ["./src/types/*"]
         },
         "types": ["node", "@minecraft/server", "@minecraft/server-ui", "@minecraft/server-gametest", "@minecraft/debug-utilities", "@minecraft/vanilla-data", "@minecraft/math"]
     },

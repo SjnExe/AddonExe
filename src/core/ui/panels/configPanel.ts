@@ -274,7 +274,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 }
                 case 'textField': {
                     const val = currentValue ?? '';
-                    const strVal = (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') ? String(val) : JSON.stringify(val);
+                    const strVal = typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean' ? String(val) : JSON.stringify(val);
                     form.textField(setting.label, isNonEmptyString(setting.description) ? setting.description : '', {
                         defaultValue: strVal
                     });
