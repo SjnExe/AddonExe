@@ -382,7 +382,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
 
         let amount;
         let action: 'buy' | 'sell';
-        let useMax = false;
+        let useMax: boolean;
         const formValues = response.formValues;
 
         if (hasDropdown) {

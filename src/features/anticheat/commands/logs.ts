@@ -141,7 +141,6 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
             await showPunishmentLogs(player, page + 1, nameQuery, typeFilter);
             return;
         }
-        index++;
     }
 
     await showPunishmentFilter(player);
@@ -227,7 +226,6 @@ async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string)
             await showFlagLogs(player, page + 1, nameQuery);
             return;
         }
-        index++;
     }
 
     await showFlagFilter(player);
@@ -346,7 +344,6 @@ async function showChatLogs(player: mc.Player, page: number, date: string, nameQ
             await showChatLogs(player, page + 1, date, nameQuery, keyword);
             return;
         }
-        index++;
     }
 
     await showChatFilter(player);

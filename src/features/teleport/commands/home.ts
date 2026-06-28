@@ -215,11 +215,10 @@ const setHomeCommand: CustomCommand = {
             homeNameToSet = homeNameArg;
         } else {
             const existingHomes = new Set(homesManager.listHomes(executor).map((h: string) => h.toLowerCase()));
-            let i = 1;
             const baseName = 'home';
             homeNameToSet = baseName;
 
-            i = 2;
+            let i = 2;
             while (existingHomes.has(homeNameToSet)) {
                 homeNameToSet = `${baseName}${i}`;
                 i++;
