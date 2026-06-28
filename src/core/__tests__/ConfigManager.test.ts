@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 const mockConfigLoader = vi.fn<any>();
 const mockConfigManagerInstance = {
