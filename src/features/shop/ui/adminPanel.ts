@@ -682,7 +682,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const icon = vals[2] ?? undefined;
         const bPrice = vals[3] ?? undefined;
         const sPrice = vals[4] ?? undefined;
-        const pLevel = vals[5] as string | undefined;
+        const pLevel = vals[5];
 
         shopAdminManager.updateShopItem(categoryName, subCategoryName ?? undefined, itemId, {
             buyPrice: isDefined(bPrice) ? Number(bPrice) : -1,
