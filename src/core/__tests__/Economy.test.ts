@@ -51,10 +51,12 @@ vi.mock('../playerCache.js', () => ({
 }));
 
 vi.mock('../storage/StorageManager.js', () => ({
-    StorageManager: vi.fn().mockImplementation((key: unknown) => ({
-        load: () => mockStorageLoad(key),
-        save: mockStorageSave
-    }))
+    StorageManager: vi.fn().mockImplementation(function (key: unknown) {
+        return {
+            load: () => mockStorageLoad(key),
+            save: mockStorageSave
+        };
+    })
 }));
 
 // Import module under test
