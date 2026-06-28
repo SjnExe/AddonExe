@@ -167,8 +167,7 @@ export default tseslint.config(
             '@typescript-eslint/require-await': 'off',
             '@typescript-eslint/no-floating-promises': 'off',
             'no-console': 'off',
-            'import/no-unresolved': 'off',
-            'unicorn/no-useless-undefined': 'off'
+            'import/no-unresolved': 'off'
         }
     },
 
@@ -185,9 +184,7 @@ export default tseslint.config(
         files: ['scripts/**/*.js'],
         extends: [...tseslint.configs.recommended],
         rules: {
-            'no-console': 'off',
-            'unicorn/no-process-exit': 'off',
-            'unicorn/prefer-top-level-await': 'off'
+            'no-console': 'off'
         }
     },
 
