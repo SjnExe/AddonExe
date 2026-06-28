@@ -62,11 +62,13 @@
         "ajv": "latest",
         "axios": "latest",
         "brace-expansion": "latest",
+        "eslint": "latest",
         "flatted": "latest",
         "follow-redirects": "latest",
         "lodash": "latest",
         "minimatch": "latest",
         "picomatch": "latest",
+        "uuid": "latest",
         "yaml": "latest"
     },
     "devDependencies": {
@@ -106,5 +108,11 @@
         "typescript": "latest",
         "typescript-eslint": "latest",
         "vitest": "latest"
+    },
+    "allowScripts": {
+        "simple-git-hooks@2.13.1": true,
+        "esbuild@0.28.1": true,
+        "esbuild@0.27.7": true,
+        "unrs-resolver@1.12.2": true
     }
 }
