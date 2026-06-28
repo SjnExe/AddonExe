@@ -51,10 +51,18 @@ vi.mock('../playerCache.js', () => ({
 }));
 
 vi.mock('../storage/StorageManager.js', () => ({
-    StorageManager: vi.fn().mockImplementation((key: unknown) => ({
-        load: () => mockStorageLoad(key),
-        save: mockStorageSave
-    }))
+    StorageManager: class {
+        key: unknown;
+        constructor(key: unknown) {
+            this.key = key;
+        }
+        load() {
+            return mockStorageLoad(this.key);
+        }
+        save(data: any) {
+            return mockStorageSave(data);
+        }
+    }
 }));
 
 // Import module under test
@@ -66,9 +74,9 @@ const mockPlayer = (id: string, name: string) =>
         id,
         name,
         isValid: true,
-        sendMessage: vi.fn(),
-        getGameMode: vi.fn(),
-        getComponent: vi.fn()
+        sendMessage: () => {},
+        getGameMode: () => {},
+        getComponent: () => {}
     }) as unknown as mc.Player;
 
 describe('Economy System', () => {
