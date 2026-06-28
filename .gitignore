@@ -1,5 +1,3 @@
-# See http://help.github.com/ignore-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 /.pnp
@@ -31,8 +29,6 @@ yarn-error.log*
 # We want to ignore all *Config.ts but KEEP *Config.default.ts
 src/**/*Config.ts
 !src/**/*Config.default.ts
-
-# Explicitly ignore root config.ts (custom) and keep config.default.ts
 src/config.ts
 !src/config.default.ts
 
@@ -42,4 +38,3 @@ validation_report
 
 # TypeScript
 *.tsbuildinfo
-package-lock.json
