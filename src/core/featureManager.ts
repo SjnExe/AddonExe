@@ -17,21 +17,26 @@ export function isFeatureActive(featureId: string): boolean {
         if (!isFeatureActive(dep)) return false;
     }
 
-    const mainConfig = getConfig() as Record<string, unknown>;
+    let mainConfig: Record<string, unknown> | undefined;
+    try {
+        mainConfig = getConfig() as Record<string, unknown>;
+    } catch {
+        // Config might not be ready yet
+    }
 
     switch (featureId) {
         case 'economy':
-            return (mainConfig.economy as { enabled?: boolean }).enabled === true;
+            return mainConfig ? (mainConfig.economy as { enabled?: boolean }).enabled === true : false;
         case 'shop':
-            return (mainConfig.shop as { enabled?: boolean }).enabled === true;
+            return mainConfig ? (mainConfig.shop as { enabled?: boolean }).enabled === true : false;
         case 'auction':
-            return (mainConfig.auctionHouse as { enabled?: boolean }).enabled === true;
+            return mainConfig ? (mainConfig.auctionHouse as { enabled?: boolean }).enabled === true : false;
         case 'daily':
-            return (mainConfig.dailyRewards as { enabled?: boolean }).enabled === true;
+            return mainConfig ? (mainConfig.dailyRewards as { enabled?: boolean }).enabled === true : false;
         case 'vote':
-            return (mainConfig.voting as { enabled?: boolean }).enabled === true;
+            return mainConfig ? (mainConfig.voting as { enabled?: boolean }).enabled === true : false;
         case 'kit':
-            return (mainConfig.kits as { enabled?: boolean }).enabled === true;
+            return mainConfig ? (mainConfig.kits as { enabled?: boolean }).enabled === true : false;
 
         case 'sidebar': {
             const sidebarConfig = configs.getSidebarConfig();

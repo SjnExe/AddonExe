@@ -435,7 +435,6 @@ class CommandManager {
             type: type
         };
     }
-
 }
 
 export const commandManager = new CommandManager();

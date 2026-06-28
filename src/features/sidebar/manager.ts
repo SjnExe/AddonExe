@@ -62,8 +62,9 @@ function updateSidebars() {
     const players = getAllPlayersFromCache();
 
     // Only process if at least one sub-feature is enabled
-    const globalInfoEnabled = config.globalInfo.enabled === true;
-    const hudEnabled = config.hud.enabled === true;
+    // Support migrating from old config format
+    const globalInfoEnabled = ('globalInfo' in config ? config.globalInfo.enabled : config.enabled) === true;
+    const hudEnabled = ('hud' in config ? config.hud.enabled : (config as { actionBarEnabled?: boolean }).actionBarEnabled) === true;
 
     if (!globalInfoEnabled && !hudEnabled) {
         return;
@@ -93,10 +94,11 @@ function updateSidebars() {
             // based on the sub-feature toggles.
 
             if (globalInfoEnabled) {
-                const title = config.globalInfo.title;
+                const title = 'globalInfo' in config ? config.globalInfo.title : ((config as { title?: string }).title ?? '§l§6{server_name}');
                 const lines: string[] = [];
 
-                for (const line of config.globalInfo.sidebarLines) {
+                const sourceLines = 'globalInfo' in config ? config.globalInfo.sidebarLines : ((config as { sidebarLines?: string[] }).sidebarLines ?? []);
+                for (const line of sourceLines) {
                     // Use the shared placeholder resolver
                     const processedLine = resolveGlobalPlaceholders(line, player);
                     lines.push(processedLine);
@@ -110,7 +112,8 @@ function updateSidebars() {
             } else if (hudEnabled) {
                 // If only HUD is enabled, display HUD lines on ActionBar
                 const lines: string[] = [];
-                for (const line of config.hud.actionBarLines) {
+                const sourceLines = 'hud' in config ? config.hud.actionBarLines : ((config as { actionBarLines?: string[] }).actionBarLines ?? []);
+                for (const line of sourceLines) {
                     const processedLine = resolveGlobalPlaceholders(line, player);
                     lines.push(processedLine);
                 }
