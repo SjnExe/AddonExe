@@ -19,43 +19,46 @@ jobs:
     lint:
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        env:
+            NODE_OPTIONS: '--max-old-space-size=16384'
+            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
-            - name: Setup Node.js
-              uses: actions/setup-node@v6
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
               with:
-                  node-version: 'current'
-                  cache: 'npm'
-            - run: npm install -g npm@latest
-            - run: npm ci
-            - run: npm run lint
+                  bun-version: latest
+            - run: bun install --frozen-lockfile
+            - run: bun run lint
 
     format:
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        env:
+            NODE_OPTIONS: '--max-old-space-size=16384'
+            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
-            - name: Setup Node.js
-              uses: actions/setup-node@v6
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
               with:
-                  node-version: 'current'
-                  cache: 'npm'
-            - run: npm install -g npm@latest
-            - run: npm ci
-            - run: npm run format:check
+                  bun-version: latest
+            - run: bun install --frozen-lockfile
+            - run: bun run format:check
 
     typecheck:
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        env:
+            NODE_OPTIONS: '--max-old-space-size=16384'
+            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
-            - name: Setup Node.js
-              uses: actions/setup-node@v6
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
               with:
-                  node-version: 'current'
-                  cache: 'npm'
-            - run: npm install -g npm@latest
-            - run: npm ci
+                  bun-version: latest
+            - run: bun install --frozen-lockfile
             - name: Cache TypeScript Build Info
               uses: actions/cache@v6
               with:
@@ -63,39 +66,41 @@ jobs:
                   key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
                   restore-keys: |
                       ${{ runner.os }}-tsbuildinfo-
-            - run: npm run check-types
+            - run: bun run check-types
 
     test:
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        env:
+            NODE_OPTIONS: '--max-old-space-size=16384'
+            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
-            - name: Setup Node.js
-              uses: actions/setup-node@v6
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
               with:
-                  node-version: 'current'
-                  cache: 'npm'
-            - run: npm install -g npm@latest
-            - run: npm ci
-            - run: npm test
+                  bun-version: latest
+            - run: bun install --frozen-lockfile
+            - run: bun test
 
     build:
         runs-on: ubuntu-latest
         timeout-minutes: 30
+        env:
+            NODE_OPTIONS: '--max-old-space-size=16384'
+            MAKEFLAGS: '-j4'
         steps:
             - name: Checkout code
               uses: actions/checkout@v7
               with:
                   fetch-depth: 0
-            - name: Setup Node.js
-              uses: actions/setup-node@v6
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
               with:
-                  node-version: 'current'
-                  cache: 'npm'
+                  bun-version: latest
             - name: Install dependencies
               run: |
-                  npm install -g npm@latest
-                  npm ci
+                  bun install --frozen-lockfile
 
             - name: Determine Build Type
               id: build_type
@@ -146,7 +151,7 @@ jobs:
             - name: Build TypeScript (Nightly)
               if: steps.build_type.outputs.type == 'nightly'
               run: |
-                  npm run clean
+                  bun run clean
                   node scripts/generate-manifests.js --nightly --build-number ${{ github.run_number }}
                   node scripts/build-assets.js
                   npx tsup
@@ -154,7 +159,7 @@ jobs:
             - name: Build TypeScript (Stable)
               if: steps.build_type.outputs.type == 'stable'
               run: |
-                  npm run build:release
+                  bun run build:release
 
             - name: Set Version Variable for Archive Names
               run: |
@@ -224,7 +229,7 @@ jobs:
                   path: build_meta.env
                   retention-days: 7
             - name: Validate build
-              run: npm run validate
+              run: bun run validate
 
     release:
         needs: [build, lint, format, typecheck, test]
