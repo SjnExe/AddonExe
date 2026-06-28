@@ -15,7 +15,6 @@ export function formatCurrency(amount: number): string {
     const symbol = economyConfig.currencySymbol ?? '$';
     const isNegative = amount < 0;
     const absAmount = Math.abs(amount);
-    let formattedAmount = '';
 
     const suffixes = [
         { value: 1e24, symbol: 'S' },
@@ -31,7 +30,7 @@ export function formatCurrency(amount: number): string {
     const suffix = suffixes.find((s) => absAmount >= s.value);
 
     // Use at most 2 decimal places for large numbers, but remove trailing zeros/decimal if whole
-    formattedAmount = suffix
+    const formattedAmount = suffix
         ? (absAmount / suffix.value)
               .toFixed(2)
               .replace(/\.00$/, '')
