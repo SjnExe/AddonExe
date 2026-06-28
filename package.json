@@ -17,29 +17,29 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "build": "bun run clean && node scripts/generate-manifests.js && node scripts/build-assets.js && tsup --env.NODE_ENV=development",
-        "build:release": "bun run clean && node scripts/generate-manifests.js --release && node scripts/build-assets.js --minify && tsup --minify --env.NODE_ENV=production",
-        "check-deps": "node scripts/check-dependencies.js",
+        "build": "bun run clean && bun scripts/generate-manifests.js && bun scripts/build-assets.js && tsup --env.NODE_ENV=development",
+        "build:release": "bun run clean && bun scripts/generate-manifests.js --release && bun scripts/build-assets.js --minify && tsup --minify --env.NODE_ENV=production",
+        "check-deps": "bun scripts/check-dependencies.js",
         "check-types": "tsc --noEmit",
         "clean": "rimraf build",
-        "fix-project": "npx mct fix",
+        "fix-project": "bunx mct fix",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "lint": "eslint src scripts eslint.config.js",
         "lint:check": "eslint src scripts eslint.config.js",
         "lint:fix": "eslint src scripts eslint.config.js --fix",
         "lint:report": "eslint src scripts eslint.config.js --output-file eslint_report.txt",
-        "prepare": "npx simple-git-hooks && node scripts/generate-manifests.js",
-        "project-info": "npx mct info",
+        "prepare": "bunx simple-git-hooks && bun scripts/generate-manifests.js",
+        "project-info": "bunx mct info",
         "reinstall": "rm -rf node_modules bun.lock && bun install",
         "test": "vitest run --passWithNoTests",
         "test:duplication": "jscpd src/ --min-lines 5 --min-tokens 40 --max-lines 1000 --ignore 'src/**/__tests__/**'",
-        "validate": "bun run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
-        "validate:report": "bun run check-deps && npx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
-        "watch": "concurrently \"tsc -w\" \"node scripts/build-assets.js --watch\" \"tsup --watch --env.NODE_ENV=development\""
+        "validate": "bun run check-deps && bunx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
+        "validate:report": "bun run check-deps && bunx mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
+        "watch": "concurrently \"tsc -w\" \"bun scripts/build-assets.js --watch\" \"tsup --watch --env.NODE_ENV=development\""
     },
     "simple-git-hooks": {
-        "pre-commit": "npx lint-staged"
+        "pre-commit": "bunx lint-staged"
     },
     "lint-staged": {
         "*.{js,ts}": [
@@ -110,9 +110,9 @@
         "typescript-eslint": "latest",
         "vitest": "latest"
     },
-    "allowScripts": {
-        "simple-git-hooks": true,
-        "esbuild": true,
-        "unrs-resolver": true
-    }
+    "trustedDependencies": [
+        "simple-git-hooks",
+        "esbuild",
+        "unrs-resolver"
+    ]
 }
