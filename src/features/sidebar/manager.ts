@@ -63,8 +63,12 @@ function updateSidebars() {
 
     // Only process if at least one sub-feature is enabled
     // Support migrating from old config format
-    const globalInfoEnabled = ('globalInfo' in config ? config.globalInfo.enabled : config.enabled) === true;
-    const hudEnabled = ('hud' in config ? config.hud.enabled : (config as { actionBarEnabled?: boolean }).actionBarEnabled) === true;
+    const c = config as Record<string, unknown>;
+    const globalInfo = c.globalInfo as { enabled?: boolean } | undefined;
+    const hud = c.hud as { enabled?: boolean } | undefined;
+
+    const globalInfoEnabled = (globalInfo ? globalInfo.enabled : c.enabled) === true;
+    const hudEnabled = (hud ? hud.enabled : c.actionBarEnabled) === true;
 
     if (!globalInfoEnabled && !hudEnabled) {
         return;
