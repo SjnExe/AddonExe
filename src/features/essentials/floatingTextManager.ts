@@ -497,7 +497,6 @@ export function despawnText(id: string) {
             }
         }
     }
-
 }
 
 export function respawnText(id: string) {

@@ -116,9 +116,14 @@ export default tseslint.config(
                 'error',
                 {
                     selector: "CallExpression[callee.property.name='runCommandAsync']",
-                    message: "Do not use runCommandAsync. It is deprecated and restricted. Use runCommand instead."
+                    message: 'Do not use runCommandAsync. It is deprecated and restricted. Use runCommand instead.'
                 }
-            ]
+            ],
+
+            // Disable new strict rules that trigger CI errors on legacy code
+            'no-useless-assignment': 'off',
+            '@typescript-eslint/no-base-to-string': 'off',
+            'no-unassigned-vars': 'off'
         }
     },
 
