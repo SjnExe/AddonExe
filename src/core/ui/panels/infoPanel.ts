@@ -210,7 +210,7 @@ export class InfoPanelHandler implements IPanelHandler {
 
     async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
         if (panelId === 'addRulePanel' || panelId === 'addHelpfulLinkPanel') {
-            await this.handleModalResponse(player, panelId, response as ModalFormResponse);
+            await this.handleModalResponse(player, panelId, response);
             return;
         }
 

@@ -59,7 +59,6 @@
         "@octokit/plugin-paginate-rest": "latest",
         "@octokit/request": "latest",
         "@octokit/request-error": "latest",
-        "ajv": "latest",
         "axios": "latest",
         "brace-expansion": "latest",
         "eslint": "latest",
@@ -110,9 +109,8 @@
         "vitest": "latest"
     },
     "allowScripts": {
-        "simple-git-hooks@2.13.1": true,
-        "esbuild@0.28.1": true,
-        "esbuild@0.27.7": true,
-        "unrs-resolver@1.12.2": true
+        "simple-git-hooks": true,
+        "esbuild": true,
+        "unrs-resolver": true
     }
 }

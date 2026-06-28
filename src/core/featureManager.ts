@@ -19,7 +19,7 @@ export function isFeatureActive(featureId: string): boolean {
 
     let mainConfig: Record<string, unknown> | undefined;
     try {
-        mainConfig = getConfig() as Record<string, unknown>;
+        mainConfig = getConfig();
     } catch {
         // Config might not be ready yet
     }

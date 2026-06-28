@@ -628,5 +628,5 @@ export class TeamPanelHandler implements IPanelHandler {
 async function showModal(player: mc.Player, form: ModalFormData): Promise<ModalFormResponse> {
     const { uiWait } = await import('@core/utils.js');
     const res = await uiWait(player, form);
-    return res as ModalFormResponse;
+    return res;
 }
