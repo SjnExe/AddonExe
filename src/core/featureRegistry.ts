@@ -129,7 +129,6 @@ if (!isProduction) {
     );
 }
 
-
 export interface ProcessedFeature {
     id: string;
     load: () => Promise<FeatureModule>;
@@ -138,7 +137,7 @@ export interface ProcessedFeature {
 }
 
 function processFeatures(): ProcessedFeature[] {
-    const enabledFeatures = RAW_FEATURES.filter(f => {
+    const enabledFeatures = RAW_FEATURES.filter((f) => {
         if (isProduction && f.status === 'dev') {
             return false;
         }
@@ -190,7 +189,7 @@ function processFeatures(): ProcessedFeature[] {
         }
     }
 
-    return sortedFeatures.map(f => {
+    return sortedFeatures.map((f) => {
         let activeSubfeatures: Record<string, boolean> | undefined = undefined;
         if (f.subfeatures) {
             activeSubfeatures = {};
