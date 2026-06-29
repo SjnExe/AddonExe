@@ -48,7 +48,6 @@ export function handlePlayerJoin(player: mc.Player) {
 
     // Re-apply freeze if needed
     if (player.hasTag(frozenTag)) {
-
         // @ts-expect-error Beta types lack full signatures
         player.inputPermissions.setCameraEnabled(false);
 

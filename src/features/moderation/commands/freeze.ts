@@ -27,7 +27,6 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
         return;
     }
     try {
-
         // @ts-expect-error Beta types lack full signatures
         targetPlayer.inputPermissions.setCameraEnabled(false);
 
@@ -81,7 +80,6 @@ export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Playe
         return;
     }
     try {
-
         // @ts-expect-error Beta types lack full signatures
         targetPlayer.inputPermissions.setCameraEnabled(true);
 

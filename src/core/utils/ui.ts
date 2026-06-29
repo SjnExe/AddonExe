@@ -40,7 +40,6 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
 
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (player.isValid) {
-
             // @ts-expect-error Beta types lack full signatures
             player.inputPermissions.setCameraEnabled(true);
 
