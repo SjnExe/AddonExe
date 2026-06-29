@@ -125,6 +125,13 @@ if (!isProduction) {
             status: 'dev',
             dependencies: [],
             load: () => import('@features/team/index.js')
+        },
+        {
+            id: 'test',
+            name: 'Testing Framework',
+            status: 'dev',
+            dependencies: [],
+            load: () => import('@features/test/index.js')
         }
     );
 }
