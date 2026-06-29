@@ -13,8 +13,7 @@ export async function initialize(isMigration: boolean) {
     });
 
     // Register configurations
-    const { loadSidebarConfig, resetSidebarConfig, registerConfigReset } = await import('@core/configurations.js');
-    await loadSidebarConfig(isMigration);
+    const { resetSidebarConfig, registerConfigReset } = await import('@core/configurations.js');
     registerConfigReset('sidebar', {
         reset: resetSidebarConfig,
         message: 'The sidebar configuration section has been reset to default.'

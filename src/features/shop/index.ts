@@ -7,8 +7,7 @@ export async function initialize(isMigration: boolean) {
     panelRouter.register(new ShopUserPanelHandler());
 
     // Register configurations
-    const { loadShopConfig, resetShopConfig, registerConfigReset } = await import('@core/configurations.js');
-    await loadShopConfig(isMigration);
+    const { resetShopConfig, registerConfigReset } = await import('@core/configurations.js');
     registerConfigReset('shop', {
         reset: resetShopConfig,
         message: 'The shop configuration section has been reset to default.'

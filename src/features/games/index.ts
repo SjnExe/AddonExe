@@ -7,15 +7,13 @@ export async function initialize(isMigration: boolean) {
     panelRouter.register(new WordlePanelHandler());
 
     // Register configurations
-    const { loadGamesConfig, resetGamesConfig, registerConfigReset } = await import('@core/configurations.js');
-    await loadGamesConfig(isMigration);
+    const { resetGamesConfig, registerConfigReset } = await import('@core/configurations.js');
     registerConfigReset('games', {
         reset: resetGamesConfig,
         message: 'The games configuration section has been reset to default.'
     });
 
-    const { loadWordleConfig, resetWordleConfig } = await import('@core/configurations.js');
-    await loadWordleConfig(isMigration);
+    const { resetWordleConfig } = await import('@core/configurations.js');
     registerConfigReset('wordle', {
         reset: resetWordleConfig,
         message: 'The wordle configuration section has been reset to default.'

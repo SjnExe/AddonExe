@@ -11,8 +11,7 @@ export async function initialize(isMigration: boolean) {
     });
 
     // Register configurations
-    const { loadTeamConfig, resetTeamConfig, registerConfigReset } = await import('@core/configurations.js');
-    await loadTeamConfig(isMigration);
+    const { resetTeamConfig, registerConfigReset } = await import('@core/configurations.js');
     registerConfigReset('team', {
         reset: resetTeamConfig,
         message: 'The team configuration section has been reset to default.'

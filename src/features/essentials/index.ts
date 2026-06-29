@@ -5,8 +5,7 @@ export async function initialize(isMigration: boolean) {
     panelRouter.register(new WorldProtectionPanelHandler());
 
     // Register configurations
-    const { loadWorldProtectionConfig, resetWorldProtectionConfig, registerConfigReset } = await import('@core/configurations.js');
-    await loadWorldProtectionConfig(isMigration);
+    const { resetWorldProtectionConfig, registerConfigReset } = await import('@core/configurations.js');
     registerConfigReset('worldProtection', {
         reset: resetWorldProtectionConfig,
         message: 'The World Protection configuration section has been reset to default.'

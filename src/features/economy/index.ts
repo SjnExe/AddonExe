@@ -13,8 +13,7 @@ export async function initialize(isMigration: boolean) {
     });
 
     // Register configurations
-    const { loadEconomyConfig, resetEconomyConfig, registerConfigReset } = await import('@core/configurations.js');
-    await loadEconomyConfig(isMigration);
+    const { resetEconomyConfig, registerConfigReset } = await import('@core/configurations.js');
     registerConfigReset('economy', {
         reset: resetEconomyConfig,
         message: 'The economy configuration section has been reset to default.'
