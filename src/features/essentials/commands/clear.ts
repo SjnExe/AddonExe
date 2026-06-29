@@ -69,9 +69,7 @@ const clearCommand: CustomCommand = {
             }
             return;
         }
-        for (let i = 0; i < inventory.size; i++) {
-            inventory.setItem(i);
-        }
+        inventory.clearAll();
 
         if (!(executor instanceof mc.Player) || targetPlayer.id !== executor.id) {
             if (executor instanceof mc.Player) {

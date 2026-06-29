@@ -109,7 +109,14 @@ export default tseslint.config(
 
             // NEW STRICT RULES
             '@typescript-eslint/no-unnecessary-condition': 'error',
-            '@typescript-eslint/no-unnecessary-type-assertion': 'error'
+            '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+            'no-restricted-syntax': [
+                'error',
+                {
+                    selector: 'CallExpression[callee.property.name="runCommandAsync"]',
+                    message: 'runCommandAsync is deprecated. Please use native APIs.'
+                }
+            ]
         }
     },
 

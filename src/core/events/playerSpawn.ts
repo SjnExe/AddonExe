@@ -48,8 +48,9 @@ export function handlePlayerJoin(player: mc.Player) {
 
     // Re-apply freeze if needed
     if (player.hasTag(frozenTag)) {
-        player.dimension.runCommand(`inputpermission set "${player.name}" camera disabled`);
-        player.dimension.runCommand(`inputpermission set "${player.name}" movement disabled`);
+        const p = player as unknown as { inputPermissions: { setCameraEnabled(val: boolean): void; setMovementEnabled(val: boolean): void } };
+        p.inputPermissions.setCameraEnabled(false);
+        p.inputPermissions.setMovementEnabled(false);
         player.addEffect('resistance', 20_000_000, { amplifier: 255, showParticles: false });
         player.addEffect('weakness', 20_000_000, { amplifier: 255, showParticles: false });
         sendMessage('§cYou are currently frozen.', player);

@@ -27,8 +27,9 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
         return;
     }
     try {
-        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera disabled`);
-        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement disabled`);
+        const p = targetPlayer as unknown as { inputPermissions: { setCameraEnabled(val: boolean): void; setMovementEnabled(val: boolean): void } };
+        p.inputPermissions.setCameraEnabled(false);
+        p.inputPermissions.setMovementEnabled(false);
         targetPlayer.addTag(frozenTag);
 
         // Add invulnerability (Resistance 255)
@@ -77,8 +78,9 @@ export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Playe
         return;
     }
     try {
-        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" camera enabled`);
-        targetPlayer.dimension.runCommand(`inputpermission set "${targetPlayer.name}" movement enabled`);
+        const p = targetPlayer as unknown as { inputPermissions: { setCameraEnabled(val: boolean): void; setMovementEnabled(val: boolean): void } };
+        p.inputPermissions.setCameraEnabled(true);
+        p.inputPermissions.setMovementEnabled(true);
         targetPlayer.removeTag(frozenTag);
 
         // Remove effects

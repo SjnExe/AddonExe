@@ -226,10 +226,8 @@ export class ConfigPanelHandler implements IPanelHandler {
         const form = new ModalFormData().title(category.title);
         const configSource = isNonEmptyString(category.configSource) ? category.configSource : 'main';
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-        const handlers = uiConfigHandlers as any;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const handler = handlers[configSource] as { get: () => unknown; save: (cfg: unknown) => void } | undefined;
+        const handlers = uiConfigHandlers as Record<string, { get: () => unknown; save: (cfg: unknown) => void }>;
+        const handler = handlers[configSource];
 
         if (!isDefined(handler)) return Promise.resolve();
 
@@ -462,10 +460,8 @@ export class ConfigPanelHandler implements IPanelHandler {
 
         if (isDefined(category) && isDefined(values)) {
             const configSource = isNonEmptyString(category.configSource) ? category.configSource : 'main';
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-            const handlers = uiConfigHandlers as any;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            const handler = handlers[configSource] as { get: () => unknown; save: (cfg: unknown) => void } | undefined;
+            const handlers = uiConfigHandlers as Record<string, { get: () => unknown; save: (cfg: unknown) => void }>;
+            const handler = handlers[configSource];
 
             if (isDefined(handler)) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -637,18 +633,15 @@ export class ConfigPanelHandler implements IPanelHandler {
         return updates;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private saveConfigUpdates(handler: any, configSource: string, updates: Record<string, unknown>) {
+    private saveConfigUpdates(handler: { get: () => unknown; save: (cfg: unknown) => void }, configSource: string, updates: Record<string, unknown>) {
         if (configSource === 'main') {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             handler.save(updates);
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const currentConfig = handler.get() as Record<string, any>;
             for (const key in updates) {
                 setValueByPath(currentConfig, key, updates[key]);
             }
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             handler.save(currentConfig);
         }
     }

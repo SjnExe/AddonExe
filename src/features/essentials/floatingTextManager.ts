@@ -266,7 +266,6 @@ function spawnText(textConfig: FloatingTextConfig) {
         const dimension = mc.world.getDimension(textConfig.dimension);
 
         // Try to remove existing entity via API first to avoid command overhead
-        let removedViaApi = false;
         try {
             const entities = dimension.getEntities({
                 type: 'exe:floating_text',
@@ -276,18 +275,9 @@ function spawnText(textConfig: FloatingTextConfig) {
             for (const entity of entities) {
                 if (!entity.isValid) continue;
                 entity.remove();
-                removedViaApi = true;
             }
         } catch {
             // Ignore API errors during cleanup
-        }
-
-        if (!removedViaApi) {
-            try {
-                dimension.runCommand(`kill @e[type=exe:floating_text,tag="ft_${textConfig.id}"]`);
-            } catch {
-                // Ignore "No targets matched" to prevent spawn failure for new texts
-            }
         }
 
         const entity = dimension.spawnEntity('exe:floating_text' as unknown as Parameters<typeof dimension.spawnEntity>[0], textConfig.location);
@@ -496,29 +486,13 @@ export function despawnText(id: string) {
         }
     } catch (error: unknown) {
         // If specific error handling is needed, check e.
-        // But we generally want to fall through to command if direct removal fails
         // (e.g. unloaded chunk, though remove() usually just doesn't find it).
         // The log below helps debugging.
         if (!String(error).includes('LocationInUnloadedChunkError')) {
             if (error instanceof Error) {
-                errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, error);
+                errorLog(`[FloatingText] Error during live query despawn for ID: ${id}.`, error);
             } else {
-                errorLog(`[FloatingText] Error during live query despawn for ID: ${id}. Falling back to command.`, String(error));
-            }
-        }
-    }
-
-    // Fallback for unloaded chunks or if entity.remove() somehow missed
-    try {
-        const dimension = mc.world.getDimension(textConfig.dimension);
-        const command = `kill @e[type=exe:floating_text,tag="ft_${id}"]`;
-        dimension.runCommand(command);
-    } catch (error) {
-        if (!String(error).includes('No targets matched selector')) {
-            if (error instanceof Error) {
-                errorLog(`[FloatingText] Error during command-based despawn for ID: ${id}.`, error);
-            } else {
-                errorLog(`[FloatingText] Error during command-based despawn for ID: ${id}.`, String(error));
+                errorLog(`[FloatingText] Error during live query despawn for ID: ${id}.`, String(error));
             }
         }
     }
