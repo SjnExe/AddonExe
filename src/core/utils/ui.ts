@@ -28,8 +28,10 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
         if (!player.isValid) return;
 
         // Toggle permissions to force close UI/Chat
+
         // @ts-expect-error Beta types lack full signatures
         player.inputPermissions.setCameraEnabled(false);
+
         // @ts-expect-error Beta types lack full signatures
         player.inputPermissions.setMovementEnabled(false);
 
@@ -38,8 +40,10 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
 
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (player.isValid) {
+
             // @ts-expect-error Beta types lack full signatures
             player.inputPermissions.setCameraEnabled(true);
+
             // @ts-expect-error Beta types lack full signatures
             player.inputPermissions.setMovementEnabled(true);
         }

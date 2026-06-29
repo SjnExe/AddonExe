@@ -27,8 +27,10 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
         return;
     }
     try {
+
         // @ts-expect-error Beta types lack full signatures
         targetPlayer.inputPermissions.setCameraEnabled(false);
+
         // @ts-expect-error Beta types lack full signatures
         targetPlayer.inputPermissions.setMovementEnabled(false);
         targetPlayer.addTag(frozenTag);
@@ -79,8 +81,10 @@ export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Playe
         return;
     }
     try {
+
         // @ts-expect-error Beta types lack full signatures
         targetPlayer.inputPermissions.setCameraEnabled(true);
+
         // @ts-expect-error Beta types lack full signatures
         targetPlayer.inputPermissions.setMovementEnabled(true);
         targetPlayer.removeTag(frozenTag);
