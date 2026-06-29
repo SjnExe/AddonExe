@@ -1,6 +1,6 @@
 import { initializeAuctionHouse } from '@features/auction/manager.js';
 
-export async function initialize(isMigration: boolean) {
+export async function initialize(_isMigration: boolean) {
     initializeAuctionHouse();
 
     // Register configurations

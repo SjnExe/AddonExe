@@ -1,4 +1,4 @@
-export async function initialize(isMigration: boolean) {
+export async function initialize(_isMigration: boolean) {
     // Register configurations
     const { resetRanksConfig, registerConfigReset } = await import('@core/configurations.js');
     registerConfigReset('ranks', {

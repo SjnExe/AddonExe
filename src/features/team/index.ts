@@ -3,7 +3,7 @@ import { getTeamByPlayer } from '@features/team/manager.js';
 import { TeamPanelHandler } from '@features/team/ui/panel.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 
-export async function initialize(isMigration: boolean) {
+export async function initialize(_isMigration: boolean) {
     panelRouter.register(new TeamPanelHandler());
 
     serviceLocator.registerService('team.manager', {

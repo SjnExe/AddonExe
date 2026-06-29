@@ -5,7 +5,7 @@ import { startItemCheckLoop } from '@features/anticheat/itemCheck.js';
 import { addPunishmentLog, initializeLogManager } from '@features/anticheat/logManager.js';
 import { startMovementCheckLoop } from '@features/anticheat/movementCheck.js';
 
-export async function initialize(isMigration: boolean) {
+export async function initialize(_isMigration: boolean) {
     initializeLogManager();
     initializeFlagManager();
     startItemCheckLoop();

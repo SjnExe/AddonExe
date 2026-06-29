@@ -1,7 +1,7 @@
 import { WorldProtectionPanelHandler } from '@features/essentials/ui/worldProtectionPanel.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 
-export async function initialize(isMigration: boolean) {
+export async function initialize(_isMigration: boolean) {
     panelRouter.register(new WorldProtectionPanelHandler());
 
     // Register configurations

@@ -1,7 +1,7 @@
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { initialize as initSocial, isFriend } from '@features/social/friendManager.js';
 
-export async function initialize(isMigration: boolean) {
+export async function initialize(_isMigration: boolean) {
     initSocial();
 
     serviceLocator.registerService('social.friends', {

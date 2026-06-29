@@ -1,4 +1,4 @@
-export async function initialize(isMigration: boolean) {
+export async function initialize(_isMigration: boolean) {
     // Empty index for now
 
     // Register configurations
