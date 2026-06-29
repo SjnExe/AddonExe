@@ -1,7 +1,8 @@
 import { CommandExecutor, CustomCommand, commandManager } from '@commands/commandManager.js';
+import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { runTests } from '../testRunner.js';
 import { registerAllSuites } from '../suites/index.js';
+import { runTests } from '../testRunner.js';
 
 // Pre-register all suites
 registerAllSuites();
@@ -34,9 +35,10 @@ const testCommand: CustomCommand = {
             }
         } catch (error) {
             sendMessage(`§c[TestRunner] An unexpected error occurred while running tests. See console.`, executor);
-            console.error(error);
+            errorLog('[TestRunner] Unexpected error: ', error);
         }
     }
 };
 
 commandManager.register(testCommand);
+export default testCommand;

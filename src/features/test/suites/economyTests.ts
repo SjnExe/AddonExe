@@ -1,5 +1,5 @@
-import { addTest, assert } from '../testRunner.js';
 import { formatCurrency, parseCurrency } from '@core/utils/economy.js';
+import { addTest, assert } from '../testRunner.js';
 
 const SUITE_NAME = 'economy';
 

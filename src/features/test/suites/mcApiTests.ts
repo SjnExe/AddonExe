@@ -6,13 +6,13 @@ const SUITE_NAME = 'mc_api';
 export function registerMcApiTests() {
     addTest(SUITE_NAME, 'World dimensions exist', () => {
         const overworld = mc.world.getDimension('overworld');
-        assert.ok(overworld !== undefined, 'Overworld dimension should exist');
+        assert.ok(overworld, 'Overworld dimension should exist');
 
         const nether = mc.world.getDimension('nether');
-        assert.ok(nether !== undefined, 'Nether dimension should exist');
+        assert.ok(nether, 'Nether dimension should exist');
 
         const end = mc.world.getDimension('the_end');
-        assert.ok(end !== undefined, 'The End dimension should exist');
+        assert.ok(end, 'The End dimension should exist');
     });
 
     addTest(SUITE_NAME, 'System current tick is accessible', () => {

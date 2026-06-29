@@ -1,6 +1,6 @@
-import { addTest, assert } from '../testRunner.js';
+import { getCooldown, setCooldown } from '@core/cooldownManager.js';
 import { sanitizeString } from '@core/utils/sanitization.js';
-import { setCooldown, getCooldown } from '@core/cooldownManager.js';
+import { addTest, assert } from '../testRunner.js';
 
 const SUITE_NAME = 'core';
 
