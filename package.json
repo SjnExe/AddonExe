@@ -101,7 +101,7 @@
         "prettier-plugin-organize-imports": "latest",
         "prettier-plugin-packagejson": "latest",
         "react": "18",
-        "react-reconciler": "0.29.0",
+        "react-reconciler": "0.33.0",
         "rimraf": "latest",
         "simple-git-hooks": "latest",
         "tsup": "latest",
