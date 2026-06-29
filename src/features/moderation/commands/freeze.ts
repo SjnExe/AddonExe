@@ -27,9 +27,8 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
         return;
     }
     try {
-        const p = targetPlayer as unknown as { inputPermissions: { setCameraEnabled(val: boolean): void; setMovementEnabled(val: boolean): void } };
-        p.inputPermissions.setCameraEnabled(false);
-        p.inputPermissions.setMovementEnabled(false);
+        targetPlayer.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Camera, false);
+        targetPlayer.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Movement, false);
         targetPlayer.addTag(frozenTag);
 
         // Add invulnerability (Resistance 255)
@@ -78,9 +77,8 @@ export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Playe
         return;
     }
     try {
-        const p = targetPlayer as unknown as { inputPermissions: { setCameraEnabled(val: boolean): void; setMovementEnabled(val: boolean): void } };
-        p.inputPermissions.setCameraEnabled(true);
-        p.inputPermissions.setMovementEnabled(true);
+        targetPlayer.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Camera, true);
+        targetPlayer.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Movement, true);
         targetPlayer.removeTag(frozenTag);
 
         // Remove effects

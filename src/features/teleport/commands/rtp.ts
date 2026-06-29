@@ -38,11 +38,21 @@ const rtpCommand: CustomCommand = {
 
 async function createTickingArea(dimension: mc.Dimension, name: string, x: number, z: number): Promise<void> {
     try {
-        dimension.runCommand(`tickingarea add circle ${x} 0 ${z} 1 ${name}`);
+        await mc.world.tickingAreaManager.createTickingArea(name, {
+            dimension: dimension,
+            from: { x: x - 16, y: 0, z: z - 16 },
+            to: { x: x + 16, y: 0, z: z + 16 }
+        });
         // Allow time for command to register
         await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 60));
     } catch {
-        // Ignore error
+        // Fallback to command if API method fails (e.g., if there's no space in the manager)
+        try {
+            dimension.runCommand(`tickingarea add circle ${x} 0 ${z} 1 ${name}`);
+            await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 60));
+        } catch {
+            // Ignore error
+        }
     }
 }
 
@@ -164,9 +174,14 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
 
 function safeRemoveTickingArea(dimension: mc.Dimension, name: string) {
     try {
-        dimension.runCommand(`tickingarea remove ${name}`);
+        mc.world.tickingAreaManager.removeTickingArea(name);
     } catch {
-        // Ignore if it doesn't exist
+        // Fallback to command
+        try {
+            dimension.runCommand(`tickingarea remove ${name}`);
+        } catch {
+            // Ignore if it doesn't exist
+        }
     }
 }
 

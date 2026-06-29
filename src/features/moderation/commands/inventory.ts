@@ -132,13 +132,22 @@ const ecwipeCommand: CustomCommand = {
         let success = true;
         try {
             const overworld = mc.world.getDimension('overworld');
+            const targetPlayer = mc.world.getPlayers({ name: targetNameResolved })[0];
 
-            // Ender Chest has 27 slots (0-26)
-            for (let i = 0; i < 27; i++) {
-                // Using runCommand to bypass API limitation
-                // Quote name to handle spaces
-                const command = `replaceitem entity "${targetNameResolved}" slot.enderchest ${i} air`;
-                overworld.runCommand(command);
+            if (isDefined(targetPlayer)) {
+                const enderInv = targetPlayer.getComponent('minecraft:ender_inventory') as mc.EntityEnderInventoryComponent;
+                if (isDefined(enderInv) && isDefined(enderInv.container)) {
+                    enderInv.container.clearAll();
+                } else {
+                    success = false;
+                }
+            } else {
+                // Fallback to command if player is offline but exists
+                // Ender Chest has 27 slots (0-26)
+                for (let i = 0; i < 27; i++) {
+                    const command = `replaceitem entity "${targetNameResolved}" slot.enderchest ${i} air`;
+                    overworld.runCommand(command);
+                }
             }
         } catch {
             success = false;
