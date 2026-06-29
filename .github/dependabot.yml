@@ -11,3 +11,9 @@ updates:
           all-actions:
               patterns:
                   - '*'
+    - package-ecosystem: 'npm'
+      directory: '/'
+      schedule:
+          interval: 'daily'
+      labels:
+          - 'dependencies'
