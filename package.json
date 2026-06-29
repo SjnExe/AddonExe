@@ -49,29 +49,9 @@
         "*.{json,md}": "prettier --write"
     },
     "overrides": {
-        "@isaacs/brace-expansion": "latest",
-        "@minecraft/common": "latest",
-        "@minecraft/debug-utilities": "beta",
-        "@minecraft/server": "beta",
-        "@minecraft/server-gametest": "beta",
-        "@minecraft/server-ui": "beta",
-        "@minecraft/vanilla-data": "latest",
-        "@octokit/plugin-paginate-rest": "latest",
-        "@octokit/request": "latest",
-        "@octokit/request-error": "latest",
-        "axios": "latest",
-        "brace-expansion": "latest",
-        "eslint": "latest",
-        "flatted": "latest",
-        "follow-redirects": "latest",
-        "lodash": "latest",
-        "minimatch": "latest",
-        "picomatch": "latest",
-        "uuid": "latest",
-        "yaml": "latest"
+        "react": "^18.2.0"
     },
     "devDependencies": {
-        "@eslint/eslintrc": "latest",
         "@eslint/js": "latest",
         "@minecraft/common": "latest",
         "@minecraft/creator-tools": "latest",
