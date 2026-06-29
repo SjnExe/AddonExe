@@ -13,7 +13,7 @@ export interface RawFeatureDef {
     load: () => Promise<FeatureModule>;
 }
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = typeof process !== 'undefined' ? process.env.NODE_ENV === 'production' : false;
 
 // The raw list of features
 export const RAW_FEATURES: RawFeatureDef[] = [
