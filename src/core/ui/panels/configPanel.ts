@@ -640,15 +640,15 @@ export class ConfigPanelHandler implements IPanelHandler {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private saveConfigUpdates(handler: any, configSource: string, updates: Record<string, unknown>) {
         if (configSource === 'main') {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             handler.save(updates);
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
             const currentConfig = handler.get() as Record<string, any>;
             for (const key in updates) {
                 setValueByPath(currentConfig, key, updates[key]);
             }
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             handler.save(currentConfig);
         }
     }
