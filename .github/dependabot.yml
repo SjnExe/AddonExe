@@ -11,9 +11,13 @@ updates:
           all-actions:
               patterns:
                   - '*'
-    - package-ecosystem: 'bun'
+    - package-ecosystem: 'npm'
       directory: '/'
       schedule:
           interval: 'daily'
       labels:
           - 'dependencies'
+      groups:
+          all-bun:
+              patterns:
+                  - '*'
