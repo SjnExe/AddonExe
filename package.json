@@ -48,7 +48,9 @@
         ],
         "*.{json,md}": "prettier --write"
     },
-    "overrides": {},
+    "overrides": {
+        "react": "^18.2.0"
+    },
     "devDependencies": {
         "@eslint/js": "latest",
         "@minecraft/common": "latest",
