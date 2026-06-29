@@ -16,6 +16,27 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
+    update-lockfile:
+        runs-on: ubuntu-latest
+        if: github.actor == 'dependabot[bot]'
+        timeout-minutes: 5
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.head_ref }}
+                  token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+            - run: bun install
+            - uses: stefanzweifel/git-auto-commit-action@v5
+              with:
+                  commit_message: 'chore(deps): update bun.lock'
+                  file_pattern: 'bun.lock'
+
     lint:
         runs-on: ubuntu-latest
         timeout-minutes: 10
@@ -323,4 +344,4 @@ jobs:
             - name: Perform CodeQL Analysis
               uses: github/codeql-action/analyze@v4
               with:
-                  category: "/language:${{matrix.language}}"
+                  category: '/language:${{matrix.language}}'
