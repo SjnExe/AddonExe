@@ -27,11 +27,9 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
         return;
     }
     try {
-        // @ts-expect-error Beta types lack full signatures
-        targetPlayer.inputPermissions.setCameraEnabled(false);
-
-        // @ts-expect-error Beta types lack full signatures
-        targetPlayer.inputPermissions.setMovementEnabled(false);
+        const p = targetPlayer as unknown as { inputPermissions: { setCameraEnabled(val: boolean): void; setMovementEnabled(val: boolean): void } };
+        p.inputPermissions.setCameraEnabled(false);
+        p.inputPermissions.setMovementEnabled(false);
         targetPlayer.addTag(frozenTag);
 
         // Add invulnerability (Resistance 255)
@@ -80,11 +78,9 @@ export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Playe
         return;
     }
     try {
-        // @ts-expect-error Beta types lack full signatures
-        targetPlayer.inputPermissions.setCameraEnabled(true);
-
-        // @ts-expect-error Beta types lack full signatures
-        targetPlayer.inputPermissions.setMovementEnabled(true);
+        const p = targetPlayer as unknown as { inputPermissions: { setCameraEnabled(val: boolean): void; setMovementEnabled(val: boolean): void } };
+        p.inputPermissions.setCameraEnabled(true);
+        p.inputPermissions.setMovementEnabled(true);
         targetPlayer.removeTag(frozenTag);
 
         // Remove effects

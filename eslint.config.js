@@ -94,7 +94,7 @@ export default tseslint.config(
             // Strict type safety rules - Upgraded to error
             '@typescript-eslint/no-unsafe-argument': 'error', // Upgraded to error
             '@typescript-eslint/no-unsafe-assignment': 'error', // Upgraded to error
-            '@typescript-eslint/no-unsafe-call': 'off', // Upgraded to error
+            '@typescript-eslint/no-unsafe-call': 'error', // Upgraded to error
             '@typescript-eslint/no-unsafe-member-access': 'error', // Upgraded to error
             '@typescript-eslint/no-unsafe-return': 'error', // Upgraded to error
             '@typescript-eslint/no-unsafe-enum-comparison': 'error',

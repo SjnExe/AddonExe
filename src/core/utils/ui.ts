@@ -29,22 +29,17 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
 
         // Toggle permissions to force close UI/Chat
 
-        // @ts-expect-error Beta types lack full signatures
-        player.inputPermissions.setCameraEnabled(false);
-
-        // @ts-expect-error Beta types lack full signatures
-        player.inputPermissions.setMovementEnabled(false);
+        const p = player as unknown as { inputPermissions: { setCameraEnabled(val: boolean): void; setMovementEnabled(val: boolean): void } };
+        p.inputPermissions.setCameraEnabled(false);
+        p.inputPermissions.setMovementEnabled(false);
 
         // Small delay to let client process the state change
         await new Promise<void>((resolve) => mc.system.runTimeout(() => resolve(), 2));
 
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (player.isValid) {
-            // @ts-expect-error Beta types lack full signatures
-            player.inputPermissions.setCameraEnabled(true);
-
-            // @ts-expect-error Beta types lack full signatures
-            player.inputPermissions.setMovementEnabled(true);
+            p.inputPermissions.setCameraEnabled(true);
+            p.inputPermissions.setMovementEnabled(true);
         }
     } catch {
         // Ignore errors (e.g. cheats not enabled, or permissions issue)
