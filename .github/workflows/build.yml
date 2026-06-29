@@ -28,7 +28,7 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
-            - run: bun install --frozen-lockfile
+            - run: bun install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
             - run: bun run lint
 
     format:
@@ -43,7 +43,7 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
-            - run: bun install --frozen-lockfile
+            - run: bun install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
             - run: bun run format:check
 
     typecheck:
@@ -58,7 +58,7 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
-            - run: bun install --frozen-lockfile
+            - run: bun install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
             - name: Cache TypeScript Build Info
               uses: actions/cache@v6
               with:
@@ -80,7 +80,7 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
-            - run: bun install --frozen-lockfile
+            - run: bun install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
             - run: bun run test
 
     build:
@@ -100,7 +100,7 @@ jobs:
                   bun-version: latest
             - name: Install dependencies
               run: |
-                  bun install --frozen-lockfile
+                  bun install ${{ github.actor != 'dependabot[bot]' && '--frozen-lockfile' || '' }}
 
             - name: Determine Build Type
               id: build_type

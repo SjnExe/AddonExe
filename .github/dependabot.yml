@@ -17,3 +17,7 @@ updates:
           interval: 'daily'
       labels:
           - 'dependencies'
+      groups:
+          all-bun:
+              patterns:
+                  - '*'
