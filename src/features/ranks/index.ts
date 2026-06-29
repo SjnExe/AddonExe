@@ -1,7 +1,6 @@
-export async function initialize(isMigration: boolean) {
+export async function initialize(_isMigration: boolean) {
     // Register configurations
-    const { loadRanksConfig, resetRanksConfig, registerConfigReset } = await import('@core/configurations.js');
-    await loadRanksConfig(isMigration);
+    const { resetRanksConfig, registerConfigReset } = await import('@core/configurations.js');
     registerConfigReset('ranks', {
         reset: resetRanksConfig,
         message: 'The ranks configuration section has been reset to default.'

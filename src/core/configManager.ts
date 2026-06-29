@@ -26,6 +26,25 @@ export async function initializeConfigManager(isMigration: boolean) {
     const defaultConfig = await asyncLoadConfig<typeof Config>('./config.js');
     mainConfigManager = createConfigManager('exe:config:current', defaultConfig, 'Main');
     mainConfigManager.load(isMigration);
+
+    const configs = await import('@core/configurations.js');
+    const { loadAnticheatConfig } = await import('@features/anticheat/configLoader.js');
+
+    await Promise.all([
+        configs.loadWorldProtectionConfig(isMigration),
+        configs.loadShopConfig(isMigration),
+        configs.loadRanksConfig(isMigration),
+        configs.loadEconomyConfig(isMigration),
+        configs.loadXrayConfig(isMigration),
+        configs.loadTeamConfig(isMigration),
+        configs.loadFriendConfig(isMigration),
+        configs.loadSidebarConfig(isMigration),
+        configs.loadAuctionHouseConfig(isMigration),
+        configs.loadDailyRewardsConfig(isMigration),
+        configs.loadGamesConfig(isMigration),
+        configs.loadWordleConfig(isMigration),
+        Promise.resolve().then(() => loadAnticheatConfig(isMigration))
+    ]);
 }
 
 export const getConfig = () => {

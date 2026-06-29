@@ -4,7 +4,7 @@ import { BountyPanelHandler } from '@features/economy/ui/bountyPanel.js';
 import { EconomyPanelHandler } from '@features/economy/ui/panel.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 
-export async function initialize(isMigration: boolean) {
+export async function initialize(_isMigration: boolean) {
     panelRouter.register(new EconomyPanelHandler());
     panelRouter.register(new BountyPanelHandler());
 
@@ -13,8 +13,7 @@ export async function initialize(isMigration: boolean) {
     });
 
     // Register configurations
-    const { loadEconomyConfig, resetEconomyConfig, registerConfigReset } = await import('@core/configurations.js');
-    await loadEconomyConfig(isMigration);
+    const { resetEconomyConfig, registerConfigReset } = await import('@core/configurations.js');
     registerConfigReset('economy', {
         reset: resetEconomyConfig,
         message: 'The economy configuration section has been reset to default.'

@@ -21,6 +21,10 @@ vi.mock('../configManagerFactory.js', () => ({
     default: mockFactory
 }));
 
+vi.mock('../../features/anticheat/configLoader.js', () => ({
+    loadAnticheatConfig: vi.fn()
+}));
+
 vi.mock('../logger.js', () => ({
     debugLog: vi.fn(),
     errorLog: vi.fn(),
@@ -29,6 +33,18 @@ vi.mock('../logger.js', () => ({
 
 // Mock `configurations.ts` to prevent dynamic import issues in resetConfigSection
 vi.mock('../configurations.js', () => ({
+    loadWorldProtectionConfig: vi.fn(),
+    loadShopConfig: vi.fn(),
+    loadRanksConfig: vi.fn(),
+    loadEconomyConfig: vi.fn(),
+    loadXrayConfig: vi.fn(),
+    loadTeamConfig: vi.fn(),
+    loadFriendConfig: vi.fn(),
+    loadSidebarConfig: vi.fn(),
+    loadAuctionHouseConfig: vi.fn(),
+    loadDailyRewardsConfig: vi.fn(),
+    loadGamesConfig: vi.fn(),
+    loadWordleConfig: vi.fn(),
     configResetRegistry: {},
     configResetCallbacks: {}
 }));

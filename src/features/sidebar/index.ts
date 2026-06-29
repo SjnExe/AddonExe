@@ -1,7 +1,7 @@
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { forceUpdate, initializeSidebar, resolveGlobalPlaceholders } from '@features/sidebar/manager.js';
 
-export async function initialize(isMigration: boolean) {
+export async function initialize(_isMigration: boolean) {
     initializeSidebar();
 
     serviceLocator.registerService('sidebar.manager', {
@@ -13,8 +13,7 @@ export async function initialize(isMigration: boolean) {
     });
 
     // Register configurations
-    const { loadSidebarConfig, resetSidebarConfig, registerConfigReset } = await import('@core/configurations.js');
-    await loadSidebarConfig(isMigration);
+    const { resetSidebarConfig, registerConfigReset } = await import('@core/configurations.js');
     registerConfigReset('sidebar', {
         reset: resetSidebarConfig,
         message: 'The sidebar configuration section has been reset to default.'
