@@ -117,7 +117,7 @@ jobs:
               run: |
                   set -e
                   # Read base version from package.json (e.g., 0.7.0)
-                  BASE_VER=$(node -p "require('./package.json').version")
+                  BASE_VER=$(bun -e "console.log(require('./package.json').version)")
 
                   MAJOR=$(echo $BASE_VER | cut -d. -f1)
                   MINOR=$(echo $BASE_VER | cut -d. -f2)
@@ -146,15 +146,15 @@ jobs:
                   IS_BETA_RELEASE: ${{ env.IS_BETA_RELEASE }}
               run: |
                   set -e
-                  node scripts/prepare-release.js
+                  bun scripts/prepare-release.js
 
             - name: Build TypeScript (Nightly)
               if: steps.build_type.outputs.type == 'nightly'
               run: |
                   bun run clean
-                  node scripts/generate-manifests.js --nightly --build-number ${{ github.run_number }}
-                  node scripts/build-assets.js
-                  npx tsup
+                  bun scripts/generate-manifests.js --nightly --build-number ${{ github.run_number }}
+                  bun scripts/build-assets.js
+                  bunx tsup
 
             - name: Build TypeScript (Stable)
               if: steps.build_type.outputs.type == 'stable'
