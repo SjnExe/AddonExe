@@ -346,3 +346,5 @@ jobs:
               uses: github/codeql-action/analyze@v4
               with:
                   category: '/language:javascript-typescript'
+                  ram: 14579 # Matches the ram in the job log to fully utilize GitHub Action runners
+                  threads: 4 # Also matches threads
