@@ -25,7 +25,7 @@ const logsCommand: CustomCommand = {
     name: 'logs',
     description: 'View punishment, anticheat, and chat logs.',
     category: 'Moderation',
-    permissionNode: 'cmd.logs', // Admin only
+    permissionNode: 'cmd.logs.admin', // Admin only
     execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
         await showLogsMenu(executor);

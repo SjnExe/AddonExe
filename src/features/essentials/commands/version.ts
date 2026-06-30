@@ -10,7 +10,7 @@ const command: CustomCommand = {
     aliases: ['ver'],
     description: 'Displays the current version of the addon.',
     category: 'General',
-    permissionNode: 'cmd.version', // Everyone
+    permissionNode: 'cmd.version.member', // Everyone
     parameters: [],
     execute: (executor: CommandExecutor) => {
         const config = getConfig();

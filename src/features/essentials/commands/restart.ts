@@ -6,7 +6,7 @@ const command: CustomCommand = {
     name: 'restart',
     description: 'Initiates the server restart sequence.',
     category: 'Administration',
-    permissionNode: 'cmd.restart', // Admin only
+    permissionNode: 'cmd.restart.admin', // Admin only
     allowConsole: true,
     parameters: [],
     execute: (executor, _args) => {

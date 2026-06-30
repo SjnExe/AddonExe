@@ -8,7 +8,7 @@ const command: CustomCommand = {
     name: 'floatingtext',
     description: 'Manages floating text entities.',
     category: 'Essentials',
-    permissionNode: 'cmd.floatingtext', // Admin
+    permissionNode: 'cmd.floatingtext.admin', // Admin
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     execute: (executor: CommandExecutor, args: any) => {
         if (!(executor instanceof mc.Player)) {

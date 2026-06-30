@@ -5,6 +5,7 @@ export interface ShopItem {
     icon?: string;
     displayName?: string;
     itemId?: string;
+    rankMultiplierOverrides?: Record<string, { buy: number; sell: number }>;
 }
 
 export interface ShopSubCategory {

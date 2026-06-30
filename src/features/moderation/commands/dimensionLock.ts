@@ -41,7 +41,7 @@ const netherLockCommand: CustomCommand = {
     name: 'netherlock',
     description: 'Toggles or sets the lock for the Nether dimension.',
     category: 'Administration',
-    permissionNode: 'cmd.netherlock',
+    permissionNode: 'cmd.netherlock.admin',
     allowConsole: true,
     parameters: [
         {
@@ -58,7 +58,7 @@ const endLockCommand: CustomCommand = {
     name: 'endlock',
     description: 'Toggles or sets the lock for the End dimension.',
     category: 'Administration',
-    permissionNode: 'cmd.endlock',
+    permissionNode: 'cmd.endlock.admin',
     allowConsole: true,
     parameters: [
         {

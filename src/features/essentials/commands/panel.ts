@@ -9,7 +9,7 @@ const panelCommand: CustomCommand = {
     aliases: ['ui', 'menu'],
     description: 'Opens the main UI panel.',
     category: 'Administration',
-    permissionNode: 'cmd.panel',
+    permissionNode: 'cmd.panel.member',
     execute: async (executor: CommandExecutor) => {
         if (executor instanceof mc.Player) {
             await showPanel(executor, 'mainPanel');

@@ -8,7 +8,7 @@ const statusCommand: CustomCommand = {
     name: 'status',
     description: 'Shows server status.',
     category: 'Essentials',
-    permissionNode: 'cmd.status',
+    permissionNode: 'cmd.status.owner',
     execute: (executor: CommandExecutor) => {
         const playerCount = getPlayerCount();
         const tick = mc.system.currentTick;

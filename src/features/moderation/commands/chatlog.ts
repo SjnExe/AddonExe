@@ -10,7 +10,7 @@ const chatlogCommand: CustomCommand = {
     name: 'chatlog',
     description: 'View chat logs directly.',
     category: 'Moderation',
-    permissionNode: 'cmd.chatlog',
+    permissionNode: 'cmd.chatlog.admin',
     allowConsole: false,
     execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;

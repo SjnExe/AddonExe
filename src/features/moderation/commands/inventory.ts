@@ -45,7 +45,7 @@ const invseeCommand: CustomCommand = {
     name: 'invsee',
     description: 'View the inventory of another player.',
     category: 'Moderation',
-    permissionNode: 'cmd.invsee',
+    permissionNode: 'cmd.invsee.mod',
     parameters: [{ name: 'player', type: 'string', optional: false }],
     execute: (executor: CommandExecutor, params: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
@@ -95,7 +95,7 @@ const ecseeCommand: CustomCommand = {
     name: 'ecsee',
     description: 'View the ender chest of another player.',
     category: 'Moderation',
-    permissionNode: 'cmd.ecsee',
+    permissionNode: 'cmd.ecsee.admin',
     parameters: [{ name: 'player', type: 'string', optional: false }],
     execute: (executor: CommandExecutor, _params: Record<string, unknown>) => {
         executor.sendMessage('§cEnder Chest inspection is not yet fully supported in this API version.');
@@ -106,7 +106,7 @@ const ecwipeCommand: CustomCommand = {
     name: 'ecwipe',
     description: "Clears a player's Ender Chest.",
     category: 'Moderation',
-    permissionNode: 'cmd.ecwipe',
+    permissionNode: 'cmd.ecwipe.admin',
     parameters: [{ name: 'player', type: 'string', optional: false }],
     execute: (executor: CommandExecutor, params: Record<string, unknown>) => {
         const targetName = params.player;
@@ -163,7 +163,7 @@ const copyinvCommand: CustomCommand = {
     name: 'copyinv',
     description: "Copies another player's inventory to yours.",
     category: 'Moderation',
-    permissionNode: 'cmd.copyinv',
+    permissionNode: 'cmd.copyinv.admin',
     parameters: [{ name: 'player', type: 'string', optional: false }],
     execute: (executor: CommandExecutor, params: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {

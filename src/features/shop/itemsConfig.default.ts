@@ -27,6 +27,7 @@ export interface ItemData {
         id: string;
         level: number;
     };
+    rankMultiplierOverrides?: Record<string, { buy: number; sell: number }>;
 }
 
 export const items: Record<string, ItemData> = {

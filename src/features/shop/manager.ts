@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getShopConfig } from '@core/configurations.js';
 import { errorLog } from '@core/logger.js';
+import { getPlayerRanks } from '@core/permissionEngine.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { formatCurrency } from '@core/utils.js';
 import { items as allItems } from '@features/shop/itemsConfig.default.js';
@@ -13,6 +14,7 @@ interface ItemInfo {
     enchantment?: { id: string; level: number };
     buyPrice?: number;
     sellPrice?: number;
+    rankMultiplierOverrides?: Record<string, { buy: number; sell: number }>;
 }
 
 interface ShopTransactionResult {
@@ -67,7 +69,7 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
  * @param itemId The item ID to look up.
  * @returns The item definition or undefined if not found.
  */
-function findShopItem(itemId: string): ItemInfo | undefined {
+export function findShopItem(itemId: string): ItemInfo | undefined {
     const shopConfig = getShopConfig();
     const categories = shopConfig.categories;
     const items = allItems as Record<string, ItemInfo>;
@@ -88,6 +90,44 @@ function findShopItem(itemId: string): ItemInfo | undefined {
         }
     }
     return undefined;
+}
+
+/**
+ * Calculates the dynamic price of an item based on the player's ranks and item overrides.
+ * @param player The player to calculate the price for.
+ * @param shopItem The shop item definition.
+ * @param type Whether we are calculating 'buy' or 'sell' price.
+ * @returns The calculated price, rounded to 2 decimal places.
+ */
+export function getPlayerShopItemPrice(player: mc.Player, shopItem: ItemInfo, type: 'buy' | 'sell'): number {
+    const basePrice = type === 'buy' ? shopItem.buyPrice : shopItem.sellPrice;
+    if (!isDefined(basePrice) || basePrice <= 0) return basePrice ?? -1;
+
+    const ranks = getPlayerRanks(player);
+    let bestMultiplier = 1;
+
+    for (const rank of ranks) {
+        let currentMultiplier = 1;
+
+        // First check item-specific override for this rank
+        if (isDefined(shopItem.rankMultiplierOverrides) && isDefined(shopItem.rankMultiplierOverrides[rank.id])) {
+            currentMultiplier = shopItem.rankMultiplierOverrides[rank.id]![type];
+        }
+        // Fallback to global rank multiplier
+        else if (isDefined(rank.shopMultiplier)) {
+            currentMultiplier = rank.shopMultiplier[type];
+        }
+
+        // We want the lowest buy price (lowest multiplier) and highest sell price (highest multiplier)
+        if (type === 'buy') {
+            if (currentMultiplier < bestMultiplier) bestMultiplier = currentMultiplier;
+        } else {
+            if (currentMultiplier > bestMultiplier) bestMultiplier = currentMultiplier;
+        }
+    }
+
+    const calculatedPrice = basePrice * bestMultiplier;
+    return Math.round(calculatedPrice * 100) / 100;
 }
 
 /**
@@ -135,7 +175,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
         return { success: false, message: '§cThis item is not available in the shop.' };
     }
 
-    const buyPrice = shopItem.buyPrice;
+    const buyPrice = getPlayerShopItemPrice(player, shopItem, 'buy');
     if (!isDefined(buyPrice) || buyPrice <= 0) {
         return { success: false, message: '§cThis item cannot be purchased.' };
     }
@@ -280,7 +320,7 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
         return { success: false, message: '§cThis item cannot be sold to the shop.' };
     }
 
-    const sellPrice = shopItem.sellPrice;
+    const sellPrice = getPlayerShopItemPrice(player, shopItem, 'sell');
     if (!isDefined(sellPrice) || sellPrice <= 0) {
         return { success: false, message: '§cThis item cannot be sold.' };
     }

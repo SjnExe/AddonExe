@@ -14,7 +14,7 @@ const rulesCommand: CustomCommand = {
     aliases: ['rule'],
     description: 'Displays the server rules.',
     category: 'General',
-    permissionNode: 'cmd.rules',
+    permissionNode: 'cmd.rules.member',
     allowConsole: true,
     parameters: [{ name: 'ruleNumber', type: 'int', optional: true }],
 

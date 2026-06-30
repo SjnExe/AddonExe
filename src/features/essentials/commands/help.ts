@@ -253,7 +253,7 @@ const helpCommand: CustomCommand = {
     aliases: ['?', 'h', 'cmds', 'commands'],
     description: 'Displays a list of available commands or help for a specific command.',
     category: 'General',
-    permissionNode: 'cmd.help',
+    permissionNode: 'cmd.help.member',
     allowConsole: true,
     parameters: [{ name: 'command', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: HelpCommandArgs) => {

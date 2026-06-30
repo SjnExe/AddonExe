@@ -21,7 +21,7 @@ const homeCommand: CustomCommand = {
     name: 'home',
     description: 'Teleports you to one of your set homes.',
     category: 'Transportation',
-    permissionNode: 'cmd.home',
+    permissionNode: 'cmd.home.member',
     parameters: [{ name: 'homeName', type: 'string', optional: true }],
     execute: async (executor: CommandExecutor, args: HomeCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
@@ -107,7 +107,7 @@ const homesCommand: CustomCommand = {
     description: 'Lists all of your set homes.',
     category: 'Transportation',
     aliases: ['homelist'],
-    permissionNode: 'cmd.homes',
+    permissionNode: 'cmd.homes.member',
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
             return;
@@ -135,7 +135,7 @@ const delHomeCommand: CustomCommand = {
     aliases: ['remhome', 'deletehome', 'rmhome', '-home'],
     description: 'Deletes one of your set homes. Leave name blank to choose from a list.',
     category: 'Transportation',
-    permissionNode: 'cmd.delhome',
+    permissionNode: 'cmd.delhome.member',
     parameters: [{ name: 'homeName', type: 'string', optional: true }],
     execute: async (executor: CommandExecutor, args: HomeCommandArgs) => {
         if (!(executor instanceof mc.Player)) {
@@ -196,7 +196,7 @@ const setHomeCommand: CustomCommand = {
     aliases: ['addhome', '+home'],
     description: 'Sets a home at your current location.',
     category: 'Transportation',
-    permissionNode: 'cmd.sethome',
+    permissionNode: 'cmd.sethome.member',
     parameters: [{ name: 'homeName', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: HomeCommandArgs) => {
         if (!(executor instanceof mc.Player)) {

@@ -14,7 +14,7 @@ const vanishCommand: CustomCommand = {
     aliases: ['v'],
     description: 'Makes you invisible to other players.',
     category: 'Moderation',
-    permissionNode: 'cmd.vanish',
+    permissionNode: 'cmd.vanish.mod',
     allowConsole: false,
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {

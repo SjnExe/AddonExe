@@ -10,7 +10,7 @@ const command: CustomCommand = {
     aliases: ['xreload'],
     description: 'Reloads the addon configuration from the config file.',
     category: 'Administration',
-    permissionNode: 'cmd.reload', // Admins only
+    permissionNode: 'cmd.reload.admin', // Admins only
     allowConsole: true,
     parameters: [],
     execute: (_executor) => {

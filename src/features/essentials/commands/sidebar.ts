@@ -8,7 +8,7 @@ const command: CustomCommand = {
     name: 'sidebar',
     description: 'Toggles the sidebar/HUD.',
     aliases: ['sb'],
-    permissionNode: 'cmd.sidebar', // Member
+    permissionNode: 'cmd.sidebar.member', // Member
     category: 'General',
     execute: (executor) => {
         if (!(executor instanceof mc.Player)) {

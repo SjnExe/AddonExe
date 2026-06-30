@@ -22,7 +22,7 @@ const warpCommand: CustomCommand = {
     description: 'Teleports you to a set warp location.',
     category: 'Transportation',
     aliases: ['warps'],
-    permissionNode: 'cmd.warp',
+    permissionNode: 'cmd.warp.admin',
     parameters: [
         {
             name: 'warpName',
@@ -127,7 +127,7 @@ const addWarpCommand: CustomCommand = {
     description: 'Creates a new warp at your current location or at specified coordinates.',
     category: 'Transportation',
     aliases: ['setwarp'],
-    permissionNode: 'cmd.addwarp', // Admin
+    permissionNode: 'cmd.addwarp.admin', // Admin
     parameters: [
         { name: 'warpName', type: 'string' },
         { name: 'x', type: 'int', optional: true },
@@ -170,7 +170,7 @@ const delWarpCommand: CustomCommand = {
     name: 'delwarp',
     description: 'Deletes an existing warp.',
     category: 'Transportation',
-    permissionNode: 'cmd.delwarp', // Admin
+    permissionNode: 'cmd.delwarp.admin', // Admin
     parameters: [
         {
             name: 'warpName',

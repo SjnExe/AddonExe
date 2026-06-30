@@ -15,7 +15,7 @@ const mainCommand: CustomCommand = {
     aliases: ['auction'],
     description: 'Auction House commands.',
     category: 'Economy',
-    permissionNode: 'cmd.ah',
+    permissionNode: 'cmd.ah.member',
     parameters: [
         { name: 'subcommand', type: 'string', optional: true, enumOptions: ['sell', 'help', 'search'] },
         { name: 'price', type: 'string', optional: true },
